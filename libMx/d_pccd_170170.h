@@ -104,6 +104,7 @@ typedef struct {
 	unsigned long pccd_170170_flags;
 
 	mx_bool_type buffer_overrun;
+	mx_bool_type subimage_uses_top_half;
 
 	long vinput_normal_framesize[2];
 	long normal_binsize[2];
@@ -258,7 +259,16 @@ typedef struct {
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   \
-  {MXLV_PCCD_170170_DH_BASE, -1, "dh_base", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "buffer_overrun", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, buffer_overrun), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "subimage_uses_top_half", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, subimage_uses_top_half), \
+	{0}, NULL, 0}, \
+  \
+  \
+  {-1, -1, "dh_base", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_base), \
 	{0}, NULL, 0}, \
   \

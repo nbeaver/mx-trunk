@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *server_record;
-	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
+	char remote_record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 
 	MX_NETWORK_FIELD value_nf;
 } MX_NETWORK_AOUTPUT;
@@ -48,9 +48,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_network_aoutput_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_AOUTPUT, server_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "remote_record_name", MXFT_STRING, \
-	NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
-     MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_AOUTPUT, remote_record_name), \
+  {-1, -1, "remote_record_field_name", MXFT_STRING, \
+	NULL, 1, {MXU_RECORD_FIELD_NAME_LENGTH}, \
+  MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_AOUTPUT, remote_record_field_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_NETWORK_AOUTPUT_H__ */

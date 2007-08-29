@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,6 +134,7 @@ mxd_network_aoutput_finish_record_initialization( MX_RECORD *record )
 
 	MX_ANALOG_OUTPUT *aoutput;
 	MX_NETWORK_AOUTPUT *network_aoutput;
+	char *name;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warning. */
@@ -153,9 +154,17 @@ mxd_network_aoutput_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_network_field_init( &(network_aoutput->value_nf),
-		network_aoutput->server_record,
-		"%s.value", network_aoutput->remote_record_name );
+	name = network_aoutput->remote_record_field_name;
+
+	if ( strchr( name, '.' ) == NULL ) {
+		mx_network_field_init( &(network_aoutput->value_nf),
+			network_aoutput->server_record,
+			"%s.value", network_aoutput->remote_record_field_name );
+	} else {
+		mx_network_field_init( &(network_aoutput->value_nf),
+			network_aoutput->server_record,
+			network_aoutput->remote_record_field_name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

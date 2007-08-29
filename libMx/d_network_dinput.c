@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -126,6 +126,7 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_NETWORK_DINPUT *network_dinput;
+	char *name;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -141,9 +142,17 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_network_field_init( &(network_dinput->value_nf),
-		network_dinput->server_record,
-		"%s.value", network_dinput->remote_record_name );
+	name = network_dinput->remote_record_field_name;
+
+	if ( strchr( name, '.' ) == NULL ) {
+		mx_network_field_init( &(network_dinput->value_nf),
+			network_dinput->server_record,
+			"%s.value", network_dinput->remote_record_field_name );
+	} else {
+		mx_network_field_init( &(network_dinput->value_nf),
+			network_dinput->server_record,
+			network_dinput->remote_record_field_name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

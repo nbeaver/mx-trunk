@@ -649,7 +649,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 		long num_lines_per_subimage, num_subimages, frame_width;
 		long bytes_per_half_subimage, bytes_per_half_image;
-		long top_offset, bottom_offset;
+		long top_offset, bottom_offset, sub_top;
 		char *temp_ptr, *image_ptr;
 		char *top_src_ptr, *top_dest_ptr;
 		char *bottom_src_ptr, *bottom_dest_ptr;
@@ -680,8 +680,18 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			fname, bytes_per_half_image));
 #endif
 
+		/* Check the flag that tells subimage mode to use the top
+		 * half of the detector rather than the bottom half.
+		 */
+
+		if ( pccd_170170->subimage_uses_top_half ) {
+			sub_top = 1L;
+		} else {
+			sub_top = 0L;
+		}
+
 		for ( i = 0; i < num_subimages; i++ ) {
-			top_offset = bytes_per_half_image
+			top_offset = (1L - sub_top) * bytes_per_half_image
 					+ i * bytes_per_half_subimage;
 
 			top_src_ptr = temp_ptr + top_offset;
@@ -692,8 +702,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			memcpy( top_dest_ptr, top_src_ptr,
 					bytes_per_half_subimage );
 
-			bottom_offset = 2 * bytes_per_half_image
-				- (i+1) * bytes_per_half_subimage;
+			bottom_offset = (2L - sub_top) * bytes_per_half_image
+				- (i+1L) * bytes_per_half_subimage;
 
 			bottom_src_ptr = temp_ptr + bottom_offset;
 
@@ -1572,6 +1582,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Turn off the buffer overrun flag. */
 
 	pccd_170170->buffer_overrun = FALSE;
+
+	/* Turn off the flag that tells subimage mode to use the top
+	 * half of the detector rather than the bottom half.
+	 */
+
+	pccd_170170->subimage_uses_top_half = FALSE;
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
@@ -4268,7 +4284,7 @@ mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 
 		record_field = &record_field_array[i];
 
-		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
 			record_field->process_function
 					= mxd_pccd_170170_process_function;
 		}
@@ -4306,14 +4322,14 @@ mxd_pccd_170170_process_function( void *record_ptr,
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
-		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
 			mx_status = mx_area_detector_get_long_parameter(
 					record, record_field->name, NULL );
 		}
 		break;
 
 	case MX_PROCESS_PUT:
-		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
 			mx_status = mx_area_detector_set_long_parameter(
 					record, record_field->name, NULL );
 		}

@@ -1,4 +1,6 @@
-Version 1.5.0 (not yet released - changelog current as of SVN revision 874):
+Version 1.5.0 (not yet released - changelog current as of SVN revision 874
+		with some changes after that included):
+
 	A major feature of this release is full functionality for the
 	PCCD-170170 area detector from Aviex LLC.  This has involved
 	upgrades to the 'pccd_170170' driver, the 'epix_xclib' related
@@ -15,16 +17,20 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874):
 	to the 'mxserver' command line.  In later MX releases, event
 	callbacks will be enabled by default.
 
-	[FIXME - The value changed infrastructure is only partially complete.]
-
 	So far the following kinds of callbacks have been implemented:
 
-	    Value changed poll - This is a callback that periodically
+	    Poll callback - This is a callback that periodically
 		reads values from MX server controlled hardware.  This
 		callback sends 'value changed' callbacks to MX clients
 		that have requested them.  The hardware is only polled
-		if a client has requested 'value changed' callbacks for
-		that device.  Otherwise the hardware is not polled.
+		if a client has requested 'poll' callbacks for that
+		device.  Otherwise the hardware is not polled.
+
+	    Value changed callback - This kind of callback is sent to
+		an MX client if a poll callback finds that the change
+		in the current value of the field exceeds the value change
+		threshold.  Value changed callbacks can also occur as
+		side effects of MX get and MX put calls.
 
 	    Backlash callback - If an MX client tells the MX server to
 		move a motor and the move will require backlash correction,
@@ -86,12 +92,37 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874):
 		epix_rs232 - This driver provides access to serial ports
 			on video imaging boards from Epix, Inc.
 
+	    Variable drivers:
+		file_double -
+		file_long -
+		file_string -
+		file_ulong - These drivers provide read and optionally
+			write access to operating system files.  They
+			were originally developed for use with Linux
+			/proc files, but they can be used with other
+			things such as named pipes.
+
 	    Video input driver:
 		file_vinput - This is a video input driver that reads
 			individual video frames from a set of image files
 			in a user specified directory.  The primary 
 			intended use for this driver is to provide frames
 			for a simulated area detector.
+
+	The 'network_dinput', 'network_doutput', 'network_ainput' and
+	'network_aoutput' drivers have been modified so that it is now
+	possible to use a record field name such as 'testdev.control'.
+	For previous versions of the drivers only the record name such
+	as 'testdev' can be specified, which is expanded internally to the
+	record field name 'testdev.value'.  You may still specify only
+	the record name if you want to use the remote 'value' field.
+
+	For 'network_ainput' drivers, the "server subtracts dark current"
+	feature is only supported if you specify only a record name such
+	as 'testvar' instead of specifying a record field name such as
+	'testvar.value'.  If you use the latter form, you may still save
+	dark current values in the local record, but then each MX client
+	will have its own private version of the dark current.
 
 	The 'mxsave' and 'mxrestore' scripts have been added.  These are
 	wrappers around the modern version of 'mxupdate' that allow the
