@@ -26,6 +26,10 @@
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
+#define MXD_PCCD_170170_DEBUG_TIMING			TRUE
+
+#define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -47,6 +51,10 @@
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
 #include "d_pccd_170170.h"
+
+#if MXD_PCCD_170170_DEBUG_TIMING
+#  include "mx_hrt_debug.h"
+#endif
 
 /*---*/
 
@@ -75,7 +83,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	NULL,
 	mxd_pccd_170170_get_extended_status,
 	mxd_pccd_170170_readout_frame,
-	NULL,
+	mxd_pccd_170170_correct_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -537,6 +545,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	uint16_t *frame_data;
 	mx_status_type mx_status;
 
+#if MXD_PCCD_170170_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The image_frame pointer passed was NULL." );
@@ -690,6 +702,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			sub_top = 0L;
 		}
 
+#if MXD_PCCD_170170_DEBUG_TIMING
+		MX_HRT_START( measurement );
+#endif
+
 		for ( i = 0; i < num_subimages; i++ ) {
 			top_offset = (1L - sub_top) * bytes_per_half_image
 					+ i * bytes_per_half_subimage;
@@ -713,6 +729,11 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			memcpy( bottom_dest_ptr, bottom_src_ptr,
 					bytes_per_half_subimage );
 		}
+
+#if MXD_PCCD_170170_DEBUG_TIMING
+		MX_HRT_END( measurement );
+		MX_HRT_RESULTS( measurement, fname, "for subimage memcpy." );
+#endif
 
 #if 1
 		/* Patch the row framesize and the image length so that
@@ -882,41 +903,6 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#if 0
-static mx_status_type
-mxd_pccd_170170_get_num_frames_in_sequence( MX_AREA_DETECTOR *ad,
-					long *num_frames_in_sequence )
-{
-	MX_SEQUENCE_PARAMETERS *sp;
-	long num_frames;
-
-	sp = &(ad->sequence_parameters);
-
-	switch( sp->sequence_type ) {
-	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
-	case MXT_SQ_STREAK_CAMERA:
-	case MXT_SQ_SUBIMAGE:
-		num_frames = 1;
-		break;
-	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
-	case MXT_SQ_STROBE:
-	case MXT_SQ_BULB:
-	case MXT_SQ_GEOMETRICAL:
-		num_frames = mx_round( sp->parameter_array[0] );
-		break;
-	default:
-		num_frames = 0;
-		break;
-	}
-
-	*num_frames_in_sequence = num_frames;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-#endif
 
 static mx_status_type
 mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
@@ -2609,6 +2595,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: Reading raw frame %ld", fname, frame_number));
+	MX_DEBUG(-2,("%s: ad->readout_frame = %ld, maximum_num_frames = %ld",
+		fname, ad->readout_frame, maximum_num_frames));
 #endif
 	/* Has this frame already been overwritten? */
 
@@ -2626,8 +2614,14 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 ("%s: frame_difference = %ld, total_num_frames = %ld, ad->readout_frame = %ld",
 		fname, frame_difference, total_num_frames, ad->readout_frame));
 #endif
+	/* Only check for frame overwriting if ad->readout_frame is larger
+	 * than the total number of frame buffers.  Only in this case can
+	 * we be sure that the possibility of buffer overrun exists.
+	 */
 
-	if ( frame_difference > 0 ) {
+	if ( ( ad->readout_frame >= maximum_num_frames )
+	  && ( frame_difference > 0 ) )
+	{
 		num_times_looped = frame_difference / maximum_num_frames;
 
 #if MXD_PCCD_170170_DEBUG
@@ -2795,6 +2789,235 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_pccd_170170_correct_frame()";
+
+	MX_PCCD_170170 *pccd_170170;
+	MX_SEQUENCE_PARAMETERS *sp;
+	unsigned long flags;
+	uint16_t *mask_data_ptr, *bias_data_ptr, *flood_field_data_ptr;
+	uint16_t *image_data_array;
+	uint16_t *image_stripe_ptr, *image_row_ptr, *image_pixel_ptr;
+	uint16_t *mask_pixel_ptr, *bias_pixel_ptr, *flood_field_pixel_ptr;
+	double flood_field_scale_factor;
+	long big_image_pixel;
+	long image_row_framesize, image_column_framesize;
+	long image_num_stripes, image_pixels_per_stripe;
+	long corr_row_framesize, corr_column_framesize;
+	long corr_centerline, corr_num_rows_per_stripe;
+	long corr_first_row, corr_start_offset;
+	long i, j, k;
+	mx_status_type mx_status;
+
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	sp = &(ad->sequence_parameters);
+
+	if ( (sp->sequence_type != MXT_SQ_SUBIMAGE)
+	  && (sp->sequence_type != MXT_SQ_STREAK_CAMERA) )
+	{
+		/* For normal full frame images, use the default
+		 * correction function.
+		 */
+
+		mx_status = mx_area_detector_default_correct_frame( ad );
+
+		return mx_status;
+	}
+
+	if ( ad->image_frame == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image frames have been taken or loaded by detector '%s' "
+		"since this program was started.", ad->record->name );
+	}
+
+	image_data_array = ad->image_frame->image_data;
+
+	image_row_framesize    = MXIF_ROW_FRAMESIZE(ad->image_frame);
+	image_column_framesize = MXIF_COLUMN_FRAMESIZE(ad->image_frame);
+
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,
+	("%s: image_row_framesize = %ld, image_column_framesize = %ld",
+		fname, image_row_framesize, image_column_framesize));
+#endif
+
+	/*******************************************************************
+	 * Find the pixel offset of the first row in the correction frames *
+	 * that will be used to correct the data.                          *
+	 *******************************************************************/
+
+	/* We get the dimensions of the correction frames from the bias frame.*/
+
+	if ( ad->bias_frame == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No bias frame has been loaded for detector '%s'.",
+			ad->record->name );
+	}
+
+	corr_row_framesize    = MXIF_ROW_FRAMESIZE(ad->bias_frame);
+	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(ad->bias_frame);
+
+	if ( image_column_framesize != corr_column_framesize ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"The number of columns (%ld) in the image frame is not "
+		"same as the number of columns (%ld) in the bias frame "
+		"for area detector '%s'.",
+			image_column_framesize, corr_column_framesize,
+			ad->record->name );
+	}
+
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,
+	("%s: corr_row_framesize = %ld, corr_column_framesize = %ld",
+		fname, corr_row_framesize, corr_column_framesize));
+#endif
+
+	/* Find the centerline of the correction frame data. */
+
+	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
+	    corr_centerline = mx_round(0.75 * (double) corr_row_framesize);
+
+	    corr_num_rows_per_stripe = 2L;
+	} else {
+	    if ( pccd_170170->subimage_uses_top_half ) {
+		corr_centerline = mx_round(0.25 * (double) corr_row_framesize);
+	    } else {
+		corr_centerline = mx_round(0.75 * (double) corr_row_framesize);
+	    }
+	    corr_num_rows_per_stripe = mx_round( sp->parameter_array[0] );
+	}
+
+	image_num_stripes = image_row_framesize / corr_num_rows_per_stripe;
+
+	image_pixels_per_stripe = image_num_stripes * image_column_framesize;
+
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,
+	("%s: corr_centerline = %ld, corr_num_rows_per_stripe = %ld",
+		fname, corr_centerline, corr_num_rows_per_stripe));
+	MX_DEBUG(-2,
+	("%s: image_num_stripes = %ld, image_pixels_per_stripe = %ld",
+		fname, image_num_stripes, image_pixels_per_stripe));
+#endif
+	/* Now find the first row pixel offset. */
+
+	corr_first_row = corr_centerline - ( corr_num_rows_per_stripe / 2L );
+
+	corr_start_offset = corr_first_row * corr_column_framesize;
+
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s: corr_first_row = %ld, corr_start_offset = %ld",
+		fname, corr_first_row, corr_start_offset));
+#endif
+
+	/*---*/
+
+	flags = ad->correction_flags;
+
+	/* Get pointers to the parts of the correction frames that we
+	 * will use for the subimage or streak camera frame.
+	 */
+
+	if ( (flags & MXFT_AD_MASK_FRAME) && (ad->mask_frame != NULL) ) {
+		mask_data_ptr = ad->mask_frame->image_data;
+		mask_data_ptr += corr_start_offset;
+	} else {
+		mask_data_ptr = NULL;
+	}
+	if ( (flags & MXFT_AD_BIAS_FRAME) && (ad->bias_frame != NULL) ) {
+		bias_data_ptr = ad->bias_frame->image_data;
+		bias_data_ptr += corr_start_offset;
+	} else {
+		bias_data_ptr = NULL;
+	}
+
+	/* We do not do dark current correction for subimage
+	 * or streak camera frames.
+	 */
+
+	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) && (ad->bias_frame != NULL) ) {
+		flood_field_data_ptr = ad->flood_field_frame->image_data;
+		flood_field_data_ptr += corr_start_offset;
+	} else {
+		flood_field_data_ptr = NULL;
+	}
+
+	/* Now walk through the stripes in the image data
+	 * and do the corrections.
+	 */
+
+	for ( i = 0; i < image_num_stripes; i++ ) {
+	    image_stripe_ptr = image_data_array + i * image_pixels_per_stripe;
+
+	    for ( j = 0; j < corr_num_rows_per_stripe; j++ ) {
+		image_row_ptr = image_stripe_ptr + j * image_column_framesize;
+
+		for ( k = 0; k < image_column_framesize; k++ ) {
+		    image_pixel_ptr = image_row_ptr + k;
+
+		    /* See if the pixel is masked off. */
+
+		    if ( mask_data_ptr != NULL ) {
+			mask_pixel_ptr = mask_data_ptr
+						+ j * corr_column_framesize + k;
+
+			if ( *mask_pixel_ptr == 0 ) {
+
+			    /* If the pixel is masked off, skip this pixel
+			     * and return to the top of the k loop for
+			     * the next pixel.
+			     */
+
+			    *image_pixel_ptr = 0;
+			    continue;
+			}					
+		    }
+
+		    /* Add the detector bias. */
+
+		    if ( bias_data_ptr != NULL ) {
+			bias_pixel_ptr = bias_data_ptr
+						+ j * corr_column_framesize + k;
+
+			*image_pixel_ptr += *bias_pixel_ptr;
+		    }
+
+		    /* Do the flood field correction. */
+
+		    if ( flood_field_data_ptr != NULL ) {
+			flood_field_pixel_ptr = flood_field_data_ptr
+						+ j * corr_column_framesize + k;
+
+			flood_field_scale_factor =
+			    mx_divide_safely( ad->flood_field_average_intensity,
+					(double) *flood_field_pixel_ptr );
+
+			big_image_pixel = mx_round(
+			  flood_field_scale_factor * (double) *image_pixel_ptr);
+
+			if ( big_image_pixel > 65535 ) {
+			    *image_pixel_ptr = 65535;
+			} else {
+			    *image_pixel_ptr = big_image_pixel;
+			}
+		    }
+		}
+	    }
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -3502,6 +3725,23 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			}
 			break;
 		case MXT_SQ_STREAK_CAMERA:
+			/* See if the user has requested too few streak
+			 * camera lines.
+			 */
+
+			num_streak_mode_lines
+				= mx_round_down( sp->parameter_array[0] / 2.0 );
+
+			if ( num_streak_mode_lines < 1050 ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The number of streak camera lines (%ld) requested "
+			"for area detector '%s' is less than the minimum "
+			"of 1050 lines.  If you need less than 1050 lines, "
+			"then use subimage mode instead.",
+					num_streak_mode_lines,
+					ad->record->name );
+			}
+
 			/* Get the detector readout time. */
 
 			mx_status = mx_area_detector_get_detector_readout_time(
@@ -3585,9 +3825,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			/* Set the number of streak camera mode lines.*/
-
-			num_streak_mode_lines
-				= mx_round_down( sp->parameter_array[0] / 2.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
