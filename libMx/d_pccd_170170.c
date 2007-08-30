@@ -973,11 +973,11 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_bool_type high_speed;
-	unsigned long control_register;
+	unsigned long n, control_register;
 	unsigned long linenum, pixnum, linesrd, pixrd, lbin, pixbin;
 	unsigned long nlsi, tbe, mtbe, tpre, tshut, mtshut, tpost, nsi;
-	double vshift, vshiftbin, hshift_hs, hshiftbin, hshift_ln;
-	double t;
+	double vshift, vshiftbin, vshift_half, hshift_hs, hshiftbin, hshift_ln;
+	double t, tbe_sum, tbe_product, tshut_sum, tshut_product;
 	mx_status_type mx_status;
 
 	/* If we are using a detector head simulator,
@@ -1111,11 +1111,12 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 			return mx_status;
 	}
 
-	vshift =    100.0e-6;
-	vshiftbin = 60.0e-6;
-	hshift_hs = 360.0e-9;
-	hshift_ln = 1.25e-6;
-	hshiftbin = 300.0e-9;
+	vshift      = 100.0e-6;
+	vshiftbin   = 60.0e-6;
+	vshift_half = 30.0e-6;
+	hshift_hs   = 360.0e-9;
+	hshift_ln   = 1.25e-6;
+	hshiftbin   = 300.0e-9;
 
 	/******************************************************************
 	 *           Detector readout time calculation formulas           *
@@ -1133,116 +1134,153 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 	case MXT_SQ_SUBIMAGE:
 
+	    tbe_sum = 0.0;
+	    tbe_product = tbe;
+
+	    for ( n = 1; n <= (nsi-1); n++ ) {
+		tbe_sum = tbe_sum + tbe_product;
+
+		tbe_product = tbe_product * ( mtbe + 1 );
+	    }
+
+	    tshut_sum = 0.0;
+	    tshut_product = tshut;
+
+	    for ( n = 1; n <= nsi; n++ ) {
+		tshut_sum = tshut_sum + tshut_product;
+
+		tshut_product = tshut_product * ( mtshut + 1 );
+	    }
+
 	    if ( high_speed ) {		/* High Speed Mode */
 
 		if ( (lbin == 1) && (pixbin == 1) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_hs + hshiftbin
-			+ hshift_hs*(pixnum - 2));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ (vshift + hshift_hs + hshiftbin
+				+ hshift_hs * (pixnum - 2)) * (nsi * nlsi + 1);
 		} else
 		if ( (lbin > 1) && (pixbin == 1) ) {
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_hs + hshiftbin + hshift_hs*(pixnum-2)
+			+ (vshift + vshiftbin * (lbin - 1) + hshift_hs
+				+ hshiftbin + hshift_hs * (pixnum - 2))
+					* ( nsi * nlsi / (double) lbin );
 
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_hs + hshiftbin + hshift_hs*(pixnum - 2));
 		} else
 		if ( (lbin == 1) && (pixbin < 16) ) {
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ ( vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * (pixbin-1))
+					* ((pixnum - 2) / (double) pixbin) )
+			    * ( nsi * nlsi + 1 );
 
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_hs + hshiftbin
-			+ (hshift_hs
-			+ hshiftbin*(pixbin - 1))*((pixnum - 2)/pixbin));
 		} else
 		if ( (lbin == 1) && (pixbin >= 16) ) {
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ ( vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * 7)
+					* (((pixnum-2) - pixrd)/8.0)
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* (pixrd / (double) pixbin) )
+			    * (nsi * nlsi + 1);
 
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_hs + hshiftbin
-			+ (hshift_hs + hshiftbin*7)*(((pixnum - 2) - pixrd)/8)
-			+ (hshift_hs + hshiftbin*(pixbin - 1))*(pixrd/pixbin));
 		} else
 		if ( (lbin > 1) && (pixbin < 16) ) {
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_hs + hshiftbin + hshift_hs*(pixnum-2)
+			+ ( vshift + vshiftbin * (lbin - 1)
+				+ hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * (pixbin-1))
+					* ((pixnum-2)/ (double) pixbin) )
+			    * (nsi * nlsi / (double) lbin);
 
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_hs + hshiftbin + (hshift_hs
-			+ hshiftbin*(pixbin - 1))*((pixnum - 2)/pixbin));
 		} else
 		if ( (lbin > 1) && (pixbin >= 16) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_hs + hshiftbin
-			+ (hshift_hs + hshiftbin*7)*(((pixnum - 2) - pixrd)/8)
-			+ (hshift_hs + hshiftbin*(pixbin - 1))*(pixrd/pixbin));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_hs + hshiftbin + hshift_hs*(pixnum-2)
+			+ ( vshift + vshiftbin * (lbin - 1)
+				+ hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * 7)
+					* ((pixnum - 2) - pixrd) / 8.0
+				+ (hshift_hs + hshiftbin * (pixbin-1))
+					* (pixrd / (double) pixbin) )
+			    * (nsi * nlsi / (double) lbin);
 		}
 
 	    } else {			/* Low Noise Mode */
 
 		if ( (lbin == 1) && (pixbin == 1) ) {
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ ( vshift + hshift_ln + hshiftbin
+				+ hshift_ln*(pixnum-2) ) * (nsi * nlsi + 1);
 
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_ln + hshiftbin
-			+ hshift_ln*(pixnum - 2));
 		} else
 		if ( (lbin > 1) && (pixbin == 1) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_ln + hshiftbin + hshift_ln*(pixnum - 2));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_ln + hshiftbin + hshift_ln*(pixnum-2)
+			+ ( vshift + vshiftbin * (lbin-1)
+				+ hshift_ln + hshiftbin + hshift_ln*(pixnum-2) )
+			    * (nsi * nlsi / (double) lbin);
 		} else
 		if ( (lbin == 1) && (pixbin < 16) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_ln + hshiftbin
-			+ (hshift_ln
-			+ hshiftbin*(pixbin - 1))*((pixnum - 2)/pixbin));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ ( vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * (pixbin-1))
+					*((pixnum-2)/ (double) pixbin) )
+			    * (nsi * nlsi + 1);
 		} else
 		if ( (lbin == 1) && (pixbin >= 16) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ (nsi*nlsi)*(vshift + hshift_ln + hshiftbin
-			+ (hshift_ln + hshiftbin*7)*(((pixnum - 2) - pixrd)/8)
-			+ (hshift_ln + hshiftbin*(pixbin - 1))*(pixrd/pixbin));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ ( vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * 7)
+					* (((pixnum-2) - pixrd) / 8.0)
+				+ (hshift_ln + hshiftbin * (pixbin-1))
+					* (pixrd / (double) pixbin) )
+			    * (nsi * nlsi + 1);
 		} else
 		if ( (lbin > 1) && (pixbin < 16) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_ln + hshiftbin + (hshift_ln
-			+ hshiftbin*(pixbin - 1))*((pixnum - 2)/pixbin));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_ln + hshiftbin * hshift_ln*(pixnum-2)
+			+ ( vshift + vshiftbin * (lbin-1)
+				+ hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin*(pixbin-1))
+					* ((pixnum-2) / (double) pixbin) )
+			    * ( nsi * nlsi / (double) lbin );
 		} else
 		if ( (lbin > 1) && (pixbin >= 16) ) {
-
-		    t = (vshift*nlsi + tbe*(mtbe + 1)
-			+ (tpre + tshut*(mtshut + 1) + tpost))*(nsi - 1)
-			+ (linenum - (nsi*nlsi))*(vshiftbin)
-			+ ((nsi*nlsi)/lbin)*(vshift + vshiftbin*(lbin - 1)
-			+ hshift_ln + hshiftbin
-			+ (hshift_ln + hshiftbin*7)*(((pixnum - 2) - pixrd)/8)
-			+ (hshift_ln + hshiftbin*(pixbin - 1))*(pixrd/pixbin));
+		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
+			+ tbe_sum + tshut_sum
+			+ vshiftbin * (linenum - nsi * nlsi - 1)
+			+ vshift + hshift_ln + hshiftbin + hshift_ln*(pixnum-2)
+			+ ( vshift + vshiftbin * (lbin-1)
+				+ hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * 7)
+					* (((pixnum-2) - pixrd) / 8.0)
+				+ (hshift_ln + hshiftbin*(pixbin-1))
+					* (pixrd / (double) pixbin) )
+			    * (nsi * nlsi / (double) lbin);
 		}
 	    }
 
