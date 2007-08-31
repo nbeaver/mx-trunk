@@ -1171,14 +1171,14 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
 			+ tbe_sum + tshut_sum
 			+ vshiftbin * (linenum - nsi * nlsi - 1)
-			+ (vshift + hshift_hs + hshiftbin
-				+ hshift_hs * (pixnum - 2)) * (nsi * nlsi + 1);
+			+ (vshift + hshiftbin + hshift_hs * (pixnum - 1))
+				* (nsi * nlsi + 1);
 		} else
 		if ( (lbin > 1) && (pixbin == 1) ) {
 		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
 			+ tbe_sum + tshut_sum
 			+ vshiftbin * (linenum - nsi * nlsi - 1)
-			+ vshift + hshift_hs + hshiftbin + hshift_hs*(pixnum-2)
+			+ vshift + hshiftbin + hshift_hs * (pixnum - 1)
 			+ (vshift + vshiftbin * (lbin - 1) + hshift_hs
 				+ hshiftbin + hshift_hs * (pixnum - 2))
 					* ( nsi * nlsi / (double) lbin );
@@ -1238,15 +1238,15 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
 			+ tbe_sum + tshut_sum
 			+ vshiftbin * (linenum - nsi * nlsi - 1)
-			+ ( vshift + hshift_ln + hshiftbin
-				+ hshift_ln*(pixnum-2) ) * (nsi * nlsi + 1);
+			+ ( vshift + hshiftbin + hshift_ln * (pixnum-1) )
+				* (nsi * nlsi + 1);
 
 		} else
 		if ( (lbin > 1) && (pixbin == 1) ) {
 		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
 			+ tbe_sum + tshut_sum
 			+ vshiftbin * (linenum - nsi * nlsi - 1)
-			+ vshift + hshift_ln + hshiftbin + hshift_ln*(pixnum-2)
+			+ vshift + hshiftbin + hshift_ln * (pixnum-1)
 			+ ( vshift + vshiftbin * (lbin-1)
 				+ hshift_ln + hshiftbin + hshift_ln*(pixnum-2) )
 			    * (nsi * nlsi / (double) lbin);
@@ -1275,7 +1275,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		    t = (vshiftbin * nlsi + tpre + tpost + vshift_half)*(nsi-1)
 			+ tbe_sum + tshut_sum
 			+ vshiftbin * (linenum - nsi * nlsi - 1)
-			+ vshift + hshift_ln + hshiftbin * hshift_ln*(pixnum-2)
+			+ vshift + hshift_ln + hshiftbin + hshift_ln*(pixnum-2)
 			+ ( vshift + vshiftbin * (lbin-1)
 				+ hshift_ln + hshiftbin
 				+ (hshift_ln + hshiftbin*(pixbin-1))
