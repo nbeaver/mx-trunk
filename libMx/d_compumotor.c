@@ -781,7 +781,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 		destination = motor->raw_destination.analog;
 	}
 
-	snprintf( command, sizeof(command), "%ld_!%ldD%g",
+	snprintf( command, sizeof(command), "%ld_!%ldD%f",
 			compumotor->controller_number,
 			compumotor->axis_number, destination );
 
@@ -921,7 +921,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 		}
 		if ( j+1 == compumotor->axis_number ) {
 			snprintf( buffer, sizeof(buffer),
-					"%g", new_set_position );
+					"%f", new_set_position );
 		} else {
 			if ( motor_array[j] == (MX_RECORD *) NULL ) {
 				strlcpy( buffer, "0", sizeof(buffer) );
@@ -939,7 +939,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 					other_motor->raw_position.analog;
 
 				snprintf( buffer, sizeof(buffer),
-					"%g", other_motor_position );
+					"%f", other_motor_position );
 			}
 		}
 		strlcat( command, buffer, sizeof(command) );
@@ -1540,7 +1540,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		double_value = mx_divide_safely( motor->raw_speed,
 						compumotor->axis_resolution );
 
-		snprintf( command, sizeof(command), "%ld_!%ldV%g",
+		snprintf( command, sizeof(command), "%ld_!%ldV%f",
 						compumotor->controller_number,
 						compumotor->axis_number,
 						double_value );
@@ -1588,7 +1588,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			double_value = mx_divide_safely( motor->raw_base_speed,
 						compumotor->axis_resolution );
 
-			snprintf( command, sizeof(command), "%ld_!%ldSSV%g",
+			snprintf( command, sizeof(command), "%ld_!%ldSSV%f",
 						compumotor->controller_number,
 						compumotor->axis_number,
 						double_value );
@@ -1663,7 +1663,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->raw_acceleration_parameters[0],
 					compumotor->axis_resolution );
 
-		snprintf( command, sizeof(command), "%ld_!%ldA%g",
+		snprintf( command, sizeof(command), "%ld_!%ldA%f",
 					compumotor->controller_number,
 					compumotor->axis_number,
 					double_value );

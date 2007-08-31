@@ -519,14 +519,25 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 		/* Copy the pixels. */
 
-		image_ptr[0] = raw_ptr[0];
-		image_ptr[1] = raw_ptr[1];
-		image_ptr[2] = raw_ptr[4];
-		image_ptr[3] = raw_ptr[5];
-		image_ptr[4] = raw_ptr[3];
-		image_ptr[5] = raw_ptr[2];
-		image_ptr[6] = raw_ptr[7];
-		image_ptr[7] = raw_ptr[6];
+		if ( pccd_170170->use_top_half_of_detector ) {
+			image_ptr[0] = raw_ptr[14];
+			image_ptr[1] = raw_ptr[15];
+			image_ptr[2] = raw_ptr[10];
+			image_ptr[3] = raw_ptr[11];
+			image_ptr[4] = raw_ptr[13];
+			image_ptr[5] = raw_ptr[12];
+			image_ptr[6] = raw_ptr[9];
+			image_ptr[7] = raw_ptr[8];
+		} else {
+			image_ptr[0] = raw_ptr[0];
+			image_ptr[1] = raw_ptr[1];
+			image_ptr[2] = raw_ptr[4];
+			image_ptr[3] = raw_ptr[5];
+			image_ptr[4] = raw_ptr[3];
+			image_ptr[5] = raw_ptr[2];
+			image_ptr[6] = raw_ptr[7];
+			image_ptr[7] = raw_ptr[6];
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -661,7 +672,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 		long num_lines_per_subimage, num_subimages, frame_width;
 		long bytes_per_half_subimage, bytes_per_half_image;
-		long top_offset, bottom_offset, sub_top;
+		long top_offset, bottom_offset, use_top_half;
 		char *temp_ptr, *image_ptr;
 		char *top_src_ptr, *top_dest_ptr;
 		char *bottom_src_ptr, *bottom_dest_ptr;
@@ -696,10 +707,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		 * half of the detector rather than the bottom half.
 		 */
 
-		if ( pccd_170170->subimage_uses_top_half ) {
-			sub_top = 1L;
+		if ( pccd_170170->use_top_half_of_detector ) {
+			use_top_half = 1L;
 		} else {
-			sub_top = 0L;
+			use_top_half = 0L;
 		}
 
 #if MXD_PCCD_170170_DEBUG_TIMING
@@ -707,7 +718,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 #endif
 
 		for ( i = 0; i < num_subimages; i++ ) {
-			top_offset = (1L - sub_top) * bytes_per_half_image
+			top_offset =
+				(1L - use_top_half) * bytes_per_half_image
 					+ i * bytes_per_half_subimage;
 
 			top_src_ptr = temp_ptr + top_offset;
@@ -718,8 +730,9 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			memcpy( top_dest_ptr, top_src_ptr,
 					bytes_per_half_subimage );
 
-			bottom_offset = (2L - sub_top) * bytes_per_half_image
-				- (i+1L) * bytes_per_half_subimage;
+			bottom_offset =
+				(2L - use_top_half) * bytes_per_half_image
+					- (i+1L) * bytes_per_half_subimage;
 
 			bottom_src_ptr = temp_ptr + bottom_offset;
 
@@ -1607,11 +1620,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->buffer_overrun = FALSE;
 
-	/* Turn off the flag that tells subimage mode to use the top
-	 * half of the detector rather than the bottom half.
+	/* Turn off the flag that tells the subimage and streak camera modes
+	 * to use the top half of the detector rather than the bottom half.
 	 */
 
-	pccd_170170->subimage_uses_top_half = FALSE;
+	pccd_170170->use_top_half_of_detector = FALSE;
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
@@ -2865,9 +2878,10 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( (sp->sequence_type != MXT_SQ_SUBIMAGE)
 	  && (sp->sequence_type != MXT_SQ_STREAK_CAMERA) )
 	{
-		/* For normal full frame images, use the default
-		 * correction function.
-		 */
+		/*************************************************
+		 * For normal full frame images, use the default *
+		 * correction function and then return.          *
+		 *************************************************/
 
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
@@ -2924,17 +2938,16 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	/* Find the centerline of the correction frame data. */
 
-	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
-	    corr_centerline = mx_round(0.75 * (double) corr_row_framesize);
-
-	    corr_num_rows_per_stripe = 2L;
-	} else {
-	    if ( pccd_170170->subimage_uses_top_half ) {
+	if ( pccd_170170->use_top_half_of_detector ) {
 		corr_centerline = mx_round(0.25 * (double) corr_row_framesize);
-	    } else {
+	} else {
 		corr_centerline = mx_round(0.75 * (double) corr_row_framesize);
-	    }
-	    corr_num_rows_per_stripe = mx_round( sp->parameter_array[0] );
+	}
+
+	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
+		corr_num_rows_per_stripe = 2L;
+	} else {
+		corr_num_rows_per_stripe = mx_round( sp->parameter_array[0] );
 	}
 
 	image_num_stripes = image_row_framesize / corr_num_rows_per_stripe;
