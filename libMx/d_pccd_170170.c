@@ -749,11 +749,11 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 #endif
 
 #if 1
-		/* Patch the row framesize and the image length so that
+		/* Patch the column framesize and the image length so that
 		 * it matches the total size of the subimage frame.
 		 */
 
-		MXIF_ROW_FRAMESIZE(image_frame) =
+		MXIF_COLUMN_FRAMESIZE(image_frame) =
 					num_subimages * num_lines_per_subimage;
 
 		image_frame->image_length =
@@ -2872,6 +2872,8 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 #if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
+	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx",
+		fname, ad->correction_flags));
 #endif
 	sp = &(ad->sequence_parameters);
 
@@ -2886,6 +2888,12 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
 		return mx_status;
+	}
+
+	if ( ad->correction_flags == 0 ) {
+		/* No corrections have been requested. */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	if ( ad->image_frame == NULL ) {
