@@ -88,6 +88,7 @@ extern void motor_rtems_reboot( void );
 extern int motor_main( int argc, char *argv[] );
 
 extern int motor_area_detector_fn( int argc, char *argv[] );
+extern int motor_break_fn( int argc, char *argv[] );
 extern int motor_ccd_fn( int argc, char *argv[] );
 extern int motor_cd_fn( int argc, char *argv[] );
 extern int motor_copy_fn( int argc, char *argv[] );

@@ -47,6 +47,7 @@ COMMAND command_list[] = {
 			    2, "area_detector" },
 	{ motor_area_detector_fn,
 			    2, "ad"            }, /* alias for 'area_detector'*/
+	{ motor_break_fn,   5, "break"         },
 	{ motor_ccd_fn,     2, "ccd"           },
 	{ motor_cd_fn,      2, "cd"            },
 	{ motor_sample_changer_fn,
@@ -575,6 +576,14 @@ motor_main( int argc, char *argv[] )
 
 	return 0;
 #endif
+}
+
+int
+motor_break_fn( int argc, char *argv[] )
+{
+	mx_start_debugger(NULL);
+
+	return SUCCESS;
 }
 
 int
