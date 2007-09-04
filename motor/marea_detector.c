@@ -73,7 +73,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long saved_correction_flags;
 	double measurement_time, total_sequence_time;
 	double exposure_time, frame_time, exposure_multiplier, gap_multiplier;
-	double exposure_time_per_line, subimage_time;
+	double exposure_time_per_line, total_time_per_line, subimage_time;
 	double bytes_per_pixel;
 	mx_bool_type busy;
 	mx_status_type mx_status;
@@ -107,7 +107,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set bulb_mode '# frames'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
 "      'exposure time' 'frame_time' 'exposure multiplier' 'gap multiplier'\n"
-"  area_detector 'name' set streak_camera_mode '# lines' 'exposure time'\n"
+"  area_detector 'name' set streak_camera_mode '# lines'\n"
+"                             'exposure time per line' 'total time per line'\n"
 "  area_detector 'name' set subimage_mode '# lines per subimage' '#subimages'\n"
 "      'exposure time' 'subimage time' 'exposure multiplier' 'gap multiplier'\n"
 "\n"
@@ -1818,7 +1819,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( strncmp("streak_camera_mode",
 				argv[4], strlen(argv[4])) == 0)
 		{
-			if ( argc != 7 ) {
+			if ( argc != 8 ) {
 				fprintf( output,
 			"Wrong number of arguments specified for 'set %s'.\n",
 					argv[4] );
@@ -1837,8 +1838,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time_per_line = atof( argv[6] );
 
+			total_time_per_line = atof( argv[7] );
+
 			mx_status = mx_area_detector_set_streak_camera_mode(
-				ad_record, num_lines, exposure_time_per_line );
+				ad_record, num_lines, 
+				exposure_time_per_line,
+				total_time_per_line );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

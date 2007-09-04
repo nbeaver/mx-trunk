@@ -746,7 +746,8 @@ MX_API mx_status_type mx_area_detector_set_geometrical_mode(
 MX_API mx_status_type mx_area_detector_set_streak_camera_mode(
 						MX_RECORD *ad_record,
 						long num_lines,
-						double exposure_time_per_line );
+						double exposure_time_per_line,
+						double total_time_per_line );
 
 MX_API mx_status_type mx_area_detector_set_subimage_mode(
 						MX_RECORD *ad_record,

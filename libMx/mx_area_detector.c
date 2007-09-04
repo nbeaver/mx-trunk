@@ -1787,15 +1787,17 @@ mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_set_streak_camera_mode( MX_RECORD *record,
 					long num_lines,
-					double exposure_time_per_line )
+					double exposure_time_per_line,
+					double total_time_per_line )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
 	mx_status_type mx_status;
 
 	seq_params.sequence_type = MXT_SQ_STREAK_CAMERA;
-	seq_params.num_parameters = 2;
+	seq_params.num_parameters = 3;
 	seq_params.parameter_array[0] = num_lines;
 	seq_params.parameter_array[1] = exposure_time_per_line;
+	seq_params.parameter_array[2] = total_time_per_line;
 
 	mx_status = mx_area_detector_set_sequence_parameters( record,
 								&seq_params );

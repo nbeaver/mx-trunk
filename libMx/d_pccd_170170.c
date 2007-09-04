@@ -986,9 +986,12 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_bool_type high_speed;
-	unsigned long n, control_register;
+	unsigned long N, n, control_register;	/* C is case sensitive. */
+	unsigned long sumlimit;
 	unsigned long linenum, pixnum, linesrd, pixrd, lbin, pixbin;
-	unsigned long nlsi, tbe, mtbe, tpre, tshut, mtshut, tpost, nsi;
+	unsigned long nlsi, mtbe, mtshut, nsi, nsc;
+	unsigned long tbe_raw, tpre_raw, tshut_raw, tpost_raw;
+	double tbe, tpre, tshut, tpost;
 	double vshift, vshiftbin, vshift_half, hshift_hs, hshiftbin, hshift_ln;
 	double t, tbe_sum, tbe_product, tshut_sum, tshut_product;
 	mx_status_type mx_status;
@@ -1066,34 +1069,44 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( sp->sequence_type == MXT_SQ_SUBIMAGE ) {
+	if ( ( sp->sequence_type == MXT_SQ_SUBIMAGE )
+	  || ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) )
+	{
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME,
-				&tpre );
+				&tpre_raw );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		tpre = 10.0e-6 * (double) tpre_raw;
 
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
-				&tshut );
+				&tshut_raw );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		tshut = 1.0e-3 * (double) tshut_raw;
 
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
-				&tpost );
+				&tpost_raw );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		tpost = 10.0e-6 * (double) tpost_raw;
 
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_GAP_TIME,
-				&tbe );
+				&tbe_raw );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		tbe = 1.0e-3 * (double) tbe_raw;
 
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
@@ -1122,6 +1135,13 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+				&nsc );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	vshift      = 100.0e-6;
@@ -1139,11 +1159,122 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_STREAK_CAMERA:
-	    mx_warning(
-	    "STREAK CAMERA DETECTOR READOUT TIME NOT YET IMPLEMENTED!" );
+	    N = nsc + linenum - 1L;
 
-	    *detector_readout_time = 0.01;
+	    if ( lbin == 2 ) {
+		sumlimit = N / 2L;
+	    } else {
+		sumlimit = N;
+	    }
+
+	    tbe_sum = 0.0;
+	    tbe_product = tbe;
+
+	    for ( n = 1; n <= (sumlimit-1); n++ ) {
+		tbe_sum = tbe_sum + tbe_product;
+
+		tbe_product = tbe_product * ( mtbe + 1 );
+	    }
+
+	    tshut_sum = 0.0;
+	    tshut_product = tshut;
+
+	    for ( n = 1; n <= sumlimit; n++ ) {
+		tshut_sum = tshut_sum + tshut_product;
+
+		tshut_product = tshut_product * ( mtshut + 1 );
+	    }
+
+	    if ( high_speed ) {		/* High Speed Mode */
+
+		if ( (lbin == 1) && (pixbin == 1) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshiftbin
+					+ hshift_hs * (pixnum - 1) ) * N;
+		} else
+		if ( (lbin == 2) && (pixbin == 1) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + vshiftbin + hshiftbin
+					+ hshift_hs * (pixnum - 1) ) * (N/2);
+		} else
+		if ( (lbin == 1) && (pixbin < 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* ((pixnum - 2)/ (double) pixbin) ) * N;
+		} else
+		if ( (lbin == 1) && (pixbin >= 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * 7)
+					* (((pixnum - 2) - pixrd)/ 8.0)
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* (pixrd / (double) pixbin) ) * N;
+		} else
+		if ( (lbin == 2) && (pixbin < 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* ((pixnum - 2)/ (double) pixbin) )
+			* (N/2);
+		} else
+		if ( (lbin == 2) && (pixbin >= 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_hs + hshiftbin
+				+ (hshift_hs + hshiftbin * 7)
+					* (((pixnum - 2) - pixrd)/ 8.0)
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* (pixrd / (double) pixbin) )
+			* (N/2);
+		}
+
+	    } else {			/* Low Noise Mode */
+
+		if ( (lbin == 1) && (pixbin == 1) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshiftbin
+					+ hshift_ln * (pixnum - 1) ) * N;
+		} else
+		if ( (lbin == 2) && (pixbin == 1) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + vshiftbin + hshiftbin
+					+ hshift_ln * (pixnum - 1) ) * (N/2);
+		} else
+		if ( (lbin == 1) && (pixbin < 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * (pixbin - 1))
+					* ((pixnum - 2)/ (double) pixbin) ) * N;
+		} else
+		if ( (lbin == 1) && (pixbin >= 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * 7)
+					* (((pixnum - 2) - pixrd)/ 8.0)
+				+ (hshift_hs + hshiftbin * (pixbin - 1))
+					* (pixrd / (double) pixbin) ) * N;
+		} else
+		if ( (lbin == 2) && (pixbin < 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * (pixbin - 1))
+					* ((pixnum - 2)/ (double) pixbin) )
+			* (N/2);
+		} else
+		if ( (lbin == 2) && (pixbin >= 16) ) {
+		    t = tbe_sum + tshut_sum
+			+ ( tpre + tpost + vshift + hshift_ln + hshiftbin
+				+ (hshift_ln + hshiftbin * 7)
+					* (((pixnum - 2) - pixrd)/ 8.0)
+				+ (hshift_ln + hshiftbin * (pixbin - 1))
+					* (pixrd / (double) pixbin) )
+			* (N/2);
+		}
+	    }
+
 	    break;
+
+	  /*-----------------------------------------------------------------*/
 
 	case MXT_SQ_SUBIMAGE:
 
@@ -3090,8 +3221,10 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	MX_SEQUENCE_PARAMETERS seq;
 	long i, num_frames, num_subimages, num_lines_per_subimage;
+	long num_streak_mode_lines;
 	double exposure_time, frame_time, gap_time, subimage_time;
 	double exposure_multiplier, gap_multiplier;
+	double total_time_per_line;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -3218,6 +3351,12 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_SUBIMAGE:
+			mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			num_lines_per_subimage = seq.parameter_array[0];
 			num_subimages          = seq.parameter_array[1];
 			exposure_time          = seq.parameter_array[2];
@@ -3239,6 +3378,22 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 
 			ad->total_sequence_time += ad->detector_readout_time;
 
+			break;
+
+		case MXT_SQ_STREAK_CAMERA:
+			mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_streak_mode_lines = seq.parameter_array[0];
+			total_time_per_line   = seq.parameter_array[2];
+
+			ad->total_sequence_time = num_streak_mode_lines
+							* total_time_per_line;
+
+			ad->total_sequence_time += ad->detector_readout_time;
 			break;
 
 		default:
@@ -3338,7 +3493,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long num_streak_mode_lines;
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
-	double exposure_time, frame_time, gap_time, subimage_time;
+	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	double exposure_multiplier, gap_multiplier;
 	mx_status_type mx_status;
 
@@ -3791,6 +3946,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			num_streak_mode_lines
 				= mx_round_down( sp->parameter_array[0] / 2.0 );
 
+#if 0
 			if ( num_streak_mode_lines < 1050 ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The number of streak camera lines (%ld) requested "
@@ -3800,13 +3956,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					num_streak_mode_lines,
 					ad->record->name );
 			}
-
-			/* Get the detector readout time. */
-
-			mx_status = mx_area_detector_get_detector_readout_time(
-							ad->record, NULL );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+#endif
 
 			/* Turn off the multipliers. */
 
@@ -3907,6 +4057,37 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+			/* Compute the gap time per line from the 
+			 * total time per line.
+			 */
+
+			line_time = sp->parameter_array[2];
+
+			gap_time = line_time - exposure_time;
+
+			if ( gap_time < 0.0 ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"For area detector '%s', the requested "
+				"exposure time per line (%g sec) and the "
+				"requested total time per line (%g sec) "
+				"results in a gap time per line (%g sec) "
+				"that is negative.  This is not supported.",
+					ad->record->name,
+					exposure_time, line_time, gap_time );
+			}
+
+			/* Set the gap time. */
+
+			gap_steps = mx_round_down( gap_time / 0.001 );
+
+			mx_status = mxd_pccd_170170_write_register(
+				pccd_170170,
+				MXLV_PCCD_170170_DH_GAP_TIME,
+				gap_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			/* Set the streak-mode framesize. */
 
 			mx_status = mx_video_input_set_framesize(
@@ -3916,6 +4097,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			/* Get the detector readout time. */
+
+			mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			break;
 		case MXT_SQ_SUBIMAGE:
 			if ( old_detector_readout_mode
