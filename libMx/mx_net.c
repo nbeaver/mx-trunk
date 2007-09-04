@@ -4233,6 +4233,45 @@ mx_network_field_set_attribute_by_name( MX_NETWORK_FIELD *nf,
 	"Network field attribute '%s' does not exist.", attribute_name );
 }
 
+MX_EXPORT mx_status_type
+mx_network_field_get_attribute_number( MX_NETWORK_FIELD *nf,
+					char *attribute_name,
+					unsigned long *attribute_number )
+{
+	static const char fname[] = "mx_network_field_get_attribute_number()";
+
+	unsigned long i;
+	char *list_attribute_name;
+
+	MX_DEBUG( 2,("%s invoked, attribute_name = '%s'",
+			fname, attribute_name));
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+	if ( attribute_number == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"attribute_number pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < mxp_num_network_attributes; i++ ) {
+		list_attribute_name =
+			mxp_network_attribute_list[i].attribute_name;
+
+		if ( strcmp( attribute_name, list_attribute_name ) == 0 ) {
+
+			*attribute_number =
+				mxp_network_attribute_list[i].attribute_number;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"Network field attribute '%s' does not exist.", attribute_name );
+}
+
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type

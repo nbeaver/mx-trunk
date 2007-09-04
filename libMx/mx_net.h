@@ -456,6 +456,11 @@ MX_API mx_status_type mx_network_field_set_attribute_by_name(
 						char *attribute_name,
 						double attribute_value );
 
+MX_API mx_status_type mx_network_field_get_attribute_number(
+						MX_NETWORK_FIELD *nf,
+						char *attribute_name,
+					    unsigned long *attribute_number );
+
 MX_API mx_status_type mx_network_request_data_format(
 			MX_RECORD *server_record,
 			unsigned long requested_format );
