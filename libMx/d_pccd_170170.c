@@ -1272,6 +1272,8 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		}
 	    }
 
+	    *detector_readout_time = t;
+
 	    break;
 
 	  /*-----------------------------------------------------------------*/
