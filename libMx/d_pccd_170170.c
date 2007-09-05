@@ -488,9 +488,13 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
+#if 1
+	static const char fname[] =
+		"mxd_pccd_170170_descramble_streak_camera()";
+#endif
 	uint16_t *image_data, *raw_data;
 	uint16_t *image_ptr, *raw_ptr;
-	long i, x_framesize, y_framesize;
+	long i, row_framesize, column_framesize, total_raw_pixels;
 	mx_status_type mx_status;
 
 	/* First, we figure out how many pixels are in each line
@@ -498,26 +502,28 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 	 */
 
 	mx_status = mx_area_detector_get_framesize( ad->record,
-					&x_framesize, &y_framesize );
+					&row_framesize, &column_framesize );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	total_raw_pixels = row_framesize * column_framesize;
+
 	raw_data   = raw_frame->image_data;
 	image_data = image_frame->image_data;
 
+	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
+		fname, row_framesize, column_framesize));
+
 	/* Loop through the lines of the raw image. */
 
-	for ( i = 0; i < y_framesize; i++ ) {
+	raw_ptr   = raw_data;
+	image_ptr = image_data;
+
+	for ( i = 0; i < total_raw_pixels; i += 16 ) {
 		/* The raw data arrives in groups of 16 pixels that need
 		 * to be appropriately copied to the final image frame.
 		 */
-
-		raw_ptr = raw_data + i * x_framesize;
-
-		/* Half of the raw data is discarded. */
-
-		image_ptr = image_data + i * (x_framesize/2L);
 
 		/* Copy the pixels. */
 
@@ -540,7 +546,19 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 			image_ptr[6] = raw_ptr[7];
 			image_ptr[7] = raw_ptr[6];
 		}
+
+		raw_ptr   += 16L;
+		image_ptr += 8L;
 	}
+
+	/* Patch the column framesize and the image length so that
+	 * it matches the total size of the streak camera image.
+	 */
+
+	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
+
+	image_frame->image_length = ( total_raw_pixels / 2L )
+			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2797,6 +2815,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
 	/* Compute the frame number modulo the maximum_number of frames.
 	 * The modulo part is for the sake of MXT_SQ_CIRCULAR_MULTIFRAME
 	 * and MXT_SQ_CONTINUOUS sequences.
@@ -2864,6 +2883,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
+#if 0	/* WML */
+        /* It is probably best to let mx_video_input_get_frame()
+	 * resize the frame if necessary.
+	 */
+
 	/* Make sure that the raw image frame is big enough. */
 
 #if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
@@ -2881,6 +2905,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#endif /* WML */
 
 	/* Read in the raw image frame. */
 
@@ -3982,7 +4008,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			 */
 
 			num_streak_mode_lines
-				= mx_round_down( sp->parameter_array[0] / 2.0 );
+				= mx_round_down( sp->parameter_array[0] );
 
 #if 0
 			if ( num_streak_mode_lines < 1050 ) {
