@@ -1091,7 +1091,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 #if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
 	MX_DEBUG(-2,
-	("%s: sequence_type = %d, control_register = %#lx, high_speed = %d",
+	("%s: sequence_type = %ld, control_register = %#lx, high_speed = %d",
 		fname, sp->sequence_type, control_register, (int) high_speed));
 	MX_DEBUG(-2,
 	("%s: linenum = %ld, pixnum = %ld, linesrd = %ld, pixrd = %ld",
