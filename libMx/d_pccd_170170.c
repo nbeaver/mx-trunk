@@ -30,6 +30,8 @@
 
 #define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		TRUE
 
+#define MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -979,7 +981,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 					MX_PCCD_170170 *pccd_170170,
 					double *detector_readout_time )
 {
-#if MXD_PCCD_170170_DEBUG
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
 	static const char fname[] =
 		"mxd_pccd_170170_compute_detector_readout_time()";
 #endif
@@ -1069,6 +1071,16 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
+	MX_DEBUG(-2,
+	("%s: sequence_type = %d, control_register = %#lx, high_speed = %d",
+		fname, sp->sequence_type, control_register, (int) high_speed));
+	MX_DEBUG(-2,
+	("%s: linenum = %ld, pixnum = %ld, linesrd = %ld, pixrd = %ld",
+		fname, linenum, pixnum, linesrd, pixrd));
+	MX_DEBUG(-2,("%s: lbin = %ld, pixbin = %ld", fname, lbin, pixbin));
+#endif
+
 	if ( ( sp->sequence_type == MXT_SQ_SUBIMAGE )
 	  || ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) )
 	{
@@ -1108,6 +1120,11 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		tbe = 1.0e-3 * (double) tbe_raw;
 
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
+		MX_DEBUG(-2,("%s: tshut = %g, tbe = %g, tpre = %g, tpost = %g",
+			fname, tshut, tbe, tpre, tpost));
+#endif
+
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
 				&mtshut );
@@ -1142,6 +1159,13 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
+		MX_DEBUG(-2,("%s: mtshut = %ld, mtbe = %ld",
+			fname, mtshut, mtbe));
+		MX_DEBUG(-2,("%s: nlsi = %ld, nsi = %ld, nsc = %ld",
+			fname, nlsi, nsi, nsc));
+#endif
 	}
 
 	vshift      = 100.0e-6;
@@ -1184,6 +1208,13 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
+
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
+	    MX_DEBUG(-2,("%s: STREAK: N = %ld, sumlimit = %ld",
+		fname, N, sumlimit));
+	    MX_DEBUG(-2,("%s: STREAK: tshut_sum = %g, tbe_sum = %g",
+		fname, tshut_sum, tbe_sum));
+#endif
 
 	    if ( high_speed ) {		/* High Speed Mode */
 
@@ -1297,6 +1328,11 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
+
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
+	    MX_DEBUG(-2,("%s: SUBIMAGE: tshut_sum = %g, tbe_sum = %g",
+		fname, tshut_sum, tbe_sum));
+#endif
 
 	    if ( high_speed ) {		/* High Speed Mode */
 
@@ -1568,7 +1604,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	    break;
 	}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME
 	MX_DEBUG(-2,("%s: detector_readout_time = %g",
 			fname, *detector_readout_time));
 #endif
