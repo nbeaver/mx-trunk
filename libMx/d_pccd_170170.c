@@ -518,7 +518,7 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 	/* Loop through the lines of the raw image. */
 
-	for ( i = 0; i < column_framesize; i++ ) {
+	for ( i = 0; i < (column_framesize/2L); i++ ) {
 		/* The raw data arrives in groups of 16 pixels that need
 		 * to be appropriately copied to the final image frame.
 		 *
