@@ -494,7 +494,8 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 #endif
 	uint16_t *image_data, *raw_data;
 	uint16_t *image_ptr, *raw_ptr;
-	long i, row_framesize, column_framesize, total_raw_pixels;
+	long i, j, row_framesize, column_framesize, total_raw_pixels;
+	long rfs;
 	mx_status_type mx_status;
 
 	/* First, we figure out how many pixels are in each line
@@ -517,38 +518,47 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 	/* Loop through the lines of the raw image. */
 
-	raw_ptr   = raw_data;
-	image_ptr = image_data;
-
-	for ( i = 0; i < total_raw_pixels; i += 16 ) {
+	for ( i = 0; i < column_framesize; i++ ) {
 		/* The raw data arrives in groups of 16 pixels that need
 		 * to be appropriately copied to the final image frame.
+		 *
+		 * We transform 4 lines worth of raw data into 2 lines
+		 * worth of image data, since half of the raw data is
+		 * discarded.
 		 */
+
+		raw_ptr = raw_data + i * row_framesize * 4L;
+
+		image_ptr = image_data + i * row_framesize * 2L;
 
 		/* Copy the pixels. */
 
-		if ( pccd_170170->use_top_half_of_detector ) {
-			image_ptr[0] = raw_ptr[14];
-			image_ptr[1] = raw_ptr[15];
-			image_ptr[2] = raw_ptr[10];
-			image_ptr[3] = raw_ptr[11];
-			image_ptr[4] = raw_ptr[13];
-			image_ptr[5] = raw_ptr[12];
-			image_ptr[6] = raw_ptr[9];
-			image_ptr[7] = raw_ptr[8];
-		} else {
-			image_ptr[0] = raw_ptr[0];
-			image_ptr[1] = raw_ptr[1];
-			image_ptr[2] = raw_ptr[4];
-			image_ptr[3] = raw_ptr[5];
-			image_ptr[4] = raw_ptr[3];
-			image_ptr[5] = raw_ptr[2];
-			image_ptr[6] = raw_ptr[7];
-			image_ptr[7] = raw_ptr[6];
-		}
+		for ( j = 0; j < (row_framesize/4L); j++ ) {
 
-		raw_ptr   += 16L;
-		image_ptr += 8L;
+			rfs = row_framesize;
+
+			if ( pccd_170170->use_top_half_of_detector ) {
+				image_ptr[j]               = raw_ptr[16*j + 14];
+				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 15];
+				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 10];
+				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 11];
+				image_ptr[rfs + j]         = raw_ptr[16*j + 13];
+				image_ptr[rfs + rfs/2 - 1 - j]
+							   = raw_ptr[16*j + 12];
+				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 9];
+				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 8];
+			} else {
+				image_ptr[j]               = raw_ptr[16*j];
+				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 1];
+				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 4];
+				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 5];
+				image_ptr[rfs + j]         = raw_ptr[16*j + 3];
+				image_ptr[rfs + rfs/2 - 1 - j]
+							   = raw_ptr[16*j + 2];
+				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 7];
+				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 6];
+			}
+		}
 	}
 
 	/* Patch the column framesize and the image length so that
