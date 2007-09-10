@@ -207,3 +207,28 @@ mx_32bit_wordswap( uint32_t original_value )
 	return new_value;
 }
 
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_bool_type
+mx_is_power_of_two( unsigned long value )
+{
+	/* Zero is not a power of 2. */
+
+	if ( value == 0 ) {
+		return FALSE;
+	}
+
+	/* Any value that is a power of 2 has only one bit set in its
+	 * binary representation.  If we subtract 1 from that value,
+	 * the resulting number will not have any bits in common with
+	 * the original value.  This only works for twos complement
+	 * binary representations.
+	 */
+
+	if ( (value & (value - 1)) == 0 ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+

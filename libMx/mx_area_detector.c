@@ -206,6 +206,12 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->byte_order = mx_native_byteorder();
 
+	ad->arm     = FALSE;
+	ad->trigger = FALSE;
+	ad->stop    = FALSE;
+	ad->abort   = FALSE;
+	ad->busy    = FALSE;
+
 	ad->current_num_rois = ad->maximum_num_rois;
 	ad->roi_number = 0;
 	ad->roi[0] = 0;
@@ -1914,6 +1920,9 @@ mx_area_detector_arm( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->stop = FALSE;
+	ad->abort = FALSE;
+
 	arm_fn = flist->arm;
 
 	if ( arm_fn != NULL ) {
@@ -2012,6 +2021,8 @@ mx_area_detector_stop( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->stop = TRUE;
+
 	stop_fn = flist->stop;
 
 	if ( stop_fn != NULL ) {
@@ -2035,6 +2046,8 @@ mx_area_detector_abort( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->abort = TRUE;
 
 	abort_fn = flist->abort;
 

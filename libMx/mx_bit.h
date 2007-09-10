@@ -24,7 +24,7 @@
 #define MX_DATAFMT_VAX_D_FLOAT		0x200
 #define MX_DATAFMT_VAX_G_FLOAT		0x400
 
-#include "mx_program_model.h"
+#include "mx_stdint.h"
 
 /*---*/
 
@@ -41,5 +41,9 @@ MX_API uint16_t mx_16bit_byteswap( uint16_t original_value );
 MX_API uint32_t mx_32bit_byteswap( uint32_t original_value );
 
 MX_API uint32_t mx_32bit_wordswap( uint32_t original_value );
+
+/*---*/
+
+MX_API mx_bool_type mx_is_power_of_two( unsigned long value );
 
 #endif /* __MX_BIT_H__ */

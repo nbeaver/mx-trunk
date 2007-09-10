@@ -22,13 +22,13 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
+#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
 #define MXD_PCCD_170170_DEBUG_TIMING			TRUE
 
-#define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		TRUE
+#define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		FALSE
 
 #define MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME	TRUE
 
@@ -57,6 +57,8 @@
 #if MXD_PCCD_170170_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
 #endif
+
+#define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
 
 /*---*/
 
@@ -587,7 +589,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	mx_status_type mx_status;
 
 #if MXD_PCCD_170170_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
+	MX_HRT_TIMING memcpy_measurement;
+	MX_HRT_TIMING total_measurement;
+
+	MX_HRT_START(total_measurement);
 #endif
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -744,7 +749,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		}
 
 #if MXD_PCCD_170170_DEBUG_TIMING
-		MX_HRT_START( measurement );
+		MX_HRT_START( memcpy_measurement );
 #endif
 
 		for ( i = 0; i < num_subimages; i++ ) {
@@ -774,8 +779,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		}
 
 #if MXD_PCCD_170170_DEBUG_TIMING
-		MX_HRT_END( measurement );
-		MX_HRT_RESULTS( measurement, fname, "for subimage memcpy." );
+		MX_HRT_END( memcpy_measurement );
 #endif
 
 #if 1
@@ -790,6 +794,13 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			num_subimages * bytes_per_half_subimage * 2L;
 #endif
 	}
+
+#if MXD_PCCD_170170_DEBUG_TIMING
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( memcpy_measurement, fname, "for subimage memcpy." );
+	MX_HRT_RESULTS( total_measurement, fname, "for total descramble." );
+#endif
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
@@ -822,6 +833,15 @@ mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 	if ( reg->read_only ) {
 		return mx_error( MXE_READ_ONLY, fname,
 			"Register %lu is read only.", register_address );
+	}
+
+	if ( reg->power_of_two ) {
+		if ( mx_is_power_of_two( register_value ) == FALSE ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested value %lu for register %lu is not valid "
+			"since the value is not a power of two.",
+				register_value, register_address );
+		}
 	}
 
 	if ( register_value < reg->minimum ) {
@@ -3567,6 +3587,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long num_streak_mode_lines;
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
+	long total_num_subimage_lines;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	double exposure_multiplier, gap_multiplier;
 	mx_status_type mx_status;
@@ -4181,6 +4202,26 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			break;
 		case MXT_SQ_SUBIMAGE:
+			total_num_subimage_lines =
+					mx_round( sp->parameter_array[0]
+						* sp->parameter_array[1] );
+
+			if ( total_num_subimage_lines >
+					MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES )
+			{
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number of lines per subimage (%g) "
+			"and the requested number of subimages (%g) results "
+			"in a total number of image lines (%ld) that is "
+			"larger than the maximum number of subimage lines (%d) "
+			"allowed by area detector '%s'.",
+					sp->parameter_array[0],
+					sp->parameter_array[1],
+					total_num_subimage_lines,
+					MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES,
+					ad->record->name );
+			}
+
 			if ( old_detector_readout_mode
 				!= MXF_PCCD_170170_SUBIMAGE_MODE )
 			{
