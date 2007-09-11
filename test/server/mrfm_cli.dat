@@ -1,0 +1,22 @@
+blserv server network tcpip_server "" "" 0x0 localhost 9827
+#
+# The tracker_ctl record is used to change the value that will be read
+# from the tracker_pos record.
+#
+tracker_ctl device analog_output network_aoutput "" "" 0 1 0 mm 0x0 blserv tracker_ctl
+#
+# plimit and nlimit provide emulated positive and negative limit switches.
+#
+plimit device digital_output network_doutput "" "" 0 blserv plimit
+nlimit device digital_output network_doutput "" "" 0 blserv nlimit
+#
+# tracker_pos lets you read the value being read by 
+# the record_field_motor driver.
+#
+tracker_pos device analog_input network_ainput "" "" 0 1 0 mm 0x0 0 "" blserv tracker_pos
+#
+# motor1 is the actual motor record that you would use.  It is the only
+# record that _must_ exist in a real system's MX client database.  The
+# other records above are used to control the test system.
+#
+motor1      device motor network_motor "" "" 0 0 -1.0e38 1.0e38 0 -1 -1 1 0 mm blserv motor1

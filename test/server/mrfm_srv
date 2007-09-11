@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../server/mxserver -p 9827 -f mrfm_srv.dat -C msoftsrv.acl -S $*
+

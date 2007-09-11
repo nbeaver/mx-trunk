@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -i -F ./mrfm_cli.dat -s ./srfm_cli.dat $*
+

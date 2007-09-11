@@ -1,0 +1,21 @@
+#
+# The tracker_ctl record is used to change the value that will be read
+# from the tracker_pos record.
+#
+tracker_ctl device analog_output soft_aoutput "" "" 0 1 0 mm 0x0
+#
+# plimit and nlimit provide emulated positive and negative limit switches.
+#
+plimit device digital_output soft_doutput "" "" 0
+nlimit device digital_output soft_doutput "" "" 0
+#
+#
+# motor1 is a software emulated motor record.
+#
+raw_motor1  device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 mm 100000 0 50000
+#
+# The following records show what you would have to put in the
+# database of a server controlling real hardware.
+#
+tracker_pos device analog_input soft_ainput "" "" 0 1 0 mm 0x0 0 "" tracker_ctl
+motor1      device motor record_field_motor "" "" 0 0 -1.0e38 1.0e38 0 -1 -1 1 0 mm 0x0 "" "" raw_motor1.busy raw_motor1.destination tracker_pos.value "" raw_motor1.soft_abort "" plimit.value nlimit.value
