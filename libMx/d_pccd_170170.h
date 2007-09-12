@@ -50,14 +50,13 @@
 
 #define MXF_PCCD_170170_AUTOMATIC_OFFSET_CORRECTION_ON	0x4
 
-/* Exposure trigger mode (bits 3-4) */
+/* Internal/External trigger mode (bit 3) */
 
-#define MXF_PCCD_170170_TRIGGER_MASK			0x18
+#define MXF_PCCD_170170_EXTERNAL_TRIGGER		0x8
 
-/*---- Soft trigger is bit 3 zero, bit 4 don't care. */
+/* Edge or duration trigger (bit 4) */
 
-#define MXF_PCCD_170170_EXTERNAL_EDGE_TRIGGER		0x08
-#define MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER	0x18
+#define MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER	0x10
 
 /* Detector readout mode (bits 5-6) */
 

@@ -26,11 +26,11 @@
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
-#define MXD_PCCD_170170_DEBUG_TIMING			TRUE
+#define MXD_PCCD_170170_DEBUG_TIMING			FALSE
 
 #define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		FALSE
 
-#define MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME	TRUE
+#define MXD_PCCD_170170_DEBUG_DETECTOR_READOUT_TIME	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2352,7 +2352,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK num_ticks_to_wait, finish_tick;
 	double timeout_in_seconds;
 	int comparison;
-	long num_frames_in_sequence;
+	long num_frames_in_sequence, master_clock;
 	mx_bool_type camera_is_master, external_trigger, busy, circular;
 	mx_status_type mx_status;
 
@@ -2392,6 +2392,17 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: camera_is_master = %d, external_trigger = %d",
 		fname, (int) camera_is_master, (int) external_trigger));
 #endif
+
+	if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+		/* For continuous sequences, we must use video board
+		 * CC1 pulses to trigger the taking of frames, so that
+		 * the total number of frames is not limited.
+		 */
+
+		camera_is_master = FALSE;
+	}
+
+	/* Stop any currently running imaging sequence. */
 
 	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
 
@@ -2434,6 +2445,20 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		mx_usleep(1000);
 	}
 
+	/* Select the master clock. */
+
+	if ( camera_is_master ) {
+		master_clock = MXF_VIN_MASTER_CAMERA;
+	} else {
+		master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
+	}
+
+	mx_status = mx_video_input_set_master_clock( vinput->record,
+							master_clock );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Turn off the buffer overrun flag. */
 
 	pccd_170170->buffer_overrun = FALSE;
@@ -2441,14 +2466,11 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	/* Prepare the video input for the next trigger. */
 
 	if ( camera_is_master && external_trigger ) {
-#if 0
-		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
-						ad, &num_frames_in_sequence );
-#else
+
 		mx_status = mx_sequence_get_num_frames(
 						&(ad->sequence_parameters),
 						&num_frames_in_sequence );
-#endif
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
@@ -2526,16 +2548,16 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
+	case MXT_SQ_BULB:
 	case MXT_SQ_GEOMETRICAL:
 	case MXT_SQ_SUBIMAGE:
 	case MXT_SQ_STREAK_CAMERA:
 		break;
 
-	case MXT_SQ_CONTINUOUS:
-	case MXT_SQ_BULB:
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
@@ -2553,15 +2575,20 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
 
+	if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+		/* For continuous sequences, we must use video board
+		 * CC1 pulses to trigger the taking of frames, so that
+		 * the total number of frames is not limited.
+		 */
+
+		camera_is_master = FALSE;
+	}
+
 	if ( camera_is_master && internal_trigger ) {
-#if 0
-		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
-						ad, &num_frames_in_sequence );
-#else
+
 		mx_status = mx_sequence_get_num_frames(
 						&(ad->sequence_parameters),
 						&num_frames_in_sequence );
-#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3825,12 +3852,30 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 #endif
 		/* Reprogram the detector head for the requested sequence. */
 
+		new_control_register_value = old_control_register_value;
+
+		/* Mask off the duration bit, since it is only used
+		 * by MXT_SQ_BULB sequences.
+		 */
+
+		new_control_register_value
+			&= (~MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER);
+
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
+		case MXT_SQ_BULB:
 		case MXT_SQ_GEOMETRICAL:
+
+			/* If this is bulb mode, turn on the duration bit. */
+
+			if ( sp->sequence_type == MXT_SQ_BULB ) {
+				new_control_register_value
+				  |= MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER;
+			}
 
 			/* Get the detector readout time. */
 
@@ -3873,25 +3918,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( old_detector_readout_mode != 0 ) {
 				/* We must switch to full frame mode. */
 
-				new_control_register_value =
-					old_control_register_value &
-				    (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
-#if MXD_PCCD_170170_DEBUG
-				MX_DEBUG(-2,
-			("%s: (full frame) new_control_register_value = %#lx",
-					fname, new_control_register_value));
-#endif
-				mx_status = mxd_pccd_170170_write_register(
-						pccd_170170,
-						MXLV_PCCD_170170_DH_CONTROL,
-						new_control_register_value );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				new_control_register_value
+				    &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
 
 				/* If we were previously in streak camera mode,
-				 * we must also restore the normal imaging
-				 * board framesize.
+				 * we must restore the normal imaging board
+				 * framesize.
 				 */
 
 				if ( old_detector_readout_mode
@@ -3923,27 +3955,45 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				num_frames = 1;
 				exposure_time = sp->parameter_array[0];
 				frame_time = exposure_time;
-
-			} else if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+			} else
+			if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+				num_frames = 1;
+				exposure_time = sp->parameter_array[0];
+				frame_time = exposure_time;
+			} else
+			if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
 				num_frames = mx_round( sp->parameter_array[0] );
 				exposure_time = sp->parameter_array[1];
 				frame_time = sp->parameter_array[2];
-
-			} else if ( sp->sequence_type
-					== MXT_SQ_CIRCULAR_MULTIFRAME )
-			{
+			} else
+			if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME ) {
 				num_frames = mx_round( sp->parameter_array[0] );
 				exposure_time = sp->parameter_array[1];
 				frame_time = sp->parameter_array[2];
-
-			} else if ( sp->sequence_type == MXT_SQ_STROBE ) {
+			} else
+			if ( sp->sequence_type == MXT_SQ_STROBE ) {
 				num_frames = mx_round( sp->parameter_array[0] );
 				exposure_time = sp->parameter_array[1];
 
 				frame_time = exposure_time
 						+ ad->detector_readout_time;
+			} else
+			if ( sp->sequence_type == MXT_SQ_BULB ) {
+				num_frames = mx_round( sp->parameter_array[0] );
 
-			} else if ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) {
+				if ( num_frames > 1 ) {
+					return mx_error(
+					MXE_WOULD_EXCEED_LIMIT, fname,
+				"For a 'bulb' sequence, the maximum number of "
+				"images for detector '%s' is 1.  You requested "
+				"%ld images, which is not supported.",
+						ad->record->name, num_frames );
+				}
+
+				exposure_time = 0.001;
+				frame_time = exposure_time;
+			} else
+			if ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) {
 				num_frames = mx_round( sp->parameter_array[0] );
 				exposure_time = sp->parameter_array[1];
 				frame_time    = sp->parameter_array[2];
@@ -3989,7 +4039,25 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+			if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+				/* For continuous sequences, we want the
+				 * gap time to be zero, so that the camera
+				 * will take frames as fast as it can.
+				 */
+
+				mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_GAP_TIME,
+					0 );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			} else
 			if ( num_frames > 1 ) {
+				/* For sequence types other than
+				 * MXT_SQ_CONTINUOUS.
+				 */
+
 				gap_time = frame_time - exposure_time
 						- ad->detector_readout_time;
 
@@ -4101,21 +4169,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 				/* Now switch to streak camera mode. */
 
-				new_control_register_value =
-					old_control_register_value |
-					    MXF_PCCD_170170_STREAK_CAMERA_MODE;
-#if MXD_PCCD_170170_DEBUG
-				MX_DEBUG(-2,
-		       ("%s: (streak camera) new_control_register_value = %#lx",
-					fname, new_control_register_value));
-#endif
-				mx_status = mxd_pccd_170170_write_register(
-						pccd_170170,
-						MXLV_PCCD_170170_DH_CONTROL,
-						new_control_register_value );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				new_control_register_value
+					|= MXF_PCCD_170170_STREAK_CAMERA_MODE;
 			}
 
 			/* Set the number of frames in sequence to 1. */
@@ -4201,6 +4256,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			break;
+
 		case MXT_SQ_SUBIMAGE:
 			total_num_subimage_lines =
 					mx_round( sp->parameter_array[0]
@@ -4227,24 +4283,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			{
 				/* Switch to sub-image mode. */
 
-				new_control_register_value =
-					old_control_register_value &
-				    (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
+				new_control_register_value
+				    &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
 
 				new_control_register_value
 					|= MXF_PCCD_170170_SUBIMAGE_MODE;
-#if MXD_PCCD_170170_DEBUG
-				MX_DEBUG(-2,
-			("%s: (sub-image) new_control_register_value = %#lx",
-					fname, new_control_register_value));
-#endif
-				mx_status = mxd_pccd_170170_write_register(
-						pccd_170170,
-						MXLV_PCCD_170170_DH_CONTROL,
-						new_control_register_value );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
 
 				/* If we were previously in streak camera mode,
 				 * we must also restore the normal imaging
@@ -4384,17 +4427,32 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 			break;
-		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_BULB:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Detector sequence type %lu is not supported "
-			"for detector '%s'.",
-				sp->sequence_type, ad->record->name );
+
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal sequence type %ld requested "
 			"for detector '%s'.",
 				sp->sequence_type, ad->record->name );
+		}
+
+		/* Reprogram the control register for the new mode. */
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2, ("%s: old_control_register_value = %#lx",
+				fname, old_control_register_value));
+		MX_DEBUG(-2, ("%s: new_control_register_value = %#lx",
+				fname, new_control_register_value));
+#endif
+
+		if (new_control_register_value != old_control_register_value) {
+
+			mx_status = mxd_pccd_170170_write_register(
+						pccd_170170,
+						MXLV_PCCD_170170_DH_CONTROL,
+						new_control_register_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 		/* Reprogram the imaging board. */
@@ -4409,12 +4467,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
 			mx_status = mx_video_input_set_trigger_mode( 
 						pccd_170170->video_input_record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 			break;
 
 		case MXT_SQ_STROBE:
+		case MXT_SQ_BULB:
 			mx_status = mx_video_input_set_trigger_mode( 
 						pccd_170170->video_input_record,
 						MXT_IMAGE_EXTERNAL_TRIGGER );
@@ -4431,8 +4491,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			 */
 			break;
 
-		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_BULB:
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal sequence type %ld requested "
