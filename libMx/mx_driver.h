@@ -662,6 +662,9 @@
 #define MXT_AD_FILE			240002
 #define MXT_AD_NETWORK			240003
 #define MXT_AD_PCCD_170170		240004
+#define MXT_AD_PCCD_OTHER		240005
+#define MXT_AD_BRANDEIS_BIOCAT		240006
+#define MXT_AD_MARCCD			240007
 
 /* --- Scan types --- */
 

@@ -65,7 +65,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_auto_amplifier.c d_auto_filter.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c d_bit.c \
 	d_blind_relay.c d_bluice_ion_chamber.c d_bluice_motor.c \
-	d_bluice_shutter.c d_bluice_timer.c d_cm17a_doutput.c \
+	d_bluice_shutter.c d_bluice_timer.c \
+	d_brandeis_biocat.c d_cm17a_doutput.c \
 	d_compumotor.c d_compumotor_dio.c d_compumotor_linear.c \
 	d_cryostream600_motor.c d_cryostream600_status.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \
@@ -87,7 +88,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \
 	d_lakeshore330_motor.c d_linear_function.c d_linux_parport.c d_lpt.c \
-	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
+	d_marccd.c d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
 	d_mca_timer.c d_mca_value.c d_mcai_function.c \
 	d_mclennan.c d_mclennan_aio.c d_mclennan_dio.c \

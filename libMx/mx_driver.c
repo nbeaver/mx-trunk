@@ -441,6 +441,8 @@
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
 #include "d_pccd_170170.h"
+#include "d_brandeis_biocat.h"
+#include "d_marccd.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3296,6 +3298,20 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxd_pccd_170170_num_record_fields,
 				&mxd_pccd_170170_rfield_def_ptr},
+
+{"brandeis_biocat", MXT_AD_BRANDEIS_BIOCAT, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_brandeis_biocat_record_function_list,
+				NULL,
+				NULL,
+				&mxd_brandeis_biocat_num_record_fields,
+				&mxd_brandeis_biocat_rfield_def_ptr},
+
+{"marccd",         MXT_AD_MARCCD,      MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_marccd_record_function_list,
+				NULL,
+				NULL,
+				&mxd_marccd_num_record_fields,
+				&mxd_marccd_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,
