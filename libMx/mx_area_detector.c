@@ -1927,6 +1927,9 @@ mx_area_detector_arm( MX_RECORD *record )
 
 	if ( arm_fn != NULL ) {
 		mx_status = (*arm_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Compute image frame parameters for later use. */
