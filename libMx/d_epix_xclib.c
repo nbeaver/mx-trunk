@@ -925,6 +925,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	MX_EPIX_XCLIB *epix_xclib;
 	MX_RECORD *ready_for_trigger_record;
 	long unit_number;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -943,6 +944,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
 	unit_number = epix_xclib_vinput->unit_number;
 
 	epix_xclib_vinput->unitmap = 1 << (unit_number - 1);
@@ -963,20 +965,24 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: board model = %#x",
-		fname, pxd_infoModel( epix_xclib_vinput->unitmap ) ));
-
+		fname, pxd_infoModel( epix_xclib_vinput->unitmap )));
 	MX_DEBUG(-2,("%s: board submodel = %#x",
-		fname, pxd_infoSubmodel( epix_xclib_vinput->unitmap ) ));
+		fname, pxd_infoSubmodel( epix_xclib_vinput->unitmap )));
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS
-	MX_DEBUG(-2,("%s: board memory = %lu bytes",
-		fname, pxd_infoMemsize( epix_xclib_vinput->unitmap ) ));
-	MX_DEBUG(-2,("%s: pxd_imageXdim() = %d, pxd_imageYdim() = %d",
-		fname, pxd_imageXdim(), pxd_imageYdim()));
-	MX_DEBUG(-2,("%s: pxd_imageZdim() = %d",
-		fname, pxd_imageZdim()));
-#endif
+	flags = epix_xclib_vinput->epix_xclib_vinput_flags;
+
+	if ( flags & MXF_EPIX_SHOW_CONFIG ) {
+		MX_DEBUG(-2,("%s: board memory = %lu bytes",
+			fname, pxd_infoMemsize( epix_xclib_vinput->unitmap )));
+
+		MX_DEBUG(-2,("%s: pxd_imageXdim() = %d, pxd_imageYdim() = %d",
+			fname, pxd_imageXdim(), pxd_imageYdim()));
+
+		MX_DEBUG(-2,("%s: pxd_imageZdim() = %d",
+			fname, pxd_imageZdim()));
+	}
+
 	/* Initialize a bunch of driver parameters. */
 
 	vinput->parameter_type = -1;

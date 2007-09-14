@@ -47,14 +47,10 @@
 
 MX_ARCH = linux
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 
-#MX_INSTALL_DIR = /opt/mx-2007-08-22
-
-MX_INSTALL_DIR = c:/opt/mx-2007-08-22
-
+#MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
-
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)

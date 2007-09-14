@@ -19,6 +19,8 @@
 
 /* Values for epix_xclib_vinput_flags */
 
+#define MXF_EPIX_SHOW_CONFIG		0x1
+
 #define MXF_EPIX_WRITE_TEST		0x1000
 
 typedef struct {
