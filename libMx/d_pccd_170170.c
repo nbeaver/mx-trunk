@@ -34,10 +34,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_unistd.h"
 #include "mx_ascii.h"
 #include "mx_clock.h"
 #include "mx_socket.h"
@@ -58,9 +60,14 @@
 #  include "mx_hrt_debug.h"
 #endif
 
-#define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
+extern int
+smvspatial( void *imarr, void **outarr,
+		int imwid, int imhit,
+		int cflags, char *splname );
 
 /*---*/
+
+#define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
 
 MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	mxd_pccd_170170_initialize_type,
@@ -3094,6 +3101,96 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+static mx_status_type
+mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
+					void *input_data_array,
+					void **output_data_array,
+					unsigned long image_width,
+					unsigned long image_height,
+					char *spatial_correction_filename )
+{
+	static const char fname[] = "mxd_pccd_170170_spatial_correction()";
+
+	int cflags, spatial_status, os_status, saved_errno;
+	mx_status_type mx_status;
+
+	if ( input_data_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The input_data_array pointer for area detector '%s' is NULL.",
+			ad->record->name );
+	}
+	if ( spatial_correction_filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The spatial_correction_filename pointer for "
+		"area detector '%s' is NULL.", ad->record->name );
+	}
+	if ( strlen(spatial_correction_filename) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No spatial correction filename was provided for "
+		"area detector '%s'.", ad->record->name );
+	}
+
+	os_status = access( spatial_correction_filename, R_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"We cannot read spatial correction file '%s'.  "
+		"errno = %d, error message = '%s'.",
+			spatial_correction_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	cflags = 0x9;
+
+	spatial_status = smvspatial( input_data_array, output_data_array,
+					image_width, image_height,
+					cflags, spatial_correction_filename );
+
+	switch( spatial_status ) {
+	case 0:		/* Spatial correction succeeded. */
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	case ENOENT:
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"smvspatial() was unable to open spatial correction "
+			"file '%s' for area detector '%s'.",
+				spatial_correction_filename,
+				ad->record->name );
+		break;
+	case EIO:
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred in smvspatial() while reading "
+			"spatial correction file '%s' for area detector '%s'.",
+				spatial_correction_filename,
+				ad->record->name );
+		break;
+	case ENOMEM:
+		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+			"smvspatial() was unable to allocate memory for "
+			"spatial correction of the current image for "
+			"area detector '%s'.",
+				ad->record->name );
+		break;
+	case EINVAL:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"An illegal value was seen by smvspatial() during "
+			"spatial correction of the current image for "
+			"area detector '%s'.",
+				ad->record->name );
+		break;
+	default:
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected error code %d was returned by "
+			"smvspatial() for area detector '%s'.",
+				spatial_status, ad->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 {
@@ -3121,28 +3218,17 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	sp = &(ad->sequence_parameters);
+
+	flags = ad->correction_flags;
+
 #if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
-	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx",
-		fname, ad->correction_flags));
+	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx", fname, flags));
 #endif
-	sp = &(ad->sequence_parameters);
 
-	if ( (sp->sequence_type != MXT_SQ_SUBIMAGE)
-	  && (sp->sequence_type != MXT_SQ_STREAK_CAMERA) )
-	{
-		/*************************************************
-		 * For normal full frame images, use the default *
-		 * correction function and then return.          *
-		 *************************************************/
-
-		mx_status = mx_area_detector_default_correct_frame( ad );
-
-		return mx_status;
-	}
-
-	if ( ad->correction_flags == 0 ) {
+	if ( flags == 0 ) {
 		/* No corrections have been requested. */
 
 		return MX_SUCCESSFUL_RESULT;
@@ -3165,10 +3251,47 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 		fname, image_row_framesize, image_column_framesize));
 #endif
 
-	/*******************************************************************
-	 * Find the pixel offset of the first row in the correction frames *
-	 * that will be used to correct the data.                          *
-	 *******************************************************************/
+	/*-----*/
+
+	if ( (sp->sequence_type != MXT_SQ_SUBIMAGE)
+	  && (sp->sequence_type != MXT_SQ_STREAK_CAMERA) )
+	{
+		/**********************
+		 * NORMAL FULL FRAMES *
+		 **********************/
+
+		/* For normal full frame images, first apply the
+		 * default correction function.
+		 */
+
+		mx_status = mx_area_detector_default_correct_frame( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If requested, apply the geometrical correction. */
+
+		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+			mx_status = mxd_pccd_170170_spatial_correction( ad,
+				image_data_array, NULL,
+				MXIF_ROW_FRAMESIZE(ad->image_frame),
+				MXIF_COLUMN_FRAMESIZE(ad->image_frame),
+				pccd_170170->spatial_correction_filename );
+		}
+
+		return mx_status;
+	}
+
+	/*-----*/
+
+	/************************************
+	 * STREAK CAMERA OR SUBIMAGE FRAMES *
+	 ************************************/
+
+	/*
+	 * Find the pixel offset of the first row in the correction frames
+	 * that will be used to correct the data.
+	 */
 
 	/* We get the dimensions of the correction frames from the bias frame.*/
 
@@ -3234,8 +3357,6 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	/*---*/
-
-	flags = ad->correction_flags;
 
 	/* Get pointers to the parts of the correction frames that we
 	 * will use for the subimage or streak camera frame.

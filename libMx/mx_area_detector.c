@@ -3108,7 +3108,7 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	/* Determine which corrections are to be applied. */
+	/* Find the frame pointers for the image frames to be used. */
 
 	flags = ad->correction_flags;
 
@@ -4577,6 +4577,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 		image_data_array[i] = image_pixel;
 	}
+
+#if MX_AREA_DETECTOR_DEBUG
+#endif
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));

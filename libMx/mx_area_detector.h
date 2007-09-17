@@ -46,6 +46,13 @@
 #define MXFT_AD_DARK_CURRENT_FRAME	0x8
 #define MXFT_AD_FLOOD_FIELD_FRAME	0x10
 
+/* The following are used only for the 'correction_flags'
+ * member of MX_AREA_DETECTOR.
+ */
+
+#define MXFT_AD_GEOMETRICAL_CORRECTION	0x1000
+#define MXFT_AD_DEZINGER		0x2000
+
 #define MXFT_AD_ALL			0xffffffff
 
 typedef struct {

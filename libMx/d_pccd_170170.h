@@ -101,6 +101,7 @@ typedef struct {
 	MX_RECORD *internal_trigger_record;
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
+	char spatial_correction_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type buffer_overrun;
 	mx_bool_type use_top_half_of_detector;
@@ -256,6 +257,12 @@ typedef struct {
   {-1, -1, "pccd_170170_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, pccd_170170_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "spatial_correction_filename", MXFT_STRING, NULL, \
+  			1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_PCCD_170170, spatial_correction_filename), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   \
   {-1, -1, "buffer_overrun", MXFT_BOOL, NULL, 0, {0}, \
