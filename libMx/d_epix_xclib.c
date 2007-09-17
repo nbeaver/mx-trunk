@@ -2360,6 +2360,18 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			vinput->frame_number, vinput->record->name );
 	}
 
+#if 1
+	MX_DEBUG(-2,("%s: image_length = %ld, allocated_image_length = %ld",
+		fname, (long) frame->image_length,
+		(long) frame->allocated_image_length));
+	MX_DEBUG(-2,("%s: row framesize = %ld, column framesize = %ld",
+		fname, (long) MXIF_ROW_FRAMESIZE(frame),
+		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
+	MX_DEBUG(-2,("%s: row binsize = %ld, column binsize = %ld",
+		fname, (long) MXIF_ROW_BINSIZE(frame),
+		(long) MXIF_COLUMN_BINSIZE(frame) ));
+#endif
+
 	/* Erase any previous contents of the frame buffer. */
 
 	memset( frame->image_data, 0, frame->allocated_image_length );
