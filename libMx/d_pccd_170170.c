@@ -3144,9 +3144,16 @@ mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
 
 	cflags = 0x9;
 
+#if defined(OS_LINUX)
+
 	spatial_status = smvspatial( input_data_array, output_data_array,
 					image_width, image_height,
 					cflags, spatial_correction_filename );
+#else
+	mx_warning("Spatial correction is currently only available on Linux.");
+
+	spatial_status = 0;
+#endif
 
 	switch( spatial_status ) {
 	case 0:		/* Spatial correction succeeded. */

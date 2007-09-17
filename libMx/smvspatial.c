@@ -17,6 +17,9 @@ Change record:
    Cross references: internal to X-GEN
 *************************************************************************/
 #include	<stdio.h>
+				/* WML */
+#if defined(OS_LINUX)		/* WML */
+				/* WML */
 #include	<math.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -766,3 +769,6 @@ int smvspatial(void *imarr, void **outarr, int imwid, int imhit, int cflags,
 }
 
 /* end of smvspatial.c */
+				/* WML */
+#endif /* OS_LINUX */		/* WML */
+				/* WML */
