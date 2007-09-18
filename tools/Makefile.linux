@@ -15,11 +15,15 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
+all:   smvspatial.o strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_clean:
 	-rm *.o
 	( cd unix/src/editline ; make clean )
+
+smvspatial.o: xgen/smvspatial.c
+	$(CC) -c -fPIC -Wall -Werror -DOS_LINUX -D__MX_LIBRARY__ \
+		xgen/smvspatial.c
 
 strlcpy.o: generic/src/strlcpy.c
 	$(CC) -c -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \

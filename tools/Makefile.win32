@@ -28,6 +28,11 @@ strlcat.obj: generic/src/strlcat.c
 		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/strlcat.c -Fostrlcat.obj
 
+smvspatial.obj: xgen/smvspatial.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		xgen/smvspatial.c -Fosmvspatial.obj
+
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-WX -Z7 win32/src/mxgnuplt.c -Fmxgnuplt.obj

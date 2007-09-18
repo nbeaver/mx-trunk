@@ -60,7 +60,7 @@
 #  include "mx_hrt_debug.h"
 #endif
 
-extern int
+MX_API int
 smvspatial( void *imarr, void **outarr,
 		int imwid, int imhit,
 		int cflags, char *splname );
