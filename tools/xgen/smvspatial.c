@@ -20,6 +20,19 @@ Change record:
 #include	<math.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
+
+/* If we are being compiled by Microsoft Visual C++, we need a few
+ * extra definitions.  (18 Sep 2007: William Lavender)
+ */
+#if defined(_MSC_VER)
+  typedef int mode_t;
+  typedef unsigned char u_char;
+  typedef unsigned short u_short;
+
+  /* Suppress warnings about "deprecated" functions like fopen(). */
+# pragma warning( disable:4996 )
+#endif /* _MSC_VER */
+
 	/* return values from routines */
 #define		EOK		0	/* normal exit status */
 #define		EALLOC		12	/* memory allocation error (ENOMEM) */

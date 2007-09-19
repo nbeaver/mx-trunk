@@ -1,5 +1,6 @@
 
-all: xdr.obj xdr_hyper.obj getopt.obj strlcpy.obj strlcat.obj mxgnuplt.exe
+all: xdr.obj xdr_hyper.obj getopt.obj strlcpy.obj strlcat.obj \
+	smvspatial.obj mxgnuplt.exe
 
 include ../libMx/Makehead.win32
 
