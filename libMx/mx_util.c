@@ -1069,7 +1069,7 @@ mx_start_debugger( char *command )
 			if ( mx_command_found( "ddd" ) ) {
 
 				snprintf( command_line, sizeof(command_line),
-					"ddd -p %lu", pid );
+					"ddd --gdb -p %lu", pid );
 			} else
 #endif
 #if defined(OS_SOLARIS)
@@ -1079,11 +1079,6 @@ mx_start_debugger( char *command )
 					"sunstudio -A %lu", pid );
 			} else
 #endif
-			if ( mx_command_found( "cgdb" ) ) {
-
-				snprintf( command_line, sizeof(command_line),
-					"%s cgdb -p %lu", terminal, pid );
-			} else
 			if ( mx_command_found( "gdbtui" ) ) {
 
 				snprintf( command_line, sizeof(command_line),

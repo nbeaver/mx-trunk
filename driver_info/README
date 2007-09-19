@@ -18,3 +18,6 @@ hsc1 - The 'hsc1' and 'hsc1_motor' records require some modification to the
 		variables in the HSC-1 memory map.  The README describes
 		what has to be done.
 
+pccd_170170 - Contains spline files for PCCD-170170 detectors.  The name
+                of the file indicates which detector the file is for.
+

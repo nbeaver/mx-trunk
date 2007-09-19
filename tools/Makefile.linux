@@ -22,7 +22,7 @@ mx_clean:
 	( cd unix/src/editline ; make clean )
 
 smvspatial.o: xgen/smvspatial.c
-	$(CC) -c -fPIC -Wall -Werror -DOS_LINUX -D__MX_LIBRARY__ \
+	$(CC) -g -c -fPIC -Wall -Werror -DOS_LINUX -D__MX_LIBRARY__ \
 		xgen/smvspatial.c
 
 strlcpy.o: generic/src/strlcpy.c
