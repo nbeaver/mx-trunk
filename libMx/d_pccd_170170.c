@@ -3136,7 +3136,7 @@ mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"We cannot read spatial correction file '%s'.  "
+		"Cannot read spatial correction file '%s'.  "
 		"errno = %d, error message = '%s'.",
 			spatial_correction_filename,
 			saved_errno, strerror(saved_errno) );
