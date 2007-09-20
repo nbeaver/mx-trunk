@@ -2358,7 +2358,8 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	/* Make sure the frame is big enough. */
 
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
-	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for image_frame", fname));
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for (*image_frame) = %p",
+		fname, (*image_frame) ));
 #endif
 
 	mx_status = mx_image_alloc( image_frame,
@@ -2966,7 +2967,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	/* Make sure that the frame is big enough to hold the image data. */
 
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
-	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for roi_frame", fname));
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for (*roi_frame) = %p",
+		fname, (*roi_frame) ));
 #endif
 
 	mx_status = mx_image_alloc( roi_frame,
@@ -3276,7 +3278,8 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
-	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for frame_ptr", fname));
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for frame_ptr = %p",
+		fname, frame_ptr));
 #endif
 
 	mx_status = mx_image_alloc( frame_ptr,

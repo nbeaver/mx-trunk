@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		TRUE
+#define MX_IMAGE_DEBUG		FALSE
 
 #define MX_IMAGE_TEST_DEZINGER	FALSE
 
@@ -305,6 +305,11 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
 
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,("%s: *frame = malloc(sizeof(MX_IMAGE_FRAME)) = %p",
+			fname, *frame));
+#endif
+
 		if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate "
@@ -340,6 +345,12 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 #endif
 		(*frame)->header_data = malloc( header_length );
 
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,
+		("%s: (*frame) = %p, (*frame)->header_data = malloc(%lu) = %p",
+			fname, *frame, header_length, (*frame)->header_data));
+#endif
+
 		if ( (*frame)->header_data == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a "
@@ -367,13 +378,19 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		MX_DEBUG(-2,
 		("%s: Changing header buffer to %lu bytes.",
 				fname, (unsigned long) header_length));
+
+		MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
+		MX_DEBUG(-2,("%s: BEFORE realloc(), (*frame)->header_data = %p",
+			fname, (*frame)->header_data));
 #endif
-		if ( (*frame)->header_data != NULL ) {
-			free( (*frame)->header_data );
-		}
 
 		(*frame)->header_data = realloc( (*frame)->header_data,
 							header_length );
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,
+	("%s: AFTER realloc(), (*frame)->header_data = realloc(x,%lu) = %p",
+			fname, header_length, (*frame)->header_data));
+#endif
 
 		if ( (*frame)->header_data == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -404,15 +421,22 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	bytes_per_frame = mx_round( bytes_per_frame_as_double );
 
 #if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
-		fname, (*frame)->image_data));
+	MX_DEBUG(-2,("%s: ********** image_data buffer *********", fname));
 	MX_DEBUG(-2,
-	("%s: (*frame)->image_length = %lu, bytes_per_frame = %lu",
-		fname, (unsigned long) (*frame)->image_length,
+	("%s: (*frame)->image_data = %p, (*frame)->image_length = %lu",
+		fname, (*frame)->image_data,
+		(unsigned long)(*frame)->image_length));
+	MX_DEBUG(-2,
+	("%s: (*frame)->allocated_image_length = %lu, bytes_per_frame = %lu",
+		fname, (unsigned long) (*frame)->allocated_image_length,
 		bytes_per_frame));
 #endif
 
 	/* Setup the image data buffer. */
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
+#endif
 
 	if ( ((*frame)->image_length == 0) && (bytes_per_frame == 0)) {
 
@@ -424,29 +448,14 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Attempted to create a zero length image buffer for frame %p.",
 			*frame );
-
 	} else
-	if ( ( (*frame)->image_data != NULL )
-	  && ( (*frame)->allocated_image_length >= bytes_per_frame ) )
-	{
-#if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,
-		("%s: The image buffer is already big enough.", fname));
-#endif
-		(*frame)->image_length = bytes_per_frame;
-	} else {
-
-#if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
-			fname, bytes_per_frame));
-#endif
-		/* If not, then allocate a new one. */
-
-		if ( (*frame)->image_data != NULL ) {
-			free( (*frame)->image_data );
-		}
-
+	if ( (*frame)->image_data == NULL ) {
 		(*frame)->image_data = malloc( bytes_per_frame );
+
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,("%s: (*frame)->image_data = malloc( %lu ) = %p",
+			fname, bytes_per_frame, (*frame)->image_data));
+#endif
 
 		if ( (*frame)->image_data == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -457,10 +466,39 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		(*frame)->image_length = bytes_per_frame;
 		(*frame)->allocated_image_length = bytes_per_frame;
+	} else
+	if ( (*frame)->allocated_image_length >= bytes_per_frame ) {
 
 #if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
+		MX_DEBUG(-2,
+		("%s: The image buffer is already big enough.", fname));
 #endif
+		(*frame)->image_length = bytes_per_frame;
+	} else {
+
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,("%s: Resizing the image buffer %p to %lu bytes.",
+			fname, (*frame)->image_data, bytes_per_frame));
+#endif
+
+		(*frame)->image_data = realloc( (*frame)->image_data,
+							bytes_per_frame );
+
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,
+		("%s: (*frame)->image_data = realloc(x, %lu) = %p",
+			fname, bytes_per_frame, (*frame)->image_data));
+#endif
+
+		if ( (*frame)->image_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld byte "
+			"image buffer for frame %p",
+				bytes_per_frame, *frame );
+		}
+
+		(*frame)->image_length = bytes_per_frame;
+		(*frame)->allocated_image_length = bytes_per_frame;
 	}
 
 	/* Fill in some parameters. */

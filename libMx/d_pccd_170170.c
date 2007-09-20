@@ -636,8 +636,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 #if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
 		MX_DEBUG(-2,
-		("%s: Invoking mx_image_alloc() for pccd_170170->temp_frame",
-			fname ));
+	("%s: Invoking mx_image_alloc() for pccd_170170->temp_frame = %p",
+			fname, pccd_170170->temp_frame ));
 #endif
 
 		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
@@ -2234,7 +2234,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 #if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
-	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame", fname ));
+	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame = %p",
+		fname, pccd_170170->raw_frame ));
 #endif
 
 	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
@@ -2947,30 +2948,27 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-#if 0	/* WML */
-        /* It is probably best to let mx_video_input_get_frame()
-	 * resize the frame if necessary.
-	 */
+#if MXD_PCCD_170170_DEBUG
+	{
+		long video_x_width, video_y_width;
 
-	/* Make sure that the raw image frame is big enough. */
+		mx_status = mx_video_input_get_framesize(
+				pccd_170170->video_input_record,
+				&video_x_width, &video_y_width );
 
-#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
-	MX_DEBUG(-2,
-	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame", fname ));
+		MX_DEBUG(-2,("%s: video_x_width = %ld, video_y_width = %ld",
+			fname, video_x_width, video_y_width));
+
+		MX_DEBUG(-2,
+		("%s: ad->framesize[0] = %ld, ad->framesize[1] = %ld",
+			fname, ad->framesize[0], ad->framesize[1]));
+
+		MX_DEBUG(-2,
+		("%s: raw_frame x width = %ld, raw_frame y width = %ld",
+			fname, MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame),
+			MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) ));
+	}
 #endif
-
-	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
-				ad->framesize[0] * 4L,
-				ad->framesize[1] / 4L,
-				ad->image_format,
-				ad->byte_order,
-				ad->bytes_per_pixel,
-				0, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#endif /* WML */
 
 	/* Read in the raw image frame. */
 
@@ -3005,7 +3003,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 #if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
-	("%s: Invoking mx_image_alloc() for pccd_170170->image_frame", fname));
+	("%s: Invoking mx_image_alloc() for ad->image_frame = %p",
+		fname, ad->image_frame));
 #endif
 
 	mx_status = mx_image_alloc( &(ad->image_frame),

@@ -1375,98 +1375,23 @@ mx_video_input_get_frame( MX_RECORD *record,
 			record->name );
 	}
 
-#if MX_VIDEO_INPUT_DEBUG
-	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
-#endif
-
-	/* We either reuse an existing MX_IMAGE_FRAME or create a new one. */
-
-	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+	/* Make sure that the frame is big enough. */
 
 #if MX_VIDEO_INPUT_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
-#endif
-		/* Allocate a new MX_IMAGE_FRAME. */
-
-		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
-
-		if ( (*frame) == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate "
-			"a new MX_IMAGE_FRAME structure." );
-		}
-
-		(*frame)->header_length = 0;
-		(*frame)->header_data = NULL;
-
-		(*frame)->image_length = 0;
-		(*frame)->image_data = NULL;
-	}
-
-	/* Fill in some parameters. */
-
-	MXIF_ROW_FRAMESIZE(*frame)    = vinput->framesize[0];
-	MXIF_COLUMN_FRAMESIZE(*frame) = vinput->framesize[1];
-	MXIF_IMAGE_FORMAT(*frame)     = vinput->image_format;
-	MXIF_BYTE_ORDER(*frame)       = vinput->byte_order;
-
-	/* See if the image buffer is already big enough for the image. */
-
-#if MX_VIDEO_INPUT_DEBUG
-	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
-		fname, (*frame)->image_data));
-	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_frame = %lu",
-		fname, (unsigned long) (*frame)->image_length,
-		vinput->bytes_per_frame));
+	MX_DEBUG(-2,("%s: resizing *frame = %p", fname, *frame));
 #endif
 
-	/* Setup the image data buffer. */
+	mx_status = mx_image_alloc( frame,
+				vinput->framesize[0],
+				vinput->framesize[1],
+				vinput->image_format,
+				vinput->byte_order,
+				vinput->bytes_per_pixel,
+				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+				vinput->bytes_per_frame );
 
-	if ( ((*frame)->image_length == 0) && (vinput->bytes_per_frame == 0)) {
-
-		/* Zero length image buffers are not allowed. */
-
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Video input '%s' attempted to create a zero length image buffer.",
-			record->name );
-
-	} else
-	if ( ( (*frame)->image_data != NULL )
-	  && ( (*frame)->image_length >= vinput->bytes_per_frame ) )
-	{
-#if MX_VIDEO_INPUT_DEBUG
-		MX_DEBUG(-2,
-		("%s: The image buffer is already big enough.", fname));
-#endif
-	} else {
-
-#if MX_VIDEO_INPUT_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
-			fname, vinput->bytes_per_frame));
-#endif
-		/* If not, then allocate a new one. */
-
-		if ( (*frame)->image_data != NULL ) {
-			free( (*frame)->image_data );
-		}
-
-		(*frame)->image_data = malloc( vinput->bytes_per_frame );
-
-		if ( (*frame)->image_data == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Cannot allocate a %ld byte image buffer for "
-			"video input '%s'.",
-				vinput->bytes_per_frame, vinput->record->name );
-		}
-
-#if MX_VIDEO_INPUT_DEBUG
-		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
-#endif
-	}
-
-	MXIF_SET_BYTES_PER_PIXEL(*frame, vinput->bytes_per_pixel);
-
-	(*frame)->image_length = vinput->bytes_per_frame;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now get the actual frame. */
 

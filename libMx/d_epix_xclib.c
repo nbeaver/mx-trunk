@@ -22,7 +22,7 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS	TRUE
+#define MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS	FALSE
 
 #define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	FALSE
 
@@ -1961,8 +1961,6 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	 */
 
 	if ( epix_xclib_vinput->fake_frame_numbers[0] >= 0 ) {
-		MX_DEBUG(-2,("%s: MARKER 0", fname));
-
 		vinput->last_frame_number =
 				epix_xclib_vinput->fake_frame_numbers[0];
 	} else
@@ -2003,21 +2001,12 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 		if ( vinput->total_num_frames
 			== epix_xclib_vinput->old_total_num_frames )
 		{
-#if MXD_EPIX_XCLIB_DEBUG
-			MX_DEBUG(-2,("%s: MARKER 1", fname));
-#endif
 			vinput->last_frame_number = -1;
 		} else {
-#if MXD_EPIX_XCLIB_DEBUG
-			MX_DEBUG(-2,("%s: MARKER 2", fname));
-#endif
 			vinput->last_frame_number = captured_buffer - 1;
 			epix_xclib_vinput->new_sequence = FALSE;
 		}
 	} else {
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: MARKER 3", fname));
-#endif
 		vinput->last_frame_number = captured_buffer - 1;
 	}
 
@@ -2360,7 +2349,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			vinput->frame_number, vinput->record->name );
 	}
 
-#if 1
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: MX_IMAGE_FRAME = %p", fname, frame));
 	MX_DEBUG(-2,("%s: image_length = %ld, allocated_image_length = %ld",
 		fname, (long) frame->image_length,
 		(long) frame->allocated_image_length));
@@ -2370,11 +2360,18 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: row binsize = %ld, column binsize = %ld",
 		fname, (long) MXIF_ROW_BINSIZE(frame),
 		(long) MXIF_COLUMN_BINSIZE(frame) ));
+	MX_DEBUG(-2,("%s: frame->image_data = %p", fname, frame->image_data));
+	MX_DEBUG(-2,("%s: BEFORE calling memset(%p, 0, %lu).",
+		fname, frame->image_data, frame->allocated_image_length));
 #endif
 
 	/* Erase any previous contents of the frame buffer. */
 
 	memset( frame->image_data, 0, frame->allocated_image_length );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: AFTER calling memset().",fname));
+#endif
 
 	/* Read the frame into the MX_IMAGE_FRAME structure. */
 
@@ -2386,6 +2383,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 #endif
 
 	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+
 		words_to_read = (frame->image_length) / 2;
 		
 		result = pxd_readushort( epix_xclib_vinput->unitmap,
