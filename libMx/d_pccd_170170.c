@@ -1804,6 +1804,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	flags = pccd_170170->pccd_170170_flags;
 
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: pccd_170170_flags = %#lx", fname, flags));
+#endif
+
 	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
 		mx_warning( "Area detector '%s' will not descramble "
 			"images from the camera head.",
@@ -2259,7 +2263,9 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->sector_array = NULL;
 
-	/* Load the image correction files. */
+	/* Load the image correction files.  This sets the value of
+	 * ad->correction_flags as a side effect.
+	 */
 
 	mx_status = mx_area_detector_load_correction_files( record );
 
@@ -2965,8 +2971,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 		MX_DEBUG(-2,
 		("%s: raw_frame x width = %ld, raw_frame y width = %ld",
-			fname, MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame),
-			MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) ));
+			fname, (long)MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame),
+			(long)MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) ));
 	}
 #endif
 

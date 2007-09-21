@@ -162,6 +162,16 @@ typedef struct mx_area_detector_type {
 	mx_bool_type correct_frame;
 	unsigned long correction_flags;
 
+	mx_bool_type correction_frames_are_unbinned;
+
+	/*
+	 * 'flood_field_scale_threshold' is used in flood field correction
+	 * to limit the maximum and minimum values of the flood field
+	 * scale factor.
+	 */
+
+	double flood_field_scale_threshold;
+
 	/* 'transfer_frame' tells the server to send one of the frames
 	 * to the caller.
 	 */
@@ -458,6 +468,16 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_CORRECTION_FLAGS, -1, "correction_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, correction_flags), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "correction_frames_are_unbinned", MXFT_BOOL, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_frames_are_unbinned), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "flood_field_scale_threshold", MXFT_DOUBLE, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, flood_field_scale_threshold), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_TRANSFER_FRAME, -1, "transfer_frame", MXFT_LONG, NULL, 0, {0}, \

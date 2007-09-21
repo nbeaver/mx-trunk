@@ -14,11 +14,13 @@
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG    		FALSE
+#define MX_AREA_DETECTOR_DEBUG    			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC	FALSE
+#define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DEZINGER		FALSE
+#define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -198,6 +200,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_measurement = NULL;
 
+	ad->correction_frames_are_unbinned = FALSE;
+
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
 	ad->total_num_frames = -1;
@@ -235,24 +239,22 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->mask_frame = NULL;
 	ad->mask_frame_buffer = NULL;
-	ad->mask_filename[0] = '\0';
 
 	ad->bias_frame = NULL;
 	ad->bias_frame_buffer = NULL;
-	ad->bias_filename[0] = '\0';
 
 	ad->use_scaled_dark_current = FALSE;
 	ad->dark_current_exposure_time = 1.0;
 
 	ad->dark_current_frame = NULL;
 	ad->dark_current_frame_buffer = NULL;
-	ad->dark_current_filename[0] = '\0';
 
 	ad->flood_field_average_intensity = 1.0;
 
 	ad->flood_field_frame = NULL;
 	ad->flood_field_frame_buffer = NULL;
-	ad->flood_field_filename[0] = '\0';
+
+	ad->flood_field_scale_threshold = DBL_MAX;
 
 	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
 
@@ -4334,6 +4336,45 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 
 /*---*/
 
+#define CHECK_CORRECTION_BINNING(frame, frame_name) \
+	do {                                                                \
+	    if ( ad->correction_frames_are_unbinned ) {                     \
+	        if ((MXIF_ROW_BINSIZE((frame)) != 1)                        \
+		  || (MXIF_COLUMN_BINSIZE((frame)) != 1))                   \
+		{                                                           \
+			return mx_error( MXE_TYPE_MISMATCH, fname,          \
+			"The current %s bin size (%lu,%lu) for "            \
+			"area_detector '%s' is not (1,1).",                 \
+				(frame_name),                               \
+				(long) MXIF_ROW_BINSIZE((frame)),           \
+				(long) MXIF_COLUMN_BINSIZE((frame)),        \
+				ad->record->name );                         \
+		}                                                           \
+	    } else {                                                        \
+		if ((MXIF_ROW_BINSIZE((frame)) != row_binsize)              \
+		  || (MXIF_COLUMN_BINSIZE((frame)) != column_binsize))      \
+		{                                                           \
+			return mx_error( MXE_TYPE_MISMATCH, fname,          \
+			"The current %s binsize (%lu,%lu) for "             \
+			"area detector '%s' is different from "             \
+			"the binsize (%lu,%lu) of the image frame.",        \
+				(frame_name),                               \
+				(long) MXIF_ROW_BINSIZE((frame)),           \
+				(long) MXIF_COLUMN_BINSIZE((frame)),        \
+				ad->record->name,                           \
+				row_binsize, column_binsize );              \
+		}                                                           \
+	    }                                                               \
+	} while(0)
+
+/* mx_area_detector_frame_correction() requires that all of the frames have
+ * the same framesize.
+ */
+
+#define USE_FLOATING_POINT	FALSE
+
+#if USE_FLOATING_POINT
+
 MX_EXPORT mx_status_type
 mx_area_detector_frame_correction( MX_RECORD *record,
 				MX_IMAGE_FRAME *image_frame,
@@ -4348,11 +4389,17 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
-	uint16_t image_pixel, total_pixel_offset;
-	unsigned long flags, big_image_pixel;
+	unsigned long flags, row_binsize, column_binsize;
+	double image_pixel, bias_offset;
 	double image_exposure_time, exposure_time_ratio;
-	double actual_dark_current, flood_field_scale_factor;
+	double raw_dark_current, scaled_dark_current;
+	double raw_flood_field, flood_field_scale_factor;
+	double flood_field_scale_max, flood_field_scale_min;
 	mx_status_type mx_status;
+
+#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING measurement;
+#  endif
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -4364,16 +4411,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	actual_dark_current = -1.0;
+	scaled_dark_current = -1.0;
 	flood_field_scale_factor = -1.0;
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: image_frame = %p", fname, image_frame));
-	MX_DEBUG(-2,("%s: mask_frame = %p", fname, mask_frame));
-	MX_DEBUG(-2,("%s: bias_frame = %p", fname, bias_frame));
-	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
-	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
-#endif
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -4398,6 +4437,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		"The primary image frame is not a 16-bit greyscale image." );
 	}
 
+	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
+	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+
 	image_data_array = image_frame->image_data;
 
 	flags = ad->correction_flags;
@@ -4409,6 +4451,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		mask_data_array = NULL;
 	} else {
 		mask_data_array = mask_frame->image_data;
+
+		CHECK_CORRECTION_BINNING( mask_frame, "mask" );
 	}
 
 	if ( ( flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
@@ -4418,6 +4462,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		bias_data_array = NULL;
 	} else {
 		bias_data_array = bias_frame->image_data;
+
+		CHECK_CORRECTION_BINNING( bias_frame, "bias" );
 	}
 
 	if ( ( flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
@@ -4427,6 +4473,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		dark_current_data_array = NULL;
 	} else {
 		dark_current_data_array = dark_current_frame->image_data;
+
+		CHECK_CORRECTION_BINNING(dark_current_frame, "dark current");
 	}
 
 	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
@@ -4436,19 +4484,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		flood_field_data_array = NULL;
 	} else {
 		flood_field_data_array = flood_field_frame->image_data;
-	}
 
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: image_data_array = %p", fname, image_data_array));
-	MX_DEBUG(-2,("%s: mask_data_array = %p", fname, mask_data_array));
-	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
-	MX_DEBUG(-2,("%s: dark_current_data_array = %p",
-			fname, dark_current_data_array));
-	MX_DEBUG(-2,("%s: flood_field_data_array = %p",
-			fname, flood_field_data_array));
-	MX_DEBUG(-2,("%s: ad->flood_field_average_intensity = %g",
-				fname, ad->flood_field_average_intensity ));
-#endif
+		CHECK_CORRECTION_BINNING(flood_field_frame, "flood field");
+	}
 
 	mx_status = mx_image_get_exposure_time( ad->image_frame,
 						&image_exposure_time );
@@ -4463,6 +4501,12 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		exposure_time_ratio = 1.0;
 	}
 
+	/*---*/
+
+	flood_field_scale_max = fabs(ad->flood_field_scale_threshold);
+
+	flood_field_scale_min = mx_divide_safely( 1.0, flood_field_scale_max );
+
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
 	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
@@ -4474,6 +4518,235 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
 #endif
+
+#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( measurement );
+#  endif
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		image_pixel = (double) image_data_array[i];
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+
+				/* If the pixel is masked off, skip this
+				 * pixel and return to the top of the loop
+				 * for the next pixel.
+				 */
+
+				image_data_array[i] = 0;
+				continue;
+			}
+		}
+
+		/* Add the detector bias. */
+
+		if ( bias_data_array != NULL ) {
+			bias_offset = (double) bias_data_array[i];
+		} else {
+			bias_offset = 0.0;
+		}
+
+		image_pixel = image_pixel + bias_offset;
+
+		/* Add the scaled dark current. */
+
+		if ( dark_current_data_array != NULL ) {
+			raw_dark_current = (double) dark_current_data_array[i];
+
+			scaled_dark_current = exposure_time_ratio
+			    * (raw_dark_current - bias_offset) + bias_offset;
+		} else {
+			scaled_dark_current = 0.0;
+		}
+
+		image_pixel = image_pixel - scaled_dark_current;
+
+		if ( flood_field_data_array != NULL ) {
+			raw_flood_field = (double) flood_field_data_array[i];
+
+			flood_field_scale_factor = mx_divide_safely(
+			    ( ad->flood_field_average_intensity - bias_offset ),
+				( raw_flood_field - bias_offset ) );
+
+			if ((flood_field_scale_factor > flood_field_scale_max)
+			 || (flood_field_scale_factor < flood_field_scale_min))
+			{
+				image_data_array[i] = 0;
+				continue;
+			}
+
+			image_pixel = image_pixel * flood_field_scale_factor;
+		}
+
+		image_data_array[i] = mx_round( image_pixel + bias_offset );
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, "Linear image correction time." );
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else /* not USE_FLOATING_POINT */
+
+MX_EXPORT mx_status_type
+mx_area_detector_frame_correction( MX_RECORD *record,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *mask_frame,
+				MX_IMAGE_FRAME *bias_frame,
+				MX_IMAGE_FRAME *dark_current_frame,
+				MX_IMAGE_FRAME *flood_field_frame )
+{
+	static const char fname[] = "mx_area_detector_frame_correction()";
+
+	MX_AREA_DETECTOR *ad;
+	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
+	uint16_t *dark_current_data_array, *flood_field_data_array;
+	long i, num_pixels;
+	unsigned long flags, row_binsize, column_binsize;
+	unsigned long image_pixel, bias_offset;
+	double image_exposure_time, exposure_time_ratio;
+	unsigned long raw_dark_current, raw_flood_field;
+	unsigned long scaled_dark_current;
+	double scaled_dark_current_dbl;
+	double flood_field_scale_factor;
+	double flood_field_scale_max, flood_field_scale_min;
+	mx_status_type mx_status;
+
+#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING measurement;
+#  endif
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, record->name ));
+#endif
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	scaled_dark_current = 0;
+	flood_field_scale_factor = -1.0;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No primary image frame was provided." );
+	}
+
+	if ( ad->correction_flags == 0 ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: No corrections requested.", fname));
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Area detector image correction is currently only supported
+	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
+	 */
+
+	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The primary image frame is not a 16-bit greyscale image." );
+	}
+
+	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
+	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+
+	image_data_array = image_frame->image_data;
+
+	flags = ad->correction_flags;
+
+	if ( ( flags & MXFT_AD_MASK_FRAME ) == 0 ) {
+		mask_data_array = NULL;
+	} else
+	if ( mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array = mask_frame->image_data;
+
+		CHECK_CORRECTION_BINNING( mask_frame, "mask" );
+	}
+
+	if ( ( flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
+		bias_data_array = NULL;
+	} else
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+
+		CHECK_CORRECTION_BINNING( bias_frame, "bias" );
+	}
+
+	if ( ( flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
+		dark_current_data_array = NULL;
+	} else
+	if ( dark_current_frame == NULL ) {
+		dark_current_data_array = NULL;
+	} else {
+		dark_current_data_array = dark_current_frame->image_data;
+
+		CHECK_CORRECTION_BINNING(dark_current_frame, "dark current");
+	}
+
+	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
+		flood_field_data_array = NULL;
+	} else
+	if ( flood_field_frame == NULL ) {
+		flood_field_data_array = NULL;
+	} else {
+		flood_field_data_array = flood_field_frame->image_data;
+
+		CHECK_CORRECTION_BINNING(flood_field_frame, "flood field");
+	}
+
+	mx_status = mx_image_get_exposure_time( ad->image_frame,
+						&image_exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ad->use_scaled_dark_current ) {
+		exposure_time_ratio = mx_divide_safely( image_exposure_time,
+					ad->dark_current_exposure_time );
+	} else {
+		exposure_time_ratio = 1.0;
+	}
+
+	/*---*/
+
+	flood_field_scale_max = fabs(ad->flood_field_scale_threshold);
+
+	flood_field_scale_min = mx_divide_safely( 1.0, flood_field_scale_max );
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
+		fname, image_exposure_time, exposure_time_ratio));
+#endif
+
+	num_pixels = image_frame->image_length / 2L;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
+#endif
+
+#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( measurement );
+#  endif
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -4492,96 +4765,56 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
-		/* Compute the total offset to be subtracted from
-		 * the raw pixel value.
-		 */
-
-		total_pixel_offset = 0;
-
 		/* Add the detector bias. */
 
 		if ( bias_data_array != NULL ) {
-			image_pixel += bias_data_array[i];
+			bias_offset = bias_data_array[i];
+		} else {
+			bias_offset = 0;
 		}
 
-		/* Add the rescaled dark current. */
+		image_pixel = image_pixel + bias_offset;
+
+		/* Add the scaled dark current. */
 
 		if ( dark_current_data_array != NULL ) {
-			actual_dark_current = exposure_time_ratio
-					* (double) dark_current_data_array[i];
+			raw_dark_current = dark_current_data_array[i];
 
-			total_pixel_offset += mx_round( actual_dark_current );
-		}
+			scaled_dark_current_dbl = exposure_time_ratio
+			    * (raw_dark_current - bias_offset) + bias_offset;
 
-		if ( image_pixel < total_pixel_offset ) {
-			image_pixel = 0;
+			scaled_dark_current = mx_round(scaled_dark_current_dbl);
 		} else {
-			image_pixel -= total_pixel_offset;
+			scaled_dark_current = 0;
 		}
+
+		image_pixel = image_pixel - scaled_dark_current;
 
 		if ( flood_field_data_array != NULL ) {
+			raw_flood_field = flood_field_data_array[i];
+
 			flood_field_scale_factor = mx_divide_safely(
-					ad->flood_field_average_intensity,
-					(double) flood_field_data_array[i] );
+			    ( ad->flood_field_average_intensity - bias_offset ),
+				( raw_flood_field - bias_offset ) );
 
-			big_image_pixel = mx_round(
-			    flood_field_scale_factor * (double) image_pixel );
-
-#if MX_AREA_DETECTOR_DEBUG
-			if ( i < 10 ) {
-				MX_DEBUG(-10,
-("%s: image_pixel = %d, flood_field_scale_factor = %g, big_image_pixel = %ld",
-	fname, image_pixel, flood_field_scale_factor, big_image_pixel));
+			if ((flood_field_scale_factor > flood_field_scale_max)
+			 || (flood_field_scale_factor < flood_field_scale_min))
+			{
+				image_data_array[i] = 0;
+				continue;
 			}
-#endif
 
-			if ( big_image_pixel > 65535 ) {
-				image_pixel = 65535;
-			} else {
-				image_pixel = big_image_pixel;
-			}
+			image_pixel = 
+			    mx_round( image_pixel * flood_field_scale_factor );
 		}
 
-#if MX_AREA_DETECTOR_DEBUG
-		if ( i < 10 ) {
-			fprintf( stderr, "i = %ld, flags = %#lx, ", i, flags );
-
-			if ( image_data_array == NULL ) {
-				fprintf( stderr, "orig = NULL, " );
-			} else {
-				fprintf( stderr, "orig = %d, ",
-					(int) image_data_array[i] );
-			}
-			
-			if ( bias_data_array == NULL ) {
-				fprintf( stderr, "bias = NULL, " );
-			} else {
-				fprintf( stderr, "bias = %d, ",
-					(int) bias_data_array[i] );
-			}
-
-			if ( dark_current_data_array == NULL ) {
-				fprintf( stderr, "dark = NULL, " );
-			} else {
-				fprintf( stderr, "dark = %g, ",
-					actual_dark_current );
-			}
-
-			if ( flood_field_data_array == NULL ) {
-				fprintf( stderr, "flood = NULL, " );
-			} else {
-				fprintf( stderr, "flood = %g, ",
-					flood_field_scale_factor );
-			}
-
-			fprintf( stderr, "result = %d\n", (int) image_pixel );
-		}
-#endif
-
-		image_data_array[i] = image_pixel;
+		image_data_array[i] = image_pixel + bias_offset;
 	}
 
-#if MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, "Linear image correction time." );
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4590,6 +4823,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* not USE_FLOATING_POINT */
 
 /************************************************************************
  * The following functions are intended for use only in device drivers. *
