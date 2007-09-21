@@ -7,6 +7,8 @@
 	of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Change record:
+	20 Sep 2007: eliminate image rotation: we'll rotate
+		the VSPLINE instead
 	15 Sep 2007: make this a single file containing the whole calling
 		sequence for this process.
 	 6 Sep 2007: increase the standalone-ness of this code;
@@ -25,10 +27,6 @@ Change record:
  * extra definitions.  (18 Sep 2007: William Lavender)
  */
 #if defined(_MSC_VER)
-  typedef int mode_t;
-  typedef unsigned char u_char;
-  typedef unsigned short u_short;
-
   /* Suppress warnings about "deprecated" functions like fopen(). */
 # pragma warning( disable:4996 )
 #endif /* _MSC_VER */
@@ -39,68 +37,26 @@ Change record:
 #define		EREADERR	5	/* error in reading (EIO) */
 #define		EOPENERR	2	/* error in opening a file (ENOENT) */
 #define		EBADVALUE	22	/* bad arg to a function (EINVAL) */
-	/* management of byte order */
-#ifdef LITTLEND
-#undef	LITTLEND	/* we'll re-define this for some systems below. */
-#endif
-#ifdef ultrix
-#define	LITTLEND	1
-#endif /* ultrix */
-#ifdef __alpha
-#define	LITTLEND	1
-#endif /* __alpha */
-#ifdef i386 
-#define	LITTLEND	1
-#endif /* i386 */
-#ifdef linux
-#include	<endian.h>
-#if __BYTE_ORDER==__LITTLE_ENDIAN
-#define	LITTLEND	1
-#endif /* __BYTE_ORDER==__LITTLE_ENDIAN */
-#endif /* linux */
-	/* unambigous 32-bit integers */
-#ifdef ANCIENT_16 /* xglong is always 32 bit */
-#define xgulong	unsigned long
-#define xglong	long
-#else /* else of ANCIENT_16 */
-#define	xgulong unsigned int
-#define xglong	int
-#endif /* ANCIENT_16 */
 	/* floating and double parameters */
 #define		FUZZ		(0.119e-6)	/* hardware FUZZ value */
 #define		DFUZZ		(0.220e-15)	/* hardware double FUZZ value */
 	/* flag bits for image conversions */
-#define		INPUT_ROTCONV	0x7	/* bits for input rotation*/
-#define		OUTPUT_ROTCONV	0x38	/* bits for input rotation*/
-#define		OVERWRITE_ORIGINAL	0x40 /* overwrite original memory */
-#define		RESCALE65K	0x80	/* rescale < 65K during interpolation*/
-#define		PARTIAL_VERBOSE	0x100	/* moderate number of comments */
-#define		VERY_VERBOSE	0x200	/* lots of comments */
-#define		REDIMENSION	0x400	/* redimension detector image */
-#define		OVERRIDE_COORDS	0x800	/* override coordinate conventions */
-#define		IPR_XFASTEST	0x1	/* bit describing X faster than Y */
-#define		IPR_STARTBOTTOM	0x2	/* bit describing starting @ bottom */
-#define		IPR_STARTRIGHT	0x4	/* bit describing starting @ right */
-#define		IPR_RAXISCOMPRESS	0x4000	/* R-Axis Compression type */
+#define		PARTIAL_VERBOSE	0x1
+#define		VERY_VERBOSE	0x2
+#define		ANY_VERBOSE	(PARTIAL_VERBOSE | VERY_VERBOSE)
 	/* system-level declarations, appropriately latched */
-#ifndef _H_STANDARDS
-extern int	access(const char *path, int mode);
-#endif /* _H_STANDARDS */
 #ifndef	__stdlib_h
 extern void	*calloc(size_t count, size_t size);
 extern void	free(void *ptr);
-extern char	*getenv(const char *name);
 #endif /* __stdlib_h */
-extern int	creat(const char *path, mode_t mode);
 #include	<string.h>
-#define		MINRESERVED	800
 
 /* structure type definitions */
 
  typedef struct { /* (X,Y) calibration point structure; totals   32 bytes:*/
 		float	c_ptocx, c_ptocy, c_ctopx, c_ctopy;	/*    16 */
-		float	c_qec, c_frfu[2];			/*    12 */
-		u_char	c_ift, c_set, c_cset, c_ucrfu;		/*     4 */
+		float		c_qec, c_frfu[2];		/*    12 */
+		unsigned char	c_ift, c_set, c_cset, c_ucrfu;	/*     4 */
 		} CALPOINT;
 
  typedef struct { /* complete calibration structure;	totals 512 bytes:*/
@@ -121,57 +77,65 @@ extern int	creat(const char *path, mode_t mode);
 
  typedef struct {
 		int		imf_flags, imf_ht, imf_imsize, imf_wid;
-		double		imf_totct;
 		double		imf_x00, imf_xsl, imf_y00, imf_ysl;
-		u_short		imf_zmax, imf_zmaxx, imf_zmaxy;
+		unsigned short	imf_zmax, imf_zmaxx, imf_zmaxy;
 		float		*imf_locim, *imf_locwt;
-		u_short		*imf_data16;
+		unsigned short	*imf_data16;
 		char		*imf_splname;
 		VSPLINE		*imf_spl;
 		} IMWORK;
 
-extern int smvspatial(void *ia, void **oa, int iw, int ih, int cfl, char *sn);
+extern int smvspatial(void *ia, int iw, int ih, int cfl, char *sn);
 
-#ifdef LITTLEND /* We only need these routines on LITTLEND machines */
 static short sswab(short sh)
-{ /*	This converts a SIGNED short.  This is comparatively tricky. */
-	u_short	ush;
+{ /*	This byte-swaps a SIGNED short.  This is comparatively tricky. */
+	unsigned short	ush;
 
-	ush = (u_short)sh;
+	ush = (unsigned short)sh;
 	if (ush & 0x80)	return -1 - ((short)
 		(0xffff - (((ush & 0xff) << 8) | (ush >> 8))));
 	else		return (((ush & 0x7f) << 8) | (ush >> 8));
 }
 
-static void lflcvt(u_char *z)
+static void lflcvt(unsigned char *z)
 { /*	Converts floating-point numbers between big-endian and little-endian */
-	u_char	t;
+	unsigned char	t;
 
 	t = *(z + 3);	*(z + 3) = *z;		*z = t;
 	t = *(z + 1);	*(z + 1) = *(z + 2);	*(z + 2) = t;
 }
-#endif /* LITTLEND */
+
+static int checkorder(void)
+{ /* returns 1 if the system is little-endian; 0 if not.
+	We're hoping we don't end up with mixed word order */
+	union {
+		unsigned short	word_value;
+		unsigned char	byte_value[2];
+	} u;
+
+	u.word_value = 0x1234;
+	return (u.byte_value[0] == 0x34);
+}
 
 static int splread(VSPLINE *lspl, FILE *fpi)
 { /* This reads a VSPLINE structure in from the stream *fpi.
 	It returns the number of bytes read in */
 	static size_t	ntor = 512;
-	int		ncpt, nread;
-#ifdef LITTLEND
-	int		i;
+	int		i, islittle, ncpt, nread;
 	short		*sp;
 	float		*flp;
 	CALPOINT	*lca;
-#endif
 
 	if ((NULL == lspl) || (NULL == fpi)) return 0;
+	islittle = checkorder();	/*is this is a little-endian machine?*/
 	if (1 != fread((void *)lspl, ntor, 1, fpi)) return 0;
-#ifdef LITTLEND	/* floating-point conversions for little-endian machines */
-	for (sp = &(lspl->v_detw); sp <= &(lspl->v_midr); sp++)
-		*sp = sswab(*sp);
-	for (flp = &(lspl->v_axc); flp <= &(lspl->v_y0px); flp++)
-		lflcvt((void *)flp);
-#endif
+	if (islittle) /* byte swap shorts and flip bytes & words in floats */
+	  {
+		for (sp = &(lspl->v_detw); sp <= &(lspl->v_midr); sp++)
+			*sp = sswab(*sp);
+		for (flp = &(lspl->v_axc); flp <= &(lspl->v_y0px); flp++)
+			lflcvt((void *)flp);
+	  }
 	ncpt = lspl->v_nrow * lspl->v_ncol;
 	if (NULL != (lspl->v_cpt)) free((void *)(lspl->v_cpt));
 	if (NULL == (lspl->v_cpt = (CALPOINT *)calloc(ncpt,
@@ -181,13 +145,14 @@ static int splread(VSPLINE *lspl, FILE *fpi)
 	  }
 	nread = fread((void *)(lspl->v_cpt), sizeof (CALPOINT), ncpt, fpi);
 	(void)fclose(fpi);
-#ifdef LITTLEND	/* floating-point conversions for little-endian machines */
-	for (lca = lspl->v_cpt, i = 0; i < ncpt; i++, lca++)
-	   {
-		for (flp = &(lca->c_ptocx); flp <= &(lca->c_qec); flp++)
-			lflcvt((void *)flp);
-	   }
-#endif
+	if (islittle) /* byte and word swaps again */
+	  {
+		for (lca = lspl->v_cpt, i = 0; i < ncpt; i++, lca++)
+		   {
+			for (flp = &(lca->c_ptocx); flp <= &(lca->c_qec);
+			 flp++) lflcvt((void *)flp);
+		   }
+	  }
 	return ntor + nread * sizeof (CALPOINT);
 }
 
@@ -527,8 +492,8 @@ static int creat_undistor(IMWORK *imp)
 	double		ecount;
 	float		maxfl, *fpv, *loim;
 	int		x, y, nov;
-	xgulong		tct, zma;
-	u_short		*ov, zmxx, zmxy;
+	unsigned int	tct, zma;
+	unsigned short	*ov, zmxx, zmxy;
 
 	zma = ecount = 0;	zmxx = zmxy = 0;
 	loim = imp->imf_locim;
@@ -560,7 +525,7 @@ static int creat_undistor(IMWORK *imp)
 			for (tct = y = 0; y < imp->imf_ht;
 			 y++, fpv++, ov++)
 			   {
-				*ov = (u_short)(*fpv + 0.49999);
+				*ov = (unsigned short)(*fpv + 0.49999);
 				tct += *ov;
 				if (*ov > zma)
 				  {
@@ -578,136 +543,26 @@ static int creat_undistor(IMWORK *imp)
 	return EOK;
 }
 
-static int cspatial(IMWORK *imp)
-{ /*	This converts an image to a form in which it's spatially corrected.
-	It returns EOK if successful, various errors if not */
-	int		noreps, sret;
-
-	/* find the limits of x and y in cm */
-	if (EOK != (sret = find_limits(imp))) return sret;
-	interp_image(imp);
-	/* re-generate the output values by dividing the weighted
-	 count values by the weights */
-	noreps = normalize(imp);
-	/* extrapolate to take care of missing pixels */
-	noreps = extrap_pix(imp, noreps);
-	/* phew. Now we can make an image out of this array. */
-	return creat_undistor(imp);
-}
-
 static void sumsmvspat(FILE *fp, IMWORK *imp)
 { /*	This summarizes the run of 'smvspatial' */
 
-	fprintf(fp, "Images are being spatially corrected\n");
+	fprintf(fp, "An image is being spatially corrected.\n");
 	fprintf(fp, "Spatial correction derived from file %s\n",
 		imp->imf_splname);
-	if (imp->imf_flags & OVERRIDE_COORDS) fprintf(fp,
- "Image coordinates will be output according to geometric convention %1d\n",
-		(imp->imf_flags & 0x80) >> 5);
-	if (imp->imf_flags & OVERWRITE_ORIGINAL) fprintf(fp,
-	 "Image is being written back into the original memory\n");
-}
-
-static void rot16bitin(IMWORK *imp)
-{ /* This rotates the image pointed to by imp->imf_data16 according to the
-	conventions given in (imp->flags) & 07 into a standard ordering. */
-	register int	i, j;
-	int		deltax, deltay, hit, hitm1, inrot;
-	int		startoff, wid, widm1;
-	u_short		*iusp, *ousp, *iuspf, *ouspf;
-	static u_short	*loim;
-
-	inrot = imp->imf_flags & 0x7;
-	if (inrot == 0) return;	/* no rotation required */
-	if (NULL == (loim = calloc((size_t)imp->imf_imsize, sizeof (u_short))))
-	  {
-		fprintf(stderr, "Warning: first image rotation failed\n");
-		return;
-	  }
-	wid = imp->imf_wid;	hit = imp->imf_ht;
-	widm1 = wid - 1;	hitm1 = hit - 1;
-	startoff = 0;	deltax = wid;	deltay = 1;
-	if (inrot & IPR_XFASTEST)
-	  {
-		deltax = 1;	deltay = hit;
-	  }
-	if (inrot & IPR_STARTBOTTOM)
-	  {
-		deltay *= -1;	startoff += wid * hitm1;
-	  }
-	if (inrot & IPR_STARTRIGHT)
-	  {
-		deltax *= -1;	startoff += widm1;
-	  }
-	iusp = imp->imf_data16;	ousp = loim + startoff;
-	for (i = 0; i < hit; i++, ousp += deltax, iusp += wid)
-	   {
-		for (j = 0, ouspf = ousp, iuspf = iusp;
-		 j < wid; j++, iuspf++, ouspf += deltay) *ouspf = *iuspf;
-	   }
-	/* okay, that converts the image into the format that we'll use
-	 internally, i.e. that we'll perform the VSPLINE operations on.
-	 So we can now copy this back into the right place. */
-	iusp = loim;	ousp = imp->imf_data16;
-	for (i = 0; i < imp->imf_imsize; iusp++, ousp++) *ousp = *iusp;
-	(void)free((void *)loim);	/* eliminate temporary memory */
-}
-
-static void rot16bitout(IMWORK *imp)
-{ /* This rotates the image pointed to by imp->imf_data16
-	from the internal standard position to one that works
-	according to the conventions given in ((imp->flags) >> 3) & 07 */
-	register int	i, j;
-	int		deltax, deltay, hit, hitm1;
-	int		outrot, startoff, wid, widm1;
-	u_short		*iusp, *ousp, *iuspf, *ouspf;
-	static u_short	*loim;
-
-	outrot = ((imp->imf_flags) >> 3) & 0x7;
-	if (outrot == 0) return;	/* no rotation required */
-	if (NULL == (loim = calloc((size_t)imp->imf_imsize, sizeof (u_short))))
-	  {
-		fprintf(stderr, "Warning: second image rotation failed\n");
-		return;
-	  }
-	wid = imp->imf_wid;	hit = imp->imf_ht;
-	widm1 = wid - 1;	hitm1 = hit - 1;
-	startoff = 0;	deltax = wid;	deltay = 1;
-	if (outrot & IPR_XFASTEST)
-	  {
-		deltax = 1;	deltay = hit;
-	  }
-	if (outrot & IPR_STARTRIGHT)
-	  {
-		deltay *= -1;	startoff += wid * hitm1;
-	  }
-	if (outrot & IPR_STARTBOTTOM)
-	  {
-		deltax *= -1;	startoff += widm1;
-	  }
-	iusp = imp->imf_data16;	ousp = loim + startoff;
-	for (i = 0; i < hit; i++, ousp += deltax, iusp += wid)
-	   {
-		for (j = 0, ouspf = ousp, iuspf = iusp;
-		 j < wid; j++, iuspf++, ouspf += deltay) *ouspf = *iuspf;
-	   }
-	/* okay, that converts the image from the internal format to
-	 the one that the caller wants. Copy it back. */
-	iusp = loim;	ousp = imp->imf_data16;
-	for (i = 0; i < imp->imf_imsize; iusp++, ousp++) *ousp = *iusp;
-	(void)free((void *)loim);	/* eliminate temporary memory */
+	fprintf(fp, "Image is being written back into the original memory\n");
 }
 
 static int img_conversion(IMWORK *imp)
 { /*	This does the conversion on a single image.
-	If it is called with a NULL argument, we use it to free up memory */
-	int		imerr, retv;
+	If it is called with a NULL argument, we use it to free up memory.
+	It returns EOK if successful, various errors if not */
+	int		imerr, noreps;
 	size_t		imsiz;
 	static float	*locim;
 
 	if (NULL == imp) /* use this as a way of freeing local memory */
 	  {
-		(void)smvspline(0, &imerr, NULL);
+		(void)smvspline(0, &imerr, NULL); /* elim spline memory */
 		if (NULL != locim) (void)free((void *)locim);
 		return EOK;
 	  }
@@ -717,63 +572,44 @@ static int img_conversion(IMWORK *imp)
 	if (NULL == (locim = (float *)calloc((size_t)
 	 (2 * imp->imf_imsize), sizeof (float)))) return EALLOC;
 	imp->imf_locim = locim;	imp->imf_locwt = locim + imp->imf_imsize;
-	rot16bitin(imp);	/* rotate image into standard ordering */
-	if (EOK != (retv = cspatial(imp)))
-		fprintf(stdout, "Failure %d in spatial correction\n", retv);
-	rot16bitout(imp);	/* rotate back to initial ordering */
-	return retv;
+	/* read in the spatial-correction information */
+	if (NULL == (imp->imf_spl = smvspline(3, &imerr, imp->imf_splname)))
+		return imerr;
+	/* find the limits of x and y in cm */
+	if (EOK != (imerr = find_limits(imp))) return imerr;
+	interp_image(imp);	/* perform spatial-correction interpolation */
+	/* re-generate the output values by dividing the weighted
+	 count values by the weights */
+	noreps = normalize(imp);
+	/* extrapolate to take care of missing pixels */
+	noreps = extrap_pix(imp, noreps);
+	/* phew. Now we can make an image out of this array. */
+	return creat_undistor(imp);
 }
 
-int smvspatial(void *imarr, void **outarr, int imwid, int imhit, int cflags,
- char *splname)
+int smvspatial(void *imarr, int imwid, int imhit, int cflags, char *splname)
 { /* Mainline for performing a spatial correction on an SMV image
 	that is already in memory. Arguments:
-	imarr	1-D array of data values (probably always u_shorts)
+	imarr	1-D array of data values (probably always unsigned shorts)
 		as derived from a Lavender image_data structure.
+		The output will be written back to this pointer as well.
 	imwid	fast-varying detector dimension ("width")
 	imhit	slow-varying detector dimension ("height")
-	cflags	flag value. Bits 1-3 provide the
-		input coordinate rotation value:
-	splname	name of the calibration spline file from X-GEN
- 	dimension varying	read begins
- 	fastest			from
- 0	Y			top left	PCS (little-endian)
- 1	X			top left	Mar, SDMS
- 2	Y			bottom left
- 3	X			bottom left	MacScience, SAXII
- 4	Y			top right
- 5	X			top right	PCS (big-endian)
- 6	Y			bottom right
- 7	X			bottom right	R-Axis, Fuji
-	In each case the definition of left and right assumes that the
-	view is OF the sample FROM the detector, not the other 'way around.
-	In the alternative view (from the sample toward the detector)
-	<val> = 0 corresponds to Y fastest, reading from top right,
-	<val> = 5 corresponds to X fastest, reading from top left, etc.
-	Higher order bits are used for other purposes:
-	Bits 4-6: output coordinate convention, as above.
-	Bit 7: if on, overlay the data on the original pointer rather than
-		creating a new one.
-	Bit 8: rescale intensity values to < 65000 during interpolation
-	Bit 9: moderately verbose diagnostic output
-	Bit 10: more verbose diagnostics
-	Bit 11: signal that we need to redimension the image
-	Bit 12: override the coordinate conventions,
-		i.e. the input coordinate conventions (bits 1-3) aren't
-		equal to the output coordinate conventions (bits 4-6)
-	Bit 15: R-Axis compression type (not currently used with SMV images)
+	cflags	flag value. Unlike earlier versions,
+	 the only active bits in this flag now are associated with verbosity:
+		bit 1	moderate amounts of verbosity
+		bit 2	higher verbosity
+		bit 3	even higher verbosity
   */
 	int		resu;
 	static IMWORK	imfs;
 
-	imfs.imf_flags = PARTIAL_VERBOSE | RESCALE65K;
+	imfs.imf_flags = cflags;
 	imfs.imf_wid = imwid;	imfs.imf_ht = imhit;
-	imfs.imf_data16 = (u_short *)imarr;
-	imfs.imf_wid = imfs.imf_ht = 0;
+	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
-	sumsmvspat(stdout, &imfs);
-	/* in this version, we process this one particular image */
-	resu = img_conversion(&imfs);
+	if (cflags & ANY_VERBOSE) sumsmvspat(stdout, &imfs);
+	resu = img_conversion(&imfs);	/* perform spatial correction */
 	(void)img_conversion(NULL);
 	return resu;
 }

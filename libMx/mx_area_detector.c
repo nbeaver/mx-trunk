@@ -4373,9 +4373,9 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 
 /*-----------------------------------------------------------------------*/
 
-#define USE_FLOATING_POINT	TRUE
+#define USE_SINGLE_LOOP	TRUE
 
-#if USE_FLOATING_POINT
+#if USE_SINGLE_LOOP
 
 MX_EXPORT mx_status_type
 mx_area_detector_frame_correction( MX_RECORD *record,
@@ -4403,8 +4403,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_HRT_TIMING measurement;
 #  endif
 
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+#if 1 || MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s' (single loop).",
 		fname, record->name ));
 #endif
 
@@ -4608,7 +4608,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 /*-----------------------------------------------------------------------*/
 
-#else /* not USE_FLOATING_POINT */
+#else /* not USE_SINGLE_LOOP */
+
+#define MASKED_PIXEL_THRESHOLD	(-1.0e30)
 
 MX_EXPORT mx_status_type
 mx_area_detector_frame_correction( MX_RECORD *record,
@@ -4625,21 +4627,23 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
 	unsigned long flags, row_binsize, column_binsize;
-	uint16_t image_pixel, bias_offset;
-	uint16_t raw_dark_current, raw_flood_field;
-	uint16_t scaled_dark_current;
+	double image_pixel, bias_offset;
 	double image_exposure_time, exposure_time_ratio;
-	double scaled_dark_current_dbl;
-	double flood_field_scale_factor;
+	double raw_dark_current, scaled_dark_current;
+	double raw_flood_field, flood_field_scale_factor;
 	double flood_field_scale_max, flood_field_scale_min;
+	double *work_array, *bias_offset_array;
 	mx_status_type mx_status;
 
 #  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_TIMING measurement;
+	MX_HRT_TIMING mask_and_bias_timing;
+	MX_HRT_TIMING dark_timing;
+	MX_HRT_TIMING flood_timing;
+	MX_HRT_TIMING round_timing;
 #  endif
 
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+#if 1 || MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s' (multiple loops).",
 		fname, record->name ));
 #endif
 
@@ -4648,7 +4652,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	scaled_dark_current = 0;
+	scaled_dark_current = -1.0;
 	flood_field_scale_factor = -1.0;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -4752,25 +4756,49 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	num_pixels = image_frame->image_length / 2L;
 
-#if 1 || MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
 #endif
 
-#if 1
-	scaled_dark_current_dbl = 0;
-	raw_flood_field = 0;
-	raw_dark_current = 0;
-	bias_offset = 0;
-	image_pixel = 0;
-#endif
+	/* Allocate an array of double precision numbers to contain
+	 * intermediate image results.
+	 */
 
-#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_START( measurement );
-#  endif
+	work_array = malloc( num_pixels * sizeof(double) );
+
+	if ( work_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element "
+		"work array of doubles for area detector '%s'.",
+			num_pixels, ad->record->name );
+	}
+
+	bias_offset_array = malloc( num_pixels * sizeof(double) );
+
+	if ( bias_offset_array == (double *) NULL ) {
+		mx_free( work_array );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element "
+		"bias offset array of doubles for area detector '%s'.",
+			num_pixels, ad->record->name );
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( mask_and_bias_timing );
+#endif
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
-		image_pixel = image_data_array[i];
+		if ( bias_data_array != NULL ) {
+			bias_offset = (double) bias_data_array[i];
+		} else {
+			bias_offset = 0.0;
+		}
+
+		bias_offset_array[i] = bias_offset;
+
+		image_pixel = (double) image_data_array[i];
 
 		if ( mask_data_array != NULL ) {
 			if ( mask_data_array[i] == 0 ) {
@@ -4780,69 +4808,111 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 				 * for the next pixel.
 				 */
 
-				image_data_array[i] = 0;
+				work_array[i] = 2.0 * MASKED_PIXEL_THRESHOLD;
 				continue;
 			}
 		}
 
 		/* Add the detector bias. */
 
-		if ( bias_data_array != NULL ) {
-			bias_offset = bias_data_array[i];
-		} else {
-			bias_offset = 0;
-		}
+		work_array[i] = image_pixel + bias_offset;
+	}
 
-		image_pixel = image_pixel + bias_offset;
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( mask_and_bias_timing );
 
-		/* Add the scaled dark current. */
+	MX_HRT_START( dark_timing );
+#endif
 
-		if ( dark_current_data_array != NULL ) {
-			raw_dark_current = dark_current_data_array[i];
+	if ( dark_current_data_array != NULL ) {
+		for ( i = 0; i < num_pixels; i++ ) {
 
-			scaled_dark_current_dbl = exposure_time_ratio
+			bias_offset = bias_offset_array[i];
+
+			image_pixel = work_array[i];
+
+			if ( image_pixel < MASKED_PIXEL_THRESHOLD ) {
+				continue;	/* Skip masked pixels. */
+			}
+
+			/* Add the scaled dark current. */
+
+			raw_dark_current = (double) dark_current_data_array[i];
+
+			scaled_dark_current = exposure_time_ratio
 			    * (raw_dark_current - bias_offset) + bias_offset;
 
-			scaled_dark_current = scaled_dark_current_dbl + 0.5;
-		} else {
-			scaled_dark_current = 0;
+			work_array[i] = image_pixel - scaled_dark_current;
 		}
+	}
 
-		image_pixel = image_pixel - scaled_dark_current;
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( dark_timing );
 
-		if ( flood_field_data_array != NULL ) {
-			raw_flood_field = flood_field_data_array[i];
+	MX_HRT_START( flood_timing );
+#endif
 
-#if 0
+	if ( flood_field_data_array != NULL ) {
+		for ( i = 0; i < num_pixels; i++ ) {
+
+			bias_offset = bias_offset_array[i];
+
+			image_pixel = work_array[i];
+
+			if ( image_pixel < MASKED_PIXEL_THRESHOLD ) {
+				continue;	/* Skip masked pixels. */
+			}
+
+			raw_flood_field = (double) flood_field_data_array[i];
+
+#if 1
 			flood_field_scale_factor = mx_divide_safely(
 			    ( ad->flood_field_average_intensity - bias_offset ),
 				( raw_flood_field - bias_offset ) );
-#else
-			flood_field_scale_factor = 1.0;
-#endif
 
-#if 0
 			if ((flood_field_scale_factor > flood_field_scale_max)
 			 || (flood_field_scale_factor < flood_field_scale_min))
 			{
 				image_data_array[i] = 0;
 				continue;
 			}
+#else
+			flood_field_scale_factor = 1.0;
 #endif
 
-			image_pixel =
-				0.5 + image_pixel * flood_field_scale_factor;
+			work_array[i] =
+				( image_pixel * flood_field_scale_factor )
+					+ bias_offset;
 		}
-
-		image_data_array[i] = image_pixel + bias_offset;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( measurement );
+	MX_HRT_END( flood_timing );
 
-	MX_HRT_RESULTS( measurement,
-		fname, "Linear image correction time (int)." );
+	MX_HRT_START( round_timing );
 #endif
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		/* We round to the nearest integer by adding 0.5
+		 * and then truncating.
+		 */
+
+		image_data_array[i] = work_array[i] + 0.5;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( round_timing );
+
+	MX_HRT_RESULTS( mask_and_bias_timing, fname,
+		"Mask and bias correction." );
+	MX_HRT_RESULTS( dark_timing, fname, "Dark correction." );
+	MX_HRT_RESULTS( flood_timing, fname, "Flood correction." );
+	MX_HRT_RESULTS( round_timing, fname, "Rounding time." );
+#endif
+
+	mx_free( work_array );
+	mx_free( bias_offset_array );
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -4851,7 +4921,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* not USE_FLOATING_POINT */
+#endif /* not USE_SINGLE_LOOP */
 
 /*-----------------------------------------------------------------------*/
 

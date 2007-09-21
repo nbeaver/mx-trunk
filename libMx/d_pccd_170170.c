@@ -61,9 +61,7 @@
 #endif
 
 MX_API int
-smvspatial( void *imarr, void **outarr,
-		int imwid, int imhit,
-		int cflags, char *splname );
+smvspatial( void *imarr, int imwid, int imhit, int cflags, char *splname );
 
 /*---*/
 
@@ -3109,14 +3107,13 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 static mx_status_type
 mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
 					void *input_data_array,
-					void **output_data_array,
 					unsigned long image_width,
 					unsigned long image_height,
 					char *spatial_correction_filename )
 {
 	static const char fname[] = "mxd_pccd_170170_spatial_correction()";
 
-	int cflags, spatial_status, os_status, saved_errno;
+	int spatial_status, os_status, saved_errno;
 	mx_status_type mx_status;
 
 	if ( input_data_array == NULL ) {
@@ -3147,15 +3144,14 @@ mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
 			saved_errno, strerror(saved_errno) );
 	}
 
-	cflags = 0x9;
+#if defined(OS_LINUX) || defined(OS_WIN32)
 
-#if defined(OS_LINUX)
-
-	spatial_status = smvspatial( input_data_array, output_data_array,
+	spatial_status = smvspatial( input_data_array, 
 					image_width, image_height,
-					cflags, spatial_correction_filename );
+					0, spatial_correction_filename );
 #else
-	mx_warning("Spatial correction is currently only available on Linux.");
+	mx_warning(
+"XGEN spatial correction is currently only available on Linux and Windows.");
 
 	spatial_status = 0;
 #endif
@@ -3285,7 +3281,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
 			mx_status = mxd_pccd_170170_spatial_correction( ad,
-				image_data_array, NULL,
+				image_data_array,
 				MXIF_ROW_FRAMESIZE(ad->image_frame),
 				MXIF_COLUMN_FRAMESIZE(ad->image_frame),
 				pccd_170170->spatial_correction_filename );
