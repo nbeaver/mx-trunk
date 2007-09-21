@@ -4373,10 +4373,6 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 
 /*-----------------------------------------------------------------------*/
 
-#define USE_SINGLE_LOOP	TRUE
-
-#if USE_SINGLE_LOOP
-
 MX_EXPORT mx_status_type
 mx_area_detector_frame_correction( MX_RECORD *record,
 				MX_IMAGE_FRAME *image_frame,
@@ -4397,14 +4393,16 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	double raw_dark_current, scaled_dark_current;
 	double raw_flood_field, flood_field_scale_factor;
 	double flood_field_scale_max, flood_field_scale_min;
+	double ffs_denominator, ffs_numerator;
 	mx_status_type mx_status;
 
 #  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_TIMING measurement;
+	MX_HRT_TIMING initial_timing;
+	MX_HRT_TIMING flood_timing;
 #  endif
 
-#if 1 || MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s' (single loop).",
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("\n%s invoked for area detector '%s'.",
 		fname, record->name ));
 #endif
 
@@ -4503,6 +4501,12 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		exposure_time_ratio = 1.0;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
+		fname, image_exposure_time, exposure_time_ratio));
+#endif
+
 	/*---*/
 
 	flood_field_scale_max = fabs(ad->flood_field_scale_threshold);
@@ -4510,9 +4514,12 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	flood_field_scale_min = mx_divide_safely( 1.0, flood_field_scale_max );
 
 #if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: ad->flood_field_scale_threshold = %g",
+		fname, ad->flood_field_scale_threshold));
+
 	MX_DEBUG(-2,
-	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
-		fname, image_exposure_time, exposure_time_ratio));
+	("%s: flood_field_scale_max = %g, flood_field_scale_min = %g",
+		fname, flood_field_scale_max, flood_field_scale_min));
 #endif
 
 	num_pixels = image_frame->image_length / 2L;
@@ -4521,13 +4528,16 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
 #endif
 
-#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_START( measurement );
-#  endif
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( initial_timing );
+#endif
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
 
 	for ( i = 0; i < num_pixels; i++ ) {
-
-		image_pixel = (double) image_data_array[i];
 
 		if ( mask_data_array != NULL ) {
 			if ( mask_data_array[i] == 0 ) {
@@ -4541,6 +4551,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 				continue;
 			}
 		}
+
+		image_pixel = (double) image_data_array[i];
 
 		/* Add the detector bias. */
 
@@ -4565,354 +4577,102 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 		image_pixel = image_pixel - scaled_dark_current;
 
-		if ( flood_field_data_array != NULL ) {
-			raw_flood_field = (double) flood_field_data_array[i];
-
-#if 1
-			flood_field_scale_factor = mx_divide_safely(
-			    ( ad->flood_field_average_intensity - bias_offset ),
-				( raw_flood_field - bias_offset ) );
-
-			if ((flood_field_scale_factor > flood_field_scale_max)
-			 || (flood_field_scale_factor < flood_field_scale_min))
-			{
-				image_data_array[i] = 0;
-				continue;
-			}
-#else
-			flood_field_scale_factor = 1.0;
-#endif
-
-			image_pixel = image_pixel * flood_field_scale_factor;
-		}
-		/* We round to the nearest integer by adding 0.5
-		 * and then truncating.
+		/* Round to the nearest integer by adding 0.5 and
+		 * then truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function
+		 * calls have too high of an overhead to be used
+		 * in this loop.
 		 */
 
-		image_data_array[i] = image_pixel + bias_offset + 0.5;
+		image_data_array[i] = image_pixel + 0.5;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"Linear image correction time. (float)" );
-#endif
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s complete.", fname));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-----------------------------------------------------------------------*/
-
-#else /* not USE_SINGLE_LOOP */
-
-#define MASKED_PIXEL_THRESHOLD	(-1.0e30)
-
-MX_EXPORT mx_status_type
-mx_area_detector_frame_correction( MX_RECORD *record,
-				MX_IMAGE_FRAME *image_frame,
-				MX_IMAGE_FRAME *mask_frame,
-				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *dark_current_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
-{
-	static const char fname[] = "mx_area_detector_frame_correction()";
-
-	MX_AREA_DETECTOR *ad;
-	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
-	uint16_t *dark_current_data_array, *flood_field_data_array;
-	long i, num_pixels;
-	unsigned long flags, row_binsize, column_binsize;
-	double image_pixel, bias_offset;
-	double image_exposure_time, exposure_time_ratio;
-	double raw_dark_current, scaled_dark_current;
-	double raw_flood_field, flood_field_scale_factor;
-	double flood_field_scale_max, flood_field_scale_min;
-	double *work_array, *bias_offset_array;
-	mx_status_type mx_status;
-
-#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_TIMING mask_and_bias_timing;
-	MX_HRT_TIMING dark_timing;
-	MX_HRT_TIMING flood_timing;
-	MX_HRT_TIMING round_timing;
-#  endif
-
-#if 1 || MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s' (multiple loops).",
-		fname, record->name ));
-#endif
-
-	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	scaled_dark_current = -1.0;
-	flood_field_scale_factor = -1.0;
-
-	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"No primary image frame was provided." );
-	}
-
-	if ( ad->correction_flags == 0 ) {
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: No corrections requested.", fname));
-#endif
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* Area detector image correction is currently only supported
-	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
-	 */
-
-	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The primary image frame is not a 16-bit greyscale image." );
-	}
-
-	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
-	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
-
-	image_data_array = image_frame->image_data;
-
-	flags = ad->correction_flags;
-
-	if ( ( flags & MXFT_AD_MASK_FRAME ) == 0 ) {
-		mask_data_array = NULL;
-	} else
-	if ( mask_frame == NULL ) {
-		mask_data_array = NULL;
-	} else {
-		mask_data_array = mask_frame->image_data;
-
-		CHECK_CORRECTION_BINNING( mask_frame, "mask" );
-	}
-
-	if ( ( flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
-		bias_data_array = NULL;
-	} else
-	if ( bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array = bias_frame->image_data;
-
-		CHECK_CORRECTION_BINNING( bias_frame, "bias" );
-	}
-
-	if ( ( flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
-		dark_current_data_array = NULL;
-	} else
-	if ( dark_current_frame == NULL ) {
-		dark_current_data_array = NULL;
-	} else {
-		dark_current_data_array = dark_current_frame->image_data;
-
-		CHECK_CORRECTION_BINNING(dark_current_frame, "dark current");
-	}
-
-	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
-		flood_field_data_array = NULL;
-	} else
-	if ( flood_field_frame == NULL ) {
-		flood_field_data_array = NULL;
-	} else {
-		flood_field_data_array = flood_field_frame->image_data;
-
-		CHECK_CORRECTION_BINNING(flood_field_frame, "flood field");
-	}
-
-	mx_status = mx_image_get_exposure_time( ad->image_frame,
-						&image_exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( ad->use_scaled_dark_current ) {
-		exposure_time_ratio = mx_divide_safely( image_exposure_time,
-					ad->dark_current_exposure_time );
-	} else {
-		exposure_time_ratio = 1.0;
-	}
-
-	/*---*/
-
-	flood_field_scale_max = fabs(ad->flood_field_scale_threshold);
-
-	flood_field_scale_min = mx_divide_safely( 1.0, flood_field_scale_max );
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
-		fname, image_exposure_time, exposure_time_ratio));
-#endif
-
-	num_pixels = image_frame->image_length / 2L;
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
-#endif
-
-	/* Allocate an array of double precision numbers to contain
-	 * intermediate image results.
-	 */
-
-	work_array = malloc( num_pixels * sizeof(double) );
-
-	if ( work_array == (double *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu element "
-		"work array of doubles for area detector '%s'.",
-			num_pixels, ad->record->name );
-	}
-
-	bias_offset_array = malloc( num_pixels * sizeof(double) );
-
-	if ( bias_offset_array == (double *) NULL ) {
-		mx_free( work_array );
-
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu element "
-		"bias offset array of doubles for area detector '%s'.",
-			num_pixels, ad->record->name );
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_START( mask_and_bias_timing );
-#endif
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-		if ( bias_data_array != NULL ) {
-			bias_offset = (double) bias_data_array[i];
-		} else {
-			bias_offset = 0.0;
-		}
-
-		bias_offset_array[i] = bias_offset;
-
-		image_pixel = (double) image_data_array[i];
-
-		if ( mask_data_array != NULL ) {
-			if ( mask_data_array[i] == 0 ) {
-
-				/* If the pixel is masked off, skip this
-				 * pixel and return to the top of the loop
-				 * for the next pixel.
-				 */
-
-				work_array[i] = 2.0 * MASKED_PIXEL_THRESHOLD;
-				continue;
-			}
-		}
-
-		/* Add the detector bias. */
-
-		work_array[i] = image_pixel + bias_offset;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( mask_and_bias_timing );
-
-	MX_HRT_START( dark_timing );
-#endif
-
-	if ( dark_current_data_array != NULL ) {
-		for ( i = 0; i < num_pixels; i++ ) {
-
-			bias_offset = bias_offset_array[i];
-
-			image_pixel = work_array[i];
-
-			if ( image_pixel < MASKED_PIXEL_THRESHOLD ) {
-				continue;	/* Skip masked pixels. */
-			}
-
-			/* Add the scaled dark current. */
-
-			raw_dark_current = (double) dark_current_data_array[i];
-
-			scaled_dark_current = exposure_time_ratio
-			    * (raw_dark_current - bias_offset) + bias_offset;
-
-			work_array[i] = image_pixel - scaled_dark_current;
-		}
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( dark_timing );
+	MX_HRT_END( initial_timing );
 
 	MX_HRT_START( flood_timing );
 #endif
 
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
 	if ( flood_field_data_array != NULL ) {
 		for ( i = 0; i < num_pixels; i++ ) {
 
-			bias_offset = bias_offset_array[i];
+			if ( mask_data_array != NULL ) {
+				if ( mask_data_array[i] == 0 ) {
 
-			image_pixel = work_array[i];
+					/* If the pixel is masked off, skip
+					 * this pixel and return to the top
+					 * of the loop for the next pixel.
+					 */
 
-			if ( image_pixel < MASKED_PIXEL_THRESHOLD ) {
-				continue;	/* Skip masked pixels. */
+					continue;
+				}
 			}
+
+			image_pixel = (double) image_data_array[i];
 
 			raw_flood_field = (double) flood_field_data_array[i];
 
-#if 1
-			flood_field_scale_factor = mx_divide_safely(
-			    ( ad->flood_field_average_intensity - bias_offset ),
-				( raw_flood_field - bias_offset ) );
+			if ( bias_data_array != NULL ) {
+				bias_offset = (double) bias_data_array[i];
+			} else {
+				bias_offset = 0.0;
+			}
 
-			if ((flood_field_scale_factor > flood_field_scale_max)
-			 || (flood_field_scale_factor < flood_field_scale_min))
-			{
+			/* We _must_ _not_ use mx_divide_safely() here since
+			 * function calls have too high of an overhead to
+			 * be used in this loop.
+			 */
+
+			ffs_denominator = raw_flood_field - bias_offset;
+
+			if ( ffs_denominator < 0.001 ) {
 				image_data_array[i] = 0;
 				continue;
 			}
-#else
-			flood_field_scale_factor = 1.0;
-#endif
 
-			work_array[i] =
-				( image_pixel * flood_field_scale_factor )
-					+ bias_offset;
+			ffs_numerator =
+			    ad->flood_field_average_intensity - bias_offset;
+
+			flood_field_scale_factor
+					= ffs_numerator / ffs_denominator;
+
+			if ( flood_field_scale_factor > flood_field_scale_max ){
+				image_data_array[i] = 0;
+				continue;
+			}
+			if ( flood_field_scale_factor < flood_field_scale_min ){
+				image_data_array[i] = 0;
+				continue;
+			}
+
+			image_pixel = image_pixel * flood_field_scale_factor;
+
+			/* Round to the nearest integer by adding 0.5 and
+			 * then truncating.
+			 *
+			 * We _must_ _not_ use mx_round() here since function
+			 * calls have too high of an overhead to be used
+			 * in this loop.
+			 */
+
+			image_data_array[i] = image_pixel + 0.5;
 		}
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( flood_timing );
 
-	MX_HRT_START( round_timing );
+	MX_DEBUG(-2,(" "));	/* Print an empty line. */
+
+	MX_HRT_RESULTS( initial_timing, fname, "Initial correction time." );
+	MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
 #endif
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-		/* We round to the nearest integer by adding 0.5
-		 * and then truncating.
-		 */
-
-		image_data_array[i] = work_array[i] + 0.5;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( round_timing );
-
-	MX_HRT_RESULTS( mask_and_bias_timing, fname,
-		"Mask and bias correction." );
-	MX_HRT_RESULTS( dark_timing, fname, "Dark correction." );
-	MX_HRT_RESULTS( flood_timing, fname, "Flood correction." );
-	MX_HRT_RESULTS( round_timing, fname, "Rounding time." );
-#endif
-
-	mx_free( work_array );
-	mx_free( bias_offset_array );
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -4920,8 +4680,6 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* not USE_SINGLE_LOOP */
 
 /*-----------------------------------------------------------------------*/
 

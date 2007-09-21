@@ -1834,6 +1834,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 			video_input_record->name, record->name );
 	}
 
+	/* Set a limit on the maximum value of the flood field scaling factor.*/
+
+	ad->flood_field_scale_threshold = 10.0;
+
 	/* Make sure the internal trigger output is low. */
 
 	mx_status = mx_digital_output_write(
