@@ -4371,7 +4371,9 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
  * the same framesize.
  */
 
-#define USE_FLOATING_POINT	FALSE
+/*-----------------------------------------------------------------------*/
+
+#define USE_FLOATING_POINT	TRUE
 
 #if USE_FLOATING_POINT
 
@@ -4566,6 +4568,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		if ( flood_field_data_array != NULL ) {
 			raw_flood_field = (double) flood_field_data_array[i];
 
+#if 1
 			flood_field_scale_factor = mx_divide_safely(
 			    ( ad->flood_field_average_intensity - bias_offset ),
 				( raw_flood_field - bias_offset ) );
@@ -4576,17 +4579,24 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 				image_data_array[i] = 0;
 				continue;
 			}
+#else
+			flood_field_scale_factor = 1.0;
+#endif
 
 			image_pixel = image_pixel * flood_field_scale_factor;
 		}
+		/* We round to the nearest integer by adding 0.5
+		 * and then truncating.
+		 */
 
-		image_data_array[i] = mx_round( image_pixel + bias_offset );
+		image_data_array[i] = image_pixel + bias_offset + 0.5;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, "Linear image correction time." );
+	MX_HRT_RESULTS( measurement, fname,
+		"Linear image correction time. (float)" );
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4595,6 +4605,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-----------------------------------------------------------------------*/
 
 #else /* not USE_FLOATING_POINT */
 
@@ -4613,10 +4625,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
 	unsigned long flags, row_binsize, column_binsize;
-	unsigned long image_pixel, bias_offset;
+	uint16_t image_pixel, bias_offset;
+	uint16_t raw_dark_current, raw_flood_field;
+	uint16_t scaled_dark_current;
 	double image_exposure_time, exposure_time_ratio;
-	unsigned long raw_dark_current, raw_flood_field;
-	unsigned long scaled_dark_current;
 	double scaled_dark_current_dbl;
 	double flood_field_scale_factor;
 	double flood_field_scale_max, flood_field_scale_min;
@@ -4740,8 +4752,16 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	num_pixels = image_frame->image_length / 2L;
 
-#if MX_AREA_DETECTOR_DEBUG
+#if 1 || MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
+#endif
+
+#if 1
+	scaled_dark_current_dbl = 0;
+	raw_flood_field = 0;
+	raw_dark_current = 0;
+	bias_offset = 0;
+	image_pixel = 0;
 #endif
 
 #  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -4783,7 +4803,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			scaled_dark_current_dbl = exposure_time_ratio
 			    * (raw_dark_current - bias_offset) + bias_offset;
 
-			scaled_dark_current = mx_round(scaled_dark_current_dbl);
+			scaled_dark_current = scaled_dark_current_dbl + 0.5;
 		} else {
 			scaled_dark_current = 0;
 		}
@@ -4793,19 +4813,25 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		if ( flood_field_data_array != NULL ) {
 			raw_flood_field = flood_field_data_array[i];
 
+#if 0
 			flood_field_scale_factor = mx_divide_safely(
 			    ( ad->flood_field_average_intensity - bias_offset ),
 				( raw_flood_field - bias_offset ) );
+#else
+			flood_field_scale_factor = 1.0;
+#endif
 
+#if 0
 			if ((flood_field_scale_factor > flood_field_scale_max)
 			 || (flood_field_scale_factor < flood_field_scale_min))
 			{
 				image_data_array[i] = 0;
 				continue;
 			}
+#endif
 
-			image_pixel = 
-			    mx_round( image_pixel * flood_field_scale_factor );
+			image_pixel =
+				0.5 + image_pixel * flood_field_scale_factor;
 		}
 
 		image_data_array[i] = image_pixel + bias_offset;
@@ -4814,7 +4840,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, "Linear image correction time." );
+	MX_HRT_RESULTS( measurement,
+		fname, "Linear image correction time (int)." );
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4825,6 +4852,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 }
 
 #endif /* not USE_FLOATING_POINT */
+
+/*-----------------------------------------------------------------------*/
 
 /************************************************************************
  * The following functions are intended for use only in device drivers. *
