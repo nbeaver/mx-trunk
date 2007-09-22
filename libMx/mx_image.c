@@ -916,6 +916,145 @@ mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
+		MX_IMAGE_FRAME *original_frame,
+		unsigned long row_rebinning_factor,
+		unsigned long column_rebinning_factor )
+{
+	static const char fname[] = "mx_image_rebin()";
+
+	uint16_t *rebinned_data, *original_data;
+	uint16_t *rebinned_pixel_ptr;
+	uint16_t *original_pixel_base, *original_pixel_ptr;
+	unsigned long original_width, original_height;
+	unsigned long rebinned_width, rebinned_height, rebinned_size;
+	unsigned long x, y, xbin, ybin;
+	double original_pixel_sum, rebinned_pixel_value, num_pixels_per_bin;
+	mx_status_type mx_status;
+
+	if ( original_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The original_frame pointer passed was NULL." );
+	}
+
+	if ( rebinned_frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The rebinned_frame pointer passed was NULL." );
+	}
+
+	if ( row_rebinning_factor == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value of row_rebinning_factor cannot be 0." );
+	}
+
+	if ( column_rebinning_factor == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The value of column_rebinning_factor cannot be 0." );
+	}
+
+	/* Create or resize the rebinned correction frame structure.  If
+	 * there was an existing rebinned frame and the new rebinned frame
+	 * will be smaller than the allocated length of the existing frame,
+	 * then this will allow us to skip invoking malloc().
+	 */
+
+	original_width = MXIF_ROW_FRAMESIZE(original_frame);
+	original_height = MXIF_COLUMN_FRAMESIZE(original_frame);
+
+	rebinned_width = original_width / row_rebinning_factor;
+	rebinned_height = original_height / column_rebinning_factor;
+
+	mx_status = mx_image_alloc( rebinned_frame,
+					rebinned_width,
+					rebinned_height,
+					MXIF_IMAGE_FORMAT(original_frame),
+					MXIF_BYTE_ORDER(original_frame),
+					MXIF_BYTES_PER_PIXEL(original_frame),
+					original_frame->header_length,
+					rebinned_size );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Fix up the image header of the rebinned image. */
+
+	MXIF_ROW_BINSIZE(*rebinned_frame) =
+		row_rebinning_factor * MXIF_ROW_BINSIZE(original_frame);
+
+	MXIF_COLUMN_BINSIZE(*rebinned_frame) =
+		column_rebinning_factor * MXIF_COLUMN_BINSIZE(original_frame);
+
+	MXIF_BITS_PER_PIXEL(*rebinned_frame) =
+				MXIF_BITS_PER_PIXEL(original_frame);
+
+	MXIF_EXPOSURE_TIME_SEC(*rebinned_frame) =
+				MXIF_EXPOSURE_TIME_SEC(original_frame);
+
+	MXIF_EXPOSURE_TIME_NSEC(*rebinned_frame) =
+				MXIF_EXPOSURE_TIME_NSEC(original_frame);
+
+	MXIF_TIMESTAMP_SEC(*rebinned_frame) =
+				MXIF_TIMESTAMP_SEC(original_frame);
+
+	MXIF_TIMESTAMP_NSEC(*rebinned_frame) =
+				MXIF_TIMESTAMP_NSEC(original_frame);
+
+	/* Zero out the existing contents of the rebinned frame. */
+
+	memset( (*rebinned_frame)->image_data, 0,
+			(*rebinned_frame)->allocated_image_length );
+
+	/* Fill in the contents of the rebinned frame. */
+
+	original_data = original_frame->image_data;
+	rebinned_data = (*rebinned_frame)->image_data;
+
+	/* One thing to note about the addressing of the original pixels
+	 * is that we do not need to set 'original_pixel_base' to the start
+	 * of a row.  If 'original_pixel_base' is somewhere in the middle of
+	 * a row, adding 'original_width' to it will cause the pointer to
+	 * wrap around to the appropriate point on the next line.
+	 *
+	 * The logic below assumes that the pixels are all really in a
+	 * 1-dimensional array, which explains the wrapping behavior
+	 * described above.
+	 */
+
+	num_pixels_per_bin = row_rebinning_factor * column_rebinning_factor;
+
+	for ( y = 0; y < rebinned_height; y++ ) {
+	    for ( x = 0; x < rebinned_width; x++ ) {
+		rebinned_pixel_ptr = rebinned_data
+				+ rebinned_width * y + x;
+
+		original_pixel_base = original_data
+				+ original_width * y + x;
+
+		original_pixel_sum = 0.0;
+
+		for ( ybin = 0; ybin < column_rebinning_factor; ybin++ ) {
+		    for ( xbin = 0; xbin < row_rebinning_factor; xbin++ ) {
+		        original_pixel_ptr = original_pixel_base
+				+ original_width * ybin + xbin;
+
+			original_pixel_sum = original_pixel_sum
+						+ (*original_pixel_ptr);
+		    }
+		}
+		rebinned_pixel_value = original_pixel_sum / num_pixels_per_bin;
+
+		/* Round to the nearest integer. */
+
+		*rebinned_pixel_ptr = 0.5 + rebinned_pixel_value;
+	    }
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			unsigned long num_original_frames,
 			MX_IMAGE_FRAME **original_frame_array,

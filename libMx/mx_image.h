@@ -221,6 +221,13 @@ MX_API mx_status_type mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
 
 /*----*/
 
+MX_API mx_status_type mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
+					MX_IMAGE_FRAME *original_frame,
+					unsigned long row_rebinning_factor,
+					unsigned long column_rebinning_factor );
+
+/*----*/
+
 MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 					unsigned long num_original_frames,
 					MX_IMAGE_FRAME **original_frame_array,

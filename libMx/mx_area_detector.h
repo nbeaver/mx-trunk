@@ -40,11 +40,21 @@
  * 'save_frame', and 'copy_frame' fields.
  */
 
-#define MXFT_AD_IMAGE_FRAME		0x1
-#define MXFT_AD_MASK_FRAME		0x2
-#define MXFT_AD_BIAS_FRAME		0x4
-#define MXFT_AD_DARK_CURRENT_FRAME	0x8
-#define MXFT_AD_FLOOD_FIELD_FRAME	0x10
+#define MXFT_AD_IMAGE_FRAME		0x0
+#define MXFT_AD_MASK_FRAME		0x1
+#define MXFT_AD_BIAS_FRAME		0x2
+#define MXFT_AD_DARK_CURRENT_FRAME	0x4
+#define MXFT_AD_FLOOD_FIELD_FRAME	0x8
+
+/* The following are only used by 'save_frame', so that we can save
+ * rebinned frames to disk files.  Most of the time it should not
+ * be necessary to directly manipulate the rebinned frames.
+ */
+
+#define MXFT_AD_REBINNED_MASK_FRAME		0x10
+#define MXFT_AD_REBINNED_BIAS_FRAME		0x20
+#define MXFT_AD_REBINNED_DARK_CURRENT_FRAME	0x40
+#define MXFT_AD_REBINNED_FLOOD_FIELD_FRAME	0x80
 
 /* The following are used only for the 'correction_flags'
  * member of MX_AREA_DETECTOR.
@@ -243,6 +253,17 @@ typedef struct mx_area_detector_type {
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
 	char flood_field_filename[MXU_FILENAME_LENGTH+1];
+
+	/* If the image frame is smaller than the correction frames by
+	 * an integer ratio, rebinned versions of the correction frames
+	 * are used to correct the image frame.  The following pointers
+	 * point to the rebinned correction frames.
+	 */
+
+	MX_IMAGE_FRAME *rebinned_mask_frame;
+	MX_IMAGE_FRAME *rebinned_bias_frame;
+	MX_IMAGE_FRAME *rebinned_dark_current_frame;
+	MX_IMAGE_FRAME *rebinned_flood_field_frame;
 
 } MX_AREA_DETECTOR;
 

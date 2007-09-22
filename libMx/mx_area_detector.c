@@ -22,6 +22,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
+#define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -255,6 +257,11 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->flood_field_frame_buffer = NULL;
 
 	ad->flood_field_scale_threshold = DBL_MAX;
+
+	ad->rebinned_mask_frame = NULL;
+	ad->rebinned_bias_frame = NULL;
+	ad->rebinned_dark_current_frame = NULL;
+	ad->rebinned_flood_field_frame = NULL;
 
 	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
 
@@ -2592,16 +2599,35 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Some frame types need special things to happen after
-	 * they are loaded.
-	 */
+	/* Additional things must be done for image correction frames. */
 
 	switch( frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		if ( ad->rebinned_mask_frame != NULL ) {
+			mx_image_free( ad->rebinned_mask_frame );
+
+			ad->rebinned_mask_frame = NULL;
+		}
+		break;
+
+	case MXFT_AD_BIAS_FRAME:
+		if ( ad->rebinned_bias_frame != NULL ) {
+			mx_image_free( ad->rebinned_bias_frame );
+
+			ad->rebinned_bias_frame = NULL;
+		}
+		break;
+
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		if ( ad->dark_current_frame != NULL ) {
 			mx_status = mx_image_get_exposure_time(
 					ad->dark_current_frame,
 					&(ad->dark_current_exposure_time) );
+		}
+		if ( ad->rebinned_dark_current_frame != NULL ) {
+			mx_image_free( ad->rebinned_dark_current_frame );
+
+			ad->rebinned_dark_current_frame = NULL;
 		}
 		break;
 
@@ -2610,6 +2636,11 @@ mx_area_detector_load_frame( MX_RECORD *record,
 			mx_status = mx_image_get_average_intensity(
 					ad->flood_field_frame, ad->mask_frame,
 					&(ad->flood_field_average_intensity) );
+		}
+		if ( ad->rebinned_flood_field_frame != NULL ) {
+			mx_image_free( ad->rebinned_flood_field_frame );
+
+			ad->rebinned_flood_field_frame = NULL;
 		}
 		break;
 	}
@@ -2681,29 +2712,55 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Some frame types need special things to happen after
-	 * they are copied.
-	 */
+	/* Additional things must be done for image correction frames. */
 
 	switch( destination_frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		if ( ad->rebinned_mask_frame != NULL ) {
+			mx_image_free( ad->rebinned_mask_frame );
+
+			ad->rebinned_mask_frame = NULL;
+		}
+		break;
+
+	case MXFT_AD_BIAS_FRAME:
+		if ( ad->rebinned_bias_frame != NULL ) {
+			mx_image_free( ad->rebinned_bias_frame );
+
+			ad->rebinned_bias_frame = NULL;
+		}
+		break;
+
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		if ( ad->dark_current_frame != NULL ) {
 			mx_status = mx_image_get_exposure_time(
 					ad->dark_current_frame,
 					&(ad->dark_current_exposure_time) );
 		}
+		if ( ad->rebinned_dark_current_frame != NULL ) {
+			mx_image_free( ad->rebinned_dark_current_frame );
+
+			ad->rebinned_dark_current_frame = NULL;
+		}
 		break;
+
 	case MXFT_AD_FLOOD_FIELD_FRAME:
 		if ( ad->flood_field_frame != NULL ) {
 			mx_status = mx_image_get_average_intensity(
 					ad->flood_field_frame, ad->mask_frame,
 					&(ad->flood_field_average_intensity) );
 		}
+		if ( ad->rebinned_flood_field_frame != NULL ) {
+			mx_image_free( ad->rebinned_flood_field_frame );
+
+			ad->rebinned_flood_field_frame = NULL;
+		}
 		break;
 	}
 
 	return mx_status;
 }
+
 
 /*---*/
 
@@ -3089,6 +3146,214 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 /*-----------------------------------------------------------------------*/
 
+static mx_status_type
+mxp_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					unsigned long frame_type,
+					char *frame_name,
+					MX_IMAGE_FRAME **correction_frame )
+{
+	static const char fname[] = "mxp_area_detector_get_correction_frame()";
+
+	MX_IMAGE_FRAME **rebinned_frame;
+	unsigned long image_width, image_height;
+	unsigned long correction_width, correction_height;
+	unsigned long rebinned_width, rebinned_height;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING rebin_timing;
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+	MX_DEBUG(-2,("\n----------------------------------------------------"));
+	MX_DEBUG(-2,
+	("%s invoked, image_frame = %p, frame_type = %lu, frame_name = '%s'",
+		fname, image_frame, frame_type, frame_name));
+#endif
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The image_frame pointer passed was NULL." );
+	}
+	if ( correction_frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The correction_frame pointer passed was NULL." );
+	}
+
+	switch( frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		*correction_frame = ad->mask_frame;
+		break;
+
+	case MXFT_AD_BIAS_FRAME:
+		*correction_frame = ad->bias_frame;
+		break;
+
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		*correction_frame = ad->dark_current_frame;
+		break;
+
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		*correction_frame = ad->flood_field_frame;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image frame type %lu is not supported for area detector '%s'.",
+			frame_type, ad->record->name );
+		break;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+	MX_DEBUG(-2,("%s: initial (*correction_frame) = %p",
+		fname, *correction_frame));
+#endif
+
+	if ( *correction_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No %s frame has been loaded for area detector '%s'.",
+			frame_name, ad->record->name );
+	}
+
+	image_width  = MXIF_ROW_FRAMESIZE(image_frame);
+	image_height = MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	correction_width  = MXIF_ROW_FRAMESIZE(*correction_frame);
+	correction_height = MXIF_COLUMN_FRAMESIZE(*correction_frame);
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+	MX_DEBUG(-2,("%s: image_width = %lu, image_height = %lu",
+		fname, image_width, image_height));
+
+	MX_DEBUG(-2,("%s: correction_width = %lu, correction_height = %lu",
+		fname, correction_width, correction_height));
+#endif
+
+	/* If the image frame and the default correction frame have
+	 * the same dimensions, then we can return the correction frame
+	 * as is.
+	 */
+
+	if ( (image_width == correction_width)
+	  && (image_height == correction_height) )
+	{
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+		MX_DEBUG(-2,
+		("%s: Returning since the image sizes match.", fname));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, we check to see if the correction frame dimensions
+	 * are an integer multiple of the image frame dimensions.
+	 */
+
+	if ( ((correction_width % image_width) != 0)
+	  || ((correction_height % image_height) != 0) )
+	{
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"The dimensions of the %s frame (%lu,%lu) are not an integer "
+		"multiple of the dimensions of the image frame (%lu,%lu) for "
+		"area detector '%s'.  The %s frame cannot be used for image "
+		"correction as long as this is the case.",
+			frame_name, correction_width, correction_height,
+			image_width, image_height, ad->record->name,
+			frame_name );
+	}
+
+	/* Do we already have a rebinned correction frame with the right
+	 * dimensions?  If so, we can reuse that frame.
+	 */
+
+	switch( frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		rebinned_frame = &(ad->rebinned_mask_frame);
+		break;
+
+	case MXFT_AD_BIAS_FRAME:
+		rebinned_frame = &(ad->rebinned_bias_frame);
+		break;
+
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		rebinned_frame = &(ad->rebinned_dark_current_frame);
+		break;
+
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		rebinned_frame = &(ad->rebinned_flood_field_frame);
+		break;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+	MX_DEBUG(-2,("%s: initial (*rebinned_frame) = %p",
+		fname, *rebinned_frame));
+#endif
+
+	if ( *rebinned_frame != (MX_IMAGE_FRAME *) NULL ) {
+
+		/* See if we can reuse the rebinned frame. */
+
+		rebinned_width = MXIF_ROW_FRAMESIZE(*rebinned_frame);
+		rebinned_height = MXIF_COLUMN_FRAMESIZE(*rebinned_frame);
+
+		if ( (rebinned_width == image_width)
+		  && (rebinned_height == image_height) )
+		{
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+			MX_DEBUG(-2,
+		    ("%s: Returning since we are reusing the rebinned frame.",
+		    		fname));
+#endif
+			/* Yes, we can reuse the existing rebinned frame. */
+
+			*correction_frame = *rebinned_frame;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* No, we cannot reuse the existing rebinned frame as is. */
+	}
+
+	/* Rebin the correction frame using 'rebinned_frame'
+	 * as the destination.
+	 */
+
+#if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
+	MX_DEBUG(-2,
+  ("%s: Rebinning the correction frame.  Width scale = %lu, Height scale = %lu",
+  		fname, correction_width / image_width,
+		correction_height / image_height));
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( rebin_timing );
+#endif
+	mx_status = mx_image_rebin( rebinned_frame,
+				*correction_frame,
+				correction_width / image_width,
+				correction_height / image_height );
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( rebin_timing );
+	MX_HRT_RESULTS( rebin_timing, fname, "Rebinning correction image." );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS ) 
+		return mx_status;
+
+	/* Return the rebinned frame. */
+
+	*correction_frame = *rebinned_frame;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 {
@@ -3121,52 +3386,54 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name, flags));
 #endif
 
-	if ( (flags & MXFT_AD_MASK_FRAME) == 0 ) {
+	if ( ( ad->correction_flags & MXFT_AD_MASK_FRAME ) == 0 ) {
 		mask_frame = NULL;
 	} else {
-		mask_frame = ad->mask_frame;
-
-		if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
-			return mx_error( MXE_NOT_READY, fname,
-			"No mask frame has been loaded for area detector '%s'.",
-				ad->record->name );
-		}
+		mx_status = mxp_area_detector_get_correction_frame(
+							ad, image_frame,
+							MXFT_AD_MASK_FRAME,
+							"mask",
+							&mask_frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	if ( (flags & MXFT_AD_BIAS_FRAME) == 0 ) {
+	if ( ( ad->correction_flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
 		bias_frame = NULL;
 	} else {
-		bias_frame = ad->bias_frame;
-
-		if ( bias_frame == (MX_IMAGE_FRAME *) NULL ) {
-			return mx_error( MXE_NOT_READY, fname,
-			"No bias frame has been loaded for area detector '%s'.",
-				ad->record->name );
-		}
+		mx_status = mxp_area_detector_get_correction_frame(
+							ad, image_frame,
+							MXFT_AD_BIAS_FRAME,
+							"bias",
+							&bias_frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	if ( (flags & MXFT_AD_DARK_CURRENT_FRAME) == 0 ) {
+	if ( ( ad->correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
 		dark_current_frame = NULL;
 	} else {
-		dark_current_frame = ad->dark_current_frame;
+		mx_status = mxp_area_detector_get_correction_frame(
+						ad, image_frame,
+						MXFT_AD_DARK_CURRENT_FRAME,
+						"dark current",
+						&dark_current_frame );
 
-		if ( dark_current_frame == (MX_IMAGE_FRAME *) NULL ) {
-			return mx_error( MXE_NOT_READY, fname,
-		"No dark current frame has been loaded for area detector '%s'.",
-				ad->record->name );
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) == 0 ) {
+	if ( ( ad->correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
 		flood_field_frame = NULL;
 	} else {
-		flood_field_frame = ad->flood_field_frame;
+		mx_status = mxp_area_detector_get_correction_frame(
+						ad, image_frame,
+						MXFT_AD_FLOOD_FIELD_FRAME,
+						"flood field",
+						&flood_field_frame );
 
-		if ( flood_field_frame == (MX_IMAGE_FRAME *) NULL ) {
-			return mx_error( MXE_NOT_READY, fname,
-		"No flood field frame has been loaded for area detector '%s'.",
-				ad->record->name );
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	mx_status = mx_area_detector_frame_correction( ad->record,
@@ -3369,6 +3636,20 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 	case MXFT_AD_FLOOD_FIELD_FRAME:
 		frame = ad->flood_field_frame;
 		break;
+
+	case MXFT_AD_REBINNED_MASK_FRAME:
+		frame = ad->rebinned_mask_frame;
+		break;
+	case MXFT_AD_REBINNED_BIAS_FRAME:
+		frame = ad->rebinned_bias_frame;
+		break;
+	case MXFT_AD_REBINNED_DARK_CURRENT_FRAME:
+		frame = ad->rebinned_dark_current_frame;
+		break;
+	case MXFT_AD_REBINNED_FLOOD_FIELD_FRAME:
+		frame = ad->rebinned_flood_field_frame;
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported frame type %ld requested for area detector '%s'.",
@@ -4349,35 +4630,21 @@ mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad )
 
 /*-----------------------------------------------------------------------*/
 
-#define CHECK_CORRECTION_BINNING(frame, frame_name) \
+#define CHECK_CORRECTION_FRAMESIZE(frame, frame_name) \
 	do {                                                                \
-	    if ( ad->correction_frames_are_unbinned ) {                     \
-	        if ((MXIF_ROW_BINSIZE((frame)) != 1)                        \
-		  || (MXIF_COLUMN_BINSIZE((frame)) != 1))                   \
+		if ((MXIF_ROW_FRAMESIZE((frame)) != row_framesize)          \
+		  || (MXIF_COLUMN_FRAMESIZE((frame)) != column_framesize))  \
 		{                                                           \
 			return mx_error( MXE_TYPE_MISMATCH, fname,          \
-			"The current %s bin size (%lu,%lu) for "            \
-			"area_detector '%s' is not (1,1).",                 \
-				(frame_name),                               \
-				(long) MXIF_ROW_BINSIZE((frame)),           \
-				(long) MXIF_COLUMN_BINSIZE((frame)),        \
-				ad->record->name );                         \
-		}                                                           \
-	    } else {                                                        \
-		if ((MXIF_ROW_BINSIZE((frame)) != row_binsize)              \
-		  || (MXIF_COLUMN_BINSIZE((frame)) != column_binsize))      \
-		{                                                           \
-			return mx_error( MXE_TYPE_MISMATCH, fname,          \
-			"The current %s binsize (%lu,%lu) for "             \
+			"The current %s framesize (%lu,%lu) for "           \
 			"area detector '%s' is different from "             \
-			"the binsize (%lu,%lu) of the image frame.",        \
+			"the framesize (%lu,%lu) of the image frame.",      \
 				(frame_name),                               \
-				(long) MXIF_ROW_BINSIZE((frame)),           \
-				(long) MXIF_COLUMN_BINSIZE((frame)),        \
+				(long) MXIF_ROW_FRAMESIZE((frame)),         \
+				(long) MXIF_COLUMN_FRAMESIZE((frame)),      \
 				ad->record->name,                           \
-				row_binsize, column_binsize );              \
+				row_framesize, column_framesize );          \
 		}                                                           \
-	    }                                                               \
 	} while(0)
 
 /*---*/
@@ -4402,7 +4669,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
-	unsigned long flags, row_binsize, column_binsize;
+	unsigned long flags, row_framesize, column_framesize;
 	double image_pixel, bias_offset;
 	double image_exposure_time, exposure_time_ratio;
 	double raw_dark_current, scaled_dark_current;
@@ -4411,11 +4678,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	double ffs_denominator, ffs_numerator;
 	mx_status_type mx_status;
 
-#  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_TIMING initial_timing;
 	MX_HRT_TIMING geometrical_timing;
 	MX_HRT_TIMING flood_timing;
-#  endif
+#endif
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("\n%s invoked for area detector '%s'.",
@@ -4462,53 +4729,41 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		"The primary image frame is not a 16-bit greyscale image." );
 	}
 
-	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
-	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+	row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
+	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
 	image_data_array = image_frame->image_data;
 
-	if ( ( flags & MXFT_AD_MASK_FRAME ) == 0 ) {
-		mask_data_array = NULL;
-	} else
 	if ( mask_frame == NULL ) {
 		mask_data_array = NULL;
 	} else {
 		mask_data_array = mask_frame->image_data;
 
-		CHECK_CORRECTION_BINNING( mask_frame, "mask" );
+		CHECK_CORRECTION_FRAMESIZE( mask_frame, "mask" );
 	}
 
-	if ( ( flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
-		bias_data_array = NULL;
-	} else
 	if ( bias_frame == NULL ) {
 		bias_data_array = NULL;
 	} else {
 		bias_data_array = bias_frame->image_data;
 
-		CHECK_CORRECTION_BINNING( bias_frame, "bias" );
+		CHECK_CORRECTION_FRAMESIZE( bias_frame, "bias" );
 	}
 
-	if ( ( flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
-		dark_current_data_array = NULL;
-	} else
 	if ( dark_current_frame == NULL ) {
 		dark_current_data_array = NULL;
 	} else {
 		dark_current_data_array = dark_current_frame->image_data;
 
-		CHECK_CORRECTION_BINNING(dark_current_frame, "dark current");
+		CHECK_CORRECTION_FRAMESIZE(dark_current_frame, "dark current");
 	}
 
-	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
-		flood_field_data_array = NULL;
-	} else
 	if ( flood_field_frame == NULL ) {
 		flood_field_data_array = NULL;
 	} else {
 		flood_field_data_array = flood_field_frame->image_data;
 
-		CHECK_CORRECTION_BINNING(flood_field_frame, "flood field");
+		CHECK_CORRECTION_FRAMESIZE(flood_field_frame, "flood field");
 	}
 
 	mx_status = mx_image_get_exposure_time( ad->image_frame,
