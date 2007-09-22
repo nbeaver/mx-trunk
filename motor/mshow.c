@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,7 @@
 #include "mx_timer.h"
 #include "mx_plot.h"
 #include "mx_array.h"
+#include "mx_memory.h"
 #include "mx_version.h"
 #include "motor.h"
 
@@ -69,11 +70,14 @@ motor_show_fn( int argc, char *argv[] )
 {
 	static const char cname[] = "show";
 
+	MX_PROCESS_MEMINFO process_meminfo;
+	MX_SYSTEM_MEMINFO system_meminfo;
 	char record_type_phrase[80];
 	char *match_string;
 	int multiple_records, enable_flag;
 	long record_superclass, record_class, record_type;
 	size_t length;
+	mx_status_type mx_status;
 
 	char usage[] =
 "Usage:  show autosave      -- show whether scan changes are automatically\n"
@@ -88,6 +92,8 @@ motor_show_fn( int argc, char *argv[] )
 "        show scanlog       -- show whether scan progress messages are\n"
 "                              displayed\n"
 "        show version       -- show program version\n"
+"        show memory        -- show process memory usage\n"
+"        show system        -- show system memory usage\n"
 "\n"
 "Commands to show record details:\n"
 "\n"
@@ -149,6 +155,24 @@ motor_show_fn( int argc, char *argv[] )
 	if ( strncmp( "version", argv[2], max(2,length) ) == 0 ) {
 		fprintf( output, "MX version %s\n", mx_get_version_string() );
 		return SUCCESS;
+
+	} else if ( strncmp( "memory", argv[2], length ) == 0 ) {
+
+		mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF,
+							&process_meminfo );
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_display_process_meminfo( &process_meminfo );
+
+	} else if ( strncmp( "system", argv[2], length ) == 0 ) {
+
+		mx_status = mx_get_system_meminfo( &system_meminfo );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_display_system_meminfo( &system_meminfo );
 
 	} else if ( strncmp( "plot", argv[2], length ) == 0 ) {
 		enable_flag = mx_plotting_is_enabled( motor_record_list );

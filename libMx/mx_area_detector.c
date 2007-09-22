@@ -4334,7 +4334,20 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_geometrical_correction()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"A default version of a geometrical correction has not yet "
+	"been implemented for area detector '%s'.", ad->record->name );
+}
+
+/*-----------------------------------------------------------------------*/
 
 #define CHECK_CORRECTION_BINNING(frame, frame_name) \
 	do {                                                                \
@@ -4367,11 +4380,11 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 	    }                                                               \
 	} while(0)
 
+/*---*/
+
 /* mx_area_detector_frame_correction() requires that all of the frames have
  * the same framesize.
  */
-
-/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_frame_correction( MX_RECORD *record,
@@ -4384,6 +4397,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	static const char fname[] = "mx_area_detector_frame_correction()";
 
 	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
@@ -4398,6 +4413,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 #  if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_TIMING initial_timing;
+	MX_HRT_TIMING geometrical_timing;
 	MX_HRT_TIMING flood_timing;
 #  endif
 
@@ -4406,7 +4422,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		fname, record->name ));
 #endif
 
-	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4419,13 +4435,22 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		"No primary image frame was provided." );
 	}
 
-	if ( ad->correction_flags == 0 ) {
+	flags = ad->correction_flags;
+
+	if ( flags == 0 ) {
 
 #if MX_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: No corrections requested.", fname));
 #endif
 
 		return MX_SUCCESSFUL_RESULT;
+	}
+
+	geometrical_correction_fn = flist->geometrical_correction;
+
+	if ( geometrical_correction_fn == NULL ) {
+		geometrical_correction_fn =
+			mx_area_detector_default_geometrical_correction;
 	}
 
 	/* Area detector image correction is currently only supported
@@ -4441,8 +4466,6 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
 
 	image_data_array = image_frame->image_data;
-
-	flags = ad->correction_flags;
 
 	if ( ( flags & MXFT_AD_MASK_FRAME ) == 0 ) {
 		mask_data_array = NULL;
@@ -4532,6 +4555,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_HRT_START( initial_timing );
 #endif
 
+	/* Do the mask, bias, and dark current corrections. */
+
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
@@ -4591,8 +4616,25 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( initial_timing );
 
+	MX_HRT_START( geometrical_timing );
+#endif
+
+	/* If requested, do the geometrical correction. */
+
+	if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+		mx_status = (*geometrical_correction_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( geometrical_timing );
+
 	MX_HRT_START( flood_timing );
 #endif
+
+	/* If requested, do the flood field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
@@ -4671,6 +4713,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_DEBUG(-2,(" "));	/* Print an empty line. */
 
 	MX_HRT_RESULTS( initial_timing, fname, "Initial correction time." );
+	MX_HRT_RESULTS( geometrical_timing, fname,
+					"Geometrical correction time." );
 	MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
 #endif
 

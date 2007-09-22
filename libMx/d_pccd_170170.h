@@ -467,8 +467,6 @@ typedef struct {
 MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );
 MX_API mx_status_type mxd_pccd_170170_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_pccd_170170_finish_record_initialization(
-							MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_open( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_close( MX_RECORD *record );
@@ -486,6 +484,8 @@ MX_API mx_status_type mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pccd_170170_geometrical_correction(
+						MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mxd_pccd_170170_camera_link_command(
 					MX_PCCD_170170 *pccd_170170,

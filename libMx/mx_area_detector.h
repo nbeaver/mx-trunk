@@ -607,6 +607,7 @@ typedef struct {
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *measure_correction ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *geometrical_correction ) ( MX_AREA_DETECTOR * ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -895,6 +896,9 @@ MX_API mx_status_type mx_area_detector_default_measure_correction(
 
 MX_API mx_status_type mx_area_detector_default_dezinger_correction(
                                                 MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_geometrical_correction(
+						MX_AREA_DETECTOR *ad );
 
 /*---*/
 

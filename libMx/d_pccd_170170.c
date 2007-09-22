@@ -70,7 +70,7 @@ smvspatial( void *imarr, int imwid, int imhit, int cflags, char *splname );
 MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	mxd_pccd_170170_initialize_type,
 	mxd_pccd_170170_create_record_structures,
-	mxd_pccd_170170_finish_record_initialization,
+	mx_area_detector_finish_record_initialization,
 	mxd_pccd_170170_delete_record,
 	NULL,
 	NULL,
@@ -100,7 +100,8 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
-	mx_area_detector_default_measure_correction
+	mx_area_detector_default_measure_correction,
+	mxd_pccd_170170_geometrical_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {
@@ -1720,12 +1721,6 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_area_detector_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
 mxd_pccd_170170_delete_record( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pccd_170170_delete_record()";
@@ -2273,6 +2268,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( strlen( pccd_170170->spatial_correction_filename ) > 0 ) {
+		ad->correction_flags |= MXFT_AD_GEOMETRICAL_CORRECTION;
+	}
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -3108,101 +3107,6 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-static mx_status_type
-mxd_pccd_170170_spatial_correction( MX_AREA_DETECTOR *ad,
-					void *input_data_array,
-					unsigned long image_width,
-					unsigned long image_height,
-					char *spatial_correction_filename )
-{
-	static const char fname[] = "mxd_pccd_170170_spatial_correction()";
-
-	int spatial_status, os_status, saved_errno;
-	mx_status_type mx_status;
-
-	if ( input_data_array == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The input_data_array pointer for area detector '%s' is NULL.",
-			ad->record->name );
-	}
-	if ( spatial_correction_filename == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The spatial_correction_filename pointer for "
-		"area detector '%s' is NULL.", ad->record->name );
-	}
-	if ( strlen(spatial_correction_filename) == 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"No spatial correction filename was provided for "
-		"area detector '%s'.", ad->record->name );
-	}
-
-	os_status = access( spatial_correction_filename, R_OK );
-
-	if ( os_status != 0 ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot read spatial correction file '%s'.  "
-		"errno = %d, error message = '%s'.",
-			spatial_correction_filename,
-			saved_errno, strerror(saved_errno) );
-	}
-
-#if defined(OS_LINUX) || defined(OS_WIN32)
-
-	spatial_status = smvspatial( input_data_array, 
-					image_width, image_height,
-					0, spatial_correction_filename );
-#else
-	mx_warning(
-"XGEN spatial correction is currently only available on Linux and Windows.");
-
-	spatial_status = 0;
-#endif
-
-	switch( spatial_status ) {
-	case 0:		/* Spatial correction succeeded. */
-		mx_status = MX_SUCCESSFUL_RESULT;
-		break;
-	case ENOENT:
-		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
-			"smvspatial() was unable to open spatial correction "
-			"file '%s' for area detector '%s'.",
-				spatial_correction_filename,
-				ad->record->name );
-		break;
-	case EIO:
-		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
-			"An error occurred in smvspatial() while reading "
-			"spatial correction file '%s' for area detector '%s'.",
-				spatial_correction_filename,
-				ad->record->name );
-		break;
-	case ENOMEM:
-		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
-			"smvspatial() was unable to allocate memory for "
-			"spatial correction of the current image for "
-			"area detector '%s'.",
-				ad->record->name );
-		break;
-	case EINVAL:
-		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"An illegal value was seen by smvspatial() during "
-			"spatial correction of the current image for "
-			"area detector '%s'.",
-				ad->record->name );
-		break;
-	default:
-		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
-			"Unexpected error code %d was returned by "
-			"smvspatial() for area detector '%s'.",
-				spatial_status, ad->record->name );
-		break;
-	}
-
-	return mx_status;
-}
-
 MX_EXPORT mx_status_type
 mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 {
@@ -3277,19 +3181,6 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 		 */
 
 		mx_status = mx_area_detector_default_correct_frame( ad );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* If requested, apply the geometrical correction. */
-
-		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
-			mx_status = mxd_pccd_170170_spatial_correction( ad,
-				image_data_array,
-				MXIF_ROW_FRAMESIZE(ad->image_frame),
-				MXIF_COLUMN_FRAMESIZE(ad->image_frame),
-				pccd_170170->spatial_correction_filename );
-		}
 
 		return mx_status;
 	}
@@ -4710,6 +4601,113 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	default:
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_pccd_170170_geometrical_correction()";
+
+	MX_IMAGE_FRAME *image_frame;
+	MX_PCCD_170170 *pccd_170170;
+	int spatial_status, os_status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"Area detector '%s' has not yet taken an image frame.",
+			ad->record->name );
+	}
+
+	if ( image_frame->image_data == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	  "The image_frame->image_data pointer for area detector '%s' is NULL.",
+			ad->record->name );
+	}
+	if ( pccd_170170->spatial_correction_filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The spatial_correction_filename pointer for "
+		"area detector '%s' is NULL.", ad->record->name );
+	}
+	if ( strlen( pccd_170170->spatial_correction_filename ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No spatial correction filename was provided for "
+		"area detector '%s'.", ad->record->name );
+	}
+
+	os_status = access( pccd_170170->spatial_correction_filename, R_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read spatial correction file '%s'.  "
+		"errno = %d, error message = '%s'.",
+			pccd_170170->spatial_correction_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+#if defined(OS_LINUX) || defined(OS_WIN32)
+
+	spatial_status = smvspatial( image_frame->image_data, 
+				MXIF_ROW_FRAMESIZE(image_frame),
+				MXIF_COLUMN_FRAMESIZE(image_frame),
+				0, pccd_170170->spatial_correction_filename );
+#else
+	mx_warning(
+"XGEN spatial correction is currently only available on Linux and Windows.");
+
+	spatial_status = 0;
+#endif
+
+	switch( spatial_status ) {
+	case 0:		/* Spatial correction succeeded. */
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	case ENOENT:
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"smvspatial() was unable to open spatial correction "
+			"file '%s' for area detector '%s'.",
+				pccd_170170->spatial_correction_filename,
+				ad->record->name );
+		break;
+	case EIO:
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred in smvspatial() while reading "
+			"spatial correction file '%s' for area detector '%s'.",
+				pccd_170170->spatial_correction_filename,
+				ad->record->name );
+		break;
+	case ENOMEM:
+		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+			"smvspatial() was unable to allocate memory for "
+			"spatial correction of the current image for "
+			"area detector '%s'.",
+				ad->record->name );
+		break;
+	case EINVAL:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"An illegal value was seen by smvspatial() during "
+			"spatial correction of the current image for "
+			"area detector '%s'.",
+				ad->record->name );
+		break;
+	default:
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected error code %d was returned by "
+			"smvspatial() for area detector '%s'.",
+				spatial_status, ad->record->name );
 		break;
 	}
 
