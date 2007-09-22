@@ -964,6 +964,9 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	rebinned_width = original_width / row_rebinning_factor;
 	rebinned_height = original_height / column_rebinning_factor;
 
+	rebinned_size = rebinned_width * rebinned_height
+				* MXIF_BYTES_PER_PIXEL(original_frame);
+
 	mx_status = mx_image_alloc( rebinned_frame,
 					rebinned_width,
 					rebinned_height,
