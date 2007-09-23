@@ -1,12 +1,13 @@
 /* smvspatial.c -- utility for manipulating 2-D detector images
 
-	Copyright (c) 2002, Illinois Institute of Technology
-	X-GEN: Crystallographic Data Processing Software
+	Copyright (c) 2007, Illinois Institute of Technology
+	Specialized image-manipulation software.
 	author: Andrew J Howard, BCPS Department, IIT
  See the file "LICENSE" for information on usage and redistribution
 	of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Change record:
+	22 Sep 2007: cleanup and corrections.
 	20 Sep 2007: eliminate image rotation: we'll rotate
 		the VSPLINE instead
 	15 Sep 2007: make this a single file containing the whole calling
@@ -19,9 +20,6 @@ Change record:
    Cross references: internal to X-GEN
 *************************************************************************/
 #include	<stdio.h>
-#include	<math.h>
-#include	<sys/types.h>
-#include	<sys/stat.h>
 
 /* If we are being compiled by Microsoft Visual C++, we need a few
  * extra definitions.  (18 Sep 2007: William Lavender)
@@ -49,7 +47,6 @@ Change record:
 extern void	*calloc(size_t count, size_t size);
 extern void	free(void *ptr);
 #endif /* __stdlib_h */
-#include	<string.h>
 
 /* structure type definitions */
 
@@ -78,14 +75,13 @@ extern void	free(void *ptr);
  typedef struct {
 		int		imf_flags, imf_ht, imf_imsize, imf_wid;
 		double		imf_x00, imf_xsl, imf_y00, imf_ysl;
-		unsigned short	imf_zmax, imf_zmaxx, imf_zmaxy;
 		float		*imf_locim, *imf_locwt;
 		unsigned short	*imf_data16;
 		char		*imf_splname;
 		VSPLINE		*imf_spl;
 		} IMWORK;
 
-extern int smvspatial(void *ia, int iw, int ih, int cfl, char *sn);
+extern int smvspatial(void *ima, int imw, int imh, int cfl, char *sn);
 
 static short sswab(short sh)
 { /*	This byte-swaps a SIGNED short.  This is comparatively tricky. */
@@ -117,34 +113,66 @@ static int checkorder(void)
 	return (u.byte_value[0] == 0x34);
 }
 
-static int splread(VSPLINE *lspl, FILE *fpi)
-{ /* This reads a VSPLINE structure in from the stream *fpi.
-	It returns the number of bytes read in */
-	static size_t	ntor = 512;
+static int smvspline(IMWORK *imp)
+{ /* This populates a VSPLINE structure by reading it from the file
+	imp->imf_splname.
+	It returns EOK if successful, EREADERR or EALLOC otherwise. */
+
 	int		i, islittle, ncpt, nread;
 	short		*sp;
 	float		*flp;
 	CALPOINT	*lca;
+	static VSPLINE	*lspl;
+	static FILE	*fspl;
+	static size_t	ntor = 512;
 
-	if ((NULL == lspl) || (NULL == fpi)) return 0;
-	islittle = checkorder();	/*is this is a little-endian machine?*/
-	if (1 != fread((void *)lspl, ntor, 1, fpi)) return 0;
-	if (islittle) /* byte swap shorts and flip bytes & words in floats */
+	if (NULL == (lspl = imp->imf_spl))
+	  {	
+		if (NULL == (lspl = (VSPLINE *)calloc(1, sizeof (VSPLINE))))
+		  {
+			fprintf(stderr,
+			 "Failed to allocate correction structure memory\n");
+			return EALLOC;
+		  }
+	  }
+	if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
+	lspl->v_cpt = NULL;
+	if (NULL == (fspl = fopen(imp->imf_splname, "r"))) return EOPENERR;
+	if (1 != fread((void *)lspl, ntor, 1, fspl))
 	  {
+		fprintf(stderr,
+		 "Error reading first block of correction file %s\n",
+			imp->imf_splname);
+		return EREADERR;
+	  }
+	if ((islittle = checkorder())) /* is this a little-endian machine? */
+	  {	/* byte swap shorts and flip bytes & words in floats */
 		for (sp = &(lspl->v_detw); sp <= &(lspl->v_midr); sp++)
 			*sp = sswab(*sp);
 		for (flp = &(lspl->v_axc); flp <= &(lspl->v_y0px); flp++)
 			lflcvt((void *)flp);
 	  }
 	ncpt = lspl->v_nrow * lspl->v_ncol;
-	if (NULL != (lspl->v_cpt)) free((void *)(lspl->v_cpt));
-	if (NULL == (lspl->v_cpt = (CALPOINT *)calloc(ncpt,
-	 sizeof (CALPOINT))))
+	if (NULL == (lspl->v_cpt = (CALPOINT *)calloc(ncpt, sizeof (CALPOINT))))
 	  {
-		(void)fclose(fpi);	return ntor;
+		fprintf(stderr,
+		 "Error allocating memory to handle correction operation\n");
+		free((void *)lspl);	(void)fclose(fspl);
+		fspl = NULL;	return EALLOC;
 	  }
-	nread = fread((void *)(lspl->v_cpt), sizeof (CALPOINT), ncpt, fpi);
-	(void)fclose(fpi);
+	if (imp->imf_flags & ANY_VERBOSE) printf(
+	 " Correction file %s: Dimensions [%4d,%4d], %3d columns, %3d rows\n",
+		imp->imf_splname, lspl->v_detw, lspl->v_deth,
+		lspl->v_nrow, lspl->v_ncol);
+	nread = fread((void *)(lspl->v_cpt), sizeof (CALPOINT), ncpt, fspl);
+	(void)fclose(fspl);	fspl = NULL;
+	if (nread != ncpt)
+	  {
+		fprintf(stderr, "Failed to read correction elements from %s\n",
+			imp->imf_splname);
+		free((void *)(lspl->v_cpt));	free((void *)lspl);
+		return EREADERR;
+	  }
 	if (islittle) /* byte and word swaps again */
 	  {
 		for (lca = lspl->v_cpt, i = 0; i < ncpt; i++, lca++)
@@ -153,109 +181,47 @@ static int splread(VSPLINE *lspl, FILE *fpi)
 			 flp++) lflcvt((void *)flp);
 		   }
 	  }
-	return ntor + nread * sizeof (CALPOINT);
+	imp->imf_spl = lspl;	/* set external pointer appropriately */
+	return EOK;
 }
 
-static VSPLINE *smvspline(int opno, int *errtp, char *splname)
-{ /* This manipulates a VSPLINE structure according to the value of opno.
-	If opno == 0, we free the memory for lspl and return NULL.
-	If opno == 1, we simply create a structure and return a pointer to it.
-	If opno == 3, we return a pointer to a VSPLINE structure,
-		creating it only if necessary.
-	If opno == 5, we start over, i.e. we populate a VSPLINE structure
-	from a diskfile, and then return it.
-	Note that there is no provision for writing the VSPLINE here.
-	The filename argument `splname' is only relevant for opno =5
-	*/
-
-	int		nread, ntoread;
-	static VSPLINE	*lspl;
-	static FILE	*fspl;
-
-	*errtp = EOK;
-	if (opno == 0)
-	  {
-		if (NULL != lspl)
-		  {
-			(void)free((void *)(lspl->v_cpt));
-			(void)free((void *)lspl);
-		  }
-		return NULL;
-	  }
-	if (NULL == lspl)
-	  {	
-		if (NULL == (lspl = (VSPLINE *)calloc(1, sizeof (VSPLINE))))
-			return NULL;
-	  }
-	if (opno == 3) return lspl;	/* in this case, we just receive */
-	if (opno == 5)
-	  {
-		(void)free((void *)(lspl->v_cpt));
-		if (NULL == (fspl = fopen(splname, "r")))
-		  {
-			*errtp = EOPENERR;	return NULL;
-		  }
-		nread = splread((void *)lspl, fspl);
-		ntoread = 512 + lspl->v_nrow * lspl->v_ncol * sizeof (CALPOINT);
-		if (nread < ntoread)
-		  {
-			fprintf(stderr,
-	 "Warning: expected to read %d bytes from %s; actually read %d\n",
-				ntoread, splname, nread);
-			*errtp = EREADERR;	return NULL;
-		  }
-		(void)fclose(fspl);	fspl = NULL;
-		lspl->v_maxx = lspl->v_detw + 10;
-		lspl->v_maxy = lspl->v_deth + 10;
-		return lspl;
-	  }
-	return (*errtp != 0) ? NULL : lspl;
-}
-
-static int pix2cm(float xp, float yp, float *xcm, float *ycm)
+static void pix2cm(VSPLINE *lspl, float xp, float yp, float *xcm, float *ycm)
 { /*	This returns the x,y coordinates in cm of a position
 	specified in pixel coordinates.
-	Return values:
-		 1	: cm position found; (x,y) inside active area
-		 2	: cm position found; (x,y) outside active area
-				but still close to detector
-		-1	: cm position found; (x,y) outside active area
-				and a long way from the detector
-		 0	: cm position couldn't be determined. */
-	int		retv, usex, usey;
-	VSPLINE		*lspl;
+	This version assumes that xp and yp are within the detector area,
+	so it isn't doing any error-checking. That also means it doesn't
+	return anything.
+	It takes the spline structure as an argument rather than
+	fishing it out of the routine that manages it. */
 	CALPOINT	*cz00, *cz01, *cz10, *cz11;
 	static int	ix, iy;
 	static double	p, q, rx, ry;
 	float		dx, dy;
 
-	if (NULL == (lspl = smvspline(3, &retv, NULL))) return 0;
 	dx = xp - lspl->v_x0px;	dy = yp - lspl->v_y0px;
 	rx = dx / lspl->v_xrpx;	ry = dy / lspl->v_yrpx;
-	ix = (rx < 0. ? 0 : (rx < lspl->v_ncol - 1 ?
-		rx : lspl->v_ncol - 2));
-	iy = (ry < 0. ? 0 : (ry < lspl->v_nrow - 1 ?
-		ry : lspl->v_nrow - 2));
-	if (lspl->v_nreg == 4)
+	ix = (rx < 0. ? 0 : (rx < lspl->v_ncol - 1 ?  rx : lspl->v_ncol - 2));
+	iy = (ry < 0. ? 0 : (ry < lspl->v_nrow - 1 ?  ry : lspl->v_nrow - 2));
+	if (lspl->v_nreg >= 2) /* special handling, 2- and 4- elt. detectors*/
 	  {
 		if (ix == lspl->v_ncol / 2 - 1) ix--;
 		else if (ix == lspl->v_ncol / 2) ix++;
+	  }
+	if (lspl->v_nreg == 4)	 /* special handling, 4-element detectors*/
+	  {
 		if (iy == lspl->v_nrow / 2 - 1) iy--;
 		else if (iy == lspl->v_nrow / 2) iy++;
 	  }
+	/* find the v_cpt structures associated with the four nearest
+	 points to this current pixel */
 	cz00 = lspl->v_cpt + iy * lspl->v_ncol + ix;
 	cz01 = cz00 + 1; cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
+	/* calculate the fractional offsets from those points */
 	p = rx - (double)ix;	q = ry - (double)iy;
 	*xcm = (1.-p) * (1.-q) * cz00->c_ctopx + (1.-p) * q * cz10->c_ctopx +
 		   p  * (1.-q) * cz01->c_ctopx +     p  * q * cz11->c_ctopx;
 	*ycm = (1.-p) * (1.-q) * cz00->c_ctopy + (1.-p) * q * cz10->c_ctopy +
 		   p  * (1.-q) * cz01->c_ctopy +     p  * q * cz11->c_ctopy;
-	usex = xp + 0.49999;	usey = yp + 0.499999;
-	if ((usex < -10) || (usex > lspl->v_maxx) || (usey < -10) ||
-		(usey > lspl->v_maxy)) return -1;
-	if ((usex < 0) || (usex >= lspl->v_detw) ||
-	 (usey < 0) || (usey > lspl->v_deth)) return 2;
-	return 1;
 }
 
 static int find_limits(IMWORK *imp)
@@ -264,18 +230,16 @@ static int find_limits(IMWORK *imp)
 	int	x, y;
 	float	xc, yc;
 	double	xma, xmi, yma, ymi;
+	VSPLINE	*lspl;
 
 	yma = xma = -1.e9;	ymi = xmi = -xma;
-	for (y = 0; y < (imp->imf_spl)->v_deth; y++)
-		for (x = 0; x < (imp->imf_spl)->v_detw; x++)
+	lspl = imp->imf_spl;
+	for (x = 0; x < lspl->v_detw; x++)
+		for (y = 0; y < lspl->v_deth; y++)
 		   {
-			if (-1 != pix2cm((float)x, (float)y, &xc, &yc))
-			  {
-				if (xc < xmi) xmi = xc;
-				if (xc > xma) xma = xc;
-				if (yc < ymi) ymi = yc;
-				if (yc > yma) yma = yc;
-			  }
+			pix2cm(lspl, (float)x, (float)y, &xc, &yc);
+			if (xc < xmi) xmi = xc;	if (xc > xma) xma = xc;
+			if (yc < ymi) ymi = yc;	if (yc > yma) yma = yc;
 		   }
 	if ((yma < -0.9e9) || (xma < -0.9e9) ||
 	 (xmi > 0.9e9) || (ymi > 0.9e9)) return EBADVALUE;
@@ -285,20 +249,43 @@ static int find_limits(IMWORK *imp)
 	imp->imf_x00 = -xmi * imp->imf_xsl;
 	imp->imf_ysl = ((double)(imp->imf_ht - 1)) / (ymi - yma);
 	imp->imf_y00 = -yma * imp->imf_ysl;
+	if (imp->imf_flags & VERY_VERBOSE)
+	  {
+		printf(
+		 "Minima & maxima in (X,Y): [%12.4e,%12.4e],[%12.4e,%12.4e]\n",
+			xmi, ymi, xma, yma);
+		printf(
+		 "Scale factors and offsets:[%12.4e,%12.4e],[%12.4e,%12.4e]\n",
+		 imp->imf_xsl, imp->imf_ysl, imp->imf_x00, imp->imf_y00);
+	  }
 	return EOK;
 }
 
-static void interp_image(IMWORK *imp)
+static int interp_image(IMWORK *imp)
 { /*	Here is where the actual interpolation takes place. */
-	int	imv, ix, iy, off0, off1, off2, off3, x, y;
-	double	px, py, rimv, wt0, wt1, wt2, wt3;
-	float	xc, yc, *loim, *lowt;
+	int		imv, ix, iy, obounds;
+	int		off0, off1, off2, off3, x, y;
+	double		px, py, rimv, wt0, wt1, wt2, wt3;
+	float		xc, yc, *loim, *lowt;
+	size_t		imsiz;
+	VSPLINE		*lspl;
 
-	loim = imp->imf_locim;	lowt = imp->imf_locwt;
-	for (x = 0; x < (imp->imf_spl)->v_detw; x++) /* convert pix to cm */
-	  for (y = 0; y < (imp->imf_spl)->v_deth; y++)
-	   if (-1 != pix2cm((float)x, (float)y, &xc, &yc))
-	     {	/* rescale coordinates into the proper dimensions */
+	/* size of data16 buffer */
+	imp->imf_imsize = imsiz = imp->imf_wid * imp->imf_ht;
+	/* reserve memory for floating-point image and weight values */
+	if (NULL == (loim = (float *)calloc(2 * imsiz, sizeof (float))))
+	  {
+		fprintf(stderr,
+		 "Error allocating memory for floating-point image\n");
+		return EALLOC;
+	  }
+	imp->imf_locim = loim;	imp->imf_locwt = lowt = loim + imsiz;
+	lspl = imp->imf_spl;
+	for (obounds = x = 0; x < lspl->v_detw; x++) /* convert pix to cm */
+	  for (y = 0; y < lspl->v_deth; y++)
+	     {
+		pix2cm(lspl, (float)x, (float)y, &xc, &yc);
+	     	/* rescale coordinates into the proper dimensions */
 		xc = imp->imf_xsl * xc + imp->imf_x00;
 		yc = imp->imf_ysl * yc + imp->imf_y00;
 		/* add a fraction of the input value into the sum for each
@@ -342,7 +329,12 @@ static void interp_image(IMWORK *imp)
 				*(lowt + off3) += wt3;
 			  }
 		  } /* end of "if ((-1 <= xc" clause */
-	     } /* end of "if (-1 != pix2cm" clause and "for (ix" loop */
+		else obounds++;
+	     } /* end of loop through X and Y */
+	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
+	 " %6d pixels mapped to coordinates outside the adjusted limits\n",
+		obounds);
+	return EOK;
 }
 
 static int normalize(IMWORK *imp)
@@ -488,7 +480,9 @@ static int extrap_pix(IMWORK *imp, int norep)
 }
 
 static int creat_undistor(IMWORK *imp)
-{ /*	This puts the floating-point image back into integers */
+{ /* This puts the floating-point image back into integers.
+	In this version we require that the rescaled values
+	be containable within 16-bit unsigned integers */
 	double		ecount;
 	float		maxfl, *fpv, *loim;
 	int		x, y, nov;
@@ -508,7 +502,7 @@ static int creat_undistor(IMWORK *imp)
 		  }
 	if (nov)
 	  { /* rescale so brightest pixel is < 65K */
-		fprintf(stdout,
+		if (imp->imf_flags & VERY_VERBOSE) fprintf(stdout,
 		 " Brightest renormalized pixel has I = %12.5e\n",
 			maxfl);
 		maxfl /= 65000.;
@@ -537,9 +531,9 @@ static int creat_undistor(IMWORK *imp)
 		   }
 	 }
 	else return EBADVALUE;	/* failure to set everything below 65k */
-	imp->imf_zmax = zma;	imp->imf_zmaxx = zmxx;	imp->imf_zmaxy = zmxy;
-	printf("Image has %12.0f counts; zmax = %7d at [%4d,%4d]\n",
-	 ecount, (int)zma, zmxx, (int)(imp->imf_ht - 1 - zmxy));
+	if (imp->imf_flags & ANY_VERBOSE)
+		printf("Image has %12.0f counts; zmax = %7d at [%4d,%4d]\n",
+			ecount, (int)zma, zmxx, (int)(imp->imf_ht - 1 - zmxy));
 	return EOK;
 }
 
@@ -556,61 +550,64 @@ static int img_conversion(IMWORK *imp)
 { /*	This does the conversion on a single image.
 	If it is called with a NULL argument, we use it to free up memory.
 	It returns EOK if successful, various errors if not */
-	int		imerr, noreps;
-	size_t		imsiz;
-	static float	*locim;
+	int	imerr, noreps;
+	VSPLINE	*lspl;
 
-	if (NULL == imp) /* use this as a way of freeing local memory */
-	  {
-		(void)smvspline(0, &imerr, NULL); /* elim spline memory */
-		if (NULL != locim) (void)free((void *)locim);
-		return EOK;
-	  }
-	/* size of data16 buffer */
-	imp->imf_imsize = imsiz = imp->imf_wid * imp->imf_ht;
-	/* reserve memory for floating-point image and weight values */
-	if (NULL == (locim = (float *)calloc((size_t)
-	 (2 * imp->imf_imsize), sizeof (float)))) return EALLOC;
-	imp->imf_locim = locim;	imp->imf_locwt = locim + imp->imf_imsize;
 	/* read in the spatial-correction information */
-	if (NULL == (imp->imf_spl = smvspline(3, &imerr, imp->imf_splname)))
-		return imerr;
+	if (EOK != (imerr = smvspline(imp))) return imerr;
 	/* find the limits of x and y in cm */
-	if (EOK != (imerr = find_limits(imp))) return imerr;
-	interp_image(imp);	/* perform spatial-correction interpolation */
+	if (EOK != (imerr = find_limits(imp)))
+	  {
+		fprintf(stderr, "Error %d finding rescaling values in spline\n",
+		 imerr);
+		return imerr;
+	  }
+	if (EOK != (imerr = interp_image(imp)))
+	  {
+		fprintf(stderr, "Error %d interpolating the image\n", imerr);
+		return imerr;
+	  }
 	/* re-generate the output values by dividing the weighted
 	 count values by the weights */
 	noreps = normalize(imp);
 	/* extrapolate to take care of missing pixels */
 	noreps = extrap_pix(imp, noreps);
 	/* phew. Now we can make an image out of this array. */
-	return creat_undistor(imp);
+	imerr = creat_undistor(imp);
+	/* having gotten to here, we eliminate memory with which we're done */
+	if (NULL != (lspl = imp->imf_spl))
+	  {
+		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
+		lspl->v_cpt = NULL;	free((void *)lspl);	lspl = NULL;
+	  }
+	if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
+	return imerr;
 }
 
-int smvspatial(void *imarr, int imwid, int imhit, int cflags, char *splname)
+int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 { /* Mainline for performing a spatial correction on an SMV image
 	that is already in memory. Arguments:
 	imarr	1-D array of data values (probably always unsigned shorts)
 		as derived from a Lavender image_data structure.
 		The output will be written back to this pointer as well.
-	imwid	fast-varying detector dimension ("width")
-	imhit	slow-varying detector dimension ("height")
 	cflags	flag value. Unlike earlier versions,
 	 the only active bits in this flag now are associated with verbosity:
 		bit 1	moderate amounts of verbosity
 		bit 2	higher verbosity
-		bit 3	even higher verbosity
+		bit 3	even higher verbosity (not currently used)
+	splname	Name of the spatial-correction (*.uca) file.
+	In this version, the detector dimensions don't need to be
+	specified, because they're read in from splname.
   */
 	int		resu;
 	static IMWORK	imfs;
 
 	imfs.imf_flags = cflags;
-	imfs.imf_wid = imwid;	imfs.imf_ht = imhit;
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
+	imfs.imf_wid = imwid;	imfs.imf_ht = imht;
 	if (cflags & ANY_VERBOSE) sumsmvspat(stdout, &imfs);
 	resu = img_conversion(&imfs);	/* perform spatial correction */
-	(void)img_conversion(NULL);
 	return resu;
 }
 
