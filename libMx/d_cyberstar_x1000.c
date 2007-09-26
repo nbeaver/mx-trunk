@@ -211,6 +211,8 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_msleep(100);
+
 	cyberstar_x1000->security_status = 0;
 
 	mx_status = mx_sca_set_parameter( record,
@@ -218,6 +220,8 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_msleep(100);
 
 	/* See if the Cyberstar X1000 is listening to us by asking for
 	 * its gain setting.
