@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define LS330_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,13 +33,13 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_ls330_motor_record_function_list = {
-	mxd_ls330_motor_initialize_type,
+	NULL,
 	mxd_ls330_motor_create_record_structures,
-	mxd_ls330_motor_finish_record_initialization,
-	mxd_ls330_motor_delete_record,
+	mx_motor_finish_record_initialization,
+	NULL,
 	mxd_ls330_motor_print_motor_structure,
-	mxd_ls330_motor_read_parms_from_hardware,
-	mxd_ls330_motor_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_ls330_motor_open,
 	mxd_ls330_motor_close,
 	NULL,
@@ -50,13 +52,11 @@ MX_MOTOR_FUNCTION_LIST mxd_ls330_motor_motor_function_list = {
 	mxd_ls330_motor_get_position,
 	mxd_ls330_motor_set_position,
 	mxd_ls330_motor_soft_abort,
-	mxd_ls330_motor_immediate_abort,
+	mxd_ls330_motor_soft_abort,
 	mxd_ls330_motor_positive_limit_hit,
 	mxd_ls330_motor_negative_limit_hit,
 	mxd_ls330_motor_find_home_position
 };
-
-#define LS330_MOTOR_DEBUG	FALSE
 
 /* LakeShore 330 motor data structures. */
 
@@ -82,7 +82,7 @@ mxd_ls330_motor_get_pointers( MX_MOTOR *motor,
 			MX_INTERFACE **port_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_ls330_motor_get_pointers()";
+	static const char fname[] = "mxd_ls330_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -135,29 +135,24 @@ mxd_ls330_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_ls330_motor_initialize_type( long type )
-{
-		return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ls330_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ls330_motor_create_record_structures()";
+	static const char fname[] =
+			"mxd_ls330_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_LS330_MOTOR *ls330_motor;
 
 	/* Allocate memory for the necessary structures. */
 
-	motor = (MX_MOTOR *) malloc( sizeof(MX_MOTOR) );
+	motor = malloc( sizeof(MX_MOTOR) );
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Can't allocate memory for MX_MOTOR structure." );
 	}
 
-	ls330_motor = (MX_LS330_MOTOR *) malloc( sizeof(MX_LS330_MOTOR) );
+	ls330_motor = malloc( sizeof(MX_LS330_MOTOR) );
 
 	if ( ls330_motor == (MX_LS330_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -184,40 +179,15 @@ mxd_ls330_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ls330_motor_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_motor_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ls330_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_ls330_motor_print_motor_structure()";
+	static const char fname[] = "mxd_ls330_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_LS330_MOTOR *ls330_motor;
 	MX_INTERFACE *port_interface;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -226,11 +196,11 @@ mxd_ls330_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_ls330_motor_get_pointers( motor, &ls330_motor,
+	mx_status = mxd_ls330_motor_get_pointers( motor, &ls330_motor,
 						&port_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
@@ -248,9 +218,9 @@ mxd_ls330_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 			port_interface->record->name );
 	}
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -286,35 +256,9 @@ mxd_ls330_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ls330_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_ls330_motor_read_parms_from_hardware()";
-
-	double position;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	/* Update the current position in the motor structure. */
-
-	status = mx_motor_get_position( record, &position );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ls330_motor_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ls330_motor_open()";
+	static const char fname[] = "mxd_ls330_motor_open()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	MX_INTERFACE *port_interface;
@@ -322,7 +266,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 	MX_GPIB *gpib;
 	long gpib_address;
 	unsigned long read_terminator, write_terminator;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -331,12 +275,12 @@ mxd_ls330_motor_open( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL." );
 	}
 
-	status = mxd_ls330_motor_get_pointers(
+	mx_status = mxd_ls330_motor_get_pointers(
 			(MX_MOTOR *) record->record_class_struct,
 			&ls330_motor, &port_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( port_interface->record->mx_class == MXI_GPIB ) {
 		/* The GPIB interface is being used. */
@@ -413,18 +357,18 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		}
 	}
 
-	status = mxd_ls330_motor_resynchronize( record );
+	mx_status = mxd_ls330_motor_resynchronize( record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ls330_motor_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ls330_motor_close()";
+	static const char fname[] = "mxd_ls330_motor_close()";
 
 	MX_LS330_MOTOR *ls330_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -433,75 +377,75 @@ mxd_ls330_motor_close( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL." );
 	}
 
-	status = mxd_ls330_motor_get_pointers(
+	mx_status = mxd_ls330_motor_get_pointers(
 			(MX_MOTOR *) record->record_class_struct,
 			&ls330_motor, NULL, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Put the LakeShore 330 controller into local control mode, just
 	 * in case it was in a remote control mode.
 	 */
 
-	status = mxd_ls330_motor_command( ls330_motor,
+	mx_status = mxd_ls330_motor_command( ls330_motor,
 			"MODE 0", NULL, 0, LS330_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ls330_motor_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ls330_motor_resynchronize()";
+	static const char fname[] = "mxd_ls330_motor_resynchronize()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	MX_INTERFACE *port_interface;
 	char response[80], banner[40];
 	size_t length;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
 	}
 
-	status = mxd_ls330_motor_get_pointers(
+	mx_status = mxd_ls330_motor_get_pointers(
 			(MX_MOTOR *) record->record_class_struct,
 			&ls330_motor, &port_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Discard any unread input or unwritten output. */
 
 	if ( port_interface->record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_discard_unwritten_output(
+		mx_status = mx_rs232_discard_unwritten_output(
 				port_interface->record, LS330_MOTOR_DEBUG );
 
-		if ( (status.code != MXE_SUCCESS)
-		  && (status.code != MXE_UNSUPPORTED) )
+		if ( (mx_status.code != MXE_SUCCESS)
+		  && (mx_status.code != MXE_UNSUPPORTED) )
 		{
-			return status;
+			return mx_status;
 		}
 
-		status = mx_rs232_discard_unread_input( 
+		mx_status = mx_rs232_discard_unread_input( 
 				port_interface->record, LS330_MOTOR_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Send a query identification command to verify that the controller
 	 * is there.
 	 */
 
-	status = mxd_ls330_motor_command( ls330_motor, "*IDN?",
+	mx_status = mxd_ls330_motor_command( ls330_motor, "*IDN?",
 			response, sizeof response, LS330_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Verify that we got the identification message that we expected. */
 
@@ -517,34 +461,34 @@ mxd_ls330_motor_resynchronize( MX_RECORD *record )
 
 	/* Switch to control channel A. */
 
-	status = mxd_ls330_motor_command( ls330_motor, "CCHN A",
+	mx_status = mxd_ls330_motor_command( ls330_motor, "CCHN A",
 						NULL, 0, LS330_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the units for control channel A to kelvin. */
 
-	status = mxd_ls330_motor_command( ls330_motor, "CUNI K",
+	mx_status = mxd_ls330_motor_command( ls330_motor, "CUNI K",
 						NULL, 0, LS330_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ls330_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_motor_is_busy()";
+	static const char fname[] = "mxd_ls330_motor_motor_is_busy()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	double position, difference;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_ls330_motor_get_pointers( motor,
+	mx_status = mxd_ls330_motor_get_pointers( motor,
 					&ls330_motor, NULL, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the current temperature and compare it to the destination.
 	 * If the difference is larger than the 'busy_deadband', we say
@@ -556,10 +500,10 @@ mxd_ls330_motor_motor_is_busy( MX_MOTOR *motor )
 	 * will not.
 	 */
 
-	status = mx_motor_get_position( motor->record, &position );
+	mx_status = mx_motor_get_position( motor->record, &position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	difference = motor->raw_destination.analog - motor->raw_position.analog;
 
@@ -575,51 +519,51 @@ mxd_ls330_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ls330_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_move_absolute()";
+	static const char fname[] = "mxd_ls330_motor_move_absolute()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	char command[20];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_ls330_motor_get_pointers( motor,
+	mx_status = mxd_ls330_motor_get_pointers( motor,
 					&ls330_motor, NULL, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Format the move command and send it. */
 
 	sprintf( command, "SETP %g", motor->raw_destination.analog );
 
-	status = mxd_ls330_motor_command( ls330_motor,
+	mx_status = mxd_ls330_motor_command( ls330_motor,
 			command, NULL, 0, LS330_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ls330_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_get_position()";
+	static const char fname[] = "mxd_ls330_motor_get_position()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	MX_INTERFACE *port_interface;
 	char response[30];
 	int num_items;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_ls330_motor_get_pointers( motor,
+	mx_status = mxd_ls330_motor_get_pointers( motor,
 				&ls330_motor, &port_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_ls330_motor_command( ls330_motor, "CDAT?",
+	mx_status = mxd_ls330_motor_command( ls330_motor, "CDAT?",
 			response, sizeof response, LS330_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%lg", &position );
 
@@ -636,45 +580,41 @@ mxd_ls330_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ls330_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_set_position()";
+	static const char fname[] = "mxd_ls330_motor_set_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-"The LakeShore 330 motor controller does not allow the temperature to be redefined." );
+		"LakeShore 330 motor controller '%s' does not allow "
+		"the temperature to be redefined.",
+		motor->record->name );
 }
 
 MX_EXPORT mx_status_type
 mxd_ls330_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_soft_abort()";
+	static const char fname[] = "mxd_ls330_motor_soft_abort()";
 
 	MX_LS330_MOTOR *ls330_motor;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_ls330_motor_get_pointers( motor,
+	mx_status = mxd_ls330_motor_get_pointers( motor,
 					&ls330_motor, NULL, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* We implement an abort here by reading the current temperature
 	 * and changing the setpoint to be the current temperature.
 	 */
 
-	status = mx_motor_get_position( motor->record, &position );
+	mx_status = mx_motor_get_position( motor->record, &position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_move_absolute( motor->record,
+	mx_status = mx_motor_move_absolute( motor->record,
 						position, MXF_MTR_NOWAIT );
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ls330_motor_immediate_abort( MX_MOTOR *motor )
-{
-	return mxd_ls330_motor_soft_abort( motor );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -696,25 +636,29 @@ mxd_ls330_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ls330_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_ls330_motor_find_home_position()";
+	static const char fname[] = "mxd_ls330_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-	"The LakeShore 330 motor controller does not support home search operations." );
+		"LakeShore 330 motor controller '%s' does not support "
+		"home search operations.", motor->record->name );
 }
 
 /* === Extra functions for the use of this driver. === */
 
 MX_EXPORT mx_status_type
-mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *response,
-		int response_buffer_length, int debug_flag )
+mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor,
+			char *command,
+			char *response,
+			size_t response_buffer_length,
+			int debug_flag )
 {
-	const char fname[] = "mxd_ls330_motor_command()";
+	static const char fname[] = "mxd_ls330_motor_command()";
 
 	MX_RECORD *port_record;
 	long port_address;
 	char *error_code_ptr;
 	int error_code, num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( ls330_motor == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -722,7 +666,7 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *respo
 	}
 	if ( command == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-"The command buffer pointer for LakeShore 330 motor '%s' was NULL.",
+		"The command pointer for LakeShore 330 motor '%s' was NULL.",
 			ls330_motor->record->name );
 	}
 
@@ -730,7 +674,8 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *respo
 
 	if ( port_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"The port interface record pointer for LakeShore 330 motor '%s' is NULL.",
+		"The port interface record pointer for "
+		"LakeShore 330 motor '%s' is NULL.",
 			ls330_motor->record->name );
 	}
 
@@ -743,31 +688,31 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *respo
 	/* Send the command string. */
 
 	if ( port_record->mx_class == MXI_GPIB ) {
-		status = mx_gpib_putline( port_record, port_address,
+		mx_status = mx_gpib_putline( port_record, port_address,
 					command, NULL, debug_flag );
 	} else {
-		status = mx_rs232_putline( port_record,
+		mx_status = mx_rs232_putline( port_record,
 					command, NULL, debug_flag );
 	}
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the response. */
 
 	if ( response != NULL ) {
 		if ( port_record->mx_class == MXI_GPIB ) {
-			status = mx_gpib_getline( port_record, port_address,
+			mx_status = mx_gpib_getline( port_record, port_address,
 				response, response_buffer_length,
 				NULL, debug_flag );
 		} else {
-			status = mx_rs232_getline( port_record,
+			mx_status = mx_rs232_getline( port_record,
 				response, response_buffer_length,
 				NULL, debug_flag );
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: response = '%s'", fname, response ));

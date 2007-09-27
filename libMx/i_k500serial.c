@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -256,7 +256,9 @@ mxi_k500serial_open( MX_RECORD *record )
 	MX_RECORD *rs232_record;
 	MX_RS232 *rs232;
 	char command[40];
+	char response[40];
 	int i;
+	size_t bytes_read;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warning. */
@@ -457,6 +459,63 @@ mxi_k500serial_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Send a device clear command to the converter. */
+
+	mx_status = mx_rs232_putline( rs232_record,
+					"C", NULL, K500SERIAL_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Verify that the 500-SERIAL interface is communicating with us
+	 * by checking to see if a GPIB service request has been received.
+	 * Since we have just reset the GPIB bus and all the GPIB devices,
+	 * the normal response should be 'N'.  However, in principle we
+	 * could get a response of 'Y'.  We print out a warning message 
+	 * if we do.
+	 */
+
+	mx_status = mx_rs232_putline( rs232_record,
+					"SQ", NULL, K500SERIAL_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_rs232_getline( rs232_record,
+					response, sizeof(response),
+					&bytes_read, K500SERIAL_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if K500SERIAL_DEBUG
+	MX_DEBUG(-2,("%s: bytes_read = %ld", fname, (long) bytes_read ));
+#endif
+
+	if ( bytes_read == 0 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Did not receive a response to the 'SQ' command "
+		"for Keithley 500-SERIAL interface '%s'.", record->name );
+	}
+
+	switch( response[0] ) {
+	case 'N': /* This is the normal response. */
+		break;
+
+	case 'Y':
+		mx_warning( "Keithley 500-SERIAL interface '%s' has received "
+			"an SRQ request, even though we have just reset the "
+			"GPIB bus and all GPIB devices.", record->name );
+		break;
+
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Received an unexpected response '%s' to the command 'SQ' "
+		"for Keithley 500-SERIAL interface '%s'",
+			response, record->name );
+		break;
+	}
 
 	gpib->read_buffer_length = 0;
 	gpib->write_buffer_length = 0;
