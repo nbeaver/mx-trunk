@@ -578,7 +578,11 @@ static int img_conversion(IMWORK *imp)
 	if (NULL != (lspl = imp->imf_spl))
 	  {
 		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
+#if 0 /* WML */
 		lspl->v_cpt = NULL;	free((void *)lspl);	lspl = NULL;
+#else
+		lspl->v_cpt = NULL;	free((void *)lspl); imp->imf_spl = NULL;
+#endif /* WML */
 	  }
 	if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
 	return imerr;
