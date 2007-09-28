@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_OVERLAY	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -438,6 +440,110 @@ mx_get_scalar_element_size( long mx_datatype,
 #endif
 
 	return element_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* mx_array_add_overlay() adds a multidimensional veneer on top of the
+ * 1-dimensional array passed as vector_pointer.
+ */
+
+MX_EXPORT mx_status_type
+mx_array_add_overlay( void *vector_pointer,
+			long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array,
+			void **overlay_pointer )
+{
+	static const char fname[] = "mx_array_add_overlay()";
+
+	void **array_of_level_pointers;
+	unsigned long dim, dimx, num_elements, element_size;
+
+	if ( vector_pointer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The vector_pointer passed was NULL." );
+	}
+	if ( dimension_array == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension_array pointer passed was NULL." );
+	}
+	if ( data_element_size_array == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer passed was NULL." );
+	}
+	if ( overlay_pointer == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The overlay_pointer passed was NULL." );
+	}
+
+	if ( num_dimensions < 2 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The requested number of dimensions (%ld) is not supported.",
+			num_dimensions );
+	}
+
+#if DEBUG_OVERLAY
+	MX_DEBUG(-2,("%s: vector_pointer = %p, num_dimensions = %ld",
+		fname, vector_pointer, num_dimensions));
+#endif
+
+	/* For each dimension above dimension 1, we allocate a single array
+	 * of pointers to the next level below.
+	 */
+
+	array_of_level_pointers = calloc( num_dimensions, sizeof(void *) );
+
+	if ( array_of_level_pointers == (void **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of level pointers.", num_dimensions - 1 );
+	}
+
+#if DEBUG_OVERLAY
+	MX_DEBUG(-2,("%s: array_of_level_pointers = %p",
+		fname, array_of_level_pointers));
+#endif
+
+	num_elements = 1;
+
+	for ( dim = num_dimensions; dim >= 2; dim-- ) {
+		num_elements *= dimension_array[dim-1];
+
+		element_size = data_element_size_array[num_dimensions - dim];
+
+		array_of_level_pointers[dim-1] =
+				calloc( num_elements, element_size );
+
+		if ( array_of_level_pointers[dim-1] == NULL ) {
+
+			for ( dimx = num_dimensions; dimx > dim; dimx-- ) {
+				free( array_of_level_pointers[dimx-1] );
+			}
+			free( array_of_level_pointers );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %lu element "
+			"array of dimension %lu pointers.",
+				num_elements, dim );
+		}
+#if DEBUG_OVERLAY
+		MX_DEBUG(-2,
+		("%s: array_of_level_pointers[%lu] = %p, num_elements = %lu",
+			fname, dim-1, array_of_level_pointers[dim-1],
+			num_elements));
+#endif
+	}
+
+	array_of_level_pointers[0] = vector_pointer;
+
+#if DEBUG_OVERLAY
+	MX_DEBUG(-2,("%s: array_of_level_pointers[0] = %p, num_elements = %lu",
+			fname, array_of_level_pointers[0],
+			num_elements * dimension_array[0]));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,33 @@ MX_API mx_status_type mx_get_array_size( long num_dimensions,
 
 MX_API size_t mx_get_scalar_element_size( long mx_datatype,
 					mx_bool_type truncate_64bit_longs );
+
+/*---*/
+
+MX_API mx_status_type mx_array_add_overlay( void *vector_pointer,
+					long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array,
+					void **overlay_array_pointer );
+
+MX_API mx_status_type mx_array_free_overlay( void *array_pointer,
+					long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array );
+
+MX_API void *mx_array_get_vector( void *array_pointer,
+					long num_dimensions );
+
+MX_API void *mx_allocate_array_new( long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array );
+
+MX_API mx_status_type mx_free_array_new( void *array_pointer,
+					long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array );
+
+/*---*/
 
 MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,

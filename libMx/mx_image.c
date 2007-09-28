@@ -29,6 +29,7 @@
 #include "mx_hrt.h"
 #include "mx_stdint.h"
 #include "mx_bit.h"
+#include "mx_array.h"
 #include "mx_image.h"
 
 typedef struct {
@@ -1006,6 +1007,25 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 	memset( (*rebinned_frame)->image_data, 0,
 			(*rebinned_frame)->allocated_image_length );
+
+#if 1
+	{
+		void *array_pointer;
+		long dimension_array[2];
+		size_t element_size_array[2];
+
+		dimension_array[0] = rebinned_width;
+		dimension_array[1] = rebinned_height;
+
+		element_size_array[0] = sizeof(uint16_t);
+		element_size_array[1] = sizeof(uint16_t *);
+
+		mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data,
+						2, dimension_array,
+						element_size_array,
+						&array_pointer );
+	}
+#endif
 
 	/* Fill in the contents of the rebinned frame. */
 
