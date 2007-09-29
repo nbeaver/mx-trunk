@@ -19,6 +19,8 @@
 
 #define MX_IMAGE_TEST_DEZINGER	FALSE
 
+#define MX_IMAGE_DEBUG_OVERLAY	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -966,7 +968,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	rebinned_height = original_height / column_rebinning_factor;
 
 	rebinned_size = rebinned_width * rebinned_height
-				* MXIF_BYTES_PER_PIXEL(original_frame);
+			* mx_round( MXIF_BYTES_PER_PIXEL(original_frame) );
 
 	mx_status = mx_image_alloc( rebinned_frame,
 					rebinned_width,
@@ -1008,14 +1010,22 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	memset( (*rebinned_frame)->image_data, 0,
 			(*rebinned_frame)->allocated_image_length );
 
-#if 1
+#if MX_IMAGE_DEBUG_OVERLAY
 	{
-		void *array_pointer;
+		uint16_t **array_pointer;
+		uint16_t *rebinned_frame_ptr;
 		long dimension_array[2];
 		size_t element_size_array[2];
+		int i, j;
+		unsigned long value;
 
-		dimension_array[0] = rebinned_width;
-		dimension_array[1] = rebinned_height;
+		MX_DEBUG(-2,("%s: rebinned_width = %lu, rebinned_height = %lu",
+			fname, rebinned_width, rebinned_height));
+		MX_DEBUG(-2,("%s: rebinned_size = %lu",
+			fname, rebinned_size));
+
+		dimension_array[0] = rebinned_height;
+		dimension_array[1] = rebinned_width;
 
 		element_size_array[0] = sizeof(uint16_t);
 		element_size_array[1] = sizeof(uint16_t *);
@@ -1023,7 +1033,31 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 		mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data,
 						2, dimension_array,
 						element_size_array,
-						&array_pointer );
+						(void **) &array_pointer );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			for ( i = 0; i < rebinned_height; i++ ) {
+				for ( j = 0; j < rebinned_width; j++ ) {
+					value = 1000 * i + j;
+					value %= 10000;
+
+					array_pointer[i][j] = value;
+
+					MX_DEBUG(-2,
+					("%s: array_pointer[%d][%d] = %d",
+						fname, i, j,
+						array_pointer[i][j]));
+				}
+			}
+
+			rebinned_frame_ptr = (*rebinned_frame)->image_data;
+
+			for ( i = 0; i < (rebinned_size/2); i++ ) {
+				MX_DEBUG(-2,("%s: rebinned_frame_ptr[%d] = %lu",
+					fname, i,
+					(unsigned long) rebinned_frame_ptr[i]));
+			}
+		}
 	}
 #endif
 

@@ -43,7 +43,7 @@ MX_API mx_status_type mx_array_add_overlay( void *vector_pointer,
 					long num_dimensions,
 					long *dimension_array,
 					size_t *data_element_size_array,
-					void **overlay_array_pointer );
+					void **array_pointer );
 
 MX_API mx_status_type mx_array_free_overlay( void *array_pointer,
 					long num_dimensions,

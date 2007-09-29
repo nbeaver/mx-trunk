@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_OVERLAY	TRUE
+#define MX_ARRAY_DEBUG_OVERLAY	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -452,13 +452,16 @@ MX_EXPORT mx_status_type
 mx_array_add_overlay( void *vector_pointer,
 			long num_dimensions,
 			long *dimension_array,
-			size_t *data_element_size_array,
-			void **overlay_pointer )
+			size_t *element_size_array,
+			void **array_pointer )
 {
 	static const char fname[] = "mx_array_add_overlay()";
 
 	void **array_of_level_pointers;
-	unsigned long dim, dimx, num_elements, element_size;
+	unsigned long i, dim, dimx, num_elements, element_size;
+	unsigned long upper_element_size, lower_element_size;
+	unsigned long upper_step_size, lower_step_size;
+	char *upper_pointer, *lower_pointer;
 
 	if ( vector_pointer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -468,11 +471,11 @@ mx_array_add_overlay( void *vector_pointer,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The dimension_array pointer passed was NULL." );
 	}
-	if ( data_element_size_array == (size_t *) NULL ) {
+	if ( element_size_array == (size_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The data_element_size_array pointer passed was NULL." );
+		"The element_size_array pointer passed was NULL." );
 	}
-	if ( overlay_pointer == (void **) NULL ) {
+	if ( array_pointer == (void **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The overlay_pointer passed was NULL." );
 	}
@@ -483,9 +486,16 @@ mx_array_add_overlay( void *vector_pointer,
 			num_dimensions );
 	}
 
-#if DEBUG_OVERLAY
+#if MX_ARRAY_DEBUG_OVERLAY
 	MX_DEBUG(-2,("%s: vector_pointer = %p, num_dimensions = %ld",
 		fname, vector_pointer, num_dimensions));
+
+	for ( dim = 0; dim < num_dimensions; dim++ ) {
+		MX_DEBUG(-2,(
+		"%s: dimension_array[%lu] = %lu, element_size_array[%lu] = %lu",
+			fname, dim, dimension_array[dim],
+			dim, (unsigned long) element_size_array[dim]));
+	}
 #endif
 
 	/* For each dimension above dimension 1, we allocate a single array
@@ -500,7 +510,7 @@ mx_array_add_overlay( void *vector_pointer,
 		"of level pointers.", num_dimensions - 1 );
 	}
 
-#if DEBUG_OVERLAY
+#if MX_ARRAY_DEBUG_OVERLAY
 	MX_DEBUG(-2,("%s: array_of_level_pointers = %p",
 		fname, array_of_level_pointers));
 #endif
@@ -508,9 +518,9 @@ mx_array_add_overlay( void *vector_pointer,
 	num_elements = 1;
 
 	for ( dim = num_dimensions; dim >= 2; dim-- ) {
-		num_elements *= dimension_array[dim-1];
+		num_elements *= dimension_array[num_dimensions - dim];
 
-		element_size = data_element_size_array[num_dimensions - dim];
+		element_size = element_size_array[num_dimensions - dim];
 
 		array_of_level_pointers[dim-1] =
 				calloc( num_elements, element_size );
@@ -527,7 +537,7 @@ mx_array_add_overlay( void *vector_pointer,
 			"array of dimension %lu pointers.",
 				num_elements, dim );
 		}
-#if DEBUG_OVERLAY
+#if MX_ARRAY_DEBUG_OVERLAY
 		MX_DEBUG(-2,
 		("%s: array_of_level_pointers[%lu] = %p, num_elements = %lu",
 			fname, dim-1, array_of_level_pointers[dim-1],
@@ -537,11 +547,65 @@ mx_array_add_overlay( void *vector_pointer,
 
 	array_of_level_pointers[0] = vector_pointer;
 
-#if DEBUG_OVERLAY
+#if MX_ARRAY_DEBUG_OVERLAY
 	MX_DEBUG(-2,("%s: array_of_level_pointers[0] = %p, num_elements = %lu",
 			fname, array_of_level_pointers[0],
-			num_elements * dimension_array[0]));
+			num_elements * dimension_array[num_dimensions - 1]));
 #endif
+
+	/* Now fill in the pointers from the upper layer to the lower layer. */
+
+	num_elements = 1;
+
+	for ( dim = num_dimensions; dim >= 2; dim-- ) {
+		upper_pointer = array_of_level_pointers[dim-1];
+		lower_pointer = array_of_level_pointers[dim-2];
+
+		upper_element_size = element_size_array[dim-1];
+
+		lower_element_size = element_size_array[dim-2];
+
+		upper_step_size = num_elements * upper_element_size;
+
+		num_elements *= dimension_array[dim-1];
+
+		lower_step_size = num_elements * lower_element_size;
+
+#if MX_ARRAY_DEBUG_OVERLAY
+		MX_DEBUG(-2,("%s: upper_pointer = %p, lower_pointer = %p",
+			fname, upper_pointer, lower_pointer));
+
+		MX_DEBUG(-2,("%s: dimension_array[%lu] = %lu",
+			fname, dim-1, dimension_array[dim-1]));
+
+		MX_DEBUG(-2,("%s: upper_element_size = %lu",
+			fname, upper_element_size));
+
+		MX_DEBUG(-2,("%s: lower_element_size = %lu",
+			fname, lower_element_size));
+
+		MX_DEBUG(-2,("%s: num_elements = %lu", fname, num_elements));
+
+		MX_DEBUG(-2,("%s: upper_step_size = %lu, lower_step_size = %lu",
+			fname, upper_step_size, lower_step_size));
+#endif
+
+		for ( i = 0; i < num_elements; i++ ) {
+#if MX_ARRAY_DEBUG_OVERLAY
+			MX_DEBUG(-2,("%s: dim = %lu, i = %lu, up = %p, lp = %p",
+				fname, dim, i, upper_pointer, lower_pointer));
+#endif
+			mx_write_void_pointer_to_memory_location( upper_pointer,
+				lower_pointer );
+
+			upper_pointer += upper_step_size;
+			lower_pointer += lower_step_size;
+		}
+	}
+
+	*array_pointer = array_of_level_pointers[num_dimensions - 1];
+
+	free( array_of_level_pointers );
 
 	return MX_SUCCESSFUL_RESULT;
 }
