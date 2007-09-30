@@ -458,8 +458,10 @@ mx_array_add_overlay( void *vector_pointer,
 	static const char fname[] = "mx_array_add_overlay()";
 
 	void **array_of_level_pointers;
-	unsigned long i, dim, dimx, num_elements, element_size;
-	unsigned long upper_element_size, lower_element_size;
+	unsigned long i, dim, dimx, pointer_size;
+	unsigned long num_pointers_in_this_level;
+	unsigned long num_pointers_in_previous_level;
+	unsigned long upper_pointer_size, lower_data_size;
 	unsigned long upper_step_size, lower_step_size;
 	char *upper_pointer, *lower_pointer;
 
@@ -515,15 +517,20 @@ mx_array_add_overlay( void *vector_pointer,
 		fname, array_of_level_pointers));
 #endif
 
-	num_elements = 1;
+	num_pointers_in_this_level = 1;
 
 	for ( dim = num_dimensions; dim >= 2; dim-- ) {
-		num_elements *= dimension_array[num_dimensions - dim];
+		num_pointers_in_this_level
+			*= dimension_array[num_dimensions - dim];
 
-		element_size = element_size_array[num_dimensions - dim];
+		pointer_size = element_size_array[dim-1];
 
+#if MX_ARRAY_DEBUG_OVERLAY
+		MX_DEBUG(-2,("%s: allocating %lu pointers of size %lu",
+			fname, num_pointers_in_this_level, pointer_size ));
+#endif
 		array_of_level_pointers[dim-1] =
-				calloc( num_elements, element_size );
+			calloc( num_pointers_in_this_level, pointer_size );
 
 		if ( array_of_level_pointers[dim-1] == NULL ) {
 
@@ -535,41 +542,45 @@ mx_array_add_overlay( void *vector_pointer,
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a %lu element "
 			"array of dimension %lu pointers.",
-				num_elements, dim );
+				num_pointers_in_this_level, dim );
 		}
 #if MX_ARRAY_DEBUG_OVERLAY
 		MX_DEBUG(-2,
-		("%s: array_of_level_pointers[%lu] = %p, num_elements = %lu",
+    ("%s: array_of_level_pointers[%lu] = %p, num_pointers_in_this_level = %lu",
 			fname, dim-1, array_of_level_pointers[dim-1],
-			num_elements));
+			num_pointers_in_this_level));
 #endif
 	}
 
 	array_of_level_pointers[0] = vector_pointer;
 
 #if MX_ARRAY_DEBUG_OVERLAY
-	MX_DEBUG(-2,("%s: array_of_level_pointers[0] = %p, num_elements = %lu",
-			fname, array_of_level_pointers[0],
-			num_elements * dimension_array[num_dimensions - 1]));
+	MX_DEBUG(-2,("%s: array_of_level_pointers[0] = %p",
+			fname, array_of_level_pointers[0]));
+
+	MX_DEBUG(-2,("%s: Now fill in the dimension pointers.", fname));
 #endif
 
-	/* Now fill in the pointers from the upper layer to the lower layer. */
+	/* Now fill in the pointers from the upper layer to the lower layer
+	 * at each dimension level.
+	 */
 
-	num_elements = 1;
+	num_pointers_in_previous_level = 1;
 
 	for ( dim = num_dimensions; dim >= 2; dim-- ) {
 		upper_pointer = array_of_level_pointers[dim-1];
 		lower_pointer = array_of_level_pointers[dim-2];
 
-		upper_element_size = element_size_array[dim-1];
+		upper_pointer_size = element_size_array[dim-1];
+		lower_data_size    = element_size_array[dim-2];
 
-		lower_element_size = element_size_array[dim-2];
+		upper_step_size = upper_pointer_size;
 
-		upper_step_size = num_elements * upper_element_size;
+		lower_step_size = lower_data_size
+				* dimension_array[num_dimensions - dim + 1];
 
-		num_elements *= dimension_array[dim-1];
-
-		lower_step_size = num_elements * lower_element_size;
+		num_pointers_in_this_level = num_pointers_in_previous_level
+					* dimension_array[num_dimensions - dim];
 
 #if MX_ARRAY_DEBUG_OVERLAY
 		MX_DEBUG(-2,("%s: upper_pointer = %p, lower_pointer = %p",
@@ -578,19 +589,20 @@ mx_array_add_overlay( void *vector_pointer,
 		MX_DEBUG(-2,("%s: dimension_array[%lu] = %lu",
 			fname, dim-1, dimension_array[dim-1]));
 
-		MX_DEBUG(-2,("%s: upper_element_size = %lu",
-			fname, upper_element_size));
+		MX_DEBUG(-2,("%s: upper_pointer_size = %lu",
+			fname, upper_pointer_size));
 
-		MX_DEBUG(-2,("%s: lower_element_size = %lu",
-			fname, lower_element_size));
-
-		MX_DEBUG(-2,("%s: num_elements = %lu", fname, num_elements));
+		MX_DEBUG(-2,("%s: lower_data_size = %lu",
+			fname, lower_data_size));
 
 		MX_DEBUG(-2,("%s: upper_step_size = %lu, lower_step_size = %lu",
 			fname, upper_step_size, lower_step_size));
+
+		MX_DEBUG(-2,("%s: num_pointers_in_this_level = %lu",
+			fname, num_pointers_in_this_level));
 #endif
 
-		for ( i = 0; i < num_elements; i++ ) {
+		for ( i = 0; i < num_pointers_in_this_level; i++ ) {
 #if MX_ARRAY_DEBUG_OVERLAY
 			MX_DEBUG(-2,("%s: dim = %lu, i = %lu, up = %p, lp = %p",
 				fname, dim, i, upper_pointer, lower_pointer));
@@ -601,6 +613,8 @@ mx_array_add_overlay( void *vector_pointer,
 			upper_pointer += upper_step_size;
 			lower_pointer += lower_step_size;
 		}
+
+		num_pointers_in_previous_level = num_pointers_in_this_level;
 	}
 
 	*array_pointer = array_of_level_pointers[num_dimensions - 1];

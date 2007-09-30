@@ -1016,7 +1016,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 		uint16_t *rebinned_frame_ptr;
 		long dimension_array[2];
 		size_t element_size_array[2];
-		int i, j;
+		int i, j, n;
 		unsigned long value;
 
 		MX_DEBUG(-2,("%s: rebinned_width = %lu, rebinned_height = %lu",
@@ -1053,10 +1053,25 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			rebinned_frame_ptr = (*rebinned_frame)->image_data;
 
 			for ( i = 0; i < (rebinned_size/2); i++ ) {
-				MX_DEBUG(-2,("%s: rebinned_frame_ptr[%d] = %lu",
-					fname, i,
-					(unsigned long) rebinned_frame_ptr[i]));
 			}
+
+			for ( i = 0; i < rebinned_height; i++ ) {
+			    for ( j = 0; j < rebinned_width; j++ ) {
+				n = i * rebinned_width + j;
+
+				value = rebinned_frame_ptr[n];
+
+				MX_DEBUG(-2,("%s: rebinned_frame_ptr[%d] = %ld",
+					fname, n, value ));
+
+				if ( value != array_pointer[i][j] ) {
+				    MX_DEBUG(-2,
+			("%s: value = %lu does not match array[%d][%d] = %d",
+				    fname, value, i, j, array_pointer[i][j]));
+				}
+			    }
+			}
+
 		}
 	}
 #endif
