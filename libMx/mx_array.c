@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_ARRAY_DEBUG_OVERLAY	TRUE
+#define MX_ARRAY_DEBUG_OVERLAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,11 +42,11 @@
 #define ADD_STRING_BYTE    FALSE
 
 MX_EXPORT void *
-mx_allocate_array( long num_dimensions,
+mx_allocate_array_old( long num_dimensions,
 		long *dimension_array,
 		size_t *data_element_size_array )
 {
-	static const char fname[] = "mx_allocate_array()";
+	static const char fname[] = "mx_allocate_array_old()";
 
 	void *array_pointer;
 	char *array_element_pointer;
@@ -118,7 +118,7 @@ mx_allocate_array( long num_dimensions,
 			array_element_pointer = (char *)array_pointer
 					+ i * current_dimension_element_size;
 
-			subarray_pointer = mx_allocate_array(
+			subarray_pointer = mx_allocate_array_old(
 				num_dimensions - 1,
 				&dimension_array[1],
 				data_element_size_array );
@@ -142,7 +142,7 @@ mx_allocate_array( long num_dimensions,
 				mx_read_void_pointer_from_memory_location(
 						array_element_pointer );
 
-					mx_status = mx_free_array(
+					mx_status = mx_free_array_old(
 						subarray_pointer,
 						num_dimensions - 1,
 						&dimension_array[1],
@@ -168,12 +168,12 @@ mx_allocate_array( long num_dimensions,
 }
 
 MX_EXPORT mx_status_type
-mx_free_array( void *array_pointer,
+mx_free_array_old( void *array_pointer,
 		long num_dimensions,
 		long *dimension_array,
 		size_t *data_element_size_array )
 {
-	static const char fname[] = "mx_free_array()";
+	static const char fname[] = "mx_free_array_old()";
 
 	char *array_element_pointer;
 	void *subarray_pointer;
@@ -266,7 +266,7 @@ mx_free_array( void *array_pointer,
 		("%s: array_element_pointer = %p, subarray_pointer = %p",
 			fname, array_element_pointer, subarray_pointer ));
 
-			mx_status = mx_free_array( subarray_pointer,
+			mx_status = mx_free_array_old( subarray_pointer,
 				num_dimensions - 1, &dimension_array[1],
 				data_element_size_array );
 
@@ -620,6 +620,174 @@ mx_array_add_overlay( void *vector_pointer,
 	*array_pointer = array_of_level_pointers[num_dimensions - 1];
 
 	free( array_of_level_pointers );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_array_free_overlay( void *array_pointer,
+			long num_dimensions )
+{
+	static const char fname[] = "mx_array_free_overlay()";
+
+	void *level_pointer, *next_level_pointer;
+	long dim;
+
+	if ( array_pointer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer argument passed was NULL." );
+	}
+
+	/* Do _not_ free the 1-D vector at the bottom of the array!
+	 * It may be in use by other code such as an MX_IMAGE_FRAME.
+	 * This means that we must stop at dim == 2.
+	 */
+
+	level_pointer = array_pointer;
+
+	for ( dim = num_dimensions; dim >= 2; dim-- ) {
+		next_level_pointer =
+		    mx_read_void_pointer_from_memory_location( level_pointer );
+
+		free(level_pointer);
+
+		level_pointer = next_level_pointer;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT void *
+mx_array_get_vector( void *array_pointer,
+			long num_dimensions )
+{
+	static const char fname[] = "mx_array_get_vector()";
+
+	void *level_pointer;
+	long dim;
+
+	if ( array_pointer == NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer argument passed was NULL." );
+
+		return NULL;
+	}
+
+	level_pointer = array_pointer;
+
+	for ( dim = num_dimensions; dim >= 2; dim-- ) {
+		level_pointer =
+		    mx_read_void_pointer_from_memory_location( level_pointer );
+	}
+
+	return level_pointer;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT void *
+mx_allocate_array_new( long num_dimensions,
+			long *dimension_array,
+			size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_allocate_array_new()";
+
+	void *vector, *array;
+	unsigned long dim, num_elements, vector_size;
+	mx_status_type mx_status;
+
+	if ( dimension_array == (long *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension_array pointer passed was NULL." );
+	}
+	if ( data_element_size_array == (size_t *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer passed was NULL." );
+	}
+	if ( num_dimensions < 1 ) {
+		mx_error(MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of dimensions (%ld) requested was less "
+			"than the minimum allowed value of 1.", num_dimensions);
+
+		return NULL;
+	}
+
+	/* Allocate the 1-dimensional vector that goes at the bottom
+	 * of the array.
+	 */
+
+	num_elements = 1;
+
+	for ( dim = 0; dim < num_dimensions; dim++ ) {
+		num_elements *= dimension_array[dim];
+	}
+
+	vector_size = num_elements * data_element_size_array[0];
+
+	vector = malloc( vector_size );
+
+	if ( vector == NULL ) {
+		return NULL;
+	}
+
+	mx_status = mx_array_add_overlay( vector,
+					num_dimensions,
+					dimension_array,
+					data_element_size_array,
+					&array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return NULL;
+
+	return array;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_free_array_new( void *array_pointer,
+		long num_dimensions,
+		long *dimension_array,
+		size_t *data_element_size_array )
+{
+	static const char fname[] = "mx_free_array_new()";
+
+	void *vector;
+	mx_status_type mx_status;
+
+	if ( array_pointer == NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_pointer value passed was NULL." );
+	}
+	if ( num_dimensions < 1 ) {
+		return mx_error(MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of dimensions (%ld) requested was less "
+			"than the minimum allowed value of 1.", num_dimensions);
+	}
+
+	/* We do not actually use the dimension_array or the
+	 * data_element_size_array arguments which are present
+	 * only for compatibility with mx_free_array_old().
+	 */
+
+	vector = mx_array_get_vector( array_pointer, num_dimensions );
+
+	if ( vector == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The vector pointer for array pointer %p is NULL.",
+			array_pointer );
+	}
+
+	mx_status = mx_array_free_overlay( array_pointer, num_dimensions );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	free( vector );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2554,4 +2722,90 @@ mx_convert_and_copy_array(
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*---------------------------------------------------------------------------*/
+
+#if MX_ARRAY_DEBUG_OVERLAY
+
+/* TEST CODE - TEST CODE - TEST CODE - TEST CODE - TEST CODE */
+
+/* The following function is used for testing array overlays
+ * and should not be used in normal code.
+ */
+
+#include "mx_image.h"
+
+MX_API mx_status_type mx_array_debug_overlay( MX_IMAGE_FRAME * );
+
+MX_EXPORT mx_status_type
+mx_array_debug_overlay( MX_IMAGE_FRAME *frame )
+{
+	static const char fname[] = "mx_array_debug_overlay()";
+
+	uint16_t **array_pointer;
+	uint16_t *image_data;
+	long dimension_array[2];
+	size_t element_size_array[2];
+	unsigned long frame_height, frame_width;
+	int i, j, n;
+	unsigned long value;
+	mx_status_type mx_status;
+
+	frame_height = MXIF_COLUMN_FRAMESIZE(frame);
+	frame_width  = MXIF_ROW_FRAMESIZE(frame);
+
+	MX_DEBUG(-2,("%s: frame_width = %lu, frame_height = %lu",
+		fname, frame_width, frame_height));
+
+	dimension_array[0] = frame_height;
+	dimension_array[1] = frame_width;
+
+	element_size_array[0] = sizeof(uint16_t);
+	element_size_array[1] = sizeof(uint16_t *);
+
+	mx_status = mx_array_add_overlay( frame->image_data,
+					2, dimension_array,
+					element_size_array,
+					(void **) &array_pointer );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		for ( i = 0; i < frame_height; i++ ) {
+			for ( j = 0; j < frame_width; j++ ) {
+				value = 1000 * i + j;
+				value %= 10000;
+
+				array_pointer[i][j] = value;
+
+				MX_DEBUG(-2,
+				("%s: array_pointer[%d][%d] = %d",
+					fname, i, j,
+					array_pointer[i][j]));
+			}
+		}
+
+		image_data = frame->image_data;
+
+		for ( i = 0; i < frame_height; i++ ) {
+		    for ( j = 0; j < frame_width; j++ ) {
+			n = i * frame_width + j;
+
+			value = image_data[n];
+
+			MX_DEBUG(-2,("%s: image_data[%d] = %ld",
+				fname, n, value ));
+
+			if ( value != array_pointer[i][j] ) {
+			    MX_DEBUG(-2,
+		("%s: value = %lu does not match array[%d][%d] = %d",
+			    fname, value, i, j, array_pointer[i][j]));
+			}
+		    }
+		}
+
+	}
+
+	return mx_status;
+}
+
+#endif /* MX_ARRAY_DEBUG_OVERLAY */
 

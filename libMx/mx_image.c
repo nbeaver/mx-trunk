@@ -19,8 +19,6 @@
 
 #define MX_IMAGE_TEST_DEZINGER	FALSE
 
-#define MX_IMAGE_DEBUG_OVERLAY	TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -926,14 +924,18 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 {
 	static const char fname[] = "mx_image_rebin()";
 
-	uint16_t *rebinned_data, *original_data;
-	uint16_t *rebinned_pixel_ptr;
-	uint16_t *original_pixel_base, *original_pixel_ptr;
 	unsigned long original_width, original_height;
 	unsigned long rebinned_width, rebinned_height, rebinned_size;
-	unsigned long x, y, xbin, ybin;
-	double original_pixel_sum, rebinned_pixel_value, num_pixels_per_bin;
-	mx_status_type mx_status;
+	unsigned long bytes_per_pixel;
+	double diff;
+	long original_dimensions[2], rebinned_dimensions[2];
+	size_t element_size[2];
+	void *original_array, *rebinned_array;
+	uint16_t **original_array_16, **rebinned_array_16;
+	double sum, pixels_per_bin, pixel_average;
+	unsigned long row, col, orow, ocol;
+	unsigned long orow_start, orow_end, ocol_start, ocol_end;
+	mx_status_type mx_status, mx_status2;
 
 	if ( original_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -953,6 +955,40 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	if ( column_rebinning_factor == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The value of column_rebinning_factor cannot be 0." );
+	}
+
+	/* How many bytes are there in a pixel of the original image? */
+
+	bytes_per_pixel = mx_round( MXIF_BYTES_PER_PIXEL(original_frame) );
+
+	/* Rebinning is only supported for images with an integer number
+	 * of bytes per pixel.
+	 */
+
+	diff = MXIF_BYTES_PER_PIXEL(original_frame) - (double) bytes_per_pixel;
+
+	if ( fabs(diff) > 0.01 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image rebinning is only supported for images that have "
+		"an integer number of bytes per pixel.  The MX_IMAGE_FRAME "
+		"passed to us has %f bytes per pixel.",
+			MXIF_BYTES_PER_PIXEL(original_frame) );
+	}
+
+	/* Actually, we currently only support 8, 16, or 32 bit pixels. */
+
+	switch( bytes_per_pixel ) {
+	case 1:
+	case 2:
+	case 4:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"The original image frame contains an unsupported "
+			"number of bytes per pixel (%ld).  Currently, we only "
+			"support 1, 2 or 4 bytes per pixel.",
+				bytes_per_pixel );
+		break;
 	}
 
 	/* Create or resize the rebinned correction frame structure.  If
@@ -975,7 +1011,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 					rebinned_height,
 					MXIF_IMAGE_FORMAT(original_frame),
 					MXIF_BYTE_ORDER(original_frame),
-					MXIF_BYTES_PER_PIXEL(original_frame),
+					bytes_per_pixel,
 					original_frame->header_length,
 					rebinned_size );
 
@@ -1010,118 +1046,86 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	memset( (*rebinned_frame)->image_data, 0,
 			(*rebinned_frame)->allocated_image_length );
 
-#if MX_IMAGE_DEBUG_OVERLAY
-	{
-		uint16_t **array_pointer;
-		uint16_t *rebinned_frame_ptr;
-		long dimension_array[2];
-		size_t element_size_array[2];
-		int i, j, n;
-		unsigned long value;
+	/* Construct 2-dimensional arrays on top of the 1-dimensional
+	 * image frame buffers to make the math simpler.
+	 */
 
-		MX_DEBUG(-2,("%s: rebinned_width = %lu, rebinned_height = %lu",
-			fname, rebinned_width, rebinned_height));
-		MX_DEBUG(-2,("%s: rebinned_size = %lu",
-			fname, rebinned_size));
+	element_size[0] = bytes_per_pixel;
+	element_size[1] = sizeof(void *);
 
-		dimension_array[0] = rebinned_height;
-		dimension_array[1] = rebinned_width;
+	original_dimensions[0] = original_height;
+	original_dimensions[1] = original_width;
 
-		element_size_array[0] = sizeof(uint16_t);
-		element_size_array[1] = sizeof(uint16_t *);
+	rebinned_dimensions[0] = rebinned_height;
+	rebinned_dimensions[1] = rebinned_width;
 
-		mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data,
-						2, dimension_array,
-						element_size_array,
-						(void **) &array_pointer );
+	mx_status = mx_array_add_overlay( original_frame->image_data, 2,
+					original_dimensions, element_size,
+					&original_array );
 
-		if ( mx_status.code == MXE_SUCCESS ) {
-			for ( i = 0; i < rebinned_height; i++ ) {
-				for ( j = 0; j < rebinned_width; j++ ) {
-					value = 1000 * i + j;
-					value %= 10000;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-					array_pointer[i][j] = value;
+	mx_status = mx_array_add_overlay( (*rebinned_frame)->image_data, 2,
+					rebinned_dimensions, element_size,
+					&rebinned_array );
 
-					MX_DEBUG(-2,
-					("%s: array_pointer[%d][%d] = %d",
-						fname, i, j,
-						array_pointer[i][j]));
-				}
-			}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-			rebinned_frame_ptr = (*rebinned_frame)->image_data;
+	/* Now construct the rebinned pixel values from the original
+	 * pixel values.  Regrettably, the code has to be duplicated for
+	 * each bytes per pixel size since C is not polymorphic.
+	 */
 
-			for ( i = 0; i < (rebinned_size/2); i++ ) {
-			}
+	pixels_per_bin = row_rebinning_factor * column_rebinning_factor;
 
-			for ( i = 0; i < rebinned_height; i++ ) {
-			    for ( j = 0; j < rebinned_width; j++ ) {
-				n = i * rebinned_width + j;
+	switch( bytes_per_pixel ) {
+	case 1:
+	case 4:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Support for 8-bit and 32-bit arrays has not yet "
+			"been implemented." );
+		break;
 
-				value = rebinned_frame_ptr[n];
+	case 2:
+		original_array_16 = original_array;
+		rebinned_array_16 = rebinned_array;
 
-				MX_DEBUG(-2,("%s: rebinned_frame_ptr[%d] = %ld",
-					fname, n, value ));
+		for ( row = 0; row < rebinned_height; row++ ) {
+		    for ( col = 0; col < rebinned_width; col++ ) {
+			sum = 0.0;
 
-				if ( value != array_pointer[i][j] ) {
-				    MX_DEBUG(-2,
-			("%s: value = %lu does not match array[%d][%d] = %d",
-				    fname, value, i, j, array_pointer[i][j]));
-				}
+			orow_start = row * row_rebinning_factor;
+			orow_end = orow_start + row_rebinning_factor;
+
+			ocol_start = col * column_rebinning_factor;
+			ocol_end = ocol_start + column_rebinning_factor;
+
+			for ( orow = orow_start; orow < orow_end; orow++ ) {
+			    for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
+			    	sum += (double) original_array_16[orow][ocol];
 			    }
 			}
 
-		}
-	}
-#endif
+			pixel_average = sum / pixels_per_bin;
 
-	/* Fill in the contents of the rebinned frame. */
-
-	original_data = original_frame->image_data;
-	rebinned_data = (*rebinned_frame)->image_data;
-
-	/* One thing to note about the addressing of the original pixels
-	 * is that we do not need to set 'original_pixel_base' to the start
-	 * of a row.  If 'original_pixel_base' is somewhere in the middle of
-	 * a row, adding 'original_width' to it will cause the pointer to
-	 * wrap around to the appropriate point on the next line.
-	 *
-	 * The logic below assumes that the pixels are all really in a
-	 * 1-dimensional array, which explains the wrapping behavior
-	 * described above.
-	 */
-
-	num_pixels_per_bin = row_rebinning_factor * column_rebinning_factor;
-
-	for ( y = 0; y < rebinned_height; y++ ) {
-	    for ( x = 0; x < rebinned_width; x++ ) {
-		rebinned_pixel_ptr = rebinned_data
-				+ rebinned_width * y + x;
-
-		original_pixel_base = original_data
-				+ original_width * y + x;
-
-		original_pixel_sum = 0.0;
-
-		for ( ybin = 0; ybin < column_rebinning_factor; ybin++ ) {
-		    for ( xbin = 0; xbin < row_rebinning_factor; xbin++ ) {
-		        original_pixel_ptr = original_pixel_base
-				+ original_width * ybin + xbin;
-
-			original_pixel_sum = original_pixel_sum
-						+ (*original_pixel_ptr);
+			rebinned_array_16[row][col] = mx_round( pixel_average );
 		    }
 		}
-		rebinned_pixel_value = original_pixel_sum / num_pixels_per_bin;
-
-		/* Round to the nearest integer. */
-
-		*rebinned_pixel_ptr = 0.5 + rebinned_pixel_value;
-	    }
+		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Finish by freeing the overlay arrays. */
+
+	mx_status = mx_array_free_overlay( original_array, 2 );
+
+	mx_status2 = mx_array_free_overlay( rebinned_array, 2 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return mx_status2;
 }
 
 /*--------------------------------------------------------------------------*/
