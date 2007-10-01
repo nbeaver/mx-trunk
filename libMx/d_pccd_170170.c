@@ -1717,6 +1717,8 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 	ad->record = record;
 	pccd_170170->record = record;
 
+	pccd_170170->first_dh_command = TRUE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1994,23 +1996,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
 				&controller_fpga_version );
 
-	/* The first read after the detector head is powered on may fail.
-	 * If so, we try one more time.
-	 */
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_info( "%s: Retrying read of register %d for detector '%s'.",
-			fname,
-    (MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION - MXLV_PCCD_170170_DH_BASE),
-			record->name );
-
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
-				&controller_fpga_version );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
@@ -4978,10 +4965,27 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 	num_items = sscanf( response, "S%lu", register_value );
 
 	if ( num_items != 1 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Could not find the register value in the response '%s' "
-		"by detector '%s' to the command '%s'.",
-			response, pccd_170170->record->name, command );
+		/* The first read from the detector head may fail if the
+		 * detector head has just been powered on.  If so, then
+		 * we just retry the command without generating an
+		 * error message.
+		 */
+
+		if ( pccd_170170->first_dh_command ) {
+			pccd_170170->first_dh_command = FALSE;
+
+			mx_status = mxd_pccd_170170_read_register(
+						pccd_170170,
+						register_address,
+						register_value );
+
+			return mx_status;
+		} else {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Could not find the register value in the response "
+			"'%s' by detector '%s' to the command '%s'.",
+				response, pccd_170170->record->name, command );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

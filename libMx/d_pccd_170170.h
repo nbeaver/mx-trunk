@@ -106,6 +106,8 @@ typedef struct {
 	mx_bool_type buffer_overrun;
 	mx_bool_type use_top_half_of_detector;
 
+	mx_bool_type first_dh_command;
+
 	long vinput_normal_framesize[2];
 	long normal_binsize[2];
 
