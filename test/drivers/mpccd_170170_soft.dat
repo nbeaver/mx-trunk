@@ -1,28 +1,4 @@
-##
-## LPT records
-##
-####portio    interface generic dl_portio "" ""
-####lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
-####lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
-##
-#lpt1      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
-#lpt1_data device digital_output linux_parport_out "" "" 0 lpt1 data
-##
-#pin2      device digital_output bit_out "" "" 0 0 lpt1_data 0 1 lpt1_data 0 1
-#pin3      device digital_output bit_out "" "" 0 0 lpt1_data 1 1 lpt1_data 1 1
-#pin4      device digital_output bit_out "" "" 0 0 lpt1_data 2 1 lpt1_data 2 1
-#pin5      device digital_output bit_out "" "" 0 0 lpt1_data 3 1 lpt1_data 3 1
-#pin6      device digital_output bit_out "" "" 0 0 lpt1_data 4 1 lpt1_data 4 1
-#pin8      device digital_output bit_out "" "" 0 0 lpt1_data 6 1 lpt1_data 6 1
-#pin9      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
-##
-#exttrigger device digital_output bit_out "" "" 0 0 lpt1_data 3 1 lpt1_data 3 1
-#ready      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
-#
-# EPIX records
-#
 port  interface camera_link soft_camera_link "" "" 9600 0.5 1
-#rs232 interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
 video0 device video_input soft_vinput "" "" 16384 1024 grey16 -1 1
 inttrigger device digital_output soft_doutput "" "" 0
 ad         device area_detector pccd_170170 "" "" 0 "" "" "" "" video0 port inttrigger 0x1 0x1b /home/lavender/epix/soleil_swing.uca

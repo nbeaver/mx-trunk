@@ -4602,6 +4602,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	MX_IMAGE_FRAME *image_frame;
 	MX_PCCD_170170 *pccd_170170;
 	int spatial_status, os_status, saved_errno;
+	int row_framesize, column_framesize;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -4645,11 +4646,16 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 			saved_errno, strerror(saved_errno) );
 	}
 
+	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
+	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
+
 #if defined(OS_LINUX) || defined(OS_WIN32)
 
+	MX_DEBUG(-2,("%s: row_framesize = %d, column_framesize = %d",
+		fname, row_framesize, column_framesize));
+
 	spatial_status = smvspatial( image_frame->image_data, 
-				MXIF_ROW_FRAMESIZE(image_frame),
-				MXIF_COLUMN_FRAMESIZE(image_frame),
+				row_framesize, column_framesize,
 				0, pccd_170170->spatial_correction_filename );
 #else
 	mx_warning(
