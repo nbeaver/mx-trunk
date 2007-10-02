@@ -121,6 +121,8 @@ motor_show_fn( int argc, char *argv[] )
 	int status;
 
 	multiple_records = FALSE;
+	record_superclass = 0;
+	record_class = 0;
 	record_type = 0;
 	strlcpy( record_type_phrase, "", sizeof(record_type_phrase) );
 	match_string = NULL;

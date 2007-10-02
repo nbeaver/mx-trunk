@@ -3165,6 +3165,10 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 	MX_HRT_TIMING rebin_timing;
 #endif
 
+	/* Suppress stupid GCC uninitialized variable warning. */
+
+	rebinned_frame = NULL;
+
 #if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
 	MX_DEBUG(-2,("\n----------------------------------------------------"));
 	MX_DEBUG(-2,

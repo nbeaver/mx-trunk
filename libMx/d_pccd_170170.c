@@ -1052,6 +1052,10 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	double t, tbe_sum, tbe_product, tshut_sum, tshut_product;
 	mx_status_type mx_status;
 
+	/* Suppress GCC uninitialized variable warning. */
+
+	tbe = tpre = tshut = tpost = 0.0;
+
 	/* If we are using a detector head simulator,
 	 * return a small fake value.
 	 */
@@ -4681,17 +4685,14 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
-#if defined(OS_LINUX) || defined(OS_WIN32)
-
-	MX_DEBUG(-2,("%s: row_framesize = %d, column_framesize = %d",
-		fname, row_framesize, column_framesize));
+#if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_MACOSX)
 
 	spatial_status = smvspatial( image_frame->image_data, 
 				row_framesize, column_framesize,
 				0, pccd_170170->spatial_correction_filename );
 #else
-	mx_warning(
-"XGEN spatial correction is currently only available on Linux and Windows.");
+	mx_warning("XGEN spatial correction is currently only available "
+		"on Linux, Windows, and MacOS X.");
 
 	spatial_status = 0;
 #endif
