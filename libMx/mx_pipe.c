@@ -242,7 +242,7 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 			return mx_error( MXE_IPC_IO_ERROR, fname,
 			"The attempt to read %ld bytes from MX pipe %p failed."
 			"  Win32 error code = %ld, error message = '%s'.",
-				max_bytes_to_read, mx_pipe,
+				(long) max_bytes_to_read, mx_pipe,
 				last_error_code, message_buffer );
 		}
 	}
@@ -289,7 +289,7 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The attempt to write %ld bytes to MX pipe %p failed.  "
 		"Win32 error code = %ld, error message = '%s'.",
-			bytes_to_write, mx_pipe,
+			(long) bytes_to_write, mx_pipe,
 			last_error_code, message_buffer );
 	}
 

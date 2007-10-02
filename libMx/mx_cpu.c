@@ -41,7 +41,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_get_process_affinity_mask()";
 
-	HANDLE process_handle, process_pseudo_handle;
+	HANDLE process_handle;
 	DWORD process_affinity_mask, system_affinity_mask;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -112,8 +112,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_set_process_affinity_mask()";
 
-	HANDLE process_handle, process_pseudo_handle;
-	DWORD process_affinity_mask, system_affinity_mask;
+	HANDLE process_handle;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 	BOOL os_status;

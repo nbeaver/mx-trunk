@@ -10,8 +10,6 @@
  *          functions that use HeapAlloc(), etc. on the heap returned by
  *          GetProcessHeap().
  *
- *          The default versions of malloc()
- *
  * Author:  William Lavender
  *
  *------------------------------------------------------------------------
@@ -25,7 +23,7 @@
 
 #include <stdio.h>
 
-#if defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
+#if defined(OS_WIN32)
 
 #include <windows.h>
 
@@ -103,5 +101,5 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 	return new_block_ptr;
 }
 
-#endif /* defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__)) */
+#endif /* defined(OS_WIN32) */
 
