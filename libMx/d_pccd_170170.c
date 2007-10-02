@@ -4685,7 +4685,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
-#if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(_MSC_VER)
 
 	spatial_status = smvspatial( image_frame->image_data, 
 				row_framesize, column_framesize,
