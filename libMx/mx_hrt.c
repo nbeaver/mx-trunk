@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,25 @@
  * as a fallback if there is no better method.
  */
 
-#if !defined(OS_SOLARIS) && !defined( OS_IRIX ) && !defined(OS_MACOSX)
+#if defined(OS_SOLARIS)
+#  define MX_NEED_HRT_FALLBACK		FALSE
+
+#elif defined(OS_IRIX)
+#  define MX_NEED_HRT_FALLBACK		FALSE
+
+#elif defined(OS_MACOSX)
+#  if defined(__i386__)
+#    define MX_NEED_HRT_FALLBACK	TRUE
+#  elif defined(__ppc__)
+#    define MX_NEED_HRT_FALLBACK	FALSE
+#  else
+#    error Unrecognized CPU architecture for MacOS X!
+#  endif
+#else
+#  define MX_NEED_HRT_FALLBACK		TRUE
+#endif
+
+#if MX_NEED_HRT_FALLBACK
 
 static struct timespec
 mx_high_resolution_time_using_clock_ticks( void )
@@ -70,7 +88,8 @@ mx_high_resolution_time_using_clock_ticks( void )
 
 	return value;
 }
-#endif
+
+#endif /* MX_NEED_HRT_FALLBACK */
 
 MX_EXPORT struct timespec
 mx_add_high_resolution_times( struct timespec time1,
