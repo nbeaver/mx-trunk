@@ -232,7 +232,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long data_type, message_id, callback_id;
-	int new_handle_needed;
+	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {

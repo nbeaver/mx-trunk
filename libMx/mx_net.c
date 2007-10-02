@@ -1600,7 +1600,7 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 
 MX_EXPORT mx_status_type
 mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
-				int *new_handle_needed )
+				mx_bool_type *new_handle_needed )
 {
 	static const char fname[] = "mx_need_to_get_network_handle()";
 
@@ -1610,7 +1610,7 @@ mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
-	if ( new_handle_needed == (int *) NULL ) {
+	if ( new_handle_needed == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The new_handle_needed pointer passed was NULL." );
 	}
@@ -1780,7 +1780,7 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 {
 	static const char fname[] = "mx_get_array()";
 
-	int new_handle_needed;
+	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -1818,7 +1818,7 @@ mx_put_array( MX_NETWORK_FIELD *nf,
 {
 	static const char fname[] = "mx_put_array()";
 
-	int new_handle_needed;
+	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {

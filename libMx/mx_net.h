@@ -347,7 +347,7 @@ MX_API void mx_network_buffer_show_value( void *value_buffer,
 	} while (0)
 
 MX_API mx_status_type mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
-						int *new_handle_needed );
+					mx_bool_type *new_handle_needed );
 
 MX_API mx_status_type mx_network_field_init( MX_NETWORK_FIELD *nf,
 						MX_RECORD *server_record,
