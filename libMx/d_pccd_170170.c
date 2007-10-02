@@ -3101,6 +3101,9 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_SEQUENCE_PARAMETERS *sp;
+	MX_IMAGE_FRAME *mask_frame;
+	MX_IMAGE_FRAME *bias_frame;
+	MX_IMAGE_FRAME *flood_field_frame;
 	unsigned long flags;
 	uint16_t *mask_data_ptr, *bias_data_ptr, *flood_field_data_ptr;
 	uint16_t *image_data_array;
@@ -3185,14 +3188,15 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	/* We get the dimensions of the correction frames from the bias frame.*/
 
-	if ( ad->bias_frame == NULL ) {
-		return mx_error( MXE_NOT_READY, fname,
-		"No bias frame has been loaded for detector '%s'.",
-			ad->record->name );
-	}
+	mx_status = mx_area_detector_get_correction_frame( ad, ad->image_frame,
+							MXFT_AD_BIAS_FRAME,
+							"bias",
+							&bias_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	corr_row_framesize    = MXIF_ROW_FRAMESIZE(ad->bias_frame);
-	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(ad->bias_frame);
+	corr_row_framesize    = MXIF_ROW_FRAMESIZE(bias_frame);
+	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(bias_frame);
 
 	if ( image_column_framesize != corr_column_framesize ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
@@ -3252,28 +3256,56 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	 * will use for the subimage or streak camera frame.
 	 */
 
-	if ( (flags & MXFT_AD_MASK_FRAME) && (ad->mask_frame != NULL) ) {
-		mask_data_ptr = ad->mask_frame->image_data;
-		mask_data_ptr += corr_start_offset;
-	} else {
+	if ( (flags & MXFT_AD_MASK_FRAME) == 0 ) {
 		mask_data_ptr = NULL;
-	}
-	if ( (flags & MXFT_AD_BIAS_FRAME) && (ad->bias_frame != NULL) ) {
-		bias_data_ptr = ad->bias_frame->image_data;
-		bias_data_ptr += corr_start_offset;
 	} else {
+		mx_status = mx_area_detector_get_correction_frame(
+							ad, ad->image_frame,
+							MXFT_AD_MASK_FRAME,
+							"mask",
+							&mask_frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mask_data_ptr = mask_frame->image_data;
+		mask_data_ptr += corr_start_offset;
+	}
+
+	if ( (flags & MXFT_AD_BIAS_FRAME) == 0 ) {
 		bias_data_ptr = NULL;
+	} else {
+#if 0
+		/* We already found the bias frame earlier in the routine. */
+
+		mx_status = mx_area_detector_get_correction_frame(
+							ad, ad->image_frame,
+							MXFT_AD_BIAS_FRAME,
+							"bias",
+							&bias_frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
+		bias_data_ptr = bias_frame->image_data;
+		bias_data_ptr += corr_start_offset;
 	}
 
 	/* We do not do dark current correction for subimage
 	 * or streak camera frames.
 	 */
 
-	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) && (ad->bias_frame != NULL) ) {
-		flood_field_data_ptr = ad->flood_field_frame->image_data;
-		flood_field_data_ptr += corr_start_offset;
-	} else {
+	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) == 0 ) {
 		flood_field_data_ptr = NULL;
+	} else {
+		mx_status = mx_area_detector_get_correction_frame(
+						ad, ad->image_frame,
+						MXFT_AD_FLOOD_FIELD_FRAME,
+						"flood_field",
+						&flood_field_frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		flood_field_data_ptr = flood_field_frame->image_data;
+		flood_field_data_ptr += corr_start_offset;
 	}
 
 	/* Now walk through the stripes in the image data

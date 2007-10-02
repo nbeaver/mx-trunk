@@ -891,6 +891,15 @@ MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_get_correction_frame(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					unsigned long frame_type,
+					char *frame_name,
+					MX_IMAGE_FRAME **correction_frame );
+
+/*---*/
+
 MX_API mx_status_type mx_area_detector_default_correct_frame(
                                                 MX_AREA_DETECTOR *ad );
 
