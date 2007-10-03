@@ -1216,6 +1216,12 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 
 	uint32_t *header, *uint32_message;
 	char *buffer, *char_message;
+
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
 	uint32_t magic_number, header_length, message_length;
 	uint32_t message_type, status_code, message_id;
 	uint32_t record_handle, field_handle;
@@ -1447,7 +1453,14 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		break;
 
 	case mx_server_response(MX_NETMSG_GET_ATTRIBUTE):
-		attribute_value = *((double *) &(uint32_message[0]) );
+		/* Do _not_ use mx_ntohl() for the attribute value, since
+		 * the raw value is actually an IEEE 754 double.
+		 */
+
+		u.uint32_value[0] = uint32_message[0];
+		u.uint32_value[1] = uint32_message[1];
+
+		attribute_value = u.double_value;
 
 		fprintf( stderr,
 		"  GET_ATTRIBUTE: returned attribute value = %g\n",
@@ -1460,7 +1473,15 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		record_handle    = mx_ntohl( uint32_message[0] );
 		field_handle     = mx_ntohl( uint32_message[1] );
 		attribute_number = mx_ntohl( uint32_message[2] );
-		attribute_value  = *((double *) &uint32_message[3] );
+
+		/* Do _not_ use mx_ntohl() for the attribute value, since
+		 * the raw value is actually an IEEE 754 double.
+		 */
+
+		u.uint32_value[0] = uint32_message[3];
+		u.uint32_value[1] = uint32_message[4];
+
+		attribute_value = u.double_value;
 
 		fprintf( stderr,
     "  SET_ATTRIBUTE: (%lu,%lu) attribute number = %lu, attribute value = %g\n",
@@ -3737,6 +3758,12 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
+
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
 	uint32_t header_length, message_length;
 	uint32_t message_type, status_code;
 	XDR xdrs;
@@ -3899,6 +3926,8 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 	message = buffer + header_length;
 
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
 	switch( server->data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -3907,7 +3936,14 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		*attribute_value = *((double *) message);
+		/* Do _not_ use mx_ntohl() for the attribute value, since
+		 * the raw value is actually an IEEE 754 double.
+		 */
+
+		u.uint32_value[0] = uint32_message[0];
+		u.uint32_value[1] = uint32_message[1];
+
+		*attribute_value = u.double_value;
 		break;
 
 #if HAVE_XDR
@@ -3946,11 +3982,17 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
+
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
 	uint32_t header_length, message_length;
 	uint32_t message_type, status_code;
 	XDR xdrs;
 	int xdr_status;
-	double *double_ptr;
+	uint32_t *uint32_value_ptr;
 	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
 
@@ -4008,7 +4050,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	uint32_message[1] = mx_htonl( nf->field_handle );
 	uint32_message[2] = mx_htonl( attribute_number );
 
-	double_ptr = (double *) &(uint32_message[3]);
+	uint32_value_ptr = &(uint32_message[3]);
 
 	switch( server->data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
@@ -4018,14 +4060,21 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		*double_ptr = attribute_value;
+		/* Do _not_ use mx_htonl() for the attribute value, since
+		 * the raw value is actually an IEEE 754 double.
+		 */
+
+		u.double_value = attribute_value;
+
+		uint32_value_ptr[0] = u.uint32_value[0];
+		uint32_value_ptr[1] = u.uint32_value[1];
 
 		message_length = 3 * sizeof(uint32_t) + sizeof(double);
 		break;
 
 #if HAVE_XDR
 	case MX_NETWORK_DATAFMT_XDR:
-		xdrmem_create( &xdrs, (void *)double_ptr, 8, XDR_ENCODE );
+		xdrmem_create( &xdrs, (void *)uint32_value_ptr, 8, XDR_ENCODE );
 
 		xdr_status = xdr_double( &xdrs, &attribute_value );
 

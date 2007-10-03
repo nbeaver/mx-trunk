@@ -2935,7 +2935,12 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	uint32_t *header, *message;
 	uint32_t attribute_number;
 	double attribute_value;
-	double *double_ptr;
+
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
 	XDR xdrs;
 	int xdr_status;
 	mx_bool_type illegal_attribute_number;
@@ -2989,7 +2994,6 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	/* Construct the body of the message. */
 
 	if ( illegal_attribute_number == FALSE ) {
-		double_ptr = (double *) send_buffer_message;
 
 		switch( socket_handler->data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
@@ -2999,7 +3003,10 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
-			*double_ptr = attribute_value;
+			u.double_value = attribute_value;
+
+			send_buffer_message[0] = u.uint32_value[0];
+			send_buffer_message[1] = u.uint32_value[1];
 
 			send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 						= mx_htonl( sizeof(double) );
@@ -3007,7 +3014,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 #if HAVE_XDR
 		case MX_NETWORK_DATAFMT_XDR:
-			xdrmem_create(&xdrs, (void *)double_ptr, 8, XDR_ENCODE);
+			xdrmem_create(&xdrs,
+				(void *)send_buffer_message, 8, XDR_ENCODE);
 
 			xdr_status = xdr_double( &xdrs, &attribute_value );
 
@@ -3095,7 +3103,13 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	uint32_t *header, *message;
 	uint32_t attribute_number;
 	double attribute_value;
-	double *double_ptr;
+
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
+	uint32_t *uint32_value_ptr;
 	XDR xdrs;
 	int xdr_status;
 	mx_bool_type illegal_attribute_number;
@@ -3107,7 +3121,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 
 	attribute_number = mx_ntohl( message[2] );
 
-	double_ptr = (double *) &(message[3]);
+	uint32_value_ptr = &(message[3]);
 
 	switch( socket_handler->data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
@@ -3117,12 +3131,15 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		attribute_value = *double_ptr;
+		u.uint32_value[0] = uint32_value_ptr[0];
+		u.uint32_value[1] = uint32_value_ptr[1];
+
+		attribute_value = u.double_value;
 		break;
 
 #if HAVE_XDR
 	case MX_NETWORK_DATAFMT_XDR:
-		xdrmem_create( &xdrs, (void *)double_ptr, 8, XDR_DECODE );
+		xdrmem_create( &xdrs, (void *)uint32_value_ptr, 8, XDR_DECODE );
 
 		xdr_status = xdr_double( &xdrs, &attribute_value );
 
