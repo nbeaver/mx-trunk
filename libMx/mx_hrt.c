@@ -808,6 +808,44 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+#elif defined(OS_MACOSX)
+
+#include <sys/sysctl.h>
+#include <errno.h>
+
+MX_EXPORT void
+mx_high_resolution_time_init( void )
+{
+	static const char fname[] = "mx_high_resolution_time_init()";
+
+	int mib[2], tbfrequency;
+	int status, saved_errno;
+	size_t tbsize;
+
+	mx_high_resolution_time_init_invoked = TRUE;
+
+	mib[0] = CTL_HW;
+	mib[1] = HW_TB_FREQ;
+
+	tbsize = sizeof(tbfrequency);
+
+	status = sysctl(mib, 2, &tbfrequency, &tbsize, NULL, 0);
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"Attempt to get the x86 timebase frequency failed.  "
+		"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+		return;
+	}
+
+	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
+
+	return;
+}
+
 #else	/* not OS_LINUX */
 
 MX_EXPORT void

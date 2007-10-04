@@ -158,7 +158,7 @@ static int smvspline(IMWORK *imp)
 		fprintf(stderr,
 		 "Error allocating memory to handle correction operation\n");
 		free((void *)lspl);	(void)fclose(fspl);
-		fspl = NULL;	return EALLOC;
+		fspl = NULL;	imp->imf_spl = NULL;	return EALLOC;
 	  }
 	if (imp->imf_flags & ANY_VERBOSE) printf(
 	 " Correction file %s: Dimensions [%4d,%4d], %3d columns, %3d rows\n",
@@ -171,7 +171,7 @@ static int smvspline(IMWORK *imp)
 		fprintf(stderr, "Failed to read correction elements from %s\n",
 			imp->imf_splname);
 		free((void *)(lspl->v_cpt));	free((void *)lspl);
-		return EREADERR;
+		imp->imf_spl = NULL;	return EREADERR;
 	  }
 	if (islittle) /* byte and word swaps again */
 	  {
@@ -182,6 +182,34 @@ static int smvspline(IMWORK *imp)
 		   }
 	  }
 	imp->imf_spl = lspl;	/* set external pointer appropriately */
+	return EOK;
+}
+
+static int rescalespl(IMWORK *imp)
+{ /* This rescales the spline file so it's correctly sized relative to
+  the images to which it will be applied. */
+	int		ix, iy;
+	double		xsca, ysca;
+	VSPLINE		*lspl;
+	CALPOINT	*calp;
+
+	if (NULL == (lspl = imp->imf_spl)) return EBADVALUE;
+	if ((lspl->v_detw < 1) || (lspl->v_deth < 1)) return EBADVALUE;
+	xsca = ((double)(imp->imf_wid)) / ((double)(lspl->v_detw));
+	ysca = ((double)(imp->imf_ht)) / ((double)(lspl->v_deth));
+	if ((xsca < FUZZ) || (ysca < FUZZ)) return EBADVALUE;
+	/* if the image and the spline are the same dimensions, we can quit */
+	if ((xsca < 1. - FUZZ) || (xsca > 1. + FUZZ) ||
+		(ysca < 1. - FUZZ) || (ysca > 1. + FUZZ)) return EOK;
+	lspl->v_detw *= xsca;		lspl->v_deth *= ysca;
+	lspl->v_axc *= xsca;		lspl->v_ayc *= ysca;
+	lspl->v_rxc *= xsca;		lspl->v_ryc *= ysca;
+	lspl->v_xrpx *= xsca;		lspl->v_yrpx *= ysca;
+	for (calp = lspl->v_cpt, iy = 0; iy < lspl->v_nrow; iy++)
+	   for (ix = 0; ix < lspl->v_ncol; ix++, calp++)
+	      {
+		calp->c_ptocx *= xsca; calp->c_ptocy *= ysca;
+	      }
 	return EOK;
 }
 
@@ -555,9 +583,9 @@ static int img_conversion(IMWORK *imp)
 
 	/* read in the spatial-correction information */
 	if (EOK != (imerr = smvspline(imp))) return imerr;
-	/* find the limits of x and y in cm */
+	if (EOK != (imerr = rescalespl(imp))) return imerr; /* rescale it */
 	if (EOK != (imerr = find_limits(imp)))
-	  {
+	  { /* find the limits of x and y in cm */
 		fprintf(stderr, "Error %d finding rescaling values in spline\n",
 		 imerr);
 		return imerr;
@@ -578,7 +606,8 @@ static int img_conversion(IMWORK *imp)
 	if (NULL != (lspl = imp->imf_spl))
 	  {
 		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
-		lspl->v_cpt = NULL;	free((void *)lspl); imp->imf_spl = NULL;
+		lspl->v_cpt = NULL;
+		free((void *)(imp->imf_spl));	imp->imf_spl = NULL;
 	  }
 	if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
 	return imerr;
@@ -588,7 +617,6 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 { /* Mainline for performing a spatial correction on an SMV image
 	that is already in memory. Arguments:
 	imarr	1-D array of data values (probably always unsigned shorts)
-		as derived from a Lavender image_data structure.
 		The output will be written back to this pointer as well.
 	cflags	flag value. Unlike earlier versions,
 	 the only active bits in this flag now are associated with verbosity:
@@ -610,5 +638,3 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 	resu = img_conversion(&imfs);	/* perform spatial correction */
 	return resu;
 }
-
-/* end of smvspatial.c */
