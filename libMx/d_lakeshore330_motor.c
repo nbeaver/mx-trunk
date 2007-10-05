@@ -55,7 +55,10 @@ MX_MOTOR_FUNCTION_LIST mxd_ls330_motor_motor_function_list = {
 	mxd_ls330_motor_soft_abort,
 	mxd_ls330_motor_positive_limit_hit,
 	mxd_ls330_motor_negative_limit_hit,
-	mxd_ls330_motor_find_home_position
+	mxd_ls330_motor_find_home_position,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* LakeShore 330 motor data structures. */
