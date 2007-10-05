@@ -24,7 +24,7 @@ ready      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
 ###xclib  interface generic epix_xclib "" "" c:/docume~1/lavender/epix/pccd_170170_v8_large.fmt 0x0
 xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v8_large.fmt 0x0
 port  interface camera_link epix_camera_link "" "" 9600 0.5 1
-rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
+rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 port
 epix       device video_input epix_xclib_video_input "" "" 16384 1024 grey16 -1 xclib 1 ready 0x1001 0x5555
 inttrigger device digital_output epix_xclib_doutput "" "" 0 epix
 ad         device area_detector pccd_170170 "" "" 0 /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/soleil_swing.uca

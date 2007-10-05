@@ -248,6 +248,11 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->use_scaled_dark_current = FALSE;
 	ad->dark_current_exposure_time = 1.0;
 
+	ad->sequence_start_delay   = 0.0;
+	ad->total_acquisition_time = 0.0;
+	ad->detector_readout_time  = 0.0;
+	ad->total_sequence_time    = 0.0;
+
 	ad->dark_current_frame = NULL;
 	ad->dark_current_frame_buffer = NULL;
 
@@ -1415,6 +1420,82 @@ mx_area_detector_set_use_scaled_dark_current_flag( MX_RECORD *record,
 }
 
 /*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_sequence_start_delay( MX_RECORD *record,
+					double *sequence_start_delay )
+{
+	static const char fname[] =
+			"mx_area_detector_get_sequence_start_delay()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SEQUENCE_START_DELAY;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( sequence_start_delay != (double *) NULL ) {
+		*sequence_start_delay = ad->sequence_start_delay;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_total_acquisition_time( MX_RECORD *record,
+					double *total_acquisition_time )
+{
+	static const char fname[] =
+			"mx_area_detector_get_total_acquisition_time()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_TOTAL_ACQUISITION_TIME;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( total_acquisition_time != (double *) NULL ) {
+		*total_acquisition_time = ad->total_acquisition_time;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_detector_readout_time( MX_RECORD *record,
@@ -3815,13 +3896,24 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		ad->maximum_frame_number = 0;
 		break;
 
+	case MXLV_AD_SEQUENCE_START_DELAY:
+		ad->sequence_start_delay = 0;
+		break;
+
 	case MXLV_AD_DETECTOR_READOUT_TIME:
 		ad->detector_readout_time = 0;
 		break;
 
+	case MXLV_AD_TOTAL_ACQUISITION_TIME:
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
 		mx_status = mx_area_detector_get_sequence_parameters(
 							ad->record, &seq );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_get_sequence_start_delay(
+							ad->record, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3832,13 +3924,18 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		ad->total_sequence_time = 0.0;
+
 		switch( seq.sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_CONTINUOUS:
 			exposure_time = seq.parameter_array[0];
 
-			ad->total_sequence_time =
-				exposure_time + ad->detector_readout_time;
+			ad->total_acquisition_time = exposure_time;
+
+			ad->total_sequence_time = ad->sequence_start_delay
+						+ ad->total_acquisition_time
+						+ ad->detector_readout_time;
 			break;
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
@@ -3861,24 +3958,34 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 					ad->record->name );
 			}
 
-			ad->total_sequence_time =
+			ad->total_acquisition_time =
 				frame_time * (double) num_frames;
+
+			ad->total_sequence_time = ad->sequence_start_delay
+						+ ad->total_acquisition_time;
 			break;
 		case MXT_SQ_STROBE:
 			num_frames = seq.parameter_array[0];
 			exposure_time = seq.parameter_array[1];
 
-			ad->total_sequence_time =
+			ad->total_acquisition_time =
 				( exposure_time + ad->detector_readout_time )
 					* (double) num_frames;
+
+			ad->total_sequence_time = ad->sequence_start_delay
+						+ ad->total_acquisition_time;
 			break;
 		case MXT_SQ_BULB:
 			num_frames = seq.parameter_array[0];
 
-			ad->total_sequence_time = ad->detector_readout_time
+			ad->total_acquisition_time = ad->detector_readout_time
 							* (double) num_frames;
+
+			ad->total_sequence_time = ad->sequence_start_delay
+						+ ad->total_acquisition_time;
 			break;
 		default:
+			ad->total_acquisition_time = 0.0;
 			ad->total_sequence_time = 0.0;
 
 			return mx_error( MXE_UNSUPPORTED, fname,

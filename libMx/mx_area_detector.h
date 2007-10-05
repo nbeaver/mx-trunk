@@ -134,6 +134,8 @@ typedef struct mx_area_detector_type {
 
 	char *roi_frame_buffer;
 
+	double sequence_start_delay;
+	double total_acquisition_time;
 	double detector_readout_time;
 	double total_sequence_time;
 
@@ -312,8 +314,10 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SAVE_FRAME			12039
 #define MXLV_AD_FRAME_FILENAME			12040
 #define MXLV_AD_COPY_FRAME			12041
-#define MXLV_AD_DETECTOR_READOUT_TIME		12042
-#define MXLV_AD_TOTAL_SEQUENCE_TIME		12043
+#define MXLV_AD_SEQUENCE_START_DELAY		12042
+#define MXLV_AD_TOTAL_ACQUISITION_TIME		12043
+#define MXLV_AD_DETECTOR_READOUT_TIME		12044
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12045
 
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
@@ -522,17 +526,29 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
   \
+  {MXLV_AD_SEQUENCE_START_DELAY, -1, \
+		"sequence_start_delay", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, sequence_start_delay), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_TOTAL_ACQUISITION_TIME, -1, \
+		"total_acquisition_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, total_acquisition_time), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_AD_DETECTOR_READOUT_TIME, -1, \
 		"detector_readout_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, detector_readout_time), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_TOTAL_SEQUENCE_TIME, -1, \
 		"total_sequence_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, total_sequence_time), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
   		"correction_measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -741,6 +757,14 @@ MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
 					mx_bool_type use_scaled_dark_current );
 
 /*---*/
+
+MX_API mx_status_type mx_area_detector_get_sequence_start_delay(
+						MX_RECORD *ad_record,
+						double *sequence_start_delay );
+
+MX_API mx_status_type mx_area_detector_get_total_acquisition_time(
+						MX_RECORD *ad_record,
+						double *total_acquisition_time);
 
 MX_API mx_status_type mx_area_detector_get_detector_readout_time(
 						MX_RECORD *ad_record,
