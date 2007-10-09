@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_PROGRAM_MODEL_H__
 #define __MX_PROGRAM_MODEL_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* See http://www.unix.org/version2/whatsnew/lp64_wp.html for a discussion
  * of the various programming models.  In 2006, the most common programming
@@ -100,5 +104,9 @@
 #endif
 
 #define MX_WORDSIZE	( MX_PROGRAM_MODEL & ~0xf )
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PROGRAM_MODEL_H__ */

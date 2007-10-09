@@ -17,6 +17,10 @@
 #ifndef __MX_ARRAY_H__
 #define __MX_ARRAY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define mx_allocate_array	mx_allocate_array_old
 #define mx_free_array		mx_free_array_old
 
@@ -109,6 +113,10 @@ MX_API mx_status_type mx_convert_and_copy_array(
 		long destination_num_dimensions,
 		long *destination_dimension_array,
 		size_t *destination_data_element_size_array );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_ARRAY_H__ */
 

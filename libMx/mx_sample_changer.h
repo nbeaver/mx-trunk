@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SAMPLE_CHANGER_H__
 #define __MX_SAMPLE_CHANGER_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MXU_SAMPLE_HOLDER_NAME_LENGTH	80
 
@@ -279,6 +283,10 @@ MX_API mx_status_type mx_sample_changer_default_set_parameter_handler(
 MX_API mx_status_type mx_sample_changer_cooldown( MX_RECORD *record );
 
 MX_API mx_status_type mx_sample_changer_deice( MX_RECORD *record );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SAMPLE_CHANGER_H__ */
 

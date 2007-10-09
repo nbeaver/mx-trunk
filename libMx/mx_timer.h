@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_TIMER_H__
 #define __MX_TIMER_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -110,6 +114,10 @@ MX_API mx_status_type mx_timer_get_last_measurement_time(
 						double *last_measurement_time );
 
 extern MX_RECORD_FUNCTION_LIST mx_timer_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_TIMER_H__ */
 

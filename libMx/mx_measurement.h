@@ -17,6 +17,10 @@
 #ifndef __MX_MEASUREMENT_H__
 #define __MX_MEASUREMENT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* List of measurement types. */
 
 #define MXM_NONE		0
@@ -102,6 +106,10 @@ MX_API mx_status_type mx_get_measurement_counts( MX_MEASUREMENT *measurement,
 /* One global variable. */
 
 extern MX_MEASUREMENT_TYPE_ENTRY mx_measurement_type_list[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MEASUREMENT_H__ */
 

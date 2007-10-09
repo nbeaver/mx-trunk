@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_PORTIO_H__
 #define __MX_PORTIO_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	uint8_t        ( *inp8 ) ( MX_RECORD *record,
@@ -57,5 +61,9 @@ MX_API mx_status_type mx_portio_request_region( MX_RECORD *record,
 MX_API mx_status_type mx_portio_release_region( MX_RECORD *record,
 				unsigned long port_number,
 				unsigned long length );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PORTIO_H__ */

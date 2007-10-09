@@ -17,6 +17,10 @@
 #ifndef __MX_THREAD_H__
 #define __MX_THREAD_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mx_thread_struct {
 	long thread_exit_status;
 	void *thread_private;
@@ -99,6 +103,10 @@ MX_API mx_status_type mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key,
 
 #if defined(OS_WIN32)
 MX_API mx_status_type mx_win32_thread_get_handle_and_id( MX_THREAD *thread );
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_THREAD_H__ */

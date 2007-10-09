@@ -20,6 +20,10 @@
 #ifndef __MX_INTERVAL_TIMER_H__
 #define __MX_INTERVAL_TIMER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Values for 'timer_type'. */
 
 #define MXIT_ONE_SHOT_TIMER	1
@@ -62,6 +66,10 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left );
 MX_API mx_status_type
 mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 				double *seconds_till_expiration );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_INTERVAL_TIMER_H__ */
 

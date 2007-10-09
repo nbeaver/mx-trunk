@@ -17,6 +17,10 @@
 #ifndef __MX_XDR_H__
 #define __MX_XDR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"
@@ -65,6 +69,10 @@
 #   if defined(OS_MACOSX) || defined(OS_QNX)
 #      include "../tools/xdr/src/xdr_hyper.h"
 #   endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_XDR_H__ */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_CAMAC_H__
 #define __MX_CAMAC_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -90,5 +94,9 @@ MX_API void mx_camac_qwait( MX_RECORD *camac_record,
 				int32_t *data, int *X );
 
 extern MX_RECORD_FUNCTION_LIST mx_camac_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CAMAC_H__ */

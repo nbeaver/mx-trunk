@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,10 @@
 
 #ifndef __MX_GENERIC_H__
 #define __MX_GENERIC_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -76,6 +80,10 @@ MX_API mx_status_type mx_generic_discard_unwritten_output( MX_GENERIC *generic,
 							int debug_flag );
 
 extern MX_RECORD_FUNCTION_LIST  mx_generic_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_GENERIC_H__ */
 

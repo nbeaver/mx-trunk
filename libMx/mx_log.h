@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2000 Illinois Institute of Technology
+ * Copyright 1999-2000, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_LOG_H__
 #define __MX_LOG_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_LIST_HEAD *list_head;
@@ -42,6 +46,10 @@ MX_API mx_status_type mx_log_message( MX_LOG *log_handler, char *message );
 
 MX_API char *mx_log_timestamp( MX_LOG *log_handler,
 				char *buffer, size_t buffer_length );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_LOG_H__ */
 

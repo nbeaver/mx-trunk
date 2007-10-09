@@ -17,6 +17,10 @@
 #ifndef __MX_VIDEO_INPUT_H__
 #define __MX_VIDEO_INPUT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MXU_VIN_EXTENDED_STATUS_STRING_LENGTH	40
 
 /* Status bit definitions for the 'status' field. */
@@ -416,6 +420,9 @@ MX_API mx_status_type mx_video_input_default_get_parameter_handler(
 MX_API mx_status_type mx_video_input_default_set_parameter_handler(
 						MX_VIDEO_INPUT *vinput );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VIDEO_INPUT_H__ */
 

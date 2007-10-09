@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MCS_H__
 #define __MX_MCS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -319,5 +323,9 @@ MX_API mx_status_type mx_mcs_set_dark_current( MX_RECORD *mcs_record,
 MX_API mx_status_type mx_mcs_default_get_parameter_handler( MX_MCS *mcs );
 
 MX_API mx_status_type mx_mcs_default_set_parameter_handler( MX_MCS *mcs );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MCS_H__ */

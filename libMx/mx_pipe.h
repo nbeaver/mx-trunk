@@ -17,6 +17,10 @@
 #ifndef __MX_PIPE_H__
 #define __MX_PIPE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MXF_PIPE_READ	0x1
 #define MXF_PIPE_WRITE	0x2
 
@@ -45,6 +49,10 @@ MX_API mx_status_type mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 MX_API mx_status_type mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 					int flags,
 					mx_bool_type blocking_mode_flag );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PIPE_H__ */
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SCA_H__
 #define __MX_SCA_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -113,6 +117,10 @@ MX_API mx_status_type mx_sca_set_mode( MX_RECORD *sca_record, long mode );
 MX_API mx_status_type mx_sca_default_get_parameter_handler( MX_SCA *sca );
 
 MX_API mx_status_type mx_sca_default_set_parameter_handler( MX_SCA *sca );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SCA_H__ */
 

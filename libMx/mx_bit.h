@@ -17,6 +17,10 @@
 #ifndef __MX_BIT_H__
 #define __MX_BIT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MX_DATAFMT_BIG_ENDIAN		0x1
 #define MX_DATAFMT_LITTLE_ENDIAN	0x2
 
@@ -45,5 +49,9 @@ MX_API uint32_t mx_32bit_wordswap( uint32_t original_value );
 /*---*/
 
 MX_API mx_bool_type mx_is_power_of_two( unsigned long value );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_BIT_H__ */

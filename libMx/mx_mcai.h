@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MCAI_H__
 #define __MX_MCAI_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -93,6 +97,10 @@ MX_API mx_status_type mx_mcai_finish_record_initialization(
 MX_API mx_status_type mx_mcai_read( MX_RECORD *mcai_record,
 						unsigned long *num_channels,
 						double **channel_array );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MCAI_H__ */
 

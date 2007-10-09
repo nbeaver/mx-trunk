@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,10 @@
 
 #ifndef __MX_MEMORY_H__
 #define __MX_MEMORY_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_constants.h"
 
@@ -65,5 +69,9 @@ MX_API void mx_display_process_meminfo( MX_PROCESS_MEMINFO *meminfo );
 
 MX_API void mx_display_system_meminfo( MX_SYSTEM_MEMINFO *meminfo );
 						
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __MX_MEMORY_H__ */
 

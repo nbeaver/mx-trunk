@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MUTEX_H__
 #define __MX_MUTEX_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	void *mutex_ptr;
@@ -36,6 +40,10 @@ MX_API long mx_mutex_lock( MX_MUTEX *mutex );
 MX_API long mx_mutex_unlock( MX_MUTEX *mutex );
 
 MX_API long mx_mutex_trylock( MX_MUTEX *mutex );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MUTEX_H__ */
 

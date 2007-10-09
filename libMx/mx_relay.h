@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_RELAY_H__
 #define __MX_RELAY_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -55,5 +59,9 @@ MX_API mx_status_type mx_relay_command( MX_RECORD *relay_record,
 						long relay_command );
 MX_API mx_status_type mx_get_relay_status( MX_RECORD *relay_record,
 						long *relay_status );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_RELAY_H__ */

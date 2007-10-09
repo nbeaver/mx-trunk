@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef _MX_SCAN_QUICK_H_
 #define _MX_SCAN_QUICK_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_SCAN *scan;	/* Pointer to the parent scan superclass structure. */
@@ -78,6 +82,10 @@ MX_API_PRIVATE double mx_quick_scan_get_measurement_time(
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_QUICK_SCAN, saved_synchronous_motion_mode),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MX_SCAN_QUICK_H_ */
 

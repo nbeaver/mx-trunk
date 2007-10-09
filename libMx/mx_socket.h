@@ -24,6 +24,10 @@
 #ifndef __MX_SOCKET_H__
 #define __MX_SOCKET_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_osdef.h"
 
 /* Include standard socket defines and prototypes. */
@@ -260,6 +264,10 @@ MX_API mx_status_type mx_socket_num_input_bytes_available(
 					long *num_input_bytes_available );
 
 MX_API mx_status_type mx_socket_discard_unread_input( MX_SOCKET *mx_socket );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SOCKET_H__ */
 

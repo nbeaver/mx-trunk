@@ -26,7 +26,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +35,10 @@
 
 #ifndef __MX_POISON_H__
 #define __MX_POISON_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef MX_NO_POISON	/* Suppress poisoning if MX_NO_POISON is defined. */
 
@@ -86,6 +90,10 @@
 
 
 #endif /* MX_NO_POISON */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_POISON_H__ */
 

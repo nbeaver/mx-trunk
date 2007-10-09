@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,10 @@
 
 #ifndef __MX_COPROCESS_H__
 #define __MX_COPROCESS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	FILE *from_coprocess;
@@ -29,6 +33,10 @@ MX_API mx_status_type mx_create_coprocess( MX_COPROCESS *coprocess,
 						char *command_line );
 
 MX_API mx_status_type mx_kill_coprocess( MX_COPROCESS *coprocess );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_COPROCESS_H__ */
 

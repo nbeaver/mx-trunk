@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_PULSE_GENERATOR_H__
 #define __MX_PULSE_GENERATOR_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -149,5 +153,9 @@ MX_API mx_status_type mx_pulse_generator_default_get_parameter_handler(
 
 MX_API mx_status_type mx_pulse_generator_default_set_parameter_handler(
 					MX_PULSE_GENERATOR *pulse_generator );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PULSE_GENERATOR_H__ */

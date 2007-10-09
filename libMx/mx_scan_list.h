@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef _MX_SCAN_LIST_H_
 #define _MX_SCAN_LIST_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_SCAN *scan;	/* Pointer to the parent scan superclass structure. */
@@ -56,6 +60,10 @@ extern MX_SCAN_FUNCTION_LIST mxs_list_scan_scan_function_list;
 /* Currently, there are no standard fields for a list scan. */
 
 #define MX_LIST_SCAN_STANDARD_FIELDS 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MX_SCAN_LIST_H_ */
 

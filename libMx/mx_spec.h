@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SPEC_H__
 #define __MX_SPEC_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SV_PORT_FIRST	6510
 #define SV_PORT_LAST	6530
@@ -157,6 +161,10 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 			char *property_name,
 			long mx_datatype,
 			void *value );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SPEC_H__ */
 

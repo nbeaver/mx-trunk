@@ -17,6 +17,10 @@
 #ifndef __MX_LIST_HEAD_H__
 #define __MX_LIST_HEAD_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MXLV_LHD_DEBUG_LEVEL	1001
 #define MXLV_LHD_STATUS		1002
 #define MXLV_LHD_REPORT		1003
@@ -97,5 +101,9 @@ extern MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list;
 
 extern long mxr_list_head_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxr_list_head_rfield_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_LIST_HEAD_H__ */

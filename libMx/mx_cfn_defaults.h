@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_CFN_DEFAULTS_H__
 #define __MX_CFN_DEFAULTS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_osdef.h"
 
@@ -48,6 +52,10 @@
 #   define MX_CFN_CWD_DIR		"."
 
 #   define MX_CFN_DEFAULT_MXDIR		"/opt/mx"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_CFN_DEFAULTS_H__ */

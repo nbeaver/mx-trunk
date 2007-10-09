@@ -17,6 +17,10 @@
 #ifndef __MX_RS232_H__
 #define __MX_RS232_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_record.h"
 
 /*** Supported parity types ***/
@@ -320,6 +324,10 @@ MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					char flow_control,
 					unsigned long read_terminators,
 					unsigned long write_terminators );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_RS232_H__ */
 

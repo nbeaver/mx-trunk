@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SCALER_H__
 #define __MX_SCALER_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -161,5 +165,9 @@ MX_API mx_status_type mx_scaler_default_get_parameter_handler(
 
 MX_API mx_status_type mx_scaler_default_set_parameter_handler(
 							MX_SCALER *scaler );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SCALER_H__ */

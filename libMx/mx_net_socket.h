@@ -18,6 +18,10 @@
 #ifndef __MX_NET_SOCKET_H__
 #define __MX_NET_SOCKET_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MX_API mx_status_type mx_network_socket_receive_message(
 				MX_SOCKET *mx_socket,
 				double timeout, 
@@ -35,6 +39,10 @@ MX_API mx_status_type mx_network_socket_send_error_message(
 				mx_bool_type debug_flag,
 				long return_message_type,
 				mx_status_type error_message );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_NET_SOCKET_H__ */
 

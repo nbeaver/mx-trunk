@@ -18,6 +18,10 @@
 #ifndef __MX_VARIABLE_H__
 #define __MX_VARIABLE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this MX_VARIABLE structure.
@@ -369,6 +373,10 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_HEX_VARIABLE_STANDARD_FIELDS   MX_ULONG_VARIABLE_STANDARD_FIELDS
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VARIABLE_H__ */
 

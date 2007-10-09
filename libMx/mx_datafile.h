@@ -17,6 +17,10 @@
 #ifndef __MX_DATAFILE_H__
 #define __MX_DATAFILE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mxconfig.h"
 #include "mx_util.h"
 
@@ -111,6 +115,10 @@ MX_API mx_status_type mx_datafile_parse_options( MX_DATAFILE *datafile );
 /* One global variable. */
 
 extern MX_DATAFILE_TYPE_ENTRY mx_datafile_type_list[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_DATAFILE_H__ */
 

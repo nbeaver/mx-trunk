@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_ANALOG_INPUT_H__
 #define __MX_ANALOG_INPUT_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -127,5 +131,9 @@ MX_API mx_status_type mx_analog_input_set_dark_current( MX_RECORD *adc_record,
 							double dark_current );
 
 extern MX_RECORD_FUNCTION_LIST mx_analog_input_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_ANALOG_INPUT_H__ */

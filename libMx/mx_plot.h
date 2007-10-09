@@ -17,6 +17,10 @@
 #ifndef __MX_PLOT_H__
 #define __MX_PLOT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mxconfig.h"
 #include "mx_util.h"
 
@@ -123,6 +127,10 @@ MX_API mx_status_type mx_plot_parse_options( MX_PLOT *plot );
 /* One global variable. */
 
 extern MX_PLOT_TYPE_ENTRY mx_plot_type_list[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PLOT_H__ */
 

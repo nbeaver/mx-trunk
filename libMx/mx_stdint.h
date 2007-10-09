@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,10 @@
 
 #ifndef __MX_STDINT_H__
 #define __MX_STDINT_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_program_model.h"	/* We get the native word size from here. */
 
@@ -141,6 +145,10 @@ typedef int32_t   mx_bool_type;
 
 #  include "mx_private_limits.h"
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_STDINT_H__ */

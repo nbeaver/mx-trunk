@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_VEPICS_H__
 #define __MX_VEPICS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
@@ -80,6 +84,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_long_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_ulong_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_float_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_double_variable_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VEPICS_H__ */
 

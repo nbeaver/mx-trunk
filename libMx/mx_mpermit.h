@@ -17,6 +17,10 @@
 #ifndef __MX_MPERMIT_H__
 #define __MX_MPERMIT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MXU_MEASUREMENT_PERMIT_DRIVER_NAME_LENGTH	32
 
 #define MXPH_SIMPLE		1
@@ -70,6 +74,10 @@ MX_API mx_status_type mx_measurement_permit_wait_for_permission(
 /* One global variable. */
 
 extern MX_MEASUREMENT_PERMIT_DRIVER mx_measurement_permit_driver_list[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MPERMIT_H__ */
 

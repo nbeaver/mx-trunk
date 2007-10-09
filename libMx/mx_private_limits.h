@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,10 @@
 
 #ifndef __MX_PRIVATE_LIMITS__
 #define __MX_PRIVATE_LIMITS__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_program_model.h"	/* We get the native word size from here. */
 
@@ -67,6 +71,10 @@
 #  define INTMAX_MAX		INT64_MAX
 #  define UINTMAX_MAX	UINT64_MAX
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_PRIVATE_LIMITS__ */

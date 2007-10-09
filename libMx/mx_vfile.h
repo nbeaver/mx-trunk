@@ -17,6 +17,10 @@
 #ifndef __MX_VFILE_H__
 #define __MX_VFILE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Bit definitions for 'file_flags'. */
 
 #define MXF_VFILE_READ		0x1
@@ -84,6 +88,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_file_string_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_file_long_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_file_ulong_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_file_double_variable_dptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VFILE_H__ */
 

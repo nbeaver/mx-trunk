@@ -17,6 +17,10 @@
 #ifndef __MX_MFAULT_H__
 #define __MX_MFAULT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MXU_MEASUREMENT_FAULT_DRIVER_NAME_LENGTH	32
 
 #define MXMF_NONE					0
@@ -76,6 +80,10 @@ MX_API mx_status_type mx_measurement_fault_reset(
 /* One global variable. */
 
 extern MX_MEASUREMENT_FAULT_DRIVER mx_measurement_fault_driver_list[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MFAULT_H__ */
 

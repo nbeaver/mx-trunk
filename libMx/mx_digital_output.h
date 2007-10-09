@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_DIGITAL_OUTPUT_H__
 #define __MX_DIGITAL_OUTPUT_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -51,5 +55,9 @@ MX_API mx_status_type mx_digital_output_write(MX_RECORD *doutput,
 							unsigned long value);
 
 extern MX_RECORD_FUNCTION_LIST mx_digital_output_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_DIGITAL_OUTPUT_H__ */

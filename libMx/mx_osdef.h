@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef _MX_OSDEF_H_
 #define _MX_OSDEF_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Define OS_UNIX if this is a significantly Unix-like operating system. */
 
@@ -113,6 +117,10 @@
 #  define HAVE_MAIN_ROUTINE		0
 #else
 #  define HAVE_MAIN_ROUTINE		1
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _MX_OSDEF_H_ */

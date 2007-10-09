@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,10 @@
 
 #ifndef __MX_HANDLE_H__
 #define __MX_HANDLE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	signed long handle;
@@ -62,6 +66,10 @@ MX_API mx_status_type mx_get_pointer_from_handle(
 					void **pointer,
 					MX_HANDLE_TABLE *handle_table,
 					signed long handle );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_HANDLE_H__ */
 

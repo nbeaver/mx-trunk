@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef _MX_SCAN_H_
 #define _MX_SCAN_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -263,6 +267,10 @@ MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
   {-1, -1, "plot_arguments", MXFT_STRING, NULL, 1, {MXU_PLOT_ARGUMENTS_LENGTH},\
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, plot_arguments), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MX_SCAN_H_ */
 

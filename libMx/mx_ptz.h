@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_PTZ_H__
 #define __MX_PTZ_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -353,6 +357,10 @@ MX_API mx_status_type mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
 
 MX_API mx_status_type mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
 					unsigned long focus_speed );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PTZ_H__ */
 

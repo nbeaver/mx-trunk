@@ -18,6 +18,10 @@
 #ifndef __MX_DYNAMIC_LIBRARY_H__
 #define __MX_DYNAMIC_LIBRARY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_stdint.h"
 
 typedef struct {
@@ -38,6 +42,10 @@ MX_API mx_status_type mx_dynamic_library_find_symbol(
 
 MX_API void *mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_DYNAMIC_LIBRARY_H_ */
 

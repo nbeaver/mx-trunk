@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_EPICS_H__
 #define __MX_EPICS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_hrt.h"
 
@@ -161,6 +165,10 @@ MX_API mx_status_type mx_epics_convert_mx_type_to_epics_type(
 
 MX_API mx_status_type mx_epics_convert_epics_type_to_mx_type(
 				long epics_type, long *mx_type );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_EPICS_H__ */
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_GPIB_H__
 #define __MX_GPIB_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -362,5 +366,9 @@ MX_API mx_status_type mx_gpib_serial_poll( MX_RECORD *gpib_record,
 					unsigned char *serial_poll_byte );
 
 MX_API mx_status_type mx_gpib_serial_poll_disable( MX_RECORD *gpib_record );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_GPIB_H__ */

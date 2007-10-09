@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,10 @@
 
 #ifndef __MX_BLUICE_H__
 #define __MX_BLUICE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_socket.h"
 #include "mx_mutex.h"
@@ -259,6 +263,10 @@ MX_API mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *motion_status_message,
 				mx_bool_type move_in_progress );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_BLUICE_H__ */
 

@@ -18,6 +18,10 @@
 #ifndef __MX_IMAGE_H__
 #define __MX_IMAGE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_hrt.h"
 
 /*---- Image format definitions ----*/
@@ -275,6 +279,10 @@ MX_API mx_status_type mx_sequence_get_sequence_time( MX_SEQUENCE_PARAMETERS *sp,
 
 MX_API mx_status_type mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
 							long *num_frames );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_IMAGE_H__ */
 

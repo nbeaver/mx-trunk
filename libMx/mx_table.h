@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_TABLE_H__
 #define __MX_TABLE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -93,5 +97,9 @@ MX_API mx_status_type mx_table_positive_limit_hit( MX_RECORD *table_record,
 
 MX_API mx_status_type mx_table_negative_limit_hit( MX_RECORD *table_record,
 					long axis_id, mx_bool_type *limit_hit );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_TABLE_H__ */

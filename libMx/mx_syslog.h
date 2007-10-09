@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SYSLOG_H__
 #define __MX_SYSLOG_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(OS_UNIX)
 
@@ -60,6 +64,10 @@
 MX_API mx_status_type mx_install_syslog_handler( char *ident_string,
 						int log_number,
 						int log_options );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SYSLOG_H__ */
 

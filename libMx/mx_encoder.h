@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_ENCODER_H__
 #define __MX_ENCODER_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -59,5 +63,9 @@ MX_API mx_status_type mx_encoder_get_overflow_status( MX_RECORD *record,
 MX_API mx_status_type mx_encoder_reset_overflow_status( MX_RECORD *record );
 MX_API mx_status_type mx_encoder_read( MX_RECORD *record, long *value );
 MX_API mx_status_type mx_encoder_write( MX_RECORD *record, long value );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_ENCODER_H__ */

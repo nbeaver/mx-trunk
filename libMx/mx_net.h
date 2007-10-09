@@ -17,6 +17,10 @@
 #ifndef __MX_NET_H__
 #define __MX_NET_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_stdint.h"
 #include "mx_handle.h"
 #include "mx_list.h"
@@ -480,5 +484,9 @@ MX_API mx_status_type mx_get_mx_server_record( MX_RECORD *record_list,
 MX_API mx_status_type mx_network_copy_message_to_field(
 				MX_RECORD *source_server_record,
 				MX_RECORD_FIELD *destination_field );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_NET_H__ */

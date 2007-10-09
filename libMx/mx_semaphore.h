@@ -17,6 +17,10 @@
 #ifndef __MX_SEMAPHORE_H__
 #define __MX_SEMAPHORE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	char *name;
 
@@ -58,6 +62,10 @@ MX_API long mx_semaphore_trylock( MX_SEMAPHORE *semaphore );
 
 MX_API mx_status_type mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 					unsigned long *current_value );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_SEMAPHORE_H__ */
 

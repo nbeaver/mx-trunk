@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_DIGITAL_INPUT_H__
 #define __MX_DIGITAL_INPUT_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -45,6 +49,10 @@ typedef struct {
 
 MX_API mx_status_type mx_digital_input_read( MX_RECORD *record,
 						unsigned long *value );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_DIGITAL_INPUT_H__ */
 

@@ -7,12 +7,19 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#ifndef __MX_VERSION_H__
+#define __MX_VERSION_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 MX_API int mx_get_major_version( void );
 
@@ -23,4 +30,10 @@ MX_API int mx_get_update_version( void );
 MX_API char *mx_get_version_date( void );
 
 MX_API char *mx_get_version_string( void );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __MX_VERSION_H__ */
 

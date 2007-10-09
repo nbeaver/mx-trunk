@@ -17,6 +17,10 @@
 #ifndef __MX_MOTOR_H__
 #define __MX_MOTOR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Include hardware and operating system dependent definitions and symbols. */
 
 #include "mx_record.h"
@@ -916,5 +920,9 @@ MX_API mx_status_type
 /* === */
 
 extern MX_RECORD_FUNCTION_LIST mx_motor_record_function_list;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MOTOR_H__ */

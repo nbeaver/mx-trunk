@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_VNET_H__
 #define __MX_VNET_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_RECORD *server_record;
@@ -81,6 +85,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint64_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_float_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_double_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_record_variable_dptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VNET_H__ */
 

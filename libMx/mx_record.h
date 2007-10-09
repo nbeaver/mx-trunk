@@ -17,6 +17,10 @@
 #ifndef __MX_RECORD_H__
 #define __MX_RECORD_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>  /* Should get the definition of offsetof() from here. */
 
 /* Include hardware and operating system dependent definitions and symbols. */
@@ -836,6 +840,10 @@ MX_API mx_status_type  mx_get_fast_mode( MX_RECORD *record_list,
 
 MX_API mx_status_type  mx_set_fast_mode( MX_RECORD *record_list,
 						mx_bool_type mode_flag );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_RECORD_H__ */
 

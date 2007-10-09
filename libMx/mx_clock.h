@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,10 @@
 #define __MX_CLOCK_H__
 
 #include <time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	unsigned long high_order;
@@ -48,6 +52,10 @@ MX_API MX_CLOCK_TICK mx_set_clock_tick_to_zero( void );
 
 #define mx_clock_tick_is_zero(t) \
 	( ((t).high_order == 0) && ((t).low_order == 0) )
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CLOCK_H__ */
 

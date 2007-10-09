@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_VME_H__
 #define __MX_VME_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Addressing modes */
 
@@ -193,5 +197,9 @@ MX_API mx_status_type mx_vme_parse_data_size( const char *size_name,
 						unsigned long *data_size );
 
 /* ============== Interface function prototypes ============= */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VME_H__ */

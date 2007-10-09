@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MODBUS_H__
 #define __MX_MODBUS_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -193,5 +197,9 @@ MX_API mx_status_type mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 					unsigned long max_fifo_values,
 					uint16_t *fifo_value_array,
 					unsigned long *num_fifo_values_read );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MODBUS_H__ */

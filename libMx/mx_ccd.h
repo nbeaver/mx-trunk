@@ -10,7 +10,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,10 @@
 
 #ifndef __MX_CCD_H__
 #define __MX_CCD_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -214,5 +218,9 @@ MX_API mx_status_type mx_ccd_read_header_variable( MX_RECORD *record,
 MX_API mx_status_type mx_ccd_write_header_variable( MX_RECORD *record,
 						char *header_variable_name,
 						char *header_variable_contents);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CCD_H__ */

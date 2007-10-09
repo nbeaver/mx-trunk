@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,10 @@
 
 #ifndef __MX_CAMERA_LINK_API_H__
 #define __MX_CAMERA_LINK_API_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Data types for Camera Link functions. */
 
@@ -68,6 +72,10 @@ MX_API INT32 MX_CLCALL clSerialRead( hSerRef serialRef, INT8 *buffer,
 MX_API INT32 MX_CLCALL clSerialWrite( hSerRef serialRef, INT8 *buffer,
 				UINT32 *numBytes, UINT32 SerialTimeout );
 MX_API INT32 MX_CLCALL clSetBaudRate( hSerRef serialRef, UINT32 baudRate );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CAMERA_LINK_API_H__ */
 

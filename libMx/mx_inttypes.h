@@ -19,6 +19,10 @@
 #ifndef __MX_INTTYPES_H__
 #define __MX_INTTYPES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_stdint.h"
 
 /* The non-standard build targets are listed first. */
@@ -192,6 +196,10 @@
 
 #  endif
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_INTTYPES_H__ */

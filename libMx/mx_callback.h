@@ -17,6 +17,10 @@
 #ifndef __MX_CALLBACK_H__
 #define __MX_CALLBACK_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_net.h"
 #include "mx_virtual_timer.h"
 
@@ -118,6 +122,10 @@ MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,
 							void *args );
 
 MX_API mx_status_type mx_motor_backlash_callback(MX_CALLBACK_MESSAGE *message);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CALLBACK_H__ */
 

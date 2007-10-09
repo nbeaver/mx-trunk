@@ -20,6 +20,10 @@
 #include <string.h>	/* We get 'size_t' from here. */
 #include <stdarg.h>	/* We get 'va_list' from here. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*-----*/
 
 #include <time.h>	/* We usually get 'struct timespec' from here. */
@@ -769,5 +773,9 @@ MX_API int mx_command_found( char *command_name );
  */
 
 #define MXE_QUIET				0x8000
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_UTIL_H__ */

@@ -17,6 +17,10 @@
 #ifndef _MX_DIRENT_H_
 #define _MX_DIRENT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(OS_WIN32)
 
 #include <windows.h>
@@ -42,6 +46,10 @@ MX_API void rewinddir( DIR *dir );
 
 #else
 #  include <dirent.h>
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _MX_DIRENT_H_ */

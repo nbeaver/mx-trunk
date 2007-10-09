@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_DEAD_RECKONING_H__
 #define __MX_DEAD_RECKONING_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	MX_CLOCK_TICK start_of_move_tick;
@@ -49,6 +53,10 @@ MX_API mx_status_type mx_dead_reckoning_predict_motion(
 
 MX_API mx_status_type mx_dead_reckoning_abort_motion(
 					MX_DEAD_RECKONING *dead_reckoning );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_DEAD_RECKONING_H__ */
 

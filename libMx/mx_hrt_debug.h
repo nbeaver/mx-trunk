@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,10 @@
 
 #ifndef __MX_HRT_DEBUG_H__
 #define __MX_HRT_DEBUG_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_hrt.h"
 
@@ -193,5 +197,9 @@ typedef struct {
 									\
 	MX_DEBUG(-2,("%s: response '%s', time = %g usec, cps = %g",	\
 	(fname), (resp), 1.0e6 * (x).time_in_seconds, (x).chars_per_second))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_HRT_DEBUG_H__ */

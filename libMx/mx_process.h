@@ -17,6 +17,10 @@
 #ifndef __MX_PROCESS_H__
 #define __MX_PROCESS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_osdef.h"
 #include "mx_net.h"
 
@@ -154,6 +158,10 @@ MX_API mx_status_type mx_test_for_value_changed(
 MX_API mx_status_type mx_update_next_allowed_event_time(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_PROCESS_H__ */
 

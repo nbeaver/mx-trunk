@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_USB_H__
 #define __MX_USB_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_handle.h"
 
@@ -185,5 +189,9 @@ MX_API mx_status_type mx_usb_bulk_write( MX_USB_DEVICE *usb_device,
 					int transfer_buffer_length,
 					int *num_bytes_written,
 					double timeout );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_USB_H__ */

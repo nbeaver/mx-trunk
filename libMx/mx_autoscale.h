@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_AUTOSCALE_H__
 #define __MX_AUTOSCALE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MXF_AUTO_HIGH_LIMIT_TRIPPED	1
 #define MXF_AUTO_NO_LIMIT_TRIPPED	0
@@ -184,6 +188,10 @@ MX_API mx_status_type mx_autoscale_default_set_parameter_handler(
 
 MX_API mx_status_type mx_autoscale_create_monitor_offset_array(
 						MX_AUTOSCALE *autoscale );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_AUTOSCALE_H__ */
 

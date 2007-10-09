@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef _MX_SCAN_XAFS_H_
 #define _MX_SCAN_XAFS_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Note: The fields 'num_regions' and 'num_boundaries' below are, in principle,
  *       redundant.  They are here anyway because the varargs field processing
@@ -84,6 +88,10 @@ extern MX_SCAN_FUNCTION_LIST mxs_xafs_scan_scan_function_list;
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, region_measurement_time),\
 	{sizeof(double)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MX_SCAN_XAFS_H_ */
 

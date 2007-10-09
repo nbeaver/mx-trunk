@@ -18,6 +18,10 @@
 #ifndef __MX_HRT_H__
 #define __MX_HRT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* mx_high_resolution_time_init() initializes internal data structures
  * that are used by mx_high_resolution_time() and mx_udelay() below.
  */
@@ -56,5 +60,9 @@ MX_API struct timespec mx_convert_seconds_to_high_resolution_time(
  */
 
 MX_API void mx_udelay( unsigned long microseconds );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_HRT_H__ */

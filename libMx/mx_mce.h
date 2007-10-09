@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MCE_H__
 #define __MX_MCE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -149,6 +153,10 @@ MX_API mx_status_type mx_mce_get_motor_record_array( MX_RECORD *mce_record,
 
 MX_API mx_status_type mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 						MX_RECORD *motor_record );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MCE_H__ */
 

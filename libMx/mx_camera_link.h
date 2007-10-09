@@ -17,6 +17,10 @@
 #ifndef __MX_CAMERA_LINK_H__
 #define __MX_CAMERA_LINK_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mxconfig.h"
 
 /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
@@ -208,6 +212,10 @@ MX_API mx_status_type mx_camera_link_pulse_cc_line( MX_RECORD *cl_record,
 				unsigned long cc_line_number,
 				long polarity,
 				unsigned long pulse_duration_in_microseconds );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CAMERA_LINK_H__ */
 

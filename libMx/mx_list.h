@@ -17,6 +17,10 @@
 #ifndef __MX_LIST_H__
 #define __MX_LIST_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mx_list_entry_type {
 	struct mx_list_type *list;
 
@@ -61,6 +65,10 @@ MX_API mx_status_type mx_list_traverse( MX_LIST *list,
 MX_API mx_status_type mx_list_find_list_entry( MX_LIST *list,
 					void *list_entry_data,
 					MX_LIST_ENTRY **list_entry );
-						
+			
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __MX_LIST_H__ */
 

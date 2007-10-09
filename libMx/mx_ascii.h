@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_ASCII_H__
 #define __MX_ASCII_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MX_NUL	0x00
 #define MX_SOH	0x01
@@ -84,6 +88,10 @@
 #define MX_CTRL_RIGHT_BRACKET	0x1d
 #define MX_CTRL_ACCENT_MARK	0x1e
 #define MX_CTRL_UNDERSCORE	0x1f
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_ASCII_H__ */
 

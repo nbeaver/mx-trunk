@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_MCA_H__
 #define __MX_MCA_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mx_record.h"
 
@@ -436,5 +440,9 @@ MX_API mx_status_type mx_mca_get_output_count_rate( MX_RECORD *mca_record,
 MX_API mx_status_type mx_mca_default_get_parameter_handler( MX_MCA *mca );
 
 MX_API mx_status_type mx_mca_default_set_parameter_handler( MX_MCA *mca );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_MCA_H__ */

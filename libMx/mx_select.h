@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_SELECT_H__
 #define __MX_SELECT_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(OS_AIX)
 
@@ -54,6 +58,10 @@
 
     extern int select( int, fd_set *, fd_set *, fd_set *, struct timeval * );
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __MX_SELECT_H__ */

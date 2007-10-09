@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_VINLINE_H__
 #define __MX_VINLINE_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 MX_API_PRIVATE mx_status_type mxv_inline_variable_initialize_type( long );
 MX_API_PRIVATE mx_status_type mxv_inline_variable_create_record_structures(
@@ -61,6 +65,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint64_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_float_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_double_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_record_variable_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_VINLINE_H__ */
 

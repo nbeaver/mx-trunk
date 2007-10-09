@@ -17,6 +17,10 @@
 #ifndef __MX_AREA_DETECTOR_H__
 #define __MX_AREA_DETECTOR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MX_AREA_DETECTOR_USE_DEZINGER	TRUE
 
 #include "mx_callback.h"
@@ -973,6 +977,10 @@ MX_API_PRIVATE mx_status_type mx_area_detector_compute_new_binning(
 						long parameter_type,
 						int num_allowed_binsizes,
 						long *allowed_binsize_array );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_AREA_DETECTOR_H__ */
 

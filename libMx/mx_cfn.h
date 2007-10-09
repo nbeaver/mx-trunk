@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_CFN_H__
 #define __MX_CFN_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 				/*  +---- default on Linux/Unix
 				 *  |
@@ -85,6 +89,10 @@ MX_API char *mx_normalize_filename( char *original_filename,
 
 #define mx_construct_absolute_filename(o,n,s) \
     mx_construct_control_system_filename( MX_CFN_ABSOLUTE, (o), (n), (s) )
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MX_CFN_H__ */
 
