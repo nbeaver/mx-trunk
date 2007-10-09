@@ -269,24 +269,31 @@ EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_i386.a
 # gcc specific flags
 #
 GCCFLAGS = -Wall -Werror \
--Wstrict-prototypes \
 -Wpointer-arith \
 -Wcast-align \
 -Wcast-qual \
 -Wshadow \
--Wmissing-prototypes \
--Wnested-externs \
 -Winline
+
+GCCFLAGS_C = \
+-Wstrict-prototypes \
+-Wmissing-prototypes \
+-Wnested-externs
 
 # Intel x86/m68k/sparc with GCC under Linux.
 #
 CC      = gcc
 
-CFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+CFLAGS  = -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
 # Turn on optimization
-# 
-#CFLAGS += -O2
+#
+OPTIMIZE = -O2
+CFLAGS += $(OPTIMIZE)
 
 #---
 

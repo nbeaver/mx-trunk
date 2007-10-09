@@ -2347,7 +2347,7 @@ mx_print_field_value( FILE *file,
 	MX_DRIVER *driver;
 	long field_type;
 	int c, i, length;
-	char *typename;
+	char *mx_typename;
 
 	field_type = field->datatype;
 
@@ -2415,12 +2415,12 @@ mx_print_field_value( FILE *file,
 		} else {
 			if ( strcmp( field->name, "type" ) == 0 ) {
 
-				typename = driver->name;
+				mx_typename = driver->name;
 
-				length = (int) strlen( typename );
+				length = (int) strlen( mx_typename );
 
 				for ( i = 0; i < length; i++ ) {
-					c = (int) typename[i];
+					c = (int) mx_typename[i];
 
 					if ( islower(c) ) {
 						c = toupper(c);

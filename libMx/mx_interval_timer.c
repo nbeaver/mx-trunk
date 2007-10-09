@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,7 +247,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = win32_mmtimer_private;
+	(*itimer)->private_ptr = win32_mmtimer_private;
 
 	win32_mmtimer_private->timer_id = 0;
 
@@ -292,7 +292,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
-	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)itimer->private_ptr;
 
 	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL )
 		return MX_SUCCESSFUL_RESULT;
@@ -330,7 +330,7 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 		"The busy pointer passed was NULL." );
 	}
 
-	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)itimer->private_ptr;
 
 	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -368,7 +368,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
-	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)itimer->private_ptr;
 
 	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -457,7 +457,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
-	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)itimer->private_ptr;
 
 	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -577,7 +577,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 			calling_fname );
 	}
 
-	*itimer_private = (MX_VMS_ITIMER_PRIVATE *) itimer->private;
+	*itimer_private = (MX_VMS_ITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( (*itimer_private) == (MX_VMS_ITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -607,7 +607,7 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 
 	itimer = (MX_INTERVAL_TIMER *) args;
 
-	vms_itimer_private = (MX_VMS_ITIMER_PRIVATE *) itimer->private;
+	vms_itimer_private = (MX_VMS_ITIMER_PRIVATE *) itimer->private_ptr;
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: itimer = %p, vms_itimer_private = %p",
@@ -796,7 +796,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = vms_itimer_private;
+	(*itimer)->private_ptr = vms_itimer_private;
 
 	/* Allocate an event flag for this timer. */
 
@@ -1398,7 +1398,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 			calling_fname );
 	}
 
-	*itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private;
+	*itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( (*itimer_private) == (MX_POSIX_ITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1539,7 +1539,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 
 	itimer = (MX_INTERVAL_TIMER *) args;
 
-	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private;
+	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private_ptr;
 
 	/* Setup the signal mask that the thread uses. */
 
@@ -1816,7 +1816,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = posix_itimer_private;
+	(*itimer)->private_ptr = posix_itimer_private;
 
 	/* Configure the event handler for the timer. */
 
@@ -2193,7 +2193,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 			calling_fname );
 	}
 
-	*itimer_private = (MX_KQUEUE_ITIMER_PRIVATE *) itimer->private;
+	*itimer_private = (MX_KQUEUE_ITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( (*itimer_private) == (MX_KQUEUE_ITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2339,7 +2339,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = kqueue_itimer_private;
+	(*itimer)->private_ptr = kqueue_itimer_private;
 
 	/* Create the kqueue specific data structures. */
 
@@ -2603,7 +2603,7 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 			calling_fname );
 	}
 
-	*itimer_private = (MX_MACH_ITIMER_PRIVATE *) itimer->private;
+	*itimer_private = (MX_MACH_ITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( (*itimer_private) == (MX_MACH_ITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2890,7 +2890,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = mach_itimer_private;
+	(*itimer)->private_ptr = mach_itimer_private;
 
 	/* Initialize the MacOS X specific data structures. */
 
@@ -3474,7 +3474,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->num_overruns = 0;
 	(*itimer)->callback_function = callback_function;
 	(*itimer)->callback_args = callback_args;
-	(*itimer)->private = setitimer_private;
+	(*itimer)->private_ptr = setitimer_private;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3500,7 +3500,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
+	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( setitimer_private != (MX_SETITIMER_PRIVATE *) NULL ) {
 		mx_free( setitimer_private );
@@ -3562,7 +3562,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
-	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
+	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( setitimer_private == (MX_SETITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -3742,7 +3742,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 		"The seconds_till_expiration passed was NULL." );
 	}
 
-	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
+	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private_ptr;
 
 	if ( setitimer_private == (MX_SETITIMER_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,7 @@ mxfh_autoscale_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The MX_AUTOSCALE_MEASUREMENT_FAULT pointer for fault handler '%s' "
-	"passed by '%s' is NULL.", fault_handler->typename, calling_fname );
+	"passed by '%s' is NULL.", fault_handler->mx_typename, calling_fname );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -201,7 +201,7 @@ mxfh_autoscale_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 
 	fault_handler_ptr->scan = scan;
 	fault_handler_ptr->type = fault_driver->type;
-	fault_handler_ptr->typename = fault_driver->name;
+	fault_handler_ptr->mx_typename = fault_driver->name;
 	fault_handler_ptr->fault_status = 0;
 	fault_handler_ptr->reset_flags = 0;
 	fault_handler_ptr->type_struct = autoscale_fault_struct;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -124,8 +124,8 @@ mxdf_child_open( MX_DATAFILE *datafile )
 
 	child_file_struct->local_parent_copy.type = parent_datafile->type;
 
-	strlcpy( child_file_struct->local_parent_copy.typename,
-				parent_datafile->typename,
+	strlcpy( child_file_struct->local_parent_copy.mx_typename,
+				parent_datafile->mx_typename,
 				MXU_DATAFILE_TYPE_NAME_LENGTH );
 	
 	strlcpy( child_file_struct->local_parent_copy.options,

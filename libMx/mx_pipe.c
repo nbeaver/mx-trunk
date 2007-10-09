@@ -57,7 +57,7 @@ mx_pipe_get_pointers( MX_PIPE *mx_pipe,
 			calling_fname );
 	}
 
-	(*win32_pipe) = mx_pipe->private;
+	(*win32_pipe) = mx_pipe->private_ptr;
 
 	if ( (*win32_pipe) == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -102,7 +102,7 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 		"Unable to allocate memory for an MX_WIN32_PIPE pointer." );
 	}
 
-	(*mx_pipe)->private = win32_pipe;
+	(*mx_pipe)->private_ptr = win32_pipe;
 
 	/* Make sure the pipe handles can be inherited by a new process. */
 
@@ -487,7 +487,7 @@ mx_pipe_get_pointers( MX_PIPE *mx_pipe,
 			calling_fname );
 	}
 
-	(*unix_pipe) = mx_pipe->private;
+	(*unix_pipe) = mx_pipe->private_ptr;
 
 	if ( (*unix_pipe) == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -530,7 +530,7 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 		"Unable to allocate memory for an MX_UNIX_PIPE pointer." );
 	}
 
-	(*mx_pipe)->private = unix_pipe;
+	(*mx_pipe)->private_ptr = unix_pipe;
 
 	os_status = pipe( pipe_array );
 

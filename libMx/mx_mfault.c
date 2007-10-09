@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ mx_measurement_fault_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MEASUREMENT_FAULT_FUNCTION_LIST pointer "
 			"for fault handler '%s' passed by '%s' is NULL.",
-			fault_handler->typename,
+			fault_handler->mx_typename,
 			calling_fname );
 	}
 
@@ -222,7 +222,7 @@ mx_measurement_fault_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The destroy_handler function pointer for fault handler '%s' is NULL.",
-			fault_handler->typename );
+			fault_handler->mx_typename );
 	}
 
 	mx_status = ( *fptr ) ( fault_handler );
@@ -258,7 +258,7 @@ mx_measurement_fault_check_for_fault(
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MEASUREMENT_FAULT_FUNCTION_LIST pointer "
 			"for fault handler '%s' is NULL.",
-			fault_handler->typename );
+			fault_handler->mx_typename );
 	}
 
 	fptr = function_list->check_for_fault;
@@ -266,7 +266,7 @@ mx_measurement_fault_check_for_fault(
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The check_for_fault function pointer for fault handler '%s' is NULL.",
-			fault_handler->typename );
+			fault_handler->mx_typename );
 	}
 
 	mx_status = ( *fptr ) ( fault_handler );
@@ -299,7 +299,7 @@ mx_measurement_fault_reset( MX_MEASUREMENT_FAULT *fault_handler,
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The reset function pointer for fault handler '%s' is NULL.",
-			fault_handler->typename );
+			fault_handler->mx_typename );
 	}
 
 	fault_handler->reset_flags = reset_flags;

@@ -868,7 +868,7 @@ mx_virtual_timer_create( MX_VIRTUAL_TIMER **vtimer,
 	(*vtimer)->num_overruns = 0;
 	(*vtimer)->callback_function = callback_function;
 	(*vtimer)->callback_args = callback_args;
-	(*vtimer)->private = NULL;
+	(*vtimer)->private_ptr = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }

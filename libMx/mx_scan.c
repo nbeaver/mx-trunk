@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,7 +93,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	scan->measurement.type              = measurement_type_entry->type;
-	scan->measurement.typename          = scan->measurement_type;
+	scan->measurement.mx_typename       = scan->measurement_type;
 	scan->measurement.measurement_type_struct = NULL;
 	scan->measurement.measurement_function_list
 			= measurement_type_entry->measurement_function_list;
@@ -110,7 +110,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	ptr = strchr( scan->datafile_description, ':' );
 
 	if ( ptr == NULL ) {
-		strlcpy( scan->datafile.typename,
+		strlcpy( scan->datafile.mx_typename,
 				scan->datafile_description,
 				MXU_DATAFILE_TYPE_NAME_LENGTH );
 
@@ -129,7 +129,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 				scan->datafile_description );
 		}
 
-		strlcpy( scan->datafile.typename,
+		strlcpy( scan->datafile.mx_typename,
 				scan->datafile_description,
 				length );
 
@@ -144,8 +144,8 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 #if 0
 	if ( strlen( scan->datafile.options ) > 0 ) {
 		MX_DEBUG(-2,
-		("Scan '%s' data, typename = '%s', type_arguments = '%s'",
-			scan->record->name, scan->datafile.typename,
+		("Scan '%s' data, mx_typename = '%s', type_arguments = '%s'",
+			scan->record->name, scan->datafile.mx_typename,
 			scan->datafile.options));
 	}
 #endif
@@ -153,7 +153,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	/* Find the driver for the specified datafile type. */
 
 	mx_status = mx_get_datafile_type_by_name( mx_datafile_type_list,
-			scan->datafile.typename, &datafile_type_entry );
+			scan->datafile.mx_typename, &datafile_type_entry );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -188,7 +188,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	ptr = strchr( scan->plot_description, ':' );
 
 	if ( ptr == NULL ) {
-		strlcpy( scan->plot.typename,
+		strlcpy( scan->plot.mx_typename,
 				scan->plot_description,
 				MXU_PLOT_TYPE_NAME_LENGTH );
 
@@ -207,7 +207,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 				scan->plot_description );
 		}
 
-		strlcpy( scan->plot.typename,
+		strlcpy( scan->plot.mx_typename,
 				scan->plot_description,
 				length );
 
@@ -222,8 +222,8 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 #if 0
 	if ( strlen( scan->plot.options ) > 0 ) {
 		MX_DEBUG(-2,
-		("Scan '%s' plot, typename = '%s', type_arguments = '%s'",
-			scan->record->name, scan->plot.typename,
+		("Scan '%s' plot, mx_typename = '%s', type_arguments = '%s'",
+			scan->record->name, scan->plot.mx_typename,
 			scan->plot.options));
 	}
 #endif
@@ -231,7 +231,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	/* Find the driver for the specified plot type. */
 
 	mx_status = mx_get_plot_type_by_name( mx_plot_type_list,
-			scan->plot.typename, &plot_type_entry );
+			scan->plot.mx_typename, &plot_type_entry );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

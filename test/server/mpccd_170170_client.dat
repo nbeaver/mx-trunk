@@ -4,6 +4,6 @@ rs232      interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd 0x0 -1 0x0 adser
 #
 vad_control variable net_variable net_long "" "" adserver ad.dh_control 1 1 0
 ad_control device digital_output network_doutput "" "" 0 adserver ad.dh_control
-ad_high_speed device digital_output bit_out "" "" 0 0 ad_control 1 1 ad_control 1 1
-ad_test_mode  device digital_output bit_out "" "" 0 0 ad_control 0 1 ad_control 0 1
-ad_sub_top    variable net_variable net_bool "" "" adserver ad.subimage_uses_top_half 1 1 0
+high_speed device digital_output bit_out "" "" 0 0 ad_control 1 1 ad_control 1 1
+test_mode  device digital_output bit_out "" "" 0 0 ad_control 0 1 ad_control 0 1
+use_top    variable net_variable net_bool "" "" adserver ad.use_top_half_of_detector 1 1 0

@@ -23,7 +23,7 @@
 #define MXF_PIPE_BOTH	(MXF_PIPE_READ | MXF_PIPE_WRITE)
 
 typedef struct {
-	void *private;
+	void *private_ptr;
 } MX_PIPE;
 
 MX_API mx_status_type mx_pipe_open( MX_PIPE **mx_pipe );

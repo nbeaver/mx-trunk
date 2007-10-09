@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,7 +247,7 @@ mx_deconfigure_measurement_type( MX_MEASUREMENT *measurement )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	    "deconfigure function pointer for measurement type '%s' is NULL.",
-			measurement->typename );
+			measurement->mx_typename );
 	}
 
 	mx_status = (*fptr) ( measurement );
@@ -286,7 +286,7 @@ mx_prescan_measurement_processing( MX_MEASUREMENT *measurement )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
     "prescan_processing function pointer for measurement type '%s' is NULL.",
-			measurement->typename );
+			measurement->mx_typename );
 	}
 
 	mx_status = (*fptr) ( measurement );
@@ -325,7 +325,7 @@ mx_postscan_measurement_processing( MX_MEASUREMENT *measurement )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
     "postscan_processing function pointer for measurement type '%s' is NULL.",
-			measurement->typename );
+			measurement->mx_typename );
 	}
 
 	mx_status = (*fptr) ( measurement );

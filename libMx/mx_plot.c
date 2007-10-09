@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,7 +223,7 @@ mx_plot_close( MX_PLOT *plot )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"close function pointer for plot type '%s' is NULL.",
-			plot->typename );
+			plot->mx_typename );
 	}
 
 	status = (*fptr) ( plot );

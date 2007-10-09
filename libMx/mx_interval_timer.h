@@ -10,7 +10,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ struct mx_interval_timer_struct {
 	void (*callback_function)( struct mx_interval_timer_struct *itimer,
 				void *callback_args );
 	void *callback_args;
-	void *private;
+	void *private_ptr;
 };
 
 typedef struct mx_interval_timer_struct MX_INTERVAL_TIMER;

@@ -68,7 +68,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Unable to allocate memory for a HANDLE pointer." );
 	}
 	
-	(*semaphore)->private = semaphore_handle_ptr;
+	(*semaphore)->private_ptr = semaphore_handle_ptr;
 
 	(*semaphore)->semaphore_type = MXT_SEM_WIN32;
 
@@ -143,7 +143,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	semaphore_handle_ptr = semaphore->private;
+	semaphore_handle_ptr = semaphore->private_ptr;
 
 	if ( semaphore_handle_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -187,7 +187,7 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->private;
+	semaphore_handle_ptr = semaphore->private_ptr;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -239,7 +239,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->private;
+	semaphore_handle_ptr = semaphore->private_ptr;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -278,7 +278,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->private;
+	semaphore_handle_ptr = semaphore->private_ptr;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -359,7 +359,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 		"The current_value pointer passed was NULL." );
 	}
 
-	semaphore_handle_ptr = semaphore->private;
+	semaphore_handle_ptr = semaphore->private_ptr;
 
 	if ( semaphore_handle_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -508,7 +508,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	"Unable to allocate memory for an MX_VMS_SEMAPHORE_PRIVATE pointer." );
 	}
 	
-	(*semaphore)->private = vms_private;
+	(*semaphore)->private_ptr = vms_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_VMS;
 
@@ -594,7 +594,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	vms_private = semaphore->private;
+	vms_private = semaphore->private_ptr;
 
 	if ( vms_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -614,7 +614,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 
 	mx_free( semaphore->name );
 
-	mx_free( semaphore->private );
+	mx_free( semaphore->private_ptr );
 
 	mx_free( semaphore );
 
@@ -630,7 +630,7 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	vms_private = semaphore->private;
+	vms_private = semaphore->private_ptr;
 
 	if ( vms_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -660,7 +660,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	vms_private = semaphore->private;
+	vms_private = semaphore->private_ptr;
 
 	if ( vms_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -690,7 +690,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	vms_private = semaphore->private;
+	vms_private = semaphore->private_ptr;
 
 	if ( vms_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -772,9 +772,10 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	/* Create the semaphore. */
 
-	(*semaphore)->private = semCCreate( SEM_Q_FIFO, (int) initial_value );
+	(*semaphore)->private_ptr
+		= semCCreate( SEM_Q_FIFO, (int) initial_value );
 
-	if ( (*semaphore)->private == NULL ) {
+	if ( (*semaphore)->private_ptr == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Insufficient memory exists to initialize the semaphore." );
 	}
@@ -797,7 +798,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -825,7 +826,7 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -860,7 +861,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -892,7 +893,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -937,7 +938,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 		"The current_value pointer passed was NULL." );
 	}
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1052,7 +1053,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		break;
 	}
 
-	(*semaphore)->private = semaphore_id;
+	(*semaphore)->private_ptr = semaphore_id;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1072,7 +1073,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == (rtems_id *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1108,7 +1109,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		break;
 	}
 
-	mx_free( semaphore->private );
+	mx_free( semaphore->private_ptr );
 	mx_free( semaphore );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1123,7 +1124,7 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == (rtems_id *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1161,7 +1162,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == (rtems_id *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1194,7 +1195,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == (rtems_id *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1244,7 +1245,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 		"The current_value pointer passed was NULL." );
 	}
 
-	semaphore_id = semaphore->private;
+	semaphore_id = semaphore->private_ptr;
 
 	if ( semaphore_id == (rtems_id *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1520,7 +1521,7 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 
 	*new_semaphore_file = NULL;
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1665,7 +1666,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 			"MX_SYSTEM_V_SEMAPHORE_PRIVATE structure." );
 	}
 
-	(*semaphore)->private = system_v_private;
+	(*semaphore)->private_ptr = system_v_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_SYSV;
 
@@ -1948,7 +1949,7 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2040,7 +2041,7 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2098,7 +2099,7 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2156,7 +2157,7 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2218,7 +2219,7 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	system_v_private = semaphore->private;
+	system_v_private = semaphore->private_ptr;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2281,7 +2282,7 @@ mx_posix_sem_init( MX_SEMAPHORE *semaphore,
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private;
+	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private_ptr;
 
 	/* Create an unnamed semaphore. */
 
@@ -2333,7 +2334,7 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int saved_errno;
 
-	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private;
+	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private_ptr;
 
 	/* Create or open a named semaphore. */
 
@@ -2493,7 +2494,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		}
 	}
 
-	(*semaphore)->private = posix_private;
+	(*semaphore)->private_ptr = posix_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
 
@@ -2616,7 +2617,7 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	posix_private = semaphore->private;
+	posix_private = semaphore->private_ptr;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2688,11 +2689,11 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	}
 	MX_DEBUG(-2,("%s: semaphore->semaphore_type = %d",
 			fname, semaphore->semaphore_type));
-	MX_DEBUG(-2,("%s: semaphore->private = %p",
-			fname, semaphore->private));
+	MX_DEBUG(-2,("%s: semaphore->private_ptr = %p",
+			fname, semaphore->private_ptr));
 #endif
 
-	posix_private = semaphore->private;
+	posix_private = semaphore->private_ptr;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2739,7 +2740,7 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	posix_private = semaphore->private;
+	posix_private = semaphore->private_ptr;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2776,7 +2777,7 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	posix_private = semaphore->private;
+	posix_private = semaphore->private_ptr;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -2829,7 +2830,7 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 	status = saved_errno = 0;  /* Keep quiet about unused variables. */
 
-	posix_private = semaphore->private;
+	posix_private = semaphore->private_ptr;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -3082,7 +3083,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Unable to allocate memory for a unsigned long pointer." );
 	}
 	
-	(*semaphore)->private = semaphore_value_ptr;
+	(*semaphore)->private_ptr = semaphore_value_ptr;
 
 	(*semaphore)->semaphore_type = MXT_SEM_NONE;
 
@@ -3122,7 +3123,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	semaphore_value_ptr = semaphore->private;
+	semaphore_value_ptr = semaphore->private_ptr;
 
 	if ( semaphore_value_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -3155,7 +3156,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_value_ptr = semaphore->private;
+	semaphore_value_ptr = semaphore->private_ptr;
 
 	if ( semaphore_value_ptr == (unsigned long *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -3173,7 +3174,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_value_ptr = semaphore->private;
+	semaphore_value_ptr = semaphore->private_ptr;
 
 	if ( semaphore_value_ptr == (unsigned long *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -3202,7 +3203,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	}
 
 	*current_value = (unsigned long)
-				*((unsigned long *) semaphore->private);
+				*((unsigned long *) semaphore->private_ptr);
 
 	return MX_SUCCESSFUL_RESULT;
 }

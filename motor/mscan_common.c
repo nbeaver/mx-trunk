@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1031,7 +1031,7 @@ motor_setup_datafile_and_plot_parameters(
 
 	if ( datafile != NULL ) {
 		for ( i = 0; i < num_file_types; i++ ) {
-			if ( strcmp( datafile->typename,
+			if ( strcmp( datafile->mx_typename,
 						valid_file_types[i] ) == 0 ) {
 
 				default_file_type_number = i;
@@ -1095,7 +1095,7 @@ motor_setup_datafile_and_plot_parameters(
 
 	if ( plot != NULL ) {
 		for ( i = 0; i < num_plot_types; i++ ) {
-			if ( strcmp( plot->typename,
+			if ( strcmp( plot->mx_typename,
 						valid_plot_types[i] ) == 0 ) {
 
 				default_plot_type_number = i;

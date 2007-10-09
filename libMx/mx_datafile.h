@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ typedef struct {
 	void *scan;
 
 	long type;
-	char typename[MXU_DATAFILE_TYPE_NAME_LENGTH + 1];
+	char mx_typename[MXU_DATAFILE_TYPE_NAME_LENGTH + 1];
 	char options[MXU_DATAFILE_OPTIONS_LENGTH + 1];
 	char *filename;
 

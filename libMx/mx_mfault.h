@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ typedef struct {
 	void *scan;	/* Reference to the MX_SCAN this handler is for. */
 
 	long type;
-	char *typename;
+	char *mx_typename;
 
 	int fault_status;
 	int reset_flags;

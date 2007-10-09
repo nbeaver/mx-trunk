@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ mxph_topup_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The MX_TOPUP_MEASUREMENT_PERMIT pointer for permit handler '%s' "
-	"passed by '%s' is NULL.", permit_handler->typename, calling_fname );
+	"passed by '%s' is NULL.", permit_handler->mx_typename, calling_fname );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -163,7 +163,7 @@ mxph_topup_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 
 	permit_handler_ptr->scan = scan;
 	permit_handler_ptr->type = permit_driver->type;
-	permit_handler_ptr->typename = permit_driver->name;
+	permit_handler_ptr->mx_typename = permit_driver->name;
 	permit_handler_ptr->permit_status = FALSE;
 	permit_handler_ptr->type_struct = topup_permit_struct;
 	permit_handler_ptr->function_list = permit_driver->function_list;

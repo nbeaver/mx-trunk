@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ mx_measurement_permit_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MEASUREMENT_PERMIT_FUNCTION_LIST pointer "
 			"for permit handler '%s' passed by '%s' is NULL.",
-			permit_handler->typename,
+			permit_handler->mx_typename,
 			calling_fname );
 	}
 
@@ -222,7 +222,7 @@ mx_measurement_permit_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The destroy_handler function pointer for permit handler '%s' is NULL.",
-			permit_handler->typename );
+			permit_handler->mx_typename );
 	}
 
 	mx_status = ( *fptr ) ( permit_handler );
@@ -258,7 +258,7 @@ mx_measurement_permit_check_for_permission(
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MEASUREMENT_PERMIT_FUNCTION_LIST pointer "
 			"for permit handler '%s' is NULL.",
-			permit_handler->typename );
+			permit_handler->mx_typename );
 	}
 
 	fptr = function_list->check_for_permission;
@@ -266,7 +266,7 @@ mx_measurement_permit_check_for_permission(
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "The check_for_permission function pointer for permit handler '%s' is NULL.",
-			permit_handler->typename );
+			permit_handler->mx_typename );
 	}
 
 	mx_status = ( *fptr ) ( permit_handler );
@@ -306,7 +306,7 @@ mx_measurement_permit_wait_for_permission(
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MEASUREMENT_PERMIT_FUNCTION_LIST pointer "
 			"for permit handler '%s' is NULL.",
-			permit_handler->typename );
+			permit_handler->mx_typename );
 	}
 
 	fptr = function_list->check_for_permission;
@@ -314,7 +314,7 @@ mx_measurement_permit_wait_for_permission(
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "The check_for_permission function pointer for permit handler '%s' is NULL.",
-			permit_handler->typename );
+			permit_handler->mx_typename );
 	}
 
 	/* Wait until we get permission to do the measurement or until

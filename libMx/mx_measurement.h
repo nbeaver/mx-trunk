@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ typedef struct {
 	void *scan;
 
 	long type;
-	char *typename;
+	char *mx_typename;
 	char *measurement_arguments;
 	void *measurement_type_struct;
 	void *measurement_function_list;
