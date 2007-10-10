@@ -17,10 +17,6 @@
 #ifndef _MX_OSDEF_H_
 #define _MX_OSDEF_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Define OS_UNIX if this is a significantly Unix-like operating system. */
 
 #if defined(OS_LINUX) || defined(OS_AIX) || defined(OS_SOLARIS) \
@@ -117,10 +113,6 @@ extern "C" {
 #  define HAVE_MAIN_ROUTINE		0
 #else
 #  define HAVE_MAIN_ROUTINE		1
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* _MX_OSDEF_H_ */

@@ -17,10 +17,6 @@
 #ifndef __MX_SYSLOG_H__
 #define __MX_SYSLOG_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(OS_UNIX)
 
 #  define MX_SYSLOG_IS_AVAILABLE	TRUE
@@ -31,9 +27,19 @@ extern "C" {
 
 #  define MX_SYSLOG_IS_AVAILABLE	TRUE
 
+   /* Make the definition of the syslog functions C++ safe. */
+
+   #ifdef __cplusplus
+   extern "C" {
+   #endif
+
    extern void syslog( int, const char *, ... );
    extern void openlog( const char *, int, int );
    extern void closelog( void );
+
+   #ifdef __cplusplus
+   }
+   #endif
 
 #  define LOG_EMERG	0
 #  define LOG_ALERT	1
@@ -61,10 +67,15 @@ extern "C" {
 
 #define MXF_SYSLOG_USE_STDERR	1
 
+/* Make the definition of mx_install_syslog_handerl() C++ safe. */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MX_API mx_status_type mx_install_syslog_handler( char *ident_string,
 						int log_number,
 						int log_options );
-
 #ifdef __cplusplus
 }
 #endif

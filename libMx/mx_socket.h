@@ -77,6 +77,8 @@
 
 #include "mx_stdint.h"
 
+/* Make the rest of the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

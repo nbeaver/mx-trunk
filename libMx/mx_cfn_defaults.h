@@ -17,10 +17,6 @@
 #ifndef __MX_CFN_DEFAULTS_H__
 #define __MX_CFN_DEFAULTS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "mx_osdef.h"
 
 #if defined( HAVE_LSB )
@@ -52,10 +48,6 @@ extern "C" {
 #   define MX_CFN_CWD_DIR		"."
 
 #   define MX_CFN_DEFAULT_MXDIR		"/opt/mx"
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* __MX_CFN_DEFAULTS_H__ */

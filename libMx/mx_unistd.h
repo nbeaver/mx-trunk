@@ -18,14 +18,20 @@
 #ifndef _MX_UNISTD_H_
 #define _MX_UNISTD_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(OS_WIN32)
 #  include <io.h>
 
+   /* Make the definition of sleep() C++ safe. */
+
+#  ifdef __cplusplus
+   extern "C" {
+#  endif
+
    unsigned int sleep( unsigned int seconds );
+
+#  ifdef __cplusplus
+   }
+#  endif
 
 #else
 #  include <unistd.h>
@@ -48,18 +54,24 @@ extern int access( char *pathname, int mode );
 #  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS) \
 	|| defined(OS_ECOS)
 
+      /* Make the definition of getopt() C++ safe. */
+
+#     ifdef __cplusplus
+      extern "C" {
+#     endif
+
       MX_API int getopt(int argc, char *argv[], char *optstring);
 
 #     if !defined(__MX_LIBRARY__)
          MX_API char *optarg;
          MX_API int   optind;
 #     endif
+
+#     ifdef __cplusplus
+      }
+#     endif
 #  endif
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* _MX_UNISTD_H_ */

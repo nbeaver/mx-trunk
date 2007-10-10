@@ -20,6 +20,8 @@
 #ifndef __MX_INTERVAL_TIMER_H__
 #define __MX_INTERVAL_TIMER_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -17,6 +17,8 @@
 #ifndef __MX_SAMPLE_CHANGER_H__
 #define __MX_SAMPLE_CHANGER_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

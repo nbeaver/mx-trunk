@@ -32,17 +32,25 @@
 #include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
 #endif
 
+#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
+
+/* However, some operating systems do not define 'struct timespec'.
+ * We include a C++ safe declaration below.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* However, some operating systems do not define 'struct timespec'. */
-
-#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
 struct timespec {
 	time_t tv_sec;	  /* seconds */
 	long   tv_nsec;   /* nanoseconds */
 };
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 /*-----*/
@@ -182,6 +190,12 @@ struct timespec {
 #  else
 #     error Maximum path length not yet defined for this platform.
 #  endif
+#endif
+
+/* Make the rest of the header file C++ safe. */
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /*------------------------------------------------------------------------*/

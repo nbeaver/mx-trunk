@@ -21,6 +21,8 @@
 #ifndef __MX_HRT_DEBUG_H__
 #define __MX_HRT_DEBUG_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

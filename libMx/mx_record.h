@@ -25,6 +25,8 @@
 #include "mx_stdint.h"
 #include "mx_clock.h"
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

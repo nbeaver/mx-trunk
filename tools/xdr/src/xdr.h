@@ -16,7 +16,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,12 @@
 
 #ifndef __XDR_H__
 #define __XDR_H__
+
+/* Make the header file C++ safe. */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(OS_WIN32) || defined(OS_DJGPP)
 #  define MX_DATAFMT_NATIVE	MX_DATAFMT_LITTLE_ENDIAN
@@ -111,6 +117,10 @@ MX_API bool_t mx_xdr_u_int( MX_XDR *xdrs, u_int *u_int_ptr );
 MX_API bool_t mx_xdr_long( MX_XDR *xdrs, long *long_ptr );
 
 MX_API bool_t mx_xdr_u_long( MX_XDR *xdrs, u_long *u_long_ptr );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __XDR_H__ */
 

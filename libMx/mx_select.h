@@ -17,10 +17,6 @@
 #ifndef __MX_SELECT_H__
 #define __MX_SELECT_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(OS_AIX)
 
 #   include <sys/select.h>
@@ -56,12 +52,18 @@ extern "C" {
 
 #else
 
-    extern int select( int, fd_set *, fd_set *, fd_set *, struct timeval * );
+/* Add a C++ safe custom declaration. */
 
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+    extern int select( int, fd_set *, fd_set *, fd_set *, struct timeval * );
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif /* __MX_SELECT_H__ */

@@ -18,6 +18,8 @@
 #ifndef __MX_BLUICE_H__
 #define __MX_BLUICE_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

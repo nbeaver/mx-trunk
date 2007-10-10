@@ -23,10 +23,6 @@
 #ifndef __MX_NAMEFIX_H__
 #define __MX_NAMEFIX_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(OS_VMS)
 
 /* mx_area_detector_get_bytes_per_pixel() collides with
@@ -37,8 +33,5 @@ extern "C" {
 
 #endif /* OS_VMS */
 
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* __MX_NAMEFIX_H__ */
+

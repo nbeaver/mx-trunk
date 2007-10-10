@@ -49,9 +49,19 @@
 
 #endif
 
+/* Make these definitions C++ safe. */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MX_API bool_t mx_xdr_hyper( XDR *xdrs, quad_t *quad_ptr );
 
 MX_API bool_t mx_xdr_u_hyper( XDR *xdrs, u_quad_t *u_quad_ptr );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __XDR_HYPER_H__ */
 

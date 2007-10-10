@@ -22,10 +22,6 @@
 
 #include "mx_program_model.h"	/* We get the native word size from here. */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* C99 states that these macros should only be defined in C++ if they
  * are specifically requested.
  */
@@ -71,10 +67,6 @@ extern "C" {
 #  define INTMAX_MAX		INT64_MAX
 #  define UINTMAX_MAX	UINT64_MAX
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* __MX_PRIVATE_LIMITS__ */

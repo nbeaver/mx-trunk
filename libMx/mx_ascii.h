@@ -17,10 +17,6 @@
 #ifndef __MX_ASCII_H__
 #define __MX_ASCII_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define MX_NUL	0x00
 #define MX_SOH	0x01
 #define MX_STX	0x02
@@ -88,10 +84,6 @@ extern "C" {
 #define MX_CTRL_RIGHT_BRACKET	0x1d
 #define MX_CTRL_ACCENT_MARK	0x1e
 #define MX_CTRL_UNDERSCORE	0x1f
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MX_ASCII_H__ */
 

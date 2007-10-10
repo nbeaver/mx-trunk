@@ -22,6 +22,8 @@
 
 #include "mx_record.h"
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -17,6 +17,8 @@
 #ifndef __MX_DEAD_RECKONING_H__
 #define __MX_DEAD_RECKONING_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

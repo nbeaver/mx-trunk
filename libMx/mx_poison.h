@@ -36,10 +36,6 @@
 #ifndef __MX_POISON_H__
 #define __MX_POISON_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef MX_NO_POISON	/* Suppress poisoning if MX_NO_POISON is defined. */
 
 /*--- GCC version 3 or later ---*/
@@ -90,10 +86,6 @@ extern "C" {
 
 
 #endif /* MX_NO_POISON */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MX_POISON_H__ */
 

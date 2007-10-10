@@ -20,6 +20,8 @@
 #include "mxconfig.h"
 #include "mx_util.h"
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

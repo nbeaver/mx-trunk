@@ -18,6 +18,8 @@
 #ifndef __MX_NET_SOCKET_H__
 #define __MX_NET_SOCKET_H__
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

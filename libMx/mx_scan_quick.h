@@ -17,6 +17,8 @@
 #ifndef _MX_SCAN_QUICK_H_
 #define _MX_SCAN_QUICK_H_
 
+/* Make the header file C++ safe. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
