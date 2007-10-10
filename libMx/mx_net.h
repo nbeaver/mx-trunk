@@ -17,11 +17,12 @@
 #ifndef __MX_NET_H__
 #define __MX_NET_H__
 
+#include "mx_stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "mx_stdint.h"
 #include "mx_handle.h"
 #include "mx_list.h"
 

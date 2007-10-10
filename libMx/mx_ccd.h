@@ -20,11 +20,11 @@
 #ifndef __MX_CCD_H__
 #define __MX_CCD_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MXU_CCD_HEADER_NAME_LENGTH		40
 

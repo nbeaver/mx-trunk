@@ -18,11 +18,11 @@
 #ifndef __MX_DYNAMIC_LIBRARY_H__
 #define __MX_DYNAMIC_LIBRARY_H__
 
+#include "mx_stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_stdint.h"
 
 typedef struct {
 	void *object;

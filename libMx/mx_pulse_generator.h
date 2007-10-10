@@ -17,11 +17,11 @@
 #ifndef __MX_PULSE_GENERATOR_H__
 #define __MX_PULSE_GENERATOR_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 /* Values for the mode field. */
 

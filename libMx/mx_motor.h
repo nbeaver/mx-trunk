@@ -17,13 +17,11 @@
 #ifndef __MX_MOTOR_H__
 #define __MX_MOTOR_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* Include hardware and operating system dependent definitions and symbols. */
-
-#include "mx_record.h"
 
 /* ------------------------------------------------------------------ */
 #define MX_MOTOR_STEP_FUZZ    (1.0e-9)

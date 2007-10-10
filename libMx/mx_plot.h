@@ -17,12 +17,12 @@
 #ifndef __MX_PLOT_H__
 #define __MX_PLOT_H__
 
+#include "mxconfig.h"
+#include "mx_util.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mxconfig.h"
-#include "mx_util.h"
 
 /* List of plot types. */
 

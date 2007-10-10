@@ -17,11 +17,11 @@
 #ifndef __MX_CAMAC_H__
 #define __MX_CAMAC_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MX_CAMAC_Q	1
 #define MX_CAMAC_X	2

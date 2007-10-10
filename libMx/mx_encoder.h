@@ -17,11 +17,11 @@
 #ifndef __MX_ENCODER_H__
 #define __MX_ENCODER_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 typedef struct {
 	MX_RECORD *record;

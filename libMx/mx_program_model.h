@@ -17,10 +17,6 @@
 #ifndef __MX_PROGRAM_MODEL_H__
 #define __MX_PROGRAM_MODEL_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* See http://www.unix.org/version2/whatsnew/lp64_wp.html for a discussion
  * of the various programming models.  In 2006, the most common programming
  * models are:
@@ -104,9 +100,5 @@ extern "C" {
 #endif
 
 #define MX_WORDSIZE	( MX_PROGRAM_MODEL & ~0xf )
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MX_PROGRAM_MODEL_H__ */

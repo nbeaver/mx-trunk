@@ -17,11 +17,11 @@
 #ifndef __MX_PTZ_H__
 #define __MX_PTZ_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MXU_PTZ_MAX_PARAMETERS		2
 

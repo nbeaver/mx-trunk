@@ -17,11 +17,11 @@
 #ifndef __MX_AMPLIFIER_H__
 #define __MX_AMPLIFIER_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MX_AMPLIFIER_NUM_GAIN_RANGE_PARAMS	2
 

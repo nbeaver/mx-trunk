@@ -17,11 +17,11 @@
 #ifndef __MX_GPIB_H__
 #define __MX_GPIB_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MX_NUM_GPIB_ADDRESSES		31
 

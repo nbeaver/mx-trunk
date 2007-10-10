@@ -17,6 +17,8 @@
 #ifndef __MX_BIT_H__
 #define __MX_BIT_H__
 
+#include "mx_stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,8 +29,6 @@ extern "C" {
 #define MX_DATAFMT_IEEE_FLOAT		0x100
 #define MX_DATAFMT_VAX_D_FLOAT		0x200
 #define MX_DATAFMT_VAX_G_FLOAT		0x400
-
-#include "mx_stdint.h"
 
 /*---*/
 

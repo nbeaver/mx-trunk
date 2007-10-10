@@ -17,11 +17,11 @@
 #ifndef __MX_DIGITAL_INPUT_H__
 #define __MX_DIGITAL_INPUT_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points

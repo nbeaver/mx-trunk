@@ -18,11 +18,12 @@
 #ifndef __MX_VIRTUAL_TIMER_H__
 #define __MX_VIRTUAL_TIMER_H__
 
+#include "mx_stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "mx_stdint.h"
 #include "mx_interval_timer.h"
 
 struct mx_virtual_timer_struct {

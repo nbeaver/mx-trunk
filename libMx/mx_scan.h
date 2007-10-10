@@ -17,12 +17,13 @@
 #ifndef _MX_SCAN_H_
 #define _MX_SCAN_H_
 
+#include "mx_util.h"
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "mx_util.h"
-#include "mx_record.h"
 #include "mx_motor.h"
 #include "mx_scaler.h"
 #include "mx_timer.h"

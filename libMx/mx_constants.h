@@ -19,10 +19,6 @@
 
 #include <limits.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Mathematical constants are given rounded to 16 digits accuracy. */
 
 #define MX_PI    		3.141592653589793
@@ -52,10 +48,6 @@ extern "C" {
  */
 
 #define MX_HC      		12398.4186	/* in eV-angstroms */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MX_CONSTANTS_H__ */
 

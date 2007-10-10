@@ -28,11 +28,11 @@
 #ifndef __MX_DRIVER_H__
 #define __MX_DRIVER_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 /* The following is a list of currently supported server protocols.
  * The protocol values are ORed together to form the value of the field

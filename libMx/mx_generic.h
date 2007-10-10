@@ -18,11 +18,11 @@
 #ifndef __MX_GENERIC_H__
 #define __MX_GENERIC_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 /* Used by mx_generic_getchar() and mx_generic_putchar(). */
 

@@ -19,11 +19,11 @@
 #ifndef __MX_INTTYPES_H__
 #define __MX_INTTYPES_H__
 
+#include "mx_stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_stdint.h"
 
 /* The non-standard build targets are listed first. */
 

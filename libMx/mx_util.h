@@ -20,10 +20,6 @@
 #include <string.h>	/* We get 'size_t' from here. */
 #include <stdarg.h>	/* We get 'va_list' from here. */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*-----*/
 
 #include <time.h>	/* We usually get 'struct timespec' from here. */
@@ -34,6 +30,10 @@ extern "C" {
 
 #if defined( OS_DJGPP )
 #include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /* However, some operating systems do not define 'struct timespec'. */

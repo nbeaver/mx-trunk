@@ -17,13 +17,13 @@
 #ifndef _MX_DIRENT_H_
 #define _MX_DIRENT_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(OS_WIN32)
 
 #include <windows.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
 	HANDLE find_handle;
@@ -44,12 +44,13 @@ MX_API struct dirent *readdir( DIR *dir );
 
 MX_API void rewinddir( DIR *dir );
 
-#else
-#  include <dirent.h>
-#endif
-
 #ifdef __cplusplus
 }
+#endif
+
+#else  /* not OS_WIN32 */
+
+#  include <dirent.h>
 #endif
 
 #endif /* _MX_DIRENT_H_ */

@@ -20,11 +20,11 @@
 #ifndef __MX_PRIVATE_LIMITS__
 #define __MX_PRIVATE_LIMITS__
 
+#include "mx_program_model.h"	/* We get the native word size from here. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_program_model.h"	/* We get the native word size from here. */
 
 /* C99 states that these macros should only be defined in C++ if they
  * are specifically requested.

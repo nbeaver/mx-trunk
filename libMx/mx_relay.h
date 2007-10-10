@@ -17,11 +17,11 @@
 #ifndef __MX_RELAY_H__
 #define __MX_RELAY_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MXF_RELAY_IS_CLOSED		1
 #define MXF_RELAY_IS_OPEN		0

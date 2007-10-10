@@ -17,11 +17,11 @@
 #ifndef __MX_RS232_H__
 #define __MX_RS232_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 /*** Supported parity types ***/
 

@@ -24,10 +24,6 @@
 #ifndef __MX_SOCKET_H__
 #define __MX_SOCKET_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "mx_osdef.h"
 
 /* Include standard socket defines and prototypes. */
@@ -80,6 +76,10 @@ extern "C" {
 #endif
 
 #include "mx_stdint.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Define primary socket data structures. */
 

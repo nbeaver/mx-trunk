@@ -1,11 +1,11 @@
 /*
- * Name:     mx_record.h
+ * Name:    mx_record.h
  *
- * Purpose:  Header file to describe generic record support.
+ * Purpose: Header file to describe generic record support.
  *
- * Author:   William Lavender
+ * Author:  William Lavender
  *
- *------------------------------------------------------------------------
+ *--------------------------------------------------------------------------
  *
  * Copyright 1999-2007 Illinois Institute of Technology
  *
@@ -17,10 +17,6 @@
 #ifndef __MX_RECORD_H__
 #define __MX_RECORD_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stddef.h>  /* Should get the definition of offsetof() from here. */
 
 /* Include hardware and operating system dependent definitions and symbols. */
@@ -28,6 +24,10 @@ extern "C" {
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_clock.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* ------------------------------------------------------------------ */
 

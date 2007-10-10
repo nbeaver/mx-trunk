@@ -19,11 +19,11 @@
 #ifndef __MX_MEMORY_H__
 #define __MX_MEMORY_H__
 
+#include "mx_constants.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_constants.h"
 
 #define MXF_PROCESS_ID_SELF	MX_ULONG_MAX
 

@@ -17,11 +17,11 @@
 #ifndef __MX_SCALER_H__
 #define __MX_SCALER_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 /* Values for the scaler flags field. */
 

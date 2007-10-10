@@ -1,11 +1,11 @@
 /*
- * Name:     mx_stdint.h
+ * Name:    mx_stdint.h
  *
- * Purpose:  This header file declares sets of integer types having
- *           specified widths using the names from the <stdint.h>
- *           header file of the C99 standard.
+ * Purpose: This header file declares sets of integer types having
+ *          specified widths using the names from the <stdint.h>
+ *          header file of the C99 standard.
  *
- * Author:   William Lavender
+ * Author:  William Lavender
  *
  *---------------------------------------------------------------------------
  *
@@ -18,10 +18,6 @@
 
 #ifndef __MX_STDINT_H__
 #define __MX_STDINT_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "mx_program_model.h"	/* We get the native word size from here. */
 
@@ -145,10 +141,6 @@ typedef int32_t   mx_bool_type;
 
 #  include "mx_private_limits.h"
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* __MX_STDINT_H__ */

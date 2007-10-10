@@ -17,11 +17,11 @@
 #ifndef __MX_ANALOG_INPUT_H__
 #define __MX_ANALOG_INPUT_H__
 
+#include "mx_record.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mx_record.h"
 
 #define MXF_AIN_SUBTRACT_DARK_CURRENT		0x1
 #define MXF_AIN_SERVER_SUBTRACTS_DARK_CURRENT	0x2

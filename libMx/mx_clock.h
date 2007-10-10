@@ -20,10 +20,6 @@
 
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
 	unsigned long high_order;
 	unsigned long low_order;
@@ -52,10 +48,6 @@ MX_API MX_CLOCK_TICK mx_set_clock_tick_to_zero( void );
 
 #define mx_clock_tick_is_zero(t) \
 	( ((t).high_order == 0) && ((t).low_order == 0) )
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MX_CLOCK_H__ */
 

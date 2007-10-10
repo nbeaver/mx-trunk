@@ -17,12 +17,12 @@
 #ifndef __MX_DATAFILE_H__
 #define __MX_DATAFILE_H__
 
+#include "mxconfig.h"
+#include "mx_util.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mxconfig.h"
-#include "mx_util.h"
 
 #define MXU_DATAFILE_TYPE_NAME_LENGTH		20
 
