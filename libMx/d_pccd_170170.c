@@ -1754,12 +1754,12 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		ad->total_sequence_time = ad->total_acquisition_time;
 		break;
 	    }
-	    break;
-
 	    ad->sequence_start_delay = 0.0;
 
 	    ad->total_sequence_time =
 	    	ad->total_acquisition_time + ad->detector_readout_time;
+
+	    break;
 	}
 
 
