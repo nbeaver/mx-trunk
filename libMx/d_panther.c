@@ -15,7 +15,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,6 +236,8 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 	double scale, offset, move_deadband;
 	mx_status_type status;
 
+	panther = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -399,6 +401,8 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 	char *stall_string_ptr;
 	char *ptr;
 	mx_status_type status;
+
+	panther = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -765,6 +769,8 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	mx_status_type status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
+
+	panther = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1209,6 +1215,8 @@ mxd_panther_resynchronize( MX_RECORD *record )
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
+	panther = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -1420,6 +1428,8 @@ mxd_panther_motor_is_busy( MX_MOTOR *motor )
 	int num_items, moving_status;
 	mx_status_type status;
 
+	panther = NULL;
+
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -1469,6 +1479,8 @@ mxd_panther_move_absolute( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type status;
 
+	panther = NULL;
+
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -1501,6 +1513,8 @@ mxd_panther_get_position( MX_MOTOR *motor )
 	int num_items;
 	long motor_steps;
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
@@ -1551,6 +1565,8 @@ mxd_panther_set_position( MX_MOTOR *motor )
 	char c, command[80];
 	long set_position;
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
@@ -1610,6 +1626,8 @@ mxd_panther_soft_abort( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type status;
 
+	panther = NULL;
+
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -1655,6 +1673,8 @@ mxd_panther_immediate_abort( MX_MOTOR *motor )
 	char response[10];
 	mx_status_type status;
 
+	panther = NULL;
+
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -1694,6 +1714,8 @@ mxd_panther_positive_limit_hit( MX_MOTOR *motor )
 	char response[20];
 	int num_items, limit_state;
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
@@ -1743,6 +1765,8 @@ mxd_panther_negative_limit_hit( MX_MOTOR *motor )
 	int num_items, limit_state;
 	mx_status_type status;
 
+	panther = NULL;
+
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -1790,6 +1814,8 @@ mxd_panther_find_home_position( MX_MOTOR *motor )
 	char c;
 	char command[40];
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
@@ -1839,6 +1865,8 @@ mxd_panther_constant_velocity_move( MX_MOTOR *motor )
 	char c;
 	char command[40];
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 
@@ -1900,6 +1928,8 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 	long raw_speed, raw_base_speed, raw_maximum_speed;
 	long accel_slope, decel_slope;
 	mx_status_type status;
+
+	panther = NULL;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );
 

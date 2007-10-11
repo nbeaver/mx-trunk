@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,6 +147,8 @@ mxd_network_ccd_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_CCD *network_ccd;
 	mx_status_type mx_status;
 
+	network_ccd = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -251,6 +253,8 @@ mxd_network_ccd_start( MX_CCD *ccd )
 	MX_NETWORK_CCD *network_ccd;
 	mx_status_type mx_status;
 
+	network_ccd = NULL;
+
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -273,6 +277,8 @@ mxd_network_ccd_stop( MX_CCD *ccd )
 	MX_NETWORK_CCD *network_ccd;
 	mx_bool_type stop;
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
@@ -298,6 +304,8 @@ mxd_network_ccd_get_status( MX_CCD *ccd )
 	unsigned long status;
 	mx_status_type mx_status;
 
+	network_ccd = NULL;
+
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -320,6 +328,8 @@ mxd_network_ccd_readout( MX_CCD *ccd )
 
 	MX_NETWORK_CCD *network_ccd;
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
@@ -347,6 +357,8 @@ mxd_network_ccd_dezinger( MX_CCD *ccd )
 
 	MX_NETWORK_CCD *network_ccd;
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
@@ -376,6 +388,8 @@ mxd_network_ccd_correct( MX_CCD *ccd )
 	mx_bool_type correct;
 	mx_status_type mx_status;
 
+	network_ccd = NULL;
+
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -399,6 +413,8 @@ mxd_network_ccd_writefile( MX_CCD *ccd )
 	MX_NETWORK_CCD *network_ccd;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
 
@@ -436,6 +452,8 @@ mxd_network_ccd_get_parameter( MX_CCD *ccd )
 	MX_NETWORK_CCD *network_ccd;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd,
 						&network_ccd, fname );
@@ -481,6 +499,8 @@ mxd_network_ccd_set_parameter( MX_CCD *ccd )
 	MX_NETWORK_CCD *network_ccd;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_ccd = NULL;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd,
 					&network_ccd, fname );

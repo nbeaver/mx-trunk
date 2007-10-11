@@ -311,6 +311,8 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	uint64_t uint64_value;
 	mx_status_type mx_status;
 
+	simple_fault_struct = NULL;
+
 	mx_status = mxfh_simple_get_pointers( fault_handler,
 					&simple_fault_struct, fname );
 
@@ -477,6 +479,8 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 	long field_type;
 	unsigned long reset_value;
 	mx_status_type mx_status;
+
+	simple_fault_struct = NULL;
 
 	mx_status = mxfh_simple_get_pointers( fault_handler,
 					&simple_fault_struct, fname );

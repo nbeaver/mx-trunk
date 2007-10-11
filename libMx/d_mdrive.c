@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,6 +192,8 @@ mxd_mdrive_print_motor_structure( FILE *file, MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -331,6 +333,8 @@ mxd_mdrive_open( MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -385,6 +389,8 @@ mxd_mdrive_resynchronize( MX_RECORD *record )
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -485,6 +491,8 @@ mxd_mdrive_move_absolute( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -512,6 +520,8 @@ mxd_mdrive_get_position( MX_MOTOR *motor )
 	int num_items;
 	long motor_steps;
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
@@ -547,6 +557,8 @@ mxd_mdrive_set_position( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -570,6 +582,8 @@ mxd_mdrive_soft_abort( MX_MOTOR *motor )
 	MX_MDRIVE *mdrive;
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -591,6 +605,8 @@ mxd_mdrive_immediate_abort( MX_MOTOR *motor )
 	MX_MDRIVE *mdrive;
 	char command[20];
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
@@ -618,6 +634,8 @@ mxd_mdrive_find_home_position( MX_MOTOR *motor )
 	char command[20];
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -644,6 +662,8 @@ mxd_mdrive_constant_velocity_move( MX_MOTOR *motor )
 	char command[20];
 	double speed;
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
@@ -678,6 +698,8 @@ mxd_mdrive_get_parameter( MX_MOTOR *motor )
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
@@ -774,6 +796,8 @@ mxd_mdrive_set_parameter( MX_MOTOR *motor )
 	char command[20];
 	mx_status_type mx_status;
 
+	mdrive = NULL;
+
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -828,6 +852,8 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 	char *ptr;
 	int i, num_chars_expected;
 	mx_status_type mx_status;
+
+	mdrive = NULL;
 
 	mx_status = mxd_mdrive_get_pointers( motor, &mdrive, fname );
 

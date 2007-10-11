@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -443,6 +443,8 @@ mxd_roentec_rcl_open( MX_RECORD *record )
 	char response[80];
 	mx_status_type mx_status;
 
+	roentec_rcl_mca = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -500,6 +502,8 @@ mxd_roentec_rcl_resynchronize( MX_RECORD *record )
 	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
 	char response[80];
 	mx_status_type mx_status;
+
+	roentec_rcl_mca = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -596,6 +600,8 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 	char command[40];
 	mx_status_type mx_status;
 
+	roentec_rcl_mca = NULL;
+
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -656,6 +662,8 @@ mxd_roentec_rcl_stop( MX_MCA *mca )
 	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
 	mx_status_type mx_status;
 
+	roentec_rcl_mca = NULL;
+
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -677,6 +685,8 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
 	char command[40];
 	mx_status_type mx_status;
+
+	roentec_rcl_mca = NULL;
 
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
@@ -735,6 +745,8 @@ mxd_roentec_rcl_clear( MX_MCA *mca )
 	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
 	mx_status_type mx_status;
 
+	roentec_rcl_mca = NULL;
+
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -756,6 +768,8 @@ mxd_roentec_rcl_busy( MX_MCA *mca )
 	int num_items;
 	char pause_status;
 	mx_status_type mx_status;
+
+	roentec_rcl_mca = NULL;
 
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
@@ -819,6 +833,8 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 	char element_name[40];
 	char command[80], response[80];
 	mx_status_type mx_status;
+
+	roentec_rcl_mca = NULL;
 
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 
@@ -1103,6 +1119,8 @@ mxd_roentec_rcl_set_parameter( MX_MCA *mca )
 	unsigned long low_ev_rounded, high_ev_rounded;
 	char command[80];
 	mx_status_type mx_status;
+
+	roentec_rcl_mca = NULL;
 
 	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
 

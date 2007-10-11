@@ -19,7 +19,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -230,6 +230,8 @@ mxi_vme58_open( MX_RECORD *record )
 	int saved_errno;
 	mx_status_type mx_status;
 
+	vme58 = NULL;
+
 	mx_status = mxi_vme58_get_pointers( record, &vme58, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -288,6 +290,8 @@ mxi_vme58_close( MX_RECORD *record )
 	int close_status, saved_errno;
 	mx_status_type mx_status;
 
+	vme58 = NULL;
+
 	mx_status = mxi_vme58_get_pointers( record, &vme58, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -322,6 +326,8 @@ mxi_vme58_resynchronize( MX_RECORD *record )
 	char *version_ptr, *ptr;
 	int num_items;
 	mx_status_type mx_status;
+
+	vme58 = NULL;
 
 	mx_status = mxi_vme58_get_pointers( record, &vme58, fname );
 

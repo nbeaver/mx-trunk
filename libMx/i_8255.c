@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -189,6 +189,8 @@ mxi_8255_open( MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	i8255 = NULL;
+
 	mx_status = mxi_8255_get_pointers( record, &i8255, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -230,6 +232,8 @@ mxi_8255_close( MX_RECORD *record )
 	MX_8255 *i8255;
 	mx_status_type mx_status;
 
+	i8255 = NULL;
+
 	mx_status = mxi_8255_get_pointers( record, &i8255, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -254,6 +258,8 @@ mxi_8255_finish_delayed_initialization( MX_RECORD *record )
 
 	MX_8255 *i8255;
 	mx_status_type mx_status;
+
+	i8255 = NULL;
 
 	mx_status = mxi_8255_get_pointers( record, &i8255, fname );
 

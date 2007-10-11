@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -167,8 +167,9 @@ mxd_delta_motor_finish_record_initialization( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_RECORD *moving_motor_record;
-
 	mx_status_type mx_status;
+
+	moving_motor_record = NULL;
 
 	mx_status = mx_motor_finish_record_initialization( record );
 
@@ -200,6 +201,9 @@ mxd_delta_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	MX_RECORD *moving_motor_record;
 	double position, move_deadband;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -263,6 +267,9 @@ mxd_delta_motor_move_absolute( MX_MOTOR *motor )
 	double new_moving_motor_position;
 	mx_status_type mx_status;
 
+	delta_motor = NULL;
+	moving_motor_record = NULL;
+
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
 
@@ -313,6 +320,9 @@ mxd_delta_motor_get_position( MX_MOTOR *motor )
 	double moving_motor_position;
 	mx_status_type mx_status;
 
+	delta_motor = NULL;
+	moving_motor_record = NULL;
+
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
 
@@ -354,6 +364,9 @@ mxd_delta_motor_set_position( MX_MOTOR *motor )
 	double fixed_position_value;
 	double new_moving_motor_position;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
@@ -403,6 +416,9 @@ mxd_delta_motor_soft_abort( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	mx_status_type mx_status;
 
+	delta_motor = NULL;
+	moving_motor_record = NULL;
+
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
 
@@ -422,6 +438,9 @@ mxd_delta_motor_immediate_abort( MX_MOTOR *motor )
 	MX_DELTA_MOTOR *delta_motor;
 	MX_RECORD *moving_motor_record;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
@@ -443,6 +462,9 @@ mxd_delta_motor_find_home_position( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	long direction;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
@@ -470,6 +492,9 @@ mxd_delta_motor_constant_velocity_move( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	long direction;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );
@@ -499,6 +524,9 @@ mxd_delta_motor_get_parameter( MX_MOTOR *motor )
 	double moving_motor_start, moving_motor_end;
 	double real_moving_motor_start, real_moving_motor_end;
 	mx_status_type mx_status;
+
+	delta_motor = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor, &delta_motor,
 					&moving_motor_record, fname );
@@ -587,6 +615,9 @@ mxd_delta_motor_set_parameter( MX_MOTOR *motor )
 	double real_position1, real_position2;
 	mx_status_type mx_status;
 
+	delta_motor = NULL;
+	moving_motor_record = NULL;
+
 	mx_status = mxd_delta_motor_get_pointers( motor, &delta_motor,
 					&moving_motor_record, fname );
 
@@ -639,6 +670,8 @@ mxd_delta_motor_get_status( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	unsigned long motor_status;
 	mx_status_type mx_status;
+
+	moving_motor_record = NULL;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
 				&delta_motor, &moving_motor_record, fname );

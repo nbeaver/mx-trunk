@@ -909,6 +909,9 @@ mx_virtual_timer_is_busy( MX_VIRTUAL_TIMER *vtimer,
 	long lock_status;
 	mx_status_type mx_status;
 
+	master_timer = NULL;
+	event_list = NULL;
+
 	mx_status = mx_virtual_timer_get_pointers( vtimer,
 					&master_timer, &event_list, fname );
 
@@ -966,6 +969,9 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 	struct timespec timer_period;
 	long lock_status;
 	mx_status_type mx_status;
+
+	master_timer = NULL;
+	event_list = NULL;
 
 	mx_status = mx_virtual_timer_get_pointers( vtimer,
 					&master_timer, &event_list, fname );
@@ -1046,6 +1052,8 @@ mx_virtual_timer_stop( MX_VIRTUAL_TIMER *vtimer,
 	MX_MASTER_TIMER_EVENT_LIST *event_list;
 	mx_status_type mx_status;
 
+	event_list = NULL;
+
 	mx_status = mx_virtual_timer_get_pointers( vtimer,
 					NULL, &event_list, fname );
 
@@ -1072,6 +1080,9 @@ mx_virtual_timer_read( MX_VIRTUAL_TIMER *vtimer,
 	int comparison;
 	long lock_status;
 	mx_status_type mx_status;
+
+	master_timer = NULL;
+	event_list = NULL;
 
 	mx_status = mx_virtual_timer_get_pointers( vtimer,
 					&master_timer, &event_list, fname );

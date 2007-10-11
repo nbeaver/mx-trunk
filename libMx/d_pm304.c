@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -165,6 +165,8 @@ mxd_pm304_finish_record_initialization( MX_RECORD *record )
 	MX_PM304 *pm304;
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -210,6 +212,8 @@ mxd_pm304_print_motor_structure( FILE *file, MX_RECORD *record )
 	MX_PM304 *pm304;
 	double position, move_deadband;
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -283,6 +287,8 @@ mxd_pm304_open( MX_RECORD *record )
 	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
+
+	pm304 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -394,6 +400,8 @@ mxd_pm304_close( MX_RECORD *record )
 	double position;
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -500,6 +508,8 @@ mxd_pm304_motor_is_busy( MX_MOTOR *motor )
 	char response[80];
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -540,6 +550,8 @@ mxd_pm304_move_absolute( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -579,6 +591,8 @@ mxd_pm304_get_position( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -614,6 +628,8 @@ mxd_pm304_set_position( MX_MOTOR *motor )
 	char c;
 	long motor_steps;
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -680,6 +696,8 @@ mxd_pm304_soft_abort( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -722,6 +740,8 @@ mxd_pm304_immediate_abort( MX_MOTOR *motor )
 	char command[40];
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -747,6 +767,8 @@ mxd_pm304_positive_limit_hit( MX_MOTOR *motor )
 	MX_PM304 *pm304;
 	char response[80];
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -782,6 +804,8 @@ mxd_pm304_negative_limit_hit( MX_MOTOR *motor )
 	MX_PM304 *pm304;
 	char response[80];
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -819,6 +843,8 @@ mxd_pm304_find_home_position( MX_MOTOR *motor )
 	char response[80];
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -845,6 +871,8 @@ mxd_pm304_constant_velocity_move( MX_MOTOR *motor )
 	char command[20];
 	char response[80];
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -873,6 +901,8 @@ mxd_pm304_get_parameter( MX_MOTOR *motor )
 	double dummy;
 	int num_items;
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
@@ -940,6 +970,8 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 	char response[80];
 	mx_status_type mx_status;
 
+	pm304 = NULL;
+
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -990,6 +1022,8 @@ mxd_pm304_get_status( MX_MOTOR *motor )
 	MX_PM304 *pm304;
 	char response[80];
 	mx_status_type mx_status;
+
+	pm304 = NULL;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
 

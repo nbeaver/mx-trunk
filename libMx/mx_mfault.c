@@ -288,6 +288,8 @@ mx_measurement_fault_reset( MX_MEASUREMENT_FAULT *fault_handler,
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT_FAULT * );
 	mx_status_type mx_status;
 
+	function_list = NULL;
+
 	mx_status = mx_measurement_fault_get_pointers( fault_handler,
 						&function_list, fname );
 

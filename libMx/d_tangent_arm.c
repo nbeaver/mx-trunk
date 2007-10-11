@@ -279,6 +279,9 @@ mxd_tangent_arm_print_motor_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband;
 	mx_status_type mx_status;
 
+	tangent_arm = NULL;
+	moving_motor_record = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -357,6 +360,8 @@ mxd_tangent_arm_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	moving_motor_record = NULL;
+
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
 
@@ -379,6 +384,9 @@ mxd_tangent_arm_move_absolute( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	double destination_angle, moving_motor_destination;
 	mx_status_type mx_status;
+
+	tangent_arm = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
@@ -426,6 +434,9 @@ mxd_tangent_arm_get_position( MX_MOTOR *motor )
 	double moving_motor_position, angle;
 	mx_status_type mx_status;
 
+	tangent_arm = NULL;
+	moving_motor_record = NULL;
+
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
 
@@ -460,6 +471,9 @@ mxd_tangent_arm_set_position( MX_MOTOR *motor )
 	double moving_motor_angle, moving_motor_ratio;
 	double new_moving_motor_position;
 	mx_status_type mx_status;
+
+	tangent_arm = NULL;
+	moving_motor_record = NULL;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
@@ -562,6 +576,8 @@ mxd_tangent_arm_soft_abort( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	mx_status_type mx_status;
 
+	moving_motor_record = NULL;
+
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
 
@@ -581,6 +597,8 @@ mxd_tangent_arm_immediate_abort( MX_MOTOR *motor )
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
 	mx_status_type mx_status;
+
+	moving_motor_record = NULL;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
@@ -602,6 +620,8 @@ mxd_tangent_arm_positive_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	moving_motor_record = NULL;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
@@ -632,6 +652,8 @@ mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor )
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
+	moving_motor_record = NULL;
+
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
 
@@ -661,6 +683,8 @@ mxd_tangent_arm_find_home_position( MX_MOTOR *motor )
 	long direction;
 	mx_status_type mx_status;
 
+	moving_motor_record = NULL;
+
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
 
@@ -687,6 +711,8 @@ mxd_tangent_arm_constant_velocity_move( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	long direction;
 	mx_status_type mx_status;
+
+	moving_motor_record = NULL;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
 				&tangent_arm, &moving_motor_record, fname );
@@ -721,6 +747,9 @@ mxd_tangent_arm_get_parameter( MX_MOTOR *motor )
 	double moving_motor_speed, angular_speed;
 	double scaled_speed, scaled_position, cos_scaled_position;
 	mx_status_type status;
+
+	tangent_arm = NULL;
+	moving_motor_record = NULL;
 
 	status = mxd_tangent_arm_get_pointers( motor, &tangent_arm,
 					&moving_motor_record, fname );
@@ -869,6 +898,8 @@ mxd_tangent_arm_set_parameter( MX_MOTOR *motor )
 	MX_RECORD *moving_motor_record;
 	double real_position1, real_position2, time_for_move;
 	mx_status_type status;
+
+	moving_motor_record = NULL;
 
 	status = mxd_tangent_arm_get_pointers( motor, &tangent_arm,
 					&moving_motor_record, fname );

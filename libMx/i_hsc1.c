@@ -391,6 +391,8 @@ mxi_hsc1_getchar( MX_GENERIC *generic, char *c, int flags )
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
 
+	hsc1_interface = NULL;
+
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
@@ -414,6 +416,8 @@ mxi_hsc1_putchar( MX_GENERIC *generic, char c, int flags )
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
+
+	hsc1_interface = NULL;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -439,6 +443,8 @@ mxi_hsc1_read( MX_GENERIC *generic, void *buffer, size_t count )
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
 
+	hsc1_interface = NULL;
+
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
@@ -463,6 +469,8 @@ mxi_hsc1_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
+
+	hsc1_interface = NULL;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -490,6 +498,8 @@ mxi_hsc1_num_input_bytes_available( MX_GENERIC *generic,
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
 
+	hsc1_interface = NULL;
+
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
@@ -515,6 +525,8 @@ mxi_hsc1_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
 
+	hsc1_interface = NULL;
+
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
@@ -539,6 +551,8 @@ mxi_hsc1_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	mx_status_type mx_status;
+
+	hsc1_interface = NULL;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

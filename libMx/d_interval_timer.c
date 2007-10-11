@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -180,6 +180,8 @@ mxd_interval_timer_open( MX_RECORD *record )
 	MX_INTERVAL_TIMER *itimer;
 	mx_status_type mx_status;
 
+	itimer_device = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -213,6 +215,8 @@ mxd_interval_timer_close( MX_RECORD *record )
 	MX_INTERVAL_TIMER_DEVICE *itimer_device;
 	mx_status_type mx_status;
 
+	itimer_device = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -244,6 +248,8 @@ mxd_interval_timer_is_busy( MX_TIMER *timer )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	itimer_device = NULL;
+
 	mx_status = mxd_interval_timer_get_pointers( timer,
 						&itimer_device, fname );
 
@@ -272,6 +278,8 @@ mxd_interval_timer_start( MX_TIMER *timer )
 	MX_INTERVAL_TIMER_DEVICE *itimer_device;
 	mx_status_type mx_status;
 
+	itimer_device = NULL;
+
 	mx_status = mxd_interval_timer_get_pointers( timer,
 						&itimer_device, fname );
 
@@ -292,6 +300,8 @@ mxd_interval_timer_stop( MX_TIMER *timer )
 	MX_INTERVAL_TIMER_DEVICE *itimer_device;
 	mx_status_type mx_status;
 
+	itimer_device = NULL;
+
 	mx_status = mxd_interval_timer_get_pointers( timer,
 						&itimer_device, fname );
 
@@ -311,6 +321,8 @@ mxd_interval_timer_read( MX_TIMER *timer )
 
 	MX_INTERVAL_TIMER_DEVICE *itimer_device;
 	mx_status_type mx_status;
+
+	itimer_device = NULL;
 
 	mx_status = mxd_interval_timer_get_pointers( timer,
 						&itimer_device, fname );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -117,6 +117,8 @@ mxi_sis3807_open( MX_RECORD *record )
 	int i;
 	uint32_t module_id_register, control_register, preset_register;
 	mx_status_type mx_status;
+
+	sis3807 = NULL;
 
 	mx_status = mxi_sis3807_get_pointers( record, &sis3807, fname );
 
@@ -369,6 +371,8 @@ mxi_sis3807_close( MX_RECORD *record )
 	MX_SIS3807 *sis3807;
 	uint32_t control_register;
 	mx_status_type mx_status;
+
+	sis3807 = NULL;
 
 	mx_status = mxi_sis3807_get_pointers( record, &sis3807, fname );
 

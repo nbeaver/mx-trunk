@@ -292,7 +292,8 @@ CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
 
 # Turn on optimization
 #
-OPTIMIZE = -O2
+#OPTIMIZE = -O2
+OPTIMIZE = -O3
 CFLAGS += $(OPTIMIZE)
 
 #---

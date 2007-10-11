@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -280,6 +280,8 @@ mxi_vp9000_open( MX_RECORD *record )
 
 	MX_DEBUG( 2, ("mxi_vp9000_open() invoked."));
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_record_pointers( record, &generic, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -455,6 +457,8 @@ mxi_vp9000_close( MX_RECORD *record )
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_record_pointers( record, &generic, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -513,6 +517,8 @@ mxi_vp9000_getchar( MX_GENERIC *generic, char *c, int flags )
 	MX_VP9000 *vp9000;
 	mx_status_type status;
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -530,6 +536,8 @@ mxi_vp9000_putchar( MX_GENERIC *generic, char c, int flags )
 
 	MX_VP9000 *vp9000;
 	mx_status_type status;
+
+	vp9000 = NULL;
 
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
@@ -549,6 +557,8 @@ mxi_vp9000_read( MX_GENERIC *generic, void *buffer, size_t count )
 	MX_VP9000 *vp9000;
 	mx_status_type status;
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -567,6 +577,8 @@ mxi_vp9000_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 	MX_VP9000 *vp9000;
 	mx_status_type status;
+
+	vp9000 = NULL;
 
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
@@ -588,6 +600,8 @@ mxi_vp9000_num_input_bytes_available( MX_GENERIC *generic,
 	MX_VP9000 *vp9000;
 	mx_status_type status;
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -607,6 +621,8 @@ mxi_vp9000_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 	MX_VP9000 *vp9000;
 	mx_status_type status;
 
+	vp9000 = NULL;
+
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
 	if ( status.code != MXE_SUCCESS )
@@ -625,6 +641,8 @@ mxi_vp9000_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 
 	MX_VP9000 *vp9000;
 	mx_status_type status;
+
+	vp9000 = NULL;
 
 	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 

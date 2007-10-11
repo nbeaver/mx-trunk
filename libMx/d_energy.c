@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -473,6 +473,8 @@ mxd_energy_motor_get_position( MX_MOTOR *motor )
 	double energy, theta;
 	mx_status_type mx_status;
 
+	energy = 0.0;
+
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
 					&dependent_motor_record,fname );
 
@@ -628,6 +630,8 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 	double energy_start, energy_end;
 	double real_energy_start, real_energy_end;
 	mx_status_type mx_status;
+
+	energy = real_energy_start = real_energy_end = 0.0;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
 					&dependent_motor_record,fname );

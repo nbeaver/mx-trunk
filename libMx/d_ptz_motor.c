@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -182,6 +182,8 @@ mxd_ptz_motor_print_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband, speed;
 	mx_status_type mx_status;
 
+	ptz_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -262,6 +264,8 @@ mxd_ptz_motor_move_absolute( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	mx_status_type mx_status;
 
+	ptz_motor = NULL;
+
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -301,6 +305,8 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	unsigned long ulong_value;
 	mx_status_type mx_status;
+
+	ptz_motor = NULL;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
@@ -345,6 +351,8 @@ mxd_ptz_motor_soft_abort( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	mx_status_type mx_status;
 
+	ptz_motor = NULL;
+
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -380,6 +388,8 @@ mxd_ptz_motor_find_home_position( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	mx_status_type mx_status;
 
+	ptz_motor = NULL;
+
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -398,6 +408,8 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	unsigned long raw_speed;
 	mx_status_type mx_status;
+
+	ptz_motor = NULL;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
@@ -452,6 +464,8 @@ mxd_ptz_motor_set_parameter( MX_MOTOR *motor )
 	unsigned long raw_speed;
 	mx_status_type mx_status;
 
+	ptz_motor = NULL;
+
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -505,6 +519,8 @@ mxd_ptz_motor_get_status( MX_MOTOR *motor )
 	MX_PTZ_MOTOR *ptz_motor;
 	unsigned long ptz_status;
 	mx_status_type mx_status;
+
+	ptz_motor = NULL;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
 

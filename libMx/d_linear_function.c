@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,6 +247,8 @@ mxd_linear_function_finish_record_initialization( MX_RECORD *record )
 	char error_message[] =
 	"Only motors and double precision variables may be used in a linear "
 	"function's record list.  Record '%s' is not of either type.";
+
+	linear_function_motor = NULL;
 
 	mx_status = mx_motor_finish_record_initialization( record );
 
@@ -570,7 +572,8 @@ mxd_linear_function_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_linear_function_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_linear_function_print_motor_structure()";
+	static const char fname[] =
+			"mxd_linear_function_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
@@ -579,6 +582,8 @@ mxd_linear_function_print_motor_structure( FILE *file, MX_RECORD *record )
 	long i, num_records;
 	double position, move_deadband;
 	mx_status_type mx_status;
+
+	linear_function_motor = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -747,6 +752,8 @@ mxd_linear_function_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	linear_function_motor = NULL;
+
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
 
@@ -803,6 +810,8 @@ mxd_linear_function_move_absolute( MX_MOTOR *motor )
 	double numerator, denominator;
 	double old_motor_position_array, old_variable_value_array;
 	mx_status_type mx_status;
+
+	linear_function_motor = NULL;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
@@ -1026,6 +1035,8 @@ mxd_linear_function_get_position( MX_MOTOR *motor )
 	double pseudomotor_position, motor_position, variable_value;
 	mx_status_type mx_status;
 
+	linear_function_motor = NULL;
+
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
 
@@ -1104,6 +1115,8 @@ mxd_linear_function_soft_abort( MX_MOTOR *motor )
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
 	mx_status_type mx_status;
 
+	linear_function_motor = NULL;
+
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
 
@@ -1133,6 +1146,8 @@ mxd_linear_function_immediate_abort( MX_MOTOR *motor )
 	long i, num_motors;
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
 	mx_status_type mx_status;
+
+	linear_function_motor = NULL;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
@@ -1165,6 +1180,8 @@ mxd_linear_function_positive_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	linear_function_motor = NULL;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );
@@ -1213,6 +1230,8 @@ mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	linear_function_motor = NULL;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
 					&linear_function_motor, fname );

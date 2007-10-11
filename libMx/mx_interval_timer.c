@@ -1870,6 +1870,8 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	int status, saved_errno;
 	mx_status_type mx_status;
 
+	posix_itimer_private = NULL;
+
 	mx_status = mx_interval_timer_get_pointers( itimer,
 					&posix_itimer_private, fname );
 
@@ -1916,6 +1918,8 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 	struct itimerspec value;
 	int status, saved_errno;
 	mx_status_type mx_status;
+
+	posix_itimer_private = NULL;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
 					&posix_itimer_private, fname );
@@ -1977,6 +1981,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	time_t timer_seconds;
 	long   timer_nsec;
 	mx_status_type mx_status;
+
+	posix_itimer_private = NULL;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
 					&posix_itimer_private, fname );
@@ -2049,6 +2055,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 	int status, saved_errno;
 	mx_status_type mx_status;
 
+	posix_itimer_private = NULL;
+
 	mx_status = mx_interval_timer_get_pointers( itimer,
 					&posix_itimer_private, fname );
 
@@ -2115,6 +2123,8 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 	struct itimerspec value;
 	int status, saved_errno;
 	mx_status_type mx_status;
+
+	posix_itimer_private = NULL;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
 					&posix_itimer_private, fname );

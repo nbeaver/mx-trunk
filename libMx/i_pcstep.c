@@ -200,6 +200,8 @@ mxi_pcstep_print_structure( FILE *file, MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	pcstep = NULL;
+
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -258,6 +260,8 @@ mxi_pcstep_write_parms_to_hardware( MX_RECORD *record )
 	uint16_t enable_limit_switches;
 	mx_status_type mx_status;
 
+	pcstep = NULL;
+
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -294,6 +298,8 @@ mxi_pcstep_open( MX_RECORD *record )
 	MX_RECORD *motor_record;
 	int i;
 	mx_status_type mx_status;
+
+	pcstep = NULL;
 
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
 
@@ -394,6 +400,8 @@ mxi_pcstep_close( MX_RECORD *record )
 	MX_PCSTEP *pcstep;
 	mx_status_type mx_status;
 
+	pcstep = NULL;
+
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -413,6 +421,8 @@ mxi_pcstep_resynchronize( MX_RECORD *record )
 	MX_PCSTEP *pcstep;
 	uint32_t long_status_word;
 	mx_status_type mx_status;
+
+	pcstep = NULL;
 
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
 

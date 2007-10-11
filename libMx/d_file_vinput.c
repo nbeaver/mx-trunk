@@ -227,6 +227,8 @@ mxd_file_vinput_open( MX_RECORD *record )
 	int saved_errno;
 	mx_status_type mx_status;
 
+	file_vinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -523,6 +525,8 @@ mxd_file_vinput_close( MX_RECORD *record )
 	size_t sizeof_array[2];
 	mx_status_type mx_status;
 
+	file_vinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -723,6 +727,8 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	char path_format[] = "%s/%s";
+
+	file_vinput = NULL;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput,
 						&file_vinput, fname );

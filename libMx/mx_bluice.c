@@ -93,6 +93,9 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	mx_status_type mx_status;
 	long mx_status_code;
 
+	bluice_server = NULL;
+	bluice_server_socket = NULL;
+
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
 				&bluice_server, &bluice_server_socket, fname );
 
@@ -234,6 +237,9 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	unsigned long i, wait_ms, max_attempts;
 	char *data_pointer;
 	mx_status_type mx_status;
+
+	bluice_server = NULL;
+	bluice_server_socket = NULL;
 
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
 				&bluice_server, &bluice_server_socket, fname );

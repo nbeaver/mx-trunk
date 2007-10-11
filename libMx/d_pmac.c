@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -235,6 +235,8 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
 
+	pmac_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -318,6 +320,8 @@ mxd_pmac_resynchronize( MX_RECORD *record )
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
 
+	pmac_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed was NULL." );
@@ -347,6 +351,8 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 	char command[20];
 	long motor_steps;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -378,6 +384,8 @@ mxd_pmac_get_position( MX_MOTOR *motor )
 	int num_tokens;
 	double double_value;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -458,6 +466,8 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 	char *ptr;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -559,6 +569,8 @@ mxd_pmac_soft_abort( MX_MOTOR *motor )
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
 
+	pmac_motor = NULL;
+
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -578,6 +590,8 @@ mxd_pmac_immediate_abort( MX_MOTOR *motor )
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
 
+	pmac_motor = NULL;
+
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -596,6 +610,8 @@ mxd_pmac_find_home_position( MX_MOTOR *motor )
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -618,6 +634,8 @@ mxd_pmac_constant_velocity_move( MX_MOTOR *motor )
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -647,6 +665,8 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 	double double_value;
 	long long_value;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -766,6 +786,8 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 	double double_value;
 	long long_value;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 
@@ -1015,6 +1037,8 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 	unsigned long status[ MX_PMAC_NUM_STATUS_CHARACTERS ];
 	int i, length;
 	mx_status_type mx_status;
+
+	pmac_motor = NULL;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,6 +157,8 @@ mxd_network_mce_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_MCE *network_mce;
 	mx_status_type mx_status;
 
+	network_mce = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -249,6 +251,8 @@ mxd_network_mce_read( MX_MCE *mce )
 	long dimension_array[1];
 	long i, num_values;
 	mx_status_type mx_status;
+
+	network_mce = NULL;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
@@ -346,6 +350,8 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 	long num_values;
 	mx_status_type mx_status;
 
+	network_mce = NULL;
+
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -392,6 +398,8 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	MX_NETWORK_MOTOR *network_motor;
 	char *remote_motor_name;
 	mx_status_type mx_status;
+
+	network_mce = NULL;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 
@@ -581,6 +589,8 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	long dimension_array[1];
 	int is_network_motor;
 	mx_status_type mx_status;
+
+	network_mce = NULL;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
 

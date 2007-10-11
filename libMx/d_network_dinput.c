@@ -129,6 +129,8 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 	char *name;
 	mx_status_type mx_status;
 
+	network_dinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -165,6 +167,8 @@ mxd_network_dinput_read( MX_DIGITAL_INPUT *dinput )
 	MX_NETWORK_DINPUT *network_dinput;
 	unsigned long value;
 	mx_status_type mx_status;
+
+	network_dinput = NULL;
 
 	mx_status = mxd_network_dinput_get_pointers(
 				dinput, &network_dinput, fname);

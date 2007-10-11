@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,6 +131,8 @@ mxd_network_relay_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_RELAY *network_relay;
 	mx_status_type mx_status;
 
+	network_relay = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -163,6 +165,8 @@ mxd_network_relay_relay_command( MX_RELAY *relay )
 	MX_NETWORK_RELAY *network_relay;
 	mx_status_type mx_status;
 
+	network_relay = NULL;
+
 	mx_status = mxd_network_relay_get_pointers(
 					relay, &network_relay, fname );
 
@@ -183,6 +187,8 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 	MX_NETWORK_RELAY *network_relay;
 	long relay_status;
 	mx_status_type mx_status;
+
+	network_relay = NULL;
 
 	mx_status = mxd_network_relay_get_pointers(
 					relay, &network_relay, fname );

@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -221,6 +221,8 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
 
+	axis = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -308,6 +310,9 @@ mxd_pmac_cs_axis_resynchronize( MX_RECORD *record )
 	MX_PMAC *pmac;
 	char command[20];
 
+	axis = NULL;
+	pmac = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed was NULL." );
@@ -361,6 +366,9 @@ mxd_pmac_cs_axis_move_absolute( MX_MOTOR *motor )
 	char command[40];
 	mx_status_type mx_status;
 
+	axis = NULL;
+	pmac = NULL;
+
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -408,6 +416,9 @@ mxd_pmac_cs_axis_get_position( MX_MOTOR *motor )
 	MX_PMAC *pmac;
 	mx_status_type mx_status;
 
+	axis = NULL;
+	pmac = NULL;
+
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -430,6 +441,9 @@ mxd_pmac_cs_axis_set_position( MX_MOTOR *motor )
 	MX_PMAC *pmac;
 	char command[40];
 	mx_status_type mx_status;
+
+	axis = NULL;
+	pmac = NULL;
 
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
@@ -454,6 +468,9 @@ mxd_pmac_cs_axis_soft_abort( MX_MOTOR *motor )
 	MX_PMAC *pmac;
 	char command[40];
 	mx_status_type mx_status;
+
+	axis = NULL;
+	pmac = NULL;
 
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
@@ -488,6 +505,9 @@ mxd_pmac_cs_axis_immediate_abort( MX_MOTOR *motor )
 	MX_PMAC *pmac;
 	char command[40];
 	mx_status_type mx_status;
+
+	axis = NULL;
+	pmac = NULL;
 
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
@@ -646,6 +666,9 @@ mxd_pmac_cs_axis_get_parameter( MX_MOTOR *motor )
 	double accel_time, twice_s_curve_time;
 	mx_status_type mx_status;
 
+	axis = NULL;
+	pmac = NULL;
+
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -688,6 +711,9 @@ mxd_pmac_cs_axis_set_parameter( MX_MOTOR *motor )
 	MX_PMAC *pmac;
 	double feedrate_distance;
 	mx_status_type mx_status;
+
+	axis = NULL;
+	pmac = NULL;
 
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 
@@ -878,6 +904,9 @@ mxd_pmac_cs_axis_get_status( MX_MOTOR *motor )
 	unsigned long status[ MX_PMAC_CS_NUM_STATUS_CHARACTERS ];
 	int i, length;
 	mx_status_type mx_status;
+
+	axis = NULL;
+	pmac = NULL;
 
 	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
 

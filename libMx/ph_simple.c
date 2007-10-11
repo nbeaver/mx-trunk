@@ -245,6 +245,8 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	long field_type;
 	unsigned long permit_value;
 
+	simple_permit_struct = NULL;
+
 	mx_bool_type bool_value;
 	char char_value;
 	unsigned char uchar_value;

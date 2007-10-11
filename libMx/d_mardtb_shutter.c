@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,6 +147,8 @@ mxd_mardtb_shutter_relay_command( MX_RELAY *relay )
 	mx_bool_type move_in_progress;
 	mx_status_type mx_status;
 
+	mardtb = NULL;
+
 	mx_status = mxd_mardtb_get_pointers( relay,
 					&mardtb_shutter, &mardtb, fname );
 
@@ -197,6 +199,8 @@ mxd_mardtb_shutter_get_relay_status( MX_RELAY *relay )
 	unsigned long parameter_value;
 	unsigned long high_order_byte, shutter_mask, shutter_byte;
 	mx_status_type mx_status;
+
+	mardtb = NULL;
 
 	mx_status = mxd_mardtb_get_pointers( relay,
 					&mardtb_shutter, &mardtb, fname );

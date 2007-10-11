@@ -96,6 +96,8 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 	long message_header_size;
 	mx_status_type mx_status;
 
+	spec_server_socket = NULL;
+
 	mx_status = mx_spec_get_pointers( spec_server_record,
 				&spec_server, &spec_server_socket, fname );
 
@@ -169,6 +171,8 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	struct svr_head message_header;
 	long expected_message_header_size;
 	mx_status_type mx_status;
+
+	spec_server_socket = NULL;
 
 	mx_status = mx_spec_get_pointers( spec_server_record,
 				&spec_server, &spec_server_socket, fname );
@@ -346,6 +350,9 @@ mx_spec_num_response_bytes_available( MX_RECORD *spec_server_record,
 	MX_SOCKET *spec_server_socket;
 	mx_status_type mx_status;
 
+	spec_server = NULL;
+	spec_server_socket = NULL;
+
 	mx_status = mx_spec_get_pointers( spec_server_record,
 				&spec_server, &spec_server_socket, fname );
 
@@ -377,6 +384,8 @@ mx_spec_discard_unread_responses( MX_RECORD *spec_server_record )
 
 	MX_SOCKET *spec_server_socket;
 	mx_status_type mx_status;
+
+	spec_server_socket = NULL;
 
 	mx_status = mx_spec_get_pointers( spec_server_record, NULL,
 					&spec_server_socket, fname );

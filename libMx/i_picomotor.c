@@ -150,6 +150,8 @@ mxi_picomotor_open( MX_RECORD *record )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	mx_status_type mx_status;
 
+	picomotor_controller = NULL;
+
 	mx_status = mxi_picomotor_get_pointers( record,
 					&picomotor_controller, fname );
 
@@ -207,6 +209,8 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 	int i, num_items, driver_number, raw_driver_type, flags;
 	long current_motor_number;
 	mx_status_type mx_status;
+
+	picomotor_controller = NULL;
 
 	mx_status = mxi_picomotor_get_pointers( record,
 					&picomotor_controller, fname );

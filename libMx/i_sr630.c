@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,6 +181,9 @@ mxi_sr630_open( MX_RECORD *record )
 	char response[160];
 	mx_status_type mx_status;
 
+	sr630 = NULL;
+	interface = NULL;
+
 	mx_status = mxi_sr630_get_pointers( record,
 			&sr630, &interface, fname );
 
@@ -244,6 +247,8 @@ mxi_sr630_close( MX_RECORD *record )
 	MX_SR630 *sr630;
 	MX_INTERFACE *interface;
 	mx_status_type mx_status;
+
+	interface = NULL;
 
 	mx_status = mxi_sr630_get_pointers( record,
 			&sr630, &interface, fname );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,6 +144,8 @@ mxd_network_pulser_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_PULSER *network_pulser;
 	mx_status_type mx_status;
 
+	network_pulser = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -279,6 +281,8 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	network_pulser = NULL;
+
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
 						&network_pulser, fname );
 
@@ -303,6 +307,8 @@ mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 	MX_NETWORK_PULSER *network_pulser;
 	mx_bool_type start;
 	mx_status_type mx_status;
+
+	network_pulser = NULL;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
 						&network_pulser, fname );
@@ -329,6 +335,8 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 	mx_bool_type stop;
 	mx_status_type mx_status;
 
+	network_pulser = NULL;
+
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
 						&network_pulser, fname );
 
@@ -352,6 +360,8 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_NETWORK_PULSER *network_pulser;
 	mx_status_type mx_status;
+
+	network_pulser = NULL;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
 						&network_pulser, fname );
@@ -408,6 +418,8 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_NETWORK_PULSER *network_pulser;
 	mx_status_type mx_status;
+
+	network_pulser = NULL;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
 						&network_pulser, fname );

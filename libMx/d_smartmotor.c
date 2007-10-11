@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -188,6 +188,8 @@ mxd_smartmotor_open( MX_RECORD *record )
 	MX_SMARTMOTOR *smartmotor;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -234,6 +236,8 @@ mxd_smartmotor_resynchronize( MX_RECORD *record )
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -313,6 +317,8 @@ mxd_smartmotor_move_absolute( MX_MOTOR *motor )
 	long raw_destination;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -346,6 +352,8 @@ mxd_smartmotor_get_position( MX_MOTOR *motor )
 	int num_items;
 	long raw_position;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
@@ -382,6 +390,8 @@ mxd_smartmotor_set_position( MX_MOTOR *motor )
 	long raw_position;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -405,6 +415,8 @@ mxd_smartmotor_soft_abort( MX_MOTOR *motor )
 	MX_SMARTMOTOR *smartmotor;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -423,6 +435,8 @@ mxd_smartmotor_immediate_abort( MX_MOTOR *motor )
 
 	MX_SMARTMOTOR *smartmotor;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
@@ -444,6 +458,8 @@ mxd_smartmotor_find_home_position( MX_MOTOR *motor )
 	char command[20];
 	unsigned long flags;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
@@ -492,6 +508,8 @@ mxd_smartmotor_constant_velocity_move( MX_MOTOR *motor )
 	double speed, velocity_factor;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -534,6 +552,8 @@ mxd_smartmotor_get_parameter( MX_MOTOR *motor )
 	int num_items;
 	double velocity_factor, acceleration_factor;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
@@ -747,6 +767,8 @@ mxd_smartmotor_set_parameter( MX_MOTOR *motor )
 	char command[40];
 	double velocity_factor, acceleration_factor;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
@@ -1059,6 +1081,8 @@ mxd_smartmotor_get_status( MX_MOTOR *motor )
 	unsigned long status_word;
 	mx_status_type mx_status;
 
+	smartmotor = NULL;
+
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1116,6 +1140,8 @@ mxd_smartmotor_get_extended_status( MX_MOTOR *motor )
 	long raw_position;
 	unsigned long status_word;
 	mx_status_type mx_status;
+
+	smartmotor = NULL;
 
 	mx_status = mxd_smartmotor_get_pointers( motor, &smartmotor, fname );
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -258,6 +258,8 @@ mxd_remote_marccd_open( MX_RECORD *record )
 	int flags;
 	mx_status_type mx_status;
 
+	remote_marccd = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -314,6 +316,8 @@ mxd_remote_marccd_close( MX_RECORD *record )
 	MX_REMOTE_MARCCD *remote_marccd;
 	int saved_errno, status_from_marccd, status_to_marccd;
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -395,6 +399,8 @@ mxd_remote_marccd_start( MX_CCD *ccd )
 	MX_CLOCK_TICK clock_ticks_to_wait, start_time;
 	mx_status_type mx_status;
 
+	remote_marccd = NULL;
+
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -436,6 +442,8 @@ mxd_remote_marccd_stop( MX_CCD *ccd )
 	MX_REMOTE_MARCCD *remote_marccd;
 	mx_status_type mx_status;
 
+	remote_marccd = NULL;
+
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -461,6 +469,8 @@ mxd_remote_marccd_get_status( MX_CCD *ccd )
 	MX_REMOTE_MARCCD *remote_marccd;
 	MX_CLOCK_TICK current_time, finish_time;
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
@@ -501,6 +511,8 @@ mxd_remote_marccd_readout( MX_CCD *ccd )
 	int flag;
 	unsigned long cmd_flags;
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
@@ -548,6 +560,8 @@ mxd_remote_marccd_dezinger( MX_CCD *ccd )
 	int flag;
 	mx_status_type mx_status;
 
+	remote_marccd = NULL;
+
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -588,6 +602,8 @@ mxd_remote_marccd_correct( MX_CCD *ccd )
 	MX_REMOTE_MARCCD *remote_marccd;
 	mx_status_type mx_status;
 
+	remote_marccd = NULL;
+
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -613,6 +629,8 @@ mxd_remote_marccd_writefile( MX_CCD *ccd )
 	char command[MXU_FILENAME_LENGTH + 40];
 	int flag;
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
 
@@ -650,6 +668,8 @@ mxd_remote_marccd_get_parameter( MX_CCD *ccd )
 
 	MX_REMOTE_MARCCD *remote_marccd;
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	mx_status = mxd_remote_marccd_get_pointers( ccd,
 						&remote_marccd, fname );
@@ -695,6 +715,8 @@ mxd_remote_marccd_set_parameter( MX_CCD *ccd )
 	MX_REMOTE_MARCCD *remote_marccd;
 	char command[ MXU_CCD_HEADER_NAME_LENGTH + MXU_BUFFER_LENGTH + 40 ];
 	mx_status_type mx_status;
+
+	remote_marccd = NULL;
 
 	mx_status = mxd_remote_marccd_get_pointers( ccd,
 						&remote_marccd, fname );

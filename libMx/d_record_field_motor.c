@@ -583,6 +583,8 @@ mxd_record_field_motor_open( MX_RECORD *record )
 	MX_RECORD_FIELD_MOTOR *record_field_motor;
 	mx_status_type mx_status;
 
+	record_field_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -678,6 +680,8 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 	long command_in_progress, busy_field_value;
 	mx_status_type mx_status;
 
+	record_field_motor = NULL;
+
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
 
@@ -748,6 +752,8 @@ mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
+	record_field_motor = NULL;
+
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
 
@@ -792,6 +798,8 @@ mxd_record_field_motor_get_position( MX_MOTOR *motor )
 	MX_RECORD_FIELD_MOTOR *record_field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
+
+	record_field_motor = NULL;
 
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
@@ -838,6 +846,8 @@ mxd_record_field_motor_set_position( MX_MOTOR *motor )
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
+	record_field_motor = NULL;
+
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
 
@@ -883,6 +893,8 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
 
+	record_field_motor = NULL;
+
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
 
@@ -922,6 +934,8 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 	MX_RECORD_FIELD_MOTOR *record_field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
 	mx_status_type mx_status;
+
+	record_field_motor = NULL;
 
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
@@ -969,6 +983,8 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 	MX_RECORD_FIELD_HANDLER *handler;
 	long limit_hit;
 	mx_status_type mx_status;
+
+	record_field_motor = NULL;
 
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );
@@ -1022,6 +1038,8 @@ mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
 	MX_RECORD_FIELD_HANDLER *handler;
 	long limit_hit;
 	mx_status_type mx_status;
+
+	record_field_motor = NULL;
 
 	mx_status = mxd_record_field_motor_get_pointers( motor,
 						&record_field_motor, fname );

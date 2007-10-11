@@ -16,7 +16,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -447,6 +447,8 @@ mxd_q_motor_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	q_motor = NULL;
+
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -467,6 +469,8 @@ mxd_q_motor_move_absolute( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	double q, theta;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -494,6 +498,9 @@ mxd_q_motor_get_position( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	double lambda, q, theta;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
+	q = 0.0;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -537,6 +544,8 @@ mxd_q_motor_set_position( MX_MOTOR *motor )
 	double theta;
 	mx_status_type mx_status;
 
+	q_motor = NULL;
+
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -562,6 +571,8 @@ mxd_q_motor_soft_abort( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	mx_status_type mx_status;
 
+	q_motor = NULL;
+
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -579,6 +590,8 @@ mxd_q_motor_immediate_abort( MX_MOTOR *motor )
 
 	MX_Q_MOTOR *q_motor;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -598,6 +611,8 @@ mxd_q_motor_positive_limit_hit( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	mx_bool_type angle_limit_hit;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -628,6 +643,8 @@ mxd_q_motor_negative_limit_hit( MX_MOTOR *motor )
 	mx_bool_type angle_limit_hit;
 	mx_status_type mx_status;
 
+	q_motor = NULL;
+
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -656,6 +673,8 @@ mxd_q_motor_find_home_position( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	mx_status_type mx_status;
 
+	q_motor = NULL;
+
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -673,6 +692,8 @@ mxd_q_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	MX_Q_MOTOR *q_motor;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -697,6 +718,9 @@ mxd_q_motor_get_parameter( MX_MOTOR *motor )
 	double q_start, q_end;
 	double real_q_start, real_q_end;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
+	q = real_q_start = real_q_end = 0.0;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 
@@ -808,6 +832,8 @@ mxd_q_motor_set_parameter( MX_MOTOR *motor )
 	MX_Q_MOTOR *q_motor;
 	double real_position1, real_position2, time_for_move;
 	mx_status_type mx_status;
+
+	q_motor = NULL;
 
 	mx_status = mxd_q_motor_get_pointers( motor, &q_motor, fname );
 

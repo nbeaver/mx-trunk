@@ -562,6 +562,8 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 	int os_status, saved_errno;
 	mx_status_type mx_status;
 
+	unix_pipe = NULL;
+
 #if MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
@@ -626,6 +628,8 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
+	unix_pipe = NULL;
+
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -665,6 +669,8 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 	MX_UNIX_PIPE *unix_pipe;
 	int write_status, saved_errno;
 	mx_status_type mx_status;
+
+	unix_pipe = NULL;
 
 #if MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s: writing %ld bytes to MX pipe %p",
@@ -708,6 +714,8 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	MX_UNIX_PIPE *unix_pipe;
 	int os_status, saved_errno;
 	mx_status_type mx_status;
+
+	unix_pipe = NULL;
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
@@ -789,6 +797,8 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	MX_UNIX_PIPE *unix_pipe;
 	int old_flags, new_flags, os_status, saved_errno;
 	mx_status_type mx_status;
+
+	unix_pipe = NULL;
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 

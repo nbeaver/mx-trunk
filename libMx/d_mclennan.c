@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -189,6 +189,8 @@ mxd_mclennan_print_motor_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband;
 	mx_status_type mx_status;
 
+	mclennan = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -260,6 +262,8 @@ mxd_mclennan_open( MX_RECORD *record )
 	MX_MCLENNAN *mclennan;
 	mx_status_type mx_status;
 
+	mclennan = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -305,6 +309,8 @@ mxd_mclennan_resynchronize( MX_RECORD *record )
 	char response[80];
 	char *ptr;
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -450,6 +456,8 @@ mxd_mclennan_move_absolute( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	mclennan = NULL;
+
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -477,6 +485,8 @@ mxd_mclennan_get_position( MX_MOTOR *motor )
 	int num_items;
 	long motor_steps;
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -533,6 +543,8 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 	char c;
 	long motor_steps;
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -598,6 +610,8 @@ mxd_mclennan_soft_abort( MX_MOTOR *motor )
 	MX_MCLENNAN *mclennan;
 	mx_status_type mx_status;
 
+	mclennan = NULL;
+
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -624,6 +638,8 @@ mxd_mclennan_immediate_abort( MX_MOTOR *motor )
 
 	MX_MCLENNAN *mclennan;
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -652,6 +668,8 @@ mxd_mclennan_find_home_position( MX_MOTOR *motor )
 	MX_MCLENNAN *mclennan;
 	char command[20];
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -687,6 +705,8 @@ mxd_mclennan_constant_velocity_move( MX_MOTOR *motor )
 	char command[20];
 	double speed;
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -840,6 +860,8 @@ mxd_mclennan_get_parameter( MX_MOTOR *motor )
 	int num_items;
 	mx_status_type mx_status;
 
+	mclennan = NULL;
+
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -979,6 +1001,8 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 	MX_MCLENNAN *mclennan;
 	char command[20];
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 
@@ -1442,6 +1466,8 @@ mxd_mclennan_get_status( MX_MOTOR *motor )
 	MX_MCLENNAN *mclennan;
 	char response[80];
 	mx_status_type mx_status;
+
+	mclennan = NULL;
 
 	mx_status = mxd_mclennan_get_pointers( motor, &mclennan, fname );
 

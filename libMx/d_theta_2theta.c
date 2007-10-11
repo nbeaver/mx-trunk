@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -293,6 +293,8 @@ mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -336,6 +338,8 @@ mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 	double theta_destination, two_theta_destination;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -354,7 +358,8 @@ mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 
 	two_theta_speed = 2.0 * theta_speed;
 
-	mx_status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
+	mx_status = mx_motor_set_speed(
+				theta_2theta_motor->two_theta_motor_record,
 					two_theta_speed );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -401,6 +406,8 @@ mxd_theta_2theta_motor_get_position( MX_MOTOR *motor )
 	double theta_motor_position;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -437,6 +444,8 @@ mxd_theta_2theta_motor_soft_abort( MX_MOTOR *motor )
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	mx_status_type mx_status, mx_status2;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -467,6 +476,8 @@ mxd_theta_2theta_motor_immediate_abort( MX_MOTOR *motor )
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	mx_status_type mx_status, mx_status2;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -498,6 +509,8 @@ mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -542,6 +555,8 @@ mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -590,12 +605,15 @@ mxd_theta_2theta_motor_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_theta_2theta_motor_constant_velocity_move()";
+	static const char fname[] =
+			"mxd_theta_2theta_motor_constant_velocity_move()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed, two_theta_speed;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -614,7 +632,8 @@ mxd_theta_2theta_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	two_theta_speed = 2.0 * theta_speed;
 
-	mx_status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
+	mx_status = mx_motor_set_speed(
+			theta_2theta_motor->two_theta_motor_record,
 					two_theta_speed );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -654,6 +673,8 @@ mxd_theta_2theta_motor_get_parameter( MX_MOTOR *motor )
 	double theta_speed;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
@@ -691,6 +712,8 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 	double theta_speed, two_theta_speed;
 	mx_status_type mx_status;
 
+	theta_2theta_motor = NULL;
+ 
 	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 

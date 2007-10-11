@@ -1505,6 +1505,8 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 	int pthread_status;
 	mx_status_type mx_status;
 
+	thread_private = NULL;
+
 #if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
@@ -1654,6 +1656,8 @@ mx_thread_kill( MX_THREAD *thread )
 	int status;
 	mx_status_type mx_status;
 
+	thread_private = NULL;
+
 #if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
@@ -1693,6 +1697,8 @@ mx_thread_stop( MX_THREAD *thread )
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	int status;
 	mx_status_type mx_status;
+
+	thread_private = NULL;
 
 #if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -1777,6 +1783,8 @@ mx_thread_wait( MX_THREAD *thread,
 	void *value_ptr;
 	int status;
 	mx_status_type mx_status;
+
+	thread_private = NULL;
 
 	/* FIXME: Currently we pay no attention to 'max_seconds_to_wait'. */
 
@@ -1914,6 +1922,8 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
+
+	thread_private = NULL;
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 

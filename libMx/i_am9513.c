@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -330,6 +330,8 @@ mxi_am9513_print_structure( FILE *file, MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	am9513 = NULL;
+
 	mx_status = mxi_am9513_get_pointers( record, &am9513, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -396,6 +398,8 @@ mxi_am9513_open( MX_RECORD *record )
 	uint16_t master_mode_register;
 	int i;
 	mx_status_type mx_status;
+
+	am9513 = NULL;
 
 	mx_status = mxi_am9513_get_pointers( record, &am9513, fname );
 
@@ -506,6 +510,8 @@ mxi_am9513_close( MX_RECORD *record )
 
 	MX_AM9513 *am9513;
 	mx_status_type mx_status;
+
+	am9513 = NULL;
 
 	mx_status = mxi_am9513_get_pointers( record, &am9513, fname );
 

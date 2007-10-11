@@ -254,6 +254,8 @@ mxfh_autoscale_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	long change_request;
 	mx_status_type mx_status;
 
+	autoscale_fault_struct = NULL;
+
 	mx_status = mxfh_autoscale_get_pointers( fault_handler,
 					&autoscale_fault_struct, fname );
 
@@ -288,6 +290,8 @@ mxfh_autoscale_reset( MX_MEASUREMENT_FAULT *fault_handler )
 
 	MX_AUTOSCALE_MEASUREMENT_FAULT *autoscale_fault_struct;
 	mx_status_type mx_status;
+
+	autoscale_fault_struct = NULL;
 
 	mx_status = mxfh_autoscale_get_pointers( fault_handler,
 					&autoscale_fault_struct, fname );

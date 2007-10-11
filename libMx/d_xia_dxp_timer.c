@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -162,6 +162,8 @@ mxd_xia_dxp_timer_is_busy( MX_TIMER *timer )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	xia_dxp_timer = NULL;
+
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );
 
@@ -183,6 +185,8 @@ mxd_xia_dxp_timer_start( MX_TIMER *timer )
 	MX_XIA_DXP_TIMER *xia_dxp_timer;
 	double seconds_to_count;
 	mx_status_type mx_status;
+
+	xia_dxp_timer = NULL;
 
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );
@@ -213,6 +217,8 @@ mxd_xia_dxp_timer_stop( MX_TIMER *timer )
 	MX_XIA_DXP_TIMER *xia_dxp_timer;
 	mx_status_type mx_status;
 
+	xia_dxp_timer = NULL;
+
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );
 
@@ -233,6 +239,8 @@ mxd_xia_dxp_timer_clear( MX_TIMER *timer )
 
 	MX_XIA_DXP_TIMER *xia_dxp_timer;
 	mx_status_type mx_status;
+
+	xia_dxp_timer = NULL;
 
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );
@@ -255,6 +263,8 @@ mxd_xia_dxp_timer_read( MX_TIMER *timer )
 	MX_XIA_DXP_TIMER *xia_dxp_timer;
 	double live_time, real_time;
 	mx_status_type mx_status;
+
+	xia_dxp_timer = NULL;
 
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );
@@ -321,6 +331,8 @@ mxd_xia_dxp_timer_get_last_measurement_time( MX_TIMER *timer )
 #if HAVE_XIA_XERXES
 	MX_XIA_XERXES *xia_xerxes;
 #endif
+
+	xia_dxp_timer = NULL;
 
 	mx_status = mxd_xia_dxp_timer_get_pointers( timer,
 						&xia_dxp_timer, fname );

@@ -144,6 +144,9 @@ mxi_camera_link_api_open( MX_RECORD *record )
 	MX_DYNAMIC_LIBRARY *lib;
 	mx_status_type mx_status;
 
+	camera_link_api = NULL;
+	api_list = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -255,6 +258,8 @@ mxi_camera_link_api_close( MX_RECORD *record )
 	MX_CAMERA_LINK *camera_link;
 	MX_CAMERA_LINK_API *camera_link_api;
 	mx_status_type mx_status;
+
+	camera_link_api = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -168,6 +168,9 @@ mxd_icplus_open( MX_RECORD *record )
 	int timed_out;
 	unsigned long i, max_attempts, wait_ms, num_input_bytes_available;
 	mx_status_type mx_status;
+
+	amplifier = NULL;
+	icplus = NULL;
 
 	mx_status = mxd_icplus_get_pointers( record,
 					&amplifier, &icplus, fname );
@@ -375,6 +378,8 @@ mxd_icplus_resynchronize( MX_RECORD *record )
 	char command[40];
 	mx_status_type mx_status;
 
+	icplus = NULL;
+
 	mx_status = mxd_icplus_get_pointers( record, NULL, &icplus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -420,6 +425,8 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 	int num_items;
 	long exponent;
 	mx_status_type mx_status;
+
+	icplus = NULL;
 
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -499,6 +506,8 @@ mxd_icplus_set_gain( MX_AMPLIFIER *amplifier )
 	int exponent;
 	mx_status_type mx_status;
 
+	icplus = NULL;
+
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_AMPLIFIER pointer passed is NULL." );
@@ -566,6 +575,8 @@ mxd_icplus_get_offset( MX_AMPLIFIER *amplifier )
 	int num_items, offset_percentage;
 	mx_status_type mx_status;
 
+	icplus = NULL;
+
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_AMPLIFIER pointer passed is NULL." );
@@ -611,6 +622,8 @@ mxd_icplus_set_offset( MX_AMPLIFIER *amplifier )
 	char command[40];
 	long offset_percentage;
 	mx_status_type mx_status;
+
+	icplus = NULL;
 
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

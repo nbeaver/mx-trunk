@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -237,6 +237,8 @@ mxd_scaler_function_finish_record_initialization( MX_RECORD *record )
 	char error_message[] =
 	"Only scalers and double precision variables may be used in a scaler "
 	"function's record list.  Record '%s' is not of either type.";
+ 
+	scaler_function = NULL;
 
 	scaler = (MX_SCALER *) (record->record_class_struct);
 
@@ -510,7 +512,8 @@ mxd_scaler_function_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_scaler_function_print_scaler_structure()";
+	static const char fname[] =
+		"mxd_scaler_function_print_scaler_structure()";
 
 	MX_SCALER *scaler;
 	MX_SCALER_FUNCTION *scaler_function;
@@ -518,6 +521,8 @@ mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 	double *real_scale, *real_offset;
 	long i, num_records, current_value;
 	mx_status_type mx_status;
+
+	scaler_function = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -614,6 +619,8 @@ mxd_scaler_function_clear( MX_SCALER *scaler )
 	long i, num_scalers;
 	mx_status_type mx_status;
 
+	scaler_function = NULL;
+
 	mx_status = mxd_scaler_function_get_pointers( scaler,
 					&scaler_function, fname );
 
@@ -652,6 +659,8 @@ mxd_scaler_function_overflow_set( MX_SCALER *scaler )
 	long i, num_scalers;
 	mx_bool_type overflow_set;
 	mx_status_type mx_status;
+
+	scaler_function = NULL;
 
 	mx_status = mxd_scaler_function_get_pointers( scaler,
 					&scaler_function, fname );
@@ -708,6 +717,8 @@ mxd_scaler_function_read( MX_SCALER *scaler )
 	double *real_variable_offset;
 
 	mx_status_type mx_status;
+
+	scaler_function = NULL;
 
 	mx_status = mxd_scaler_function_get_pointers( scaler,
 					&scaler_function, fname );
@@ -784,6 +795,8 @@ mxd_scaler_function_is_busy( MX_SCALER *scaler )
 	long i, num_scalers;
 	mx_bool_type busy;
 	mx_status_type mx_status;
+
+	scaler_function = NULL;
 
 	mx_status = mxd_scaler_function_get_pointers( scaler,
 					&scaler_function, fname );

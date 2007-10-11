@@ -206,6 +206,8 @@ mxi_epix_rs232_open( MX_RECORD *record )
 	mx_status_type mx_status;
 	char error_message[80];
 
+	epix_rs232 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed is NULL.");
@@ -320,6 +322,8 @@ mxi_epix_rs232_read( MX_RS232 *rs232,
 	char *read_ptr;
 	char error_message[80];
 	mx_status_type mx_status;
+
+	epix_rs232 = NULL;
 
 	mx_status = mxi_epix_rs232_get_pointers( rs232,
 						&epix_rs232, NULL, fname);
@@ -495,6 +499,8 @@ mxi_epix_rs232_write( MX_RS232 *rs232,
 	char error_message[80];
 	mx_status_type mx_status;
 
+	epix_rs232 = NULL;
+
 	mx_status = mxi_epix_rs232_get_pointers( rs232,
 						&epix_rs232, NULL, fname);
 
@@ -647,6 +653,8 @@ mxi_epix_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, rs232->record->name));
 #endif
+
+	epix_rs232 = NULL;
 
 	mx_status = mxi_epix_rs232_get_pointers( rs232,
 					&epix_rs232, NULL, fname);

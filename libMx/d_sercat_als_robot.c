@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -508,6 +508,7 @@ mxd_sercat_als_robot_initialize( MX_SAMPLE_CHANGER *changer )
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
 
+	sercat_als_robot = NULL;
 	x_motor_record = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
@@ -645,6 +646,8 @@ mxd_sercat_als_robot_shutdown( MX_SAMPLE_CHANGER *changer )
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
 
+	sercat_als_robot = NULL;
+
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
 
@@ -674,6 +677,8 @@ mxd_sercat_als_robot_mount_sample( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
@@ -742,6 +747,8 @@ mxd_sercat_als_robot_unmount_sample( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
@@ -823,6 +830,8 @@ mxd_sercat_als_robot_grab_sample( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
@@ -919,6 +928,8 @@ mxd_sercat_als_robot_ungrab_sample( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
@@ -1054,6 +1065,8 @@ mxd_sercat_als_robot_soft_abort( MX_SAMPLE_CHANGER *changer )
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
 
+	sercat_als_robot = NULL;
+
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
 
@@ -1082,6 +1095,8 @@ mxd_sercat_als_robot_immediate_abort( MX_SAMPLE_CHANGER *changer )
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
 
+	sercat_als_robot = NULL;
+
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
 
@@ -1109,6 +1124,8 @@ mxd_sercat_als_robot_idle( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );
@@ -1203,6 +1220,8 @@ mxd_sercat_als_robot_set_parameter( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	mx_status_type mx_status;
+
+	sercat_als_robot = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );

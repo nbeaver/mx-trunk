@@ -218,6 +218,8 @@ mxph_topup_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	long delay_milliseconds;
 	mx_status_type mx_status;
 
+	topup_permit_struct = NULL;
+
 	mx_status = mxph_topup_get_pointers( permit_handler,
 					&topup_permit_struct, fname );
 

@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,6 +200,8 @@ mxd_als_dewar_positioner_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status;
+
+	als_dewar_positioner = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -448,8 +450,9 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	/* Suppress bogus GCC 4 uninitialized variable warning. */
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
 
+	als_dewar_positioner = NULL;
 	dewar_rot_destination = dewar_x_destination = 0.0;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
@@ -621,6 +624,8 @@ mxd_als_dewar_positioner_set_position( MX_MOTOR *motor )
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status;
 
+	als_dewar_positioner = NULL;
+
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );
 
@@ -660,6 +665,8 @@ mxd_als_dewar_positioner_soft_abort( MX_MOTOR *motor )
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status, mx_status2;
 
+	als_dewar_positioner = NULL;
+
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );
 
@@ -690,6 +697,8 @@ mxd_als_dewar_positioner_immediate_abort( MX_MOTOR *motor )
 
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status, mx_status2;
+
+	als_dewar_positioner = NULL;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );
@@ -738,6 +747,8 @@ mxd_als_dewar_positioner_find_home_position( MX_MOTOR *motor )
 
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	mx_status_type mx_status;
+
+	als_dewar_positioner = NULL;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );
@@ -854,6 +865,8 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 	unsigned long dewar_rot_status, dewar_x_status, total_status;
 	unsigned long home_search_succeeded;
 	mx_status_type mx_status;
+
+	als_dewar_positioner = NULL;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );

@@ -1842,6 +1842,8 @@ mxd_pccd_170170_delete_record( MX_RECORD *record )
 	MX_PCCD_170170 *pccd_170170;
 	mx_status_type mx_status;
 
+	pccd_170170 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -1891,6 +1893,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	struct timespec hrt;
 	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2419,6 +2423,8 @@ mxd_pccd_170170_resynchronize( MX_RECORD *record )
 	MX_PCCD_170170 *pccd_170170;
 	mx_status_type mx_status;
 
+	pccd_170170 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -2468,6 +2474,8 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	long num_frames_in_sequence, master_clock;
 	mx_bool_type camera_is_master, external_trigger, busy, circular;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -2628,6 +2636,8 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	int i, num_triggers;
 	mx_bool_type camera_is_master, internal_trigger, circular;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -2797,6 +2807,8 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	mx_bool_type busy, timed_out;
 	mx_status_type mx_status;
 
+	pccd_170170 = NULL;
+
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2879,6 +2891,8 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	mx_status_type mx_status;
 
+	pccd_170170 = NULL;
+
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2916,6 +2930,8 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	long total_num_frames;
 	unsigned long status_flags;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -2975,6 +2991,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	struct timespec exposure_timespec;
 	double exposure_time;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -3229,6 +3247,8 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	long corr_first_row, corr_start_offset;
 	long i, j, k;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -3496,6 +3516,8 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	mx_status_type mx_status;
 
+	pccd_170170 = NULL;
+
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3670,6 +3692,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -4650,6 +4674,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	int spatial_status, os_status, saved_errno;
 	int row_framesize, column_framesize;
 	mx_status_type mx_status;
+
+	pccd_170170 = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 

@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -136,6 +136,8 @@ mxi_linux_parport_open( MX_RECORD *record )
 	int i, length, status, saved_errno, data_port_direction;
 	unsigned long parport_flags;
 	mx_status_type mx_status;
+
+	linux_parport = NULL;
 
 	mx_status = mxi_linux_parport_get_pointers( record,
 						&linux_parport, fname );
@@ -296,6 +298,8 @@ mxi_linux_parport_close( MX_RECORD *record )
 	MX_LINUX_PARPORT *linux_parport;
 	int status, saved_errno, saved_fd;
 	mx_status_type mx_status;
+
+	linux_parport = NULL;
 
 	mx_status = mxi_linux_parport_get_pointers( record,
 						&linux_parport, fname );

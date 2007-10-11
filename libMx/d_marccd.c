@@ -279,6 +279,8 @@ mxd_marccd_open( MX_RECORD *record )
 	int flags;
 	mx_status_type mx_status;
 
+	marccd = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -339,6 +341,8 @@ mxd_marccd_close( MX_RECORD *record )
 	MX_MARCCD *marccd;
 	int saved_errno, status_from_marccd, status_to_marccd;
 	mx_status_type mx_status;
+
+	marccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -420,6 +424,8 @@ mxd_marccd_trigger( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK clock_ticks_to_wait, start_time;
 	mx_status_type mx_status;
 
+	marccd = NULL;
+
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -482,6 +488,8 @@ mxd_marccd_stop( MX_AREA_DETECTOR *ad )
 	MX_MARCCD *marccd;
 	mx_status_type mx_status;
 
+	marccd = NULL;
+
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -510,6 +518,8 @@ mxd_marccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK current_time;
 	int comparison;
 	mx_status_type mx_status;
+
+	marccd = NULL;
 
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
@@ -559,6 +569,8 @@ mxd_marccd_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_MARCCD *marccd;
 	mx_status_type mx_status;
 
+	marccd = NULL;
+
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -585,6 +597,8 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_MARCCD *marccd;
 	mx_status_type mx_status;
 
+	marccd = NULL;
+
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -609,6 +623,8 @@ mxd_marccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_MARCCD *marccd;
 	mx_status_type mx_status;
+
+	marccd = NULL;
 
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 

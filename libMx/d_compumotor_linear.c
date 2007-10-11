@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -255,6 +255,8 @@ mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 	long controller_index;
 	mx_status_type mx_status;
 
+	compumotor_linear_motor = NULL;
+
 	mx_status = mx_motor_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -463,6 +465,8 @@ mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband;
 	mx_status_type mx_status;
 
+	compumotor_linear_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -615,6 +619,8 @@ mxd_compumotor_linear_open( MX_RECORD *record )
 	MX_RECORD *compumotor_interface_record;
 	mx_status_type mx_status;
 
+	compumotor_linear_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed is NULL." );
@@ -662,6 +668,8 @@ mxd_compumotor_linear_motor_is_busy( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type busy;
 	mx_status_type mx_status;
+
+	compumotor_linear_motor = NULL;
 
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
@@ -714,6 +722,8 @@ mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 	long i, num_motors;
 	int simultaneous_start;
 	mx_status_type mx_status;
+
+	compumotor_linear_motor = NULL;
 
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
@@ -864,6 +874,8 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	char *ptr;
 	mx_status_type mx_status;
 
+	compumotor_linear_motor = NULL;
+
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
@@ -976,6 +988,8 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 	mx_bool_type will_be_stopped;
 	mx_status_type mx_status;
 
+	compumotor_linear_motor = NULL;
+
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
@@ -1041,6 +1055,8 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 	char command[80];
 	long n;
 	mx_status_type mx_status;
+ 
+	compumotor_linear_motor = NULL;
 
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
@@ -1072,7 +1088,8 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_compumotor_linear_positive_limit_hit()";
+	static const char fname[] =
+		"mxd_compumotor_linear_positive_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
@@ -1080,6 +1097,8 @@ mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	compumotor_linear_motor = NULL;
 
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
@@ -1118,7 +1137,8 @@ mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_compumotor_linear_negative_limit_hit()";
+	static const char fname[] =
+		"mxd_compumotor_linear_negative_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
@@ -1126,6 +1146,8 @@ mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	compumotor_linear_motor = NULL;
 
 	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );

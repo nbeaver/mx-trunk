@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -152,6 +152,8 @@ mxd_als_robot_java_open( MX_RECORD *record )
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -183,6 +185,8 @@ mxd_als_robot_java_initialize( MX_SAMPLE_CHANGER *changer )
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
 
@@ -207,6 +211,8 @@ mxd_als_robot_java_shutdown( MX_SAMPLE_CHANGER *changer )
 
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
@@ -234,6 +240,8 @@ mxd_als_robot_java_mount_sample( MX_SAMPLE_CHANGER *changer )
 	char command[100];
 	unsigned long interaction_id;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
@@ -269,6 +277,8 @@ mxd_als_robot_java_unmount_sample( MX_SAMPLE_CHANGER *changer )
 	char command[100];
 	unsigned long interaction_id;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
@@ -315,6 +325,8 @@ mxd_als_robot_java_select_sample_holder( MX_SAMPLE_CHANGER *changer )
 	unsigned long interaction_id;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
 
@@ -350,6 +362,8 @@ mxd_als_robot_java_unselect_sample_holder( MX_SAMPLE_CHANGER *changer )
 	unsigned long interaction_id;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
 
@@ -381,6 +395,8 @@ mxd_als_robot_java_soft_abort( MX_SAMPLE_CHANGER *changer )
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
 
@@ -405,6 +421,8 @@ mxd_als_robot_java_immediate_abort( MX_SAMPLE_CHANGER *changer )
 
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
@@ -453,6 +471,8 @@ mxd_als_robot_java_reset( MX_SAMPLE_CHANGER *changer )
 	MX_ALS_ROBOT_JAVA *als_robot_java;
 	mx_status_type mx_status;
 
+	als_robot_java = NULL;
+
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
 
@@ -481,6 +501,8 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	int num_items, value;
 	unsigned long interaction_id;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );
@@ -532,6 +554,8 @@ mxd_als_robot_java_set_parameter( MX_SAMPLE_CHANGER *changer )
 	char command[100];
 	unsigned long interaction_id;
 	mx_status_type mx_status;
+
+	als_robot_java = NULL;
 
 	mx_status = mxd_als_robot_java_get_pointers( changer,
 						&als_robot_java, fname );

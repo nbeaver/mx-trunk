@@ -56,7 +56,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -273,12 +273,15 @@ mxd_aframe_det_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_aframe_det_motor_print_motor_structure()";
+	static const char fname[] =
+		"mxd_aframe_det_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	double position, move_deadband;
 	mx_status_type mx_status;
+
+	aframe_detector_motor = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -415,6 +418,8 @@ mxd_aframe_det_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	aframe_detector_motor = NULL;
+
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
 
@@ -478,6 +483,8 @@ mxd_aframe_det_motor_move_absolute( MX_MOTOR *motor )
 	double old_raw_position;
 	mx_status_type mx_status;
 
+	aframe_detector_motor = NULL;
+
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
 
@@ -540,6 +547,8 @@ mxd_aframe_det_motor_get_position( MX_MOTOR *motor )
 	double raw_position;
 	mx_status_type mx_status;
 
+	aframe_detector_motor = NULL;
+
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 					&aframe_detector_motor, fname );
 
@@ -574,6 +583,8 @@ mxd_aframe_det_motor_set_position( MX_MOTOR *motor )
 	double new_dh_position;
 	double old_raw_position;
 	mx_status_type mx_status;
+
+	aframe_detector_motor = NULL;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
@@ -636,6 +647,8 @@ mxd_aframe_det_motor_soft_abort( MX_MOTOR *motor )
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_status_type mx_status, abort_status;
 
+	aframe_detector_motor = NULL;
+
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
 
@@ -669,6 +682,8 @@ mxd_aframe_det_motor_immediate_abort( MX_MOTOR *motor )
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_status_type mx_status, abort_status;
+
+	aframe_detector_motor = NULL;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
@@ -705,6 +720,8 @@ mxd_aframe_det_motor_positive_limit_hit( MX_MOTOR *motor )
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_bool_type positive_limit_hit;
 	mx_status_type mx_status;
+
+	aframe_detector_motor = NULL;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );
@@ -767,6 +784,8 @@ mxd_aframe_det_motor_negative_limit_hit( MX_MOTOR *motor )
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_bool_type negative_limit_hit;
 	mx_status_type mx_status;
+
+	aframe_detector_motor = NULL;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
 						&aframe_detector_motor, fname );

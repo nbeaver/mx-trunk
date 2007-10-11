@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -124,6 +124,8 @@ mxi_aps_adcmod2_print_structure( FILE *file, MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	aps_adcmod2 = NULL;
+
 	mx_status = mxi_aps_adcmod2_get_pointers( record, &aps_adcmod2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -179,6 +181,8 @@ mxi_aps_adcmod2_open( MX_RECORD *record )
 	double update_interval;			/* in seconds */
 	double ticks_per_second;
 	mx_status_type mx_status;
+
+	aps_adcmod2 = NULL;
 
 	mx_status = mxi_aps_adcmod2_get_pointers( record, &aps_adcmod2, fname );
 

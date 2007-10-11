@@ -153,6 +153,8 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -303,6 +305,8 @@ mxd_network_vinput_open( MX_RECORD *record )
 	long dimension[1];
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -391,6 +395,8 @@ mxd_network_vinput_arm( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
 
@@ -415,6 +421,8 @@ mxd_network_vinput_trigger( MX_VIDEO_INPUT *vinput )
 
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -441,6 +449,8 @@ mxd_network_vinput_stop( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
 
@@ -466,6 +476,8 @@ mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
 
@@ -490,6 +502,8 @@ mxd_network_vinput_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -522,6 +536,8 @@ mxd_network_vinput_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
 
@@ -548,6 +564,8 @@ mxd_network_vinput_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
 
+	network_vinput = NULL;
+
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
 
@@ -572,6 +590,8 @@ mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput )
 
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -600,6 +620,8 @@ mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	long dimension[1];
 	int num_items;
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -656,6 +678,8 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_IMAGE_FRAME *frame;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -765,6 +789,8 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );
@@ -898,6 +924,8 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 	MX_NETWORK_VINPUT *network_vinput;
 	long dimension[1];
 	mx_status_type mx_status;
+
+	network_vinput = NULL;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
 						&network_vinput, fname );

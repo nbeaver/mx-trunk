@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -195,6 +195,8 @@ mxd_tracker_din_finish_record_initialization( MX_RECORD *record )
 	MX_TRACKER_DINPUT *tracker_dinput;
 	mx_status_type mx_status;
 
+	tracker_dinput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -224,6 +226,8 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[80], response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	tracker_dinput = NULL;
 
 	mx_status = mxd_tracker_din_get_pointers( dinput,
 						&tracker_dinput, fname );
@@ -307,6 +311,8 @@ mxd_tracker_dout_finish_record_initialization( MX_RECORD *record )
 	MX_TRACKER_DOUTPUT *tracker_doutput;
 	mx_status_type mx_status;
 
+	tracker_doutput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -336,6 +342,8 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char command[80], response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	tracker_doutput = NULL;
 
 	mx_status = mxd_tracker_dout_get_pointers( doutput,
 						&tracker_doutput, fname );
@@ -376,6 +384,8 @@ mxd_tracker_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_TRACKER_DOUTPUT *tracker_doutput;
 	char command[80];
 	mx_status_type mx_status;
+
+	tracker_doutput = NULL;
 
 	mx_status = mxd_tracker_dout_get_pointers( doutput,
 						&tracker_doutput, fname );

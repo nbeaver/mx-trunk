@@ -180,6 +180,8 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
+	soft_area_detector = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -262,6 +264,8 @@ mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_status_type mx_status;
 
+	soft_area_detector = NULL;
+
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
 
@@ -286,6 +290,8 @@ mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
+
+	soft_area_detector = NULL;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
@@ -345,6 +351,8 @@ mxd_soft_area_detector_stop( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_status_type mx_status;
 
+	soft_area_detector = NULL;
+
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
 
@@ -369,6 +377,8 @@ mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad )
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_status_type mx_status;
+
+	soft_area_detector = NULL;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
@@ -403,6 +413,8 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	long sequence_type, num_parameters;
 	double *parameter_array;
 	mx_status_type mx_status;
+
+	soft_area_detector = NULL;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
@@ -647,6 +659,8 @@ mxd_soft_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_status_type mx_status;
 
+	soft_area_detector = NULL;
+
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
 
@@ -673,6 +687,8 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
+
+	soft_area_detector = NULL;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );
@@ -744,6 +760,8 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
+
+	soft_area_detector = NULL;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
 						&soft_area_detector, fname );

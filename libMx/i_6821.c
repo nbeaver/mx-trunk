@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -137,6 +137,8 @@ mxi_6821_open( MX_RECORD *record )
 	MX_6821 *mc6821;
 	mx_status_type mx_status;
 
+	mc6821 = NULL;
+
 	mx_status = mxi_6821_get_pointers( record, &mc6821, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -192,6 +194,8 @@ mxi_6821_close( MX_RECORD *record )
 
 	MX_6821 *mc6821;
 	mx_status_type mx_status;
+
+	mc6821 = NULL;
 
 	mx_status = mxi_6821_get_pointers( record, &mc6821, fname );
 

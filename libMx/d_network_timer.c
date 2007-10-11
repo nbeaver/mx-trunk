@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -142,6 +142,8 @@ mxd_network_timer_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_TIMER *network_timer;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -198,6 +200,8 @@ mxd_network_timer_is_busy( MX_TIMER *timer )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
 
@@ -223,6 +227,8 @@ mxd_network_timer_start( MX_TIMER *timer )
 	double seconds_to_count;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
 
@@ -246,6 +252,8 @@ mxd_network_timer_stop( MX_TIMER *timer )
 	mx_bool_type stop;
 	double value;
 	mx_status_type mx_status;
+
+	network_timer = NULL;
 
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
@@ -276,6 +284,8 @@ mxd_network_timer_clear( MX_TIMER *timer )
 	mx_bool_type clear;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
 
@@ -300,6 +310,8 @@ mxd_network_timer_read( MX_TIMER *timer )
 	double value;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
 
@@ -321,6 +333,8 @@ mxd_network_timer_get_mode( MX_TIMER *timer )
 	MX_NETWORK_TIMER *network_timer;
 	long mode;
 	mx_status_type mx_status;
+
+	network_timer = NULL;
 
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
@@ -344,6 +358,8 @@ mxd_network_timer_set_mode( MX_TIMER *timer )
 	long mode;
 	mx_status_type mx_status;
 
+	network_timer = NULL;
+
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );
 
@@ -366,6 +382,8 @@ mxd_network_timer_get_last_measurement_time( MX_TIMER *timer )
 	MX_NETWORK_TIMER *network_timer;
 	double last_measurement_time;
 	mx_status_type mx_status;
+
+	network_timer = NULL;
 
 	mx_status = mxd_network_timer_get_pointers(
 				timer, &network_timer, fname );

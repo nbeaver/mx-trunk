@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,6 +144,8 @@ mxd_net_sample_changer_finish_record_initialization( MX_RECORD *record )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -237,6 +239,8 @@ mxd_net_sample_changer_initialize( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type initialize;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -265,6 +269,8 @@ mxd_net_sample_changer_shutdown( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type shutdown;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -292,6 +298,8 @@ mxd_net_sample_changer_mount_sample( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_bool_type mount_sample;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
@@ -323,6 +331,8 @@ mxd_net_sample_changer_unmount_sample( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type unmount_sample;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -350,6 +360,8 @@ mxd_net_sample_changer_grab_sample( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_bool_type grab_sample;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
@@ -394,6 +406,8 @@ mxd_net_sample_changer_ungrab_sample( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type ungrab_sample;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -423,6 +437,8 @@ mxd_net_sample_changer_select_sample_holder( MX_SAMPLE_CHANGER *changer )
 	long dimension_array[1];
 	mx_bool_type select_sample_holder;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
@@ -472,6 +488,8 @@ mxd_net_sample_changer_unselect_sample_holder( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type unselect_sample_holder;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -507,6 +525,8 @@ mxd_net_sample_changer_soft_abort( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type soft_abort;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -534,6 +554,8 @@ mxd_net_sample_changer_immediate_abort( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_bool_type immediate_abort;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
@@ -563,6 +585,8 @@ mxd_net_sample_changer_idle( MX_SAMPLE_CHANGER *changer )
 	mx_bool_type idle;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -589,6 +613,8 @@ mxd_net_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_bool_type reset;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
@@ -617,6 +643,8 @@ mxd_net_sample_changer_get_status( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_status_type mx_status;
 
+	net_sample_changer = NULL;
+
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );
 
@@ -642,6 +670,8 @@ mxd_net_sample_changer_set_parameter( MX_SAMPLE_CHANGER *changer )
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
+
+	net_sample_changer = NULL;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
 						&net_sample_changer, fname );

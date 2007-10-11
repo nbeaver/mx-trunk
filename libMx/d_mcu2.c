@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -273,6 +273,8 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband, speed;
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -353,6 +355,8 @@ mxd_mcu2_open( MX_RECORD *record )
 	MX_MCU2 *mcu2;
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed was NULL." );
@@ -399,6 +403,8 @@ mxd_mcu2_move_absolute( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -423,6 +429,8 @@ mxd_mcu2_get_position( MX_MOTOR *motor )
 	int num_items;
 	char *ptr;
 	mx_status_type mx_status;
+
+	mcu2 = NULL;
 
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
@@ -469,6 +477,8 @@ mxd_mcu2_set_position( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -490,6 +500,8 @@ mxd_mcu2_soft_abort( MX_MOTOR *motor )
 	MX_MCU2 *mcu2;
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -507,6 +519,8 @@ mxd_mcu2_immediate_abort( MX_MOTOR *motor )
 
 	MX_MCU2 *mcu2;
 	mx_status_type mx_status;
+
+	mcu2 = NULL;
 
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
@@ -526,6 +540,8 @@ mxd_mcu2_find_home_position( MX_MOTOR *motor )
 	MX_MCU2 *mcu2;
 	char command[80];
 	mx_status_type mx_status;
+
+	mcu2 = NULL;
 
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
@@ -560,6 +576,8 @@ mxd_mcu2_constant_velocity_move( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -590,6 +608,8 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 	int num_items;
 	unsigned long ulong_value;
 	mx_status_type mx_status;
+
+	mcu2 = NULL;
 
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
@@ -723,6 +743,8 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 	unsigned long ulong_value;
 	mx_status_type mx_status;
 
+	mcu2 = NULL;
+
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -828,6 +850,8 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 	char *ptr;
 	int status_length;
 	mx_status_type mx_status;
+
+	mcu2 = NULL;
 
 	mx_status = mxd_mcu2_get_pointers( motor, &mcu2, fname );
 

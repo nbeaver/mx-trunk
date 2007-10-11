@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -142,6 +142,8 @@ mxd_network_scaler_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_SCALER *network_scaler;
 	mx_status_type mx_status;
 
+	network_scaler = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -204,6 +206,8 @@ mxd_network_scaler_clear( MX_SCALER *scaler )
 	mx_bool_type clear;
 	mx_status_type mx_status;
 
+	network_scaler = NULL;
+
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
 
@@ -228,6 +232,8 @@ mxd_network_scaler_overflow_set( MX_SCALER *scaler )
 	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
+	network_scaler = NULL;
+
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
 
@@ -251,6 +257,8 @@ mxd_network_scaler_read( MX_SCALER *scaler )
 	long value;
 	mx_status_type mx_status;
 
+	network_scaler = NULL;
+
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
 
@@ -272,6 +280,8 @@ mxd_network_scaler_read_raw( MX_SCALER *scaler )
 	MX_NETWORK_SCALER *network_scaler;
 	long raw_value;
 	mx_status_type mx_status;
+
+	network_scaler = NULL;
 
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
@@ -296,6 +306,8 @@ mxd_network_scaler_is_busy( MX_SCALER *scaler )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	network_scaler = NULL;
+
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
 
@@ -317,6 +329,8 @@ mxd_network_scaler_start( MX_SCALER *scaler )
 	MX_NETWORK_SCALER *network_scaler;
 	long value;
 	mx_status_type mx_status;
+
+	network_scaler = NULL;
 
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
@@ -340,6 +354,8 @@ mxd_network_scaler_stop( MX_SCALER *scaler )
 	mx_bool_type stop;
 	long value;
 	mx_status_type mx_status;
+
+	network_scaler = NULL;
 
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
@@ -370,6 +386,8 @@ mxd_network_scaler_get_parameter( MX_SCALER *scaler )
 	long mode;
 	double dark_current;
 	mx_status_type mx_status;
+
+	network_scaler = NULL;
 
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );
@@ -416,6 +434,8 @@ mxd_network_scaler_set_parameter( MX_SCALER *scaler )
 	long mode;
 	double dark_current;
 	mx_status_type mx_status;
+
+	network_scaler = NULL;
 
 	mx_status = mxd_network_scaler_get_pointers(
 				scaler, &network_scaler, fname );

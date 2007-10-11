@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -141,6 +141,8 @@ mxd_mcs_timer_finish_record_initialization( MX_RECORD *record )
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
 
+	mcs_timer = NULL;
+
 	mx_status = mx_timer_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -194,6 +196,8 @@ mxd_mcs_timer_is_busy( MX_TIMER *timer )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	mcs_timer = NULL;
+
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -219,6 +223,8 @@ mxd_mcs_timer_start( MX_TIMER *timer )
 	MX_MCS_TIMER *mcs_timer;
 	double seconds;
 	mx_status_type mx_status;
+
+	mcs_timer = NULL;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
@@ -260,6 +266,8 @@ mxd_mcs_timer_stop( MX_TIMER *timer )
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
 
+	mcs_timer = NULL;
+
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -287,6 +295,8 @@ mxd_mcs_timer_clear( MX_TIMER *timer )
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
 
+	mcs_timer = NULL;
+
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -310,6 +320,8 @@ mxd_mcs_timer_read( MX_TIMER *timer )
 	MX_MCS_TIMER *mcs_timer;
 	MX_MCS *mcs;
 	mx_status_type mx_status;
+
+	mcs_timer = NULL;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
@@ -358,6 +370,8 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 	long mode;
 	mx_status_type mx_status;
 
+	mcs_timer = NULL;
+
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -377,6 +391,8 @@ mxd_mcs_timer_set_mode( MX_TIMER *timer )
 
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
+
+	mcs_timer = NULL;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 
@@ -406,6 +422,8 @@ mxd_mcs_timer_get_last_measurement_time( MX_TIMER *timer )
 	MX_MCS_TIMER *mcs_timer;
 	double last_measurement_time;
 	mx_status_type mx_status;
+
+	mcs_timer = NULL;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
 

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -333,6 +333,8 @@ mxd_gm10_timer_is_busy( MX_TIMER *timer )
 	MX_RECORD *scaler_record;
 	mx_status_type mx_status;
 
+	gm10_timer = NULL;
+
 	mx_status = mxd_gm10_timer_get_pointers( timer, &gm10_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -384,6 +386,8 @@ mxd_gm10_timer_start( MX_TIMER *timer )
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
 	mx_status_type mx_status;
 
+	gm10_timer = NULL;
+
 	mx_status = mxd_gm10_timer_get_pointers( timer, &gm10_timer, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -422,6 +426,8 @@ mxd_gm10_timer_stop( MX_TIMER *timer )
 
 	MX_GM10_TIMER *gm10_timer;
 	mx_status_type mx_status;
+
+	gm10_timer = NULL;
 
 	mx_status = mxd_gm10_timer_get_pointers( timer, &gm10_timer, fname );
 

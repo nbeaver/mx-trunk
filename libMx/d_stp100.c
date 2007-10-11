@@ -249,6 +249,8 @@ mxd_stp100_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	double position, move_deadband;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -326,6 +328,8 @@ mxd_stp100_motor_open( MX_RECORD *record )
 	MX_STP100_MOTOR *stp100_motor;
 	double raw_acceleration_parameters[ MX_MOTOR_NUM_ACCELERATION_PARAMS ];
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -455,6 +459,8 @@ mxd_stp100_motor_is_busy( MX_MOTOR *motor )
 	int num_items;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -496,6 +502,8 @@ mxd_stp100_motor_move_absolute( MX_MOTOR *motor )
 	char command[80];
 	long motor_steps;
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
@@ -567,6 +575,8 @@ mxd_stp100_motor_get_position( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -600,6 +610,8 @@ mxd_stp100_motor_set_position( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -623,6 +635,8 @@ mxd_stp100_motor_soft_abort( MX_MOTOR *motor )
 	MX_STP100_MOTOR *stp100_motor;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -641,6 +655,8 @@ mxd_stp100_motor_immediate_abort( MX_MOTOR *motor )
 
 	MX_STP100_MOTOR *stp100_motor;
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
@@ -663,6 +679,8 @@ mxd_stp100_motor_positive_limit_hit( MX_MOTOR *motor )
 	char response[80];
 	int num_items, pin_state;
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
@@ -730,6 +748,8 @@ mxd_stp100_motor_negative_limit_hit( MX_MOTOR *motor )
 	int num_items, pin_state;
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -794,6 +814,8 @@ mxd_stp100_motor_find_home_position( MX_MOTOR *motor )
 	char command[80];
 	mx_status_type mx_status;
 
+	stp100_motor = NULL;
+
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -828,6 +850,8 @@ mxd_stp100_motor_constant_velocity_move( MX_MOTOR *motor )
 	char command[20];
 	char response[80];
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
@@ -886,6 +910,8 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 	double microseconds_per_step, numerator;
 	double acceleration_seconds, acceleration_ticks;
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
@@ -1021,6 +1047,8 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 	double acceleration_factor, numerator;
 	double acceleration_seconds, acceleration_ticks;
 	mx_status_type mx_status;
+
+	stp100_motor = NULL;
 
 	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 

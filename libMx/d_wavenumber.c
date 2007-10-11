@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -476,6 +476,8 @@ mxd_wavenumber_motor_get_position( MX_MOTOR *motor )
 	double wavenumber, theta;
 	mx_status_type status;
 
+	wavenumber = 0.0;
+
 	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
 					&dependent_motor_record,fname );
 
@@ -631,6 +633,8 @@ mxd_wavenumber_motor_get_parameter( MX_MOTOR *motor )
 	double wavenumber_start, wavenumber_end;
 	double real_wavenumber_start, real_wavenumber_end;
 	mx_status_type status;
+
+	wavenumber = real_wavenumber_start = real_wavenumber_end = 0.0;
 
 	status = mxd_wavenumber_motor_get_pointers( motor, &wavenumber_motor,
 					&dependent_motor_record,fname );

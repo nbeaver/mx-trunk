@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -390,6 +390,8 @@ mxd_trans_motor_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+	translation_motor = NULL;
+
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
@@ -445,6 +447,8 @@ mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 	double translation_position_difference;
 	double position_sum;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
@@ -550,6 +554,8 @@ mxd_trans_motor_get_position( MX_MOTOR *motor )
 	double position_sum;
 	mx_status_type mx_status;
 
+	translation_motor = NULL;
+
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
@@ -598,6 +604,8 @@ mxd_trans_motor_set_position( MX_MOTOR *motor )
 	double translation_position_difference;
 	double position_sum;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
@@ -681,6 +689,8 @@ mxd_trans_motor_soft_abort( MX_MOTOR *motor )
 	MX_TRANSLATION_MOTOR *translation_motor;
 	mx_status_type mx_status;
 
+	translation_motor = NULL;
+
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
@@ -711,6 +721,8 @@ mxd_trans_motor_immediate_abort( MX_MOTOR *motor )
 	MX_TRANSLATION_MOTOR *translation_motor;
 	mx_status_type mx_status;
 
+	translation_motor = NULL;
+
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
@@ -740,6 +752,8 @@ mxd_trans_motor_positive_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
@@ -786,6 +800,8 @@ mxd_trans_motor_negative_limit_hit( MX_MOTOR *motor )
 	long i, num_motors;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
@@ -843,6 +859,8 @@ mxd_trans_motor_constant_velocity_move( MX_MOTOR *motor )
 	long direction;
 	mx_status_type mx_status;
 
+	translation_motor = NULL;
+
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
@@ -877,6 +895,8 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 	long i, num_motors;
 	double sum, max_value, double_value;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
@@ -1017,6 +1037,8 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 	double pseudomotor_difference, position_sum;
 	double *position_array, *start_position_array;
 	mx_status_type mx_status;
+
+	translation_motor = NULL;
 
 	mx_status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );

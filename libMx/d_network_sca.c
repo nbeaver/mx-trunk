@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,6 +138,8 @@ mxd_network_sca_finish_record_initialization( MX_RECORD *record )
 	MX_NETWORK_SCA *network_sca;
 	mx_status_type mx_status;
 
+	network_sca = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -212,6 +214,8 @@ mxd_network_sca_resynchronize( MX_RECORD *record )
 	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
+	network_sca = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -239,6 +243,8 @@ mxd_network_sca_get_parameter( MX_SCA *sca )
 
 	MX_NETWORK_SCA *network_sca;
 	mx_status_type mx_status;
+
+	network_sca = NULL;
 
 	mx_status = mxd_network_sca_get_pointers( sca, &network_sca, fname );
 
@@ -290,6 +296,8 @@ mxd_network_sca_set_parameter( MX_SCA *sca )
 
 	MX_NETWORK_SCA *network_sca;
 	mx_status_type mx_status;
+
+	network_sca = NULL;
 
 	mx_status = mxd_network_sca_get_pointers( sca, &network_sca, fname );
 

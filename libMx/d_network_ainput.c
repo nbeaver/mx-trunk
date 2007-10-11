@@ -139,6 +139,8 @@ mxd_network_ainput_finish_record_initialization( MX_RECORD *record )
 	unsigned long flags;
 	mx_status_type mx_status;
 
+	network_ainput = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_RECORD pointer passed was NULL." );
@@ -206,6 +208,8 @@ mxd_network_ainput_read( MX_ANALOG_INPUT *ainput )
 	MX_NETWORK_AINPUT *network_ainput;
 	double raw_value;
 	mx_status_type mx_status;
+
+	network_ainput = NULL;
 
 	mx_status = mxd_network_ainput_get_pointers(
 				ainput, &network_ainput, fname);

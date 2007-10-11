@@ -463,6 +463,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	uint16_t *ptr16;
 	mx_status_type mx_status;
 
+	soft_vinput = NULL;
+
 	mx_status = mxd_soft_vinput_get_pointers( vinput,
 						&soft_vinput, fname );
 

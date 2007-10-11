@@ -2057,6 +2057,12 @@ mx_get_field_array( MX_RECORD *server_record,
 	MX_HRT_TIMING measurement;
 #endif
 
+	server = NULL;
+	datatype = -1;
+	num_dimensions = -1;
+	dimension_array = NULL;
+	data_element_size_array = NULL;
+
 	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
 	use_network_handles = TRUE;
@@ -2449,6 +2455,12 @@ mx_put_field_array( MX_RECORD *server_record,
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
+
+	server = NULL;
+	datatype = -1;
+	num_dimensions = -1;
+	dimension_array = NULL;
+	data_element_size_array = NULL;
 
 	use_network_handles = TRUE;
 

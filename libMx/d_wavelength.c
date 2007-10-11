@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -475,6 +475,8 @@ mxd_wavelength_motor_get_position( MX_MOTOR *motor )
 	double wavelength, theta;
 	mx_status_type mx_status;
 
+	wavelength = 0.0;
+
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
 					&dependent_motor_record,fname );
 
@@ -630,6 +632,8 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 	double wavelength_start, wavelength_end;
 	double real_wavelength_start, real_wavelength_end;
 	mx_status_type mx_status;
+
+	wavelength = real_wavelength_start = real_wavelength_end = 0.0;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
 					&dependent_motor_record,fname );
