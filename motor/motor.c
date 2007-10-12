@@ -581,7 +581,21 @@ motor_main( int argc, char *argv[] )
 int
 motor_debug_fn( int argc, char *argv[] )
 {
-	mx_start_debugger(NULL);
+	char command[200];
+	int i;
+
+	if ( argc <= 2 ) {
+		mx_start_debugger(NULL);
+	} else {
+		command[0] = '\0';
+
+		for ( i = 2; i < argc; i++ ) {
+			strlcat( command, argv[i], sizeof(command) );
+			strlcat( command, " ", sizeof(command) );
+		}
+
+		mx_start_debugger( command );
+	}
 
 	return SUCCESS;
 }

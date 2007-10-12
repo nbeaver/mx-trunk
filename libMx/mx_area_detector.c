@@ -20,7 +20,9 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
@@ -2440,6 +2442,10 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	mx_status_type mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_TIMING setup_frame_timing;
+#endif
+
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2450,6 +2456,10 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for (*image_frame) = %p",
 		fname, (*image_frame) ));
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_START(setup_frame_timing);
 #endif
 
 	mx_status = mx_image_alloc( image_frame,
@@ -2468,6 +2478,11 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	MXIF_COLUMN_BINSIZE(*image_frame) = ad->binsize[1];
 	MXIF_BITS_PER_PIXEL(*image_frame) = ad->bits_per_pixel;
 
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_END(setup_frame_timing);
+	MX_HRT_RESULTS(setup_frame_timing, fname, "for frame setup.");
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2481,10 +2496,18 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 	mx_status_type ( *readout_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_TIMING readout_frame_timing;
+#endif
+
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_START(readout_frame_timing);
+#endif
 
 	/* Does this driver implement a readout_frame function? */
 
@@ -2525,6 +2548,11 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 	ad->readout_frame = frame_number;
 
 	mx_status = (*readout_frame_fn)( ad );
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_END(readout_frame_timing);
+	MX_HRT_RESULTS(readout_frame_timing, fname, "for frame readout");
+#endif
 
 	return mx_status;
 }
@@ -5078,9 +5106,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	MX_DEBUG(-2,(" "));	/* Print an empty line. */
 
-	MX_HRT_RESULTS( initial_timing, fname, "Initial correction time." );
+	MX_HRT_RESULTS( initial_timing, fname,
+				"Mask, bias, and dark correction time." );
 	MX_HRT_RESULTS( geometrical_timing, fname,
-					"Geometrical correction time." );
+				"Geometrical correction time." );
 	MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
 #endif
 
