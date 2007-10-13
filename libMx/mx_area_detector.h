@@ -145,6 +145,8 @@ typedef struct mx_area_detector_type {
 	double detector_readout_time;
 	double total_sequence_time;
 
+	mx_bool_type do_geometrical_correction_last;
+
 	/* 'sequence_parameters' contains information like the type of the
 	 * sequence, the number of frames in the sequence, and sequence
 	 * parameters like the exposure time per frame, and the interval
@@ -324,12 +326,13 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_TOTAL_ACQUISITION_TIME		12043
 #define MXLV_AD_DETECTOR_READOUT_TIME		12044
 #define MXLV_AD_TOTAL_SEQUENCE_TIME		12045
+#define MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST	12046
 
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12046
-#define MXLV_AD_DEZINGER_THRESHOLD		12047
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12048
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12047
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12048
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12049
+#define MXLV_AD_DEZINGER_THRESHOLD		12050
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12051
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -555,6 +558,12 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, total_sequence_time), \
 	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST, -1, \
+  		"do_geometrical_correction_last", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, do_geometrical_correction_last), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
   		"correction_measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \

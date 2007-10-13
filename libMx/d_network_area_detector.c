@@ -262,6 +262,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.detector_readout_time",
 			network_area_detector->remote_record_name );
 
+	mx_network_field_init(
+		&(network_area_detector->do_geometrical_correction_last_nf),
+		network_area_detector->server_record,
+			"%s.do_geometrical_correction_last",
+			network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->extended_status_nf),
 		network_area_detector->server_record,
 	    "%s.extended_status", network_area_detector->remote_record_name );
@@ -1657,6 +1663,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put(
 			&(network_area_detector->use_scaled_dark_current_nf),
 				MXFT_ULONG, &(ad->use_scaled_dark_current) );
+		break;
+	case MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST:
+		mx_status = mx_put(
+		    &(network_area_detector->do_geometrical_correction_last_nf),
+		    	MXFT_BOOL, &(ad->do_geometrical_correction_last) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:

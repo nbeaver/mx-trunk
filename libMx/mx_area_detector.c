@@ -2717,6 +2717,8 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 			ad->rebinned_mask_frame = NULL;
 		}
+		strlcpy( ad->mask_filename, frame_filename,
+					sizeof(ad->mask_filename) );
 		break;
 
 	case MXFT_AD_BIAS_FRAME:
@@ -2725,6 +2727,8 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 			ad->rebinned_bias_frame = NULL;
 		}
+		strlcpy( ad->bias_filename, frame_filename,
+					sizeof(ad->bias_filename) );
 		break;
 
 	case MXFT_AD_DARK_CURRENT_FRAME:
@@ -2738,6 +2742,8 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 			ad->rebinned_dark_current_frame = NULL;
 		}
+		strlcpy( ad->dark_current_filename, frame_filename,
+					sizeof(ad->dark_current_filename) );
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -2751,6 +2757,14 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 			ad->rebinned_flood_field_frame = NULL;
 		}
+		strlcpy( ad->flood_field_filename, frame_filename,
+					sizeof(ad->flood_field_filename) );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported frame type %lu requested for area detector '%s'",
+			frame_type, record->name );
 		break;
 	}
 
@@ -2786,6 +2800,36 @@ mx_area_detector_save_frame( MX_RECORD *record,
 
 	mx_status = (*save_frame_fn)( ad );
 
+	/* Additional things must be done for image correction frames. */
+
+	switch( frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		strlcpy( ad->mask_filename, frame_filename,
+					sizeof(ad->mask_filename) );
+		break;
+
+	case MXFT_AD_BIAS_FRAME:
+		strlcpy( ad->bias_filename, frame_filename,
+					sizeof(ad->bias_filename) );
+		break;
+
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		strlcpy( ad->dark_current_filename, frame_filename,
+					sizeof(ad->dark_current_filename) );
+		break;
+
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		strlcpy( ad->flood_field_filename, frame_filename,
+					sizeof(ad->flood_field_filename) );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported frame type %lu requested for area detector '%s'",
+			frame_type, record->name );
+		break;
+	}
+
 	return mx_status;
 }
 
@@ -2798,6 +2842,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	char *source_filename, *destination_filename;
 	mx_status_type ( *copy_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
@@ -2805,6 +2850,27 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	switch( source_frame_type ) {
+	case MXFT_AD_MASK_FRAME:
+		source_filename = ad->mask_filename;
+		break;
+	case MXFT_AD_BIAS_FRAME:
+		source_filename = ad->bias_filename;
+		break;
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		source_filename = ad->dark_current_filename;
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		source_filename = ad->dark_current_filename;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported source frame type %lu requested "
+		"for area detector '%s'",
+			source_frame_type, record->name );
+		break;
+	}
 
 	copy_frame_fn = flist->copy_frame;
 
@@ -2830,6 +2896,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 			ad->rebinned_mask_frame = NULL;
 		}
+		destination_filename = ad->mask_filename;
 		break;
 
 	case MXFT_AD_BIAS_FRAME:
@@ -2838,6 +2905,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 			ad->rebinned_bias_frame = NULL;
 		}
+		destination_filename = ad->bias_filename;
 		break;
 
 	case MXFT_AD_DARK_CURRENT_FRAME:
@@ -2851,6 +2919,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 			ad->rebinned_dark_current_frame = NULL;
 		}
+		destination_filename = ad->dark_current_filename;
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -2864,7 +2933,21 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 
 			ad->rebinned_flood_field_frame = NULL;
 		}
+		destination_filename = ad->flood_field_filename;
 		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported destination frame type %lu requested "
+		"for area detector '%s'",
+			destination_frame_type, record->name );
+		break;
+	}
+
+	if ( ( strlen( source_filename ) > 0 )
+	  && ( strlen( destination_filename ) > 0 ) )
+	{
+		strlcpy( destination_filename, source_filename,
+				MXU_FILENAME_LENGTH );
 	}
 
 	return mx_status;
@@ -4198,7 +4281,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&(ad->dark_current_frame) );
 
 		dest_frame = ad->dark_current_frame;
-		desired_correction_flags = 0;
+		desired_correction_flags = MXFT_AD_BIAS_FRAME;
 		break;
 	
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -4209,6 +4292,11 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		desired_correction_flags = 
 				MXFT_AD_DARK_CURRENT_FRAME | MXFT_AD_BIAS_FRAME;
+
+		if ( ad->do_geometrical_correction_last == FALSE ) {
+			desired_correction_flags
+				|= MXFT_AD_GEOMETRICAL_CORRECTION;
+		}
 		break;
 
 	default:
@@ -4809,12 +4897,14 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	uint16_t *dark_current_data_array, *flood_field_data_array;
 	long i, num_pixels;
 	unsigned long flags, row_framesize, column_framesize;
-	double image_pixel, bias_offset;
-	double image_exposure_time, exposure_time_ratio;
+	double image_pixel, image_exposure_time, exposure_time_ratio;
 	double raw_dark_current, scaled_dark_current;
-	double raw_flood_field, flood_field_scale_factor;
+	unsigned long bias_offset, raw_flood_field;
+	double flood_field_scale_factor;
 	double flood_field_scale_max, flood_field_scale_min;
-	double ffs_denominator, ffs_numerator;
+	double ffs_numerator;
+	unsigned long ffs_denominator;
+	mx_bool_type flood_equals_bias;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -4976,9 +5066,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		/* Add the detector bias. */
 
 		if ( bias_data_array != NULL ) {
-			bias_offset = (double) bias_data_array[i];
+			bias_offset = bias_data_array[i];
 		} else {
-			bias_offset = 0.0;
+			bias_offset = 0;
 		}
 
 		image_pixel = image_pixel + bias_offset;
@@ -5007,26 +5097,29 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		image_data_array[i] = image_pixel + 0.5;
 	}
 
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( initial_timing );
+	if ( ad->do_geometrical_correction_last == FALSE ) {
 
-	MX_HRT_START( geometrical_timing );
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+		MX_HRT_END( initial_timing );
+
+		MX_HRT_START( geometrical_timing );
 #endif
 
-	/* If requested, do the geometrical correction. */
+		/* If requested, do the geometrical correction. */
 
-	if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
-		mx_status = (*geometrical_correction_fn)( ad );
+		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+			mx_status = (*geometrical_correction_fn)( ad );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+		MX_HRT_END( geometrical_timing );
+
+		MX_HRT_START( flood_timing );
+#endif
 	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( geometrical_timing );
-
-	MX_HRT_START( flood_timing );
-#endif
 
 	/* If requested, do the flood field correction. */
 
@@ -5034,6 +5127,15 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
+
+	if ( bias_data_array == NULL ) {
+		flood_equals_bias = FALSE;
+	} else
+	if ( flood_field_data_array == NULL ) {
+		flood_equals_bias = FALSE;
+	} else {
+		flood_equals_bias = TRUE;
+	}
 
 	if ( flood_field_data_array != NULL ) {
 		for ( i = 0; i < num_pixels; i++ ) {
@@ -5052,12 +5154,12 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 			image_pixel = (double) image_data_array[i];
 
-			raw_flood_field = (double) flood_field_data_array[i];
+			raw_flood_field = flood_field_data_array[i];
 
 			if ( bias_data_array != NULL ) {
-				bias_offset = (double) bias_data_array[i];
+				bias_offset = bias_data_array[i];
 			} else {
-				bias_offset = 0.0;
+				bias_offset = 0;
 			}
 
 			/* We _must_ _not_ use mx_divide_safely() here since
@@ -5067,9 +5169,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 			ffs_denominator = raw_flood_field - bias_offset;
 
-			if ( ffs_denominator < 0.001 ) {
+			if ( ffs_denominator == 0 ) {
 				image_data_array[i] = 0;
 				continue;
+			} else {
+				flood_equals_bias = FALSE;
 			}
 
 			ffs_numerator =
@@ -5103,15 +5207,59 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( flood_timing );
+#endif
 
+	if ( ad->do_geometrical_correction_last ) {
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+		MX_HRT_END( initial_timing );
+
+		MX_HRT_START( geometrical_timing );
+#endif
+
+		/* If requested, do the geometrical correction. */
+
+		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+			mx_status = (*geometrical_correction_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+		MX_HRT_END( geometrical_timing );
+
+		MX_HRT_START( flood_timing );
+#endif
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_DEBUG(-2,(" "));	/* Print an empty line. */
 
 	MX_HRT_RESULTS( initial_timing, fname,
 				"Mask, bias, and dark correction time." );
-	MX_HRT_RESULTS( geometrical_timing, fname,
+
+	if ( ad->do_geometrical_correction_last ) {
+		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+		MX_HRT_RESULTS( geometrical_timing, fname,
 				"Geometrical correction time." );
-	MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+	} else {
+		MX_HRT_RESULTS( geometrical_timing, fname,
+				"Geometrical correction time." );
+		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+	}
 #endif
+
+	if ( flood_equals_bias ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The flood field frame '%s' for area detector '%s' "
+		"is identical to the bias frame '%s'.  "
+		"Because of this, the entire contents of the corrected "
+		"image frame have been set to 0.",
+			ad->flood_field_filename,
+			ad->record->name,
+			ad->bias_filename );
+	}
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));

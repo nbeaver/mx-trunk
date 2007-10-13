@@ -37,6 +37,7 @@ typedef struct {
 	MX_NETWORK_FIELD correction_measurement_type_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
+	MX_NETWORK_FIELD do_geometrical_correction_last_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;

@@ -17,6 +17,8 @@
 
 #define MX_IMAGE_DEBUG		FALSE
 
+#define MX_IMAGE_DEBUG_REBIN	FALSE
+
 #define MX_IMAGE_TEST_DEZINGER	FALSE
 
 #include <stdio.h>
@@ -1092,16 +1094,32 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 		original_array_16 = original_array;
 		rebinned_array_16 = rebinned_array;
 
+#if MX_IMAGE_DEBUG_REBIN
+		MX_DEBUG(-2,
+		("\nREBIN: original_width = %lu original_height = %lu",
+			original_width, original_height));
+		MX_DEBUG(-2,
+		("REBIN: rebinned_width = %lu rebinned_height = %lu",
+			rebinned_width, rebinned_height));
+		MX_DEBUG(-2,
+	("REBIN: row_rebinning_factor = %lu column_rebinning_factor = %lu",
+			row_rebinning_factor, column_rebinning_factor));
+#endif
+
 		for ( row = 0; row < rebinned_height; row++ ) {
 		    for ( col = 0; col < rebinned_width; col++ ) {
 			sum = 0.0;
 
-			orow_start = row * row_rebinning_factor;
-			orow_end = orow_start + row_rebinning_factor;
+			orow_start = row * column_rebinning_factor;
+			orow_end = orow_start + column_rebinning_factor;
 
-			ocol_start = col * column_rebinning_factor;
-			ocol_end = ocol_start + column_rebinning_factor;
+			ocol_start = col * row_rebinning_factor;
+			ocol_end = ocol_start + row_rebinning_factor;
 
+#if MX_IMAGE_DEBUG_REBIN
+			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
+			orow_start, orow_end, ocol_start, ocol_end));
+#endif
 			for ( orow = orow_start; orow < orow_end; orow++ ) {
 			    for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
 			    	sum += (double) original_array_16[orow][ocol];
@@ -1110,7 +1128,9 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 			pixel_average = sum / pixels_per_bin;
 
-			rebinned_array_16[row][col] = mx_round( pixel_average );
+			/* Round to the nearest integer. */
+
+			rebinned_array_16[row][col] = pixel_average + 0.5;
 		    }
 		}
 		break;

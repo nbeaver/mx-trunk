@@ -363,11 +363,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		case MXT_SQ_CONTINUOUS:
 			num_frames = 0;
-			fprintf( output,
-		"%s: Sequence support in motor has not yet been implemented\n"
-		"for continuous sequences.\n",
-				cname );
-			return FAILURE;
 			break;
 		default:
 			num_frames = 0;
@@ -484,7 +479,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		num_unread_frames = 0;
 
-		for ( n = 0; n < num_frames; )
+		for ( n = 0; ; )
 		{
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
@@ -514,28 +509,16 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
-#if 0
-			num_frames_difference =
-				last_frame_number - old_last_frame_number;
 
-			if ( last_frame_number < old_last_frame_number ) {
-				num_unread_frames = last_frame_number + 1;
-			} else {
-				num_unread_frames += num_frames_difference;
-			}
-#else
 			num_frames_difference =
 				total_num_frames - old_total_num_frames;
 
 			num_unread_frames += num_frames_difference;
-#endif
 
 #if MAREA_DETECTOR_DEBUG
-			MX_DEBUG(-2,("n = %ld, last_frame_number = %ld, "
-			"old_last_frame_number = %ld, total_num_frames = %ld, "
-			"ad_status = %#lx",
-				n, last_frame_number, old_last_frame_number,
-				total_num_frames, ad_status));
+			MX_DEBUG(-2,
+		    ("%s: old_total_num_frames = %lu, total_num_frames = %lu",
+				cname, old_total_num_frames, total_num_frames));
 
 			MX_DEBUG(-2,("%s: num_frames_difference = %ld",
 				cname, num_frames_difference));
@@ -574,7 +557,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 				n++;
 				num_unread_frames--;
 
-				if ( n >= num_frames ) {
+				if ( ( sp.sequence_type != MXT_SQ_CONTINUOUS )
+				  && ( n >= num_frames ) )
+				{
 					break;	/* Exit the for() loop. */
 				}
 			}
