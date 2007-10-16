@@ -1830,6 +1830,10 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 
 	pccd_170170->first_dh_command = TRUE;
 
+	/* Set the default file format. */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2131,10 +2135,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	vinput->bits_per_pixel = 16;
 	ad->bits_per_pixel = vinput->bits_per_pixel;
-
-	/* Set the default file format. */
-
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
 
 	/* In unbinned mode, the Aviex camera is configured such that
 	 * each line contains 1024 groups of pixels, with 16 pixels

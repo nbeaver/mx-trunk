@@ -746,25 +746,48 @@ mxd_soft_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTE_ORDER:
+		vinput->byte_order = mx_native_byteorder();
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
+		vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
+		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
+			* vinput->framesize[0] * vinput->framesize[1] );
 		break;
 
 	case MXLV_VIN_BYTES_PER_PIXEL:
+		switch( vinput->image_format ) {
+		case MXT_IMAGE_FORMAT_RGB:
+			vinput->bytes_per_pixel = 3;
+			vinput->bits_per_pixel  = 24;
+			break;
+		case MXT_IMAGE_FORMAT_GREY8:
+			vinput->bytes_per_pixel = 1;
+			vinput->bits_per_pixel  = 8;
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			vinput->bytes_per_pixel = 2;
+			vinput->bits_per_pixel  = 16;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported image format %ld for video input '%s'.",
+				vinput->image_format, vinput->record->name );
+		}
 		break;
 
 	case MXLV_VIN_BUSY:
+		vinput->busy = 0;
 		break;
 
 	case MXLV_VIN_STATUS:
+		vinput->status = 0;
 		break;
 
 	case MXLV_VIN_SEQUENCE_TYPE:
-
 		break;
 
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:

@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <time.h>
 
 #include "mx_util.h"
 #include "mx_hrt.h"
@@ -281,6 +282,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	char *ptr;
 	unsigned long bytes_per_frame, additional_length;
 	double bytes_per_frame_as_double;
+	time_t timestamp;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -513,6 +515,31 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	MXIF_BYTE_ORDER(*frame)       = byte_order;
 
 	MXIF_SET_BYTES_PER_PIXEL(*frame, bytes_per_pixel);
+
+	/* Initialize some parameters if they are currently set to 0. */
+
+	if ( MXIF_ROW_BINSIZE(*frame) == 0 ) {
+		MXIF_ROW_BINSIZE(*frame) = 1;
+	}
+	if ( MXIF_COLUMN_BINSIZE(*frame) == 0 ) {
+		MXIF_COLUMN_BINSIZE(*frame) = 1;
+	}
+	if ( MXIF_BITS_PER_PIXEL(*frame) == 0 ) {
+		MXIF_BITS_PER_PIXEL(*frame) = mx_round( 8.0 * bytes_per_pixel );
+	}
+	if ( ( MXIF_EXPOSURE_TIME_SEC(*frame) == 0 )
+	  && ( MXIF_EXPOSURE_TIME_NSEC(*frame) == 0 ) )
+	{
+		MXIF_EXPOSURE_TIME_SEC(*frame) = 1;
+		MXIF_EXPOSURE_TIME_NSEC(*frame) = 0;
+	}
+	if ( ( MXIF_TIMESTAMP_SEC(*frame) == 0 )
+	  && ( MXIF_TIMESTAMP_NSEC(*frame) == 0 ) )
+	{
+		time( &timestamp ) ;
+		MXIF_TIMESTAMP_SEC(*frame) = timestamp;
+		MXIF_TIMESTAMP_NSEC(*frame) = 0;
+	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,

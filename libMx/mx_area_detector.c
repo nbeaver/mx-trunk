@@ -26,6 +26,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -2675,6 +2677,11 @@ mx_area_detector_load_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s: Invoked for frame_type = %ld, frame_filename = '%s'",
+		fname, frame_type, frame_filename));
+#endif
+
 	/* Area detector image correction is currently only supported
 	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
 	 */
@@ -2711,6 +2718,11 @@ mx_area_detector_load_frame( MX_RECORD *record,
 	/* Additional things must be done for image correction frames. */
 
 	switch( frame_type ) {
+	case MXFT_AD_IMAGE_FRAME:
+		/* Nothing to do for primary image frames. */
+
+		break;
+
 	case MXFT_AD_MASK_FRAME:
 		if ( ad->rebinned_mask_frame != NULL ) {
 			mx_image_free( ad->rebinned_mask_frame );
@@ -2768,6 +2780,10 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		break;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
 	return mx_status;
 }
 
@@ -2788,6 +2804,11 @@ mx_area_detector_save_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s: Invoked for frame_type = %ld, frame_filename = '%s'",
+		fname, frame_type, frame_filename));
+#endif
+
 	save_frame_fn = flist->save_frame;
 
 	if ( save_frame_fn == NULL ) {
@@ -2803,6 +2824,11 @@ mx_area_detector_save_frame( MX_RECORD *record,
 	/* Additional things must be done for image correction frames. */
 
 	switch( frame_type ) {
+	case MXFT_AD_IMAGE_FRAME:
+		/* Nothing to do for primary image frames. */
+
+		break;
+
 	case MXFT_AD_MASK_FRAME:
 		strlcpy( ad->mask_filename, frame_filename,
 					sizeof(ad->mask_filename) );
@@ -2823,12 +2849,24 @@ mx_area_detector_save_frame( MX_RECORD *record,
 					sizeof(ad->flood_field_filename) );
 		break;
 
+	case MXFT_AD_REBINNED_MASK_FRAME:
+	case MXFT_AD_REBINNED_BIAS_FRAME:
+	case MXFT_AD_REBINNED_DARK_CURRENT_FRAME:
+	case MXFT_AD_REBINNED_FLOOD_FIELD_FRAME:
+		/* Nothing to do for the rebinned frames. */
+
+		break;
+
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported frame type %lu requested for area detector '%s'",
 			frame_type, record->name );
 		break;
 	}
+
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return mx_status;
 }
@@ -2846,12 +2884,22 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 	mx_status_type ( *copy_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
+	char empty_filename[5] = "";
+
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s: Invoked for destination = %#lx, source = %#lx",
+		fname, destination_frame_type, source_frame_type));
+#endif
+
 	switch( source_frame_type ) {
+	case MXFT_AD_IMAGE_FRAME:
+		source_filename = empty_filename;
+		break;
 	case MXFT_AD_MASK_FRAME:
 		source_filename = ad->mask_filename;
 		break;
@@ -2862,7 +2910,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		source_filename = ad->dark_current_filename;
 		break;
 	case MXFT_AD_FLOOD_FIELD_FRAME:
-		source_filename = ad->dark_current_filename;
+		source_filename = ad->flood_field_filename;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -2890,6 +2938,10 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 	/* Additional things must be done for image correction frames. */
 
 	switch( destination_frame_type ) {
+	case MXFT_AD_IMAGE_FRAME:
+		destination_filename = NULL;
+		break;
+
 	case MXFT_AD_MASK_FRAME:
 		if ( ad->rebinned_mask_frame != NULL ) {
 			mx_image_free( ad->rebinned_mask_frame );
@@ -2943,12 +2995,16 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		break;
 	}
 
-	if ( ( strlen( source_filename ) > 0 )
-	  && ( strlen( destination_filename ) > 0 ) )
+	if ( ( source_filename != NULL )
+	  && ( destination_filename != NULL ) )
 	{
 		strlcpy( destination_filename, source_filename,
 				MXU_FILENAME_LENGTH );
 	}
+
+#if MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return mx_status;
 }
@@ -5128,16 +5184,17 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	 * 32 million times or more.
 	 */
 
-	if ( bias_data_array == NULL ) {
-		flood_equals_bias = FALSE;
-	} else
-	if ( flood_field_data_array == NULL ) {
-		flood_equals_bias = FALSE;
-	} else {
-		flood_equals_bias = TRUE;
-	}
-
 	if ( flood_field_data_array != NULL ) {
+
+		if ( bias_data_array == NULL ) {
+			flood_equals_bias = FALSE;
+		} else
+		if ( flood_field_data_array == NULL ) {
+			flood_equals_bias = FALSE;
+		} else {
+			flood_equals_bias = TRUE;
+		}
+
 		for ( i = 0; i < num_pixels; i++ ) {
 
 			if ( mask_data_array != NULL ) {
@@ -5203,6 +5260,17 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 			image_data_array[i] = image_pixel + 0.5;
 		}
+
+		if ( flood_equals_bias ) {
+			return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR,fname,
+			"The flood field frame '%s' for area detector '%s' "
+			"is identical to the bias frame '%s'.  "
+			"Because of this, the entire contents of the corrected "
+			"image frame have been set to 0.",
+				ad->flood_field_filename,
+				ad->record->name,
+				ad->bias_filename );
+		}
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -5249,17 +5317,6 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
 	}
 #endif
-
-	if ( flood_equals_bias ) {
-		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"The flood field frame '%s' for area detector '%s' "
-		"is identical to the bias frame '%s'.  "
-		"Because of this, the entire contents of the corrected "
-		"image frame have been set to 0.",
-			ad->flood_field_filename,
-			ad->record->name,
-			ad->bias_filename );
-	}
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
