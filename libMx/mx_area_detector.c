@@ -41,6 +41,7 @@
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_key.h"
+#include "mx_array.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -3170,13 +3171,13 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_roi_frame_fn ) ( MX_AREA_DETECTOR * );
-	long row_framesize, column_framesize, image_format, byte_order;
+	long roi_row_width, roi_column_height, image_format, byte_order;
+	long row_width, column_height;
+	long roi_row, roi_column, row_offset, column_offset;
+	long dimension[2];
+	size_t element_size[2];
+	uint16_t **image_array_u16, **roi_array_u16;
 	double bytes_per_pixel;
-	unsigned long image_bytes_per_row;
-	unsigned long roi_bytes_per_row;
-	unsigned long x_min, y_min, y, x_offset;
-	char *roi_row_ptr, *image_row_ptr, *roi_data_ptr, *image_data_ptr;
-	char *image_row_data_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -3258,8 +3259,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* Fill in some parameters. */
 
-	row_framesize    = ad->roi[1] - ad->roi[0] + 1;
-	column_framesize = ad->roi[3] - ad->roi[2] + 1;
+	roi_row_width     = ad->roi[1] - ad->roi[0] + 1;
+	roi_column_height = ad->roi[3] - ad->roi[2] + 1;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		image_format    = ad->image_format;
@@ -3279,8 +3280,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 #endif
 
 	mx_status = mx_image_alloc( roi_frame,
-				row_framesize,
-				column_framesize,
+				roi_row_width,
+				roi_column_height,
 				image_format,
 				byte_order,
 				bytes_per_pixel,
@@ -3351,41 +3352,78 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 					record->name );
 		}
 
-		image_data_ptr = image_frame->image_data;
-		roi_data_ptr   = (*roi_frame)->image_data;
+		row_width     = MXIF_ROW_FRAMESIZE(image_frame);
+		column_height = MXIF_COLUMN_FRAMESIZE(image_frame);
 
-		x_min = ad->roi[0];
-		y_min = ad->roi[2];
+		switch( ad->image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
 
-		x_offset = x_min * MXIF_BYTES_PER_PIXEL(image_frame);
-
-		image_bytes_per_row = MXIF_ROW_FRAMESIZE(image_frame)
-					* MXIF_BYTES_PER_PIXEL(image_frame);
-
-		roi_bytes_per_row = MXIF_ROW_FRAMESIZE(*roi_frame)
-					* MXIF_BYTES_PER_PIXEL(*roi_frame);
-
-		for ( y = 0; y < MXIF_COLUMN_FRAMESIZE(*roi_frame); y++ ) {
-
-			/* Construct the address of the first pixel
-			 * for this row in the original image frame.
+			/* Overlay the image data buffer with
+			 * a two dimensional array.
 			 */
 
-			image_row_ptr = image_data_ptr
-				+ image_bytes_per_row * ( y + y_min );
+			dimension[0] = column_height;
+			dimension[1] = row_width;
 
-			roi_row_ptr = roi_data_ptr + roi_bytes_per_row * y;
+			element_size[0] = sizeof(uint16_t);
+			element_size[1] = sizeof(uint16_t *);
 
-			/* Next construct a pointer to the start of the
-			 * image data to be copied.
+			mx_status = mx_array_add_overlay(
+						image_frame->image_data,
+						2, dimension, element_size,
+						(void **) &image_array_u16 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Overlay the ROI frame's data buffer with
+			 * another two dimensional array.
 			 */
 
-			image_row_data_ptr = image_row_ptr + x_offset;
+			dimension[0] = roi_column_height;
+			dimension[1] = roi_row_width;
 
-			/* Now we may copy the data for this row. */
+			element_size[0] = sizeof(uint16_t);
+			element_size[1] = sizeof(uint16_t *);
 
-			memcpy( roi_row_ptr, image_row_data_ptr,
-						roi_bytes_per_row );
+			mx_status = mx_array_add_overlay(
+						(*roi_frame)->image_data,
+						2, dimension, element_size,
+						(void **) &roi_array_u16 );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_array_free_overlay( image_array_u16, 2 );
+				return mx_status;
+			}
+
+			/* Copy the contents of the ROI to the ROI frame. */
+
+			for ( roi_row = 0;
+			    roi_row < roi_column_height;
+			    roi_row++ ) 
+			{
+				row_offset = ad->roi[2];
+
+				for ( roi_column = 0;
+				    roi_column < roi_row_width;
+				    roi_column++ )
+				{
+					column_offset = ad->roi[0];
+
+					roi_array_u16[ roi_row ][ roi_column ]
+	= image_array_u16[ roi_row + row_offset ][ roi_column + column_offset ];
+				}
+			}
+
+			mx_array_free_overlay( image_array_u16, 2 );
+			mx_array_free_overlay( roi_array_u16, 2 );
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Area detector '%s' does not support image_format %ld.",
+				ad->record->name, ad->image_format );
+			break;
 		}
 	}
 

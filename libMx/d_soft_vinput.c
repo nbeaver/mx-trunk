@@ -24,8 +24,10 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_constants.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
+#include "mx_array.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "d_soft_vinput.h"
@@ -459,8 +461,13 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	double cxg1, cxg0, cyg1, cyg0;
 	double cxb1, cxb0, cyb1, cyb0;
 	double R, G, B;
+	double A, Theta, X, Y;
 	char *ptr8;
 	uint16_t *ptr16;
+	uint16_t **image_array_u16;
+	size_t element_size[2];
+	int num_items;
+	double raw_value, image_scale, sqrt_2;
 	mx_status_type mx_status;
 
 	soft_vinput = NULL;
@@ -499,14 +506,14 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Generate the frame for the MX_IMAGE_FRAME structure. */
 
+	j_max = vinput->framesize[0] - 1;
+	i_max = vinput->framesize[1] - 1;
+
+	x_max = vinput->framesize[0] - 1;
+	y_max = vinput->framesize[1] - 1;
+
 	switch( soft_vinput->image_type ) {
 	case MXT_SOFT_VINPUT_DIAGONAL_GRADIENT:
-
-		j_max = vinput->framesize[0] - 1;
-		i_max = vinput->framesize[1] - 1;
-
-		x_max = vinput->framesize[0] - 1;
-		y_max = vinput->framesize[1] - 1;
 
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
@@ -667,14 +674,119 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			    }
 			}
 			break;
+		}
+		break;
 
+	case MXT_SOFT_VINPUT_LINES:
+		num_items = sscanf( soft_vinput->image_parameters, 
+				"%lg", &image_scale );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unable to get the image scale from the string "
+			"value '%s' of the image_parameters field for "
+			"video input '%s'.",
+				soft_vinput->image_parameters,
+				vinput->record->name );
+		}
+
+		switch( vinput->image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+
+			ptr16 = frame->image_data;
+
+			sqrt_2 = sqrt(2.0);
+
+			for ( i = 0; i <= i_max; i++ ) {
+			    for ( j = 0; j <= j_max; j++ ) {
+
+				switch( (vinput->total_num_frames) % 4 ) {
+				case 0:
+					raw_value = i * image_scale * sqrt_2;
+					break;
+				case 1:
+					raw_value = (i + j) * image_scale;
+					break;
+				case 2:
+					raw_value = j * image_scale * sqrt_2;
+					break;
+				case 3:
+					raw_value =
+						( i + j_max - j ) * image_scale;
+					break;
+
+				}
+
+				*ptr16 = mx_round(raw_value) % 65536;
+
+				ptr16++;
+			    }
+			}
+			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Video input record '%s' does not support "
-			"image format %ld.", vinput->record->name,
-				(long) MXIF_IMAGE_FORMAT(frame) );
+			"image format %ld for line test patterns.",
+					vinput->record->name,
+					vinput->image_format );
+			break;
 		}
 		break;
+
+	case MXT_SOFT_VINPUT_LOGARITHMIC_SPIRAL:
+		num_items = sscanf( soft_vinput->image_parameters,
+				"%lg %lg", &A, &B );
+
+		if ( num_items != 2 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unable to get the A and B scale factors for "
+			"logarithmic spiral images from the image_parameters "
+			"field value '%s' for video input '%s'.",
+				soft_vinput->image_parameters,
+				vinput->record->name );
+		}
+
+		memset( frame->image_data, 0, frame->allocated_image_length );
+
+		switch( vinput->image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			element_size[0] = sizeof(uint16_t);
+			element_size[1] = sizeof(uint16_t *);
+
+			mx_status = mx_array_add_overlay( frame->image_data,
+						2, vinput->framesize,
+						element_size,
+						(void **) &image_array_u16 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+		}
+
+		for ( Theta = 0.0; Theta < (5.0 * MX_PI); Theta += 0.001 ) {
+
+			R = A * exp( B * Theta );
+
+			X = R * cos( Theta );
+
+			Y = R * sin( Theta );
+
+			i = mx_round( Y );
+			j = mx_round( X );
+
+			switch( vinput->image_format ) {
+			case MXT_IMAGE_FORMAT_GREY16:
+				image_array_u16[i][j] = 1;
+			}
+		}
+
+		switch( vinput->image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			mx_array_free_overlay( image_array_u16, 2 );
+			break;
+		}
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image type %lu requested for video input '%s'.",

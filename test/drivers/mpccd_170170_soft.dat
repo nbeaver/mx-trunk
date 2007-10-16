@@ -1,4 +1,5 @@
 port  interface camera_link soft_camera_link "" "" 9600 0.5 1
-video0 device video_input soft_vinput "" "" 16384 1024 grey16 -1 1
+video0 device video_input soft_vinput "" "" 16384 1024 grey16 -1 2 1024
 inttrigger device digital_output soft_doutput "" "" 0
-ad         device area_detector pccd_170170 "" "" 0 /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv video0 port inttrigger 0x1 0x1b /home/lavender/epix/soleil_swing.uca
+###ad         device area_detector pccd_170170 "" "" 0 /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv video0 port inttrigger 0x1 0x1b /home/lavender/epix/soleil_swing.uca
+ad         device area_detector pccd_170170 "" "" 0 "" "" "" "" video0 port inttrigger 0x1 0x1b ""

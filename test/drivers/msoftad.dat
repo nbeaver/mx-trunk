@@ -1,5 +1,16 @@
-#video0 device video_input soft_vinput "" "" 640 480 RGB -1 1
-#video0 device video_input soft_vinput "" "" 640 480 GREY8 -1 1
-#video0 device video_input soft_vinput "" "" 640 480 GREY16 -1 1
-video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 1
-testad device area_detector soft_area_detector "" "" 8 "" "" "" "" video0 0x1
+#
+# Diagonal gradient
+#
+#video0 device video_input soft_vinput "" "" 640 480 RGB -1 1 ""
+#video0 device video_input soft_vinput "" "" 640 480 GREY8 -1 1 ""
+#video0 device video_input soft_vinput "" "" 640 480 GREY16 -1 1 ""
+#
+# Lines
+#
+video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 2 512
+#
+# Logarithmic Spiral
+#
+#video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 3 "1 2"
+#
+ad     device area_detector soft_area_detector "" "" 8 "" "" "" "" video0 0x1 ""

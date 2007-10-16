@@ -17,21 +17,31 @@
 #ifndef __D_SOFT_VINPUT_H__
 #define __D_SOFT_VINPUT_H__
 
+#define MXU_SOFT_VINPUT_IMAGE_PARAMETERS_LENGTH 40
+
 /* Define values for the 'image_type' field below. */
 
 #define MXT_SOFT_VINPUT_DIAGONAL_GRADIENT	1
+#define MXT_SOFT_VINPUT_LINES			2
+#define MXT_SOFT_VINPUT_LOGARITHMIC_SPIRAL	3
 
 typedef struct {
 	MX_RECORD *record;
 
 	long image_type;
+	char image_parameters[MXU_SOFT_VINPUT_IMAGE_PARAMETERS_LENGTH+1];
 } MX_SOFT_VINPUT;
 
 
 #define MXD_SOFT_VINPUT_STANDARD_FIELDS \
   {-1, -1, "image_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SOFT_VINPUT, image_type), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "image_parameters", MXFT_STRING, NULL, \
+  			1, {MXU_SOFT_VINPUT_IMAGE_PARAMETERS_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SOFT_VINPUT, image_parameters), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 MX_API mx_status_type mxd_soft_vinput_create_record_structures(
 							MX_RECORD *record );
