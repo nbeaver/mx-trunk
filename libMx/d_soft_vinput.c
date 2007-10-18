@@ -461,7 +461,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	double cxg1, cxg0, cyg1, cyg0;
 	double cxb1, cxb0, cyb1, cyb0;
 	double R, G, B;
-	double A, Theta, X, Y;
+	double A, C, Theta, X, Y;
 	char *ptr8;
 	uint16_t *ptr16;
 	uint16_t **image_array_u16;
@@ -735,9 +735,9 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 	case MXT_SOFT_VINPUT_LOGARITHMIC_SPIRAL:
 		num_items = sscanf( soft_vinput->image_parameters,
-				"%lg %lg", &A, &B );
+				"%lg %lg %lg", &A, &B, &C );
 
-		if ( num_items != 2 ) {
+		if ( num_items != 3 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unable to get the A and B scale factors for "
 			"logarithmic spiral images from the image_parameters "
@@ -763,7 +763,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			break;
 		}
 
-		for ( Theta = 0.0; Theta < (5.0 * MX_PI); Theta += 0.001 ) {
+		for ( Theta = 0.0; Theta < (C * MX_PI); Theta += 0.001 ) {
 
 			R = A * exp( B * Theta );
 
@@ -771,12 +771,16 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 			Y = R * sin( Theta );
 
-			i = mx_round( Y );
-			j = mx_round( X );
+			i = mx_round( Y + 0.5 * i_max );
+			j = mx_round( X + 0.5 * j_max );
 
 			switch( vinput->image_format ) {
 			case MXT_IMAGE_FORMAT_GREY16:
-				image_array_u16[i][j] = 1;
+				if ( (i >= 0) && (i <= i_max)
+				  && (j >= 0) && (j <= j_max) )
+				{
+					image_array_u16[i][j] = 65535;
+				}
 			}
 		}
 

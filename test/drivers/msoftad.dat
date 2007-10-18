@@ -7,10 +7,10 @@
 #
 # Lines
 #
-video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 2 512
+#video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 2 512
 #
 # Logarithmic Spiral
 #
-#video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 3 "1 2"
+video0 device video_input soft_vinput "" "" 4096 4096 GREY16 -1 3 "5 0.24 10"
 #
 ad     device area_detector soft_area_detector "" "" 8 "" "" "" "" video0 0x1 ""
