@@ -163,6 +163,7 @@ mxd_network_area_detector_create_record_structures( MX_RECORD *record )
 	network_area_detector->record = record;
 
 	ad->trigger_mode = 0;
+	ad->initial_correction_flags = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }

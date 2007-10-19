@@ -1,2 +1,2 @@
 video0 device video_input file_vinput "" "" 4096 4096 GREY16 -1 pnm testpnm
-testad device area_detector soft_area_detector "" "" 8 "" "" "" "" video0 0x1
+ad device area_detector soft_area_detector "" "" 8 0x0 "" "" "" "" video0 0x1

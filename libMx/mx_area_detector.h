@@ -243,6 +243,8 @@ typedef struct mx_area_detector_type {
 	 * used for image correction.
 	 */
 
+	unsigned long initial_correction_flags;
+
 	MX_IMAGE_FRAME *mask_frame;
 	char *mask_frame_buffer;
 	char mask_filename[MXU_FILENAME_LENGTH+1];
@@ -334,6 +336,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DEZINGER_THRESHOLD		12050
 #define MXLV_AD_USE_SCALED_DARK_CURRENT		12051
 
+#define MXLV_AD_INITIAL_CORRECTION_FLAGS	12100
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
 #define MXLV_AD_DARK_CURRENT_FILENAME		12103
@@ -618,6 +621,12 @@ typedef struct mx_area_detector_type {
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
+  {MXLV_AD_INITIAL_CORRECTION_FLAGS, -1, "initial_correction_flags", \
+			  			MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, initial_correction_flags), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {MXLV_AD_MASK_FILENAME, -1, "mask_filename", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, mask_filename), \

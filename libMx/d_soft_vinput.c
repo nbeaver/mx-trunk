@@ -465,12 +465,15 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	char *ptr8;
 	uint16_t *ptr16;
 	uint16_t **image_array_u16;
+	void *array_ptr;
 	size_t element_size[2];
 	int num_items;
 	double raw_value, image_scale, sqrt_2;
 	mx_status_type mx_status;
 
 	soft_vinput = NULL;
+	image_array_u16 = NULL;
+	raw_value = 0.0;
 
 	mx_status = mxd_soft_vinput_get_pointers( vinput,
 						&soft_vinput, fname );
@@ -756,10 +759,12 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			mx_status = mx_array_add_overlay( frame->image_data,
 						2, vinput->framesize,
 						element_size,
-						(void **) &image_array_u16 );
+						&array_ptr );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			image_array_u16 = array_ptr;
 			break;
 		}
 
