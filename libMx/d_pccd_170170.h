@@ -165,6 +165,12 @@ typedef struct {
 	unsigned long dh_offset_d2;
 	unsigned long dh_offset_d3;
 	unsigned long dh_offset_d4;
+
+	unsigned long dh_detector_readout_mode;
+	unsigned long dh_readout_speed;
+	unsigned long dh_test_mode;
+	unsigned long dh_offset_correction;
+	unsigned long dh_exposure_mode;
 } MX_PCCD_170170;
 
 #define MXLV_PCCD_170170_DH_BASE		100000
@@ -238,6 +244,16 @@ typedef struct {
 
 #define MX_PCCD_170170_NUM_REGISTERS \
 	(MXLV_PCCD_170170_DH_OFFSET_D4 - MXLV_PCCD_170170_DH_BASE + 1)
+
+/* Define some pseudo registers to manipulate individual bits
+ * in the control register.
+ */
+
+#define MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE	200000
+#define MXLV_PCCD_170170_DH_READOUT_SPEED		200001
+#define MXLV_PCCD_170170_DH_TEST_MODE			200002
+#define MXLV_PCCD_170170_DH_OFFSET_CORRECTION		200003
+#define MXLV_PCCD_170170_DH_EXPOSURE_MODE		200004
 
 #define MXD_PCCD_170170_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -464,6 +480,33 @@ typedef struct {
   {MXLV_PCCD_170170_DH_COMM_FPGA_VERSION, \
 		-1, "dh_comm_fpga_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_comm_fpga_version), \
+	{0}, NULL, 0}, \
+  \
+  \
+  {MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE, \
+  		-1, "dh_detector_readout_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PCCD_170170, dh_detector_readout_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_READOUT_SPEED, \
+  		-1, "dh_readout_speed", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_readout_speed), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_TEST_MODE, \
+  		-1, "dh_test_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_test_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_OFFSET_CORRECTION, \
+  		-1, "dh_offset_correction", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_correction), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_EXPOSURE_MODE, \
+  		-1, "dh_exposure_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_exposure_mode), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );

@@ -361,75 +361,16 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 
 /*=======================================================================*/
 
-static mx_status_type
-mxp_area_detector_find_long_parameter_field( MX_RECORD *record,
-						char *parameter_name,
-						MX_RECORD_FIELD **field )
-{
-	static const char fname[] =
-			"mxp_area_detector_find_long_parameter_field()";
-
-	mx_status_type mx_status;
-
-	mx_status = mx_find_record_field( record, parameter_name, field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Does the field have a datatype that is compatible with
-	 * this function?
-	 */
-
-	switch( (*field)->datatype ) {
-	case MXFT_STRING:
-	case MXFT_RECORD:
-	case MXFT_RECORDTYPE:
-	case MXFT_INTERFACE:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Parameter '%s' has data type '%s' which is incompatible "
-		"with this function.", parameter_name,
-			mx_get_field_type_string( (*field)->datatype ) );
-	}
-
-	/* Only 0-dimensional fields and 1-dimensional fields of length 1
-	 * are supported here.
-	 */
-
-	if ( (*field)->num_dimensions == 0 ) {
-		/* Supported */
-	} else
-	if ( (*field)->num_dimensions == 1 ) {
-		if ( (*field)->dimension[0] == 1 ) {
-			/* Supported */
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"1-dimensional field '%s' has length %ld which "
-			"is longer than the maximum allowed length of 1.",
-				(*field)->name, (*field)->dimension[0] );
-		}
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"%ld-dimensional field '%s' is not supported.  "
-		"Only 0-dimensional and 1-dimensional fields are supported.",
-			(*field)->num_dimensions, parameter_name );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 MX_EXPORT mx_status_type
-mx_area_detector_get_long_parameter( MX_RECORD *record,
-					char *parameter_name,
-					long *long_parameter )
+mx_area_detector_get_register( MX_RECORD *record,
+				char *register_name,
+				long *register_value )
 {
-	static const char fname[] = "mx_area_detector_get_long_parameter()";
+	static const char fname[] = "mx_area_detector_get_register()";
 
-	MX_RECORD_FIELD *field;
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
-	void *value_ptr;
-	long long_value;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -437,9 +378,9 @@ mx_area_detector_get_long_parameter( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( parameter_name == NULL ) {
+	if ( register_name == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The parameter_name pointer passed was NULL." );
+		"The register_name pointer passed was NULL." );
 	}
 
 	get_parameter_fn = flist->get_parameter;
@@ -449,90 +390,32 @@ mx_area_detector_get_long_parameter( MX_RECORD *record,
 			mx_area_detector_default_get_parameter_handler;
 	}
 
-	mx_status = mxp_area_detector_find_long_parameter_field(record,
-							parameter_name, &field);
+	strlcpy( ad->register_name, register_name, MXU_FIELD_NAME_LENGTH );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	value_ptr = mx_get_field_value_pointer( field );
-
-	/* Read the parameter value from the detector. */
-
-	ad->parameter_type = field->label_value;
+	ad->parameter_type = MXLV_AD_REGISTER_VALUE;
 
 	mx_status = (*get_parameter_fn)( ad );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Convert the value returned to a long integer. */
-
-	switch( field->datatype ){
-	case MXFT_CHAR:
-		long_value = *((char *) value_ptr);
-		break;
-	case MXFT_UCHAR:
-		long_value = *((unsigned char *) value_ptr);
-		break;
-	case MXFT_SHORT:
-		long_value = *((short *) value_ptr);
-		break;
-	case MXFT_USHORT:
-		long_value = *((unsigned short *) value_ptr);
-		break;
-	case MXFT_BOOL:
-		long_value = *((mx_bool_type *) value_ptr);
-		break;
-	case MXFT_LONG:
-		long_value = *((long *) value_ptr);
-		break;
-	case MXFT_ULONG:
-	case MXFT_HEX:
-		long_value = *((unsigned long *) value_ptr);
-		break;
-	case MXFT_INT64:
-		long_value = *((int64_t *) value_ptr);
-		break;
-	case MXFT_UINT64:
-		long_value = *((uint64_t *) value_ptr);
-		break;
-	case MXFT_FLOAT:
-		long_value = mx_round( *((float *) value_ptr) );
-		break;
-	case MXFT_DOUBLE:
-		long_value = mx_round( *((double *) value_ptr) );
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Unsupported data type %ld requested for parameter '%s'.",
-			field->datatype, parameter_name );
-	}
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: parameter_name = '%s', parameter_value = %ld",
-		fname, parameter_name, long_value ));
-#endif
-
-	if ( long_parameter != NULL ) {
-		*long_parameter = long_value;
+	if ( register_value != NULL ) {
+		*register_value = ad->register_value;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_long_parameter( MX_RECORD *record,
-					char *parameter_name,
-					long *long_parameter )
+mx_area_detector_set_register( MX_RECORD *record,
+					char *register_name,
+					long register_value )
 {
-	static const char fname[] = "mx_area_detector_set_long_parameter()";
+	static const char fname[] = "mx_area_detector_set_register()";
 
-	MX_RECORD_FIELD *field;
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
-	void *value_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -540,9 +423,9 @@ mx_area_detector_set_long_parameter( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( parameter_name == NULL ) {
+	if ( register_name == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The parameter_name pointer passed was NULL." );
+		"The register_name pointer passed was NULL." );
 	}
 
 	set_parameter_fn = flist->set_parameter;
@@ -552,88 +435,15 @@ mx_area_detector_set_long_parameter( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	mx_status = mxp_area_detector_find_long_parameter_field(record,
-							parameter_name, &field);
+	strlcpy( ad->register_name, register_name, MXU_FIELD_NAME_LENGTH );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	ad->register_value = register_value;
 
-	if ( long_parameter == NULL ) {
-		/* If long_parameter is a NULL pointer, then we assume that the
-		 * correct value for the parameter was copied to the field
-		 * before the current function was called.
-		 */
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: parameter_name = '%s'",
-			fname, parameter_name ));
-#endif
-	} else {
-		/* Otherwise, we must copy the parameter value to the field. */
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: parameter_name = '%s', parameter_value = %ld",
-			fname, parameter_name, *long_parameter ));
-#endif
-
-		value_ptr = mx_get_field_value_pointer( field );
-
-		switch( field->datatype ){
-		case MXFT_CHAR:
-			*((char *) value_ptr) = (char) *long_parameter;
-			break;
-		case MXFT_UCHAR:
-			*((unsigned char *) value_ptr)
-					= (unsigned char) *long_parameter;
-			break;
-		case MXFT_SHORT:
-			*((short *) value_ptr) = (short) *long_parameter;
-			break;
-		case MXFT_USHORT:
-			*((unsigned short *) value_ptr)
-					= (unsigned short) *long_parameter;
-			break;
-		case MXFT_BOOL:
-			*((mx_bool_type *) value_ptr)
-					= (mx_bool_type) *long_parameter;
-			break;
-		case MXFT_LONG:
-			*((long *) value_ptr) = *long_parameter;
-			break;
-		case MXFT_ULONG:
-		case MXFT_HEX:
-			*((unsigned long *) value_ptr)
-					= (unsigned long) *long_parameter;
-			break;
-		case MXFT_INT64:
-			*((int64_t *) value_ptr) = (int64_t) *long_parameter;
-			break;
-		case MXFT_UINT64:
-			*((uint64_t *) value_ptr) = (uint64_t) *long_parameter;
-			break;
-		case MXFT_FLOAT:
-			*((float *) value_ptr) = (float) *long_parameter;
-			break;
-		case MXFT_DOUBLE:
-			*((double *) value_ptr) = (double) *long_parameter;
-			break;
-		default:
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-		    "Unsupported data type %ld requested for parameter '%s'.",
-				field->datatype, parameter_name );
-		}
-	}
-
-	/* Send the new parameter value to the detector. */
-
-	ad->parameter_type = field->label_value;
+	ad->parameter_type = MXLV_AD_REGISTER_VALUE;
 
 	mx_status = (*set_parameter_fn)( ad );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*=======================================================================*/
@@ -4042,6 +3852,258 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*=======================================================================*/
+
+static mx_status_type
+mxp_area_detector_find_register_field( MX_RECORD *record,
+						char *register_name,
+						MX_RECORD_FIELD **field )
+{
+	static const char fname[] = "mxp_area_detector_find_register_field()";
+
+	mx_status_type mx_status;
+
+	mx_status = mx_find_record_field( record, register_name, field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Does the field have a datatype that is compatible with
+	 * this function?
+	 */
+
+	switch( (*field)->datatype ) {
+	case MXFT_STRING:
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Parameter '%s' has data type '%s' which is incompatible "
+		"with this function.", register_name,
+			mx_get_field_type_string( (*field)->datatype ) );
+	}
+
+	/* Only 0-dimensional fields and 1-dimensional fields of length 1
+	 * are supported here.
+	 */
+
+	if ( (*field)->num_dimensions == 0 ) {
+		/* Supported */
+	} else
+	if ( (*field)->num_dimensions == 1 ) {
+		if ( (*field)->dimension[0] == 1 ) {
+			/* Supported */
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"1-dimensional field '%s' has length %ld which "
+			"is longer than the maximum allowed length of 1.",
+				(*field)->name, (*field)->dimension[0] );
+		}
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"%ld-dimensional field '%s' is not supported.  "
+		"Only 0-dimensional and 1-dimensional fields are supported.",
+			(*field)->num_dimensions, register_name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_get_register( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_area_detector_default_get_register()";
+
+	MX_RECORD_FIELD *field;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	void *value_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(ad->record,
+						NULL, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	mx_status = mxp_area_detector_find_register_field( ad->record,
+					ad->register_name, &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	value_ptr = mx_get_field_value_pointer( field );
+
+	/* Read the register value from the detector. */
+
+	ad->parameter_type = field->label_value;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Convert the value returned to a long integer. */
+
+	switch( field->datatype ){
+	case MXFT_CHAR:
+		ad->register_value = *((char *) value_ptr);
+		break;
+	case MXFT_UCHAR:
+		ad->register_value = *((unsigned char *) value_ptr);
+		break;
+	case MXFT_SHORT:
+		ad->register_value = *((short *) value_ptr);
+		break;
+	case MXFT_USHORT:
+		ad->register_value = *((unsigned short *) value_ptr);
+		break;
+	case MXFT_BOOL:
+		ad->register_value = *((mx_bool_type *) value_ptr);
+		break;
+	case MXFT_LONG:
+		ad->register_value = *((long *) value_ptr);
+		break;
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		ad->register_value = *((unsigned long *) value_ptr);
+		break;
+	case MXFT_INT64:
+		ad->register_value = *((int64_t *) value_ptr);
+		break;
+	case MXFT_UINT64:
+		ad->register_value = *((uint64_t *) value_ptr);
+		break;
+	case MXFT_FLOAT:
+		ad->register_value = mx_round( *((float *) value_ptr) );
+		break;
+	case MXFT_DOUBLE:
+		ad->register_value = mx_round( *((double *) value_ptr) );
+		break;
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Unsupported data type %ld requested for parameter '%s'.",
+			field->datatype, ad->register_name );
+	}
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: register_name = '%s', register_value = %ld",
+		fname, ad->register_name, ad->register_value ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_set_register( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_set_register()";
+
+	MX_RECORD_FIELD *field;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	void *value_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( ad->record,
+						NULL, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	mx_status = mxp_area_detector_find_register_field( ad->record,
+					ad->register_name, &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: register_name = '%s'",
+			fname, register_name ));
+#endif
+	/* We must copy the register value to the field. */
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: register_name = '%s', register_value = %ld",
+		fname, register_name, *register ));
+#endif
+
+	value_ptr = mx_get_field_value_pointer( field );
+
+	switch( field->datatype ){
+	case MXFT_CHAR:
+		*((char *) value_ptr) = (char) ad->register_value;
+		break;
+	case MXFT_UCHAR:
+		*((unsigned char *) value_ptr)
+				= (unsigned char) ad->register_value;
+		break;
+	case MXFT_SHORT:
+		*((short *) value_ptr) = (short) ad->register_value;
+		break;
+	case MXFT_USHORT:
+		*((unsigned short *) value_ptr)
+				= (unsigned short) ad->register_value;
+		break;
+	case MXFT_BOOL:
+		*((mx_bool_type *) value_ptr)
+				= (mx_bool_type) ad->register_value;
+		break;
+	case MXFT_LONG:
+		*((long *) value_ptr) = ad->register_value;
+		break;
+	case MXFT_ULONG:
+	case MXFT_HEX:
+		*((unsigned long *) value_ptr)
+				= (unsigned long) ad->register_value;
+		break;
+	case MXFT_INT64:
+		*((int64_t *) value_ptr) = (int64_t) ad->register_value;
+		break;
+	case MXFT_UINT64:
+		*((uint64_t *) value_ptr) = (uint64_t) ad->register_value;
+		break;
+	case MXFT_FLOAT:
+		*((float *) value_ptr) = (float) ad->register_value;
+		break;
+	case MXFT_DOUBLE:
+		*((double *) value_ptr) = (double) ad->register_value;
+		break;
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		    "Unsupported data type %ld requested for parameter '%s'.",
+				field->datatype, ad->register_name );
+	}
+
+	/* Send the new register value to the detector. */
+
+	ad->parameter_type = field->label_value;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=======================================================================*/
+
 MX_EXPORT mx_status_type
 mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 {
@@ -4074,6 +4136,10 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		 * data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_REGISTER_VALUE:
+		mx_status = mx_area_detector_default_get_register( ad );
 		break;
 
 	case MXLV_AD_ROI:
@@ -4221,6 +4287,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		"mx_area_detector_default_set_parameter_handler()";
 
 	unsigned long i;
+	mx_status_type mx_status;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -4238,6 +4305,10 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_REGISTER_VALUE:
+		mx_status = mx_area_detector_default_set_register( ad );
 		break;
 
 	case MXLV_AD_ROI:

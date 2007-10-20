@@ -1337,9 +1337,13 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_BULB:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Bulb sequences are not supported by video input '%s'.",
-			vinput->record->name );
+		startbuf = 1;
+		endbuf = 1;
+		numbuf = 1;
+
+		frame_time = 0;
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
 		break;
 
 	default:

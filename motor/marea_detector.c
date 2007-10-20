@@ -68,7 +68,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	size_t length;
 	unsigned long ad_status, roi_number, acquisition_in_progress;
 	unsigned long roi[4];
-	long long_parameter;
+	long register_value;
 	long correction_type, num_measurements;
 	unsigned long saved_correction_flags;
 	double measurement_time, total_sequence_time;
@@ -93,8 +93,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' get correction_flags\n"
 "  area_detector 'name' set correction_flags 'correction flags'\n"
 "\n"
-"  area_detector 'name' get long_parameter 'parameter_name'\n"
-"  area_detector 'name' set long_parameter 'parameter_name' 'parameter_value'\n"
+"  area_detector 'name' get register 'register_name'\n"
+"  area_detector 'name' set register 'register_name' 'register_value'\n"
 "\n"
 "  area_detector 'name' get sequence_parameters\n"
 "  area_detector 'name' set one_shot_mode 'exposure time in seconds'\n"
@@ -1279,27 +1279,27 @@ motor_area_detector_fn( int argc, char *argv[] )
 				"Area detector '%s': correction flags = %#lx\n",
 				ad_record->name, correction_flags );
 		} else
-		if ( strncmp( "long_parameter",
+		if ( strncmp( "register",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'get long_parameter' command\n",
+	    "%s: wrong number of arguments to 'get register' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_get_long_parameter(
-					ad_record, argv[5], &long_parameter );
+			mx_status = mx_area_detector_get_register(
+					ad_record, argv[5], &register_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-			"Area detector '%s': parameter '%s' long value = %ld\n",
-				ad_record->name, argv[5], long_parameter );
+			"Area detector '%s': register '%s' long value = %ld\n",
+				ad_record->name, argv[5], register_value );
 		} else
 		if ( strncmp( "sequence_parameters",
 					argv[4], strlen(argv[4]) ) == 0 )
@@ -1543,30 +1543,30 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else
-		if ( strncmp( "long_parameter",
+		if ( strncmp( "register",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 7 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'set long_parameter' command\n",
+	    "%s: wrong number of arguments to 'set register' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			long_parameter = strtol( argv[6], &endptr, 0 );
+			register_value = strtol( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
-	"%s: Non-numeric characters found in the long parameter value '%s'\n",
+	"%s: Non-numeric characters found in the register value '%s'\n",
 					cname, argv[6] );
 
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_set_long_parameter(
-					ad_record, argv[5], &long_parameter );
+			mx_status = mx_area_detector_set_register(
+					ad_record, argv[5], register_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

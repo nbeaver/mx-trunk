@@ -239,6 +239,13 @@ typedef struct mx_area_detector_type {
 
 	double dezinger_threshold;	/* in units of standard deviation */
 
+	/* Used by mx_area_detector_get_register() and
+	 * mx_area_detector_set_register().
+	 */
+
+	char register_name[MXU_FIELD_NAME_LENGTH+1];
+	long register_value;
+
 	/* The following are the image frames and frame buffer pointers
 	 * used for image correction.
 	 */
@@ -329,12 +336,13 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DETECTOR_READOUT_TIME		12044
 #define MXLV_AD_TOTAL_SEQUENCE_TIME		12045
 #define MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST	12046
-
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12047
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12048
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12049
 #define MXLV_AD_DEZINGER_THRESHOLD		12050
 #define MXLV_AD_USE_SCALED_DARK_CURRENT		12051
+#define MXLV_AD_REGISTER_NAME			12052
+#define MXLV_AD_REGISTER_VALUE			12053
 
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12100
 #define MXLV_AD_MASK_FILENAME			12101
@@ -618,7 +626,17 @@ typedef struct mx_area_detector_type {
   {-1, -1, "flood_field_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, flood_field_frame_buffer), \
-	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_AD_REGISTER_NAME, -1, "register_name", MXFT_STRING, NULL, \
+  					1, {MXU_FIELD_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, register_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_REGISTER_VALUE, -1, "register_value", \
+  					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, register_value ),\
+	{sizeof(char)}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
   {MXLV_AD_INITIAL_CORRECTION_FLAGS, -1, "initial_correction_flags", \
@@ -690,13 +708,13 @@ MX_API mx_status_type mx_area_detector_load_correction_files(
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_get_long_parameter( MX_RECORD *record,
-							char *parameter_name,
-							long *parameter_value );
+MX_API mx_status_type mx_area_detector_get_register( MX_RECORD *record,
+							char *register_name,
+							long *register_value );
 
-MX_API mx_status_type mx_area_detector_set_long_parameter( MX_RECORD *record,
-							char *parameter_name,
-							long *parameter_value );
+MX_API mx_status_type mx_area_detector_set_register( MX_RECORD *record,
+							char *register_name,
+							long register_value );
 
 /*---*/
 
@@ -945,6 +963,14 @@ MX_API mx_status_type mx_area_detector_get_correction_frame(
 					unsigned long frame_type,
 					char *frame_name,
 					MX_IMAGE_FRAME **correction_frame );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_default_get_register(
+						MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_set_register(
+						MX_AREA_DETECTOR *ad );
 
 /*---*/
 

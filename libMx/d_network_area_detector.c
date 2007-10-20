@@ -316,6 +316,16 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.load_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->register_name_nf),
+		network_area_detector->server_record,
+	    "%s.register_name",
+	    			network_area_detector->remote_record_name );
+
+	mx_network_field_init(&(network_area_detector->register_value_nf),
+		network_area_detector->server_record,
+	    "%s.register_value",
+	    			network_area_detector->remote_record_name );
+
 	mx_network_field_init(&(network_area_detector->maximum_frame_number_nf),
 		network_area_detector->server_record,
 	  "%s.maximum_frame_number", network_area_detector->remote_record_name);
@@ -1538,9 +1548,23 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 					MXFT_ULONG, &(ad->subframe_size) );
 		break;
 	case MXLV_AD_USE_SCALED_DARK_CURRENT:
-		mx_status = mx_put(
+		mx_status = mx_get(
 			&(network_area_detector->use_scaled_dark_current_nf),
 				MXFT_ULONG, &(ad->use_scaled_dark_current) );
+		break;
+	case MXLV_AD_REGISTER_VALUE:
+		dimension[0] = MXU_FIELD_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->register_name_nf),
+				MXFT_STRING, 1, dimension,
+				ad->register_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_get( &(network_area_detector->register_value_nf),
+					MXFT_LONG, &(ad->register_value) );
 		break;
 	default:
 		mx_status =
@@ -1669,6 +1693,20 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put(
 		    &(network_area_detector->do_geometrical_correction_last_nf),
 		    	MXFT_BOOL, &(ad->do_geometrical_correction_last) );
+		break;
+	case MXLV_AD_REGISTER_VALUE:
+		dimension[0] = MXU_FIELD_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->register_name_nf),
+				MXFT_STRING, 1, dimension,
+				ad->register_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_put( &(network_area_detector->register_value_nf),
+					MXFT_LONG, &(ad->register_value) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:
