@@ -268,6 +268,7 @@ typedef struct mx_area_detector_type {
 	char dark_current_filename[MXU_FILENAME_LENGTH+1];
 
 	double flood_field_average_intensity;
+	double bias_average_intensity;
 
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
@@ -803,6 +804,10 @@ MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
 MX_API mx_status_type mx_area_detector_get_sequence_start_delay(
 						MX_RECORD *ad_record,
 						double *sequence_start_delay );
+
+MX_API mx_status_type mx_area_detector_set_sequence_start_delay(
+						MX_RECORD *ad_record,
+						double sequence_start_delay );
 
 MX_API mx_status_type mx_area_detector_get_total_acquisition_time(
 						MX_RECORD *ad_record,

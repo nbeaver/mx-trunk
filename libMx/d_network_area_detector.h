@@ -61,9 +61,11 @@ typedef struct {
 	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
 	MX_NETWORK_FIELD roi_number_nf;
 	MX_NETWORK_FIELD save_frame_nf;
+	MX_NETWORK_FIELD sequence_start_delay_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;
+	MX_NETWORK_FIELD total_acquisition_time_nf;
 	MX_NETWORK_FIELD total_num_frames_nf;
 	MX_NETWORK_FIELD total_sequence_time_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;

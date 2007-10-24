@@ -101,7 +101,8 @@ typedef struct {
 	MX_RECORD *internal_trigger_record;
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
-	char spatial_correction_filename[MXU_FILENAME_LENGTH+1];
+	char geometrical_spline_filename[MXU_FILENAME_LENGTH+1];
+	char geometrical_mask_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type buffer_overrun;
 	mx_bool_type use_top_half_of_detector;
@@ -171,6 +172,7 @@ typedef struct {
 	unsigned long dh_test_mode;
 	unsigned long dh_offset_correction;
 	unsigned long dh_exposure_mode;
+	unsigned long dh_linearization;
 } MX_PCCD_170170;
 
 #define MXLV_PCCD_170170_DH_BASE		100000
@@ -254,6 +256,7 @@ typedef struct {
 #define MXLV_PCCD_170170_DH_TEST_MODE			200002
 #define MXLV_PCCD_170170_DH_OFFSET_CORRECTION		200003
 #define MXLV_PCCD_170170_DH_EXPOSURE_MODE		200004
+#define MXLV_PCCD_170170_DH_LINEARIZATION		200005
 
 #define MXD_PCCD_170170_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -276,11 +279,17 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, pccd_170170_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "spatial_correction_filename", MXFT_STRING, NULL, \
+  {-1, -1, "geometrical_spline_filename", MXFT_STRING, NULL, \
   			1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_PCCD_170170, spatial_correction_filename), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+			offsetof(MX_PCCD_170170, geometrical_spline_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "geometrical_mask_filename", MXFT_STRING, NULL, \
+  			1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_PCCD_170170, geometrical_mask_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   \
   {-1, -1, "buffer_overrun", MXFT_BOOL, NULL, 0, {0}, \
@@ -299,37 +308,37 @@ typedef struct {
   {MXLV_PCCD_170170_DH_CONTROL, \
 		-1, "dh_control", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_control), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE, \
 	    -1, "dh_overscanned_pixels_per_line", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_overscanned_pixels_per_line), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT, \
 		-1, "dh_physical_lines_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_physical_lines_in_quadrant), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT, \
 		-1, "dh_physical_pixels_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_physical_pixels_in_quadrant), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT, \
 		-1, "dh_lines_read_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_lines_read_in_quadrant), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT, \
 		-1, "dh_pixels_read_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_pixels_read_in_quadrant), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_INITIAL_DELAY_TIME, \
 		-1, "dh_initial_delay_time", MXFT_ULONG, NULL, 0, {0}, \
@@ -370,7 +379,7 @@ typedef struct {
 		-1, "dh_controller_fpga_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PCCD_170170, dh_controller_fpga_version), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_LINE_BINNING, \
 		-1, "dh_line_binning", MXFT_ULONG, NULL, 0, {0}, \
@@ -400,87 +409,87 @@ typedef struct {
   {MXLV_PCCD_170170_DH_OFFSET_A1, \
 		-1, "dh_offset_a1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_a1), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_A2, \
 		-1, "dh_offset_a2", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_a2), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_A3, \
 		-1, "dh_offset_a3", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_a3), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_A4, \
 		-1, "dh_offset_a4", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_a4), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_B1, \
 		-1, "dh_offset_b1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_b1), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_B2, \
 		-1, "dh_offset_b2", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_b2), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_B3, \
 		-1, "dh_offset_b3", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_b3), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_B4, \
 		-1, "dh_offset_b4", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_b4), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_C1, \
 		-1, "dh_offset_c1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_c1), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_C2, \
 		-1, "dh_offset_c2", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_c2), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_C3, \
 		-1, "dh_offset_c3", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_c3), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_C4, \
 		-1, "dh_offset_c4", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_c4), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_D1, \
 		-1, "dh_offset_d1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_d1), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_D2, \
 		-1, "dh_offset_d2", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_d2), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_D3, \
 		-1, "dh_offset_d3", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_d3), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_OFFSET_D4, \
 		-1, "dh_offset_d4", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_offset_d4), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_PCCD_170170_DH_COMM_FPGA_VERSION, \
 		-1, "dh_comm_fpga_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_comm_fpga_version), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   \
   {MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE, \
@@ -507,7 +516,12 @@ typedef struct {
   {MXLV_PCCD_170170_DH_EXPOSURE_MODE, \
   		-1, "dh_exposure_mode", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_exposure_mode), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_LINEARIZATION, \
+  		-1, "dh_linearization", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_linearization), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );
 MX_API mx_status_type mxd_pccd_170170_create_record_structures(

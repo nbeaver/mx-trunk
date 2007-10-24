@@ -42,9 +42,11 @@ Change record:
 #define		PARTIAL_VERBOSE	0x1
 #define		VERY_VERBOSE	0x2
 #define		ANY_VERBOSE	(PARTIAL_VERBOSE | VERY_VERBOSE)
+#define		ACTIVE_ONLY	0x8
 	/* system-level declarations, appropriately latched */
 #ifndef	__stdlib_h
 extern void	*calloc(size_t count, size_t size);
+extern void	*malloc(size_t size);
 extern void	free(void *ptr);
 #endif /* __stdlib_h */
 
@@ -200,32 +202,88 @@ static int rescalespl(IMWORK *imp)
 	if ((xsca < FUZZ) || (ysca < FUZZ)) return EBADVALUE;
 	/* if the image and the spline are the same dimensions, we can quit */
 	if ((xsca < 1. - FUZZ) || (xsca > 1. + FUZZ) ||
-		(ysca < 1. - FUZZ) || (ysca > 1. + FUZZ)) return EOK;
-	lspl->v_detw *= xsca;		lspl->v_deth *= ysca;
-	lspl->v_axc *= xsca;		lspl->v_ayc *= ysca;
-	lspl->v_rxc *= xsca;		lspl->v_ryc *= ysca;
-	lspl->v_xrpx *= xsca;		lspl->v_yrpx *= ysca;
-	for (calp = lspl->v_cpt, iy = 0; iy < lspl->v_nrow; iy++)
-	   for (ix = 0; ix < lspl->v_ncol; ix++, calp++)
-	      {
-		calp->c_ptocx *= xsca; calp->c_ptocy *= ysca;
-	      }
+		(ysca < 1. - FUZZ) || (ysca > 1. + FUZZ))
+	  {
+		if (imp->imf_flags & ANY_VERBOSE) printf(
+		 "Rescaling spline by a factor of %7.4f in X, %7.4f in Y\n",
+			xsca, ysca);
+		lspl->v_detw *= xsca;		lspl->v_deth *= ysca;
+		lspl->v_axc *= xsca;		lspl->v_ayc *= ysca;
+		lspl->v_rxc *= xsca;		lspl->v_ryc *= ysca;
+		lspl->v_xrpx *= xsca;		lspl->v_yrpx *= ysca;
+		for (calp = lspl->v_cpt, iy = 0; iy < lspl->v_nrow; iy++)
+		   for (ix = 0; ix < lspl->v_ncol; ix++, calp++)
+		      {
+			calp->c_ptocx *= xsca; calp->c_ptocy *= ysca;
+		      }
+	  }
+	else if (imp->imf_flags & ANY_VERBOSE) printf(
+ "No rescaling of spline required: image and spline have same dimensions\n");
 	return EOK;
 }
 
-static void pix2cm(VSPLINE *lspl, float xp, float yp, float *xcm, float *ycm)
+static int locactive(VSPLINE *lspl, int ix, int iy)
+{ /* returns -1 if ix,iy is outside the detector area;
+  0 if inside the area but outside the active area; 1 if inside the active area.
+  It returns -2 if it's unable to set up the active-area array */
+	int		pos, jy;
+	size_t		imsiz, busiz, busiz2;
+	unsigned short	*rebu, *usp;
+	unsigned char	*ucp;
+	static FILE	*fpmas;
+	static unsigned char	*lomask;
+
+	if (NULL == lspl) /* special flag case to clear memory */
+	  {
+		if (NULL != lomask) free((void *)lomask);	return 0;
+	  }
+	if ((ix <= 0) || (iy <= 0) ||
+	 (ix >= lspl->v_detw) || (iy >= lspl->v_deth)) return -1;
+	if (NULL == lomask)
+	  { /* read in the local-area active pixel mask from a file */
+		busiz = lspl->v_deth;	imsiz = lspl->v_detw * busiz;
+		if (NULL == (lomask = (unsigned char *)malloc(imsiz)))
+			return -2;
+		if (NULL == (rebu = (unsigned short *)calloc(busiz,
+			sizeof (unsigned short)))) return -2;
+		if (NULL == (fpmas = fopen("mask1.smv", "r"))) return -2;
+		if (-1 == fseek(fpmas, 512, 1)) return -2; /*skip file header*/
+		busiz2 = busiz * 2;
+		for (ucp = lomask, pos = 0; pos < lspl->v_detw; pos++)
+		   { /* read through mask columns */
+			if (1 != fread((void *)rebu, busiz2, 1, fpmas))
+				return -2;
+			for (usp = rebu, jy = 0; jy < busiz; jy++, ucp++,usp++)
+				*ucp = (*usp > 0); /* convert 16-bit->8-bit */
+		   }
+		(void)fclose(fpmas);	free((void *)rebu);	fpmas = NULL;
+	  }
+	pos = iy + lspl->v_deth * ix; /* offset from start of mask array */
+	return (*(lomask + pos)) ? 1 : 0; /* return active-pixel status */
+}
+
+static int pix2cm(IMWORK *imp, float xp, float yp, float *xcm, float *ycm)
 { /*	This returns the x,y coordinates in cm of a position
 	specified in pixel coordinates.
-	This version assumes that xp and yp are within the detector area,
-	so it isn't doing any error-checking. That also means it doesn't
-	return anything.
+	It returns -1 if (xp, yp) are outside the image limits;
+	0 if inside the limits but not in the active area;
+	1 if in the active area.
 	It takes the spline structure as an argument rather than
-	fishing it out of the routine that manages it. */
+	fishing it out of a management routine */
 	CALPOINT	*cz00, *cz01, *cz10, *cz11;
-	static int	ix, iy;
+	static int	ix, iy, retv;
 	static double	p, q, rx, ry;
 	float		dx, dy;
+	VSPLINE		*lspl;
 
+	ix = xp + 0.499999;	iy = yp + 0.499999;	*xcm = *ycm = 0.;
+	lspl = imp->imf_spl;
+	if (imp->imf_flags & ACTIVE_ONLY)
+	  {
+		if (-2 == (retv = locactive(lspl, ix, iy))) return retv;
+	  }
+	else	retv = (ix >= 0) && (iy >= 0) &&
+			(ix < lspl->v_detw) && (iy < lspl->v_deth);
 	dx = xp - lspl->v_x0px;	dy = yp - lspl->v_y0px;
 	rx = dx / lspl->v_xrpx;	ry = dy / lspl->v_yrpx;
 	ix = (rx < 0. ? 0 : (rx < lspl->v_ncol - 1 ?  rx : lspl->v_ncol - 2));
@@ -250,41 +308,101 @@ static void pix2cm(VSPLINE *lspl, float xp, float yp, float *xcm, float *ycm)
 		   p  * (1.-q) * cz01->c_ctopx +     p  * q * cz11->c_ctopx;
 	*ycm = (1.-p) * (1.-q) * cz00->c_ctopy + (1.-p) * q * cz10->c_ctopy +
 		   p  * (1.-q) * cz01->c_ctopy +     p  * q * cz11->c_ctopy;
+	return retv;
 }
 
 static int find_limits(IMWORK *imp)
 { /*	This determines the limits of x and y in centimeters and populates
 	the x and y slope and intercept values accordingly */
-	int	x, y;
+	int	pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu;
+	int	x, xdel, xmax, xmin, y, ydel, ymin, ymax;
 	float	xc, yc;
 	double	xma, xmi, yma, ymi;
 	VSPLINE	*lspl;
 
-	yma = xma = -1.e9;	ymi = xmi = -xma;
 	lspl = imp->imf_spl;
-	for (x = 0; x < lspl->v_detw; x++)
-		for (y = 0; y < lspl->v_deth; y++)
-		   {
-			pix2cm(lspl, (float)x, (float)y, &xc, &yc);
-			if (xc < xmi) xmi = xc;	if (xc > xma) xma = xc;
-			if (yc < ymi) ymi = yc;	if (yc > yma) yma = yc;
-		   }
-	if ((yma < -0.9e9) || (xma < -0.9e9) ||
-	 (xmi > 0.9e9) || (ymi > 0.9e9)) return EBADVALUE;
-	if (xma < xmi + DFUZZ) return EBADVALUE;
-	if (yma < ymi + DFUZZ) return EBADVALUE;
-	imp->imf_xsl = ((double)(imp->imf_wid - 1)) / (xma - xmi);
-	imp->imf_x00 = -xmi * imp->imf_xsl;
-	imp->imf_ysl = ((double)(imp->imf_ht - 1)) / (ymi - yma);
-	imp->imf_y00 = -yma * imp->imf_ysl;
-	if (imp->imf_flags & VERY_VERBOSE)
+	/* now walk through the values */
+	if (imp->imf_flags & ANY_VERBOSE)
 	  {
-		printf(
-		 "Minima & maxima in (X,Y): [%12.4e,%12.4e],[%12.4e,%12.4e]\n",
-			xmi, ymi, xma, yma);
-		printf(
-		 "Scale factors and offsets:[%12.4e,%12.4e],[%12.4e,%12.4e]\n",
+		fprintf(stdout,
+ "     Minima(X,Y)     Maxima(X,Y)  Intervals(X,Y)    Offsets(X,Y)");
+		fprintf(stdout, "***[X,Y] values where the extrema are***\n");
+	  }
+	ymi = xmi = 1.e9;	yma = xma = -ymi;
+	ymin = xmin = 0; xdel = xmax = lspl->v_detw; ymax = ydel = lspl->v_deth;
+	pxxl = pxyl = pyxl = pyyl = 10000; pxxu = pxyu = pyxu = pyyu = -pxxl;
+	if (imp->imf_flags & ACTIVE_ONLY)
+	  { /* just look at data within the active region */
+		if (-2 != locactive(lspl, 1, 1)) return EREADERR;
+		for (y = ymin; y < ymax; y++)
+			for (x = xmin; x < xmax; x++)
+			   {
+				if (1 == pix2cm(imp, (float)x, (float)y,
+				 &xc, &yc))
+				  {
+					if (xc < xmi)
+					  {	xmi = xc;
+						pxxl = x; pxyl = y;
+					  }
+					if (xc > xma)
+					  {
+						xma = xc;
+						pxxu = x; pxyu = y;
+					  }
+					if (yc < ymi)
+					  {
+						ymi = yc;
+						pyxl = x;	pyyl = y;
+					  }
+					if (yc > yma)
+					  {
+						yma = yc;
+						pyxu = x;	pyyu = y;
+					  }
+				  }
+			   } /* close of loop through x and y */
+	  } /* close of "if (imp->imf_flags & ACTIVE_ONLY)" clause */
+	else { /* look at all data in establishing limits */
+		for (y = ymin; y < ymax; y++)
+			for (x = xmin; x < xmax; x++)
+			   {
+				if (-1 != pix2cm(imp, (float)x, (float)y,
+					&xc, &yc))
+				  {
+					if (xc < xmi)
+					  {	xmi = xc;
+						pxxl = x; pxyl = y;
+					  }
+					if (xc > xma)
+					  {
+						xma = xc;
+						pxxu = x; pxyu = y;
+					  }
+					if (yc < ymi)
+					  {
+						ymi = yc;
+						pyxl = x;	pyyl = y;
+					  }
+					if (yc > yma)
+					  {
+						yma = yc;
+						pyxu = x;	pyyu = y;
+					  }
+				  }
+			   } /* close of loop through x and y */
+	     } /* close of else of "if (imp->imf_flags & ACTIVE_ONLY)" clause*/
+	imp->imf_xsl = ((double)(xdel-1)) / (xma - xmi);
+	imp->imf_x00 = -xmi * imp->imf_xsl;
+	imp->imf_ysl = ((double)(ydel-1)) / (ymi - yma);
+	imp->imf_y00 = -yma * imp->imf_ysl;
+	if (imp->imf_flags & ANY_VERBOSE)
+	  {
+		fprintf(stdout,
+		 " %7.3f %7.3f %7.3f %7.3f %7.2f %7.2f %7.2f %7.2f ",
+		 xmi, ymi, xma, yma,
 		 imp->imf_xsl, imp->imf_ysl, imp->imf_x00, imp->imf_y00);
+		fprintf(stdout, " %4d %4d %4d %4d %4d %4d %4d %4d\n",
+		 pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu);
 	  }
 	return EOK;
 }
@@ -312,7 +430,8 @@ static int interp_image(IMWORK *imp)
 	for (obounds = x = 0; x < lspl->v_detw; x++) /* convert pix to cm */
 	  for (y = 0; y < lspl->v_deth; y++)
 	     {
-		pix2cm(lspl, (float)x, (float)y, &xc, &yc);
+		iy = pix2cm(imp, (float)x, (float)y, &xc, &yc);
+		if ((imp->imf_flags & ACTIVE_ONLY) && (iy != 1)) continue;
 	     	/* rescale coordinates into the proper dimensions */
 		xc = imp->imf_xsl * xc + imp->imf_x00;
 		yc = imp->imf_ysl * yc + imp->imf_y00;
@@ -362,6 +481,7 @@ static int interp_image(IMWORK *imp)
 	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
 	 " %6d pixels mapped to coordinates outside the adjusted limits\n",
 		obounds);
+	(void)locactive(NULL, 0, 0); /* get rid of memory for locactive */
 	return EOK;
 }
 
@@ -623,6 +743,7 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 		bit 1	moderate amounts of verbosity
 		bit 2	higher verbosity
 		bit 3	even higher verbosity (not currently used)
+		bit 4	only use active area in correction
 	splname	Name of the spatial-correction (*.uca) file.
 	In this version, the detector dimensions don't need to be
 	specified, because they're read in from splname.
@@ -630,7 +751,7 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 	int		resu;
 	static IMWORK	imfs;
 
-	imfs.imf_flags = cflags;
+	imfs.imf_flags = cflags | ACTIVE_ONLY;	/* for now, turn ACTIVE_ONLY on */
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
 	imfs.imf_wid = imwid;	imfs.imf_ht = imht;

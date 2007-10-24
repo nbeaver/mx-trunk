@@ -376,6 +376,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.save_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init(&(network_area_detector->sequence_start_delay_nf),
+			network_area_detector->server_record,
+	    "%s.sequence_start_delay",
+	    		network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->status_nf),
 		network_area_detector->server_record,
 		"%s.status", network_area_detector->remote_record_name );
@@ -387,6 +392,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->subframe_size_nf),
 		network_area_detector->server_record,
 		"%s.subframe_size", network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->total_acquisition_time_nf),
+		network_area_detector->server_record,
+			"%s.total_acquisition_time",
+			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->total_num_frames_nf),
 		network_area_detector->server_record,
@@ -1478,6 +1489,16 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status =
 		    mx_get( &(network_area_detector->detector_readout_time_nf),
 				MXFT_DOUBLE, &(ad->detector_readout_time) );
+		break;
+	case MXLV_AD_SEQUENCE_START_DELAY:
+		mx_status =
+		    mx_get( &(network_area_detector->sequence_start_delay_nf),
+				MXFT_DOUBLE, &(ad->sequence_start_delay) );
+		break;
+	case MXLV_AD_TOTAL_ACQUISITION_TIME:
+		mx_status =
+		    mx_get( &(network_area_detector->total_acquisition_time_nf),
+				MXFT_DOUBLE, &(ad->total_acquisition_time) );
 		break;
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
 		mx_status =

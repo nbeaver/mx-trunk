@@ -374,7 +374,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		/* Copy normalized pixels to the destination array. */
 
-		num_exposures_as_double = (double) num_exposures;
+		num_exposures_as_double = (double) corr->num_exposures;
 
 		for ( i = 0; i < pixels_per_frame; i++ ) {
 			temp_double = sum_array[i] / num_exposures_as_double;
@@ -886,6 +886,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		case MXLV_AD_DETECTOR_READOUT_TIME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
@@ -902,8 +903,10 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_SAVE_FRAME:
+		case MXLV_AD_SEQUENCE_START_DELAY:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
+		case MXLV_AD_TOTAL_ACQUISITION_TIME:
 		case MXLV_AD_TOTAL_NUM_FRAMES:
 		case MXLV_AD_TOTAL_SEQUENCE_TIME:
 		case MXLV_AD_TRANSFER_FRAME:
@@ -970,6 +973,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_BYTES_PER_PIXEL:
 			mx_status = mx_area_detector_get_bytes_per_pixel(
+								record, NULL );
+			break;
+		case MXLV_AD_DETECTOR_READOUT_TIME:
+			mx_status = mx_area_detector_get_detector_readout_time(
 								record, NULL );
 			break;
 		case MXLV_AD_EXTENDED_STATUS:
@@ -1056,11 +1063,23 @@ mx_area_detector_process_function( void *record_ptr,
 					record->name );
 			}
 			break;
+		case MXLV_AD_SEQUENCE_START_DELAY:
+			mx_status = mx_area_detector_get_sequence_start_delay(
+								record, NULL );
+			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
+		case MXLV_AD_TOTAL_ACQUISITION_TIME:
+			mx_status = mx_area_detector_get_total_acquisition_time(
+								record, NULL );
+			break;
 		case MXLV_AD_TOTAL_NUM_FRAMES:
 			mx_status = mx_area_detector_get_total_num_frames(
+								record, NULL );
+			break;
+		case MXLV_AD_TOTAL_SEQUENCE_TIME:
+			mx_status = mx_area_detector_get_total_sequence_time(
 								record, NULL );
 			break;
 		case MXLV_AD_TRIGGER_MODE:
@@ -1093,10 +1112,6 @@ mx_area_detector_process_function( void *record_ptr,
 				   ad->sequence_parameters.parameter_array[i]));
 			}
 #endif
-			break;
-		case MXLV_AD_TOTAL_SEQUENCE_TIME:
-			mx_status = mx_area_detector_get_total_sequence_time(
-								record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -1204,6 +1219,10 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SAVE_FRAME:
 			mx_status = mx_area_detector_save_frame( record,
 					ad->save_frame, ad->frame_filename );
+			break;
+		case MXLV_AD_SEQUENCE_START_DELAY:
+			mx_status = mx_area_detector_set_sequence_start_delay(
+					record, ad->sequence_start_delay );
 			break;
 		case MXLV_AD_STOP:
 			mx_status = mx_area_detector_stop( record );

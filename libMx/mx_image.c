@@ -773,6 +773,144 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#define MX_IMAGE_STATISTICS_MAX_SD	10
+
+#define MX_IMAGE_STATISTICS_BINS	(2*MX_IMAGE_STATISTICS_MAX_SD + 1)
+
+MX_EXPORT mx_status_type
+mx_image_statistics( MX_IMAGE_FRAME *frame )
+{
+	static const char fname[] = "mx_image_statistics()";
+
+	uint8_t *uint8_array;
+	uint16_t *uint16_array;
+	unsigned long i, num_pixels, image_format;
+	unsigned long row_framesize, column_framesize;
+	double sum, sum_of_squares, mean, standard_deviation;
+	double pixel, diff, pixel_sd;
+	unsigned long pixel_bin;
+	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	uint8_array = NULL;
+	uint16_array = NULL;
+	pixel = 0.0;
+
+	row_framesize = MXIF_ROW_FRAMESIZE(frame);
+	column_framesize = MXIF_COLUMN_FRAMESIZE(frame);
+	image_format = MXIF_IMAGE_FORMAT(frame);
+
+	num_pixels = row_framesize * column_framesize;
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		uint8_array = frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		uint16_array = frame->image_data;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The image format %lu for the MX_IMAGE_FRAME passed "
+		"is not supported by this routine.", image_format );
+	}
+
+	/* First compute the mean. */
+
+	sum = 0.0;
+
+	for ( i = 0; i < num_pixels; i++ ) {
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			pixel = uint8_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			pixel = uint16_array[i];
+			break;
+		}
+
+		sum += pixel;
+	}
+
+	mean = sum / (double) num_pixels;
+
+	/* Next compute the standard deviation. */
+
+	sum_of_squares = 0.0;
+
+	for ( i = 0; i < num_pixels; i++ ) {
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			pixel = uint8_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			pixel = uint16_array[i];
+			break;
+		}
+
+		diff = pixel - mean;
+
+		sum_of_squares += (diff * diff);
+	}
+
+	standard_deviation = sqrt( sum_of_squares
+		/ ( ((double) num_pixels) - 1.0 ) );
+
+	/* Finish by generating a simple histogram of pixel values. */
+
+	for ( i = 0; i < MX_IMAGE_STATISTICS_BINS; i++ ) {
+		sd_histogram[i] = 0;
+	}
+
+	for ( i = 0; i < num_pixels; i++ ) {
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			pixel = uint8_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			pixel = uint16_array[i];
+			break;
+		}
+
+		pixel_sd = ( ( pixel - mean ) / standard_deviation );
+
+		pixel_bin = 0.5 + pixel_sd + MX_IMAGE_STATISTICS_MAX_SD;
+
+		if ( pixel_bin >= MX_IMAGE_STATISTICS_BINS ) {
+			(sd_histogram[MX_IMAGE_STATISTICS_BINS - 1])++;
+		} else
+		if ( pixel_bin < 0 ) {
+			(sd_histogram[0])++;
+		} else {
+			(sd_histogram[pixel_bin])++;
+		}
+	}
+
+	/* Show the results. */
+
+	mx_info( "(%lux%lu) %lu-bit image frame",
+		row_framesize, column_framesize, 8 * image_format );
+
+	mx_info( "  mean = %g, standard deviation = %g",
+		mean, standard_deviation );
+
+	mx_info( " " );
+
+	for ( i = 0; i < MX_IMAGE_STATISTICS_BINS; i++ ) {
+		mx_info( "  %-3ld : %lu",
+			(long) i - MX_IMAGE_STATISTICS_MAX_SD,
+			sd_histogram[i] );
+	}
+
+	mx_info( " " );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 				size_t *image_length,
@@ -1223,8 +1361,11 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 	/* Verify that all of the frames have the same image type. */
 
 	for ( i = 0; i < num_original_frames; i++ ) {
-		original_frame = original_frame_array[i];
 
+		original_frame = original_frame_array[i];
+#if 0
+		mx_image_statistics(original_frame);
+#endif
 		if ( original_frame == (MX_IMAGE_FRAME *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The frame pointer for frame %lu in the "

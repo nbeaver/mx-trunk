@@ -60,8 +60,30 @@
 #  include "mx_hrt_debug.h"
 #endif
 
+/* Internal prototype for smvspatial. */
+
+#define OLDSMVSPATIAL	TRUE
+
+#if OLDSMVSPATIAL
+
 MX_API int
-smvspatial( void *imarr, int imwid, int imhit, int cflags, char *splname );
+smvspatial( void *imarr,
+	int imwid,
+	int imhit,
+	int cflags,
+	char *splname );
+
+#else
+
+MX_API int
+smvspatial( void *imarr,
+	int imwid,
+	int imhit,
+	int cflags,
+	char *splname,
+	char *maskname );
+
+#endif
 
 /*---*/
 
@@ -2362,18 +2384,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->sector_array = NULL;
 
-	/* Load the image correction files.  This sets the value of
-	 * ad->correction_flags as a side effect.
-	 */
+	/* Load the image correction files. */
 
 	mx_status = mx_area_detector_load_correction_files( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( strlen( pccd_170170->spatial_correction_filename ) > 0 ) {
-		ad->correction_flags |= MXFT_AD_GEOMETRICAL_CORRECTION;
-	}
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -3669,6 +3685,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_TEST_MODE:
 	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
 	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+	case MXLV_PCCD_170170_DH_LINEARIZATION:
 		mx_status = mx_get_field_by_label_value( ad->record,
 							ad->parameter_type,
 							&field );
@@ -3699,6 +3716,9 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
 			pseudo_reg_value = (control_register >> 3) & 0x3;
+			break;
+		case MXLV_PCCD_170170_DH_LINEARIZATION:
+			pseudo_reg_value = (control_register >> 7) & 0x1;
 			break;
 		}
 
@@ -3734,6 +3754,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	long total_num_subimage_lines;
+	unsigned long new_delay_time;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	double exposure_multiplier, gap_multiplier;
 	mx_status_type mx_status;
@@ -4638,6 +4659,17 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		break; 
 
+	case MXLV_AD_SEQUENCE_START_DELAY:
+		new_delay_time = mx_round( 1.0e5 * ad->sequence_start_delay );
+
+		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_INITIAL_DELAY_TIME,
+					new_delay_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+
 	case MXLV_AD_TRIGGER_MODE:
 		mx_status = mx_video_input_set_trigger_mode(
 				pccd_170170->video_input_record,
@@ -4716,6 +4748,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_TEST_MODE:
 	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
 	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+	case MXLV_PCCD_170170_DH_LINEARIZATION:
 		mx_status = mx_get_field_by_label_value( ad->record,
 							ad->parameter_type,
 							&field );
@@ -4769,6 +4802,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			control_register |= pseudo_reg_value;
 			break;
+		case MXLV_PCCD_170170_DH_LINEARIZATION:
+			pseudo_reg_value = ( register_value & 0x1 ) << 7;
+
+			control_register &= ~0x80;
+
+			control_register |= pseudo_reg_value;
+			break;
 		}
 
 		mx_status = mxd_pccd_170170_write_register( pccd_170170,
@@ -4818,26 +4858,48 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	  "The image_frame->image_data pointer for area detector '%s' is NULL.",
 			ad->record->name );
 	}
-	if ( pccd_170170->spatial_correction_filename == NULL ) {
+	if ( pccd_170170->geometrical_spline_filename == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The spatial_correction_filename pointer for "
+		"The geometrical_spline_filename pointer for "
 		"area detector '%s' is NULL.", ad->record->name );
 	}
-	if ( strlen( pccd_170170->spatial_correction_filename ) == 0 ) {
+	if ( strlen( pccd_170170->geometrical_spline_filename ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"No spatial correction filename was provided for "
+		"No geometrical correction spline filename was provided for "
+		"area detector '%s'.", ad->record->name );
+	}
+	if ( pccd_170170->geometrical_mask_filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The geometrical_mask_filename pointer for "
+		"area detector '%s' is NULL.", ad->record->name );
+	}
+	if ( strlen( pccd_170170->geometrical_mask_filename ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"No geometrical correction mask filename was provided for "
 		"area detector '%s'.", ad->record->name );
 	}
 
-	os_status = access( pccd_170170->spatial_correction_filename, R_OK );
+	os_status = access( pccd_170170->geometrical_spline_filename, R_OK );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot read spatial correction file '%s'.  "
+		"Cannot read geometrical correction spline file '%s'.  "
 		"errno = %d, error message = '%s'.",
-			pccd_170170->spatial_correction_filename,
+			pccd_170170->geometrical_spline_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	os_status = access( pccd_170170->geometrical_mask_filename, R_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read geometrical correction mask file '%s'.  "
+		"errno = %d, error message = '%s'.",
+			pccd_170170->geometrical_mask_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -4846,11 +4908,46 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(_MSC_VER)
 
+#  if OLDSMVSPATIAL
+	/* WML - This should be a _very_ temporary workaround. */
+
+#    define MASK1_SMV	"mask1.smv"
+
+	/* First copy mask1.smv to the current directory if it is not
+	 * already there.
+	 */
+
+	os_status = access( MASK1_SMV, R_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		MX_DEBUG(-2,("%s: '%s' access() = %d",
+			fname, MASK1_SMV, saved_errno ));
+
+		mx_status = mx_copy_file(
+				pccd_170170->geometrical_mask_filename,
+				MASK1_SMV, 0644 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Perform the geometrical correction. */
+
 	spatial_status = smvspatial( image_frame->image_data, 
-				row_framesize, column_framesize,
-				0, pccd_170170->spatial_correction_filename );
+				row_framesize, column_framesize, 0,
+				pccd_170170->geometrical_spline_filename );
+#  else
+	/* Perform the geometrical correction. */
+
+	spatial_status = smvspatial( image_frame->image_data, 
+				row_framesize, column_framesize, 0,
+				pccd_170170->geometrical_spline_filename,
+				pccd_170170->geometrical_mask_filename );
+#  endif
 #else
-	mx_warning("XGEN spatial correction is currently only available "
+	mx_warning("XGEN geometrical correction is currently only available "
 		"on Linux, Windows, and MacOS X.");
 
 	spatial_status = 0;
@@ -4862,16 +4959,19 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 		break;
 	case ENOENT:
 		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
-			"smvspatial() was unable to open spatial correction "
-			"file '%s' for area detector '%s'.",
-				pccd_170170->spatial_correction_filename,
+			"smvspatial() was unable to open one of the correction "
+			"files '%s' or '%s' for area detector '%s'.",
+				pccd_170170->geometrical_spline_filename,
+				pccd_170170->geometrical_mask_filename,
 				ad->record->name );
 		break;
 	case EIO:
 		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
-			"An error occurred in smvspatial() while reading "
-			"spatial correction file '%s' for area detector '%s'.",
-				pccd_170170->spatial_correction_filename,
+			"An error occurred in smvspatial() while reading one "
+			"of the correction files '%s' or '%s' for "
+			"area detector '%s'.",
+				pccd_170170->geometrical_spline_filename,
+				pccd_170170->geometrical_mask_filename,
 				ad->record->name );
 		break;
 	case ENOMEM:
