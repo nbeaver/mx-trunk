@@ -231,11 +231,17 @@ static int locactive(VSPLINE *lspl, int ix, int iy)
 	unsigned short	*rebu, *usp;
 	unsigned char	*ucp;
 	static FILE	*fpmas;
-	static unsigned char	*lomask;
+	static unsigned char	*lomask = NULL;
+	static char	fmaname[] = "mask1.smv";
 
 	if (NULL == lspl) /* special flag case to clear memory */
 	  {
-		if (NULL != lomask) free((void *)lomask);	return 0;
+		if (NULL != lomask) {
+			free((void *)lomask);
+			lomask = NULL;
+		}
+		
+		return 0;
 	  }
 	if ((ix <= 0) || (iy <= 0) ||
 	 (ix >= lspl->v_detw) || (iy >= lspl->v_deth)) return -1;
@@ -243,16 +249,40 @@ static int locactive(VSPLINE *lspl, int ix, int iy)
 	  { /* read in the local-area active pixel mask from a file */
 		busiz = lspl->v_deth;	imsiz = lspl->v_detw * busiz;
 		if (NULL == (lomask = (unsigned char *)malloc(imsiz)))
+		  {
+			fprintf(stderr,
+ "Unable to allocate %8d bytes for the active-pixel mask\n", (int)imsiz);
 			return -2;
+		  }
 		if (NULL == (rebu = (unsigned short *)calloc(busiz,
-			sizeof (unsigned short)))) return -2;
-		if (NULL == (fpmas = fopen("mask1.smv", "r"))) return -2;
-		if (-1 == fseek(fpmas, 512, 1)) return -2; /*skip file header*/
+			sizeof (unsigned short))))
+		  {
+			fprintf(stderr,
+ "Unable to allocate memory for %d unsigned shorts for mask operations\n",
+				(int)busiz);
+			return -2;
+		  }
+		if (NULL == (fpmas = fopen(fmaname, "r")))
+		  {
+			fprintf(stderr,
+	"Unable to open %s as input active-pixel mask\n", fmaname);
+			return -2;
+		  }
+		if (-1 == fseek(fpmas, 512L, 0))
+		  {
+			fprintf(stderr,
+	 "Unable to skip past image header during mask reading\n");
+			return -2; /*skip file header*/
+		  }
 		busiz2 = busiz * 2;
 		for (ucp = lomask, pos = 0; pos < lspl->v_detw; pos++)
 		   { /* read through mask columns */
 			if (1 != fread((void *)rebu, busiz2, 1, fpmas))
+			  {
+				fprintf(stderr,
+	 "Error reading column %6d of the active-pixel mask\n", pos);
 				return -2;
+			  }
 			for (usp = rebu, jy = 0; jy < busiz; jy++, ucp++,usp++)
 				*ucp = (*usp > 0); /* convert 16-bit->8-bit */
 		   }
@@ -333,7 +363,7 @@ static int find_limits(IMWORK *imp)
 	pxxl = pxyl = pyxl = pyyl = 10000; pxxu = pxyu = pyxu = pyyu = -pxxl;
 	if (imp->imf_flags & ACTIVE_ONLY)
 	  { /* just look at data within the active region */
-		if (-2 != locactive(lspl, 1, 1)) return EREADERR;
+		if (-2 == locactive(lspl, 1, 1)) return EREADERR;
 		for (y = ymin; y < ymax; y++)
 			for (x = xmin; x < xmax; x++)
 			   {
