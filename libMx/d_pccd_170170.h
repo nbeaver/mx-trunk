@@ -34,6 +34,10 @@
 #define MXF_PCCD_170170_HORIZ_SCALE	4
 #define MXF_PCCD_170170_VERT_SCALE	4
 
+/*---*/
+
+#define MXF_PCCD_170170_MAXIMUM_DETECTOR_HEAD_FRAMES	255
+
 /*-------------------------------------------------------------*/
 
 /* Control register bit definitions. */

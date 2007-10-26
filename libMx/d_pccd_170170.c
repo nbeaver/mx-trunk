@@ -22,7 +22,7 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
+#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
@@ -31,6 +31,8 @@
 #define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		FALSE
 
 #define MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES		FALSE
+
+#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2969,7 +2971,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_PCCD_170170_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,
 ("%s: last_frame_number = %ld, total_num_frames = %ld, status_flags = %#lx",
 		fname, last_frame_number, total_num_frames, status_flags));
@@ -3953,19 +3955,32 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
-			/* Continuous and circular scans are not limited
-			 * by the maximum number of frames that the video
-			 * card can handle, since they wrap back to the
-			 * first frame when they reach the last frame.
+			/* Continuous scans are not limited by the maximum
+			 * number of frames that the video card can handle,
+			 * since they wrap back to the first frame when they
+			 * reach the last frame.
 			 */
+			break;
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			if ( num_frames >
+				MXF_PCCD_170170_MAXIMUM_DETECTOR_HEAD_FRAMES )
+			{
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The circular multiframe sequence requested "
+				"for area detector '%s' would have more "
+				"frames (%ld) than the maximum number of "
+				"frames available (%d).",
+				ad->record->name, num_frames,
+				MXF_PCCD_170170_MAXIMUM_DETECTOR_HEAD_FRAMES );
+			}
 			break;
 		default:
 			if ( num_frames > (ad->maximum_frame_number + 1) ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"The sequence requested for area detector '%s' "
 				"would have more frames (%ld) than the maximum "
-				"available (%ld) from video input '%s'.",
+				"number of frames available (%ld) from video "
+				"input '%s'.",
 					ad->record->name, num_frames,
 					ad->maximum_frame_number + 1,
 					pccd_170170->video_input_record->name );

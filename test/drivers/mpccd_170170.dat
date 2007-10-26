@@ -27,4 +27,4 @@ port  interface camera_link epix_camera_link "" "" 9600 0.5 1
 rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 port
 epix       device video_input epix_xclib_video_input "" "" 16384 1024 grey16 -1 xclib 1 ready 0x1001 0x5555
 inttrigger device digital_output epix_xclib_doutput "" "" 0 epix
-ad         device area_detector pccd_170170 "" "" 0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/soleil_swing.uca /home/lavender/epix/modmask_new.smv
+ad         device area_detector pccd_170170 "" "" 4 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole_soleil_swing_2007_10_20.uca /home/lavender/epix/modmask_orig.smv

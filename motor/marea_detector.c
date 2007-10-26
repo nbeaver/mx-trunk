@@ -531,8 +531,15 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 				fprintf( output, "Reading frame %ld.\n", n );
 
+				if ( sp.sequence_type == MXT_SQ_CONTINUOUS ) {
+					frame_number = 0;
+				} else {
+					frame_number = n;
+				}
+
 				mx_status = mx_area_detector_get_frame(
-				    ad_record, n, &(ad->image_frame) );
+				    ad_record, frame_number,
+				    &(ad->image_frame) );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;

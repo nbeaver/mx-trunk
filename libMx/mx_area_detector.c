@@ -20,9 +20,9 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
@@ -734,7 +734,7 @@ mx_area_detector_get_roi( MX_RECORD *record,
 	if ( roi_number >= ad->maximum_num_rois ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The ROI number %ld for area detector '%s' is "
-		"outside the range of allowed values (0-%ld).",
+		"outside the range of allowed values (0 to %ld).",
 			ad->roi_number, ad->record->name,
 			ad->maximum_num_rois - 1 );
 	}
