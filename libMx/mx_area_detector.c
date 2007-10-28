@@ -5120,9 +5120,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_TIMING initial_timing;
-	MX_HRT_TIMING geometrical_timing;
-	MX_HRT_TIMING flood_timing;
+	MX_HRT_TIMING initial_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING geometrical_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING flood_timing = MX_HRT_ZERO;
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG

@@ -47,10 +47,13 @@ typedef struct {
 
 typedef struct {
 	mx_status_type ( *read ) ( MX_DIGITAL_INPUT *dinput );
+	mx_status_type ( *clear ) ( MX_DIGITAL_INPUT *dinput );
 } MX_DIGITAL_INPUT_FUNCTION_LIST;
 
 MX_API mx_status_type mx_digital_input_read( MX_RECORD *record,
 						unsigned long *value );
+
+MX_API mx_status_type mx_digital_input_clear( MX_RECORD *record );
 
 #ifdef __cplusplus
 }

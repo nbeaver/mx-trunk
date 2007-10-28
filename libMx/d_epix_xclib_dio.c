@@ -51,7 +51,8 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_dinput_record_function_list = {
 
 MX_DIGITAL_INPUT_FUNCTION_LIST
 mxd_epix_xclib_dinput_digital_input_function_list = {
-	mxd_epix_xclib_dinput_read
+	mxd_epix_xclib_dinput_read,
+	mxd_epix_xclib_dinput_clear
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_epix_xclib_dinput_record_field_defaults[] = {
@@ -285,7 +286,12 @@ mxd_epix_xclib_dinput_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = pxd_getGPIn( epix_xclib_vinput->unitmap, 0 );
+	if ( epix_xclib_dinput->trigger_number >= 0 ) {
+		value = pxd_getGPTrigger( epix_xclib_vinput->unitmap,
+					epix_xclib_dinput->trigger_number );
+	} else {
+		value = pxd_getGPIn( epix_xclib_vinput->unitmap, 0 );
+	}
 
 	if ( value < 0 ) {
 		mxi_epix_xclib_error_message(
@@ -298,6 +304,48 @@ mxd_epix_xclib_dinput_read( MX_DIGITAL_INPUT *dinput )
 	}
 
 	dinput->value = value;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_dinput_clear( MX_DIGITAL_INPUT *dinput )
+{
+	static const char fname[] = "mxd_epix_xclib_dinput_clear()";
+
+	MX_EPIX_XCLIB_DIGITAL_INPUT *epix_xclib_dinput;
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	char error_message[80];
+	int epix_status;
+	mx_status_type mx_status;
+
+	/* Suppress GCC 4 uninitialized variable warning. */
+
+	epix_xclib_vinput = NULL;
+
+	mx_status = mxd_epix_xclib_dinput_get_pointers( dinput,
+				&epix_xclib_dinput, &epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( epix_xclib_dinput->trigger_number >= 0 ) {
+		/* You cannot clear a trigger count. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	epix_status = pxd_setGPIn( epix_xclib_vinput->unitmap, 0 );
+
+	if ( epix_status < 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to clear digital input '%s' failed.  %s",
+			dinput->record->name, error_message );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

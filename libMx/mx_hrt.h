@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#define MX_HRT_ZERO	{{0},{0}}
+
 /* mx_high_resolution_time_init() initializes internal data structures
  * that are used by mx_high_resolution_time() and mx_udelay() below.
  */

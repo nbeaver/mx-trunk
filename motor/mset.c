@@ -325,7 +325,6 @@ motor_set_fn( int argc, char *argv[] )
 
 			switch ( record->mx_class ) {
 			case MXC_ANALOG_INPUT:
-			case MXC_DIGITAL_INPUT:
 				fprintf(output,
 		"'%s' is an input device and cannot be written to.\n",
 					record->name);
@@ -336,6 +335,10 @@ motor_set_fn( int argc, char *argv[] )
 
 				mx_status = mx_analog_output_write(
 						record, double_value );
+				break;
+
+			case MXC_DIGITAL_INPUT:
+				mx_status = mx_digital_input_clear( record );
 				break;
 
 			case MXC_DIGITAL_OUTPUT:

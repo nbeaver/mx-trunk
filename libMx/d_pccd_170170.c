@@ -22,7 +22,7 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
+#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
@@ -32,7 +32,7 @@
 
 #define MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES		FALSE
 
-#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2532,13 +2532,24 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		fname, (int) camera_is_master, (int) external_trigger));
 #endif
 
-	if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+	switch ( sp->sequence_type ) {
+	case MXT_SQ_CONTINUOUS:
 		/* For continuous sequences, we must use video board
 		 * CC1 pulses to trigger the taking of frames, so that
 		 * the total number of frames is not limited.
 		 */
 
 		camera_is_master = FALSE;
+		break;
+
+	case MXT_SQ_STROBE:
+		/* For strobe sequences, the external trigger goes into
+		 * the video card, which triggers the taking of frames
+		 * via CC1 pulses.
+		 */
+
+		camera_is_master = FALSE;
+		break;
 	}
 
 	/* Stop any currently running imaging sequence. */
@@ -2716,13 +2727,24 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
 
-	if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
+	switch ( sp->sequence_type ) {
+	case MXT_SQ_CONTINUOUS:
 		/* For continuous sequences, we must use video board
 		 * CC1 pulses to trigger the taking of frames, so that
 		 * the total number of frames is not limited.
 		 */
 
 		camera_is_master = FALSE;
+		break;
+
+	case MXT_SQ_STROBE:
+		/* For strobe sequences, the external trigger goes into
+		 * the video card, which triggers the taking of frames
+		 * via CC1 pulses.
+		 */
+
+		camera_is_master = FALSE;
+		break;
 	}
 
 	if ( camera_is_master && internal_trigger ) {

@@ -27,6 +27,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *epix_xclib_vinput_record;
+	long trigger_number;
 } MX_EPIX_XCLIB_DIGITAL_INPUT;
 
 typedef struct {
@@ -39,6 +40,11 @@ typedef struct {
   {-1, -1, "epix_xclib_vinput_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_EPIX_XCLIB_DIGITAL_INPUT, epix_xclib_vinput_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "trigger_number", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+	    offsetof(MX_EPIX_XCLIB_DIGITAL_INPUT, trigger_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #define MXD_EPIX_XCLIB_DIGITAL_OUTPUT_STANDARD_FIELDS \
@@ -54,6 +60,7 @@ typedef struct {
 MX_API mx_status_type mxd_epix_xclib_dinput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epix_xclib_dinput_read( MX_DIGITAL_INPUT *dinput );
+MX_API mx_status_type mxd_epix_xclib_dinput_clear( MX_DIGITAL_INPUT *dinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_epix_xclib_dinput_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST

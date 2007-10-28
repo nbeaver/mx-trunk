@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 MX_EXPORT mx_status_type
 mx_digital_output_read( MX_RECORD *record, unsigned long *value )
 {
-	const char fname[] = "mx_digital_output_read()";
+	static const char fname[] = "mx_digital_output_read()";
 
 	MX_DIGITAL_OUTPUT *digital_output;
 	MX_DIGITAL_OUTPUT_FUNCTION_LIST *function_list;
@@ -73,7 +73,7 @@ mx_digital_output_read( MX_RECORD *record, unsigned long *value )
 MX_EXPORT mx_status_type
 mx_digital_output_write( MX_RECORD *record, unsigned long value )
 {
-	const char fname[] = "mx_digital_output_write()";
+	static const char fname[] = "mx_digital_output_write()";
 
 	MX_DIGITAL_OUTPUT *digital_output;
 	MX_DIGITAL_OUTPUT_FUNCTION_LIST *function_list;
