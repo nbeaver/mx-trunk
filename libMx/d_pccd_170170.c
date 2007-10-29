@@ -3398,9 +3398,10 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 		corr_num_rows_per_stripe = mx_round( sp->parameter_array[0] );
 	}
 
-	image_num_stripes = image_row_framesize / corr_num_rows_per_stripe;
+	image_num_stripes = image_column_framesize / corr_num_rows_per_stripe;
 
-	image_pixels_per_stripe = image_num_stripes * image_column_framesize;
+	image_pixels_per_stripe =
+			image_row_framesize * corr_num_rows_per_stripe;
 
 #if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
