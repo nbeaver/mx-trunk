@@ -3549,13 +3549,21 @@ static mx_status_type
 mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
 					MX_PCCD_170170 *pccd_170170,
 					long *parameter_type,
+					void **value_ptr,
 					MX_RECORD_FIELD **field )
 {
 	static const char fname[] = "mxd_pccd_170170_find_register()";
 
+	MX_RECORD_FIELD *register_value_field;
 	mx_status_type mx_status;
 
 	if ( *parameter_type < 0 ) {
+		/* In this case, we got here by way of the 'register_value'
+		 * field.  We must find the label value of the actual field
+		 * so that we can tell whether or not it is a pseudo register
+		 * that depends on the control register.
+		 */
+
 		mx_status = mx_find_record_field( ad->record,
 					ad->register_name, field );
 
@@ -3564,19 +3572,49 @@ mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
 
 		*parameter_type = (*field)->label_value;
 
-		if ( (*parameter_type) < MXLV_PCCD_170170_DH_BASE ) {
+		if ( *parameter_type < MXLV_PCCD_170170_DH_BASE ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"'%s' is not the name of a register for area detector '%s'.",
 				ad->register_name, ad->record->name );
 		}
+
+		/* In this case, we read from and write to the 'register_value'
+		 * field, instead of the field we just found above.
+		 */
+		
+		mx_status = mx_find_record_field( ad->record,
+				"register_value", &register_value_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		*value_ptr = mx_get_field_value_pointer( register_value_field );
 	} else
 	if ( *parameter_type >= MXLV_PCCD_170170_DH_BASE ) {
+		/* If we were passed the field label value directly, then the
+		 * 'register_value' field was not involved in getting here.
+		 *
+		 * In this case, we read from and write to the corresponding
+		 * field directly.
+		 */
+
 		mx_status = mx_get_field_by_label_value( ad->record,
 						*parameter_type, field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		*value_ptr = mx_get_field_value_pointer( *field );
 	} else {
-		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	    "Unrecognized parameter type %ld for PCCD-170170 detector '%s'.",
 					*parameter_type, ad->record->name );
+	}
+
+	if ( (*field)->datatype != MXFT_ULONG ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+	    "Record field '%s' for record '%s' is not an unsigned long field.",
+			(*field)->name, ad->record->name );
 	}
 
 	return mx_status;
@@ -3587,13 +3625,74 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 					MX_PCCD_170170 *pccd_170170,
 					long parameter_type )
 {
+	static const char fname[] = "mxd_pccd_170170_get_register_value()";
+
 	MX_RECORD_FIELD *field;
+	unsigned long control_register, pseudo_reg_value;
+	void *value_ptr;
+	unsigned long *ulong_value_ptr;
 	mx_status_type mx_status;
 
+	/* Note: mxd_pccd_170170_find_register() will modify the value of
+	 * 'parameter_type' if the original value of 'parameter_type' is
+	 * less than zero.
+	 */
+
 	mx_status = mxd_pccd_170170_find_register( ad, pccd_170170,
-						&parameter_type, &field );
+							&parameter_type,
+							&value_ptr,
+							&field );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ulong_value_ptr = value_ptr;
+
+	/* For real registers, getting the value is simple. */
+
+	if ( parameter_type < MXLV_PCCD_170170_DH_PSEUDO_BASE ) {
+		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+						parameter_type, value_ptr );
+		return mx_status;
+	}
+
+	/* For pseudo registers, we must extract the value from
+	 * the control register.
+	 */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					&control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( parameter_type ) {
+	case MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE:
+		pseudo_reg_value = (control_register >> 5) & 0x3;
+		break;
+	case MXLV_PCCD_170170_DH_READOUT_SPEED:
+		pseudo_reg_value = (control_register >> 1) & 0x1;
+		break;
+	case MXLV_PCCD_170170_DH_TEST_MODE:
+		pseudo_reg_value = control_register & 0x1;
+		break;
+	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
+		pseudo_reg_value = (control_register >> 2) & 0x1;
+		break;
+	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+		pseudo_reg_value = (control_register >> 3) & 0x3;
+		break;
+	case MXLV_PCCD_170170_DH_LINEARIZATION:
+		pseudo_reg_value = (control_register >> 7) & 0x1;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal pseudoregister %lu requested for area detector '%s'.",
+			parameter_type, ad->record->name );
+		break;
+	}
+
+	*ulong_value_ptr = pseudo_reg_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3603,7 +3702,106 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 					MX_PCCD_170170 *pccd_170170,
 					long parameter_type )
 {
-	return MX_SUCCESSFUL_RESULT;
+	static const char fname[] = "mxd_pccd_170170_set_register_value()";
+
+	MX_RECORD_FIELD *field;
+	unsigned long control_register, register_value, pseudo_reg_value;
+	void *value_ptr;
+	unsigned long *ulong_value_ptr;
+	mx_status_type mx_status;
+
+	/* Note: mxd_pccd_170170_find_register() will modify the value of
+	 * 'parameter_type' if the original value of 'parameter_type' is
+	 * less than zero.
+	 */
+
+	mx_status = mxd_pccd_170170_find_register( ad, pccd_170170,
+							&parameter_type,
+							&value_ptr,
+							&field );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ulong_value_ptr = value_ptr;
+
+	/* We refuse to write to registers that are marked as read only. */
+
+	if ( field->flags & MXFF_READ_ONLY ) {
+		return mx_error( MXE_READ_ONLY, fname,
+	    "PCCD-170170 register '%s' for area detector '%s' is read only.",
+		field->name, ad->record->name );
+	}
+
+	/* For real registers, setting the value is simple. */
+
+	if ( parameter_type < MXLV_PCCD_170170_DH_PSEUDO_BASE ) {
+		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					parameter_type, *ulong_value_ptr );
+		return mx_status;
+	}
+
+	/* For pseudo registers, we must change specific bits in
+	 * the control register.
+	 */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					&control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	register_value = *ulong_value_ptr;
+
+	switch( parameter_type ) {
+	case MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE:
+		pseudo_reg_value = ( register_value & 0x3 ) << 5;
+
+		control_register &= ~0x60;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_READOUT_SPEED:
+		pseudo_reg_value = ( register_value & 0x1 ) << 0x1;
+
+		control_register &= ~0x2;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_TEST_MODE:
+		pseudo_reg_value = register_value & 0x1;
+
+		control_register &= ~0x1;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
+		pseudo_reg_value = ( register_value & 0x1 ) << 2;
+
+		control_register &= ~0x4;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+		pseudo_reg_value = ( register_value & 0x3 ) << 3;
+
+		control_register &= ~0x18;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_LINEARIZATION:
+		pseudo_reg_value = ( register_value & 0x1 ) << 7;
+
+		control_register &= ~0x80;
+
+		control_register |= pseudo_reg_value;
+		break;
+	}
+
+	mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					control_register );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -3618,7 +3816,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 
 	pccd_170170 = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
