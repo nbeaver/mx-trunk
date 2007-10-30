@@ -983,8 +983,8 @@ mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
-			MX_IMAGE_FRAME *old_frame )
+mx_image_copy_frame( MX_IMAGE_FRAME *old_frame,
+			MX_IMAGE_FRAME **new_frame_ptr )
 {
 	static const char fname[] = "mx_image_copy_frame()";
 
@@ -1027,8 +1027,8 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
-			MX_IMAGE_FRAME *source_frame )
+mx_image_copy_header( MX_IMAGE_FRAME *source_frame,
+			MX_IMAGE_FRAME *destination_frame )
 {
 	static const char fname[] = "mx_image_copy_header()";
 

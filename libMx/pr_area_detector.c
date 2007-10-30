@@ -235,9 +235,8 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 #if MX_AREA_DETECTOR_USE_DEZINGER
 		/* Save a copy of the frame in the dezinger frame array. */
 
-		mx_status = mx_image_copy_frame(
-			&(corr->dezinger_frame_array[ corr->num_frames_read ]),
-			ad->image_frame );
+		mx_status = mx_image_copy_frame( ad->image_frame,
+		      &(corr->dezinger_frame_array[ corr->num_frames_read ]) );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mxp_area_detector_free_correction_struct( ad, corr );
@@ -1140,7 +1139,7 @@ mx_area_detector_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ad->copy_frame[0] == MXFT_AD_IMAGE_FRAME ) {
+			if ( ad->copy_frame[1] == MXFT_AD_IMAGE_FRAME ) {
 				mx_status =
 				    mxp_area_detector_update_frame_pointers(ad);
 			}

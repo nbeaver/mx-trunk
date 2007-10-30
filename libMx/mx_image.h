@@ -33,6 +33,7 @@ extern "C" {
 #define MXT_IMAGE_FORMAT_RGB			1
 #define MXT_IMAGE_FORMAT_GREY8			2
 #define MXT_IMAGE_FORMAT_GREY16			3
+#define MXT_IMAGE_FORMAT_GREY32			4
 
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
@@ -221,11 +222,11 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 						size_t max_array_bytes,
 						size_t *num_bytes_copied );
 
-MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
-					MX_IMAGE_FRAME *old_frame );
+MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME *old_frame,
+					MX_IMAGE_FRAME **new_frame );
 
-MX_API mx_status_type mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
-					MX_IMAGE_FRAME *source_frame );
+MX_API mx_status_type mx_image_copy_header( MX_IMAGE_FRAME *source_frame,
+					MX_IMAGE_FRAME *destination_frame );
 
 /*----*/
 

@@ -1974,9 +1974,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 			video_input_record->name, record->name );
 	}
 
-	/* Set a limit on the maximum value of the flood field scaling factor.*/
+	/* Set a limit on the range of values for
+	 * the flood field scaling factor.
+	 */
 
-	ad->flood_field_scale_threshold = 10.0;
+	ad->flood_field_scale_max = 10.0;
+	ad->flood_field_scale_min = 0.1;
 
 	/* Make sure the internal trigger output is low. */
 
@@ -3184,8 +3187,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Copy the image header. */
 
-	mx_status = mx_image_copy_header( ad->image_frame,
-					pccd_170170->raw_frame );
+	mx_status = mx_image_copy_header( pccd_170170->raw_frame,
+					ad->image_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

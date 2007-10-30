@@ -185,12 +185,13 @@ typedef struct mx_area_detector_type {
 	mx_bool_type correction_frames_are_unbinned;
 
 	/*
-	 * 'flood_field_scale_threshold' is used in flood field correction
-	 * to limit the maximum and minimum values of the flood field
-	 * scale factor.
+	 * 'flood_field_scale_max' and 'flood_field_scale_min' are used
+	 * in flood field correction to limit the maximum and minimum
+	 * values of the flood field scale factor.
 	 */
 
-	double flood_field_scale_threshold;
+	double flood_field_scale_max;
+	double flood_field_scale_min;
 
 	/* 'transfer_frame' tells the server to send one of the frames
 	 * to the caller.
@@ -284,6 +285,21 @@ typedef struct mx_area_detector_type {
 	MX_IMAGE_FRAME *rebinned_bias_frame;
 	MX_IMAGE_FRAME *rebinned_dark_current_frame;
 	MX_IMAGE_FRAME *rebinned_flood_field_frame;
+
+	/* scaled_dark_current_array is recomputed any time that
+	 * the exposure time is changed, the bias frame is changed,
+	 * the dark current frame is changed, or the correction flags
+	 * are changed.
+	 */
+
+	double *scaled_dark_current_array;
+
+	/* flood_field_scale_array is recomputed any time that
+	 * the bias frame is changed, the flood field frame is
+	 * changed or the correction flags are changed.
+	 */
+
+	double *flood_field_scale_array;
 
 } MX_AREA_DETECTOR;
 
@@ -521,9 +537,14 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, correction_frames_are_unbinned), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "flood_field_scale_threshold", MXFT_DOUBLE, NULL, 0, {0}, \
+  {-1, -1, "flood_field_scale_max", MXFT_DOUBLE, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_scale_threshold), \
+		offsetof(MX_AREA_DETECTOR, flood_field_scale_max), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "flood_field_scale_min", MXFT_DOUBLE, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, flood_field_scale_min), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_TRANSFER_FRAME, -1, "transfer_frame", MXFT_LONG, NULL, 0, {0}, \
@@ -943,8 +964,8 @@ MX_API mx_status_type mx_area_detector_save_frame( MX_RECORD *ad_record,
 						char *frame_filename );
 
 MX_API mx_status_type mx_area_detector_copy_frame( MX_RECORD *ad_record,
-						long destination_frame_type,
-						long source_frame_type );
+						long source_frame_type,
+						long destination_frame_type );
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,
@@ -1028,6 +1049,14 @@ MX_API_PRIVATE mx_status_type mx_area_detector_compute_new_binning(
 						long parameter_type,
 						int num_allowed_binsizes,
 						long *allowed_binsize_array );
+
+MX_API_PRIVATE mx_status_type mx_area_detector_compute_scaled_dark_current(
+							MX_AREA_DETECTOR *ad );
+
+MX_API_PRIVATE mx_status_type mx_area_detector_compute_flood_field_scale(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
 
 #ifdef __cplusplus
 }
