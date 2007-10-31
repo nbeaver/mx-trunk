@@ -286,13 +286,15 @@ typedef struct mx_area_detector_type {
 	MX_IMAGE_FRAME *rebinned_dark_current_frame;
 	MX_IMAGE_FRAME *rebinned_flood_field_frame;
 
-	/* scaled_dark_current_array is recomputed any time that
+	/* dark_current_offset_array is recomputed any time that
 	 * the exposure time is changed, the bias frame is changed,
 	 * the dark current frame is changed, or the correction flags
 	 * are changed.
 	 */
 
-	double *scaled_dark_current_array;
+	double *dark_current_offset_array;
+
+	double old_exposure_time;
 
 	/* flood_field_scale_array is recomputed any time that
 	 * the bias frame is changed, the flood field frame is
@@ -1050,8 +1052,10 @@ MX_API_PRIVATE mx_status_type mx_area_detector_compute_new_binning(
 						int num_allowed_binsizes,
 						long *allowed_binsize_array );
 
-MX_API_PRIVATE mx_status_type mx_area_detector_compute_scaled_dark_current(
-							MX_AREA_DETECTOR *ad );
+MX_API_PRIVATE mx_status_type mx_area_detector_compute_dark_current_offset(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
 
 MX_API_PRIVATE mx_status_type mx_area_detector_compute_flood_field_scale(
 					MX_AREA_DETECTOR *ad,

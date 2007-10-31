@@ -275,8 +275,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->rebinned_dark_current_frame = NULL;
 	ad->rebinned_flood_field_frame = NULL;
 
-	ad->scaled_dark_current_array = NULL;
+	ad->dark_current_offset_array = NULL;
 	ad->flood_field_scale_array = NULL;
+	ad->old_exposure_time = -1.0;
 
 	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
 
@@ -1092,7 +1093,7 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	mx_free( ad->scaled_dark_current_array );
+	mx_free( ad->dark_current_offset_array );
 	mx_free( ad->flood_field_scale_array );
 
 	ad->parameter_type = MXLV_AD_CORRECTION_FLAGS;
@@ -1150,7 +1151,7 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 					&(ad->dark_current_exposure_time) );
 		}
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -1228,6 +1229,13 @@ mx_area_detector_set_use_scaled_dark_current_flag( MX_RECORD *record,
 		set_parameter_fn =
 			mx_area_detector_default_set_parameter_handler;
 	}
+
+	/* Discard any existing dark current offset array, since
+	 * turning on or off the use_scaled_dark_current flag can
+	 * affect the computed exposure scale factor.
+	 */
+
+	mx_free( ad->dark_current_offset_array );
 
 	ad->parameter_type = MXLV_AD_USE_SCALED_DARK_CURRENT;
 	ad->use_scaled_dark_current = use_scaled_dark_current;
@@ -1531,6 +1539,7 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
 	long num_parameters;
+	double exposure_time;
 	mx_status_type mx_status;
 
 	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
@@ -1573,6 +1582,24 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 
 	memcpy( sp->parameter_array, sequence_parameters->parameter_array,
 			num_parameters * sizeof(double) );
+
+	/* If the new sequence has a different exposure time than
+	 * was used by the previous sequence, then discard any
+	 * existing dark current offset array.
+	 *
+	 * Do not modify the value of ad->old_exposure_time here,
+	 * since that is done just after calling the routine that
+	 * calculates the new dark current offset array.
+	 */
+
+	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mx_difference( exposure_time, ad->old_exposure_time ) > 0.001 ) {
+		mx_free( ad->dark_current_offset_array );
+	}
 
 	/* Set the sequence type. */
 
@@ -2495,7 +2522,7 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 					&(ad->bias_average_intensity) );
 		}
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		mx_free( ad->flood_field_scale_array );
 		break;
 
@@ -2506,7 +2533,7 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 					&(ad->dark_current_exposure_time) );
 		}
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -2610,7 +2637,7 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		strlcpy( ad->bias_filename, frame_filename,
 					sizeof(ad->bias_filename) );
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		mx_free( ad->flood_field_scale_array );
 		break;
 
@@ -2628,7 +2655,7 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		strlcpy( ad->dark_current_filename, frame_filename,
 					sizeof(ad->dark_current_filename) );
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -2839,7 +2866,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		}
 		destination_filename = ad->bias_filename;
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		mx_free( ad->flood_field_scale_array );
 		break;
 
@@ -2856,7 +2883,7 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		}
 		destination_filename = ad->dark_current_filename;
 
-		mx_free( ad->scaled_dark_current_array );
+		mx_free( ad->dark_current_offset_array );
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -5141,12 +5168,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
-	uint16_t *dark_current_data_array;
+	double *dark_current_offset_array;
 	double *flood_field_scale_array;
 	long i, num_pixels;
 	unsigned long flags, row_framesize, column_framesize;
-	double image_pixel, image_exposure_time, exposure_time_ratio;
-	double raw_dark_current, scaled_dark_current;
+	double image_pixel, image_exposure_time;
 	unsigned long bias_offset;
 	mx_status_type mx_status;
 
@@ -5165,8 +5191,6 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	scaled_dark_current = -1.0;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -5200,6 +5224,33 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		"The primary image frame is not a 16-bit greyscale image." );
 	}
 
+	/*---*/
+
+	/* Discard the dark current offset array if the exposure time
+	 * has changed significantly.
+	 */
+
+	mx_status = mx_image_get_exposure_time( ad->image_frame,
+						&image_exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_exposure_time = %g", fname, image_exposure_time));
+#endif
+
+	if ( mx_difference( image_exposure_time,
+				ad->old_exposure_time ) > 0.001 )
+	{
+		mx_free( ad->dark_current_offset_array );
+	}
+
+	ad->old_exposure_time = image_exposure_time;
+
+	/*---*/
+
 	row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
@@ -5222,11 +5273,19 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	}
 
 	if ( dark_current_frame == NULL ) {
-		dark_current_data_array = NULL;
+		dark_current_offset_array = NULL;
 	} else {
-		dark_current_data_array = dark_current_frame->image_data;
-
 		CHECK_CORRECTION_FRAMESIZE(dark_current_frame, "dark current");
+
+		if ( ad->dark_current_offset_array == NULL ) {
+		    mx_status = mx_area_detector_compute_dark_current_offset(
+					ad, bias_frame, dark_current_frame );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
+
+		dark_current_offset_array = ad->dark_current_offset_array;
 	}
 
 	if ( flood_field_frame == NULL ) {
@@ -5235,34 +5294,15 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		CHECK_CORRECTION_FRAMESIZE(flood_field_frame, "flood field");
 
 		if ( ad->flood_field_scale_array == NULL ) {
-			mx_status = mx_area_detector_compute_flood_field_scale(
+		    mx_status = mx_area_detector_compute_flood_field_scale(
 					ad, bias_frame, flood_field_frame );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		}
 
 		flood_field_scale_array = ad->flood_field_scale_array;
 	}
-
-	mx_status = mx_image_get_exposure_time( ad->image_frame,
-						&image_exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( ad->use_scaled_dark_current ) {
-		exposure_time_ratio = mx_divide_safely( image_exposure_time,
-					ad->dark_current_exposure_time );
-	} else {
-		exposure_time_ratio = 1.0;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
-		fname, image_exposure_time, exposure_time_ratio));
-#endif
 
 	/*---*/
 
@@ -5300,43 +5340,30 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
-		/* Get the bias offset for this pixel. */
-
-		if ( bias_data_array != NULL ) {
-			bias_offset = bias_data_array[i];
-		} else {
-			bias_offset = 0;
-		}
-
-		/* Get the raw image pixel. */
-
-		image_pixel = (double) image_data_array[i];
-
 		/* If requested, apply the dark current correction. */
 
-		if ( dark_current_data_array != NULL ) {
-			raw_dark_current = (double) dark_current_data_array[i];
+		if ( dark_current_offset_array != NULL ) {
 
-			scaled_dark_current = exposure_time_ratio
-			    * (raw_dark_current - bias_offset) + bias_offset;
+			/* Get the raw image pixel. */
 
-			image_pixel = image_pixel + bias_offset;
+			image_pixel = (double) image_data_array[i];
 
-			image_pixel = image_pixel - scaled_dark_current;
-		}
+			image_pixel = image_pixel
+					+ dark_current_offset_array[i];
 
-		/* Round to the nearest integer by adding 0.5 and
-		 * then truncating.
-		 *
-		 * We _must_ _not_ use mx_round() here since function
-		 * calls have too high of an overhead to be used
-		 * in this loop.
-		 */
+			/* Round to the nearest integer by adding 0.5 and
+			 * then truncating.
+			 *
+			 * We _must_ _not_ use mx_round() here since function
+			 * calls have too high of an overhead to be used
+			 * in this loop.
+			 */
 
-		if ( image_pixel < 0.0 ) {
-			image_data_array[i] = 0;
-		} else {
-			image_data_array[i] = image_pixel + 0.5;
+			if ( image_pixel < 0.0 ) {
+				image_data_array[i] = 0;
+			} else {
+				image_data_array[i] = image_pixel + 0.5;
+			}
 		}
 	}
 
@@ -5591,6 +5618,204 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame )
+{
+	static const char fname[] =
+		"mx_area_detector_compute_dark_current_offset()";
+
+	uint8_t  *dark_current_data8  = NULL;
+	uint16_t *dark_current_data16 = NULL;
+	uint32_t *dark_current_data32 = NULL;
+	uint8_t  *bias_data8  = NULL;
+	uint16_t *bias_data16 = NULL;
+	uint32_t *bias_data32 = NULL;
+	double raw_dark_current = 0.0;
+	double bias_offset      = 0.0;
+	unsigned long i, num_pixels, image_format;
+	double scaled_dark_current, exposure_time_ratio, exposure_time;
+	double *dark_current_offset_array;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_TIMING compute_dark_current_timing;
+#endif
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	/* If present, discard the old version
+	 * of the dark current offset array.
+	 */
+
+	if ( ad->dark_current_offset_array != NULL ) {
+		mx_free( ad->dark_current_offset_array );
+	}
+
+	/* If no dark current frame is currently loaded, then we just
+	 * skip over the computation of the dark current offset.
+	 */
+
+	if ( dark_current_frame == NULL ) {
+		MX_DEBUG(-2,
+		("%s: dark_current_frame is NULL.  Skipping...", fname));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	image_format = MXIF_IMAGE_FORMAT(dark_current_frame);
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		dark_current_data8 = dark_current_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		dark_current_data16 = dark_current_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		dark_current_data32 = dark_current_frame->image_data;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Dark current correction is not supported for image format %lu "
+		"used by area detector '%s'.", image_format, ad->record->name );
+	}
+
+	if ( bias_frame != NULL ) {
+		if ( image_format != MXIF_IMAGE_FORMAT(bias_frame) ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The bias frame image format %lu for area detector '%s'"
+			" does not match the dark current image format %lu.",
+				(unsigned long) MXIF_IMAGE_FORMAT(bias_frame),
+				ad->record->name,
+				image_format );
+		}
+
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			bias_data8 = bias_frame->image_data;
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			bias_data16 = bias_frame->image_data;
+			break;
+		case MXT_IMAGE_FORMAT_GREY32:
+			bias_data32 = bias_frame->image_data;
+			break;
+		}
+	}
+
+	/* Compute the exposure time ratio. */
+
+	if ( ad->use_scaled_dark_current == FALSE ) {
+		exposure_time_ratio = 1.0;
+	} else {
+		/* Get the exposure time for the currently selected sequence. */
+
+		sp = &(ad->sequence_parameters);
+
+		mx_status = mx_sequence_get_exposure_time( sp, 0,
+							&exposure_time );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		exposure_time_ratio = mx_divide_safely( exposure_time,
+					ad->dark_current_exposure_time );
+	}
+
+	MX_DEBUG(-2,("%s: exposure_time_ratio = %g",
+		fname, exposure_time_ratio));
+
+	/* Allocate memory for the dark current offset array. */
+
+	num_pixels = MXIF_ROW_FRAMESIZE(dark_current_frame)
+			* MXIF_COLUMN_FRAMESIZE(dark_current_frame);
+	
+	dark_current_offset_array = malloc( num_pixels * sizeof(double) );
+
+	if ( dark_current_offset_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu-element array "
+		"of dark current offset values for area detector '%s'.",
+			num_pixels, ad->record->name );
+	}
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_START(compute_dark_current_timing);
+#endif
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+			raw_dark_current = dark_current_data8[i];
+			break;
+		case MXT_IMAGE_FORMAT_GREY16:
+			raw_dark_current = dark_current_data16[i];
+			break;
+		case MXT_IMAGE_FORMAT_GREY32:
+			raw_dark_current = dark_current_data32[i];
+			break;
+		}
+
+		if ( bias_frame == NULL ) {
+			bias_offset = 0;
+		} else {
+			switch( image_format ) {
+			case MXT_IMAGE_FORMAT_GREY8:
+				bias_offset = bias_data8[i];
+				break;
+			case MXT_IMAGE_FORMAT_GREY16:
+				bias_offset = bias_data16[i];
+				break;
+			case MXT_IMAGE_FORMAT_GREY32:
+				bias_offset = bias_data32[i];
+				break;
+			}
+		}
+
+		scaled_dark_current = exposure_time_ratio
+			* ( raw_dark_current - bias_offset ) + bias_offset;
+
+		dark_current_offset_array[i] =
+			scaled_dark_current - bias_offset;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+	MX_HRT_END(compute_dark_current_timing);
+	MX_HRT_RESULTS(compute_dark_current_timing, fname,
+			"for computing new dark current offset array.");
+#endif
+
+	/* Save a pointer to the new dark current offset array. */
+
+	ad->dark_current_offset_array = dark_current_offset_array;
+
+#if 1
+	fprintf(stderr, "ad->dark_current_offset_array = ");
+
+	for ( i = 0; i < 100; i++ ) {
+		if ( (i % 10) == 0 ) {
+			fprintf(stderr, "\n");
+		}
+
+		fprintf(stderr, "%g ", ad->dark_current_offset_array[i]);
+	}
+	fprintf(stderr, "...\n");
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *flood_field_frame )
@@ -5607,7 +5832,7 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	double raw_flood_field = 0.0;
 	double bias_offset     = 0.0;
 	unsigned long i, num_pixels, image_format;
-	double ffs_numerator, ffs_denominator;
+	double ffs_numerator, ffs_denominator, bias_average;
 	double *flood_field_scale_array;
 	mx_bool_type flood_less_than_or_equal_to_bias;
 
@@ -5620,7 +5845,9 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 		"The MX_AREA_DETECTOR pointer passed was NULL." );
 	}
 
-	/* If present, discard the old version of the flood field scale array.*/
+	/* If present, discard the old version
+	 * of the flood field scale array.
+	 */
 
 	if ( ad->flood_field_scale_array != NULL ) {
 		mx_free( ad->flood_field_scale_array );
@@ -5719,6 +5946,7 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 
 		if ( bias_frame == NULL ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else {
 			switch( image_format ) {
 			case MXT_IMAGE_FORMAT_GREY8:
@@ -5731,6 +5959,8 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 				bias_offset = bias_data32[i];
 				break;
 			}
+
+			bias_average = ad->bias_average_intensity;
 		}
 
 		/* We _must_ _not_ use mx_divide_safely() here since
@@ -5747,8 +5977,8 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 
 		ffs_denominator = raw_flood_field - bias_offset;
 
-		ffs_numerator =
-    ad->flood_field_average_intensity - ad->bias_average_intensity;
+		ffs_numerator = ad->flood_field_average_intensity
+					- bias_average;
 
 		flood_field_scale_array[i]
 				= ffs_numerator / ffs_denominator;

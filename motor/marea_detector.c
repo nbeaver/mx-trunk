@@ -179,6 +179,36 @@ motor_area_detector_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
+	if ( strncmp( "test", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		/* This is a test command not intended for end users.
+		 * The behavior of the test command may change between
+		 * release of MX, so you should not count on the options
+		 * to this command staying the same.
+		 */
+
+		if ( argc < 5 ) {
+			return SUCCESS;
+		}
+
+		if ( atol(argv[4]) == MXFT_AD_DARK_CURRENT_FRAME ) {
+		      mx_status = mx_area_detector_compute_dark_current_offset(
+				ad, ad->bias_frame, ad->dark_current_frame );
+		} else
+		if ( atol(argv[4]) == MXFT_AD_FLOOD_FIELD_FRAME ) {
+		      mx_status = mx_area_detector_compute_flood_field_scale(
+				ad, ad->bias_frame, ad->flood_field_frame );
+		} else {
+			return SUCCESS;
+		}
+			
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return FAILURE;
+		} else {
+			return SUCCESS;
+		}
+
+	} else
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
 		if ( argc < 6 ) {
