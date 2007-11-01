@@ -37,29 +37,34 @@ mx_display_process_meminfo( MX_PROCESS_MEMINFO *meminfo )
 		return;
 	}
 
-	mx_info("  total_bytes = %lu", (unsigned long) meminfo->total_bytes);
+	mx_info("  total_bytes              = %lu",
+			(unsigned long) meminfo->total_bytes);
 
-	mx_info("  locked_in_memory_bytes = %lu",
+	mx_info("  locked_in_memory_bytes   = %lu",
 			(unsigned long) meminfo->locked_in_memory_bytes);
 
 	mx_info("  resident_in_memory_bytes = %lu",
 			(unsigned long) meminfo->resident_in_memory_bytes);
 
-	mx_info("  data_bytes = %lu", (unsigned long) meminfo->data_bytes);
+	mx_info("  data_bytes               = %lu",
+			(unsigned long) meminfo->data_bytes);
 
-	mx_info("  stack_bytes = %lu", (unsigned long) meminfo->stack_bytes);
+	mx_info("  stack_bytes              = %lu",
+			(unsigned long) meminfo->stack_bytes);
 
-	mx_info("  heap_bytes = %lu", (unsigned long) meminfo->heap_bytes);
+	mx_info("  heap_bytes               = %lu",
+			(unsigned long) meminfo->heap_bytes);
 
-	mx_info("  code_bytes = %lu", (unsigned long) meminfo->code_bytes);
+	mx_info("  code_bytes               = %lu",
+			(unsigned long) meminfo->code_bytes);
 
-	mx_info("  library_bytes = %lu",
+	mx_info("  library_bytes            = %lu",
 				(unsigned long) meminfo->library_bytes);
 
-	mx_info("  allocated_bytes = %lu",
+	mx_info("  allocated_bytes          = %lu",
 				(unsigned long) meminfo->allocated_bytes);
 
-	mx_info("  memory_mapped_bytes = %lu",
+	mx_info("  memory_mapped_bytes      = %lu",
 				(unsigned long) meminfo->memory_mapped_bytes);
 	return;
 }

@@ -788,6 +788,8 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	unsigned long row_framesize, column_framesize;
 	double sum, sum_of_squares, mean, standard_deviation;
 	double pixel, diff, pixel_sd;
+	double first_pixel;
+	mx_bool_type pixels_are_all_equal;
 	unsigned long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
 
@@ -821,7 +823,17 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 
 	/* First compute the mean. */
 
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		first_pixel = uint8_array[0];
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		first_pixel = uint16_array[0];
+		break;
+	}
+
 	sum = 0.0;
+	pixels_are_all_equal = TRUE;
 
 	for ( i = 0; i < num_pixels; i++ ) {
 		switch( image_format ) {
@@ -833,7 +845,20 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 			break;
 		}
 
+		if ( pixels_are_all_equal ) {
+			if ( fabs(pixel - first_pixel) > 0.1 ) {
+				pixels_are_all_equal = FALSE;
+			}
+		}
+
 		sum += pixel;
+	}
+
+	if ( pixels_are_all_equal ) {
+		mx_warning(
+		"All of the pixels in the image have the same value %g",
+			first_pixel );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	mean = sum / (double) num_pixels;
@@ -893,7 +918,8 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	/* Show the results. */
 
 	mx_info( "(%lux%lu) %lu-bit image frame",
-		row_framesize, column_framesize, 8 * image_format );
+		row_framesize, column_framesize,
+		(unsigned long) MXIF_BITS_PER_PIXEL(frame) );
 
 	mx_info( "  mean = %g, standard deviation = %g",
 		mean, standard_deviation );

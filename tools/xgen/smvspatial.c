@@ -7,6 +7,8 @@
 	of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Change record:
+	30 Oct 2007: substantial upgrade to handle masking correctly
+	 and (I hope!) manage binned data correctly.
 	22 Sep 2007: cleanup and corrections.
 	20 Sep 2007: eliminate image rotation: we'll rotate
 		the VSPLINE instead
@@ -50,6 +52,10 @@ extern void	*malloc(size_t size);
 extern void	free(void *ptr);
 #endif /* __stdlib_h */
 
+#ifndef _UNISTD_H_
+extern int	access(const char *path, int mode);
+#endif /* _UNISTD_H_ */
+
 /* structure type definitions */
 
  typedef struct { /* (X,Y) calibration point structure; totals   32 bytes:*/
@@ -78,12 +84,13 @@ extern void	free(void *ptr);
 		int		imf_flags, imf_ht, imf_imsize, imf_wid;
 		double		imf_x00, imf_xsl, imf_y00, imf_ysl;
 		float		*imf_locim, *imf_locwt;
+		unsigned char	*imf_lomask;
 		unsigned short	*imf_data16;
-		char		*imf_splname;
+		char		*imf_splname, *imf_masknam;
 		VSPLINE		*imf_spl;
 		} IMWORK;
 
-extern int smvspatial(void *ima, int imw, int imh, int cfl, char *sn);
+extern int smvspatial(void *ima, int imw, int imh, int cfl, char *sn, char *mn);
 
 static short sswab(short sh)
 { /*	This byte-swaps a SIGNED short.  This is comparatively tricky. */
@@ -222,33 +229,33 @@ static int rescalespl(IMWORK *imp)
 	return EOK;
 }
 
-static int locactive(VSPLINE *lspl, int ix, int iy)
+static int locactive(IMWORK *imp, int ix, int iy)
 { /* returns -1 if ix,iy is outside the detector area;
   0 if inside the area but outside the active area; 1 if inside the active area.
-  It returns -2 if it's unable to set up the active-area array */
+  It returns -2 if it's unable to set up the active-area array.
+  We assume that the mask from which the active-area array is taken was created
+  at the same level of binning as the image to which it'll be applied. */
 	int		pos, jy;
 	size_t		imsiz, busiz, busiz2;
 	unsigned short	*rebu, *usp;
 	unsigned char	*ucp;
 	static FILE	*fpmas;
-	static unsigned char	*lomask = NULL;
-	static char	fmaname[] = "mask1.smv";
 
-	if (NULL == lspl) /* special flag case to clear memory */
+	if ((0 == ix) && (0 == iy)) /* special case to clear memory for mask */
 	  {
-		if (NULL != lomask) {
-			free((void *)lomask);
-			lomask = NULL;
-		}
-		
+		if (NULL != imp->imf_lomask)
+		  {
+			free((void *)(imp->imf_lomask));
+			imp->imf_lomask = NULL;
+		  }
 		return 0;
 	  }
 	if ((ix <= 0) || (iy <= 0) ||
-	 (ix >= lspl->v_detw) || (iy >= lspl->v_deth)) return -1;
-	if (NULL == lomask)
+	 (ix >= imp->imf_wid) || (iy >= imp->imf_ht)) return -1;
+	if (NULL == imp->imf_lomask)
 	  { /* read in the local-area active pixel mask from a file */
-		busiz = lspl->v_deth;	imsiz = lspl->v_detw * busiz;
-		if (NULL == (lomask = (unsigned char *)malloc(imsiz)))
+		busiz = imp->imf_ht;	imsiz = imp->imf_wid * busiz;
+		if (NULL == (imp->imf_lomask = (unsigned char *)malloc(imsiz)))
 		  {
 			fprintf(stderr,
  "Unable to allocate %8d bytes for the active-pixel mask\n", (int)imsiz);
@@ -260,95 +267,53 @@ static int locactive(VSPLINE *lspl, int ix, int iy)
 			fprintf(stderr,
  "Unable to allocate memory for %d unsigned shorts for mask operations\n",
 				(int)busiz);
-			return -2;
+			free((void *)(imp->imf_lomask));
+			imp->imf_lomask = NULL;	return -2;
 		  }
-		if (NULL == (fpmas = fopen(fmaname, "r")))
+		if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
 		  {
 			fprintf(stderr,
-	"Unable to open %s as input active-pixel mask\n", fmaname);
-			return -2;
+	"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
+			free((void *)rebu); free((void *)(imp->imf_lomask));
+			imp->imf_lomask = NULL;	return -2;
 		  }
 		if (-1 == fseek(fpmas, 512L, 0))
 		  {
 			fprintf(stderr,
 	 "Unable to skip past image header during mask reading\n");
-			return -2; /*skip file header*/
+			free((void *)rebu); free((void *)(imp->imf_lomask));
+			imp->imf_lomask = NULL;	return -2;
 		  }
 		busiz2 = busiz * 2;
-		for (ucp = lomask, pos = 0; pos < lspl->v_detw; pos++)
+		for (ucp = imp->imf_lomask, pos = 0; pos < imp->imf_wid; pos++)
 		   { /* read through mask columns */
 			if (1 != fread((void *)rebu, busiz2, 1, fpmas))
 			  {
 				fprintf(stderr,
 	 "Error reading column %6d of the active-pixel mask\n", pos);
-				return -2;
+				free((void *)rebu);
+				free((void *)(imp->imf_lomask)); return -2;
 			  }
 			for (usp = rebu, jy = 0; jy < busiz; jy++, ucp++,usp++)
 				*ucp = (*usp > 0); /* convert 16-bit->8-bit */
 		   }
 		(void)fclose(fpmas);	free((void *)rebu);	fpmas = NULL;
 	  }
-	pos = iy + lspl->v_deth * ix; /* offset from start of mask array */
-	return (*(lomask + pos)) ? 1 : 0; /* return active-pixel status */
-}
-
-static int pix2cm(IMWORK *imp, float xp, float yp, float *xcm, float *ycm)
-{ /*	This returns the x,y coordinates in cm of a position
-	specified in pixel coordinates.
-	It returns -1 if (xp, yp) are outside the image limits;
-	0 if inside the limits but not in the active area;
-	1 if in the active area.
-	It takes the spline structure as an argument rather than
-	fishing it out of a management routine */
-	CALPOINT	*cz00, *cz01, *cz10, *cz11;
-	static int	ix, iy, retv;
-	static double	p, q, rx, ry;
-	float		dx, dy;
-	VSPLINE		*lspl;
-
-	ix = xp + 0.499999;	iy = yp + 0.499999;	*xcm = *ycm = 0.;
-	lspl = imp->imf_spl;
-	if (imp->imf_flags & ACTIVE_ONLY)
-	  {
-		if (-2 == (retv = locactive(lspl, ix, iy))) return retv;
-	  }
-	else	retv = (ix >= 0) && (iy >= 0) &&
-			(ix < lspl->v_detw) && (iy < lspl->v_deth);
-	dx = xp - lspl->v_x0px;	dy = yp - lspl->v_y0px;
-	rx = dx / lspl->v_xrpx;	ry = dy / lspl->v_yrpx;
-	ix = (rx < 0. ? 0 : (rx < lspl->v_ncol - 1 ?  rx : lspl->v_ncol - 2));
-	iy = (ry < 0. ? 0 : (ry < lspl->v_nrow - 1 ?  ry : lspl->v_nrow - 2));
-	if (lspl->v_nreg >= 2) /* special handling, 2- and 4- elt. detectors*/
-	  {
-		if (ix == lspl->v_ncol / 2 - 1) ix--;
-		else if (ix == lspl->v_ncol / 2) ix++;
-	  }
-	if (lspl->v_nreg == 4)	 /* special handling, 4-element detectors*/
-	  {
-		if (iy == lspl->v_nrow / 2 - 1) iy--;
-		else if (iy == lspl->v_nrow / 2) iy++;
-	  }
-	/* find the v_cpt structures associated with the four nearest
-	 points to this current pixel */
-	cz00 = lspl->v_cpt + iy * lspl->v_ncol + ix;
-	cz01 = cz00 + 1; cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
-	/* calculate the fractional offsets from those points */
-	p = rx - (double)ix;	q = ry - (double)iy;
-	*xcm = (1.-p) * (1.-q) * cz00->c_ctopx + (1.-p) * q * cz10->c_ctopx +
-		   p  * (1.-q) * cz01->c_ctopx +     p  * q * cz11->c_ctopx;
-	*ycm = (1.-p) * (1.-q) * cz00->c_ctopy + (1.-p) * q * cz10->c_ctopy +
-		   p  * (1.-q) * cz01->c_ctopy +     p  * q * cz11->c_ctopy;
-	return retv;
+	pos = iy + imp->imf_ht * ix;	/* offset from start of mask array */
+	return (*(imp->imf_lomask + pos)) ? 1 : 0; /* active-pixel status */
 }
 
 static int find_limits(IMWORK *imp)
 { /*	This determines the limits of x and y in centimeters and populates
 	the x and y slope and intercept values accordingly */
-	int	pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu;
-	int	x, xdel, xmax, xmin, y, ydel, ymin, ymax;
-	float	xc, yc;
-	double	xma, xmi, yma, ymi;
-	VSPLINE	*lspl;
+	int		jx, jy, pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu;
+	int		x, xdel, xmax, xmin, y, ydel, ymin, ymax;
+	float		xc, yc;
+	double		dx, dy, omp, omq, p, q, rx, ry;
+	double		xcm, xma, xmi, ycm, yma, ymi;
+	unsigned char	*looff, *lom;
+	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czy00;
+	VSPLINE		*lspl;
 
 	lspl = imp->imf_spl;
 	/* now walk through the values */
@@ -358,68 +323,137 @@ static int find_limits(IMWORK *imp)
  "     Minima(X,Y)     Maxima(X,Y)  Intervals(X,Y)    Offsets(X,Y)");
 		fprintf(stdout, "***[X,Y] values where the extrema are***\n");
 	  }
-	ymi = xmi = 1.e9;	yma = xma = -ymi;
-	ymin = xmin = 0; xdel = xmax = lspl->v_detw; ymax = ydel = lspl->v_deth;
+	ymi = xmi = 1.e9;		yma = xma = -ymi;	ymin = xmin = 0;
+	xdel = xmax = imp->imf_wid;	ymax = ydel = imp->imf_ht;
 	pxxl = pxyl = pyxl = pyyl = 10000; pxxu = pxyu = pyxu = pyyu = -pxxl;
 	if (imp->imf_flags & ACTIVE_ONLY)
 	  { /* just look at data within the active region */
-		if (-2 == locactive(lspl, 1, 1)) return EREADERR;
+		if (-2 == locactive(imp, 1, 1)) return EREADERR;
 		for (y = ymin; y < ymax; y++)
-			for (x = xmin; x < xmax; x++)
+		   {
+			dy = ((double)y) - lspl->v_y0px;
+			ry = dy / lspl->v_yrpx;
+			jy = (ry < 0.) ? 0 : ((ry < lspl->v_nrow - 1) ?
+				ry : lspl->v_nrow - 2);
+			if (lspl->v_nreg == 4)	 /* 4-element det: special */
+			  {
+				if (jy == lspl->v_nrow / 2 - 1) jy--;
+				else if (jy == lspl->v_nrow / 2) jy++;
+			  }
+			/* remember the v_cpt offset for this row */
+			czy00 = lspl->v_cpt + jy * lspl->v_ncol;
+			/* calculate fractional offsets from this row */
+			q = ry - (double)jy; /* fractional offset from row */
+			looff = imp->imf_lomask + y;
+			omq = 1. - q;
+			for (x = xmin, lom = looff + xmin * imp->imf_ht;
+			 x < xmax; x++, lom += imp->imf_ht)
+			 if (*lom)
 			   {
-				if (1 == pix2cm(imp, (float)x, (float)y,
-				 &xc, &yc))
+				dx = ((double)x) - lspl->v_x0px;
+				rx = dx / lspl->v_xrpx;
+				jx = (rx < 0.) ? 0 : ((rx < lspl->v_ncol - 1) ?
+					rx : lspl->v_ncol - 2);
+				if (lspl->v_nreg >= 2) /* special: 2&4 elt. */
 				  {
-					if (xc < xmi)
-					  {	xmi = xc;
-						pxxl = x; pxyl = y;
-					  }
-					if (xc > xma)
-					  {
-						xma = xc;
-						pxxu = x; pxyu = y;
-					  }
-					if (yc < ymi)
-					  {
-						ymi = yc;
-						pyxl = x;	pyyl = y;
-					  }
-					if (yc > yma)
-					  {
-						yma = yc;
-						pyxu = x;	pyyu = y;
-					  }
+					if (jx == lspl->v_ncol / 2 - 1) jx--;
+					else if (jx == lspl->v_ncol / 2) jx++;
 				  }
-			   } /* close of loop through x and y */
+				/* find the v_cpt structures associated with
+				 the 4 nearest points to this current pixel */
+				cz00 = czy00 + jx;
+				cz01 = cz00 + 1;
+				cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
+				p = rx - (double)jx; /* fractional offset */
+				omp = 1. - p;
+				xcm =	omp * omq * cz00->c_ctopx +
+					omp *   q * cz10->c_ctopx +
+					  p * omq * cz01->c_ctopx +
+					  p *   q * cz11->c_ctopx;
+				ycm =	omp * omq * cz00->c_ctopy +
+					omp *   q * cz10->c_ctopy +
+					  p * omq * cz01->c_ctopy +
+					  p *   q * cz11->c_ctopy;
+				if (xc < xmi)
+				  {
+					xmi = xc; pxxl = x; pxyl = y;
+				  }
+				if (xc > xma)
+				  {
+					xma = xc; pxxu = x; pxyu = y;
+				  }
+				if (yc < ymi)
+				  {
+					ymi = yc; pyxl = x;	pyyl = y;
+				  }
+				if (yc > yma)
+				  {
+					yma = yc; pyxu = x;	pyyu = y;
+				  }
+			   } /* close of loop through x */
+		   } /* close of loop through y */
 	  } /* close of "if (imp->imf_flags & ACTIVE_ONLY)" clause */
 	else { /* look at all data in establishing limits */
 		for (y = ymin; y < ymax; y++)
+		   {
+			dy = ((double)y) - lspl->v_y0px;
+			ry = dy / lspl->v_yrpx;
+			jy = (ry < 0.) ? 0 : ((ry < lspl->v_nrow - 1) ?
+				ry : lspl->v_nrow - 2);
+			if (lspl->v_nreg == 4)	 /* 4-element det: special */
+			  {
+				if (jy == lspl->v_nrow / 2 - 1) jy--;
+				else if (jy == lspl->v_nrow / 2) jy++;
+			  }
+			/* remember the v_cpt offset for this row */
+			czy00 = lspl->v_cpt + jy * lspl->v_ncol;
+			/* calculate fractional offsets from this row */
+			q = ry - (double)jy; /* fractional offset from row */
+			omq = 1. - q;
 			for (x = xmin; x < xmax; x++)
 			   {
-				if (-1 != pix2cm(imp, (float)x, (float)y,
-					&xc, &yc))
+				dx = ((double)x) - lspl->v_x0px;
+				rx = dx / lspl->v_xrpx;
+				jx = (rx < 0.) ? 0 : ((rx < lspl->v_ncol - 1) ?
+					rx : lspl->v_ncol - 2);
+				if (lspl->v_nreg >= 2) /* special: 2&4 elt. */
 				  {
-					if (xc < xmi)
-					  {	xmi = xc;
-						pxxl = x; pxyl = y;
-					  }
-					if (xc > xma)
-					  {
-						xma = xc;
-						pxxu = x; pxyu = y;
-					  }
-					if (yc < ymi)
-					  {
-						ymi = yc;
-						pyxl = x;	pyyl = y;
-					  }
-					if (yc > yma)
-					  {
-						yma = yc;
-						pyxu = x;	pyyu = y;
-					  }
+					if (jx == lspl->v_ncol / 2 - 1) jx--;
+					else if (jx == lspl->v_ncol / 2) jx++;
 				  }
-			   } /* close of loop through x and y */
+				/* find the v_cpt structures associated with
+				 the 4 nearest points to this current pixel */
+				cz00 = czy00 + jx;
+				cz01 = cz00 + 1;
+				cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
+				p = rx - (double)jx; /* fractional offset */
+				omp = 1. - p;
+				xcm =	omp * omq * cz00->c_ctopx +
+					omp *   q * cz10->c_ctopx +
+					  p * omq * cz01->c_ctopx +
+					  p *   q * cz11->c_ctopx;
+				ycm =	omp * omq * cz00->c_ctopy +
+					omp *   q * cz10->c_ctopy +
+					  p * omq * cz01->c_ctopy +
+					  p *   q * cz11->c_ctopy;
+				if (xc < xmi)
+				  {
+					xmi = xc; pxxl = x; pxyl = y;
+				  }
+				if (xc > xma)
+				  {
+					xma = xc; pxxu = x; pxyu = y;
+				  }
+				if (yc < ymi)
+				  {
+					ymi = yc; pyxl = x;	pyyl = y;
+				  }
+				if (yc > yma)
+				  {
+					yma = yc; pyxu = x;	pyyu = y;
+				  }
+			   } /* close of loop through x */
+		   } /* close of loop through y */
 	     } /* close of else of "if (imp->imf_flags & ACTIVE_ONLY)" clause*/
 	imp->imf_xsl = ((double)(xdel-1)) / (xma - xmi);
 	imp->imf_x00 = -xmi * imp->imf_xsl;
@@ -439,11 +473,14 @@ static int find_limits(IMWORK *imp)
 
 static int interp_image(IMWORK *imp)
 { /*	Here is where the actual interpolation takes place. */
-	int		imv, ix, iy, obounds;
+	int		imv, ix, iy, jx, jy, obounds;
 	int		off0, off1, off2, off3, x, y;
-	double		px, py, rimv, wt0, wt1, wt2, wt3;
+	double		dx, dy, omp, omq, p, px, py, q, rimv, rx, ry;
+	double		wt0, wt1, wt2, wt3;
 	float		xc, yc, *loim, *lowt;
 	size_t		imsiz;
+	unsigned char	*looff, *lom;
+	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czx00;
 	VSPLINE		*lspl;
 
 	/* size of data16 buffer */
@@ -457,61 +494,103 @@ static int interp_image(IMWORK *imp)
 	  }
 	imp->imf_locim = loim;	imp->imf_locwt = lowt = loim + imsiz;
 	lspl = imp->imf_spl;
-	for (obounds = x = 0; x < lspl->v_detw; x++) /* convert pix to cm */
-	  for (y = 0; y < lspl->v_deth; y++)
-	     {
-		iy = pix2cm(imp, (float)x, (float)y, &xc, &yc);
-		if ((imp->imf_flags & ACTIVE_ONLY) && (iy != 1)) continue;
-	     	/* rescale coordinates into the proper dimensions */
-		xc = imp->imf_xsl * xc + imp->imf_x00;
-		yc = imp->imf_ysl * yc + imp->imf_y00;
-		/* add a fraction of the input value into the sum for each
-		 of the four corners of the box in which the pixel rests.
-		 Be careful at the edges */
-		if ((-1 <= xc) && (xc < imp->imf_wid) &&
-		 (-1 <= yc) && (yc < imp->imf_ht))
+	for (obounds = x = 0; x < imp->imf_wid; x++) /* convert pix to cm */
+	   {
+		dx = ((double)x) - lspl->v_x0px; rx = dx / lspl->v_xrpx;
+		jx = (rx < 0.) ? 0 : ((rx < lspl->v_ncol - 1) ?
+			rx : lspl->v_ncol - 2);
+		if (lspl->v_nreg >= 2) /* special handling,2&4 elt. detectors*/
 		  {
-			ix = xc;	iy = yc;
-			px = xc - (double)ix;	if (xc < 0) ix--;
-			py = yc - (double)iy;	if (yc < 0) iy--;
-			off0 = ix * imp->imf_ht + iy;
-			off1 = off0 + 1;
-			off2 = off0 + imp->imf_ht;	off3 = off2 + 1;
-			wt0 = (1. - px) * (1. - py);
-			wt1 = py * (1. - px);
-			wt2 = px * (1. - py);
-			wt3 = px * py;
-			/* find the input intensity value */
-			imv = imp->imf_data16[x * imp->imf_ht + y];
-			rimv = ((double)imv);
-			if ((ix >= 0) && (iy >= 0))
+			if (jx == lspl->v_ncol / 2 - 1) jx--;
+			else if (jx == lspl->v_ncol / 2) jx++;
+		  }
+		/* find v_cpt structure offsets for this column */
+		czx00 = lspl->v_cpt + jx;
+		/* calculate the fractional offsets from those points */
+		p = rx - (double)jx;	omp = 1. - p;
+		/* looff only matters when imf_flags & ACTIVE_ONLY is on,
+		 but we don't want to run into memory overruns */
+		if (imp->imf_flags & ACTIVE_ONLY)
+			looff = imp->imf_lomask + x * imp->imf_ht;
+		else	looff = (unsigned char *)(imp->imf_data16);
+		for (y = 0, lom = looff; y < imp->imf_ht; y++, lom++)
+		{
+		 if ((!(imp->imf_flags & ACTIVE_ONLY)) || (*lom))
+		   {
+			dy = ((double)y) - lspl->v_y0px; ry = dy / lspl->v_yrpx;
+			jy = (ry < 0.) ? 0 : ((ry < lspl->v_nrow - 1) ?
+				ry : lspl->v_nrow - 2);
+			if (lspl->v_nreg == 4)	 /* 4-element detectors*/
 			  {
-				*(loim + off0) += wt0 * rimv;
-				*(lowt + off0) += wt0;
+				if (jy == lspl->v_nrow / 2 - 1) jy--;
+				else if (jy == lspl->v_nrow / 2) jy++;
 			  }
-			if ((ix >= 0) && (iy < imp->imf_ht - 1))
+			/* find v_cpt structures associated with
+			 the 4 nearest points to this current pixel */
+			cz00 = czx00 + jy * lspl->v_ncol;
+			cz01 = cz00 + 1;
+			cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
+			/* calculate fractional offset from this row */
+			q = ry - (double)iy;	omq = 1. - q;
+			xc =	omp * omq * cz00->c_ctopx +
+				omp *   q * cz10->c_ctopx +
+				  p * omq * cz01->c_ctopx +
+				  p *   q * cz11->c_ctopx;
+			yc =	omp * omq * cz00->c_ctopy +
+				omp *   q * cz10->c_ctopy +
+				  p * omq * cz01->c_ctopy +
+				  p *   q * cz11->c_ctopy;
+	     		/* rescale coordinates into the proper dimensions */
+			xc = imp->imf_xsl * xc + imp->imf_x00;
+			yc = imp->imf_ysl * yc + imp->imf_y00;
+			/* add a fraction of input value into sum for each
+			 of the four corners of the box in which pixel rests.
+			 Be careful at the edges */
+			if ((-1 <= xc) && (xc < imp->imf_wid) &&
+			 (-1 <= yc) && (yc < imp->imf_ht))
 			  {
-				*(loim + off1) += wt1 * rimv;
-				*(lowt + off1) += wt1;
-			  }
-			if ((ix < imp->imf_wid - 1) && (iy >= 0))
-			  {
-				*(loim + off2) += wt2 * rimv;
-				*(lowt + off2) += wt2;
-			  }
-			if ((ix < imp->imf_wid - 1) &&
-			 (iy < imp->imf_ht - 1))
-			  {
-				*(loim + off3) += wt3 * rimv;
-				*(lowt + off3) += wt3;
-			  }
-		  } /* end of "if ((-1 <= xc" clause */
-		else obounds++;
-	     } /* end of loop through X and Y */
+				ix = xc;	iy = yc;
+				px = xc - (double)ix;	if (xc < 0) ix--;
+				py = yc - (double)iy;	if (yc < 0) iy--;
+				off0 = ix * imp->imf_ht + iy;	off1 = off0 + 1;
+				off2 = off0 + imp->imf_ht;	off3 = off2 + 1;
+				wt0 = (1. - px) * (1. - py);
+				wt1 = py * (1. - px);
+				wt2 = px * (1. - py);
+				wt3 = px * py;
+				/* find the input intensity value */
+				imv = imp->imf_data16[x * imp->imf_ht + y];
+				rimv = ((double)imv);
+				if ((ix >= 0) && (iy >= 0))
+				  {
+					*(loim + off0) += wt0 * rimv;
+					*(lowt + off0) += wt0;
+				  }
+				if ((ix >= 0) && (iy < imp->imf_ht - 1))
+				  {
+					*(loim + off1) += wt1 * rimv;
+					*(lowt + off1) += wt1;
+				  }
+				if ((ix < imp->imf_wid - 1) && (iy >= 0))
+				  {
+					*(loim + off2) += wt2 * rimv;
+					*(lowt + off2) += wt2;
+				  }
+				if ((ix < imp->imf_wid - 1) &&
+				 (iy < imp->imf_ht - 1))
+				  {
+					*(loim + off3) += wt3 * rimv;
+					*(lowt + off3) += wt3;
+				  }
+			  } /* end of "if ((-1 <= xc" clause */
+		   } /* end of check for active pixel */
+		  else obounds++;
+		} /* end of loop through Y */
+	   } /* end of loop through X */
 	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
 	 " %6d pixels mapped to coordinates outside the adjusted limits\n",
 		obounds);
-	(void)locactive(NULL, 0, 0); /* get rid of memory for locactive */
+	(void)locactive(imp, 0, 0); /* get rid of memory for active-mask*/
 	return EOK;
 }
 
@@ -763,7 +842,8 @@ static int img_conversion(IMWORK *imp)
 	return imerr;
 }
 
-int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
+int smvspatial(void *imarr, int imwid, int imht, int cflags,
+ char *splname, char *masknam)
 { /* Mainline for performing a spatial correction on an SMV image
 	that is already in memory. Arguments:
 	imarr	1-D array of data values (probably always unsigned shorts)
@@ -775,15 +855,25 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags, char *splname)
 		bit 3	even higher verbosity (not currently used)
 		bit 4	only use active area in correction
 	splname	Name of the spatial-correction (*.uca) file.
+	masknam	Name of the active-pixel-mask image file.
 	In this version, the detector dimensions don't need to be
 	specified, because they're read in from splname.
   */
 	int		resu;
 	static IMWORK	imfs;
 
-	imfs.imf_flags = cflags | ACTIVE_ONLY;	/* for now, turn ACTIVE_ONLY on */
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
+	if ((NULL != masknam) && ('\0' != *masknam) &&
+	 (0 == access(masknam, 04)))
+	  {
+		imfs.imf_flags = cflags | ACTIVE_ONLY;
+		imfs.imf_masknam = masknam;
+	  }
+	else {
+		imfs.imf_flags = cflags & ~ACTIVE_ONLY;
+		imfs.imf_masknam = NULL;
+	     }
 	imfs.imf_wid = imwid;	imfs.imf_ht = imht;
 	if (cflags & ANY_VERBOSE) sumsmvspat(stdout, &imfs);
 	resu = img_conversion(&imfs);	/* perform spatial correction */

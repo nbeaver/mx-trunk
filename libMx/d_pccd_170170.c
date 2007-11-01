@@ -64,7 +64,7 @@
 
 /* Internal prototype for smvspatial. */
 
-#define OLDSMVSPATIAL	TRUE
+#define OLDSMVSPATIAL	FALSE
 
 #if OLDSMVSPATIAL
 
@@ -4988,6 +4988,10 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
+	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));
+
+	mx_image_statistics( image_frame );
+
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(_MSC_VER)
 
 #  if OLDSMVSPATIAL
@@ -5077,6 +5081,10 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 				spatial_status, ad->record->name );
 		break;
 	}
+
+	MX_DEBUG(-2,("AFTER smvspatial(), image_frame histogram = "));
+
+	mx_image_statistics( image_frame );
 
 	return mx_status;
 }

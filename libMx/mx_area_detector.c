@@ -40,6 +40,7 @@
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
+#include "mx_memory.h"
 #include "mx_key.h"
 #include "mx_array.h"
 #include "mx_image.h"
@@ -5148,7 +5149,166 @@ mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad )
 		}                                                           \
 	} while(0)
 
-/*---*/
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
+				mx_bool_type *use_float_arrays )
+{
+#if 1
+	static const char fname[] = "mxp_area_detector_use_float_arrays()";
+#endif
+
+	MX_SYSTEM_MEMINFO system_meminfo;
+	MX_PROCESS_MEMINFO process_meminfo;
+	long row_framesize, column_framesize;
+	mx_memsize_type bytes_per_float_array;
+	mx_memsize_type process_memory_needed, extra_memory_needed;
+	double process_to_system_ratio;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_system_meminfo( &system_meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	mx_info("--------------------------------");
+	mx_display_system_meminfo( &system_meminfo );
+	mx_info("--------------------------------");
+#endif
+
+	mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF,
+						&process_meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	mx_display_process_meminfo( &process_meminfo );
+	mx_info("--------------------------------");
+#endif
+
+	/* See if we will need to have more memory. */
+
+	mx_status = mx_area_detector_get_framesize( ad->record,
+					&row_framesize, &column_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	bytes_per_float_array =
+		row_framesize * column_framesize * sizeof(double);
+
+	extra_memory_needed = 0;
+
+	if ( ad->dark_current_offset_array == NULL ) {
+		extra_memory_needed += bytes_per_float_array;
+	}
+	if ( ad->flood_field_scale_array == NULL ) {
+		extra_memory_needed += bytes_per_float_array;
+	}
+
+	MX_DEBUG(-2,("%s: extra_memory_needed = %lu",
+		fname, extra_memory_needed));
+
+	process_memory_needed = process_meminfo.total_bytes
+					+ extra_memory_needed;
+
+	MX_DEBUG(-2,("%s: process_memory_needed = %lu, system_memory = %lu",
+		fname, process_memory_needed, system_meminfo.total_bytes ));
+
+	process_to_system_ratio = mx_divide_safely( process_memory_needed,
+					system_meminfo.total_bytes );
+
+	MX_DEBUG(-2,("%s: process_to_system_ratio = %g",
+		fname, process_to_system_ratio));
+
+	/*---*/
+
+	if ( process_to_system_ratio < 0.8 ) {
+		*use_float_arrays = TRUE;
+	} else {
+		*use_float_arrays = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: *use_float_arrays = %d",
+		fname, *use_float_arrays));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+/* mxp_area_detector_large_memory_dark_correction() is intended for use when
+ * enough free memory is available that page swapping will not be required.
+ */
+
+static mx_status_type
+mxp_area_detector_large_memory_dark_correction_16(
+					long num_pixels,
+					uint16_t *image_data_array,
+					uint16_t *mask_data_array,
+					double *dark_current_offset_array )
+{
+	long i;
+	double image_pixel;
+
+	/* Do the mask, bias, and dark current corrections. */
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		/* See if the pixel is masked off. */
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+
+				/* If the pixel is masked off, skip this
+				 * pixel and return to the top of the loop
+				 * for the next pixel.
+				 */
+
+				image_data_array[i] = 0;
+				continue;
+			}
+		}
+
+		/* If requested, apply the dark current correction. */
+
+		if ( dark_current_offset_array != NULL ) {
+
+			/* Get the raw image pixel. */
+
+			image_pixel = (double) image_data_array[i];
+
+			image_pixel = image_pixel
+					+ dark_current_offset_array[i];
+
+			/* Round to the nearest integer by adding 0.5 and
+			 * then truncating.
+			 *
+			 * We _must_ _not_ use mx_round() here since function
+			 * calls have too high of an overhead to be used
+			 * in this loop.
+			 */
+
+			if ( image_pixel < 0.0 ) {
+				image_data_array[i] = 0;
+			} else {
+				image_data_array[i] = image_pixel + 0.5;
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
 
 /* mx_area_detector_frame_correction() requires that all of the frames have
  * the same framesize.
@@ -5174,6 +5334,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	unsigned long flags, row_framesize, column_framesize;
 	double image_pixel, image_exposure_time;
 	unsigned long bias_offset;
+	mx_bool_type use_float_arrays = FALSE;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -5207,6 +5368,23 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	/*---*/
+
+	/* If we have a lot of free memory available, then we can use
+	 * floating point arrays of correction values to speed up the
+	 * corrections.
+	 */
+
+	mx_status = mxp_area_detector_use_float_arrays( ad, &use_float_arrays );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: use_float_arrays = %d",
+			fname, (int) use_float_arrays));
+
+	/*---*/
 
 	geometrical_correction_fn = flist->geometrical_correction;
 
@@ -5318,54 +5496,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/* Do the mask, bias, and dark current corrections. */
 
-	/* This loop _must_ _not_ invoke any functions.  Function calls
-	 * have too high an overhead to be used in a loop that may loop
-	 * 32 million times or more.
-	 */
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-		/* See if the pixel is masked off. */
-
-		if ( mask_data_array != NULL ) {
-			if ( mask_data_array[i] == 0 ) {
-
-				/* If the pixel is masked off, skip this
-				 * pixel and return to the top of the loop
-				 * for the next pixel.
-				 */
-
-				image_data_array[i] = 0;
-				continue;
-			}
-		}
-
-		/* If requested, apply the dark current correction. */
-
-		if ( dark_current_offset_array != NULL ) {
-
-			/* Get the raw image pixel. */
-
-			image_pixel = (double) image_data_array[i];
-
-			image_pixel = image_pixel
-					+ dark_current_offset_array[i];
-
-			/* Round to the nearest integer by adding 0.5 and
-			 * then truncating.
-			 *
-			 * We _must_ _not_ use mx_round() here since function
-			 * calls have too high of an overhead to be used
-			 * in this loop.
-			 */
-
-			if ( image_pixel < 0.0 ) {
-				image_data_array[i] = 0;
-			} else {
-				image_data_array[i] = image_pixel + 0.5;
-			}
-		}
-	}
+	mx_status = mxp_area_detector_large_memory_dark_correction_16(
+						num_pixels,
+						image_data_array,
+						mask_data_array,
+						dark_current_offset_array );
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( initial_timing );
