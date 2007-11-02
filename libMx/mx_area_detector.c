@@ -5132,22 +5132,48 @@ mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad )
 
 /*-----------------------------------------------------------------------*/
 
-#define CHECK_CORRECTION_FRAMESIZE(frame, frame_name) \
-	do {                                                                \
-		if ((MXIF_ROW_FRAMESIZE((frame)) != row_framesize)          \
-		  || (MXIF_COLUMN_FRAMESIZE((frame)) != column_framesize))  \
-		{                                                           \
-			return mx_error( MXE_TYPE_MISMATCH, fname,          \
-			"The current %s framesize (%lu,%lu) for "           \
-			"area detector '%s' is different from "             \
-			"the framesize (%lu,%lu) of the image frame.",      \
-				(frame_name),                               \
-				(long) MXIF_ROW_FRAMESIZE((frame)),         \
-				(long) MXIF_COLUMN_FRAMESIZE((frame)),      \
-				ad->record->name,                           \
-				row_framesize, column_framesize );          \
-		}                                                           \
-	} while(0)
+static mx_status_type
+mxp_area_detector_check_correction_framesize( MX_AREA_DETECTOR *ad,
+						MX_IMAGE_FRAME *image_frame,
+						MX_IMAGE_FRAME *test_frame,
+						const char *frame_name )
+{
+	static const char fname[] =
+		"mxp_area_detector_check_correction_framesize()";
+
+	unsigned long image_row_framesize, image_column_framesize;
+	unsigned long test_row_framesize, test_column_framesize;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	/* It is OK for test_frame to be NULL. */
+
+	if ( test_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	image_row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
+	image_column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	test_row_framesize = MXIF_ROW_FRAMESIZE(test_frame);
+	test_column_framesize = MXIF_COLUMN_FRAMESIZE(test_frame);
+
+	if ( (image_row_framesize != test_row_framesize)
+	  || (image_column_framesize != test_column_framesize) )
+	{
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The current %s framesize (%lu,%lu) for area detector '%s' is "
+		"different from the framesize (%lu,%lu) of the image frame.",
+			frame_name, test_row_framesize,
+			test_column_framesize, ad->record->name,
+			image_row_framesize, image_column_framesize );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*-----------------------------------------------------------------------*/
 
@@ -5240,26 +5266,89 @@ mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-/* mxp_area_detector_large_memory_dark_correction() is intended for use when
- * enough free memory is available that page swapping will not be required.
+/* mxp_area_detector_u16_highmem_dark_correction() is for use when enough
+ * free memory is available that page swapping will not be required.
  */
 
 static mx_status_type
-mxp_area_detector_large_memory_dark_correction_16(
-					long num_pixels,
-					uint16_t *image_data_array,
-					uint16_t *mask_data_array,
-					double *dark_current_offset_array )
+mxp_area_detector_u16_highmem_dark_correction( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame )
 {
-	long i;
-	double image_pixel;
+	static const char fname[] =
+		"mxp_area_detector_u16_highmem_dark_correction()";
 
-	/* Do the mask, bias, and dark current corrections. */
+	long i, num_pixels;
+	double image_pixel, image_exposure_time;
+	double *dark_current_offset_array;
+	uint16_t *image_data_array, *mask_data_array;
+	mx_status_type mx_status;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	image_data_array = image_frame->image_data;
+
+	/* Discard the old dark current offset array if the exposure time
+	 * has changed significantly.
+	 */
+
+	mx_status = mx_image_get_exposure_time( image_frame,
+						&image_exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_exposure_time = %g", fname, image_exposure_time));
+#endif
+
+	if ( mx_difference( image_exposure_time,
+				ad->old_exposure_time ) > 0.001 )
+	{
+		mx_free( ad->dark_current_offset_array );
+	}
+
+	ad->old_exposure_time = image_exposure_time;
+
+	/*---*/
+
+	if ( mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array = mask_frame->image_data;
+	}
+
+	/*---*/
+
+	/* Get the dark current offset array, creating a new one if necessary.*/
+
+	if ( dark_current_frame == NULL ) {
+		dark_current_offset_array = NULL;
+	} else {
+		if ( ad->dark_current_offset_array == NULL ) {
+		    mx_status = mx_area_detector_compute_dark_current_offset(
+					ad, bias_frame, dark_current_frame );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
+
+		dark_current_offset_array = ad->dark_current_offset_array;
+	}
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
 	 * have too high an overhead to be used in a loop that may loop
 	 * 32 million times or more.
 	 */
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -5310,167 +5399,71 @@ mxp_area_detector_large_memory_dark_correction_16(
 
 /*-----------------------------------------------------------------------*/
 
-/* mx_area_detector_frame_correction() requires that all of the frames have
- * the same framesize.
+/* mxp_area_detector_u16_lowmem_dark_correction() is for use to avoid
+ * swapping when the amount of free memory available is small.
  */
 
-MX_EXPORT mx_status_type
-mx_area_detector_frame_correction( MX_RECORD *record,
+static mx_status_type
+mxp_area_detector_u16_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame )
+{
+	static const char fname[] =
+		"mxp_area_detector_u16_lowmem_dark_correction()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not implemented." );
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *dark_current_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
-	static const char fname[] = "mx_area_detector_frame_correction()";
+	static const char fname[] =
+		"mxp_area_detector_u16_highmem_flood_field()";
 
-	MX_AREA_DETECTOR *ad;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
-	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
-	double *dark_current_offset_array;
-	double *flood_field_scale_array;
 	long i, num_pixels;
-	unsigned long flags, row_framesize, column_framesize;
-	double image_pixel, image_exposure_time;
-	unsigned long bias_offset;
-	mx_bool_type use_float_arrays = FALSE;
+	double image_pixel, bias_offset;
+	double *flood_field_scale_array;
+	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	mx_status_type mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_TIMING initial_timing = MX_HRT_ZERO;
-	MX_HRT_TIMING geometrical_timing = MX_HRT_ZERO;
-	MX_HRT_TIMING flood_timing = MX_HRT_ZERO;
-#endif
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("\n%s invoked for area detector '%s'.",
-		fname, record->name ));
-#endif
-
-	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+	if ( image_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"No primary image frame was provided." );
+		"The image_frame pointer passed was NULL." );
 	}
-
-	flags = ad->correction_flags;
-
-	if ( flags == 0 ) {
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: No corrections requested.", fname));
-#endif
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/*---*/
-
-	/* If we have a lot of free memory available, then we can use
-	 * floating point arrays of correction values to speed up the
-	 * corrections.
-	 */
-
-	mx_status = mxp_area_detector_use_float_arrays( ad, &use_float_arrays );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	MX_DEBUG(-2,("%s: use_float_arrays = %d",
-			fname, (int) use_float_arrays));
-
-	/*---*/
-
-	geometrical_correction_fn = flist->geometrical_correction;
-
-	if ( geometrical_correction_fn == NULL ) {
-		geometrical_correction_fn =
-			mx_area_detector_default_geometrical_correction;
-	}
-
-	/* Area detector image correction is currently only supported
-	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
-	 */
-
-	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The primary image frame is not a 16-bit greyscale image." );
-	}
-
-	/*---*/
-
-	/* Discard the dark current offset array if the exposure time
-	 * has changed significantly.
-	 */
-
-	mx_status = mx_image_get_exposure_time( ad->image_frame,
-						&image_exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: image_exposure_time = %g", fname, image_exposure_time));
-#endif
-
-	if ( mx_difference( image_exposure_time,
-				ad->old_exposure_time ) > 0.001 )
-	{
-		mx_free( ad->dark_current_offset_array );
-	}
-
-	ad->old_exposure_time = image_exposure_time;
-
-	/*---*/
-
-	row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
-	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
 	image_data_array = image_frame->image_data;
+
+	/*---*/
 
 	if ( mask_frame == NULL ) {
 		mask_data_array = NULL;
 	} else {
 		mask_data_array = mask_frame->image_data;
-
-		CHECK_CORRECTION_FRAMESIZE( mask_frame, "mask" );
 	}
+
+	/*---*/
 
 	if ( bias_frame == NULL ) {
 		bias_data_array = NULL;
 	} else {
 		bias_data_array = bias_frame->image_data;
-
-		CHECK_CORRECTION_FRAMESIZE( bias_frame, "bias" );
 	}
 
-	if ( dark_current_frame == NULL ) {
-		dark_current_offset_array = NULL;
-	} else {
-		CHECK_CORRECTION_FRAMESIZE(dark_current_frame, "dark current");
+	/*---*/
 
-		if ( ad->dark_current_offset_array == NULL ) {
-		    mx_status = mx_area_detector_compute_dark_current_offset(
-					ad, bias_frame, dark_current_frame );
-
-		    if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		}
-
-		dark_current_offset_array = ad->dark_current_offset_array;
-	}
+	/* Get the flood field scale array, creating a new one if necessary. */
 
 	if ( flood_field_frame == NULL ) {
 		flood_field_scale_array = NULL;
 	} else {
-		CHECK_CORRECTION_FRAMESIZE(flood_field_frame, "flood field");
-
 		if ( ad->flood_field_scale_array == NULL ) {
 		    mx_status = mx_area_detector_compute_flood_field_scale(
 					ad, bias_frame, flood_field_frame );
@@ -5482,48 +5475,6 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		flood_field_scale_array = ad->flood_field_scale_array;
 	}
 
-	/*---*/
-
-	num_pixels = image_frame->image_length / 2L;
-
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
-#endif
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_START( initial_timing );
-#endif
-
-	/* Do the mask, bias, and dark current corrections. */
-
-	mx_status = mxp_area_detector_large_memory_dark_correction_16(
-						num_pixels,
-						image_data_array,
-						mask_data_array,
-						dark_current_offset_array );
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( initial_timing );
-
-	MX_HRT_START( geometrical_timing );
-#endif
-	if ( ad->do_geometrical_correction_last == FALSE ) {
-
-		/* If requested, do the geometrical correction. */
-
-		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
-			mx_status = (*geometrical_correction_fn)( ad );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( geometrical_timing );
-
-	MX_HRT_START( flood_timing );
-#endif
 	/* If requested, do the flood field correction. */
 
 	/* This loop _must_ _not_ invoke any functions.  Function calls
@@ -5532,6 +5483,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	 */
 
 	if ( flood_field_scale_array != NULL ) {
+
+		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+				* MXIF_COLUMN_FRAMESIZE(image_frame);
 
 		for ( i = 0; i < num_pixels; i++ ) {
 
@@ -5573,15 +5527,220 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		}
 	}
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *mask_frame,
+				MX_IMAGE_FRAME *bias_frame,
+				MX_IMAGE_FRAME *flood_field_frame )
+{
+	static const char fname[] =
+		"mxp_area_detector_u16_lowmem_flood_field()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not implemented." );
+}
+
+/*-----------------------------------------------------------------------*/
+
+/* mx_area_detector_frame_correction() requires that all of the frames have
+ * the same framesize.
+ */
+
+MX_EXPORT mx_status_type
+mx_area_detector_frame_correction( MX_RECORD *record,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *mask_frame,
+				MX_IMAGE_FRAME *bias_frame,
+				MX_IMAGE_FRAME *dark_current_frame,
+				MX_IMAGE_FRAME *flood_field_frame )
+{
+	static const char fname[] = "mx_area_detector_frame_correction()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
+	unsigned long flags;
+	mx_bool_type use_float_arrays = FALSE;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING initial_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING geometrical_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING flood_timing = MX_HRT_ZERO;
+#endif
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("\n%s invoked for area detector '%s'.",
+		fname, record->name ));
+#endif
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No primary image frame was provided." );
+	}
+
+	flags = ad->correction_flags;
+
+	if ( flags == 0 ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: No corrections requested.", fname));
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---*/
+
+	/* If we have a lot of free memory available, then we can use
+	 * floating point arrays of correction values to speed up the
+	 * corrections.  We call mxp_area_detector_use_float_arrays()
+	 * to see if enough memory is available.
+	 */
+
+	mx_status = mxp_area_detector_use_float_arrays( ad, &use_float_arrays );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: use_float_arrays = %d",
+			fname, (int) use_float_arrays));
+
+	/*---*/
+
+	geometrical_correction_fn = flist->geometrical_correction;
+
+	if ( geometrical_correction_fn == NULL ) {
+		geometrical_correction_fn =
+			mx_area_detector_default_geometrical_correction;
+	}
+
+	/* Area detector image correction is currently only supported
+	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
+	 */
+
+	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The primary image frame is not a 16-bit greyscale image." );
+	}
+
+	/*---*/
+
+	mx_status = mxp_area_detector_check_correction_framesize( ad,
+					    image_frame, mask_frame, "mask" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxp_area_detector_check_correction_framesize( ad,
+					    image_frame, bias_frame, "bias" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxp_area_detector_check_correction_framesize( ad,
+			    image_frame, dark_current_frame, "dark current" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxp_area_detector_check_correction_framesize( ad,
+			    image_frame, flood_field_frame, "flood field" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( initial_timing );
+#endif
+
+	/******* Dark current correction *******/
+
+	if ( use_float_arrays ) {
+		mx_status = mxp_area_detector_u16_highmem_dark_correction( ad,
+							image_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+	} else {
+		mx_status = mxp_area_detector_u16_lowmem_dark_correction( ad,
+							image_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( initial_timing );
+
+	MX_HRT_START( geometrical_timing );
+#endif
+
+	/******* Geometrical correction *******/
+
+	if ( ad->do_geometrical_correction_last == FALSE ) {
+
+		/* If requested, do the geometrical correction. */
+
+		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+			mx_status = (*geometrical_correction_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( geometrical_timing );
+
+	MX_HRT_START( flood_timing );
+#endif
+
+	/******* Flood field correction *******/
+
+	if ( use_float_arrays ) {
+		mx_status = mxp_area_detector_u16_highmem_flood_field( ad,
+							image_frame,
+							mask_frame,
+							bias_frame,
+							flood_field_frame );
+	} else {
+		mx_status = mxp_area_detector_u16_lowmem_flood_field( ad,
+							image_frame,
+							mask_frame,
+							bias_frame,
+							flood_field_frame );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( flood_timing );
 #endif
+
+	/******* Delayed geometrical correction (if requested) *******/
 
 	if ( ad->do_geometrical_correction_last ) {
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 		/* If invoked, this code overwrites the earlier
-		 * measured value.
+		 * measured value for the timing.
 		 */
 
 		MX_HRT_START( geometrical_timing );
