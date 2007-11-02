@@ -308,9 +308,8 @@ static int find_limits(IMWORK *imp)
 	the x and y slope and intercept values accordingly */
 	int		jx, jy, pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu;
 	int		x, xdel, xmax, xmin, y, ydel, ymin, ymax;
-	float		xc, yc;
 	double		dx, dy, omp, omq, p, q, rx, ry;
-	double		xcm, xma, xmi, ycm, yma, ymi;
+	double		xc, xma, xmi, yc, yma, ymi;
 	unsigned char	*looff, *lom;
 	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czy00;
 	VSPLINE		*lspl;
@@ -366,11 +365,11 @@ static int find_limits(IMWORK *imp)
 				cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
 				p = rx - (double)jx; /* fractional offset */
 				omp = 1. - p;
-				xcm =	omp * omq * cz00->c_ctopx +
+				xc =	omp * omq * cz00->c_ctopx +
 					omp *   q * cz10->c_ctopx +
 					  p * omq * cz01->c_ctopx +
 					  p *   q * cz11->c_ctopx;
-				ycm =	omp * omq * cz00->c_ctopy +
+				yc =	omp * omq * cz00->c_ctopy +
 					omp *   q * cz10->c_ctopy +
 					  p * omq * cz01->c_ctopy +
 					  p *   q * cz11->c_ctopy;
@@ -428,11 +427,11 @@ static int find_limits(IMWORK *imp)
 				cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
 				p = rx - (double)jx; /* fractional offset */
 				omp = 1. - p;
-				xcm =	omp * omq * cz00->c_ctopx +
+				xc =	omp * omq * cz00->c_ctopx +
 					omp *   q * cz10->c_ctopx +
 					  p * omq * cz01->c_ctopx +
 					  p *   q * cz11->c_ctopx;
-				ycm =	omp * omq * cz00->c_ctopy +
+				yc =	omp * omq * cz00->c_ctopy +
 					omp *   q * cz10->c_ctopy +
 					  p * omq * cz01->c_ctopy +
 					  p *   q * cz11->c_ctopy;
@@ -531,7 +530,7 @@ static int interp_image(IMWORK *imp)
 			cz01 = cz00 + 1;
 			cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
 			/* calculate fractional offset from this row */
-			q = ry - (double)iy;	omq = 1. - q;
+			q = ry - (double)y;	omq = 1. - q;
 			xc =	omp * omq * cz00->c_ctopx +
 				omp *   q * cz10->c_ctopx +
 				  p * omq * cz01->c_ctopx +

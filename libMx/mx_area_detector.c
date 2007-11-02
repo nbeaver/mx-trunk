@@ -28,6 +28,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -204,7 +206,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->correction_flags = ad->initial_correction_flags;
+	ad->correction_flags = ad->initial_correction_flags & MXFT_AD_ALL;
 
 	ad->correction_measurement = NULL;
 
@@ -5178,10 +5180,10 @@ mxp_area_detector_check_correction_framesize( MX_AREA_DETECTOR *ad,
 /*-----------------------------------------------------------------------*/
 
 static mx_status_type
-mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
-				mx_bool_type *use_float_arrays )
+mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
+				mx_bool_type *use_low_memory_methods )
 {
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	static const char fname[] = "mxp_area_detector_use_float_arrays()";
 #endif
 
@@ -5198,7 +5200,7 @@ mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	mx_info("--------------------------------");
 	mx_display_system_meminfo( &system_meminfo );
 	mx_info("--------------------------------");
@@ -5210,10 +5212,36 @@ mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	mx_display_process_meminfo( &process_meminfo );
 	mx_info("--------------------------------");
 #endif
+
+	/* If requested in the MX database file, we force the use
+	 * of a particular method here.
+	 */
+
+	if ( ad->initial_correction_flags & MXFT_AD_USE_LOW_MEMORY_METHODS ) {
+
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
+		MX_DEBUG(-2,
+		("%s: forced *use_low_memory_methods to TRUE", fname));
+#endif
+		*use_low_memory_methods = TRUE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( ad->initial_correction_flags & MXFT_AD_USE_HIGH_MEMORY_METHODS ) {
+
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
+		MX_DEBUG(-2,
+		("%s: forced *use_low_memory_methods to FALSE", fname));
+#endif
+		*use_low_memory_methods = FALSE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* See if we will need to have more memory. */
 
@@ -5235,31 +5263,39 @@ mxp_area_detector_use_float_arrays( MX_AREA_DETECTOR *ad,
 		extra_memory_needed += bytes_per_float_array;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	MX_DEBUG(-2,("%s: extra_memory_needed = %lu",
 		fname, extra_memory_needed));
+#endif
 
 	process_memory_needed = process_meminfo.total_bytes
 					+ extra_memory_needed;
 
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	MX_DEBUG(-2,("%s: process_memory_needed = %lu, system_memory = %lu",
 		fname, process_memory_needed, system_meminfo.total_bytes ));
+#endif
 
 	process_to_system_ratio = mx_divide_safely( process_memory_needed,
 					system_meminfo.total_bytes );
 
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	MX_DEBUG(-2,("%s: process_to_system_ratio = %g",
 		fname, process_to_system_ratio));
+#endif
 
 	/*---*/
 
 	if ( process_to_system_ratio < 0.8 ) {
-		*use_float_arrays = TRUE;
+		*use_low_memory_methods = FALSE;
 	} else {
-		*use_float_arrays = FALSE;
+		*use_low_memory_methods = TRUE;
 	}
 
-	MX_DEBUG(-2,("%s: *use_float_arrays = %d",
-		fname, *use_float_arrays));
+#if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
+	MX_DEBUG(-2,("%s: *use_low_memory_methods = %d",
+		fname, *use_low_memory_methods));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -5413,7 +5449,146 @@ mxp_area_detector_u16_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_lowmem_dark_correction()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not implemented." );
+	long i, num_pixels;
+	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
+	uint16_t *dark_current_data_array;
+	double image_exposure_time, dark_current_exposure_time;
+	double exposure_time_ratio;
+	double image_pixel, raw_dark_current, scaled_dark_current;
+	unsigned long bias_offset;
+	mx_bool_type use_scaled_dark_current;
+	mx_status_type mx_status;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	image_data_array = image_frame->image_data;
+
+	/* Discard the dark current offset array if it is in memory,
+	 * since we will not use it.
+	 */
+
+	mx_free( ad->dark_current_offset_array );
+
+	/* Get pointers to the mask, bias, and dark current image data. */
+
+	if ( mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array = mask_frame->image_data;
+	}
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+	if ( dark_current_frame == NULL ) {
+		dark_current_data_array = NULL;
+	} else {
+		dark_current_data_array = dark_current_frame->image_data;
+	}
+
+	/* Compute the exposure time ratio. */
+
+	if ( ad->use_scaled_dark_current == FALSE ) {
+		use_scaled_dark_current = FALSE;
+	} else
+	if ( dark_current_frame == NULL ) {
+		use_scaled_dark_current = FALSE;
+	} else {
+		use_scaled_dark_current = TRUE;
+	}
+
+	if ( use_scaled_dark_current == FALSE ) {
+		exposure_time_ratio = 1.0;
+	} else {
+		mx_status = mx_image_get_exposure_time( image_frame,
+							&image_exposure_time );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_exposure_time( dark_current_frame,
+						&dark_current_exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		exposure_time_ratio = mx_divide_safely( image_exposure_time,
+						dark_current_exposure_time );
+	}
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	/* Do the mask, bias, and dark current corrections. */
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		/* See if the pixel is masked off. */
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+
+				/* If the pixel is masked off, skip this
+				 * pixel and return to the top of the loop
+				 * for the next pixel.
+				 */
+
+				image_data_array[i] = 0;
+				continue;
+			}
+		}
+
+		/* Get the bias offset for this pixel. */
+
+		if ( bias_data_array != NULL ) {
+			bias_offset = bias_data_array[i];
+		} else {
+			bias_offset = 0;
+		}
+
+		/* Get the raw image pixel. */
+
+		image_pixel = (double) image_data_array[i];
+
+		/* If requested, apply the dark current correction. */
+
+		if ( dark_current_data_array != NULL ) {
+			raw_dark_current = (double) dark_current_data_array[i];
+
+			scaled_dark_current = exposure_time_ratio
+			    * (raw_dark_current - bias_offset) + bias_offset;
+
+			image_pixel = image_pixel + bias_offset;
+
+			image_pixel = image_pixel - scaled_dark_current;
+		}
+
+		/* Round to the nearest integer by adding 0.5 and
+		 * then truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function
+		 * calls have too high of an overhead to be used
+		 * in this loop.
+		 */
+
+		if ( image_pixel < 0.0 ) {
+			image_data_array[i] = 0;
+		} else {
+			image_data_array[i] = image_pixel + 0.5;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -5542,7 +5717,150 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_lowmem_flood_field()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not implemented." );
+	long i, num_pixels;
+	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
+	uint16_t *flood_field_data_array;
+	unsigned long raw_flood_field, bias_offset;
+	double image_pixel, flood_field_scale_factor;
+	double ffs_numerator, ffs_denominator;
+	double flood_field_scale_max, flood_field_scale_min;
+	mx_bool_type flood_less_than_or_equal_to_bias;
+
+	/* Return now if we have not been provided with a flood field frame. */
+
+	if ( flood_field_frame == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	flood_field_data_array = flood_field_frame->image_data;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	image_data_array = image_frame->image_data;
+
+	/* Discard the flood field scale array if it is in memory,
+	 * since we will not use it.
+	 */
+
+	mx_free( ad->flood_field_scale_array );
+
+	/* Get pointers to the mask and bias image data. */
+
+	if ( mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array = mask_frame->image_data;
+	}
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	if ( bias_data_array == NULL ) {
+		flood_less_than_or_equal_to_bias = FALSE;
+	} else {
+		flood_less_than_or_equal_to_bias = TRUE;
+	}
+
+	flood_field_scale_max = ad->flood_field_scale_max;
+	flood_field_scale_min = ad->flood_field_scale_min;
+
+	/* Now do the flood field correction. */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+		/* See if the pixel is masked off. */
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+
+				/* If the pixel is masked off, skip this
+				 * pixel and return to the top of the loop
+				 * for the next pixel.
+				 */
+
+				image_data_array[i] = 0;
+				continue;
+			}
+		}
+
+		image_pixel = (double) image_data_array[i];
+
+		raw_flood_field = flood_field_data_array[i];
+
+		if ( bias_data_array != NULL ) {
+			bias_offset = bias_data_array[i];
+		} else {
+			bias_offset = 0;
+		}
+
+		/* We _must_ _not_ use mx_divide_safely() here since function
+		 * calls have too high of an overhead to be used in this loop.
+		 */
+
+		if ( raw_flood_field <= bias_offset ) {
+			image_data_array[i] = 0;
+			continue;		/* Skip to the next pixel. */
+		} else {
+			flood_less_than_or_equal_to_bias = FALSE;
+		}
+
+		ffs_denominator = raw_flood_field - bias_offset;
+
+		ffs_numerator = ad->flood_field_average_intensity
+					- ad->bias_average_intensity;
+
+		flood_field_scale_factor = ffs_numerator / ffs_denominator;
+
+		if ( flood_field_scale_factor > flood_field_scale_max ) {
+			image_data_array[i] = 0;
+			continue;		/* Skip to the next pixel. */
+		}
+		if ( flood_field_scale_factor < flood_field_scale_min ) {
+			image_data_array[i] = 0;
+			continue;		/* Skip to the next pixel. */
+		}
+
+		image_pixel = image_pixel - bias_offset;
+
+		image_pixel = image_pixel * flood_field_scale_factor;
+
+		image_pixel = image_pixel + bias_offset;
+
+		/* Round to the nearest integer by adding 0.5 and then
+		 * truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function calls
+		 * have too high of an overhead to be used in this loop.
+		 */
+
+		if ( image_pixel < 0.5 ) {
+			image_data_array[i] = 0;
+		} else {
+			image_data_array[i] = image_pixel + 0.5;
+		}
+	}
+
+	if ( flood_less_than_or_equal_to_bias ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The entire contents of the corrected image frame for "
+		"area detector '%s' have been set to 0 since each pixel in "
+		"the flood field frame '%s' is less than or equal to the "
+		"value of the corresponding pixel in the bias frame '%s'.",
+			ad->record->name,
+			ad->flood_field_filename,
+			ad->bias_filename );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -5565,7 +5883,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
 	unsigned long flags;
-	mx_bool_type use_float_arrays = FALSE;
+	mx_bool_type use_low_memory_methods = FALSE;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -5604,17 +5922,15 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/* If we have a lot of free memory available, then we can use
 	 * floating point arrays of correction values to speed up the
-	 * corrections.  We call mxp_area_detector_use_float_arrays()
+	 * corrections.  We call mxp_area_detector_use_low_memory_methods()
 	 * to see if enough memory is available.
 	 */
 
-	mx_status = mxp_area_detector_use_float_arrays( ad, &use_float_arrays );
+	mx_status = mxp_area_detector_use_low_memory_methods( ad,
+						&use_low_memory_methods );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	MX_DEBUG(-2,("%s: use_float_arrays = %d",
-			fname, (int) use_float_arrays));
 
 	/*---*/
 
@@ -5668,14 +5984,14 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/******* Dark current correction *******/
 
-	if ( use_float_arrays ) {
-		mx_status = mxp_area_detector_u16_highmem_dark_correction( ad,
+	if ( use_low_memory_methods ) {
+		mx_status = mxp_area_detector_u16_lowmem_dark_correction( ad,
 							image_frame,
 							mask_frame,
 							bias_frame,
 							dark_current_frame );
 	} else {
-		mx_status = mxp_area_detector_u16_lowmem_dark_correction( ad,
+		mx_status = mxp_area_detector_u16_highmem_dark_correction( ad,
 							image_frame,
 							mask_frame,
 							bias_frame,
@@ -5713,14 +6029,14 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/******* Flood field correction *******/
 
-	if ( use_float_arrays ) {
-		mx_status = mxp_area_detector_u16_highmem_flood_field( ad,
+	if ( use_low_memory_methods ) {
+		mx_status = mxp_area_detector_u16_lowmem_flood_field( ad,
 							image_frame,
 							mask_frame,
 							bias_frame,
 							flood_field_frame );
 	} else {
-		mx_status = mxp_area_detector_u16_lowmem_flood_field( ad,
+		mx_status = mxp_area_detector_u16_highmem_flood_field( ad,
 							image_frame,
 							mask_frame,
 							bias_frame,

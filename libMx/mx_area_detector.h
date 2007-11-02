@@ -69,7 +69,15 @@ extern "C" {
 #define MXFT_AD_GEOMETRICAL_CORRECTION	0x1000
 #define MXFT_AD_DEZINGER		0x2000
 
-#define MXFT_AD_ALL			0xffffffff
+#define MXFT_AD_ALL			0xffff
+
+/* The following bits are used only by 'initial_correction_flags'
+ * to force the area detector software to use either the high memory
+ * or the low memory frame correction methods.
+ */
+
+#define MXFT_AD_USE_LOW_MEMORY_METHODS	0x10000000
+#define MXFT_AD_USE_HIGH_MEMORY_METHODS	0x20000000
 
 typedef struct {
 	struct mx_area_detector_type *area_detector;
