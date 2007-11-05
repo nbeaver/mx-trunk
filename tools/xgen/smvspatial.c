@@ -300,18 +300,6 @@ static int locactive(IMWORK *imp)
 "Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
 		killimwork(imp, 010);	return -2;
 	  }
-	if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
-	  {
-		fprintf(stderr,
-"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
-		killimwork(imp, 010);	return -2;
-	  }
-	if (-1 == fseek(fpmas, 512L, 0))
-	  {
-		fprintf(stderr,
- "Unable to skip past image header during mask reading\n");
-		killimwork(imp, 010);	return -2;
-	  }
 	if (-1 == fseek(fpmas, 512L, 0))
 	  {
 		fprintf(stderr,

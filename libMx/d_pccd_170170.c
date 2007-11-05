@@ -5022,7 +5022,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	/* Perform the geometrical correction. */
 
 	spatial_status = smvspatial( image_frame->image_data, 
-				row_framesize, column_framesize, 0,
+				row_framesize, column_framesize, 1,
 				pccd_170170->geometrical_spline_filename );
 #  else
 	/* Perform the geometrical correction. */
