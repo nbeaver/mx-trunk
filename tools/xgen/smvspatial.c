@@ -85,7 +85,7 @@ extern int	access(const char *path, int mode);
 		double		imf_x00, imf_xsl, imf_y00, imf_ysl;
 		float		*imf_locim, *imf_locwt;
 		unsigned char	*imf_lomask;
-		unsigned short	*imf_data16;
+		unsigned short	*imf_data16, *imf_row;
 		char		*imf_splname, *imf_masknam;
 		VSPLINE		*imf_spl;
 		} IMWORK;
@@ -122,10 +122,39 @@ static int checkorder(void)
 	return (u.byte_value[0] == 0x34);
 }
 
+static void killimwork(IMWORK *imp, int which)
+{ /* simple tool to clear allocated memory within the IMWORK structure */
+	VSPLINE		*lspl;
+
+	if ((which & 01) && (NULL != (lspl = imp->imf_spl)) &&
+	 (NULL != lspl->v_cpt))
+	  {
+		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
+		lspl->v_cpt = NULL;
+	  }
+	if ((which & 02) && (NULL != (lspl = imp->imf_spl)))
+	  {
+		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
+		lspl->v_cpt = NULL;
+		free((void *)(imp->imf_spl));	imp->imf_spl = NULL;
+	  }
+	if ((which & 04) && (NULL != (imp->imf_locim)))
+	  {
+		free((void *)(imp->imf_locim)); imp->imf_locim = NULL;
+	  }
+	if ((which & 010) && (NULL != (imp->imf_row)))
+	  {
+		free((void *)(imp->imf_lomask));
+		imp->imf_lomask = NULL;	imp->imf_row = NULL;
+	  }
+}
+
 static int smvspline(IMWORK *imp)
 { /* This populates a VSPLINE structure by reading it from the file
 	imp->imf_splname.
-	It returns EOK if successful, EREADERR or EALLOC otherwise. */
+	It returns EOK if successful, EREADERR or EALLOC otherwise.
+	In this version, if the spline is already correctly populated,
+	we leave it alone. */
 
 	int		i, islittle, ncpt, nread;
 	short		*sp;
@@ -144,8 +173,13 @@ static int smvspline(IMWORK *imp)
 			return EALLOC;
 		  }
 	  }
-	if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
-	lspl->v_cpt = NULL;
+	else {
+		/* see if VSPLINE structure is populated appropriately */
+		if ((1 < lspl->v_detw) && (lspl->v_detw < 32000) &&
+		 (1 < lspl->v_deth) && (lspl->v_deth < 32000) &&
+		 (NULL != lspl->v_cpt)) return EOK;
+	    }
+	killimwork(imp, 01);	/* destroy old v_cpt structures */
 	if (NULL == (fspl = fopen(imp->imf_splname, "r"))) return EOPENERR;
 	if (1 != fread((void *)lspl, ntor, 1, fspl))
 	  {
@@ -166,8 +200,8 @@ static int smvspline(IMWORK *imp)
 	  {
 		fprintf(stderr,
 		 "Error allocating memory to handle correction operation\n");
-		free((void *)lspl);	(void)fclose(fspl);
-		fspl = NULL;	imp->imf_spl = NULL;	return EALLOC;
+		killimwork(imp, 03);
+		(void)fclose(fspl);	fspl = NULL;	return EALLOC;
 	  }
 	if (imp->imf_flags & ANY_VERBOSE) printf(
 	 " Correction file %s: Dimensions [%4d,%4d], %3d columns, %3d rows\n",
@@ -179,8 +213,7 @@ static int smvspline(IMWORK *imp)
 	  {
 		fprintf(stderr, "Failed to read correction elements from %s\n",
 			imp->imf_splname);
-		free((void *)(lspl->v_cpt));	free((void *)lspl);
-		imp->imf_spl = NULL;	return EREADERR;
+		killimwork(imp, 03);	return EREADERR;
 	  }
 	if (islittle) /* byte and word swaps again */
 	  {
@@ -229,78 +262,87 @@ static int rescalespl(IMWORK *imp)
 	return EOK;
 }
 
-static int locactive(IMWORK *imp, int ix, int iy)
-{ /* returns -1 if ix,iy is outside the detector area;
-  0 if inside the area but outside the active area; 1 if inside the active area.
-  It returns -2 if it's unable to set up the active-area array.
-  We assume that the mask from which the active-area array is taken was created
-  at the same level of binning as the image to which it'll be applied. */
-	int		pos, jy;
-	size_t		imsiz, busiz, busiz2;
-	unsigned short	*rebu, *usp;
+static int locactive(IMWORK *imp)
+{ /* This reads in the information associated with the active-area mask.
+	It returns -2 if it's unable to set up the active-area mask,
+	EOK otherwise.
+  	We assume that the mask from which the active-area array is taken
+	was created at the same level of binning as the image
+	to which it'll be applied. */
+	int		pos, jy, npos;
+	size_t		busiz, busiz2, imsiz, memneed;
+	unsigned short	*usp;
 	unsigned char	*ucp;
+	char		*cp;
 	static FILE	*fpmas;
 
-	if ((0 == ix) && (0 == iy)) /* special case to clear memory for mask */
+	if ((NULL == (cp = imp->imf_masknam)) || ('\0' == *cp))
 	  {
-		if (NULL != imp->imf_lomask)
-		  {
-			free((void *)(imp->imf_lomask));
-			imp->imf_lomask = NULL;
-		  }
-		return 0;
+		killimwork(imp, 010);	return 0; /* no mask in this case */
 	  }
-	if ((ix <= 0) || (iy <= 0) ||
-	 (ix >= imp->imf_wid) || (iy >= imp->imf_ht)) return -1;
-	if (NULL == imp->imf_lomask)
-	  { /* read in the local-area active pixel mask from a file */
-		busiz = imp->imf_ht;	imsiz = imp->imf_wid * busiz;
-		if (NULL == (imp->imf_lomask = (unsigned char *)malloc(imsiz)))
-		  {
-			fprintf(stderr,
+	/* don't do anything if there's already a good mask.
+	 We may eventually need a search for at least one good pixel here...*/
+	if (NULL != imp->imf_lomask) return 0;
+	/* read in the local-area active pixel mask from a file */
+	busiz = imp->imf_ht;	imsiz = imp->imf_wid * busiz;
+	memneed = imsiz + 2 * busiz;
+	if (NULL == (ucp = (unsigned char *)malloc(memneed)))
+	  {
+		fprintf(stderr,
  "Unable to allocate %8d bytes for the active-pixel mask\n", (int)imsiz);
-			return -2;
-		  }
-		if (NULL == (rebu = (unsigned short *)calloc(busiz,
-			sizeof (unsigned short))))
-		  {
-			fprintf(stderr,
- "Unable to allocate memory for %d unsigned shorts for mask operations\n",
-				(int)busiz);
-			free((void *)(imp->imf_lomask));
-			imp->imf_lomask = NULL;	return -2;
-		  }
-		if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
-		  {
-			fprintf(stderr,
-	"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
-			free((void *)rebu); free((void *)(imp->imf_lomask));
-			imp->imf_lomask = NULL;	return -2;
-		  }
-		if (-1 == fseek(fpmas, 512L, 0))
-		  {
-			fprintf(stderr,
-	 "Unable to skip past image header during mask reading\n");
-			free((void *)rebu); free((void *)(imp->imf_lomask));
-			imp->imf_lomask = NULL;	return -2;
-		  }
-		busiz2 = busiz * 2;
-		for (ucp = imp->imf_lomask, pos = 0; pos < imp->imf_wid; pos++)
-		   { /* read through mask columns */
-			if (1 != fread((void *)rebu, busiz2, 1, fpmas))
-			  {
-				fprintf(stderr,
-	 "Error reading column %6d of the active-pixel mask\n", pos);
-				free((void *)rebu);
-				free((void *)(imp->imf_lomask)); return -2;
-			  }
-			for (usp = rebu, jy = 0; jy < busiz; jy++, ucp++,usp++)
-				*ucp = (*usp > 0); /* convert 16-bit->8-bit */
-		   }
-		(void)fclose(fpmas);	free((void *)rebu);	fpmas = NULL;
+		return -2;
 	  }
-	pos = iy + imp->imf_ht * ix;	/* offset from start of mask array */
-	return (*(imp->imf_lomask + pos)) ? 1 : 0; /* active-pixel status */
+	imp->imf_lomask = ucp;
+	imp->imf_row = (unsigned short *)(cp + imsiz);
+	if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
+	  {
+		fprintf(stderr,
+"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
+		killimwork(imp, 010);	return -2;
+	  }
+	if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
+	  {
+		fprintf(stderr,
+"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
+		killimwork(imp, 010);	return -2;
+	  }
+	if (-1 == fseek(fpmas, 512L, 0))
+	  {
+		fprintf(stderr,
+ "Unable to skip past image header during mask reading\n");
+		killimwork(imp, 010);	return -2;
+	  }
+	if (-1 == fseek(fpmas, 512L, 0))
+	  {
+		fprintf(stderr,
+ "Unable to skip past image header during mask reading\n");
+		killimwork(imp, 010);	return -2;
+	  }
+	busiz2 = busiz * 2;
+	for (ucp = imp->imf_lomask, pos = 0; pos < imp->imf_wid; pos++)
+	   { /* read through mask columns */
+		if (1 != fread((void *)(imp->imf_row),busiz2, 1,fpmas))
+		  {
+			fprintf(stderr,
+ "Error reading column %6d of the active-pixel mask\n", pos);
+			killimwork(imp, 010);	return -2;
+		  }
+		for (usp = imp->imf_row, jy = 0; jy < busiz;
+		 jy++, ucp++, usp++)
+			*ucp = (*usp > 0); /* convert 16-bit->8-bit */
+	   }
+	(void)fclose(fpmas);	fpmas = NULL;
+	if (imp->imf_flags & ANY_VERBOSE)
+	  {
+		ucp = imp->imf_lomask;
+		for (npos = pos = 0; pos < imp->imf_wid; pos++)
+		   for (jy = 0; jy < busiz; jy++, ucp++)
+			if (*ucp == 1) npos++;
+		fprintf(stderr,
+		 " %d pixels out of a possible %d are active\n",
+			npos, (int)(imp->imf_wid * busiz));
+	  }
+	return EOK;
 }
 
 static int find_limits(IMWORK *imp)
@@ -327,7 +369,11 @@ static int find_limits(IMWORK *imp)
 	pxxl = pxyl = pyxl = pyyl = 10000; pxxu = pxyu = pyxu = pyyu = -pxxl;
 	if (imp->imf_flags & ACTIVE_ONLY)
 	  { /* just look at data within the active region */
-		if (-2 == locactive(imp, 1, 1)) return EREADERR;
+		if (-2 == locactive(imp))
+		  {
+			fprintf(stderr, "Failure in locactive\n");
+			return EREADERR;
+		  }
 		for (y = ymin; y < ymax; y++)
 		   {
 			dy = ((double)y) - lspl->v_y0px;
@@ -589,7 +635,6 @@ static int interp_image(IMWORK *imp)
 	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
 	 " %6d pixels mapped to coordinates outside the adjusted limits\n",
 		obounds);
-	(void)locactive(imp, 0, 0); /* get rid of memory for active-mask*/
 	return EOK;
 }
 
@@ -804,10 +849,8 @@ static void sumsmvspat(FILE *fp, IMWORK *imp)
 
 static int img_conversion(IMWORK *imp)
 { /*	This does the conversion on a single image.
-	If it is called with a NULL argument, we use it to free up memory.
 	It returns EOK if successful, various errors if not */
 	int	imerr, noreps;
-	VSPLINE	*lspl;
 
 	/* read in the spatial-correction information */
 	if (EOK != (imerr = smvspline(imp))) return imerr;
@@ -830,14 +873,6 @@ static int img_conversion(IMWORK *imp)
 	noreps = extrap_pix(imp, noreps);
 	/* phew. Now we can make an image out of this array. */
 	imerr = creat_undistor(imp);
-	/* having gotten to here, we eliminate memory with which we're done */
-	if (NULL != (lspl = imp->imf_spl))
-	  {
-		if (NULL != lspl->v_cpt) free((void *)(lspl->v_cpt));
-		lspl->v_cpt = NULL;
-		free((void *)(imp->imf_spl));	imp->imf_spl = NULL;
-	  }
-	if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
 	return imerr;
 }
 
@@ -861,6 +896,11 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 	int		resu;
 	static IMWORK	imfs;
 
+	/* special call to clear all volatile memory in imfs */
+	if ((imwid == -1) && (imht == -1))
+	  {
+		killimwork(&imfs, 017);	return EOK;
+	  }
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
 	if ((NULL != masknam) && ('\0' != *masknam) &&

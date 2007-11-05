@@ -9,6 +9,12 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
+# Turn on optimization
+#
+#OPTIMIZE = -O2
+#OPTIMIZE = -O3
+#CFLAGS += $(OPTIMIZE)
+
 INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
@@ -284,17 +290,11 @@ GCCFLAGS_C = \
 #
 CC      = gcc
 
-CFLAGS  = -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
+CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 
 CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
-
-# Turn on optimization
-#
-#OPTIMIZE = -O2
-OPTIMIZE = -O3
-CFLAGS += $(OPTIMIZE)
 
 #---
 

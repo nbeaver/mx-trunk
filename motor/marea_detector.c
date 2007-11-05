@@ -16,7 +16,7 @@
 
 #define MAREA_DETECTOR_DEBUG		FALSE
 
-#define MAREA_DETECTOR_DEBUG_TIMING	TRUE
+#define MAREA_DETECTOR_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

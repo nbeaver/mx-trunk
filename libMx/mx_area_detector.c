@@ -20,15 +20,15 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	TRUE
+#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5184,7 +5184,8 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 				mx_bool_type *use_low_memory_methods )
 {
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
-	static const char fname[] = "mxp_area_detector_use_float_arrays()";
+	static const char fname[] =
+		"mxp_area_detector_use_low_memory_methods()";
 #endif
 
 	MX_SYSTEM_MEMINFO system_meminfo;
