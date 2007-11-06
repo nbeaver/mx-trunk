@@ -22,6 +22,7 @@ Change record:
    Cross references: internal to X-GEN
 *************************************************************************/
 #include	<stdio.h>
+#include	<errno.h>
 
 /* If we are being compiled by Microsoft Visual C++, we need a few
  * extra definitions.  (18 Sep 2007: William Lavender)
@@ -269,7 +270,7 @@ static int locactive(IMWORK *imp)
   	We assume that the mask from which the active-area array is taken
 	was created at the same level of binning as the image
 	to which it'll be applied. */
-	int		pos, jy, npos;
+	int		nr, pos, jy, npos;
 	size_t		busiz, busiz2, imsiz, memneed;
 	unsigned short	*usp;
 	unsigned char	*ucp;
@@ -309,10 +310,12 @@ static int locactive(IMWORK *imp)
 	busiz2 = busiz * 2;
 	for (ucp = imp->imf_lomask, pos = 0; pos < imp->imf_wid; pos++)
 	   { /* read through mask columns */
-		if (1 != fread((void *)(imp->imf_row),busiz2, 1,fpmas))
+		if (1 != (nr = fread((void *)(imp->imf_row),busiz2, 1,fpmas)))
 		  {
 			fprintf(stderr,
  "Error reading column %6d of the active-pixel mask\n", pos);
+			fprintf(stderr, "fread returned %d; errno = %d\n",
+			 nr, (int)errno);
 			killimwork(imp, 010);	return -2;
 		  }
 		for (usp = imp->imf_row, jy = 0; jy < busiz;
