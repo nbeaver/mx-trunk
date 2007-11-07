@@ -6337,8 +6337,10 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 					ad->dark_current_exposure_time );
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: exposure_time_ratio = %g",
 		fname, exposure_time_ratio));
+#endif
 
 	/* Allocate memory for the dark current offset array. */
 
@@ -6410,7 +6412,7 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 
 	ad->dark_current_offset_array = dark_current_offset_array;
 
-#if 1
+#if 0
 	fprintf(stderr, "ad->dark_current_offset_array = ");
 
 	for ( i = 0; i < 100; i++ ) {
@@ -6624,7 +6626,7 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 
 	ad->flood_field_scale_array = flood_field_scale_array;
 
-#if 1
+#if 0
 	fprintf(stderr, "ad->flood_field_scale_array = ");
 
 	for ( i = 0; i < 100; i++ ) {

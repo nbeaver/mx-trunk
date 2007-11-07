@@ -5018,50 +5018,18 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));
-
 	mx_image_statistics( image_frame );
+#endif
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(_MSC_VER)
-
-#  if OLDSMVSPATIAL
-	/* WML - This should be a _very_ temporary workaround. */
-
-#    define MASK1_SMV	"mask1.smv"
-
-	/* First copy mask1.smv to the current directory if it is not
-	 * already there.
-	 */
-
-	os_status = access( MASK1_SMV, R_OK );
-
-	if ( os_status != 0 ) {
-		saved_errno = errno;
-
-		MX_DEBUG(-2,("%s: '%s' access() = %d",
-			fname, MASK1_SMV, saved_errno ));
-
-		mx_status = mx_copy_file(
-				pccd_170170->geometrical_mask_filename,
-				MASK1_SMV, 0644 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	/* Perform the geometrical correction. */
-
-	spatial_status = smvspatial( image_frame->image_data, 
-				row_framesize, column_framesize, 1,
-				pccd_170170->geometrical_spline_filename );
-#  else
 	/* Perform the geometrical correction. */
 
 	spatial_status = smvspatial( image_frame->image_data, 
 				row_framesize, column_framesize, 0,
 				pccd_170170->geometrical_spline_filename,
 				pccd_170170->geometrical_mask_filename );
-#  endif
 #else
 	mx_warning("XGEN geometrical correction is currently only available "
 		"on Linux, Windows, and MacOS X.");
@@ -5112,9 +5080,10 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("AFTER smvspatial(), image_frame histogram = "));
-
 	mx_image_statistics( image_frame );
+#endif
 
 	return mx_status;
 }
