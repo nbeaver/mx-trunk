@@ -177,6 +177,9 @@ typedef struct {
 	unsigned long dh_offset_correction;
 	unsigned long dh_exposure_mode;
 	unsigned long dh_linearization;
+	unsigned long dh_dummy_frame_valid;
+	unsigned long dh_shutter_disable;
+	unsigned long dh_over_exposure_warning;
 } MX_PCCD_170170;
 
 #define MXLV_PCCD_170170_DH_BASE		100000
@@ -263,6 +266,9 @@ typedef struct {
 #define MXLV_PCCD_170170_DH_OFFSET_CORRECTION		200003
 #define MXLV_PCCD_170170_DH_EXPOSURE_MODE		200004
 #define MXLV_PCCD_170170_DH_LINEARIZATION		200005
+#define MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID		200006
+#define MXLV_PCCD_170170_DH_SHUTTER_DISABLE		200007
+#define MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING	200008
 
 #define MXD_PCCD_170170_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -527,7 +533,23 @@ typedef struct {
   {MXLV_PCCD_170170_DH_LINEARIZATION, \
   		-1, "dh_linearization", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_linearization), \
-	{0}, NULL, MXFF_READ_ONLY}
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID, \
+  		-1, "dh_dummy_frame_valid", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_dummy_frame_valid), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_SHUTTER_DISABLE, \
+  		-1, "dh_shutter_disable", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_shutter_disable), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING, \
+  		-1, "dh_over_exposure_warning", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PCCD_170170, dh_over_exposure_warning), \
+	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );
 MX_API mx_status_type mxd_pccd_170170_create_record_structures(

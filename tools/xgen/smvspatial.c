@@ -294,7 +294,7 @@ static int locactive(IMWORK *imp)
 		return -2;
 	  }
 	imp->imf_lomask = ucp;
-	imp->imf_row = (unsigned short *)(cp + imsiz);
+	imp->imf_row = (unsigned short *)(ucp + imsiz);
 	if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
 	  {
 		fprintf(stderr,
@@ -567,7 +567,7 @@ static int interp_image(IMWORK *imp)
 			cz01 = cz00 + 1;
 			cz10 = cz00 + lspl->v_ncol; cz11 = cz10 + 1;
 			/* calculate fractional offset from this row */
-			q = ry - (double)y;	omq = 1. - q;
+			q = ry - (double)jy;	omq = 1. - q;
 			xc =	omp * omq * cz00->c_ctopx +
 				omp *   q * cz10->c_ctopx +
 				  p * omq * cz01->c_ctopx +
@@ -619,8 +619,12 @@ static int interp_image(IMWORK *imp)
 					*(lowt + off3) += wt3;
 				  }
 			  } /* end of "if ((-1 <= xc" clause */
+			else {
+				fprintf(stderr,
+ "[%4d,%4d] mapped to [%11.3e,%11.3e]\n", x, y, xc, yc);
+				obounds++;
+			     }
 		   } /* end of check for active pixel */
-		  else obounds++;
 		} /* end of loop through Y */
 	   } /* end of loop through X */
 	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
@@ -632,15 +636,18 @@ static int interp_image(IMWORK *imp)
 static int normalize(IMWORK *imp)
 { /*	this renormalizes by dividing the weighted sums by the weights.
 	The routine returns the number of non-found pixels */
-	int	x, y, noreps, nearedge, onedge;
+	int	nearedge, nonz, noreps, onedge, x, y;
 	float	*fpv, *fpw, *loim, *lowt;
 
 	noreps = nearedge = onedge = 0;
 	loim = imp->imf_locim;	lowt = imp->imf_locwt;
-	for (fpv = loim, fpw = lowt, x = 0; x < imp->imf_wid; x++)
+	for (fpv = loim, fpw = lowt, nonz = x = 0; x < imp->imf_wid; x++)
 	   for (y = 0; y < imp->imf_ht; y++, fpv++, fpw++)
 	      {
-		if (*fpw > FUZZ) *fpv /= *fpw;
+		if (*fpw > FUZZ)
+		  {
+			*fpv /= *fpw;	nonz++;
+		  }
 		else
 		  {
 			noreps++;
@@ -654,8 +661,10 @@ static int normalize(IMWORK *imp)
 			  }
 		     }
 	      }
-	if (imp->imf_flags & VERY_VERBOSE) /* code for this printout */
+	if (imp->imf_flags & ANY_VERBOSE) /* code for this printout */
 	  {
+		printf(" %8d pixels out of %8d gave nonzero intensities\n",
+		 nonz, imp->imf_imsize);
 		printf(
 		 " %8d pixels out of %8d were missing interpolatable values\n",
 			noreps, imp->imf_imsize);
@@ -894,11 +903,13 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 	  }
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
+	cflags |= PARTIAL_VERBOSE;
 	if ((NULL != masknam) && ('\0' != *masknam) &&
 	 (0 == access(masknam, 04)))
 	  {
 		imfs.imf_flags = cflags | ACTIVE_ONLY;
 		imfs.imf_masknam = masknam;
+		fprintf(stderr, "Mask from %s\n", masknam);
 	  }
 	else {
 		imfs.imf_flags = cflags & ~ACTIVE_ONLY;

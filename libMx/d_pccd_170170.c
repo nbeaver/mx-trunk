@@ -3689,6 +3689,15 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 	case MXLV_PCCD_170170_DH_LINEARIZATION:
 		pseudo_reg_value = (control_register >> 7) & 0x1;
 		break;
+	case MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID:
+		pseudo_reg_value = (control_register >> 9) & 0x1;
+		break;
+	case MXLV_PCCD_170170_DH_SHUTTER_DISABLE:
+		pseudo_reg_value = (control_register >> 10) & 0x1;
+		break;
+	case MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING:
+		pseudo_reg_value = (control_register >> 11) & 0x1;
+		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal pseudoregister %lu requested for area detector '%s'.",
@@ -3797,6 +3806,27 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 		pseudo_reg_value = ( register_value & 0x1 ) << 7;
 
 		control_register &= ~0x80;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID:
+		pseudo_reg_value = ( register_value & 0x1 ) << 9;
+
+		control_register &= ~0x200;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_SHUTTER_DISABLE:
+		pseudo_reg_value = ( register_value & 0x1 ) << 10;
+
+		control_register &= ~0x400;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING:
+		pseudo_reg_value = ( register_value & 0x1 ) << 11;
+
+		control_register &= ~0x800;
 
 		control_register |= pseudo_reg_value;
 		break;
