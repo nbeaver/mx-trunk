@@ -520,7 +520,7 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
-#if 1
+#if 0
 	static const char fname[] =
 		"mxd_pccd_170170_descramble_streak_camera()";
 #endif
@@ -545,8 +545,10 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 	raw_data   = raw_frame->image_data;
 	image_data = image_frame->image_data;
 
+#if 0
 	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
 		fname, row_framesize, column_framesize));
+#endif
 
 	/* Loop through the lines of the raw image. */
 
