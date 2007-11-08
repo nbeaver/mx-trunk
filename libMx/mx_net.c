@@ -2053,6 +2053,8 @@ mx_get_field_array( MX_RECORD *server_record,
 	mx_status_type mx_status;
 	char token_buffer[500];
 
+	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
@@ -2062,8 +2064,6 @@ mx_get_field_array( MX_RECORD *server_record,
 	num_dimensions = -1;
 	dimension_array = NULL;
 	data_element_size_array = NULL;
-
-	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
 	use_network_handles = TRUE;
 
