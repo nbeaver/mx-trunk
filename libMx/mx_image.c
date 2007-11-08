@@ -793,6 +793,8 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	unsigned long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
 
+	first_pixel = 0;
+
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
