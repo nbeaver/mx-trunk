@@ -27,12 +27,15 @@
 
 #define MXF_PCCD_170170_TEST_DEZINGER			0x100
 
+#if 0
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
  */
 
 #define MXF_PCCD_170170_HORIZ_SCALE	4
 #define MXF_PCCD_170170_VERT_SCALE	4
+
+#endif
 
 /*---*/
 
@@ -121,6 +124,9 @@ typedef struct {
 	MX_IMAGE_FRAME *temp_frame;
 
 	long old_framesize[2];
+
+	long horiz_descramble_factor;
+	long vert_descramble_factor;
 
 	uint16_t ***sector_array;
 

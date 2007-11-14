@@ -1,9 +1,14 @@
 /*
  * Name:    d_pccd_170170.c
  *
- * Purpose: MX driver for the Aviex PCCD-170170 CCD detector.
+ * Purpose: MX driver for Aviex PCCD series CCD detector.
  *
  * Author:  William Lavender
+ *
+ * Note:    Currently supported detectors include
+ *              PCCD-170170   at SOLEIL SWING
+ *              PCCD-4824     at ESRF (WAXS)
+ *              PCCD-16080    at APS BioCAT
  *
  *--------------------------------------------------------------------------
  *
@@ -64,19 +69,6 @@
 
 /* Internal prototype for smvspatial. */
 
-#define OLDSMVSPATIAL	FALSE
-
-#if OLDSMVSPATIAL
-
-MX_API int
-smvspatial( void *imarr,
-	int imwid,
-	int imhit,
-	int cflags,
-	char *splname );
-
-#else
-
 MX_API int
 smvspatial( void *imarr,
 	int imwid,
@@ -84,8 +76,6 @@ smvspatial( void *imarr,
 	int cflags,
 	char *splname,
 	char *maskname );
-
-#endif
 
 /*---*/
 
@@ -2165,23 +2155,64 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	vinput->bits_per_pixel = 16;
 	ad->bits_per_pixel = vinput->bits_per_pixel;
 
-	/* In unbinned mode, the Aviex camera is configured such that
-	 * each line contains 1024 groups of pixels, with 16 pixels
-	 * per group.  This means that for maximum resolution in
-	 * full frame mode, the video input will be configured for a
-	 * resolution of 16384 by 1024.  However, we want this to appear
-	 * to the user to have a resolution of 4096 by 4096.  Thus we
-         * must rescale the resolution as reported by the video card by
-	 * multiplying and dividing by appropriate factors of 4.
-	 */
+	/* Perform camera model specific initialization */
 
-	ad->maximum_framesize[0] = 4096;
-	ad->maximum_framesize[1] = 4096;
+	switch( record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+
+		/* In unbinned mode, the PCCD-170170 camera is configured such
+		 * that each line contains 1024 groups of pixels, with 16
+		 * pixels per group.  This means that for maximum resolution
+		 * in full frame mode, the video input will be configured for
+		 * a resolution of 16384 by 1024.  However, we want this to
+		 * appear to the user to have a resolution of 4096 by 4096.
+		 * Thus we must rescale the resolution as reported by the
+		 * video card by multiplying and dividing by appropriate
+		 * factors of 4.
+		 */
+
+		ad->maximum_framesize[0] = 4096;
+		ad->maximum_framesize[1] = 4096;
+
+		pccd_170170->horiz_descramble_factor = 4;
+		pccd_170170->vert_descramble_factor  = 4;
+		break;
+
+	case MXT_AD_PCCD_4824:
+
+		/* The PCCD-4824 camera is similar to the PCCD-170170 above,
+		 * but it only has a single 1024 by 1024 CCD chip.  This means
+		 * that each line from the detector contains 512 groups of
+		 * pixels with 4 pixels per group.  This means that the
+		 * maximum resolution of the video card should be 2048 by 512
+		 * and that the descramble factors should be 2.
+		 */
+
+		ad->maximum_framesize[0] = 1024;
+		ad->maximum_framesize[1] = 1024;
+
+		pccd_170170->horiz_descramble_factor = 2;
+		pccd_170170->vert_descramble_factor  = 2;
+		break;
+
+	case MXT_AD_PCCD_16080:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"PCCD-16080 specific code for the AVIEX PCCD driver "
+			"has not yet been implemented." );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Record '%s' has an MX type of %ld which "
+			"is not supported by this driver.",
+				record->name, record->mx_type );
+		break;
+	}
 
 	/* Set the default framesize and binning. */
 
-	ad->framesize[0] = 4096;
-	ad->framesize[1] = 4096;
+	ad->framesize[0] = ad->maximum_framesize[0];
+	ad->framesize[1] = ad->maximum_framesize[1];
 
 	mx_status = mx_area_detector_set_binsize( record, 1, 1 );
 
@@ -3232,10 +3263,29 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* Descramble the image. */
 
-		mx_status = mxd_pccd_170170_descramble_image( ad,
+		switch( ad->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+			mx_status = mxd_pccd_170170_descramble_image( ad,
 							pccd_170170,
 							ad->image_frame,
 							pccd_170170->raw_frame);
+			break;
+		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_16080:
+			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Image descrambling for area detector '%s' is not "
+			"yet implemented for AVIEX cameras of type '%s'.",
+				ad->record->name,
+				mx_get_driver_name( ad->record ) );
+			break;
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The AVIEX PCCD driver requested for record '%s' "
+			"cannot be used by records of type '%s'.",
+				ad->record->name,
+				mx_get_driver_name( ad->record ) );
+			break;
+		}
 	}
 
 	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
@@ -3885,14 +3935,15 @@ mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 		/* See the comments about the Aviex camera in the function
 		 * mxd_pccd_170170_open() for the explanation of where the
-		 * factors of 4 come from.
+		 * horizontal and vertical descramble factors come from.
 		 */
 
 		ad->framesize[0] = 
-			vinput_horiz_framesize / MXF_PCCD_170170_HORIZ_SCALE;
+		  vinput_horiz_framesize / pccd_170170->horiz_descramble_factor;
 
 		ad->framesize[1] =
-			vinput_vert_framesize * MXF_PCCD_170170_VERT_SCALE;
+		  vinput_vert_framesize * pccd_170170->vert_descramble_factor;
+
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
@@ -3922,8 +3973,32 @@ mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 	case MXLV_AD_TOTAL_ACQUISITION_TIME:
 	case MXLV_AD_DETECTOR_READOUT_TIME:
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
-		mx_status = mxd_pccd_170170_compute_sequence_times(
+		switch( ad->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+			mx_status = mxd_pccd_170170_compute_sequence_times(
 							ad, pccd_170170 );
+			break;
+		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_16080:
+			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Computed sequence times are not yet available "
+			"for record '%s' which uses driver '%s'.",
+				ad->record->name,
+				mx_get_driver_name( ad->record ) );
+
+			ad->sequence_start_delay = 0.0;
+			ad->total_acquisition_time = 0.0;
+			ad->detector_readout_time = 0.0;
+			ad->total_sequence_time = 0.0;
+			break;
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The AVIEX PCCD driver requested for record '%s' "
+			"cannot be used by records of type '%s'.",
+				ad->record->name,
+				mx_get_driver_name( ad->record ) );
+			break;
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -4094,14 +4169,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* See the comments about the Aviex camera in the function
 		 * mxd_pccd_170170_open() for the explanation of where the
-		 * factors of 4 come from.
+		 * horizontal and vertical descramble factors come from.
 		 */
 
 		vinput_horiz_framesize =
-			ad->framesize[0] * MXF_PCCD_170170_HORIZ_SCALE;
+			ad->framesize[0] * pccd_170170->horiz_descramble_factor;
 
 		vinput_vert_framesize =
-			ad->framesize[1] / MXF_PCCD_170170_VERT_SCALE;
+			ad->framesize[1] / pccd_170170->vert_descramble_factor;
 
 		horiz_binsize = ad->binsize[0];
 		vert_binsize  = ad->binsize[1];

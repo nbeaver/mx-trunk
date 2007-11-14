@@ -3299,6 +3299,20 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_pccd_170170_num_record_fields,
 				&mxd_pccd_170170_rfield_def_ptr},
 
+{"pccd_4824",      MXT_AD_PCCD_4824, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_pccd_170170_record_function_list,
+				NULL,
+				NULL,
+				&mxd_pccd_170170_num_record_fields,
+				&mxd_pccd_170170_rfield_def_ptr},
+
+{"pccd_16080",     MXT_AD_PCCD_16080, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_pccd_170170_record_function_list,
+				NULL,
+				NULL,
+				&mxd_pccd_170170_num_record_fields,
+				&mxd_pccd_170170_rfield_def_ptr},
+
 {"brandeis_biocat", MXT_AD_BRANDEIS_BIOCAT, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_brandeis_biocat_record_function_list,
 				NULL,
