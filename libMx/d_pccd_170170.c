@@ -208,14 +208,15 @@ static mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
 					long sector_height,
+					long num_sector_rows,
+					long num_sector_columns,
 					uint16_t *image_data )
 {
 	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
 
 	uint16_t ***sector_array;
 	uint16_t **sector_array_row_ptr;
-	long num_sector_rows, num_sector_columns, num_sectors;
-	long n, sector_row, row, sector_column;
+	long n, sector_row, row, sector_column, num_sectors;
 	long sizeof_row_of_sectors, sizeof_full_row, sizeof_sector_row;
 	long row_byte_offset, row_ptr_offset;
 	long byte_offset, ptr_offset;
@@ -234,8 +235,11 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		fname, sector_width, sector_height));
 #endif
 
+#if 0
 	num_sector_rows = 4;
 	num_sector_columns = 4;
+#endif
+
 	num_sectors = num_sector_rows * num_sector_columns;
 
 	*sector_array_ptr = NULL;
@@ -431,6 +435,8 @@ mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 	return;
 }
 
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
@@ -503,6 +509,55 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
+				uint16_t ***image_sector_array,
+				long i_framesize,
+				long j_framesize )
+{
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	static const char fname[] = "mxd_pccd_4824_descramble_raw_data()";
+#endif
+
+	long i, j;
+
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	mxd_pccd_170170_display_ul_corners( image_sector_array, 4 );
+#endif
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j] = raw_frame_data[2];
+
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[3];
+
+		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[1];
+
+		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[0];
+		raw_frame_data += 4;
+	    }
+	}
+
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	{
+		long k;
+
+		for ( k = 0; k < 4; k++ ) {
+			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
+				fname, k, image_sector_array[k][0][0] ));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
@@ -597,6 +652,83 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+				MX_PCCD_170170 *pccd_170170,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *raw_frame )
+{
+#if 0
+	static const char fname[] = "mxd_pccd_4824_descramble_streak_camera()";
+#endif
+	uint16_t *image_data, *raw_data;
+	uint16_t *image_ptr, *raw_ptr;
+	long i, j, row_framesize, column_framesize, total_raw_pixels;
+	long rfs;
+	mx_status_type mx_status;
+
+	/* First, we figure out how many pixels are in each line
+	 * of the raw data by asking for the framesize.
+	 */
+
+	mx_status = mx_area_detector_get_framesize( ad->record,
+					&row_framesize, &column_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	total_raw_pixels = row_framesize * column_framesize;
+
+	raw_data   = raw_frame->image_data;
+	image_data = image_frame->image_data;
+
+#if 0
+	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
+		fname, row_framesize, column_framesize));
+#endif
+
+	/* Loop through the lines of the raw image. */
+
+	for ( i = 0; i < (column_framesize/2L); i++ ) {
+		/* The raw data arrives in groups of 4 pixels that need
+		 * to be appropriately copied to the final image frame.
+		 */
+
+		raw_ptr = raw_data + i * row_framesize * 2L;
+
+		image_ptr = image_data + i * row_framesize * 2L;
+
+		/* Copy the pixels. */
+
+		for ( j = 0; j < (row_framesize/4L); j++ ) {
+
+			rfs = row_framesize;
+
+			image_ptr[j]                   = raw_ptr[16*j + 2];
+			image_ptr[rfs/2 - 1 - j]       = raw_ptr[16*j + 3];
+			image_ptr[rfs + j]             = raw_ptr[16*j + 1];
+			image_ptr[rfs + rfs/2 - 1 - j] = raw_ptr[16*j + 0];
+		}
+	}
+
+	/* Patch the column framesize and the image length so that
+	 * it matches the total size of the streak camera image.
+	 */
+
+	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
+
+	image_frame->image_length = ( total_raw_pixels / 2L )
+			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				MX_PCCD_170170 *pccd_170170,
@@ -607,6 +739,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	MX_SEQUENCE_PARAMETERS *sp;
 	long i, i_framesize, j_framesize;
+	long num_sector_rows, num_sector_columns;
 	uint16_t *frame_data;
 	mx_status_type mx_status;
 
@@ -628,13 +761,38 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	sp = &(ad->sequence_parameters);
 
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		num_sector_rows = 4;
+		num_sector_columns = 4;
+		break;
+	case MXT_AD_PCCD_4824:
+		num_sector_rows = 1;
+		num_sector_columns = 1;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal MX driver type '%s' passed for record '%s'.",
+			mx_get_driver_name( ad->record ),
+			ad->record->name );
+		break;
+	}
+
 	/* We handle streak camera descrambling in a special function
 	 * just for it.
 	 */
 
 	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
-		mx_status = mxd_pccd_170170_descramble_streak_camera(
+		switch( ad->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+			mx_status = mxd_pccd_170170_descramble_streak_camera(
 				ad, pccd_170170, image_frame, raw_frame );
+			break;
+		case MXT_AD_PCCD_4824:
+			mx_status = mxd_pccd_4824_descramble_streak_camera(
+				ad, pccd_170170, image_frame, raw_frame );
+			break;
+		}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,
@@ -708,6 +866,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_pccd_170170_alloc_sector_array(
 				&(pccd_170170->sector_array),
 				j_framesize, i_framesize,
+				num_sector_rows, num_sector_columns,
 				frame_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -717,10 +876,20 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	/* Copy and descramble the pixels from the raw frame to the image frame.
 	 */
 
-	mx_status = mxd_pccd_170170_descramble_raw_data(
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		mx_status = mxd_pccd_170170_descramble_raw_data(
 				raw_frame->image_data,
 				pccd_170170->sector_array,
 				i_framesize, j_framesize );
+		break;
+	case MXT_AD_PCCD_4824:
+		mx_status = mxd_pccd_4824_descramble_raw_data(
+				raw_frame->image_data,
+				pccd_170170->sector_array,
+				i_framesize, j_framesize );
+		break;
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3265,12 +3434,12 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
+		case MXT_AD_PCCD_4824:
 			mx_status = mxd_pccd_170170_descramble_image( ad,
 							pccd_170170,
 							ad->image_frame,
 							pccd_170170->raw_frame);
 			break;
-		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_16080:
 			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Image descrambling for area detector '%s' is not "
