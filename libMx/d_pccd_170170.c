@@ -302,6 +302,10 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 #endif
 	}
 
+	/* FIXME - The numerical values in the following comments only apply
+	 *         directly to the PCCD-170170.
+	 */
+
 	/* The 'sizeof_full_row' is the number of bytes in a single horizontal
 	 * line of the image.  The 'sizeof_row_of_sectors' is the number of
 	 * bytes in a horizontal row of sectors.  In unbinned mode,
@@ -2344,24 +2348,37 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		ad->maximum_framesize[1] = 4096;
 
 		pccd_170170->horiz_descramble_factor = 4;
-		pccd_170170->vert_descramble_factor  = 4;
+		pccd_170170->vert_descramble_factor = 4;
+
+		pccd_170170->pixel_clock_frequency = 60.0e6;
 		break;
 
 	case MXT_AD_PCCD_4824:
 
 		/* The PCCD-4824 camera is similar to the PCCD-170170 above,
-		 * but it only has a single 1024 by 1024 CCD chip.  This means
-		 * that each line from the detector contains 512 groups of
-		 * pixels with 4 pixels per group.  This means that the
-		 * maximum resolution of the video card should be 2048 by 512
+		 * but it only has a single CCD chip which has a maximum
+		 * image size of 3584 by 2048.  Each line from the detector
+		 * contains 1792 groups of pixels with 4 pixels per group.
+		 * A full frame image has 1024 lines.  This means that the
+		 * maximum resolution of the video card should be 7168 by 1024
 		 * and that the descramble factors should be 2.
 		 */
 
-		ad->maximum_framesize[0] = 1024;
-		ad->maximum_framesize[1] = 1024;
+		ad->maximum_framesize[0] = 3584;
+		ad->maximum_framesize[1] = 2048;
 
 		pccd_170170->horiz_descramble_factor = 2;
 		pccd_170170->vert_descramble_factor  = 2;
+
+#if 0
+		/* For the real detector. */
+
+		pccd_170170->pixel_clock_frequency = 45.4545e6;
+#else
+		/* For the simulator. */
+
+		pccd_170170->pixel_clock_frequency = 50.0e6;
+#endif
 		break;
 
 	case MXT_AD_PCCD_16080:
@@ -2444,10 +2461,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The pixel clock frequency is 60 MHz. */
+	/* Set the pixel clock frequency in the video card. */
 
 	mx_status = mx_video_input_set_pixel_clock_frequency(
-				video_input_record, 6.0e7 );
+		video_input_record, pccd_170170->pixel_clock_frequency );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2695,6 +2712,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	double timeout_in_seconds;
 	int comparison;
 	long num_frames_in_sequence, master_clock;
+	unsigned long control_register_value;
 	mx_bool_type camera_is_master, external_trigger, busy, circular;
 	mx_status_type mx_status;
 
@@ -2817,6 +2835,30 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	/* Turn off the buffer overrun flag. */
 
 	pccd_170170->buffer_overrun = FALSE;
+
+	/* Configure the detector head to use either an internal or
+	 * an external trigger.
+	 */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					&control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( external_trigger ) {
+		control_register_value |= MXF_PCCD_170170_EXTERNAL_TRIGGER;
+	} else {
+		control_register_value &= (~MXF_PCCD_170170_EXTERNAL_TRIGGER);
+	}
+
+	mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Prepare the video input for the next trigger. */
 

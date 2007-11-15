@@ -127,6 +127,7 @@ typedef struct {
 
 	long horiz_descramble_factor;
 	long vert_descramble_factor;
+	double pixel_clock_frequency;
 
 	uint16_t ***sector_array;
 
