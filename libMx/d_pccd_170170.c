@@ -235,11 +235,6 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		fname, sector_width, sector_height));
 #endif
 
-#if 0
-	num_sector_rows = 4;
-	num_sector_columns = 4;
-#endif
-
 	num_sectors = num_sector_rows * num_sector_columns;
 
 	*sector_array_ptr = NULL;
@@ -309,7 +304,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	/* The 'sizeof_full_row' is the number of bytes in a single horizontal
 	 * line of the image.  The 'sizeof_row_of_sectors' is the number of
 	 * bytes in a horizontal row of sectors.  In unbinned mode,
-	 * sizeof_row_of_sectors = 1024 * sizeof_full_row.
+	 * sizeof_row_of_sectors = sector_height * sizeof_full_row.
 	 */
 
 	/* sizeof_sector_row     = number of bytes in a single horizontal
@@ -323,8 +318,8 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	 *
 	 * For an unbinned image:
 	 *
-	 *   sizeof_row_of_sectors =
-	 *                1024 * sizeof_full_row = 1024 * 4 * sizeof_sector_row
+	 *   sizeof_row_of_sectors = sector_height * sizeof_full_row
+	 *        = sector_height * num_sector_columns * sizeof_sector_row
 	 */
 
 	sizeof_sector_row = sector_width * sizeof(uint16_t);
@@ -361,7 +356,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 							sector_column++ )
 		{
 
-		    n = sector_column + 4 * sector_row;
+		    n = sector_column + num_sector_columns * sector_row;
 
 		    byte_offset = sector_row * sizeof_row_of_sectors
 				+ row * sizeof_full_row
@@ -743,6 +738,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	MX_SEQUENCE_PARAMETERS *sp;
 	long i, i_framesize, j_framesize;
+	long row_framesize, column_framesize;
 	long num_sector_rows, num_sector_columns;
 	uint16_t *frame_data;
 	mx_status_type mx_status;
@@ -771,8 +767,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		num_sector_columns = 4;
 		break;
 	case MXT_AD_PCCD_4824:
-		num_sector_rows = 1;
-		num_sector_columns = 1;
+		num_sector_rows = 2;
+		num_sector_columns = 2;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -862,8 +858,19 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* Initially descramble the full image. */
 
-	i_framesize = MXIF_COLUMN_FRAMESIZE(image_frame) / 4;
-	j_framesize = MXIF_ROW_FRAMESIZE(image_frame) / 4;
+	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
+	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
+
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		i_framesize = column_framesize / 4;
+		j_framesize = row_framesize / 4;
+		break;
+	case MXT_AD_PCCD_4824:
+		i_framesize = column_framesize / 2;
+		j_framesize = row_framesize / 2;
+		break;
+	}
 
 	if ( pccd_170170->sector_array == NULL ) {
 
@@ -3408,8 +3415,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Make sure that the image frame is the correct size. */
 
-	row_framesize    = MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame) / 4;
-	column_framesize = MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) * 4;
+	row_framesize = MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame)
+				/ pccd_170170->horiz_descramble_factor;
+
+	column_framesize = MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame)
+				* pccd_170170->vert_descramble_factor;
 
 #if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
@@ -3437,13 +3447,13 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Patch in the correct descrambled dimensions. */
+	/* Copying the header overwrites all of the values,
+	 * so we patch in the correct descrambled dimensions.
+	 */
 
-	MXIF_ROW_FRAMESIZE(ad->image_frame) =
-			MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame) / 4;
+	MXIF_ROW_FRAMESIZE(ad->image_frame) = row_framesize;
 
-	MXIF_COLUMN_FRAMESIZE(ad->image_frame) =
-			MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) * 4;
+	MXIF_COLUMN_FRAMESIZE(ad->image_frame) = column_framesize;
 
 	/* If required, we now descramble the image. */
 
@@ -4190,17 +4200,17 @@ mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 							ad, pccd_170170 );
 			break;
 		case MXT_AD_PCCD_4824:
-		case MXT_AD_PCCD_16080:
-			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Computed sequence times are not yet available "
-			"for record '%s' which uses driver '%s'.",
-				ad->record->name,
-				mx_get_driver_name( ad->record ) );
-
 			ad->sequence_start_delay = 0.0;
 			ad->total_acquisition_time = 0.0;
 			ad->detector_readout_time = 0.0;
 			ad->total_sequence_time = 0.0;
+			break;
+		case MXT_AD_PCCD_16080:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Computed sequence times are not yet available "
+			"for record '%s' which uses driver '%s'.",
+				ad->record->name,
+				mx_get_driver_name( ad->record ) );
 			break;
 		default:
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
