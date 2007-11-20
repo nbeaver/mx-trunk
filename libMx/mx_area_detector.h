@@ -298,18 +298,26 @@ typedef struct mx_area_detector_type {
 	 * the exposure time is changed, the bias frame is changed,
 	 * the dark current frame is changed, or the correction flags
 	 * are changed.
+	 *
+	 * dark_current_offset_array uses 'float' rather than 'double'
+	 * to save memory.  For a 4096 by 4096 image, this means that
+	 * the array uses 64 megabytes rather than 128 megabytes.
 	 */
 
-	double *dark_current_offset_array;
+	float *dark_current_offset_array;
 
 	double old_exposure_time;
 
-	/* flood_field_scale_array is recomputed any time that
-	 * the bias frame is changed, the flood field frame is
-	 * changed or the correction flags are changed.
+	/* flood_field_scale_array is recomputed any time that the
+	 * bias frame is changed, the flood field frame is changed
+	 * or the correction flags are changed.
+	 *
+	 * flood_field_scale_array uses 'float' rather than 'double'
+	 * to save memory.  For a 4096 by 4096 image, this means that
+	 * the array uses 64 megabytes rather than 128 megabytes.
 	 */
 
-	double *flood_field_scale_array;
+	float *flood_field_scale_array;
 
 } MX_AREA_DETECTOR;
 

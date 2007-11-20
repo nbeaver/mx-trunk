@@ -5253,7 +5253,7 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 		return mx_status;
 
 	bytes_per_float_array =
-		row_framesize * column_framesize * sizeof(double);
+		row_framesize * column_framesize * sizeof(float);
 
 	extra_memory_needed = 0;
 
@@ -5319,7 +5319,7 @@ mxp_area_detector_u16_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 	long i, num_pixels;
 	double image_pixel, image_exposure_time;
-	double *dark_current_offset_array;
+	float *dark_current_offset_array;
 	uint16_t *image_data_array, *mask_data_array;
 	mx_status_type mx_status;
 
@@ -5606,7 +5606,7 @@ mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
 
 	long i, num_pixels;
 	double image_pixel, bias_offset;
-	double *flood_field_scale_array;
+	float *flood_field_scale_array;
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	mx_status_type mx_status;
 
@@ -6246,7 +6246,7 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 	double bias_offset      = 0.0;
 	unsigned long i, num_pixels, image_format;
 	double scaled_dark_current, exposure_time_ratio, exposure_time;
-	double *dark_current_offset_array;
+	float *dark_current_offset_array;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
@@ -6347,9 +6347,9 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 	num_pixels = MXIF_ROW_FRAMESIZE(dark_current_frame)
 			* MXIF_COLUMN_FRAMESIZE(dark_current_frame);
 	
-	dark_current_offset_array = malloc( num_pixels * sizeof(double) );
+	dark_current_offset_array = malloc( num_pixels * sizeof(float) );
 
-	if ( dark_current_offset_array == (double *) NULL ) {
+	if ( dark_current_offset_array == (float *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu-element array "
 		"of dark current offset values for area detector '%s'.",
@@ -6446,7 +6446,7 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	double bias_offset     = 0.0;
 	unsigned long i, num_pixels, image_format;
 	double ffs_numerator, ffs_denominator, bias_average;
-	double *flood_field_scale_array;
+	float *flood_field_scale_array;
 	mx_bool_type flood_less_than_or_equal_to_bias;
 
 #if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
@@ -6525,9 +6525,9 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	num_pixels = MXIF_ROW_FRAMESIZE(flood_field_frame)
 			* MXIF_COLUMN_FRAMESIZE(flood_field_frame);
 	
-	flood_field_scale_array = malloc( num_pixels * sizeof(double) );
+	flood_field_scale_array = malloc( num_pixels * sizeof(float) );
 
-	if ( flood_field_scale_array == (double *) NULL ) {
+	if ( flood_field_scale_array == (float *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu-element array "
 		"of flood field scale factors for area detector '%s'.",

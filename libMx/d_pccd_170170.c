@@ -749,7 +749,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	MX_HRT_START(total_measurement);
 #endif
+	/* Shut up useless GCC 4 initialized variable warnings. */
+
 	i_framesize = j_framesize = 0;
+	memset( &memcpy_measurement, 0, sizeof(MX_HRT_TIMING) );
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
