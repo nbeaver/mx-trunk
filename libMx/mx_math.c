@@ -6,8 +6,7 @@
  * Author:  William Lavender
  *
  * Note:    This is by no means a complete algorithm library.
- *          If you want a complete library, try the Atlas system
- *          which is based on BLAS and LAPACK.
+ *          If you want a complete library, try BLAS or LAPACK.
  *
  *---------------------------------------------------------------------------
  *
@@ -45,7 +44,7 @@ mx_solve_tridiagonal_matrix( double *a,		/* Below the diagonal. */
 	c[0] = mx_divide_safely( c[0], b[0] );
 	y[0] = mx_divide_safely( y[0], b[0] );
 
-	for ( i = 0; i < n; i++ ) {
+	for ( i = 1; i < n; i++ ) {
 		multiplier = mx_divide_safely( 1.0, b[i] - c[i-1] * a[i] );
 		c[i] = c[i] * multiplier;
 		y[i] = ( y[i] - a[i] * y[i-1] ) * multiplier;
