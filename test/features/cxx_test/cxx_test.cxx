@@ -10,6 +10,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_image.h"
+#include "mx_math.h"
 
 #include "mx_amplifier.h"
 #include "mx_analog_input.h"

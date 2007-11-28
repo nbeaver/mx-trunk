@@ -34,6 +34,27 @@ MX_API void mx_solve_tridiagonal_matrix( double *a,
 					double *x,
 					int n );
 
+typedef struct {
+	unsigned long num_points;
+	double *x_array;
+	double *y_array;
+	double *gpp_array;	/* Array of second derivatives. */
+	double gp_start;	/* First derivative at the first point. */
+	double gp_end;		/* First derivative at the last point. */
+} MX_CUBIC_SPLINE;
+
+MX_API mx_status_type
+mx_create_natural_cubic_spline( unsigned long num_points,
+				double *x_array,
+				double *y_array,
+				MX_CUBIC_SPLINE ** spline );
+
+MX_API void
+mx_delete_cubic_spline( MX_CUBIC_SPLINE *spline );
+
+MX_API double
+mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x );
+
 #ifdef __cplusplus
 }
 #endif
