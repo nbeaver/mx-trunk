@@ -1876,6 +1876,79 @@ mx_area_detector_set_trigger_mode( MX_RECORD *record, long trigger_mode )
 	return mx_status;
 }
 
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_shutter_enable( MX_RECORD *record,
+					mx_bool_type *shutter_enable )
+{
+	static const char fname[] = "mx_area_detector_get_shutter_enable()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SHUTTER_ENABLE; 
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( shutter_enable != (mx_bool_type *) NULL ) {
+		*shutter_enable = ad->shutter_enable;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_shutter_enable( MX_RECORD *record,
+					mx_bool_type shutter_enable )
+{
+	static const char fname[] = "mx_area_detector_set_shutter_enable()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SHUTTER_ENABLE; 
+
+	ad->shutter_enable = shutter_enable;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mx_area_detector_arm( MX_RECORD *record )
 {
@@ -4247,6 +4320,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_ROI_NUMBER:
 	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_SHUTTER_ENABLE:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -4416,6 +4490,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_TRIGGER_MODE:
 	case MXLV_AD_ROI_NUMBER:
 	case MXLV_AD_CORRECTION_FLAGS:
+	case MXLV_AD_SHUTTER_ENABLE:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.
@@ -4459,18 +4534,20 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 /*---*/
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
-#  define MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS \
-	do {								\
-		for ( i = 0; i < num_exposures; i++ ) {			\
-			if ( dezinger_frame_array[i] != NULL ) {	\
-				mx_image_free(dezinger_frame_array[i]); \
-			}						\
-		}							\
+#  define MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION \
+	do {								      \
+		for ( i = 0; i < num_exposures; i++ ) {			      \
+			if ( dezinger_frame_array[i] != NULL ) {	      \
+				mx_image_free(dezinger_frame_array[i]);       \
+			}						      \
+		}							      \
+		(void) mx_area_detector_set_shutter_enable(ad->record, TRUE); \
 	} while (0)
 #else
-#  define MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS \
-	do {				\
-		free( sum_array );	\
+#  define MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION \
+	do {				                                      \
+		free( sum_array );	                                      \
+		(void) mx_area_detector_set_shutter_enable(ad->record, TRUE); \
 	} while (0)
 #endif
 
@@ -4651,8 +4728,20 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 							exposure_time );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+		MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 		return mx_status;
+	}
+
+	/* If this is a dark current correction, disable the shutter. */
+
+	if ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) {
+		mx_status = mx_area_detector_set_shutter_enable(
+							ad->record, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
+			return mx_status;
+		}
 	}
 
 	/* Take the requested number of exposures and sum together
@@ -4670,7 +4759,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_start( ad->record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 			return mx_status;
 		}
 
@@ -4680,7 +4769,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			mx_status = mx_area_detector_is_busy(ad->record, &busy);
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 				return mx_status;
 			}
 
@@ -4690,7 +4779,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 				MX_DEBUG(-2,("%s: INTERRUPTED", fname));
 
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 
 				return mx_area_detector_stop( ad->record );
 			}
@@ -4707,7 +4796,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 			return mx_status;
 		}
 
@@ -4734,7 +4823,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 					ad->record, &saved_correction_flags );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 				return mx_status;
 			}
 
@@ -4742,7 +4831,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 					ad->record, desired_correction_flags );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 				return mx_status;
 			}
 
@@ -4752,12 +4841,12 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 					ad->record, saved_correction_flags );
 
 			if ( mx_status2.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 				return mx_status2;
 			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 				return mx_status;
 			}
 		}
@@ -4769,7 +4858,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 					&(dezinger_frame_array[n]) );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 			return mx_status;
 		}
 
@@ -4782,7 +4871,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&void_image_data_pointer );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
+			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 			return mx_status;
 		}
 
@@ -4819,8 +4908,6 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_HRT_RESULTS( measurement, fname, "Total image dezingering time." );
 #  endif
 
-	MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
-
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -4842,8 +4929,9 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 #  endif
 	}
 
-	free( sum_array );
 #endif /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
+	MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 
 	/* Set the image frame exposure time. */
 

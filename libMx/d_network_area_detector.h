@@ -62,6 +62,7 @@ typedef struct {
 	MX_NETWORK_FIELD roi_number_nf;
 	MX_NETWORK_FIELD save_frame_nf;
 	MX_NETWORK_FIELD sequence_start_delay_nf;
+	MX_NETWORK_FIELD shutter_enable_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;

@@ -37,7 +37,7 @@
 /*---------------------------------------------------------------------------*/
 
 static void
-mxp_area_detector_free_correction_struct( MX_AREA_DETECTOR *ad,
+mxp_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr_ptr )
 {
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
@@ -54,6 +54,20 @@ mxp_area_detector_free_correction_struct( MX_AREA_DETECTOR *ad,
 	if ( corr == NULL ) {
 		return;
 	}
+
+	if ( ad == NULL ) {
+		ad = corr->area_detector;
+	}
+
+	/* Enable the area detector shutter. */
+
+	if ( ( ad != NULL )
+	  && ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) )
+	{
+		(void) mx_area_detector_set_shutter_enable( ad->record, TRUE );
+	}
+
+	/* Free correction measurement data structures. */
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
 	if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
@@ -139,7 +153,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 							&total_num_frames,
 							&ad_status );
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( ad, corr );
+		mxp_area_detector_cleanup_after_correction( ad, corr );
 		return mx_status;
 	}
 
@@ -184,7 +198,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 				ad->record, corr->num_frames_read );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -195,7 +209,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 					ad->record, &saved_correction_flags );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_free_correction_struct(
+				mxp_area_detector_cleanup_after_correction(
 								ad, corr );
 				return mx_status;
 			}
@@ -204,7 +218,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 				ad->record, corr->desired_correction_flags );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_free_correction_struct(
+				mxp_area_detector_cleanup_after_correction(
 								ad, corr );
 				return mx_status;
 			}
@@ -220,13 +234,13 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 					ad->record, saved_correction_flags );
 
 			if ( mx_status2.code != MXE_SUCCESS ) {
-				mxp_area_detector_free_correction_struct(
+				mxp_area_detector_cleanup_after_correction(
 								ad, corr );
 				return mx_status2;
 			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_free_correction_struct(
+				mxp_area_detector_cleanup_after_correction(
 								ad, corr );
 				return mx_status;
 			}
@@ -239,7 +253,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		      &(corr->dezinger_frame_array[ corr->num_frames_read ]) );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -252,7 +266,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 						&void_image_data_pointer );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -303,7 +317,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			callback_message->u.function.callback_interval );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 		}
 
 		/* Return, knowing that we will be called again soon. */
@@ -328,7 +342,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			break;
 
 		default:
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Correction measurement type %ld is not supported "
@@ -352,7 +366,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			"Total image dezingering time." );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -365,7 +379,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 						&void_image_data_pointer );
 		
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_free_correction_struct( ad, corr );
+			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -403,7 +417,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		/* Return with the satisfaction of a job well done. */
 
-		mxp_area_detector_free_correction_struct( ad, corr );
+		mxp_area_detector_cleanup_after_correction( ad, corr );
 
 #if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
@@ -517,7 +531,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						&(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -552,7 +566,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	}
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -562,7 +576,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
 
 	if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate "
@@ -579,7 +593,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						&void_image_data_pointer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -590,7 +604,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	corr->sum_array = calloc( pixels_per_frame, sizeof(double) );
 
 	if ( corr->sum_array == (double *) NULL ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate "
@@ -605,7 +619,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 							&detector_readout_time);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -620,7 +634,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 							corr->exposure_time,
 							frame_time );
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -630,7 +644,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -639,7 +653,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	corr->callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
 
 	if ( corr->callback_message == NULL ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for an MX_CALLBACK_MESSAGE "
@@ -670,7 +684,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 				corr->callback_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -686,7 +700,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						&(corr->old_status) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
@@ -701,6 +715,19 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	ad->correction_measurement = corr;
 
+	/* If this is a dark current measurement, then disable the shutter. */
+
+	if ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) {
+
+		mx_status = mx_area_detector_set_shutter_enable(record, FALSE);
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_cleanup_after_correction(NULL, corr);
+
+			return mx_status;
+		}
+	}
+
 	/* Start the measurement sequence. */
 
 	mx_status = mx_area_detector_start( record );
@@ -708,7 +735,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_abort( record );
 
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
@@ -721,7 +748,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_abort( record );
 
-		mxp_area_detector_free_correction_struct( NULL, corr );
+		mxp_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
@@ -903,6 +930,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_SEQUENCE_START_DELAY:
+		case MXLV_AD_SHUTTER_ENABLE:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
@@ -1066,6 +1094,10 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_sequence_start_delay(
 								record, NULL );
 			break;
+		case MXLV_AD_SHUTTER_ENABLE:
+			mx_status = mx_area_detector_get_shutter_enable(
+								record, NULL );
+			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
@@ -1222,6 +1254,10 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SEQUENCE_START_DELAY:
 			mx_status = mx_area_detector_set_sequence_start_delay(
 					record, ad->sequence_start_delay );
+			break;
+		case MXLV_AD_SHUTTER_ENABLE:
+			mx_status = mx_area_detector_set_shutter_enable(
+						record, ad->shutter_enable );
 			break;
 		case MXLV_AD_STOP:
 			mx_status = mx_area_detector_stop( record );

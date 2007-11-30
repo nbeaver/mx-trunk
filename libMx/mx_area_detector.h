@@ -255,6 +255,8 @@ typedef struct mx_area_detector_type {
 	char register_name[MXU_FIELD_NAME_LENGTH+1];
 	long register_value;
 
+	mx_bool_type shutter_enable;
+
 	/* The following are the image frames and frame buffer pointers
 	 * used for image correction.
 	 */
@@ -378,6 +380,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_USE_SCALED_DARK_CURRENT		12051
 #define MXLV_AD_REGISTER_NAME			12052
 #define MXLV_AD_REGISTER_VALUE			12053
+#define MXLV_AD_SHUTTER_ENABLE			12054
 
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12100
 #define MXLV_AD_MASK_FILENAME			12101
@@ -676,6 +679,11 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_REGISTER_VALUE, -1, "register_value", \
   					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, register_value ),\
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_SHUTTER_ENABLE, -1, "shutter_enable", \
+  					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, shutter_enable ),\
 	{sizeof(char)}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
@@ -924,6 +932,12 @@ MX_API mx_status_type mx_area_detector_get_trigger_mode( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_set_trigger_mode( MX_RECORD *ad_record,
 							long trigger_mode );
+
+MX_API mx_status_type mx_area_detector_get_shutter_enable( MX_RECORD *ad_record,
+						mx_bool_type *shutter_enable );
+
+MX_API mx_status_type mx_area_detector_set_shutter_enable( MX_RECORD *ad_record,
+						mx_bool_type shutter_enable );
 
 /*---*/
 

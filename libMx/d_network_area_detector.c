@@ -377,9 +377,14 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	    "%s.save_frame", network_area_detector->remote_record_name );
 
 	mx_network_field_init(&(network_area_detector->sequence_start_delay_nf),
-			network_area_detector->server_record,
+		network_area_detector->server_record,
 	    "%s.sequence_start_delay",
 	    		network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->shutter_enable_nf),
+		network_area_detector->server_record,
+		"%s.shutter_enable",
+			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->status_nf),
 		network_area_detector->server_record,
@@ -1587,6 +1592,10 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_get( &(network_area_detector->register_value_nf),
 					MXFT_LONG, &(ad->register_value) );
 		break;
+	case MXLV_AD_SHUTTER_ENABLE:
+		mx_status = mx_get( &(network_area_detector->shutter_enable_nf),
+				MXFT_BOOL, &(ad->shutter_enable) );
+		break;
 	default:
 		mx_status =
 			mx_area_detector_default_get_parameter_handler( ad );
@@ -1728,6 +1737,10 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_put( &(network_area_detector->register_value_nf),
 					MXFT_LONG, &(ad->register_value) );
+		break;
+	case MXLV_AD_SHUTTER_ENABLE:
+		mx_status = mx_put( &(network_area_detector->shutter_enable_nf),
+				MXFT_BOOL, &(ad->shutter_enable) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:

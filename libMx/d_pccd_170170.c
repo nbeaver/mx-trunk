@@ -118,6 +118,8 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_geometrical_correction
 };
 
+/* PCCD-170170 data structures. */
+
 MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
@@ -131,6 +133,38 @@ long mxd_pccd_170170_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_pccd_170170_rfield_def_ptr
 			= &mxd_pccd_170170_record_field_defaults[0];
+
+/* PCCD-4824 data structures. */
+
+MX_RECORD_FIELD_DEFAULTS mxd_pccd_4824_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
+	MXD_PCCD_170170_STANDARD_FIELDS
+};
+
+long mxd_pccd_4824_num_record_fields
+		= sizeof( mxd_pccd_4824_record_field_defaults )
+			/ sizeof( mxd_pccd_4824_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_pccd_4824_rfield_def_ptr
+			= &mxd_pccd_4824_record_field_defaults[0];
+
+/* PCCD-16080 data structures. */
+
+MX_RECORD_FIELD_DEFAULTS mxd_pccd_16080_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
+	MXD_PCCD_170170_STANDARD_FIELDS
+};
+
+long mxd_pccd_16080_num_record_fields
+		= sizeof( mxd_pccd_16080_record_field_defaults )
+			/ sizeof( mxd_pccd_16080_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr
+			= &mxd_pccd_16080_record_field_defaults[0];
 
 /*---*/
 
@@ -2447,7 +2481,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * that we do not want anyway.
 	 */
 
-	control_register_value |= MXF_PCCD_170170_EXTRA_FRAME_VALID;
+	control_register_value |= MXF_PCCD_170170_DUMMY_FRAME_VALID;
 
 	/* If requested, turn on the test mode pattern. */
 
@@ -4126,6 +4160,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+	long shutter_disabled;
 	mx_status_type mx_status;
 
 	pccd_170170 = NULL;
@@ -4252,6 +4287,20 @@ mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 							pccd_170170, -1 );
 		break;
 
+	case MXLV_AD_SHUTTER_ENABLE:
+		mx_status = mx_area_detector_get_register( ad->record,
+							"dh_shutter_disable",
+							&shutter_disabled );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( shutter_disabled ) {
+			ad->shutter_enable = FALSE;
+		} else {
+			ad->shutter_enable = TRUE;
+		}
+		break;
+
 	default:
 		if ( ad->parameter_type >= MXLV_PCCD_170170_DH_BASE ) {
 			mx_status = mxd_pccd_170170_get_register_value( ad,
@@ -4283,6 +4332,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	long total_num_subimage_lines;
+	long shutter_disable;
 	unsigned long new_delay_time;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	double exposure_multiplier, gap_multiplier;
@@ -5228,6 +5278,18 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_REGISTER_VALUE:
 		mx_status = mxd_pccd_170170_set_register_value( ad,
 							pccd_170170, -1 );
+		break;
+
+	case MXLV_AD_SHUTTER_ENABLE:
+		if ( ad->shutter_enable ) {
+			shutter_disable = 0;
+		} else {
+			shutter_disable = 1;
+		}
+
+		mx_status = mx_area_detector_set_register( ad->record,
+							"dh_shutter_disable",
+							shutter_disable );
 		break;
 
 	default:

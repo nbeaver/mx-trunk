@@ -82,13 +82,22 @@
 
 #define MXF_PCCD_170170_UNBINNED_PIXEL_AVERAGING	0x100
 
-/* Extra frame valid pulse (bit 9).
- * The extra frame valid pulse is to work around a "feature"
+/* Dummy frame valid pulse (bit 9).
+ *
+ * The dummy frame valid pulse is to work around a "feature"
  * of the EPIX XCLIB cameras which ignore the first Frame Valid
  * signal sent to them by default.
  */
 
-#define MXF_PCCD_170170_EXTRA_FRAME_VALID		0x200
+#define MXF_PCCD_170170_DUMMY_FRAME_VALID		0x200
+
+/* Shutter disable (bit 10). */
+
+#define MXF_PCCD_170170_SHUTTER_DISABLE			0x400
+
+/* Over-exposure warning (bit 11). */
+
+#define MXF_PCCD_170170_OVER_EXPOSURE_WARNING		0x800
 
 /*-------------------------------------------------------------*/
 
@@ -603,6 +612,12 @@ extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_ad_function_list;
 
 extern long mxd_pccd_170170_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_170170_rfield_def_ptr;
+
+extern long mxd_pccd_4824_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_4824_rfield_def_ptr;
+
+extern long mxd_pccd_16080_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr;
 
 #endif /* __D_PCCD_170170_H__ */
 
