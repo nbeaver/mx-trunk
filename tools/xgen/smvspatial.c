@@ -46,6 +46,8 @@ Change record:
 #define		VERY_VERBOSE	0x2
 #define		ANY_VERBOSE	(PARTIAL_VERBOSE | VERY_VERBOSE)
 #define		ACTIVE_ONLY	0x8
+#define		EXTRAP_REGION	0x10
+#define		SCALED_MASK	0x20
 	/* system-level declarations, appropriately latched */
 #ifndef	__stdlib_h
 extern void	*calloc(size_t count, size_t size);
@@ -270,7 +272,7 @@ static int locactive(IMWORK *imp)
   	We assume that the mask from which the active-area array is taken
 	was created at the same level of binning as the image
 	to which it'll be applied. */
-	int		nr, pos, jy, npos;
+	int		ngt1, nr, pos, jy, npos;
 	size_t		busiz, busiz2, imsiz, memneed;
 	unsigned short	*usp;
 	unsigned char	*ucp;
@@ -320,18 +322,33 @@ static int locactive(IMWORK *imp)
 		  }
 		for (usp = imp->imf_row, jy = 0; jy < busiz;
 		 jy++, ucp++, usp++)
-			*ucp = (*usp > 0); /* convert 16-bit->8-bit */
+		   {
+			if (*usp > 253)
+			  {
+				fprintf(stderr, "Tilt! byteorder wrong!\n");
+				killimwork(imp, 010);	return -2;
+			  }
+			*ucp = *usp;	/* 16-bit to 8-bit */
+		   }
 	   }
 	(void)fclose(fpmas);	fpmas = NULL;
+	ucp = imp->imf_lomask;
+	for (ngt1 = npos = pos = 0; pos < imp->imf_wid; pos++)
+	   for (jy = 0; jy < busiz; jy++, ucp++)
+	      {
+		if (*ucp)
+		  {
+			npos++;
+			if (*ucp > 1) ngt1++;
+		  }
+	      }
+	if (ngt1 > 0) imp->imf_flags |= SCALED_MASK;
 	if (imp->imf_flags & ANY_VERBOSE)
 	  {
-		ucp = imp->imf_lomask;
-		for (npos = pos = 0; pos < imp->imf_wid; pos++)
-		   for (jy = 0; jy < busiz; jy++, ucp++)
-			if (*ucp == 1) npos++;
 		fprintf(stderr,
 		 " %d pixels out of a possible %d are active\n",
 			npos, (int)(imp->imf_wid * busiz));
+		if (ngt1 > 0) printf(" Weighted mask is being used\n");
 	  }
 	return EOK;
 }
@@ -380,10 +397,9 @@ static int find_limits(IMWORK *imp)
 			czy00 = lspl->v_cpt + jy * lspl->v_ncol;
 			/* calculate fractional offsets from this row */
 			q = ry - (double)jy; /* fractional offset from row */
-			looff = imp->imf_lomask + y;
+			looff = imp->imf_lomask + y * imp->imf_wid + xmin;
 			omq = 1. - q;
-			for (x = xmin, lom = looff + xmin * imp->imf_ht;
-			 x < xmax; x++, lom += imp->imf_ht)
+			for (x = xmin, lom = looff; x < xmax; x++, lom++)
 			 if (*lom)
 			   {
 				dx = ((double)x) - lspl->v_x0px;
@@ -547,9 +563,10 @@ static int interp_image(IMWORK *imp)
 		/* looff only matters when imf_flags & ACTIVE_ONLY is on,
 		 but we don't want to run into memory overruns */
 		if (imp->imf_flags & ACTIVE_ONLY)
-			looff = imp->imf_lomask + x * imp->imf_ht;
+			looff = imp->imf_lomask + x;
 		else	looff = (unsigned char *)(imp->imf_data16);
-		for (y = 0, lom = looff; y < imp->imf_ht; y++, lom++)
+		for (y = 0, lom = looff; y < imp->imf_ht;
+		 y++, lom += imp->imf_wid)
 		{
 		 if ((!(imp->imf_flags & ACTIVE_ONLY)) || (*lom))
 		   {
@@ -597,6 +614,9 @@ static int interp_image(IMWORK *imp)
 				/* find the input intensity value */
 				imv = imp->imf_data16[x * imp->imf_ht + y];
 				rimv = ((double)imv);
+				if ((imp->imf_flags & SCALED_MASK) &&
+				 (*lom != 40))
+					rimv *= 0.025 * ((double)(*lom));
 				if ((ix >= 0) && (iy >= 0))
 				  {
 					*(loim + off0) += wt0 * rimv;
@@ -619,11 +639,7 @@ static int interp_image(IMWORK *imp)
 					*(lowt + off3) += wt3;
 				  }
 			  } /* end of "if ((-1 <= xc" clause */
-			else {
-				fprintf(stderr,
- "[%4d,%4d] mapped to [%11.3e,%11.3e]\n", x, y, xc, yc);
-				obounds++;
-			     }
+			else obounds++;
 		   } /* end of check for active pixel */
 		} /* end of loop through Y */
 	   } /* end of loop through X */
@@ -674,110 +690,6 @@ static int normalize(IMWORK *imp)
 			onedge);
 	  }
 	return noreps;
-}
-
-static void stredge(float *fpv, float *fpw, int offset)
-{ /* simple extrapolation scheme */
-	float	denom;	
-
-	if ((denom = *(fpw + offset)) > FUZZ)
-	  {
-		*fpw += denom;	*fpv += denom * *(fpv + offset);
-	  }
-}
-
-static int extrap_pix(IMWORK *imp, int norep)
-{ /*	This extrapolates to account for missing pixels.
-	It returns the number that are still missing when it's done */
-	int	corrected, hit2, ix, iy, nearedge, off0, onedge, wid2, y;
-	float	*fpv, *fpw, *loim, *lowt, *spmin, *spmax;
-
-	loim = imp->imf_locim;	lowt = imp->imf_locwt;
-	hit2 = imp->imf_ht / 2;	wid2 = imp->imf_wid / 2;
-	spmin = imp->imf_locim;
-	spmax = imp->imf_locim + imp->imf_wid * imp->imf_ht;
-	y = imp->imf_ht;
-	for (ix = hit2, corrected = 0; (ix >= 0) && (ix < imp->imf_wid); )
-	   {
-		for (iy = hit2; (iy >= 0) && (iy < imp->imf_ht); )
-		   {
-			off0 = ix * imp->imf_ht + iy;
-			fpv = spmin + off0;
-			fpw = imp->imf_locwt + off0;
-			if (FUZZ > *fpw)
-			  {
-				*fpv = 0.;
-				if (ix > 0)
-				  {
-					if (iy > 0) stredge(fpv, fpw, -y - 1);
-					stredge(fpv, fpw, -y);
-					if (iy < y-1) stredge(fpv, fpw, 1 - y);
-				  }
-				if (iy > 0) stredge(fpv, fpw, -1);
-				if (iy < y - 1) stredge(fpv, fpw, 1);
-				if (ix < imp->imf_wid - 1)
-				  {
-					if (iy > 0) stredge(fpv, fpw, y - 1);
-					stredge(fpv, fpw, y);
-					if (iy < y-1) stredge(fpv, fpw, 1 + y);
-				  }
-				if (*fpw > FUZZ)
-				  { /* these shouldn't get high weights */
-					*fpv /= *fpw;	corrected++;
-					*fpw = 0.1;
-					
-				  }
-				else {
-					*fpw = *fpv = 0.;
-				     }
-			  }
-			if (corrected >= norep) break;
-			iy = (iy >= hit2) ?
-			 imp->imf_ht - 1 - iy : imp->imf_ht - iy;
-		   }
-		if (corrected >= norep) break;
-		ix = (ix >= wid2) ?
-			imp->imf_wid - 1 - ix : imp->imf_wid - ix;
-	   }
-	if (corrected >= norep)
-	  {
-		if (imp->imf_flags & VERY_VERBOSE)
-			printf("All points found on extrapolation pass\n");
-		return 0;
-	  }
-	else {
-		norep = nearedge = onedge = 0;
-		for (fpv = imp->imf_locim, fpw = imp->imf_locwt, ix = 0;
-		 ix < imp->imf_wid; ix++)
-		   for (iy = 0; iy < imp->imf_ht; iy++, fpv++, fpw++)
-		      {
-			if (*fpw <= FUZZ)
-			  {
-				norep++;
-				if ((ix < 4) || (iy < 4) ||
-				 (ix >= imp->imf_wid - 4) ||
-				 (iy >= imp->imf_ht - 4))
-				  {
-					nearedge++;
-					if ((ix < 2) || (iy < 2) ||
-					 (ix >= imp->imf_wid - 2) ||
-					 (iy >= imp->imf_ht  - 2)) onedge++;
-				  }
-			     }
-		      }
-		if (imp->imf_flags & VERY_VERBOSE)
-		  {
-			printf("after extrapolating:\n");
-			printf(
- " %8d pixels out of %8d were missing interpolatable values\n",
-				norep, imp->imf_imsize);
-			printf(
- " of these, %8d were within three pixels of the edge\n", nearedge);
-			printf(
-" of these, %8d were within   one pixel  of the edge\n", onedge);
-		  }
-		return norep;
-	     }
 }
 
 static int creat_undistor(IMWORK *imp)
@@ -844,6 +756,8 @@ static void sumsmvspat(FILE *fp, IMWORK *imp)
 	fprintf(fp, "An image is being spatially corrected.\n");
 	fprintf(fp, "Spatial correction derived from file %s\n",
 		imp->imf_splname);
+	if (imp->imf_flags & ACTIVE_ONLY) fprintf(fp,
+	 "Active-pixel mask derived from file %s\n", imp->imf_masknam);
 	fprintf(fp, "Image is being written back into the original memory\n");
 }
 
@@ -869,8 +783,6 @@ static int img_conversion(IMWORK *imp)
 	/* re-generate the output values by dividing the weighted
 	 count values by the weights */
 	noreps = normalize(imp);
-	/* extrapolate to take care of missing pixels */
-	noreps = extrap_pix(imp, noreps);
 	/* phew. Now we can make an image out of this array. */
 	imerr = creat_undistor(imp);
 	return imerr;
@@ -884,10 +796,11 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 		The output will be written back to this pointer as well.
 	cflags	flag value. Unlike earlier versions,
 	 the only active bits in this flag now are associated with verbosity:
-		bit 1	moderate amounts of verbosity
-		bit 2	higher verbosity
-		bit 3	even higher verbosity (not currently used)
-		bit 4	only use active area in correction
+		bit 1	moderate amounts of verbosity (0x1)
+		bit 2	higher verbosity (0x2)
+		bit 3	even higher verbosity (not currently used) (0x4)
+		bit 4	only use active area in correction (0x8)
+		bit 5	use extrapolations beyond the correction region (0x10)
 	splname	Name of the spatial-correction (*.uca) file.
 	masknam	Name of the active-pixel-mask image file.
 	In this version, the detector dimensions don't need to be
@@ -903,7 +816,8 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 	  }
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
-	cflags |= PARTIAL_VERBOSE;
+	/* temporary */
+	cflags |= PARTIAL_VERBOSE; 
 	if ((NULL != masknam) && ('\0' != *masknam) &&
 	 (0 == access(masknam, 04)))
 	  {
