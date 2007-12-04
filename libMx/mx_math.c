@@ -92,6 +92,17 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 
 	X = Y = A = B = C = G = R = NULL;
 
+	if ( num_points == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Splines containing zero points are not supported.  "
+		"You must provide at least two points." );
+	} else 
+	if ( num_points == 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Splines containing only one point are not supported.  "
+		"You must provide at least two points." );
+	}
+
 	if ( x_array == (double *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The x_array argument passed was NULL." );
@@ -111,6 +122,8 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	  "Ran out of memory trying to allocate an MX_CUBIC_SPLINE structure.");
 	}
+
+	(*spline)->num_points = num_points;
 
 	X = malloc( num_points * sizeof(double) );
 
@@ -137,6 +150,16 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 	memcpy( Y, y_array, num_points * sizeof(double) );
 
 	(*spline)->y_array = Y;
+
+	/* As a special case, we use a straight line if only two points
+	 * are provided.  If so, then the rest of this function must be
+	 * skipped since it is not able to handle a spline with only
+	 * two points.
+	 */
+
+	if ( num_points == 2 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	(*spline)->gpp_array = calloc( num_points, sizeof(double) );
 
@@ -246,7 +269,7 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 				( X[j+1] - X[j] ) * ( X[j] - X[j-1] ) ) );
 	}
 
-#if 1
+#if 0
 	/* Print out the arrays. */
 
 	fprintf( stderr, "A = " );
@@ -280,7 +303,7 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 
 	mx_solve_tridiagonal_matrix( A, B, C, R, G, num_points - 2 );
 
-#if 1
+#if 0
 	/* Print out the solution. */
 
 	fprintf( stderr, "gpp_array = " );
@@ -312,7 +335,7 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 	(*spline)->gp_end = mx_divide_safely( delta_y, delta_x )
 			+ ( delta_x / 6.0 ) * gpp;
 		
-#if 1
+#if 0
 	fprintf( stderr, "gp_start = %g,  gp_end = %g\n",
 		(*spline)->gp_start, (*spline)->gp_end );
 #endif
@@ -363,6 +386,21 @@ mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x )
 	x_array = spline->x_array;
 	y_array = spline->y_array;
 	
+	/* As a special case, we use a straight line if only two points
+	 * are provided.  If so, then the rest of this function must be
+	 * skipped since it is not able to handle a spline with only
+	 * two points.
+	 */
+
+	if ( num_points == 2 ) {
+		slope = mx_divide_safely( y_array[1] - y_array[0],
+					x_array[1] - x_array[0] );
+
+		value = y_array[0] + slope * ( x - x_array[0] );
+
+		return value;
+	}
+
 	/* Are we outside the range of the X array?  If so, then extrapolate
 	 * using a constant slope.
 	 */
@@ -370,45 +408,58 @@ mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x )
 	if ( x <= x_array[0] ) {
 		slope = spline->gp_start;
 
-		value = x_array[0] + slope * ( x - x_array[0] );
-	} else
+		value = y_array[0] + slope * ( x - x_array[0] );
+
+		return value;
+	}
+
 	if ( x >= x_array[num_points - 1] ) {
 		slope = spline->gp_end;
 
-		value = x_array[num_points - 1]
+		value = y_array[num_points - 1]
 				+ slope * ( x - x_array[num_points - 1] );
-	} else {
-		/* Search for x in the x array. */
 
-		for ( i = 0; i < num_points - 1; i++ ) {
-			if ( x >= x_array[i] ) {
-				break;		/* Exit the while loop. */
-			}
+		return value;
+	}
+
+	/* Search for x in the x array. */
+
+	for ( i = 0; i < num_points - 2; i++ ) {
+		if ( ( x >= x_array[i] ) && ( x < x_array[i+1] ) )
+		{
+			break;		/* Exit the while loop. */
 		}
+	}
 
-		if ( i >= num_points ) {
-			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+	if ( i >= num_points ) {
+		(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Somehow we got to i = %lu for num_points = %lu.  "
 			"This should not be able to happen!", i, num_points );
 
-			return 0.0;
-		}
+		return 0.0;
+	}
 
-		x0 = x_array[i];
-		x1 = x_array[i+1];
+	x0 = x_array[i];
+	x1 = x_array[i+1];
 
-		y0 = y_array[i];
-		y1 = y_array[i+1];
+	y0 = y_array[i];
+	y1 = y_array[i+1];
 
-		gpp0 = spline->gpp_array[i];
-		gpp1 = spline->gpp_array[i+1];
+	gpp0 = spline->gpp_array[i];
+	gpp1 = spline->gpp_array[i+1];
 
-		delta_x = x1 - x0;
+	delta_x = x1 - x0;
 
-		/* Compute the value using equation 4.26 in Hornbeck. */
+#if 0
+	fprintf(stderr, "x = %g, x0 = %g, x1 = %g\n", x, x0, x1);
+	fprintf(stderr, "        f0 = %g, f1 = %g\n", y0, y1);
+	fprintf(stderr, "        gpp0 = %g, gpp1 = %g\n", gpp0, gpp1);
+	fprintf(stderr, "delta_x = %g\n", delta_x);
+#endif
 
-		value = ( gpp0 / 6.0 )
-				* ( ( (x1-x)*(x1-x)*(x1-x) / delta_x )
+	/* Compute the value using equation 4.26 in Hornbeck. */
+
+	value = ( gpp0 / 6.0 ) * ( ( (x1-x)*(x1-x)*(x1-x) / delta_x )
 					- delta_x * (x1-x) )
 
 			+ ( gpp1 / 6.0 )
@@ -418,10 +469,9 @@ mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x )
 			+ ( y0 * (x1-x) / delta_x )
 
 			+ ( y1 * (x-x0) / delta_x );
-	}
 
 #if 0
-	fprintf( stderr, "f(%g) = %g\n", x, value );
+	fprintf(stderr, "value = %g\n", value);
 #endif
 
 	return value;
