@@ -43,11 +43,25 @@ typedef struct {
 	double gp_end;		/* First derivative at the last point. */
 } MX_CUBIC_SPLINE;
 
+#define MXF_CUBIC_SPLINE_USE_START_SLOPE	0x1
+#define MXF_CUBIC_SPLINE_USE_END_SLOPE		0x2
+
+#define mx_create_natural_cubic_spline( n, x, y, s ) \
+    mx_create_cubic_spline( (n), (x), (y), 0, 0.0, 0.0, (s) )
+
+#define mx_create_clamped_cubic_spline( n, x, y, start_slope, end_slope, s ) \
+    mx_create_cubic_spline( (n), (x), (y), \
+   	(MXF_CUBIC_SPLINE_USE_START_SLOPE | MXF_CUBIC_SPLINE_USE_END_SLOPE), \
+	(start_slope), (end_slope), (s) )
+
 MX_API mx_status_type
-mx_create_natural_cubic_spline( unsigned long num_points,
-				double *x_array,
-				double *y_array,
-				MX_CUBIC_SPLINE ** spline );
+mx_create_cubic_spline( unsigned long num_points,
+			double *x_array,
+			double *y_array,
+			unsigned long spline_type,
+			double start_bc_param,
+			double end_bc_param,
+			MX_CUBIC_SPLINE ** spline );
 
 MX_API void
 mx_delete_cubic_spline( MX_CUBIC_SPLINE *spline );

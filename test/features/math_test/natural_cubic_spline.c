@@ -22,7 +22,8 @@ main( int argc, char *argv[] )
 
 	if ( argc != 5 ) {
 		fprintf( stderr,
-			"Usage: cubic_spline filename start end stepsize\n" );
+		"Usage: natural_cubic_spline filename start end stepsize\n" );
+
 		exit(1);
 	}
 
@@ -92,7 +93,7 @@ main( int argc, char *argv[] )
 
 	fclose( input_file );
 
-	/* Fit a cubic spline through the set of points. */
+	/* Fit a natural cubic spline through the set of points. */
 
 	mx_status = mx_create_natural_cubic_spline( num_points,
 						x_array, y_array, &spline );

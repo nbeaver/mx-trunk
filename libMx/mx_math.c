@@ -17,6 +17,8 @@
  *
  */
 
+#define MX_DEBUG_CUBIC_SPLINE	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -77,18 +79,24 @@ mx_solve_tridiagonal_matrix( double *a,		/* Below the diagonal. */
 		} while (0)
 
 MX_EXPORT mx_status_type
-mx_create_natural_cubic_spline( unsigned long num_points,
-				double *x_array,
-				double *y_array,
-				MX_CUBIC_SPLINE **spline )
+mx_create_cubic_spline( unsigned long num_points,
+			double *x_array,
+			double *y_array,
+			unsigned long spline_type,
+			double start_bc_param,
+			double end_bc_param,
+			MX_CUBIC_SPLINE **spline )
 {
-	static const char fname[] = "mx_create_natural_cubic_spline()";
+	static const char fname[] = "mx_create_cubic_spline()";
 
 	double *X, *Y;
 	double *A, *B, *C;
 	double *G, *R;
 	unsigned long i, j;
-	double delta_x, delta_y, gpp;
+	double U, V;
+	double delta_x_0, delta_x_1, delta_x_n_1;
+	double gpp0, gpp1, gppn_1, gppn;
+	double gp0, gpn;
 
 	X = Y = A = B = C = G = R = NULL;
 
@@ -170,14 +178,6 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 		"Ran out of memory trying to allocate the gpp array." );
 	}
 
-	/* Initialize the values at the start and the end of
-	 * the second derivative array.
-	 */
-
-	(*spline)->gpp_array[0] = 0.0;
-
-	(*spline)->gpp_array[num_points - 1] = 0.0;
-
 	/* Allocated memory for the contents of a tridiagonal matrix equation
 	 * TG = R that will be solved to find all the other second derivative
 	 * values.  The three diagonals in the matrix T are referred to as
@@ -233,7 +233,10 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 
 	G = &((*spline)->gpp_array[1]);
 
-	/* Fill in the tridiagonal matrix. */
+	/* Fill in the tridiagonal matrix as if we are using a
+	 * natural cubic spline with the second derivative set
+	 * to zero at both ends using Hornbeck equation 4.29.
+	 */
 
 	A[0] = 0.0;
 
@@ -256,7 +259,10 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 
 	C[num_points - 3] = 0.0;
 
-	/* Fill in the right hand side vector. */
+	/* Fill in the right hand side vector as if we are using
+	 * a natural cubic spline with the second derivative set
+	 * to zero at both ends using Hornbeck equation 4.29.
+	 */
 
 	for ( i = 0; i < num_points - 2; i++ ) {
 		j = i + 1;
@@ -269,7 +275,114 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 				( X[j+1] - X[j] ) * ( X[j] - X[j-1] ) ) );
 	}
 
-#if 0
+	/* We must now modify the top and bottom rows of the matrix
+	 * and the right hand side column vector to match the actual
+	 * requested boundary conditions.
+	 */
+
+	/* First modify the boundary condition at the start of the spline.
+	 *
+	 * The top row of the matrix corresponds to the case of Hornbeck
+	 * equation 4.29 with i = 1.  We must eliminate gpp_array[0] from
+	 * the equation using a method that depends on the boundary
+	 * condition.
+	 */
+
+	delta_x_0 = X[1] - X[0];
+	delta_x_1 = X[2] - X[1];
+
+	if ( (spline_type & MXF_CUBIC_SPLINE_USE_START_SLOPE) == 0 ) {
+
+		/* The boundary condition specifies the value of the
+		 * second derivative at the start of the spline.  We
+		 * just insert the value for gpp_array[0] and then
+		 * subtract the resulting term from R[0].
+		 */
+
+		gpp0 = start_bc_param;
+
+		(*spline)->gpp_array[0] = gpp0;
+
+		R[0] = R[0] - gpp0 * mx_divide_safely( delta_x_0, delta_x_1 );
+	} else {
+
+		/* The boundary condition specifies the value of the
+		 * first derivative at the start of the spline.  We must
+		 * then replace gpp_array[0] in the top row of the matrix.
+		 * This is done using an equation like this:
+		 *
+		 *     gpp_array[0] = U + V * gpp_array[1]
+		 *
+		 * The term containing (V * gpp_array[1]) is added to 
+		 * B[0], while the term containing U is subtracted from
+		 * R[0].
+		 */
+
+		gp0 = start_bc_param;
+
+		(*spline)->gp_start = gp0;
+
+		V = -0.5;
+
+		U = 3.0 * mx_divide_safely( Y[1] - Y[0], delta_x_0 * delta_x_0 )
+				- 3.0 * mx_divide_safely( gp0, delta_x_0 );
+
+		B[0] = B[0] + V * mx_divide_safely( delta_x_0, delta_x_1 );
+
+		R[0] = R[0] - U * mx_divide_safely( delta_x_0, delta_x_1 );
+	}
+
+	/* Then modify the boundary condition at the end of the spline.
+	 *
+	 * The bottom row of the matrix corresponds to the case of
+	 * Hornbeck equation 4.29 with i = n - 1.  We must eliminate
+	 * gpp_array[n] from the equation using a method that depends
+	 * on the boundary condition.
+	 */
+
+	delta_x_n_1 = X[num_points - 1] - X[num_points - 2];
+
+	if ( (spline_type & MXF_CUBIC_SPLINE_USE_END_SLOPE) == 0 ) {
+
+		/* The boundary condition specifies the value of the
+		 * second derivative at the end of the spline.  We
+		 * just insert the value for gpp_array[n] and then
+		 * subtract the resulting term from R[num_points-1].
+		 */
+
+		gppn = end_bc_param;
+
+		(*spline)->gpp_array[num_points-1] = gppn;
+
+		R[num_points-1] = R[num_points-1] - gppn;
+	} else {
+
+		/* The boundary condition specifies the value of the
+		 * first derivative at the end of the spline.  We must
+		 * then replace gpp_array[n] in the bottom row of the
+		 * matrix.  This is done using an equation like this:
+		 *
+		 *     gpp_array[n] = U + V * gpp_array[n-1]
+		 *
+		 * Then (V * gpp_array[n-1] is added to B[num_points-1],
+		 * while U is subtracted from R[num_points-1].
+		 */
+
+		gpn = end_bc_param;
+
+		(*spline)->gp_end = gpn;
+
+		V = -0.5;
+
+		U = - 3.0 * mx_divide_safely( Y[num_points-1] - Y[num_points-2],
+						delta_x_n_1 * delta_x_n_1 )
+				+ 3.0 * mx_divide_safely( gpn, delta_x_n_1 );
+
+		B[num_points-1] = B[num_points-1] + V;
+		R[num_points-1] = R[num_points-1] - U;
+	}
+
+#if MX_DEBUG_CUBIC_SPLINE
 	/* Print out the arrays. */
 
 	fprintf( stderr, "A = " );
@@ -297,13 +410,73 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 	}
 
 	fprintf( stderr, "\n" );
-#endif
+#endif /* MX_DEBUG_CUBIC_SPLINE */
 
-	/* Solve the tridiagonal matrix. */
+	/********* Solve the tridiagonal matrix. *********/
 
 	mx_solve_tridiagonal_matrix( A, B, C, R, G, num_points - 2 );
 
-#if 0
+	/* Compute the derivatives that were not specified by
+	 * the boundary conditions.
+	 */
+
+	delta_x_0   = X[1] - X[0];
+	delta_x_n_1 = X[num_points-1] - X[num_points-2];
+
+	gpp1   = (*spline)->gpp_array[1];
+	gppn_1 = (*spline)->gpp_array[num_points-2];
+
+	if ( (spline_type & MXF_CUBIC_SPLINE_USE_START_SLOPE) == 0 ) {
+
+		/* Compute the first derivative at the start
+		 * of the cubic spline.
+		 */
+
+		gpp0 = (*spline)->gpp_array[0];
+
+		(*spline)->gp_start = mx_divide_safely( Y[1] - Y[0], delta_x_0 )
+			- ( delta_x_0 / 6.0 ) * ( 2.0 * gpp0 + gpp1 );
+	} else {
+		/* Compute the second derivative at the start
+		 * of the cubic spline.
+		 */
+		
+		gp0  = (*spline)->gp_start;
+
+		(*spline)->gpp_array[0] =
+		    3.0 * mx_divide_safely( Y[1] - Y[0], delta_x_0 * delta_x_0 )
+			- 3.0 * mx_divide_safely( gp0, delta_x_0 )
+			- 0.5 * gpp1;
+	}
+
+	if ( (spline_type & MXF_CUBIC_SPLINE_USE_END_SLOPE) == 0 ) {
+
+		/* Compute the first derivative at the end
+		 * of the cubic spline.
+		 */
+
+		gppn = (*spline)->gpp_array[num_points-1];
+
+		(*spline)->gp_end =
+			mx_divide_safely( Y[num_points-1] - Y[num_points-2],
+					X[num_points-1] - X[num_points-2] )
+
+			+ ( delta_x_n_1 / 6.0 ) * ( 2.0 * gppn + gppn_1 );
+	} else {
+		/* Compute the second derivative at the end
+		 * of the cubic spline.
+		 */
+
+		gpn = (*spline)->gp_end;
+
+		(*spline)->gpp_array[num_points-1] =
+		    -3.0 * mx_divide_safely( Y[num_points-1] - Y[num_points-2],
+			    			delta_x_n_1 * delta_x_n_1 )
+			+ 3.0 * mx_divide_safely( gpn, delta_x_n_1 )
+			- 0.5 * gppn_1;
+	}
+
+#if MX_DEBUG_CUBIC_SPLINE
 	/* Print out the solution. */
 
 	fprintf( stderr, "gpp_array = " );
@@ -313,32 +486,12 @@ mx_create_natural_cubic_spline( unsigned long num_points,
 	}
 
 	fprintf( stderr, "\n" );
-#endif
+#endif /* MX_DEBUG_CUBIC_SPLINE */
 
-	/* Compute the slope at the start of the cubic spline. */
-
-	delta_y = Y[1] - Y[0];
-	delta_x = X[1] - X[0];
-
-	gpp = (*spline)->gpp_array[1];
-
-	(*spline)->gp_start = mx_divide_safely( delta_y, delta_x )
-			- ( delta_x / 6.0 ) * gpp;
-		
-	/* Compute the slope at the end of the cubic spline. */
-
-	delta_y = Y[num_points - 1] - Y[num_points - 2];
-	delta_x = X[num_points - 1] - X[num_points - 2];
-
-	gpp = (*spline)->gpp_array[num_points-2];
-
-	(*spline)->gp_end = mx_divide_safely( delta_y, delta_x )
-			+ ( delta_x / 6.0 ) * gpp;
-		
-#if 0
+#if MX_DEBUG_CUBIC_SPLINE
 	fprintf( stderr, "gp_start = %g,  gp_end = %g\n",
 		(*spline)->gp_start, (*spline)->gp_end );
-#endif
+#endif /* MX_DEBUG_CUBIC_SPLINE */
 
 	FREE_INTERNAL_VECTORS;
 
@@ -450,12 +603,12 @@ mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x )
 
 	delta_x = x1 - x0;
 
-#if 0
+#if MX_DEBUG_CUBIC_SPLINE
 	fprintf(stderr, "x = %g, x0 = %g, x1 = %g\n", x, x0, x1);
 	fprintf(stderr, "        f0 = %g, f1 = %g\n", y0, y1);
 	fprintf(stderr, "        gpp0 = %g, gpp1 = %g\n", gpp0, gpp1);
 	fprintf(stderr, "delta_x = %g\n", delta_x);
-#endif
+#endif /* MX_DEBUG_CUBIC_SPLINE */
 
 	/* Compute the value using equation 4.26 in Hornbeck. */
 
@@ -470,9 +623,9 @@ mx_get_cubic_spline_value( MX_CUBIC_SPLINE *spline, double x )
 
 			+ ( y1 * (x-x0) / delta_x );
 
-#if 0
+#if MX_DEBUG_CUBIC_SPLINE
 	fprintf(stderr, "value = %g\n", value);
-#endif
+#endif /* MX_DEBUG_CUBIC_SPLINE */
 
 	return value;
 }
