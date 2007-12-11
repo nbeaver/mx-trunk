@@ -121,6 +121,12 @@ static MX_MONOCHROMATOR_FUNCTION_LIST mxd_monochromator_function_list[] = {
 	{ mxd_monochromator_get_option_selector_position,
 	  mxd_monochromator_set_option_selector_position,
 	  mxd_monochromator_move_option_selector},
+	{ mxd_monochromator_get_theta_fn_position,
+	  mxd_monochromator_set_theta_fn_position,
+	  mxd_monochromator_move_theta_fn},
+	{ mxd_monochromator_get_energy_fn_position,
+	  mxd_monochromator_set_energy_fn_position,
+	  mxd_monochromator_move_energy_fn},
 };
 
 /************** Internal use only functions. *************/
@@ -3143,5 +3149,185 @@ mxd_monochromator_move_option_selector(
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/******************************************************************/
+
+static mx_status_type
+mxd_monochromator_get_theta_fn_position( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double *theta_fn )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+static mx_status_type
+mxd_monochromator_set_theta_fn_position( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double theta_fn )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+static mx_status_type
+mxd_monochromator_move_theta_fn( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double theta,
+					double old_theta,
+					int flags )
+{
+	static const char fname[] = "mxd_monochromator_move_theta_fn()";
+
+	MX_RECORD **record_array;
+	MX_RECORD *dependent_motor_record;
+	double *parameter_array;
+	long num_records, num_parameters;
+	mx_bool_type enabled;
+	mx_status_type mx_status;
+
+	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( enabled == FALSE )
+		return MX_SUCCESSFUL_RESULT;
+
+	mx_status = mxd_monochromator_get_param_array_from_list(
+			list_record, &num_parameters, &parameter_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_monochromator_get_record_array_from_list(
+			list_record, &num_records, &record_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_records != 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The record array for list record '%s' should have 1 record in it.  "
+	"Instead there are %ld records in it.",
+			list_record->name, num_records );
+	}
+
+	/* This record should be the dependent motor record. */
+
+	if ( (record_array[0]->mx_superclass != MXR_DEVICE)
+	  || (record_array[0]->mx_class != MXC_MOTOR) )
+	{
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+	"The first record '%s' in the record array for list record '%s' "
+	"is not a motor record.",
+			record_array[0]->name, list_record->name );
+	}
+
+	dependent_motor_record = record_array[0];
+
+	/* Move the dependent motor.  The dependent motor record is
+	 * responsible for performing any transformation on the position.
+	 */
+
+	mx_status = mx_motor_move_absolute( dependent_motor_record,
+						theta, flags );
+
+	return mx_status;
+}
+
+/******************************************************************/
+
+static mx_status_type
+mxd_monochromator_get_energy_fn_position( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double *theta_position )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+static mx_status_type
+mxd_monochromator_set_energy_fn_position( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double theta )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+static mx_status_type
+mxd_monochromator_move_energy_fn( MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record,
+					long dependency_number,
+					double theta,
+					double old_theta,
+					int flags )
+{
+	static const char fname[] = "mxd_monochromator_move_energy_fn()";
+
+	MX_RECORD **record_array;
+	MX_RECORD *dependent_motor_record;
+	double *parameter_array;
+	long num_parameters, num_records, num_elements;
+	double d_spacing, denominator, mono_energy;
+	void *pointer_to_value;
+	mx_bool_type enabled;
+	mx_status_type mx_status;
+
+	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( enabled == FALSE )
+		return MX_SUCCESSFUL_RESULT;
+
+	mx_status = mxd_monochromator_get_param_array_from_list(
+			list_record, &num_parameters, &parameter_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_monochromator_get_record_array_from_list(
+			list_record, &num_records, &record_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_records != 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The record array for list record '%s' does not have 2 records.  "
+	"Instead, it has %ld records.", list_record->name, num_records );
+	}
+
+	/* The first record is the dependent motor record. */
+
+	dependent_motor_record = record_array[0];
+
+	/* The second record contains the value of the monochromator
+	 * crystal d-spacing.
+	 */
+
+	mx_status = mx_get_1d_array( record_array[1], MXFT_DOUBLE,
+					&num_elements, &pointer_to_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	d_spacing = *( double * ) pointer_to_value;
+
+	/* Compute the monochromator energy. */
+
+	denominator = 2.0 * d_spacing * sin( theta * MX_RADIANS_PER_DEGREE );
+
+	mono_energy = mx_divide_safely( MX_HC, denominator );
+
+	/* Move the dependent motor.  The dependent motor record is
+	 * responsible for computing the spline function.
+	 */
+
+	mx_status = mx_motor_move_absolute( dependent_motor_record,
+						mono_energy, flags );
+
+	return mx_status;
 }
 

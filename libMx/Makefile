@@ -69,6 +69,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_brandeis_biocat.c d_cm17a_doutput.c \
 	d_compumotor.c d_compumotor_dio.c d_compumotor_linear.c \
 	d_cryostream600_motor.c d_cryostream600_status.c \
+	d_cubic_spline_motor.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \
 	d_d8.c d_dac_motor.c d_databox_mce.c d_databox_mcs.c d_databox_motor.c \
 	d_databox_scaler.c d_databox_timer.c \

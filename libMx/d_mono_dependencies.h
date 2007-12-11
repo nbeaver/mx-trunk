@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -218,6 +218,42 @@ static mx_status_type mxd_monochromator_set_option_selector_position(
 					long dependency_number,
 					double energy_polynomial_position );
 static mx_status_type mxd_monochromator_move_option_selector(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double theta_position,
+					double old_theta_position,
+					int flags );
+
+static mx_status_type mxd_monochromator_get_theta_fn_position(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double *theta_fn_position );
+static mx_status_type mxd_monochromator_set_theta_fn_position(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double theta_fn_position );
+static mx_status_type mxd_monochromator_move_theta_fn(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double theta_position,
+					double old_theta_position,
+					int flags );
+
+static mx_status_type mxd_monochromator_get_energy_fn_position(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double *energy_fn_position );
+static mx_status_type mxd_monochromator_set_energy_fn_position(
+					MX_MONOCHROMATOR *monochromator,
+					MX_RECORD *list_record, 
+					long dependency_number,
+					double energy_fn_position );
+static mx_status_type mxd_monochromator_move_energy_fn(
 					MX_MONOCHROMATOR *monochromator,
 					MX_RECORD *list_record, 
 					long dependency_number,

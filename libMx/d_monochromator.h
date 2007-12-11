@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2000, 2002-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2000, 2002-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,6 +65,8 @@ typedef struct {
 #define MXF_MONO_DIFFRACTOMETER_THETA			7
 #define MXF_MONO_ENERGY_POLYNOMIAL			8
 #define MXF_MONO_OPTION_SELECTOR			9
+#define MXF_MONO_THETA_FUNCTION				10
+#define MXF_MONO_ENERGY_FUNCTION			11
 
 /* Define all of the interface functions. */
 
