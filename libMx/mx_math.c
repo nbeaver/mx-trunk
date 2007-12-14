@@ -378,8 +378,8 @@ mx_create_cubic_spline( unsigned long num_points,
 						delta_x_n_1 * delta_x_n_1 )
 				+ 3.0 * mx_divide_safely( gpn, delta_x_n_1 );
 
-		B[num_points-1] = B[num_points-1] + V;
-		R[num_points-1] = R[num_points-1] - U;
+		B[num_points-3] = B[num_points-3] + V;
+		R[num_points-3] = R[num_points-3] - U;
 	}
 
 #if MX_DEBUG_CUBIC_SPLINE

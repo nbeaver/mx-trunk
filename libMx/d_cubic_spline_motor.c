@@ -462,6 +462,13 @@ mxd_cubic_spline_motor_move_absolute( MX_MOTOR *motor )
 
 	spline = cubic_spline_motor->spline;
 
+	/* Set the current pseudomotor position to the requested destination. */
+
+	motor->raw_position.analog = motor->raw_destination.analog;
+
+	motor->position =
+		motor->offset + motor->scale * motor->raw_position.analog;
+
 	/* Compute the spline Y value from the spline X value
 	 * and move to that position.
 	 */

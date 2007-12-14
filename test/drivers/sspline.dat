@@ -1,0 +1,1 @@
+tspline_scan                     scan linear_scan motor_scan "" "" 1 1 1  tspline 1  rawtspline  0 0 preset_time "0.1 timer1" text tspline.out gnuplot $f[0]  0  0.1  101

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mspline.dat -s ./sspline.dat $*
+
