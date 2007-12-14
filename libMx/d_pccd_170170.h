@@ -132,6 +132,9 @@ typedef struct {
 
 	MX_IMAGE_FRAME *temp_frame;
 
+	MX_IMAGE_FRAME *geometrical_mask_frame;
+	MX_IMAGE_FRAME *rebinned_geometrical_mask_frame;
+
 	long old_framesize[2];
 
 	long horiz_descramble_factor;

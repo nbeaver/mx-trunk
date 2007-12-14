@@ -950,22 +950,19 @@ mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
-	if ( image_length == (size_t *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_length pointer passed was NULL." );
-	}
-	if ( image_data_pointer == (void **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_data_pointer argument passed was NULL." );
-	}
 
 	if ( frame->image_data == NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"No image data has been read into image frame %p.", frame );
 	}
 
-	*image_length       = frame->image_length;
-	*image_data_pointer = frame->image_data;
+	if ( image_length != (size_t *) NULL ) {
+		*image_length = frame->image_length;
+	}
+
+	if ( image_data_pointer != (void **) NULL ) {
+		*image_data_pointer = frame->image_data;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

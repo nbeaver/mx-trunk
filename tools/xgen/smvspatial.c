@@ -7,6 +7,8 @@
 	of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Change record:
+	13 Dec 2007: switch to getting active-pixel mask from memory
+	 rather than from disk.
 	30 Oct 2007: substantial upgrade to handle masking correctly
 	 and (I hope!) manage binned data correctly.
 	22 Sep 2007: cleanup and corrections.
@@ -53,6 +55,7 @@ Change record:
 extern void	*calloc(size_t count, size_t size);
 extern void	*malloc(size_t size);
 extern void	free(void *ptr);
+extern int	atoi(const char *nptr);
 #endif /* __stdlib_h */
 
 #ifndef _UNISTD_H_
@@ -87,13 +90,158 @@ extern int	access(const char *path, int mode);
 		int		imf_flags, imf_ht, imf_imsize, imf_wid;
 		double		imf_x00, imf_xsl, imf_y00, imf_ysl;
 		float		*imf_locim, *imf_locwt;
-		unsigned char	*imf_lomask;
-		unsigned short	*imf_data16, *imf_row;
-		char		*imf_splname, *imf_masknam;
+		unsigned short	*imf_lomask, *imf_data16;
+		char		*imf_splname;
 		VSPLINE		*imf_spl;
 		} IMWORK;
 
-extern int smvspatial(void *ima, int imw, int imh, int cfl, char *sn, char *mn);
+extern unsigned short *locactive(char *ma, unsigned short *inm,
+ int inw, int inh);
+
+static int mystrncmp(char *s1, char *s2, size_t len)
+{ /* local version of strncmp */
+	int		i;
+	unsigned char	*us1, *us2, *uc1, *uc2;
+
+	if (NULL == s1) return ((NULL == s2) ? 0 : -1); /* check args */
+	if (NULL == s2) return 1;
+	uc1 = us1 = (unsigned char *)s1; uc2 = us2 = (unsigned char *)s2;
+	/* walk through the two strings, looking for either termination or
+	 differences */
+	for (i = 0; i < len; i++, uc1++, uc2++)
+	   {
+		if ('\0' == *uc1) return ('\0' == *uc2) ? 0 : -1;
+		if ('\0' == *uc2) return 1;
+		if (*uc1 < *uc2) return -1;
+		else if (*uc1 > *uc2) return 1;
+	   }
+	return 0;
+}
+
+static int headtodim(FILE *fp, int *hwid, int *hht)
+{ /* this returns values for the mask-file image width and height.
+  It looks backward for keywords: only the last one counts! */
+	int		i;
+	char		hbuf[512], *cp, *lnn;
+	static char	d1[] = "SIZE1=";
+	static char	d2[] = "SIZE2=";
+
+	*hwid = *hht = -1;
+	if (1 != fread((void *)hbuf, 512, 1, fp)) return -1;
+	for (cp = hbuf + 511, i = 511, lnn = hbuf; i >= 0; cp--, i--)
+		if ('\0' != *cp)
+		  {
+			lnn = cp;	break;
+		  }
+	if (lnn < hbuf + 4) return -2;
+	for (cp = lnn; cp > hbuf; cp--)
+		if (!mystrncmp(cp, d2, 5))
+		  {
+			*hht = atoi(cp + 6); break;
+		  }
+	for (cp = lnn; cp > hbuf; cp--)
+		if (!mystrncmp(cp, d1, 5))
+		  {
+			*hwid = atoi(cp + 6); break;
+		  }
+	if ((*hwid < 0) || (*hht < 0)) return -3;
+	return 0;
+}
+
+unsigned short *locactive(char *masknam, unsigned short *inmask,
+ int inwid, int inht)
+{ /* This reads in the information associated with the active-area mask.
+	It returns NULL if it's unable to set up the active-area mask,
+	a pointer to the mask array otherwise.
+  	We assume that the mask from which the active-area array is taken
+	was created at the same level of binning as the image
+	to which it'll be applied.
+	We assume that we do _not_ need to read in the mask if the input
+	mask is nonzero and its dimensions are equal to the dimensions
+	of the one we would otherwise be reading in */
+	int		mht, mwid, ngt1, nr, pos, jy, npos;
+	size_t		busiz, busiz2, imsiz, memneed;
+	unsigned short	*row, *usp0, *usp, *ousp;
+	static FILE	*fpmas;
+
+	/* make sure we've named the mask */
+	if ((NULL == masknam) || ('\0' == *masknam))
+	  {
+		fprintf(stderr, "No mask name specified\n");
+		return inmask;
+	  }
+	/* first we read enough of the input mask file to know its dimensions.
+	*/
+	if (NULL == (fpmas = fopen(masknam, "r")))
+	  {
+		fprintf(stderr, "Unable to open mask file name %s\n", masknam);
+		return inmask;
+	  }
+	mwid = inwid;	mht = inht;
+	if (0 != headtodim(fpmas, &mwid, &mht))
+	  {
+		fprintf(stderr, "Can't determine mask-file dimensions in %s\n",
+			masknam);
+		return inmask;
+	  }
+	/* if the dimensions haven't changed and the input mask is good,
+	just return in the input mask.
+	We may eventually need a search for at least one good pixel here...*/
+	if ((mwid == inwid) && (mht == inht) && (NULL != inmask))
+	  {
+		(void)fclose(fpmas);	return inmask;
+	  }
+	/* otherwise, read in the local-area active pixel mask from a file.
+	Note that the file pointer is already positioned at the beginning
+	of the 16-bit data in `headtodim'. */
+	busiz = mht;	imsiz = mwid * busiz;
+	memneed = 2 * (imsiz + busiz);
+	if (NULL == (usp0 = (unsigned short *)malloc(memneed)))
+	  {
+		fprintf(stderr,
+ "Unable to allocate %8d bytes for the active-pixel mask\n", (int)memneed);
+		return inmask;
+	  }
+	row = (unsigned short *)(usp0 + imsiz);
+	busiz2 = busiz * 2;
+	for (ousp = usp0, pos = 0; pos < mwid; pos++)
+	   { /* read through mask columns */
+		if (1 != (nr = fread((void *)row, busiz2, 1, fpmas)))
+		  {
+			fprintf(stderr,
+ "Error reading column %6d of the active-pixel mask\n", pos);
+			fprintf(stderr, "fread returned %d; errno = %d\n",
+			 nr, (int)errno);
+			free((void *)usp0);	return inmask;
+		  }
+		for (usp = row, jy = 0; jy < busiz; jy++, ousp++, usp++)
+		   {
+			if (*usp > 253)
+			  {
+				fprintf(stderr, "Tilt! byteorder wrong!\n");
+				free((void *)usp);	return inmask;
+			  }
+			*ousp = *usp;	/* put result in output buffer */
+		   }
+	   }
+	(void)fclose(fpmas);	fpmas = NULL;
+	usp = usp0;
+	for (ngt1 = npos = pos = 0; pos < mwid; pos++)
+	   for (jy = 0; jy < busiz; jy++, usp++)
+	      {
+		if (*usp)
+		  {
+			npos++; if (*usp > 1) ngt1++;
+		  }
+	      }
+	fprintf(stderr, " %d pixels out of a possible %d are active\n",
+		npos, (int)(mwid * busiz));
+	if (ngt1 > 0) printf(" Weighted mask is being used\n");
+	return usp0;
+}
+
+extern int smvspatial(void *ima, int imw, int imh, int cfl, char *sn,
+ unsigned short *mn);
 
 static short sswab(short sh)
 { /*	This byte-swaps a SIGNED short.  This is comparatively tricky. */
@@ -145,11 +293,7 @@ static void killimwork(IMWORK *imp, int which)
 	  {
 		free((void *)(imp->imf_locim)); imp->imf_locim = NULL;
 	  }
-	if ((which & 010) && (NULL != (imp->imf_row)))
-	  {
-		free((void *)(imp->imf_lomask));
-		imp->imf_lomask = NULL;	imp->imf_row = NULL;
-	  }
+	/* we don't mess with the lomask memory */
 }
 
 static int smvspline(IMWORK *imp)
@@ -265,81 +409,22 @@ static int rescalespl(IMWORK *imp)
 	return EOK;
 }
 
-static int locactive(IMWORK *imp)
-{ /* This reads in the information associated with the active-area mask.
-	It returns -2 if it's unable to set up the active-area mask,
-	EOK otherwise.
+static void countactive(IMWORK *imp)
+{ /* This validates the active-pixel mask by counting the number of
+	nonzero pixels in it.
   	We assume that the mask from which the active-area array is taken
 	was created at the same level of binning as the image
 	to which it'll be applied. */
-	int		ngt1, nr, pos, jy, npos;
-	size_t		busiz, busiz2, imsiz, memneed;
+	int		jy, ngt1, npos, pos;
 	unsigned short	*usp;
-	unsigned char	*ucp;
-	char		*cp;
-	static FILE	*fpmas;
 
-	if ((NULL == (cp = imp->imf_masknam)) || ('\0' == *cp))
-	  {
-		killimwork(imp, 010);	return 0; /* no mask in this case */
-	  }
-	/* don't do anything if there's already a good mask.
-	 We may eventually need a search for at least one good pixel here...*/
-	if (NULL != imp->imf_lomask) return 0;
-	/* read in the local-area active pixel mask from a file */
-	busiz = imp->imf_ht;	imsiz = imp->imf_wid * busiz;
-	memneed = imsiz + 2 * busiz;
-	if (NULL == (ucp = (unsigned char *)malloc(memneed)))
-	  {
-		fprintf(stderr,
- "Unable to allocate %8d bytes for the active-pixel mask\n", (int)imsiz);
-		return -2;
-	  }
-	imp->imf_lomask = ucp;
-	imp->imf_row = (unsigned short *)(ucp + imsiz);
-	if (NULL == (fpmas = fopen(imp->imf_masknam, "r")))
-	  {
-		fprintf(stderr,
-"Unable to open %s as input active-pixel mask\n", imp->imf_masknam);
-		killimwork(imp, 010);	return -2;
-	  }
-	if (-1 == fseek(fpmas, 512L, 0))
-	  {
-		fprintf(stderr,
- "Unable to skip past image header during mask reading\n");
-		killimwork(imp, 010);	return -2;
-	  }
-	busiz2 = busiz * 2;
-	for (ucp = imp->imf_lomask, pos = 0; pos < imp->imf_wid; pos++)
-	   { /* read through mask columns */
-		if (1 != (nr = fread((void *)(imp->imf_row),busiz2, 1,fpmas)))
-		  {
-			fprintf(stderr,
- "Error reading column %6d of the active-pixel mask\n", pos);
-			fprintf(stderr, "fread returned %d; errno = %d\n",
-			 nr, (int)errno);
-			killimwork(imp, 010);	return -2;
-		  }
-		for (usp = imp->imf_row, jy = 0; jy < busiz;
-		 jy++, ucp++, usp++)
-		   {
-			if (*usp > 253)
-			  {
-				fprintf(stderr, "Tilt! byteorder wrong!\n");
-				killimwork(imp, 010);	return -2;
-			  }
-			*ucp = *usp;	/* 16-bit to 8-bit */
-		   }
-	   }
-	(void)fclose(fpmas);	fpmas = NULL;
-	ucp = imp->imf_lomask;
+	usp = imp->imf_lomask;
 	for (ngt1 = npos = pos = 0; pos < imp->imf_wid; pos++)
-	   for (jy = 0; jy < busiz; jy++, ucp++)
+	   for (jy = 0; jy < imp->imf_ht; jy++, usp++)
 	      {
-		if (*ucp)
+		if (*usp)
 		  {
-			npos++;
-			if (*ucp > 1) ngt1++;
+			npos++;	if (*usp > 1) ngt1++;
 		  }
 	      }
 	if (ngt1 > 0) imp->imf_flags |= SCALED_MASK;
@@ -347,10 +432,9 @@ static int locactive(IMWORK *imp)
 	  {
 		fprintf(stderr,
 		 " %d pixels out of a possible %d are active\n",
-			npos, (int)(imp->imf_wid * busiz));
+			npos, (int)(imp->imf_wid * imp->imf_ht));
 		if (ngt1 > 0) printf(" Weighted mask is being used\n");
 	  }
-	return EOK;
 }
 
 static int find_limits(IMWORK *imp)
@@ -360,7 +444,7 @@ static int find_limits(IMWORK *imp)
 	int		x, xdel, xmax, xmin, y, ydel, ymin, ymax;
 	double		dx, dy, omp, omq, p, q, rx, ry;
 	double		xc, xma, xmi, yc, yma, ymi;
-	unsigned char	*looff, *lom;
+	unsigned short	*looff, *lom;
 	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czy00;
 	VSPLINE		*lspl;
 
@@ -377,11 +461,7 @@ static int find_limits(IMWORK *imp)
 	pxxl = pxyl = pyxl = pyyl = 10000; pxxu = pxyu = pyxu = pyyu = -pxxl;
 	if (imp->imf_flags & ACTIVE_ONLY)
 	  { /* just look at data within the active region */
-		if (-2 == locactive(imp))
-		  {
-			fprintf(stderr, "Failure in locactive\n");
-			return EREADERR;
-		  }
+		countactive(imp);
 		for (y = ymin; y < ymax; y++)
 		   {
 			dy = ((double)y) - lspl->v_y0px;
@@ -531,7 +611,7 @@ static int interp_image(IMWORK *imp)
 	double		wt0, wt1, wt2, wt3;
 	float		xc, yc, *loim, *lowt;
 	size_t		imsiz;
-	unsigned char	*looff, *lom;
+	unsigned short	*looff, *lom;
 	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czx00;
 	VSPLINE		*lspl;
 
@@ -564,7 +644,7 @@ static int interp_image(IMWORK *imp)
 		 but we don't want to run into memory overruns */
 		if (imp->imf_flags & ACTIVE_ONLY)
 			looff = imp->imf_lomask + x;
-		else	looff = (unsigned char *)(imp->imf_data16);
+		else	looff = (unsigned short *)(imp->imf_data16);
 		for (y = 0, lom = looff; y < imp->imf_ht;
 		 y++, lom += imp->imf_wid)
 		{
@@ -757,7 +837,7 @@ static void sumsmvspat(FILE *fp, IMWORK *imp)
 	fprintf(fp, "Spatial correction derived from file %s\n",
 		imp->imf_splname);
 	if (imp->imf_flags & ACTIVE_ONLY) fprintf(fp,
-	 "Active-pixel mask derived from file %s\n", imp->imf_masknam);
+	 "Active-pixel mask derived from pre-read array\n");
 	fprintf(fp, "Image is being written back into the original memory\n");
 }
 
@@ -789,7 +869,7 @@ static int img_conversion(IMWORK *imp)
 }
 
 int smvspatial(void *imarr, int imwid, int imht, int cflags,
- char *splname, char *masknam)
+ char *splname, unsigned short *maskval)
 { /* Mainline for performing a spatial correction on an SMV image
 	that is already in memory. Arguments:
 	imarr	1-D array of data values (probably always unsigned shorts)
@@ -802,9 +882,8 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 		bit 4	only use active area in correction (0x8)
 		bit 5	use extrapolations beyond the correction region (0x10)
 	splname	Name of the spatial-correction (*.uca) file.
-	masknam	Name of the active-pixel-mask image file.
-	In this version, the detector dimensions don't need to be
-	specified, because they're read in from splname.
+	maskval pointer to the 16-bit active-pixel mask
+	 (whether it's 0's and 1's or something more complex)
   */
 	int		resu;
 	static IMWORK	imfs;
@@ -812,24 +891,20 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 	/* special call to clear all volatile memory in imfs */
 	if ((imwid == -1) && (imht == -1))
 	  {
-		killimwork(&imfs, 017);	return EOK;
+		killimwork(&imfs, 07);	return EOK;
 	  }
 	imfs.imf_data16 = (unsigned short *)imarr;
 	imfs.imf_splname = splname;
 	/* temporary */
 	cflags |= PARTIAL_VERBOSE; 
-	if ((NULL != masknam) && ('\0' != *masknam) &&
-	 (0 == access(masknam, 04)))
+	if (NULL != maskval)
 	  {
 		imfs.imf_flags = cflags | ACTIVE_ONLY;
-		imfs.imf_masknam = masknam;
-		fprintf(stderr, "Mask from %s\n", masknam);
+		fprintf(stderr, "Active-pixel mask input from memory\n");
 	  }
-	else {
-		imfs.imf_flags = cflags & ~ACTIVE_ONLY;
-		imfs.imf_masknam = NULL;
-	     }
+	else imfs.imf_flags = cflags & ~ACTIVE_ONLY;
 	imfs.imf_wid = imwid;	imfs.imf_ht = imht;
+	imfs.imf_lomask = maskval;
 	if (cflags & ANY_VERBOSE) sumsmvspat(stdout, &imfs);
 	resu = img_conversion(&imfs);	/* perform spatial correction */
 	return resu;

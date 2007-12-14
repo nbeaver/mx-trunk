@@ -75,7 +75,7 @@ smvspatial( void *imarr,
 	int imhit,
 	int cflags,
 	char *splname,
-	char *maskname );
+	uint16_t *maskval );
 
 /*---*/
 
@@ -2186,6 +2186,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		"used by area detector '%s' is NULL.",
 			video_input_record->name, record->name );
 	}
+
+	/* Initialize the geometrical mask frames. */
+
+	pccd_170170->geometrical_mask_frame = NULL;
+	pccd_170170->rebinned_geometrical_mask_frame = NULL;
 
 	/* Set a limit on the range of values for
 	 * the flood field scaling factor.
@@ -5306,6 +5311,130 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+static mx_status_type
+mxd_pccd_170170_setup_geometrical_mask_frame( MX_PCCD_170170 *pccd_170170,
+				MX_IMAGE_FRAME *image_frame,
+				uint16_t **geometrical_mask_frame_buffer )
+{
+	MX_IMAGE_FRAME *mask_frame;
+	void *image_data_pointer;
+	long row_binsize, column_binsize;
+	long rebinned_row_binsize, rebinned_column_binsize;
+	mx_bool_type need_rebinned_mask_frame, new_mask_frame_loaded;
+	mx_bool_type create_rebinned_mask_frame;
+	mx_status_type mx_status;
+
+	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
+	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+
+	/* Make sure that the unbinned geometrical mask frame
+	 * has been loaded.
+	 */
+
+	if ( pccd_170170->geometrical_mask_frame == (MX_IMAGE_FRAME *) NULL ) {
+		mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+
+		pccd_170170->rebinned_geometrical_mask_frame = NULL;
+
+		mx_status = mx_image_read_smv_file(
+				&(pccd_170170->geometrical_mask_frame),
+				pccd_170170->geometrical_mask_filename );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		new_mask_frame_loaded = TRUE;
+	} else {
+		new_mask_frame_loaded = FALSE;
+	}
+
+	/* Do we need to use a rebinned geometrical mask frame? */
+
+	if ( (row_binsize != 1) || (column_binsize != 1) ) {
+		need_rebinned_mask_frame = TRUE;
+	} else {
+		need_rebinned_mask_frame = FALSE;
+	}
+
+	/* If it is needed, see if the correct rebinned mask image
+	 * is already present.
+	 */
+
+	if ( need_rebinned_mask_frame == FALSE ) {
+
+		/* If we do not need a rebinned mask frame, then discard any 
+		 * such frame that currently exists.
+		 */
+
+		mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+
+		pccd_170170->rebinned_geometrical_mask_frame = NULL;
+	} else {
+		/* We _do_ need a rebinned mask frame.
+		 * Do we need to create a new one now?
+		 */
+
+		create_rebinned_mask_frame = FALSE;
+
+		if ( new_mask_frame_loaded ) {
+			create_rebinned_mask_frame = TRUE;
+		} else
+		if ( pccd_170170->rebinned_geometrical_mask_frame == NULL ) {
+			create_rebinned_mask_frame = TRUE;
+		} else {
+			/* See if the existing rebinned mask frame already has
+			 * the dimensions that we need.  If so, then we just
+			 * use the already existing mask frame.
+			 */
+
+			rebinned_row_binsize =
+	    MXIF_ROW_BINSIZE(pccd_170170->rebinned_geometrical_mask_frame);
+		
+			rebinned_column_binsize =
+	    MXIF_COLUMN_BINSIZE(pccd_170170->rebinned_geometrical_mask_frame);
+
+	    		if ( (rebinned_row_binsize != row_binsize)
+			  || (rebinned_column_binsize != column_binsize) )
+			{
+				create_rebinned_mask_frame = TRUE;
+			}
+		}
+
+		/* If necessary, create a new rebinned mask frame. */
+
+		if ( create_rebinned_mask_frame ) {
+
+			mx_status = mx_image_rebin(
+			    &(pccd_170170->rebinned_geometrical_mask_frame),
+			    	pccd_170170->geometrical_mask_frame,
+				row_binsize, column_binsize );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	/* Return the frame buffer pointer for the geometrical mask frame
+	 * that we are using.
+	 */
+
+	if ( need_rebinned_mask_frame == FALSE ) {
+		mask_frame = pccd_170170->geometrical_mask_frame;
+	} else {
+		mask_frame = pccd_170170->rebinned_geometrical_mask_frame;
+	}
+
+	mx_status = mx_image_get_image_data_pointer( mask_frame, NULL,
+							&image_data_pointer );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	*geometrical_mask_frame_buffer = image_data_pointer;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+
 MX_EXPORT mx_status_type
 mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 {
@@ -5315,9 +5444,13 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	int spatial_status, os_status, saved_errno;
 	int row_framesize, column_framesize;
+	uint16_t *geometrical_mask_frame_buffer;
 	mx_status_type mx_status;
 
+	/* Suppress stupid GCC 4 initialization warnings. */
+
 	pccd_170170 = NULL;
+	geometrical_mask_frame_buffer = NULL;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
@@ -5382,6 +5515,17 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 			saved_errno, strerror(saved_errno) );
 	}
 
+	/* Make sure that the geometrical mask frame is binned to the
+	 * correct size.
+	 */
+
+	mx_status = mxd_pccd_170170_setup_geometrical_mask_frame(
+			pccd_170170, image_frame,
+			&geometrical_mask_frame_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
@@ -5396,7 +5540,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	spatial_status = smvspatial( image_frame->image_data, 
 				row_framesize, column_framesize, 0,
 				pccd_170170->geometrical_spline_filename,
-				pccd_170170->geometrical_mask_filename );
+				geometrical_mask_frame_buffer );
 #else
 	mx_warning("XGEN geometrical correction is currently only available "
 		"on Linux, Windows, and MacOS X.");
