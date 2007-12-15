@@ -39,6 +39,8 @@
 
 #define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
+#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -54,6 +56,7 @@
 #include "mx_key.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
+#include "mx_memory.h"
 #include "mx_image.h"
 #include "mx_digital_output.h"
 #include "mx_video_input.h"
@@ -65,6 +68,21 @@
 
 #if MXD_PCCD_170170_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
+#endif
+
+/* Memory leak debugging macro. */
+
+#if MXD_PCCD_170170_DEBUG_MEMORY_LEAK
+#  define DISPLAY_MEMORY_USAGE( label ) \
+	do {                                                                  \
+	    MX_PROCESS_MEMINFO meminfo;                                       \
+	    (void) mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );   \
+	    MX_DEBUG(-2,("\n%s: total_bytes = %lu\n",                         \
+			(label), (unsigned long) meminfo.total_bytes));\
+	} while(0)
+
+#else
+#  define DISPLAY_MEMORY_USAGE( label )
 #endif
 
 /* Internal prototype for smvspatial. */
@@ -5434,7 +5452,6 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_PCCD_170170 *pccd_170170,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-
 MX_EXPORT mx_status_type
 mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 {
@@ -5519,6 +5536,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	 * correct size.
 	 */
 
+	DISPLAY_MEMORY_USAGE( "BEFORE setup of geometrical mask" );
+
 	mx_status = mxd_pccd_170170_setup_geometrical_mask_frame(
 			pccd_170170, image_frame,
 			&geometrical_mask_frame_buffer );
@@ -5534,6 +5553,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	mx_image_statistics( image_frame );
 #endif
 
+	DISPLAY_MEMORY_USAGE( "BEFORE smvspatial()" );
+
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(_MSC_VER)
 	/* Perform the geometrical correction. */
 
@@ -5547,6 +5568,12 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 
 	spatial_status = 0;
 #endif
+
+#if 1
+	fflush(stdout);		/* Thank you MSI! */
+#endif
+
+	DISPLAY_MEMORY_USAGE( "AFTER smvspatial()" );
 
 	switch( spatial_status ) {
 	case 0:		/* Spatial correction succeeded. */
