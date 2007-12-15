@@ -39,7 +39,7 @@
 
 #define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		TRUE
+#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5551,6 +5551,14 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 #if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));
 	mx_image_statistics( image_frame );
+#endif
+
+#if 1
+	DISPLAY_MEMORY_USAGE( "BEFORE kludge" );
+
+	/* Kludge: free internal smvspatial() memory. */
+
+	smvspatial( NULL, -1, -1, 0, NULL, NULL );
 #endif
 
 	DISPLAY_MEMORY_USAGE( "BEFORE smvspatial()" );
