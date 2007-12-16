@@ -236,7 +236,7 @@ unsigned short *locactive(char *masknam, unsigned short *inmask,
 	      }
 	fprintf(stderr, " %d pixels out of a possible %d are active\n",
 		npos, (int)(mwid * busiz));
-	if (ngt1 > 0) printf(" Weighted mask is being used\n");
+	if (ngt1 > 0) fprintf(stderr, " Weighted mask is being used\n");
 	return usp0;
 }
 
@@ -350,7 +350,7 @@ static int smvspline(IMWORK *imp)
 		killimwork(imp, 03);
 		(void)fclose(fspl);	fspl = NULL;	return EALLOC;
 	  }
-	if (imp->imf_flags & ANY_VERBOSE) printf(
+	if (imp->imf_flags & ANY_VERBOSE) fprintf(stderr,
 	 " Correction file %s: Dimensions [%4d,%4d], %3d columns, %3d rows\n",
 		imp->imf_splname, lspl->v_detw, lspl->v_deth,
 		lspl->v_nrow, lspl->v_ncol);
@@ -391,7 +391,7 @@ static int rescalespl(IMWORK *imp)
 	if ((xsca < 1. - FUZZ) || (xsca > 1. + FUZZ) ||
 		(ysca < 1. - FUZZ) || (ysca > 1. + FUZZ))
 	  {
-		if (imp->imf_flags & ANY_VERBOSE) printf(
+		if (imp->imf_flags & ANY_VERBOSE) fprintf(stderr,
 		 "Rescaling spline by a factor of %7.4f in X, %7.4f in Y\n",
 			xsca, ysca);
 		lspl->v_detw *= xsca;		lspl->v_deth *= ysca;
@@ -404,7 +404,7 @@ static int rescalespl(IMWORK *imp)
 			calp->c_ptocx *= xsca; calp->c_ptocy *= ysca;
 		      }
 	  }
-	else if (imp->imf_flags & ANY_VERBOSE) printf(
+	else if (imp->imf_flags & ANY_VERBOSE) fprintf(stderr,
  "No rescaling of spline required: image and spline have same dimensions\n");
 	return EOK;
 }
@@ -433,7 +433,7 @@ static void countactive(IMWORK *imp)
 		fprintf(stderr,
 		 " %d pixels out of a possible %d are active\n",
 			npos, (int)(imp->imf_wid * imp->imf_ht));
-		if (ngt1 > 0) printf(" Weighted mask is being used\n");
+		if (ngt1 > 0) fprintf(stderr," Weighted mask is being used\n");
 	  }
 }
 
@@ -452,9 +452,9 @@ static int find_limits(IMWORK *imp)
 	/* now walk through the values */
 	if (imp->imf_flags & ANY_VERBOSE)
 	  {
-		fprintf(stdout,
+		fprintf(stderr,
  "     Minima(X,Y)     Maxima(X,Y)  Intervals(X,Y)    Offsets(X,Y)");
-		fprintf(stdout, "***[X,Y] values where the extrema are***\n");
+		fprintf(stderr, "***[X,Y] values where the extrema are***\n");
 	  }
 	ymi = xmi = 1.e9;		yma = xma = -ymi;	ymin = xmin = 0;
 	xdel = xmax = imp->imf_wid;	ymax = ydel = imp->imf_ht;
@@ -593,11 +593,11 @@ static int find_limits(IMWORK *imp)
 	imp->imf_y00 = -yma * imp->imf_ysl;
 	if (imp->imf_flags & ANY_VERBOSE)
 	  {
-		fprintf(stdout,
+		fprintf(stderr,
 		 " %7.3f %7.3f %7.3f %7.3f %7.2f %7.2f %7.2f %7.2f ",
 		 xmi, ymi, xma, yma,
 		 imp->imf_xsl, imp->imf_ysl, imp->imf_x00, imp->imf_y00);
-		fprintf(stdout, " %4d %4d %4d %4d %4d %4d %4d %4d\n",
+		fprintf(stderr, " %4d %4d %4d %4d %4d %4d %4d %4d\n",
 		 pxxl, pxyl, pyxl, pyyl, pxxu, pxyu, pyxu, pyyu);
 	  }
 	return EOK;
@@ -614,17 +614,24 @@ static int interp_image(IMWORK *imp)
 	unsigned short	*looff, *lom;
 	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czx00;
 	VSPLINE		*lspl;
+	static int	saveimsiz;
 
 	/* size of data16 buffer */
 	imp->imf_imsize = imsiz = imp->imf_wid * imp->imf_ht;
-	/* reserve memory for floating-point image and weight values */
-	if (NULL == (loim = (float *)calloc(2 * imsiz, sizeof (float))))
+	/* reserve memory for floating-point image and weight values if needed*/
+	if ((NULL == (imp->imf_locim)) || (saveimsiz != imsiz))
 	  {
-		fprintf(stderr,
-		 "Error allocating memory for floating-point image\n");
-		return EALLOC;
+		if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
+		if (NULL == (loim = (float *)calloc(2 * imsiz, sizeof (float))))
+		  {
+			fprintf(stderr,
+			 "Error allocating memory for floating-point image\n");
+			return EALLOC;
+		  }
+		imp->imf_locim = loim;
 	  }
-	imp->imf_locim = loim;	imp->imf_locwt = lowt = loim + imsiz;
+	else  loim = imp->imf_locim;
+	saveimsiz = imsiz;	imp->imf_locwt = lowt = loim + imsiz;
 	lspl = imp->imf_spl;
 	for (obounds = x = 0; x < imp->imf_wid; x++) /* convert pix to cm */
 	   {
@@ -723,7 +730,7 @@ static int interp_image(IMWORK *imp)
 		   } /* end of check for active pixel */
 		} /* end of loop through Y */
 	   } /* end of loop through X */
-	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) printf(
+	if ((obounds > 0) && (imp->imf_flags & ANY_VERBOSE)) fprintf(stderr,
 	 " %6d pixels mapped to coordinates outside the adjusted limits\n",
 		obounds);
 	return EOK;
@@ -759,14 +766,17 @@ static int normalize(IMWORK *imp)
 	      }
 	if (imp->imf_flags & ANY_VERBOSE) /* code for this printout */
 	  {
-		printf(" %8d pixels out of %8d gave nonzero intensities\n",
+		fprintf(stderr,
+		 " %8d pixels out of %8d gave nonzero intensities\n",
 		 nonz, imp->imf_imsize);
-		printf(
+		fprintf(stderr,
 		 " %8d pixels out of %8d were missing interpolatable values\n",
 			noreps, imp->imf_imsize);
-		printf(" of these, %8d were within three pixels of the edge\n",
+		fprintf(stderr,
+		 " of these, %8d were within three pixels of the edge\n",
 			nearedge);
-		printf(" of these, %8d were within   one pixel  of the edge\n",
+		fprintf(stderr,
+		 " of these, %8d were within   one pixel  of the edge\n",
 			onedge);
 	  }
 	return noreps;
@@ -795,7 +805,7 @@ static int creat_undistor(IMWORK *imp)
 		  }
 	if (nov)
 	  { /* rescale so brightest pixel is < 65K */
-		if (imp->imf_flags & VERY_VERBOSE) fprintf(stdout,
+		if (imp->imf_flags & VERY_VERBOSE) fprintf(stderr,
 		 " Brightest renormalized pixel has I = %12.5e\n",
 			maxfl);
 		maxfl /= 65000.;
@@ -824,8 +834,8 @@ static int creat_undistor(IMWORK *imp)
 		   }
 	 }
 	else return EBADVALUE;	/* failure to set everything below 65k */
-	if (imp->imf_flags & ANY_VERBOSE)
-		printf("Image has %12.0f counts; zmax = %7d at [%4d,%4d]\n",
+	if (imp->imf_flags & ANY_VERBOSE) fprintf(stderr,
+		"Image has %12.0f counts; zmax = %7d at [%4d,%4d]\n",
 			ecount, (int)zma, zmxx, (int)(imp->imf_ht - 1 - zmxy));
 	return EOK;
 }
@@ -905,7 +915,7 @@ int smvspatial(void *imarr, int imwid, int imht, int cflags,
 	else imfs.imf_flags = cflags & ~ACTIVE_ONLY;
 	imfs.imf_wid = imwid;	imfs.imf_ht = imht;
 	imfs.imf_lomask = maskval;
-	if (cflags & ANY_VERBOSE) sumsmvspat(stdout, &imfs);
+	if (cflags & ANY_VERBOSE) sumsmvspat(stderr, &imfs);
 	resu = img_conversion(&imfs);	/* perform spatial correction */
 	return resu;
 }

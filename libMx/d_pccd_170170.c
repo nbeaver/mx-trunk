@@ -39,7 +39,7 @@
 
 #define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
+#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5553,7 +5553,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	mx_image_statistics( image_frame );
 #endif
 
-#if 1
+#if 0
 	DISPLAY_MEMORY_USAGE( "BEFORE kludge" );
 
 	/* Kludge: free internal smvspatial() memory. */
@@ -5577,7 +5577,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	spatial_status = 0;
 #endif
 
-#if 1
+#if 0
 	fflush(stdout);		/* Thank you MSI! */
 #endif
 
