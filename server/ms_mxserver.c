@@ -1156,7 +1156,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	message_ptr += header_length;
 
 	/* Ensure that a '\0' byte is placed after the end of the
-	 * message field.
+	 * message field.  It is OK to write to this location since
+	 * the network message buffer allocation and reallocation
+	 * routines actually add one extra byte to the buffer.
+	 * This is to make sure that string fields are always
+	 * null terminated even if the driver did not allocate
+	 * space for the null byte.
 	 */
 
 	message_ptr[ message_length ] = '\0';

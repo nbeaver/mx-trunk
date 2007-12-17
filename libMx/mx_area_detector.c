@@ -4910,8 +4910,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_HRT_RESULTS( measurement, fname, "Total image dezingering time." );
 #  endif
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 		return mx_status;
+	}
 
 #else /* not MX_AREA_DETECTOR_USE_DEZINGER */
 

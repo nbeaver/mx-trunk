@@ -1089,6 +1089,8 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	ad->framesize[0]    = MXIF_ROW_FRAMESIZE(destination_frame);
 	ad->framesize[1]    = MXIF_COLUMN_FRAMESIZE(destination_frame);
+	ad->binsize[0]      = MXIF_ROW_BINSIZE(destination_frame);
+  	ad->binsize[1]      = MXIF_COLUMN_BINSIZE(destination_frame);
 	ad->image_format    = MXIF_IMAGE_FORMAT(destination_frame);
 	ad->byte_order      = MXIF_BYTE_ORDER(destination_frame);
 	ad->bytes_per_pixel = MXIF_BYTES_PER_PIXEL(destination_frame);

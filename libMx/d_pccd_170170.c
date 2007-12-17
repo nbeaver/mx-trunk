@@ -39,7 +39,9 @@
 
 #define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		TRUE
+#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
+
+#define MXD_PCCD_170170_DEBUG_CONTROL_REGISTER		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +72,7 @@
 #  include "mx_hrt_debug.h"
 #endif
 
-/* Memory leak debugging macro. */
+/*------------------------------------------------------------------------*/
 
 #if MXD_PCCD_170170_DEBUG_MEMORY_LEAK
 #  define DISPLAY_MEMORY_USAGE( label ) \
@@ -78,12 +80,28 @@
 	    MX_PROCESS_MEMINFO meminfo;                                       \
 	    (void) mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );   \
 	    MX_DEBUG(-2,("\n%s: total_bytes = %lu\n",                         \
-			(label), (unsigned long) meminfo.total_bytes));\
+			(label), (unsigned long) meminfo.total_bytes));       \
 	} while(0)
 
 #else
 #  define DISPLAY_MEMORY_USAGE( label )
 #endif
+
+/*------------------------------------------------------------------------*/
+
+#if MXD_PCCD_170170_DEBUG_CONTROL_REGISTER
+#  define DISPLAY_CONTROL_REGISTER( label ) \
+	do {                                                                  \
+		long dse_dh_control;                                          \
+		(void) mx_area_detector_get_register( ad->record,             \
+			"dh_control", &dse_dh_control );                      \
+		MX_DEBUG(-2,("%s: dh_control = %#lx", label, dse_dh_control));\
+	} while(0)
+#else
+#  define DISPLAY_CONTROL_REGISTER( label )
+#endif
+
+/*------------------------------------------------------------------------*/
 
 /* Internal prototype for smvspatial. */
 
@@ -95,7 +113,8 @@ smvspatial( void *imarr,
 	char *splname,
 	uint16_t *maskval );
 
-/*---*/
+/*------------------------------------------------------------------------*/
+
 
 #define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
 
@@ -2800,6 +2819,8 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
+	DISPLAY_CONTROL_REGISTER(fname);
+
 	vinput = pccd_170170->video_input_record->record_class_struct;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
@@ -3006,6 +3027,8 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			pccd_170170->video_input_record->name,
 			ad->record->name );
 	}
+
+	DISPLAY_CONTROL_REGISTER(fname);
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
@@ -3300,6 +3323,8 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	DISPLAY_CONTROL_REGISTER(fname);
+
 	/* Ask the video board for its current status. */
 
 	mx_status = mx_video_input_get_extended_status(

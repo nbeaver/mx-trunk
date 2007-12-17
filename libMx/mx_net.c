@@ -48,9 +48,11 @@
 
 #define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
 
-#define NETWORK_DEBUG_TIMING		FALSE
+#define NETWORK_DEBUG_TIMING			FALSE
 
-#define NETWORK_DEBUG_HEADER_LENGTH	FALSE
+#define NETWORK_DEBUG_HEADER_LENGTH		FALSE
+
+#define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
 
 #if NETWORK_DEBUG_TIMING
 #include "mx_hrt_debug.h"
@@ -64,8 +66,10 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
 
-	MX_DEBUG( 2,("%s invoked for an initial length of %lu",
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("%s invoked for an initial length of %lu",
 		fname, (unsigned long) initial_length ));
+#endif
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -84,7 +88,7 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 			"MX_NETWORK_MESSAGE_BUFFER structure." );
 	}
 
-	(*message_buffer)->u.uint32_buffer = malloc( initial_length );
+	(*message_buffer)->u.uint32_buffer = malloc( initial_length + 1 );
 
 	if ( (*message_buffer)->u.uint32_buffer == (uint32_t *) NULL ) {
 
@@ -99,7 +103,7 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 
 	(*message_buffer)->data_format = MX_NETWORK_DATAFMT_ASCII;
 
-#if 0
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,
 ("%s: *message_buffer = %p, uint32_buffer = %p, char_buffer = %p, length = %lu",
 	 	fname, *message_buffer,
@@ -121,7 +125,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	size_t old_length;
 	uint32_t *header;
-#if 0
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
 	int i;
 #endif
 
@@ -142,14 +146,16 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	old_length = message_buffer->buffer_length;
 
-	MX_DEBUG( 2,("%s will change the length of network message buffer %p "
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("%s will change the length of network message buffer %p "
 		"from %lu bytes to %lu bytes.", fname, message_buffer,
 			(unsigned long) old_length,
 			(unsigned long) new_length ));
+#endif
 
 	header = message_buffer->u.uint32_buffer;
 
-#if 0
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,("%s: #1 header = %p", fname, header));
 
 	for ( i = 0; i < 5; i++ ) {
@@ -157,14 +163,18 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			fname, i, (unsigned long) header[i]));
 	}
 
+	MX_DEBUG(-2,("%s: BEFORE realloc() end of buffer test.", fname));
+
+	message_buffer->u.char_buffer[ old_length - 1 ] = 0;
+
 	MX_DEBUG(-2,("%s: BEFORE realloc(), uint32_buffer = %p", fname,
 				message_buffer->u.uint32_buffer));
 #endif
 
 	message_buffer->u.uint32_buffer =
-		realloc( message_buffer->u.uint32_buffer, new_length );
+		realloc( message_buffer->u.uint32_buffer, new_length + 1 );
 
-#if 0
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,("%s: AFTER realloc(), uint32_buffer = %p", fname,
 				message_buffer->u.uint32_buffer));
 #endif
@@ -181,11 +191,20 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			(unsigned long) new_length );
 	}
 
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("%s: AFTER realloc() end of buffer test.", fname));
+
+	message_buffer->u.char_buffer[ new_length - 1 ] = 0;
+
+	MX_DEBUG(-2,
+	("%s: AFTER realloc() end of buffer test succeeded", fname));
+#endif
+
 	message_buffer->buffer_length = new_length;
 
 	header = message_buffer->u.uint32_buffer;
 
-#if 0
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
 	MX_DEBUG(-2,("%s: #2 header = %p", fname, header));
 
 	for ( i = 0; i < 5; i++ ) {
@@ -211,10 +230,12 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		return;
 	}
 
-	MX_DEBUG( 2,("mx_free_network_buffer(): message_buffer = %p, "
+#if NETWORK_DEBUG_BUFFER_ALLOCATION
+	MX_DEBUG(-2,("mx_free_network_buffer(): message_buffer = %p, "
 		"u.uint32_buffer = %p, length = %lu",
 	 	message_buffer, message_buffer->u.uint32_buffer,
 		(unsigned long) message_buffer->buffer_length));
+#endif
 
 	if ( message_buffer->u.uint32_buffer != NULL ) {
 		free( message_buffer->u.uint32_buffer );
