@@ -5,23 +5,30 @@ tspline_x        variable inline double "" "" 1  5   4.7   5.1   5.9   6.4  7
 espline_enabled  variable inline bool "" "" 1  1  1
 espline_y        variable inline double "" "" 1  5  3.1   4.9     6.3   3.7  4.6
 espline_x        variable inline double "" "" 1  5  17000 17450.5 17920 18020 19155
+tpoly_enabled    variable inline bool "" "" 1  1  1
+tpoly_params     variable inline double "" "" 1  4  5  1  0  0
 #
 theta_list       variable inline record "" "" 1  4  theta_enabled theta_type dummy_params theta_records
 tspline_list      variable inline record "" "" 1  4  tspline_enabled tspline_type dummy_params tspline_records
 espline_list      variable inline record "" "" 1  4  espline_enabled espline_type dummy_params espline_records
+tpoly_list        variable inline record "" "" 1  4  tpoly_enabled tpoly_type dummy_params tpoly_records
 theta_enabled    variable inline bool "" "" 1  1  1
 theta_type       variable inline long "" "" 1  1  0
 theta_records    variable inline record "" "" 1  1  theta_real
-tspline_type      variable inline long "" "" 1  1  10
-tspline_records   variable inline record "" "" 1  1  tspline
-espline_type      variable inline long "" "" 1  1  11
-espline_records   variable inline record "" "" 1  2  espline d_spacing
+tspline_type     variable inline long "" "" 1  1  10
+tspline_records  variable inline record "" "" 1  1  tspline
+espline_type     variable inline long "" "" 1  1  11
+espline_records  variable inline record "" "" 1  2  espline d_spacing
+tpoly_type       variable inline long "" "" 1  1  10
+tpoly_records    variable inline record "" "" 1  1  tpoly
 dummy_params     variable inline double "" "" 1  1  0
 theta_real       device motor soft_motor "" "" 0 0 -180000000 180000000 0 -1 -1 1e-06 0 deg 1000000 0 500000
 theta            device motor monochromator "" "" 0 0 -1e+38 1e+38 0 -1 -1 1 0 deg 3  theta_list tspline_list espline_list
 energy           device motor energy_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
-rawtspline        device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
-tspline           device motor cubic_spline_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 um rawtspline tspline_x tspline_y
-rawespline        device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
-espline           device motor cubic_spline_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 um rawespline espline_x espline_y
+rawtspline       device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
+tspline          device motor cubic_spline_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 um rawtspline tspline_x tspline_y
+rawespline       device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
+espline          device motor cubic_spline_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 um rawespline espline_x espline_y
+rawtpoly         device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
+tpoly            device motor polynomial_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 um rawtpoly tpoly_params
 timer1           device timer soft_timer "" ""

@@ -1,2 +1,3 @@
 tspline_scan                     scan linear_scan motor_scan "" "" 1 1 1  tspline 1  rawtspline  0 0 preset_time "0.1 timer1" text tspline.out gnuplot $f[0]  0  0.1  101
 espline_scan                     scan linear_scan motor_scan "" "" 1 1 1  energy 3  theta_real rawespline rawtspline  0 0 preset_time "0.5 timer1" text espline.out gnuplot $f[0];$f[1];$f[2]  16500  100  41
+tpoly_scan                       scan linear_scan motor_scan "" "" 1 1 1  tpoly 1  rawtpoly  0 0 preset_time "0.1 timer1" text tpoly.out gnuplot $f[0]  0  0.1  101

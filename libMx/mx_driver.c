@@ -313,6 +313,7 @@
 #include "d_record_field_motor.h"
 #include "d_gated_backlash.h"
 #include "d_cubic_spline_motor.h"
+#include "d_polynomial_motor.h"
 
 #include "d_aps_18id.h"
 
@@ -2322,6 +2323,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_cubic_spline_motor_motor_function_list,
 				&mxd_cubic_spline_motor_num_record_fields,
 				&mxd_cubic_spline_motor_rfield_def_ptr},
+
+{"polynomial_motor", MXT_MTR_POLYNOMIAL, MXC_MOTOR,     MXR_DEVICE,
+				&mxd_polynomial_motor_record_function_list,
+				NULL,
+				&mxd_polynomial_motor_motor_function_list,
+				&mxd_polynomial_motor_num_record_fields,
+				&mxd_polynomial_motor_rfield_def_ptr},
 
 #if HAVE_EPICS
 {"aps_18id_motor", MXT_MTR_APS_18ID,     MXC_MOTOR,       MXR_DEVICE,
