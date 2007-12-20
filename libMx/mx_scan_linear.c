@@ -895,8 +895,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 				scan->motor_record_array,
 				MXF_MTR_SCAN_IN_PROGRESS );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( ( mx_status.code != MXE_SUCCESS )
+			  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
+			{
 				return mx_status;
+			}
 
 			/* Perform the measurement. */
 

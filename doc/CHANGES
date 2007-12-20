@@ -124,6 +124,11 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
 	dark current values in the local record, but then each MX client
 	will have its own private version of the dark current.
 
+	A couple of bugs have been found in the handling of user interrupt
+	and pause requests when using the scan 'early move' feature.
+	Ken McIvor's patches that fix this have been applied in this
+	release.
+
 	The 'mxsave' and 'mxrestore' scripts have been added.  These are
 	wrappers around the modern version of 'mxupdate' that allow the
 	user to manually save or restore user-specified groups of MX

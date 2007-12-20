@@ -1482,6 +1482,7 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 {
 	static const char fname[] = "mx_scan_acquire_and_readout_data()";
 
+	int interrupt;
 	mx_bool_type fault_occurred;
 	mx_status_type mx_status, acquire_data_status;
 
@@ -1504,9 +1505,20 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 
 		MX_DEBUG( 2,("%s: beginning of fault_occurred loop.", fname ));
 
-		if ( mx_user_requested_interrupt() ) {
+		interrupt = mx_user_requested_interrupt();
+
+		switch ( interrupt ) {
+		case MXF_USER_INT_NONE:
+			break;
+
+		case MXF_USER_INT_PAUSE:
+			return mx_error( MXE_PAUSE_REQUESTED, fname,
+				"Pause requested by user." );
+			break;
+
+		default:
 			return mx_error( MXE_INTERRUPTED, fname,
-			"The measurement retry loop was interrupted." );
+				"The measurement was interrupted." );
 		}
 
 		/* Wait until all of the measurement permit handlers say
