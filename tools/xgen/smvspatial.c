@@ -610,7 +610,7 @@ static int interp_image(IMWORK *imp)
 	double		dx, dy, omp, omq, p, px, py, q, rimv, rx, ry;
 	double		wt0, wt1, wt2, wt3;
 	float		xc, yc, *loim, *lowt;
-	size_t		imsiz;
+	size_t		imsiz, imsiz2;
 	unsigned short	*looff, *lom;
 	CALPOINT	*cz00, *cz01, *cz10, *cz11, *czx00;
 	VSPLINE		*lspl;
@@ -618,11 +618,12 @@ static int interp_image(IMWORK *imp)
 
 	/* size of data16 buffer */
 	imp->imf_imsize = imsiz = imp->imf_wid * imp->imf_ht;
+	imsiz2 = imsiz * 2;
 	/* reserve memory for floating-point image and weight values if needed*/
 	if ((NULL == (imp->imf_locim)) || (saveimsiz != imsiz))
 	  {
 		if (NULL != (imp->imf_locim)) free((void *)(imp->imf_locim));
-		if (NULL == (loim = (float *)calloc(2 * imsiz, sizeof (float))))
+		if (NULL == (loim = (float *)calloc(imsiz2, sizeof (float))))
 		  {
 			fprintf(stderr,
 			 "Error allocating memory for floating-point image\n");
@@ -630,7 +631,11 @@ static int interp_image(IMWORK *imp)
 		  }
 		imp->imf_locim = loim;
 	  }
-	else  loim = imp->imf_locim;
+	else {
+		loim = imp->imf_locim;
+		for (ix = 0, lowt = loim; ix < imsiz2; ix++, lowt++)
+			*lowt = 0;
+	     }
 	saveimsiz = imsiz;	imp->imf_locwt = lowt = loim + imsiz;
 	lspl = imp->imf_spl;
 	for (obounds = x = 0; x < imp->imf_wid; x++) /* convert pix to cm */
