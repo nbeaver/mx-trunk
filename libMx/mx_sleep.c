@@ -113,18 +113,18 @@ mx_usleep( unsigned long microseconds )
 MX_EXPORT void
 mx_sleep( unsigned long seconds )
 {
-	struct timespec sleep_time, remaining_time;
+	struct timespec sleep_time;
 
 	sleep_time.tv_sec = (time_t) seconds;
 	sleep_time.tv_nsec = 0L;
 
-	(void) nanosleep( &sleep_time, &remaining_time );
+	(void) nanosleep( &sleep_time, NULL );
 }
 
 MX_EXPORT void
 mx_msleep( unsigned long milliseconds )
 {
-	struct timespec sleep_time, remaining_time;
+	struct timespec sleep_time;
 	int seconds;
 
 	seconds = (int) ( milliseconds / 1000L );
@@ -134,13 +134,13 @@ mx_msleep( unsigned long milliseconds )
 	sleep_time.tv_sec = (time_t) seconds;
 	sleep_time.tv_nsec = (long) (1000000L * milliseconds);
 
-	(void) nanosleep( &sleep_time, &remaining_time );
+	(void) nanosleep( &sleep_time, NULL );
 }
 
 MX_EXPORT void
 mx_usleep( unsigned long microseconds )
 {
-	struct timespec sleep_time, remaining_time;
+	struct timespec sleep_time;
 	int seconds;
 
 	seconds = (int) ( microseconds / 1000000L );
@@ -150,7 +150,7 @@ mx_usleep( unsigned long microseconds )
 	sleep_time.tv_sec = (time_t) seconds;
 	sleep_time.tv_nsec = (long) (1000L * microseconds);
 
-	(void) nanosleep( &sleep_time, &remaining_time );
+	(void) nanosleep( &sleep_time, NULL );
 }
 
 #endif /* USE_NANOSLEEP_MX_SLEEP */
