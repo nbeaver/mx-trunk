@@ -89,9 +89,28 @@ extern "C" {
 
 #define MXFF_SHOW_ALL			0x80000000
 
-/* The allowed values of 'preferred_timer_interval'
- * can be found in 'libMx/mx_process.h'.
- */
+typedef struct mx_record_field_type {
+	long label_value;
+	long field_number;
+	char *name;
+	long datatype;
+	void *typeinfo;
+	long num_dimensions;
+	long *dimension;
+	void *data_pointer;
+	size_t *data_element_size;
+	mx_status_type (*process_function) (void *, void *, int);
+	long flags;
+	long timer_interval;
+	double value_change_threshold;
+	double last_value;
+	mx_status_type (*value_changed_test_function)(
+				struct mx_record_field_type *, mx_bool_type *);
+	void *callback_list;
+	void *application_ptr;
+	struct mx_record_type *record;
+	mx_bool_type active;
+} MX_RECORD_FIELD;
 
 typedef struct {
 	long label_value;
@@ -106,30 +125,11 @@ typedef struct {
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
-	long preferred_timer_interval;
+	long timer_interval;
 	double value_change_threshold;
+	mx_status_type (*value_changed_test_function)(
+				struct mx_record_field_type *, mx_bool_type *);
 } MX_RECORD_FIELD_DEFAULTS;
-
-typedef struct {
-	long label_value;
-	long field_number;
-	char *name;
-	long datatype;
-	void *typeinfo;
-	long num_dimensions;
-	long *dimension;
-	void *data_pointer;
-	size_t *data_element_size;
-	mx_status_type (*process_function) (void *, void *, int);
-	long flags;
-	long preferred_timer_interval;
-	double value_change_threshold;
-	double last_value;
-	void *callback_list;
-	void *application_ptr;
-	struct mx_record_type *record;
-	mx_bool_type active;
-} MX_RECORD_FIELD;
 
 typedef struct {
 	struct mx_record_type *record;
@@ -430,6 +430,8 @@ typedef struct {
 	void *callback_timer;
 
 	void *callback_pipe;
+
+	unsigned long num_poll_callbacks;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

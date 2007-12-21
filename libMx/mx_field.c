@@ -2009,11 +2009,12 @@ mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
 	field->data_element_size    = field_defaults->data_element_size;
 	field->process_function     = field_defaults->process_function;
 	field->flags                = field_defaults->flags;
-	field->preferred_timer_interval
-				= field_defaults->preferred_timer_interval;
+	field->timer_interval       = field_defaults->timer_interval;
 	field->value_change_threshold
 				= field_defaults->value_change_threshold;
 	field->last_value           = 0.0;
+	field->value_changed_test_function
+				= field_defaults->value_changed_test_function;
 	field->callback_list        = NULL;
 	field->application_ptr      = NULL;
 	field->record               = NULL;

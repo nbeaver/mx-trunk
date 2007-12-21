@@ -168,6 +168,8 @@ mxr_create_list_head( MX_RECORD *record )
 
 	list_head_struct->callback_pipe = NULL;
 
+	list_head_struct->num_poll_callbacks = 0;
+
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 
 	(void) mx_username( list_head_struct->username, MXU_USERNAME_LENGTH );

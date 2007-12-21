@@ -381,6 +381,9 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	void *value_ptr;
 	double new_value, difference, threshold;
 	mx_bool_type value_changed;
+	mx_status_type (*value_changed_test_fn)( MX_RECORD_FIELD *,
+						mx_bool_type * );
+	mx_status_type mx_status;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -395,6 +398,19 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 #endif
+	/* Does this record field have a custom value changed test function? */
+
+	value_changed_test_fn = record_field->value_changed_test_function;
+
+	if ( value_changed_test_fn != NULL ) {
+		/* If so, invoke it instead of the standard test. */
+
+		mx_status = (*value_changed_test_fn)( record_field,
+							value_changed_ptr );
+		return mx_status;
+	}
+
+	/* Otherwise, do the standard value changed test. */
 
 	value_changed = FALSE;
 	new_value = record_field->last_value;

@@ -3982,8 +3982,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/*------------------------------------------------------------*/
 
-	MX_DEBUG( 4,("%s: MARKER 0", fname));
-
 	/* See if a callback of this type already exists. */
 
 	mx_status = mx_local_field_find_callback( field,
@@ -3994,8 +3992,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 
-		MX_DEBUG( 4,("%s: MARKER 1.1", fname));
-
 		/* mx_local_field_find_callback() successfully found
 		 * an existing callback.
 		 */
@@ -4004,13 +4000,9 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 		/* Is this socket handler already in the list? */
 
-		MX_DEBUG( 4,("%s: MARKER 1.2", fname));
-
 		mx_status = mx_list_find_list_entry( socket_handler_list,
 							socket_handler,
 							&list_entry );
-
-		MX_DEBUG( 4,("%s: MARKER 1.3", fname));
 
 #if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,("%s: OLD callback: socket_handler_list = %p",
@@ -4019,47 +4011,30 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		("%s: OLD callback: list_entry = %p, socket_handler = %p",
 			fname, list_entry, socket_handler));
 #endif
-		MX_DEBUG( 4,("%s: MARKER 1.4", fname));
-
 		if ( mx_status.code == MXE_SUCCESS ) {
 			/* Do nothing. */
-
-			MX_DEBUG( 4,("%s: MARKER 1.5.1", fname));
 		} else
 		if ( mx_status.code == MXE_NOT_FOUND ) {
 			/* If the socket handler is not already in the list,
 			 * then add it to the list.
 			 */
 
-			MX_DEBUG( 4,("%s: MARKER 1.6.1", fname));
-
 			mx_status = mx_list_entry_create( &list_entry,
 						socket_handler, NULL );
 
-			MX_DEBUG( 4,("%s: MARKER 1.6.2", fname));
-
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-
-			MX_DEBUG( 4,("%s: MARKER 1.6.3", fname));
 
 			mx_status = mx_list_add_entry( socket_handler_list,
 							list_entry );
 
-			MX_DEBUG( 4,("%s: MARKER 1.6.4", fname));
-
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-
-			MX_DEBUG( 4,("%s: MARKER 1.6.5", fname));
 		} else {
 			/* An unexpected error occurred. */
 
-			MX_DEBUG( 4,("%s: MARKER 1.7.1", fname));
 			return mx_status;
 		}
-
-		MX_DEBUG( 4,("%s: MARKER 1.8", fname));
 	} else
 	if ( mx_status.code == MXE_NOT_FOUND ) {
 		/* If an existing callback was not found,
@@ -4070,35 +4045,21 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		 * and add this socket handler to the list.
 		 */
 
-		MX_DEBUG( 4,("%s: MARKER 2.1", fname));
-
 		mx_status = mx_list_create( &socket_handler_list );
-
-		MX_DEBUG( 4,("%s: MARKER 2.2", fname));
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		MX_DEBUG( 4,("%s: MARKER 2.3", fname));
 
 		mx_status = mx_list_entry_create( &list_entry,
 						socket_handler, NULL );
 
-		MX_DEBUG( 4,("%s: MARKER 2.4", fname));
-
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		MX_DEBUG( 4,("%s: MARKER 2.5", fname));
 
 		mx_status = mx_list_add_entry(socket_handler_list, list_entry);
 
-		MX_DEBUG( 4,("%s: MARKER 2.6", fname));
-
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		MX_DEBUG( 4,("%s: MARKER 2.7", fname));
 
 		/* Create the callback. */
 
@@ -4108,12 +4069,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 					socket_handler_list,
 					&callback_object );
 
-		MX_DEBUG( 4,("%s: MARKER 2.8", fname));
-
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		MX_DEBUG( 4,("%s: MARKER 2.9", fname));
 
 #if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,("%s: ADD callback: socket_handler_list = %p",
@@ -4122,18 +4079,13 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		("%s: ADD callback: list_entry = %p, socket_handler = %p",
 			fname, list_entry, socket_handler));
 #endif
-		MX_DEBUG( 4,("%s: MARKER 2.10", fname));
 	} else {
 		/* We got an unexpected error, so return that error
 		 * to the caller.
 		 */
 
-		MX_DEBUG( 4,("%s: MARKER 3.1", fname));
-
 		return mx_status;
 	}
-
-	MX_DEBUG( 4,("%s: MARKER 4", fname));
 
 	/*------------------------------------------------------------*/
 
@@ -4144,8 +4096,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		"MX_CALLBACK object in spite of the fact that it returned "
 		"an MXE_SUCCESS status code.  This should not happen." );
 	}
-
-	MX_DEBUG( 4,("%s: MARKER 5", fname));
 
 	/* Construct a message to send the callback id back to the client. */
 
@@ -4177,17 +4127,11 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/* Send the message to the client. */
 
-	MX_DEBUG( 4,("%s: MARKER 6", fname));
-
 	mx_status = mx_network_socket_send_message(
 		socket_handler->synchronous_socket, -1.0, network_message );
 
-	MX_DEBUG( 4,("%s: MARKER 7", fname));
-
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	MX_DEBUG( 4,("%s: MARKER 8", fname));
 
 #if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -4219,6 +4163,7 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	MX_CALLBACK_MESSAGE *callback_message;
 	mx_status_type (*cb_function)( void * );
 	unsigned long i, array_size;
+	long interval;
 	size_t bytes_read;
 	mx_status_type mx_status;
 
@@ -4263,6 +4208,11 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 		MX_DEBUG(-2,
 		("%s: Poll all value changed callback handlers.", fname));
 #endif
+		/* Increment the counter that records how many poll callbacks
+		 * have occurred.
+		 */
+
+		list_head->num_poll_callbacks++;
 
 		if ( list_head != callback_message->list_head ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -4314,6 +4264,34 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 				continue;
 			}
 
+			/* If this callback has a timer interval,
+			 * check to see if this is the right time
+			 * to invoke the callback.
+			 */
+
+			interval = callback->timer_interval;
+
+			if ( interval > 0 ) {
+				unsigned long num_polls;
+
+				num_polls = list_head->num_poll_callbacks;
+#if 1
+				MX_DEBUG(-2,
+			("%s: callback = %p, interval = %ld, num_polls = %lu",
+					fname, callback, interval, num_polls));
+#endif
+				if ( (num_polls % interval) != 0 ) {
+					/* This is the wrong time,
+					 * so skip this callback.
+					 */
+
+					continue;
+				}
+#if 1
+				MX_DEBUG(-2,("%s: will perform callback %p",
+					fname, callback));
+#endif
+			}
 #if 0
 			MX_DEBUG(-2,("%s: callback->callback_function = %p",
 				fname, callback->callback_function));

@@ -47,6 +47,8 @@
 #include "mx_memory.h"
 #include "mx_key.h"
 #include "mx_array.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -6350,6 +6352,109 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
+					mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] = "mx_area_detector_vctest_extended_status()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *last_frame_number_field;
+	MX_RECORD_FIELD *total_num_frames_field;
+	MX_RECORD_FIELD *status_field;
+	mx_bool_type value_changed;
+	mx_status_type mx_status;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record field pointer passed was NULL." );
+	}
+
+	record = record_field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for record field %p is NULL.",
+			record_field );
+	}
+
+	MX_DEBUG( 2,("%s invoked for record field '%s.%s'",
+			fname, record->name, record_field->name));
+
+	/* Update the value of the extended status. */
+
+	mx_status = mx_area_detector_get_extended_status( record,
+							NULL, NULL, NULL );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	*value_changed_ptr = FALSE;
+
+	/* Test the 'last_frame_number' field. */
+
+	mx_status = mx_find_record_field( record, "last_frame_number",
+						&last_frame_number_field );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_test_for_value_changed( last_frame_number_field,
+							&value_changed );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( value_changed ) {
+		*value_changed_ptr = TRUE;
+
+		MX_DEBUG( 2,
+		("************** 'last_frame_number' changed **************"));
+	}
+
+	/* Test the 'total_num_frames' field. */
+
+	mx_status = mx_find_record_field( record, "total_num_frames",
+						&total_num_frames_field );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_test_for_value_changed( total_num_frames_field,
+							&value_changed );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( value_changed ) {
+		*value_changed_ptr = TRUE;
+
+		MX_DEBUG( 2,
+		("************** 'total_num_frames' changed **************"));
+	}
+
+	/* Test the 'status' field. */
+
+	mx_status = mx_find_record_field( record, "status",
+						&status_field );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_test_for_value_changed( status_field,
+							&value_changed );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( value_changed ) {
+		*value_changed_ptr = TRUE;
+
+		MX_DEBUG( 2,
+		("************** 'status' changed **************"));
+	}
+
+	MX_DEBUG( 2,("%s: 'get_extended_status' value_changed = %d.",
+		fname, *value_changed_ptr));
 
 	return MX_SUCCESSFUL_RESULT;
 }

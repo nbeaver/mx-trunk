@@ -469,7 +469,8 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_EXTENDED_STATUS, -1, "extended_status", MXFT_STRING, \
 			NULL, 1, {MXU_AD_EXTENDED_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, extended_status), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY, \
+	0, 0, mx_area_detector_vctest_extended_status}, \
   \
   {MXLV_AD_MAXIMUM_NUM_ROIS, -1, "maximum_num_rois", \
 					MXFT_LONG, NULL, 0, {0}, \
@@ -1070,6 +1071,11 @@ MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
+
+/*---*/
+
+MX_API_PRIVATE mx_status_type mx_area_detector_vctest_extended_status(
+					MX_RECORD_FIELD *, mx_bool_type * );
 
 /************************************************************************
  * The following functions are intended for use only in device drivers. *
