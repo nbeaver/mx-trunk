@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,8 @@
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
@@ -2652,6 +2654,26 @@ mx_area_detector_load_frame( MX_RECORD *record,
 		fname, frame_type, frame_filename));
 #endif
 
+#if MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS
+	MX_DEBUG(-2,("%s:   ad->maximum_framesize = [%ld,%ld]", fname,
+		ad->maximum_framesize[0],
+		ad->maximum_framesize[1]));
+	MX_DEBUG(-2,("%s:   ad->framesize = [%ld,%ld]",
+		fname, ad->framesize[0], ad->framesize[1]));
+	MX_DEBUG(-2,("%s:   ad->binsize = [%ld,%ld]",
+		fname, ad->binsize[0], ad->binsize[1]));
+	MX_DEBUG(-2,("%s:   ad->image_format_name = '%s'",
+		fname, ad->image_format_name));
+	MX_DEBUG(-2,("%s:   ad->byte_order = %lu", fname, ad->byte_order));
+	MX_DEBUG(-2,("%s:   ad->bits_per_pixel = %lu",
+		fname, ad->bits_per_pixel));
+	MX_DEBUG(-2,("%s:   ad->bytes_per_pixel = %g",
+		fname, ad->bytes_per_pixel));
+	MX_DEBUG(-2,("%s:   ad->bytes_per_frame = %lu",
+		fname, ad->bytes_per_frame));
+	MX_DEBUG(-2,("%s:   ad->trigger_mode = %lu", fname, ad->trigger_mode));
+#endif
+
 	/* Area detector image correction is currently only supported
 	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
 	 */
@@ -4481,11 +4503,10 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		"mx_area_detector_default_set_parameter_handler()";
 
 	unsigned long i;
+	double bytes_per_frame;
 	mx_status_type mx_status;
 
 	switch( ad->parameter_type ) {
-	case MXLV_AD_FRAMESIZE:
-	case MXLV_AD_BINSIZE:
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -4500,6 +4521,18 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		/* If we change the framesize or the binsize, then we must
+		 * update the number of bytes per frame to match.
+		 */
+
+		bytes_per_frame =
+		    ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1];
+
+		ad->bytes_per_frame = mx_round( bytes_per_frame );
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:

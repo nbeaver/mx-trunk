@@ -4401,6 +4401,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	unsigned long new_delay_time;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
 	double exposure_multiplier, gap_multiplier;
+	double bytes_per_frame;
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
@@ -4532,10 +4533,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 1 /* FIXME - I'm not sure if we want to do the following or not.    */
-      /*         The alternative would be to _only_ save the resolution */
-      /*         when we switch to streak camera mode.                  */
-
 		/* If the resolution change succeeded, save the framesize for
 		 * later use in switching to and from streak camera mode.
 		 */
@@ -4549,7 +4546,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		pccd_170170->normal_binsize[0] = horiz_binsize;
 
 		pccd_170170->normal_binsize[1] = vert_binsize;
-#endif
+
+		/* Update the number of bytes per frame for this resolution. */
+
+		bytes_per_frame =
+		    ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1];
+
+		ad->bytes_per_frame = mx_round( bytes_per_frame );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

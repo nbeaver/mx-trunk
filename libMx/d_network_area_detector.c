@@ -1644,6 +1644,15 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_get_array(&(network_area_detector->binsize_nf),
 				MXFT_LONG, 1, dimension, &(ad->binsize) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Update the local bytes per frame to match. */
+
+		mx_status = mx_get_array(
+			&(network_area_detector->bytes_per_frame_nf),
+			MXFT_LONG, 1, dimension, &(ad->bytes_per_frame) );
 		break;
 
 	case MXLV_AD_BINSIZE:
@@ -1659,6 +1668,15 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_get_array(&(network_area_detector->framesize_nf),
 				MXFT_LONG, 1, dimension, &(ad->framesize) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Update the local bytes per frame to match. */
+
+		mx_status = mx_get_array(
+			&(network_area_detector->bytes_per_frame_nf),
+			MXFT_LONG, 1, dimension, &(ad->bytes_per_frame) );
 		break;
 
 	case MXLV_AD_CORRECTION_FLAGS:
