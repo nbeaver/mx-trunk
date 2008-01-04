@@ -12,7 +12,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2104,6 +2104,9 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 
 	pccd_170170->first_dh_command = TRUE;
 
+	pccd_170170->horiz_descramble_factor = -1;
+	pccd_170170->vert_descramble_factor = -1;
+
 	/* Set the default file format. */
 
 	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
@@ -2397,8 +2400,22 @@ mxd_pccd_170170_open( MX_RECORD *record )
 				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
 				&controller_fpga_version );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+
+	case MXE_TIMED_OUT:
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The detector controller for area detector '%s' is not "
+			"responding to commands.  Please verify that the "
+			"detector is turned on and configured correctly.",
+				record->name );
+		break;
+
+	default:
 		return mx_status;
+		break;
+	}
 
 	mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
