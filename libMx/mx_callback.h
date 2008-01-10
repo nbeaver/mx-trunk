@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,7 @@ extern "C" {
 
 /*--- Callback types ---*/
 
+#define MXCBT_NONE		0
 #define MXCBT_VALUE_CHANGED	1
 #define MXCBT_POLL		2
 #define MXCBT_MOTOR_BACKLASH	3

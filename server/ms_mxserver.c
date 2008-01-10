@@ -58,6 +58,7 @@
 #include "mx_net_socket.h"
 #include "mx_pipe.h"
 #include "mx_array.h"
+#include "mx_list.h"
 #include "mx_bit.h"
 
 #include "mx_process.h"
@@ -156,8 +157,10 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *socket_handler_list_entry;
+	MX_LIST *field_callback_list;
+	MX_LIST_ENTRY *field_callback_list_entry;
 	MX_RECORD_FIELD *field;
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status1, mx_status2;
 
 	n = socket_handler->handler_array_index;
 
@@ -223,8 +226,6 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	 *     from the server's callback MX_HANDLE_TABLE and should go
 	 *     on to the next one.
 	 *
-	 * FIXME: Steps F and G are not yet implemented.
-	 *
 	 * F.  If this leaves the callback's socket handler MX_LIST empty,
 	 *     then:
 	 *     1.  Remove the callback from the server's callback handle
@@ -265,15 +266,22 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 				* callback_handle_table->num_blocks;
 
 		for ( i = 0; i < array_size; i++ ) {
+
+			/* Step A */
+
 			callback_handle_struct =
 				&(callback_handle_struct_array[i]);
 
 			callback_handle = callback_handle_struct->handle;
 			callback_ptr    = callback_handle_struct->pointer;
 
+			/* Step B */
+
 			if ( (callback_handle != MX_ILLEGAL_HANDLE)
 			  && (callback_ptr != NULL) )
 			{
+			    /* Step C */
+
 			    /* Is this a record field callback? */
 
 			    if ( callback_ptr->callback_class != MXCBC_FIELD )
@@ -312,6 +320,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    	fname, callback_ptr,
 				field->record->name, field->name));
 #endif
+			    /* Step D */
 
 			    /* Get the socket handler MX_LIST for this
 			     * record field callback.
@@ -337,6 +346,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    	fname, callback_ptr,
 			      callback_socket_handler_list->num_list_entries));
 #endif
+			    /* Step E */
 
 			    /* See if the socket handler MX_LIST contains
 			     * the socket handler that we are looking for.
@@ -410,24 +420,150 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			      callback_socket_handler_list->num_list_entries));
 #endif
 
-			    /* Does this leave callback_socket_handler_list
-			     * empty?
-			     *
-			     * FIXME: For now, we just report this and
-			     *        continue on to the next callback.
+			    /* Does callback_socket_handler_list still have
+			     * any remaining socket handlers?
 			     */
 
-			    if ( callback_socket_handler_list->num_list_entries
-			    		== 0 )
+			    if ( callback_socket_handler_list->list_start
+			    		!= NULL )
 			    {
 			    	MX_DEBUG(-2,
 				("%s: The callback socket handler list for "
-				"record field '%s.%s' is empty.",
+				"record field '%s.%s' is NOT empty.",
 				    fname, field->record->name, field->name));
+
+				/* We are done with this callback, so skip
+				 * on to the next one.
+				 */
+
+				continue;
 			    }
+
+			    /* Step F */
+
+			    /**************************************************
+			     * If we get here, the callback's socket handler  *
+			     * list is empty.  If so, then we start to delete *
+			     * all references to the callback.                *
+			     * ************************************************/
+
+			    /* Step F, part 1 */
+
+			    /* Remove the callback from the server's
+			     * callback handle table.
+			     */
+
+			    mx_status1 = mx_delete_handle( callback_handle,
+			    				callback_handle_table );
+
+			    /* Step F, part 2 */
+
+			    /* Remove the callback from the record field's
+			     * MX list of callbacks.
+			     */
+
+			    field_callback_list = field->callback_list;
+
+			    mx_status2 = mx_list_find_list_entry(
+			    			field_callback_list,
+						callback_ptr,
+						&field_callback_list_entry );
+
+			    if ( mx_status2.code != MXE_SUCCESS ) {
+
+			        if ( mx_status2.code == MXE_NOT_FOUND ) {
+					/* Make sure that the MXE_NOT_FOUND
+					 * message is seen.
+					 */
+
+			    		(void) mx_error( mx_status2.code,
+						mx_status2.location,
+						mx_status2.message );
+				}
+				continue;    /* Skip this broken callback. */
+			    }
+
+			    mx_status2 = mx_list_delete_entry(
+			    			field_callback_list,
+						field_callback_list_entry );
+
+			    if ( mx_status2.code != MXE_SUCCESS ) {
+				continue;    /* Skip this broken callback. */
+			    }
+
+			    mx_list_entry_destroy( field_callback_list_entry );
+
+			    /* Step F, part 3 */
+
+			    /* If either the deletion of the callback from
+			     * the server's callback handle table failed
+			     * or the deletion of the callback from the
+			     * record field's callback list failed, then
+			     * it is not safe to delete this callback.
+			     *
+			     * If so, then the only thing we can do is
+			     * move on to the next callback, after generating
+			     * an error message.
+			     */
+
+			    if ( (mx_status1.code != MXE_SUCCESS)
+			      || (mx_status2.code != MXE_SUCCESS) )
+			    {
+			    	(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+				fname, "Deletion of all references to "
+				"callback %p for record field '%s.%s' failed.  "
+				"Server callback handle deletion status = %lu, "
+				"Record field callback list deletion status "
+				"= %lu.", callback_ptr,
+					field->record->name, field->name,
+					mx_status1.code, mx_status2.code );
+
+				continue;    /* Skip this broken callback. */
+			    }
+
+			    /* If we get here, then all references to the
+			     * callback should have been deleted, so it is
+			     * now safe to delete the callback structure
+			     * itself.
+			     */
+
+			    mx_free( callback_ptr );
+
+			    /* Step G */
+
+			    /* Does the record field's callback list still
+			     * have any entries in it?
+			     */
+
+			    if ( field_callback_list->list_start != NULL ) {
+
+			    	/* The field's callback list still has
+				 * entries in it, so we skip on to the
+				 * next callback.
+				 */
+
+				continue;
+			    }
+
+			    /* The field's callback list does _not_ still
+			     * have any entries in it, so delete the
+			     * callback list itself.
+			     */
+
+			    mx_list_destroy( field_callback_list );
+
+			    field->callback_list = NULL;
+
+			    /* We are done with this callback, so proceed
+			     * on to the next callback.
+			     */
 			}
 		}
 	}
+
+	/* At this point, we have finished dealing with callbacks,
+	 * so prepare to delete the socket handler itself.
+	 */
 
 	/* Close our end of the synchronous socket. */
 

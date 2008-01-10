@@ -34,6 +34,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -6401,12 +6403,18 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
-	mx_bool_type value_changed;
+	mx_bool_type last_frame_number_changed;
+	mx_bool_type total_num_frames_changed;
+	mx_bool_type status_changed;
 	mx_status_type mx_status;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The record field pointer passed was NULL." );
+	}
+	if ( value_changed_ptr == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value_changed_ptr passed was NULL." );
 	}
 
 	record = record_field->record;
@@ -6417,8 +6425,10 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			record_field );
 	}
 
-	MX_DEBUG( 2,("%s invoked for record field '%s.%s'",
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
 			fname, record->name, record_field->name));
+#endif
 
 	/* Update the value of the extended status. */
 
@@ -6437,16 +6447,9 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		return mx_status;
 
 	mx_status = mx_test_for_value_changed( last_frame_number_field,
-							&value_changed );
+						&last_frame_number_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( value_changed ) {
-		*value_changed_ptr = TRUE;
-
-		MX_DEBUG( 2,
-		("************** 'last_frame_number' changed **************"));
-	}
 
 	/* Test the 'total_num_frames' field. */
 
@@ -6456,16 +6459,9 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		return mx_status;
 
 	mx_status = mx_test_for_value_changed( total_num_frames_field,
-							&value_changed );
+						&total_num_frames_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( value_changed ) {
-		*value_changed_ptr = TRUE;
-
-		MX_DEBUG( 2,
-		("************** 'total_num_frames' changed **************"));
-	}
 
 	/* Test the 'status' field. */
 
@@ -6474,20 +6470,76 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_test_for_value_changed( status_field,
-							&value_changed );
+	mx_status = mx_test_for_value_changed( status_field, &status_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( value_changed ) {
-		*value_changed_ptr = TRUE;
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: last_frame_number_changed = %d.",
+		fname, last_frame_number_changed));
+	MX_DEBUG(-2,("%s: total_num_frames_changed = %d.",
+		fname, total_num_frames_changed));
+	MX_DEBUG(-2,("%s: status_changed = %d.", fname, status_changed));
+#endif
 
-		MX_DEBUG( 2,
-		("************** 'status' changed **************"));
+	*value_changed_ptr = last_frame_number_changed 
+		| total_num_frames_changed | status_changed;
+
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: 'get_extended_status' value_changed = %d.",
+		fname, *value_changed_ptr));
+#endif
+
+	/* If the extended_status value did not change, then we are done. */
+
+	if ( *value_changed_ptr == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	MX_DEBUG( 2,("%s: 'get_extended_status' value_changed = %d.",
-		fname, *value_changed_ptr));
+	/* If we get here, then one or more of the fields 'last_frame_number',
+	 * 'total_num_frames', or 'status' changed its value.  For each field,
+	 * see if its value changed.  If the value changed, then invoke the
+	 * field's callback list, if it has one.
+	 */
+
+	/* Check 'last_frame_number'. */
+
+	if ( last_frame_number_changed ) {
+		if ( last_frame_number_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+				last_frame_number_field, MXCBT_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	/* Check 'total_num_frames'. */
+
+	if ( total_num_frames_changed ) {
+		if ( total_num_frames_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+				total_num_frames_field, MXCBT_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	/* Check 'status'. */
+
+	if ( status_changed ) {
+		if ( status_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+				status_field, MXCBT_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -25,7 +25,7 @@
  * never be invoked.
  */
 
-#define MX_CALLBACK_DEBUG_WITHOUT_TIMER		TRUE
+#define MX_CALLBACK_DEBUG_WITHOUT_TIMER		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -842,10 +842,18 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
 		fname, field->name, callback_type));
 #endif
-	if ( callback_type == MXCBT_POLL ) {
+	switch( callback_type ) {
+	case MXCBT_POLL:
 		get_new_value = TRUE;
-	} else {
+		break;
+
+	case MXCBT_NONE:
 		get_new_value = FALSE;
+		break;
+
+	default:
+		get_new_value = FALSE;
+		break;
 	}
 
 	callback_list = field->callback_list;
