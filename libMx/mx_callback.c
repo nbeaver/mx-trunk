@@ -7,27 +7,155 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_CALLBACK_DEBUG	FALSE
+#define MX_CALLBACK_DEBUG			TRUE
+
+/*
+ * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
+ * if we intend to run this program from within a debugger.  If the macro is
+ * defined, the poll callback code will _only_ be invoked when the programmer
+ * manually invokes it from a C debugger prompt.  If code compiled with this
+ * macro is run directly (not from a debugger), then the poll callback will
+ * never be invoked.
+ */
+
+#define MX_CALLBACK_DEBUG_WITHOUT_TIMER		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
 #include "mx_interval_timer.h"
 #include "mx_virtual_timer.h"
+#include "mx_signal.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_pipe.h"
 #include "mx_callback.h"
+
+#if MX_CALLBACK_DEBUG_WITHOUT_TIMER
+
+/*
+ * If MX_CALLBACK_DEBUG_WITHOUT_TIMER is defined, then we assume that we
+ * are trying to debug the operation of value changed poll messages.
+ * In that case, we do not actually start a poll callback timer.  Instead,
+ * we provide a function that can be called from the debugger to trigger
+ * a manual poll callback.
+ *
+ */
+
+void mxp_poll_callback( int );
+void mxp_stop_master_timer( MX_INTERVAL_TIMER * );
+
+static MX_CALLBACK_MESSAGE *mxp_poll_callback_message;
+static MX_PIPE *mxp_callback_pipe = NULL;
+static MX_LIST_HEAD *mxp_list_head = NULL;
+
+MX_EXPORT mx_status_type
+mx_initialize_callback_support( MX_RECORD *record )
+{
+	static const char fname[] = "mx_initialize_callback_support()";
+
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* If the list head does not already have a server callback handle
+	 * table, then create one now.  Otherwise, just use the table that
+	 * is already there.
+	 */
+	
+	if ( list_head->server_callback_handle_table == NULL ) {
+
+		/* The handle table starts with a single block of 100 handles.*/
+
+		mx_status = mx_create_handle_table( &callback_handle_table,
+							100, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->server_callback_handle_table = callback_handle_table;
+	}
+
+	mxp_list_head = list_head;
+
+	/* Initialize data structures for the manual poll callback. */
+
+	mxp_callback_pipe = list_head->callback_pipe;
+
+	mxp_poll_callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
+
+	if ( mxp_poll_callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate memory for an "
+		"MX_CALLBACK_MESSAGE structure failed." );
+	}
+
+	mxp_poll_callback_message->callback_type = MXCBT_POLL;
+	mxp_poll_callback_message->list_head = list_head;
+
+	/* Attempt to allocate SIGUSR2 for our private use. */
+
+	mx_status = mx_signal_allocate( SIGUSR2, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return MX_SUCCESSFUL_RESULT;
+
+	/* Configure mxp_poll_callback() as the signal handler for SIGUSR2.
+	 * This allows us to manually trigger the value changed poll using
+	 * the Unix 'kill' command.
+	 */
+
+	signal( SIGUSR2, mxp_poll_callback );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+void
+mxp_poll_callback( int signal_number )
+{
+	(void) mx_pipe_write( mxp_callback_pipe,
+				(char *) &mxp_poll_callback_message,
+				sizeof(MX_CALLBACK_MESSAGE *) );
+	return;
+}
+
+void
+mxp_stop_master_timer( MX_INTERVAL_TIMER *itimer )
+{
+	(void) mx_interval_timer_stop( itimer, NULL );
+
+	fprintf(stderr, "Master timer stopped.\n");
+
+	return;
+}
+
+#else /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
+
+/*** This is the normal callback setup that uses virtual timers. ***/
 
 /* NOTE: The only job of mx_request_value_changed_poll() is to send a message
  *       through the callback pipe to the main thread ask for the value
@@ -212,6 +340,8 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
 
 MX_EXPORT mx_status_type
 mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
@@ -643,13 +773,20 @@ mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
 			record->name, record_field->name );
 	}
 
+	list_start = callback_list->list_start;
+
+	/* If the list is empty, then return a "not found" status. */
+
+	if ( list_start == NULL ) {
+		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+			"Did not find the requested callback." );
+	}
+
 	/* Go through the list looking for a matching list entry.
 	 *
 	 * Jump to the end of the loop using 'continue' if the
 	 * entry does not match.
 	 */
-
-	list_start = callback_list->list_start;
 
 	list_entry = list_start;
 

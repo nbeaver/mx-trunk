@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -377,7 +377,9 @@ mx_signal_allocate( int requested_signal_number,
 				requested_signal_number );
 		}
 
-		*allocated_signal_number = requested_signal_number;
+		if ( allocated_signal_number != NULL ) {
+			*allocated_signal_number = requested_signal_number;
+		}
 	} else {
 		/* Search for an available realtime signal. */
 
@@ -393,7 +395,9 @@ mx_signal_allocate( int requested_signal_number,
 		"All of the Posix realtime signals are already in use." );
 		}
 
-		*allocated_signal_number = i + 1;
+		if ( allocated_signal_number != NULL ) {
+			*allocated_signal_number = i + 1;
+		}
 	}
 
 	mx_signal_array[i] = TRUE;

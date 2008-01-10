@@ -7,12 +7,14 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_LIST_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,15 +44,26 @@ mx_list_create( MX_LIST **list )
 	(*list)->list_start = NULL;
 	(*list)->list_data = NULL;
 
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: list %p created.", fname, *list));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT void
 mx_list_destroy( MX_LIST *list )
 {
+#if MX_LIST_DEBUG
+	static const char fname[] = "mx_list_destroy()";
+#endif
 	MX_LIST_ENTRY *current_list_entry;
 	MX_LIST_ENTRY *next_list_entry;
 	void (*destructor)( MX_LIST_ENTRY * );
+
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: destroying list %p.", fname, list));
+#endif
 
 	if ( list == (MX_LIST *) NULL )
 		return;
@@ -84,6 +97,11 @@ mx_list_add_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 
 	MX_LIST_ENTRY *list_start, *end_of_list;
 
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: Adding %p to list %p",
+		fname, list_entry, list ));
+#endif
+
 	if ( list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_LIST pointer passed was NULL." );
@@ -116,6 +134,11 @@ mx_list_add_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 
 		list->num_list_entries = 1;
 
+#if MX_LIST_DEBUG
+		MX_DEBUG(-2,("%s: #1 list %p, num_list_entries = %lu",
+			fname, list, list->num_list_entries));
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -135,6 +158,13 @@ mx_list_add_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 	end_of_list->next_list_entry = list_entry;
 	list_start->previous_list_entry = list_entry;
 
+	list->num_list_entries++;
+
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: #2 list %p, num_list_entries = %lu",
+		fname, list, list->num_list_entries));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -145,6 +175,11 @@ mx_list_delete_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 
 	MX_LIST_ENTRY *previous_list_entry, *next_list_entry;
 
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: Deleting %p from list %p",
+		fname, list_entry, list ));
+#endif
+
 	if ( list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_LIST pointer passed was NULL." );
@@ -152,6 +187,12 @@ mx_list_delete_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 	if ( list_entry == (MX_LIST_ENTRY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_LIST_ENTRY pointer passed was NULL." );
+	}
+
+	if ( list->list_start == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Cannot delete list entry %p from empty list %p.",
+			list_entry, list );
 	}
 
 	previous_list_entry = list_entry->previous_list_entry;
@@ -181,6 +222,13 @@ mx_list_delete_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 
 	next_list_entry->previous_list_entry = previous_list_entry;
 	previous_list_entry->next_list_entry = next_list_entry;
+
+	list->num_list_entries--;
+
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: list %p, num_list_entries = %lu",
+		fname, list, list->num_list_entries));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -309,6 +357,12 @@ mx_list_find_list_entry( MX_LIST *list,
 
 	list_start = list->list_start;
 
+	if ( list_start == NULL ) {
+		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+		"Object %p was not found in empty list %p.",
+			list_entry_data, list );
+	}
+
 	list_entry_ptr = list_start;
 
 	do {
@@ -327,7 +381,7 @@ mx_list_find_list_entry( MX_LIST *list,
 	} while ( list_entry_ptr != list_start );
 
 	return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
-	"The list entry containing object %p was not found.",
-		list_entry_data );
+	"The list entry containing object %p was not found in list %p.",
+		list_entry_data, list );
 }
 
