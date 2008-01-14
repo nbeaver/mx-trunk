@@ -34,7 +34,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

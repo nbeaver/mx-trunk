@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -426,7 +426,7 @@ mxserver_main( int argc, char *argv[] )
 
         error_flag = FALSE;
 
-        while ((c = getopt(argc, argv,"Ab:cC:d:De:E:f:l:L:n:p:P:sStu:Z")) != -1)
+        while ((c = getopt(argc,argv,"Ab:cC:d:De:E:f:kl:L:n:p:P:sStu:Z")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -477,6 +477,9 @@ mxserver_main( int argc, char *argv[] )
                         strlcpy( mx_database_filename,
 					optarg, MXU_FILENAME_LENGTH );
                         break;
+		case 'k':
+			enable_callbacks = FALSE;
+			break;
 		case 'l':
 			install_syslog_handler = TRUE;
 			syslog_options = 0;

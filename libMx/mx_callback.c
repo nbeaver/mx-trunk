@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG			TRUE
+#define MX_CALLBACK_DEBUG			FALSE
 
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined

@@ -1,7 +1,7 @@
 .\" Process this man page with
 .\" groff -man -Tascii mxupdate.8
 .\"
-.TH MXSERVER 8 "July 2005" "MX Administrator Manuals"
+.TH MXSERVER 8 "January 2008" "MX Administrator Manuals"
 .SH NAME
 mxserver \- server for the MX data acquisition and control system
 .SH SYNOPSIS
@@ -26,6 +26,10 @@ arguments for the MX server in the file $MXDIR/etc/mxserver.opt.  This is
 most frequently used to enable the -t option.
 
 .SH OPTIONS
+.IP "-A"
+enables network protocol debugging.  If this option is selected, each message
+passing between the server and the client(s) will result in a message being
+sent to stderr that describes the content of the message.
 .IP "-b fmt"
 specifies the format to use for client communication.  Currently, the possible
 values for
@@ -35,6 +39,8 @@ the server, since it is generally better to let the client and server
 autonegotiate the best format at connection time.
 .IP "-C acl_filename"
 specifies the name of the client connection ACL file.
+.IP "-c"
+enables asynchronous callback support.
 .IP "-d debug_level"
 specifies the debugging level to run the server at.  The default value is 0.
 .IP -D
@@ -52,6 +58,8 @@ unbuffered.
 specifies the name of the MX database file that describes the devices to be
 controlled by this MX server.
 You should almost always specify this option flag.
+.IP "-k"
+disables asynchronous callback support.
 .IP "-l log_number"
 specifies which of the logs to use from the available values of
 LOG_LOCAL0 to LOG_LOCAL7.  Note that you specify the numerical value
@@ -97,7 +105,8 @@ mutually exclusive.  It is possible for a given server to monitor both
 a TCP socket and a Unix domain socket for client connections.
 .IP -Z
 requests the MX server to not install its normal signal handlers.  This option
-is intended for debugging purposes.
+is intended for debugging purposes.  It can be useful if the standard crash
+handlers are making it hard to determine the reason for the original crash.
 
 .SH FILES
 The following are conventional locations for these file.  The conventional

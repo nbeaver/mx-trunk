@@ -1,7 +1,7 @@
 .\" Process this man page with
 .\" groff -man -Tascii mxupdate.8
 .\"
-.TH MOTOR 1 "July 2005" "MX User Manuals"
+.TH MOTOR 1 "January 2008" "MX User Manuals"
 .SH NAME
 motor \- command line based user interface for MX
 .SH SYNOPSIS
@@ -15,6 +15,10 @@ and control system.  It is capable of controlling all devices in an MX-based
 system and can run data acquisition scans as well.
 
 .SH OPTIONS
+.IP "-A"
+enables network protocol debugging.  If this option is selected, each message
+passing between the client and the server(s) will result in a message being
+sent to stderr that describes the content of the message.
 .IP "-d debug_level"
 specifies the debugging level to run
 .B motor
@@ -123,6 +127,10 @@ is very inefficient.  Furthermore,
 .B motor
 is not really designed to be used in this fashion and is intended to
 be a user interface program.
+.IP -z
+tells
+.B motor
+not to load any scan savefiles at startup time.
 
 .SH NOTES
 .B motor

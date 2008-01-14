@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_LIST_DEBUG		TRUE
+#define MX_LIST_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
