@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_MOTOR_DEBUG_VCTEST	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +27,9 @@
 #include "mx_key.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_socket.h"
+#include "mx_process.h"
+#include "mx_callback.h"
 #include "mx_motor.h"
 
 /*=======================================================================*/
@@ -5127,6 +5132,171 @@ mx_is_stepper_motor_position_between_software_limits(
 
 	if ( (*result_flag != 0) && generate_error_message ) {
 		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname, message_buffer);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
+mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
+				mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] = "mx_motor_vctest_extended_status()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *extended_status_field;
+	MX_RECORD_FIELD *position_field;
+	MX_RECORD_FIELD *status_field;
+	mx_bool_type position_changed;
+	mx_bool_type status_changed;
+	mx_status_type mx_status;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record field pointer passed was NULL." );
+	}
+	if ( value_changed_ptr == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value_changed_ptr passed was NULL." );
+	}
+
+	record = record_field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for record field %p is NULL.",
+			record_field );
+	}
+
+#if MX_MOTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
+		fname, record->name, record_field->name ));
+#endif
+
+	/* What we do here depends on whether or not this is the
+	 * motor's 'extended_status' field.
+	 */
+
+	if ( record_field->label_value != MXLV_MTR_GET_EXTENDED_STATUS ) {
+
+		/* This is _not_ the 'extended_status' field. */
+
+		/* If the 'extended_status' field has a callback list,
+		 * then we skip this test, since the 'extended_status'
+		 * field callback will take care of sending callbacks
+		 * to the current field for us.
+		 */
+
+		mx_status = mx_find_record_field( record, "extended_status",
+						&extended_status_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( extended_status_field->callback_list != NULL ) {
+#if MX_MOTOR_DEBUG_VCTEST
+			MX_DEBUG(-2,
+	("%s: Skipping test of '%s' due to existing test of 'extended_status'",
+				fname, record_field->name ));
+#endif
+			*value_changed_ptr = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* If we get here, then this is not the extended status
+		 * field and we only need to check the field supplied
+		 * by the caller.
+		 */
+
+		mx_status = mx_default_test_for_value_changed( record_field,
+							value_changed_ptr );
+
+		/* This is all we need to do for fields that are not
+		 * the 'extended_status' field, so we return now.
+		 */
+
+		return mx_status;
+	}
+
+	/* If we get here, then this _is_ the 'extended_status' field. */
+
+	*value_changed_ptr = FALSE;
+
+	/* Test the 'position' field. */
+
+	mx_status = mx_find_record_field( record, "position", &position_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_default_test_for_value_changed( position_field,
+							&position_changed );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Test the 'status' field. */
+
+	mx_status = mx_find_record_field( record, "status", &status_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_default_test_for_value_changed( status_field,
+							&status_changed );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_MOTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: position_changed = %d.", fname, position_changed));
+	MX_DEBUG(-2,("%s: status_changed = %d.", fname, status_changed));
+#endif
+
+	*value_changed_ptr = position_changed | status_changed;
+
+#if MX_MOTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: 'get_extended_status' value_changed = %d.",
+		fname, *value_changed_ptr));
+#endif
+
+	/* If the extended_status value did not change, then we are done. */
+
+	if ( *value_changed_ptr == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, then one or both of the fields 'position' and
+	 * 'status' changed its value.  For each field, see if its value
+	 * changed.  If the value changed, then invoke the field's
+	 * callback list, if it has one.
+	 */
+
+	/* Check 'position'. */
+
+	if ( position_changed ) {
+		if ( position_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+						position_field, MXCBT_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	/* Check 'status'. */
+
+	if ( status_changed ) {
+		if ( status_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+						status_field, MXCBT_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

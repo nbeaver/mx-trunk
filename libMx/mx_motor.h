@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,7 +381,8 @@ typedef struct {
   \
   {MXLV_MTR_POSITION, -1, "position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, position), \
-	{0}, NULL, 0}, \
+	{0}, NULL, 0, \
+	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_SET_POSITION, -1, "set_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, set_position), \
@@ -516,12 +517,14 @@ typedef struct {
   \
   {MXLV_MTR_GET_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, status), \
-	{0}, NULL, 0}, \
+	{0}, NULL, 0, \
+	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_GET_EXTENDED_STATUS, -1, "extended_status", \
 		MXFT_STRING, NULL, 1, {MXU_EXTENDED_STATUS_STRING_LENGTH+1}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, extended_status), \
-	{sizeof(char)}, NULL, 0}, \
+	{sizeof(char)}, NULL, 0, \
+	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE, -1, "compute_extended_scan_range", \
 		MXFT_DOUBLE, NULL, 1, {MX_MOTOR_NUM_SCAN_RANGE_PARAMS}, \
@@ -918,6 +921,9 @@ MX_API mx_status_type
 			int *result_flag, int generate_error_message );
 
 /* === */
+
+MX_API_PRIVATE mx_status_type mx_motor_vctest_extended_status(
+					MX_RECORD_FIELD *, mx_bool_type * );
 
 extern MX_RECORD_FUNCTION_LIST mx_motor_record_function_list;
 
