@@ -374,16 +374,57 @@ mx_process_record_field( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
-					mx_bool_type *value_changed_ptr )
+				mx_bool_type *value_changed_ptr )
 {
+#if PROCESS_DEBUG_CALLBACKS
 	static const char fname[] = "mx_test_for_value_changed()";
+#endif
+	mx_status_type (*value_changed_test_fn)( MX_RECORD_FIELD *,
+						mx_bool_type * );
+	mx_status_type mx_status;
+
+#if PROCESS_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
+	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
+#endif
+
+	/* Does this record field have a custom value changed test function? */
+
+	value_changed_test_fn = record_field->value_changed_test_function;
+
+	if ( value_changed_test_fn != NULL ) {
+		/* If so, invoke it instead of the standard test. */
+
+		mx_status = (*value_changed_test_fn)( record_field,
+							value_changed_ptr );
+	} else {
+		/* Otherwise, invoke the default value changed test. */
+
+		mx_status = mx_default_test_for_value_changed( record_field,
+							value_changed_ptr );
+	}
+
+#if PROCESS_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s: *value_changed_ptr = %d",
+		fname, (int) *value_changed_ptr));
+
+	MX_DEBUG(-2,("%s: ^^^^^^^^^^^^^^^^^^^^",fname));
+#endif
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
+				mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] = "mx_default_test_for_value_changed()";
 
 	void *value_ptr;
 	double new_value, difference, threshold;
 	mx_bool_type value_changed;
-	mx_status_type (*value_changed_test_fn)( MX_RECORD_FIELD *,
-						mx_bool_type * );
-	mx_status_type mx_status;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -395,22 +436,8 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	}
 
 #if PROCESS_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 #endif
-	/* Does this record field have a custom value changed test function? */
-
-	value_changed_test_fn = record_field->value_changed_test_function;
-
-	if ( value_changed_test_fn != NULL ) {
-		/* If so, invoke it instead of the standard test. */
-
-		mx_status = (*value_changed_test_fn)( record_field,
-							value_changed_ptr );
-		return mx_status;
-	}
-
-	/* Otherwise, do the standard value changed test. */
 
 	value_changed = FALSE;
 	new_value = record_field->last_value;
@@ -508,11 +535,6 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	}
 
 	*value_changed_ptr = value_changed;
-
-#if PROCESS_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s: value_changed = %d", fname, (int) value_changed));
-	MX_DEBUG(-2,("%s: ^^^^^^^^^^^^^^^^^^^^",fname));
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

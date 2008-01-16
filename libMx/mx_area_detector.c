@@ -6400,6 +6400,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	static const char fname[] = "mx_area_detector_vctest_extended_status()";
 
 	MX_RECORD *record;
+	MX_RECORD_FIELD *extended_status_field;
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
@@ -6429,13 +6430,53 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
 			fname, record->name, record_field->name));
 #endif
+	/* What we do here depends on whether or not this is the
+	 * area detector's 'extended_status' field.
+	 */
 
-	/* Update the value of the extended status. */
+	if ( record_field->label_value != MXLV_AD_EXTENDED_STATUS ) {
 
-	mx_status = mx_area_detector_get_extended_status( record,
-							NULL, NULL, NULL );
-	if ( mx_status.code != MXE_SUCCESS )
+		/* This is _not_ the 'extended_status' field. */
+
+		/* If the 'extended_status' field has a callback list,
+		 * then we skip this test, since the 'extended_status'
+		 * field callback will take care of sending callbacks
+		 * to the current field for us.
+		 */
+
+		mx_status = mx_find_record_field( record, "extended_status",
+						&extended_status_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( extended_status_field->callback_list != NULL ) {
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+			MX_DEBUG(-2,
+	("%s: Skipping test of '%s' due to existing test of 'extended_status'",
+				fname, record_field->name ));
+#endif
+			*value_changed_ptr = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* If we get here, then this is not the extended status
+		 * field and we only need to check the field supplied
+		 * by the caller.
+		 */
+
+		mx_status = mx_default_test_for_value_changed( record_field,
+							value_changed_ptr );
+
+		/* This is all we need to do for fields that are not
+		 * the 'extended_status' field, so we return now.
+		 */
+
 		return mx_status;
+	}
+
+	/* If we get here, then this _is_ the 'extended_status' field. */
 
 	*value_changed_ptr = FALSE;
 
@@ -6446,7 +6487,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_test_for_value_changed( last_frame_number_field,
+	mx_status = mx_default_test_for_value_changed( last_frame_number_field,
 						&last_frame_number_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -6458,7 +6499,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_test_for_value_changed( total_num_frames_field,
+	mx_status = mx_default_test_for_value_changed( total_num_frames_field,
 						&total_num_frames_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -6470,7 +6511,9 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_test_for_value_changed( status_field, &status_changed );
+	mx_status = mx_default_test_for_value_changed( status_field,
+						&status_changed );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 

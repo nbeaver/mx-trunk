@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -154,6 +154,10 @@ MX_API mx_status_type mx_process_record_field(
 				mx_bool_type *value_changed );
 
 MX_API mx_status_type mx_test_for_value_changed(
+				MX_RECORD_FIELD *record_field,
+				mx_bool_type *value_changed );
+
+MX_API mx_status_type mx_default_test_for_value_changed(
 				MX_RECORD_FIELD *record_field,
 				mx_bool_type *value_changed );
 

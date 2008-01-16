@@ -50,7 +50,7 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	MX_DEBUG(-2,("%s: value = '%s'", fname, display_buffer));
+	MX_DEBUG(-2,("callback: value = '%s'", display_buffer));
 
 	return MX_SUCCESSFUL_RESULT;
 }
