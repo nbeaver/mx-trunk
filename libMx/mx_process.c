@@ -422,8 +422,21 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 {
 	static const char fname[] = "mx_default_test_for_value_changed()";
 
-	void *value_ptr;
-	double new_value, difference, threshold;
+	void *array_ptr;
+	char *char_array;
+	unsigned char *uchar_array;
+	short *short_array;
+	unsigned short *ushort_array;
+	mx_bool_type *bool_array;
+	long *long_array;
+	unsigned long *ulong_array;
+	float *float_array;
+	double *double_array;
+	int64_t *int64_array;
+	uint64_t *uint64_array;
+
+	double sum, new_value, difference, threshold;
+	unsigned long i, num_elements;
 	mx_bool_type value_changed;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
@@ -442,75 +455,105 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	value_changed = FALSE;
 	new_value = record_field->last_value;
 
-	/* Always invoke callbacks for fields for
-	 * multidimensional arrays or 1-dimensional
-	 * arrays with more than one element.
-	 */
+	/* FIXME: Only invoke callbacks for fields for 1-d or 0-d arrays. */
 
-	if ( record_field->num_dimensions >= 2 ) {
-		value_changed = TRUE;
-	} else
-	if ( record_field->num_dimensions == 1 ) {
-		if ( record_field->dimension[0] > 1 ) {
-			value_changed = TRUE;
+	if ( record_field->num_dimensions < 2 ) {
+
+		if ( record_field->num_dimensions == 0 ) {
+			num_elements = 1;
+		} else {
+			num_elements = record_field->dimension[0];
 		}
-	}
 
-	/* Get a pointer to the field value for fields
-	 * for which we have to test the value.
-	 */
+		array_ptr = mx_get_field_value_pointer(record_field);
 
-	if ( value_changed == FALSE ) {
-		value_ptr =
-		    mx_get_field_value_pointer(record_field);
+		sum = 0.0;
 
 		switch( record_field->datatype ) {
 		case MXFT_CHAR:
-			new_value = *((char *)value_ptr);
+			char_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += char_array[i];
+			}
 			break;
 		case MXFT_UCHAR:
-			new_value =
-				*((unsigned char *)value_ptr);
+			uchar_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += uchar_array[i];
+			}
 			break;
 		case MXFT_SHORT:
-			new_value = *((short *)value_ptr);
+			short_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += short_array[i];
+			}
 			break;
 		case MXFT_USHORT:
-			new_value =
-				*((unsigned short *)value_ptr);
+			ushort_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += ushort_array[i];
+			}
 			break;
 		case MXFT_BOOL:
-			new_value = *((int *)value_ptr);
+			bool_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += bool_array[i];
+			}
 			break;
 		case MXFT_LONG:
-			new_value = *((long *)value_ptr);
+			long_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += long_array[i];
+			}
 			break;
 		case MXFT_ULONG:
 		case MXFT_HEX:
-			new_value =
-				*((unsigned long *)value_ptr);
+			ulong_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += ulong_array[i];
+			}
 			break;
 		case MXFT_FLOAT:
-			new_value = *((float *)value_ptr);
+			float_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += float_array[i];
+			}
 			break;
 		case MXFT_DOUBLE:
-			new_value = *((double *)value_ptr);
+			double_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += double_array[i];
+			}
 			break;
 		case MXFT_INT64:
-			new_value = *((int64_t *)value_ptr);
+			int64_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += int64_array[i];
+			}
 			break;
 		case MXFT_UINT64:
-			new_value = *((uint64_t *)value_ptr);
+			uint64_array = array_ptr;
+			
+			for ( i = 0; i < num_elements; i++ ) {
+				sum += uint64_array[i];
+			}
 			break;
 		default:
-			value_changed = TRUE;
 			break;
 		}
-	}
 
-	/* If needed, make the value changed test. */
+		new_value = mx_divide_safely( sum, num_elements );
 
-	if ( value_changed == FALSE ) {
 		difference = fabs( new_value - record_field->last_value );
 
 		threshold = record_field->value_change_threshold;
