@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2732,6 +2732,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	uint16 CLCCSE;
 	int epix_status, mesg_status;
+	long saved_trigger_mode;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	char error_message[100];
 	mx_status_type mx_status;
@@ -2760,11 +2761,31 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		break;
 
-#if MXD_EPIX_XCLIB_DEBUG
 	case MXLV_VIN_TRIGGER_MODE:
+
+#if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: trigger_mode = %ld",
 			fname, vinput->trigger_mode));
 #endif
+		switch( vinput->trigger_mode ) {
+		case MXT_IMAGE_INTERNAL_TRIGGER:
+		case MXT_IMAGE_EXTERNAL_TRIGGER:
+			break;
+		default:
+			saved_trigger_mode = vinput->trigger_mode;
+
+			vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Illegal trigger mode %ld requested for "
+				"video input '%s'.  The supported values are "
+				"'internal' (%d) and 'external' (%d).",
+					saved_trigger_mode,
+					vinput->record->name,
+					MXT_IMAGE_INTERNAL_TRIGGER,
+					MXT_IMAGE_EXTERNAL_TRIGGER );
+			break;
+		}
 		break;
 
 	case MXLV_VIN_FORMAT:

@@ -136,8 +136,13 @@ MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_arm,
 	mxd_pccd_170170_trigger,
+#if 0
 	mxd_pccd_170170_stop,
 	mxd_pccd_170170_abort,
+#else
+	NULL,
+	mxd_pccd_170170_abort,
+#endif
 	NULL,
 	NULL,
 	NULL,
@@ -3287,6 +3292,9 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_abort()";
 
 	MX_PCCD_170170 *pccd_170170;
+#if 0
+	MX_SEQUENCE_PARAMETERS saved_params;
+#endif
 	mx_status_type mx_status;
 
 	pccd_170170 = NULL;
@@ -3301,7 +3309,8 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	/* Send a 'Reset CCD Controller' command to the detector head by
-	 * toggling the CC3 line.
+	 * toggling the CC3 line.  Not all versions of the firmware 
+	 * actually pay attention to CC3.
 	 */
 
 	mx_status = mx_camera_link_pulse_cc_line(
@@ -3314,6 +3323,91 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	/* Tell the imaging board to immediately stop acquiring frames. */
 
 	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Just in case the detector head is still sending frames, we try
+	 * to stop it by changing the detector head's sequence parameters.
+	 */
+
+	/* Save the current sequence parameters. */
+
+#if 0
+	mx_status = mx_area_detector_get_sequence_parameters( ad->record,
+							&saved_params );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*-----------------------------------------------------------------*/
+
+	/* Try to short circuit any running sequence by setting a bunch of
+	 * parameters to their minimum values to trick the detector head
+	 * into thinking that the end of the sequence has been reached.
+	 */
+
+	/* Set the number of frames in a sequence to 1. */
+
+	if ( saved_params.sequence_type != MXT_SQ_ONE_SHOT ) {
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_frames_per_sequence", 1 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( saved_params.sequence_type == MXT_SQ_STREAK_CAMERA ) {
+		/* Set the number of streak mode lines to 1. */
+
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_streak_mode_lines", 1 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( saved_params.sequence_type == MXT_SQ_SUBIMAGE ) {
+		/* Set the number of lines per subimage to 1. */
+
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_subframe_size", 16 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the number of subimages per read to 1. */
+
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_subimages_per_read", 1 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( saved_params.sequence_type == MXT_SQ_ONE_SHOT ) {
+		/* Set the exposure time to 1. */
+
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_exposure_time", 1 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the gap time to 0. */
+
+		mx_status = mx_area_detector_set_register( ad->record,
+						"dh_gap_time", 0 );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Wait a little while for the detector head to react to all of this. */
+
+	mx_msleep(100);
+
+	/*-----------------------------------------------------------------*/
+
+	/* Restore the original sequence parameters. */
+
+	mx_status = mx_area_detector_set_sequence_parameters( ad->record,
+							&saved_params );
+#endif
 
 	return mx_status;
 }
@@ -4230,7 +4324,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 
 	pccd_170170 = NULL;
 
-mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

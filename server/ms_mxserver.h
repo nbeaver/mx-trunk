@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,8 +93,7 @@ extern mx_status_type mxsrv_send_field_value_to_client(
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			uint32_t message_type_for_client,
-			uint32_t message_id_for_client,
-			mx_status_type caller_mx_status );
+			uint32_t message_id_for_client );
 
 extern mx_status_type mxsrv_handle_get_array(
 			MX_RECORD *record_list,

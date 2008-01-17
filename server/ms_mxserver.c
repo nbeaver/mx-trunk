@@ -2023,7 +2023,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	uint32_t receive_buffer_message_type, receive_buffer_message_id;
 	uint32_t send_buffer_message_type;
 	long receive_datatype;
-	mx_status_type mx_status, process_mx_status;
+	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
@@ -2072,15 +2072,25 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	/* Get the data from the hardware for this get_array request. */
 
-	process_mx_status = mx_process_record_field( record, record_field,
+	mx_status = mx_process_record_field( record, record_field,
 						MX_PROCESS_GET, NULL );
 
-	mx_status = mxsrv_send_field_value_to_client( socket_handler,
-						record, record_field,
-						network_message,
-						send_buffer_message_type,
-						receive_buffer_message_id,
-						process_mx_status );
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_status = mx_network_socket_send_error_message(
+					socket_handler->synchronous_socket,
+					receive_buffer_message_id,
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					MX_NETMSG_UNEXPECTED_ERROR,
+					mx_status );
+	} else {
+		mx_status = mxsrv_send_field_value_to_client(
+					socket_handler,
+					record, record_field,
+					network_message,
+					send_buffer_message_type,
+					receive_buffer_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2099,8 +2109,7 @@ mxsrv_send_field_value_to_client(
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *network_message,
 			uint32_t message_type_for_client,
-			uint32_t message_id_for_client,
-			mx_status_type caller_mx_status )
+			uint32_t message_id_for_client )
 {
 	static const char fname[] = "mxsrv_send_field_value_to_client()";
 
@@ -4129,8 +4138,7 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 						record, record_field,
 						message_buffer,
 					mx_server_response(MX_NETMSG_CALLBACK),
-						callback->callback_id,
-						mx_status );
+						callback->callback_id );
 #if NETWORK_DEBUG_CALLBACKS
 			MX_DEBUG(-2,
 			("%s: mxsrv_send_field_value_to_client status = %ld",

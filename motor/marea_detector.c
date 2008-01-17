@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1508,6 +1508,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			mx_status = mx_area_detector_set_framesize( ad_record,
 						x_framesize, y_framesize );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			/* Since the framesize will be rounded to the nearest
+			 * matching binsize, we must now read the framesize
+			 * to find out what framesize was actually chosen.
+			 */
+
+			mx_status = mx_area_detector_get_framesize( ad_record,
+								NULL, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

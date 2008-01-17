@@ -1455,11 +1455,6 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
-	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
-	}
-
 	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1510,6 +1505,25 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 			MXU_MAX_SEQUENCE_PARAMETERS );
 	}
 
+	/* If the sequence_parameters pointer is NULL, then we are done. */
+
+	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the sequence_parameters pointer points to the same place
+	 * as &(ad->sequence_parameters), then we skip copying the data
+	 * since it is already in the correct place.
+	 */
+
+	if ( sequence_parameters == &(ad->sequence_parameters) ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, copy the parameters to the supplied
+	 * MX_SEQUENCE_PARAMETERS structure.
+	 */
+
 	sequence_parameters->sequence_type =
 				ad->sequence_parameters.sequence_type;
 
@@ -1549,14 +1563,8 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
-	long num_parameters;
 	double exposure_time;
 	mx_status_type mx_status;
-
-	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
-	}
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
@@ -1576,11 +1584,43 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 
 	sp = &(ad->sequence_parameters);
 
-	sp->sequence_type = sequence_parameters->sequence_type;
+	/* If needed, we copy the parameters to the
+	 * ad->sequence_parameters structure.
+	 */
 
-	num_parameters = sequence_parameters->num_parameters;
+	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		/* If the sequence_parameter pointer passed to us
+		 * is NULL, then we just use the values already
+		 * in ad->sequence_parameters.
+		 */
 
-	if ( num_parameters > MXU_MAX_SEQUENCE_PARAMETERS ) {
+	} else if ( sequence_parameters == sp ) {
+		/* If the sequence_parameters pointer passed to us points
+		 * to the same place as &(ad->sequence_parameters), then
+		 * we do nothing, since the data are already in the right
+		 * place.
+		 */
+
+	} else {
+		/* If we get here, then we must copy the values. */
+
+		sp->num_parameters = sequence_parameters->num_parameters;
+
+		sp->sequence_type = sequence_parameters->sequence_type;
+
+		memcpy( sp->parameter_array,
+			sequence_parameters->parameter_array,
+			(sp->num_parameters) * sizeof(double) );
+	}
+
+	if ( sp->num_parameters > MXU_MAX_SEQUENCE_PARAMETERS ) {
+
+		long num_parameters;
+
+		num_parameters = sp->num_parameters;
+
+		sp->num_parameters = MXU_MAX_SEQUENCE_PARAMETERS;
+
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The number of sequence parameters %ld requested for "
 		"the sequence given to area detector record '%s' "
@@ -1588,11 +1628,6 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 			num_parameters, record->name,
 			MXU_MAX_SEQUENCE_PARAMETERS );
 	}
-
-	sp->num_parameters = num_parameters;
-
-	memcpy( sp->parameter_array, sequence_parameters->parameter_array,
-			num_parameters * sizeof(double) );
 
 	/* If the new sequence has a different exposure time than
 	 * was used by the previous sequence, then discard any
