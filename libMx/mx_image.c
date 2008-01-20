@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -353,7 +353,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,
 		("%s: (*frame) = %p, (*frame)->header_data = malloc(%lu) = %p",
-			fname, *frame, header_length, (*frame)->header_data));
+			fname, *frame, (unsigned long) header_length,
+			(*frame)->header_data));
 #endif
 
 		if ( (*frame)->header_data == NULL ) {
@@ -394,7 +395,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,
 	("%s: AFTER realloc(), (*frame)->header_data = realloc(x,%lu) = %p",
-			fname, header_length, (*frame)->header_data));
+			fname, (unsigned long) header_length,
+			(*frame)->header_data));
 #endif
 
 		if ( (*frame)->header_data == NULL ) {
@@ -2259,6 +2261,9 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	datafile_byteorder = -1;
 	framesize[0] = -1;
 	framesize[1] = -1;
+	binsize[0] = 1;
+	binsize[1] = 1;
+	exposure_time = 1.0;
 
 	for (;;)  {
 		ptr = fgets( buffer, sizeof(buffer), file );
