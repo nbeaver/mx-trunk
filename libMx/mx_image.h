@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -231,9 +231,9 @@ MX_API mx_status_type mx_image_copy_header( MX_IMAGE_FRAME *source_frame,
 /*----*/
 
 MX_API mx_status_type mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
-					MX_IMAGE_FRAME *original_frame,
-					unsigned long row_rebinning_factor,
-					unsigned long column_rebinning_factor );
+				MX_IMAGE_FRAME *original_frame,
+				unsigned long rebinned_row_framesize,
+				unsigned long rebinned_column_framesize );
 
 /*----*/
 

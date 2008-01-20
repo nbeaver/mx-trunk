@@ -1113,13 +1113,13 @@ mx_image_copy_header( MX_IMAGE_FRAME *source_frame,
 MX_EXPORT mx_status_type
 mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 		MX_IMAGE_FRAME *original_frame,
-		unsigned long row_rebinning_factor,
-		unsigned long column_rebinning_factor )
+		unsigned long rebinned_width,
+		unsigned long rebinned_height )
 {
 	static const char fname[] = "mx_image_rebin()";
 
 	unsigned long original_width, original_height;
-	unsigned long rebinned_width, rebinned_height, rebinned_size;
+	unsigned long rebinned_size;
 	unsigned long bytes_per_pixel;
 	double diff;
 	long original_dimensions[2], rebinned_dimensions[2];
@@ -1127,28 +1127,33 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	void *original_array, *rebinned_array;
 	uint16_t **original_array_16, **rebinned_array_16;
 	double sum, pixels_per_bin, pixel_average;
+	unsigned long width_shrink_factor, width_growth_factor;
+	unsigned long height_shrink_factor, height_growth_factor;
 	unsigned long row, col, orow, ocol;
 	unsigned long orow_start, orow_end, ocol_start, ocol_end;
+	mx_bool_type shrink_width, shrink_height;
 	mx_status_type mx_status, mx_status2;
+
+	width_shrink_factor = 0;
+	width_growth_factor = 0;
+	height_shrink_factor = 0;
+	height_growth_factor = 0;
 
 	if ( original_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The original_frame pointer passed was NULL." );
 	}
-
 	if ( rebinned_frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The rebinned_frame pointer passed was NULL." );
 	}
-
-	if ( row_rebinning_factor == 0 ) {
+	if ( rebinned_width == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The value of row_rebinning_factor cannot be 0." );
+		"The rebinned width of an image cannot be 0." );
 	}
-
-	if ( column_rebinning_factor == 0 ) {
+	if ( rebinned_height == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The value of column_rebinning_factor cannot be 0." );
+		"The rebinned height of an image cannot be 0." );
 	}
 
 	/* How many bytes are there in a pixel of the original image? */
@@ -1185,17 +1190,93 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 		break;
 	}
 
-	/* Create or resize the rebinned correction frame structure.  If
-	 * there was an existing rebinned frame and the new rebinned frame
-	 * will be smaller than the allocated length of the existing frame,
-	 * then this will allow us to skip invoking malloc().
+	/* Are the new rebinned dimensions an integer multiple or factor
+	 * of the original dimensions?  If not, then we cannot rebin the
+	 * original array.
 	 */
 
 	original_width = MXIF_ROW_FRAMESIZE(original_frame);
 	original_height = MXIF_COLUMN_FRAMESIZE(original_frame);
 
-	rebinned_width = original_width / row_rebinning_factor;
-	rebinned_height = original_height / column_rebinning_factor;
+	if ( original_width == 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The width of the image frame passed to this function was 0.");
+	}
+	if ( original_height == 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The height of the image frame passed to this function was 0.");
+	}
+
+	if ( original_width >= rebinned_width ) {
+		if ( (original_width % rebinned_width) != 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The rebinned width (%lu) of the image is not "
+			"an integer factor of the original width (%lu).",
+				rebinned_width, original_width );
+		}
+
+		shrink_width = TRUE;
+
+		width_shrink_factor = original_width / rebinned_width;
+	} else {
+		if ( (rebinned_width % original_width) != 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The rebinned width (%lu) of the image is not "
+			"an integer multiple of the original width (%lu).",
+				rebinned_width, original_width );
+		}
+
+		shrink_width = FALSE;
+
+		width_growth_factor = rebinned_width / original_width;
+	}
+
+	if ( original_height >= rebinned_height ) {
+		if ( (original_height % rebinned_height) != 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The rebinned height (%lu) of the image is not "
+			"an integer factor of the original height (%lu).",
+				rebinned_height, original_height );
+		}
+
+		shrink_height = TRUE;
+
+		height_shrink_factor = original_height / rebinned_height;
+	} else {
+		if ( (rebinned_height % original_height) != 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The rebinned height (%lu) of the image is not "
+			"an integer multiple of the original height (%lu).",
+				rebinned_height, original_height );
+		}
+
+		shrink_height = FALSE;
+
+		height_growth_factor = rebinned_height / original_height;
+	}
+
+#if MX_IMAGE_DEBUG_REBIN
+	    MX_DEBUG(-2,
+		("\nREBIN: original_width = %lu original_height = %lu",
+			original_width, original_height));
+	    MX_DEBUG(-2,
+		("REBIN: rebinned_width = %lu rebinned_height = %lu",
+			rebinned_width, rebinned_height));
+	    MX_DEBUG(-2,("REBIN: shrink_width = %d, shrink_height = %d",
+	    		(int) shrink_width, (int) shrink_height));
+	    MX_DEBUG(-2,
+	("REBIN: width_shrink_factor = %lu height_shrink_factor = %lu",
+			width_shrink_factor, height_shrink_factor));
+	    MX_DEBUG(-2,
+	("REBIN: width_growth_factor = %lu height_growth_factor = %lu",
+			width_growth_factor, height_growth_factor));
+#endif
+
+	/* Create or resize the rebinned correction frame structure.  If
+	 * there was an existing rebinned frame and the new rebinned frame
+	 * will be smaller than the allocated length of the existing frame,
+	 * then this will allow us to skip invoking malloc().
+	 */
 
 	rebinned_size = rebinned_width * rebinned_height
 			* mx_round( MXIF_BYTES_PER_PIXEL(original_frame) );
@@ -1214,11 +1295,21 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 	/* Fix up the image header of the rebinned image. */
 
-	MXIF_ROW_BINSIZE(*rebinned_frame) =
-		row_rebinning_factor * MXIF_ROW_BINSIZE(original_frame);
+	if ( shrink_width ) {
+		MXIF_ROW_BINSIZE(*rebinned_frame) =
+		  width_shrink_factor * MXIF_ROW_BINSIZE(original_frame);
+	} else {
+		MXIF_ROW_BINSIZE(*rebinned_frame) =
+		  MXIF_ROW_BINSIZE(original_frame) / width_growth_factor;
+	}
 
-	MXIF_COLUMN_BINSIZE(*rebinned_frame) =
-		column_rebinning_factor * MXIF_COLUMN_BINSIZE(original_frame);
+	if ( shrink_height ) {
+		MXIF_COLUMN_BINSIZE(*rebinned_frame) =
+		  height_shrink_factor * MXIF_COLUMN_BINSIZE(original_frame);
+	} else {
+		MXIF_COLUMN_BINSIZE(*rebinned_frame) =
+		  MXIF_COLUMN_BINSIZE(original_frame) / height_growth_factor;
+	}
 
 	MXIF_BITS_PER_PIXEL(*rebinned_frame) =
 				MXIF_BITS_PER_PIXEL(original_frame);
@@ -1272,43 +1363,38 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	 * each bytes per pixel size since C is not polymorphic.
 	 */
 
-	pixels_per_bin = row_rebinning_factor * column_rebinning_factor;
-
 	switch( bytes_per_pixel ) {
 	case 1:
 	case 4:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	    return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Support for 8-bit and 32-bit arrays has not yet "
 			"been implemented." );
-		break;
+	    break;
 
 	case 2:
-		original_array_16 = original_array;
-		rebinned_array_16 = rebinned_array;
+	    original_array_16 = original_array;
+	    rebinned_array_16 = rebinned_array;
 
 #if MX_IMAGE_DEBUG_REBIN
-		MX_DEBUG(-2,
-		("\nREBIN: original_width = %lu original_height = %lu",
-			original_width, original_height));
-		MX_DEBUG(-2,
-		("REBIN: rebinned_width = %lu rebinned_height = %lu",
-			rebinned_width, rebinned_height));
-		MX_DEBUG(-2,
-	("REBIN: row_rebinning_factor = %lu column_rebinning_factor = %lu",
-			row_rebinning_factor, column_rebinning_factor));
+	    MX_DEBUG(-2,("%s: shrink_width = %d, shrink_height = %d",
+	    	fname, (int) shrink_width, (int) shrink_height));
 #endif
+
+	    if ( shrink_width & shrink_height ) {
+
+		pixels_per_bin = width_shrink_factor * height_shrink_factor;
 
 		for ( row = 0; row < rebinned_height; row++ ) {
 		    for ( col = 0; col < rebinned_width; col++ ) {
 			sum = 0.0;
 
-			orow_start = row * column_rebinning_factor;
-			orow_end = orow_start + column_rebinning_factor;
+			orow_start = row * height_shrink_factor;
+			orow_end = orow_start + height_shrink_factor;
 
-			ocol_start = col * row_rebinning_factor;
-			ocol_end = ocol_start + row_rebinning_factor;
+			ocol_start = col * width_shrink_factor;
+			ocol_end = ocol_start + width_shrink_factor;
 
-#if MX_IMAGE_DEBUG_REBIN
+#if 0 && MX_IMAGE_DEBUG_REBIN
 			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
 			orow_start, orow_end, ocol_start, ocol_end));
 #endif
@@ -1325,7 +1411,13 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			rebinned_array_16[row][col] = pixel_average + 0.5;
 		    }
 		}
-		break;
+	    } else {
+	    	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The combination of shrink_width = %d and shrink_height = %d "
+		"has not yet been implemented.",
+			(int) shrink_width, (int) shrink_height );
+	    }
+	    break;
 	}
 
 	/* Finish by freeing the overlay arrays. */

@@ -3596,6 +3596,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Set the binsize in the header. */
+
+	MXIF_ROW_BINSIZE(pccd_170170->raw_frame)    = ad->binsize[0];
+	MXIF_COLUMN_BINSIZE(pccd_170170->raw_frame) = ad->binsize[1];
+
 	/* Compute and add the exposure time to the image frame header. */
 
 	mx_status = mx_sequence_get_exposure_time( &(ad->sequence_parameters),
@@ -5469,7 +5474,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 }
 
 static mx_status_type
-mxd_pccd_170170_setup_geometrical_mask_frame( MX_PCCD_170170 *pccd_170170,
+mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
+				MX_PCCD_170170 *pccd_170170,
 				MX_IMAGE_FRAME *image_frame,
 				uint16_t **geometrical_mask_frame_buffer )
 {
@@ -5560,11 +5566,15 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_PCCD_170170 *pccd_170170,
 		/* If necessary, create a new rebinned mask frame. */
 
 		if ( create_rebinned_mask_frame ) {
+			unsigned long row_framesize, column_framesize;
+
+			row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
+			column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
 			mx_status = mx_image_rebin(
 			    &(pccd_170170->rebinned_geometrical_mask_frame),
 			    	pccd_170170->geometrical_mask_frame,
-				row_binsize, column_binsize );
+				row_framesize, column_framesize );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -5678,7 +5688,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	DISPLAY_MEMORY_USAGE( "BEFORE setup of geometrical mask" );
 
 	mx_status = mxd_pccd_170170_setup_geometrical_mask_frame(
-			pccd_170170, image_frame,
+			ad, pccd_170170, image_frame,
 			&geometrical_mask_frame_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -3681,10 +3681,8 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_START( rebin_timing );
 #endif
-	mx_status = mx_image_rebin( rebinned_frame,
-				*correction_frame,
-				correction_width / image_width,
-				correction_height / image_height );
+	mx_status = mx_image_rebin( rebinned_frame, *correction_frame,
+					image_width, image_height );
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_END( rebin_timing );
