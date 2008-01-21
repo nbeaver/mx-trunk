@@ -12,8 +12,8 @@
 # Turn on optimization
 #
 #OPTIMIZE = -O2
-#OPTIMIZE = -O3
-#CFLAGS += $(OPTIMIZE)
+OPTIMIZE = -O3
+CFLAGS += $(OPTIMIZE)
 
 INCLUDES	= $(MX_INCLUDES)
 
