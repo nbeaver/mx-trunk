@@ -35,6 +35,8 @@
 
 #define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		FALSE
 
+#define MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
+
 #define MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES		FALSE
 
 #define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
@@ -42,6 +44,8 @@
 #define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
 
 #define MXD_PCCD_170170_DEBUG_CONTROL_REGISTER		FALSE
+
+#define MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5473,22 +5477,144 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+#if MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE
+
+static mx_status_type
+mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
+					MX_PCCD_170170 *pccd_170170 )
+{
+	static const char fname[] = "mxp_pccd_170170_geometrical_mask_kludge()";
+
+	MX_IMAGE_FRAME *mask_frame;
+	long mask_row_binsize, mask_column_binsize;
+	long mask_row_framesize, mask_column_framesize;
+	long unbinned_row_framesize, unbinned_column_framesize;
+
+	mask_frame = pccd_170170->geometrical_mask_frame;
+
+	if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The geometrical_mask_frame pointer for area detector '%s' "
+		"is NULL at a time when it should not be NULL.",
+			ad->record->name );
+	}
+
+	mask_row_binsize    = MXIF_ROW_BINSIZE(mask_frame);
+	mask_column_binsize = MXIF_COLUMN_BINSIZE(mask_frame);
+
+	/* If either the mask row binsize or the mask column binsize
+	 * is not 1, then we assume that the bin sizes for the mask
+	 * frame have been set correctly and return.
+	 */
+
+	if ( ( mask_row_binsize != 1 )
+	  || ( mask_column_binsize != 1 ) )
+	{
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s: computing mask binsize for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	/* If we get here, then we need to attempt to figure out what the
+	 * real mask binsize is.
+	 */
+
+	/* FIXME: We _assume_ that an unbinned image is square and has a
+	 * width that is identical to the maximum row width of the image
+	 * frame, namely, ad->maximum_framesize[0].
+	 */
+
+	unbinned_row_framesize = ad->maximum_framesize[0];
+	unbinned_column_framesize = unbinned_row_framesize;
+
+	mask_row_framesize    = MXIF_ROW_FRAMESIZE(mask_frame);
+	mask_column_framesize = MXIF_COLUMN_FRAMESIZE(mask_frame);
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,
+	("%s: unbinned_row_framesize = %lu, unbinned_column_framesize = %lu",
+		fname, unbinned_row_framesize, unbinned_column_framesize));
+	MX_DEBUG(-2,
+	("%s: mask_row_framesize = %lu, mask_column_framesize = %lu",
+		fname, mask_row_framesize, mask_column_framesize));
+#endif
+
+	if ( ( mask_row_framesize > unbinned_row_framesize )
+	  || ( mask_column_framesize > unbinned_column_framesize ) )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"One or more of the dimensions (%ld,%ld) of the "
+		"mask frame '%s' is larger than the maximum image "
+		"size (%ld,%ld) for area detector '%s'.",
+			mask_row_framesize, mask_column_framesize,
+			pccd_170170->geometrical_mask_filename,
+			unbinned_row_framesize, unbinned_column_framesize,
+			ad->record->name );
+	}
+
+	if ( ( (unbinned_row_framesize % mask_row_framesize) != 0 )
+	  || ( (unbinned_column_framesize % mask_column_framesize) != 0 ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"One or more of the dimensions (%ld,%ld) of the "
+		"mask frame '%s' is not an integer fraction of "
+		"the maximum image size (%ld,%ld) for area detector '%s'.",
+			mask_row_framesize, mask_column_framesize,
+			pccd_170170->geometrical_mask_filename,
+			unbinned_row_framesize, unbinned_column_framesize,
+			ad->record->name );
+	}
+
+	mask_row_binsize = unbinned_row_framesize / mask_row_framesize;
+	mask_column_binsize = unbinned_column_framesize / mask_column_framesize;
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,
+	("%s: mask_row_binsize = %lu, mask_column_binsize = %lu",
+		fname, mask_row_binsize, mask_column_binsize));
+#endif
+
+	MXIF_ROW_BINSIZE(mask_frame)    = mask_row_binsize;
+	MXIF_COLUMN_BINSIZE(mask_frame) = mask_column_binsize;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
 static mx_status_type
 mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 				MX_PCCD_170170 *pccd_170170,
 				MX_IMAGE_FRAME *image_frame,
 				uint16_t **geometrical_mask_frame_buffer )
 {
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	static const char fname[] =
+			"mxd_pccd_170170_setup_geometrical_mask_frame()";
+#endif
+
 	MX_IMAGE_FRAME *mask_frame;
 	void *image_data_pointer;
-	long row_binsize, column_binsize;
+	long image_row_binsize, image_column_binsize;
+	long mask_row_binsize, mask_column_binsize;
 	long rebinned_row_binsize, rebinned_column_binsize;
 	mx_bool_type need_rebinned_mask_frame, new_mask_frame_loaded;
 	mx_bool_type create_rebinned_mask_frame;
 	mx_status_type mx_status;
 
-	row_binsize    = MXIF_ROW_BINSIZE(image_frame);
-	column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+	image_row_binsize    = MXIF_ROW_BINSIZE(image_frame);
+	image_column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s: image_row_binsize = %ld, image_column_binsize = %ld",
+		fname, image_row_binsize, image_column_binsize));
+
+	MX_DEBUG(-2,("%s: ad->binsize[0] = %ld, ad->binsize[1] = %ld",
+		fname, ad->binsize[0], ad->binsize[1]));
+#endif
 
 	/* Make sure that the unbinned geometrical mask frame
 	 * has been loaded.
@@ -5506,18 +5632,47 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE
+		mx_status = mxp_pccd_170170_geometrical_mask_kludge( ad,
+								pccd_170170 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
+
 		new_mask_frame_loaded = TRUE;
 	} else {
 		new_mask_frame_loaded = FALSE;
 	}
 
+	mask_row_binsize =
+		MXIF_ROW_BINSIZE(pccd_170170->geometrical_mask_frame);
+
+	mask_column_binsize =
+		MXIF_COLUMN_BINSIZE(pccd_170170->geometrical_mask_frame);
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s: mask_row_binsize = %ld, mask_column_binsize = %ld",
+		fname, mask_row_binsize, mask_column_binsize));
+#endif
+
 	/* Do we need to use a rebinned geometrical mask frame? */
 
-	if ( (row_binsize != 1) || (column_binsize != 1) ) {
+	if ( mask_row_binsize != image_row_binsize ) {
+		need_rebinned_mask_frame = TRUE;
+	} else
+	if ( mask_column_binsize != image_column_binsize ) {
 		need_rebinned_mask_frame = TRUE;
 	} else {
 		need_rebinned_mask_frame = FALSE;
 	}
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,
+	("%s: new_mask_frame_loaded = %d, need_rebinned_mask_frame = %d",
+		fname, (int) new_mask_frame_loaded,
+		(int) need_rebinned_mask_frame ));
+#endif
 
 	/* If it is needed, see if the correct rebinned mask image
 	 * is already present.
@@ -5556,8 +5711,13 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 			rebinned_column_binsize =
 	    MXIF_COLUMN_BINSIZE(pccd_170170->rebinned_geometrical_mask_frame);
 
-	    		if ( (rebinned_row_binsize != row_binsize)
-			  || (rebinned_column_binsize != column_binsize) )
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+			MX_DEBUG(-2,
+	    ("%s: rebinned_row_binsize = %ld, rebinned_column_binsize = %ld",
+			fname, rebinned_row_binsize, rebinned_column_binsize));
+#endif
+	    		if ( (rebinned_row_binsize != image_row_binsize)
+			  || (rebinned_column_binsize != image_column_binsize) )
 			{
 				create_rebinned_mask_frame = TRUE;
 			}
@@ -5590,6 +5750,16 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	} else {
 		mask_frame = pccd_170170->rebinned_geometrical_mask_frame;
 	}
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s: pccd_170170->geometrical_mask_frame = %p",
+		fname, pccd_170170->geometrical_mask_frame));
+
+	MX_DEBUG(-2,("%s: pccd_170170->rebinned_geometrical_mask_frame = %p",
+		fname, pccd_170170->rebinned_geometrical_mask_frame));
+
+	MX_DEBUG(-2,("%s: mask_frame = %p", fname, mask_frame));
+#endif
 
 	mx_status = mx_image_get_image_data_pointer( mask_frame, NULL,
 							&image_data_pointer );
@@ -6137,6 +6307,50 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 
 /*---*/
 
+/* mxp_pccd_170170_geometrical_mask_changed() is invoked if someone has
+ * written to the 'geometrical_mask_filename' field.  All the function
+ * does is discard any existing geometrical mask data structures.
+ */
+
+static mx_status_type
+mxp_pccd_170170_geometrical_mask_changed( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxp_pccd_170170_geometrical_mask_changed()";
+
+	MX_PCCD_170170 *pccd_170170;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	pccd_170170 = record->record_type_struct;
+
+	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_PCCD_170170 pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s invoked for area detector '%s', filename = '%s'",
+		fname, record->name, pccd_170170->geometrical_mask_filename));
+#endif
+
+	mx_image_free( pccd_170170->geometrical_mask_frame );
+
+	pccd_170170->geometrical_mask_frame = NULL;
+
+	mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+
+	pccd_170170->rebinned_geometrical_mask_frame = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 {
@@ -6162,6 +6376,15 @@ mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
 			record_field->process_function
 					= mxd_pccd_170170_process_function;
+		} else {
+			switch( record_field->label_value ) {
+			case MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME:
+				record_field->process_function
+					= mxd_pccd_170170_process_function;
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
@@ -6212,6 +6435,16 @@ mxd_pccd_170170_process_function( void *record_ptr,
 			mx_status = mx_area_detector_set_register(
 					record, record_field->name,
 					ad->register_value );
+		} else {
+			switch( record_field->label_value ) {
+			case MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME:
+				mx_status =
+			    mxp_pccd_170170_geometrical_mask_changed( record );
+
+				break;
+			default:
+				break;
+			}
 		}
 		break;
 

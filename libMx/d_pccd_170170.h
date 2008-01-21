@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,16 +26,6 @@
 #define MXF_PCCD_170170_USE_TEST_PATTERN		0x10
 
 #define MXF_PCCD_170170_TEST_DEZINGER			0x100
-
-#if 0
-/* Scale factors for converting raw frame dimensions
- * into user frame dimensions.
- */
-
-#define MXF_PCCD_170170_HORIZ_SCALE	4
-#define MXF_PCCD_170170_VERT_SCALE	4
-
-#endif
 
 /*---*/
 
@@ -201,6 +191,12 @@ typedef struct {
 	unsigned long dh_over_exposure_warning;
 } MX_PCCD_170170;
 
+/*----*/
+
+#define MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME	50000
+
+/*----*/
+
 #define MXLV_PCCD_170170_DH_BASE		100000
 
 #define MXLV_PCCD_170170_DH_CONTROL 		(MXLV_PCCD_170170_DH_BASE + 0)
@@ -316,7 +312,8 @@ typedef struct {
 			offsetof(MX_PCCD_170170, geometrical_spline_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "geometrical_mask_filename", MXFT_STRING, NULL, \
+  {MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME, \
+  		-1, "geometrical_mask_filename", MXFT_STRING, NULL, \
   			1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_PCCD_170170, geometrical_mask_filename), \

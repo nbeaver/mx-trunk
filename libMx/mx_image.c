@@ -1130,7 +1130,9 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	unsigned long width_shrink_factor, width_growth_factor;
 	unsigned long height_shrink_factor, height_growth_factor;
 	unsigned long row, col, orow, ocol;
+	unsigned long row_start, row_end, col_start, col_end;
 	unsigned long orow_start, orow_end, ocol_start, ocol_end;
+	uint16_t opixel_16;
 	mx_bool_type shrink_width, shrink_height;
 	mx_status_type mx_status, mx_status2;
 
@@ -1411,6 +1413,33 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			rebinned_array_16[row][col] = pixel_average + 0.5;
 		    }
 		}
+
+	    } else
+	    if ( (!shrink_width) & (!shrink_height) ) {
+
+	        for ( orow = 0; orow < original_height; orow++ ) {
+		    for ( ocol = 0; ocol < original_height; ocol++ ) {
+
+		    	row_start = orow * height_growth_factor;
+			row_end = row_start + height_growth_factor;
+
+			col_start = ocol * width_growth_factor;
+			col_end = col_start + width_growth_factor;
+
+#if 0 && MX_IMAGE_DEBUG_REBIN
+			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
+			row_start, row_end, col_start, col_end));
+#endif
+			opixel_16 = original_array_16[orow][ocol];
+
+			for ( row = row_start; row < row_end; row++ ) {
+			    for ( col = col_start; col < col_end; col++ ) {
+			    	rebinned_array_16[row][col] = opixel_16;
+			    }
+			}
+		    }
+		}
+
 	    } else {
 	    	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"The combination of shrink_width = %d and shrink_height = %d "
