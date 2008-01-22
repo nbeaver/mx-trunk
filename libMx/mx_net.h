@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -288,6 +288,24 @@ typedef struct {
 #define MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD	1
 
 /*---*/
+
+/* If all you plan to do is make raw lowlevel mx_gets() and mx_puts() to
+ * a single MX server, then mx_connect_to_mx_server() is all you need.
+ * However, for most situations mx_setup_database() is a better choice.
+ */
+
+MX_API mx_status_type mx_connect_to_mx_server( MX_RECORD **server_record,
+						char *server_name,
+						int server_port,
+						unsigned long server_flags );
+
+MX_API mx_status_type mx_connect_to_network_field( MX_NETWORK_FIELD *nf,
+						MX_RECORD *server_record,
+						char *record_name,
+						char *field_name,
+						MX_RECORD_FIELD **temp_field );
+
+/* --- */
 
 MX_API mx_status_type mx_allocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER **message_buffer,

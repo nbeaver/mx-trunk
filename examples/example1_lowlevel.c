@@ -10,7 +10,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,8 +86,10 @@ main( int argc, char *argv[] )
 		}
 	}
 #else
+	server_record = NULL;
+
 	mx_status = mx_connect_to_mx_server( &server_record,
-						SERVER_NAME, SERVER_PORT, 8 );
+					SERVER_NAME, SERVER_PORT, 0x20000000 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( stderr, "Cannot connect to the MX server.\n" );
