@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3535,7 +3535,9 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	if ( num_dimensions <= 0L ) {
 		temp_record_field->data_element_size[0] = 0L;
 
-	} else if ( data_element_size[0] == 0L ) {
+	} else if ( ( data_element_size == NULL )
+		 || ( data_element_size[0] == 0L ) )
+	{
 		status = mx_get_datatype_sizeof_array( datatype,
 						&sizeof_array );
 

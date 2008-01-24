@@ -151,7 +151,7 @@ main( int argc, char *argv[] )
 
 	/* Setup a connection to the network_field. */
 
-	mx_status = mx_connect_to_network_field( &nf, server_record,
+	mx_status = mx_create_local_field( &nf, server_record,
 						record_name, field_name,
 						&temp_field );
 	if ( mx_status.code != MXE_SUCCESS )

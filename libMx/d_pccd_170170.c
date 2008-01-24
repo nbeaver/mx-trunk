@@ -2531,8 +2531,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: x_framesize = %ld, y_framesize = %ld",
 		fname, x_framesize, y_framesize));
+#endif
 
 	if ( ( x_framesize < ad->maximum_framesize[0] )
 	  || ( y_framesize < ad->maximum_framesize[1] ) )

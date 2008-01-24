@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_SERVER_CONNECT_DEBUG		TRUE
+#define MX_SERVER_CONNECT_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,15 +188,13 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 				char *field_name,
 				MX_RECORD_FIELD **temp_field )
 {
-#if MX_SERVER_CONNECT_DEBUG
 	static const char fname[] = "mx_create_local_field()";
-#endif
 
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
-	long i, datatype, num_dimensions;
-	long dimension_array[8];
+	long datatype, num_dimensions;
+	long *dimension_array;
 	size_t *sizeof_array;
-	void *value_ptr;
+	void **value_ptr;
 	mx_status_type mx_status;
 
 	/* Initialize the network field data structure. */
@@ -209,6 +207,24 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Allocate dimension_array with malloc().  We will be passing
+	 * dimension_array to mx_initialize_temp_record_field() later
+	 * on, so it is absolutely required that dimension_array be a
+	 * pointer to heap memory and _not_ stack memory.  If we had
+	 * declared dimension_array above as 'long dimension_array[8]',
+	 * then dimension_array would be a pointer to memory on the
+	 * stack, which would result in a crash at some point after
+	 * returning from mx_create_local_field().
+	 */
+
+	dimension_array = malloc( MXU_FIELD_MAX_DIMENSIONS * sizeof(long) );
+
+	if ( dimension_array == (long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Unable to allocate memory for an %d element "
+			"dimension array.", MXU_FIELD_MAX_DIMENSIONS );
+	}
 
 	/* Find out the dimensions of the record field. */
 
@@ -225,30 +241,46 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 	MX_DEBUG(-2,("%s: datatype = %s, num_dimensions = %ld", fname,
 		mx_get_field_type_string(datatype), num_dimensions));
 
-	if ( mx_get_debug_level() >= 2 ) {
-		fprintf( stderr, "%s: ", fname );
+	if ( mx_get_debug_level() >= -2 ) {
+		long i;
+
+		fprintf( stderr, "%s: dimension = ", fname );
 		for ( i = 0; i < num_dimensions; i++ ) {
 			fprintf( stderr, "%ld ", dimension_array[i] );
 		}
 		fprintf( stderr, "\n\n" );
 	}
 #endif
-
-	/* Allocate local memory for the network field value. */
+	/* Get the correct sizeof_array for this data type so that we
+	 * can use it for allocating memory below.
+	 */
 
 	mx_status = mx_get_datatype_sizeof_array( datatype, &sizeof_array );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Allocate memory for a pointer to the network field value. */
+
+	value_ptr = malloc( sizeof(void *) );
+
+	if ( value_ptr == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Unable to allocate memory for a pointer to "
+			"the network field value for record field '%s'.",
+			record_field_name );
+	}
+
+	/* Allocate memory for the network field value itself. */
+
 	if ( num_dimensions == 0 ) {
-		value_ptr = malloc( sizeof_array[0] );
+		*value_ptr = malloc( sizeof_array[0] );
 	} else {
-		value_ptr = mx_allocate_array( num_dimensions,
+		*value_ptr = mx_allocate_array( num_dimensions,
 					dimension_array, sizeof_array );
 	}
 
-	if ( value_ptr == NULL ) {
+	if ( *value_ptr == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Unable to allocate a local %ld-dimensional "
 			"array for record field '%s'.",
@@ -256,9 +288,7 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 	}
 
 	/* Create a local 'temporary' record field to describe the
-	 * network field value.  We must use &value_ptr for any value
-	 * pointer given to mx_initialize_temp_record_field(), since
-	 * the temporary field created has the MXFF_VARARGS bit set.
+	 * network field value.
 	 */
 
 	*temp_field = malloc( sizeof(MX_RECORD_FIELD) );
@@ -269,7 +299,8 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 	}
 
 #if MX_SERVER_CONNECT_DEBUG
-	MX_DEBUG(-2,("%s: temp_field = %p", fname, temp_field));
+	MX_DEBUG(-2,("%s: *temp_field = %p, *value_ptr = %p",
+		fname, *temp_field, *value_ptr));
 #endif
 
 	mx_status = mx_initialize_temp_record_field( *temp_field,
@@ -277,7 +308,14 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 							num_dimensions,
 							dimension_array,
 							sizeof_array,
-							&value_ptr );
+							value_ptr );
+
+#if MX_SERVER_CONNECT_DEBUG
+	MX_DEBUG(-2,("%s: (*temp_field)->data_pointer = %p",
+		fname, (*temp_field)->data_pointer));
+	MX_DEBUG(-2,("%s: *((*temp_field)->data_pointer) = %p", fname,
+    mx_read_void_pointer_from_memory_location((*temp_field)->data_pointer) ));
+#endif
 	return mx_status;
 }
 
