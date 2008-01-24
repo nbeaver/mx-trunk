@@ -2178,6 +2178,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	unsigned long flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
 	unsigned long control_register_value;
+	long x_framesize, y_framesize;
 	size_t array_size;
 	long master_clock;
 	struct timespec hrt;
@@ -2520,6 +2521,35 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Generate a warning if the video board was not able to get
+	 * enough memory for a even just a single frame.
+	 */
+
+	mx_status = mx_area_detector_get_framesize( record,
+						&x_framesize, &y_framesize );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: x_framesize = %ld, y_framesize = %ld",
+		fname, x_framesize, y_framesize));
+
+	if ( ( x_framesize < ad->maximum_framesize[0] )
+	  || ( y_framesize < ad->maximum_framesize[1] ) )
+	{
+		mx_warning( "Area detector '%s' was not able to acquire "
+		"enough memory for even a single full frame.  "
+		"Desired framesize = (%ld,%ld).  "
+		"Actual framesize = (%ld,%ld).  "
+		"This can happen if you have run a large number of "
+		"application programs before starting MX.  "
+		"Generally you can fix this by starting MX "
+		"as soon after the computer boots as is possible.",
+			record->name,
+			ad->maximum_framesize[0],
+			ad->maximum_framesize[1],
+			x_framesize, y_framesize );
+	}
 
 	/* Read the control register so that we can change it. */
 

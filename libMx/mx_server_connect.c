@@ -18,6 +18,7 @@
 #define MX_SERVER_CONNECT_DEBUG		TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -181,14 +182,14 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 /*-------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_connect_to_network_field( MX_NETWORK_FIELD *nf,
+mx_create_local_field( MX_NETWORK_FIELD *nf,
 				MX_RECORD *server_record,
 				char *record_name,
 				char *field_name,
 				MX_RECORD_FIELD **temp_field )
 {
 #if MX_SERVER_CONNECT_DEBUG
-	static const char fname[] = "mx_connect_to_network_field()";
+	static const char fname[] = "mx_create_local_field()";
 #endif
 
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
