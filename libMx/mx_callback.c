@@ -575,6 +575,12 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* If requested, return the new callback object to the caller. */
+
+	if ( callback_object != (MX_CALLBACK **) NULL ) {
+		*callback_object = callback_ptr;
+	}
+
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
