@@ -104,6 +104,7 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 		if ( current_record->mx_superclass == MXR_SERVER ) {
 			num_servers++;
 		}
+		current_record = current_record->next_record;
 	}
 
 	/* Create a record description for this server. */
