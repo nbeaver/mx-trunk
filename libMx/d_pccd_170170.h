@@ -97,6 +97,7 @@ typedef struct {
 	mx_bool_type power_of_two;
 	unsigned long minimum;
 	unsigned long maximum;
+	char *name;
 } MX_PCCD_170170_REGISTER;
 
 typedef struct {
@@ -114,6 +115,8 @@ typedef struct {
 	mx_bool_type use_top_half_of_detector;
 
 	mx_bool_type first_dh_command;
+
+	double exposure_and_gap_step_size;	/* in seconds */
 
 	long vinput_normal_framesize[2];
 	long normal_binsize[2];

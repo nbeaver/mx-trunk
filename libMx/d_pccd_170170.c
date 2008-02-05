@@ -1127,23 +1127,25 @@ mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 	if ( reg->power_of_two ) {
 		if ( mx_is_power_of_two( register_value ) == FALSE ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The requested value %lu for register %lu is not valid "
-			"since the value is not a power of two.",
-				register_value, register_address );
+			"The requested value %lu for register '%s' (%lu) "
+			"is not valid since the value is not a power of two.",
+				register_value, reg->name, register_address );
 		}
 	}
 
 	if ( register_value < reg->minimum ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested value %lu for register %lu is less than the "
-		"minimum allowed value of %lu.", register_value,
+		"The requested value %lu for register '%s' (%lu) "
+		"is less than the minimum allowed value of %lu.",
+			register_value, reg->name,
 			register_address, reg->minimum );
 	}
 
 	if ( register_value > reg->maximum ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested value %lu for register %lu is greater than the "
-		"maximum allowed value of %lu.", register_value,
+		"The requested value %lu for register '%s' (%lu) "
+		"is greater than the maximum allowed value of %lu.",
+			register_value, reg->name,
 			register_address, reg->maximum );
 	}
 
@@ -1167,6 +1169,8 @@ mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 
 	MX_PCCD_170170_REGISTER *reg;
 	long register_address;
+	MX_RECORD_FIELD *register_field;
+	mx_status_type mx_status;
 
 	register_address = register_index - MXLV_PCCD_170170_DH_BASE;
 
@@ -1186,6 +1190,15 @@ mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 	reg->power_of_two = power_of_two;
 	reg->minimum      = minimum;
 	reg->maximum      = maximum;
+	reg->name         = NULL;
+
+	mx_status = mx_get_field_by_label_value( pccd_170170->record,
+						register_index,
+						&register_field );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	reg->name = register_field->name;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2249,6 +2262,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	ad->flood_field_scale_max = 10.0;
 	ad->flood_field_scale_min = 0.1;
 
+	/* Set the step size in seconds per step
+	 * for the exposure time and the gap time.
+	 */
+
+	pccd_170170->exposure_and_gap_step_size = 0.001;
+
 	/* Make sure the internal trigger output is low. */
 
 	mx_status = mx_digital_output_write(
@@ -2324,8 +2343,13 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	INIT_REGISTER( MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
 					1,     FALSE, FALSE, 1,  69999 );
 
+#if 0
 	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
 					1,     FALSE, FALSE, 0,  65535 );
+#else
+	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
+					1,     FALSE, FALSE, 1,  65535 );
+#endif
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
 					0,     FALSE, FALSE, 0,  255 );
@@ -2860,8 +2884,8 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	double timeout_in_seconds;
 	int comparison;
 	long num_frames_in_sequence, master_clock;
-	unsigned long control_register_value;
-	mx_bool_type camera_is_master, external_trigger, busy, circular;
+	unsigned long control_register_value, status_flags;
+	mx_bool_type camera_is_master, external_trigger, circular;
 	mx_status_type mx_status;
 
 	pccd_170170 = NULL;
@@ -2943,12 +2967,14 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 						num_ticks_to_wait );
 
 	while(1) {
-		mx_status = mx_area_detector_is_busy( ad->record, &busy );
+		mx_status = mx_area_detector_get_status( ad->record,
+							&status_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( busy == FALSE ) {
+		if ( (status_flags & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 )
+		{
 			break;		/* Exit the while() loop. */
 		}
 
@@ -3425,10 +3451,10 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set the gap time to 0. */
+		/* Set the gap time to 1. */
 
 		mx_status = mx_area_detector_set_register( ad->record,
-						"dh_gap_time", 0 );
+						"dh_gap_time", 1 );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
@@ -4937,7 +4963,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 						ad->record->name, num_frames );
 				}
 
-				exposure_time = 0.001;
+				exposure_time =
+					pccd_170170->exposure_and_gap_step_size;
+
 				frame_time = exposure_time;
 			} else
 			if ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) {
@@ -4976,7 +5004,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			exposure_steps = mx_round_down( exposure_time / 0.001 );
+			exposure_steps = mx_round_down( exposure_time
+				/ pccd_170170->exposure_and_gap_step_size );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -4988,14 +5017,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			if ( sp->sequence_type == MXT_SQ_CONTINUOUS ) {
 				/* For continuous sequences, we want the
-				 * gap time to be zero, so that the camera
+				 * gap time to be one, so that the camera
 				 * will take frames as fast as it can.
 				 */
 
 				mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
 					MXLV_PCCD_170170_DH_GAP_TIME,
-					0 );
+					1 );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -5026,7 +5055,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 						ad->record->name );
 				}
 
-				gap_steps = mx_round_down( gap_time / 0.001 );
+				gap_steps = mx_round_down( gap_time
+				    / pccd_170170->exposure_and_gap_step_size );
 
 				if ( gap_steps > 65535 ) {
 					return mx_error(
@@ -5035,8 +5065,19 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"greater than the maximum allowed gap time "
 				"(%g seconds) for detector '%s'.",
 						gap_time,
-						0.0001 * (double) 65535,
+			pccd_170170->exposure_and_gap_step_size * (double)65535,
 						ad->record->name );
+				}
+
+				if ( gap_steps < 1 ) {
+					return mx_error(
+						MXE_ILLEGAL_ARGUMENT, fname,
+				"The computed gap time (%g seconds) is "
+				"less than the minimum allowed gap time "
+				"(%g seconds) for detector '%s'.",
+					gap_time,
+					pccd_170170->exposure_and_gap_step_size,
+					ad->record->name );
 				}
 
 				mx_status = mxd_pccd_170170_write_register(
@@ -5144,7 +5185,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[1];
 
-			exposure_steps = mx_round_down( exposure_time / 0.001 );
+			exposure_steps = mx_round_down( exposure_time
+				/ pccd_170170->exposure_and_gap_step_size );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -5162,20 +5204,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			gap_time = line_time - exposure_time;
 
-			if ( gap_time < 0.0 ) {
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"For area detector '%s', the requested "
-				"exposure time per line (%g sec) and the "
-				"requested total time per line (%g sec) "
-				"results in a gap time per line (%g sec) "
-				"that is negative.  This is not supported.",
-					ad->record->name,
-					exposure_time, line_time, gap_time );
+			gap_steps = mx_round_down( gap_time
+				/ pccd_170170->exposure_and_gap_step_size );
+
+			if ( gap_steps < 1 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The computed gap time (%g seconds) is "
+				"less than the minimum allowed gap time "
+				"(%g seconds) for detector '%s'.",
+					gap_time,
+					pccd_170170->exposure_and_gap_step_size,
+					ad->record->name );
 			}
 
 			/* Set the gap time. */
-
-			gap_steps = mx_round_down( gap_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -5296,7 +5338,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[2];
 
-			exposure_steps = mx_round_down( exposure_time / 0.001 );
+			exposure_steps = mx_round_down( exposure_time
+				/ pccd_170170->exposure_and_gap_step_size );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -5312,20 +5355,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			gap_time = subimage_time - exposure_time;
 
-			if ( gap_time < 0.0 ) {
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"For area detector '%s', the requested "
-				"exposure time (%g sec) and the requested "
-				"subimage time (%g sec) "
-				"result in a gap time (%g sec) that is "
-				"negative.  This is not supported.",
-					ad->record->name,
-					exposure_time, subimage_time, gap_time);
+			gap_steps = mx_round_down( gap_time
+				/ pccd_170170->exposure_and_gap_step_size );
+
+			if ( gap_steps < 1 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The computed gap time (%g seconds) is "
+				"less than the minimum allowed gap time "
+				"(%g seconds) for detector '%s'.",
+					gap_time,
+					pccd_170170->exposure_and_gap_step_size,
+					ad->record->name );
 			}
 
 			/* Set the gap time. */
-
-			gap_steps = mx_round_down( gap_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,

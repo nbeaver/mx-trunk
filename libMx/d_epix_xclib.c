@@ -26,6 +26,8 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	FALSE
 
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS	FALSE
+
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -1952,7 +1954,7 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 
 	captured_buffer = pxd_capturedBuffer( epix_xclib_vinput->unitmap );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: pxd_capturedBuffer() = %ld", fname, captured_buffer));
 
 	MX_DEBUG(-2,("%s: new_sequence = %d",
@@ -1995,7 +1997,7 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 			return mx_status;
 
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,
 		("%s: old_total_num_frames = %ld, total_num_frames = %ld",
 			fname, epix_xclib_vinput->old_total_num_frames,
@@ -2036,7 +2038,7 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 		vinput->total_num_frames =
 			epix_xclib_vinput->fake_frame_numbers[1];
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: total_num_frames = %lu",
 			fname, vinput->total_num_frames));
 #endif
@@ -2054,7 +2056,7 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: total_num_frames = %lu",
 		fname, vinput->total_num_frames));
 #endif
@@ -2113,7 +2115,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
 				error_message, sizeof(error_message) );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
 		fname, (int) epix_xclib_vinput->sequence_in_progress));
 
@@ -2121,7 +2123,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 #endif
 
 	if ( epix_status != 0 ) {
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: EPIX error message = '%s'",
 			fname, error_message));
 #endif
@@ -2129,7 +2131,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 
 	busy = pxd_goneLive( epix_xclib_vinput->unitmap, 0 );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: pxd_goneLive() = %d", fname, busy ));
 
 	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
@@ -2143,14 +2145,14 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	if ( busy ) {
 		/* busy */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: SIGN 1", fname));
 #endif
 		if ( vinput->asynchronous_circular ) {
 
 			sp = &(vinput->sequence_parameters);
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 			MX_DEBUG(-2,("%s: SIGN 1.1", fname));
 #endif
 			if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME )
@@ -2159,7 +2161,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 				 * has reached its end.
 				 */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,("%s: SIGN 1.1.1", fname));
 #endif
 				mx_status = mx_sequence_get_num_frames(
@@ -2177,7 +2179,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 				frames_difference = vinput->total_num_frames
 				    - epix_xclib_vinput->old_total_num_frames;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 				MX_DEBUG(-2,
 		    ("%s: sequence_num_frames = %ld, total_num_frames = %ld",
 					fname, sequence_num_frames,
@@ -2188,7 +2190,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 
 				if ( frames_difference >= sequence_num_frames )
 				{
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 					MX_DEBUG(-2,
 					("%s: Terminating sequence when busy.",
 						fname));
@@ -2207,13 +2209,13 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	} else {
 		/* not busy */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: SIGN 2", fname));
 #endif
 		vinput->asynchronous_circular = FALSE;
 
 		if ( epix_xclib_vinput->sequence_in_progress ) {
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 			MX_DEBUG(-2,("%s: Terminating sequence when not busy.",
 				fname));
 #endif
@@ -2235,7 +2237,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 		vinput->status &= ~MXSF_VIN_IS_BUSY;
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: vinput->busy = %d", fname, vinput->busy));
 #endif
 

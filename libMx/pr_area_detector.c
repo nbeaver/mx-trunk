@@ -122,7 +122,9 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 	mx_status_type mx_status, mx_status2;
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
+#   if PR_AREA_DETECTOR_DEBUG
 	MX_HRT_TIMING measurement;
+#   endif
 #else
 	void *void_image_data_pointer;
 	double *sum_array;
@@ -353,17 +355,21 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_HRT_START( measurement );
+#endif
 
 		mx_status = mx_image_dezinger( &(corr->destination_frame),
 					corr->num_exposures,
 					corr->dezinger_frame_array,
 					fabs( ad->dezinger_threshold ) );
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_HRT_END( measurement );
 
 		MX_HRT_RESULTS( measurement, fname,
 			"Total image dezingering time." );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mxp_area_detector_cleanup_after_correction( ad, corr );
@@ -441,7 +447,8 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_LIST_HEAD *list_head;
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	double frame_time, detector_readout_time;
+	double frame_time, modified_frame_time;
+	double detector_readout_time;
 	long pixels_per_frame;
 	mx_status_type mx_status;
 
@@ -613,7 +620,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 #endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
-	/* Compute the time between the start of successive frames. */
+	/* Get the detector readout time for the current sequence. */
 
 	mx_status = mx_area_detector_get_detector_readout_time( record,
 							&detector_readout_time);
@@ -623,7 +630,16 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
+	/* Compute the time between the start of successive frames. */
+
 	frame_time = corr->exposure_time + detector_readout_time;
+
+	/* Slightly increase the frame time to make sure that there
+	 * is a non-zero time interval between the end of one frame
+	 * and the start of the next frame.
+	 */
+
+	modified_frame_time = 1.01 * frame_time;
 
 	/* Setup a multiframe sequence that will acquire all of
 	 * the frames needed to compute the correction frame.
@@ -632,7 +648,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	mx_status = mx_area_detector_set_multiframe_mode( record,
 							corr->num_exposures,
 							corr->exposure_time,
-							frame_time );
+							modified_frame_time );
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mxp_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
