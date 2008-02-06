@@ -25,6 +25,7 @@
 #include "mx_driver.h"
 #include "mx_array.h"
 #include "mx_net.h"
+#include "n_tcpip.h"
 
 MX_EXPORT mx_status_type
 mx_connect_to_mx_server( MX_RECORD **server_record,
@@ -37,6 +38,7 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 	MX_RECORD *record_list;
 	MX_RECORD *current_record;
 	MX_LIST_HEAD *list_head_struct;
+	MX_TCPIP_SERVER *tcpip_server;
 	static char description[MXU_RECORD_DESCRIPTION_LENGTH + 1];
 	int i, max_retries;
 	unsigned long num_servers;
@@ -93,7 +95,8 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 
 	/* Count the existing number of server records in the MX database.
 	 * We use that information to construct a unique reserved name for
-	 * the server record that we are about to create.
+	 * the server record that we are about to create.  If we find an
+	 * already existing record, then we return the existing record.
 	 */
 
 	num_servers = 0;
@@ -101,11 +104,49 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 	current_record = record_list->next_record;
 
 	while ( current_record != record_list ) {
-		if ( current_record->mx_superclass == MXR_SERVER ) {
-			num_servers++;
+	    if ( ( current_record->mx_superclass == MXR_SERVER )
+	      && ( current_record->mx_class == MXN_NETWORK_SERVER ) )
+	    {
+		num_servers++;
+
+		/* Does current_record match the server parameters
+		 * that we are looking for?  If so, then return
+		 * with *server_record set to current_record.
+		 */
+
+		switch( current_record->mx_type ) {
+		case MXN_NET_TCPIP:
+		    tcpip_server = current_record->record_type_struct;
+
+		    if ( strcmp(server_name, tcpip_server->hostname) != 0 ) {
+
+		    	/* Not a match, so go on to the next record. */
+			break;
+		    }
+		    if ( server_port != tcpip_server->port ) {
+
+		    	/* Not a match, so go on to the next record. */
+			break;
+		    }
+
+		    /* WE HAVE A MATCH!  Return the matching server record
+		     * to the calling function now.
+		     */
+
+		    *server_record = current_record;
+
+		    return MX_SUCCESSFUL_RESULT;
+		    break;
+		default:
+		    break;
 		}
-		current_record = current_record->next_record;
+	    }
+	    current_record = current_record->next_record;
 	}
+
+	/* If we get here, then the database did not already have
+	 * a matching server record, so we need to create one.
+	 */
 
 	/* Create a record description for this server. */
 

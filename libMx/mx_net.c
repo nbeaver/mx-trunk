@@ -702,6 +702,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 				break;	/* Exit the do...while() loop. */
 			    }
+
+			    list_entry = list_entry->next_list_entry;
 				
 			} while( list_entry != list_start );
 
@@ -826,10 +828,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_network_wait_for_messages( MX_RECORD *server_record,
+mx_network_wait_for_messages_from_server(
+			MX_RECORD *server_record,
 			double timeout_in_seconds )
 {
-	static const char fname[] = "mx_network_wait_for_messages()";
+	static const char fname[] =
+		"mx_network_wait_for_messages_from_server()";
 
 	MX_NETWORK_SERVER *server;
 	mx_status_type mx_status;
@@ -851,6 +855,88 @@ mx_network_wait_for_messages( MX_RECORD *server_record,
 			server->message_buffer, 0, timeout_in_seconds );
 
 	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_wait_for_messages( MX_RECORD *record,
+			double timeout_in_seconds )
+{
+	static const char fname[] = "mx_network_wait_for_messages()";
+
+	MX_RECORD *record_list, *current_record;
+	MX_CLOCK_TICK start_tick, end_tick, timeout_in_ticks, current_tick;
+	int comparison;
+	mx_bool_type timeout_enabled;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	/* Jump to the list head record. */
+
+	record_list = record->list_head;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list head pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Compute the timeout time. */
+
+	if ( timeout_in_seconds < 0.0 ) {
+		timeout_enabled = FALSE;
+	} else {
+		timeout_enabled = TRUE;
+
+		timeout_in_ticks =
+			mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
+
+		start_tick = mx_current_clock_tick();
+
+		end_tick = mx_add_clock_ticks(start_tick, timeout_in_ticks);
+	}
+
+	/* Check for server callbacks until the timeout expires.  If there
+	 * is no timeout.
+	 */
+
+	current_record = record_list->next_record;
+
+	do {
+		/* Walk through the record list looking for MX server records.*/
+
+		while ( current_record != record_list ) {
+			if ( (current_record->mx_superclass == MXR_SERVER)
+			  && (current_record->mx_class == MXN_NETWORK_SERVER) )
+			{
+			    (void) mx_network_wait_for_messages_from_server(
+						    	current_record, 0.0 );
+			}
+
+			current_record = current_record->next_record;
+		}
+
+		if ( timeout_enabled ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison =
+			    mx_compare_clock_ticks( current_tick, end_tick );
+
+			if ( comparison >= 0 ) {
+				return mx_error(
+				(MXE_TIMED_OUT | MXE_QUIET), fname,
+				"Timed out after waiting %g seconds "
+				"for MX server messages.", timeout_in_seconds );
+			}
+		}
+
+	} while (0);
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ====================================================================== */

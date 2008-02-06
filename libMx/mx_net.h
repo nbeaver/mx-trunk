@@ -333,8 +333,12 @@ MX_API mx_status_type mx_network_wait_for_message_id( MX_RECORD *server_record,
 					uint32_t message_id,
 					double timeout_in_seconds );
 
-MX_API mx_status_type mx_network_wait_for_messages( MX_RECORD *server_record,
+MX_API mx_status_type mx_network_wait_for_messages_from_server(
+					MX_RECORD *server_record,
 					double timeout_in_seconds );
+
+MX_API mx_status_type mx_network_wait_for_messages( MX_RECORD *record_list,
+						double timeout_in_seconds );
 
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,
 					mx_bool_type *connection_is_up );

@@ -634,12 +634,12 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	frame_time = corr->exposure_time + detector_readout_time;
 
-	/* Slightly increase the frame time to make sure that there
-	 * is a non-zero time interval between the end of one frame
-	 * and the start of the next frame.
+	/* Add an extra 10 milliseconds to the end of the frame time
+	 * to make sure that there is a non-zero time interval between
+	 * the end of one frame and the start of the next frame.
 	 */
 
-	modified_frame_time = 1.01 * frame_time;
+	modified_frame_time = frame_time + 0.01;
 
 	/* Setup a multiframe sequence that will acquire all of
 	 * the frames needed to compute the correction frame.
