@@ -234,6 +234,12 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->abort   = FALSE;
 	ad->busy    = FALSE;
 
+	ad->correction_measurement_in_progress = FALSE;
+
+	ad->geom_corr_after_flood           = FALSE;
+	ad->correction_frame_geom_corr_last = FALSE;
+	ad->correction_frame_no_geom_corr   = FALSE;
+
 	ad->current_num_rois = ad->maximum_num_rois;
 	ad->roi_number = 0;
 	ad->roi[0] = 0;
@@ -1145,7 +1151,11 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 	ad->correction_measurement_time = correction_measurement_time;
 	ad->num_correction_measurements = num_correction_measurements;
 
+	ad->correction_measurement_in_progress = TRUE;
+
 	mx_status = (*measure_correction_fn)( ad );
+
+	ad->correction_measurement_in_progress = FALSE;
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2334,7 +2344,9 @@ mx_area_detector_get_status( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-	if ( ad->correction_measurement != NULL ) {
+	if ( ad->correction_measurement_in_progress
+	   || ( ad->correction_measurement != NULL ) )
+	{
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
@@ -2407,6 +2419,12 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+	}
+
+	if ( ad->correction_measurement_in_progress
+	   || ( ad->correction_measurement != NULL ) )
+	{
+		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4632,12 +4650,15 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		"mx_area_detector_default_measure_correction()";
 
 	MX_IMAGE_FRAME *dest_frame;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
+							MX_IMAGE_FRAME * );
 	unsigned long saved_correction_flags, desired_correction_flags;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	long i, n, num_exposures, pixels_per_frame;
 	time_t time_buffer;
-	mx_bool_type busy;
+	unsigned long ad_status;
 	mx_status_type mx_status, mx_status2;
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
@@ -4654,6 +4675,12 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	size_t image_length;
 #endif
 
+	mx_status = mx_area_detector_get_pointers( ad->record,
+						NULL, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
@@ -4663,6 +4690,13 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		ad->correction_measurement_time,
 		ad->num_correction_measurements ));
 #endif
+
+	geometrical_correction_fn = flist->geometrical_correction;
+
+	if ( geometrical_correction_fn == NULL ) {
+		geometrical_correction_fn =
+			mx_area_detector_default_geometrical_correction;
+	}
 
 	if ( ad->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -4719,7 +4753,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		desired_correction_flags = 
 	MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
 
-		if ( ad->do_geometrical_correction_last == FALSE ) {
+		if ( ( ad->geom_corr_after_flood == FALSE )
+		  && ( ad->correction_frame_geom_corr_last == FALSE )
+		  && ( ad->correction_frame_no_geom_corr == FALSE ) )
+		{
 			desired_correction_flags
 				|= MXFT_AD_GEOMETRICAL_CORRECTION;
 		}
@@ -4838,7 +4875,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		/* Wait for the exposure to end. */
 
 		for(;;) {
-			mx_status = mx_area_detector_is_busy(ad->record, &busy);
+			mx_status = mx_area_detector_get_status( ad->record,
+								&ad_status );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
@@ -4857,7 +4895,9 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			}
 #endif
 
-			if ( busy == FALSE ) {
+			if ((ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0)
+			{
+
 				break;		/* Exit the for(;;) loop. */
 			}
 			mx_msleep(10);
@@ -5007,6 +5047,24 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 	MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
 
+	/* If requested, perform a delayed geometrical correction on a
+	 * flood field frame after averaging or dezingering the source
+	 * frames.
+	 */
+
+	if ( ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME )
+	  && ( ad->correction_frame_geom_corr_last == TRUE )
+	  && ( ad->correction_frame_no_geom_corr == FALSE ) )
+	{
+		MX_DEBUG(-2,("%s: Invoking delayed geometrical correction "
+				"on measured flood field frame", fname ));
+
+		mx_status = (*geometrical_correction_fn)( ad, dest_frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Set the image frame exposure time. */
 
 	exposure_timespec =
@@ -5051,7 +5109,7 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 	unsigned long saved_correction_flags, desired_correction_flags;
 	long i, n, z, num_exposures, pixels_per_frame;
 	double exposure_time;
-	mx_bool_type busy;
+	unsigned long ad_status;
 	mx_status_type mx_status, mx_status2;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -5184,7 +5242,8 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		/* Wait for the exposure to end. */
 
 		for(;;) {
-			mx_status = mx_area_detector_is_busy(ad->record, &busy);
+			mx_status = mx_area_detector_get_status( ad->record,
+								&ad_status );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				FREE_DEZINGER_ARRAYS;
@@ -5202,7 +5261,9 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 			}
 #endif
 
-			if ( busy == FALSE ) {
+			if ((ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0)
+			{
+
 				break;		/* Exit the for(;;) loop. */
 			}
 			mx_msleep(10);
@@ -5284,13 +5345,14 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad )
+mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad,
+						MX_IMAGE_FRAME *frame )
 {
 	static const char fname[] =
 		"mx_area_detector_default_geometrical_correction()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"A default version of a geometrical correction has not yet "
+	"Geometrical correction has not yet "
 	"been implemented for area detector '%s'.", ad->record->name );
 }
 
@@ -6202,9 +6264,14 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
+							MX_IMAGE_FRAME * );
 	unsigned long flags;
 	mx_bool_type use_low_memory_methods = FALSE;
+	mx_bool_type geom_corr_before_flood;
+	mx_bool_type geom_corr_after_flood;
+	mx_bool_type correction_measurement_in_progress;
+	mx_bool_type geometrical_correction_requested;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -6230,6 +6297,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	flags = ad->correction_flags;
 
+#if 1
+	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx",
+		fname, ad->correction_flags));
+#endif
+
 	if ( flags == 0 ) {
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
@@ -6238,6 +6310,64 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	/* Under what circumstances will we perform a geometrical correction? */
+
+	correction_measurement_in_progress =
+		ad->correction_measurement_in_progress;
+
+	geometrical_correction_requested =
+		ad->correction_flags & MXFT_AD_GEOMETRICAL_CORRECTION;
+
+	if ( correction_measurement_in_progress ) {
+		/* We are measuring a correction_frame. */
+
+		if ( ad->correction_frame_no_geom_corr ) {
+			geom_corr_before_flood = FALSE;
+			geom_corr_after_flood = FALSE;
+		} else
+		if ( ad->correction_frame_geom_corr_last ) {
+			geom_corr_before_flood = FALSE;
+			geom_corr_after_flood = FALSE;
+		} else
+		if ( ad->geom_corr_after_flood ) {
+			geom_corr_before_flood = FALSE;
+			geom_corr_after_flood = TRUE;
+		} else {
+			geom_corr_before_flood = TRUE;
+			geom_corr_after_flood = FALSE;
+		}
+	} else {
+		/* We are _not_ measuring a correction_frame. */
+
+		if ( geometrical_correction_requested == FALSE ) {
+			geom_corr_before_flood = FALSE;
+			geom_corr_after_flood = FALSE;
+		} else
+		if ( ad->geom_corr_after_flood ) {
+			geom_corr_before_flood = FALSE;
+			geom_corr_after_flood = TRUE;
+		} else {
+			geom_corr_before_flood = TRUE;
+			geom_corr_after_flood = FALSE;
+		}
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: correction_measurement_in_progress = %d",
+		fname, (int) correction_measurement_in_progress));
+	MX_DEBUG(-2,("%s: geometrical_correction_requested = %d",
+		fname, (int) geometrical_correction_requested));
+	MX_DEBUG(-2,("%s: ad->correction_frame_no_geom_corr = %d",
+		fname, (int) ad->correction_frame_no_geom_corr));
+	MX_DEBUG(-2,("%s: ad->correction_frame_geom_corr_last = %d",
+		fname, (int) ad->correction_frame_geom_corr_last));
+	MX_DEBUG(-2,("%s: ad->geom_corr_after_flood = %d",
+		fname, (int) ad->geom_corr_after_flood));
+	MX_DEBUG(-2,
+	("%s: geom_corr_before_flood = %d, geom_corr_after_flood = %d",
+		fname, geom_corr_before_flood, geom_corr_after_flood));
+#endif
 
 	/*---*/
 
@@ -6310,6 +6440,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		fname, (int) use_low_memory_methods));
 #endif
 
+#if 1
+	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
+#endif
+
 	if ( use_low_memory_methods ) {
 		mx_status = mxp_area_detector_u16_lowmem_dark_correction( ad,
 							image_frame,
@@ -6335,12 +6469,13 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/******* Geometrical correction *******/
 
-	if ( ad->do_geometrical_correction_last == FALSE ) {
+	if ( geom_corr_before_flood ) {
 
 		/* If requested, do the geometrical correction. */
 
 		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
-			mx_status = (*geometrical_correction_fn)( ad );
+			mx_status = (*geometrical_correction_fn)( ad,
+								image_frame );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -6351,6 +6486,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_HRT_END( geometrical_timing );
 
 	MX_HRT_START( flood_timing );
+#endif
+
+#if 1
+	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
 #endif
 
 	/******* Flood field correction *******/
@@ -6378,7 +6517,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	/******* Delayed geometrical correction (if requested) *******/
 
-	if ( ad->do_geometrical_correction_last ) {
+	if ( geom_corr_after_flood ) {
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 		/* If invoked, this code overwrites the earlier
@@ -6390,7 +6529,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		/* If requested, do the geometrical correction. */
 
 		if ( flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
-			mx_status = (*geometrical_correction_fn)( ad );
+			mx_status = (*geometrical_correction_fn)( ad,
+								image_frame );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

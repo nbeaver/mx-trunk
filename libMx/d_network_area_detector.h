@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,14 +33,16 @@ typedef struct {
 	MX_NETWORK_FIELD copy_frame_nf;
 	MX_NETWORK_FIELD correct_frame_nf;
 	MX_NETWORK_FIELD correction_flags_nf;
+	MX_NETWORK_FIELD correction_frame_geom_corr_last_nf;
+	MX_NETWORK_FIELD correction_frame_no_geom_corr_nf;
 	MX_NETWORK_FIELD correction_measurement_time_nf;
 	MX_NETWORK_FIELD correction_measurement_type_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
-	MX_NETWORK_FIELD do_geometrical_correction_last_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;
+	MX_NETWORK_FIELD geom_corr_after_flood_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
 	MX_NETWORK_FIELD image_frame_data_nf;

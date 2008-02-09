@@ -5847,11 +5847,11 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
+mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame )
 {
 	static const char fname[] = "mxd_pccd_170170_geometrical_correction()";
 
-	MX_IMAGE_FRAME *image_frame;
 	MX_PCCD_170170 *pccd_170170;
 	int spatial_status, os_status, saved_errno;
 	int row_framesize, column_framesize;
@@ -5868,12 +5868,15 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	image_frame = ad->image_frame;
-
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_NOT_READY, fname,
-		"Area detector '%s' has not yet taken an image frame.",
-			ad->record->name );
+
+		if ( ad->image_frame != (MX_IMAGE_FRAME *) NULL ) {
+			image_frame = ad->image_frame;
+		} else {
+			return mx_error( MXE_NOT_READY, fname,
+			"Area detector '%s' has not yet taken an image frame.",
+				ad->record->name );
+		}
 	}
 
 	if ( image_frame->image_data == NULL ) {

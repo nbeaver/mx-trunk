@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -242,6 +242,18 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	    "%s.correction_flags", network_area_detector->remote_record_name );
 
 	mx_network_field_init(
+		&(network_area_detector->correction_frame_geom_corr_last_nf),
+		network_area_detector->server_record,
+			"%s.correction_frame_geom_corr_last",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->correction_frame_no_geom_corr_nf),
+		network_area_detector->server_record,
+			"%s.correction_frame_no_geom_corr",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
 		&(network_area_detector->correction_measurement_time_nf),
 		network_area_detector->server_record,
 			"%s.correction_measurement_time",
@@ -263,12 +275,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.detector_readout_time",
 			network_area_detector->remote_record_name );
 
-	mx_network_field_init(
-		&(network_area_detector->do_geometrical_correction_last_nf),
-		network_area_detector->server_record,
-			"%s.do_geometrical_correction_last",
-			network_area_detector->remote_record_name );
-
 	mx_network_field_init( &(network_area_detector->extended_status_nf),
 		network_area_detector->server_record,
 	    "%s.extended_status", network_area_detector->remote_record_name );
@@ -280,6 +286,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->frame_filename_nf),
 		network_area_detector->server_record,
 	    "%s.frame_filename", network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->geom_corr_after_flood_nf),
+		network_area_detector->server_record,
+			"%s.geom_corr_after_flood",
+			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->get_roi_frame_nf),
 		network_area_detector->server_record,
@@ -1739,10 +1751,20 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->use_scaled_dark_current_nf),
 				MXFT_ULONG, &(ad->use_scaled_dark_current) );
 		break;
-	case MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST:
+	case MXLV_AD_GEOM_CORR_AFTER_FLOOD:
 		mx_status = mx_put(
-		    &(network_area_detector->do_geometrical_correction_last_nf),
-		    	MXFT_BOOL, &(ad->do_geometrical_correction_last) );
+		    &(network_area_detector->geom_corr_after_flood_nf),
+		    	MXFT_BOOL, &(ad->geom_corr_after_flood) );
+		break;
+	case MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST:
+		mx_status = mx_put(
+		  &(network_area_detector->correction_frame_geom_corr_last_nf),
+		    	MXFT_BOOL, &(ad->correction_frame_geom_corr_last) );
+		break;
+	case MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR:
+		mx_status = mx_put(
+		  &(network_area_detector->correction_frame_no_geom_corr_nf),
+		    	MXFT_BOOL, &(ad->correction_frame_no_geom_corr) );
 		break;
 	case MXLV_AD_REGISTER_VALUE:
 		dimension[0] = MXU_FIELD_NAME_LENGTH;

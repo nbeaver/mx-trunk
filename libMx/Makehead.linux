@@ -296,6 +296,10 @@ CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_LINUX \
 CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 
+LINKFLAGS = $(CFLAGS)
+
+LINKFLAGS += -rdynamic
+
 #---
 
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
@@ -417,10 +421,10 @@ MOTOR_NAME	= motor
 MOTOR_NAME2	= motor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			 -lMx $(LIBRARIES) $(READLINE_LIBRARIES)
-	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			../libMx/$(MX_LIBRARY_STATIC_NAME) \
 			$(LIBRARIES) $(READLINE_LIBRARIES)
@@ -436,7 +440,7 @@ motor_install:
 SERVER_NAME	= mxserver
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 server_install:
@@ -452,7 +456,7 @@ server_install:
 UPDATE_NAME	= mxupdate
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
+	$(CC) $(LINKFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
 update_install:
@@ -468,17 +472,17 @@ update_install:
 MXDRIVERINFO_NAME    = mxdriverinfo
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
 MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
 				$(LIB_DIRS) -lMx $(LIBRARIES)
 
 mxserial.o: mxserial_fork.c
-	$(CC) $(CFLAGS) -c mxserial_fork.c -o mxserial.o
+	$(CC) $(LINKFLAGS) -c mxserial_fork.c -o mxserial.o
 
 util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin

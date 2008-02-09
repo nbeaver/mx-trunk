@@ -42,6 +42,8 @@
 #include "mx_pipe.h"
 #include "mx_callback.h"
 
+/*------------------------------------------------------------------------*/
+
 #if MX_CALLBACK_DEBUG_WITHOUT_TIMER
 
 /*
@@ -152,6 +154,8 @@ mxp_stop_master_timer( MX_INTERVAL_TIMER *itimer )
 
 	return;
 }
+
+/*------------------------------------------------------------------------*/
 
 #else /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
 
@@ -342,6 +346,8 @@ mx_initialize_callback_support( MX_RECORD *record )
 }
 
 #endif /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,

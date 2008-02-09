@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -153,7 +153,11 @@ typedef struct mx_area_detector_type {
 	double detector_readout_time;
 	double total_sequence_time;
 
-	mx_bool_type do_geometrical_correction_last;
+	mx_bool_type correction_measurement_in_progress;
+
+	mx_bool_type geom_corr_after_flood;
+	mx_bool_type correction_frame_geom_corr_last;
+	mx_bool_type correction_frame_no_geom_corr;
 
 	/* 'sequence_parameters' contains information like the type of the
 	 * sequence, the number of frames in the sequence, and sequence
@@ -372,15 +376,17 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_TOTAL_ACQUISITION_TIME		12043
 #define MXLV_AD_DETECTOR_READOUT_TIME		12044
 #define MXLV_AD_TOTAL_SEQUENCE_TIME		12045
-#define MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST	12046
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12047
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12048
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12049
-#define MXLV_AD_DEZINGER_THRESHOLD		12050
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12051
-#define MXLV_AD_REGISTER_NAME			12052
-#define MXLV_AD_REGISTER_VALUE			12053
-#define MXLV_AD_SHUTTER_ENABLE			12054
+#define MXLV_AD_GEOM_CORR_AFTER_FLOOD		12046
+#define MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST	12047
+#define MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR	12048
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12049
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12050
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12051
+#define MXLV_AD_DEZINGER_THRESHOLD		12052
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12053
+#define MXLV_AD_REGISTER_NAME			12054
+#define MXLV_AD_REGISTER_VALUE			12055
+#define MXLV_AD_SHUTTER_ENABLE			12056
 
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12100
 #define MXLV_AD_MASK_FILENAME			12101
@@ -617,10 +623,22 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, total_sequence_time), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AD_DO_GEOMETRICAL_CORRECTION_LAST, -1, \
-  		"do_geometrical_correction_last", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_AD_GEOM_CORR_AFTER_FLOOD, -1, \
+  		"geom_corr_after_flood", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, do_geometrical_correction_last), \
+		offsetof(MX_AREA_DETECTOR, geom_corr_after_flood), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST, -1, \
+  		"correction_frame_geom_corr_last", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_frame_geom_corr_last), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR, -1, \
+  		"correction_frame_no_geom_corr", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_frame_no_geom_corr), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
@@ -738,7 +756,8 @@ typedef struct {
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *measure_correction ) ( MX_AREA_DETECTOR *ad );
-	mx_status_type ( *geometrical_correction ) ( MX_AREA_DETECTOR * ad );
+	mx_status_type ( *geometrical_correction ) ( MX_AREA_DETECTOR * ad,
+							MX_IMAGE_FRAME *frame );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -1064,7 +1083,8 @@ MX_API mx_status_type mx_area_detector_default_dezinger_correction(
                                                 MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mx_area_detector_default_geometrical_correction(
-						MX_AREA_DETECTOR *ad );
+						MX_AREA_DETECTOR *ad,
+						MX_IMAGE_FRAME *frame );
 
 /*---*/
 
