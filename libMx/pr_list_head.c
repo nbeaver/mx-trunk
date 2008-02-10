@@ -46,8 +46,9 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_DEBUG_LEVEL:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_REPORT:
-		case MXLV_LHD_REPORTALL:
+		case MXLV_LHD_REPORT_ALL:
 		case MXLV_LHD_SUMMARY:
+		case MXLV_LHD_RECORD_LIST:
 		case MXLV_LHD_FIELDDEF:
 		case MXLV_LHD_SHOW_HANDLE:
 			record_field->process_function
@@ -128,11 +129,14 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_REPORT:
 			mx_status = mx_list_head_record_report( list_head );
 			break;
-		case MXLV_LHD_REPORTALL:
-			mx_status = mx_list_head_record_reportall( list_head );
+		case MXLV_LHD_REPORT_ALL:
+			mx_status = mx_list_head_record_report_all( list_head );
 			break;
 		case MXLV_LHD_SUMMARY:
 			mx_status = mx_list_head_record_summary( list_head );
+			break;
+		case MXLV_LHD_RECORD_LIST:
+			mx_status = mx_list_head_record_record_list(list_head);
 			break;
 		case MXLV_LHD_FIELDDEF:
 			mx_status = mx_list_head_record_fielddef( list_head );
@@ -353,13 +357,13 @@ mx_list_head_record_report( MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_record_reportall( MX_LIST_HEAD *list_head )
+mx_list_head_record_report_all( MX_LIST_HEAD *list_head )
 {
 	MX_RECORD *record;
 	char *record_name;
 	mx_status_type mx_status;
 
-	record_name = list_head->reportall;
+	record_name = list_head->report_all;
 
 	record = mx_get_record( list_head->record, record_name );
 
@@ -394,6 +398,26 @@ mx_list_head_record_summary( MX_LIST_HEAD *list_head )
 	mx_status = mx_print_summary( stderr, record );
 
 	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_record_list( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *list_head_record, *current_record;
+	mx_status_type mx_status;
+
+	list_head_record = list_head->record;
+
+	current_record = list_head_record;
+
+	do {
+		mx_status = mx_print_summary( stderr, current_record );
+
+		current_record = current_record->next_record;
+
+	} while ( current_record != list_head_record );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 mx_status_type

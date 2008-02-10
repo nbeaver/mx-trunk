@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -859,11 +859,17 @@ mx_copy_array_to_buffer( void *array_pointer,
 	int return_structure_name, structure_name_length;
 	mx_status_type mx_status;
 
-	if (( array_pointer == NULL ) || ( dimension_array == NULL )
-	 || (data_element_size_array == NULL) || (destination_buffer == NULL))
+	if ( ( array_pointer == NULL )
+	  || ( data_element_size_array == NULL )
+	  || ( destination_buffer == NULL ) )
 	{
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 	    "One or more of the pointers passed to this function were NULL." );
+	}
+	if ( ( num_dimensions > 0 ) && ( dimension_array == NULL ) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"dimension_array is NULL even though num_dimensions (%ld) "
+		"is greater than 0.", num_dimensions );
 	}
 
 	if ( num_bytes_copied != NULL ) {
@@ -1178,11 +1184,17 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	int num_subarray_elements;
 	mx_status_type mx_status;
 
-	if (( array_pointer == NULL ) || ( dimension_array == NULL )
-	 || ( data_element_size_array == NULL ) || ( source_buffer == NULL ))
+	if ( ( array_pointer == NULL )
+	  || ( data_element_size_array == NULL )
+	  || ( source_buffer == NULL ) )
 	{
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 	    "One or more of the pointers passed to this function were NULL." );
+	}
+	if ( ( num_dimensions > 0 ) && ( dimension_array == NULL ) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"dimension_array is NULL even though num_dimensions (%ld) "
+		"is greater than 0.", num_dimensions );
 	}
 
 	/* Disallow writes to complex field types since correctly supporting
@@ -1479,11 +1491,17 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	enum xdr_op operation;
 	mx_status_type mx_status;
 
-	if (( array_pointer == NULL ) || ( dimension_array == NULL )
-	 || (data_element_size_array == NULL) || (xdr_buffer == NULL))
+	if ( ( array_pointer == NULL )
+	  || ( data_element_size_array == NULL )
+	  || ( xdr_buffer == NULL ) )
 	{
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 	    "One or more of the pointers passed to this function were NULL." );
+	}
+	if ( ( num_dimensions > 0 ) && ( dimension_array == NULL ) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"dimension_array is NULL even though num_dimensions (%ld) "
+		"is greater than 0.", num_dimensions );
 	}
 
 	/* Verify that the xdr_buffer pointer is correctly aligned

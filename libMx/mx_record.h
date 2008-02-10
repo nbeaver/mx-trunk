@@ -398,8 +398,9 @@ typedef struct {
 	unsigned long num_records;
 
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];
-	char reportall[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char report_all[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
+	unsigned long record_list;
 	char fielddef[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long show_handle[2];
 

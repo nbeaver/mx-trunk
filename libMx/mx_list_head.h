@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,10 +26,11 @@ extern "C" {
 #define MXLV_LHD_DEBUG_LEVEL	1001
 #define MXLV_LHD_STATUS		1002
 #define MXLV_LHD_REPORT		1003
-#define MXLV_LHD_REPORTALL	1004
+#define MXLV_LHD_REPORT_ALL	1004
 #define MXLV_LHD_SUMMARY	1005
-#define MXLV_LHD_FIELDDEF	1006
-#define MXLV_LHD_SHOW_HANDLE	1007
+#define MXLV_LHD_RECORD_LIST	1006
+#define MXLV_LHD_FIELDDEF	1007
+#define MXLV_LHD_SHOW_HANDLE	1008
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -70,14 +71,19 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, report), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_LHD_REPORTALL, -1, "reportall", MXFT_STRING, NULL, \
+  {MXLV_LHD_REPORT_ALL, -1, "report_all", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, reportall), \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, report_all), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_LHD_SUMMARY, -1, "summary", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, summary), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_LHD_RECORD_LIST, -1, "record_list", MXFT_STRING, NULL, \
+	  				1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, record_list), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_LHD_FIELDDEF, -1, "fielddef", MXFT_STRING, NULL, \
