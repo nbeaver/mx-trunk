@@ -26,6 +26,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
@@ -6297,7 +6299,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 	flags = ad->correction_flags;
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
 	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx",
 		fname, ad->correction_flags));
 #endif
@@ -6353,7 +6355,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		}
 	}
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
 	MX_DEBUG(-2,("%s: correction_measurement_in_progress = %d",
 		fname, (int) correction_measurement_in_progress));
 	MX_DEBUG(-2,("%s: geometrical_correction_requested = %d",
@@ -6440,7 +6442,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		fname, (int) use_low_memory_methods));
 #endif
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
 	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
 #endif
 
@@ -6488,7 +6490,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_HRT_START( flood_timing );
 #endif
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
 	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
 #endif
 

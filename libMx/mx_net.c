@@ -514,6 +514,10 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		buffer = server->message_buffer;
+	}
+
 	/* Figure out when the timeout period will end. */
 
 	if ( timeout_in_seconds < 0.0 ) {
