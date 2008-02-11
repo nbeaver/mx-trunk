@@ -1044,6 +1044,19 @@ mx_invoke_callback( MX_CALLBACK *callback,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_delete_callback( MX_CALLBACK *callback )
+{
+	static const char fname[] = "mx_delete_callback()";
+
+	MX_DEBUG(-2,("%s invoked for callback = %p", fname, callback ));
+
+	MX_DEBUG(-2,("%s: callback_id = %#lx",
+			fname, (unsigned long) callback->callback_id));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT void

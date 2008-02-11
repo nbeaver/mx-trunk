@@ -120,6 +120,8 @@ MX_API mx_status_type mx_local_field_invoke_callback_list(
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
 					mx_bool_type get_new_field_value );
 
+MX_API mx_status_type mx_delete_callback( MX_CALLBACK *cb );
+
 /*---*/
 
 MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,
