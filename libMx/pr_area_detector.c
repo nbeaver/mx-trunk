@@ -172,13 +172,9 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		fname, ad_status, corr->old_status));
 #endif
 
-	num_frames_difference = last_frame_number - corr->old_last_frame_number;
+	num_frames_difference = total_num_frames - corr->old_total_num_frames;
 
-	if ( last_frame_number < corr->old_last_frame_number ) {
-		corr->num_unread_frames = last_frame_number + 1;
-	} else {
-		corr->num_unread_frames += num_frames_difference;
-	}
+	corr->num_unread_frames += num_frames_difference;
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: num_frames_difference = %ld",

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -302,7 +302,7 @@ mx_network_receive_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
-		mx_network_display_message( message_buffer );
+		mx_network_display_message( message_buffer, NULL );
 	}
 #endif
 
@@ -363,7 +363,7 @@ mx_network_send_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
-		mx_network_display_message( message_buffer );
+		mx_network_display_message( message_buffer, NULL );
 	}
 #endif
 	mx_status = ( *fptr ) ( server, message_buffer );
@@ -1321,7 +1321,8 @@ mx_network_buffer_show_value( void *buffer,
 }
 
 MX_EXPORT void
-mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
+mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
+				MX_RECORD_FIELD *record_field )
 {
 	static const char fname[] = "mx_network_display_message()";
 
@@ -1419,7 +1420,17 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		break;
 
 	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
-		fprintf( stderr, "  GET_ARRAY_BY_HANDLE response = " );
+
+		if ( ( record_field != NULL )
+		  && ( record_field->record != NULL ) )
+		{
+			fprintf( stderr,
+			"  GET_ARRAY_BY_HANDLE '%s.%s' response = ",
+				record_field->record->name,
+				record_field->name );
+		} else {
+			fprintf( stderr, "  GET_ARRAY_BY_HANDLE response = " );
+		}
 
 		mx_network_buffer_show_value( uint32_message,
 					message_buffer->data_format,
@@ -1462,7 +1473,17 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		break;
 
 	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
-		fprintf( stderr, "  PUT_ARRAY_BY_HANDLE response\n" );
+
+		if ( ( record_field != NULL )
+		  && ( record_field->record != NULL ) )
+		{
+			fprintf( stderr,
+			"  PUT_ARRAY_BY_HANDLE '%s.%s' response\n",
+				record_field->record->name,
+				record_field->name );
+		} else {
+			fprintf( stderr, "  PUT_ARRAY_BY_HANDLE response\n" );
+		}
 		break;
 
 	/*-------------------------------------------------------------------*/

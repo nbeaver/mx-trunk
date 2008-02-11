@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 2001, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,27 +41,40 @@
 #define MXDI_LATEX_FIELDS	7
 
 static int find_driver( MX_DRIVER *driver_list,
-			char *name, MX_DRIVER **driver_found );
+			char *name,
+			MX_DRIVER **driver_found );
 
 static char * find_varargs_field_name( MX_DRIVER *driver,
-				long varargs_value, int debug );
+					long varargs_value,
+					int debug );
 
 static int show_all_drivers( MX_DRIVER **list_of_types, int debug );
 
-static int show_drivers( MX_DRIVER **list_of_types, int items_to_show,
-					char *item_name, int debug );
+static int show_drivers( MX_DRIVER **list_of_types,
+				int items_to_show,
+				char *item_name,
+				int debug );
 
-static int show_field_list( MX_DRIVER **list_of_types, char *item_name,
-					int show_all_fields, int debug );
+static int show_field_list( MX_DRIVER **list_of_types,
+				char *item_name,
+				int show_all_fields,
+				int show_handles,
+				int debug );
 
 static int show_field( MX_DRIVER *driver,
-		MX_RECORD_FIELD_DEFAULTS *field_defaults, int debug );
+			MX_RECORD_FIELD_DEFAULTS *field_defaults,
+			int field_number,
+			int show_handles,
+			int debug );
 
-static int show_latex_field_table( MX_DRIVER **list_of_types, char *item_name,
-					int show_all_fields, int debug );
+static int show_latex_field_table( MX_DRIVER **list_of_types,
+					char *item_name,
+					int show_all_fields,
+					int debug );
 
 static int show_latex_field( MX_DRIVER *driver,
-		MX_RECORD_FIELD_DEFAULTS *field_defaults, int debug );
+				MX_RECORD_FIELD_DEFAULTS *field_defaults,
+				int debug );
 
 
 static char program_name[] = "mxdriverinfo";
@@ -70,7 +83,7 @@ int
 main( int argc, char *argv[] ) {
 
 	MX_DRIVER **list_of_types;
-	int c, items_to_show, debug, show_all_fields, status;
+	int c, items_to_show, debug, show_all_fields, show_handles, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
 
 	static char usage_format[] =
@@ -88,6 +101,7 @@ main( int argc, char *argv[] ) {
 "\n"
 "    -v                  Display the version of MX in use\n"
 "\n"
+"    -h                  Display array handles\n"
 "    -d                  Turn on debugging\n"
 "\n";
 
@@ -96,9 +110,10 @@ main( int argc, char *argv[] ) {
 	items_to_show = 0;
 	debug = FALSE;
 	show_all_fields = FALSE;
+	show_handles = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:df:lst:vA:F:")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -119,6 +134,9 @@ main( int argc, char *argv[] ) {
 			show_all_fields = FALSE;
 
 			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
+			break;
+		case 'h':
+			show_handles = TRUE;
 			break;
 		case 'l':
 			items_to_show = MXDI_DRIVERS;
@@ -174,7 +192,7 @@ main( int argc, char *argv[] ) {
 		break;
 	case MXDI_FIELDS:
 		status = show_field_list( list_of_types, item_name,
-						show_all_fields, debug );
+					show_all_fields, show_handles, debug );
 		break;
 	case MXDI_VERSION:
 		fprintf(stderr, "\nMX version %s\n\n", mx_get_version_string());
@@ -459,6 +477,7 @@ static int
 show_field_list( MX_DRIVER **list_of_types,
 		char *driver_name,
 		int show_all_fields,
+		int show_handles,
 		int debug )
 {
 	static const char fname[] = "show_field_list()";
@@ -523,7 +542,8 @@ show_field_list( MX_DRIVER **list_of_types,
 		if ( ( show_all_fields == TRUE )
 		  || ( field_defaults->flags & MXFF_IN_DESCRIPTION ) )
 		{
-			status = show_field( driver, field_defaults, debug );
+			status = show_field( driver, field_defaults,
+						i, show_handles, debug );
 
 		}
 	}
@@ -534,6 +554,8 @@ show_field_list( MX_DRIVER **list_of_types,
 static int
 show_field( MX_DRIVER *driver,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults,
+		int field_number,
+		int show_handles,
 		int debug )
 {
 	unsigned long i;
@@ -542,8 +564,13 @@ show_field( MX_DRIVER *driver,
 
 	field_is_varargs = ( field_defaults->flags & MXFF_VARARGS );
 
-	printf( "%s %s ", field_defaults->name,
-			mx_get_field_type_string( field_defaults->datatype ) );
+	if ( show_handles ) {
+		printf( "(%d) ", field_number );
+	}
+
+	printf( "%s ", field_defaults->name );
+
+	printf( "%s ", mx_get_field_type_string( field_defaults->datatype ) );
 
 	/* Display the number of dimensions. */
 

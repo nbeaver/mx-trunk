@@ -355,7 +355,8 @@ MX_API mx_status_type mx_network_mark_handles_as_invalid(
  * a network message.
  */
 
-MX_API void mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *buffer );
+MX_API void mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *buffer,
+					MX_RECORD_FIELD *record_field );
 
 /* mx_network_buffer_show_value() is a lower level function that only
  * shows the contents of the value array at the end of a network message.

@@ -1415,7 +1415,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
 				(int) client_socket->socket_fd );
 
-		mx_network_display_message( received_message );
+		mx_network_display_message( received_message, NULL );
 	}
 #endif
 
@@ -2445,7 +2445,7 @@ mxsrv_send_field_value_to_client(
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, record_field );
 	}
 #endif
 
@@ -2857,7 +2857,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, record_field );
 	}
 #endif
 
@@ -3042,7 +3042,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3148,7 +3148,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3315,7 +3315,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3480,7 +3480,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3672,7 +3672,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3808,7 +3808,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
@@ -3979,7 +3979,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message );
+		mx_network_display_message( network_message, NULL );
 	}
 #endif
 
