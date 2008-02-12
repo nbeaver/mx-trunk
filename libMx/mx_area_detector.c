@@ -238,10 +238,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_measurement_in_progress = FALSE;
 
-	ad->geom_corr_after_flood           = FALSE;
-	ad->correction_frame_geom_corr_last = FALSE;
-	ad->correction_frame_no_geom_corr   = FALSE;
-
 	ad->current_num_rois = ad->maximum_num_rois;
 	ad->roi_number = 0;
 	ad->roi[0] = 0;
@@ -303,7 +299,30 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_status = mx_image_get_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ad->area_detector_flags & MXF_AD_GEOM_CORR_LAST ) {
+		ad->geom_corr_after_flood = TRUE;
+	} else {
+		ad->geom_corr_after_flood = FALSE;
+	}
+
+	if ( ad->area_detector_flags & MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST )
+	{
+		ad->correction_frame_geom_corr_last = TRUE;
+	} else {
+		ad->correction_frame_geom_corr_last = FALSE;
+	}
+
+	if ( ad->area_detector_flags & MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR )
+	{
+		ad->correction_frame_no_geom_corr = TRUE;
+	} else {
+		ad->correction_frame_no_geom_corr = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

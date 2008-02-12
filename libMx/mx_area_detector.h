@@ -42,6 +42,12 @@ extern "C" {
 				| MXSF_AD_CORRECTION_IN_PROGRESS \
 				| MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS )
 
+/* Bit definitions for the 'area_detector_flags' variable. */
+
+#define MXF_AD_GEOM_CORR_LAST			0x1
+#define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	0x2
+#define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	0x4
+
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.
  */
@@ -261,11 +267,21 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type shutter_enable;
 
-	/* The following are the image frames and frame buffer pointers
-	 * used for image correction.
+	/* 'area_detector_flags' is used to initialize various features
+	 * of the area detector.
+	 */
+
+	unsigned long area_detector_flags;
+
+	/* 'initial_correction_flags' sets the initial value of the
+	 * 'correction_flags' variable for image correction.
 	 */
 
 	unsigned long initial_correction_flags;
+
+	/* The following are the image frames and frame buffer pointers
+	 * used for image correction.
+	 */
 
 	MX_IMAGE_FRAME *mask_frame;
 	char *mask_frame_buffer;
@@ -388,11 +404,12 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_REGISTER_VALUE			12055
 #define MXLV_AD_SHUTTER_ENABLE			12056
 
-#define MXLV_AD_INITIAL_CORRECTION_FLAGS	12100
-#define MXLV_AD_MASK_FILENAME			12101
-#define MXLV_AD_BIAS_FILENAME			12102
-#define MXLV_AD_DARK_CURRENT_FILENAME		12103
-#define MXLV_AD_FLOOD_FIELD_FILENAME		12104
+#define MXLV_AD_AREA_DETECTOR_FLAGS		12100
+#define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
+#define MXLV_AD_MASK_FILENAME			12102
+#define MXLV_AD_BIAS_FILENAME			12103
+#define MXLV_AD_DARK_CURRENT_FILENAME		12104
+#define MXLV_AD_FLOOD_FIELD_FILENAME		12105
 
 #define MXLV_AD_SUBFRAME_SIZE			12201
 
@@ -709,6 +726,12 @@ typedef struct mx_area_detector_type {
 	{sizeof(char)}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
+  {MXLV_AD_AREA_DETECTOR_FLAGS, -1, "area_detector_flags", \
+			  			MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, area_detector_flags), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {MXLV_AD_INITIAL_CORRECTION_FLAGS, -1, "initial_correction_flags", \
 			  			MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
