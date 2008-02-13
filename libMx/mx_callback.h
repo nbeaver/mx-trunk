@@ -107,10 +107,11 @@ MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
 					MX_CALLBACK **callback_object );
 
 MX_API mx_status_type mx_local_field_find_callback( MX_RECORD_FIELD *rf,
-					unsigned long callback_type,
+					unsigned long *callback_type,
+					uint32_t      *callback_id,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
-					void *callback_argument,
+					void          *callback_argument,
 					MX_CALLBACK **callback_object );
 
 MX_API mx_status_type mx_local_field_invoke_callback_list(
@@ -121,6 +122,10 @@ MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
 					mx_bool_type get_new_field_value );
 
 MX_API mx_status_type mx_delete_callback( MX_CALLBACK *cb );
+
+MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK * );
+
+MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK * );
 
 /*---*/
 

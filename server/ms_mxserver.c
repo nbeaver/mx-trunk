@@ -4238,7 +4238,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	/* See if a callback of this type already exists. */
 
 	mx_status = mx_local_field_find_callback( field,
-					callback_type,
+					&callback_type,
+					NULL,
 					mxsrv_record_field_callback,
 					NULL,
 					&callback_object );
@@ -4394,13 +4395,132 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 }
 
 mx_status_type
-mxsrv_handle_delete_callback( MX_RECORD *record_list,
+mxsrv_handle_delete_callback( MX_RECORD *record,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_delete_callback()";
 
-	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
+	MX_CALLBACK *callback, *callback_ptr;
+	signed long callback_handle;
+	uint32_t *uint32_header, *uint32_message;
+	uint32_t message_id, message_type, callback_id;
+	unsigned long header_length, message_length;
+	unsigned long i, num_handles;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed to this function was NULL." );
+	}
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	    "The MX_SOCKET_HANDLER pointer passed to this function was NULL." );
+	}
+	if ( network_message == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed "
+		"to this function was NULL." );
+	}
+
+	/* Get a pointer to the list_head object. */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Cannot get the MX_LIST_HEAD pointer for the record list "
+		"containing the record '%s'.", record->name );
+	}
+
+	/* Get a pointer to the callback handle table. */
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	if ( callback_handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The server_callback_handle_table pointer for "
+		"the record list is NULL." );
+	}
+
+	/* Look in the message buffer for the callback id. */
+
+	uint32_header = network_message->u.uint32_buffer;
+
+	header_length = mx_ntohl( uint32_header[MX_NETWORK_HEADER_LENGTH] );
+
+	message_length = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_LENGTH] );
+
+	message_type = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_TYPE] );
+
+	message_id = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_ID] );
+
+	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
+
+	callback_id = mx_ntohl( uint32_message[0] );
+
+	MX_DEBUG(-2,("%s invoked for callback id %#lx",
+		fname, (unsigned long) callback_id ));
+
+	/* Look through the handle table for a callback with
+	 * the requested callback ID.
+	 */
+
+	num_handles = callback_handle_table->num_blocks
+			* callback_handle_table->block_size;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	if ( handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+	}
+
+	callback = NULL;
+
+	for ( i = 0; i < num_handles; i++ ) {
+		handle_struct = &handle_struct_array[i];
+
+		if ( handle_struct != NULL ) {
+			callback_ptr    = handle_struct->pointer;
+			callback_handle = handle_struct->handle;
+
+			if ( callback_ptr->callback_id == callback_id ) {
+				callback = callback_ptr;
+				break;		/* Exit the for() loop. */
+			}
+		}
+	}
+
+	if ( callback == NULL ) {
+		mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"Callback id %#lx was not found in the "
+			"server's callback handle table",
+				(unsigned long) callback_id );
+
+		return mx_network_socket_send_error_message(
+					socket_handler->synchronous_socket,
+					message_id,
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					mx_server_response( message_type ),
+					mx_status );
+	}
+
+	MX_DEBUG(-2,("%s: callback %p has callback id %#lx",
+		fname, callback, (unsigned long) callback_id ));
+
+	mx_status = mx_error(MXE_NOT_YET_IMPLEMENTED,
+				fname, "Not yet implemented.");
+
+	return mx_network_socket_send_error_message(
+					socket_handler->synchronous_socket,
+					message_id,
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					mx_server_response( message_type ),
+					mx_status );
 }
 
 mx_status_type
