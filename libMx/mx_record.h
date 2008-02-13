@@ -400,9 +400,11 @@ typedef struct {
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char report_all[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
-	unsigned long record_list;
+	mx_bool_type show_record_list;
 	char fielddef[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long show_handle[2];
+	mx_bool_type show_callbacks;
+	unsigned long show_callback_id;
 
 	mx_bool_type is_server;
 	void *connection_acl;

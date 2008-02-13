@@ -23,14 +23,16 @@
 extern "C" {
 #endif
 
-#define MXLV_LHD_DEBUG_LEVEL	1001
-#define MXLV_LHD_STATUS		1002
-#define MXLV_LHD_REPORT		1003
-#define MXLV_LHD_REPORT_ALL	1004
-#define MXLV_LHD_SUMMARY	1005
-#define MXLV_LHD_RECORD_LIST	1006
-#define MXLV_LHD_FIELDDEF	1007
-#define MXLV_LHD_SHOW_HANDLE	1008
+#define MXLV_LHD_DEBUG_LEVEL		1001
+#define MXLV_LHD_STATUS			1002
+#define MXLV_LHD_REPORT			1003
+#define MXLV_LHD_REPORT_ALL		1004
+#define MXLV_LHD_SUMMARY		1005
+#define MXLV_LHD_SHOW_RECORD_LIST	1006
+#define MXLV_LHD_FIELDDEF		1007
+#define MXLV_LHD_SHOW_HANDLE		1008
+#define MXLV_LHD_SHOW_CALLBACKS		1009
+#define MXLV_LHD_SHOW_CALLBACK_ID	1010
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -81,9 +83,8 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, summary), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_LHD_RECORD_LIST, -1, "record_list", MXFT_STRING, NULL, \
-	  				1, {MXU_RECORD_NAME_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, record_list), \
+  {MXLV_LHD_SHOW_RECORD_LIST, -1, "show_record_list", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_record_list), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_LHD_FIELDDEF, -1, "fielddef", MXFT_STRING, NULL, \
@@ -93,7 +94,16 @@ extern "C" {
   \
   {MXLV_LHD_SHOW_HANDLE, -1, "show_handle", MXFT_ULONG, NULL, 1, {2}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_handle), \
-	{sizeof(unsigned long)}, NULL, 0}
+	{sizeof(unsigned long)}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_CALLBACKS, -1, "show_callbacks", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_callbacks), \
+	{sizeof(unsigned long)}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_CALLBACK_ID, -1, "show_callback_id", \
+  					MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_callback_id), \
+	{sizeof(unsigned long)}, NULL, 0}, \
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

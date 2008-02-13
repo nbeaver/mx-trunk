@@ -110,12 +110,18 @@ extern mx_status_type mx_list_head_record_report_all( MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_summary( MX_LIST_HEAD *list_head );
 
-extern mx_status_type mx_list_head_record_record_list(
+extern mx_status_type mx_list_head_record_show_record_list(
 						MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_fielddef( MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_show_handle(MX_LIST_HEAD *list_head);
+
+extern mx_status_type mx_list_head_record_show_callbacks(
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_record_show_callback_id(
+						MX_LIST_HEAD *list_head );
 
 /*---*/
 

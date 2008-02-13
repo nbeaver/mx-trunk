@@ -873,6 +873,7 @@ mx_network_wait_for_messages( MX_RECORD *record,
 	MX_CLOCK_TICK start_tick, end_tick, timeout_in_ticks, current_tick;
 	int comparison;
 	mx_bool_type timeout_enabled;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -917,8 +918,13 @@ mx_network_wait_for_messages( MX_RECORD *record,
 			if ( (current_record->mx_superclass == MXR_SERVER)
 			  && (current_record->mx_class == MXN_NETWORK_SERVER) )
 			{
-			    (void) mx_network_wait_for_messages_from_server(
+			    mx_status = mx_network_reconnect_if_down(
+			    				current_record );
+
+			    if ( mx_status.code == MXE_SUCCESS ) {
+			        (void) mx_network_wait_for_messages_from_server(
 						    	current_record, 0.0 );
+			    }
 			}
 
 			current_record = current_record->next_record;

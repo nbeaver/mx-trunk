@@ -427,10 +427,12 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    if ( callback_socket_handler_list->list_start
 			    		!= NULL )
 			    {
+#if NETWORK_DEBUG_CALLBACKS
 			    	MX_DEBUG(-2,
 				("%s: The callback socket handler list for "
 				"record field '%s.%s' is NOT empty.",
 				    fname, field->record->name, field->name));
+#endif
 
 				/* We are done with this callback, so skip
 				 * on to the next one.
@@ -4406,8 +4408,14 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
 	MX_CALLBACK *callback, *callback_ptr;
 	signed long callback_handle;
+	MX_LIST *socket_handler_list;
+	MX_LIST_ENTRY *socket_handler_list_entry;
+	MX_RECORD_FIELD *record_field;
+	MX_LIST *rf_callback_list;
+	MX_LIST_ENTRY *rf_callback_list_entry;
 	uint32_t *uint32_header, *uint32_message;
 	uint32_t message_id, message_type, callback_id;
+	char *char_message;
 	unsigned long header_length, message_length;
 	unsigned long i, num_handles;
 	mx_status_type mx_status;
@@ -4462,8 +4470,10 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 	callback_id = mx_ntohl( uint32_message[0] );
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s invoked for callback id %#lx",
 		fname, (unsigned long) callback_id ));
+#endif
 
 	/* Look through the handle table for a callback with
 	 * the requested callback ID.
@@ -4475,6 +4485,9 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	handle_struct_array = callback_handle_table->handle_struct_array;
 
 	if ( handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The handle_struct_array for the server's callback handle "
+		"table is NULL." );
 	}
 
 	callback = NULL;
@@ -4482,7 +4495,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	for ( i = 0; i < num_handles; i++ ) {
 		handle_struct = &handle_struct_array[i];
 
-		if ( handle_struct != NULL ) {
+		if ( handle_struct->pointer != NULL ) {
 			callback_ptr    = handle_struct->pointer;
 			callback_handle = handle_struct->handle;
 
@@ -4508,19 +4521,180 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 					mx_status );
 	}
 
+	if ( callback->callback_class != MXCBC_FIELD ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The callback class for callback %p, id %#lx is not "
+		"MXCBC_FIELD.  Instead it is %ld",
+			callback,
+			(unsigned long) callback->callback_id,
+			callback->callback_class );
+	}
+
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: callback %p has callback id %#lx",
 		fname, callback, (unsigned long) callback_id ));
+#endif
 
-	mx_status = mx_error(MXE_NOT_YET_IMPLEMENTED,
-				fname, "Not yet implemented.");
+	/* Find the list of socket handlers attached to this callback. */
 
-	return mx_network_socket_send_error_message(
-					socket_handler->synchronous_socket,
-					message_id,
-					socket_handler->remote_header_length,
-					socket_handler->network_debug,
-					mx_server_response( message_type ),
-					mx_status );
+	socket_handler_list = callback->callback_argument;
+
+	if ( socket_handler_list == (MX_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The socket_handler_list for callback %p, id %#lx is NULL.",
+			callback, (unsigned long) callback->callback_id );
+	}
+
+	/* Delete the current socket handler from the socket handler list. */
+
+	mx_status = mx_list_find_list_entry( socket_handler_list,
+				socket_handler, &socket_handler_list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_delete_entry( socket_handler_list,
+					socket_handler_list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_list_entry_destroy( socket_handler_list_entry );
+
+	/* This socket handler's reference to the callback is now deleted. */
+
+	/*** Was this the last entry in the callback's socket handler list? ***/
+
+	if ( socket_handler_list->num_list_entries > 0 ) {
+
+		/* No, there are other socket handlers that currently are
+		 * still using this callback, so we leave all of the other
+		 * references in place.
+		 */
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,
+		("%s: other clients are still using callback %p, id %#lx",
+		    fname, callback, (unsigned long) callback->callback_id));
+		MX_DEBUG(-2,("%s: callback %p not deleted.", fname, callback));
+#endif
+	} else {
+
+		/************************************************************
+		 * If we get there, then the callback's socket handler list *
+		 * is empty and we need to delete the callback itself.      *
+		 ************************************************************/
+
+		/* Delete the callback from the server's
+		 * callback handle table.
+		 */
+
+		callback_handle =
+			callback->callback_id & MX_NETWORK_MESSAGE_ID_MASK;
+
+		mx_status = mx_delete_handle( callback_handle,
+						callback_handle_table );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Find the local record field's list of callbacks. */
+
+		record_field = callback->u.record_field;
+
+		if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD_FIELD pointer for callback %p, id %#lx is NULL",
+			callback, (unsigned long) callback->callback_id );
+		}
+
+		rf_callback_list = record_field->callback_list;
+
+		if ( rf_callback_list == (MX_LIST *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The callback_list pointer for record field '%s' is NULL.",
+			record_field->name );
+		}
+
+		/* Delete the callback from the record field's callback list. */
+
+		mx_status = mx_list_find_list_entry( rf_callback_list,
+						callback, 
+						&rf_callback_list_entry );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_list_delete_entry( rf_callback_list,
+						rf_callback_list_entry );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_list_entry_destroy( rf_callback_list_entry );
+
+		/*
+		 * We have now deleted all of the references to the callback
+		 * that should exist.  Just in case somebody still has a
+		 * pointer to the callback, we zero out the contents of the
+		 * callback structure and then free it.  The contents are
+		 * zeroed out to make it easier to detect bugs in the
+		 * handling of callback pointers.
+		 */
+
+		memset( callback, 0, sizeof(MX_CALLBACK) );
+
+		mx_free( callback );
+
+		/* The callback is fully deleted now. */
+	}
+
+	/* Send a message back to the client to tell it that the
+	 * deletion operation is complete.
+	 */
+
+	/* Construct the message. */
+
+	uint32_header = network_message->u.uint32_buffer;
+
+	uint32_header[MX_NETWORK_MAGIC] = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+
+	uint32_header[MX_NETWORK_HEADER_LENGTH] =
+			mx_htonl(socket_handler->remote_header_length);
+
+	uint32_header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 1 );
+
+	uint32_header[MX_NETWORK_MESSAGE_TYPE] =
+		mx_htonl( mx_server_response(MX_NETMSG_DELETE_CALLBACK) );
+
+	uint32_header[MX_NETWORK_STATUS_CODE] = mx_htonl(MXE_SUCCESS);
+
+	if ( mx_client_supports_message_ids(socket_handler) ) {
+
+		uint32_header[MX_NETWORK_DATA_TYPE] = mx_htonl(MXFT_CHAR);
+
+		uint32_header[MX_NETWORK_MESSAGE_ID] = mx_htonl(message_id);
+	}
+
+	uint32_message = uint32_header +
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
+
+	char_message = (char *) uint32_message;
+
+	char_message[0] = '\0';
+
+	/* Send the message to the client. */
+
+	mx_status = mx_network_socket_send_message(
+		socket_handler->synchronous_socket, -1.0, network_message );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if NETWORK_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 mx_status_type

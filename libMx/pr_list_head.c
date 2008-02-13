@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 #include "mx_bit.h"
 #include "mx_list_head.h"
 
+#include "mx_callback.h"
 #include "mx_process.h"
 #include "pr_handlers.h"
 
@@ -48,9 +49,11 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORT_ALL:
 		case MXLV_LHD_SUMMARY:
-		case MXLV_LHD_RECORD_LIST:
+		case MXLV_LHD_SHOW_RECORD_LIST:
 		case MXLV_LHD_FIELDDEF:
 		case MXLV_LHD_SHOW_HANDLE:
+		case MXLV_LHD_SHOW_CALLBACKS:
+		case MXLV_LHD_SHOW_CALLBACK_ID:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -135,14 +138,23 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_SUMMARY:
 			mx_status = mx_list_head_record_summary( list_head );
 			break;
-		case MXLV_LHD_RECORD_LIST:
-			mx_status = mx_list_head_record_record_list(list_head);
+		case MXLV_LHD_SHOW_RECORD_LIST:
+			mx_status =
+			    mx_list_head_record_show_record_list( list_head );
 			break;
 		case MXLV_LHD_FIELDDEF:
 			mx_status = mx_list_head_record_fielddef( list_head );
 			break;
 		case MXLV_LHD_SHOW_HANDLE:
 			mx_status = mx_list_head_record_show_handle(list_head);
+			break;
+		case MXLV_LHD_SHOW_CALLBACKS:
+			mx_status =
+			    mx_list_head_record_show_callbacks( list_head );
+			break;
+		case MXLV_LHD_SHOW_CALLBACK_ID:
+			mx_status =
+			    mx_list_head_record_show_callback_id( list_head );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -401,7 +413,7 @@ mx_list_head_record_summary( MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_record_record_list( MX_LIST_HEAD *list_head )
+mx_list_head_record_show_record_list( MX_LIST_HEAD *list_head )
 {
 	MX_RECORD *list_head_record, *current_record;
 	mx_status_type mx_status;
@@ -504,6 +516,162 @@ mx_list_head_record_show_handle( MX_LIST_HEAD *list_head )
 	fprintf(stderr, "Network field (%ld,%ld) = '%s.%s'\n",
 		record_handle, field_handle,
 		record->name, field->name );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_record_show_callbacks( MX_LIST_HEAD *list_head )
+{
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
+	MX_CALLBACK *callback;
+	MX_LIST *socket_handler_list;
+	unsigned long i, num_table_entries;
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	if ( callback_handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		fprintf(stderr, "No callbacks are active.\n");
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( callback_handle_table->handles_in_use == 0 ) {
+		fprintf(stderr, "Callback table is empty.\n" );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf(stderr, "Callback table:\n");
+
+	num_table_entries = callback_handle_table->num_blocks
+				* callback_handle_table->block_size;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	for ( i = 0; i < num_table_entries; i++ ) {
+		handle_struct = &handle_struct_array[i];
+
+		callback = handle_struct->pointer;
+
+		if ( callback != (MX_CALLBACK *) NULL ) {
+
+			/* Find the list of socket handlers for this callback.*/
+
+			socket_handler_list = callback->callback_argument;
+
+			if ( socket_handler_list == NULL ) {
+				fprintf(stderr, "ID = %#lx\n",
+					(unsigned long) callback->callback_id );
+			} else {
+				fprintf(stderr,
+				"ID = %#lx, num socket handlers = %lu\n",
+					(unsigned long) callback->callback_id,
+					socket_handler_list->num_list_entries );
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
+{
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
+	MX_CALLBACK *callback;
+	MX_LIST *socket_handler_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_SOCKET_HANDLER *socket_handler;
+	unsigned long i, num_table_entries;
+	uint32_t callback_id;
+
+	callback_id = list_head->show_callback_id;
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	if ( callback_handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		fprintf(stderr, "No callbacks are active.\n");
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( callback_handle_table->handles_in_use == 0 ) {
+		fprintf(stderr, "Callback table is empty.\n" );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	num_table_entries = callback_handle_table->num_blocks
+				* callback_handle_table->block_size;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	for ( i = 0; i < num_table_entries; i++ ) {
+		handle_struct = &handle_struct_array[i];
+
+		callback = handle_struct->pointer;
+
+		if ( ( callback != (MX_CALLBACK *) NULL )
+		  && ( callback->callback_id == callback_id ) )
+		{
+			break;
+		}
+	}
+
+	if ( i >= num_table_entries ) {
+		fprintf( stderr, "Callback ID %#lx not found.\n",
+			(unsigned long) callback_id );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf( stderr, "Callback ID = %#lx, address = %p, class = %ld\n",
+		(unsigned long) callback->callback_id, callback,
+		callback->callback_class );
+
+	/* Find the list of socket handlers for this callback.*/
+
+	socket_handler_list = callback->callback_argument;
+
+	if ( socket_handler_list == (MX_LIST *) NULL ) {
+		fprintf( stderr, "  No socket handlers.\n" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fprintf( stderr, "  Num socket handlers = %lu\n",
+		socket_handler_list->num_list_entries );
+
+	list_start = socket_handler_list->list_start;
+
+	if ( list_start == NULL ) {
+		fprintf(stderr, "  Socket handler list is empty.\n" );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_entry = list_start;
+
+	do {
+		socket_handler = list_entry->list_entry_data;
+
+		if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+			fprintf( stderr, "  Socket handler (null)\n" );
+		} else {
+			fprintf( stderr, "  Socket handler %p, socket %d\n",
+				socket_handler,
+				socket_handler->synchronous_socket->socket_fd );
+			fprintf( stderr, "    Client '%s', username '%s'\n",
+				socket_handler->client_address_string,
+				socket_handler->username );
+			fprintf( stderr,
+				"    Program name '%s', process id = %lu\n",
+				socket_handler->program_name,
+				socket_handler->process_id );
+		}
+
+		list_entry = list_entry->next_list_entry;
+	} while ( list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
 }

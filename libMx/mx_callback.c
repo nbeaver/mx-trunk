@@ -1075,15 +1075,19 @@ mx_delete_callback( MX_CALLBACK *callback )
 
 	mx_status_type mx_status;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for callback = %p", fname, callback ));
+#endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CALLBACK pointer passed was NULL.");
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback_id = %#lx",
 			fname, (unsigned long) callback->callback_id));
+#endif
 
 	switch( callback->callback_class ) {
 	case MXCBC_NETWORK:
