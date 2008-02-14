@@ -563,8 +563,26 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		mx_status = mx_network_message_is_available( server_record,
 							&message_is_available );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_NETWORK_IO_ERROR:
+			/* If we get here, then it is likely that the
+			 * remote server has disconnected or crashed.
+			 * If so, then we close the network connection.
+			 */
+
+			MX_DEBUG(-2,
+			("%s: Invoking mx_close_hardware() for record '%s'.",
+				fname, server_record->name));
+
+			(void) mx_close_hardware( server_record );
+
 			return mx_status;
+			break;
+		default:
+			return mx_status;
+		}
 
 		/* If no messages are available, see if we have timed out. */
 

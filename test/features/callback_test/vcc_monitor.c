@@ -255,8 +255,7 @@ main( int argc, char *argv[] )
 	timeout = 1.0;		/* in seconds */
 
 	for(;;) {
-		mx_status = mx_network_wait_for_messages( server_record,
-							timeout );
+		mx_status = mx_network_wait_for_messages(record_list, timeout);
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
