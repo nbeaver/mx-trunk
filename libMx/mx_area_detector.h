@@ -44,7 +44,7 @@ extern "C" {
 
 /* Bit definitions for the 'area_detector_flags' variable. */
 
-#define MXF_AD_GEOM_CORR_LAST			0x1
+#define MXF_AD_GEOM_CORR_AFTER_FLOOD		0x1
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	0x4
 

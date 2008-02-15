@@ -302,7 +302,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ad->area_detector_flags & MXF_AD_GEOM_CORR_LAST ) {
+	if ( ad->area_detector_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
 		ad->geom_corr_after_flood = TRUE;
 	} else {
 		ad->geom_corr_after_flood = FALSE;
