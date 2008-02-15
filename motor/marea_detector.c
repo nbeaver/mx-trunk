@@ -1076,11 +1076,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 			mx_msleep(10);
 		}
 
+#if 0
 		mx_status = mx_area_detector_get_frame( ad_record,
 						-1, &(ad->image_frame) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+#endif
 
 		/* Restore the correction flags. */
 
