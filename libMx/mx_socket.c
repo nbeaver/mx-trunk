@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -215,6 +215,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *client_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a TCP socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -248,6 +250,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			error_code = MXE_NETWORK_IO_ERROR;
 		}
 
+		mx_socket_close( *client_socket );
+
 		return mx_error( error_code, fname,
 			"connect() to host '%s', port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -273,8 +277,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 		if ( saved_errno != 0 ) {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Attempt to disable the Nagle algorithm for host '%s', port %ld failed.  "
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+"An attempt to disable the Nagle algorithm for host '%s', port %ld failed.  "
 "Errno = %d.  Error string = '%s'.",
 				hostname, port_number,
 				saved_errno, error_string );
@@ -338,6 +342,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a TCP socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -363,6 +369,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Attempt to set SO_REUSEADDR option for server socket for port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -385,6 +393,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to bind server socket to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -399,6 +409,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Attempt to listen for connections to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -409,8 +421,11 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	mx_status = mx_socket_set_non_blocking_mode( *server_socket, TRUE );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_socket_close( *server_socket );
+
 		return mx_status;
+	}
 
 	/* If requested disable the Nagle algorithm.  The Nagle algorithm
 	 * tries to coalesce multiple small socket sends into a bigger
@@ -437,7 +452,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 		if ( saved_errno != 0 ) {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Attempt to disable the Nagle algorithm for port %ld failed.  "
 		"Errno = %d.  Error string = '%s'.",
 				port_number, saved_errno, error_string );
@@ -538,6 +553,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *client_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a Unix domain socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -574,6 +591,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 		} else {
 			error_code = MXE_NETWORK_IO_ERROR;
 		}
+
+		mx_socket_close( *client_socket );
 
 		return mx_error( error_code, fname,
 			"connect() to Unix domain socket '%s' failed.  "
@@ -654,6 +673,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 			MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a Unix domain socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -679,6 +700,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Attempt to set SO_REUSEADDR option for server socket '%s' failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -707,6 +730,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to bind server socket to pathname '%s' failed."
 			"  Errno = %d.  Error string = '%s'.",
@@ -721,6 +746,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mx_socket_close( *server_socket );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Attempt to listen for connections on socket '%s' failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -731,41 +758,71 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	mx_status = mx_socket_set_non_blocking_mode( *server_socket, TRUE );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_socket_close( *server_socket );
+
+		return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif /**** HAVE_UNIX_DOMAIN_SOCKETS ****/
 
 /************************* All sockets ***************************/
 
+#if defined( OS_WIN32 ) || defined( OS_DJGPP )
+#  define mx_closesocket(fd)	closesocket(fd)
+
+#elif (defined( OS_VMS ) && defined( HAVE_WINTCP ))
+#  define mx_closesocket(fd)	vms_close(fd)
+
+#else
+#  define mx_closesocket(fd)	close(fd)
+#endif
+
+/*---------*/
+
 MX_EXPORT mx_status_type
 mx_socket_close( MX_SOCKET *mx_socket )
 {
 	static char fname[] = "mx_socket_close()";
 
+	MX_SOCKET_FD socket_fd;
 	int status, saved_errno;
 	char c, *error_string;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-	/* Set the socket to non-blocking mode. */
+	socket_fd = mx_socket->socket_fd;
+
+	MX_DEBUG( 2,("%s invoked for socket %d.", fname, socket_fd));
+
+	/* Set the socket to non-blocking mode.
+	 *
+	 * Note: This is the last point in the function where we still
+	 * need the MX_SOCKET structure, so we free that structure
+	 * immediately after the call.
+	 */
 
 	mx_status = mx_socket_set_non_blocking_mode( mx_socket, TRUE );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	mx_free(mx_socket);
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_closesocket( socket_fd );
 		return mx_status;
+	}
 
 	/* "Half-close" the socket by disallowing any further writes
 	 * from our end.
 	 */
 
-	status = shutdown( mx_socket->socket_fd, 1 );
+	status = shutdown( socket_fd, 1 );
 
 	saved_errno = mx_socket_check_error_status(
 			&status, MXF_SOCKCHK_INVALID, &error_string );
@@ -778,8 +835,12 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	case EINVAL:
 		/* Return now since there is nothing further we can do. */
 
+		mx_closesocket( socket_fd );
+
 		return MX_SUCCESSFUL_RESULT;
 	default:
+		mx_closesocket( socket_fd );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Error while executing shutdown( mx_socket, 1 ).  "
 		"Errno = %d.  Error string = '%s'.",
@@ -789,7 +850,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	/* Read from the socket until there is no more data. */
 
 	for(;;) {
-		status = recv( mx_socket->socket_fd, &c, 1, 0 );
+		status = recv( socket_fd, &c, 1, 0 );
 
 		if ( status == 0 ) {
 			/* The connection is closed, so we're done. */
@@ -804,6 +865,8 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 				break;	/* exit the for() loop. */
 			} else {
+				mx_closesocket( socket_fd );
+
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,
 	"Error during socket close procedure while executing recv().  "
 	"Errno = %d.  Error string = '%s'.", saved_errno,
@@ -814,7 +877,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	/* Now finish shutting down the connection. */
 
-	status = shutdown( mx_socket->socket_fd, 2 );
+	status = shutdown( socket_fd, 2 );
 
 	saved_errno = mx_socket_check_error_status(
 			&status, MXF_SOCKCHK_INVALID, &error_string );
@@ -829,26 +892,22 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 		break;
 	default:
+		mx_closesocket( socket_fd );
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Error while executing shutdown( mx_socket, 2 ).  "
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, error_string );
 	}
 
-#if defined( OS_WIN32 ) || defined( OS_DJGPP )
-	closesocket( mx_socket->socket_fd );
-
-#elif (defined( OS_VMS ) && defined( HAVE_WINTCP ))
-	vms_close( mx_socket->socket_fd );
-
-#else
-	close( mx_socket->socket_fd );
-#endif
-
-	mx_free( mx_socket );
+	mx_closesocket( socket_fd );
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#undef mx_closesocket
+
+/*---------*/
 
 MX_EXPORT int
 mx_socket_ioctl( MX_SOCKET *mx_socket,

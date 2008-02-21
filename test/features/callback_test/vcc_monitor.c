@@ -111,6 +111,8 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
+	record_list = NULL;
+
 	network_debug = FALSE;
 	start_debugger = FALSE;
 
