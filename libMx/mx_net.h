@@ -81,6 +81,8 @@ struct mx_network_field_type {
 	long record_handle;
 	long field_handle;
 
+	MX_RECORD_FIELD *local_field;
+
 	void *application_ptr;
 };
 
