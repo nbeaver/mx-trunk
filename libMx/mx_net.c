@@ -1869,6 +1869,7 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 	nf->field_handle = MX_ILLEGAL_HANDLE;
 
 	nf->local_field = NULL;
+	nf->must_free_local_field_on_delete = FALSE;
 
 	nf->application_ptr = NULL;
 

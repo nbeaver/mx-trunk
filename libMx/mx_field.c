@@ -377,6 +377,14 @@ mx_get_field_value_pointer( MX_RECORD_FIELD *field )
 {
 	void *value_pointer;
 
+	if ( field == NULL ) {
+		return NULL;
+	}
+
+	if ( field->data_pointer == NULL ) {
+		return NULL;
+	}
+
 	if ( field->flags & MXFF_VARARGS ) {
 		value_pointer = mx_read_void_pointer_from_memory_location(
 						field->data_pointer );
