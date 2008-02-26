@@ -857,7 +857,6 @@ mx_network_wait_for_messages_from_server(
 	static const char fname[] =
 		"mx_network_wait_for_messages_from_server()";
 
-	MX_NETWORK_SERVER *server;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -865,16 +864,8 @@ mx_network_wait_for_messages_from_server(
 		"MX_RECORD pointer passed was NULL." );
 	}
 
-	server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
-
-	if ( server == (MX_NETWORK_SERVER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
-			server_record->name );
-	}
-
 	mx_status = mx_network_wait_for_message_id( server_record,
-			server->message_buffer, 0, timeout_in_seconds );
+			NULL, 0, timeout_in_seconds );
 
 	return mx_status;
 }
@@ -888,8 +879,10 @@ mx_network_wait_for_messages( MX_RECORD *record,
 	static const char fname[] = "mx_network_wait_for_messages()";
 
 	MX_RECORD *record_list, *current_record;
+	MX_NETWORK_SERVER *network_server;
 	MX_CLOCK_TICK start_tick, end_tick, timeout_in_ticks, current_tick;
 	int comparison;
+	long cs;
 	mx_bool_type timeout_enabled;
 	mx_status_type mx_status;
 
@@ -940,6 +933,16 @@ mx_network_wait_for_messages( MX_RECORD *record,
 			    				current_record );
 
 			    if ( mx_status.code == MXE_SUCCESS ) {
+			        network_server =
+					current_record->record_class_struct;
+
+				cs = network_server->connection_status;
+
+				if ( cs & MXCS_RECONNECTED ) {
+			        	(void) mx_network_restore_callbacks(
+							current_record );
+				}
+
 			        (void) mx_network_wait_for_messages_from_server(
 						    	current_record, 0.0 );
 			    }
@@ -1131,7 +1134,7 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"Record pointer passed was NULL." );
+		"The MX_RECORD pointer passed was NULL." );
 	}
 
 	server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
@@ -1162,6 +1165,238 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 			nf->field_handle = MX_ILLEGAL_HANDLE;
 		}
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+static mx_status_type
+mxp_restore_network_callback( MX_RECORD *server_record,
+				MX_CALLBACK *callback )
+{
+	static const char fname[] = "mxp_restore_network_callback()";
+
+	MX_NETWORK_SERVER *network_server;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
+	MX_NETWORK_FIELD *nf;
+	uint32_t *header, *uint32_message;
+	char *char_message;
+	unsigned long header_length, message_length, message_type, status_code;
+	unsigned long data_type, message_id;
+	mx_bool_type new_handle_needed;
+	mx_status_type mx_status;
+
+	network_server = server_record->record_class_struct;
+
+	nf = callback->u.network_field;
+
+#if 0
+	MX_DEBUG(-2,("%s invoked for server '%s', nf '%s'.",
+		fname, server_record->name, nf->nfname));
+#endif
+
+	/* Make sure that the network field is connected. */
+
+	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( new_handle_needed ) {
+		mx_status = mx_network_field_connect( nf );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Find the message buffer for this server. */
+
+	message_buffer = network_server->message_buffer;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER for server '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* Construct a message to the server asking it to add a callback. */
+
+	/*--- First, construct the header. ---*/
+
+	header = message_buffer->u.uint32_buffer;
+	header_length = network_server->remote_header_length;
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl(header_length);
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl(MX_NETMSG_ADD_CALLBACK);
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl(MXE_SUCCESS);
+	header[MX_NETWORK_DATA_TYPE]     = mx_htonl(MXFT_ULONG);
+
+	mx_network_update_message_id( &(network_server->last_rpc_message_id) );
+
+	header[MX_NETWORK_MESSAGE_ID] =
+			mx_htonl(network_server->last_rpc_message_id);
+
+	/*--- Then, fill in the message body. ---*/
+
+	uint32_message = header
+	    + ( mx_remote_header_length(network_server) / sizeof(uint32_t) );
+
+	uint32_message[0] = mx_htonl( nf->record_handle );
+	uint32_message[1] = mx_htonl( nf->field_handle );
+	uint32_message[2] = mx_htonl( callback->callback_type );
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 3 * sizeof(uint32_t) );
+
+	/******** Now send the message. ********/
+
+	mx_status = mx_network_send_message( server_record, message_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/******** Wait for the response. ********/
+
+	mx_status = mx_network_wait_for_message_id(
+					server_record,
+					message_buffer,
+					network_server->last_rpc_message_id,
+					network_server->timeout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* These pointers may have been changed by buffer reallocation
+	 * in mx_network_wait_for_message_id(), so we read them again.
+	 */
+
+	header = message_buffer->u.uint32_buffer;
+
+	uint32_message = header
+	    + ( mx_remote_header_length(network_server) / sizeof(uint32_t) );
+
+	char_message = message_buffer->u.char_buffer
+				+ mx_remote_header_length(network_server);
+
+	/* Read the header of the returned message. */
+
+	header_length  = mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
+	message_length = mx_ntohl( header[MX_NETWORK_MESSAGE_LENGTH] );
+	message_type   = mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] );
+	status_code    = mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
+
+	if ( message_type != mx_server_response(MX_NETMSG_ADD_CALLBACK) ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Message type for response was not %#lx.  "
+		"Instead it was of type = %#lx.",
+		    (unsigned long) mx_server_response(MX_NETMSG_ADD_CALLBACK),
+		    (unsigned long) message_type );
+	}
+
+	/* If we got an error status code from the server, return the
+	 * error message to the caller.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( status_code, fname, char_message );
+	}
+
+	/* If the header is not at least 28 bytes long, then the server
+	 * is too old to support callbacks.
+	 */
+
+	if ( header_length < 28 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Server '%s' does not support callbacks.",
+			server_record->name );
+	}
+
+	data_type  = mx_ntohl( header[MX_NETWORK_DATA_TYPE] );
+	message_id = mx_ntohl( header[MX_NETWORK_MESSAGE_ID] );
+
+	/* Get the new callback ID from the returned message. */
+
+	callback->callback_id = mx_ntohl( uint32_message[0] );
+
+#if 0
+	MX_DEBUG(-2,("%s: callback_id = %#lx",
+		fname, (unsigned long) callback->callback_id));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ---------------------------------------------------------------------- */
+
+MX_EXPORT mx_status_type
+mx_network_restore_callbacks( MX_RECORD *server_record )
+{
+	static const char fname[] = "mx_network_restore_callbacks()";
+
+	MX_NETWORK_SERVER *network_server;
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK *callback;
+	MX_RECORD_FIELD *rf;
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	network_server = server_record->record_class_struct;
+
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	callback_list = network_server->callback_list;
+
+	if ( callback_list == (MX_LIST *) NULL ) {
+		/* There are no callbacks to restore. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_start = callback_list->list_start;
+
+	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+		/* There are no callbacks to restore. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_entry = list_start;
+
+	do {
+		callback = list_entry->list_entry_data;
+
+		switch( callback->callback_class ) {
+		case MXCBC_NETWORK:
+			mx_status = mxp_restore_network_callback(
+						server_record, callback );
+			break;
+		case MXCBC_FIELD:
+			rf = callback->u.record_field;
+
+			MX_DEBUG(-2,("%s: rf = '%s'", fname, rf->name));
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported callback class %lu for callback %p "
+			"used by server record '%s'.",
+				callback->callback_class, callback,
+				server_record->name );
+			break;
+		}
+
+		list_entry = list_entry->next_list_entry;
+
+	} while ( list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
 }

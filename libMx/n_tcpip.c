@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,6 +129,7 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 #else
 	network_server->truncate_64bit_longs = FALSE;
 #endif
+	network_server->connection_status = MXCS_NOT_CONNECTED;
 
 	network_server->last_rpc_message_id = 0;
 
@@ -233,10 +234,12 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
+		network_server->connection_status = MXCS_CONNECTED;
 		tcpip_server->socket = server_socket;
 		break;
 
 	case MXE_NETWORK_IO_ERROR:
+		network_server->connection_status = MXCS_NOT_CONNECTED;
 		tcpip_server->socket = NULL;
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -246,6 +249,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 			tcpip_server->port, tcpip_server->hostname );
 
 	default:
+		network_server->connection_status = MXCS_NOT_CONNECTED;
 		tcpip_server->socket = NULL;
 
 		return mx_error( mx_status.code, fname,
@@ -343,11 +347,28 @@ mxn_tcpip_server_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxn_tcpip_server_close( MX_RECORD *record )
 {
+	static const char fname[] = "mxn_tcpip_server_close()";
+
+	MX_NETWORK_SERVER *network_server;
 	MX_TCPIP_SERVER *tcpip_server;
 	MX_SOCKET *server_socket;
 	mx_status_type mx_status;
 
+	network_server = (MX_NETWORK_SERVER *) record->record_class_struct;
+
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for record '%s' is NULL.",
+			record->name );
+	}
+
 	tcpip_server = (MX_TCPIP_SERVER *) record->record_type_struct;
+
+	if ( tcpip_server == (MX_TCPIP_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_TCPIP_SERVER pointer for server '%s' is NULL.",
+			network_server->record->name );
+	}
 
 	server_socket = tcpip_server->socket;
 
@@ -359,6 +380,9 @@ mxn_tcpip_server_close( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	network_server->connection_status = MXCS_NOT_CONNECTED;
+
 	tcpip_server->socket = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -416,6 +440,8 @@ mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
 				(void) mx_socket_close( tcpip_server->socket );
 			}
 			tcpip_server->socket = NULL;
+
+			network_server->connection_status = MXCS_NOT_CONNECTED;
 		}
 
 		return mx_error( mx_status.code, location, mx_status.message );
@@ -462,6 +488,8 @@ mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server,
 				(void) mx_socket_close( tcpip_server->socket );
 			}
 			tcpip_server->socket = NULL;
+
+			network_server->connection_status = MXCS_NOT_CONNECTED;
 		}
 
 		return mx_error( mx_status.code, location, mx_status.message );
@@ -488,8 +516,12 @@ mxn_tcpip_server_connection_is_up( MX_NETWORK_SERVER *network_server,
 	}
 
 	if ( tcpip_server->socket == NULL ) {
+		network_server->connection_status = MXCS_NOT_CONNECTED;
+
 		*connection_is_up = FALSE;
 	} else {
+		network_server->connection_status = MXCS_CONNECTED;
+
 		*connection_is_up = TRUE;
 	}
 
@@ -522,7 +554,10 @@ mxn_tcpip_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 			network_server->record->name );
 	}
 
-	if ( tcpip_server->socket == NULL ) {
+	if ( tcpip_server->socket != NULL ) {
+		network_server->connection_status = MXCS_CONNECTED;
+	} else {
+		network_server->connection_status = MXCS_NOT_CONNECTED;
 
 		/* The connection went away for some reason, so should we
 		 * try to reconnect?
@@ -549,6 +584,9 @@ mxn_tcpip_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			network_server->connection_status =
+					MXCS_CONNECTED | MXCS_RECONNECTED;
 		}
 	}
 

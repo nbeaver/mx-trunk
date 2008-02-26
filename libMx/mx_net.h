@@ -54,6 +54,12 @@ extern "C" {
 
 #define MX_NETWORK_MESSAGE_IS_CALLBACK	0x80000000
 
+/* Flag bits used by the 'connection_status' member of MX_NETWORK_SERVER. */
+
+#define MXCS_NOT_CONNECTED	0x0
+#define MXCS_CONNECTED		0x1
+#define MXCS_RECONNECTED	0x2
+
 /*
  * Define the data type that contains MX network messages.
  *
@@ -100,6 +106,8 @@ typedef struct {
 	mx_bool_type server_supports_network_handles;
 	mx_bool_type network_handles_are_valid;
 	mx_bool_type truncate_64bit_longs;
+
+	unsigned long connection_status;
 
 	unsigned long last_rpc_message_id;
 
@@ -353,6 +361,8 @@ MX_API mx_status_type mx_network_message_is_available( MX_RECORD *server_record,
 
 MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
+
+MX_API mx_status_type mx_network_restore_callbacks( MX_RECORD *server_record );
 
 /* mx_network_display_message() is used to display the contents of
  * a network message.
