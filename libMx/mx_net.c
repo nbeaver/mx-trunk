@@ -941,6 +941,9 @@ mx_network_wait_for_messages( MX_RECORD *record,
 				if ( cs & MXCS_RECONNECTED ) {
 			        	(void) mx_network_restore_callbacks(
 							current_record );
+
+					network_server->connection_status
+						&= (~MXCS_RECONNECTED);
 				}
 
 			        (void) mx_network_wait_for_messages_from_server(

@@ -56,9 +56,11 @@ extern "C" {
 
 /* Flag bits used by the 'connection_status' member of MX_NETWORK_SERVER. */
 
-#define MXCS_NOT_CONNECTED	0x0
+#define MXCS_NOT_CONNECTED	0
+
 #define MXCS_CONNECTED		0x1
-#define MXCS_RECONNECTED	0x2
+#define MXCS_CONNECTION_LOST	0x2
+#define MXCS_RECONNECTED	0x4
 
 /*
  * Define the data type that contains MX network messages.
@@ -198,6 +200,7 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
+#define MXF_NETWORK_SERVER_QUIET_RECONNECTION	0x10000000
 #define MXF_NETWORK_SERVER_BLOCKING_IO		0x20000000
 #define MXF_NETWORK_SERVER_DEBUG		0x40000000
 

@@ -188,7 +188,7 @@ mxn_unix_server_open( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_UNIX_SERVER *unix_server;
 	MX_SOCKET *server_socket;
-	unsigned long version, flags, requested_data_format;
+	unsigned long version, flags, requested_data_format, socket_flags;
 	char null_byte;
 	mx_status_type mx_status;
 
@@ -228,19 +228,36 @@ mxn_unix_server_open( MX_RECORD *record )
 			record->name );
 	}
 
+	if ( flags & MXF_NETWORK_SERVER_QUIET_RECONNECTION ) {
+		if ( network_server->connection_status & MXCS_RECONNECTED ) {
+			socket_flags = MXF_SOCKET_QUIET_CONNECTION;
+		} else {
+			socket_flags = 0;
+		}
+	} else {
+		socket_flags = 0;
+	}
+
 	mx_status = mx_unix_socket_open_as_client( &server_socket,
-						unix_server->pathname, 0,
-						MX_SOCKET_DEFAULT_BUFFER_SIZE );
+					unix_server->pathname, socket_flags,
+					MX_SOCKET_DEFAULT_BUFFER_SIZE );
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
-		network_server->connection_status = MXCS_CONNECTED;
 		unix_server->socket = server_socket;
+		network_server->connection_status |= MXCS_CONNECTED;
+
+		if ( network_server->connection_status & MXCS_CONNECTION_LOST )
+		{
+			network_server->connection_status |= MXCS_RECONNECTED;
+		}
+
+		network_server->connection_status &= (~MXCS_CONNECTION_LOST);
 		break;
 
 	case MXE_NETWORK_IO_ERROR:
-		network_server->connection_status = MXCS_NOT_CONNECTED;
 		unix_server->socket = NULL;
+		network_server->connection_status &= (~MXCS_CONNECTED);
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "The MX server at socket '%s' on the local computer is either not running "
@@ -249,8 +266,8 @@ mxn_unix_server_open( MX_RECORD *record )
 			unix_server->pathname );
 
 	default:
-		network_server->connection_status = MXCS_NOT_CONNECTED;
 		unix_server->socket = NULL;
+		network_server->connection_status &= (~MXCS_CONNECTED);
 
 		return mx_error( mx_status.code, fname,
 "An unexpected error occurred while trying to connect to the MX server "
@@ -443,7 +460,8 @@ mxn_unix_server_receive_message( MX_NETWORK_SERVER *network_server,
 			}
 			unix_server->socket = NULL;
 
-			network_server->connection_status = MXCS_NOT_CONNECTED;
+			network_server->connection_status
+						= MXCS_CONNECTION_LOST;
 		}
 
 		return mx_error( mx_status.code, location, mx_status.message );
@@ -491,7 +509,8 @@ mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server,
 			}
 			unix_server->socket = NULL;
 
-			network_server->connection_status = MXCS_NOT_CONNECTED;
+			network_server->connection_status
+						= MXCS_CONNECTION_LOST;
 		}
 
 		return mx_error( mx_status.code, location, mx_status.message );
@@ -518,11 +537,11 @@ mxn_unix_server_connection_is_up( MX_NETWORK_SERVER *network_server,
 	}
 
 	if ( unix_server->socket == NULL ) {
-		network_server->connection_status = MXCS_NOT_CONNECTED;
+		network_server->connection_status &= (~MXCS_CONNECTED);
 
 		*connection_is_up = FALSE;
 	} else {
-		network_server->connection_status = MXCS_CONNECTED;
+		network_server->connection_status |= MXCS_CONNECTED;
 
 		*connection_is_up = TRUE;
 	}
@@ -537,6 +556,7 @@ mxn_unix_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 
 	MX_UNIX_SERVER *unix_server;
 	unsigned long flags;
+	mx_bool_type quiet_reconnection;
 	mx_status_type mx_status;
 
 	unix_server = (MX_UNIX_SERVER *)
@@ -556,10 +576,18 @@ mxn_unix_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 			network_server->record->name );
 	}
 
-	if ( unix_server->socket != NULL ) {
-		network_server->connection_status = MXCS_CONNECTED;
+	if ( flags & MXF_NETWORK_SERVER_QUIET_RECONNECTION ) {
+		quiet_reconnection = TRUE;
 	} else {
-		network_server->connection_status = MXCS_NOT_CONNECTED;
+		quiet_reconnection = FALSE;
+	}
+
+	if ( unix_server->socket != NULL ) {
+		network_server->connection_status |= MXCS_CONNECTED;
+	} else {
+		network_server->connection_status &= (~MXCS_CONNECTED);
+
+		network_server->connection_status |= MXCS_CONNECTION_LOST;
 
 		/* The connection went away for some reason, so should we
 		 * try to reconnect?
@@ -573,20 +601,26 @@ mxn_unix_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 			"Server '%s' at '%s' is not connected.",
 				network_server->record->name,
 				unix_server->pathname );
-		} else {
+		} else
+		if ( quiet_reconnection == FALSE ) {
 			mx_info(
 			"*** Reconnecting to server '%s' at '%s'.",
 				network_server->record->name,
 				unix_server->pathname );
+		}
 
-			mx_status = mxn_unix_server_open(
-					network_server->record );
+		mx_status = mxn_unix_server_open( network_server->record );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-			network_server->connection_status =
+		network_server->connection_status =
 					MXCS_CONNECTED | MXCS_RECONNECTED;
+
+		if ( quiet_reconnection ) {
+			mx_info( "*** Reconnected to server '%s' at '%s'.",
+				network_server->record->name,
+				unix_server->pathname );
 		}
 	}
 
