@@ -56,8 +56,6 @@ extern "C" {
 
 /* Flag bits used by the 'connection_status' member of MX_NETWORK_SERVER. */
 
-#define MXCS_NOT_CONNECTED	0
-
 #define MXCS_CONNECTED		0x1
 #define MXCS_CONNECTION_LOST	0x2
 #define MXCS_RECONNECTED	0x4

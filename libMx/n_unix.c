@@ -128,7 +128,7 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 #else
 	network_server->truncate_64bit_longs = FALSE;
 #endif
-	network_server->connection_status = MXCS_NOT_CONNECTED;
+	network_server->connection_status = 0;
 
 	network_server->last_rpc_message_id = 0;
 
@@ -189,7 +189,9 @@ mxn_unix_server_open( MX_RECORD *record )
 	MX_UNIX_SERVER *unix_server;
 	MX_SOCKET *server_socket;
 	unsigned long version, flags, requested_data_format, socket_flags;
+	long mx_status_code;
 	char null_byte;
+	mx_bool_type quiet_open;
 	mx_status_type mx_status;
 
 	list_head = mx_get_record_list_head_struct( record );
@@ -229,11 +231,18 @@ mxn_unix_server_open( MX_RECORD *record )
 	}
 
 	if ( flags & MXF_NETWORK_SERVER_QUIET_RECONNECTION ) {
-		if ( network_server->connection_status & MXCS_RECONNECTED ) {
-			socket_flags = MXF_SOCKET_QUIET_CONNECTION;
+		if ( network_server->connection_status & MXCS_CONNECTION_LOST )
+		{
+			quiet_open = TRUE;
 		} else {
-			socket_flags = 0;
+			quiet_open = FALSE;
 		}
+	} else {
+		quiet_open = FALSE;
+	}
+
+	if ( quiet_open ) {
+		socket_flags = MXF_SOCKET_QUIET_CONNECTION;
 	} else {
 		socket_flags = 0;
 	}
@@ -259,7 +268,13 @@ mxn_unix_server_open( MX_RECORD *record )
 		unix_server->socket = NULL;
 		network_server->connection_status &= (~MXCS_CONNECTED);
 
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		if ( quiet_open ) {
+			mx_status_code = MXE_NETWORK_IO_ERROR | MXE_QUIET;
+		} else {
+			mx_status_code = MXE_NETWORK_IO_ERROR;
+		}
+
+		return mx_error( mx_status_code, fname,
 "The MX server at socket '%s' on the local computer is either not running "
 "or is not working correctly.  "
 "You can try to fix this by restarting the MX server.",
@@ -400,7 +415,10 @@ mxn_unix_server_close( MX_RECORD *record )
 			return mx_status;
 	}
 
-	network_server->connection_status = MXCS_NOT_CONNECTED;
+	/* Force off the "connected" and "reconnected" bits. */
+
+	network_server->connection_status
+				&= ~(MXCS_CONNECTED | MXCS_RECONNECTED);
 
 	unix_server->socket = NULL;
 

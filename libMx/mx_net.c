@@ -572,10 +572,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * If so, then we close the network connection.
 			 */
 
-			MX_DEBUG(-2,
-			("%s: Invoking mx_close_hardware() for record '%s'.",
-				fname, server_record->name));
-
 			(void) mx_close_hardware( server_record );
 
 			return mx_status;
