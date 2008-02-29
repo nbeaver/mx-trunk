@@ -159,7 +159,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	unsigned long inet_address;
 
 	int saved_errno, status;
-	long error_code;
+	long mask, error_code;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -243,8 +243,9 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
 
-		if ( socket_flags & MXF_SOCKET_QUIET_CONNECTION ) {
+		if ( socket_flags & mask ) {
 			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
 		} else {
 			error_code = MXE_NETWORK_IO_ERROR;
@@ -505,7 +506,7 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 	void *sockaddr_ptr;
 
 	int saved_errno, status;
-	long error_code;
+	long mask, error_code;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -586,7 +587,9 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
-		if ( socket_flags & MXF_SOCKET_QUIET_CONNECTION ) {
+		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
+
+		if ( socket_flags & mask ) {
 			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
 		} else {
 			error_code = MXE_NETWORK_IO_ERROR;
@@ -1602,6 +1605,7 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	int num_fds, select_status, socket_errno;
 	struct timeval timeout;
 	char *error_string;
+	long mask, error_code;
 
 #if HAVE_FD_SET
 	fd_set read_mask;
@@ -1688,7 +1692,15 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	 */
 
 	if ( *num_input_bytes_available == 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
+
+		if ( mx_socket->socket_flags & mask ) {
+			error_code = MXE_NETWORK_CONNECTION_LOST | MXE_QUIET;
+		} else {
+			error_code = MXE_NETWORK_CONNECTION_LOST;
+		}
+
+		return mx_error( error_code, fname,
 		"An error occurred while checking socket %d for input.",
 			mx_socket->socket_fd );
 	}

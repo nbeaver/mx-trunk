@@ -566,10 +566,10 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
 			break;
-		case MXE_NETWORK_IO_ERROR:
-			/* If we get here, then it is likely that the
-			 * remote server has disconnected or crashed.
-			 * If so, then we close the network connection.
+		case MXE_NETWORK_CONNECTION_LOST:
+			/* If we get here, then the remote server has
+			 * disconnected or crashed.  If so, then we
+			 * close the network connection.
 			 */
 
 			(void) mx_close_hardware( server_record );

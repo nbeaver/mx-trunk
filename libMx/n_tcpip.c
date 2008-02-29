@@ -660,8 +660,25 @@ mxn_tcpip_server_message_is_available( MX_NETWORK_SERVER *network_server,
 	mx_status = mx_socket_num_input_bytes_available( tcpip_server->socket,
 							&num_bytes_available );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_NETWORK_CONNECTION_LOST:
+		*message_is_available = FALSE;
+
+		mx_info("*** Connection lost to server '%s' at '%s', port %ld.",
+			network_server->record->name,
+			tcpip_server->hostname,
+			tcpip_server->port );
+
 		return mx_status;
+		break;
+	default:
+		*message_is_available = FALSE;
+
+		return mx_status;
+		break;
+	}
 
 	if ( num_bytes_available == 0 ) {
 		*message_is_available = FALSE;
