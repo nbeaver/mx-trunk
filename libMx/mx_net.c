@@ -1416,6 +1416,11 @@ mx_network_buffer_show_value( void *buffer,
 	int c;
 	long i, raw_display_values, max_display_values;
 	size_t scalar_element_size;
+	void *raw_buffer;
+	unsigned long raw_buffer_length;
+	long dimension[1];
+	size_t data_element_size[1];
+	mx_status_type mx_status;
 
 	/* For GET_ARRAY and PUT_ARRAY in ASCII format, we treat the body
 	 * of the message as a single string.
@@ -1473,14 +1478,53 @@ mx_network_buffer_show_value( void *buffer,
 	switch( data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
 	case MX_NETWORK_DATAFMT_RAW:
+	case MX_NETWORK_DATAFMT_XDR:
+		if ( (data_type == MXFT_RECORD)
+		  || (data_type == MXFT_RECORDTYPE)
+		  || (data_type == MXFT_INTERFACE)
+		  || (data_type == MXFT_STRING) )
+		{
+			fprintf( stderr, "'%s'\n", ((char *) buffer) );
+
+			return;
+		} else
+		if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
+			/* Transform the XDR data to raw format. */
+
+			raw_buffer_length =
+				scalar_element_size * max_display_values;
+
+			raw_buffer = malloc( raw_buffer_length );
+
+			if ( raw_buffer == NULL ) {
+				(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate "
+				"a %lu byte XDR conversion buffer.",
+					raw_buffer_length );	
+				return;
+			}
+
+			dimension[0] = max_display_values;
+			data_element_size[0] = scalar_element_size;
+
+			mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
+					buffer, FALSE, data_type, 1,
+					dimension, data_element_size,
+					raw_buffer, raw_buffer_length, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_free( raw_buffer );
+				return;
+			}
+		} else {
+			raw_buffer = buffer;
+		}
+
 		switch( data_type ) {
-		case MXFT_STRING:
-			fprintf( stderr, "%s\n", (char *) buffer );
-			break;
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
 			for ( i = 0; i < max_display_values; i++ ) {
-				c = ((char *) buffer)[i];
+				c = ((char *) raw_buffer)[i];
 
 				if ( isalnum(c) || ispunct(c) ) {
 					fprintf( stderr, "%c ", c );
@@ -1491,67 +1535,62 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_SHORT:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hd ",
-					((short *) buffer)[i] );
+					((short *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_USHORT:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hu ",
-					((unsigned short *) buffer)[i] );
+					((unsigned short *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_BOOL:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%d ",
-					(int)(((mx_bool_type *) buffer)[i]) );
+				(int)(((mx_bool_type *) raw_buffer)[i]) );
 			}
 			break;
 		case MXFT_LONG:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%ld ",
-					((long *) buffer)[i] );
+					((long *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_ULONG:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%lu ",
-					((unsigned long *) buffer)[i] );
+					((unsigned long *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_FLOAT:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%g ",
-					((float *) buffer)[i] );
+					((float *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_DOUBLE:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%g ",
-					((double *) buffer)[i] );
+					((double *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_HEX:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%#lx ",
-					((unsigned long *) buffer)[i] );
+					((unsigned long *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_INT64:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%" PRId64 " ",
-					((int64_t *) buffer)[i] );
+					((int64_t *) raw_buffer)[i] );
 			}
 			break;
 		case MXFT_UINT64:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%" PRIu64 " ",
-					((uint64_t *) buffer)[i] );
+					((uint64_t *) raw_buffer)[i] );
 			}
-			break;
-		case MXFT_RECORD:
-		case MXFT_RECORDTYPE:
-		case MXFT_INTERFACE:
-			fprintf( stderr, "'%s' ", ((char *) buffer) );
 			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1559,12 +1598,16 @@ mx_network_buffer_show_value( void *buffer,
 				(unsigned long) data_type );
 			return;
 		}
+
+		fprintf( stderr, "\n" );
+
+		if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
+			mx_free( raw_buffer );
+		}
+		return;
+
 		break;
 
-	case MX_NETWORK_DATAFMT_XDR:
-		(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Support for XDR buffer display is not yet implemented." );
-		return;
 	default:
 		(void) mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported data format %ld", data_format );
