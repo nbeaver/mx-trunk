@@ -160,9 +160,9 @@ main( int argc, char *argv[] )
 		}
 
 		if ( network_debug ) {
-			server_flags = 0x70000400;
+			server_flags = 0x70000000;
 		} else {
-			server_flags = 0x30000400;
+			server_flags = 0x30000000;
 		}
 
 		/* Connect to the MX server. */

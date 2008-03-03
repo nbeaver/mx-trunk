@@ -157,7 +157,42 @@ typedef struct {
 	MX_IMAGE_FRAME **frame_array;
 } MX_IMAGE_SEQUENCE;
 
-#define MXU_MAX_SEQUENCE_PARAMETERS	250
+/*----*/
+
+/* DANGER! DANGER! DANGER!
+ *
+ * Please try to avoid ever having to change the value below of
+ * MXU_MAX_SEQUENCE_PARAMETERS from its initial value of 250!
+ *
+ * One of the features of XDR is that it _REQUIRES_ the
+ * receiving end to read out exactly the _same_ number of
+ * elements as were transmitted by the transmitting end.
+ * If this is not the case, then xdr_array() throws a
+ * tantrum over it.  This behavior makes sense when XDR
+ * is invisibly buried inside SunRPC, but it is a big
+ * nuisance from the point of view of MX.
+ *
+ * If you ever find yourself needing to increase the value of
+ * the MXU_MAX_SEQUENCE_PARAMETERS value, then you will have
+ * two choices on how to deal with this:
+ *
+ * 1.  Write some tricky custom code that interrogates the
+ *     MX server for the size of 'parameter_array' and then
+ *     figures out how to compensate for the differing 
+ *     arrays lengths.  Since, in XDR format, the length of
+ *     the array is found as a 32-bit integer at the start
+ *     of the array, it may just be sufficient to patch
+ *     the value at runtime.  Or maybe not.
+ *
+ * 2.  Write a custom replacement for xdr_array() that manages
+ *     array lengths differently.
+ *
+ * In the long run, I would guess that solution 2 is probably
+ * the easier and most general solution, but I have not tried
+ * it yet, so I could be wrong.
+ */
+
+#define MXU_MAX_SEQUENCE_PARAMETERS	250	/* See above! */
 
 typedef struct {
 	long sequence_type;

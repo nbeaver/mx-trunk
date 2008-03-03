@@ -1549,7 +1549,7 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		dimension[0] = ad->sequence_parameters.num_parameters;
+		dimension[0] = MXU_MAX_SEQUENCE_PARAMETERS;
 
 		mx_status = mx_get_array(
 			&(network_area_detector->sequence_parameter_array_nf),
