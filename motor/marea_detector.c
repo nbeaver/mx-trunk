@@ -129,6 +129,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' stop\n"
 "  area_detector 'name' abort\n"
 "  area_detector 'name' get last_frame_number\n"
+"  area_detector 'name' get total_num_frames\n"
 "  area_detector 'name' get status\n"
 "  area_detector 'name' get extended_status\n"
 "  area_detector 'name' get busy\n"
@@ -1216,6 +1217,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			fprintf( output,
 			"Area detector '%s': last frame number = %ld\n",
 					ad_record->name, last_frame_number );
+		} else
+		if ( strncmp( "total_num_frames",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			mx_status = mx_area_detector_get_total_num_frames(
+						ad_record, &total_num_frames );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Area detector '%s': total num frames = %ld\n",
+					ad_record->name, total_num_frames );
 		} else
 		if ( strncmp( "status", argv[4], strlen(argv[4]) ) == 0 ) {
 			mx_status = mx_area_detector_get_status(

@@ -1413,7 +1413,6 @@ mx_network_buffer_show_value( void *buffer,
 {
 	static const char fname[] = "mx_network_buffer_show_value()";
 
-	int c;
 	long i, raw_display_values, max_display_values;
 	size_t scalar_element_size;
 	void *raw_buffer;
@@ -1462,9 +1461,6 @@ mx_network_buffer_show_value( void *buffer,
 
 		return;
 	}
-
-	MX_DEBUG(-2,("%s: message_length = %lu",
-		fname, (unsigned long) message_length));
 
 	/* Figure out how many values will be displayed. */
 
@@ -1563,15 +1559,6 @@ mx_network_buffer_show_value( void *buffer,
 				return;
 			}
 
-			MX_DEBUG(-2,("%s: xdr_buffer_is_array = %d",
-				fname, xdr_buffer_is_array));
-
-			MX_DEBUG(-2,("%s: max_display_values = %ld",
-				fname, max_display_values));
-
-			MX_DEBUG(-2,("%s: xdr_scalar_element_size = %ld",
-				fname, (long) xdr_scalar_element_size));
-
 			data_element_size[0] = scalar_element_size;
 
 			xdr_array_length_was_patched = FALSE;
@@ -1604,9 +1591,6 @@ mx_network_buffer_show_value( void *buffer,
 					xdr_array_length = raw_xdr_array_length;
 				}
 
-				MX_DEBUG(-2,("%s: xdr_array_length = %lu",
-				    fname, (unsigned long) xdr_array_length));
-
 				/* WARNING WARNING WARNING WARNING WARNING
 				 *
 				 * If the XDR array length is longer than the
@@ -1630,10 +1614,6 @@ mx_network_buffer_show_value( void *buffer,
 						  mx_32bit_byteswap(
 						    modified_xdr_array_length );
 					}
-
-					MX_DEBUG(-2,
-					("%s: modified_xdr_array_length = %ld",
-				      fname, (long) modified_xdr_array_length));
 
 					/* Patch the array length. */
 
@@ -1671,14 +1651,10 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
 			for ( i = 0; i < max_display_values; i++ ) {
-				c = ((char *) raw_buffer)[i];
-
-				if ( isalnum(c) || ispunct(c) ) {
-					fprintf( stderr, "%c ", c );
-				} else {
-					fprintf( stderr, "%#x", c & 0xff );
-				}
+				fprintf( stderr, "%#x ",
+					((unsigned char *) raw_buffer)[i] );
 			}
+			break;
 		case MXFT_SHORT:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%hd ",
