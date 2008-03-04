@@ -1418,8 +1418,15 @@ mx_network_buffer_show_value( void *buffer,
 	size_t scalar_element_size;
 	void *raw_buffer;
 	unsigned long raw_buffer_length;
+	long num_dimensions;
 	long dimension[1];
 	size_t data_element_size[1];
+	size_t xdr_scalar_element_size, xdr_transfer_length;
+	uint32_t raw_xdr_array_length, xdr_array_length;
+	uint32_t modified_xdr_array_length;
+	uint32_t *uint32_buffer;
+	mx_bool_type xdr_buffer_is_array, xdr_array_length_was_patched;
+	mx_bool_type little_endian_byteorder;
 	mx_status_type mx_status;
 
 	/* For GET_ARRAY and PUT_ARRAY in ASCII format, we treat the body
@@ -1447,12 +1454,7 @@ mx_network_buffer_show_value( void *buffer,
 		}
 	}
 
-	if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
-		scalar_element_size = mx_xdr_get_scalar_element_size(data_type);
-	} else {
-		scalar_element_size =
-			mx_get_scalar_element_size(data_type, FALSE);
-	}
+	scalar_element_size = mx_get_scalar_element_size(data_type, FALSE);
 
 	if ( scalar_element_size == 0 ) {
 		fprintf( stderr, "*** Unknown type %lu ***\n",
@@ -1461,7 +1463,45 @@ mx_network_buffer_show_value( void *buffer,
 		return;
 	}
 
-	raw_display_values = message_length / scalar_element_size;
+	MX_DEBUG(-2,("%s: message_length = %lu",
+		fname, (unsigned long) message_length));
+
+	/* Figure out how many values will be displayed. */
+
+	if ( data_format != MX_NETWORK_DATAFMT_XDR ) {
+		raw_display_values = message_length / scalar_element_size;
+	} else {
+		/* For XDR, figuring out the number of values to display
+		 * takes a little bit of work.
+		 */
+
+		xdr_scalar_element_size =
+			mx_xdr_get_scalar_element_size(data_type);
+
+		if ( message_length < xdr_scalar_element_size ) {
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"The length (%ld) of the XDR message is less "
+			"than the minimum allowed length (%ld) for "
+			"MX data type %ld.",
+				(long) message_length,
+				(long) xdr_scalar_element_size,
+				(long) data_type );
+			return;
+		} else
+		if ( message_length == xdr_scalar_element_size ) {
+			xdr_buffer_is_array = FALSE;
+			raw_display_values = 1;
+		} else {
+			xdr_buffer_is_array = TRUE;
+
+			/* The first 4 bytes of the message contain the
+			 * array length, so we must skip over them.
+			 */
+
+			raw_display_values =
+			    (message_length - 4) / xdr_scalar_element_size;
+		}
+	}
 
 	if ( data_type == MXFT_STRING ) {
 		max_display_values = raw_display_values;
@@ -1479,17 +1519,36 @@ mx_network_buffer_show_value( void *buffer,
 	case MX_NETWORK_DATAFMT_ASCII:
 	case MX_NETWORK_DATAFMT_RAW:
 	case MX_NETWORK_DATAFMT_XDR:
-		if ( (data_type == MXFT_RECORD)
-		  || (data_type == MXFT_RECORDTYPE)
-		  || (data_type == MXFT_INTERFACE)
-		  || (data_type == MXFT_STRING) )
-		{
-			fprintf( stderr, "'%s'\n", ((char *) buffer) );
 
-			return;
-		} else
+		/* XDR data must be converted to raw data
+		 * before it can be displayed.
+		 */
+
 		if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
-			/* Transform the XDR data to raw format. */
+#if 0
+			unsigned char u;
+
+			fprintf( stderr, "XDR buffer = " );
+
+			for ( i = 0; i < message_length; i++ ) {
+				u = ((char *)buffer)[i];
+
+				fprintf( stderr, "%#x ", u );
+			}
+
+			fprintf( stderr, "\n" );
+#endif
+
+			if ( mx_native_byteorder() == MX_DATAFMT_LITTLE_ENDIAN )
+			{
+				little_endian_byteorder = TRUE;
+			} else {
+				little_endian_byteorder = FALSE;
+			}
+
+			/* Create a raw buffer which will be used as the
+			 * destination of a call to mx_xdr_data_transfer().
+			 */
 
 			raw_buffer_length =
 				scalar_element_size * max_display_values;
@@ -1504,13 +1563,98 @@ mx_network_buffer_show_value( void *buffer,
 				return;
 			}
 
-			dimension[0] = max_display_values;
+			MX_DEBUG(-2,("%s: xdr_buffer_is_array = %d",
+				fname, xdr_buffer_is_array));
+
+			MX_DEBUG(-2,("%s: max_display_values = %ld",
+				fname, max_display_values));
+
+			MX_DEBUG(-2,("%s: xdr_scalar_element_size = %ld",
+				fname, (long) xdr_scalar_element_size));
+
 			data_element_size[0] = scalar_element_size;
 
+			xdr_array_length_was_patched = FALSE;
+
+			if ( xdr_buffer_is_array == FALSE ) {
+				num_dimensions = 0;
+				dimension[0] = 0;
+
+				xdr_transfer_length = xdr_scalar_element_size;
+			} else {
+				num_dimensions = 1;
+				dimension[0] = max_display_values;
+
+				xdr_transfer_length = 4 +
+				  max_display_values * xdr_scalar_element_size;
+				
+				/* If the XDR data is an array, then the first
+				 * 4-bytes of the XDR data contains the length
+				 * of the array in bigendian format.
+				 */
+
+				uint32_buffer = buffer;
+
+				raw_xdr_array_length = *uint32_buffer;
+
+				if ( little_endian_byteorder ) {
+					xdr_array_length =
+				    mx_32bit_byteswap( raw_xdr_array_length );
+				} else {
+					xdr_array_length = raw_xdr_array_length;
+				}
+
+				MX_DEBUG(-2,("%s: xdr_array_length = %lu",
+				    fname, (unsigned long) xdr_array_length));
+
+				/* WARNING WARNING WARNING WARNING WARNING
+				 *
+				 * If the XDR array length is longer than the
+				 * number of values that we plan to display,
+				 * then we must patch the XDR data buffer's
+				 * array length value to match the number
+				 * of values that we plan to display.
+				 *
+				 * We _MUST_ restore the original value before
+				 * returning from this routine.
+				 */
+
+				if ( xdr_array_length > max_display_values ) {
+					xdr_array_length_was_patched = TRUE;
+
+					modified_xdr_array_length =
+						max_display_values;
+
+					if ( little_endian_byteorder ) {
+						modified_xdr_array_length =
+						  mx_32bit_byteswap(
+						    modified_xdr_array_length );
+					}
+
+					MX_DEBUG(-2,
+					("%s: modified_xdr_array_length = %ld",
+				      fname, (long) modified_xdr_array_length));
+
+					/* Patch the array length. */
+
+					*uint32_buffer =
+						modified_xdr_array_length;
+				}
+			}
+
+			/* Perform the XDR data conversion. */
+
 			mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
-					buffer, FALSE, data_type, 1,
+					raw_buffer, FALSE,
+					data_type, num_dimensions,
 					dimension, data_element_size,
-					raw_buffer, raw_buffer_length, NULL );
+					buffer, xdr_transfer_length, NULL );
+
+			if ( xdr_array_length_was_patched ) {
+				/* Restore the array length. */
+
+				*uint32_buffer = raw_xdr_array_length;
+			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_free( raw_buffer );
@@ -1521,6 +1665,9 @@ mx_network_buffer_show_value( void *buffer,
 		}
 
 		switch( data_type ) {
+		case MXFT_STRING:
+			fprintf( stderr, "'%s'\n", ((char *) raw_buffer) );
+			break;
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
 			for ( i = 0; i < max_display_values; i++ ) {
@@ -1592,6 +1739,14 @@ mx_network_buffer_show_value( void *buffer,
 					((uint64_t *) raw_buffer)[i] );
 			}
 			break;
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+			(void) mx_error( MXE_UNSUPPORTED, fname,
+				"Unsupported data type %lu requested.",
+				(unsigned long) data_type );
+			return;
+			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Unrecognized data type %lu requested.",
@@ -1599,13 +1754,9 @@ mx_network_buffer_show_value( void *buffer,
 			return;
 		}
 
-		fprintf( stderr, "\n" );
-
 		if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
 			mx_free( raw_buffer );
 		}
-		return;
-
 		break;
 
 	default:
@@ -1615,10 +1766,12 @@ mx_network_buffer_show_value( void *buffer,
 	}
 
 	if ( raw_display_values > max_display_values ) {
-		fprintf( stderr, "..." );
+		fprintf( stderr, "...\n" );
+	} else {
+		fprintf(stderr, "\n");
 	}
 
-	fprintf(stderr, "\n");
+	return;
 }
 
 MX_EXPORT void

@@ -1,4 +1,4 @@
-adserver   server network tcp_server "" "" 0x20000000 localhost 9827
+adserver   server network tcp_server "" "" 0x20000400 localhost 9827
 ad         device area_detector network_area_detector "" "" 8 adserver ad
 rs232      interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd 0x0 -1 0x0 adserver rs232
 #

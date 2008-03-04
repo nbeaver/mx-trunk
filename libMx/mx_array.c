@@ -1822,6 +1822,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			case MXFT_BOOL:   XDR_DO_ARRAY(xdr_int);     break;
 			case MXFT_LONG:   XDR_DO_ARRAY(xdr_long);    break;
 			case MXFT_ULONG:  XDR_DO_ARRAY(xdr_u_long);  break;
+			case MXFT_HEX:    XDR_DO_ARRAY(xdr_u_long);  break;
 			case MXFT_INT64:  XDR_DO_ARRAY(xdr_hyper);   break;
 			case MXFT_UINT64: XDR_DO_ARRAY(xdr_u_hyper); break;
 			case MXFT_FLOAT:  XDR_DO_ARRAY(xdr_float);   break;
