@@ -224,11 +224,11 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 /*-------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_create_local_field( MX_NETWORK_FIELD *nf,
+mx_create_network_field( MX_NETWORK_FIELD **nf,
 				MX_RECORD *server_record,
 				char *record_name,
 				char *field_name,
-				MX_RECORD_FIELD **temp_field )
+				MX_RECORD_FIELD *local_field )
 {
 	static const char fname[] = "mx_create_local_field()";
 
@@ -239,16 +239,49 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 	void **value_ptr;
 	mx_status_type mx_status;
 
+	if ( nf == (MX_NETWORK_FIELD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+
+	/* Create a new MX_NETWORK_FIELD structure. */
+
+	*nf = malloc( sizeof(MX_NETWORK_FIELD) );
+
+	if ( (*nf) == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate an MX_NETWORK_FIELD structure." );
+	}
+
 	/* Initialize the network field data structure. */
 
 	snprintf( record_field_name, sizeof(record_field_name),
 			"%s.%s", record_name, field_name );
 
-	mx_status = mx_network_field_init( nf, server_record,
+	mx_status = mx_network_field_init( *nf, server_record,
 						record_field_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If the local_field pointer passed to us was not NULL, then we
+	 * save that value in the network field structure and then return.
+	 */
+
+	if ( local_field != (MX_RECORD_FIELD *) NULL ) {
+
+		(*nf)->local_field = local_field;
+
+		(*nf)->must_free_local_field_on_delete = FALSE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, then we need to set up a private MX_RECORD_FIELD
+	 * structure.
+	 */
+
+	(*nf)->must_free_local_field_on_delete = TRUE;
 
 	/* Allocate dimension_array with malloc().  We will be passing
 	 * dimension_array to mx_initialize_temp_record_field() later
@@ -257,7 +290,7 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 	 * declared dimension_array above as 'long dimension_array[8]',
 	 * then dimension_array would be a pointer to memory on the
 	 * stack, which would result in a crash at some point after
-	 * returning from mx_create_local_field().
+	 * returning from mx_create_network_field().
 	 */
 
 	dimension_array = malloc( MXU_FIELD_MAX_DIMENSIONS * sizeof(long) );
@@ -268,7 +301,7 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 			"dimension array.", MXU_FIELD_MAX_DIMENSIONS );
 	}
 
-	/* Find out the dimensions of the record field. */
+	/* Find out the dimensions of the remote network field. */
 
 	/* FIXME! - This should be done using a network field handle. */
 
@@ -329,23 +362,25 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 				num_dimensions, record_field_name );
 	}
 
-	/* Create a local 'temporary' record field to describe the
-	 * network field value.
+	/* Create the private MX_RECORD_FIELD that is used to describe and
+	 * store the network field value.
 	 */
 
-	*temp_field = malloc( sizeof(MX_RECORD_FIELD) );
+	local_field = malloc( sizeof(MX_RECORD_FIELD) );
 
-	if ( *temp_field == NULL ) {
+	if ( local_field == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		  "Unable to allocate memory for the 'temp_field' structure.");
+		  "Unable to allocate memory for the 'local_field' structure.");
 	}
 
+	(*nf)->local_field = local_field;
+
 #if MX_SERVER_CONNECT_DEBUG
-	MX_DEBUG(-2,("%s: *temp_field = %p, *value_ptr = %p",
-		fname, *temp_field, *value_ptr));
+	MX_DEBUG(-2,("%s: local_field = %p, *value_ptr = %p",
+		fname, local_field, *value_ptr));
 #endif
 
-	mx_status = mx_initialize_temp_record_field( *temp_field,
+	mx_status = mx_initialize_temp_record_field( local_field,
 							datatype,
 							num_dimensions,
 							dimension_array,
@@ -353,10 +388,10 @@ mx_create_local_field( MX_NETWORK_FIELD *nf,
 							value_ptr );
 
 #if MX_SERVER_CONNECT_DEBUG
-	MX_DEBUG(-2,("%s: (*temp_field)->data_pointer = %p",
-		fname, (*temp_field)->data_pointer));
-	MX_DEBUG(-2,("%s: *((*temp_field)->data_pointer) = %p", fname,
-    mx_read_void_pointer_from_memory_location((*temp_field)->data_pointer) ));
+	MX_DEBUG(-2,("%s: local_field->data_pointer = %p",
+		fname, local_field->data_pointer));
+	MX_DEBUG(-2,("%s: *(local_field->data_pointer) = %p", fname,
+    mx_read_void_pointer_from_memory_location(local_field->data_pointer) ));
 #endif
 	return mx_status;
 }

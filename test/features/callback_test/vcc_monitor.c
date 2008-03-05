@@ -13,20 +13,12 @@
 MX_API char *optarg;
 MX_API int optind;
 
-typedef struct {
-	MX_RECORD *server_record;
-	MX_RECORD_FIELD *temp_field;
-} CLIENT_CALLBACK_ARGS;
-
 static mx_status_type
 client_callback_function( MX_CALLBACK *callback, void *argument )
 {
-	static const char fname[] = "client_callback_function()";
-
-	CLIENT_CALLBACK_ARGS *client_callback_args;
 	MX_RECORD *server_record;
-	MX_RECORD_FIELD *temp_field;
 	MX_NETWORK_FIELD *nf;
+	MX_RECORD_FIELD *local_field;
 	MX_TCPIP_SERVER *tcpip_server;
 	char server_id[500];
 	char value_string[200];
@@ -38,43 +30,36 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	temp_field = argument;
+	/* If you replaced the NULL in the mx_remote_field_add_callback()
+	 * call made in the main routine with a pointer to a custom value,
+	 * then that pointer is returned to the callback routine via
+	 * the void pointer called 'argument' above.
+	 */
 
 	nf = callback->u.network_field;
 
-	client_callback_args = argument;
+	local_field = nf->local_field;
 
-	server_record = client_callback_args->server_record;
+	server_record = nf->server_record;
 
-	temp_field = client_callback_args->temp_field;
-
+#if 1
 	mx_status = mx_network_copy_message_to_field( server_record,
-							temp_field );
+							local_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+#endif
 
-	mx_status = mx_create_description_from_field( NULL, temp_field,
+	tcpip_server = server_record->record_type_struct;
+
+	snprintf( server_id, sizeof(server_id),
+			"%s@%ld", tcpip_server->hostname, tcpip_server->port );
+
+	mx_status = mx_create_description_from_field( NULL, local_field,
 				value_string, sizeof(value_string) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
-
-	switch( server_record->mx_type ) {
-	case MXN_NET_TCPIP:
-		tcpip_server = server_record->record_type_struct;
-
-		snprintf( server_id, sizeof(server_id),
-			"%s@%ld", tcpip_server->hostname, tcpip_server->port );
-		break;
-	default:
-		strlcpy( server_id, server_record->name, sizeof(server_id) );
-
-		mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported server type %ld for record '%s'",
-			server_record->mx_type, server_record->name );
-		break;
-	}
 
 	mx_info( "callback: '%s:%s' = '%s'",
 		server_id, nf->nfname, value_string );
@@ -93,7 +78,6 @@ main( int argc, char *argv[] )
 	char server_arguments[ MXU_SERVER_ARGUMENTS_LENGTH+1 ];
 	char record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 	char field_name[ MXU_FIELD_NAME_LENGTH+1 ];
-	CLIENT_CALLBACK_ARGS *client_callback_args;
 	MX_CALLBACK *callback;
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
@@ -101,7 +85,7 @@ main( int argc, char *argv[] )
 	int c, server_port, num_items;
 	mx_bool_type network_debug, start_debugger;
 	unsigned long i, server_flags;
-	MX_RECORD_FIELD *temp_field;
+	MX_RECORD_FIELD *local_field;
 	void *value_ptr;
 	double timeout;
 	mx_status_type mx_status;
@@ -180,58 +164,31 @@ main( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );
 
-		/* Create a new MX_NETWORK_FIELD structure. */
+		/* Create a new MX_NETWORK_FIELD. */
 
-		nf = malloc( sizeof(MX_NETWORK_FIELD) );
-
-		if ( nf == NULL ) {
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Unable to allocate an MX_NETWORK_FIELD structure." );
-
-			exit( MXE_OUT_OF_MEMORY );
-		}
-
-		/* Setup a connection to the network_field. */
-
-		mx_status = mx_create_local_field( nf, server_record,
-						record_name, field_name,
-						&temp_field );
+		mx_status = mx_create_network_field( &nf, server_record,
+						record_name, field_name, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );
 
-		/* Create a CLIENT_CALLBACK_ARGS structure which will
-		 * be returned to the callback function via the
-		 * callback_args pointer.
-		 */
-
-		client_callback_args = malloc( sizeof(CLIENT_CALLBACK_ARGS) );
-
-		if ( client_callback_args == NULL ) {
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Unable to allocate a CLIENT_CALLBACK_ARGS structure.");
-
-			exit( MXE_OUT_OF_MEMORY );
-		}
-
-		client_callback_args->server_record = server_record;
-		client_callback_args->temp_field    = temp_field;
-
 		/* Get the starting value of the network field. */
 
-		value_ptr = mx_get_field_value_pointer( temp_field );
+		local_field = nf->local_field;
 
-		mx_status = mx_get_array( nf, temp_field->datatype,
-					temp_field->num_dimensions,
-					temp_field->dimension,
+		value_ptr = mx_get_field_value_pointer( local_field );
+
+		mx_status = mx_get_array( nf, local_field->datatype,
+					local_field->num_dimensions,
+					local_field->dimension,
 					value_ptr );
 
 		if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+			exit( mx_status.code );
 
 		/* Display the starting value of the network field. */
 
-		mx_status = mx_create_description_from_field( NULL, temp_field,
+		mx_status = mx_create_description_from_field( NULL, local_field,
 				display_buffer, sizeof(display_buffer) );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -240,12 +197,17 @@ main( int argc, char *argv[] )
 		MX_DEBUG(-2,
 		("%s: Starting value = '%s'", fname, display_buffer));
 
-		/* Create a callback handler for this network field. */
+		/* Create a callback handler for this network field.
+		 *
+		 * If you want to pass a custom value to the callback,
+		 * replace the NULL argument below with a pointer
+		 * to the custom value.
+		 */
 
 		mx_status = mx_remote_field_add_callback( nf,
 					MXCBT_VALUE_CHANGED,
 					client_callback_function,
-					client_callback_args,
+					NULL,
 					&callback );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -266,15 +228,8 @@ main( int argc, char *argv[] )
 		default:
 			exit( mx_status.code );
 		}
-
-#if 0
-		MX_DEBUG(-2,
-		("%s: Timed out after %g seconds.", fname, timeout));
-#endif
 	}
 
-#if !defined(OS_SOLARIS)
-	exit(0);
-#endif
+	return 0;
 }
 

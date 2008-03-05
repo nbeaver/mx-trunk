@@ -311,11 +311,11 @@ MX_API mx_status_type mx_connect_to_mx_server( MX_RECORD **server_record,
 						int server_port,
 						unsigned long server_flags );
 
-MX_API mx_status_type mx_create_local_field( MX_NETWORK_FIELD *nf,
+MX_API mx_status_type mx_create_network_field( MX_NETWORK_FIELD **nf,
 						MX_RECORD *server_record,
 						char *record_name,
 						char *field_name,
-						MX_RECORD_FIELD **local_field );
+						MX_RECORD_FIELD *local_field );
 
 /* --- */
 
