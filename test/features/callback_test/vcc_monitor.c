@@ -42,14 +42,6 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 
 	server_record = nf->server_record;
 
-#if 1
-	mx_status = mx_network_copy_message_to_field( server_record,
-							local_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
-#endif
-
 	tcpip_server = server_record->record_type_struct;
 
 	snprintf( server_id, sizeof(server_id),

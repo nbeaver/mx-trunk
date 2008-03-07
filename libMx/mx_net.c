@@ -726,16 +726,10 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			} while( list_entry != list_start );
 
 			/* If we have found the correct callback, then
-			 * invoke the callback function.
+			 * invoke the callback.
 			 */
 
-			if ( callback->callback_function == NULL ) {
-			    mx_warning( "The callback function pointer "
-			    		"for callback %#lx is NULL.",
-					(unsigned long) received_message_id );
-			} else {
-			    mx_status = mx_invoke_callback( callback, FALSE ); 
-			}
+			mx_status = mx_invoke_callback( callback, FALSE ); 
 
 			/* Go back to the top of the loop and look again
 			 * for the message ID that we are waiting for.
@@ -2276,6 +2270,7 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 
 	nf->local_field = NULL;
 	nf->must_free_local_field_on_delete = FALSE;
+	nf->do_not_copy_buffer_on_callback = FALSE;
 
 	nf->application_ptr = NULL;
 

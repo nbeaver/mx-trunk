@@ -1004,6 +1004,29 @@ mx_invoke_callback( MX_CALLBACK *callback,
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
+	
+	/* If this is a network value changed callback, then copy the values
+	 * from the callback's network message to the local record field
+	 * (if any).
+	 */
+
+	if ( (callback->callback_class == MXCBC_NETWORK)
+	  && (callback->callback_type == MXCBT_VALUE_CHANGED) )
+	{
+		MX_NETWORK_FIELD *nf;
+
+		nf = callback->u.network_field;
+
+		if ( nf != (MX_NETWORK_FIELD *) NULL ) {
+
+			if ( ( nf->local_field != (MX_RECORD_FIELD *) NULL )
+			  && ( nf->do_not_copy_buffer_on_callback == FALSE ) )
+			{
+				mx_status = mx_network_copy_message_to_field(
+					nf->server_record, nf->local_field );
+			}
+		}
+	}
 
 	callback->get_new_value = get_new_value;
 

@@ -88,7 +88,9 @@ struct mx_network_field_type {
 	long field_handle;
 
 	MX_RECORD_FIELD *local_field;
+
 	mx_bool_type must_free_local_field_on_delete;
+	mx_bool_type do_not_copy_buffer_on_callback;
 
 	void *application_ptr;
 };
