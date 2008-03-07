@@ -847,11 +847,31 @@ mx_network_wait_for_messages_from_server(
 	static const char fname[] =
 		"mx_network_wait_for_messages_from_server()";
 
+	MX_NETWORK_SERVER *network_server;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed was NULL." );
+	}
+
+	network_server = server_record->record_class_struct;
+
+	if ( network_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for record '%s' is NULL.",
+			server_record->name );
+	}
+
+	mx_status = mx_network_reconnect_if_down( server_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( network_server->connection_status & MXCS_RECONNECTED ) {
+		(void) mx_network_restore_callbacks( server_record );
+
+		network_server->connection_status &= (~MXCS_RECONNECTED);
 	}
 
 	mx_status = mx_network_wait_for_message_id( server_record,
@@ -936,8 +956,8 @@ mx_network_wait_for_messages( MX_RECORD *record,
 						&= (~MXCS_RECONNECTED);
 				}
 
-			        (void) mx_network_wait_for_messages_from_server(
-						    	current_record, 0.0 );
+			        (void) mx_network_wait_for_message_id(
+				    	current_record, NULL, 0, 0.0 );
 			    }
 			}
 
