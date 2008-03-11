@@ -142,11 +142,10 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_trigger,
 #if 0
 	mxd_pccd_170170_stop,
-	mxd_pccd_170170_abort,
 #else
-	NULL,
-	mxd_pccd_170170_abort,
+	mxd_pccd_170170_abort,	/* Use abort instead of stop here. */
 #endif
+	mxd_pccd_170170_abort,
 	NULL,
 	NULL,
 	NULL,
