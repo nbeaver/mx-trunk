@@ -1,14 +1,13 @@
 /*
  * Name:    d_bluice_timer.c
  *
- * Purpose: MX timer driver for Black Cat Systems GM-10, GM-45, GM-50, and
- *          GM-90 radiation detectors.
+ * Purpose: Support for Blu-Ice controlled timers.
  *
  * Author:  William Lavender
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -440,8 +439,16 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command),
-		"gtos_read_ion_chambers %g 0", timer->value );
+	switch( bluice_server->record->mx_type ) {
+	case MXN_BLUICE_DCSS_SERVER:
+		snprintf( command, sizeof(command),
+			"gtos_read_ion_chambers %g 0", timer->value );
+		break;
+	case MXN_BLUICE_DHS_SERVER:
+		snprintf( command, sizeof(command),
+			"stoh_read_ion_chambers %g 0", timer->value );
+		break;
+	}
 
 	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
 

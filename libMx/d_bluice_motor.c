@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -574,6 +574,7 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	mx_status_type mx_status;
+	long mx_status_code;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
 					&bluice_server, &foreign_motor, fname );
@@ -590,16 +591,27 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
+	case MXLV_MTR_ACCELERATION_TIME:
+		mx_status_code = mx_mutex_lock(
+				bluice_server->foreign_data_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			return mx_error( mx_status_code, fname,
+			"An attempt to lock the foreign data mutex for Blu-Ice "
+			"server '%s' failed.", bluice_server->record->name );
+		}
+
 		motor->raw_speed = foreign_motor->u.motor.scale_factor
 					* foreign_motor->u.motor.speed;
-		break;
-	case MXLV_MTR_ACCELERATION_TIME:
+
 		/* Blu-Ice uses milliseconds for acceleration time
 		 * while MX uses seconds.
 		 */
 
 		motor->acceleration_time = 0.001 *
 				foreign_motor->u.motor.acceleration_time;
+
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
@@ -617,6 +629,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char command[200], command_name[40];
 	mx_status_type mx_status;
+	long mx_status_code;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
 					&bluice_server, &foreign_motor, fname );
@@ -638,15 +651,28 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-		foreign_motor->u.motor.speed =
-			mx_divide_safely( motor->raw_speed,
-				foreign_motor->u.motor.scale_factor );
-		break;
-	default:
-		return mx_motor_default_set_parameter_handler( motor );
+	if ( motor->parameter_type != MXLV_MTR_SPEED ) {
+		mx_status = mx_motor_default_set_parameter_handler( motor );
+
+		return mx_status;
 	}
+
+	/*** We can only get here if we are changing the motor speed. ***/
+
+	/* Grab the foreign data mutex before constructing the
+	 * reconfiguration command.
+	 */
+
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
+	foreign_motor->u.motor.speed = mx_divide_safely( motor->raw_speed,
+					foreign_motor->u.motor.scale_factor );
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
@@ -676,6 +702,14 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		(int) foreign_motor->u.motor.backlash_on,
 		(int) foreign_motor->u.motor.reverse_on );
 
+	/* We now have a consistent set of parameters in our command string,
+	 * so we can now free the mutex.
+	 */
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	/* Send the configuration command. */
+
 	mx_status = mx_bluice_check_for_master( bluice_server );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -694,7 +728,9 @@ mxd_bluice_motor_get_status( MX_MOTOR *motor )
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
+	mx_bool_type move_in_progress;
 	mx_status_type mx_status;
+	long mx_status_code;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
 					&bluice_server, &foreign_motor, fname );
@@ -702,7 +738,19 @@ mxd_bluice_motor_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( foreign_motor->u.motor.move_in_progress ) {
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
+	move_in_progress = foreign_motor->u.motor.move_in_progress;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	if ( move_in_progress ) {
 		motor->status |= MXSF_MTR_IS_BUSY;
 	} else {
 		motor->status &= ( ~ MXSF_MTR_IS_BUSY );
