@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,7 +186,7 @@ extern "C" {
 #define MXI_GEN_PMAC			403
 #define MXI_GEN_COMPUMOTOR		404
 #define MXI_GEN_ORTEC974		405
-#define MXI_GEN_GGCS			406
+
 #define MXI_GEN_UMCBI			407
 #define MXI_GEN_D8			408
 #define MXI_GEN_PDI40			409
@@ -422,7 +422,7 @@ extern "C" {
 #define MXT_MTR_APS_GAP			50014
 #define MXT_MTR_COMPUMOTOR		50015
 #define MXT_MTR_NETWORK			50016
-#define MXT_MTR_GGCS			50017
+
 #define MXT_MTR_D8			50018
 #define MXT_MTR_VP9000			50019
 #define MXT_MTR_AM9513			50020

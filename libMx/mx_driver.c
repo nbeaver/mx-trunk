@@ -162,7 +162,6 @@
 #include "i_newport.h"
 #include "i_pmac.h"
 #include "i_compumotor.h"
-#include "i_ggcs.h"
 #include "i_d8.h"
 #include "i_vp9000.h"
 #include "i_ortec974.h"
@@ -266,7 +265,6 @@
 #include "d_pmactc.h"
 #include "d_compumotor.h"
 #include "d_network_motor.h"
-#include "d_ggcs.h"
 #include "d_d8.h"
 #include "d_vp9000.h"
 #include "d_e662.h"
@@ -767,13 +765,6 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_compumotor_num_record_fields,
 				&mxi_compumotor_rfield_def_ptr},
-
-{"ggcs",           MXI_GEN_GGCS,       MXI_GENERIC,       MXR_INTERFACE,
-				&mxi_ggcs_record_function_list,
-				NULL,
-				&mxi_ggcs_generic_function_list,
-				&mxi_ggcs_num_record_fields,
-				&mxi_ggcs_rfield_def_ptr},
 
 {"d8",             MXI_GEN_D8,         MXI_GENERIC,       MXR_INTERFACE,
 				&mxi_d8_record_function_list,
@@ -1999,12 +1990,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_network_motor_motor_function_list,
 				&mxd_network_motor_num_record_fields,
 				&mxd_network_motor_rfield_def_ptr},
-{"ggcs_motor",     MXT_MTR_GGCS,      MXC_MOTOR,          MXR_DEVICE,
-				&mxd_ggcs_motor_record_function_list,
-				NULL,
-				&mxd_ggcs_motor_motor_function_list,
-				&mxd_ggcs_motor_num_record_fields,
-				&mxd_ggcs_motor_rfield_def_ptr},
 
 {"d8_motor",       MXT_MTR_D8,        MXC_MOTOR,          MXR_DEVICE,
 				&mxd_d8_motor_record_function_list,

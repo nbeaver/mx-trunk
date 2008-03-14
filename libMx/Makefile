@@ -78,7 +78,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_epics_aio.c d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_epix_xclib.c d_epix_xclib_dio.c d_file_vinput.c \
-	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c d_ggcs.c \
+	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_interval_timer.c d_iseries_aio.c d_iseries_dio.c \
@@ -145,7 +145,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_edt.c i_edt_rs232.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_rs232.c i_epix_xclib.c \
-	i_esone_camac.c i_fossil.c i_ggcs.c i_hsc1.c \
+	i_esone_camac.c i_fossil.c i_hsc1.c \
 	i_iseries.c i_k500serial.c i_ks3344.c \
 	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
