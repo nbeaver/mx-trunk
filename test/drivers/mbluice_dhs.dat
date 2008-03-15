@@ -1,0 +1,27 @@
+s1            server bluice bluice_dhs_server "" "" 0x0
+master        variable bluice_variable bluice_master "" "" s1 1 1 0
+command       variable bluice_variable bluice_command "" "" s1 1 80 ""
+energy        device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 eV s1 energy
+gonio_omega   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg s1 gonio_omega
+gonio_kappa   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg s1 gonio_kappa
+gonio_phi     device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg s1 gonio_phi
+detector_z    device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg s1 detector_z
+beam_size_x   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 beam_size_x
+beam_size_y   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 beam_size_y
+sample_x      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 sample_x
+sample_y      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 sample_y
+sample_z      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 sample_z
+beamstop_z    device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 beamstop_z
+detector_horz device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 detector_horz
+detector_vert device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um s1 detector_vert
+dose_scounts  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts s1 doseStoredCounts
+dose_lcounts  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts s1 doseLastCounts
+dose_sratio   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts s1 doseStabilityRatio
+dose_thresh   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts s1 doseThreshold
+dose_period   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec s1 doseIntegrationPeriod
+max_osc_time  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec s1 maxOscTime
+door_status   variable bluice_variable bluice_string "" "" s1 hutchDoorStatus 1 80 ""
+shutter       device relay bluice_shutter "" "" s1 shutter
+i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 s1 i0
+i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 s1 i1
+timer1        device timer bluice_timer "" "" s1 rtc1 simDhs

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,6 @@ MX_API mx_status_type mxd_bluice_motor_finish_record_initialization(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_motor_print_structure( FILE *file,
 						MX_RECORD *record );
-MX_API mx_status_type mxd_bluice_motor_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_bluice_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_bluice_motor_get_position( MX_MOTOR *motor );

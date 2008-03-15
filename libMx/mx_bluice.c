@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,13 +23,13 @@
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 
-#define BLUICE_DEBUG_SETUP	FALSE
+#define BLUICE_DEBUG_SETUP	TRUE
 
-#define BLUICE_DEBUG_MESSAGE	FALSE
+#define BLUICE_DEBUG_MESSAGE	TRUE
 
-#define BLUICE_DEBUG_CONFIG	FALSE
+#define BLUICE_DEBUG_CONFIG	TRUE
 
-#define BLUICE_DEBUG_MOTION	FALSE
+#define BLUICE_DEBUG_MOTION	TRUE
 
 static mx_status_type
 mx_bluice_get_pointers( MX_RECORD *bluice_server_record,
@@ -1211,11 +1211,11 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 				fname, foreign_ion_chamber->dhs_server_name));
 	MX_DEBUG(-2,("%s: Counter name = '%s'",
 		fname, foreign_ion_chamber->u.ion_chamber.counter_name));
-	MX_DEBUG(-2,("%s: Channel number = %d",
+	MX_DEBUG(-2,("%s: Channel number = %ld",
 		fname, foreign_ion_chamber->u.ion_chamber.channel_number));
 	MX_DEBUG(-2,("%s: Timer name = '%s'",
 		fname, foreign_ion_chamber->u.ion_chamber.timer_name));
-	MX_DEBUG(-2,("%s: Timer type = %d",
+	MX_DEBUG(-2,("%s: Timer type = %ld",
 		fname, foreign_ion_chamber->u.ion_chamber.timer_type));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
@@ -1547,7 +1547,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: Foreign shutter '%s':",fname, foreign_shutter->name));
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_shutter->dhs_server_name));
-	MX_DEBUG(-2,("%s: Shutter status = %d",
+	MX_DEBUG(-2,("%s: Shutter status = %ld",
 			    fname, foreign_shutter->u.shutter.shutter_status));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif

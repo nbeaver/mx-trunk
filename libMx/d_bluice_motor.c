@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_MOTOR_DEBUG	FALSE
+#define BLUICE_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +32,7 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_motor_record_function_list = {
 	mxd_bluice_motor_create_record_structures,
 	mxd_bluice_motor_finish_record_initialization,
 	NULL,
-	mxd_bluice_motor_print_structure,
-	NULL,
-	NULL,
-	mxd_bluice_motor_open
+	mxd_bluice_motor_print_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_bluice_motor_motor_function_list = {
@@ -71,7 +68,12 @@ long mxd_bluice_motor_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_bluice_motor_rfield_def_ptr
 			= &mxd_bluice_motor_record_field_defaults[0];
 
-/* A private function for the use of the driver. */
+/*=======================================================================*/
+
+/* WARNING: There is no guarantee that the foreign device pointer will
+ * already be initialized when mxd_bluice_motor_get_pointers() is
+ * invoked, so we have to test for this.
+ */
 
 static mx_status_type
 mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
@@ -82,27 +84,36 @@ mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
 {
 	static const char fname[] = "mxd_bluice_motor_get_pointers()";
 
+	MX_RECORD *bluice_motor_record;
 	MX_BLUICE_MOTOR *bluice_motor_ptr;
 	MX_RECORD *bluice_server_record;
+	MX_BLUICE_SERVER *bluice_server_ptr;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor_ptr;
+	mx_status_type mx_status;
+	long mx_status_code;
+
+	/* In this section, we do standard MX ..._get_pointers() logic. */
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( bluice_motor == (MX_BLUICE_MOTOR **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_BLUICE_MOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
+
+	bluice_motor_record = motor->record;
+
+	if ( bluice_motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_MOTOR pointer %p "
+		"passed was NULL.", motor );
 	}
 
-	bluice_motor_ptr = (MX_BLUICE_MOTOR *)
-				motor->record->record_type_struct;
+	bluice_motor_ptr = bluice_motor_record->record_type_struct;
 
 	if ( bluice_motor_ptr == (MX_BLUICE_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_BLUICE_MOTOR pointer for record '%s' is NULL.",
-			motor->record->name );
+			bluice_motor_record->name );
 	}
 
 	if ( bluice_motor != (MX_BLUICE_MOTOR **) NULL ) {
@@ -114,49 +125,105 @@ mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
 	if ( bluice_server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The 'bluice_server_record' pointer for record '%s' "
-		"is NULL.", motor->record->name );
+		"is NULL.", bluice_motor_record->name );
 	}
 
-	switch( bluice_server_record->mx_type ) {
-	case MXN_BLUICE_DCSS_SERVER:
-	case MXN_BLUICE_DHS_SERVER:
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Blu-Ice server record '%s' should be either of type "
-		"'bluice_dcss_server' or 'bluice_dhs_server'.  Instead, it is "
-		"of type '%s'.",
+	bluice_server_ptr = bluice_server_record->record_class_struct;
+
+	if ( bluice_server_ptr == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for Blu-Ice server "
+		"record '%s' used by record '%s' is NULL.",
 			bluice_server_record->name,
-			mx_get_driver_name( bluice_server_record ) );
+			bluice_motor_record->name );
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
-		*bluice_server = (MX_BLUICE_SERVER *)
-				bluice_server_record->record_class_struct;
+		*bluice_server = bluice_server_ptr;
+	}
 
-		if ( (*bluice_server) == (MX_BLUICE_SERVER *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_BLUICE_SERVER pointer for Blu-Ice server "
-			"record '%s' used by record '%s' is NULL.",
+	/* In this section, we check to see if the pointer to the Blu-Ice
+	 * foreign device structure has been set up yet.
+	 */
+
+	if ( foreign_motor != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
+		*foreign_motor = NULL;
+	}
+
+	foreign_motor_ptr = bluice_motor_ptr->foreign_device;
+
+	if ( foreign_motor_ptr == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		double timeout;
+
+		/* If not, wait a while for the pointer to be set up. */
+
+		switch( bluice_server_record->mx_type ) {
+		case MXN_BLUICE_DCSS_SERVER:
+			timeout = 5.0;
+			break;
+		case MXN_BLUICE_DHS_SERVER:
+			timeout = 0.1;
+			break;
+		default:
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"Blu-Ice server record '%s' should be either of type "
+			"'bluice_dcss_server' or 'bluice_dhs_server'.  "
+			"Instead, it is of type '%s'.",
 				bluice_server_record->name,
-				motor->record->name );
+				mx_get_driver_name( bluice_server_record ) );
 		}
+
+#if BLUICE_MOTOR_DEBUG
+		MX_DEBUG(-2,("%s: About to wait for device pointer "
+			"initialization of motor '%s' for function '%s'.",
+			fname, bluice_motor_record->name, calling_fname));
+#endif
+		mx_status_code = mx_mutex_lock(
+				bluice_server_ptr->foreign_data_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			return mx_error( mx_status_code, fname,
+			"An attempt to lock the foreign data mutex for "
+			"Blu-ice server '%s' failed.",
+				bluice_server_record->name );
+		}
+
+		mx_status = mx_bluice_wait_for_device_pointer_initialization(
+					bluice_server_ptr,
+					bluice_motor_ptr->bluice_name,
+					MXT_BLUICE_FOREIGN_MOTOR,
+					&(bluice_server_ptr->motor_array),
+					&(bluice_server_ptr->num_motors),
+					&foreign_motor_ptr,
+					timeout );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_mutex_unlock(bluice_server_ptr->foreign_data_mutex);
+
+			return mx_status;
+		}
+
+		foreign_motor_ptr->u.motor.mx_motor = motor;
+
+		bluice_motor_ptr->foreign_device = foreign_motor_ptr;
+
+		mx_mutex_unlock( bluice_server_ptr->foreign_data_mutex );
+
+#if BLUICE_MOTOR_DEBUG
+		MX_DEBUG(-2,("%s: Successfully waited for device pointer "
+			"initialization of motor '%s'.",
+			fname, bluice_motor_record->name));
+#endif
 	}
 
 	if ( foreign_motor != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
-		*foreign_motor = bluice_motor_ptr->foreign_device;
-
-		if ( (*foreign_motor) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The foreign_device pointer for motor '%s' "
-			"has not been initialized.", motor->record->name );
-		}
+		*foreign_motor = foreign_motor_ptr;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*=======================================================================*/
 
 MX_EXPORT mx_status_type
 mxd_bluice_motor_create_record_structures( MX_RECORD *record )
@@ -319,59 +386,6 @@ mxd_bluice_motor_print_structure( FILE *file, MX_RECORD *record )
 		motor->raw_speed );
 
 	fprintf(file, "\n");
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bluice_motor_open( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_bluice_motor_open()";
-
-	MX_MOTOR *motor;
-	MX_BLUICE_MOTOR *bluice_motor;
-	MX_BLUICE_SERVER *bluice_server;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed was NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_bluice_motor_get_pointers( motor,
-				&bluice_motor, &bluice_server, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Wait 5 seconds for the Blu-Ice server thread to assign a value to
-	 * the foreign_motor pointer.
-	 */
-
-#if BLUICE_MOTOR_DEBUG
-	MX_DEBUG(-2,
-	    ("%s: About to wait for device pointer initialization.", fname));
-#endif
-
-	mx_status = mx_bluice_wait_for_device_pointer_initialization(
-						bluice_server,
-						bluice_motor->bluice_name,
-						MXT_BLUICE_FOREIGN_MOTOR,
-		 				&(bluice_server->motor_array),
-						&(bluice_server->num_motors),
-		  				&(bluice_motor->foreign_device),
-						5.0 );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if BLUICE_MOTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: Successfully waited for device pointer initialization.", fname));
-#endif
-
-	bluice_motor->foreign_device->u.motor.mx_motor = motor;
 
 	return MX_SUCCESSFUL_RESULT;
 }

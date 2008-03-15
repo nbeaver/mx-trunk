@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_STRING_DEBUG	FALSE
+#define BLUICE_STRING_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

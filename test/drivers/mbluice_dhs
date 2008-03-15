@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mbluice_dhs.dat -s ./sbluice_dhs.dat -i $*
+

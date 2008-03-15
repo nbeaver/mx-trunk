@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_COMMAND_DEBUG	FALSE
+#define BLUICE_COMMAND_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

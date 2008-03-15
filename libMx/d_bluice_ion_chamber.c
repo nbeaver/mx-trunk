@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define BLUICE_ION_CHAMBER_DEBUG	FALSE
+#define BLUICE_ION_CHAMBER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,13 +31,7 @@
 
 MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list = {
 	NULL,
-	mxd_bluice_ion_chamber_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_bluice_ion_chamber_open
+	mxd_bluice_ion_chamber_create_record_structures
 };
 
 MX_ANALOG_INPUT_FUNCTION_LIST
@@ -63,6 +57,11 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr
 
 /*=======================================================================*/
 
+/* WARNING: There is no guarantee that the foreign device pointer will
+ * already be initialized when mxd_bluice_ion_chamber_get_pointers() is
+ * invoked, so we have to test for this.
+ */
+
 static mx_status_type
 mxd_bluice_ion_chamber_get_pointers( MX_ANALOG_INPUT *analog_input,
 			MX_BLUICE_ION_CHAMBER **bluice_ion_chamber,
@@ -72,27 +71,36 @@ mxd_bluice_ion_chamber_get_pointers( MX_ANALOG_INPUT *analog_input,
 {
 	static const char fname[] = "mxd_bluice_ion_chamber_get_pointers()";
 
+	MX_RECORD *bluice_ion_chamber_record;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber_ptr;
 	MX_RECORD *bluice_server_record;
+	MX_BLUICE_SERVER *bluice_server_ptr;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber_ptr;
+	mx_status_type mx_status;
+	long mx_status_code;
+
+	/* In this section, we do standard MX ..._get_pointers() logic. */
 
 	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_ANALOG_INPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( bluice_ion_chamber == (MX_BLUICE_ION_CHAMBER **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_BLUICE_ION_CHAMBER pointer passed by '%s' was NULL.",
-			calling_fname );
+
+	bluice_ion_chamber_record = analog_input->record;
+
+	if ( bluice_ion_chamber_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_ANALOG_INPUT pointer %p "
+		"passed was NULL.", analog_input );
 	}
 
-	bluice_ion_chamber_ptr = (MX_BLUICE_ION_CHAMBER *)
-				analog_input->record->record_type_struct;
+	bluice_ion_chamber_ptr = bluice_ion_chamber_record->record_type_struct;
 
 	if ( bluice_ion_chamber_ptr == (MX_BLUICE_ION_CHAMBER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_BLUICE_ION_CHAMBER pointer for record '%s' is NULL.",
-			analog_input->record->name );
+			bluice_ion_chamber_record->name );
 	}
 
 	if ( bluice_ion_chamber != (MX_BLUICE_ION_CHAMBER **) NULL ) {
@@ -104,45 +112,101 @@ mxd_bluice_ion_chamber_get_pointers( MX_ANALOG_INPUT *analog_input,
 	if ( bluice_server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The 'bluice_server_record' pointer for record '%s' "
-		"is NULL.", analog_input->record->name );
+		"is NULL.", bluice_ion_chamber_record->name );
 	}
 
-	switch( bluice_server_record->mx_type ) {
-	case MXN_BLUICE_DCSS_SERVER:
-	case MXN_BLUICE_DHS_SERVER:
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Blu-Ice server record '%s' should be either of type "
-		"'bluice_dcss_server' or 'bluice_dhs_server'.  Instead, it is "
-		"of type '%s'.",
+	bluice_server_ptr = bluice_server_record->record_class_struct;
+
+	if ( bluice_server_ptr == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for Blu-Ice server "
+		"record '%s' used by record '%s' is NULL.",
 			bluice_server_record->name,
-			mx_get_driver_name( bluice_server_record ) );
+			bluice_ion_chamber_record->name );
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
-		*bluice_server = (MX_BLUICE_SERVER *)
-				bluice_server_record->record_class_struct;
+		*bluice_server = bluice_server_ptr;
+	}
 
-		if ( (*bluice_server) == (MX_BLUICE_SERVER *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_BLUICE_SERVER pointer for Blu-Ice server "
-			"record '%s' used by record '%s' is NULL.",
+	/* In this section, we check to see if the pointer to the Blu-Ice
+	 * foreign device structure has been set up yet.
+	 */
+
+	if ( foreign_ion_chamber != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
+		*foreign_ion_chamber = NULL;
+	}
+
+	foreign_ion_chamber_ptr = bluice_ion_chamber_ptr->foreign_device;
+
+	if ( foreign_ion_chamber_ptr == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		double timeout;
+
+		/* If not, wait a while for the pointer to be set up. */
+
+		switch( bluice_server_record->mx_type ) {
+		case MXN_BLUICE_DCSS_SERVER:
+			timeout = 5.0;
+			break;
+		case MXN_BLUICE_DHS_SERVER:
+			timeout = 0.1;
+			break;
+		default:
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"Blu-Ice server record '%s' should be either of type "
+			"'bluice_dcss_server' or 'bluice_dhs_server'.  "
+			"Instead, it is of type '%s'.",
 				bluice_server_record->name,
-				analog_input->record->name );
+				mx_get_driver_name( bluice_server_record ) );
 		}
+
+#if BLUICE_ION_CHAMBER_DEBUG
+		MX_DEBUG(-2,("%s: About to wait for device pointer "
+			"initialization of ion chamber '%s' for function '%s'.",
+			fname, bluice_ion_chamber_record->name, calling_fname));
+#endif
+		mx_status_code = mx_mutex_lock(
+				bluice_server_ptr->foreign_data_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			return mx_error( mx_status_code, fname,
+			"An attempt to lock the foreign data mutex for "
+			"Blu-ice server '%s' failed.",
+				bluice_server_record->name );
+		}
+
+		mx_status = mx_bluice_wait_for_device_pointer_initialization(
+					bluice_server_ptr,
+					bluice_ion_chamber_ptr->bluice_name,
+					MXT_BLUICE_FOREIGN_ION_CHAMBER,
+					&(bluice_server_ptr->ion_chamber_array),
+					&(bluice_server_ptr->num_ion_chambers),
+					&foreign_ion_chamber_ptr,
+					timeout );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_mutex_unlock(bluice_server_ptr->foreign_data_mutex);
+
+			return mx_status;
+		}
+
+		foreign_ion_chamber_ptr->u.ion_chamber.mx_analog_input
+						= analog_input;
+
+		bluice_ion_chamber_ptr->foreign_device
+						= foreign_ion_chamber_ptr;
+
+		mx_mutex_unlock( bluice_server_ptr->foreign_data_mutex );
+
+#if BLUICE_ION_CHAMBER_DEBUG
+		MX_DEBUG(-2,("%s: Successfully waited for device pointer "
+			"initialization of ion chamber '%s'.",
+			fname, bluice_ion_chamber_record->name));
+#endif
 	}
 
 	if ( foreign_ion_chamber != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
-		*foreign_ion_chamber = bluice_ion_chamber_ptr->foreign_device;
-
-		if ( (*foreign_ion_chamber) ==
-				(MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The foreign_device pointer for analog_input '%s' "
-			"has not been initialized.",
-				analog_input->record->name );
-		}
+		*foreign_ion_chamber = foreign_ion_chamber_ptr;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -191,57 +255,6 @@ mxd_bluice_ion_chamber_create_record_structures( MX_RECORD *record )
 	/* Raw analog input values are stored as doubles. */
 
 	ainput->subclass = MXT_AIN_DOUBLE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bluice_ion_chamber_open( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_bluice_ion_chamber_open()";
-
-	MX_ANALOG_INPUT *ainput;
-	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
-	MX_BLUICE_SERVER *bluice_server;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed was NULL." );
-	}
-
-	ainput = (MX_ANALOG_INPUT *) record->record_class_struct;
-
-	mx_status = mxd_bluice_ion_chamber_get_pointers( ainput,
-			&bluice_ion_chamber, &bluice_server, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if BLUICE_ION_CHAMBER_DEBUG
-	MX_DEBUG(-2,
-	    ("%s: About to wait for device pointer initialization.", fname));
-#endif
-
-	mx_status = mx_bluice_wait_for_device_pointer_initialization(
-					bluice_server,
-					bluice_ion_chamber->bluice_name,
-					MXT_BLUICE_FOREIGN_ION_CHAMBER,
-					&(bluice_server->ion_chamber_array),
-					&(bluice_server->num_ion_chambers),
-					&(bluice_ion_chamber->foreign_device),
-					5.0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if BLUICE_ION_CHAMBER_DEBUG
-	MX_DEBUG(-2,
-	("%s: Successfully waited for device pointer initialization.", fname));
-#endif
-
-	bluice_ion_chamber->foreign_device->u.ion_chamber.mx_analog_input
-								= ainput;
 
 	return MX_SUCCESSFUL_RESULT;
 }
