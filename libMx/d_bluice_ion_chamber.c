@@ -270,6 +270,8 @@ mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput )
 	mx_status_type mx_status;
 	long mx_status_code;
 
+	bluice_server = NULL; foreign_ion_chamber = NULL;
+
 	mx_status = mxd_bluice_ion_chamber_get_pointers( ainput,
 				&bluice_ion_chamber, &bluice_server,
 				&foreign_ion_chamber, fname );

@@ -1059,6 +1059,12 @@ MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 						unsigned long roi_number,
 						MX_IMAGE_FRAME **roi_frame );
 
+MX_API mx_status_type mx_area_detector_get_parameter( MX_RECORD *ad_record,
+						long parameter_type );
+
+MX_API mx_status_type mx_area_detector_set_parameter( MX_RECORD *ad_record,
+						long parameter_type );
+
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_correction_frame(

@@ -73,7 +73,6 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 	MX_BLUICE_FOREIGN_DEVICE **foreign_ion_chamber_array;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	long i, n, num_ion_chambers;
-	mx_status_type mx_status;
 	long mx_status_code;
 
 #if BLUICE_TIMER_DEBUG
@@ -226,7 +225,7 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 	}
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*=======================================================================*/

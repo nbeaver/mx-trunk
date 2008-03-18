@@ -3529,6 +3529,70 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_parameter( MX_RECORD *ad_record, long parameter_type )
+{
+	static const char fname[] = "mx_area_detector_get_parameter()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *fptr ) ( MX_AREA_DETECTOR * );
+	mx_status_type status;
+
+	status = mx_area_detector_get_pointers( ad_record,
+					&ad, &fl_ptr, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	fptr = fl_ptr->get_parameter;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+"The get_parameter function is not supported by the driver for record '%s'.",
+			ad_record->name );
+	}
+
+	ad->parameter_type = parameter_type;
+
+	status = ( *fptr ) ( ad );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_parameter( MX_RECORD *ad_record, long parameter_type )
+{
+	static const char fname[] = "mx_area_detector_set_parameter()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *fptr ) ( MX_AREA_DETECTOR * );
+	mx_status_type status;
+
+	status = mx_area_detector_get_pointers( ad_record,
+					&ad, &fl_ptr, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	fptr = fl_ptr->set_parameter;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+"The set_parameter function is not supported by the driver for record '%s'.",
+			ad_record->name );
+	}
+
+	ad->parameter_type = parameter_type;
+
+	status = ( *fptr ) ( ad );
+
+	return status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					unsigned long frame_type,
