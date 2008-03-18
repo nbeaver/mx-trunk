@@ -70,6 +70,7 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 {
 	static const char fname[] = "mxd_bluice_timer_setup_ion_chambers()";
 
+	MX_RECORD *current_record, *timer_record;
 	MX_BLUICE_FOREIGN_DEVICE **foreign_ion_chamber_array;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	long i, n, num_ion_chambers;
@@ -79,8 +80,44 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
 #endif
 
-	/* Go through the ion chamber array to find out how many of
-	 * the Blu-Ice controlled ion chambers use this timer.
+	/* Invoke mx_analog_input_read() on all of the bluice_ion_chamber
+	 * records in the database.  Doing this ensures that the Blu-Ice
+	 * foreign data structures for all of the bluice_ion_chamber
+	 * records have been initialized before we proceed on to the code
+	 * that follows.
+	 */
+
+	timer_record = timer->record;
+
+	if ( timer_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_TIMER %p passed was NULL.",
+			timer );
+	}
+
+	current_record = timer_record->next_record;
+
+	/* Go through all of the records in the circular list. */
+
+	while ( current_record != timer_record ) {
+
+		/* If the current record is a bluice_ion_chamber record,
+		 * attempt to read from it.
+		 */
+
+		if ( current_record->mx_type == MXT_AIN_BLUICE_ION_CHAMBER ) {
+#if BLUICE_TIMER_DEBUG
+			MX_DEBUG(-2,("%s: Initializing ion chamber '%s'",
+				fname, current_record->name ));
+#endif
+			(void) mx_analog_input_read( current_record, NULL );
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	/* Go through the Blu-Ice ion chamber array to find out how many
+	 * of the Blu-Ice controlled ion chambers use this timer.
 	 */
 
 	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
@@ -126,11 +163,16 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 		}
 	}
 
+#if BLUICE_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: timer '%s' num_ion_chambers = %ld",
+		fname, timer_record->name, num_ion_chambers));
+#endif
+
 	if ( num_ion_chambers == 0 ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		mx_warning( "Blu-Ice timer '%s' does not seem to control "
-		"any Blu-Ice ion chambers.", timer->record->name );
+		"any Blu-Ice ion chambers.", timer_record->name );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -173,7 +215,7 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 			"through.  Since we have the data structures "
 			"locked, this should never happen.",
 				bluice_server->record->name,
-				timer->record->name,
+				timer_record->name,
 				num_ion_chambers );
 		}
 
@@ -214,7 +256,7 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 
 #if BLUICE_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Ion chambers for Blu-Ice timer '%s' are ",
-				fname, timer->record->name));
+				fname, timer_record->name));
 
 	for ( i = 0; i < bluice_timer->num_ion_chambers; i++ ) {
 		foreign_ion_chamber =

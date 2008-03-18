@@ -1442,10 +1442,12 @@ mx_network_buffer_show_value( void *buffer,
 	mx_bool_type little_endian_byteorder;
 	mx_status_type mx_status;
 
-	/* GCC 4's uninitialized variable stuff made me do the following. */
+	/* Initialize some variables. */
 
+	raw_xdr_array_length = 0;
 	xdr_scalar_element_size = 0;
 	xdr_buffer_is_array = FALSE;
+	uint32_buffer = NULL;
 
 	/* For GET_ARRAY and PUT_ARRAY in ASCII format, we treat the body
 	 * of the message as a single string.
