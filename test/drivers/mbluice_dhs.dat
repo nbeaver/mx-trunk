@@ -1,3 +1,4 @@
+dhs_manager   server generic bluice_dhs_manager "" "" 12424 0x0
 s1            server bluice bluice_dhs_server "" "" 0x0
 master        variable bluice_variable bluice_master "" "" s1 1 1 0
 command       variable bluice_variable bluice_command "" "" s1 1 80 ""

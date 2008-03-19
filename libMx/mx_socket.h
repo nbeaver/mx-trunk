@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -228,7 +228,7 @@ MX_API mx_status_type mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 MX_API mx_status_type mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 					mx_bool_type non_blocking_flag );
 
-MX_API int  mx_socket_is_open( MX_SOCKET *mx_socket );
+MX_API mx_bool_type mx_socket_is_open( MX_SOCKET *mx_socket );
 
 MX_API void mx_socket_mark_as_closed( MX_SOCKET *mx_socket );
 

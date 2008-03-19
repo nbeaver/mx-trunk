@@ -54,51 +54,26 @@ long mxn_bluice_dhs_server_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_server_rfield_def_ptr
 			= &mxn_bluice_dhs_server_rf_defaults[0];
 
-#if 0
-
 /*-------------------------------------------------------------------------*/
 
 typedef mx_status_type (MXN_BLUICE_DHS_MSG_HANDLER)( MX_THREAD *,
 		MX_RECORD *, MX_BLUICE_SERVER *, MX_BLUICE_DHS_SERVER *);
 
-static MXN_BLUICE_DHS_MSG_HANDLER stog_become_master;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_become_slave;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_configure_ion_chamber;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_configure_motor;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_configure_shutter;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_configure_string;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_log;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_motor_move_completed;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_motor_move_started;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_report_ion_chambers;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_report_shutter_state;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_set_permission_level;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_set_string_completed;
-static MXN_BLUICE_DHS_MSG_HANDLER stog_update_motor_position;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_completed;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_started;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_report_ion_chambers;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_report_shutter_state;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_update_motor_position;
 
 static struct {
 	char message_name[40];
 	MXN_BLUICE_DHS_MSG_HANDLER *message_handler;
 } dhs_handler_list[] = {
-	{"stog_configure_hardware_host", NULL},
-	{"stog_configure_ion_chamber", stog_configure_ion_chamber},
-	{"stog_configure_operation", NULL},
-	{"stog_configure_pseudo_motor", stog_configure_motor},
-	{"stog_configure_real_motor", stog_configure_motor},
-	{"stog_configure_run", NULL},
-	{"stog_configure_runs", NULL},
-	{"stog_configure_shutter", stog_configure_shutter},
-	{"stog_configure_string", stog_configure_string},
-	{"stog_log", stog_log},
-	{"stog_motor_move_completed", stog_motor_move_completed},
-	{"stog_motor_move_started", stog_motor_move_started},
-	{"stog_report_ion_chambers", stog_report_ion_chambers},
-	{"stog_report_shutter_state", stog_report_shutter_state},
-	{"stog_set_permission_level", stog_set_permission_level},
-	{"stog_set_string_completed", stog_set_string_completed},
-	{"stog_update_client", NULL},
-	{"stog_update_client_list", NULL},
-	{"stog_update_motor_position", stog_update_motor_position},
+	{"htos_motor_move_completed", htos_motor_move_completed},
+	{"htos_motor_move_started", htos_motor_move_started},
+	{"htos_report_ion_chambers", htos_report_ion_chambers},
+	{"htos_report_shutter_state", htos_report_shutter_state},
+	{"htos_update_motor_position", htos_update_motor_position},
 };
 
 static int num_dhs_handlers = sizeof( dhs_handler_list )
@@ -124,6 +99,8 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 	char message_type_format[20];
 	int i, num_items;
 	mx_status_type mx_status;
+
+	num_dhs_handlers = num_dhs_handlers;	/* FIXME: Take this out! */
 
 	if ( args == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -165,7 +142,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: received '%s' from Blu-Ice server '%s'.",
 			fname, bluice_server->receive_buffer,
 			dhs_server_record->name ));
@@ -227,91 +204,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 }
 
 static mx_status_type
-stog_configure_ion_chamber( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_configure_ion_chamber( bluice_server,
-					bluice_server->receive_buffer );
-	return mx_status;
-}
-
-static mx_status_type
-stog_configure_motor( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_configure_motor( bluice_server,
-					bluice_server->receive_buffer );
-	return mx_status;
-}
-
-static mx_status_type
-stog_configure_shutter( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_configure_shutter( bluice_server,
-					bluice_server->receive_buffer );
-	return mx_status;
-}
-
-static mx_status_type
-stog_configure_string( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_configure_string( bluice_server,
-					bluice_server->receive_buffer );
-	return mx_status;
-}
-
-static mx_status_type
-stog_log( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-#if BLUICE_DHS_DEBUG
-	static const char fname[] = "stog_log()";
-#endif
-
-	long severity, locale;
-	char device_name[MXU_BLUICE_NAME_LENGTH+1];
-	char message_body[500];
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_parse_log_message( bluice_server->receive_buffer,
-					&severity, &locale,
-					device_name, sizeof(device_name),
-					message_body, sizeof(message_body) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if BLUICE_DHS_DEBUG
-	MX_DEBUG(-2,
-    ("%s: severity = %d, locale = %d, device_name = '%s', message_body = '%s'.",
-		fname, severity, locale, device_name, message_body));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-stog_motor_move_completed( MX_THREAD *thread,
+htos_motor_move_completed( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
@@ -325,7 +218,7 @@ stog_motor_move_completed( MX_THREAD *thread,
 }
 
 static mx_status_type
-stog_motor_move_started( MX_THREAD *thread,
+htos_motor_move_started( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
@@ -339,12 +232,12 @@ stog_motor_move_started( MX_THREAD *thread,
 }
 
 static mx_status_type
-stog_report_ion_chambers( MX_THREAD *thread,
+htos_report_ion_chambers( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
 {
-	static const char fname[] = "stog_report_ion_chambers()"; 
+	static const char fname[] = "htos_report_ion_chambers()"; 
 
 	MX_TIMER *timer;
 	MX_BLUICE_TIMER *bluice_timer;
@@ -476,7 +369,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The supposed stog_report_ion_chambers message from "
+		"The supposed htos_report_ion_chambers message from "
 		"Blu-Ice server '%s' is actually blank.  "
 		"This should never happen.", bluice_server->record->name );
 	}
@@ -565,12 +458,12 @@ stog_report_ion_chambers( MX_THREAD *thread,
 }
 
 static mx_status_type
-stog_report_shutter_state( MX_THREAD *thread,
+htos_report_shutter_state( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
 {
-	static const char fname[] = "stog_report_shutter_state()"; 
+	static const char fname[] = "htos_report_shutter_state()"; 
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	char *ptr, *token_ptr, *shutter_name;
@@ -669,37 +562,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 }
 
 static mx_status_type
-stog_set_string_completed( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_configure_string( bluice_server,
-						bluice_server->receive_buffer );
-
-	return mx_status;
-}
-
-static mx_status_type
-stog_set_permission_level( MX_THREAD *thread,
-			MX_RECORD *server_record,
-			MX_BLUICE_SERVER *bluice_server,
-			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
-{
-#if BLUICE_DHS_DEBUG
-	static const char fname[] = "stog_set_permission_level()"; 
-
-	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
-		fname, bluice_server->receive_buffer, server_record->name ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-stog_update_motor_position( MX_THREAD *thread,
+htos_update_motor_position( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
@@ -711,8 +574,6 @@ stog_update_motor_position( MX_THREAD *thread,
 						TRUE );
 	return mx_status;
 }
-
-#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -772,22 +633,11 @@ mxn_bluice_dhs_server_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxn_bluice_dhs_server_open( MX_RECORD *record )
 {
-#if 0
 	static const char fname[] = "mxn_bluice_dhs_server_open()";
 
 	MX_LIST_HEAD *list_head;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
-	char user_name[MXU_USERNAME_LENGTH+1];
-	char host_name[MXU_HOSTNAME_LENGTH+1];
-	char display_name[MXU_HOSTNAME_LENGTH+10];
-	char session_id[MXU_AUTHENTICATION_DATA_LENGTH+1];
-	char client_type_response[CLIENT_TYPE_RESPONSE_LENGTH+1];
-	char *display_name_ptr;
-	int i, num_retries, num_items, need_authentication;
-	long num_bytes_available;
-	unsigned long wait_ms, flags;
-	long actual_data_length;
 	mx_status_type mx_status;
 
 #if BLUICE_DHS_DEBUG
@@ -836,217 +686,15 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 	bluice_server->receive_buffer_length
 		= MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH;
 
-	/* Gather information for the response for the initial
-	 * 'stoc_send_client_type' message.
-	 */
+	/* Listen for connections from the DHS on the server port. */
 
-	mx_status = mx_gethostname( host_name, MXU_HOSTNAME_LENGTH );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	display_name_ptr = getenv("DISPLAY");
-
-	if ( display_name_ptr == NULL ) {
-		strlcpy( display_name, ":0", sizeof(display_name) );
-	} else {
-		strlcpy( display_name, display_name_ptr, sizeof(display_name) );
-	}
-
-	/* Do we need to authenticate the user? */
-
-	flags = bluice_dhs_server->bluice_dhs_flags;
-
-	if ( flags & MXF_BLUICE_DHS_REQUIRE_USERNAME ) {
-		need_authentication = TRUE;
-	} else
-	if ( flags & MXF_BLUICE_DHS_REQUIRE_PASSWORD ) {
-		need_authentication = TRUE;
-	} else {
-		need_authentication = FALSE;
-	}
-
-	if ( need_authentication == FALSE ) {
-
-		/* If no authentication is needed, then the
-		 * 'authentication_data' field will be sent
-		 * to DHS as the session id.
-		 */
-
-		mx_username( user_name, MXU_USERNAME_LENGTH );
-
-		strlcpy( session_id,
-			bluice_dhs_server->authentication_data,
-			sizeof(session_id) );
-	} else {
-		/* If authentication is needed, then the
-		 * 'authentication_data' field must contain
-		 * the hostname and port number of the 
-		 * authentication server using the format
-		 * 
-		 *    hostname:portnumber
-		 */
-
-		 /* Connect to the authentication server to get
-		  * a session ID.
-		  */
-
-		mx_status = mxn_bluice_dhs_server_get_session_id(
-				bluice_dhs_server,
-				user_name,
-				MXU_USERNAME_LENGTH,
-				session_id,
-				sizeof(session_id) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	/* Construct the 'htos_client_is_gui' response from the
-	 * information we have gathered.
-	 */
-
-	snprintf( client_type_response, sizeof(client_type_response),
-		"htos_client_is_gui %s %s %s %s",
-		user_name, session_id, host_name, display_name );
-
-	/* Now we are ready to connect to the DHS. */
-
-	mx_status = mx_tcp_socket_open_as_client( &(bluice_server->socket),
-				bluice_dhs_server->hostname,
+	mx_status = mx_tcp_socket_open_as_server( &(bluice_server->socket),
 				bluice_dhs_server->port_number,
 				MXF_SOCKET_DISABLE_NAGLE_ALGORITHM,
 				MX_SOCKET_DEFAULT_BUFFER_SIZE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* The DHS should send us a 'stoc_send_client_type' message
-	 * almost immediately.  Wait for this to happen.
-	 */
-
-	wait_ms = 100;
-	num_retries = 100;
-
-	for ( i = 0; i < num_retries; i++ ) {
-		mx_status = mx_socket_num_input_bytes_available(
-						bluice_server->socket,
-						&num_bytes_available );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( num_bytes_available > 0 )
-			break;			/* Exit the for() loop. */
-
-		mx_msleep( wait_ms );
-	}
-
-	if ( i >= num_retries ) {
-		return mx_error( MXE_TIMED_OUT, fname,
-			"Timed out waiting for the initial message from "
-			"Blu-Ice DHS server '%s' after %g seconds.",
-				record->name,
-				0.001 * (double) ( num_retries * wait_ms ) );
-	}
-
-	/* The first message has arrived.  Read it in to the
-	 * internal receive buffer.
-	 */
-
-	mx_status = mx_bluice_receive_message( record, NULL, 0,
-						&actual_data_length, -1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Is the message a 'stoc_send_client_type' message? */
-
-	if (strcmp(bluice_server->receive_buffer,"stoc_send_client_type") != 0)
-	{
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not receive the 'stoc_send_client_type' message from "
-		"Blu-Ice DHS server '%s' that we were expecting.  "
-		"Instead, we received '%s'.  Perhaps the server you have "
-		"specified is not a DHS server?",
-			record->name, bluice_server->receive_buffer );
-	}
-
-	/* Send back the client type response. */
-
-	mx_status = mx_bluice_send_message( record,
-					client_type_response, NULL, 0, 200 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* If DHS recognizes the username we sent, it will then send
-	 * us a success message.
-	 */
-
-	wait_ms = 100;
-	num_retries = 100;
-
-	for ( i = 0; i < num_retries; i++ ) {
-		mx_status = mx_socket_num_input_bytes_available(
-						bluice_server->socket,
-						&num_bytes_available );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( num_bytes_available > 0 )
-			break;			/* Exit the for() loop. */
-
-		mx_msleep( wait_ms );
-	}
-
-	if ( i >= num_retries ) {
-		return mx_error( MXE_TIMED_OUT, fname,
-			"Timed out waiting for login status from "
-			"Blu-Ice DHS server '%s' after %g seconds.",
-				record->name,
-				0.001 * (double) ( num_retries * wait_ms ) );
-	}
-
-	/* The status message has arrived.  Read it in to the
-	 * internal receive buffer.
-	 */
-
-	mx_status = mx_bluice_receive_message( record, NULL, 0,
-						&actual_data_length, -1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Is the message a 'stoc_login_complete' message? */
-
-	if ( strncmp( bluice_server->receive_buffer,
-			"stog_login_complete", 19 ) != 0 )
-	{
-		return mx_error( MXE_PERMISSION_DENIED, fname,
-		"Blu-Ice DHS login was not successful for user '%s' "
-		"at server '%s'.  Response from server = '%s'",
-		    user_name, record->name, bluice_server->receive_buffer );
-	}
-
-	num_items = sscanf( bluice_server->receive_buffer,
-			"stog_login_complete %lu",
-			&(bluice_dhs_server->client_number) );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Did not find the client number in the message '%s' "
-		"from DHS server '%s'.",
-			bluice_server->receive_buffer, record->name );
-	}
-
-	bluice_dhs_server->is_authenticated = TRUE;
-
-#if BLUICE_DHS_DEBUG
-	MX_DEBUG(-2,("%s: DHS login successful for client %lu.",
-		fname, bluice_dhs_server->client_number));
-#endif
 
 	/* At this point we need to create a thread that monitors
 	 * messages sent by the DHS server.  From this point on,
@@ -1060,9 +708,6 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 			record );
 
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 #define MX_BLUICE_DHS_CLOSE_WAIT_TIME	(5.0)		/* in seconds */
@@ -1070,7 +715,6 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxn_bluice_dhs_server_close( MX_RECORD *record )
 {
-#if 0
 	static const char fname[] = "mxn_bluice_dhs_server_close()";
 
 	MX_BLUICE_SERVER *bluice_server;
@@ -1239,9 +883,7 @@ mxn_bluice_dhs_server_close( MX_RECORD *record )
 
 #endif /* Disabled for now. */
 
-#else
 	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 MX_EXPORT mx_status_type

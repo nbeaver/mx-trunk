@@ -26,6 +26,7 @@
 typedef struct {
 	MX_RECORD *record;
 
+	long port_number;
 	unsigned long bluice_dhs_flags;
 
 	MX_THREAD *dhs_monitor_thread;
@@ -46,9 +47,12 @@ extern long mxn_bluice_dhs_server_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_server_rfield_def_ptr;
 
 #define MXN_BLUICE_DHS_SERVER_STANDARD_FIELDS \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DHS_SERVER, port_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "bluice_dhs_flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_BLUICE_DHS_SERVER, bluice_dhs_flags), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DHS_SERVER, bluice_dhs_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __N_BLUICE_DHS_H__ */

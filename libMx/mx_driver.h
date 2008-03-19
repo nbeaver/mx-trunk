@@ -772,6 +772,8 @@ extern "C" {
 #define MXN_BLUICE_DCSS_SERVER		602001
 #define MXN_BLUICE_DHS_SERVER		602002
 
+#define MXN_BLUICE_DHS_MANAGER		602101
+
 /* --- Special types --- */
 
 #define MXZ_GRP_STANDARD		700001

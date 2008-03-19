@@ -1133,7 +1133,7 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT int
+MX_EXPORT mx_bool_type
 mx_socket_is_open( MX_SOCKET *mx_socket )
 {
 	/* Check for simple error cases. */

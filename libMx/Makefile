@@ -164,7 +164,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \
 	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
-	n_bluice_dcss.c n_bluice_dhs.c n_spec.c n_tcpip.c n_unix.c \
+	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
+	n_spec.c n_tcpip.c n_unix.c \
 	u_xia_dxp.c v_aps_topup.c \
 	v_bluice_command.c v_bluice_master.c v_bluice_string.c \
 	v_mathop.c v_pmac.c v_position_select.c v_spec.c

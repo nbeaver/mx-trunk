@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -501,6 +501,7 @@
 #include "n_spec.h"
 #include "n_bluice_dcss.h"
 #include "n_bluice_dhs.h"
+#include "n_bluice_dhs_manager.h"
 #endif
 
 #if HAVE_EPICS
@@ -3904,6 +3905,12 @@ MX_DRIVER mx_type_list[] = {
 				NULL, NULL,
 				&mxn_bluice_dhs_server_num_record_fields,
 				&mxn_bluice_dhs_server_rfield_def_ptr},
+
+{"bluice_dhs_manager", MXN_BLUICE_DHS_MANAGER,  MXI_GENERIC,  MXR_SERVER,
+				&mxn_bluice_dhs_manager_record_function_list,
+				NULL, NULL,
+				&mxn_bluice_dhs_manager_num_record_fields,
+				&mxn_bluice_dhs_manager_rfield_def_ptr},
 #endif
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
