@@ -1193,8 +1193,14 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	long actual_data_length;
 	mx_status_type mx_status;
 
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
 #if BLUICE_DCSS_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, record->name));
 #endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;

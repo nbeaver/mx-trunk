@@ -77,7 +77,25 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 	MX_RECORD *dhs_manager_record;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
+	MX_SOCKET *dhs_socket;
+	double timeout_in_seconds;
+	int manager_socket_fd, saved_errno;
+	char *error_string;
+	void *client_address_ptr;
+	struct sockaddr_in client_address;
+	mx_socklen_t client_address_size = sizeof( struct sockaddr_in );
 	mx_status_type mx_status;
+
+	char message_header[MX_BLUICE_MSGHDR_LENGTH+1];
+
+	static char stoc_send_client_type[] = "stoc_send_client_type";
+	size_t stoc_length;
+
+	stoc_length = strlen( stoc_send_client_type ) + 1;
+
+	client_address_ptr = &client_address;
+
+	/*-------------------------------------------------------*/
 
 	if ( args == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -102,74 +120,163 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-#if 0
-	snprintf( message_type_format, sizeof(message_type_format),
-			"%%%lus", (unsigned long) sizeof(message_type_name) );
+	manager_socket_fd = bluice_dhs_manager->socket->socket_fd;
 
 	for (;;) {
-		mx_status = mx_bluice_receive_message( dhs_manager_record,
-					NULL, 0, &actual_data_length, -1 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if 1
-		MX_DEBUG(-2,("%s: received '%s' from Blu-Ice server '%s'.",
-			fname, bluice_server->receive_buffer,
-			dhs_manager_record->name ));
-#endif
-
-		/* Figure out what kind of message this is. */
-
-		num_items = sscanf( bluice_server->receive_buffer,
-				message_type_format,
-				message_type_name );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Message type name not found in message '%s' "
-			"received from DHS server '%s'.",
-				bluice_server->receive_buffer,
-				dhs_manager_record->name );
-		}
-
-		for ( i = 0; i < num_dhs_handlers; i++ ) {
-			if ( strcmp( message_type_name, 
-				dhs_handler_list[i].message_name ) == 0 )
-			{
-				break;		/* Exit the for(i) loop. */
-			}
-		}
-
-		if ( i >= num_dhs_handlers ) {
-			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Message type '%s' received in message '%s' from "
-			"DHS server '%s' does not currently have a handler.",
-				message_type_name,
-				bluice_server->receive_buffer,
-				dhs_manager_record->name );
-		} else {
-			message_fn = dhs_handler_list[i].message_handler;
-
-			if ( message_fn == NULL ) {
-				MX_DEBUG( 2,("%s: Message type '%s' SKIPPED.",
-					fname, message_type_name ));
-			} else {
-				MX_DEBUG( 2,("%s: Invoking handler for '%s'",
-						fname, message_type_name));
-
-				mx_status = (*message_fn)( thread,
-						dhs_manager_record,
-						bluice_server,
-						bluice_dhs_manager );
-			}
-		}
-
 		mx_status = mx_thread_check_for_stop_request( thread );
-	}
+
+		/* See if a DHS process is attempting to connect. */
+
+		timeout_in_seconds = 1.0;
+
+		mx_status = mx_socket_wait_for_event(
+					bluice_dhs_manager->socket,
+					timeout_in_seconds );
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		if ( mx_status.code == MXE_TIMED_OUT ) {
+			(void) mx_error( mx_status.code,
+				mx_status.location, mx_status.message );
+
+			continue;  /* Go back to the top of the for(;;) loop. */
+		} else
+#endif
+		if ( mx_status.code != MXE_SUCCESS ) {
+			continue;  /* Go back to the top of the for(;;) loop. */
+		}
+
+		/* If we get here, then bluice_dhs_manager->socket
+		 * is readable.
+		 */
+
+		/* Allocate memory for a new MX_SOCKET structure. */
+
+		dhs_socket = (MX_SOCKET *) malloc( sizeof(MX_SOCKET) );
+
+		if ( dhs_socket == (MX_SOCKET *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate an "
+				"MX_SOCKET structure." );
+		}
+
+		/* Accept the connection. */
+
+		dhs_socket->socket_fd = accept( manager_socket_fd,
+					(struct sockaddr *) client_address_ptr,
+					&client_address_size );
+
+		saved_errno = mx_socket_check_error_status(
+					&(dhs_socket->socket_fd),
+					MXF_SOCKCHK_INVALID,
+					&error_string );
+
+		if ( saved_errno != 0 ) {
+
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"An attempt to perform an accept() on "
+			"DHS manager socket %d failed.  "
+			"Errno = %d.  Error string = '%s'.",
+				manager_socket_fd,
+				saved_errno, error_string );
+				
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: DHS socket fd = %d",
+				fname, dhs_socket->socket_fd));
+#endif
+		/* Send an stoc_send_client_type message to the DHS. */
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: sending '%s' command to DHS socket fd %d",
+			  fname, stoc_send_client_type, dhs_socket->socket_fd));
+#endif
+		/* First send the header. */
+
+		snprintf( message_header, sizeof(message_header),
+				"%*lu0",
+				MX_BLUICE_MSGHDR_TEXT_LENGTH,
+				(unsigned long) stoc_length );
+
+		mx_status = mx_socket_send( dhs_socket,
+						&message_header,
+						MX_BLUICE_MSGHDR_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"The attempt by DHS manager record '%s' "
+			"to send a message header to "
+			"DHS socket %d failed.",
+				dhs_manager_record->name,
+				dhs_socket->socket_fd );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+		/* Then send the message body. */
+
+		mx_status = mx_socket_send( dhs_socket,
+						&stoc_send_client_type,
+						stoc_length );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"The attempt by DHS manager record '%s' "
+			"to send a message header to "
+			"DHS socket %d failed.",
+				dhs_manager_record->name,
+				dhs_socket->socket_fd );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: '%s' successfully sent.",
+				fname, stoc_send_client_type));
 #endif
 
-#if 1 || ( defined(OS_HPUX) && !defined(__ia64) )
+		/* Wait up to 1 second for a message reply. */
+
+		timeout_in_seconds = 1.0;
+
+		mx_status = mx_socket_wait_for_event( dhs_socket,
+						timeout_in_seconds );
+
+		if ( mx_status.code == MXE_TIMED_OUT ) {
+			(void) mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after waiting %g seconds for DHS socket %d "
+			"to respond to an stoc_send_client_type message.",
+				timeout_in_seconds,
+				dhs_socket->socket_fd );
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		} else
+		if ( mx_status.code != MXE_SUCCESS ) {
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: Reading response header from DHS socket %d",
+				fname, dhs_socket->socket_fd ));
+#endif
+	}
+
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;
 #endif
 
@@ -183,19 +290,9 @@ mxn_bluice_dhs_manager_create_record_structures( MX_RECORD *record )
 	static const char fname[] =
 			"mxn_bluice_dhs_manager_create_record_structures()";
 
-	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
-	mx_status_type mx_status;
 
 	/* Allocate memory for the necessary structures. */
-
-	bluice_server = (MX_BLUICE_SERVER *)
-				malloc( sizeof(MX_BLUICE_SERVER) );
-
-	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_BLUICE_SERVER structure." );
-	}
 
 	bluice_dhs_manager = (MX_BLUICE_DHS_MANAGER *)
 				malloc( sizeof(MX_BLUICE_DHS_MANAGER) );
@@ -207,28 +304,15 @@ mxn_bluice_dhs_manager_create_record_structures( MX_RECORD *record )
 
 	/* Now set up the necessary pointers. */
 
-	record->record_class_struct = bluice_server;;
+	record->record_class_struct = NULL;;
 	record->record_type_struct = bluice_dhs_manager;
 	record->class_specific_function_list = NULL;
-
-	bluice_server->record = record;
-	bluice_server->socket = NULL;
 
 	bluice_dhs_manager->record = record;
 	bluice_dhs_manager->dhs_manager_thread = NULL;
 
-	mx_status = mx_mutex_create( &(bluice_server->socket_send_mutex) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_mutex_create( &(bluice_server->foreign_data_mutex) );
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
-
-#define CLIENT_TYPE_RESPONSE_LENGTH \
-	((2*MXU_HOSTNAME_LENGTH) + MXU_USERNAME_LENGTH + 100)
 
 MX_EXPORT mx_status_type
 mxn_bluice_dhs_manager_open( MX_RECORD *record )
@@ -236,12 +320,17 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 	static const char fname[] = "mxn_bluice_dhs_manager_open()";
 
 	MX_LIST_HEAD *list_head;
-	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
 	mx_status_type mx_status;
 
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
 #if BLUICE_DHS_MANAGER_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, record->name));
 #endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -251,14 +340,6 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 	if ( list_head == (MX_LIST_HEAD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
-
-	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_BLUICE_SERVER pointer for record '%s' is NULL.",
 			record->name );
 	}
 
@@ -273,28 +354,35 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 
 	/* Allocate memory for the receive buffer. */
 
-	bluice_server->receive_buffer =
+	bluice_dhs_manager->receive_buffer =
 		(char *) malloc( MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH );
 
-	if ( bluice_server->receive_buffer == (char *) NULL ) {
+	if ( bluice_dhs_manager->receive_buffer == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for a Blu-Ice message receive "
 		"buffer of length %lu.",
 		    (unsigned long) MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH  );
 	}
 
-	bluice_server->receive_buffer_length
+	bluice_dhs_manager->receive_buffer_length
 		= MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH;
 
 	/* Listen for connections from the DHS on the server port. */
 
-	mx_status = mx_tcp_socket_open_as_server( &(bluice_server->socket),
+	mx_status = mx_tcp_socket_open_as_server(
+				&(bluice_dhs_manager->socket),
 				bluice_dhs_manager->port_number,
 				MXF_SOCKET_DISABLE_NAGLE_ALGORITHM,
 				MX_SOCKET_DEFAULT_BUFFER_SIZE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if BLUICE_DHS_MANAGER_DEBUG
+	MX_DEBUG(-2,("%s: Opened DHS manager port %ld, socket %d",
+		fname, bluice_dhs_manager->port_number,
+		bluice_dhs_manager->socket->socket_fd));
+#endif
 
 	/* At this point we need to create a thread that monitors
 	 * messages sent by the DHS server.  From this point on,
@@ -317,20 +405,9 @@ mxn_bluice_dhs_manager_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxn_bluice_dhs_manager_close()";
 
-	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
-	MX_SOCKET *server_socket;
 	long thread_exit_status;
 	mx_status_type mx_status;
-	long mx_status_code;
-
-	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
-
-	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_BLUICE_SERVER pointer for record '%s' is NULL.",
-			record->name );
-	}
 
 	bluice_dhs_manager = 
 		(MX_BLUICE_DHS_MANAGER *) record->record_type_struct;
@@ -363,125 +440,6 @@ mxn_bluice_dhs_manager_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: DHS monitor thread stopped with exit status = %ld",
 		fname, thread_exit_status ));
 #endif
-
-	/* Lock the bluice_server mutexes so that other threads cannot
-	 * use the data structures while we are destroying them.  Get
-	 * copies of the pointers to the mutexes so that we can continue
-	 * to hold them while tearing down the bluice_server structure.
-	 */
-
-#if BLUICE_DHS_MANAGER_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: Locking the socket send mutex.", fname));
-#endif
-
-	mx_status_code = mx_mutex_lock( bluice_server->socket_send_mutex );
-
-	if ( mx_status_code != MXE_SUCCESS ) {
-		return mx_error( mx_status_code, fname,
-		"An attempt to lock the socket send mutex for Blu-Ice "
-		"server '%s' failed.", bluice_server->record->name );
-	}
-
-#if BLUICE_DHS_MANAGER_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: Locking the foreign data mutex.", fname));
-#endif
-
-	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
-
-	if ( mx_status_code != MXE_SUCCESS ) {
-		return mx_error( mx_status_code, fname,
-		"An attempt to lock the foreign data mutex for Blu-Ice "
-		"server '%s' failed.", bluice_server->record->name );
-	}
-
-#if BLUICE_DHS_MANAGER_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: Shutting down the server socket.", fname));
-#endif
-
-	server_socket = bluice_server->socket;
-
-	if ( server_socket != NULL ) {
-		mx_status = mx_socket_close( server_socket );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	bluice_server->socket = NULL;
-
-	/* FIXME: Successfully destroying all of the interrelated Blu-Ice
-	 * data structures in a thread-safe manner is difficult.  For example,
-	 * the MX_BLUICE_SERVER has a foreign data mutex that could be used
-	 * to prevent access.  But there is a window for a race condition
-	 * between the time another thread gets a pointer to the
-	 * MX_BLUICE_SERVER structure and the time that thread locks the
-	 * foreign data mutex in that structure.  During that window of
-	 * opportunity, it would be possible for MX_BLUICE_SERVER structure
-	 * to be free()-ed by the thread running this close() routine.
-	 * If that happened, then the other thread would core dump when
-	 * it tried to access the mutex through the free()-ed 
-	 * MX_BLUICE_SERVER pointer.
-	 *
-	 * For now, all that is important is that we make sure the monitor
-	 * thread is shut down before destroying the socket so that the
-	 * user does not get an error message from the socket routines.
-	 * This means that a lost connection to the Blu-Ice server currently
-	 * can only be dealt with by exiting the application program and then
-	 * reconnecting.
-	 */
-
-	/* FIXME: Return with the mutexes still locked.  We assume for now
-	 * that the program is shutting down.
-	 */
-
-	return mx_status;
-
-#if 0 /* Disabled for now. */
-
-	/* FIXME: If we did attempt to free all of the data structures,
-	 * it would resemble stuff like the following code.
-	 */
-
-#if BLUICE_DHS_MANAGER_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: Destroying ion chamber data structures.", fname));
-#endif
-
-	if ( bluice_server->ion_chamber_array != NULL ) {
-	    for ( i = 0; i < bluice_server->num_ion_chambers; i++ ) {
-		foreign_ion_chamber = bluice_server->ion_chamber_array[i];
-
-		    if ( foreign_ion_chamber != NULL ) {
-
-			/* Reach through to the timer record and delete the
-			 * entry in its array of foreign ion chambers.  This
-			 * is thread-safe since the 'bluice_timer' record is
-			 * expected to lock the Blu-Ice foreign data mutex
-			 * before using these data structures.
-			 */
-
-			mx_timer = foreign_ion_chamber->mx_timer;
-
-			bluice_timer = (MX_BLUICE_TIMER *)
-					mx_timer->record->record_type_struct;
-
-			for ( j = 0; j < bluice_timer->num_ion_chambers; j++ ) {
-			    if ( foreign_ion_chamber ==
-			    	bluice_timer->foreign_ion_chamber_array[j] )
-			    {
-			    	bluice_timer->foreign_ion_chamber_array[j]
-					= NULL;
-
-				break;    /* Exit the for(j) loop. */
-			    }
-			}
-		    }
-		}
-		mx_free( foreign_ion_chamber );
-	    }
-	    mx_free( bluice_server->ion_chamber_array );
-	}
-
-#endif /* Disabled for now. */
 
 	return MX_SUCCESSFUL_RESULT;
 }

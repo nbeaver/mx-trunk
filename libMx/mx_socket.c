@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_SOCKET_DEBUG		FALSE
+#define MX_SOCKET_DEBUG			FALSE
+
+#define MX_SOCKET_DEBUG_WAIT_FOR_EVENT	TRUE
 
 #include <stdio.h>
 
@@ -87,6 +89,118 @@ mx_socket_initialize( void )
 #endif
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_socket_wait_for_event()";
+
+	int socket_fd, fd_count, num_fds;
+	int saved_errno;
+	fd_set read_fds;
+
+	struct timeval timeout;
+	unsigned long tv_seconds;
+	unsigned long tv_microseconds;
+	double timeout_remainder;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	socket_fd = mx_socket->socket_fd;
+
+	tv_seconds = (unsigned long) timeout_in_seconds;
+
+	timeout_remainder = timeout_in_seconds - (double) tv_seconds;
+
+	tv_microseconds = (unsigned long) (1.0e6 * timeout_remainder);
+
+#if MX_SOCKET_DEBUG_WAIT_FOR_EVENT
+	MX_DEBUG(-2,("%s: socket_fd = %d, timeout = %g seconds",
+		fname, socket_fd, timeout_in_seconds));
+#endif
+
+	while(1) {
+		FD_ZERO( &read_fds );
+		FD_SET( socket_fd, &read_fds );
+
+		timeout.tv_sec = tv_seconds;
+		timeout.tv_usec = tv_microseconds;
+
+#if defined(OS_WIN32)
+		fd_count = -1;
+#else
+		fd_count = socket_fd + 1;
+#endif
+
+#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+		MX_DEBUG(-2,
+		("%s: About to call select() for manager socket fd = %d",
+			fname, socket_fd));
+#endif
+		num_fds = select( fd_count, &read_fds, NULL, NULL, &timeout );
+
+		saved_errno = errno;
+
+#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+		MX_DEBUG(-2,("%s: select() for socket %d, fd_count = %d, "
+			"num_fds = %d, errno = %d",
+			fname, socket_fd, fd_count,
+			num_fds, saved_errno));
+#endif
+		if ( num_fds < 0 ) {
+			if ( saved_errno == EINTR ) {
+#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+				MX_DEBUG(-2,
+				("%s: EINTR returned by select()", fname));
+#endif
+
+				/* Receiving an EINTR errno from select()
+				 * is normal.  It just means that a signal
+				 * handler fired while we were blocked in
+				 * the select() system call.
+				 */
+			} else {
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"Error in select() while waiting for events.  "
+				"Errno = %d.  Error string = '%s'.",
+					saved_errno, strerror( saved_errno ) );
+			}
+
+		} else if ( num_fds == 0 ) {
+
+			/* Did not get any events, so we return
+			 * a quiet timeout error.
+			 */
+
+			return mx_error( MXE_TIMED_OUT | MXE_QUIET, fname,
+			"Timed out after waiting %g seconds for socket %d "
+			"to become readable.", timeout_in_seconds, socket_fd );
+		} else {
+			/* Check to verify that FD_ISSET() is indeed set.*/
+
+			if ( FD_ISSET( socket_fd, &read_fds ) == 0 ) {
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"select() said that %d fds were ready to be "
+				"read, but socket %d says that it is _not_ "
+				"ready to be read.",
+					num_fds, socket_fd );
+			}
+
+			/* If we get here, then the socket is ready to be read,
+			 * so return a success status.
+			 */
+
+#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+			MX_DEBUG(-2,("%s: socket %d is ready to be read.",
+				fname, socket_fd));
+#endif
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
 }
 
 /********************************************************************/

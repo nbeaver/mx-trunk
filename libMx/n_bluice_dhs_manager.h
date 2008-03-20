@@ -30,6 +30,11 @@ typedef struct {
 	unsigned long bluice_dhs_manager_flags;
 
 	MX_THREAD *dhs_manager_thread;
+	MX_SOCKET *socket;
+
+	char *receive_buffer;
+	long receive_buffer_length;
+	long num_received_bytes;
 } MX_BLUICE_DHS_MANAGER;
 
 /* Define all of the client interface functions. */

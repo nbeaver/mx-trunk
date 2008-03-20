@@ -640,8 +640,14 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	mx_status_type mx_status;
 
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
 #if BLUICE_DHS_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, record->name));
 #endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -686,6 +692,7 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 	bluice_server->receive_buffer_length
 		= MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH;
 
+#if 0
 	/* Listen for connections from the DHS on the server port. */
 
 	mx_status = mx_tcp_socket_open_as_server( &(bluice_server->socket),
@@ -695,6 +702,7 @@ mxn_bluice_dhs_server_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	/* At this point we need to create a thread that monitors
 	 * messages sent by the DHS server.  From this point on,
