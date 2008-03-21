@@ -1,5 +1,5 @@
 /*
- * Name:     n_bluice_dhs.c
+ * Name:     n_bluice_dhs_manager.c
  *
  * Purpose:  Blu-Ice DCSS-like manager of DHS connection attempts.
  *
@@ -86,12 +86,16 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 	mx_socklen_t client_address_size = sizeof( struct sockaddr_in );
 	mx_status_type mx_status;
 
-	char message_header[MX_BLUICE_MSGHDR_LENGTH+1];
+	char message[500];
+	char message_type_name[40];
+	char dhs_name[40];
+	char protocol_name[40];
+	int num_items;
+	char format[40];
 
-	static char stoc_send_client_type[] = "stoc_send_client_type";
-	size_t stoc_length;
-
-	stoc_length = strlen( stoc_send_client_type ) + 1;
+	size_t text_length, null_bytes_to_send;
+	char *ptr;
+	long num_bytes_available;
 
 	client_address_ptr = &client_address;
 
@@ -187,49 +191,44 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: DHS socket fd = %d",
 				fname, dhs_socket->socket_fd));
 #endif
-		/* Send an stoc_send_client_type message to the DHS. */
+		/* Send an stoc_send_client_type message to the DHS.
+		 *
+		 * We do not use mx_bluice_send_message() here, since the
+		 * DHS manager record does not have an MX_BLUICE_SERVER
+		 * structure.
+		 */
+
+		/* The message starts with the string: stoc_send_client_type */
+
+		strlcpy( message, "stoc_send_client_type", sizeof(message) );
+
+		/* The message must be padded with NULs out to 
+		 * MX_BLUICE_OLD_MESSAGE_LENGTH (200) bytes.
+		 */
+
+		text_length = strlen( message );
+
+		null_bytes_to_send = MX_BLUICE_OLD_MESSAGE_LENGTH - text_length;
+
+		ptr = message + text_length;
+
+		memset( ptr, 0, null_bytes_to_send );
+
+		/* Now send the message. */
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: sending '%s' command to DHS socket fd %d",
-			  fname, stoc_send_client_type, dhs_socket->socket_fd));
+			  fname, message, dhs_socket->socket_fd));
 #endif
-		/* First send the header. */
-
-		snprintf( message_header, sizeof(message_header),
-				"%*lu0",
-				MX_BLUICE_MSGHDR_TEXT_LENGTH,
-				(unsigned long) stoc_length );
-
-		mx_status = mx_socket_send( dhs_socket,
-						&message_header,
-						MX_BLUICE_MSGHDR_LENGTH );
+		mx_status = mx_socket_send( dhs_socket, &message,
+					MX_BLUICE_OLD_MESSAGE_LENGTH );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"The attempt by DHS manager record '%s' "
-			"to send a message header to "
-			"DHS socket %d failed.",
+			"to send '%s' to DHS socket %d failed.",
 				dhs_manager_record->name,
-				dhs_socket->socket_fd );
-
-			/* Go back to the top of the for(;;) loop. */
-
-			continue;
-		}
-
-		/* Then send the message body. */
-
-		mx_status = mx_socket_send( dhs_socket,
-						&stoc_send_client_type,
-						stoc_length );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"The attempt by DHS manager record '%s' "
-			"to send a message header to "
-			"DHS socket %d failed.",
-				dhs_manager_record->name,
-				dhs_socket->socket_fd );
+				message, dhs_socket->socket_fd );
 
 			/* Go back to the top of the for(;;) loop. */
 
@@ -238,7 +237,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: '%s' successfully sent.",
-				fname, stoc_send_client_type));
+				fname, message));
 #endif
 
 		/* Wait up to 1 second for a message reply. */
@@ -274,7 +273,109 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: Reading response header from DHS socket %d",
 				fname, dhs_socket->socket_fd ));
 #endif
+		/* How many bytes are there to read? */
+
+		mx_status = mx_socket_num_input_bytes_available( dhs_socket,
+							&num_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: socket %d, num_bytes_available = %ld",
+			fname, dhs_socket->socket_fd, num_bytes_available ));
+#endif
+
+		if ( num_bytes_available > (sizeof(message) - 1) ) {
+			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The number of bytes (%ld) available to read "
+			"from DHS socket %d is greater than the maximum "
+			"length of the message buffer %ld.",
+				num_bytes_available,
+				dhs_socket->socket_fd,
+				(long) (sizeof(message) - 1) );
+		}
+
+		/* Read the available number of bytes. */
+
+		mx_status = mx_socket_receive( dhs_socket,
+						message,
+						num_bytes_available,
+						NULL, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+		/* Make sure that the response is null terminated. */
+
+		message[num_bytes_available] = '\0';
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: DHS socket %d, response = '%s'",
+			fname, dhs_socket->socket_fd, message));
+#endif
+		/* Parse the returned string. */
+
+		snprintf( format, sizeof(format), "%%%ds %%%ds %%%ds",
+			sizeof(message_type_name) - 1,
+			sizeof(dhs_name) - 1,
+			sizeof(protocol_name) - 1 );
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+#endif
+		num_items = sscanf( message, format,
+				message_type_name, dhs_name, protocol_name );
+
+		if ( num_items != 3 ) {
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Could not parse DHS socket %d message response = '%s'",
+				dhs_socket->socket_fd, message );
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: message_type_name = '%s'",
+			fname, message_type_name));
+
+		MX_DEBUG(-2,("%s: dhs_name = '%s'", fname, dhs_name));
+
+		MX_DEBUG(-2,("%s: protocol_name = '%s'", fname, protocol_name));
+#endif
+
+		if ( strcmp( message_type_name,
+			"htos_client_type_is_hardware" ) != 0 )
+		{
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Received unexpected message type '%s' from "
+			"DHS socket %d in response to an "
+			"'stoc_send_client_type' message.",
+				message_type_name,
+				dhs_socket->socket_fd );
+		}
+
+		/* FIXME: Find the DHS in the MX record list and assign
+		 * this socket to it.
+		 */
 	}
+
+	/* Should never get here. */
 
 #if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;

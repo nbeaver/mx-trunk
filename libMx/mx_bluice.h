@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,8 @@ extern "C" {
 #define MX_BLUICE_MSGHDR_TEXT		0
 #define MX_BLUICE_MSGHDR_BINARY		MX_BLUICE_MSGHDR_TEXT_LENGTH
 #define MX_BLUICE_MSGHDR_NULL		( MX_BLUICE_MSGHDR_LENGTH - 1 )
+
+#define MX_BLUICE_OLD_MESSAGE_LENGTH	200
 
 /* ----- */
 

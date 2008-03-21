@@ -14,9 +14,7 @@
  *
  */
 
-#define MX_SOCKET_DEBUG			FALSE
-
-#define MX_SOCKET_DEBUG_WAIT_FOR_EVENT	TRUE
+#define MX_SOCKET_DEBUG		TRUE
 
 #include <stdio.h>
 
@@ -118,7 +116,7 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 
 	tv_microseconds = (unsigned long) (1.0e6 * timeout_remainder);
 
-#if MX_SOCKET_DEBUG_WAIT_FOR_EVENT
+#if MX_SOCKET_DEBUG
 	MX_DEBUG(-2,("%s: socket_fd = %d, timeout = %g seconds",
 		fname, socket_fd, timeout_in_seconds));
 #endif
@@ -136,7 +134,7 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		fd_count = socket_fd + 1;
 #endif
 
-#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+#if MX_SOCKET_DEBUG
 		MX_DEBUG(-2,
 		("%s: About to call select() for manager socket fd = %d",
 			fname, socket_fd));
@@ -145,7 +143,7 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 
 		saved_errno = errno;
 
-#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+#if MX_SOCKET_DEBUG
 		MX_DEBUG(-2,("%s: select() for socket %d, fd_count = %d, "
 			"num_fds = %d, errno = %d",
 			fname, socket_fd, fd_count,
@@ -153,7 +151,7 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 #endif
 		if ( num_fds < 0 ) {
 			if ( saved_errno == EINTR ) {
-#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+#if MX_SOCKET_DEBUG
 				MX_DEBUG(-2,
 				("%s: EINTR returned by select()", fname));
 #endif
@@ -194,7 +192,7 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 			 * so return a success status.
 			 */
 
-#if MX_SOCKET_WAIT_FOR_EVENT_DEBUG
+#if MX_SOCKET_DEBUG
 			MX_DEBUG(-2,("%s: socket %d is ready to be read.",
 				fname, socket_fd));
 #endif

@@ -1384,7 +1384,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	/* Send back the client type response. */
 
 	mx_status = mx_bluice_send_message( record,
-					client_type_response, NULL, 0, 200 );
+					client_type_response, NULL, 0,
+					MX_BLUICE_OLD_MESSAGE_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
