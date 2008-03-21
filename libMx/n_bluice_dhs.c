@@ -98,9 +98,8 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 	char message_type_name[80];
 	char message_type_format[20];
 	int i, num_items;
+	mx_bool_type socket_is_open;
 	mx_status_type mx_status;
-
-	num_dhs_handlers = num_dhs_handlers;	/* FIXME: Take this out! */
 
 	if ( args == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -136,13 +135,46 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 			"%%%lus", (unsigned long) sizeof(message_type_name) );
 
 	for (;;) {
+		socket_is_open = mx_socket_is_open( bluice_server->socket );
+
+		if ( socket_is_open == FALSE ) {
+#if BLUICE_DHS_DEBUG
+			MX_DEBUG(-2,("%s: DHS '%s' socket is not open.",
+				fname, dhs_server_record->name ));
+#endif
+
+			mx_msleep(100);
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+#if BLUICE_DHS_DEBUG
+		MX_DEBUG(-2,("%s: DHS '%s' socket = %d",
+			fname, dhs_server_record->name,
+			bluice_server->socket->socket_fd));
+
+		MX_DEBUG(-2,
+		("%s: DHS '%s' -> Before calling mx_bluice_receive_message()",
+			fname, dhs_server_record->name));
+#endif
+
 		mx_status = mx_bluice_receive_message( dhs_server_record,
 					NULL, 0, &actual_data_length, -1 );
+
+#if BLUICE_DHS_DEBUG
+		MX_DEBUG(-2,
+		("%s: mx_status.code = %ld, mx_status.location = '%s', "
+		"mx_status.message = '%s'",
+			fname, mx_status.code, mx_status.location,
+			mx_status.message));
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 1
+#if BLUICE_DHS_DEBUG
 		MX_DEBUG(-2,("%s: received '%s' from Blu-Ice server '%s'.",
 			fname, bluice_server->receive_buffer,
 			dhs_server_record->name ));

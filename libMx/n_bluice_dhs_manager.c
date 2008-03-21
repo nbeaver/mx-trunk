@@ -30,8 +30,10 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_bluice.h"
 #include "d_bluice_timer.h"
+#include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 
 MX_RECORD_FUNCTION_LIST mxn_bluice_dhs_manager_record_function_list = {
@@ -78,6 +80,14 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 	MX_RECORD *dhs_manager_record;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
 	MX_SOCKET *dhs_socket;
+
+	MX_RECORD **dhs_record_array;
+	MX_RECORD *dhs_record;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
+	unsigned long i, num_dhs_records;
+	long mx_status_code;
+
 	double timeout_in_seconds;
 	int manager_socket_fd, saved_errno;
 	char *error_string;
@@ -370,9 +380,83 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 				dhs_socket->socket_fd );
 		}
 
-		/* FIXME: Find the DHS in the MX record list and assign
-		 * this socket to it.
+		/* Look for the DHS record that corresponds to
+		 * the supplied DHS name.
 		 */
+
+		dhs_record_array = bluice_dhs_manager->dhs_record_array;
+
+		num_dhs_records = bluice_dhs_manager->num_dhs_records;
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: num_dhs_records = %lu",
+			fname, num_dhs_records));
+#endif
+
+		for ( i = 0; i < num_dhs_records; i++ ) {
+			dhs_record = dhs_record_array[i];
+
+			bluice_dhs_server = dhs_record->record_type_struct;
+
+#if BLUICE_DHS_MANAGER_DEBUG
+			MX_DEBUG(-2,("%s: Comparing '%s' to '%s' for "
+			"DHS record '%s', i = %lu",
+				fname, dhs_name, bluice_dhs_server->dhs_name,
+				dhs_record->name, i ));
+#endif
+			if ( strcmp( dhs_name,
+				bluice_dhs_server->dhs_name ) == 0 )
+			{
+				/* We have found a match, so
+				 * break out of the for() loop.
+				 */
+
+				break;
+			}
+		}
+
+		if ( i >= num_dhs_records ) {
+			(void) mx_error( MXE_NOT_FOUND, fname,
+			"DHS name '%s' sent by DHS socket %d does not match "
+			"any of the DHS names managed by DHS manager '%s'.  "
+			"The DHS connection will be closed.",
+				dhs_name, dhs_socket->socket_fd,
+				dhs_manager_record->name );
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+		/* Assign this socket to the DHS record that we have found. */
+
+		bluice_server = dhs_record->record_class_struct;
+
+		mx_status_code = mx_mutex_lock(
+					bluice_server->foreign_data_mutex );
+
+		if ( mx_status_code != MXE_SUCCESS ) {
+			(void) mx_error( mx_status_code, fname,
+			"Unable to lock the foreign data mutex "
+			"for DHS server '%s'.", dhs_record->name );
+
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+		bluice_server->socket = dhs_socket;
+
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: DHS socket %d assigned to DHS record '%s'.",
+			fname, dhs_socket->socket_fd, dhs_record->name ));
+#endif
 	}
 
 	/* Should never get here. */
@@ -400,7 +484,8 @@ mxn_bluice_dhs_manager_create_record_structures( MX_RECORD *record )
 
 	if ( bluice_dhs_manager == (MX_BLUICE_DHS_MANAGER *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_BLUICE_DHS_MANAGER structure." );
+			"Ran out of memory trying to allocate "
+			"an MX_BLUICE_DHS_MANAGER structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -422,6 +507,10 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 
 	MX_LIST_HEAD *list_head;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
+	MX_RECORD *current_record;
+	MX_RECORD **record_array;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
+	unsigned long i, num_dhs_records;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -453,22 +542,77 @@ mxn_bluice_dhs_manager_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Allocate memory for the receive buffer. */
+	/* Find out how many DHS records are in the MX database for
+	 * this DHS manager.
+	 */
 
-	bluice_dhs_manager->receive_buffer =
-		(char *) malloc( MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH );
+	num_dhs_records = 0;
 
-	if ( bluice_dhs_manager->receive_buffer == (char *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for a Blu-Ice message receive "
-		"buffer of length %lu.",
-		    (unsigned long) MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH  );
+	current_record = record->next_record;
+
+	while( current_record != record ) {
+		if ( current_record->mx_type == MXN_BLUICE_DHS_SERVER ) {
+			bluice_dhs_server = current_record->record_type_struct;
+
+			if ( record == bluice_dhs_server->dhs_manager_record ) {
+				num_dhs_records++;
+			}
+		}
+
+		current_record = current_record->next_record;
 	}
 
-	bluice_dhs_manager->receive_buffer_length
-		= MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH;
+#if BLUICE_DHS_MANAGER_DEBUG
+	MX_DEBUG(-2,("%s: num_dhs_records = %lu", fname, num_dhs_records));
+#endif
+	/* Create an array to contain pointers to the DHS records. */
 
-	/* Listen for connections from the DHS on the server port. */
+	record_array = (MX_RECORD **)
+			malloc( num_dhs_records * sizeof(MX_RECORD *) );
+
+	if ( record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu-element array "
+		"of DHS record pointers for DHS manager '%s'.",
+			num_dhs_records, record->name );
+	}
+
+	bluice_dhs_manager->dhs_record_array = record_array;
+
+	/* Now add the DHS records to the array. */
+
+	i = 0;
+
+	current_record = record->next_record;
+
+	while( current_record != record ) {
+
+		if ( i >= num_dhs_records ) {
+			break;
+		}
+
+		if ( current_record->mx_type == MXN_BLUICE_DHS_SERVER ) {
+			bluice_dhs_server = current_record->record_type_struct;
+
+			if ( record == bluice_dhs_server->dhs_manager_record ) {
+				record_array[i] = current_record;
+
+#if BLUICE_DHS_MANAGER_DEBUG
+				MX_DEBUG(-2,("%s: Added DHS '%s' to DHS "
+				"manager '%s' record array, i = %lu",
+					fname, current_record->name,
+					record->name, i ));
+#endif
+				i++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	bluice_dhs_manager->num_dhs_records = num_dhs_records;
+
+	/* Listen for connections from DHS processes on the server port. */
 
 	mx_status = mx_tcp_socket_open_as_server(
 				&(bluice_dhs_manager->socket),

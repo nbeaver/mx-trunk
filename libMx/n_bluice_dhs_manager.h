@@ -17,6 +17,8 @@
 #ifndef __N_BLUICE_DHS_MANAGER_H__
 #define __N_BLUICE_DHS_MANAGER_H__
 
+#define MX_BLUICE_DHS_ARRAY_BLOCK_SIZE	20
+
 /* Flag values for the 'bluice_dhs_manager_flags' field. */
 
 #define MXF_BLUICE_DHS_MANAGER_DUMMY	0x1
@@ -32,9 +34,8 @@ typedef struct {
 	MX_THREAD *dhs_manager_thread;
 	MX_SOCKET *socket;
 
-	char *receive_buffer;
-	long receive_buffer_length;
-	long num_received_bytes;
+	unsigned long num_dhs_records;
+	MX_RECORD **dhs_record_array;
 } MX_BLUICE_DHS_MANAGER;
 
 /* Define all of the client interface functions. */
