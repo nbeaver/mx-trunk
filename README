@@ -24,14 +24,14 @@ DOCUMENTATION:
 
 Most MX documentation may be found at the MX web site:
 
-    http://www.imca.aps.anl.gov/mx/
+        http://mx.iit.edu/
 
 INSTALLATION:
 
 The installation procedure for MX is documented in the MX Users and Developer's
 Manual which may be found at:
 
-    http://www.imca.aps.anl.gov/mx/manual/
+        http://mx.iit.edu/manual/
 
 COPYRIGHT:
 
@@ -52,4 +52,7 @@ include:
           this package has been modified to fit better into the MX build
           system, but the original makefile may be found in the file
           'Makefile.orig'.
+
+    libMx/mx_util_cfaqs.c - Utility functions from the book "C Programming
+          FAQs" by Steve Summit.
 
