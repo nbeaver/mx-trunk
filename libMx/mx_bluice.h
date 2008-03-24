@@ -43,6 +43,9 @@ extern "C" {
 #define MX_BLUICE_MSGHDR_BINARY		MX_BLUICE_MSGHDR_TEXT_LENGTH
 #define MX_BLUICE_MSGHDR_NULL		( MX_BLUICE_MSGHDR_LENGTH - 1 )
 
+#define MX_BLUICE_PROTOCOL_1		1
+#define MX_BLUICE_PROTOCOL_2		2
+
 #define MX_BLUICE_OLD_MESSAGE_LENGTH	200
 
 /* ----- */
@@ -150,6 +153,8 @@ typedef struct {
 	long receive_buffer_length;
 	long num_received_bytes;
 
+	long protocol_version;
+
 	long num_ion_chambers;
 	MX_BLUICE_FOREIGN_DEVICE **ion_chamber_array;
 
@@ -169,8 +174,7 @@ MX_API mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			long binary_data_length,
-			long required_data_length );
+			long binary_data_length );
 
 MX_API mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,

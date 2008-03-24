@@ -32,7 +32,11 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_bluice.h"
+#include "d_bluice_ion_chamber.h"
+#include "d_bluice_motor.h"
+#include "d_bluice_shutter.h"
 #include "d_bluice_timer.h"
+#include "v_bluice_string.h"
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 
@@ -61,6 +65,95 @@ long mxn_bluice_dhs_manager_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_manager_rfield_def_ptr
 			= &mxn_bluice_dhs_manager_rf_defaults[0];
+
+/*-------------------------------------------------------------------------*/
+
+static void
+mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
+						MX_RECORD *dhs_record )
+{
+	MX_RECORD *list_head_record, *current_record;
+	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
+	MX_BLUICE_MOTOR *bluice_motor;
+	MX_BLUICE_SHUTTER *bluice_shutter;
+	MX_BLUICE_STRING *bluice_string;
+	char command[200];
+	mx_status_type mx_status;
+
+	list_head_record = dhs_manager_record->list_head;
+
+	current_record = list_head_record->next_record;
+
+	while( current_record != list_head_record ) {
+
+		strlcpy( command, "", sizeof(command) );
+
+		/* FIXME: The logic for constructing commands is
+		 * not sufficient.
+		 */
+
+		/* FIXME: We need to handle stoh_register_operation here too! */
+
+		switch( current_record->mx_type ) {
+		case MXT_AIN_BLUICE_ION_CHAMBER:
+			bluice_ion_chamber =
+					current_record->record_type_struct;
+
+			if ( bluice_ion_chamber->bluice_server_record
+								== dhs_record )
+			{
+				snprintf( command, sizeof(command),
+			    "stoh_register_ion_chamber %s hex1 0 rtc1 clock",
+					bluice_ion_chamber->bluice_name );
+			}
+			break;
+		case MXT_MTR_BLUICE:
+			bluice_motor = current_record->record_type_struct;
+
+			if ( bluice_motor->bluice_server_record == dhs_record )
+			{
+				snprintf( command, sizeof(command),
+				"stoh_register_real_motor %s %s",
+					bluice_motor->bluice_name,
+					bluice_motor->bluice_name );
+			}
+			break;
+		case MXT_RLY_BLUICE_SHUTTER:
+			bluice_shutter = current_record->record_type_struct;
+
+			if ( bluice_shutter->bluice_server_record == dhs_record)
+			{
+				snprintf( command, sizeof(command),
+				"stoh_register_shutter %s closed",
+					bluice_shutter->bluice_name );
+			}
+			break;
+		case MXV_BLUICE_STRING:
+			bluice_string = current_record->record_type_struct;
+
+			if ( bluice_string->bluice_server_record == dhs_record )
+			{
+				snprintf( command, sizeof(command),
+				"stoh_register_string %s %s",
+					bluice_string->bluice_name,
+					bluice_string->bluice_name );
+					
+			}
+			break;
+		default:
+			break;
+		}
+
+		if ( strlen(command) > 0 ) {
+			mx_status = mx_bluice_send_message( dhs_record,
+							command, NULL, 0 );
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	return;
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -451,12 +544,24 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 		bluice_server->socket = dhs_socket;
 
+		/* FIXME: It should not be necessary to hard code this. */
+
+		bluice_server->protocol_version = MX_BLUICE_PROTOCOL_2;
+
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: DHS socket %d assigned to DHS record '%s'.",
 			fname, dhs_socket->socket_fd, dhs_record->name ));
 #endif
+
+		/* The last step is to send a series of stoh_register_...
+		 * commands to the DHS.  This is necessary to prod the
+		 * DHS into sending configuration parameter requests.
+		 */
+
+		mxn_bluice_dhs_manager_register_devices( dhs_manager_record,
+							dhs_record );
 	}
 
 	/* Should never get here. */

@@ -80,8 +80,7 @@ MX_EXPORT mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			long binary_data_length,
-			long required_data_length )
+			long binary_data_length )
 {
 	static const char fname[] = "mx_bluice_send_message()";
 
@@ -101,14 +100,6 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( required_data_length > ((long) sizeof(null_pad)) ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The required data length %lu is longer than the "
-		"maximum allowed length of %lu.",
-			(unsigned long) required_data_length,
-			(unsigned long) sizeof(null_pad) );
-	}
 
 #if BLUICE_DEBUG_MESSAGE
 	MX_DEBUG(-3,("%s: sending '%s' to server '%s'.",
@@ -138,7 +129,8 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
-	if ( required_data_length < 0 ) {
+	if ( bluice_server->protocol_version > MX_BLUICE_PROTOCOL_1 ) {
+
 		snprintf( message_header, sizeof(message_header),
 			"%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
@@ -188,9 +180,12 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 		bytes_sent += binary_data_length;
 	}
 
-	if ( required_data_length >= 0 ) {
-		if ( bytes_sent < required_data_length ) {
-			null_bytes_to_send = required_data_length - bytes_sent;
+	if ( bluice_server->protocol_version == MX_BLUICE_PROTOCOL_1 ) {
+
+		if ( bytes_sent < MX_BLUICE_OLD_MESSAGE_LENGTH ) {
+
+			null_bytes_to_send =
+				MX_BLUICE_OLD_MESSAGE_LENGTH - bytes_sent;
 
 			memset( null_pad, 0, null_bytes_to_send );
 
@@ -845,10 +840,10 @@ mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
 	
 	if ( take_master ) {
 		mx_status = mx_bluice_send_message( bluice_server->record,
-			"gtos_become_master force", NULL, 0, -1 );
+					"gtos_become_master force", NULL, 0 );
 	} else {
 		mx_status = mx_bluice_send_message( bluice_server->record,
-			"gtos_become_slave", NULL, 0, -1 );
+					"gtos_become_slave", NULL, 0 );
 	}
 
 	return mx_status;

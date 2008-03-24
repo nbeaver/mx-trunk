@@ -185,7 +185,7 @@ mxv_bluice_command_send_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_bluice_send_message(
 				bluice_command->bluice_server_record,
-				command_ptr, NULL, 0, -1 );
+				command_ptr, NULL, 0 );
 
 	return mx_status;
 }

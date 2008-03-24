@@ -432,7 +432,8 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 	foreign_motor->u.motor.move_in_progress = TRUE;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0, -1 );
+						command, NULL, 0 );
+
 	return mx_status;
 }
 
@@ -505,7 +506,7 @@ mxd_bluice_motor_set_position( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0, -1 );
+						command, NULL, 0 );
 	return mx_status;
 }
 
@@ -540,7 +541,7 @@ mxd_bluice_motor_soft_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0, -1 );
+						command, NULL, 0 );
 	return mx_status;
 }
 
@@ -575,7 +576,7 @@ mxd_bluice_motor_immediate_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0, -1 );
+						command, NULL, 0 );
 	return mx_status;
 }
 
@@ -730,7 +731,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0, -1 );
+						command, NULL, 0 );
 	return mx_status;
 }
 

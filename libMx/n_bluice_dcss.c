@@ -1381,14 +1381,23 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 			record->name, bluice_server->receive_buffer );
 	}
 
-	/* Send back the client type response. */
+	/* Send back the client type response.  This message must use
+	 * Blu-Ice protocol version 1.
+	 */
+
+	bluice_server->protocol_version = MX_BLUICE_PROTOCOL_1;
 
 	mx_status = mx_bluice_send_message( record,
-					client_type_response, NULL, 0,
-					MX_BLUICE_OLD_MESSAGE_LENGTH );
+					client_type_response, NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* FIXME: For now we hard code the DCS protocol for 
+	 * subsequent messages to 2.
+	 */
+
+	bluice_server->protocol_version = MX_BLUICE_PROTOCOL_2;
 
 	/* If DCSS recognizes the username we sent, it will then send
 	 * us a success message.
