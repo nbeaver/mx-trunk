@@ -1531,8 +1531,9 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 		return mx_status;
 
 #if BLUICE_DCSS_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: DCSS monitor thread stopped with exit status = %ld",
-		fname, thread_exit_status ));
+	MX_DEBUG(-2,("%s: DCSS monitor thread for record '%s' "
+		"stopped with exit status = %ld",
+		fname, record->name, thread_exit_status ));
 #endif
 
 	/* Lock the bluice_server mutexes so that other threads cannot

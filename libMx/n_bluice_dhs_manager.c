@@ -68,11 +68,188 @@ MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_manager_rfield_def_ptr
 
 /*-------------------------------------------------------------------------*/
 
+#define MX_BLUICE_MALLOC_DEV(x) \
+	do { 								\
+		(x) = malloc( sizeof(MX_BLUICE_FOREIGN_DEVICE) );	\
+									\
+		if ( (x) == NULL ) {					\
+			return mx_error( MXE_OUT_OF_MEMORY, fname,	\
+			"Ran out of memory trying to allocate "		\
+			"an MX_BLUICE_FOREIGN_DEVICE." );		\
+		}							\
+	} while(0)
+
+static mx_status_type
+mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
+						MX_RECORD *dhs_record )
+{
+	static const char fname[] =
+		"mxn_bluice_dhs_manager_setup_foreign_devices()";
+
+	MX_RECORD *list_head_record, *current_record, *sub_record;
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
+	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
+	MX_BLUICE_MOTOR *bluice_motor;
+	MX_BLUICE_SHUTTER *bluice_shutter;
+	MX_BLUICE_STRING *bluice_string;
+	MX_BLUICE_TIMER *bluice_timer;
+	MX_MOTOR *motor;
+
+	list_head_record = dhs_manager_record->list_head;
+
+	current_record = list_head_record->next_record;
+
+	while( current_record != list_head_record ) {
+
+	    /* FIXME: Not yet implemented are setup
+	     * of operations, encoders, and objects.
+	     */
+
+	    switch( current_record->mx_type ) {
+	    case MXT_AIN_BLUICE_ION_CHAMBER:
+		bluice_ion_chamber = current_record->record_type_struct;
+
+		if ( bluice_ion_chamber->bluice_server_record == dhs_record ) {
+
+		    MX_BLUICE_MALLOC_DEV(fdev);
+
+		    bluice_ion_chamber->foreign_device = fdev;
+
+		    strlcpy( fdev->u.ion_chamber.counter_name,
+		    	bluice_ion_chamber->bluice_counter_name,
+			MXU_BLUICE_NAME_LENGTH );
+
+		    fdev->u.ion_chamber.channel_number =
+		    	bluice_ion_chamber->bluice_channel_number;
+
+		    strlcpy( fdev->u.ion_chamber.timer_name,
+		    	bluice_ion_chamber->bluice_timer_name,
+			MXU_BLUICE_NAME_LENGTH );
+
+		    strlcpy( fdev->u.ion_chamber.timer_type,
+		    	bluice_ion_chamber->bluice_timer_type,
+			MXU_BLUICE_NAME_LENGTH );
+
+		    fdev->u.ion_chamber.mx_analog_input =
+		    	current_record->record_class_struct;
+
+		    /* Look for a Blu-Ice timer record with a matching
+		     * DHS server and timer name.
+		     */
+
+		    sub_record = current_record->next_record;
+
+		    while ( sub_record != current_record ) {
+		    	if ( sub_record->mx_type == MXT_TIM_BLUICE ) {
+			    bluice_timer = sub_record->record_type_struct;
+
+			    if ( (bluice_timer->bluice_server_record
+				    == bluice_ion_chamber->bluice_server_record)
+			      && (strcmp(bluice_timer->bluice_name,
+		      		    bluice_ion_chamber->bluice_timer_name)==0) )
+			    {
+				fdev->u.ion_chamber.mx_timer =
+					sub_record->record_class_struct;
+
+				/* Break out of the while(sub) loop. */
+
+				break;
+			    }
+			}
+			sub_record = sub_record->next_record;
+		    }
+		}
+		break;
+
+	    case MXT_MTR_BLUICE:
+		bluice_motor = current_record->record_type_struct;
+
+		if ( bluice_motor->bluice_server_record == dhs_record ) {
+
+		    MX_BLUICE_MALLOC_DEV(fdev);
+
+		    bluice_motor->foreign_device = fdev;
+
+		    motor = current_record->record_class_struct;
+
+		    strlcpy( fdev->u.motor.dhs_name,
+		    		bluice_motor->bluice_name,
+				MXU_BLUICE_NAME_LENGTH );
+
+		    fdev->u.motor.is_pseudo = FALSE;
+		    fdev->u.motor.position = motor->raw_position.analog;
+		    fdev->u.motor.upper_limit =
+		    			motor->raw_positive_limit.analog;
+		    fdev->u.motor.lower_limit =
+		    			motor->raw_negative_limit.analog;
+
+		    fdev->u.motor.mx_motor = motor;
+		    fdev->u.motor.move_in_progress = FALSE;
+
+		    /* FIXME: Not sure yet what to do about the rest
+		     * of the parameters.
+		     */
+
+		    fdev->u.motor.scale_factor = 1.0;
+		    fdev->u.motor.speed = 1.0;
+		    fdev->u.motor.acceleration_time = 1.0;
+		    fdev->u.motor.backlash = 0.0;
+		    fdev->u.motor.lower_limit_on = TRUE;
+		    fdev->u.motor.upper_limit_on = TRUE;
+		    fdev->u.motor.motor_lock_on = FALSE;
+		    fdev->u.motor.backlash_on = TRUE;
+		    fdev->u.motor.reverse_on = FALSE;	/* What is this? */
+		}
+		break;
+
+	    case MXT_RLY_BLUICE_SHUTTER:
+		bluice_shutter = current_record->record_type_struct;
+
+		if ( bluice_shutter->bluice_server_record == dhs_record ) {
+
+		    MX_BLUICE_MALLOC_DEV(fdev);
+
+		    bluice_shutter->foreign_device = fdev;
+
+		    fdev->u.shutter.shutter_status = 0;
+		}
+		break;
+
+	    case MXV_BLUICE_STRING:
+		bluice_string = current_record->record_type_struct;
+
+		if ( bluice_string->bluice_server_record == dhs_record ) {
+
+		    MX_BLUICE_MALLOC_DEV(fdev);
+
+		    bluice_string->foreign_device = fdev;
+
+		    /* FIXME: Is the following the right thing to do? */
+
+		    fdev->u.string.string_length = 0;
+		    fdev->u.string.string_contents = NULL;
+		}
+		break;
+
+	    default:
+		break;
+	    }
+
+	    current_record = current_record->next_record;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 static void
 mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 						MX_RECORD *dhs_record )
 {
 	MX_RECORD *list_head_record, *current_record;
+	MX_RELAY *relay;
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SHUTTER *bluice_shutter;
@@ -86,70 +263,98 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 
 	while( current_record != list_head_record ) {
 
-		strlcpy( command, "", sizeof(command) );
+	    strlcpy( command, "", sizeof(command) );
 
-		/* FIXME: The logic for constructing commands is
-		 * not sufficient.
-		 */
+	    /* FIXME: Not yet implemented are registration
+	     * of operations, encoders, and objects.
+	     */
 
-		/* FIXME: We need to handle stoh_register_operation here too! */
+	    switch( current_record->mx_type ) {
+	    case MXT_AIN_BLUICE_ION_CHAMBER:
+		bluice_ion_chamber = current_record->record_type_struct;
 
-		switch( current_record->mx_type ) {
-		case MXT_AIN_BLUICE_ION_CHAMBER:
-			bluice_ion_chamber =
-					current_record->record_type_struct;
+		if ( bluice_ion_chamber->bluice_server_record == dhs_record ) {
 
-			if ( bluice_ion_chamber->bluice_server_record
-								== dhs_record )
-			{
-				snprintf( command, sizeof(command),
-			    "stoh_register_ion_chamber %s hex1 0 rtc1 clock",
-					bluice_ion_chamber->bluice_name );
-			}
-			break;
-		case MXT_MTR_BLUICE:
-			bluice_motor = current_record->record_type_struct;
+		    fdev = bluice_ion_chamber->foreign_device;
 
-			if ( bluice_motor->bluice_server_record == dhs_record )
-			{
-				snprintf( command, sizeof(command),
-				"stoh_register_real_motor %s %s",
-					bluice_motor->bluice_name,
+		    snprintf( command, sizeof(command),
+			"stoh_register_ion_chamber %s %s %ld %s %s",
+					current_record->name,
+					fdev->u.ion_chamber.counter_name,
+					fdev->u.ion_chamber.channel_number,
+					fdev->u.ion_chamber.timer_name,
+					fdev->u.ion_chamber.timer_type );
+		}
+		break;
+
+	    case MXT_MTR_BLUICE:
+		bluice_motor = current_record->record_type_struct;
+
+		if ( bluice_motor->bluice_server_record == dhs_record ) {
+
+		    snprintf( command, sizeof(command),
+			"stoh_register_real_motor %s %s",
+					current_record->name,
 					bluice_motor->bluice_name );
-			}
-			break;
-		case MXT_RLY_BLUICE_SHUTTER:
-			bluice_shutter = current_record->record_type_struct;
+		}
+		break;
 
-			if ( bluice_shutter->bluice_server_record == dhs_record)
-			{
-				snprintf( command, sizeof(command),
-				"stoh_register_shutter %s closed",
-					bluice_shutter->bluice_name );
-			}
-			break;
-		case MXV_BLUICE_STRING:
-			bluice_string = current_record->record_type_struct;
+	    case MXT_RLY_BLUICE_SHUTTER:
+		bluice_shutter = current_record->record_type_struct;
 
-			if ( bluice_string->bluice_server_record == dhs_record )
-			{
-				snprintf( command, sizeof(command),
-				"stoh_register_string %s %s",
-					bluice_string->bluice_name,
+		if ( bluice_shutter->bluice_server_record == dhs_record ) {
+
+		    if ( strlen(bluice_shutter->bluice_name) > 0 ) {
+			snprintf( command, sizeof(command),
+			    "stoh_register_shutter %s %s",
+						current_record->name,
+						bluice_shutter->bluice_name );
+		    } else {
+			snprintf( command, sizeof(command),
+			    "stoh_register_shutter %s ", current_record->name );
+
+			relay = current_record->record_class_struct;
+
+			switch( relay->relay_status ) {
+			case MXF_RELAY_IS_CLOSED:
+			    strlcat( command, "closed", sizeof(command) );
+			    break;
+
+			case MXF_RELAY_IS_OPEN:
+			    strlcat( command, "open", sizeof(command) );
+			    break;
+
+			default:
+			    strlcat( command, "closed", sizeof(command) );
+			    break;
+			}
+		    }
+		}
+		break;
+
+	    case MXV_BLUICE_STRING:
+		bluice_string = current_record->record_type_struct;
+
+		if ( bluice_string->bluice_server_record == dhs_record ) {
+
+		    snprintf( command, sizeof(command),
+			"stoh_register_string %s %s",
+					current_record->name,
 					bluice_string->bluice_name );
 					
-			}
-			break;
-		default:
-			break;
 		}
+		break;
 
-		if ( strlen(command) > 0 ) {
-			mx_status = mx_bluice_send_message( dhs_record,
+	    default:
+		break;
+	    }
+
+	    if ( strlen(command) > 0 ) {
+		mx_status = mx_bluice_send_message( dhs_record,
 							command, NULL, 0 );
-		}
+	    }
 
-		current_record = current_record->next_record;
+	    current_record = current_record->next_record;
 	}
 
 	return;
@@ -242,8 +447,10 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		if ( mx_status.code == MXE_TIMED_OUT ) {
-			(void) mx_error( mx_status.code,
+			if ( mx_get_debug_level() >= -2 ) {
+				(void) mx_error( mx_status.code,
 				mx_status.location, mx_status.message );
+			}
 
 			continue;  /* Go back to the top of the for(;;) loop. */
 		} else
@@ -548,20 +755,26 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 		bluice_server->protocol_version = MX_BLUICE_PROTOCOL_2;
 
-		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: DHS socket %d assigned to DHS record '%s'.",
 			fname, dhs_socket->socket_fd, dhs_record->name ));
 #endif
+		/* Next initialize the MX_BLUICE_FOREIGN_DEVICE structures
+		 * for each record belonging to this DHS.
+		 */
+
+		mxn_bluice_dhs_manager_setup_foreign_devices(
+				dhs_manager_record, dhs_record );
 
 		/* The last step is to send a series of stoh_register_...
 		 * commands to the DHS.  This is necessary to prod the
 		 * DHS into sending configuration parameter requests.
 		 */
 
-		mxn_bluice_dhs_manager_register_devices( dhs_manager_record,
-							dhs_record );
+		mxn_bluice_dhs_manager_register_devices(
+				dhs_manager_record, dhs_record );
+
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 	}
 
 	/* Should never get here. */
@@ -787,8 +1000,9 @@ mxn_bluice_dhs_manager_close( MX_RECORD *record )
 		return mx_status;
 
 #if BLUICE_DHS_MANAGER_DEBUG_SHUTDOWN
-	MX_DEBUG(-2,("%s: DHS monitor thread stopped with exit status = %ld",
-		fname, thread_exit_status ));
+	MX_DEBUG(-2,("%s: DHS manager thread for record '%s' stopped "
+		"with exit status = %ld",
+		fname, record->name, thread_exit_status ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

@@ -12,16 +12,10 @@ sample_x      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simd
 sample_y      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs sample_y
 sample_z      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs sample_z
 beamstop_z    device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs beamstop_z
-detector_horz device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_horz
-detector_vert device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_vert
-#dose_scounts  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts simdhs doseStoredCounts
-#dose_lcounts  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts simdhs doseLastCounts
-#dose_sratio   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts simdhs doseStabilityRatio
-#dose_thresh   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts simdhs doseThreshold
-#dose_period   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec simdhs doseIntegrationPeriod
-#max_osc_time  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec simdhs maxOscTime
+detector_horz device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_x
+detector_vert device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_y
 door_status   variable bluice_variable bluice_string "" "" simdhs hutchDoorStatus 1 80 ""
 shutter       device relay bluice_shutter "" "" simdhs shutter
-i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs i0
-i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs i1
+i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs "" hex1 0 rtc1 clock
+i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs "" hex1 1 rtc1 clock
 timer1        device timer bluice_timer "" "" simdhs rtc1 simDhs

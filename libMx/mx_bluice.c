@@ -1052,8 +1052,9 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	char *ptr, *token_ptr;
-	char *ion_chamber_name, *dhs_server_name, *counter_name, *timer_name;
-	long message_type, channel_number, timer_type;
+	char *ion_chamber_name, *dhs_server_name;
+	char *counter_name, *timer_name, *timer_type;
+	long message_type, channel_number;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1146,24 +1147,14 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the timer type. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	timer_type = mx_string_split( &ptr, " " );
 
-	if ( token_ptr == NULL ) {
+	if ( timer_type == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Ion chamber timer type not found in message received from "
 		"Blu-Ice server '%s' for ion_chamber '%s'.",
 			bluice_server->record->name,
 			ion_chamber_name );
-	}
-
-	if ( strcmp( token_ptr, "clock" ) == 0 ) {
-		timer_type = MXF_BLUICE_TIMER_CLOCK;
-	} else {
-		timer_type = MXF_BLUICE_TIMER_UNKNOWN;
-
-		mx_warning(
-		"Unknown timer type '%s' seen for Blu-Ice ion chamber '%s'.",
-			token_ptr, ion_chamber_name );
 	}
 
 	/* Get a pointer to the Blu-Ice foreign ion chamber structure. */
@@ -1196,7 +1187,8 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	strlcpy( foreign_ion_chamber->u.ion_chamber.timer_name,
 			timer_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	foreign_ion_chamber->u.ion_chamber.timer_type = timer_type;
+	strlcpy( foreign_ion_chamber->u.ion_chamber.timer_type,
+			timer_type, MXU_BLUICE_NAME_LENGTH+1 );
 
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
@@ -1210,7 +1202,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 		fname, foreign_ion_chamber->u.ion_chamber.channel_number));
 	MX_DEBUG(-2,("%s: Timer name = '%s'",
 		fname, foreign_ion_chamber->u.ion_chamber.timer_name));
-	MX_DEBUG(-2,("%s: Timer type = %ld",
+	MX_DEBUG(-2,("%s: Timer type = '%s'",
 		fname, foreign_ion_chamber->u.ion_chamber.timer_type));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif

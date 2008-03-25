@@ -23,6 +23,6 @@ dose_period   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec dcs
 max_osc_time  device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec dcss maxOscTime
 door_status   variable bluice_variable bluice_string "" "" dcss hutchDoorStatus 1 80 ""
 shutter       device relay bluice_shutter "" "" dcss shutter
-i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i0
-i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i1
+i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i0 "" -1 "" ""
+i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i1 "" -1 "" ""
 timer1        device timer bluice_timer "" "" dcss rtc1 simDhs

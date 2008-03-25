@@ -57,14 +57,11 @@ extern "C" {
 
 /* ----- */
 
-#define MXF_BLUICE_TIMER_UNKNOWN	(-1)
-#define MXF_BLUICE_TIMER_CLOCK		1
-
 typedef struct {
 	char counter_name[MXU_BLUICE_NAME_LENGTH+1];
 	long channel_number;
 	char timer_name[MXU_BLUICE_NAME_LENGTH+1];
-	long timer_type;
+	char timer_type[MXU_BLUICE_NAME_LENGTH+1];
 
 	double value;
 
