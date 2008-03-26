@@ -106,7 +106,7 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 	     */
 
 	    switch( current_record->mx_type ) {
-	    case MXT_AIN_BLUICE_ION_CHAMBER:
+	    case MXT_AIN_BLUICE_DHS_ION_CHAMBER:
 		bluice_ion_chamber = current_record->record_type_struct;
 
 		if ( bluice_ion_chamber->bluice_server_record == dhs_record ) {
@@ -140,7 +140,7 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		    sub_record = current_record->next_record;
 
 		    while ( sub_record != current_record ) {
-		    	if ( sub_record->mx_type == MXT_TIM_BLUICE ) {
+		    	if ( sub_record->mx_type == MXT_TIM_BLUICE_DHS ) {
 			    bluice_timer = sub_record->record_type_struct;
 
 			    if ( (bluice_timer->bluice_server_record
@@ -161,7 +161,7 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXT_MTR_BLUICE:
+	    case MXT_MTR_BLUICE_DHS:
 		bluice_motor = current_record->record_type_struct;
 
 		if ( bluice_motor->bluice_server_record == dhs_record ) {
@@ -182,6 +182,11 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		    			motor->raw_positive_limit.analog;
 		    fdev->u.motor.lower_limit =
 		    			motor->raw_negative_limit.analog;
+		    fdev->u.motor.scale_factor = bluice_motor->bluice_scale;
+		    fdev->u.motor.speed        = bluice_motor->bluice_speed;
+		    fdev->u.motor.acceleration_time =
+		    		bluice_motor->bluice_acceleration_time;
+		    fdev->u.motor.backlash = bluice_motor->bluice_backlash;
 
 		    fdev->u.motor.mx_motor = motor;
 		    fdev->u.motor.move_in_progress = FALSE;
@@ -190,10 +195,6 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		     * of the parameters.
 		     */
 
-		    fdev->u.motor.scale_factor = 1.0;
-		    fdev->u.motor.speed = 1.0;
-		    fdev->u.motor.acceleration_time = 1.0;
-		    fdev->u.motor.backlash = 0.0;
 		    fdev->u.motor.lower_limit_on = TRUE;
 		    fdev->u.motor.upper_limit_on = TRUE;
 		    fdev->u.motor.motor_lock_on = FALSE;
@@ -202,7 +203,7 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXT_RLY_BLUICE_SHUTTER:
+	    case MXT_RLY_BLUICE_DHS_SHUTTER:
 		bluice_shutter = current_record->record_type_struct;
 
 		if ( bluice_shutter->bluice_server_record == dhs_record ) {
@@ -215,7 +216,7 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXV_BLUICE_STRING:
+	    case MXV_BLUICE_DHS_STRING:
 		bluice_string = current_record->record_type_struct;
 
 		if ( bluice_string->bluice_server_record == dhs_record ) {
@@ -270,7 +271,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 	     */
 
 	    switch( current_record->mx_type ) {
-	    case MXT_AIN_BLUICE_ION_CHAMBER:
+	    case MXT_AIN_BLUICE_DHS_ION_CHAMBER:
 		bluice_ion_chamber = current_record->record_type_struct;
 
 		if ( bluice_ion_chamber->bluice_server_record == dhs_record ) {
@@ -287,7 +288,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXT_MTR_BLUICE:
+	    case MXT_MTR_BLUICE_DHS:
 		bluice_motor = current_record->record_type_struct;
 
 		if ( bluice_motor->bluice_server_record == dhs_record ) {
@@ -299,7 +300,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXT_RLY_BLUICE_SHUTTER:
+	    case MXT_RLY_BLUICE_DHS_SHUTTER:
 		bluice_shutter = current_record->record_type_struct;
 
 		if ( bluice_shutter->bluice_server_record == dhs_record ) {
@@ -332,7 +333,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 		}
 		break;
 
-	    case MXV_BLUICE_STRING:
+	    case MXV_BLUICE_DHS_STRING:
 		bluice_string = current_record->record_type_struct;
 
 		if ( bluice_string->bluice_server_record == dhs_record ) {

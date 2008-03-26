@@ -20,6 +20,7 @@ typedef struct {
 
 	MX_RECORD *bluice_server_record;
 	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
+
 	char bluice_counter_name[MXU_BLUICE_NAME_LENGTH+1];
 	long bluice_channel_number;
 	char bluice_timer_name[MXU_BLUICE_NAME_LENGTH+1];
@@ -37,10 +38,13 @@ extern MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_bluice_ion_chamber_analog_input_function_list;
 
-extern long mxd_bluice_ion_chamber_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr;
+extern long mxd_bluice_dcss_ion_chamber_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dcss_ion_chamber_rfield_def_ptr;
 
-#define MXD_BLUICE_ION_CHAMBER_STANDARD_FIELDS \
+extern long mxd_bluice_dhs_ion_chamber_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_ion_chamber_rfield_def_ptr;
+
+#define MXD_BLUICE_DCSS_ION_CHAMBER_STANDARD_FIELDS \
   {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_BLUICE_ION_CHAMBER, bluice_server_record), \
@@ -48,7 +52,13 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr;
   \
   {-1, -1, "bluice_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_ION_CHAMBER, bluice_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+
+#define MXD_BLUICE_DHS_ION_CHAMBER_STANDARD_FIELDS \
+  {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_BLUICE_ION_CHAMBER, bluice_server_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "bluice_counter_name", MXFT_STRING, NULL, \
   			1, {MXU_BLUICE_NAME_LENGTH}, \

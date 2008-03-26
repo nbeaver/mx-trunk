@@ -351,6 +351,10 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	*actual_data_length = (long) actual_bytes_received;
 
+	if ( actual_bytes_received < maximum_length ) {
+		data_pointer[actual_bytes_received] = '\0';
+	}
+
 	return mx_status;
 }
 

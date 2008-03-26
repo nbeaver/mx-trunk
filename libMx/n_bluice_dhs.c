@@ -24,7 +24,9 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_bluice.h"
+#include "d_bluice_motor.h"
 #include "d_bluice_timer.h"
 #include "n_bluice_dhs.h"
 
@@ -63,6 +65,7 @@ static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_completed;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_started;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_ion_chambers;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_shutter_state;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_send_configuration;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_update_motor_position;
 
 static struct {
@@ -73,6 +76,7 @@ static struct {
 	{"htos_motor_move_started", htos_motor_move_started},
 	{"htos_report_ion_chambers", htos_report_ion_chambers},
 	{"htos_report_shutter_state", htos_report_shutter_state},
+	{"htos_send_configuration", htos_send_configuration},
 	{"htos_update_motor_position", htos_update_motor_position},
 };
 
@@ -234,6 +238,68 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 #endif
 
 }
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+stoh_configure_real_motor( MX_RECORD *motor_record,
+			MX_BLUICE_MOTOR *bluice_motor,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
+{
+	static const char fname[] = "stoh_configure_real_motor()";
+
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
+	char command[200];
+	long mx_status_code;
+	mx_status_type mx_status;
+	
+#if BLUICE_DHS_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'",
+		fname, motor_record->name));
+#endif
+
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"DHS server '%s' on behalf of motor '%s' failed.",
+			bluice_server->record->name, motor_record->name );
+	}
+
+	fdev = bluice_motor->foreign_device;
+
+	if ( fdev == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_BLUICE_FOREIGN_DEVICE pointer for "
+		"Blu-Ice motor '%s' has not yet been initialized.",
+			motor_record->name );
+	}
+
+	snprintf( command, sizeof(command),
+	"stoh_configure_real_motor %s %s %s %f %f %f %f %f %f %f 1 1 0 0 0 0",
+		motor_record->name,
+		bluice_dhs_server->dhs_name,
+		bluice_motor->bluice_name,
+		fdev->u.motor.position,
+		fdev->u.motor.upper_limit,
+		fdev->u.motor.lower_limit,
+		fdev->u.motor.scale_factor,
+		fdev->u.motor.speed,
+		fdev->u.motor.acceleration_time,
+		fdev->u.motor.backlash );
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0 );
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 htos_motor_move_completed( MX_THREAD *thread,
@@ -591,6 +657,75 @@ htos_report_shutter_state( MX_THREAD *thread,
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+htos_send_configuration( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
+{ 
+	static const char fname[] = "htos_send_configuration()";
+
+	MX_RECORD *current_record;
+	MX_BLUICE_MOTOR *bluice_motor;
+	char *ptr, *token_ptr, *device_name;
+	mx_status_type mx_status;
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The supposed htos_send_configuration message from "
+		"Blu-Ice server '%s' is actually blank.  "
+		"This should never happen.", bluice_server->record->name );
+	}
+
+	/* The next string should be the name of our device. */
+
+	device_name = mx_string_split( &ptr, " " );
+
+	if ( device_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"No device name was found in the htos_send_configuration "
+		"message from Blu-Ice DHS server '%s'.",
+			bluice_server->record->name );
+	}
+
+	/* Look for the MX record that corresponds to this Blu-Ice device. */
+
+	current_record = server_record->next_record;
+
+	while( current_record != server_record ) {
+
+		switch( current_record->mx_type ) {
+		case MXT_MTR_BLUICE_DHS:
+		    bluice_motor = current_record->record_type_struct;
+
+		    if ( (server_record == bluice_motor->bluice_server_record )
+		      && (strcmp(device_name, bluice_motor->bluice_name) == 0) )
+		    {
+		    	mx_status = stoh_configure_real_motor(
+					current_record, bluice_motor,
+					bluice_server, bluice_dhs_server );
+
+			return mx_status;
+		    }
+		    break;
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"Blu-Ice DHS server '%s' requested the configuration of "
+	"Blu-Ice device '%s' which does not match any of the "
+	"device records in the MX database.",
+		server_record->name, device_name );
 }
 
 static mx_status_type

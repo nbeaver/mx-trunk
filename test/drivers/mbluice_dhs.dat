@@ -1,21 +1,21 @@
 dhs_manager   server generic bluice_dhs_manager "" "" 14242 0x0
 simdhs        server bluice bluice_dhs_server "" "" dhs_manager simDhs 0x0
 command       variable bluice_variable bluice_command "" "" simdhs 1 80 ""
-energy        device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 eV simdhs energy
-gonio_omega   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg simdhs gonio_omega
-gonio_kappa   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg simdhs gonio_kappa
-gonio_phi     device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg simdhs gonio_phi
-detector_z    device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 deg simdhs detector_z
-beam_size_x   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs beam_size_x
-beam_size_y   device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs beam_size_y
-sample_x      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs sample_x
-sample_y      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs sample_y
-sample_z      device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs sample_z
-beamstop_z    device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs beamstop_z
-detector_horz device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_x
-detector_vert device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um simdhs detector_y
-door_status   variable bluice_variable bluice_string "" "" simdhs hutchDoorStatus 1 80 ""
-shutter       device relay bluice_shutter "" "" simdhs shutter
-i0            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs "" hex1 0 rtc1 clock
-i1            device analog_input bluice_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs "" hex1 1 rtc1 clock
-timer1        device timer bluice_timer "" "" simdhs rtc1 simDhs
+energy        device motor bluice_dhs_motor "" "" 0 0  6000.0 16000.0 0 -1 -1 1 0 eV simdhs energy 100.0 10000 500 -12500
+gonio_omega   device motor bluice_dhs_motor "" "" 0 0     5.0   360.0 0 -1 -1 1 0 deg simdhs gonio_omega 12500.0 40000 500 -12500
+gonio_kappa   device motor bluice_dhs_motor "" "" 0 0   -30.0     6.0 0 -1 -1 1 0 deg simdhs gonio_kappa 200.0 400 100 0
+gonio_phi     device motor bluice_dhs_motor "" "" 0 0 -1000.0  1000.0 0 -1 -1 1 0 deg simdhs gonio_phi 2500.0 20000 50 0
+detector_z    device motor bluice_dhs_motor "" "" 0 0   240.0   705.0 0 -1 -1 1 0 deg simdhs detector_z 157.48 1000 50 -79
+beam_size_x   device motor bluice_dhs_motor "" "" 0 0     0.0     0.5 0 -1 -1 1 0 um simdhs beam_size_x 1600.0 200 100 -1600
+beam_size_y   device motor bluice_dhs_motor "" "" 0 0     0.0     0.5 0 -1 -1 1 0 um simdhs beam_size_y 1600.0 200 100 -1600
+sample_x      device motor bluice_dhs_motor "" "" 0 0    -4.5     4.5 0 -1 -1 1 0 um simdhs sample_x 17500.0 17560 100 875
+sample_y      device motor bluice_dhs_motor "" "" 0 0    -4.5     4.5 0 -1 -1 1 0 um simdhs sample_y 17500.0 17560 100 875
+sample_z      device motor bluice_dhs_motor "" "" 0 0     0.0    10.0 0 -1 -1 1 0 um simdhs sample_z 17500.0 10000 100 875
+beamstop_z    device motor bluice_dhs_motor "" "" 0 0     0.0     5.0 0 -1 -1 1 0 um simdhs beamstop_z 1500.0 400 100 53
+detector_horz device motor bluice_dhs_motor "" "" 0 0  -105.0     3.0 0 -1 -1 1 0 um simdhs detector_x 1574.8 400 1000 1334
+detector_vert device motor bluice_dhs_motor "" "" 0 0    -5.0   125.0 0 -1 -1 1 0 um simdhs detector_y 3149.6 4000 200 1600
+door_status   variable bluice_variable bluice_dhs_string "" "" simdhs hutchDoorStatus 1 80 ""
+shutter       device relay bluice_dhs_shutter "" "" simdhs shutter
+i0            device analog_input bluice_dhs_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs hex1 0 rtc1 clock
+i1            device analog_input bluice_dhs_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs hex1 1 rtc1 clock
+timer1        device timer bluice_dhs_timer "" "" simdhs rtc1 simDhs

@@ -52,21 +52,37 @@ MX_MOTOR_FUNCTION_LIST mxd_bluice_motor_motor_function_list = {
 	mxd_bluice_motor_get_status
 };
 
-/* Blu-Ice motor data structures. */
+/**** Blu-Ice DCSS motor data structures. ****/
 
-MX_RECORD_FIELD_DEFAULTS mxd_bluice_motor_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dcss_motor_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
-	MXD_BLUICE_MOTOR_STANDARD_FIELDS
+	MXD_BLUICE_DCSS_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_bluice_motor_num_record_fields
-		= sizeof( mxd_bluice_motor_record_field_defaults )
-			/ sizeof( mxd_bluice_motor_record_field_defaults[0] );
+long mxd_bluice_dcss_motor_num_record_fields
+		= sizeof( mxd_bluice_dcss_motor_record_field_defaults )
+		    / sizeof( mxd_bluice_dcss_motor_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_bluice_motor_rfield_def_ptr
-			= &mxd_bluice_motor_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dcss_motor_rfield_def_ptr
+			= &mxd_bluice_dcss_motor_record_field_defaults[0];
+
+/**** Blu-Ice DHS motor data structures. ****/
+
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dhs_motor_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_ANALOG_MOTOR_STANDARD_FIELDS,
+	MX_MOTOR_STANDARD_FIELDS,
+	MXD_BLUICE_DHS_MOTOR_STANDARD_FIELDS
+};
+
+long mxd_bluice_dhs_motor_num_record_fields
+		= sizeof( mxd_bluice_dhs_motor_record_field_defaults )
+		    / sizeof( mxd_bluice_dhs_motor_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_motor_rfield_def_ptr
+			= &mxd_bluice_dhs_motor_record_field_defaults[0];
 
 /*=======================================================================*/
 

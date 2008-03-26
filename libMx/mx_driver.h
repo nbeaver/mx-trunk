@@ -294,7 +294,8 @@ extern "C" {
 #define MXT_AIN_SR630			10033
 #define MXT_AIN_P6000A			10034
 #define MXT_AIN_TPG262			10035
-#define MXT_AIN_BLUICE_ION_CHAMBER	10036
+#define MXT_AIN_BLUICE_DCSS_ION_CHAMBER	10036
+#define MXT_AIN_BLUICE_DHS_ION_CHAMBER	10037
 
 /* --- Analog input subclasses -- */
 
@@ -454,8 +455,9 @@ extern "C" {
 #define MXT_MTR_PMC_MCAPI		50046
 #define MXT_MTR_PICOMOTOR		50047
 #define MXT_MTR_MCU2			50048
-#define MXT_MTR_BLUICE			50049
-#define MXT_MTR_PTZ			50050
+#define MXT_MTR_BLUICE_DCSS		50049
+#define MXT_MTR_BLUICE_DHS		50050
+#define MXT_MTR_PTZ			50051
 
    /* Pseudomotors. */
 
@@ -534,9 +536,10 @@ extern "C" {
 #define MXT_TIM_SPEC			80014
 #define MXT_TIM_GM10			80015
 #define MXT_TIM_INTERVAL		80016
-#define MXT_TIM_BLUICE			80017
-#define MXT_TIM_HANDEL			80018
-#define MXT_TIM_XIA_DXP			80019
+#define MXT_TIM_BLUICE_DCSS		80017
+#define MXT_TIM_BLUICE_DHS		80018
+#define MXT_TIM_HANDEL			80019
+#define MXT_TIM_XIA_DXP			80020
 
 /* --- Amplifier types --- */
 
@@ -565,7 +568,8 @@ extern "C" {
 #define MXT_RLY_PFCU_FILTER		100006
 #define MXT_RLY_PFCU_SHUTTER		100007
 #define MXT_RLY_MARDTB_SHUTTER		100008
-#define MXT_RLY_BLUICE_SHUTTER		100009
+#define MXT_RLY_BLUICE_DCSS_SHUTTER	100009
+#define MXT_RLY_BLUICE_DHS_SHUTTER	100010
 
 /* --- Multichannel analyzer types --- */
 
@@ -755,7 +759,8 @@ extern "C" {
 
 #define MXV_BLUICE_MASTER		506001
 #define MXV_BLUICE_COMMAND		506002
-#define MXV_BLUICE_STRING		506003
+#define MXV_BLUICE_DCSS_STRING		506003
+#define MXV_BLUICE_DHS_STRING		506004
 
 #define MXV_FILE_STRING			507001
 #define MXV_FILE_LONG			507008

@@ -105,12 +105,16 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 		 * attempt to read from it.
 		 */
 
-		if ( current_record->mx_type == MXT_AIN_BLUICE_ION_CHAMBER ) {
+		switch( current_record->mx_type ) {
+		case MXT_AIN_BLUICE_DCSS_ION_CHAMBER:
+		case MXT_AIN_BLUICE_DHS_ION_CHAMBER:
 #if BLUICE_TIMER_DEBUG
 			MX_DEBUG(-2,("%s: Initializing ion chamber '%s'",
 				fname, current_record->name ));
 #endif
 			(void) mx_analog_input_read( current_record, NULL );
+
+			break;
 		}
 
 		current_record = current_record->next_record;
