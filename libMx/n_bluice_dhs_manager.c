@@ -79,6 +79,8 @@ MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_manager_rfield_def_ptr
 		}							\
 	} while(0)
 
+#if 0
+
 static mx_status_type
 mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 						MX_RECORD *dhs_record )
@@ -241,6 +243,8 @@ mxn_bluice_dhs_manager_setup_foreign_devices( MX_RECORD *dhs_manager_record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -764,8 +768,10 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		 * for each record belonging to this DHS.
 		 */
 
+#if 0
 		mxn_bluice_dhs_manager_setup_foreign_devices(
 				dhs_manager_record, dhs_record );
+#endif
 
 		/* The last step is to send a series of stoh_register_...
 		 * commands to the DHS.  This is necessary to prod the

@@ -51,6 +51,7 @@ extern "C" {
 /* ----- */
 
 #define MXU_BLUICE_NAME_LENGTH		40
+#define MXU_BLUICE_STRING_LENGTH	200
 
 #define MX_BLUICE_ARRAY_BLOCK_SIZE	10
 #define MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH	1000
@@ -98,8 +99,7 @@ typedef struct {
 } MX_BLUICE_FOREIGN_SHUTTER;
 
 typedef struct {
-	unsigned long string_length;
-	char *string_contents;
+	char *string_buffer;
 
 	MX_VARIABLE *mx_string_variable;
 } MX_BLUICE_FOREIGN_STRING;

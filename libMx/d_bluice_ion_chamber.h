@@ -31,6 +31,8 @@ typedef struct {
 
 MX_API mx_status_type mxd_bluice_ion_chamber_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_bluice_ion_chamber_finish_record_initialization(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput );
 

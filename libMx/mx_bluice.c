@@ -442,6 +442,11 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		fname, *foreign_device_array_ptr));
 	MX_DEBUG(-2,("%s: foreign_device_ptr = %p", fname, foreign_device_ptr));
 #endif
+	if ( bluice_server->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_BLUICE_SERVER "
+		"pointer %p is NULL.", bluice_server );
+	}
 
 	if ( (*num_foreign_devices_ptr) > 0 ) {
 		if ( (*foreign_device_array_ptr) == NULL ) {
@@ -570,7 +575,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 			*foreign_device_array_ptr
 			    = (MX_BLUICE_FOREIGN_DEVICE **)
-				malloc( num_elements * foreign_pointer_size );
+				calloc( num_elements, foreign_pointer_size );
 		} else
 		if (((*num_foreign_devices_ptr)
 				% MX_BLUICE_ARRAY_BLOCK_SIZE) == 0)
@@ -1555,7 +1560,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	static const char fname[] = "mx_bluice_configure_string()";
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
-	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_contents;
+	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_buffer;
 	size_t string_length;
 	long message_type;
 	mx_status_type mx_status;
@@ -1610,11 +1615,11 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 			string_name );
 	}
 
-	/* Treat the rest of the receive buffer as the string contents. */
+	/* Treat the rest of the receive buffer as the string buffer. */
 
-	string_contents = ptr;
+	string_buffer = ptr;
 
-	if ( string_contents == NULL ) {
+	if ( string_buffer == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Empty string seen in message received from "
 		"Blu-Ice server '%s' for string '%s'.",
@@ -1643,33 +1648,33 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	strlcpy( foreign_string->dhs_server_name,
 			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	string_length = strlen( string_contents );
+	string_length = strlen( string_buffer );
 
-	if ( foreign_string->u.string.string_contents == (char *) NULL ) {
-		foreign_string->u.string.string_contents = (char *)
-						malloc( string_length );
+	if ( foreign_string->u.string.string_buffer == (char *) NULL ) {
+		foreign_string->u.string.string_buffer = (char *)
+						malloc( string_length+1 );
 	} else {
-		foreign_string->u.string.string_contents = (char *)
-	    realloc( foreign_string->u.string.string_contents, string_length );
+		foreign_string->u.string.string_buffer = (char *)
+	   realloc( foreign_string->u.string.string_buffer, string_length+1 );
 	}
 
-	if ( foreign_string->u.string.string_contents == (char *) NULL ) {
+	if ( foreign_string->u.string.string_buffer == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte string "
 		"for Blu-Ice foreign string '%s'.",
 			(unsigned long) string_length, string_name );
 	}
 
-	strlcpy( foreign_string->u.string.string_contents,
-			string_contents, string_length+1 );
+	strlcpy( foreign_string->u.string.string_buffer,
+			string_buffer, string_length+1 );
 
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 	MX_DEBUG(-2,("%s: Foreign string '%s':", fname, foreign_string->name));
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_string->dhs_server_name));
-	MX_DEBUG(-2,("%s: String contents = '%s'",
-			    fname, foreign_string->u.string.string_contents));
+	MX_DEBUG(-2,("%s: String buffer = '%s'",
+			    fname, foreign_string->u.string.string_buffer));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
@@ -1772,7 +1777,18 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
-		return mx_status;
+		if ( mx_status.code == MXE_NOT_FOUND ) {
+
+			/* mx_bluice_get_device_pointer() suppresses the
+			 * display of MXE_NOT_FOUND errors, but we want
+			 * the user to see this particular error.
+			 */
+
+			return mx_error( mx_status.code,
+				mx_status.location, mx_status.message );
+		} else {
+			return mx_status;
+		}
 	}
 
 	if ( foreign_motor == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {

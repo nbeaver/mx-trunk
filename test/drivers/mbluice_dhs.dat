@@ -1,7 +1,7 @@
 dhs_manager   server generic bluice_dhs_manager "" "" 14242 0x0
 simdhs        server bluice bluice_dhs_server "" "" dhs_manager simDhs 0x0
 command       variable bluice_variable bluice_command "" "" simdhs 1 80 ""
-energy        device motor bluice_dhs_motor "" "" 0 0  6000.0 16000.0 0 -1 -1 1 0 eV simdhs energy 100.0 10000 500 -12500
+energy        device motor bluice_dhs_motor "" "" 6500 0  6000.0 16000.0 0 -1 -1 1 0 eV simdhs energy 100.0 10000 500 -12500
 gonio_omega   device motor bluice_dhs_motor "" "" 0 0     5.0   360.0 0 -1 -1 1 0 deg simdhs gonio_omega 12500.0 40000 500 -12500
 gonio_kappa   device motor bluice_dhs_motor "" "" 0 0   -30.0     6.0 0 -1 -1 1 0 deg simdhs gonio_kappa 200.0 400 100 0
 gonio_phi     device motor bluice_dhs_motor "" "" 0 0 -1000.0  1000.0 0 -1 -1 1 0 deg simdhs gonio_phi 2500.0 20000 50 0

@@ -26,12 +26,13 @@
 
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
+#include "n_bluice_dhs.h"
 #include "v_bluice_string.h"
 
 MX_RECORD_FUNCTION_LIST mxv_bluice_string_record_function_list = {
 	mx_variable_initialize_type,
 	mxv_bluice_string_create_record_structures,
-	NULL,
+	mxv_bluice_string_finish_record_initialization,
 	NULL,
 	NULL,
 	NULL,
@@ -65,6 +66,7 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 			MX_BLUICE_STRING **bluice_string,
 			MX_BLUICE_SERVER **bluice_server,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_string,
+			mx_bool_type skip_foreign_device_check,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxv_bluice_string_get_pointers()";
@@ -130,6 +132,10 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 		}
 	}
 
+	if ( skip_foreign_device_check ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	if ( foreign_string != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
 		*foreign_string = bluice_string_ptr->foreign_device;
 
@@ -189,6 +195,85 @@ mxv_bluice_string_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxv_bluice_string_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxv_bluice_string_finish_record_initialization()";
+
+	MX_VARIABLE *variable;
+	MX_BLUICE_STRING *bluice_string;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	/* The foreign device pointer for DCSS strings will be initialized
+	 * later, when DCSS sends us the necessary configuration information.
+	 */
+
+	if ( record->mx_type == MXV_BLUICE_DCSS_STRING ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* The foreign device pointer for DHS strings will be initialized
+	 * _now_, since _we_ are the source of the configuration information.
+	 */
+
+	variable = record->record_superclass_struct;
+
+	mx_status = mxv_bluice_string_get_pointers( variable, &bluice_string,
+					&bluice_server, NULL, TRUE, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					bluice_string->bluice_name,
+					&(bluice_server->string_array),
+					&(bluice_server->num_strings),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&fdev );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	bluice_string->foreign_device = fdev;
+
+	fdev->foreign_type = MXT_BLUICE_FOREIGN_STRING;
+
+	bluice_dhs_server = bluice_server->record->record_type_struct;
+
+	if ( bluice_dhs_server == (MX_BLUICE_DHS_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_DHS_SERVER pointer for "
+		"Blu-Ice DHS server '%s' is NULL.",
+			bluice_server->record->name );
+	}
+
+	strlcpy( fdev->dhs_server_name,
+		bluice_dhs_server->dhs_name,
+		MXU_BLUICE_DHS_NAME_LENGTH );
+
+	fdev->u.string.string_buffer = calloc(1, MXU_BLUICE_STRING_LENGTH);
+
+	if ( fdev->u.string.string_buffer == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d character string "
+		"for Blu-Ice string variable '%s'.",
+			MXU_BLUICE_STRING_LENGTH, record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxv_bluice_string_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxv_bluice_string_open()";
@@ -207,8 +292,8 @@ mxv_bluice_string_open( MX_RECORD *record )
 
 	variable = (MX_VARIABLE *) record->record_superclass_struct;
 
-	mx_status = mxv_bluice_string_get_pointers( variable,
-				&bluice_string, &bluice_server, NULL, fname );
+	mx_status = mxv_bluice_string_get_pointers( variable, &bluice_string,
+				&bluice_server, NULL, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -277,8 +362,8 @@ mxv_bluice_string_send_variable( MX_VARIABLE *variable )
 	MX_BLUICE_STRING *bluice_string;
 	mx_status_type mx_status;
 
-	mx_status = mxv_bluice_string_get_pointers( variable,
-					&bluice_string, NULL, NULL, fname );
+	mx_status = mxv_bluice_string_get_pointers( variable, &bluice_string,
+						NULL, NULL, FALSE, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -300,8 +385,8 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	mx_status_type mx_status;
 	long mx_status_code;
 
-	mx_status = mxv_bluice_string_get_pointers( variable,
-			&bluice_string, &bluice_server, &foreign_string, fname);
+	mx_status = mxv_bluice_string_get_pointers( variable, &bluice_string,
+				&bluice_server, &foreign_string, FALSE, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -322,7 +407,7 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	}
 
 	strlcpy( value_ptr,
-		foreign_string->u.string.string_contents,
+		foreign_string->u.string.string_buffer,
 		dimension_array[0] );
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );

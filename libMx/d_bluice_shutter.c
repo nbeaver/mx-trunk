@@ -25,13 +25,15 @@
 #include "mx_relay.h"
 
 #include "mx_bluice.h"
+#include "n_bluice_dhs.h"
 #include "d_bluice_shutter.h"
 
 /* Initialize the generic relay driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_bluice_shutter_record_function_list = {
 	NULL,
-	mxd_bluice_shutter_create_record_structures
+	mxd_bluice_shutter_create_record_structures,
+	mxd_bluice_shutter_finish_record_initialization
 };
 
 MX_RELAY_FUNCTION_LIST mxd_bluice_shutter_relay_function_list = {
@@ -64,6 +66,7 @@ mxd_bluice_shutter_get_pointers( MX_RELAY *relay,
 			MX_BLUICE_SHUTTER **bluice_shutter,
 			MX_BLUICE_SERVER **bluice_server,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_shutter,
+			mx_bool_type skip_foreign_device_check,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_bluice_shutter_get_pointers()";
@@ -124,6 +127,10 @@ mxd_bluice_shutter_get_pointers( MX_RELAY *relay,
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
 		*bluice_server = bluice_server_ptr;
+	}
+
+	if ( skip_foreign_device_check ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* In this section, we check to see if the pointer to the Blu-Ice
@@ -251,6 +258,81 @@ mxd_bluice_shutter_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_bluice_shutter_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_bluice_shutter_finish_record_initialization()";
+
+	MX_RELAY *relay;
+	MX_BLUICE_SHUTTER *bluice_shutter;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	/* The foreign device pointer for DCSS controlled shutters
+	 * will be initialized later, when DCSS sends us the necessary
+	 * configuration information.
+	 */
+
+	if ( record->mx_type == MXT_RLY_BLUICE_DCSS_SHUTTER ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* The foreign device pointer for DHS controlled shutters
+	 * will be initialized _now_, since _we_ are the source of the
+	 * configuration information.
+	 */
+
+	relay = record->record_class_struct;
+
+	mx_status = mxd_bluice_shutter_get_pointers( relay,
+						&bluice_shutter,
+						&bluice_server,
+						NULL, TRUE, fname );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					bluice_shutter->bluice_name,
+					&(bluice_server->shutter_array),
+					&(bluice_server->num_shutters),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&fdev );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	bluice_shutter->foreign_device = fdev;
+
+	fdev->foreign_type = MXT_BLUICE_FOREIGN_ION_CHAMBER;
+
+	bluice_dhs_server = bluice_server->record->record_type_struct;
+
+	if ( bluice_dhs_server == (MX_BLUICE_DHS_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_DHS_SERVER pointer for "
+		"Blu-Ice DHS server '%s' is NULL.",
+			bluice_server->record->name );
+	}
+
+	strlcpy( fdev->dhs_server_name,
+		bluice_dhs_server->dhs_name,
+		MXU_BLUICE_DHS_NAME_LENGTH );
+
+	fdev->u.shutter.shutter_status = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 {
 	static const char fname[] = "mxd_bluice_shutter_relay_command()";
@@ -261,8 +343,8 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_bluice_shutter_get_pointers( relay,
-		&bluice_shutter, &bluice_server, &foreign_shutter, fname );
+	mx_status = mxd_bluice_shutter_get_pointers( relay, &bluice_shutter,
+			&bluice_server, &foreign_shutter, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -329,8 +411,8 @@ mxd_bluice_shutter_get_relay_status( MX_RELAY *relay )
 	mx_status_type mx_status;
 	long mx_status_code;
 
-	mx_status = mxd_bluice_shutter_get_pointers( relay,
-		&bluice_shutter, &bluice_server, &foreign_shutter, fname );
+	mx_status = mxd_bluice_shutter_get_pointers( relay, &bluice_shutter,
+			&bluice_server, &foreign_shutter, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
