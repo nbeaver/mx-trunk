@@ -38,6 +38,8 @@ MX_API mx_status_type mxd_bluice_timer_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_timer_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_bluice_timer_finish_delayed_initialization(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_bluice_timer_is_busy( MX_TIMER *timer );
 MX_API mx_status_type mxd_bluice_timer_start( MX_TIMER *timer );

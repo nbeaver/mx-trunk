@@ -33,7 +33,14 @@
 MX_RECORD_FUNCTION_LIST mxd_bluice_timer_record_function_list = {
 	NULL,
 	mxd_bluice_timer_create_record_structures,
-	mxd_bluice_timer_finish_record_initialization
+	mxd_bluice_timer_finish_record_initialization,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_bluice_timer_finish_delayed_initialization
 };
 
 MX_TIMER_FUNCTION_LIST mxd_bluice_timer_timer_function_list = {
@@ -285,6 +292,7 @@ static mx_status_type
 mxd_bluice_timer_get_pointers( MX_TIMER *timer,
 			MX_BLUICE_TIMER **bluice_timer,
 			MX_BLUICE_SERVER **bluice_server,
+			mx_bool_type skip_foreign_device_check,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_bluice_timer_get_pointers()";
@@ -343,6 +351,10 @@ mxd_bluice_timer_get_pointers( MX_TIMER *timer,
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
 		*bluice_server = bluice_server_ptr;
+	}
+
+	if ( skip_foreign_device_check ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* In this section, we check to see if the pointer to the Blu-Ice
@@ -441,6 +453,46 @@ mxd_bluice_timer_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxd_bluice_timer_finish_delayed_initialization()";
+
+	MX_TIMER *timer;
+	MX_BLUICE_TIMER *bluice_timer;
+	MX_BLUICE_SERVER *bluice_server;
+	mx_status_type mx_status;
+
+#if BLUICE_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for Blu-Ice timer '%s'",
+		fname, record->name));
+#endif
+
+	if ( record->mx_type == MXT_TIM_BLUICE_DHS ) {
+		timer = record->record_class_struct;
+
+		mx_status = mxd_bluice_timer_get_pointers( timer,
+				&bluice_timer, &bluice_server, TRUE, fname );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_bluice_timer_setup_ion_chambers( timer,
+							bluice_timer,
+							bluice_server );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if BLUICE_TIMER_DEBUG
+	MX_DEBUG(-2,("%s complete for Blu-Ice timer '%s'",
+		fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_bluice_timer_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_bluice_timer_is_busy()";
@@ -450,7 +502,7 @@ mxd_bluice_timer_is_busy( MX_TIMER *timer )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_timer_get_pointers( timer,
-					&bluice_timer, &bluice_server, fname );
+				&bluice_timer, &bluice_server, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -484,7 +536,7 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 	long mx_status_code;
 
 	mx_status = mxd_bluice_timer_get_pointers( timer,
-					&bluice_timer, &bluice_server, fname );
+				&bluice_timer, &bluice_server, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -548,7 +600,7 @@ mxd_bluice_timer_stop( MX_TIMER *timer )
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_timer_get_pointers( timer,
-					&bluice_timer, &bluice_server, fname );
+				&bluice_timer, &bluice_server, FALSE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
