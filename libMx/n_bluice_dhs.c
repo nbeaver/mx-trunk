@@ -613,11 +613,15 @@ htos_report_shutter_state( MX_THREAD *thread,
 	if ( strcmp( token_ptr, "closed" ) == 0 ) {
 		shutter_status = MXF_RELAY_IS_CLOSED;
 	} else {
+#if 1
+		shutter_status = MXF_RELAY_IS_CLOSED;
+#else
 		shutter_status = MXF_RELAY_ILLEGAL_STATUS;
 
 		mx_warning(
 	"Illegal shutter status '%s' returned for Blu-Ice shutter '%s'.",
 			token_ptr, shutter_name );
+#endif
 	}
 
 	/* Update the value in the shutter structure. */
@@ -707,7 +711,7 @@ htos_send_configuration( MX_THREAD *thread,
 		    bluice_motor = current_record->record_type_struct;
 
 		    if ( (server_record == bluice_motor->bluice_server_record )
-		      && (strcmp(device_name, bluice_motor->bluice_name) == 0) )
+		      && (strcmp(device_name, current_record->name) == 0) )
 		    {
 		    	mx_status = stoh_configure_real_motor(
 					current_record, bluice_motor,

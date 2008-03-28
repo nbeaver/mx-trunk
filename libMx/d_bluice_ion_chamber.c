@@ -326,6 +326,23 @@ mxd_bluice_ion_chamber_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Blu-Ice itself does not give each ion chamber its own
+	 * separate name.  Instead, it uses the counter name and
+	 * the channel number.  However, the code that uses
+	 * MX_BLUICE_FOREIGN_DEVICE expects a Blu-Ice name to be
+	 * present, so we use the record name for that.
+	 */
+
+	strlcpy( bluice_ion_chamber->bluice_name,
+		record->name, MXU_BLUICE_NAME_LENGTH );
+
+#if BLUICE_ION_CHAMBER_DEBUG
+	MX_DEBUG(-2,("%s: About to call mx_bluice_setup_device_pointer() "
+		"for ion chamber '%s'.", fname, record->name ));
+	MX_DEBUG(-2,("%s: bluice_ion_chamber->bluice_name = '%s'",
+		fname, bluice_ion_chamber->bluice_name));
+#endif
+
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					bluice_ion_chamber->bluice_name,
@@ -337,6 +354,11 @@ mxd_bluice_ion_chamber_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if BLUICE_ION_CHAMBER_DEBUG
+	MX_DEBUG(-2,("%s: num_ion_chambers = %ld, fdev = %p",
+		fname, bluice_server->num_ion_chambers, fdev));
+#endif
 
 	bluice_ion_chamber->foreign_device = fdev;
 
@@ -350,6 +372,10 @@ mxd_bluice_ion_chamber_finish_record_initialization( MX_RECORD *record )
 		"Blu-Ice DHS server '%s' is NULL.",
 			bluice_server->record->name );
 	}
+
+	strlcpy( fdev->name,
+		bluice_ion_chamber->bluice_name,
+		MXU_BLUICE_NAME_LENGTH );
 
 	strlcpy( fdev->dhs_server_name,
 		bluice_dhs_server->dhs_name,
@@ -389,6 +415,13 @@ mxd_bluice_ion_chamber_finish_record_initialization( MX_RECORD *record )
 			  && (strcmp(bluice_timer->bluice_name,
 			  	bluice_ion_chamber->bluice_timer_name) == 0) )
 			{
+#if BLUICE_ION_CHAMBER_DEBUG
+				MX_DEBUG(-2,("%s: Found timer '%s' for "
+				"Blu-Ice ion chamber '%s'.", fname,
+					current_record->name,
+					record->name));
+#endif
+
 				fdev->u.ion_chamber.mx_timer =
 					current_record->record_class_struct;
 

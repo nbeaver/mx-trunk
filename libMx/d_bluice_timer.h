@@ -48,10 +48,13 @@ MX_API mx_status_type mxd_bluice_timer_stop( MX_TIMER *timer );
 extern MX_RECORD_FUNCTION_LIST mxd_bluice_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_bluice_timer_timer_function_list;
 
-extern long mxd_bluice_timer_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_timer_rfield_def_ptr;
+extern long mxd_bluice_dcss_timer_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dcss_timer_rfield_def_ptr;
 
-#define MXD_BLUICE_TIMER_STANDARD_FIELDS \
+extern long mxd_bluice_dhs_timer_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_timer_rfield_def_ptr;
+
+#define MXD_BLUICE_DCSS_TIMER_STANDARD_FIELDS \
   {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_BLUICE_TIMER, bluice_server_record), \
@@ -65,7 +68,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_TIMER, dhs_server_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-
+#define MXD_BLUICE_DHS_TIMER_STANDARD_FIELDS \
+  {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_BLUICE_TIMER, bluice_server_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "bluice_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_TIMER, bluice_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_BLUICE_TIMER_H__ */
 

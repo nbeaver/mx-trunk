@@ -1693,6 +1693,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char *ptr, *token_ptr, *motor_name;
 	double motor_position;
+	mx_bool_type start_of_move;
 	mx_status_type mx_status;
 	long mx_status_code;
 
@@ -1702,7 +1703,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 		bluice_server->record->name ));
 #endif
 
-	/* Skip over the command name. */
+	/* Is this the start of a move? */
 
 	ptr = bluice_server->receive_buffer;
 
@@ -1714,6 +1715,14 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 		"contained only space characters.", 
 	    		bluice_server->receive_buffer,
 			bluice_server->record->name );
+	}
+
+	if ( ( strcmp(token_ptr, "stog_motor_move_started") == 0 )
+	  || ( strcmp(token_ptr, "htos_motor_move_started") == 0 ) )
+	{
+		start_of_move = TRUE;
+	} else {
+		start_of_move = FALSE;
 	}
 
 	/* Get the motor name. */
@@ -1801,7 +1810,10 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	/* Update the motion status. */
 
-	foreign_motor->u.motor.position = motor_position;
+	if ( start_of_move == FALSE ) {
+		foreign_motor->u.motor.position = motor_position;
+	}
+
 	foreign_motor->u.motor.move_in_progress = move_in_progress;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );

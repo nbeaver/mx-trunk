@@ -360,7 +360,11 @@ mxd_bluice_motor_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
+#if 0
 					bluice_motor->bluice_name,
+#else
+					record->name,
+#endif
 					&(bluice_server->motor_array),
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
@@ -519,13 +523,13 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 	case MXN_BLUICE_DCSS_SERVER:
 		snprintf( command, sizeof(command),
 				"gtos_start_motor_move %s %g",
-				bluice_motor->bluice_name,
+				motor->record->name,
 				motor->raw_destination.analog );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
 		snprintf( command, sizeof(command),
 				"stoh_start_motor_move %s %g",
-				bluice_motor->bluice_name,
+				motor->record->name,
 				motor->raw_destination.analog );
 		break;
 	}

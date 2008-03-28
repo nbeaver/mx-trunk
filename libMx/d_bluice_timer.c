@@ -26,6 +26,7 @@
 #include "mx_timer.h"
 
 #include "mx_bluice.h"
+#include "n_bluice_dhs.h"
 #include "d_bluice_timer.h"
 
 /* Initialize the timer driver jump table. */
@@ -49,20 +50,35 @@ MX_TIMER_FUNCTION_LIST mxd_bluice_timer_timer_function_list = {
 	mxd_bluice_timer_stop
 };
 
-/* MX bluice timer data structures. */
+/**** MX Blu-Ice DCSS timer data structures. ****/
 
-MX_RECORD_FIELD_DEFAULTS mxd_bluice_timer_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dcss_timer_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_TIMER_STANDARD_FIELDS,
-	MXD_BLUICE_TIMER_STANDARD_FIELDS
+	MXD_BLUICE_DCSS_TIMER_STANDARD_FIELDS
 };
 
-long mxd_bluice_timer_num_record_fields
-		= sizeof( mxd_bluice_timer_record_field_defaults )
-		  / sizeof( mxd_bluice_timer_record_field_defaults[0] );
+long mxd_bluice_dcss_timer_num_record_fields
+		= sizeof( mxd_bluice_dcss_timer_record_field_defaults )
+		  / sizeof( mxd_bluice_dcss_timer_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_bluice_timer_rfield_def_ptr
-			= &mxd_bluice_timer_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dcss_timer_rfield_def_ptr
+			= &mxd_bluice_dcss_timer_record_field_defaults[0];
+
+/**** MX Blu-Ice DHS timer data structures. ****/
+
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dhs_timer_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_TIMER_STANDARD_FIELDS,
+	MXD_BLUICE_DCSS_TIMER_STANDARD_FIELDS
+};
+
+long mxd_bluice_dhs_timer_num_record_fields
+		= sizeof( mxd_bluice_dhs_timer_record_field_defaults )
+		  / sizeof( mxd_bluice_dhs_timer_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_timer_rfield_def_ptr
+			= &mxd_bluice_dhs_timer_record_field_defaults[0];
 
 /*=======================================================================*/
 
@@ -83,10 +99,6 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 	long i, n, num_ion_chambers;
 	long mx_status_code;
 
-#if BLUICE_TIMER_DEBUG
-	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
-#endif
-
 	/* Invoke mx_analog_input_read() on all of the bluice_ion_chamber
 	 * records in the database.  Doing this ensures that the Blu-Ice
 	 * foreign data structures for all of the bluice_ion_chamber
@@ -101,6 +113,10 @@ mxd_bluice_timer_setup_ion_chambers( MX_TIMER *timer,
 		"The MX_RECORD pointer for MX_TIMER %p passed was NULL.",
 			timer );
 	}
+
+#if BLUICE_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer_record->name));
+#endif
 
 	current_record = timer_record->next_record;
 
@@ -461,6 +477,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	MX_TIMER *timer;
 	MX_BLUICE_TIMER *bluice_timer;
 	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	mx_status_type mx_status;
 
 #if BLUICE_TIMER_DEBUG
@@ -476,6 +493,25 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		bluice_dhs_server = bluice_server->record->record_type_struct;
+
+		if ( bluice_dhs_server == (MX_BLUICE_DHS_SERVER *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_BLUICE_DHS_SERVER pointer for Blu-Ice "
+			"DHS server '%s' is NULL.",
+				bluice_server->record->name );
+		}
+
+		strlcpy( bluice_timer->dhs_server_name,
+			bluice_dhs_server->dhs_name,
+			MXU_BLUICE_NAME_LENGTH );
+			
+#if BLUICE_TIMER_DEBUG
+		MX_DEBUG(-2,
+		("%s: Blu-Ice timer '%s' belongs to DHS server '%s'.",
+			fname, record->name, bluice_dhs_server->dhs_name));
+#endif
 
 		mx_status = mxd_bluice_timer_setup_ion_chambers( timer,
 							bluice_timer,
