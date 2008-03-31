@@ -300,11 +300,9 @@ mxd_bluice_shutter_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
-					bluice_shutter->bluice_name,
+					record->name,
 					&(bluice_server->shutter_array),
 					&(bluice_server->num_shutters),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&fdev );
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -344,7 +344,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 
 		    snprintf( command, sizeof(command),
 			"stoh_register_string %s %s",
-					current_record->name,
+					bluice_string->bluice_name,
 					bluice_string->bluice_name );
 					
 		}

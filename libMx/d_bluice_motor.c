@@ -360,15 +360,9 @@ mxd_bluice_motor_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
-#if 0
-					bluice_motor->bluice_name,
-#else
 					record->name,
-#endif
 					&(bluice_server->motor_array),
 					&(bluice_server->num_motors),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&fdev );
 
 	if ( mx_status.code != MXE_SUCCESS )

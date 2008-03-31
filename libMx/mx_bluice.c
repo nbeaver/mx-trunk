@@ -397,22 +397,25 @@ mx_bluice_get_message_type( char *message_string, long *message_type )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
+/*------------*/
+
+static mx_status_type
+mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 			char *name,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
 			long *num_foreign_devices_ptr,
-			size_t foreign_pointer_size,
-			size_t foreign_device_size,
+			mx_bool_type make_new_pointer_if_necessary,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr )
 {
-	static const char fname[] = "mx_bluice_setup_device_pointer()";
+	static const char fname[] = "mx_bluice_device_pointer_fn()";
 
 	size_t i;
 	long num_elements, old_num_elements;
 	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	size_t foreign_pointer_size = sizeof(MX_BLUICE_FOREIGN_DEVICE *);
+	size_t foreign_device_size = sizeof(MX_BLUICE_FOREIGN_DEVICE);
 	long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -543,7 +546,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	 *       an MXE_NOT_FOUND error.
 	 */
 
-	if ( (foreign_pointer_size == 0) || (foreign_device_size == 0 ) ) {
+	if ( make_new_pointer_if_necessary == FALSE ) {
 
 		*foreign_device_ptr = NULL;
 
@@ -684,6 +687,40 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 }
 
 MX_EXPORT mx_status_type
+mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
+			char *name,
+			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
+			long *num_foreign_devices_ptr,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_device_pointer_fn( bluice_server,
+			name, foreign_device_array_ptr, num_foreign_devices_ptr,
+			TRUE, foreign_device_ptr );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_bluice_get_device_pointer( MX_BLUICE_SERVER *bluice_server,
+			char *name,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_array,
+			long num_foreign_devices,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_device_pointer_fn( bluice_server,
+			name, &foreign_device_array, &num_foreign_devices,
+			FALSE, foreign_device_ptr );
+
+	return mx_status;
+}
+
+/*------------*/
+
+MX_EXPORT mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
 			MX_BLUICE_SERVER *bluice_server,
 			char *name,
@@ -709,11 +746,11 @@ mx_bluice_wait_for_device_pointer_initialization(
 
 	for ( i = 0; i < max_attempts; i++ ) {
 
-		mx_status = mx_bluice_setup_device_pointer( bluice_server,
+		mx_status = mx_bluice_device_pointer_fn( bluice_server,
 						name,
 						foreign_device_array_ptr,
 						num_foreign_devices_ptr,
-						0, 0,
+						FALSE,
 						foreign_device_ptr );
 
 		if ( mx_status.code == MXE_NOT_FOUND ) {
@@ -1173,8 +1210,6 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 					ion_chamber_name,
 					&(bluice_server->ion_chamber_array),
 					&(bluice_server->num_ion_chambers),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&foreign_ion_chamber );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1274,8 +1309,6 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 					name,
 					&(bluice_server->motor_array),
 					&(bluice_server->num_motors),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&foreign_motor );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1522,8 +1555,6 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 					shutter_name,
 					&(bluice_server->shutter_array),
 					&(bluice_server->num_shutters),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&foreign_shutter );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1634,8 +1665,6 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 					string_name,
 					&(bluice_server->string_array),
 					&(bluice_server->num_strings),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&foreign_string );
 
 	if ( mx_status.code != MXE_SUCCESS )

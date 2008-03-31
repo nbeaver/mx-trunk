@@ -196,13 +196,14 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			char *name,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
 			long *num_foreign_devices_ptr,
-			size_t foreign_pointer_size,
-			size_t foreign_device_size,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr );
 
-#define mx_bluice_get_device_pointer( b, n, fda, nfd, fd ) \
-		mx_bluice_setup_device_pointer( (b), (n), \
-		    (MX_BLUICE_FOREIGN_DEVICE ***) &(fda), &(nfd), 0, 0, (fd) )
+MX_API mx_status_type
+mx_bluice_get_device_pointer( MX_BLUICE_SERVER *bluice_server,
+			char *name,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_array,
+			long num_foreign_devices,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr );
 
 MX_API mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(

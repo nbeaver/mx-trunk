@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -237,8 +237,6 @@ mxv_bluice_string_finish_record_initialization( MX_RECORD *record )
 					bluice_string->bluice_name,
 					&(bluice_server->string_array),
 					&(bluice_server->num_strings),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
-					sizeof(MX_BLUICE_FOREIGN_DEVICE),
 					&fdev );
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -28,6 +28,7 @@
 #include "mx_bluice.h"
 #include "d_bluice_motor.h"
 #include "d_bluice_timer.h"
+#include "v_bluice_string.h"
 #include "n_bluice_dhs.h"
 
 MX_RECORD_FUNCTION_LIST mxn_bluice_dhs_server_record_function_list = {
@@ -66,6 +67,7 @@ static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_started;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_ion_chambers;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_shutter_state;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_send_configuration;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_set_string_completed;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_update_motor_position;
 
 static struct {
@@ -77,6 +79,7 @@ static struct {
 	{"htos_report_ion_chambers", htos_report_ion_chambers},
 	{"htos_report_shutter_state", htos_report_shutter_state},
 	{"htos_send_configuration", htos_send_configuration},
+	{"htos_set_string_completed", htos_set_string_completed},
 	{"htos_update_motor_position", htos_update_motor_position},
 };
 
@@ -730,6 +733,72 @@ htos_send_configuration( MX_THREAD *thread,
 	"Blu-Ice device '%s' which does not match any of the "
 	"device records in the MX database.",
 		server_record->name, device_name );
+}
+
+static mx_status_type
+htos_set_string_completed( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
+{ 
+	static const char fname[] = "htos_set_string_completed()";
+
+	MX_RECORD *current_record;
+	MX_BLUICE_STRING *bluice_string;
+	MX_BLUICE_FOREIGN_DEVICE *fdev;
+	char *ptr, *token_ptr, *string_name;
+	char *fstring_ptr;
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The supposed htos_set_string_completed message from "
+		"Blu-Ice server '%s' is actually blank.  "
+		"This should never happen.", bluice_server->record->name );
+	}
+
+	/* The next string should be the name of our string. */
+
+	string_name = mx_string_split( &ptr, " " );
+
+	if ( string_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"No string name was found in the htos_set_string_completed "
+		"message from Blu-Ice DHS server '%s'.",
+			bluice_server->record->name );
+	}
+
+	/* Look for the MX record that corresponds to this Blu-Ice string. */
+
+	current_record = server_record->next_record;
+
+	while( current_record != server_record ) {
+
+		switch( current_record->mx_type ) {
+		case MXV_BLUICE_DHS_STRING:
+		    bluice_string = current_record->record_type_struct;
+
+		    if ( (server_record == bluice_string->bluice_server_record )
+		      && (strcmp(string_name, bluice_string->bluice_name) == 0))
+		    {
+			fdev = bluice_string->foreign_device;
+
+			fstring_ptr = fdev->u.string.string_buffer;
+
+			strlcpy( fstring_ptr, ptr, MXU_BLUICE_STRING_LENGTH );
+		    }
+		    break;
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
