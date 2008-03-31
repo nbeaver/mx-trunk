@@ -243,8 +243,6 @@ mx_process_record_field( MX_RECORD *record,
 		*value_changed_ptr = value_changed;
 	}
 
-	mx_status = MX_SUCCESSFUL_RESULT;
-
 	/* If there is one, call the process function to read data
 	 * from the hardware.
 	 */
@@ -272,8 +270,9 @@ mx_process_record_field( MX_RECORD *record,
 	MX_DEBUG(-1,("%s: process_fn = %p", fname, process_fn));
 #endif /* PROCESS_DEBUG */
 
-	if ( process_fn != NULL ) {
-
+	if ( process_fn == NULL ) {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	} else {
 		/* Only invoke the process function for non-negative
 		 * values of record_field->label_value.  A field
 		 * with a negative label value is just a placeholder
@@ -282,9 +281,9 @@ mx_process_record_field( MX_RECORD *record,
 		 */
 
 #if PROCESS_DEBUG_TIMING && 0
-	MX_HRT_END( measurement );
+		MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname,
+		MX_HRT_RESULTS( measurement, fname,
 "#1 before record processing for '%s.%s'", record->name, record_field->name );
 #endif
 
@@ -319,36 +318,36 @@ mx_process_record_field( MX_RECORD *record,
 		}
 
 #if PROCESS_DEBUG_TIMING && 0
-	MX_HRT_END( measurement );
+		MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname,
+		MX_HRT_RESULTS( measurement, fname,
 "#2 after record processing for '%s.%s'", record->name, record_field->name );
 #endif
+	}
 
-		/* If the process function succeeded and the new value
-		 * exceeds the value change threshold, then invoke the
-		 * value changed callback.
-		 */
+	/* If the process function succeeded and the new value
+	 * exceeds the value change threshold, then invoke the
+	 * value changed callback.
+	 */
 
-		/* If
-		 *    1.  The process function succeeded.
-		 *    2.  The field has a callback list.
-		 *    3.  The new value exceeds the value change threshold.
-		 * then invoke the value changed callback.
-		 */
+	/* If
+	 *    1.  The process function succeeded.
+	 *    2.  The field has a callback list.
+	 *    3.  The new value exceeds the value change threshold.
+	 * then invoke the value changed callback.
+	 */
 
-		if ( ( mx_status.code == MXE_SUCCESS )
-		  && ( record_field->callback_list != NULL ) )
-		{
-			mx_status = mx_test_for_value_changed( record_field,
-								&value_changed);
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+	if ( ( mx_status.code == MXE_SUCCESS )
+	  && ( record_field->callback_list != NULL ) )
+	{
+		mx_status = mx_test_for_value_changed( record_field,
+							&value_changed);
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-			if ( value_changed ) {
-				mx_status = mx_local_field_invoke_callback_list(
+		if ( value_changed ) {
+			mx_status = mx_local_field_invoke_callback_list(
 					record_field, MXCBT_VALUE_CHANGED );
-			}
 		}
 	}
 
