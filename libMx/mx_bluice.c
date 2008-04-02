@@ -86,7 +86,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	MX_BLUICE_SERVER *bluice_server;
 	MX_SOCKET *bluice_server_socket;
-	char message_header[MX_BLUICE_MSGHDR_LENGTH];
+	char message_header[MX_BLUICE_MSGHDR_LENGTH+1];
 	char null_pad[500];
 	long text_data_length, bytes_sent, null_bytes_to_send;
 	mx_status_type mx_status;
@@ -131,7 +131,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	if ( bluice_server->protocol_version > MX_BLUICE_PROTOCOL_1 ) {
 
-		snprintf( message_header, sizeof(message_header),
+		snprintf( message_header, MX_BLUICE_MSGHDR_LENGTH,
 			"%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
 			(unsigned long) text_data_length,
@@ -224,7 +224,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	MX_BLUICE_SERVER *bluice_server;
 	MX_SOCKET *bluice_server_socket;
-	char message_header[MX_BLUICE_MSGHDR_LENGTH];
+	char message_header[MX_BLUICE_MSGHDR_LENGTH+1];
 	long text_data_length, binary_data_length, total_data_length;
 	long maximum_length;
 	size_t actual_bytes_received;
@@ -244,7 +244,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	/* Wait for a new message to come in.
 	 *
-	 * A negative timeout means wait forever., so we only need to loop
+	 * A negative timeout means wait forever, so we only need to loop
 	 * if the timeout is >= 0.
 	 */
 
@@ -262,7 +262,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 				return mx_status;
 
 			if ( num_bytes_available != 0 ) {
-				break;		/* Exit the while loop. */
+				break;		/* Exit the for() loop. */
 			}
 
 			mx_msleep( wait_ms );
