@@ -25,6 +25,7 @@ extern "C" {
 
 #include "mx_net.h"
 #include "mx_virtual_timer.h"
+#include "mx_pipe.h"
 
 /*--- Callback classes ---*/
 
@@ -91,6 +92,9 @@ typedef struct mx_callback_message_type{
 /*--- Standard callbacks ---*/
 
 MX_API mx_status_type mx_initialize_callback_support( MX_RECORD *record_list );
+
+MX_API mx_status_type mx_setup_callback_pipe( MX_RECORD *record_list,
+						MX_PIPE **callback_pipe );
 
 MX_API mx_status_type mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 					unsigned long callback_type,

@@ -504,6 +504,8 @@ MX_API mx_status_type  mx_set_event_interval( MX_RECORD *record,
 
 /* --- */
 
+MX_API mx_status_type  mx_create_empty_database( MX_RECORD **record_list );
+
 MX_API mx_status_type  mx_read_database_file( MX_RECORD *record_list,
 				char *filename, unsigned long flags );
 

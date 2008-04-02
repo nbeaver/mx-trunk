@@ -1247,6 +1247,43 @@ mx_setup_database_private( MX_RECORD **record_list, MXP_DB_SOURCE *db_source )
 /* ========= */
 
 MX_EXPORT mx_status_type
+mx_create_empty_database( MX_RECORD **record_list )
+{
+	static const char fname[] = "mx_create_empty_database()";
+
+	mx_status_type mx_status;
+
+	/* Setup the parts of the MX runtime environment that do not
+	 * depend on the presence of an MX database.
+	 */
+
+	mx_status = mx_initialize_runtime();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the MX device drivers. */
+
+	mx_status = mx_initialize_drivers();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create a new record list. */
+
+	*record_list = mx_initialize_record_list();
+
+	if ( *record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to create an MX record list." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ========= */
+
+MX_EXPORT mx_status_type
 mx_read_database_file( MX_RECORD *record_list,
 			char *filename,
 			unsigned long flags )

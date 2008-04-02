@@ -356,6 +356,65 @@ mx_initialize_callback_support( MX_RECORD *record )
 /*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_setup_callback_pipe( MX_RECORD *record_list, MX_PIPE **callback_pipe )
+{
+	static const char fname[] = "mx_setup_callback_pipe()";
+
+	MX_LIST_HEAD *list_head;
+	MX_PIPE *callback_pipe_ptr;
+	MX_INTERVAL_TIMER *master_timer;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the record list %p is NULL.",
+			record_list );
+	}
+
+	mx_status = mx_pipe_open( &callback_pipe_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	list_head->callback_pipe = callback_pipe_ptr;
+
+	mx_status = mx_pipe_set_blocking_mode( list_head->callback_pipe,
+					MXF_PIPE_READ | MXF_PIPE_WRITE, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If necessary, create a master timer with a timer period
+	 * of 100 milliseconds.
+	 */
+
+	if ( list_head->master_timer == (MX_INTERVAL_TIMER *) NULL ) {
+		mx_status = mx_virtual_timer_create_master(
+						&master_timer, 0.1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->master_timer = master_timer;
+	}
+
+	if ( callback_pipe != (MX_PIPE **) NULL ) {
+		*callback_pipe = callback_pipe_ptr;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
