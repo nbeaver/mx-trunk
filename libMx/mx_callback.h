@@ -131,6 +131,9 @@ MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK * );
 
 MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK * );
 
+MX_API mx_status_type mx_process_callbacks( MX_RECORD *record_list,
+					MX_PIPE *callback_pipe );
+
 /*---*/
 
 MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,

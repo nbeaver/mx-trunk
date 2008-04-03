@@ -40,6 +40,7 @@
 #include "mx_select.h"
 #include "mx_net.h"
 #include "mx_pipe.h"
+#include "mx_callback.h"
 #include "mx_clock.h"
 #include "mx_hrt.h"
 #include "mx_cfn.h"
@@ -1109,8 +1110,8 @@ mxserver_main( int argc, char *argv[] )
 			if ( ( mx_status.code == MXE_SUCCESS )
 			  && ( num_bytes_available > 0 ) )
 			{
-				mx_status = mxsrv_process_callbacks(
-					list_head_struct,
+				mx_status = mx_process_callbacks(
+					mx_record_list,
 					list_head_struct->callback_pipe );
 			}
 		}

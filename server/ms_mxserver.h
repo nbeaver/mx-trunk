@@ -164,9 +164,6 @@ extern mx_status_type mxsrv_handle_delete_callback(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
-extern mx_status_type mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
-						MX_PIPE *callback_pipe );
-
 #if HAVE_UNIX_DOMAIN_SOCKETS
 
 extern mx_status_type mxsrv_get_unix_domain_socket_credentials(

@@ -105,6 +105,8 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 	char message_type_name[80];
 	char message_type_format[20];
 	int i, num_items;
+	unsigned long wait_ms;
+	long num_bytes_available;
 	mx_bool_type socket_is_open;
 	mx_status_type mx_status;
 
@@ -141,6 +143,8 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 	snprintf( message_type_format, sizeof(message_type_format),
 			"%%%lus", (unsigned long) sizeof(message_type_name) );
 
+	wait_ms = 100;
+
 	for (;;) {
 		socket_is_open = mx_socket_is_open( bluice_server->socket );
 
@@ -150,7 +154,7 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 				fname, dhs_server_record->name ));
 #endif
 
-			mx_msleep(100);
+			mx_msleep(wait_ms);
 
 			/* Go back to the top of the for(;;) loop. */
 
@@ -161,7 +165,36 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: DHS '%s' socket = %d",
 			fname, dhs_server_record->name,
 			bluice_server->socket->socket_fd));
+#endif
+		/* Has the DHS process sent a new message? */
 
+		mx_status = mx_socket_num_input_bytes_available(
+					bluice_server->socket,
+					&num_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if BLUICE_DHS_DEBUG
+		MX_DEBUG(-2,("%s: DHS '%s' num_bytes_available = %ld",
+			fname, dhs_server_record->name, num_bytes_available ));
+#endif
+
+		if ( num_bytes_available <= 0 ) {
+#if BLUICE_DHS_DEBUG
+			MX_DEBUG(-2,("%s: No new messages are available from "
+				"DHS server '%s'.",
+				fname, dhs_server_record->name ));
+#endif
+
+			mx_msleep(wait_ms);
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
+#if BLUICE_DHS_DEBUG
 		MX_DEBUG(-2,
 		("%s: DHS '%s' -> Before calling mx_bluice_receive_message()",
 			fname, dhs_server_record->name));

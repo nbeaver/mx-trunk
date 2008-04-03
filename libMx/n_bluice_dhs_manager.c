@@ -568,6 +568,32 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 			continue;
 		}
 
+		/* Discard any unread input such as trailing null bytes
+		 * from the DHS socket.
+		 */
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,
+		("%s: FIXME: 1 second delay kludge for DHS socket %d",
+			fname, dhs_socket->socket_fd ));
+#endif
+
+		mx_msleep(1000);  /* FIXME: This should not be necessary. */
+
+#if BLUICE_DHS_MANAGER_DEBUG
+		MX_DEBUG(-2,("%s: Discarding unread input from DHS socket %d",
+			fname, dhs_socket->socket_fd ));
+#endif
+		mx_status = mx_socket_discard_unread_input( dhs_socket );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_socket_close( dhs_socket );
+
+			/* Go back to the top of the for(;;) loop. */
+
+			continue;
+		}
+
 		/* Assign this socket to the DHS record that we have found. */
 
 		bluice_server = dhs_record->record_class_struct;
@@ -597,15 +623,6 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: DHS socket %d assigned to DHS record '%s'.",
 			fname, dhs_socket->socket_fd, dhs_record->name ));
 #endif
-		/* Next initialize the MX_BLUICE_FOREIGN_DEVICE structures
-		 * for each record belonging to this DHS.
-		 */
-
-#if 0
-		mxn_bluice_dhs_manager_setup_foreign_devices(
-				dhs_manager_record, dhs_record );
-#endif
-
 		/* The last step is to send a series of stoh_register_...
 		 * commands to the DHS.  This is necessary to prod the
 		 * DHS into sending configuration parameter requests.
