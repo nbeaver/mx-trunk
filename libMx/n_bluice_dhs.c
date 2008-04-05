@@ -161,30 +161,27 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 			continue;
 		}
 
-#if BLUICE_DHS_DEBUG
-		MX_DEBUG(-2,("%s: DHS '%s' socket = %d",
-			fname, dhs_server_record->name,
-			bluice_server->socket->socket_fd));
-#endif
 		/* Has the DHS process sent a new message? */
 
 		mx_status = mx_socket_num_input_bytes_available(
 					bluice_server->socket,
 					&num_bytes_available );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
+		if ( mx_status.code != MXE_SUCCESS ) {
 #if BLUICE_DHS_DEBUG
-		MX_DEBUG(-2,("%s: DHS '%s' num_bytes_available = %ld",
-			fname, dhs_server_record->name, num_bytes_available ));
+			MX_DEBUG(-2,("%s: DHS '%s' socket %d had an error.",
+				fname, dhs_server_record->name,
+				bluice_server->socket->socket_fd));
 #endif
+			return mx_status;
+		}
 
 		if ( num_bytes_available <= 0 ) {
 #if BLUICE_DHS_DEBUG
-			MX_DEBUG(-2,("%s: No new messages are available from "
-				"DHS server '%s'.",
-				fname, dhs_server_record->name ));
+			MX_DEBUG( 2,("%s: No new messages are available from "
+				"DHS server '%s' socket %d.",
+				fname, dhs_server_record->name,
+				bluice_server->socket->socket_fd ));
 #endif
 
 			mx_msleep(wait_ms);
@@ -195,9 +192,11 @@ mxn_bluice_dhs_monitor_thread( MX_THREAD *thread, void *args )
 		}
 
 #if BLUICE_DHS_DEBUG
-		MX_DEBUG(-2,
-		("%s: DHS '%s' -> Before calling mx_bluice_receive_message()",
-			fname, dhs_server_record->name));
+		MX_DEBUG(-2,("%s: DHS '%s', socket %d, %ld bytes are "
+		"available -> calling mx_bluice_receive_message().",
+			fname, dhs_server_record->name,
+			bluice_server->socket->socket_fd,
+			num_bytes_available ));
 #endif
 
 		mx_status = mx_bluice_receive_message( dhs_server_record,

@@ -4045,7 +4045,7 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal callback type %lu used.  Currently, "
 		"MXCBT_VALUE_CHANGED (%d) callbacks are allowed here.",
-			callback->callback_class, MXCBT_VALUE_CHANGED );
+			callback->callback_type, MXCBT_VALUE_CHANGED );
 	}
 
 	record_field = callback->u.record_field;
