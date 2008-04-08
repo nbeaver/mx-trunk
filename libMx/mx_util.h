@@ -703,7 +703,7 @@ MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
 
 MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
 
-/* mx_string_split() extracts the next token from a string using the
+/* mx_string_token() extracts the next token from a string using the
  * characters in 'delim' as token separators.  It is similar to strsep()
  * except for the fact that it treats a string of several delimiters in
  * a row as being only one delimiter.  By contrast, strsep() would say
@@ -712,7 +712,16 @@ MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
  * Please note that the original contents of *string_ptr are modified.
  */
 
-MX_API char *mx_string_split( char **string_ptr, const char *delim );
+MX_API char *mx_string_token( char **string_ptr, const char *delim );
+
+/* mx_string_split() uses mx_string_token() to break up the contents of
+ * a string into an argv style array.  The original string is modified,
+ * so you should make a copy of it if you want to keep the original
+ * contents.
+ */
+
+MX_API int mx_string_split( char *original_string, const char *delim,
+					int *argc, char ***argv );
 
 /*------------------------------------------------------------------------*/
 

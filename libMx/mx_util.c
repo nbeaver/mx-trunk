@@ -2102,7 +2102,7 @@ mx_skip_string_fields( char *buffer, int num_fields )
 }
 
 MX_EXPORT char *
-mx_string_split( char **string_ptr, const char *delim )
+mx_string_token( char **string_ptr, const char *delim )
 {
 	char *ptr, *start_ptr, *strchr_ptr;
 
@@ -2181,6 +2181,75 @@ mx_string_split( char **string_ptr, const char *delim )
 	*string_ptr = NULL;
 
 	return start_ptr;
+}
+
+MX_EXPORT int
+mx_string_split( char *original_string,
+			const char *delim,
+			int *argc,
+			char ***argv )
+{
+	unsigned long block_size, num_blocks, array_size;
+	char *ptr, *token_ptr;
+
+	*argc = 0;
+
+	if ( (original_string == NULL)
+	  || (delim == NULL)
+	  || (argc == NULL)
+	  || (argv == NULL) )
+	{
+		errno = EFAULT;
+		return -1;
+	}
+
+	block_size = 10;
+	num_blocks = 1;
+
+	array_size = num_blocks * block_size;
+
+	*argv = malloc( array_size * sizeof(char**) );
+
+	if ( *argv == NULL ) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	errno = 0;
+
+	ptr = original_string;
+
+	while(TRUE) {
+		token_ptr = mx_string_token( &ptr, delim );
+
+		if ( (*argc) >= array_size ) {
+			num_blocks++;
+			array_size = num_blocks * block_size;
+
+			*argv = realloc( *argv, array_size * sizeof(char**) );
+
+			if ( *argv == NULL ) {
+				errno = ENOMEM;
+				return -1;
+			}
+
+			errno = 0;
+		}
+
+		if ( token_ptr == NULL ) {
+			/* There are no more tokens.  One extra NULL goes
+			 * at the end of argv.
+			 */
+
+			(*argv)[*argc] = NULL;
+
+			return 0;
+		}
+
+		(*argv)[*argc] = token_ptr;
+
+		(*argc)++;
+	}
 }
 
 #if defined(OS_VXWORKS)

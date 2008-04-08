@@ -1002,7 +1002,7 @@ mx_bluice_parse_log_message( char *log_message,
 
 	/* Skip over the log message_token. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
@@ -1015,7 +1015,7 @@ mx_bluice_parse_log_message( char *log_message,
 
 	/* Get the severity level. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
@@ -1044,7 +1044,7 @@ mx_bluice_parse_log_message( char *log_message,
 
 	/* Get the locale. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
@@ -1066,7 +1066,7 @@ mx_bluice_parse_log_message( char *log_message,
 
 	/* Get the device name. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
@@ -1121,7 +1121,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1133,7 +1133,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the ion chamber name. */
 
-	ion_chamber_name = mx_string_split( &ptr, " " );
+	ion_chamber_name = mx_string_token( &ptr, " " );
 
 	if ( ion_chamber_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1143,7 +1143,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the DHS server name. */
 
-	dhs_server_name = mx_string_split( &ptr, " " );
+	dhs_server_name = mx_string_token( &ptr, " " );
 
 	if ( dhs_server_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1155,7 +1155,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the counter name. */
 
-	counter_name = mx_string_split( &ptr, " " );
+	counter_name = mx_string_token( &ptr, " " );
 
 	if ( counter_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1167,7 +1167,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the channel number. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1181,7 +1181,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the timer name. */
 
-	timer_name = mx_string_split( &ptr, " " );
+	timer_name = mx_string_token( &ptr, " " );
 
 	if ( timer_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1193,7 +1193,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the timer type. */
 
-	timer_type = mx_string_split( &ptr, " " );
+	timer_type = mx_string_token( &ptr, " " );
 
 	if ( timer_type == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1490,7 +1490,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1502,7 +1502,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the shutter name. */
 
-	shutter_name = mx_string_split( &ptr, " " );
+	shutter_name = mx_string_token( &ptr, " " );
 
 	if ( shutter_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1512,7 +1512,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the DHS server name. */
 
-	dhs_server_name = mx_string_split( &ptr, " " );
+	dhs_server_name = mx_string_token( &ptr, " " );
 
 	if ( dhs_server_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1524,7 +1524,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the shutter status. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1614,7 +1614,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1626,7 +1626,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the string name. */
 
-	string_name = mx_string_split( &ptr, " " );
+	string_name = mx_string_token( &ptr, " " );
 
 	if ( string_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1636,7 +1636,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the DHS server name. */
 
-	dhs_server_name = mx_string_split( &ptr, " " );
+	dhs_server_name = mx_string_token( &ptr, " " );
 
 	if ( dhs_server_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1736,7 +1736,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1756,7 +1756,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the motor name. */
 
-	motor_name = mx_string_split( &ptr, " " );
+	motor_name = mx_string_token( &ptr, " " );
 
 	if ( motor_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1766,7 +1766,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get the motor position. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1782,7 +1782,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 		/* Was there any trailing status information? */
 
-		status_ptr = mx_string_split( &ptr, "{}" );
+		status_ptr = mx_string_token( &ptr, "{}" );
 
 		if ( status_ptr == NULL ) {
 			MX_DEBUG(-2,

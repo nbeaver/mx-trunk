@@ -496,7 +496,7 @@ htos_report_ion_chambers( MX_THREAD *thread,
 
 	/* Skip over the command name. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -509,7 +509,7 @@ htos_report_ion_chambers( MX_THREAD *thread,
 
 	/* Skip over the measurement time. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -522,7 +522,7 @@ htos_report_ion_chambers( MX_THREAD *thread,
 	for (;;) {
 		/* The next string should be an ion chamber name. */
 
-		ion_chamber_name = mx_string_split( &ptr, " " );
+		ion_chamber_name = mx_string_token( &ptr, " " );
 
 		if ( ion_chamber_name == NULL ) {
 
@@ -535,7 +535,7 @@ htos_report_ion_chambers( MX_THREAD *thread,
 
 		/* The next string should be the ion chamber measurement. */
 
-		token_ptr = mx_string_split( &ptr, " " );
+		token_ptr = mx_string_token( &ptr, " " );
 
 		if ( token_ptr == NULL ) {
 			mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -613,7 +613,7 @@ htos_report_shutter_state( MX_THREAD *thread,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -624,7 +624,7 @@ htos_report_shutter_state( MX_THREAD *thread,
 
 	/* Get the shutter name. */
 
-	shutter_name = mx_string_split( &ptr, " " );
+	shutter_name = mx_string_token( &ptr, " " );
 
 	if ( shutter_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -634,7 +634,7 @@ htos_report_shutter_state( MX_THREAD *thread,
 
 	/* Get the shutter status. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -715,7 +715,7 @@ htos_send_configuration( MX_THREAD *thread,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -726,7 +726,7 @@ htos_send_configuration( MX_THREAD *thread,
 
 	/* The next string should be the name of our device. */
 
-	device_name = mx_string_split( &ptr, " " );
+	device_name = mx_string_token( &ptr, " " );
 
 	if ( device_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -785,7 +785,7 @@ htos_set_string_completed( MX_THREAD *thread,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -796,7 +796,7 @@ htos_set_string_completed( MX_THREAD *thread,
 
 	/* The next string should be the name of our string. */
 
-	string_name = mx_string_split( &ptr, " " );
+	string_name = mx_string_token( &ptr, " " );
 
 	if ( string_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,

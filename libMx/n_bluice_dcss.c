@@ -380,7 +380,7 @@ mxn_bluice_dcss_server_get_session_id(
 
 	ptr = authentication_data;
 
-	host_name = mx_string_split( &ptr, ":" );
+	host_name = mx_string_token( &ptr, ":" );
 
 	if ( host_name == NULL ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -389,7 +389,7 @@ mxn_bluice_dcss_server_get_session_id(
 			bluice_dcss_server->authentication_data );
 	}
 
-	port_number_ptr = mx_string_split( &ptr, ":" );
+	port_number_ptr = mx_string_token( &ptr, ":" );
 
 	if ( port_number_ptr == NULL ) {
 		port_number = 17000;
@@ -514,7 +514,7 @@ mxn_bluice_dcss_server_get_session_id(
 
 			 ptr = line;
 
-			 prefix = mx_string_split( &ptr, "=" );
+			 prefix = mx_string_token( &ptr, "=" );
 
 			 if ( prefix == NULL ) {
 			 	return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -523,7 +523,7 @@ mxn_bluice_dcss_server_get_session_id(
 					line );
 			 }
 
-			 session_id_ptr = mx_string_split( &ptr, ";" );
+			 session_id_ptr = mx_string_token( &ptr, ";" );
 
 			 if ( session_id_ptr == NULL ) {
 			 	return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -873,7 +873,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	/* Skip over the command name. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -886,7 +886,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	/* Skip over the measurement time. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -899,7 +899,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	for (;;) {
 		/* The next string should be an ion chamber name. */
 
-		ion_chamber_name = mx_string_split( &ptr, " " );
+		ion_chamber_name = mx_string_token( &ptr, " " );
 
 		if ( ion_chamber_name == NULL ) {
 
@@ -912,7 +912,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 		/* The next string should be the ion chamber measurement. */
 
-		token_ptr = mx_string_split( &ptr, " " );
+		token_ptr = mx_string_token( &ptr, " " );
 
 		if ( token_ptr == NULL ) {
 			mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -990,7 +990,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 
 	ptr = bluice_server->receive_buffer;
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1001,7 +1001,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 
 	/* Get the shutter name. */
 
-	shutter_name = mx_string_split( &ptr, " " );
+	shutter_name = mx_string_token( &ptr, " " );
 
 	if ( shutter_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1011,7 +1011,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 
 	/* Get the shutter status. */
 
-	token_ptr = mx_string_split( &ptr, " " );
+	token_ptr = mx_string_token( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
