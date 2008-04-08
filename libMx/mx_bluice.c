@@ -23,7 +23,7 @@
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 
-#define BLUICE_DEBUG_SETUP	TRUE
+#define BLUICE_DEBUG_SETUP	FALSE
 
 #define BLUICE_DEBUG_MESSAGE	TRUE
 
