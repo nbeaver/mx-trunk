@@ -119,6 +119,7 @@
 #include "i_spec_command.h"
 #include "i_epix_rs232.h"
 #include "i_edt_rs232.h"
+#include "i_u500_rs232.h"
 
 #if HAVE_TCPIP
 #include "i_tcp232.h"
@@ -252,6 +253,7 @@
 #include "d_cm17a_doutput.h"
 #include "d_bluice_ion_chamber.h"
 #include "d_epix_xclib_dio.h"
+#include "d_u500_status.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -677,6 +679,15 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_edt_rs232_num_record_fields,
 				&mxi_edt_rs232_rfield_def_ptr},
 #endif /* HAVE_EDT */
+
+#if HAVE_U500
+{"u500_rs232",     MXI_232_U500,         MXI_RS232,      MXR_INTERFACE,
+				&mxi_u500_rs232_record_function_list,
+				NULL,
+				&mxi_u500_rs232_rs232_function_list,
+				&mxi_u500_rs232_num_record_fields,
+				&mxi_u500_rs232_rfield_def_ptr},
+#endif /* HAVE_U500 */
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,
@@ -1909,6 +1920,17 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epix_xclib_doutput_rfield_def_ptr},
 
 #endif /* HAVE_EPIX_XCLIB */
+
+#if HAVE_U500
+
+{"u500_status",    MXT_DIN_U500_STATUS,  MXC_DIGITAL_INPUT,  MXR_DEVICE,
+				&mxd_u500_status_record_function_list,
+				NULL,
+				&mxd_u500_status_digital_input_function_list,
+				&mxd_u500_status_num_record_fields,
+				&mxd_u500_status_rfield_def_ptr},
+
+#endif /* HAVE_U500 */
 
 {"soft_motor",     MXT_MTR_SOFTWARE,  MXC_MOTOR,          MXR_DEVICE,
 				&mxd_soft_motor_record_function_list,

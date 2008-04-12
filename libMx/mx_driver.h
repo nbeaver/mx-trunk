@@ -167,6 +167,7 @@ extern "C" {
 #define MXI_232_SPEC_COMMAND		150
 #define MXI_232_EPIX_XCLIB		151
 #define MXI_232_EDT			152
+#define MXI_232_U500			153
 
 #define MXI_GPIB_SOFTWARE		200
 #define MXI_GPIB_NI488			201
@@ -358,10 +359,11 @@ extern "C" {
 #define MXT_DIN_MODBUS			30021
 #define MXT_DIN_ISERIES			30022
 #define MXT_DIN_U500			30023
-#define MXT_DIN_PMC_MCAPI		30024
-#define MXT_DIN_PICOMOTOR		30025
-#define MXT_DIN_TRACKER			30026
-#define MXT_DIN_EPIX_XCLIB		30027
+#define MXT_DIN_U500_STATUS		30024
+#define MXT_DIN_PMC_MCAPI		30025
+#define MXT_DIN_PICOMOTOR		30026
+#define MXT_DIN_TRACKER			30027
+#define MXT_DIN_EPIX_XCLIB		30028
 
 /* --- Digital output types --- */
 

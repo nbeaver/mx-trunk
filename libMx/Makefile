@@ -132,7 +132,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
 	d_trans_motor.c d_trump.c \
-	d_u500.c d_udt_tramp.c d_uglide.c d_v4l2_input.c \
+	d_u500.c d_u500_status.c d_udt_tramp.c d_uglide.c d_v4l2_input.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
@@ -159,8 +159,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c \
 	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
-	i_u500.c i_uglide.c i_umcbi.c i_vme58.c i_vms_terminal.c \
-	i_vp9000.c i_vsc16.c i_vxi_memacc.c \
+	i_u500.c i_u500_rs232.c i_uglide.c i_umcbi.c \
+	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c i_vxi_memacc.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \
 	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
@@ -269,6 +269,9 @@ d_trump.$(OBJ): d_trump.c
 
 d_u500.$(OBJ): d_u500.c
 	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) d_u500.c
+
+d_u500_status.$(OBJ): d_u500_status.c
+	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) d_u500_status.c
 
 d_v4l2_input.$(OBJ): d_v4l2_input.c
 	$(COMPILE) $(CFLAGS) $(VIDEO_4_LINUX_2_FLAGS) d_v4l2_input.c
