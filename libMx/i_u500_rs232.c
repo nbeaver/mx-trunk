@@ -46,11 +46,11 @@ MX_RECORD_FUNCTION_LIST mxi_u500_rs232_record_function_list = {
 };
 
 MX_RS232_FUNCTION_LIST mxi_u500_rs232_rs232_function_list = {
+	mxi_u500_rs232_getchar,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
-	mxi_u500_rs232_getline,
 	mxi_u500_rs232_putline,
 	mxi_u500_rs232_num_input_bytes_available
 };
@@ -321,12 +321,9 @@ mxi_u500_rs232_close( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_u500_rs232_getline( MX_RS232 *rs232,
-			char *buffer,
-			size_t max_bytes_to_read,
-			size_t *bytes_read )
+mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 {
-	static const char fname[] = "mxi_u500_rs232_getline()";
+	static const char fname[] = "mxi_u500_rs232_getchar()";
 
 	MX_U500_RS232 *u500_rs232;
 	mx_status_type mx_status;
@@ -347,8 +344,8 @@ mxi_u500_rs232_getline( MX_RS232 *rs232,
 			u500_rs232->pipe_name, rs232->record->name );
 	}
 
-	read_status = ReadFile( u500_rs232->pipe_handle, buffer,
-				max_bytes_to_read, &win32_bytes_read, NULL );
+	read_status = ReadFile( u500_rs232->pipe_handle, c,
+				1, &win32_bytes_read, NULL );
 
 	if ( read_status == 0 ) {
 		last_error_code = GetLastError();
@@ -360,10 +357,6 @@ mxi_u500_rs232_getline( MX_RS232 *rs232,
 		"An attempt to read from named pipe '%s' for record '%s' "
 		"failed.  Win32 error code = %ld, error message = '%s'.",
 			last_error_code, message_buffer );
-	}
-
-	if ( bytes_read != (size_t *) NULL ) {
-		*bytes_read = (size_t) win32_bytes_read;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -37,11 +37,7 @@ MX_API mx_status_type mxi_u500_rs232_finish_record_initialization(
 MX_API mx_status_type mxi_u500_rs232_open( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_rs232_close( MX_RECORD *record );
 
-MX_API mx_status_type mxi_u500_rs232_getline( MX_RS232 *rs232,
-						char *buffer,
-						size_t max_bytes_to_read,
-						size_t *bytes_written );
-
+MX_API mx_status_type mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c );
 MX_API mx_status_type mxi_u500_rs232_putline( MX_RS232 *rs232,
 						char *buffer,
 						size_t *bytes_written );
