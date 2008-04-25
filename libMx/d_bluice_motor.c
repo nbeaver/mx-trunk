@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_MOTOR_DEBUG	TRUE
+#define BLUICE_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

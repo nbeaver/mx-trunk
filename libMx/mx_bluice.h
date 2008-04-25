@@ -250,22 +250,6 @@ mx_bluice_parse_log_message( char *log_message,
 /* ----- */
 
 MX_API mx_status_type
-mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
-				char *configuration_string );
-
-MX_API mx_status_type
-mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
-				char *configuration_string );
-
-MX_API mx_status_type
-mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
-				char *configuration_string );
-
-MX_API mx_status_type
-mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
-				char *configuration_string );
-
-MX_API mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *motion_status_message,
 				mx_bool_type move_in_progress );

@@ -1088,6 +1088,7 @@ mx_bluice_parse_log_message( char *log_message,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 0 /* WAHOO! */
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
@@ -1710,6 +1711,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	return mx_status;
 }
 
+#endif /* WAHOO! */
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type

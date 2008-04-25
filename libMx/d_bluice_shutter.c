@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_SHUTTER_DEBUG 	TRUE
+#define BLUICE_SHUTTER_DEBUG 	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
