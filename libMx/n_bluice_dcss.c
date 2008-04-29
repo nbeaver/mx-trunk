@@ -629,10 +629,11 @@ stog_configure_ion_chamber( MX_THREAD *thread,
 	static const char fname[] = "stog_configure_ion_chamber()";
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
-	char *config_string, *ptr, *token_ptr;
 	char *ion_chamber_name, *dhs_server_name;
 	char *counter_name, *timer_name, *timer_type;
-	long message_type, channel_number;
+	long channel_number;
+	int argc;
+	char **argv;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -640,98 +641,22 @@ stog_configure_ion_chamber( MX_THREAD *thread,
 		"The MX_BLUICE_SERVER pointer passed was NULL." );
 	}
 
-	config_string = bluice_server->receive_buffer;
+	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
 
-	mx_status = mx_bluice_get_message_type( config_string, &message_type );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Skip over the command name. */
-
-	ptr = config_string;
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
+	if ( argc < 7 ) {
+		mx_free(argv);
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The message '%s' received from Blu-Ice server '%s' "
-		"contained only space characters.",
-			bluice_server->receive_buffer,
-			bluice_server->record->name );
+		"The 'stog_configure_ion_chamber' command sent by "
+		"Blu-Ice server '%s' was truncated to %d tokens.",
+			bluice_server->record->name, argc );
 	}
 
-	/* Get the ion chamber name. */
-
-	ion_chamber_name = mx_string_token( &ptr, " " );
-
-	if ( ion_chamber_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Ion chamber name not found in message received from "
-		"Blu-Ice server '%s'.", bluice_server->record->name );
-	}
-
-	/* Get the DHS server name. */
-
-	dhs_server_name = mx_string_token( &ptr, " " );
-
-	if ( dhs_server_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"DHS server name not found in message received from "
-		"Blu-Ice server '%s' for ion_chamber '%s'.",
-			bluice_server->record->name,
-			ion_chamber_name );
-	}
-
-	/* Get the counter name. */
-
-	counter_name = mx_string_token( &ptr, " " );
-
-	if ( counter_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Ion chamber counter name not found in message received from "
-		"Blu-Ice server '%s' for ion_chamber '%s'.",
-			bluice_server->record->name,
-			ion_chamber_name );
-	}
-
-	/* Get the channel number. */
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Ion chamber channel number not found in message received from "
-		"Blu-Ice server '%s' for ion_chamber '%s'.",
-			bluice_server->record->name,
-			ion_chamber_name );
-	}
-
-	channel_number = atoi( token_ptr );
-
-	/* Get the timer name. */
-
-	timer_name = mx_string_token( &ptr, " " );
-
-	if ( timer_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Ion chamber timer name not found in message received from "
-		"Blu-Ice server '%s' for ion_chamber '%s'.",
-			bluice_server->record->name,
-			ion_chamber_name );
-	}
-
-	/* Get the timer type. */
-
-	timer_type = mx_string_token( &ptr, " " );
-
-	if ( timer_type == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Ion chamber timer type not found in message received from "
-		"Blu-Ice server '%s' for ion_chamber '%s'.",
-			bluice_server->record->name,
-			ion_chamber_name );
-	}
+	ion_chamber_name = argv[1];
+	dhs_server_name  = argv[2];
+	counter_name     = argv[3];
+	channel_number   = atoi( argv[4] );
+	timer_name       = argv[5];
+	timer_type       = argv[6];
 
 	/* Get a pointer to the Blu-Ice foreign ion chamber structure. */
 
@@ -742,8 +667,10 @@ stog_configure_ion_chamber( MX_THREAD *thread,
 					&(bluice_server->num_ion_chambers),
 					&foreign_ion_chamber );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free(argv);
 		return mx_status;
+	}
 
 	foreign_ion_chamber->foreign_type = MXT_BLUICE_FOREIGN_ION_CHAMBER;
 
@@ -781,6 +708,8 @@ stog_configure_ion_chamber( MX_THREAD *thread,
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
+	mx_free(argv);
+
 	return mx_status;
 }
 
@@ -798,7 +727,7 @@ stog_configure_motor( MX_THREAD *thread,
 	char format_string[100];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	char *config_string;
-	long message_type, num_items, format_length;
+	long num_items, format_length;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -807,11 +736,6 @@ stog_configure_motor( MX_THREAD *thread,
 	}
 
 	config_string = bluice_server->receive_buffer;
-
-	mx_status = mx_bluice_get_message_type( config_string, &message_type );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	snprintf( format_string, sizeof(format_string),
 			"%%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
@@ -860,96 +784,84 @@ stog_configure_motor( MX_THREAD *thread,
 
 	/* Now parse the rest of the configuration string. */
 
-	switch( message_type ) {
-	case MXT_BLUICE_STOG:
-		if ( strncmp( config_string,
-			"stog_configure_real_motor", 25 ) == 0 )
-		{
-			foreign_motor->u.motor.is_pseudo = FALSE;
+	if ( strncmp( config_string, "stog_configure_real_motor", 25 ) == 0 ) {
 
-			format_length = snprintf(
-				format_string, sizeof(format_string),
+		foreign_motor->u.motor.is_pseudo = FALSE;
+
+		format_length = snprintf( format_string, sizeof(format_string),
 "%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%lg %%lg %%lg %%lg %%d %%d %%d %%d %%d",
 				MXU_BLUICE_NAME_LENGTH,
 				MXU_BLUICE_NAME_LENGTH );
 
-			if ( format_length >= sizeof(format_string) ) {
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"The length needed for the format string for "
-				"stog_configure_real_motor is %ld bytes, "
-				"but the format string buffer is only %ld "
-				"bytes.  You must recompile this version of "
-				"MX with a longer format string buffer size.",
-					format_length + 1,
-					(long) sizeof(format_string) );
-			}
-
-			num_items = sscanf( config_string, format_string,
-				foreign_motor->dhs_server_name,
-				foreign_motor->u.motor.dhs_name,
-				&(foreign_motor->u.motor.position),
-				&(foreign_motor->u.motor.upper_limit),
-				&(foreign_motor->u.motor.lower_limit),
-				&(foreign_motor->u.motor.scale_factor),
-				&(foreign_motor->u.motor.speed),
-				&(foreign_motor->u.motor.acceleration_time),
-				&(foreign_motor->u.motor.backlash),
-				&(foreign_motor->u.motor.lower_limit_on),
-				&(foreign_motor->u.motor.upper_limit_on),
-				&(foreign_motor->u.motor.motor_lock_on),
-				&(foreign_motor->u.motor.backlash_on),
-				&(foreign_motor->u.motor.reverse_on) );
-
-			if ( num_items != 14 ) {
-				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
-				config_string, bluice_server->record->name );
-			}
-		} else
-		if ( strncmp( config_string,
-			"stog_configure_pseudo_motor", 27 ) == 0 )
-		{
-			foreign_motor->u.motor.is_pseudo = TRUE;
-
-			foreign_motor->u.motor.scale_factor = 0.0;
-			foreign_motor->u.motor.speed = 0.0;
-			foreign_motor->u.motor.acceleration_time = 0.0;
-			foreign_motor->u.motor.backlash = 0.0;
-			foreign_motor->u.motor.backlash_on = FALSE;
-			foreign_motor->u.motor.reverse_on = FALSE;
-
-			snprintf( format_string, sizeof(format_string),
-			"%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%d %%d %%d",
-				MXU_BLUICE_NAME_LENGTH,
-				MXU_BLUICE_NAME_LENGTH );
-
-			num_items = sscanf( config_string, format_string,
-				foreign_motor->dhs_server_name,
-				foreign_motor->u.motor.dhs_name,
-				&(foreign_motor->u.motor.position),
-				&(foreign_motor->u.motor.upper_limit),
-				&(foreign_motor->u.motor.lower_limit),
-				&(foreign_motor->u.motor.upper_limit_on),
-				&(foreign_motor->u.motor.lower_limit_on),
-				&(foreign_motor->u.motor.motor_lock_on) );
-
-			if ( num_items != 8 ) {
-				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
-				config_string, bluice_server->record->name );
-			}
-		} else {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Unexpected 'stog' message type in Blu-Ice "
-			"message '%s' from DCSS '%s'.", config_string,
-				bluice_server->record->name );
+		if ( format_length >= sizeof(format_string) ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The length needed for the format string for "
+			"stog_configure_real_motor is %ld bytes, "
+			"but the format string buffer is only %ld "
+			"bytes.  You must recompile this version of "
+			"MX with a longer format string buffer size.",
+				format_length + 1,
+				(long) sizeof(format_string) );
 		}
-		break;
-	default:
+
+		num_items = sscanf( config_string, format_string,
+			foreign_motor->dhs_server_name,
+			foreign_motor->u.motor.dhs_name,
+			&(foreign_motor->u.motor.position),
+			&(foreign_motor->u.motor.upper_limit),
+			&(foreign_motor->u.motor.lower_limit),
+			&(foreign_motor->u.motor.scale_factor),
+			&(foreign_motor->u.motor.speed),
+			&(foreign_motor->u.motor.acceleration_time),
+			&(foreign_motor->u.motor.backlash),
+			&(foreign_motor->u.motor.lower_limit_on),
+			&(foreign_motor->u.motor.upper_limit_on),
+			&(foreign_motor->u.motor.motor_lock_on),
+			&(foreign_motor->u.motor.backlash_on),
+			&(foreign_motor->u.motor.reverse_on) );
+
+		if ( num_items != 14 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
+				config_string, bluice_server->record->name );
+		}
+	} else
+	if ( strncmp( config_string, "stog_configure_pseudo_motor", 27 ) == 0 )
+	{
+		foreign_motor->u.motor.is_pseudo = TRUE;
+
+		foreign_motor->u.motor.scale_factor = 0.0;
+		foreign_motor->u.motor.speed = 0.0;
+		foreign_motor->u.motor.acceleration_time = 0.0;
+		foreign_motor->u.motor.backlash = 0.0;
+		foreign_motor->u.motor.backlash_on = FALSE;
+		foreign_motor->u.motor.reverse_on = FALSE;
+
+		snprintf( format_string, sizeof(format_string),
+		"%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%d %%d %%d",
+			MXU_BLUICE_NAME_LENGTH,
+			MXU_BLUICE_NAME_LENGTH );
+
+		num_items = sscanf( config_string, format_string,
+			foreign_motor->dhs_server_name,
+			foreign_motor->u.motor.dhs_name,
+			&(foreign_motor->u.motor.position),
+			&(foreign_motor->u.motor.upper_limit),
+			&(foreign_motor->u.motor.lower_limit),
+			&(foreign_motor->u.motor.upper_limit_on),
+			&(foreign_motor->u.motor.lower_limit_on),
+			&(foreign_motor->u.motor.motor_lock_on) );
+
+		if ( num_items != 8 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
+				config_string, bluice_server->record->name );
+		}
+	} else {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Unexpected message type in Blu-Ice "
+		"Unexpected 'stog' message type in Blu-Ice "
 		"message '%s' from DCSS '%s'.", config_string,
-			bluice_server->record->name );
+				bluice_server->record->name );
 	}
 
 #if BLUICE_DEBUG_CONFIG
@@ -1001,8 +913,10 @@ stog_configure_shutter( MX_THREAD *thread,
 	static const char fname[] = "stog_configure_shutter()";
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
-	char *config_string, *ptr, *token_ptr, *shutter_name, *dhs_server_name;
-	long message_type, shutter_status;
+	char *shutter_name, *dhs_server_name, *bluice_shutter_status;
+	long shutter_status;
+	int argc;
+	char **argv;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1010,72 +924,31 @@ stog_configure_shutter( MX_THREAD *thread,
 		"The MX_BLUICE_SERVER pointer passed was NULL." );
 	}
 
-	config_string = bluice_server->receive_buffer;
+	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
 
-	mx_status = mx_bluice_get_message_type( config_string, &message_type );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Skip over the command name. */
-
-	ptr = config_string;
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
+	if ( argc < 4 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The message '%s' received from Blu-Ice server '%s' "
-		"contained only space characters.",
-			bluice_server->receive_buffer,
-			bluice_server->record->name );
+		"The 'stog_configure_shutter' command sent by "
+		"Blu-Ice server '%s' was truncated to %d tokens.",
+			bluice_server->record->name, argc );
 	}
 
-	/* Get the shutter name. */
+	shutter_name          = argv[1];
+	dhs_server_name       = argv[2];
+	bluice_shutter_status = argv[3];
 
-	shutter_name = mx_string_token( &ptr, " " );
-
-	if ( shutter_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Shutter name not found in message received from "
-		"Blu-Ice server '%s'.", bluice_server->record->name );
-	}
-
-	/* Get the DHS server name. */
-
-	dhs_server_name = mx_string_token( &ptr, " " );
-
-	if ( dhs_server_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"DHS server name not found in message received from "
-		"Blu-Ice server '%s' for shutter '%s'.",
-			bluice_server->record->name,
-			shutter_name );
-	}
-
-	/* Get the shutter status. */
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Shutter status not found in message received from "
-		"Blu-Ice server '%s' for shutter '%s'.",
-			bluice_server->record->name,
-			shutter_name );
-	}
-
-	if ( strcmp( token_ptr, "closed" ) == 0 ) {
+	if ( strcmp( bluice_shutter_status, "closed" ) == 0 ) {
 		shutter_status = MXF_RELAY_IS_CLOSED;
 	} else
-	if ( strcmp( token_ptr, "open" ) == 0 ) {
+	if ( strcmp( bluice_shutter_status, "open" ) == 0 ) {
 		shutter_status = MXF_RELAY_IS_OPEN;
 	} else {
 		shutter_status = MXF_RELAY_ILLEGAL_STATUS;
 
+		mx_free(argv);
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Unrecognizable shutter status '%s' received for "
-		"Blu-Ice shutter '%s'.", token_ptr,
+		"Blu-Ice shutter '%s'.", bluice_shutter_status,
 			bluice_server->record->name );
 	}
 
@@ -1088,8 +961,10 @@ stog_configure_shutter( MX_THREAD *thread,
 					&(bluice_server->num_shutters),
 					&foreign_shutter );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free(argv);
 		return mx_status;
+	}
 
 	foreign_shutter->foreign_type = MXT_BLUICE_FOREIGN_SHUTTER;
 
@@ -1110,6 +985,8 @@ stog_configure_shutter( MX_THREAD *thread,
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
+	mx_free(argv);
+
 	return mx_status;
 }
 
@@ -1127,7 +1004,6 @@ stog_configure_string( MX_THREAD *thread,
 	char *config_string, *ptr, *token_ptr;
 	char *string_name, *dhs_server_name, *string_buffer;
 	size_t string_length;
-	long message_type;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1136,11 +1012,6 @@ stog_configure_string( MX_THREAD *thread,
 	}
 
 	config_string = bluice_server->receive_buffer;
-
-	mx_status = mx_bluice_get_message_type( config_string, &message_type );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Skip over the command name. */
 
@@ -1420,12 +1291,12 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	MX_BLUICE_FOREIGN_DEVICE *first_ion_chamber;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	MX_BLUICE_FOREIGN_DEVICE **ion_chamber_array;
-	char format[80];
-	char first_ion_chamber_name[MXU_BLUICE_NAME_LENGTH+1];
-	char *ptr, *ion_chamber_name, *token_ptr;
-	int num_items;
-	long i, num_ion_chambers;
+	char *first_ion_chamber_name;
+	char *ion_chamber_name;
+	long i, j, num_ion_chambers, num_ion_chamber_readings;
 	double measurement_value;
+	int argc;
+	char **argv;
 	mx_status_type mx_status;
 	long mx_status_code;
 
@@ -1434,29 +1305,30 @@ stog_report_ion_chambers( MX_THREAD *thread,
 		fname, bluice_server->receive_buffer, server_record->name));
 #endif
 
-	/* Find the name of the first ion chamber, so that we can find
+	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
+
+	if ( argc < 4 ) {
+		mx_free(argv);
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The 'stog_report_ion_chambers' command sent by "
+		"Blu-Ice server '%s' was truncated to %d tokens.",
+			bluice_server->record->name, argc );
+	}
+
+	/* Get the name of the first ion chamber, so that we can find
 	 * the associated MX_BLUICE_TIMER structure.
 	 */
 
-	snprintf( format, sizeof(format),
-		"%%*s %%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
+	first_ion_chamber_name = argv[2];
 
-	num_items = sscanf( bluice_server->receive_buffer, format,
-				first_ion_chamber_name );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not find the name of the first ion chamber in "
-		"the message '%s' from Blu-Ice server '%s'.",
-			bluice_server->receive_buffer,
-			bluice_server->record->name );
-	}
+	num_ion_chamber_readings = (argc/2) - 1;
 
 	/* First, get the ion chamber pointer for the first ion chamber. */
 
 	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
+		mx_free(argv);
 		return mx_error( mx_status_code, fname,
 		"An attempt to lock the foreign data mutex for Blu-Ice "
 		"server '%s' failed.", bluice_server->record->name );
@@ -1470,13 +1342,13 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_status;
 	}
 
 	if ( first_ion_chamber == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The ion chamber pointer returned for ion chamber '%s' "
 		"is NULL.", first_ion_chamber_name );
@@ -1488,7 +1360,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The MX_TIMER pointer for ion chamber '%s' has not "
 		"been initialized.", first_ion_chamber_name );
@@ -1496,7 +1368,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	if ( timer->record == (MX_RECORD *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_RECORD pointer for MX_TIMER %p used by Blu-Ice "
 		"ion chamber '%s' is NULL.",
@@ -1511,7 +1383,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	if ( bluice_timer == (MX_BLUICE_TIMER *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_BLUICE_TIMER pointer for Blu-Ice timer '%s' is NULL.",
 			timer->record->name );
@@ -1523,85 +1395,45 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	if ( ion_chamber_array == (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The array of ion chamber pointers for Blu-Ice timer '%s' "
 		"has not been initialized.", timer->record->name );
+	}
+
+	if ( num_ion_chambers < num_ion_chamber_readings ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+		mx_free(argv);
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The number of ion chamber readings (%ld) is larger than "
+		"the total number of ion chambers (%ld) belonging to "
+		"Blu-Ice timer '%s'.", num_ion_chamber_readings,
+			num_ion_chambers, timer->record->name );
 	}
 
 	/* Mark the current measurement as being over. */
 
 	bluice_timer->measurement_in_progress = FALSE;
 
-	/*** Now we can walk through the message received from the server. ***/
+	/* Now we can read the ion chamber values transmitted by the server. */
 
-	ptr = bluice_server->receive_buffer;
+	for ( i = 1; i < num_ion_chamber_readings; i++ ) {
 
-	/* Skip over the command name. */
+		ion_chamber_name = argv[2*i];
 
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The supposed stog_report_ion_chambers message from "
-		"Blu-Ice server '%s' is actually blank.  "
-		"This should never happen.", bluice_server->record->name );
-	}
-
-	/* Skip over the measurement time. */
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Could not find the measurement time string in the message "
-		"from Blu-Ice server '%s'.", bluice_server->record->name );
-	}
-
-	for (;;) {
-		/* The next string should be an ion chamber name. */
-
-		ion_chamber_name = mx_string_token( &ptr, " " );
-
-		if ( ion_chamber_name == NULL ) {
-
-			/* We have found the end of the list of ion chambers,
-			 * so break out of the for(;;) loop.
-			 */
-
-			break;
-		}
-
-		/* The next string should be the ion chamber measurement. */
-
-		token_ptr = mx_string_token( &ptr, " " );
-
-		if ( token_ptr == NULL ) {
-			mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"No measurement was reported for ion chamber '%s' "
-			"according to Blu-Ice server '%s'.",
-				ion_chamber_name, bluice_server->record->name );
-		}
-
-		measurement_value = atof( token_ptr );
+		measurement_value = atof( argv[2*i+1] );
 
 		/* Search for the ion chamber in the timer's 
 		 * ion chamber array.
 		 */
 
-		for ( i = 0; i < num_ion_chambers; i++ ) {
-			foreign_ion_chamber = ion_chamber_array[i];
+		for ( j = 0; j < num_ion_chambers; j++ ) {
+			foreign_ion_chamber = ion_chamber_array[j];
 
 			if ( foreign_ion_chamber == NULL ) {
 				mx_warning( "Skipping NULL ion chamber %ld "
 				"for Blu-Ice timer '%s'.",
-					i, timer->record->name );
+					j, timer->record->name );
 			}
 
 			if ( strcmp( foreign_ion_chamber->name,
@@ -1618,9 +1450,9 @@ stog_report_ion_chambers( MX_THREAD *thread,
 			}
 		}
 
-		if ( i >= num_ion_chambers ) {
+		if ( j >= num_ion_chambers ) {
 			mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+			mx_free(argv);
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
 			"Ion chamber '%s' was not found in the "
 			"ion chamber array for Blu-Ice timer '%s'.",
@@ -1629,6 +1461,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	}
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+	mx_free(argv);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1657,13 +1490,14 @@ stog_report_shutter_state( MX_THREAD *thread,
 	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
 
 	if ( argc < 3 ) {
+		mx_free(argv);
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The 'stog_report_shutter_state' command sent by "
 		"Blu-Ice server '%s' was truncated.",
 			bluice_server->record->name );
 	}
 
-	shutter_name = argv[1];
+	shutter_name          = argv[1];
 	bluice_shutter_status = argv[2];
 
 	if ( strcmp( bluice_shutter_status, "open" ) == 0 ) {
@@ -1684,6 +1518,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
 
 	if ( mx_status_code != MXE_SUCCESS ) {
+		mx_free(argv);
 		return mx_error( mx_status_code, fname,
 		"An attempt to lock the foreign data mutex for Blu-Ice "
 		"server '%s' failed.", bluice_server->record->name );
@@ -1697,13 +1532,13 @@ stog_report_shutter_state( MX_THREAD *thread,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_status;
 	}
 
 	if ( foreign_shutter == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
+		mx_free(argv);
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The MX_BLUICE_FOREIGN_DEVICE pointer for DCSS shutter '%s' "
 		"has not been initialized.", shutter_name );
@@ -1714,6 +1549,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 	foreign_shutter->u.shutter.shutter_status = shutter_status;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+	mx_free(argv);
 
 	return MX_SUCCESSFUL_RESULT;
 }
