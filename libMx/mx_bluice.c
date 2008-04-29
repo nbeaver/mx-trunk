@@ -360,45 +360,6 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 /* ====================================================================== */
 
-MX_EXPORT mx_status_type
-mx_bluice_get_message_type( char *message_string, long *message_type )
-{
-	static const char fname[] = "mx_bluice_get_message_type()";
-
-	if ( message_string == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The 'message_string' pointer passed was NULL." );
-	}
-	if ( message_type == (long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The 'message_type' pointer passed was NULL." );
-	}
-
-	if ( strncmp( message_string, "gtos", 4 ) == 0 ) {
-		*message_type = MXT_BLUICE_GTOS;
-	} else
-	if ( strncmp( message_string, "stog", 4 ) == 0 ) {
-		*message_type = MXT_BLUICE_STOG;
-	} else
-	if ( strncmp( message_string, "htos", 4 ) == 0 ) {
-		*message_type = MXT_BLUICE_HTOS;
-	} else
-	if ( strncmp( message_string, "stoh", 4 ) == 0 ) {
-		*message_type = MXT_BLUICE_STOH;
-	} else
-	if ( strncmp( message_string, "stoc", 4 ) == 0 ) {
-		*message_type = MXT_BLUICE_STOC;
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Blu-Ice message '%s' starts with an illegal message type.",
-			message_string);
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*------------*/
-
 static mx_status_type
 mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 			char *name,

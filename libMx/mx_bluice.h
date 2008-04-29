@@ -182,15 +182,6 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 /* ----- */
 
-#define MXT_BLUICE_GTOS	1
-#define MXT_BLUICE_STOG	2
-#define MXT_BLUICE_HTOS	3
-#define MXT_BLUICE_STOH	4
-#define MXT_BLUICE_STOC	5
-
-MX_API mx_status_type
-mx_bluice_get_message_type( char *message_string, long *message_type );
-
 MX_API mx_status_type
 mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			char *name,
