@@ -230,25 +230,6 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
 
 /* ----- */
 
-#define MXF_BLUICE_SEV_UNKNOWN	(-1)
-#define MXF_BLUICE_SEV_INFO	1
-#define MXF_BLUICE_SEV_WARNING	2
-#define MXF_BLUICE_SEV_ERROR	3
-
-#define MXF_BLUICE_LOC_UNKNOWN	(-1)
-#define MXF_BLUICE_LOC_SERVER	1
-
-MX_API mx_status_type
-mx_bluice_parse_log_message( char *log_message,
-				long *severity,
-				long *locale,
-				char *device_name,
-				size_t device_name_length,
-				char *message_body,
-				size_t message_body_length );
-
-/* ----- */
-
 MX_API mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *motion_status_message,

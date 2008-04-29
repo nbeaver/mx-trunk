@@ -1242,6 +1242,18 @@ stog_configure_string( MX_THREAD *thread,
 	return mx_status;
 }
 
+/* ----- */
+
+#define MXF_BLUICE_SEV_UNKNOWN	(-1)
+#define MXF_BLUICE_SEV_INFO	1
+#define MXF_BLUICE_SEV_WARNING	2
+#define MXF_BLUICE_SEV_ERROR	3
+
+#define MXF_BLUICE_LOC_UNKNOWN	(-1)
+#define MXF_BLUICE_LOC_SERVER	1
+
+/* ----- */
+
 static mx_status_type
 stog_log( MX_THREAD *thread,
 			MX_RECORD *server_record,
@@ -1255,15 +1267,107 @@ stog_log( MX_THREAD *thread,
 	long severity, locale;
 	char device_name[MXU_BLUICE_NAME_LENGTH+1];
 	char message_body[500];
-	mx_status_type mx_status;
+	char *log_message;
+	char *ptr, *token_ptr;
 
-	mx_status = mx_bluice_parse_log_message( bluice_server->receive_buffer,
-					&severity, &locale,
-					device_name, sizeof(device_name),
-					message_body, sizeof(message_body) );
+	log_message = bluice_server->receive_buffer;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: log_message = '%s'", fname, log_message));
+#endif
+
+	ptr = log_message;
+
+	/* Skip over the log message_token. */
+
+	token_ptr = mx_string_token( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find any non-blank characters in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	MX_DEBUG( 2,("%s: command = '%s', ptr = '%s'",
+		fname, token_ptr, ptr ));
+
+	/* Get the severity level. */
+
+	token_ptr = mx_string_token( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the severity level in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	if ( strcmp( token_ptr, "info" ) == 0 ) {
+		severity = MXF_BLUICE_SEV_INFO;
+	} else
+	if ( strcmp( token_ptr, "warning" ) == 0 ) {
+		severity = MXF_BLUICE_SEV_WARNING;
+	} else
+	if ( strcmp( token_ptr, "error" ) == 0 ) {
+		severity = MXF_BLUICE_SEV_ERROR;
+	} else {
+		severity = MXF_BLUICE_SEV_UNKNOWN;
+
+		mx_warning( "Unrecognized severity level '%s' in the "
+			"message from the Blu-Ice server.", token_ptr );
+	}
+
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,
+	("%s: severity level = %ld, severity token = '%s', ptr = '%s'",
+		fname, severity, token_ptr, ptr ));
+#endif
+
+	/* Get the locale. */
+
+	token_ptr = mx_string_token( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the locale in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	if ( strcmp( token_ptr, "server" ) == 0 ) {
+		locale = MXF_BLUICE_LOC_SERVER;
+	} else {
+		locale = MXF_BLUICE_LOC_UNKNOWN;
+
+		mx_warning( "Unrecognized locale '%s' in the "
+			"message from the Blu-Ice server.", token_ptr );
+	}
+
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: locale = %ld, locale token = '%s', ptr = '%s'",
+		fname, locale, token_ptr, ptr ));
+#endif
+
+	/* Get the device name. */
+
+	token_ptr = mx_string_token( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the device name in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	strlcpy( device_name, token_ptr, sizeof(device_name) );
+
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: device_name = '%s', ptr = '%s'",
+		fname, device_name, ptr));
+#endif
+
+	/* Copy the rest of the string to the message_body argument. */
+
+	strlcpy( message_body, ptr, sizeof(message_body) );
+
+	MX_DEBUG( 2,("%s: message_body = '%s'", fname, message_body));
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,
@@ -1273,6 +1377,7 @@ stog_log( MX_THREAD *thread,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
 
 static mx_status_type
 stog_motor_move_completed( MX_THREAD *thread,
