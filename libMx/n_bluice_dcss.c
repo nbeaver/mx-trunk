@@ -1642,7 +1642,9 @@ stog_report_shutter_state( MX_THREAD *thread,
 	static const char fname[] = "stog_report_shutter_state()"; 
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
-	char *ptr, *token_ptr, *shutter_name;
+	int argc;
+	char **argv;
+	char *shutter_name, *bluice_shutter_status;
 	int shutter_status;
 	mx_status_type mx_status;
 	long mx_status_code;
@@ -1652,50 +1654,29 @@ stog_report_shutter_state( MX_THREAD *thread,
 		fname, bluice_server->receive_buffer, server_record->name));
 #endif
 
-	/* Skip over the command name. */
+	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
 
-	ptr = bluice_server->receive_buffer;
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
+	if ( argc < 3 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The message '%s' received from Blu-Ice server '%s' "
-		"contained only space characters.",
-			bluice_server->receive_buffer, server_record->name );
+		"The 'stog_report_shutter_state' command sent by "
+		"Blu-Ice server '%s' was truncated.",
+			bluice_server->record->name );
 	}
 
-	/* Get the shutter name. */
+	shutter_name = argv[1];
+	bluice_shutter_status = argv[2];
 
-	shutter_name = mx_string_token( &ptr, " " );
-
-	if ( shutter_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-	"Shutter name not found in message received from Blu-Ice server '%s'.",
-			server_record->name );
-	}
-
-	/* Get the shutter status. */
-
-	token_ptr = mx_string_token( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not find the shutter status in a message received from "
-		"Blu-Ice server '%s'.", server_record->name );
-	}
-
-	if ( strcmp( token_ptr, "open" ) == 0 ) {
+	if ( strcmp( bluice_shutter_status, "open" ) == 0 ) {
 		shutter_status = MXF_RELAY_IS_OPEN;
 	} else
-	if ( strcmp( token_ptr, "closed" ) == 0 ) {
+	if ( strcmp( bluice_shutter_status, "closed" ) == 0 ) {
 		shutter_status = MXF_RELAY_IS_CLOSED;
 	} else {
 		shutter_status = MXF_RELAY_ILLEGAL_STATUS;
 
 		mx_warning(
 	"Illegal shutter status '%s' returned for Blu-Ice shutter '%s'.",
-			token_ptr, shutter_name );
+			bluice_shutter_status, shutter_name );
 	}
 
 	/* Update the value in the shutter structure. */
