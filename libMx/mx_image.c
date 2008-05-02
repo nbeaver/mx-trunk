@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		FALSE
+#define MX_IMAGE_DEBUG		TRUE
 
 #define MX_IMAGE_DEBUG_REBIN	FALSE
 
@@ -2397,7 +2397,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			saved_errno = errno;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Cannot read the second line of SMV image file '%s'.  "
+			"Cannot read the next header line of "
+			"SMV image file '%s'.  "
 			"Errno = %d, error message = '%s'",
 				datafile_name,
 				saved_errno, strerror(saved_errno) );
@@ -2568,12 +2569,12 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	if ( bytes_read < bytes_per_frame ) {
 		if ( feof(file) ) {
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-			"End of file at pixel %ld for SMV image file '%s'.",
+		"End of file at image byte offset %ld for SMV image file '%s'.",
 				bytes_read, datafile_name );
 		}
 		if ( ferror(file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An error occurred while reading pixel %ld "
+			"An error occurred at image byte offset %ld "
 			"for SMV image file '%s'.",
 				bytes_read, datafile_name );
 		}
@@ -2828,6 +2829,380 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,
 	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+/* Read EDF files from the SOLEIL SWING beamline. */
+
+mx_status_type
+mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_edf_file()";
+
+	FILE *file;
+	char buffer[100];
+	char *ptr;
+	int saved_errno, os_status, num_items;
+	long framesize[2], binsize[2];
+	long header_length, image_length, datafile_byteorder;
+	long bytes_per_pixel, bytes_per_frame, bytes_read, image_format;
+	char header_token[80];
+	char header_token_format[20];
+	double exposure_time;
+	struct timespec exposure_timespec;
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name));
+#endif
+	snprintf( header_token_format, sizeof(header_token_format),
+			"%%*s %%*s %%%ds", sizeof(header_token) - 1 );
+
+	/* Open the data file. */
+
+	file = fopen( datafile_name, "rb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Cannot open EDF image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* The first line of an EDF file should be a '{' character
+	 * followed by a line feed character.
+	 */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the first line of EDF image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	if ( ( buffer[0] != '{' ) || ( buffer[1] != '\n' ) ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Data file '%s' does not appear to be an EDF file.",
+			datafile_name );
+	}
+
+	/* Read in the rest of the header. */
+
+	header_length = -1;
+	image_length = -1;
+	datafile_byteorder = -1;
+	image_format = -1;
+	bytes_per_pixel = -1;
+	framesize[0] = -1;
+	framesize[1] = -1;
+	binsize[0] = -1;
+	binsize[1] = -1;
+	exposure_time = 1.0;
+
+	for (;;) {
+		ptr = fgets( buffer, sizeof(buffer), file );
+
+#if MX_IMAGE_DEBUG
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
+		if ( ptr == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot read the next header line of "
+			"EDF image file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				datafile_name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( buffer[0] == '}' ) {
+			/* We have reached the end of the text header,
+			 * so break out of the for(;;) loop.
+			 */
+
+			break;
+		} else
+		if ( strncmp( buffer, "EDF_BinarySize =", 16 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &image_length);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"EDF_BinarySize statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "EDF_HeaderSize =", 16 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &header_length);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"EDF_HeaderSize statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "ByteOrder =", 11 ) == 0 ) {
+			num_items = sscanf(buffer,
+					header_token_format, header_token );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"ByteOrder statement.",
+					datafile_name, buffer );
+			}
+
+			if ( strcmp( header_token, "LowByteFirst" ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_LITTLE_ENDIAN;
+			} else
+			if ( strcmp( header_token, "HighByteFirst" ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_BIG_ENDIAN;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"The ByteOrder statement in the header of "
+				"data file '%s' says that the data file "
+				"byte order has the unrecognized value '%s'.",
+					datafile_name, header_token );
+			}
+		} else
+		if ( strncmp( buffer, "DataType =", 10 ) == 0 ) {
+			num_items = sscanf(buffer,
+					header_token_format, header_token );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"DataType statement.",
+					datafile_name, buffer );
+			}
+
+			if ( strcmp( header_token, "UnsignedShort" ) == 0 ) {
+				image_format = MXT_IMAGE_FORMAT_GREY16;
+				bytes_per_pixel = 2;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"The DataType statement in the header of "
+				"data file '%s' says that the data type "
+				"has the unrecognized value '%s'.",
+					datafile_name, header_token );
+			}
+		} else
+		if ( strncmp( buffer, "Dim_1 =", 7 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &framesize[0]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"Dim_1 statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "Dim_2 =", 7 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &framesize[1]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"Dim_2 statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "Xbin =", 6 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &binsize[0]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"Xbin statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "Ybin =", 6 ) == 0 ) {
+			num_items = sscanf(buffer,
+					"%*s %*s %lu", &binsize[1]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"Ybin statement.",
+					datafile_name, buffer );
+			}
+		}
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: header_length = %ld, image_length = %ld",
+		fname, header_length, image_length));
+	MX_DEBUG(-2,("%s: datafile_byteorder = %ld",
+		fname, datafile_byteorder));
+	MX_DEBUG(-2,("%s: image_format = %ld, bytes_per_pixel = %ld",
+		fname, image_format, bytes_per_pixel));
+	MX_DEBUG(-2,("%s: framesize = (%ld,%ld), binsize = (%ld,%ld)",
+		fname, framesize[0], framesize[1], binsize[0], binsize[1]));
+#endif
+	if ( header_length < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The image header length was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( image_length < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The image length was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( datafile_byteorder < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The datafile byteorder was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( image_format < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The image format was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( bytes_per_pixel < 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+	    "The number of bytes per pixel was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( (framesize[0] < 0) || (framesize[1] < 0) ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The framesize was not found for EDF file '%s'.",
+			datafile_name );
+	}
+	if ( (binsize[0] < 0) || (binsize[1] < 0) ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The binsize was not found for EDF file '%s'.",
+			datafile_name );
+	}
+
+	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
+
+	/* Change the size of the MX_IMAGE_FRAME to match the EDF file. */
+
+	mx_status = mx_image_alloc( frame,
+					framesize[0],
+					framesize[1],
+					image_format,
+					datafile_byteorder,
+					(double) bytes_per_pixel,
+					0,
+					bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Add more information to the MX_IMAGE_FRAME header. */
+
+	MXIF_ROW_BINSIZE(*frame)    = binsize[0];
+	MXIF_COLUMN_BINSIZE(*frame) = binsize[1];
+
+	exposure_timespec =
+		mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC(*frame)  = exposure_timespec.tv_sec;
+	MXIF_EXPOSURE_TIME_NSEC(*frame) = exposure_timespec.tv_nsec;
+
+	/* Move to the first byte after the header. */
+
+	os_status = fseek( file, header_length, SEEK_SET );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to seek to the end of the header block "
+		"in image file '%s' failed with errno = %d, "
+		"error message = '%s'", datafile_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Read in the binary part of the image file. */
+
+	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+				bytes_per_frame, file );
+
+	if ( bytes_read < bytes_per_frame ) {
+		if ( feof(file) ) {
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"End of file at image byte offset %ld for EDF image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred at image byte offset %ld "
+			"for SMV image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Only %ld image bytes were read from "
+			"SMV image file '%s' when %ld bytes were expected.",
+				bytes_read, datafile_name, bytes_per_frame );
+	}
+
+	/* Close the EDF image file. */
+
+	fclose( file );
+
+	/* If the byte order in the file does not match the native
+	 * byte order of the machine we are running on, then we must
+	 * byteswap the bytes in the image.
+	 */
+
+	if ( mx_native_byteorder() != datafile_byteorder ) {
+		uint16_t *uint16_array;
+		long i, words_per_frame;
+
+		/* Byteswap the 16-bit integers. */
+
+		uint16_array = (*frame)->image_data;
+
+		words_per_frame = framesize[0] * framesize[1];
+
+		for ( i = 0; i < words_per_frame; i++ ) {
+			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+		}
+
+		MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
+	}
+
+	/* We are done, so return. */
 
 	return MX_SUCCESSFUL_RESULT;
 }
