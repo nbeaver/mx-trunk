@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		TRUE
+#define MX_IMAGE_DEBUG		FALSE
 
 #define MX_IMAGE_DEBUG_REBIN	FALSE
 
@@ -1745,6 +1745,9 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
 		break;
+	case MXT_IMAGE_FILE_EDF:
+		mx_status = mx_image_read_edf_file( frame_ptr, datafile_name );
+		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
@@ -1769,6 +1772,11 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 		break;
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_write_smv_file( frame, datafile_name );
+		break;
+	case MXT_IMAGE_FILE_EDF:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Writing EDF format image files for datafile '%s' "
+			"is not currently supported.", datafile_name );
 		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,

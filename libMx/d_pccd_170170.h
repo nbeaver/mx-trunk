@@ -26,6 +26,7 @@
 #define MXF_PCCD_170170_USE_TEST_PATTERN		0x10
 
 #define MXF_PCCD_170170_TEST_DEZINGER			0x100
+#define MXF_PCCD_170170_SAVE_RAW_FRAME			0x200
 
 /*---*/
 
@@ -622,6 +623,26 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_4824_rfield_def_ptr;
 
 extern long mxd_pccd_16080_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr;
+
+/* The following functions are exported for the testing of the
+ * descrambling algorithm and should not be used in normal programs.
+ */
+
+MX_API_PRIVATE mx_status_type mxd_pccd_170170_alloc_sector_array(
+					uint16_t ****sector_array_ptr,
+					long sector_width,
+					long sector_height,
+					long num_sector_rows,
+					long num_sector_columns,
+					uint16_t *image_data );
+
+MX_API_PRIVATE void mxd_pccd_170170_free_sector_array(uint16_t ***sector_array);
+
+MX_API_PRIVATE mx_status_type mxd_pccd_170170_descramble_raw_data(
+					uint16_t *raw_frame_data,
+					uint16_t ***image_sector_array,
+					long i_framesize,
+					long j_framesize );
 
 #endif /* __D_PCCD_170170_H__ */
 

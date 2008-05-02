@@ -60,6 +60,7 @@
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_key.h"
+#include "mx_cfn.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_memory.h"
@@ -279,7 +280,7 @@ mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 }
 #endif
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
 					long sector_height,
@@ -489,7 +490,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static void
+MX_EXPORT void
 mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 {
 	uint16_t **sector_array_row_ptr;
@@ -511,7 +512,7 @@ mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 
 /*-------------------------------------------------------------------------*/
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
 				long i_framesize,
@@ -798,8 +799,6 @@ mxd_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-/*-------------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------------*/
 
@@ -3449,6 +3448,59 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static void
+mxd_pccd_170170_save_raw_frame( uint16_t *image_data,
+				unsigned long image_length )
+{
+	static const char fname[] = "mxd_pccd_170170_save_raw_frame()";
+
+	FILE *file;
+	int saved_errno, filename_type;
+	unsigned long bytes_written;
+	char raw_frame_filename[MXU_FILENAME_LENGTH+1];
+
+	if ( getenv("MXDIR") == NULL ) {
+		filename_type = MX_CFN_CWD;
+	} else {
+		filename_type = MX_CFN_STATE;
+	}
+
+	mx_construct_control_system_filename( filename_type,
+						"pccd_170170_raw_frame.bin",
+						raw_frame_filename,
+						sizeof(raw_frame_filename) );
+
+	MX_DEBUG(-2,("%s: Writing raw frame to '%s'",
+		fname, raw_frame_filename ));
+
+	file = fopen( raw_frame_filename, "w" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		mx_error( MXE_NOT_FOUND, fname,
+		"Cannot open raw frame file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			raw_frame_filename,
+			saved_errno, strerror(saved_errno) );
+
+		return;
+	}
+
+	bytes_written = fwrite( image_data, 1, image_length, file );
+
+	fclose( file );
+
+	if ( bytes_written < image_length ) {
+		mx_error( MXE_FILE_IO_ERROR, fname,
+		"Raw frame file '%s' was supposed to be %lu bytes long, "
+		"but only %lu bytes were written.",
+			raw_frame_filename, image_length, bytes_written );
+	}
+
+	return;
+}
+
 MX_EXPORT mx_status_type
 mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 {
@@ -3639,9 +3691,17 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MXIF_COLUMN_FRAMESIZE(ad->image_frame) = column_framesize;
 
-	/* If required, we now descramble the image. */
-
 	flags = pccd_170170->pccd_170170_flags;
+
+	/* If requested, save a copy of the undescrambled data. */
+
+	if ( flags & MXF_PCCD_170170_SAVE_RAW_FRAME ) {
+		mxd_pccd_170170_save_raw_frame(
+			pccd_170170->raw_frame->image_data,
+			pccd_170170->raw_frame->image_length );
+	}
+
+	/* If required, we now descramble the image. */
 
 	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
 
