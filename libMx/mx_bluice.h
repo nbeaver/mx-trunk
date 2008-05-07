@@ -93,6 +93,16 @@ typedef struct {
 } MX_BLUICE_FOREIGN_MOTOR;
 
 typedef struct {
+	unsigned long operation_counter;
+	unsigned long received_operation_counter;
+
+	char *arguments_buffer;
+	size_t arguments_length;
+
+	MX_VARIABLE *mx_operation_variable;
+} MX_BLUICE_FOREIGN_OPERATION;
+
+typedef struct {
 	long shutter_status;
 
 	MX_RELAY *mx_relay;
@@ -100,6 +110,8 @@ typedef struct {
 
 typedef struct {
 	char *string_buffer;
+	size_t string_length;
+	char status[20];
 
 	MX_VARIABLE *mx_string_variable;
 } MX_BLUICE_FOREIGN_STRING;
@@ -107,8 +119,9 @@ typedef struct {
 #define MXT_BLUICE_FOREIGN_UNKNOWN	0
 #define MXT_BLUICE_FOREIGN_ION_CHAMBER	1
 #define MXT_BLUICE_FOREIGN_MOTOR	2
-#define MXT_BLUICE_FOREIGN_SHUTTER	3
-#define MXT_BLUICE_FOREIGN_STRING	4
+#define MXT_BLUICE_FOREIGN_OPERATION	3
+#define MXT_BLUICE_FOREIGN_SHUTTER	4
+#define MXT_BLUICE_FOREIGN_STRING	5
 
 typedef struct {
 	long foreign_type;
@@ -118,6 +131,7 @@ typedef struct {
 	union {
 		MX_BLUICE_FOREIGN_ION_CHAMBER ion_chamber;
 		MX_BLUICE_FOREIGN_MOTOR motor;
+		MX_BLUICE_FOREIGN_OPERATION operation;
 		MX_BLUICE_FOREIGN_SHUTTER shutter;
 		MX_BLUICE_FOREIGN_STRING string;
 	} u;
@@ -157,6 +171,9 @@ typedef struct {
 
 	long num_motors;
 	MX_BLUICE_FOREIGN_DEVICE **motor_array;
+
+	long num_operations;
+	MX_BLUICE_FOREIGN_DEVICE **operation_array;
 
 	long num_shutters;
 	MX_BLUICE_FOREIGN_DEVICE **shutter_array;

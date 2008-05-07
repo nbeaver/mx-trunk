@@ -490,6 +490,7 @@
 #include "v_bluice_master.h"
 #include "v_bluice_command.h"
 #include "v_bluice_string.h"
+#include "v_bluice_operation.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -3889,6 +3890,20 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxv_bluice_string_num_record_fields,
 				&mxv_bluice_string_rfield_def_ptr},
+
+{"bluice_dcss_operation", MXV_BLUICE_DCSS_OPERATION, MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_operation_record_function_list,
+				&mxv_bluice_operation_variable_function_list,
+				NULL,
+				&mxv_bluice_operation_num_record_fields,
+				&mxv_bluice_operation_rfield_def_ptr},
+
+{"bluice_dhs_operation",  MXV_BLUICE_DHS_OPERATION, MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_operation_record_function_list,
+				&mxv_bluice_operation_variable_function_list,
+				NULL,
+				&mxv_bluice_operation_num_record_fields,
+				&mxv_bluice_operation_rfield_def_ptr},
 
 /*----*/
 

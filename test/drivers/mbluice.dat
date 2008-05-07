@@ -15,13 +15,8 @@ sample_z      device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um
 beamstop_z    device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um dcss beamstop_z
 detector_horz device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um dcss detector_horz
 detector_vert device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 um dcss detector_vert
-#dose_scounts  device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts dcss doseStoredCounts
-#dose_lcounts  device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts dcss doseLastCounts
-#dose_sratio   device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts dcss doseStabilityRatio
-#dose_thresh   device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 counts dcss doseThreshold
-#dose_period   device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec dcss doseIntegrationPeriod
-#max_osc_time  device motor bluice_dcss_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec dcss maxOscTime
 door_status   variable bluice_variable bluice_dcss_string "" "" dcss hutchDoorStatus 1 80 ""
+collect_image variable bluice_variable bluice_dcss_operation "" "" dcss detector_collect_image 1 80 ""
 shutter       device relay bluice_dcss_shutter "" "" dcss shutter
 i0            device analog_input bluice_dcss_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i0
 i1            device analog_input bluice_dcss_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i1
