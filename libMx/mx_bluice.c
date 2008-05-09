@@ -1061,3 +1061,43 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
+				MX_BLUICE_FOREIGN_DEVICE *foreign_operation,
+				unsigned long client_number,
+				unsigned long operation_counter,
+				mx_bool_type operation_in_progress )
+{
+	static const char fname[] = "mx_bluice_update_operation_status()";
+
+	long mx_status_code;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
+	if ( foreign_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_FOREIGN_DEVICE pointer passed was NULL." );
+	}
+
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
+	foreign_operation->u.operation.client_number = client_number;
+	foreign_operation->u.operation.operation_counter = operation_counter;
+	foreign_operation->u.operation.operation_in_progress
+						= operation_in_progress;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+

@@ -43,6 +43,8 @@ typedef struct {
 	unsigned long client_number;
 	mx_bool_type is_authenticated;
 	mx_bool_type is_master;
+
+	unsigned long operation_counter;
 } MX_BLUICE_DCSS_SERVER;
 
 /* Define all of the client interface functions. */

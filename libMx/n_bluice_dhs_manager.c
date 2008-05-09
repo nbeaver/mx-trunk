@@ -671,6 +671,7 @@ mxn_bluice_dhs_manager_create_record_structures( MX_RECORD *record )
 
 	bluice_dhs_manager->record = record;
 	bluice_dhs_manager->dhs_manager_thread = NULL;
+	bluice_dhs_manager->operation_counter = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }

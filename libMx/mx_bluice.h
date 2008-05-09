@@ -92,14 +92,24 @@ typedef struct {
 	mx_bool_type move_in_progress;
 } MX_BLUICE_FOREIGN_MOTOR;
 
-typedef struct {
-	unsigned long operation_counter;
-	unsigned long received_operation_counter;
+/* Note: The 'operation_counter' field in MX_BLUICE_FOREIGN_OPERATION is
+ * merely a copy of the operation counter as seen when Blu-Ice messages
+ * referring to this operation are sent or received.  The authoritative
+ * source for the most recent operation counter is found instead in
+ * either the MX_BLUICE_DCSS_SERVER structure or the MX_BLUICE_DHS_MANAGER
+ * structure.
+ */
 
+typedef struct {
 	char *arguments_buffer;
 	size_t arguments_length;
 
 	MX_VARIABLE *mx_operation_variable;
+	MX_RECORD *mx_record;
+
+	unsigned long client_number;
+	unsigned long operation_counter;
+	mx_bool_type operation_in_progress;
 } MX_BLUICE_FOREIGN_OPERATION;
 
 typedef struct {
@@ -242,6 +252,13 @@ MX_API mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *motion_status_message,
 				mx_bool_type move_in_progress );
+
+MX_API mx_status_type
+mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
+				MX_BLUICE_FOREIGN_DEVICE *foreign_operation,
+				unsigned long client_number,
+				unsigned long operation_counter,
+				mx_bool_type operation_in_progress );
 
 #ifdef __cplusplus
 }

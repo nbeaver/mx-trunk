@@ -36,6 +36,8 @@ typedef struct {
 
 	unsigned long num_dhs_records;
 	MX_RECORD **dhs_record_array;
+
+	unsigned long operation_counter;
 } MX_BLUICE_DHS_MANAGER;
 
 /* Define all of the client interface functions. */
