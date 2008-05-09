@@ -255,10 +255,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 MX_API mx_status_type
 mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
-				MX_BLUICE_FOREIGN_DEVICE *foreign_operation,
-				unsigned long client_number,
-				unsigned long operation_counter,
-				mx_bool_type operation_in_progress );
+				char *operation_status_message );
 
 #ifdef __cplusplus
 }

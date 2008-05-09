@@ -1376,58 +1376,14 @@ stog_operation_completed( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_operation_completed()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
-	char *operation_name, *operation_handle;
-	int num_items;
-	unsigned long client_number, operation_counter;
-	int argc;
-	char **argv;
 	mx_status_type mx_status;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name));
 #endif
-
-	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
-
-	if ( argc < 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The 'stog_start_operation' command sent by "
-		"Blu-Ice server '%s' was truncated.",
-			bluice_server->record->name );
-	}
-
-	operation_name = argv[1];
-	operation_handle = argv[2];
-
-	num_items = sscanf( operation_handle, "%lu.%lu",
-				&client_number, &operation_counter );
-
-	if ( num_items != 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Unable to find the client number and operation counter "
-		"in the operation handle '%s' sent by Blu-Ice server '%s'.",
-			operation_handle, bluice_server->record->name );
-	}
-
-	mx_status = mx_bluice_get_device_pointer( bluice_server,
-						argv[1],
-						bluice_server->operation_array,
-						bluice_server->num_operations,
-						&foreign_operation );
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_free(argv);
-		return mx_status;
-	}
-
 	mx_status = mx_bluice_update_operation_status( bluice_server,
-		foreign_operation, client_number, operation_counter, FALSE );
-
-	mx_free(argv);
-
+						bluice_server->receive_buffer );
 	return mx_status;
 }
 
@@ -1441,58 +1397,14 @@ stog_operation_update( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_operation_update()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
-	char *operation_name, *operation_handle;
-	int num_items;
-	unsigned long client_number, operation_counter;
-	int argc;
-	char **argv;
 	mx_status_type mx_status;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name));
 #endif
-
-	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
-
-	if ( argc < 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The 'stog_start_operation' command sent by "
-		"Blu-Ice server '%s' was truncated.",
-			bluice_server->record->name );
-	}
-
-	operation_name = argv[1];
-	operation_handle = argv[2];
-
-	num_items = sscanf( operation_handle, "%lu.%lu",
-				&client_number, &operation_counter );
-
-	if ( num_items != 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Unable to find the client number and operation counter "
-		"in the operation handle '%s' sent by Blu-Ice server '%s'.",
-			operation_handle, bluice_server->record->name );
-	}
-
-	mx_status = mx_bluice_get_device_pointer( bluice_server,
-						argv[1],
-						bluice_server->operation_array,
-						bluice_server->num_operations,
-						&foreign_operation );
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_free(argv);
-		return mx_status;
-	}
-
 	mx_status = mx_bluice_update_operation_status( bluice_server,
-		foreign_operation, client_number, operation_counter, TRUE );
-
-	mx_free(argv);
-
+						bluice_server->receive_buffer );
 	return mx_status;
 }
 
@@ -1908,58 +1820,14 @@ stog_start_operation( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_start_operation()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
-	char *operation_name, *operation_handle;
-	int num_items;
-	unsigned long client_number, operation_counter;
-	int argc;
-	char **argv;
 	mx_status_type mx_status;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name));
 #endif
-
-	mx_string_split( bluice_server->receive_buffer, " ", &argc, &argv );
-
-	if ( argc < 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The 'stog_start_operation' command sent by "
-		"Blu-Ice server '%s' was truncated.",
-			bluice_server->record->name );
-	}
-
-	operation_name = argv[1];
-	operation_handle = argv[2];
-
-	num_items = sscanf( operation_handle, "%lu.%lu",
-				&client_number, &operation_counter );
-
-	if ( num_items != 2 ) {
-		mx_free(argv);
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Unable to find the client number and operation counter "
-		"in the operation handle '%s' sent by Blu-Ice server '%s'.",
-			operation_handle, bluice_server->record->name );
-	}
-
-	mx_status = mx_bluice_get_device_pointer( bluice_server,
-						argv[1],
-						bluice_server->operation_array,
-						bluice_server->num_operations,
-						&foreign_operation );
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_free(argv);
-		return mx_status;
-	}
-
 	mx_status = mx_bluice_update_operation_status( bluice_server,
-		foreign_operation, client_number, operation_counter, TRUE );
-
-	mx_free(argv);
-
+						bluice_server->receive_buffer );
 	return mx_status;
 }
 

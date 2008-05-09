@@ -31,6 +31,8 @@
 
 #define BLUICE_DEBUG_MOTION	TRUE
 
+#define BLUICE_DEBUG_OPERATION	TRUE
+
 static mx_status_type
 mx_bluice_get_pointers( MX_RECORD *bluice_server_record,
 			MX_BLUICE_SERVER **bluice_server,
@@ -1065,23 +1067,104 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 MX_EXPORT mx_status_type
 mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
-				MX_BLUICE_FOREIGN_DEVICE *foreign_operation,
-				unsigned long client_number,
-				unsigned long operation_counter,
-				mx_bool_type operation_in_progress )
+					char *status_message )
 {
 	static const char fname[] = "mx_bluice_update_operation_status()";
 
+	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
+	char *command_name, *operation_name;
+	char *operation_handle, *operation_arguments;
+	char *ptr, *new_buffer;
+	int num_items;
+	unsigned long client_number;
+	unsigned long operation_counter;
+	mx_bool_type operation_in_progress;
+	unsigned long arguments_length, old_arguments_length;
 	long mx_status_code;
+	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_BLUICE_SERVER pointer passed was NULL." );
 	}
-	if ( foreign_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+	if ( status_message == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_BLUICE_FOREIGN_DEVICE pointer passed was NULL." );
+		"The status_message pointer passed was NULL." );
 	}
+
+	/* Get the command name. */
+
+	ptr = status_message;
+
+	command_name = mx_string_token( &ptr, " " );
+
+	if ( command_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.",
+			status_message, bluice_server->record->name );
+	}
+
+	if ( strcmp( command_name, "gtos_start_operation" ) == 0 ) {
+		operation_in_progress = TRUE;
+	} else
+	if ( strcmp( command_name, "stog_start_operation" ) == 0 ) {
+		operation_in_progress = TRUE;
+	} else
+	if ( strcmp( command_name, "stog_operation_update" ) == 0 ) {
+		operation_in_progress = TRUE;
+	} else
+	if ( strcmp( command_name, "stog_operation_completed" ) == 0 ) {
+		operation_in_progress = FALSE;
+	} else {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Unrecognized command type '%s' received from "
+		"Blu-Ice server '%s'.",
+			command_name, bluice_server->record->name );
+	}
+
+	/* Get the operation name . */
+
+	operation_name = mx_string_token( &ptr, " " );
+
+	if ( operation_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An operation name was not found in the message received "
+		"from Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	/* Get the operation handle. */
+
+	operation_handle = mx_string_token( &ptr, " " );
+
+	if ( operation_handle == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An operation handle was not found in the message received "
+		"from Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	num_items = sscanf( operation_handle, "%lu.%lu",
+				&client_number, &operation_counter );
+
+	if ( num_items != 2 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The operation handle '%s' received from Blu-Ice server '%s' "
+		"is not a valid operation handle.",
+			operation_handle, bluice_server->record->name );
+	}
+
+	/* Treat the rest of the receive buffer as the arguments buffer. */
+
+	operation_arguments = ptr;
+
+	if ( operation_arguments == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"No operation arguments were seen in the '%s' message sent by "
+		"Blu-Ice server '%s'.",
+			command_name, bluice_server->record->name );
+	}
+
+	/* Get ready to copy the data to the "foreign operation" structure. */
 
 	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
 
@@ -1091,10 +1174,88 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+						operation_name,
+						bluice_server->operation_array,
+						bluice_server->num_operations,
+						&foreign_operation );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+		return mx_status;
+	}
+
+	if ( foreign_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_BLUICE_FOREIGN_DEVICE pointer for operation '%s' "
+		"has not been initialized.", operation_name );
+	}
+
+	/* We can now copy the data to the "foreign operation" structure. */
+
 	foreign_operation->u.operation.client_number = client_number;
 	foreign_operation->u.operation.operation_counter = operation_counter;
 	foreign_operation->u.operation.operation_in_progress
 						= operation_in_progress;
+
+	/* Copy the operation arguments. */
+
+	arguments_length = strlen( operation_arguments ) + 1;
+
+	old_arguments_length = foreign_operation->u.operation.arguments_length;
+
+	if ( foreign_operation->u.operation.arguments_buffer == (char *) NULL ){
+		new_buffer = malloc( arguments_length );
+
+		if ( new_buffer == (char *) NULL ) {
+			mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu character operation arguments buffer for "
+			"Blu-Ice operation '%s'.",
+				arguments_length, operation_name );
+		}
+
+		foreign_operation->u.operation.arguments_buffer = new_buffer;
+		foreign_operation->u.operation.arguments_length
+							= arguments_length;
+	} else
+	if ( arguments_length > old_arguments_length ) {
+		new_buffer = realloc(
+			foreign_operation->u.operation.arguments_buffer,
+			arguments_length );
+
+		if ( new_buffer == (char *) NULL ) {
+			mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu character operation arguments buffer for "
+			"Blu-Ice operation '%s'.",
+				arguments_length, operation_name );
+		}
+
+		foreign_operation->u.operation.arguments_buffer = new_buffer;
+		foreign_operation->u.operation.arguments_length
+							= arguments_length;
+	}
+
+	strlcpy( foreign_operation->u.operation.arguments_buffer,
+			operation_arguments, arguments_length );
+
+#if BLUICE_DEBUG_OPERATION
+	MX_DEBUG(-2,("%s: command '%s', operation '%s'",
+		fname, command_name, operation_name));
+
+	MX_DEBUG(-2,("%s:    client_number = %lu, operation_counter = %lu",
+		fname, client_number, operation_counter));
+
+	MX_DEBUG(-2,
+	("%s:    operation_in_progress = %d, operation_arguments = '%s'",
+		fname, (int) operation_in_progress, operation_arguments));
+#endif
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
