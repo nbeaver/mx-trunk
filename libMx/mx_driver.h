@@ -680,6 +680,8 @@ extern "C" {
 #define MXT_AD_PCCD_16080		240006
 #define MXT_AD_BRANDEIS_BIOCAT		240007
 #define MXT_AD_MARCCD			240008
+#define MXT_AD_BLUICE_DCSS		240009
+#define MXT_AD_BLUICE_DHS		240010
 
 /* --- Scan types --- */
 

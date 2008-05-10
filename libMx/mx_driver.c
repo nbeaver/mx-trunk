@@ -445,6 +445,7 @@
 #include "d_pccd_170170.h"
 #include "d_brandeis_biocat.h"
 #include "d_marccd.h"
+#include "d_bluice_area_detector.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3382,6 +3383,20 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxd_marccd_num_record_fields,
 				&mxd_marccd_rfield_def_ptr},
+
+{"bluice_dcss_area_detector", MXT_AD_BLUICE_DCSS, MXC_AREA_DETECTOR, MXR_DEVICE,
+				&mxd_bluice_area_detector_record_function_list,
+				NULL,
+				NULL,
+			      &mxd_bluice_dcss_area_detector_num_record_fields,
+				&mxd_bluice_dcss_area_detector_rfield_def_ptr},
+
+{"bluice_dhs_area_detector", MXT_AD_BLUICE_DHS, MXC_AREA_DETECTOR, MXR_DEVICE,
+				&mxd_bluice_area_detector_record_function_list,
+				NULL,
+				NULL,
+				&mxd_bluice_dhs_area_detector_num_record_fields,
+				&mxd_bluice_dhs_area_detector_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,
