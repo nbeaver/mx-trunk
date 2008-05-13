@@ -41,7 +41,9 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_bluice_area_detector_open
+	mxd_bluice_area_detector_open,
+	NULL,
+	mxd_bluice_area_detector_finish_delayed_initialization
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
@@ -54,7 +56,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
 	NULL,
 	mxd_bluice_area_detector_get_extended_status,
 	mxd_bluice_area_detector_readout_frame,
-	mxd_bluice_area_detector_correct_frame,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -228,6 +230,25 @@ mxd_bluice_area_detector_finish_record_initialization( MX_RECORD *record )
 	return mx_area_detector_finish_record_initialization( record );
 }
 
+/* The mxp_setup_dhs_record() macro is used to setup the record pointer for the
+ * detector_distance, wavelength, detector_x, and detector_y records.
+ */
+
+#define mxp_setup_dhs_record(x,y) \
+	do {                                                                \
+	    if ( ( strlen(x) == 0 ) || ( strcmp((x), "NULL") == 0 ) ) {     \
+		name_record = NULL;                                         \
+	    } else {                                                        \
+		name_record = mx_get_record( record, (x) ) ;                \
+		if ( name_record == (MX_RECORD *) NULL ) {                  \
+		    return mx_error( MXE_NOT_FOUND, fname,                  \
+			"Record '%s' used by record '%s' was not found.",   \
+			    (x), record->name );                            \
+		}                                                           \
+	    }                                                               \
+	    (y) = name_record;                                              \
+	} while(0)
+
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_open( MX_RECORD *record )
 {
@@ -236,6 +257,7 @@ mxd_bluice_area_detector_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
+	MX_RECORD *name_record;
 	mx_status_type mx_status;
 
 	bluice_area_detector = NULL;
@@ -261,10 +283,99 @@ mxd_bluice_area_detector_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
+	switch( record->mx_type ) {
+	case MXT_AD_BLUICE_DCSS:
+		bluice_area_detector->detector_distance_record = NULL;
+		bluice_area_detector->wavelength_record = NULL;
+		bluice_area_detector->detector_x_record = NULL;
+		bluice_area_detector->detector_y_record = NULL;
+		break;
+	case MXT_AD_BLUICE_DHS:
+		mxp_setup_dhs_record(
+				bluice_area_detector->detector_distance_name,
+				bluice_area_detector->detector_distance_record);
+		mxp_setup_dhs_record(bluice_area_detector->wavelength_name,
+				bluice_area_detector->wavelength_record);
+		mxp_setup_dhs_record(bluice_area_detector->detector_x_name,
+				bluice_area_detector->detector_x_record);
+		mxp_setup_dhs_record(bluice_area_detector->detector_y_name,
+				bluice_area_detector->detector_y_record);
+		break;
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Blu-Ice area detector record '%s' has an illegal "
+		"MX type of %ld", record->name, record->mx_type );
+		break;
+	}
+
 	return mx_status;
 }
 
-#define mx_atomic_increment(x)  ((x)++)
+MX_EXPORT mx_status_type
+mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_bluice_area_detector_finish_delayed_initialization()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
+	char collect_name[MXU_BLUICE_NAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+			&bluice_area_detector, &bluice_server, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	switch( record->mx_type ) {
+	case MXT_AD_BLUICE_DCSS:
+		strlcpy( collect_name, "collectFrame", sizeof(collect_name) );
+		break;
+	case MXT_AD_BLUICE_DHS:
+		strlcpy( collect_name, "detector_collect_image",
+							sizeof(collect_name) );
+		break;
+	}
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+					collect_name,
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+				&(bluice_area_detector->collect_operation) );
+	return mx_status;
+}
+
+static double
+mxp_motor_position( MX_RECORD *record )
+{
+	double position;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return 0.0;
+	}
+
+	mx_status = mx_motor_get_position( record, &position );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return 0.0;
+	}
+
+	return position;
+}
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
@@ -273,10 +384,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
-	void *type_server;
-	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
-	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
-	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
+	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	char command[200];
@@ -284,13 +392,15 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char datafile_name[MXU_FILENAME_LENGTH+1];
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char username[MXU_USERNAME_LENGTH+1];
-	unsigned long operation_counter;
+	unsigned long client_number, operation_counter;
+	double detector_distance, wavelength;
+	double detector_x, detector_y;
 	mx_status_type mx_status;
 
 	bluice_area_detector = NULL;
 
 	mx_status = mxd_bluice_area_detector_get_pointers( ad,
-		&bluice_area_detector, &bluice_server, &type_server, fname );
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -324,17 +434,16 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 	mx_username( username, sizeof(username) );
 
+	client_number = mx_bluice_get_client_number( bluice_server );
+
+	operation_counter = mx_bluice_update_operation_counter( bluice_server );
+
 	switch( ad->record->mx_type ) {
 	case MXT_AD_BLUICE_DCSS:
-		bluice_dcss_server = type_server;
-
-		operation_counter = mx_atomic_increment(
-				bluice_dcss_server->operation_counter );
-
 		snprintf( command, sizeof(command),
 		"gtos_start_operation collectFrame %lu.%lu %lu %s %s %s "
 			"NULL NULL 0 %f 0 1 0",
-			bluice_dcss_server->client_number,
+			client_number,
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
@@ -344,47 +453,75 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXT_AD_BLUICE_DHS:
-		bluice_dhs_server = type_server;
+		detector_distance = mxp_motor_position(
+			bluice_area_detector->detector_distance_record );
 
-		bluice_dhs_manager =
-		    bluice_dhs_server->dhs_manager_record->record_type_struct;
+		wavelength = mxp_motor_position(
+			bluice_area_detector->wavelength_record );
 
-		operation_counter = mx_atomic_increment(
-				bluice_dhs_manager->operation_counter );
+		detector_x = mxp_motor_position(
+			bluice_area_detector->detector_x_record );
+
+		detector_y = mxp_motor_position(
+			bluice_area_detector->detector_y_record );
 
 		snprintf( command, sizeof(command),
 		"stoh_start_operation detector_collect_image %lu.%lu %lu "
-		"%s %s %s NULL %f 0.0 0.0 0.0 0.0 0.0 0.0 0 0",
-			1L,
+		"%s %s %s NULL %f 0.0 0.0 %f %f %f %f 0 0",
+			client_number,
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
 			datafile_directory,
 			username,
-			exposure_time );
+			exposure_time,
+			detector_distance,
+			wavelength,
+			detector_x,
+			detector_y );
 		break;
 	}
+
+	mx_status = mx_bluice_check_for_master( bluice_server );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	collect_operation = bluice_area_detector->collect_operation;
+
+	if ( collect_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The collect operation for Blu-Ice area detector '%s' "
+		"has not yet been initialized.", ad->record->name );
+	}
+
+	collect_operation->u.operation.operation_state
+				= MXSF_BLUICE_OPERATION_STARTED;
+
+	mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0 );
 			
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad )
 {
-#if 0
 	static const char fname[] = "mxd_bluice_area_detector_stop()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
+	char command[200];
+	unsigned long client_number, operation_counter;
 	mx_status_type mx_status;
 
-	bluice_area_detector = NULL;
-
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -393,33 +530,48 @@ mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	
+	client_number = mx_bluice_get_client_number( bluice_server );
 
-	bluice_area_detector->finish_time = mx_current_clock_tick();
+	operation_counter = mx_bluice_update_operation_counter( bluice_server );
 
-	bluice_area_detector->current_command = MXF_BLUICE_AREA_DETECTOR_CMD_ABORT;
+	switch( ad->record->mx_type ) {
+	case MXT_AD_BLUICE_DCSS:
+		snprintf( command, sizeof(command),
+		"gtos_start_operation detector_stop %lu.%lu",
+			client_number, operation_counter );
+		break;
+	case MXT_AD_BLUICE_DHS:
+		snprintf( command, sizeof(command),
+		"stoh_start_operation detector_stop %lu.%lu",
+			client_number, operation_counter );
+		break;
+	}
 
-	mx_status = mxd_bluice_area_detector_command( ad, bluice_area_detector, "abort", MXD_BLUICE_AREA_DETECTOR_DEBUG );
+	mx_status = mx_bluice_check_for_master( bluice_server );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0 );
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-#if 0
-	static const char fname[] = "mxd_bluice_area_detector_get_extended_status()";
+	static const char fname[] =
+			"mxd_bluice_area_detector_get_extended_status()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
-	MX_CLOCK_TICK current_time;
-	int comparison;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
+	int operation_state;
 	mx_status_type mx_status;
 
-	bluice_area_detector = NULL;
-
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -428,50 +580,95 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mxd_bluice_area_detector_check_for_responses( ad,
-						bluice_area_detector, MXD_BLUICE_AREA_DETECTOR_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	collect_operation = bluice_area_detector->collect_operation;
 
-	current_time = mx_current_clock_tick();
-
-	comparison = mx_compare_clock_ticks(current_time, bluice_area_detector->finish_time);
-
-	if ( comparison < 0 ) {
-		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
-		ad->last_frame_number = -1;
-	} else {
-		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
-
-			/* If we just finished an acquisition cycle,
-			 * then increment the total number of frames.
-			 */
-
-			(ad->total_num_frames)++;
-		}
-
-		ad->last_frame_number = 0;
-
-		bluice_area_detector->use_finish_time = FALSE;
+	if ( collect_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The collect operation for Blu-Ice area detector '%s' "
+		"has not yet been initialized.", ad->record->name );
 	}
 
+	operation_state = collect_operation->u.operation.operation_state;
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: client_number = %lu, operation_counter = %lu",
+		fname, collect_operation->u.operation.client_number,
+		collect_operation->u.operation.operation_counter));
+
+	switch( operation_state ) {
+	case MXSF_BLUICE_OPERATION_ERROR:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d (MXSF_BLUICE_OPERATION_ERROR)",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_COMPLETED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d (MXSF_BLUICE_OPERATION_COMPLETED)",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_STARTED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d (MXSF_BLUICE_OPERATION_STARTED)",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_UPDATED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d (MXSF_BLUICE_OPERATION_UPDATED)",
+			fname, operation_state));
+		break;
+	default:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d (MXSF_BLUICE_OPERATION_UNKNOWN)",
+			fname, operation_state));
+		break;
+	}
+
+	if ( collect_operation->u.operation.arguments_buffer == NULL ) {
+		MX_DEBUG(-2,
+		("%s: arguments_length = %ld, arguments_buffer = '(nil)'",
+		fname, (long) collect_operation->u.operation.arguments_length))
+	} else {
+		MX_DEBUG(-2,
+		("%s: arguments_length = %ld, arguments_buffer = '%s'",
+		fname, (long) collect_operation->u.operation.arguments_length,
+		collect_operation->u.operation.arguments_buffer));
+	}
 #endif
+
+	ad->last_frame_number = 0;
+	ad->total_num_frames = 0;
+
+	switch( operation_state ) {
+	case MXSF_BLUICE_OPERATION_STARTED:
+	case MXSF_BLUICE_OPERATION_UPDATED:
+		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+		break;
+	case MXSF_BLUICE_OPERATION_COMPLETED:
+		ad->status = 0;
+		break;
+	case MXSF_BLUICE_OPERATION_ERROR:
+	default:
+		ad->status = MXSF_AD_ERROR;
+		break;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 {
-#if 0
 	static const char fname[] = "mxd_bluice_area_detector_readout_frame()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
+	unsigned long client_number, operation_counter;
+	char command[200];
 	mx_status_type mx_status;
 
-	bluice_area_detector = NULL;
-
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -481,60 +678,43 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	bluice_area_detector->current_command = MXF_BLUICE_AREA_DETECTOR_CMD_READOUT;
+	if ( ad->record->mx_type == MXT_AD_BLUICE_DHS ) {
+		client_number = mx_bluice_get_client_number( bluice_server );
 
-	mx_status = mxd_bluice_area_detector_command( ad, bluice_area_detector, "readout,0",
-				MXF_BLUICE_AREA_DETECTOR_FORCE_READ | MXD_BLUICE_AREA_DETECTOR_DEBUG );
+		operation_counter = mx_bluice_update_operation_counter(
+							bluice_server );
 
-	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
-}
+		snprintf( command, sizeof(command),
+			"stoh_start_operation detector_transfer_image %lu.%lu",
+			client_number,
+			operation_counter );
 
-MX_EXPORT mx_status_type
-mxd_bluice_area_detector_correct_frame( MX_AREA_DETECTOR *ad )
-{
-#if 0
-	static const char fname[] = "mxd_bluice_area_detector_correct_frame()";
+		mx_status = mx_bluice_check_for_master( bluice_server );
 
-	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
-	mx_status_type mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	bluice_area_detector = NULL;
+		mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0 );
 
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_BLUICE_AREA_DETECTOR_DEBUG_FRAME_CORRECTION
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-	bluice_area_detector->current_command = MXF_BLUICE_AREA_DETECTOR_CMD_CORRECT;
-	bluice_area_detector->next_state = MXF_BLUICE_AREA_DETECTOR_STATE_CORRECT;
-
-	mx_status = mxd_bluice_area_detector_command(ad, bluice_area_detector, "correct", MXD_BLUICE_AREA_DETECTOR_DEBUG);
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 {
-#if 0
 	static const char fname[] = "mxd_bluice_area_detector_get_parameter()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
 	mx_status_type mx_status;
 
-	bluice_area_detector = NULL;
-
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -553,22 +733,13 @@ mxd_bluice_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		mx_status = mxd_bluice_area_detector_command( ad, bluice_area_detector, "get_size",
-							MXD_BLUICE_AREA_DETECTOR_DEBUG );
 		break;
 
 	case MXLV_AD_BINSIZE:
-		mx_status = mxd_bluice_area_detector_command( ad, bluice_area_detector, "get_bin",
-							MXD_BLUICE_AREA_DETECTOR_DEBUG );
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-		ad->image_format = MXT_IMAGE_FILE_TIFF;
-
-		mx_status = mx_image_get_format_name_from_type(
-				ad->image_format, ad->image_format_name,
-				MXU_IMAGE_FORMAT_NAME_LENGTH );
 		break;
 
 	default:
@@ -577,22 +748,20 @@ mxd_bluice_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 {
-#if 0
 	static const char fname[] = "mxd_bluice_area_detector_set_parameter()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bluice_area_detector_get_pointers( ad, &bluice_area_detector, fname );
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -635,8 +804,5 @@ mxd_bluice_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
-#else
-	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 

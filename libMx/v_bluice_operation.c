@@ -351,10 +351,6 @@ mxv_bluice_operation_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* FIXME: We need a _real_ atomic increment! */
-
-#define mx_atomic_increment(x) (x++)
-
 MX_EXPORT mx_status_type
 mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 {
@@ -363,13 +359,10 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 	MX_BLUICE_OPERATION *bluice_operation;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
-	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
-	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
-	MX_RECORD *dhs_manager_record;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
 	void *value_ptr;
 	char command[500];
-	unsigned long operation_counter, client_number;
+	unsigned long operation_counter;
 	mx_status_type mx_status;
 
 	mx_status = mxv_bluice_operation_get_pointers(
@@ -385,6 +378,8 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	operation_counter = mx_bluice_update_operation_counter( bluice_server );
+
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
 		bluice_dcss_server = bluice_server->record->record_type_struct;
@@ -395,55 +390,19 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 			"record '%s' is NULL.", bluice_server->record->name );
 		}
 
-		operation_counter = mx_atomic_increment(
-				bluice_dcss_server->operation_counter );
-
-		client_number = bluice_dcss_server->client_number;
-
 		snprintf( command, sizeof(command),
 			"gtos_start_operation %s %lu.%lu %s",
 			foreign_operation->name,
-			client_number,
+			bluice_dcss_server->client_number,
 			operation_counter,
 			(char *) value_ptr );
 		break;
 
 	case MXN_BLUICE_DHS_SERVER:
-		bluice_dhs_server = bluice_server->record->record_type_struct;
-
-		if ( bluice_dhs_server == (MX_BLUICE_DHS_SERVER *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_BLUICE_DHS_SERVER pointer for "
-			"record '%s' is NULL.", bluice_server->record->name );
-		}
-
-		dhs_manager_record = bluice_dhs_server->dhs_manager_record;
-
-		if ( dhs_manager_record == (MX_RECORD *) NULL ){
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The dhs_manager_record pointer for Blu-Ice DHS "
-			"server '%s' is NULL.", bluice_server->record->name );
-		}
-
-		bluice_dhs_manager = dhs_manager_record->record_type_struct;
-
-		if ( bluice_dhs_manager == (MX_BLUICE_DHS_MANAGER *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_BLUICE_DHS_MANAGER pointer for DHS manager "
-			"record '%s' is NULL.", dhs_manager_record->name );
-		}
-
-		operation_counter = mx_atomic_increment(
-				bluice_dhs_manager->operation_counter );
-
-		/* DCSS is always client 1. */
-
-		client_number = 1;
-
 		snprintf( command, sizeof(command),
 			"stoh_start_operation %s %lu.%lu %s",
 			foreign_operation->name,
-			client_number,	
+			1L,			/* DCSS is always client 1. */
 			operation_counter,
 			(char *) value_ptr );
 		break;

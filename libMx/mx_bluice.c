@@ -22,6 +22,8 @@
 #include "mx_driver.h"
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
+#include "n_bluice_dhs.h"
+#include "n_bluice_dhs_manager.h"
 
 #define BLUICE_DEBUG_SETUP	FALSE
 
@@ -925,6 +927,159 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
 
 /* ====================================================================== */
 
+MX_EXPORT unsigned long
+mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server )
+{
+	static const char fname[] = "mx_bluice_get_client_number()";
+
+	MX_RECORD *record;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	unsigned long client_number;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_BLUICE_SERVER pointer passed was NULL." );
+
+		return 0L;
+	}
+
+	record = bluice_server->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer for MX_BLUICE_SERVER "
+			"pointer %p is NULL.", bluice_server );
+
+		return 0L;
+	}
+
+	if ( record->record_type_struct == NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_type_struct pointer for record '%s' is NULL",
+			record->name );
+
+		return 0L;
+	}
+
+	switch( record->mx_type ) {
+	case MXN_BLUICE_DCSS_SERVER:
+		bluice_dcss_server = record->record_type_struct;
+
+		client_number = bluice_dcss_server->client_number;
+		break;
+
+	case MXN_BLUICE_DHS_SERVER:
+		/* Processes playing the role of DCSS are _always_ client 1. */
+
+		client_number = 1L;
+		break;
+
+	default:
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Blu-Ice server record '%s' is of illegal MX type %ld.  "
+		"This should not be able to happen.",
+			record->name, record->mx_type );
+
+		return 0L;
+		break;
+	}
+
+	return client_number;
+}
+
+/* ====================================================================== */
+
+/* FIXME: We need a _real_ version of atomic increment. */
+
+#define mx_atomic_increment(x) ((x)++)
+
+MX_EXPORT unsigned long
+mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
+{
+	static const char fname[] = "mx_bluice_update_operation_counter()";
+
+	MX_RECORD *record;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
+	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
+	MX_RECORD *dhs_manager_record;
+	unsigned long operation_counter;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_BLUICE_SERVER pointer passed was NULL." );
+
+		return 0L;
+	}
+
+	record = bluice_server->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer for MX_BLUICE_SERVER "
+			"pointer %p is NULL.", bluice_server );
+
+		return 0L;
+	}
+
+	if ( record->record_type_struct == NULL ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_type_struct pointer for record '%s' is NULL",
+			record->name );
+
+		return 0L;
+	}
+
+	switch( record->mx_type ) {
+	case MXN_BLUICE_DCSS_SERVER:
+		bluice_dcss_server = record->record_type_struct;
+
+		operation_counter = mx_atomic_increment(
+				bluice_dcss_server->operation_counter );
+		break;
+
+	case MXN_BLUICE_DHS_SERVER:
+		bluice_dhs_server = record->record_type_struct;
+
+		dhs_manager_record = bluice_dhs_server->dhs_manager_record;
+
+		if ( dhs_manager_record == (MX_RECORD *) NULL ) {
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The dhs_manager_record pointer for record '%s' is NULL",
+		    		record->name );
+
+			return 0L;
+		}
+
+		bluice_dhs_manager = dhs_manager_record->record_type_struct;
+
+		if ( bluice_dhs_manager == (MX_BLUICE_DHS_MANAGER *) NULL ) {
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_BLUICE_DHS_MANAGER pointer for record '%s' "
+			"is NULL.", record->name );
+
+			return 0L;
+		}
+
+		operation_counter = mx_atomic_increment(
+				bluice_dhs_manager->operation_counter );
+		break;
+
+	default:
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Blu-Ice server record '%s' is of illegal MX type %ld.  "
+		"This should not be able to happen.",
+			record->name, record->mx_type );
+
+		return 0L;
+		break;
+	}
+
+	return operation_counter;
+}
+
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *status_message,
@@ -1078,7 +1233,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	int num_items;
 	unsigned long client_number;
 	unsigned long operation_counter;
-	mx_bool_type operation_in_progress;
+	int operation_state;
 	unsigned long arguments_length, old_arguments_length;
 	long mx_status_code;
 	mx_status_type mx_status;
@@ -1106,17 +1261,19 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	}
 
 	if ( strcmp( command_name, "gtos_start_operation" ) == 0 ) {
-		operation_in_progress = TRUE;
+		operation_state = MXSF_BLUICE_OPERATION_STARTED;
 	} else
 	if ( strcmp( command_name, "stog_start_operation" ) == 0 ) {
-		operation_in_progress = TRUE;
+		operation_state = MXSF_BLUICE_OPERATION_STARTED;
 	} else
 	if ( strcmp( command_name, "stog_operation_update" ) == 0 ) {
-		operation_in_progress = TRUE;
+		operation_state = MXSF_BLUICE_OPERATION_UPDATED;
 	} else
 	if ( strcmp( command_name, "stog_operation_completed" ) == 0 ) {
-		operation_in_progress = FALSE;
+		operation_state = MXSF_BLUICE_OPERATION_COMPLETED;
 	} else {
+		operation_state = MXSF_BLUICE_OPERATION_ERROR;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Unrecognized command type '%s' received from "
 		"Blu-Ice server '%s'.",
@@ -1196,8 +1353,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 
 	foreign_operation->u.operation.client_number = client_number;
 	foreign_operation->u.operation.operation_counter = operation_counter;
-	foreign_operation->u.operation.operation_in_progress
-						= operation_in_progress;
+	foreign_operation->u.operation.operation_state = operation_state;
 
 	/* Copy the operation arguments. */
 
@@ -1246,15 +1402,41 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 			operation_arguments, arguments_length );
 
 #if BLUICE_DEBUG_OPERATION
-	MX_DEBUG(-2,("%s: command '%s', operation '%s'",
-		fname, command_name, operation_name));
+	MX_DEBUG(-2,("%s: Command '%s', operation '%s', handle '%lu.%lu'",
+		fname, command_name, operation_name,
+		client_number, operation_counter));
 
-	MX_DEBUG(-2,("%s:    client_number = %lu, operation_counter = %lu",
-		fname, client_number, operation_counter));
+	switch( operation_state ) {
+	case MXSF_BLUICE_OPERATION_ERROR:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d [MXSF_BLUICE_OPERATION_ERROR]",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_COMPLETED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d [MXSF_BLUICE_OPERATION_COMPLETED]",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_STARTED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d [MXSF_BLUICE_OPERATION_STARTED]",
+			fname, operation_state));
+		break;
+	case MXSF_BLUICE_OPERATION_UPDATED:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d [MXSF_BLUICE_OPERATION_UPDATED]",
+			fname, operation_state));
+		break;
+	default:
+		MX_DEBUG(-2,
+		("%s: operation_state = %d [MXSF_BLUICE_OPERATION_UNKNOWN]",
+			fname, operation_state));
+		break;
+	}
 
 	MX_DEBUG(-2,
-	("%s:    operation_in_progress = %d, operation_arguments = '%s'",
-		fname, (int) operation_in_progress, operation_arguments));
+	("%s:    arguments_length = %ld, arguments_buffer = '%s'",
+		fname, (long) arguments_length, operation_arguments));
 #endif
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );

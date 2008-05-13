@@ -100,6 +100,13 @@ typedef struct {
  * structure.
  */
 
+/* Values for 'operation_state' */
+
+#define MXSF_BLUICE_OPERATION_ERROR	(-1)
+#define MXSF_BLUICE_OPERATION_COMPLETED	0
+#define MXSF_BLUICE_OPERATION_STARTED	1
+#define MXSF_BLUICE_OPERATION_UPDATED	2
+
 typedef struct {
 	char *arguments_buffer;
 	size_t arguments_length;
@@ -109,7 +116,7 @@ typedef struct {
 
 	unsigned long client_number;
 	unsigned long operation_counter;
-	mx_bool_type operation_in_progress;
+	int operation_state;
 } MX_BLUICE_FOREIGN_OPERATION;
 
 typedef struct {
@@ -245,6 +252,14 @@ mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
 
 MX_API mx_status_type
 mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
+
+/* ----- */
+
+MX_API unsigned long
+mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server );
+
+MX_API unsigned long
+mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server );
 
 /* ----- */
 

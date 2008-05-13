@@ -21,8 +21,24 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *bluice_server_record;
-	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
+	char bluice_dhs_name[MXU_BLUICE_NAME_LENGTH+1];
 
+	char datafile_directory[MXU_FILENAME_LENGTH+1];
+	char datafile_name[MXU_FILENAME_LENGTH+1];
+
+	MX_RECORD *detector_distance_record;
+	char detector_distance_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *wavelength_record;
+	char wavelength_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *detector_x_record;
+	char detector_x_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *detector_y_record;
+	char detector_y_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 } MX_BLUICE_AREA_DETECTOR;
 
 MX_API mx_status_type mxd_bluice_area_detector_initialize_type(
@@ -32,15 +48,14 @@ MX_API mx_status_type mxd_bluice_area_detector_create_record_structures(
 MX_API mx_status_type mxd_bluice_area_detector_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_area_detector_open( MX_RECORD *record );
+MX_API mx_status_type mxd_bluice_area_detector_finish_delayed_initialization(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_bluice_area_detector_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_get_extended_status(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_readout_frame(
-							MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_bluice_area_detector_correct_frame(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_get_parameter(
 							MX_AREA_DETECTOR *ad );
@@ -62,8 +77,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr;
 		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_server_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "bluice_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
-  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_AREA_DETECTOR, bluice_name), \
+  {-1, -1, "bluice_dhs_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_dhs_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #define MXD_BLUICE_DHS_AREA_DETECTOR_STANDARD_FIELDS \
@@ -72,8 +88,30 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr;
 		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_server_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "bluice_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
-  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_AREA_DETECTOR, bluice_name), \
+  {-1, -1, "bluice_dhs_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_dhs_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "detector_distance_name", MXFT_STRING, \
+  				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, detector_distance_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "wavelength_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, wavelength_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "detector_x_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, detector_x_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "detector_y_name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_AREA_DETECTOR, detector_y_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_BLUICE_AREA_DETECTOR_H__ */
