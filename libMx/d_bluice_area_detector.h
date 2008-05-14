@@ -39,6 +39,8 @@ typedef struct {
 	char detector_y_name[MXU_RECORD_NAME_LENGTH+1];
 
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
+
+	char detector_type[MXU_BLUICE_NAME_LENGTH+1];
 } MX_BLUICE_AREA_DETECTOR;
 
 MX_API mx_status_type mxd_bluice_area_detector_initialize_type(

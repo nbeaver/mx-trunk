@@ -2031,6 +2031,7 @@ mx_area_detector_arm( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *arm_fn ) ( MX_AREA_DETECTOR * );
+	unsigned long mask;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -2040,6 +2041,28 @@ mx_area_detector_arm( MX_RECORD *record )
 
 	ad->stop = FALSE;
 	ad->abort = FALSE;
+
+	/* If automatic saving or loading of datafiles has been 
+	 * configured, then we need to get and save the current
+	 * value of 'total_num_frames'.  We do this so that when
+	 * the datafile management handler function is invoked,
+	 * we will know how many datafiles to save or load.
+	 */
+
+	if ( (ad->area_detector_flags & mask)
+	  && (ad->datafile_management_handler != NULL ) )
+	{
+		mx_status = mx_area_detector_get_total_num_frames( record,
+					&(ad->datafile_total_num_frames) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
+		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
+
+	/* Arm the area detector. */
 
 	arm_fn = flist->arm;
 
@@ -2331,6 +2354,18 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 		*total_num_frames = ad->total_num_frames;
 	}
 
+	/* If a datafile management handler has been installed, but there is
+	 * no datafile management callback that is currently active, then we
+	 * we must explicitly invoke the datafile management handler now.
+	 */
+
+	if ( (ad->datafile_management_handler != NULL)
+	  && (ad->datafile_management_callback == NULL)
+	  && (ad->total_num_frames > ad->datafile_total_num_frames) )
+	{
+		mx_status = (*ad->datafile_management_handler)(ad);
+	}
+
 	return mx_status;
 }
 
@@ -2462,6 +2497,18 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	}
 	if ( status_flags != NULL ) {
 		*status_flags = ad->status;
+	}
+
+	/* If a datafile management handler has been installed, but there is
+	 * no datafile management callback that is currently active, then we
+	 * we must explicitly invoke the datafile management handler now.
+	 */
+
+	if ( (ad->datafile_management_handler != NULL)
+	  && (ad->datafile_management_callback == NULL)
+	  && (ad->total_num_frames > ad->datafile_total_num_frames) )
+	{
+		mx_status = (*ad->datafile_management_handler)(ad);
 	}
 
 	return mx_status;
@@ -6645,6 +6692,167 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_datafile_management_callback( MX_CALLBACK *callback,
+						void *argument )
+{
+	static const char fname[] =
+		"mxp_area_detector_datafile_management_callback()";
+
+	MX_AREA_DETECTOR *ad;
+	mx_status_type (*handler_fn)(MX_AREA_DETECTOR *);
+	mx_status_type mx_status;
+
+	ad = argument;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( ad->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL",
+			ad );
+	}
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	handler_fn = ad->datafile_management_handler;
+
+	if ( handler_fn == NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"No datafile management handler function has been "
+		"installed for area detector '%s'.", ad->record->name );
+	}
+
+	mx_status = (*handler_fn)(ad);
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
+			mx_status_type (*handler_fn)(MX_AREA_DETECTOR *) )
+{
+	static const char fname[] =
+		"mx_area_detector_setup_datafile_management()";
+
+	MX_LIST_HEAD *list_head;
+	MX_CALLBACK *callback_object;
+	MX_RECORD_FIELD *field;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( ad->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL.",
+	    		ad );
+	}
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	/* If no handler was specified, use the default handler. */
+
+	if ( handler_fn == NULL ) {
+		handler_fn =
+		    mx_area_detector_default_datafile_management_handler;
+	}
+
+	/* Save a pointer to the handler function. */
+
+	ad->datafile_management_handler = handler_fn;
+
+	/* It is illegal to have both the save frame and load frame flags
+	 * set at the same time.  If this has been done, we turn off the
+	 * load frame flag and generate a warning message.
+	 */
+
+	flags = ad->area_detector_flags;
+
+	if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
+	  && (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )
+	{
+	    ad->area_detector_flags &= (~MXF_AD_LOAD_FRAME_AFTER_ACQUISITION);
+
+	    mx_warning(
+	    "Area detector '%s' was configure to both save image frames "
+	    "and load image frames after image acquisition completes.  "
+	    "These two actions are contradictory, so only the save image "
+	    "frame operation will be performed.", ad->record->name );
+	}
+
+	/* If we are running in a server with an active callback pipe,
+	 * then setup a timer callback with the handler function as the
+	 * callback handler.
+	 */
+
+	list_head = mx_get_record_list_head_struct( ad->record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD struct for the database containing "
+		"area detector '%s' is NULL.  This should never happen.",
+			ad->record->name );
+	}
+
+	if ( list_head->callback_pipe == NULL ) {
+		/* No callback pipe has been created, so we do not need to
+		 * set up a callback.  This means that we are done here.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We need to install a value-changed callback for the
+	 * 'total_num_frames' field of the area detector.
+	 */
+
+	mx_status = mx_find_record_field( ad->record,
+					"total_num_frames",
+					&field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_local_field_add_callback( field,
+				MXCBT_VALUE_CHANGED,
+				mxp_area_detector_datafile_management_callback,
+				ad,
+				&callback_object );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_datafile_management_handler()";
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( ad->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL",
+			ad );
+	}
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
 
 	return MX_SUCCESSFUL_RESULT;
 }

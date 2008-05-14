@@ -50,6 +50,9 @@ extern "C" {
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	0x4
 
+#define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	0x1000
+#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	0x2000
+
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.
  */
@@ -343,6 +346,20 @@ typedef struct mx_area_detector_type {
 
 	float *flood_field_scale_array;
 
+	/* The datafile_... fields are used for the implementation
+	 * of automatic saving or loading of image frames.
+	 */
+
+	char datafile_directory[MXU_FILENAME_LENGTH+1];
+	char datafile_name[MXU_FILENAME_LENGTH+1];
+	unsigned long datafile_format;
+
+	long datafile_total_num_frames;
+	mx_status_type (*datafile_management_handler)
+			(struct mx_area_detector_type *);
+
+	MX_CALLBACK *datafile_management_callback;
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -414,6 +431,10 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_FLOOD_FIELD_FILENAME		12105
 
 #define MXLV_AD_SUBFRAME_SIZE			12201
+
+#define MXLV_AD_DATAFILE_DIRECTORY		12500
+#define MXLV_AD_DATAFILE_NAME			12501
+#define MXLV_AD_DATAFILE_TYPE			12502
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -760,7 +781,21 @@ typedef struct mx_area_detector_type {
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_AREA_DETECTOR, flood_field_filename), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AD_DATAFILE_DIRECTORY, -1, "datafile_directory", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_directory), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_NAME, -1, "datafile_name", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_TYPE, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_format), \
+	{0}, NULL, 0}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
@@ -1078,14 +1113,6 @@ MX_API mx_status_type mx_area_detector_get_correction_frame(
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_default_get_register(
-						MX_AREA_DETECTOR *ad );
-
-MX_API mx_status_type mx_area_detector_default_set_register(
-						MX_AREA_DETECTOR *ad );
-
-/*---*/
-
 MX_API mx_status_type mx_area_detector_default_correct_frame(
                                                 MX_AREA_DETECTOR *ad );
 
@@ -1119,12 +1146,29 @@ MX_API mx_status_type mx_area_detector_default_geometrical_correction(
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_default_get_register(
+						MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_set_register(
+						MX_AREA_DETECTOR *ad );
+
+/*---*/
+
 MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_setup_datafile_management(
+			MX_AREA_DETECTOR *ad,
+			mx_status_type (*handler_fn)(MX_AREA_DETECTOR *) );
+
+MX_API mx_status_type mx_area_detector_default_datafile_management_handler(
+						MX_AREA_DETECTOR *ad );
 
 /*---*/
 

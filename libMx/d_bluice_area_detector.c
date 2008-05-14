@@ -320,7 +320,10 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *detector_type_string;
 	char collect_name[MXU_BLUICE_NAME_LENGTH+1];
+	char *detector_type;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -355,6 +358,99 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 					bluice_server->operation_array,
 					bluice_server->num_operations,
 				&(bluice_area_detector->collect_operation) );
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: mx_status.code = %ld for operation '%s'.",
+		fname, mx_status.code, collect_name ));
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if a string called 'detectorType' has been sent to us.
+	 * If it does exist, then we can figure out what the format of
+	 * the detector's image frames are.
+	 */
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"detectorType",
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+					&detector_type_string );
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: mx_status.code = %ld for string 'detectorType'.",
+		fname, mx_status.code ));
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (detector_type_string != NULL)
+	  && (detector_type_string->foreign_type == MXT_BLUICE_FOREIGN_STRING)
+	  && (detector_type_string->u.string.string_buffer != NULL) )
+	{
+		strlcpy( bluice_area_detector->detector_type,
+			detector_type_string->u.string.string_buffer,
+			sizeof(bluice_area_detector->detector_type) );
+	} else {
+		bluice_area_detector->detector_type[0] = '\0';
+	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Blu-Ice area detector '%s' has detector type '%s'.",
+		fname, record->name, bluice_area_detector->detector_type));
+#endif
+	/* Initialize the datafile type for later loading of images. */
+
+	detector_type = bluice_area_detector->detector_type;
+
+	if ( detector_type[0] == '\0' ) {
+		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+
+		mx_warning( "No detector type was received from Blu-Ice "
+		"server '%s', so the image format is assumed to be SMV.",
+			bluice_server->record->name );
+	} else
+	if ( strcmp(detector_type, "MAR345") == 0 ) {
+#if 0
+		ad->datafile_format = MXT_IMAGE_FILE_TIFF;
+#else
+		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+
+		mx_info(
+		"%s: FIXME: MAR345 image type has been forced to SMV.", fname );
+#endif
+	} else {
+		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+
+		mx_warning( "Unrecognized detector type '%s' was reported "
+		"by Blu-Ice area detector '%s'.  The image format is "
+		"assumed to be SMV.", detector_type,
+				bluice_server->record->name );
+	}
+
+	/* See if the user has requested the loading or saving of
+	 * image frames by MX.
+	 */
+
+	flags = ad->area_detector_flags;
+
+	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+	    ad->area_detector_flags &= (~MXF_AD_SAVE_FRAME_AFTER_ACQUISITION);
+
+	    (void) mx_error( MXE_UNSUPPORTED, fname,
+		"Automatic saving of image frames for Blu-Ice "
+		"area detector '%s' is not supported, since the image "
+		"frame data only exists in remote Blu-Ice server '%s'.  "
+		"The save frame flag has been turned off.",
+			record->name, bluice_server->record->name );
+	}
+
+	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+	    mx_status = mx_area_detector_setup_datafile_management( ad, NULL );
+	}
+
 	return mx_status;
 }
 
