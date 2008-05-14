@@ -21,4 +21,4 @@ shutter       device relay bluice_dcss_shutter "" "" dcss shutter
 i0            device analog_input bluice_dcss_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i0
 i1            device analog_input bluice_dcss_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 dcss i1
 timer1        device timer bluice_dcss_timer "" "" dcss rtc1 simDhs
-ad            device area_detector bluice_dcss_area_detector "" "" 0 0x3000 0x0 "" "" "" "" dcss detector
+ad            device area_detector bluice_dcss_area_detector "" "" 0 0x2000 0x0 "" "" "" "" dcss detector

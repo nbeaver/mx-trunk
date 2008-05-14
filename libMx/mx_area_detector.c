@@ -2057,6 +2057,12 @@ mx_area_detector_arm( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: area detector '%s', datafile_total_num_frames = %ld",
+			fname, record->name, ad->datafile_total_num_frames));
+#endif
 	}
 
 	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
@@ -6812,6 +6818,8 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 		 * set up a callback.  This means that we are done here.
 		 */
 
+		MX_DEBUG(-2,("%s: No callback pipe, so returning...", fname));
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -6825,6 +6833,9 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: Installing value changed callback for field '%s.%s'",
+		fname, ad->record->name, field->name));
 
 	mx_status = mx_local_field_add_callback( field,
 				MXCBT_VALUE_CHANGED,

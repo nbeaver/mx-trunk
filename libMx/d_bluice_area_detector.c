@@ -323,6 +323,7 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	MX_BLUICE_FOREIGN_DEVICE *detector_type_string;
 	char collect_name[MXU_BLUICE_NAME_LENGTH+1];
 	char *detector_type;
+	char *source_ptr, *dest_ptr, *ptr;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -374,8 +375,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 					"detectorType",
-					bluice_server->operation_array,
-					bluice_server->num_operations,
+					bluice_server->string_array,
+					bluice_server->num_strings,
 					&detector_type_string );
 
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
@@ -390,9 +391,34 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	  && (detector_type_string->foreign_type == MXT_BLUICE_FOREIGN_STRING)
 	  && (detector_type_string->u.string.string_buffer != NULL) )
 	{
-		strlcpy( bluice_area_detector->detector_type,
-			detector_type_string->u.string.string_buffer,
+		/* Skip over a leading '{' character if present. */
+
+		source_ptr = detector_type_string->u.string.string_buffer;
+
+		if ( *source_ptr == '{' ) {
+			source_ptr++;
+		}
+
+		/* Copy the detector type. */
+
+		strlcpy( bluice_area_detector->detector_type, source_ptr,
 			sizeof(bluice_area_detector->detector_type) );
+
+		/* Delete a trailing '}' and/or newline if present. */
+
+		dest_ptr = bluice_area_detector->detector_type;
+
+		ptr = strrchr( dest_ptr, '}' );
+
+		if ( ptr != NULL ) {
+			*ptr = '\0';
+		} else {
+			ptr = strrchr( dest_ptr, '\n' );
+
+			if ( ptr != NULL ) {
+				*ptr = '\0';
+			}
+		}
 	} else {
 		bluice_area_detector->detector_type[0] = '\0';
 	}
@@ -450,6 +476,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
 	    mx_status = mx_area_detector_setup_datafile_management( ad, NULL );
 	}
+
+	MX_DEBUG(-2,("%s complete.", fname));
 
 	return mx_status;
 }
