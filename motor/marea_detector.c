@@ -270,7 +270,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 #endif
 
 		for(;;) {
-			mx_status = mx_area_detector_is_busy(ad_record, &busy);
+			mx_status = mx_area_detector_get_status(
+							ad_record, &ad_status );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
@@ -288,7 +289,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			if ( busy == FALSE ) {
+			if ( ( ad_status & MXSF_AD_IS_BUSY ) == 0 ) {
 				break;		/* Exit the for(;;) loop. */
 			}
 			mx_msleep(10);
@@ -296,6 +297,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement2 );
 #endif
+
+		if ( ad_status & MXSF_AD_ERROR ) {
+			fprintf( output,
+		"The exposure for area detector '%s' aborted with an error.\n",
+				ad_record->name );
+
+			return FAILURE;
+		}
 
 		fprintf( output,
 		"Exposure complete.\nNow transferring the frame.  " );
@@ -345,7 +354,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( argc < 5 ) {
 			fprintf( output,
-			"%s: not enough arguments to 'snap' command\n",
+			"%s: not enough arguments to 'sequence' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
@@ -540,6 +549,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
+
+			if ( ad_status & MXSF_AD_ERROR ) {
+				fprintf( output,
+				"The sequence for area detector '%s' aborted "
+				"with an error.\n", ad_record->name );
+
+				return FAILURE;
+			}
 
 			num_frames_difference =
 				total_num_frames - old_total_num_frames;

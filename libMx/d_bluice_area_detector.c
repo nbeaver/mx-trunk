@@ -360,11 +360,6 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 					bluice_server->num_operations,
 				&(bluice_area_detector->collect_operation) );
 
-#if MXD_BLUICE_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: mx_status.code = %ld for operation '%s'.",
-		fname, mx_status.code, collect_name ));
-#endif
-
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -378,11 +373,6 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 					bluice_server->string_array,
 					bluice_server->num_strings,
 					&detector_type_string );
-
-#if MXD_BLUICE_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: mx_status.code = %ld for string 'detectorType'.",
-		fname, mx_status.code ));
-#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -772,10 +762,15 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status = 0;
 		break;
 	case MXSF_BLUICE_OPERATION_ERROR:
+	case MXSF_BLUICE_OPERATION_NETWORK_ERROR:
 	default:
 		ad->status = MXSF_AD_ERROR;
 		break;
 	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: ad->status = %#lx", fname, ad->status));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

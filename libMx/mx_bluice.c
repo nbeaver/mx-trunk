@@ -1235,6 +1235,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	unsigned long operation_counter;
 	int operation_state;
 	unsigned long arguments_length, old_arguments_length;
+	char format[20], completion_status[40];
 	long mx_status_code;
 	mx_status_type mx_status;
 
@@ -1258,26 +1259,6 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 		"The message '%s' received from Blu-Ice server '%s' "
 		"contained only space characters.",
 			status_message, bluice_server->record->name );
-	}
-
-	if ( strcmp( command_name, "gtos_start_operation" ) == 0 ) {
-		operation_state = MXSF_BLUICE_OPERATION_STARTED;
-	} else
-	if ( strcmp( command_name, "stog_start_operation" ) == 0 ) {
-		operation_state = MXSF_BLUICE_OPERATION_STARTED;
-	} else
-	if ( strcmp( command_name, "stog_operation_update" ) == 0 ) {
-		operation_state = MXSF_BLUICE_OPERATION_UPDATED;
-	} else
-	if ( strcmp( command_name, "stog_operation_completed" ) == 0 ) {
-		operation_state = MXSF_BLUICE_OPERATION_COMPLETED;
-	} else {
-		operation_state = MXSF_BLUICE_OPERATION_ERROR;
-
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Unrecognized command type '%s' received from "
-		"Blu-Ice server '%s'.",
-			command_name, bluice_server->record->name );
 	}
 
 	/* Get the operation name . */
@@ -1317,6 +1298,62 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	if ( operation_arguments == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"No operation arguments were seen in the '%s' message sent by "
+		"Blu-Ice server '%s'.",
+			command_name, bluice_server->record->name );
+	}
+
+	/* Figure out the current state of the operation. */
+
+	if ( strcmp( command_name, "gtos_start_operation" ) == 0 ) {
+		operation_state = MXSF_BLUICE_OPERATION_STARTED;
+	} else
+	if ( strcmp( command_name, "stog_start_operation" ) == 0 ) {
+		operation_state = MXSF_BLUICE_OPERATION_STARTED;
+	} else
+	if ( strcmp( command_name, "stog_operation_update" ) == 0 ) {
+		operation_state = MXSF_BLUICE_OPERATION_UPDATED;
+	} else
+	if ( strcmp( command_name, "stog_operation_completed" ) == 0 ) {
+
+		/* If the operation just completed, we need to see if
+		 * it completed successfully or not.
+		 */
+
+		snprintf( format, sizeof(format), "%%%ds",
+			sizeof(completion_status) );
+
+		num_items = sscanf( ptr, format, completion_status );
+
+		if ( num_items != 1 ) {
+			operation_state = MXSF_BLUICE_OPERATION_NETWORK_ERROR;
+
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"There was no text found after the operation handle "
+			"%lu.%lu for operation '%s' from Blu-Ice server '%s'.",
+				client_number, operation_counter,
+				operation_name, bluice_server->record->name );
+		} else {
+			if ( strcmp( completion_status, "normal" ) == 0 ) {
+			    operation_state = MXSF_BLUICE_OPERATION_COMPLETED;
+
+			} else
+			if ( strcmp( completion_status, "error" ) == 0 ) {
+			    operation_state = MXSF_BLUICE_OPERATION_ERROR;
+
+			} else {
+			    operation_state = MXSF_BLUICE_OPERATION_ERROR;
+
+			    mx_warning("The completion status '%s' seen for "
+			    "operation '%s' from Blu-Ice server '%s' "
+			    "was not recognized.", completion_status,
+			    operation_name, bluice_server->record->name );
+			}
+		}
+	} else {
+		operation_state = MXSF_BLUICE_OPERATION_NETWORK_ERROR;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Unrecognized command type '%s' received from "
 		"Blu-Ice server '%s'.",
 			command_name, bluice_server->record->name );
 	}
