@@ -6894,6 +6894,10 @@ mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_datafile_management_handler()";
 
+	char filename[MXU_FILENAME_LENGTH+1];
+	unsigned long flags;
+	mx_status_type mx_status;
+
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_AREA_DETECTOR pointer passed was NULL." );
@@ -6904,10 +6908,41 @@ mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
 			ad );
 	}
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 
-	return MX_SUCCESSFUL_RESULT;
+	flags = ad->area_detector_flags;
+
+	snprintf( filename, sizeof(filename),
+		"%s/%s", ad->datafile_directory, ad->datafile_name );
+
+	if ( strcmp(filename, "/") == 0 ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The image frame directory and filename have not yet "
+		"been specified for area detector '%s'.",
+			ad->record->name );
+	}
+
+	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
+			fname, ad->record->name, filename));
+
+		mx_status = mx_image_write_file( ad->image_frame,
+						ad->datafile_format,
+						filename );
+	} else
+	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
+			fname, ad->record->name, filename));
+
+		mx_status = mx_image_read_file( &(ad->image_frame),
+						ad->datafile_format,
+						filename );
+	}
+
+	return mx_status;
 }
 
 /*-----------------------------------------------------------------------*/

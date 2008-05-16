@@ -2427,7 +2427,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"SIZE1 statement.",
-					datafile_name, buffer );
+					buffer, datafile_name );
 			}
 		} else
 		if ( strncmp( buffer, "SIZE2=", 5 ) == 0 ) {
@@ -2438,19 +2438,25 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"SIZE2 statement.",
-					datafile_name, buffer );
+					buffer, datafile_name );
 			}
 		} else
 		if ( strncmp( buffer, "BIN=", 4 ) == 0 ) {
-			num_items = sscanf(buffer, "BIN=%lux%lu",
-					&binsize[0], &binsize[1]);
+			if ( strncmp( buffer, "BIN=none;", 9  ) == 0 ) {
+				binsize[0] = 1;
+				binsize[1] = 1;
+			} else {
+				num_items = sscanf(buffer, "BIN=%lux%lu",
+						&binsize[0], &binsize[1]);
 
-			if ( num_items != 2 ) {
-				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"Header line '%s' from data file '%s' "
-				"appears to contain an incorrectly formatted "
-				"BIN statement.",
-					datafile_name, buffer );
+				if ( num_items != 2 ) {
+					return mx_error(
+					MXE_UNPARSEABLE_STRING, fname,
+					"Header line '%s' from data file '%s' "
+					"appears to contain an incorrectly "
+					"formatted BIN statement.",
+						buffer, datafile_name );
+				}
 			}
 		} else
 		if ( strncmp( buffer, "TIME=", 5 ) == 0 ) {
@@ -2461,7 +2467,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 				"Header line '%s' from data file '%s' "
 				"appears to contain an incorrectly formatted "
 				"TIME statement.",
-					datafile_name, buffer );
+					buffer, datafile_name );
 			}
 		} else
 		if ( strncmp( buffer, "BYTE_ORDER=", 11 ) == 0 ) {

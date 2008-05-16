@@ -553,9 +553,10 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	char command[200];
-	unsigned long dark_current_fu;
+	char dhs_username[MXU_USERNAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
-	char datafile_directory[MXU_FILENAME_LENGTH+1];
+	char *ptr;
+	unsigned long dark_current_fu;
 	unsigned long client_number, operation_counter;
 	double detector_distance, wavelength;
 	double detector_x, detector_y;
@@ -589,12 +590,21 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 #if 1
 	dark_current_fu = 15;
-
-	strlcpy( datafile_name, "test09_53_00", sizeof(datafile_name) );
-
-	strlcpy( datafile_directory, "/data/lavender/test",
-					sizeof(datafile_directory) );
 #endif
+
+	/* Construct the Blu-Ice datafile name with the trailing filetype
+	 * stripped off.
+	 */
+
+	strlcpy( datafile_name, ad->datafile_name, sizeof(datafile_name) );
+
+	ptr = strrchr( datafile_name, '.' );
+
+	if ( ptr != NULL ) {
+		*ptr = '\0';
+	}
+
+	MX_DEBUG(-2,("%s: datafile_name = '%s'", fname, datafile_name));
 
 	client_number = mx_bluice_get_client_number( bluice_server );
 
@@ -611,12 +621,14 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
-			datafile_directory,
+			ad->datafile_directory,
 			bluice_dcss_server->bluice_username,
 			exposure_time );
 		break;
 
 	case MXT_AD_BLUICE_DHS:
+		mx_username( dhs_username, sizeof(dhs_username) );
+
 		detector_distance = mxp_motor_position(
 			bluice_area_detector->detector_distance_record );
 
@@ -636,8 +648,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
-			datafile_directory,
-			"username",
+			ad->datafile_directory,
+			dhs_username,
 			exposure_time,
 			detector_distance,
 			wavelength,

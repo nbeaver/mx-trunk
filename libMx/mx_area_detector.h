@@ -434,7 +434,7 @@ typedef struct mx_area_detector_type {
 
 #define MXLV_AD_DATAFILE_DIRECTORY		12500
 #define MXLV_AD_DATAFILE_NAME			12501
-#define MXLV_AD_DATAFILE_TYPE			12502
+#define MXLV_AD_DATAFILE_FORMAT			12502
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -793,9 +793,14 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_DATAFILE_TYPE, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AD_DATAFILE_FORMAT, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_format), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "datafile_total_num_frames", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, datafile_total_num_frames), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
