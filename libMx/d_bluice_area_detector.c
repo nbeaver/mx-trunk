@@ -48,7 +48,7 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
-	NULL,
+	mxd_bluice_area_detector_arm,
 	mxd_bluice_area_detector_trigger,
 	mxd_bluice_area_detector_stop,
 	mxd_bluice_area_detector_stop,
@@ -364,6 +364,9 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	bluice_area_detector->last_collect_operation_state =
+	  bluice_area_detector->collect_operation->u.operation.operation_state;
+
 	/* See if a string called 'detectorType' has been sent to us.
 	 * If it does exist, then we can figure out what the format of
 	 * the detector's image frames are.
@@ -519,12 +522,33 @@ mxp_motor_position( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_bluice_area_detector_arm()";
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	ad->last_frame_number = -1;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_bluice_area_detector_trigger()";
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
@@ -532,7 +556,6 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	unsigned long dark_current_fu;
 	char datafile_name[MXU_FILENAME_LENGTH+1];
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
-	char username[MXU_USERNAME_LENGTH+1];
 	unsigned long client_number, operation_counter;
 	double detector_distance, wavelength;
 	double detector_x, detector_y;
@@ -573,14 +596,14 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 					sizeof(datafile_directory) );
 #endif
 
-	mx_username( username, sizeof(username) );
-
 	client_number = mx_bluice_get_client_number( bluice_server );
 
 	operation_counter = mx_bluice_update_operation_counter( bluice_server );
 
 	switch( ad->record->mx_type ) {
 	case MXT_AD_BLUICE_DCSS:
+		bluice_dcss_server = bluice_server->record->record_type_struct;
+
 		snprintf( command, sizeof(command),
 		"gtos_start_operation collectFrame %lu.%lu %lu %s %s %s "
 			"NULL NULL 0 %f 0 1 0",
@@ -589,7 +612,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			dark_current_fu,
 			datafile_name,
 			datafile_directory,
-			username,
+			bluice_dcss_server->bluice_username,
 			exposure_time );
 		break;
 
@@ -614,7 +637,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			dark_current_fu,
 			datafile_name,
 			datafile_directory,
-			username,
+			"username",
 			exposure_time,
 			detector_distance,
 			wavelength,
@@ -765,6 +788,9 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	MX_DEBUG(-2,("%s: last_collect_operation_state = %d",
+		fname, bluice_area_detector->last_collect_operation_state));
+
 	if ( collect_operation->u.operation.arguments_buffer == NULL ) {
 		MX_DEBUG(-2,
 		("%s: arguments_length = %ld, arguments_buffer = '(nil)'",
@@ -785,7 +811,12 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	case MXSF_BLUICE_OPERATION_COMPLETED:
 		ad->status = 0;
 		ad->last_frame_number = 0;
-		ad->total_num_frames++;
+
+		if ( operation_state
+			!= bluice_area_detector->last_collect_operation_state )
+		{
+			ad->total_num_frames++;
+		}
 		break;
 	case MXSF_BLUICE_OPERATION_ERROR:
 	case MXSF_BLUICE_OPERATION_NETWORK_ERROR:
@@ -793,6 +824,8 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status = MXSF_AD_ERROR;
 		break;
 	}
+
+	bluice_area_detector->last_collect_operation_state = operation_state;
 
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,

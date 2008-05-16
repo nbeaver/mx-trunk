@@ -39,6 +39,7 @@ typedef struct {
 	char detector_y_name[MXU_RECORD_NAME_LENGTH+1];
 
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
+	int last_collect_operation_state;
 
 	char detector_type[MXU_BLUICE_NAME_LENGTH+1];
 } MX_BLUICE_AREA_DETECTOR;
@@ -53,6 +54,7 @@ MX_API mx_status_type mxd_bluice_area_detector_open( MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_area_detector_finish_delayed_initialization(
 							MX_RECORD *record );
 
+MX_API mx_status_type mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_get_extended_status(

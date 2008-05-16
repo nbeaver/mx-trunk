@@ -2051,15 +2051,8 @@ mx_area_detector_arm( MX_RECORD *record )
 	 * the datafile management handler function is invoked,
 	 * we will know how many datafiles to save or load.
 	 */
-	{
-	  unsigned long mask;
 
-	  mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
-		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
-
-	  if ( (ad->area_detector_flags & mask)
-	    && (ad->datafile_management_handler != NULL ) )
-	  {
+	if (ad->datafile_management_handler != NULL ) {
 		mx_status = mx_area_detector_get_total_num_frames( record,
 					&(ad->datafile_total_num_frames) );
 
@@ -2071,7 +2064,6 @@ mx_area_detector_arm( MX_RECORD *record )
 		("%s: area detector '%s', datafile_total_num_frames = %ld",
 			fname, record->name, ad->datafile_total_num_frames));
 #endif
-	  }
 	}
 #endif
 
@@ -6786,7 +6778,7 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 	MX_LIST_HEAD *list_head;
 	MX_CALLBACK *callback_object;
 	MX_RECORD_FIELD *field;
-	unsigned long flags;
+	unsigned long flags, mask;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -6801,6 +6793,25 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
+
+	flags = ad->area_detector_flags;
+
+	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
+		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
+
+	/* If neither loading frames or saving frames has been configure,
+	 * then do not install a handler.
+	 */
+
+	if ( ( flags & mask ) == 0 ) {
+		mx_warning(
+		"Skipping datafile management setup for area detector '%s', "
+		"since neither loading frames nor saving frames "
+		"have been configured.",
+			ad->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* If no handler was specified, use the default handler. */
 
@@ -6817,8 +6828,6 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 	 * set at the same time.  If this has been done, we turn off the
 	 * load frame flag and generate a warning message.
 	 */
-
-	flags = ad->area_detector_flags;
 
 	if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
 	  && (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )

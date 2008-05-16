@@ -43,6 +43,7 @@ typedef struct {
 	unsigned long client_number;
 	mx_bool_type is_authenticated;
 	mx_bool_type is_master;
+	char bluice_username[MXU_USERNAME_LENGTH+1];
 
 	unsigned long operation_counter;
 } MX_BLUICE_DCSS_SERVER;

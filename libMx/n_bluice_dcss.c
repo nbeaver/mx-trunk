@@ -2004,7 +2004,6 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	MX_LIST_HEAD *list_head;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
-	char user_name[MXU_USERNAME_LENGTH+1];
 	char host_name[MXU_HOSTNAME_LENGTH+1];
 	char display_name[MXU_HOSTNAME_LENGTH+10];
 	char session_id[MXU_AUTHENTICATION_DATA_LENGTH+1];
@@ -2105,7 +2104,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 		 * to DCSS as the session id.
 		 */
 
-		mx_username( user_name, MXU_USERNAME_LENGTH );
+		mx_username( bluice_dcss_server->bluice_username,
+				MXU_USERNAME_LENGTH );
 
 		strlcpy( session_id,
 			bluice_dcss_server->authentication_data,
@@ -2125,7 +2125,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 		mx_status = mxn_bluice_dcss_server_get_session_id(
 				bluice_dcss_server,
-				user_name,
+				bluice_dcss_server->bluice_username,
 				MXU_USERNAME_LENGTH,
 				session_id,
 				sizeof(session_id) );
@@ -2140,7 +2140,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 	snprintf( client_type_response, sizeof(client_type_response),
 		"htos_client_is_gui %s %s %s %s",
-		user_name, session_id, host_name, display_name );
+		bluice_dcss_server->bluice_username,
+		session_id, host_name, display_name );
 
 	/* Now we are ready to connect to the DCSS. */
 
@@ -2269,7 +2270,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 		"Blu-Ice DCSS login was not successful for user '%s' "
 		"at server '%s'.  Response from server = '%s'",
-		    user_name, record->name, bluice_server->receive_buffer );
+		    bluice_dcss_server->bluice_username,
+		    record->name, bluice_server->receive_buffer );
 	}
 
 	num_items = sscanf( bluice_server->receive_buffer,
