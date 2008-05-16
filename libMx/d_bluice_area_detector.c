@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_bluice.h"
@@ -417,7 +418,14 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Blu-Ice area detector '%s' has detector type '%s'.",
 		fname, record->name, bluice_area_detector->detector_type));
 #endif
-	/* Initialize the datafile type for later loading of images. */
+	/* Initialize MX_AREA_DETECTOR parameters depending on the
+	 * detector type.
+	 *
+	 * FIXME: Some of this stuff is sure to be wrong.
+	 */
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
 
 	detector_type = bluice_area_detector->detector_type;
 
@@ -427,6 +435,9 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		mx_warning( "No detector type was received from Blu-Ice "
 		"server '%s', so the image format is assumed to be SMV.",
 			bluice_server->record->name );
+
+		ad->framesize[0] = 4096;
+		ad->framesize[1] = 4096;
 	} else
 	if ( strcmp(detector_type, "MAR345") == 0 ) {
 #if 0
@@ -437,6 +448,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		mx_info(
 		"%s: FIXME: MAR345 image type has been forced to SMV.", fname );
 #endif
+		ad->framesize[0] = 4096;
+		ad->framesize[1] = 4096;
 	} else {
 		ad->datafile_format = MXT_IMAGE_FILE_SMV;
 
@@ -444,7 +457,21 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		"by Blu-Ice area detector '%s'.  The image format is "
 		"assumed to be SMV.", detector_type,
 				bluice_server->record->name );
+
+		ad->framesize[0] = 4096;
+		ad->framesize[1] = 4096;
 	}
+
+	ad->image_format = ad->datafile_format;
+	ad->byte_order = mx_native_byteorder();
+	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
+	ad->bytes_per_pixel = 2;
+
+	ad->maximum_framesize[0] = ad->framesize[0];
+	ad->maximum_framesize[1] = ad->framesize[1];
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
 
 	/* See if the user has requested the loading or saving of
 	 * image frames by MX.
@@ -750,9 +777,6 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	ad->last_frame_number = 0;
-	ad->total_num_frames = 0;
-
 	switch( operation_state ) {
 	case MXSF_BLUICE_OPERATION_STARTED:
 	case MXSF_BLUICE_OPERATION_UPDATED:
@@ -760,6 +784,8 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		break;
 	case MXSF_BLUICE_OPERATION_COMPLETED:
 		ad->status = 0;
+		ad->last_frame_number = 0;
+		ad->total_num_frames++;
 		break;
 	case MXSF_BLUICE_OPERATION_ERROR:
 	case MXSF_BLUICE_OPERATION_NETWORK_ERROR:
@@ -769,7 +795,12 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: ad->status = %#lx", fname, ad->status));
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
+	fname, ad->last_frame_number, ad->total_num_frames, ad->status));
+
+	MX_DEBUG(-2,("%s: datafile_total_num_frames = %ld",
+		fname, ad->datafile_total_num_frames));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -796,6 +827,14 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* If necessary, trigger the loading of the image frame
+	 * by calling the total_num_frames function.
+	 */
+
+	mx_status = mx_area_detector_get_total_num_frames( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( ad->record->mx_type == MXT_AD_BLUICE_DHS ) {
 		client_number = mx_bluice_get_client_number( bluice_server );
