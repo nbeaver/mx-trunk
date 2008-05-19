@@ -778,7 +778,7 @@ htos_set_string_completed( MX_THREAD *thread,
 	MX_RECORD *current_record;
 	MX_BLUICE_STRING *bluice_string;
 	MX_BLUICE_FOREIGN_DEVICE *fdev;
-	char *ptr, *token_ptr, *string_name;
+	char *ptr, *token_ptr, *string_name, *string_status;
 	char *fstring_ptr;
 
 	/* Skip over the command name. */
@@ -803,6 +803,16 @@ htos_set_string_completed( MX_THREAD *thread,
 		"No string name was found in the htos_set_string_completed "
 		"message from Blu-Ice DHS server '%s'.",
 			bluice_server->record->name );
+	}
+
+	/* Get the string status. */
+
+	string_status = mx_string_token( &ptr, " " );
+
+	if ( string_status == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"String status not found in message received from "
+		"Blu-Ice server '%s'.", bluice_server->record->name );
 	}
 
 	/* Look for the MX record that corresponds to this Blu-Ice string. */

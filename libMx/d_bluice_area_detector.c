@@ -367,6 +367,18 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	bluice_area_detector->last_collect_operation_state =
 	  bluice_area_detector->collect_operation->u.operation.operation_state;
 
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"lastImageCollected",
+					bluice_server->string_array,
+					bluice_server->num_strings,
+			&(bluice_area_detector->last_image_collected_string) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: last_image_collected_string = %p",
+		fname, bluice_area_detector->last_image_collected_string));
+
 	/* See if a string called 'detectorType' has been sent to us.
 	 * If it does exist, then we can figure out what the format of
 	 * the detector's image frames are.
@@ -763,6 +775,7 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
+	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
 	int operation_state;
 	mx_status_type mx_status;
 
@@ -867,6 +880,23 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: datafile_total_num_frames = %ld",
 		fname, ad->datafile_total_num_frames));
 #endif
+
+	last_image_collected_string =
+		bluice_area_detector->last_image_collected_string;
+
+	if ( ( last_image_collected_string != NULL )
+	  && ( last_image_collected_string->u.string.string_buffer != NULL ) )
+	{
+		strlcpy( ad->last_datafile_name,
+			last_image_collected_string->u.string.string_buffer,
+			sizeof(ad->last_datafile_name) );
+
+		MX_DEBUG(-2,("%s: string_buffer = '%s'",
+		fname, last_image_collected_string->u.string.string_buffer ));
+
+		MX_DEBUG(-2,("%s: last_datafile_name = '%s'",
+			fname, ad->last_datafile_name));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

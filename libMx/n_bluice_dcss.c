@@ -1719,6 +1719,7 @@ stog_set_string_completed( MX_THREAD *thread,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
 	char *config_string, *ptr, *token_ptr;
 	char *string_name, *string_buffer, *new_string;
+	char *string_status;
 	size_t string_length;
 	mx_status_type mx_status;
 
@@ -1750,6 +1751,16 @@ stog_set_string_completed( MX_THREAD *thread,
 	if ( string_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"String name not found in message received from "
+		"Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	/* Get the string status. */
+
+	string_status = mx_string_token( &ptr, " " );
+
+	if ( string_status == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"String status not found in message received from "
 		"Blu-Ice server '%s'.", bluice_server->record->name );
 	}
 
@@ -1800,7 +1811,7 @@ stog_set_string_completed( MX_THREAD *thread,
 	foreign_string->u.string.string_length = string_length;
 
 	strlcpy( foreign_string->u.string.string_buffer,
-			string_buffer, string_length );
+			string_buffer, string_length+1 );
 
 #if 0 && BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: string '%s' = '%s'",
