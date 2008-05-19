@@ -1,0 +1,2 @@
+set field ad.datafile_directory /data/lavender/test
+set field ad.datafile_pattern datafile####.img

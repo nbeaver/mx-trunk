@@ -45,10 +45,12 @@
 #include <math.h>
 #include <float.h>
 #include <time.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_dirent.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
@@ -6723,6 +6725,260 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+/* In mx_area_detector_initialize_next_datafile_name(), we look at all of
+ * the files that match the pattern, see which one has the highest datafile
+ * number, and then set the current datafile number to one after the
+ * existing highest number.
+ */
+
+MX_EXPORT mx_status_type
+mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_initialize_datafile_number()";
+
+	char *start_of_varying_number, *trailing_segment;
+	int length_of_varying_number, length_of_leading_segment;
+	int saved_errno, num_items;
+	char format[80];
+	char *ptr;
+	DIR *dir;
+	struct dirent *dirent_ptr;
+	char *name_ptr;
+	unsigned long datafile_number;
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	/* If the datafile pattern is empty, then set the datafile number
+	 * to zero, since it will not be used.
+	 */
+
+	if ( ad->datafile_pattern[0] == '\0' ) {
+		ad->datafile_number = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Look for the start of the varying number in the datafile pattern. */
+
+	start_of_varying_number = strchr( ad->datafile_pattern,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+
+	/* If there is no varying part, then set the datafile number to zero,
+	 * since it will not be used.
+	 */
+
+	if ( start_of_varying_number == NULL ) {
+		ad->datafile_number = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	length_of_leading_segment =
+		start_of_varying_number - ad->datafile_pattern + 1;
+
+	/* How long is the varying number? */
+
+	length_of_varying_number = strspn( start_of_varying_number,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_STRING );
+
+	if ( length_of_varying_number <= 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The length of the varying number is %d in the datafile "
+		"pattern '%s' for area detector '%s', even though the "
+		"datafile pattern char '%c' was found.  "
+		"It should be impossible for this to happen.",
+			length_of_varying_number,
+			ad->datafile_pattern, ad->record->name,
+			MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+	}
+
+	/* Find the trailing part of the pattern after
+	 * the datafile number section.
+	 */
+
+	trailing_segment = start_of_varying_number + length_of_varying_number;
+
+	/* Construct a format string to be used to compare to all of the
+	 * existing files in the datafile directory.
+	 */
+
+	if ( length_of_leading_segment > sizeof(format) ) {
+		length_of_leading_segment = sizeof(format);
+	}
+
+	strlcpy( format, ad->datafile_pattern, length_of_leading_segment );
+
+	ptr = format + length_of_leading_segment - 1;
+
+	snprintf( ptr, sizeof(format) - length_of_leading_segment,
+		"%%lu%s", trailing_segment );
+
+	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+
+	ad->datafile_number = 0;
+
+	/* Loop through all of the files in the destination directory. */
+
+	dir = opendir( ad->datafile_directory );
+
+	if ( dir == (DIR *) NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot access the datafile directory '%s' for "
+		"area detector '%s'.  Errno = %d, error message = '%s'",
+			ad->datafile_directory, ad->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	while (1) {
+		errno = 0;
+
+		dirent_ptr = readdir(dir);
+
+		if ( dirent_ptr != NULL ) {
+			name_ptr = dirent_ptr->d_name;
+
+			MX_DEBUG(-2,("%s: name_ptr = '%s'", fname, name_ptr));
+
+			if ( strcmp( name_ptr, "." ) == 0 ) {
+				continue;
+			} else
+			if ( strcmp( name_ptr, ".." ) == 0 ) {
+				continue;
+			}
+
+			num_items = sscanf(name_ptr, format, &datafile_number);
+
+			if ( num_items != 1 ) {
+				continue;
+			}
+
+			if ( datafile_number > ad->datafile_number ) {
+				ad->datafile_number = datafile_number;
+			}
+		} else {
+			if ( errno == 0 ) {
+				break;		/* Exit the while() loop. */
+			} else {
+				saved_errno = errno;
+
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error occurred while examining the "
+				"files in the datafile directory '%s' for "
+				"area detector '%s'.  "
+				"Errno = %d, error message = '%s'",
+					ad->datafile_directory,
+					ad->record->name,
+					saved_errno, strerror(saved_errno) );
+			}
+		}
+	}
+
+	MX_DEBUG(-2,("%s: ad->datafile_number = %lu",
+		fname, ad->datafile_number));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_construct_next_datafile_name( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_construct_next_datafile_name()";
+
+	char *start_of_varying_number, *trailing_segment;
+	int length_of_varying_number, length_of_leading_segment;
+	char datafile_number_string[40];
+	char format[10];
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	/* If the datafile pattern is empty, we use the existing contents
+	 * of datafile_name as is.
+	 */
+
+	if ( ad->datafile_pattern[0] == '\0' ) {
+		MX_DEBUG(-2,
+		("%s: Using datafile name '%s' for area detector '%s' as is.",
+			fname, ad->datafile_name, ad->record->name ));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Look for the start of the varying number in the datafile pattern. */
+
+	start_of_varying_number = strchr( ad->datafile_pattern,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+
+	/* If there is no varying part, then copy the pattern to the filename
+	 * and then return.
+	 */
+
+	if ( start_of_varying_number == NULL ) {
+		strlcpy( ad->datafile_name, ad->datafile_pattern,
+			sizeof(ad->datafile_name) );
+
+		MX_DEBUG(-2,
+		("%s: Using datafile pattern as the datafile name '%s' "
+		"for area detector '%s'.",
+			fname, ad->datafile_name, ad->record->name ));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	length_of_leading_segment =
+		start_of_varying_number - ad->datafile_pattern + 1;
+
+	/* How long is the varying number? */
+
+	length_of_varying_number = strspn( start_of_varying_number,
+				MX_AREA_DETECTOR_DATAFILE_PATTERN_STRING );
+
+	if ( length_of_varying_number <= 0 ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The length of the varying number is %d in the datafile "
+		"pattern '%s' for area detector '%s', even though the "
+		"datafile pattern char '%c' was found.  "
+		"It should be impossible for this to happen.",
+			length_of_varying_number,
+			ad->datafile_pattern, ad->record->name,
+			MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
+	}
+
+	/* Construct the new varying string. */
+
+	ad->datafile_number++;
+
+	snprintf( format, sizeof(format), "%%0%dlu", length_of_varying_number );
+
+	snprintf( datafile_number_string, sizeof(datafile_number_string),
+				format, ad->datafile_number );
+
+	/* Construct the new datafile name. */
+
+	strlcpy( ad->datafile_name, ad->datafile_pattern,
+				length_of_leading_segment );
+
+	strlcat( ad->datafile_name, datafile_number_string,
+				sizeof(ad->datafile_name) );
+
+	trailing_segment = start_of_varying_number + length_of_varying_number;
+
+	strlcat( ad->datafile_name, trailing_segment,
+				sizeof(ad->datafile_name) );
+
+	MX_DEBUG(-2,("%s: ad->datafile_name = '%s'",
+		fname, ad->datafile_name));
 
 	return MX_SUCCESSFUL_RESULT;
 }

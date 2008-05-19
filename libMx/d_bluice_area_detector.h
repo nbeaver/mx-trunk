@@ -41,6 +41,8 @@ typedef struct {
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 	int last_collect_operation_state;
 
+	mx_bool_type initialize_datafile_number;
+
 	char detector_type[MXU_BLUICE_NAME_LENGTH+1];
 } MX_BLUICE_AREA_DETECTOR;
 

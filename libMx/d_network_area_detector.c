@@ -276,15 +276,21 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
+		&(network_area_detector->datafile_format_nf),
+		network_area_detector->server_record,
+			"%s.datafile_format",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
 		&(network_area_detector->datafile_name_nf),
 		network_area_detector->server_record,
 			"%s.datafile_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
-		&(network_area_detector->datafile_format_nf),
+		&(network_area_detector->datafile_pattern_nf),
 		network_area_detector->server_record,
-			"%s.datafile_format",
+			"%s.datafile_pattern",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
@@ -336,6 +342,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.image_frame_header_length",
 				network_area_detector->remote_record_name);
+
+	mx_network_field_init(
+		&(network_area_detector->last_datafile_name_nf),
+		network_area_detector->server_record,
+			"%s.last_datafile_name",
+			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->last_frame_number_nf),
 		network_area_detector->server_record,
@@ -1635,6 +1647,10 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->datafile_directory_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_directory );
 		break;
+	case MXLV_AD_DATAFILE_FORMAT:
+		mx_status = mx_get(&(network_area_detector->datafile_format_nf),
+				MXFT_ULONG, &(ad->datafile_format) );
+		break;
 	case MXLV_AD_DATAFILE_NAME:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
@@ -1642,9 +1658,19 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->datafile_name_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_name );
 		break;
-	case MXLV_AD_DATAFILE_FORMAT:
-		mx_status = mx_get(&(network_area_detector->datafile_format_nf),
-				MXFT_ULONG, &(ad->datafile_format) );
+	case MXLV_AD_DATAFILE_PATTERN:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->datafile_pattern_nf),
+			MXFT_STRING, 1, dimension, ad->datafile_pattern );
+		break;
+	case MXLV_AD_LAST_DATAFILE_NAME:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->last_datafile_name_nf),
+			MXFT_STRING, 1, dimension, ad->last_datafile_name );
 		break;
 	default:
 		mx_status =
@@ -1827,6 +1853,10 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->datafile_directory_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_directory );
 		break;
+	case MXLV_AD_DATAFILE_FORMAT:
+		mx_status = mx_put(&(network_area_detector->datafile_format_nf),
+				MXFT_ULONG, &(ad->datafile_format) );
+		break;
 	case MXLV_AD_DATAFILE_NAME:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
@@ -1834,9 +1864,19 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->datafile_name_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_name );
 		break;
-	case MXLV_AD_DATAFILE_FORMAT:
-		mx_status = mx_put(&(network_area_detector->datafile_format_nf),
-				MXFT_ULONG, &(ad->datafile_format) );
+	case MXLV_AD_DATAFILE_PATTERN:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->datafile_pattern_nf ),
+			MXFT_STRING, 1, dimension, ad->datafile_pattern );
+		break;
+	case MXLV_AD_LAST_DATAFILE_NAME:
+		dimension[0] = MXU_FILENAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->last_datafile_name_nf),
+			MXFT_STRING, 1, dimension, ad->last_datafile_name );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:

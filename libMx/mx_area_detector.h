@@ -30,6 +30,13 @@ extern "C" {
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
 
+/* The datafile pattern char and the datafile pattern string
+ * should be identical.
+ */
+
+#define MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR		'#'
+#define MX_AREA_DETECTOR_DATAFILE_PATTERN_STRING	"#"
+
 /* Status bit definitions for the 'status' field. */
 
 #define MXSF_AD_ACQUISITION_IN_PROGRESS			0x1
@@ -351,7 +358,11 @@ typedef struct mx_area_detector_type {
 	 */
 
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
+	char datafile_pattern[MXU_FILENAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
+	unsigned long datafile_number;
+
+	char last_datafile_name[MXU_FILENAME_LENGTH+1];
 	unsigned long datafile_format;
 
 	long datafile_total_num_frames;
@@ -433,8 +444,11 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SUBFRAME_SIZE			12201
 
 #define MXLV_AD_DATAFILE_DIRECTORY		12500
-#define MXLV_AD_DATAFILE_NAME			12501
-#define MXLV_AD_DATAFILE_FORMAT			12502
+#define MXLV_AD_DATAFILE_PATTERN		12501
+#define MXLV_AD_DATAFILE_NAME			12502
+#define MXLV_AD_DATAFILE_NUMBER			12503
+#define MXLV_AD_LAST_DATAFILE_NAME		12504
+#define MXLV_AD_DATAFILE_FORMAT			12505
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -788,14 +802,28 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_directory), \
 	{sizeof(char)}, NULL, 0}, \
   \
+  {MXLV_AD_DATAFILE_FORMAT, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_format), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_PATTERN, -1, "datafile_pattern", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_pattern), \
+	{sizeof(char)}, NULL, 0}, \
+  \
   {MXLV_AD_DATAFILE_NAME, -1, "datafile_name", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_DATAFILE_FORMAT, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_format), \
+  {MXLV_AD_DATAFILE_NUMBER, -1, "datafile_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_number), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_LAST_DATAFILE_NAME, -1, "last_datafile_name", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, last_datafile_name), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "datafile_total_num_frames", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
@@ -1165,6 +1193,14 @@ MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_initialize_datafile_number(
+							MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_construct_next_datafile_name(
+							MX_AREA_DETECTOR *ad );
 
 /*---*/
 

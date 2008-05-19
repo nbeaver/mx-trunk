@@ -495,7 +495,12 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 
 	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
 	    mx_status = mx_area_detector_setup_datafile_management( ad, NULL );
+
+	    if ( mx_status.code != MXE_SUCCESS )
+	    	return mx_status;
 	}
+
+	bluice_area_detector->initialize_datafile_number = TRUE;
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -526,10 +531,14 @@ mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_bluice_area_detector_arm()";
 
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
+	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	mx_status_type mx_status;
+
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
@@ -538,7 +547,18 @@ mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
 
 	ad->last_frame_number = -1;
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( bluice_area_detector->initialize_datafile_number ) {
+		mx_status = mx_area_detector_initialize_datafile_number(ad);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		bluice_area_detector->initialize_datafile_number = FALSE;
+	}
+
+	mx_status = mx_area_detector_construct_next_datafile_name( ad );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
