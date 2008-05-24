@@ -77,10 +77,18 @@ mx_initialize_callback_support( MX_RECORD *record )
 	MX_HANDLE_TABLE *callback_handle_table;
 	mx_status_type mx_status;
 
+	/* Return if callback support is already initialized. */
+
+	if ( mxp_list_head != NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
+
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 
 	list_head = mx_get_record_list_head_struct( record );
 
@@ -127,10 +135,14 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 	/* Attempt to allocate SIGUSR2 for our private use. */
 
+	MX_DEBUG(-2,("%s: Attempting to allocate SIGUSR2.", fname));
+
 	mx_status = mx_signal_allocate( SIGUSR2, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return MX_SUCCESSFUL_RESULT;
+
+	MX_DEBUG(-2,("%s: Successfully allocated SIGUSR2.", fname));
 
 	/* Configure mxp_poll_callback() as the signal handler for SIGUSR2.
 	 * This allows us to manually trigger the value changed poll using
@@ -662,6 +674,195 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_remote_field_delete_callback( MX_CALLBACK *callback )
+{
+	static const char fname[] = "mx_remote_field_delete_callback()";
+
+	MX_NETWORK_FIELD *nf;
+	MX_RECORD *server_record;
+	MX_NETWORK_SERVER *server;
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *callback_list_entry;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
+	uint32_t *header, *uint32_message;
+	char *char_message;
+	unsigned long header_length, message_length, message_type, status_code;
+	mx_status_type mx_status;
+
+	if ( callback == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK pointer passed was NULL." );
+	}
+
+	if ( callback->callback_class != MXCBC_NETWORK ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"MX_CALLBACK %p is not a remote field callback.  "
+		"Instead, it is of callback class %lu",
+			callback, callback->callback_class );
+	}
+
+	nf = callback->u.network_field;
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_FIELD pointer for callback %p is NULL.",
+			callback );
+	}
+
+	server_record = nf->server_record;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The server_record pointer for network field '%s' is NULL.",
+			nf->nfname );
+	}
+
+	server = server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* Find the message buffer for this server. */
+
+	message_buffer = server->message_buffer;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER for server '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* Construct a message to the server asking it to delete a callback. */
+
+	/*--- First, construct the header. ---*/
+
+	header = message_buffer->u.uint32_buffer;
+	header_length = server->remote_header_length;
+
+	header[MX_NETWORK_MAGIC]          = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+	header[MX_NETWORK_HEADER_LENGTH]  = mx_htonl(header_length);
+	header[MX_NETWORK_MESSAGE_TYPE]   = mx_htonl(MX_NETMSG_DELETE_CALLBACK);
+	header[MX_NETWORK_STATUS_CODE]    = mx_htonl(MXE_SUCCESS);
+	header[MX_NETWORK_DATA_TYPE]      = mx_htonl(MXFT_ULONG);
+
+
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl(server->last_rpc_message_id);
+
+	/*--- Then, fill in the message body. ---*/
+
+	uint32_message = header
+		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
+
+	uint32_message[0] = mx_htonl( callback->callback_id );
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 1 * sizeof(uint32_t) );
+
+	/******** Now send the message. ********/
+
+	mx_status = mx_network_send_message( server_record, message_buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/******** Wait for the response. ********/
+
+	mx_status = mx_network_wait_for_message_id( server_record,
+						message_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* These pointers may have been changed by buffer reallocation
+	 * in mx_network_wait_for_message_id(), so we read them again.
+	 */
+
+	header = message_buffer->u.uint32_buffer;
+
+	uint32_message = header
+		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
+
+	char_message = message_buffer->u.char_buffer
+				+ mx_remote_header_length(server);
+
+	/* Read the header of the returned message. */
+
+	header_length  = mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
+	message_length = mx_ntohl( header[MX_NETWORK_MESSAGE_LENGTH] );
+	message_type   = mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] );
+	status_code    = mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
+
+	if ( message_type != mx_server_response(MX_NETMSG_DELETE_CALLBACK) ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Message type for response was not %#lx.  "
+		"Instead it was of type = %#lx.",
+	        (unsigned long) mx_server_response(MX_NETMSG_DELETE_CALLBACK),
+		    (unsigned long) message_type );
+	}
+
+	/* If we got an error status code from the server, return the
+	 * error message to the caller.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( status_code, fname, char_message );
+	}
+
+	/* If we get here, then we have successfully deleted the callback
+	 * in the server.  We must now delete all references to it here
+	 * on the client side.
+	 */
+
+	/* Find the callback list for the local MX_NETWORK_SERVER object
+	 * that corresponds to this server.
+	 */
+
+	callback_list = server->callback_list;
+
+	if ( callback_list == (MX_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The callback_list pointer for server '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* Find the callback in the callback list and delete it. */
+
+	mx_status = mx_list_find_list_entry( callback_list, callback,
+						&callback_list_entry );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_delete_entry( callback_list, callback_list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_list_entry_destroy( callback_list_entry );
+
+	/* Null out the contents of the MX_CALLBACK structure to make sure
+	 * that anybody that still has a pointer to it will crash when they
+	 * dereference the pointer.  This makes it easier to detect the
+	 * presence of bugs in memory allocation and management.
+	 */
+
+	memset( callback, 0, sizeof(MX_CALLBACK) );
+
+	/* Finish by freeing the MX_CALLBACK object itself. */
+
+	mx_free( callback );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
@@ -797,6 +998,17 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_local_field_delete_callback( MX_CALLBACK *callback )
+{
+	static const char fname[] = "mx_local_field_delete_callback()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function is not yet implemented for callback %p", callback );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1047,6 +1259,141 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_function_add_callback( MX_RECORD *record_list,
+			mx_status_type ( *callback_function )(
+					MX_CALLBACK_MESSAGE * ),
+			void *callback_arguments,
+			double callback_interval,
+			MX_CALLBACK_MESSAGE **callback_message )
+{
+	static const char fname[] = "mx_function_add_callback()";
+
+	MX_CALLBACK_MESSAGE *callback_message_ptr;
+	MX_LIST_HEAD *list_head;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record list pointer passed was NULL." );
+	}
+	if ( callback_function == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The callback function pointer passed was NULL." );
+	}
+	if ( callback_interval <= 0.0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The callback interval %g is not a legal callback interval.  "
+		"The callback interval must be a positive number.",
+			callback_interval );
+	}
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record list %p is NULL.  "
+		"This should not be able to happen.", record_list );
+	}
+
+	if ( list_head->callback_pipe == NULL ) {
+		/* We are not configured to handle callbacks, so we
+		 * must return an error.
+		 */
+
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Virtual timer callbacks are not enabled for this MX process.");
+	}
+
+	callback_message_ptr = malloc( sizeof(MX_CALLBACK_MESSAGE) );
+
+	if ( callback_message_ptr == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_CALLBACK_MESSAGE object.");
+	}
+
+	callback_message_ptr->callback_type = MXCBT_FUNCTION;
+	callback_message_ptr->list_head = list_head;
+
+	callback_message_ptr->u.function.callback_function = callback_function;
+
+	callback_message_ptr->u.function.callback_args = callback_arguments;
+
+	/* Specify the callback interval in seconds. */
+
+	callback_message_ptr->u.function.callback_interval = callback_interval;
+
+	/* Create a one-shot interval timer that will arrange for the
+	 * callback function to be called later.
+	 */
+
+	mx_status = mx_virtual_timer_create( &oneshot_timer,
+					list_head->master_timer,
+					MXIT_ONE_SHOT_TIMER,
+					mx_callback_standard_vtimer_handler,
+					callback_message_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( callback_message_ptr );
+
+		return mx_status;
+	}
+
+	callback_message_ptr->u.function.oneshot_timer = oneshot_timer;
+
+	/* Start the callback virtual timer. */
+
+	mx_status = mx_virtual_timer_start( oneshot_timer,
+			callback_message_ptr->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		(void) mx_virtual_timer_destroy( oneshot_timer );
+		mx_free( callback_message_ptr );
+
+		return mx_status;
+	}
+
+	/* If requested, return the new callback message to the caller. */
+
+	if ( callback_message != (MX_CALLBACK_MESSAGE **) NULL ) {
+		*callback_message = callback_message_ptr;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
+{
+	static const char fname[] = "mx_function_delete_callback()";
+
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type mx_status;
+
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
+	}
+
+	oneshot_timer = callback_message->u.function.oneshot_timer;
+
+	if ( oneshot_timer != (MX_VIRTUAL_TIMER *) NULL ) {
+		mx_status = mx_virtual_timer_destroy( oneshot_timer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_free( callback_message );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_invoke_callback( MX_CALLBACK *callback,
 		mx_bool_type get_new_value )
 {
@@ -1190,206 +1537,6 @@ mx_delete_callback( MX_CALLBACK *callback )
 
 /*--------------------------------------------------------------------------*/
 
-MX_EXPORT mx_status_type
-mx_remote_field_delete_callback( MX_CALLBACK *callback )
-{
-	static const char fname[] = "mx_remote_field_delete_callback()";
-
-	MX_NETWORK_FIELD *nf;
-	MX_RECORD *server_record;
-	MX_NETWORK_SERVER *server;
-	MX_LIST *callback_list;
-	MX_LIST_ENTRY *callback_list_entry;
-	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
-	uint32_t *header, *uint32_message;
-	char *char_message;
-	unsigned long header_length, message_length, message_type, status_code;
-	mx_status_type mx_status;
-
-	if ( callback == (MX_CALLBACK *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_CALLBACK pointer passed was NULL." );
-	}
-
-	if ( callback->callback_class != MXCBC_NETWORK ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"MX_CALLBACK %p is not a remote field callback.  "
-		"Instead, it is of callback class %lu",
-			callback, callback->callback_class );
-	}
-
-	nf = callback->u.network_field;
-
-	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_NETWORK_FIELD pointer for callback %p is NULL.",
-			callback );
-	}
-
-	server_record = nf->server_record;
-
-	if ( server_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The server_record pointer for network field '%s' is NULL.",
-			nf->nfname );
-	}
-
-	server = server_record->record_class_struct;
-
-	if ( server == (MX_NETWORK_SERVER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
-			server_record->name );
-	}
-
-	/* Find the message buffer for this server. */
-
-	message_buffer = server->message_buffer;
-
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER for server '%s' is NULL.",
-			server_record->name );
-	}
-
-	/* Construct a message to the server asking it to delete a callback. */
-
-	/*--- First, construct the header. ---*/
-
-	header = message_buffer->u.uint32_buffer;
-	header_length = server->remote_header_length;
-
-	header[MX_NETWORK_MAGIC]          = mx_htonl(MX_NETWORK_MAGIC_VALUE);
-	header[MX_NETWORK_HEADER_LENGTH]  = mx_htonl(header_length);
-	header[MX_NETWORK_MESSAGE_TYPE]   = mx_htonl(MX_NETMSG_DELETE_CALLBACK);
-	header[MX_NETWORK_STATUS_CODE]    = mx_htonl(MXE_SUCCESS);
-	header[MX_NETWORK_DATA_TYPE]      = mx_htonl(MXFT_ULONG);
-
-
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
-
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl(server->last_rpc_message_id);
-
-	/*--- Then, fill in the message body. ---*/
-
-	uint32_message = header
-		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
-
-	uint32_message[0] = mx_htonl( callback->callback_id );
-
-	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 1 * sizeof(uint32_t) );
-
-	/******** Now send the message. ********/
-
-	mx_status = mx_network_send_message( server_record, message_buffer );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/******** Wait for the response. ********/
-
-	mx_status = mx_network_wait_for_message_id( server_record,
-						message_buffer,
-						server->last_rpc_message_id,
-						server->timeout );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* These pointers may have been changed by buffer reallocation
-	 * in mx_network_wait_for_message_id(), so we read them again.
-	 */
-
-	header = message_buffer->u.uint32_buffer;
-
-	uint32_message = header
-		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
-
-	char_message = message_buffer->u.char_buffer
-				+ mx_remote_header_length(server);
-
-	/* Read the header of the returned message. */
-
-	header_length  = mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
-	message_length = mx_ntohl( header[MX_NETWORK_MESSAGE_LENGTH] );
-	message_type   = mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] );
-	status_code    = mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
-
-	if ( message_type != mx_server_response(MX_NETMSG_DELETE_CALLBACK) ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Message type for response was not %#lx.  "
-		"Instead it was of type = %#lx.",
-	        (unsigned long) mx_server_response(MX_NETMSG_DELETE_CALLBACK),
-		    (unsigned long) message_type );
-	}
-
-	/* If we got an error status code from the server, return the
-	 * error message to the caller.
-	 */
-
-	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( status_code, fname, char_message );
-	}
-
-	/* If we get here, then we have successfully deleted the callback
-	 * in the server.  We must now delete all references to it here
-	 * on the client side.
-	 */
-
-	/* Find the callback list for the local MX_NETWORK_SERVER object
-	 * that corresponds to this server.
-	 */
-
-	callback_list = server->callback_list;
-
-	if ( callback_list == (MX_LIST *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The callback_list pointer for server '%s' is NULL.",
-			server_record->name );
-	}
-
-	/* Find the callback in the callback list and delete it. */
-
-	mx_status = mx_list_find_list_entry( callback_list, callback,
-						&callback_list_entry );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_list_delete_entry( callback_list, callback_list_entry );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_list_entry_destroy( callback_list_entry );
-
-	/* Null out the contents of the MX_CALLBACK structure to make sure
-	 * that anybody that still has a pointer to it will crash when they
-	 * dereference the pointer.  This makes it easier to detect the
-	 * presence of bugs in memory allocation and management.
-	 */
-
-	memset( callback, 0, sizeof(MX_CALLBACK) );
-
-	/* Finish by freeing the MX_CALLBACK object itself. */
-
-	mx_free( callback );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*--------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mx_local_field_delete_callback( MX_CALLBACK *callback )
-{
-	static const char fname[] = "mx_local_field_delete_callback()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"This function is not yet implemented for callback %p", callback );
-}
-
-/*--------------------------------------------------------------------------*/
-
 mx_status_type
 mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 {
@@ -1401,7 +1548,7 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 	signed long handle;
 	MX_CALLBACK *callback;
 	MX_CALLBACK_MESSAGE *callback_message;
-	mx_status_type (*cb_function)( void * );
+	mx_status_type (*cb_function)( MX_CALLBACK_MESSAGE *);
 	unsigned long i, array_size;
 	long interval;
 	size_t bytes_read;

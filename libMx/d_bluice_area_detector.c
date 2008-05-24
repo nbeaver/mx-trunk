@@ -587,6 +587,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char command[200];
 	char dhs_username[MXU_USERNAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
+	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char *ptr;
 	unsigned long dark_current_fu;
 	unsigned long client_number, operation_counter;
@@ -636,7 +637,21 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		*ptr = '\0';
 	}
 
+	if ( strlen(datafile_name) == 0 ) {
+		strlcpy( datafile_name, "{}", sizeof(datafile_name) );
+	}
+
 	MX_DEBUG(-2,("%s: datafile_name = '%s'", fname, datafile_name));
+
+	strlcpy( datafile_directory, ad->datafile_directory,
+			sizeof(datafile_directory) );
+
+	if ( strlen(datafile_directory) == 0 ) {
+		strlcpy( datafile_directory, "{}", sizeof(datafile_directory) );
+	}
+
+	MX_DEBUG(-2,("%s: datafile_directory = '%s'",
+			fname, datafile_directory));
 
 	client_number = mx_bluice_get_client_number( bluice_server );
 
@@ -653,7 +668,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
-			ad->datafile_directory,
+			datafile_directory,
 			bluice_dcss_server->bluice_username,
 			exposure_time );
 		break;

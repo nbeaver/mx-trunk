@@ -108,12 +108,12 @@ mxp_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 /*---------------------------------------------------------------------------*/
 
 static mx_status_type
-mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
+mxp_area_detector_measure_correction_callback_function(
+				MX_CALLBACK_MESSAGE *callback_message )
 {
 	static const char fname[] =
 		"mxp_area_detector_measure_correction_callback_function()";
 
-	MX_CALLBACK_MESSAGE *callback_message;
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_AREA_DETECTOR *ad;
 	MX_IMAGE_FRAME *dest_frame;
@@ -137,8 +137,6 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 	long i;
 	size_t image_length;
 #endif
-
-	callback_message = cb_message_ptr;
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));

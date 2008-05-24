@@ -2067,7 +2067,8 @@ mx_area_detector_arm( MX_RECORD *record )
 			fname, record->name, ad->datafile_total_num_frames));
 #endif
 	}
-#endif
+
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
 
 	/* Arm the area detector. */
 
@@ -2384,7 +2385,8 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 	{
 		mx_status = (*ad->datafile_management_handler)(ad);
 	}
-#endif
+
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
 
 	return mx_status;
 }
@@ -2542,7 +2544,8 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	{
 		mx_status = (*ad->datafile_management_handler)(ad);
 	}
-#endif
+
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
 
 	return mx_status;
 }

@@ -58,6 +58,12 @@ typedef struct mx_callback_type {
 	} u;
 } MX_CALLBACK;
 
+/* Declare 'struct mx_callback_message_type' as an incomplete type.
+ * The type will be completed as part of the MX_CALLBACK_MESSAGE typedef.
+ */
+
+struct mx_callback_message_type;
+
 typedef struct {
 	int dummy;
 } MX_CALLBACK_POLL_MESSAGE;
@@ -73,7 +79,7 @@ typedef struct {
 
 typedef struct {
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	mx_status_type (*callback_function)(void *);
+	mx_status_type (*callback_function)(struct mx_callback_message_type *);
 	void *callback_args;
 	double callback_interval;
 } MX_CALLBACK_FUNCTION_MESSAGE;
@@ -103,12 +109,16 @@ MX_API mx_status_type mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 					void *callback_argument,
 					MX_CALLBACK **callback_object );
 					
+MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK *cb );
+
 MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
 					unsigned long callback_type,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
 					MX_CALLBACK **callback_object );
+
+MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK *cb );
 
 MX_API mx_status_type mx_local_field_find_callback( MX_RECORD_FIELD *rf,
 					unsigned long *callback_type,
@@ -122,14 +132,19 @@ MX_API mx_status_type mx_local_field_invoke_callback_list(
 						MX_RECORD_FIELD *field,
 						unsigned long callback_type );
 
+MX_API mx_status_type mx_function_add_callback( MX_RECORD *record_list,
+					mx_status_type ( *callback_function )
+						( MX_CALLBACK_MESSAGE * ),
+					void *callback_argument,
+					double callback_interval,
+					MX_CALLBACK_MESSAGE **callback_message);
+
+MX_API mx_status_type mx_function_delete_callback( MX_CALLBACK_MESSAGE *cbm );
+
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
 					mx_bool_type get_new_field_value );
 
 MX_API mx_status_type mx_delete_callback( MX_CALLBACK *cb );
-
-MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK * );
-
-MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK * );
 
 MX_API mx_status_type mx_process_callbacks( MX_RECORD *record_list,
 					MX_PIPE *callback_pipe );
