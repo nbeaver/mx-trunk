@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_PIPE_DEBUG	FALSE
+#define MX_PIPE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,6 +128,13 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 			last_error_code, message_buffer );
 	}
 
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s: MX pipe %p created.  "
+		"Win32 read handle = %p, Win32 write handle = %p",
+		fname, *mx_pipe, win32_pipe->read_handle,
+		win32_pipe->write_handle));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -143,7 +150,7 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for MX pipe %p.", fname, mx_pipe));
 #endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
@@ -217,7 +224,7 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for MX pipe %p.", fname, mx_pipe));
 #endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
@@ -251,6 +258,11 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 		*bytes_read = number_of_bytes_read;
 	}
 
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s: %lu bytes read from MX pipe %p into buffer %p",
+		fname, (unsigned long) number_of_bytes_read, mx_pipe, buffer));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -268,7 +280,8 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s: writing %ld bytes from buffer %p to MX pipe %p",
+		fname, (long) bytes_to_write, buffer, mx_pipe));
 #endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
@@ -292,6 +305,11 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 			(long) bytes_to_write, mx_pipe,
 			last_error_code, message_buffer );
 	}
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s: %lu bytes written to MX pipe %p",
+		fname, (unsigned long) number_of_bytes_written, mx_pipe));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -351,9 +369,11 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 	*num_bytes_available = total_bytes_avail;
 
-#if 0 && MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s: num_bytes_available = %ld",
-		fname, (long) *num_bytes_available ));
+#if MX_PIPE_DEBUG
+	if ( (*num_bytes_available) > 0 ) {
+		MX_DEBUG(-2,("%s: %ld bytes available for MX pipe %p.",
+			fname, (long) *num_bytes_available, mx_pipe ));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -377,6 +397,12 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,
+	("%s invoked for MX pipe %p, flags = %#x, blocking_mode = %d",
+		fname, mx_pipe, flags, blocking_mode));
+#endif
 
 	if ( (flags & MXF_PIPE_READ)
 	  && (win32_pipe->read_handle != INVALID_HANDLE_VALUE)
@@ -547,7 +573,10 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 	unix_pipe->write_fd = pipe_array[1];
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s: create MX pipe %p", fname, *mx_pipe));
+	MX_DEBUG(-2,("%s: MX pipe %p created.  "
+		"Unix read fd = %d, Unix write fd = %d",
+		fname, *mx_pipe, unix_pipe->read_fd,
+		unix_pipe->write_fd));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -565,7 +594,7 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 	unix_pipe = NULL;
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for MX pipe %p.", fname, mx_pipe));
 #endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
@@ -652,8 +681,8 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	}
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s: read %d bytes from MX pipe %p",
-		fname, read_status, mx_pipe));
+	MX_DEBUG(-2,("%s: %d bytes read from MX pipe %p into buffer %p",
+		fname, read_status, mx_pipe, buffer));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -673,8 +702,8 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 	unix_pipe = NULL;
 
 #if MX_PIPE_DEBUG
-	MX_DEBUG(-2,("%s: writing %ld bytes to MX pipe %p",
-		fname, (long) bytes_to_write, mx_pipe));
+	MX_DEBUG(-2,("%s: writing %ld bytes from buffer %p to MX pipe %p",
+		fname, (long) bytes_to_write, buffer, mx_pipe));
 #endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
@@ -701,6 +730,11 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 			(long) bytes_to_write, mx_pipe,
 			saved_errno, strerror(saved_errno) );
 	}
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s: %d bytes written to MX pipe %p",
+		fname, write_status, mx_pipe));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -779,8 +813,8 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 #if MX_PIPE_DEBUG
 	if ( (*num_bytes_available) > 0 ) {
-		MX_DEBUG(-2,("%s: num_bytes_available = %ld",
-			fname, (long) *num_bytes_available ));
+		MX_DEBUG(-2,("%s: %ld bytes available for MX pipe %p.",
+			fname, (long) *num_bytes_available, mx_pipe ));
 	}
 #endif
 
@@ -799,6 +833,12 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	mx_status_type mx_status;
 
 	unix_pipe = NULL;
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,
+	("%s invoked for MX pipe %p, flags = %#x, blocking_mode = %d",
+		fname, mx_pipe, flags, blocking_mode));
+#endif
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
