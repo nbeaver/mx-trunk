@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_PIPE_DEBUG	TRUE
+#define MX_PIPE_DEBUG			FALSE
+
+#define MX_PIPE_DEBUG_AVAILABLE_BYTES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -369,7 +371,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 	*num_bytes_available = total_bytes_avail;
 
-#if MX_PIPE_DEBUG
+#if MX_PIPE_DEBUG_AVAILABLE_BYTES
 	if ( (*num_bytes_available) > 0 ) {
 		MX_DEBUG(-2,("%s: %ld bytes available for MX pipe %p.",
 			fname, (long) *num_bytes_available, mx_pipe ));
@@ -811,7 +813,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	}
 #endif
 
-#if MX_PIPE_DEBUG
+#if MX_PIPE_DEBUG_AVAILABLE_BYTES
 	if ( (*num_bytes_available) > 0 ) {
 		MX_DEBUG(-2,("%s: %ld bytes available for MX pipe %p.",
 			fname, (long) *num_bytes_available, mx_pipe ));

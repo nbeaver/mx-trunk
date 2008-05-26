@@ -353,8 +353,13 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		list_head->callback_timer = callback_timer;
 
+#if 0
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
 							0.1 );
+#else
+		mx_status = mx_virtual_timer_start( list_head->callback_timer,
+							5.0 );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1740,7 +1745,8 @@ mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 	callback_message = args;
 
 #if MX_CALLBACK_DEBUG
-	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
+	MX_DEBUG(-2,("%s invoked for vtimer = %p, args = %p",
+		fname, vtimer, args));
 #endif
 
 	list_head = callback_message->list_head;
@@ -1751,6 +1757,11 @@ mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 
 		return;
 	}
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: writing vtimer %p callback_message %p to MX pipe %p",
+		fname, vtimer, callback_message, list_head->callback_pipe));
+#endif
 
 	(void) mx_pipe_write( list_head->callback_pipe,
 				(char *) &callback_message,
