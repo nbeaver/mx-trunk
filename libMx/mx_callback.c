@@ -353,7 +353,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		list_head->callback_timer = callback_timer;
 
-#if 0
+#if 1
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
 							0.1 );
 #else

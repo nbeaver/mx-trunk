@@ -18,15 +18,13 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG			FALSE
+#define MXD_EPIX_XCLIB_DEBUG			TRUE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS	FALSE
-
 #define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS	FALSE
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS	TRUE
 
 #include <stdio.h>
 
@@ -575,7 +573,7 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 			fname, vinput->record->name));
 
-#if 0
+#if 1
 	{
 		/* Show the EXSYNC and PRIN values and also the resulting
 		 * camera timing.
@@ -1970,7 +1968,8 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 		vinput->last_frame_number =
 				epix_xclib_vinput->fake_frame_numbers[0];
 	} else
-#endif
+#endif /* MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS */
+
 	if ( epix_xclib_vinput->new_sequence ) {
 
 		/* If new_sequence is TRUE, this means that we have just
@@ -2038,13 +2037,13 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 		vinput->total_num_frames =
 			epix_xclib_vinput->fake_frame_numbers[1];
 
-#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
+#   if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 		MX_DEBUG(-2,("%s: total_num_frames = %lu",
 			fname, vinput->total_num_frames));
-#endif
+#   endif
 		return MX_SUCCESSFUL_RESULT;
 	}
-#endif
+#endif /* MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS */
 
 #if defined(OS_WIN32)
 	vinput->total_num_frames = epix_xclib_vinput->uint32_total_num_frames;
@@ -2368,7 +2367,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 		(long) MXIF_COLUMN_BINSIZE(frame) ));
 	MX_DEBUG(-2,("%s: frame->image_data = %p", fname, frame->image_data));
 	MX_DEBUG(-2,("%s: BEFORE calling memset(%p, 0, %lu).",
-		fname, frame->image_data, frame->allocated_image_length));
+		fname, frame->image_data,
+		(unsigned long) frame->allocated_image_length));
 #endif
 
 	/* Erase any previous contents of the frame buffer. */

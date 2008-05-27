@@ -8,16 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_EPIX_XCLIB_DEBUG			FALSE
-
-#define MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS	FALSE
+#define MXI_EPIX_XCLIB_DEBUG	TRUE
 
 #include <stdio.h>
 

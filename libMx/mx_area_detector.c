@@ -38,7 +38,11 @@
 
 #define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
 
-#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD	TRUE
+/*---*/
+
+#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2045,7 +2049,7 @@ mx_area_detector_arm( MX_RECORD *record )
 	ad->stop = FALSE;
 	ad->abort = FALSE;
 
-#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD
+#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE
 
 	/* If automatic saving or loading of datafiles has been 
 	 * configured, then we need to get and save the current
@@ -2061,14 +2065,14 @@ mx_area_detector_arm( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,
 		("%s: area detector '%s', datafile_total_num_frames = %ld",
 			fname, record->name, ad->datafile_total_num_frames));
 #endif
 	}
 
-#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE */
 
 	/* Arm the area detector. */
 
@@ -2367,9 +2371,9 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 	 * we must explicitly invoke the datafile management handler now.
 	 */
 
-#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD
+#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE
 
-#if 1 || MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: ad->datafile_management_handler = %p",
 		fname, ad->datafile_management_handler));
 	MX_DEBUG(-2,("%s: ad->datafile_management_callback = %p",
@@ -2386,7 +2390,7 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 		mx_status = (*ad->datafile_management_handler)(ad);
 	}
 
-#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE */
 
 	return mx_status;
 }
@@ -2521,14 +2525,14 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		*status_flags = ad->status;
 	}
 
-#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD
+#if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE
 
 	/* If a datafile management handler has been installed, but there is
 	 * no datafile management callback that is currently active, then we
 	 * we must explicitly invoke the datafile management handler now.
 	 */
 
-#if 1 || MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: ad->datafile_management_handler = %p",
 		fname, ad->datafile_management_handler));
 	MX_DEBUG(-2,("%s: ad->datafile_management_callback = %p",
@@ -2545,7 +2549,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		mx_status = (*ad->datafile_management_handler)(ad);
 	}
 
-#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOLOAD */
+#endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE */
 
 	return mx_status;
 }
