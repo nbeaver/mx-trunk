@@ -353,13 +353,8 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		list_head->callback_timer = callback_timer;
 
-#if 1
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
 							0.1 );
-#else
-		mx_status = mx_virtual_timer_start( list_head->callback_timer,
-							5.0 );
-#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1267,6 +1262,8 @@ MX_EXPORT mx_status_type
 mx_function_add_callback( MX_RECORD *record_list,
 			mx_status_type ( *callback_function )(
 					MX_CALLBACK_MESSAGE * ),
+			mx_status_type ( *callback_destructor )(
+					MX_CALLBACK_MESSAGE * ),
 			void *callback_arguments,
 			double callback_interval,
 			MX_CALLBACK_MESSAGE **callback_message )
@@ -1322,6 +1319,9 @@ mx_function_add_callback( MX_RECORD *record_list,
 
 	callback_message_ptr->u.function.callback_function = callback_function;
 
+	callback_message_ptr->u.function.callback_destructor =
+							callback_destructor;
+
 	callback_message_ptr->u.function.callback_args = callback_arguments;
 
 	/* Specify the callback interval in seconds. */
@@ -1375,12 +1375,18 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 	static const char fname[] = "mx_function_delete_callback()";
 
 	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type (*callback_destructor)(MX_CALLBACK_MESSAGE *);
 	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for callback message %p",
+		fname, callback_message));
 
 	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
 	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	oneshot_timer = callback_message->u.function.oneshot_timer;
 
@@ -1391,9 +1397,15 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 			return mx_status;
 	}
 
+	callback_destructor = callback_message->u.function.callback_destructor;
+
+	if ( callback_destructor != NULL ) {
+		mx_status = (*callback_destructor)( callback_message );
+	}
+
 	mx_free( callback_message );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*--------------------------------------------------------------------------*/

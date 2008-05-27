@@ -80,6 +80,8 @@ typedef struct {
 typedef struct {
 	MX_VIRTUAL_TIMER *oneshot_timer;
 	mx_status_type (*callback_function)(struct mx_callback_message_type *);
+	mx_status_type (*callback_destructor)(
+					struct mx_callback_message_type *);
 	void *callback_args;
 	double callback_interval;
 } MX_CALLBACK_FUNCTION_MESSAGE;
@@ -134,6 +136,8 @@ MX_API mx_status_type mx_local_field_invoke_callback_list(
 
 MX_API mx_status_type mx_function_add_callback( MX_RECORD *record_list,
 					mx_status_type ( *callback_function )
+						( MX_CALLBACK_MESSAGE * ),
+					mx_status_type ( *callback_destructor )
 						( MX_CALLBACK_MESSAGE * ),
 					void *callback_argument,
 					double callback_interval,
