@@ -21,21 +21,24 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *bluice_server_record;
+	char bluice_server_name[MXU_BLUICE_NAME_LENGTH+1];
 	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
+
+	MX_RECORD *bluice_server_record;
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 } MX_BLUICE_STRING;
 
 #define MXV_BLUICE_STRING_STANDARD_FIELDS \
-  {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
+  {-1, -1, "bluice_server_name", MXFT_STRING, \
+  					NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
         MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_BLUICE_STRING, bluice_server_record), \
-        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+		offsetof(MX_BLUICE_STRING, bluice_server_name), \
+        {sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "bluice_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_STRING, bluice_name), \
-        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+        {sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API_PRIVATE mx_status_type mxv_bluice_string_create_record_structures(
 							MX_RECORD *record );

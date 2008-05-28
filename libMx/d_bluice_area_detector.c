@@ -373,8 +373,10 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 					bluice_server->num_strings,
 			&(bluice_area_detector->last_image_collected_string) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_warning( "lastImageCollected string not configured "
+			"by Blu-Ice server '%s'", bluice_server->record->name );
+	}
 
 	MX_DEBUG(-2,("%s: last_image_collected_string = %p",
 		fname, bluice_area_detector->last_image_collected_string));
@@ -390,8 +392,10 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 					bluice_server->num_strings,
 					&detector_type_string );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_warning( "detectorType string not configured "
+			"by Blu-Ice server '%s'", bluice_server->record->name );
+	}
 
 	if ( (detector_type_string != NULL)
 	  && (detector_type_string->foreign_type == MXT_BLUICE_FOREIGN_STRING)
@@ -480,7 +484,11 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	ad->image_format = ad->datafile_format;
 	ad->byte_order = mx_native_byteorder();
 	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
+
 	ad->bytes_per_pixel = 2;
+	ad->bits_per_pixel = 16;
+	ad->bytes_per_frame = ad->framesize[0] * ad->framesize[1]
+				* mx_round( ad->bytes_per_pixel );
 
 	ad->maximum_framesize[0] = ad->framesize[0];
 	ad->maximum_framesize[1] = ad->framesize[1];

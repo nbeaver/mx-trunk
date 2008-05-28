@@ -71,6 +71,7 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 {
 	static const char fname[] = "mxv_bluice_string_get_pointers()";
 
+	MX_RECORD *variable_record;
 	MX_BLUICE_STRING *bluice_string_ptr;
 	MX_RECORD *bluice_server_record;
 
@@ -79,6 +80,15 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 		"The MX_VARIABLE pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
+
+	variable_record = variable->record;
+
+	if ( variable_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_VARIABLE pointer %p is NULL.",
+			variable );
+	}
+
 	if ( bluice_string == (MX_BLUICE_STRING **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_BLUICE_STRING pointer passed by '%s' was NULL.",
@@ -96,6 +106,14 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 
 	if ( bluice_string != (MX_BLUICE_STRING **) NULL ) {
 		*bluice_string = bluice_string_ptr;
+	}
+
+	if ( variable_record->mx_type == MXV_BLUICE_SELF_STRING ) {
+		/* If this is a "self" string, then we do not have 
+		 * a Blu-Ice server.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	bluice_server_record = bluice_string_ptr->bluice_server_record;
@@ -212,6 +230,47 @@ mxv_bluice_string_finish_record_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+	bluice_string = record->record_type_struct;
+
+	if ( bluice_string == (MX_BLUICE_STRING *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_STRING pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* A "self" string has nothing to initialize. */
+
+	if ( record->mx_type == MXV_BLUICE_SELF_STRING ) {
+		bluice_string->bluice_server_record = NULL;
+
+		/* However, we do verify that the Blu-Ice server name
+		 * is set to 'self'.
+		 */
+
+		if ( strcmp( bluice_string->bluice_server_name, "self" ) != 0 )
+		{
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"bluice_self_string record '%s' does not "
+			"list 'self' as its Blu-Ice server name.  "
+			"Instead, it says that the server name is '%s'.",
+			record->name, bluice_string->bluice_server_name );
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* DCSS and DHS strings need to find the Blu-Ice server record. */
+
+	bluice_string->bluice_server_record =
+		mx_get_record( record, bluice_string->bluice_server_name );
+
+	if ( bluice_string->bluice_server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Blu-Ice string record '%s' uses Blu-Ice server record '%s' "
+		"which was not found in the current MX database.",
+			record->name, bluice_string->bluice_server_name );
+	}
+
 	/* The foreign device pointer for DCSS strings will be initialized
 	 * later, when DCSS sends us the necessary configuration information.
 	 */
@@ -226,7 +285,7 @@ mxv_bluice_string_finish_record_initialization( MX_RECORD *record )
 
 	variable = record->record_superclass_struct;
 
-	mx_status = mxv_bluice_string_get_pointers( variable, &bluice_string,
+	mx_status = mxv_bluice_string_get_pointers( variable, NULL,
 					&bluice_server, NULL, TRUE, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -286,6 +345,12 @@ mxv_bluice_string_open( MX_RECORD *record )
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed was NULL." );
+	}
+
+	/* A "self" string has nothing to open. */
+
+	if ( record->mx_type == MXV_BLUICE_SELF_STRING ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	variable = (MX_VARIABLE *) record->record_superclass_struct;
@@ -388,6 +453,12 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* A "self" string has nothing to copy. */
+
+	if ( variable->record->mx_type == MXV_BLUICE_SELF_STRING ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	mx_status = mx_get_variable_parameters( variable->record, NULL,
 						&dimension_array, NULL,

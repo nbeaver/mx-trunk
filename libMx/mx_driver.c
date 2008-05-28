@@ -3907,6 +3907,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxv_bluice_string_num_record_fields,
 				&mxv_bluice_string_rfield_def_ptr},
 
+{"bluice_self_string",  MXV_BLUICE_SELF_STRING, MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_string_record_function_list,
+				&mxv_bluice_string_variable_function_list,
+				NULL,
+				&mxv_bluice_string_num_record_fields,
+				&mxv_bluice_string_rfield_def_ptr},
+
 {"bluice_dcss_operation", MXV_BLUICE_DCSS_OPERATION, MXV_BLUICE, MXR_VARIABLE,
 				&mxv_bluice_operation_record_function_list,
 				&mxv_bluice_operation_variable_function_list,
