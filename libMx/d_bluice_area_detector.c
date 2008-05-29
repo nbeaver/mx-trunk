@@ -58,7 +58,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
 	mxd_bluice_area_detector_get_extended_status,
 	mxd_bluice_area_detector_readout_frame,
 	NULL,
-	NULL,
+	mxd_bluice_area_detector_transfer_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -487,8 +487,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 
 	ad->bytes_per_pixel = 2;
 	ad->bits_per_pixel = 16;
-	ad->bytes_per_frame = ad->framesize[0] * ad->framesize[1]
-				* mx_round( ad->bytes_per_pixel );
+	ad->bytes_per_frame = mx_round( ad->framesize[0] * ad->framesize[1]
+				* ad->bytes_per_pixel );
 
 	ad->maximum_framesize[0] = ad->framesize[0];
 	ad->maximum_framesize[1] = ad->framesize[1];
@@ -977,6 +977,85 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_bluice_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_bluice_area_detector_transfer_frame()";
+
+	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
+	char image_filename[MXU_FILENAME_LENGTH+1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* Read in the last image written by Blu-Ice. */
+
+	last_image_collected_string =
+		bluice_area_detector->last_image_collected_string;
+
+	if ( ( last_image_collected_string != NULL )
+	  && ( last_image_collected_string->u.string.string_buffer != NULL ) )
+	{
+		strlcpy( image_filename,
+			last_image_collected_string->u.string.string_buffer,
+			sizeof(image_filename) );
+	} else {
+		snprintf( image_filename, sizeof(image_filename),
+			"%s/%s.img", ad->datafile_directory,
+				ad->datafile_name );
+	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: image_filename = '%s'", fname, image_filename ));
+#endif
+
+	mx_status = mx_image_read_file( &(ad->image_frame),
+					ad->datafile_format,
+					image_filename );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: image framesize = (%lu,%lu)", fname,
+		(unsigned long) MXIF_ROW_FRAMESIZE(ad->image_frame),
+		(unsigned long) MXIF_COLUMN_FRAMESIZE(ad->image_frame) ));
+#endif
+
+	/* Update the area detector parameters. */
+
+	ad->header_length   = MXIF_HEADER_BYTES(ad->image_frame);
+
+	ad->framesize[0]    = MXIF_ROW_FRAMESIZE(ad->image_frame);
+	ad->framesize[1]    = MXIF_COLUMN_FRAMESIZE(ad->image_frame);
+
+	ad->binsize[0]      = MXIF_ROW_BINSIZE(ad->image_frame);
+	ad->binsize[1]      = MXIF_COLUMN_BINSIZE(ad->image_frame);
+
+	ad->image_format    = MXIF_IMAGE_FORMAT(ad->image_frame);
+	ad->byte_order      = MXIF_BYTE_ORDER(ad->image_frame);
+	ad->bytes_per_pixel = MXIF_BYTES_PER_PIXEL(ad->image_frame);
+	ad->bits_per_pixel  = MXIF_BITS_PER_PIXEL(ad->image_frame);
+
+	ad->bytes_per_frame = mx_round( ad->framesize[0] * ad->framesize[1]
+						* ad->bytes_per_pixel );
+
+	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+						ad->image_format_name,
+						sizeof(ad->image_format_name) );
 	return mx_status;
 }
 

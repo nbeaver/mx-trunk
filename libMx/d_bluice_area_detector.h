@@ -65,6 +65,8 @@ MX_API mx_status_type mxd_bluice_area_detector_get_extended_status(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_readout_frame(
 							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_bluice_area_detector_transfer_frame(
+							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_get_parameter(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_bluice_area_detector_set_parameter(
