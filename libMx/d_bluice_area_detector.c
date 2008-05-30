@@ -1,7 +1,7 @@
 /*
  * Name:    d_bluice_area_detector.c
  *
- * Purpose: MX driver for MarCCD remote control.
+ * Purpose: MX driver for Blu-Ice controlled area detectors.
  *
  * Author:  William Lavender
  *
@@ -100,7 +100,7 @@ long mxd_bluice_dhs_area_detector_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr
 		= &mxd_bluice_dhs_area_detector_record_field_defaults[0];
 
-/*---*/
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_bluice_area_detector_get_pointers( MX_AREA_DETECTOR *ad,
@@ -170,7 +170,44 @@ mxd_bluice_area_detector_get_pointers( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxd_bluice_area_detector_collect_thread()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
+	MX_BLUICE_SERVER *bluice_server;
+	mx_status_type mx_status;
+
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) args;
+
+	mx_status = mxd_bluice_area_detector_get_pointers( ad,
+		&bluice_area_detector, &bluice_server, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for Blu-Ice detector '%s'",
+		fname, ad->record->name ));
+#endif
+	/* Send the collect command. */
+
+	mx_status = mx_bluice_send_message( bluice_server->record,
+				bluice_area_detector->collect_command, NULL, 0);
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_bluice_area_detector_initialize_type( long record_type )
@@ -344,6 +381,7 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Find the collect operation. */
 
 	switch( record->mx_type ) {
 	case MXT_AD_BLUICE_DCSS:
@@ -367,6 +405,70 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	bluice_area_detector->last_collect_operation_state =
 	  bluice_area_detector->collect_operation->u.operation.operation_state;
 
+	/* Find the detector stop operation. */
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"detector_stop",
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+				&(bluice_area_detector->stop_operation) );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_warning( "detector_stop operation not configured "
+			"by Blu-Ice server '%s'", bluice_server->record->name );
+	}
+
+	/* For the bluice_dhs_area_detector driver, we must also find the
+	 * transfer image, oscillation ready, and reset run operations.
+	 */
+
+	if ( record->mx_type == MXT_AD_BLUICE_DHS ) {
+
+		mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"detector_transfer_image",
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+				&(bluice_area_detector->transfer_operation) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"detector_oscillation_ready",
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+			&(bluice_area_detector->oscillation_ready_operation) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_bluice_get_device_pointer( bluice_server,
+					"detector_reset_run",
+					bluice_server->operation_array,
+					bluice_server->num_operations,
+				&(bluice_area_detector->reset_run_operation) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: collect_operation = %p",
+		fname, bluice_area_detector->collect_operation));
+	MX_DEBUG(-2,("%s: transfer_operation = %p",
+		fname, bluice_area_detector->transfer_operation));
+	MX_DEBUG(-2,("%s: oscillation_ready_operation = %p",
+		fname, bluice_area_detector->oscillation_ready_operation));
+	MX_DEBUG(-2,("%s: stop_operation = %p",
+		fname, bluice_area_detector->stop_operation));
+	MX_DEBUG(-2,("%s: reset_run_operation = %p",
+		fname, bluice_area_detector->reset_run_operation));
+#endif
+
+	/* Find the string containing the filename of the most recently
+	 * collected image.
+	 */
+
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 					"lastImageCollected",
 					bluice_server->string_array,
@@ -378,8 +480,10 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 			"by Blu-Ice server '%s'", bluice_server->record->name );
 	}
 
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: last_image_collected_string = %p",
 		fname, bluice_area_detector->last_image_collected_string));
+#endif
 
 	/* See if a string called 'detectorType' has been sent to us.
 	 * If it does exist, then we can figure out what the format of
@@ -592,7 +696,6 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
-	char command[200];
 	char dhs_username[MXU_USERNAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
@@ -611,6 +714,14 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	collect_operation = bluice_area_detector->collect_operation;
+
+	if ( collect_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The collect operation for Blu-Ice area detector '%s' "
+		"has not yet been initialized.", ad->record->name );
+	}
+
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
@@ -620,8 +731,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 	if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Sequence type %ld is not supported for MarCCD detector '%s'.  "
-		"Only one-shot sequences are supported.",
+		"Sequence type %ld is not supported for Blu-Ice detector '%s'."
+		"  Only one-shot sequences are supported.",
 			sp->sequence_type, ad->record->name );
 	}
 
@@ -669,7 +780,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_AD_BLUICE_DCSS:
 		bluice_dcss_server = bluice_server->record->record_type_struct;
 
-		snprintf( command, sizeof(command),
+		snprintf( bluice_area_detector->collect_command,
+			sizeof(bluice_area_detector->collect_command),
 		"gtos_start_operation collectFrame %lu.%lu %lu %s %s %s "
 			"NULL NULL 0 %f 0 1 0",
 			client_number,
@@ -696,7 +808,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		detector_y = mxp_motor_position(
 			bluice_area_detector->detector_y_record );
 
-		snprintf( command, sizeof(command),
+		snprintf( bluice_area_detector->collect_command,
+			sizeof(bluice_area_detector->collect_command),
 		"stoh_start_operation detector_collect_image %lu.%lu %lu "
 		"%s %s %s NULL %f 0.0 0.0 %f %f %f %f 0 0",
 			client_number,
@@ -710,6 +823,21 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			wavelength,
 			detector_x,
 			detector_y );
+
+		/* If this is a DHS area detector record, we manage
+		 * the detector_collect_image operation in a
+		 * separate thread.
+		 */
+
+		collect_operation->u.operation.operation_state
+				= MXSF_BLUICE_OPERATION_STARTED;
+
+		mx_status = mx_thread_create(
+			&(bluice_area_detector->collect_thread),
+			mxd_bluice_area_detector_collect_thread,
+			ad );
+
+		return mx_status;
 		break;
 	}
 
@@ -718,19 +846,11 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	collect_operation = bluice_area_detector->collect_operation;
-
-	if ( collect_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The collect operation for Blu-Ice area detector '%s' "
-		"has not yet been initialized.", ad->record->name );
-	}
-
 	collect_operation->u.operation.operation_state
 				= MXSF_BLUICE_OPERATION_STARTED;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-						command, NULL, 0 );
+				bluice_area_detector->collect_command, NULL, 0);
 			
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -954,7 +1074,7 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ad->record->mx_type == MXT_AD_BLUICE_DHS ) {
+	if ( ad->record->mx_type == 0 /*MXT_AD_BLUICE_DHS*/ ) {
 		client_number = mx_bluice_get_client_number( bluice_server );
 
 		operation_counter = mx_bluice_update_operation_counter(
@@ -1139,7 +1259,7 @@ mxd_bluice_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Sequence type %ld is not supported for MarCCD "
+			"Sequence type %ld is not supported for Blu-Ice "
 		      "detector '%s'.  Only one-shot sequences are supported.",
 				sp->sequence_type, ad->record->name );
 		}

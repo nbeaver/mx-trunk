@@ -1,4 +1,7 @@
 dhs_manager   server generic bluice_dhs_manager "" "" 14242 0x0
+#
+# Devices controlled by simDhs
+#
 simdhs        server bluice bluice_dhs_server "" "" dhs_manager simDhs 0x0
 energy        device motor bluice_dhs_motor "" "" 6500 0  6000.0 16000.0 0 -1 -1 1 0 eV simdhs energy 100.0 10000 500 -12500
 gonio_omega   device motor bluice_dhs_motor "" "" 0 0     5.0   360.0 0 -1 -1 1 0 deg simdhs gonio_omega 12500.0 40000 500 -12500
@@ -18,3 +21,17 @@ shutter       device relay bluice_dhs_shutter "" "" simdhs shutter
 i0            device analog_input bluice_dhs_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs hex1 0 rtc1 clock
 i1            device analog_input bluice_dhs_ion_chamber "" "" 0 1 0 units 0x0 0 timer1 simdhs hex1 1 rtc1 clock
 timer1        device timer bluice_dhs_timer "" "" simdhs rtc1 simDhs
+#
+# Devices controlled by simdetector
+#
+simdetector   server bluice bluice_dhs_server "" "" dhs_manager detector 0x0
+op_collect    variable bluice_variable bluice_dhs_operation "" "" simdetector detector_collect_image 1 80 ""
+op_transfer   variable bluice_variable bluice_dhs_operation "" "" simdetector detector_transfer_image 1 80 ""
+op_ready      variable bluice_variable bluice_dhs_operation "" "" simdetector detector_oscillation_ready 1 80 ""
+op_stop       variable bluice_variable bluice_dhs_operation "" "" simdetector detector_stop 1 80 ""
+op_reset      variable bluice_variable bluice_dhs_operation "" "" simdetector detector_reset_run 1 80 ""
+last_image    variable bluice_variable bluice_dhs_string "" "" simdetector lastImageCollected 1 80 ""
+detector_type variable bluice_variable bluice_dhs_string "" "" simdetector detectorType 1 80 ""
+#
+#
+ad            device area_detector bluice_dhs_area_detector "" "" 0 0x0 0x0 "" "" "" "" simdetector ad "" "" "" ""

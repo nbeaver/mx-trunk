@@ -36,6 +36,7 @@
 #include "d_bluice_motor.h"
 #include "d_bluice_shutter.h"
 #include "d_bluice_timer.h"
+#include "v_bluice_operation.h"
 #include "v_bluice_string.h"
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
@@ -90,6 +91,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 	MX_BLUICE_FOREIGN_DEVICE *fdev;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
 	MX_BLUICE_MOTOR *bluice_motor;
+	MX_BLUICE_OPERATION *bluice_operation;
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_STRING *bluice_string;
 	char command[200];
@@ -104,7 +106,7 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 	    strlcpy( command, "", sizeof(command) );
 
 	    /* FIXME: Not yet implemented are registration
-	     * of operations, encoders, and objects.
+	     * of encoders, and objects.
 	     */
 
 	    switch( current_record->mx_type ) {
@@ -169,6 +171,18 @@ mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 		    }
 		}
 		break;
+
+	    case MXV_BLUICE_DHS_OPERATION:
+	        bluice_operation = current_record->record_type_struct;
+
+		if ( bluice_operation->bluice_server_record == dhs_record ) {
+		
+		    snprintf( command, sizeof(command),
+		    	"stoh_register_operation %s %s",
+					bluice_operation->bluice_name,
+					bluice_operation->bluice_name );
+		}
+	    	break;
 
 	    case MXV_BLUICE_DHS_STRING:
 		bluice_string = current_record->record_type_struct;
@@ -283,7 +297,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 					bluice_dhs_manager->socket,
 					timeout_in_seconds );
 
-#if BLUICE_DHS_MANAGER_DEBUG
+#if 0 && BLUICE_DHS_MANAGER_DEBUG
 		if ( mx_status.code == MXE_TIMED_OUT ) {
 			if ( mx_get_debug_level() >= -2 ) {
 				(void) mx_error( mx_status.code,
@@ -487,7 +501,14 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		num_items = sscanf( message, format,
 				message_type_name, dhs_name, protocol_name );
 
-		if ( num_items != 3 ) {
+		if ( num_items == 3 ) {
+			/* Everything is fine. */
+		} else
+		if ( num_items == 2 ) {
+			/* We must specify a protocol name. */
+
+			strlcpy( protocol_name, "", sizeof(protocol_name) );
+		} else {
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Could not parse DHS socket %d message response = '%s'",
 				dhs_socket->socket_fd, message );
@@ -498,6 +519,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 			continue;
 		}
+
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: message_type_name = '%s'",
 			fname, message_type_name));

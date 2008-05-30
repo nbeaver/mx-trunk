@@ -41,7 +41,15 @@ typedef struct {
 	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
 	int last_collect_operation_state;
 
+	MX_BLUICE_FOREIGN_DEVICE *transfer_operation;
+	MX_BLUICE_FOREIGN_DEVICE *oscillation_ready_operation;
+	MX_BLUICE_FOREIGN_DEVICE *stop_operation;
+	MX_BLUICE_FOREIGN_DEVICE *reset_run_operation;
+
 	MX_BLUICE_FOREIGN_DEVICE *last_image_collected_string;
+
+	MX_THREAD *collect_thread;
+	char collect_command[200];
 
 	mx_bool_type initialize_datafile_number;
 

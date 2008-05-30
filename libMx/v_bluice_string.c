@@ -89,12 +89,6 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 			variable );
 	}
 
-	if ( bluice_string == (MX_BLUICE_STRING **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_BLUICE_STRING pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-
 	bluice_string_ptr = (MX_BLUICE_STRING *)
 				variable->record->record_type_struct;
 
