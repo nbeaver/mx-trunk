@@ -69,19 +69,6 @@ MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dhs_manager_rfield_def_ptr
 
 /*-------------------------------------------------------------------------*/
 
-#define MX_BLUICE_MALLOC_DEV(x) \
-	do { 								\
-		(x) = malloc( sizeof(MX_BLUICE_FOREIGN_DEVICE) );	\
-									\
-		if ( (x) == NULL ) {					\
-			return mx_error( MXE_OUT_OF_MEMORY, fname,	\
-			"Ran out of memory trying to allocate "		\
-			"an MX_BLUICE_FOREIGN_DEVICE." );		\
-		}							\
-	} while(0)
-
-/*-------------------------------------------------------------------------*/
-
 static void
 mxn_bluice_dhs_manager_register_devices( MX_RECORD *dhs_manager_record,
 						MX_RECORD *dhs_record )
@@ -247,7 +234,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 	mx_status_type mx_status;
 
 	char message[500];
-	char message_type_name[40];
+	char client_type[40];
 	char dhs_name[40];
 	char protocol_name[40];
 	int num_items;
@@ -491,7 +478,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		/* Parse the returned string. */
 
 		snprintf( format, sizeof(format), "%%%ds %%%ds %%%ds",
-			sizeof(message_type_name) - 1,
+			sizeof(client_type) - 1,
 			sizeof(dhs_name) - 1,
 			sizeof(protocol_name) - 1 );
 
@@ -499,7 +486,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		MX_DEBUG(-2,("%s: format = '%s'", fname, format));
 #endif
 		num_items = sscanf( message, format,
-				message_type_name, dhs_name, protocol_name );
+				client_type, dhs_name, protocol_name );
 
 		if ( num_items == 3 ) {
 			/* Everything is fine. */
@@ -521,23 +508,21 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		}
 
 #if BLUICE_DHS_MANAGER_DEBUG
-		MX_DEBUG(-2,("%s: message_type_name = '%s'",
-			fname, message_type_name));
+		MX_DEBUG(-2,("%s: client_type = '%s'", fname, client_type));
 
 		MX_DEBUG(-2,("%s: dhs_name = '%s'", fname, dhs_name));
 
 		MX_DEBUG(-2,("%s: protocol_name = '%s'", fname, protocol_name));
 #endif
 
-		if ( strcmp( message_type_name,
-			"htos_client_type_is_hardware" ) != 0 )
+		if ( (strcmp(client_type, "htos_client_type_is_hardware") != 0)
+		  && (strcmp(client_type, "htos_client_is_hardware") != 0) )
 		{
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Received unexpected message type '%s' from "
 			"DHS socket %d in response to an "
 			"'stoc_send_client_type' message.",
-				message_type_name,
-				dhs_socket->socket_fd );
+				client_type, dhs_socket->socket_fd );
 		}
 
 		/* Look for the DHS record that corresponds to

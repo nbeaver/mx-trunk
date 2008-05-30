@@ -64,6 +64,8 @@ typedef mx_status_type (MXN_BLUICE_DHS_MSG_HANDLER)( MX_THREAD *,
 
 static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_completed;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_motor_move_started;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_operation_completed;
+static MXN_BLUICE_DHS_MSG_HANDLER htos_operation_update;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_ion_chambers;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_report_shutter_state;
 static MXN_BLUICE_DHS_MSG_HANDLER htos_send_configuration;
@@ -76,6 +78,8 @@ static struct {
 } dhs_handler_list[] = {
 	{"htos_motor_move_completed", htos_motor_move_completed},
 	{"htos_motor_move_started", htos_motor_move_started},
+	{"htos_operation_completed", htos_operation_completed},
+	{"htos_operation_update", htos_operation_update},
 	{"htos_report_ion_chambers", htos_report_ion_chambers},
 	{"htos_report_shutter_state", htos_report_shutter_state},
 	{"htos_send_configuration", htos_send_configuration},
@@ -350,6 +354,8 @@ htos_motor_move_completed( MX_THREAD *thread,
 	return mx_status;
 }
 
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 htos_motor_move_started( MX_THREAD *thread,
 			MX_RECORD *server_record,
@@ -363,6 +369,50 @@ htos_motor_move_started( MX_THREAD *thread,
 						TRUE );
 	return mx_status;
 }
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+htos_operation_completed( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
+{
+	static const char fname[] = "stog_operation_completed()";
+
+	mx_status_type mx_status;
+
+#if BLUICE_DHS_DEBUG
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name));
+#endif
+	mx_status = mx_bluice_update_operation_status( bluice_server,
+						bluice_server->receive_buffer );
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+htos_operation_update( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DHS_SERVER *bluice_dhs_server )
+{
+	static const char fname[] = "stog_operation_update()";
+
+	mx_status_type mx_status;
+
+#if BLUICE_DHS_DEBUG
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name));
+#endif
+	mx_status = mx_bluice_update_operation_status( bluice_server,
+						bluice_server->receive_buffer );
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 htos_report_ion_chambers( MX_THREAD *thread,

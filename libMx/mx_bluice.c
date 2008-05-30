@@ -634,6 +634,8 @@ mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 
 	foreign_device = *foreign_device_ptr;
 
+	foreign_device->bluice_server = bluice_server;
+
 	strlcpy( foreign_device->name, name, MXU_BLUICE_NAME_LENGTH );
 
 	(*foreign_device_array_ptr)[*num_foreign_devices_ptr]
@@ -1080,6 +1082,72 @@ mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 
 /* ====================================================================== */
 
+MX_EXPORT int
+mx_bluice_get_operation_state( MX_BLUICE_FOREIGN_DEVICE *operation )
+{
+	static const char fname[] = "mx_bluice_get_operation_state()";
+
+	MX_BLUICE_SERVER *bluice_server;
+	int operation_state;
+
+	if ( operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_FOREIGN_DEVICE pointer passed was NULL." );
+
+		return MXSF_BLUICE_OPERATION_ERROR;
+	}
+
+	bluice_server = operation->bluice_server;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for Blu-Ice operation %p is NULL",
+			operation );
+
+		return MXSF_BLUICE_OPERATION_ERROR;
+	}
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	operation_state = operation->u.operation.operation_state;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return operation_state;
+}
+
+MX_EXPORT mx_status_type
+mx_bluice_set_operation_state( MX_BLUICE_FOREIGN_DEVICE *operation,
+				int operation_state )
+{
+	static const char fname[] = "mx_bluice_set_operation_state()";
+
+	MX_BLUICE_SERVER *bluice_server;
+
+	if ( operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_FOREIGN_DEVICE pointer passed was NULL." );
+	}
+
+	bluice_server = operation->bluice_server;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for Blu-Ice operation %p is NULL",
+			operation );
+	}
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	operation->u.operation.operation_state = operation_state;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *status_message,
@@ -1229,7 +1297,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
 	char *command_name, *operation_name;
 	char *operation_handle, *operation_arguments;
-	char *ptr, *new_buffer;
+	char *ptr, *command_ptr, *new_buffer;
 	int num_items;
 	unsigned long client_number;
 	unsigned long operation_counter;
@@ -1304,16 +1372,15 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 
 	/* Figure out the current state of the operation. */
 
-	if ( strcmp( command_name, "gtos_start_operation" ) == 0 ) {
+	command_ptr = command_name + 4;
+
+	if ( strcmp( command_ptr, "_start_operation" ) == 0 ) {
 		operation_state = MXSF_BLUICE_OPERATION_STARTED;
 	} else
-	if ( strcmp( command_name, "stog_start_operation" ) == 0 ) {
-		operation_state = MXSF_BLUICE_OPERATION_STARTED;
-	} else
-	if ( strcmp( command_name, "stog_operation_update" ) == 0 ) {
+	if ( strcmp( command_ptr, "_operation_update" ) == 0 ) {
 		operation_state = MXSF_BLUICE_OPERATION_UPDATED;
 	} else
-	if ( strcmp( command_name, "stog_operation_completed" ) == 0 ) {
+	if ( strcmp( command_ptr, "_operation_completed" ) == 0 ) {
 
 		/* If the operation just completed, we need to see if
 		 * it completed successfully or not.

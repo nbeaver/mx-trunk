@@ -31,6 +31,7 @@
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
 #include "d_bluice_area_detector.h"
+#include "d_bluice_motor.h"
 
 /*---*/
 
@@ -172,6 +173,45 @@ mxd_bluice_area_detector_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*-------------------------------------------------------------------------*/
 
+#if 0
+
+static MX_RECORD *
+mxd_bluice_area_detector_find_motor( MX_RECORD *record_list, char *motor_name )
+{
+	MX_RECORD *current_record;
+	MX_BLUICE_MOTOR *bluice_motor;
+
+	if ( record_list == NULL )
+		return NULL;
+
+	/* Make sure this is really the list head record. */
+
+	record_list = record_list->list_head;
+
+	/* Search for the requested Blu-Ice motor name. */
+
+	current_record = record_list->next_record;
+
+	while ( current_record != record_list ) {
+	    switch( current_record->mx_type ) {
+	    case MXT_MTR_BLUICE_DCSS:
+	    case MXT_MTR_BLUICE_DHS:
+	    	bluice_motor = current_record->record_type_struct;
+
+		if ( strcmp(bluice_motor->bluice_name, motor_name) == 0 ) {
+			return current_record;
+		}
+	    }
+	    current_record = current_record->next_record;
+	}
+
+	return NULL;
+}
+
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 static mx_status_type
 mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 {
@@ -180,6 +220,19 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 	MX_AREA_DETECTOR *ad;
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_FOREIGN_DEVICE *collect_operation;
+	MX_BLUICE_FOREIGN_DEVICE *transfer_operation;
+	MX_BLUICE_FOREIGN_DEVICE *oscillation_ready_operation;
+	int num_items;
+	int current_collect_state, commanded_collect_state;
+	int current_transfer_state, current_oscillation_ready_state;
+	char command[200];
+	char start_oscillation_format[40];
+	char prepare_for_oscillation_format[40];
+	char request_name[40];
+	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
+	double oscillation_time, new_motor_position;
+	unsigned long client_number, operation_counter;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -199,11 +252,360 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 	MX_DEBUG(-2,("%s invoked for Blu-Ice detector '%s'",
 		fname, ad->record->name ));
 #endif
-	/* Send the collect command. */
+	collect_operation = bluice_area_detector->collect_operation;
+
+	if ( collect_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+	    "No collect operation has been configured for area detector '%s'.",
+	    		ad->record->name );
+	}
+
+	transfer_operation = bluice_area_detector->transfer_operation;
+
+	if ( transfer_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+	    "No transfer operation has been configured for area detector '%s'.",
+	    		ad->record->name );
+	}
+
+	oscillation_ready_operation =
+		bluice_area_detector->oscillation_ready_operation;
+
+	if ( oscillation_ready_operation == (MX_BLUICE_FOREIGN_DEVICE *) NULL )
+	{
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+"No oscillation_ready operation has been configured for area detector '%s'.",
+	    		ad->record->name );
+	}
+
+	snprintf( start_oscillation_format,
+		sizeof(start_oscillation_format),
+			"%%%ds %%%ds %%lg",
+			sizeof(request_name)+1,
+			sizeof(motor_name)+1 );
+
+	snprintf( prepare_for_oscillation_format,
+		sizeof(prepare_for_oscillation_format),
+			"%%%ds %%lg",
+			sizeof(request_name)+1 );
+
+	/*-------------------------------------------*/
+
+	/* Send the collect command which was formatted in the main thread
+	 * in the function mxd_bluice_area_detector_trigger().
+	 */
+
+	commanded_collect_state = MXSF_BLUICE_OPERATION_STARTED;
+
+	mx_bluice_set_operation_state( collect_operation,
+						commanded_collect_state );
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
 				bluice_area_detector->collect_command, NULL, 0);
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The Collect operation may perform multiple exposures,
+	 * so we loop over the exposures here.
+	 */
+
+	while (1) {
+		/*-------------------------------------------*/
+
+		/* Wait until the Collect operation changes its state. */
+
+		current_collect_state = mx_bluice_get_operation_state(
+							collect_operation );
+
+		while ( current_collect_state == commanded_collect_state ) {
+			mx_msleep(1);
+
+			current_collect_state = mx_bluice_get_operation_state(
+							collect_operation );
+		}
+
+		if ( current_collect_state != MXSF_BLUICE_OPERATION_UPDATED ) {
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected operation state %d seen for the collect "
+			"operation of Blu-Ice area detector '%s'.",
+				current_collect_state, ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* We should have received a start_oscillation request here.
+		 * Try to parse it.
+		 */
+
+		num_items = sscanf(
+			collect_operation->u.operation.arguments_buffer,
+			start_oscillation_format,
+			request_name, motor_name, &oscillation_time );
+
+		if ( num_items != 3 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"The operation update string '%s' for operation '%s' "
+			"of area detector '%s' could not be parsed into a "
+			"request name, motor name, and oscillation time.",
+				collect_operation->u.operation.arguments_buffer,
+				collect_operation->name,
+				ad->record->name );
+		}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+	("%s: request_name = '%s', motor_name = '%s', oscillation_time = %f",
+			fname, request_name, motor_name, oscillation_time));
+#endif
+
+		if ( strcmp( request_name, "start_oscillation" ) != 0 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Unexpected '%s' request seen in update '%s' for "
+			"operation '%s' of area detector '%s'.  "
+			"We expected to see 'start_oscillation' here.",
+				request_name,
+				collect_operation->u.operation.arguments_buffer,
+				collect_operation->name,
+				ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* Acknowledge the update. */
+
+		commanded_collect_state =
+			MXSF_BLUICE_OPERATION_UPDATE_ACKNOWLEDGED;
+
+		mx_bluice_set_operation_state( collect_operation,
+						commanded_collect_state );
+
+		/*-------------------------------------------*/
+
+		/* FIXME: Here we either invoke an 'expose' operation or the
+		 * 'stoh_start_oscillation' command.
+		 */
+
+		mx_warning( "FIXME FIXME FIXME!\n"
+	"****** This is where we would do the 'expose' operation. ******\n"
+	"FIXME FIXME FIXME!" );
+
+		/* FIXME: Now we claim that the oscillation is over. */
+
+		/*-------------------------------------------*/
+
+		/* Send 'detector_transfer_image' to the area detector to tell
+		 * it to read out the image.
+		 */
+
+		client_number = mx_bluice_get_client_number( bluice_server );
+
+		operation_counter = mx_bluice_update_operation_counter(
+							bluice_server );
+
+		snprintf( command, sizeof(command),
+			"stoh_start_operation detector_transfer_image %lu.%lu",
+			client_number, operation_counter );
+
+		mx_bluice_set_operation_state( transfer_operation,
+						MXSF_BLUICE_OPERATION_STARTED );
+
+		mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*-------------------------------------------*/
+
+		/* Wait until the Transfer operation changes its state. */
+
+		current_transfer_state =
+			mx_bluice_get_operation_state( transfer_operation );
+
+		while (current_transfer_state == MXSF_BLUICE_OPERATION_STARTED)
+		{
+			mx_msleep(1);
+
+			current_transfer_state = mx_bluice_get_operation_state(
+							transfer_operation );
+		}
+
+		if ( current_transfer_state != MXSF_BLUICE_OPERATION_COMPLETED )		{
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected operation state %d seen for the transfer "
+			"operation of Blu-Ice area detector '%s'.",
+				current_transfer_state, ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* Wait until the Command operation changes its state. */
+
+		current_collect_state =
+			mx_bluice_get_operation_state( collect_operation );
+
+		while ( current_collect_state == commanded_collect_state )
+		{
+			mx_msleep(1);
+
+			current_collect_state = mx_bluice_get_operation_state(
+							collect_operation );
+		}
+
+		switch( current_collect_state ) {
+		case MXSF_BLUICE_OPERATION_UPDATED:
+			/* We will be acquiring another frame. */
+			break;
+		case MXSF_BLUICE_OPERATION_COMPLETED:
+			
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,
+			("%s: COLLECT HAS SUCCEEDED! for detector '%s'.  "
+			"This thread will exit now.",
+				fname, ad->record->name ));
+#endif
+
+			/* We have acquired the LAST frame, so the collect
+			 * operation is over.  We can now exit this thread.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected operation state %d seen for the collect "
+			"operation of Blu-Ice area detector '%s'.",
+				current_collect_state, ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* We should have received a prepare_for_oscillation request
+		 * here.  Try to parse it.
+		 */
+
+		num_items = sscanf(
+			collect_operation->u.operation.arguments_buffer,
+			prepare_for_oscillation_format,
+			request_name, &new_motor_position );
+
+		if ( num_items != 2 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"The operation update string '%s' for operation '%s' "
+			"of area detector '%s' could not be parsed into a "
+			"request name and a new motor position.",
+				collect_operation->u.operation.arguments_buffer,
+				collect_operation->name,
+				ad->record->name );
+		}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: request_name = '%s', new_motor_position = %f",
+			fname, request_name, new_motor_position));
+#endif
+
+		if ( strcmp( request_name, "prepare_for_oscillation" ) != 0 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Unexpected '%s' request seen in update '%s' for "
+			"operation '%s' of area detector '%s'.  "
+			"We expected to see 'prepare_for_oscillation' here.",
+				request_name,
+				collect_operation->u.operation.arguments_buffer,
+				collect_operation->name,
+				ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* Acknowledge the update. */
+
+		commanded_collect_state =
+			MXSF_BLUICE_OPERATION_UPDATE_ACKNOWLEDGED;
+
+		mx_bluice_set_operation_state( collect_operation,
+						commanded_collect_state );
+
+		/*-------------------------------------------*/
+
+		/* FIXME: Here we would move the motor to a new position. */
+
+		mx_warning( "FIXME FIXME FIXME!\n"
+	"****** This is where we would do the 'move' operation. ******\n"
+	"FIXME FIXME FIXME!" );
+
+		/* FIXME: Now we claim that the move is over. */
+
+		/*-------------------------------------------*/
+
+		/* Send 'detector_oscillation_ready' to the area detector
+		 * to tell it that the motor has reached its new position.
+		 */
+
+		client_number = mx_bluice_get_client_number( bluice_server );
+
+		operation_counter = mx_bluice_update_operation_counter(
+							bluice_server );
+
+		snprintf( command, sizeof(command),
+		"stoh_start_operation detector_oscillation_ready %lu.%lu",
+			client_number, operation_counter );
+
+		mx_bluice_set_operation_state( oscillation_ready_operation,
+						MXSF_BLUICE_OPERATION_STARTED );
+
+		mx_status = mx_bluice_send_message( bluice_server->record,
+						command, NULL, 0);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/*-------------------------------------------*/
+
+		/* Wait until the Oscillation_ready operation changes
+		 * its state.
+		 */
+
+		current_oscillation_ready_state =
+		    mx_bluice_get_operation_state(oscillation_ready_operation);
+
+		while ( current_oscillation_ready_state
+				== MXSF_BLUICE_OPERATION_STARTED )
+		{
+			mx_msleep(1);
+
+			current_oscillation_ready_state =
+				mx_bluice_get_operation_state(
+					oscillation_ready_operation );
+		}
+
+		if ( current_oscillation_ready_state
+				!= MXSF_BLUICE_OPERATION_COMPLETED )
+		{
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected operation state %d seen for the "
+			"oscillation_ready operation of Blu-Ice "
+			"area detector '%s'.",
+				current_oscillation_ready_state,
+				ad->record->name );
+		}
+
+		/*-------------------------------------------*/
+
+		/* Go back to the top of the loop for another pass. */
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Going back to the top of the loop for another frame.",
+			fname));
+#endif
+	}
+
+#if MXD_BLUICE_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s is exiting for area detector '%s'",
+		fname, ad->record->name));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -700,6 +1102,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char datafile_name[MXU_FILENAME_LENGTH+1];
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char *ptr;
+	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	unsigned long dark_current_fu;
 	unsigned long client_number, operation_counter;
 	double detector_distance, wavelength;
@@ -808,16 +1211,19 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		detector_y = mxp_motor_position(
 			bluice_area_detector->detector_y_record );
 
+		strlcpy( motor_name, "NULL", sizeof(motor_name) );
+
 		snprintf( bluice_area_detector->collect_command,
 			sizeof(bluice_area_detector->collect_command),
 		"stoh_start_operation detector_collect_image %lu.%lu %lu "
-		"%s %s %s NULL %f 0.0 0.0 %f %f %f %f 0 0",
+		"%s %s %s %s %f 0.0 0.0 %f %f %f %f 0 0",
 			client_number,
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
 			ad->datafile_directory,
 			dhs_username,
+			motor_name,
 			exposure_time,
 			detector_distance,
 			wavelength,

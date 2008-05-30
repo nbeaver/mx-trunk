@@ -102,11 +102,12 @@ typedef struct {
 
 /* Values for 'operation_state' */
 
-#define MXSF_BLUICE_OPERATION_NETWORK_ERROR	(-2)
-#define MXSF_BLUICE_OPERATION_ERROR		(-1)
-#define MXSF_BLUICE_OPERATION_COMPLETED		0
-#define MXSF_BLUICE_OPERATION_STARTED		1
-#define MXSF_BLUICE_OPERATION_UPDATED		2
+#define MXSF_BLUICE_OPERATION_NETWORK_ERROR		(-2)
+#define MXSF_BLUICE_OPERATION_ERROR			(-1)
+#define MXSF_BLUICE_OPERATION_COMPLETED			0
+#define MXSF_BLUICE_OPERATION_STARTED			1
+#define MXSF_BLUICE_OPERATION_UPDATED			2
+#define MXSF_BLUICE_OPERATION_UPDATE_ACKNOWLEDGED	3
 
 typedef struct {
 	char *arguments_buffer;
@@ -146,6 +147,8 @@ typedef struct {
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 
+	struct mx_bluice_server_type *bluice_server;
+
 	union {
 		MX_BLUICE_FOREIGN_ION_CHAMBER ion_chamber;
 		MX_BLUICE_FOREIGN_MOTOR motor;
@@ -157,7 +160,7 @@ typedef struct {
 
 /* ----- */
 
-typedef struct {
+typedef struct mx_bluice_server_type {
 	MX_RECORD *record;
 
 	MX_SOCKET *socket;
@@ -261,6 +264,15 @@ mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server );
 
 MX_API unsigned long
 mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server );
+
+/* ----- */
+
+MX_API int
+mx_bluice_get_operation_state( MX_BLUICE_FOREIGN_DEVICE *operation );
+
+MX_API mx_status_type
+mx_bluice_set_operation_state( MX_BLUICE_FOREIGN_DEVICE *operation,
+				int operation_state );
 
 /* ----- */
 
