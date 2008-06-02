@@ -29,7 +29,13 @@
 
 MX_RECORD_FUNCTION_LIST mxv_bluice_self_operation_record_function_list = {
 	mx_variable_initialize_type,
-	mxv_bluice_self_operation_create_record_structures
+	mxv_bluice_self_operation_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxv_bluice_self_operation_open
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_bluice_self_operation_variable_function_list = {
@@ -93,6 +99,39 @@ mxv_bluice_self_operation_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	bluice_self_operation->foreign_device = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxv_bluice_self_operation_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxv_bluice_self_operation_open()";
+
+	MX_BLUICE_SELF_OPERATION *bluice_self_operation;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	bluice_self_operation = record->record_type_struct;
+
+	if ( bluice_self_operation == (MX_BLUICE_SELF_OPERATION *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SELF_OPERATION pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s invoked for record '%s', record_ptr = %p",
+		fname, record->name, record));
+	MX_DEBUG(-2,("%s: bluice_self_operation = %p",
+		fname, bluice_self_operation));
+	MX_DEBUG(-2,("%s: bluice_server_name = '%s', bluice_name = '%s'",
+		fname, bluice_self_operation->bluice_server_name,
+		bluice_self_operation->bluice_name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
