@@ -1105,8 +1105,10 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	unsigned long dark_current_fu;
 	unsigned long client_number, operation_counter;
+	unsigned long flags;
 	double detector_distance, wavelength;
 	double detector_x, detector_y;
+	mx_bool_type reuse_dark;
 	mx_status_type mx_status;
 
 	bluice_area_detector = NULL;
@@ -1179,6 +1181,17 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 
 	operation_counter = mx_bluice_update_operation_counter( bluice_server );
 
+	flags = bluice_area_detector->bluice_flags;
+
+	if ( flags & MXF_BLUICE_AD_REUSE_DARK ) {
+		reuse_dark = TRUE;
+	} else {
+		reuse_dark = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: flags = %#lx, reuse_dark = %d",
+		fname, flags, reuse_dark));
+
 	switch( ad->record->mx_type ) {
 	case MXT_AD_BLUICE_DCSS:
 		bluice_dcss_server = bluice_server->record->record_type_struct;
@@ -1186,14 +1199,15 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		snprintf( bluice_area_detector->collect_command,
 			sizeof(bluice_area_detector->collect_command),
 		"gtos_start_operation collectFrame %lu.%lu %lu %s %s %s "
-			"NULL NULL 0 %f 0 1 0",
+			"NULL NULL 0 %f 0 1 %d",
 			client_number,
 			operation_counter,
 			dark_current_fu,
 			datafile_name,
 			datafile_directory,
 			bluice_dcss_server->bluice_username,
-			exposure_time );
+			exposure_time,
+			reuse_dark );
 		break;
 
 	case MXT_AD_BLUICE_DHS:
@@ -1216,7 +1230,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		snprintf( bluice_area_detector->collect_command,
 			sizeof(bluice_area_detector->collect_command),
 		"stoh_start_operation detector_collect_image %lu.%lu %lu "
-		"%s %s %s %s %f 0.0 0.0 %f %f %f %f 0 0",
+		"%s %s %s %s %f 0.0 0.0 %f %f %f %f 0 %d",
 			client_number,
 			operation_counter,
 			dark_current_fu,
@@ -1228,7 +1242,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			detector_distance,
 			wavelength,
 			detector_x,
-			detector_y );
+			detector_y,
+			reuse_dark );
 
 		/* If this is a DHS area detector record, we manage
 		 * the detector_collect_image operation in a

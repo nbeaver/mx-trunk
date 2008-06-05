@@ -34,4 +34,4 @@ last_image    variable bluice_variable bluice_dhs_string "" "" simdetector lastI
 detector_type variable bluice_variable bluice_dhs_string "" "" simdetector detectorType 1 80 ""
 #
 #
-ad            device area_detector bluice_dhs_area_detector "" "" 0 0x0 0x0 "" "" "" "" simdetector ad "" "" "" ""
+ad            device area_detector bluice_dhs_area_detector "" "" 0 0x0 0x0 "" "" "" "" simdetector detector 0x1 "" "" "" ""

@@ -17,11 +17,16 @@
 #ifndef __D_BLUICE_AREA_DETECTOR_H__
 #define __D_BLUICE_AREA_DETECTOR_H__
 
+/* Flag bits for the 'bluice_flags' field. */
+
+#define MXF_BLUICE_AD_REUSE_DARK	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *bluice_server_record;
 	char bluice_dhs_name[MXU_BLUICE_NAME_LENGTH+1];
+	unsigned long bluice_flags;
 
 	char datafile_directory[MXU_FILENAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
@@ -98,7 +103,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr;
   {-1, -1, "bluice_dhs_name", MXFT_STRING, NULL, 1, {MXU_BLUICE_NAME_LENGTH}, \
   	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_dhs_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "bluice_flags", MXFT_HEX, NULL, 0, {0}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_AREA_DETECTOR, bluice_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #define MXD_BLUICE_DHS_AREA_DETECTOR_STANDARD_FIELDS \
   {-1, -1, "bluice_server_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -110,6 +119,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr;
   	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_BLUICE_AREA_DETECTOR, bluice_dhs_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "bluice_flags", MXFT_HEX, NULL, 0, {0}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_AREA_DETECTOR, bluice_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "detector_distance_name", MXFT_STRING, \
   				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
