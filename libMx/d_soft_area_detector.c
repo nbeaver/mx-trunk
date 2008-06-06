@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -133,7 +133,11 @@ mxd_soft_area_detector_create_record_structures( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 
-	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
+	/* Use calloc() here instead of malloc(), so that a bunch of
+	 * fields that are never touched will be initialized to 0.
+	 */
+
+	ad = (MX_AREA_DETECTOR *) calloc( 1, sizeof(MX_AREA_DETECTOR) );
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -141,7 +145,7 @@ mxd_soft_area_detector_create_record_structures( MX_RECORD *record )
 	}
 
 	soft_area_detector = (MX_SOFT_AREA_DETECTOR *)
-				malloc( sizeof(MX_SOFT_AREA_DETECTOR) );
+				calloc( 1, sizeof(MX_SOFT_AREA_DETECTOR) );
 
 	if ( soft_area_detector == (MX_SOFT_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -152,9 +156,6 @@ mxd_soft_area_detector_create_record_structures( MX_RECORD *record )
 	record->record_type_struct = soft_area_detector;
 	record->class_specific_function_list = 
 			&mxd_soft_area_detector_function_list;
-
-	memset( &(ad->sequence_parameters),
-			0, sizeof(ad->sequence_parameters) );
 
 	ad->record = record;
 	soft_area_detector->record = record;
@@ -178,6 +179,7 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	MX_RECORD *video_input_record;
+	long i;
 	mx_status_type mx_status;
 
 	soft_area_detector = NULL;
@@ -203,13 +205,6 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	ad->header_length = 0;
 
-	/* FIXME: Need to change the file format. */
-
-	ad->frame_file_format = MXT_IMAGE_FILE_PNM;
-
-	ad->binsize[0] = 1;
-	ad->binsize[1] = 1;
-
 	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
 	ad->sequence_parameters.num_parameters = 1;
 	ad->sequence_parameters.parameter_array[0] = 1.0;
@@ -228,6 +223,47 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	ad->framesize[0] = ad->maximum_framesize[0];
 	ad->framesize[1] = ad->maximum_framesize[1];
 
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
+	/* Copy other needed parameters from the video input record to
+	 * the area detector record.
+	 */
+
+	mx_status = mx_video_input_get_image_format( video_input_record,
+							&(ad->image_format) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+						ad->image_format_name,
+						sizeof(ad->image_format_name) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->frame_file_format = ad->image_format;  /* Is this used? */
+
+	mx_status = mx_video_input_get_byte_order( video_input_record,
+							&(ad->byte_order) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_pixel( video_input_record,
+							&(ad->bytes_per_pixel));
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bits_per_pixel( video_input_record,
+							&(ad->bits_per_pixel));
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( video_input_record,
+							&(ad->bytes_per_frame));
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
@@ -235,6 +271,15 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Zero out the ROI boundaries. */
+
+	for ( i = 0; i < ad->maximum_num_rois; i++ ) {
+		ad->roi_array[i][0] = 0;
+		ad->roi_array[i][1] = 0;
+		ad->roi_array[i][2] = 0;
+		ad->roi_array[i][3] = 0;
+	}
 
 	/* Load the image correction files. */
 

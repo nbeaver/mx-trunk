@@ -1,2 +1,5 @@
 set field ad.datafile_directory /data/lavender/test
 set field ad.datafile_pattern datafile####.img
+ad ad set one 1
+ad ad arm
+ad ad trigger
