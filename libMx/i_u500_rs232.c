@@ -371,6 +371,8 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 
 	MX_U500_RS232 *u500_rs232;
 	MX_U500 *u500;
+	char local_buffer[500];
+	size_t prefix_length;
 	mx_status_type mx_status;
 
 	mx_status = mxi_u500_rs232_get_pointers( rs232,
@@ -378,7 +380,32 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_u500_command( u500, u500_rs232->board_number, buffer );
+	prefix_length = 3;
+
+	if ( mx_strncasecmp( "MX ", buffer, prefix_length ) != 0 ) {
+		mx_status = mxi_u500_command( u500,
+				u500_rs232->board_number, buffer );
+        } else {
+		/* The U500 does not have a programming command that starts
+		 * with the string 'MX '.  If the calling routine sends us
+		 * a buffer that starts with 'MX ', then we interpret this
+		 * as a request to replace the string 'MX ' with the string
+		 * 'ME FI(%s,a) ' where %s is the contents of the 'pipe_name'
+		 * field of the 'u500_rs232' driver.
+		 * 
+		 * This is just a convenience that allows the user to write
+		 * a U500 script without knowing the name of the U500 pipe.
+		 * You do not have to use the 'MX ' command if you do not
+		 * want to.
+		 */
+
+		snprintf( local_buffer, sizeof(local_buffer),
+			"ME FI(%s,A) %s", u500_rs232->pipe_name,
+					buffer + prefix_length );
+
+		mx_status = mxi_u500_command( u500,
+				u500_rs232->board_number, local_buffer );
+	}
 
 	return mx_status;
 }
