@@ -117,7 +117,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_remote_marccd.c d_remote_marccd_shutter.c d_roentec_rcl_mca.c \
 	d_rtc018.c d_scaler_function.c d_scaler_function_mcs.c \
 	d_scipe_aio.c d_scipe_amplifier.c d_scipe_dio.c d_scipe_motor.c \
-	d_scipe_scaler.c d_scipe_timer.c d_segmented_move.c \
+	d_scipe_scaler.c d_scipe_timer.c d_src_mono.c d_segmented_move.c \
 	d_sercat_als_robot.c \
 	d_si9650_motor.c d_si9650_status.c \
 	d_sis3801.c d_sis3801_pulser.c d_sis3807.c d_slit_motor.c \

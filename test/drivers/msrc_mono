@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./msrc_mono.dat -s ./ssrc_mono.dat $*
+

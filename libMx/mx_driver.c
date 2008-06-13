@@ -291,6 +291,7 @@
 #include "d_mcu2.h"
 #include "d_bluice_motor.h"
 #include "d_ptz_motor.h"
+#include "d_src_mono.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2201,6 +2202,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_ptz_motor_motor_function_list,
 				&mxd_ptz_motor_num_record_fields,
 				&mxd_ptz_motor_rfield_def_ptr},
+
+{"src_mono",       MXT_MTR_SRC_MONO,  MXC_MOTOR,          MXR_DEVICE,
+				&mxd_src_mono_record_function_list,
+				NULL,
+				&mxd_src_mono_motor_function_list,
+				&mxd_src_mono_num_record_fields,
+				&mxd_src_mono_rfield_def_ptr},
 
 #if HAVE_U500
 {"u500_motor",     MXT_MTR_U500,      MXC_MOTOR,          MXR_DEVICE,

@@ -460,6 +460,7 @@ extern "C" {
 #define MXT_MTR_BLUICE_DCSS		50049
 #define MXT_MTR_BLUICE_DHS		50050
 #define MXT_MTR_PTZ			50051
+#define MXT_MTR_SRC_MONO		50052
 
    /* Pseudomotors. */
 
