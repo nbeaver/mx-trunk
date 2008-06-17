@@ -196,7 +196,7 @@
 #include "i_panasonic_kx_dp702.h"
 #include "i_epix_xclib.h"
 #include "i_edt.h"
-#include "i_spellman_hvps.h"
+#include "i_spellman_df3.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -255,8 +255,8 @@
 #include "d_bluice_ion_chamber.h"
 #include "d_epix_xclib_dio.h"
 #include "d_u500_status.h"
-#include "d_spellman_hvps_aio.h"
-#include "d_spellman_hvps_dio.h"
+#include "d_spellman_df3_aio.h"
+#include "d_spellman_df3_dio.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1029,12 +1029,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_panasonic_kx_dp702_num_record_fields,
 				&mxi_panasonic_kx_dp702_rfield_def_ptr},
 
-{"spellman_hvps",  MXI_GEN_SPELLMAN_HVPS, MXI_GENERIC,    MXR_INTERFACE,
-				&mxi_spellman_hvps_record_function_list,
+{"spellman_df3",  MXI_GEN_SPELLMAN_DF3, MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_spellman_df3_record_function_list,
 				NULL,
 				NULL,
-				&mxi_spellman_hvps_num_record_fields,
-				&mxi_spellman_hvps_rfield_def_ptr},
+				&mxi_spellman_df3_num_record_fields,
+				&mxi_spellman_df3_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
@@ -1588,19 +1588,19 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_bluice_dhs_ion_chamber_num_record_fields,
 				&mxd_bluice_dhs_ion_chamber_rfield_def_ptr},
 
-{"spellman_hvps_ain", MXT_AIN_SPELLMAN_HVPS,   MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_spellman_hvps_ain_record_function_list,
+{"spellman_df3_ain", MXT_AIN_SPELLMAN_DF3,   MXC_ANALOG_INPUT,   MXR_DEVICE,
+				&mxd_spellman_df3_ain_record_function_list,
 				NULL,
-			&mxd_spellman_hvps_ain_analog_input_function_list,
-				&mxd_spellman_hvps_ain_num_record_fields,
-				&mxd_spellman_hvps_ain_rfield_def_ptr},
+			&mxd_spellman_df3_ain_analog_input_function_list,
+				&mxd_spellman_df3_ain_num_record_fields,
+				&mxd_spellman_df3_ain_rfield_def_ptr},
 
-{"spellman_hvps_aout",MXT_AOU_SPELLMAN_HVPS,   MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_spellman_hvps_aout_record_function_list,
+{"spellman_df3_aout",MXT_AOU_SPELLMAN_DF3,   MXC_ANALOG_OUTPUT,  MXR_DEVICE,
+				&mxd_spellman_df3_aout_record_function_list,
 				NULL,
-			&mxd_spellman_hvps_aout_analog_output_function_list,
-				&mxd_spellman_hvps_aout_num_record_fields,
-				&mxd_spellman_hvps_aout_rfield_def_ptr},
+			&mxd_spellman_df3_aout_analog_output_function_list,
+				&mxd_spellman_df3_aout_num_record_fields,
+				&mxd_spellman_df3_aout_rfield_def_ptr},
 
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
@@ -1913,19 +1913,19 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_cm17a_doutput_num_record_fields,
 				&mxd_cm17a_doutput_rfield_def_ptr},
 
-{"spellman_hvps_din", MXT_DIN_SPELLMAN_HVPS,   MXC_DIGITAL_INPUT,   MXR_DEVICE,
-				&mxd_spellman_hvps_din_record_function_list,
+{"spellman_df3_din", MXT_DIN_SPELLMAN_DF3,   MXC_DIGITAL_INPUT,   MXR_DEVICE,
+				&mxd_spellman_df3_din_record_function_list,
 				NULL,
-			&mxd_spellman_hvps_din_digital_input_function_list,
-				&mxd_spellman_hvps_din_num_record_fields,
-				&mxd_spellman_hvps_din_rfield_def_ptr},
+			&mxd_spellman_df3_din_digital_input_function_list,
+				&mxd_spellman_df3_din_num_record_fields,
+				&mxd_spellman_df3_din_rfield_def_ptr},
 
-{"spellman_hvps_dout",MXT_DOU_SPELLMAN_HVPS,   MXC_DIGITAL_OUTPUT,  MXR_DEVICE,
-				&mxd_spellman_hvps_dout_record_function_list,
+{"spellman_df3_dout",MXT_DOU_SPELLMAN_DF3,   MXC_DIGITAL_OUTPUT,  MXR_DEVICE,
+				&mxd_spellman_df3_dout_record_function_list,
 				NULL,
-			&mxd_spellman_hvps_dout_digital_output_function_list,
-				&mxd_spellman_hvps_dout_num_record_fields,
-				&mxd_spellman_hvps_dout_rfield_def_ptr},
+			&mxd_spellman_df3_dout_digital_output_function_list,
+				&mxd_spellman_df3_dout_num_record_fields,
+				&mxd_spellman_df3_dout_rfield_def_ptr},
 
 
 #ifdef OS_LINUX

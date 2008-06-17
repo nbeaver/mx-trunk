@@ -1,4 +1,0 @@
-#! /bin/sh
-
-../../motor/motor.static -F ./mspellman_hvps.dat -s ./sspellman_hvps.dat $*
-
