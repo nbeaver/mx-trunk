@@ -232,6 +232,7 @@ extern "C" {
 #define MXI_GEN_PANASONIC_KX_DP702	448
 #define MXI_GEN_EPIX_XCLIB		449
 #define MXI_GEN_EDT			450
+#define MXI_GEN_SPELLMAN_HVPS		451
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -297,6 +298,7 @@ extern "C" {
 #define MXT_AIN_TPG262			10035
 #define MXT_AIN_BLUICE_DCSS_ION_CHAMBER	10036
 #define MXT_AIN_BLUICE_DHS_ION_CHAMBER	10037
+#define MXT_AIN_SPELLMAN_HVPS		10038
 
 /* --- Analog input subclasses -- */
 
@@ -327,6 +329,7 @@ extern "C" {
 #define MXT_AOU_PMC_MCAPI		20019
 #define MXT_AOU_TRACKER			20020
 #define MXT_AOU_SR630			20021
+#define MXT_AOU_SPELLMAN_HVPS		20022
 
 /* --- Analog output subclasses -- */
 
@@ -364,6 +367,7 @@ extern "C" {
 #define MXT_DIN_PICOMOTOR		30026
 #define MXT_DIN_TRACKER			30027
 #define MXT_DIN_EPIX_XCLIB		30028
+#define MXT_DIN_SPELLMAN_HVPS		30029
 
 /* --- Digital output types --- */
 
@@ -400,6 +404,7 @@ extern "C" {
 #define MXT_DOU_TPG262			40030
 #define MXT_DOU_CM17A			40031
 #define MXT_DOU_EPIX_XCLIB		40032
+#define MXT_DOU_SPELLMAN_HVPS		40033
 
 /* --- Motor subclasses --- */
 

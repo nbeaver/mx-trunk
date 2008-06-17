@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_smartmotor_ain_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_ain_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_SMARTMOTOR_AINPUT_STANDARD_FIELDS
 };
@@ -73,7 +73,7 @@ MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_smartmotor_aout_analog_output_function_list
 
 MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_aout_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_DOUBLE_ANALOG_OUTPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MXD_SMARTMOTOR_AOUTPUT_STANDARD_FIELDS
 };

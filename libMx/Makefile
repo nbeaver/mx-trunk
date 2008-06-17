@@ -128,6 +128,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_soft_sample_changer.c d_soft_sca.c d_soft_scaler.c d_soft_timer.c \
 	d_soft_vinput.c \
 	d_sony_visca_ptz.c d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
+	d_spellman_hvps_aio.c d_spellman_hvps_dio.c \
 	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_stp100.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
@@ -157,7 +158,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c i_pmac.c \
 	i_pmc_mcapi.c i_rtems_vme.c i_scipe.c i_sis3100.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
-	i_sony_visca.c i_spec_command.c \
+	i_sony_visca.c i_spec_command.c i_spellman_hvps.c \
 	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
 	i_u500.c i_u500_rs232.c i_uglide.c i_umcbi.c \
 	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c i_vxi_memacc.c \

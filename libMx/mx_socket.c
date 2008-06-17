@@ -329,6 +329,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *client_socket );
 
+		*client_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a TCP socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -364,6 +366,8 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 		}
 
 		mx_socket_close( *client_socket );
+
+		*client_socket = NULL;
 
 		return mx_error( error_code, fname,
 			"connect() to host '%s', port %ld failed.  "
@@ -457,6 +461,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a TCP socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -484,6 +490,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Attempt to set SO_REUSEADDR option for server socket for port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -508,6 +516,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to bind server socket to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -524,6 +534,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Attempt to listen for connections to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -536,6 +548,8 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_socket_close( *server_socket );
+
+		*server_socket = NULL;
 
 		return mx_status;
 	}
@@ -668,6 +682,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *client_socket );
 
+		*client_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a Unix domain socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -708,6 +724,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 		}
 
 		mx_socket_close( *client_socket );
+
+		*client_socket = NULL;
 
 		return mx_error( error_code, fname,
 			"connect() to Unix domain socket '%s' failed.  "
@@ -790,6 +808,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to create a Unix domain socket failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -816,6 +836,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
+
+		*server_socket = NULL;
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Attempt to set SO_REUSEADDR option for server socket '%s' failed.  "
@@ -847,6 +869,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Attempt to bind server socket to pathname '%s' failed."
 			"  Errno = %d.  Error string = '%s'.",
@@ -863,6 +887,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 	if ( saved_errno != 0 ) {
 		mx_socket_close( *server_socket );
 
+		*server_socket = NULL;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Attempt to listen for connections on socket '%s' failed.  "
 			"Errno = %d.  Error string = '%s'.",
@@ -875,6 +901,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_socket_close( *server_socket );
+
+		*server_socket = NULL;
 
 		return mx_status;
 	}

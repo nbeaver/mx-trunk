@@ -212,10 +212,6 @@ mxd_src_mono_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the RS-232 timeout to 1 second. */
-
-	rs232->timeout = 100.0;  /* FIXME: For debugging set to 100 seconds */
-
 	/* Verify that the connection is alive by asking for the
 	 * current position.
 	 */
