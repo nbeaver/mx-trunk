@@ -1,0 +1,2 @@
+bk_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 1 0x0 /dev/ttyS0
+bk       interface generic bkprecision_912x "" "" bk_rs232

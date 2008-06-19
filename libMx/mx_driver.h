@@ -233,6 +233,7 @@ extern "C" {
 #define MXI_GEN_EPIX_XCLIB		449
 #define MXI_GEN_EDT			450
 #define MXI_GEN_SPELLMAN_DF3		451
+#define MXI_GEN_BKPRECISION_912X	452
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -299,6 +300,7 @@ extern "C" {
 #define MXT_AIN_BLUICE_DCSS_ION_CHAMBER	10036
 #define MXT_AIN_BLUICE_DHS_ION_CHAMBER	10037
 #define MXT_AIN_SPELLMAN_DF3		10038
+#define MXT_AIN_BKPRECISION_912X	10039
 
 /* --- Analog input subclasses -- */
 
@@ -330,6 +332,7 @@ extern "C" {
 #define MXT_AOU_TRACKER			20020
 #define MXT_AOU_SR630			20021
 #define MXT_AOU_SPELLMAN_DF3		20022
+#define MXT_AOU_BKPRECISION_912X	20023
 
 /* --- Analog output subclasses -- */
 
@@ -368,6 +371,7 @@ extern "C" {
 #define MXT_DIN_TRACKER			30027
 #define MXT_DIN_EPIX_XCLIB		30028
 #define MXT_DIN_SPELLMAN_DF3		30029
+#define MXT_DIN_BKPRECISION_912X	30030
 
 /* --- Digital output types --- */
 
@@ -405,6 +409,7 @@ extern "C" {
 #define MXT_DOU_CM17A			40031
 #define MXT_DOU_EPIX_XCLIB		40032
 #define MXT_DOU_SPELLMAN_DF3		40033
+#define MXT_DOU_BKPRECISION_912X	40034
 
 /* --- Motor subclasses --- */
 
