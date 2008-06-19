@@ -84,6 +84,12 @@ mxi_bkprecision_912x_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#define FREE_912X_STRINGS \
+	do {				\
+		mx_free(argv);		\
+		mx_free(dup_string);	\
+	} while(0)
+
 MX_EXPORT mx_status_type
 mxi_bkprecision_912x_open( MX_RECORD *record )
 {
@@ -91,8 +97,9 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 
 	MX_BKPRECISION_912X *bkprecision_912x;
 	char response[40];
-	int num_items;
-	unsigned long software_version;
+	int argc;
+	char **argv;
+	char *dup_string;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -119,19 +126,50 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "B%lu", &software_version );
+	dup_string = strdup( response );
 
-	if ( num_items != 1 ) {
+	if ( dup_string == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to duplicate the BK Precision "
+		"response string for record '%s'.", record->name );
+	}
+
+	mx_string_split( dup_string, ",", &argc, &argv );
+
+	if ( argc < 4 ) {
+		FREE_912X_STRINGS;
+
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"The response '%s' to the 'V' command for "
-		"BK Precision 912x '%s' was not recognizable.",
+		"The response '%s' from BK Precision power supply '%s' "
+		"*IDN? command did not have the expected format of "
+		"four strings separated by commas.",
 			response, record->name );
 	}
 
+	if ( ( strcmp( argv[0], "BK PRECISION" ) != 0 )
+	  || ( strncmp( argv[1], "912", 3 ) != 0 ) )
+	{
+		mx_status = mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"Record '%s' does not appear to be a BK Precision 912x series "
+		"power supply.  Instead, it appears to be a model '%s' device "
+		"sold by '%s'.", record->name, argv[1], argv[0] );
+
+		FREE_912X_STRINGS;
+		return mx_status;
+	}
+
+	strlcpy( bkprecision_912x->model_name, argv[1],
+			sizeof(bkprecision_912x->model_name) );
+
 #if MXI_BKPRECISION_912X_DEBUG
-	MX_DEBUG(-2,("%s: BK Precision 912x '%s' software version = %lu",
-			fname, record->name, software_version ));
+	MX_DEBUG(-2,
+	("%s: Record '%s' is a BK Precision %s, software version = '%s', "
+	"serial number = '%s'",
+			fname, record->name, bkprecision_912x->model_name,
+			argv[2], argv[3]));
 #endif
+
+	FREE_912X_STRINGS;
 
 	return MX_SUCCESSFUL_RESULT;
 }

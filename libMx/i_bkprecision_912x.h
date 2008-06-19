@@ -22,6 +22,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_INTERFACE port_interface;
+
+	char model_name[10];
 } MX_BKPRECISION_912X;
 
 #define MXI_BKPRECISION_912X_STANDARD_FIELDS \
