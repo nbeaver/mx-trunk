@@ -97,6 +97,7 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 
 	MX_BKPRECISION_912X *bkprecision_912x;
 	MX_RECORD *interface_record;
+	char command[40];
 	char response[200];
 	int argc;
 	char **argv;
@@ -192,17 +193,65 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 
 	FREE_912X_STRINGS;
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Figure out what function to use for the rear panel port. */
+
+	if ( mx_strncasecmp( "TRIGGER", bkprecision_912x->port_function_name,
+			strlen( bkprecision_912x->port_function_name) ) == 0 )
+	{
+		bkprecision_912x->port_function = MXT_BKPRECISION_912X_TRIGGER;
+	} else
+	if ( mx_strncasecmp( "RIDFI", bkprecision_912x->port_function_name,
+			strlen( bkprecision_912x->port_function_name) ) == 0 )
+	{
+		bkprecision_912x->port_function = MXT_BKPRECISION_912X_RIDFI;
+	} else
+	if ( mx_strncasecmp( "DIGITAL", bkprecision_912x->port_function_name,
+			strlen( bkprecision_912x->port_function_name) ) == 0 )
+	{
+		bkprecision_912x->port_function = MXT_BKPRECISION_912X_DIGITAL;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized port function '%s' specified for "
+		"BK Precision power supply '%s'.",
+			bkprecision_912x->port_function_name,
+			record->name );
+	}
+
+	/* Configure the port function. */
+
+	switch( bkprecision_912x->port_function ) {
+	case MXT_BKPRECISION_912X_TRIGGER:
+		strlcpy( command, "PORT:FUNCTION TRIGGER", sizeof(command) );
+		break;
+	case MXT_BKPRECISION_912X_RIDFI:
+		strlcpy( command, "PORT:FUNCTION RIDFI", sizeof(command) );
+		break;
+	case MXT_BKPRECISION_912X_DIGITAL:
+		strlcpy( command, "PORT:FUNCTION DIGITAL", sizeof(command) );
+		break;
+	}
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
+					NULL, 0, MXI_BKPRECISION_912X_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Turn on the output voltage. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "OUTPUT ON",
+					NULL, 0, MXI_BKPRECISION_912X_DEBUG );
+
+	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
-			char *command,
-			char *response,
-			size_t response_buffer_length,
-			int debug_flag )
+static mx_status_type
+mxi_bkprecision_912x_getline( MX_BKPRECISION_912X *bkprecision_912x,
+				char *response,
+				size_t response_buffer_length,
+				int debug_flag )
 {
-	static const char fname[] = "mxi_bkprecision_912x_command()";
+	static const char fname[] = "mxi_bkprecision_912x_getline()";
 
 	MX_RECORD *interface_record;
 	long gpib_address;
@@ -211,6 +260,10 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	if ( bkprecision_912x == (MX_BKPRECISION_912X *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_BKPRECISION_912X pointer passed was NULL." );
+	}
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response pointer passed was NULL." );
 	}
 
 	interface_record = bkprecision_912x->port_interface.record;
@@ -223,61 +276,131 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 			bkprecision_912x->record->name );
 	}
 
-	if ( command != NULL ) {
-		/* Send the command. */
+	/* Read the response. */
 
-		if ( debug_flag ) {
-			MX_DEBUG(-2,("%s: sending '%s' to '%s'",
-			    fname, command, bkprecision_912x->record->name ));
-		}
-
-		switch( interface_record->mx_class ) {
-		case MXI_RS232:
-			mx_status = mx_rs232_putline( interface_record,
-							command, NULL, 0 );
-			break;
-		case MXI_GPIB:
-			mx_status = mx_gpib_putline( interface_record,
-					gpib_address, command, NULL, 0 );
-			break;
-		default:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported MX class %lu for interface '%s' used by "
-			"BK Precision power supply '%s'",
-				interface_record->mx_class,
-				interface_record->name,
-				bkprecision_912x->record->name );
-			break;
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	switch( interface_record->mx_class ) {
+	case MXI_RS232:
+		mx_status = mx_rs232_getline( interface_record,
+				response, response_buffer_length,
+				NULL, 0 );
+		break;
+	case MXI_GPIB:
+		mx_status = mx_gpib_getline(
+				interface_record, gpib_address,
+				response, response_buffer_length,
+				NULL, 0 );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX class %lu for interface '%s' used by "
+		"BK Precision power supply '%s'",
+			interface_record->mx_class,
+			interface_record->name,
+			bkprecision_912x->record->name );
+		break;
 	}
 
-	if ( response != NULL ) {
-		/* Read the response. */
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		switch( interface_record->mx_class ) {
-		case MXI_RS232:
-			mx_status = mx_rs232_getline( interface_record,
-					response, response_buffer_length,
-					NULL, 0 );
-			break;
-		case MXI_GPIB:
-			mx_status = mx_gpib_getline(
-					interface_record, gpib_address,
-					response, response_buffer_length,
-					NULL, 0 );
-			break;
-		default:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported MX class %lu for interface '%s' used by "
-			"BK Precision power supply '%s'",
-				interface_record->mx_class,
-				interface_record->name,
-				bkprecision_912x->record->name );
-			break;
-		}
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+		    fname, response, bkprecision_912x->record->name ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_bkprecision_912x_putline( MX_BKPRECISION_912X *bkprecision_912x,
+				char *command,
+				int debug_flag )
+{
+	static const char fname[] = "mxi_bkprecision_912x_putline()";
+
+	MX_RECORD *interface_record;
+	long gpib_address;
+	mx_status_type mx_status;
+
+	if ( bkprecision_912x == (MX_BKPRECISION_912X *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BKPRECISION_912X pointer passed was NULL." );
+	}
+	if ( command == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The command pointer passed was NULL." );
+	}
+
+	interface_record = bkprecision_912x->port_interface.record;
+	gpib_address     = bkprecision_912x->port_interface.address;
+
+	if ( interface_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The interface record pointer for BK Precision "
+		"power supply '%s' is NULL.",
+			bkprecision_912x->record->name );
+	}
+
+	/* Send the command. */
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+		    fname, command, bkprecision_912x->record->name ));
+	}
+
+	switch( interface_record->mx_class ) {
+	case MXI_RS232:
+		mx_status = mx_rs232_putline( interface_record,
+						command, NULL, 0 );
+		break;
+	case MXI_GPIB:
+		mx_status = mx_gpib_putline( interface_record,
+				gpib_address, command, NULL, 0 );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX class %lu for interface '%s' used by "
+		"BK Precision power supply '%s'",
+			interface_record->mx_class,
+			interface_record->name,
+			bkprecision_912x->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
+			char *command,
+			char *response,
+			size_t response_buffer_length,
+			int debug_flag )
+{
+	static const char fname[] = "mxi_bkprecision_912x_command()";
+
+	char status[80];
+	uint8_t stb;
+	mx_status_type mx_status;
+
+	/* Send the command. */
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+		    fname, command, bkprecision_912x->record->name ));
+	}
+
+	mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
+						command, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read the response. */
+
+	if ( response != NULL ) {
+		mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
+					response, response_buffer_length, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -288,6 +411,25 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/*---- Did an error occur? ----*/
+
+	mx_status = mxi_bkprecision_912x_putline( bkprecision_912x, "*STB?", 0);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
+						status, sizeof(status), 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	stb = atol( status );
+
+	if ( stb != 0 ) {
+		MX_DEBUG(-2,("%s: stb = %#x", fname, stb));
+	}
+
+	return mx_status;
 }
 

@@ -258,6 +258,8 @@
 #include "d_u500_status.h"
 #include "d_spellman_df3_aio.h"
 #include "d_spellman_df3_dio.h"
+#include "d_bkprecision_912x_aio.h"
+#include "d_bkprecision_912x_dio.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1610,6 +1612,20 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_spellman_df3_aout_num_record_fields,
 				&mxd_spellman_df3_aout_rfield_def_ptr},
 
+{"bkprecision_912x_ain", MXT_AIN_BKPRECISION_912X, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_bkprecision_912x_ain_record_function_list,
+				NULL,
+			&mxd_bkprecision_912x_ain_analog_input_function_list,
+				&mxd_bkprecision_912x_ain_num_record_fields,
+				&mxd_bkprecision_912x_ain_rfield_def_ptr},
+
+{"bkprecision_912x_aout",MXT_AOU_BKPRECISION_912X, MXC_ANALOG_OUTPUT,MXR_DEVICE,
+				&mxd_bkprecision_912x_aout_record_function_list,
+				NULL,
+			&mxd_bkprecision_912x_aout_analog_output_function_list,
+				&mxd_bkprecision_912x_aout_num_record_fields,
+				&mxd_bkprecision_912x_aout_rfield_def_ptr},
+
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_soft_dinput_record_function_list,
@@ -1934,6 +1950,20 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_spellman_df3_dout_digital_output_function_list,
 				&mxd_spellman_df3_dout_num_record_fields,
 				&mxd_spellman_df3_dout_rfield_def_ptr},
+
+{"bkprecision_912x_din", MXT_DIN_BKPRECISION_912X,MXC_DIGITAL_INPUT, MXR_DEVICE,
+				&mxd_bkprecision_912x_din_record_function_list,
+				NULL,
+			&mxd_bkprecision_912x_din_digital_input_function_list,
+				&mxd_bkprecision_912x_din_num_record_fields,
+				&mxd_bkprecision_912x_din_rfield_def_ptr},
+
+{"bkprecision_912x_dout",MXT_DOU_BKPRECISION_912X,MXC_DIGITAL_OUTPUT,MXR_DEVICE,
+				&mxd_bkprecision_912x_dout_record_function_list,
+				NULL,
+			&mxd_bkprecision_912x_dout_digital_output_function_list,
+				&mxd_bkprecision_912x_dout_num_record_fields,
+				&mxd_bkprecision_912x_dout_rfield_def_ptr},
 
 
 #ifdef OS_LINUX

@@ -61,7 +61,7 @@ typedef struct {
 MX_API mx_status_type mxd_spellman_df3_ain_create_record_structures(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_spellman_df3_ain_read( MX_ANALOG_INPUT *dinput );
+MX_API mx_status_type mxd_spellman_df3_ain_read( MX_ANALOG_INPUT *ainput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_spellman_df3_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
@@ -75,8 +75,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_spellman_df3_ain_rfield_def_ptr;
 MX_API mx_status_type mxd_spellman_df3_aout_create_record_structures(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_spellman_df3_aout_read( MX_ANALOG_OUTPUT *dinput );
-MX_API mx_status_type mxd_spellman_df3_aout_write( MX_ANALOG_OUTPUT *dinput );
+MX_API mx_status_type mxd_spellman_df3_aout_read( MX_ANALOG_OUTPUT *aoutput );
+MX_API mx_status_type mxd_spellman_df3_aout_write( MX_ANALOG_OUTPUT *aoutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_spellman_df3_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
