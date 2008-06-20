@@ -96,7 +96,8 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	static const char fname[] = "mxi_bkprecision_912x_open()";
 
 	MX_BKPRECISION_912X *bkprecision_912x;
-	char response[40];
+	MX_RECORD *interface_record;
+	char response[200];
 	int argc;
 	char **argv;
 	char *dup_string;
@@ -113,6 +114,26 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_BKPRECISION_912X pointer for record '%s' is NULL.",
 			record->name);
+	}
+
+	interface_record = bkprecision_912x->port_interface.record;
+
+	if ( interface_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The interface record pointer for BK Precision "
+			"power supply '%s' is NULL.", record->name );
+	}
+
+	if ( interface_record->mx_class == MXI_RS232 ) {
+		/* Throw away any unread characters. */
+
+		mx_status = mx_rs232_discard_unread_input( interface_record,
+						MXI_BKPRECISION_912X_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep(500);
 	}
 
 	/* Verify that the BK Precision power supply is present by asking
@@ -163,8 +184,8 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 
 #if MXI_BKPRECISION_912X_DEBUG
 	MX_DEBUG(-2,
-	("%s: Record '%s' is a BK Precision %s, software version = '%s', "
-	"serial number = '%s'",
+	("%s: Record '%s' is a BK Precision %s, serial number = '%s', "
+	"software version = '%s'",
 			fname, record->name, bkprecision_912x->model_name,
 			argv[2], argv[3]));
 #endif
