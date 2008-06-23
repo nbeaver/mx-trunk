@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -97,6 +97,7 @@ COMMAND command_list[] = {
 	{ motor_vinput_fn,  3, "vinput"        },
 	{ motor_vinput_fn,  3, "video_input"   },
 	{ motor_writep_fn, 11, "writeparams"   },
+	{ motor_wvout_fn,   5, "wvout"         },
 	{ motor_exec_fn,    1, "@"             },     /* alias for 'exec' */
 	{ motor_system_fn,  1, "!"             },     /* alias for 'system' */
 	{ motor_system_fn,  1, "$"             },     /* alias for 'system' */

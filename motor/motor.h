@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -127,6 +127,7 @@ extern int motor_system_fn( int argc, char *argv[] );
 extern int motor_take_fn( int argc, char *argv[] );
 extern int motor_vinput_fn( int argc, char *argv[] );
 extern int motor_writep_fn( int argc, char *argv[] );
+extern int motor_wvout_fn( int argc, char *argv[] );
 extern int motor_open_fn( int argc, char *argv[] );
 extern int motor_close_fn( int argc, char *argv[] );
 

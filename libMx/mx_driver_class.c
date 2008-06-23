@@ -124,6 +124,10 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"video_output",   0, MXC_VIDEO_OUTPUT, MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
+{"waveform_input", 0, MXC_WAVEFORM_INPUT, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
+{"waveform_output",0, MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ==================== Scan classes ==================== */
 

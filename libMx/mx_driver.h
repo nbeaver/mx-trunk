@@ -115,6 +115,8 @@ extern "C" {
 #define MXC_VIDEO_INPUT			45
 #define MXC_VIDEO_OUTPUT		46
 #define MXC_AREA_DETECTOR		47
+#define MXC_WAVEFORM_INPUT		48
+#define MXC_WAVEFORM_OUTPUT		49
 
 /* --- Scan classes --- */
 
@@ -693,6 +695,13 @@ extern "C" {
 #define MXT_AD_MARCCD			240008
 #define MXT_AD_BLUICE_DCSS		240009
 #define MXT_AD_BLUICE_DHS		240010
+
+/* --- Waveform output types --- */
+
+#define MXT_WVO_SOFTWARE		260001
+#define MXT_WVO_NETWORK			260002
+#define MXT_WVO_BKPRECISION_912X	260003
+#define MXT_WVO_WGM_101			260004
 
 /* --- Scan types --- */
 

@@ -22,7 +22,7 @@ MOTOR_SRCS = command.c marea_detector.c mccd.c mcopy.c mcopyfile.c mcount.c \
 	mscan.c mscan_common.c \
 	mscan_linear.c mscan_list.c mscan_quick.c mscan_xafs.c \
 	mset.c mset_motor.c msetup.c mshow.c \
-	mstart.c mstop.c msystem.c mtake.c mvinput.c
+	mstart.c mstop.c msystem.c mtake.c mvinput.c mwvout.c
 
 #
 # This variable specifies the name of the directory containing the
