@@ -53,6 +53,8 @@ typedef struct {
 
 	mx_bool_type busy;
 
+	long parameter_type;
+
 } MX_WAVEFORM_OUTPUT;
 
 #define MXLV_WVO_DATA_ARRAY	23001
@@ -196,6 +198,14 @@ MX_API mx_status_type mx_waveform_output_get_num_points(
 MX_API mx_status_type mx_waveform_output_set_num_points(
 						MX_RECORD *wvout_record,
 						unsigned long num_points );
+
+/*----*/
+
+MX_API mx_status_type mx_waveform_output_default_get_parameter_handler(
+						MX_WAVEFORM_OUTPUT *wvout );
+
+MX_API mx_status_type mx_waveform_output_default_set_parameter_handler(
+						MX_WAVEFORM_OUTPUT *wvout );
 
 #ifdef __cplusplus
 }

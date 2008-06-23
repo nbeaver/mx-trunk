@@ -59,7 +59,6 @@ motor_wvout_fn( int argc, char *argv[] )
 	double *channel_data;
 	double **wvout_data;
 	int status;
-	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -639,6 +638,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	return SUCCESS;
 }
 
+#if 0
 static int
 motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 {
@@ -755,3 +755,4 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 	return SUCCESS;
 }
 
+#endif

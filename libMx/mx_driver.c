@@ -74,6 +74,7 @@
 #include "mx_ptz.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
+#include "mx_waveform_output.h"
 
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -453,6 +454,8 @@
 #include "d_brandeis_biocat.h"
 #include "d_marccd.h"
 #include "d_bluice_area_detector.h"
+
+#include "d_bkprecision_912x_wvout.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3585,6 +3588,14 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epics_mcs_rfield_def_ptr},
 
 #endif /* HAVE_EPICS */
+
+{"bkprecision_912x_wvout",
+		MXT_WVO_BKPRECISION_912X, MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
+			&mxd_bkprecision_912x_wvout_record_function_list,
+			NULL,
+			&mxd_bkprecision_912x_wvout_wvout_function_list,
+			&mxd_bkprecision_912x_wvout_num_record_fields,
+			&mxd_bkprecision_912x_wvout_rfield_def_ptr},
 
   /* ===================== Scan types ===================== */
 
