@@ -26,6 +26,15 @@
 #define MXT_BKPRECISION_912X_RIDFI	2
 #define MXT_BKPRECISION_912X_DIGITAL	3
 
+/* Bit definitions for the 'transaction_flags' argument
+ * to the mxi_bkprecision_912x_command() below.
+ */
+
+#define MXT_BKPRECISION_912X_DEBUG		0x1
+#define MXT_BKPRECISION_912X_NO_ERROR_CHECKING	0x2
+
+/*---*/
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -56,7 +65,7 @@ MX_API mx_status_type mxi_bkprecision_912x_command(
 					char *command,
 					char *response,
 					size_t response_buffer_length,
-					int debug_flag );
+					unsigned long transaction_flags );
 
 extern MX_RECORD_FUNCTION_LIST mxi_bkprecision_912x_record_function_list;
 

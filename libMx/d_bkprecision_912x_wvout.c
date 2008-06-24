@@ -23,7 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_waveform_output.h"
-
+#include "i_bkprecision_912x.h"
 #include "d_bkprecision_912x_wvout.h"
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG_TIMING
@@ -72,35 +72,58 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_wvout_rfield_def_ptr
 static mx_status_type
 mxd_bkprecision_912x_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 			MX_BKPRECISION_912X_WVOUT **bkprecision_912x_wvout,
+			MX_BKPRECISION_912X **bkprecision_912x,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_get_pointers()";
 
+	MX_RECORD *bkprecision_912x_record;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout_ptr;
+
 	if ( wvout == (MX_WAVEFORM_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_WAVEFORM_OUTPUT pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( bkprecision_912x_wvout == (MX_BKPRECISION_912X_WVOUT **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-	    "The MX_BKPRECISION_912X_WVOUT pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( wvout->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RECORD pointer for the MX_WAVEFORM_OUTPUT structure "
-		"passed by '%s' is NULL.",
+		"MX_WAVEFORM_OUTPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*bkprecision_912x_wvout = (MX_BKPRECISION_912X_WVOUT *)
+	bkprecision_912x_wvout_ptr = (MX_BKPRECISION_912X_WVOUT *)
 					wvout->record->record_type_struct;
 
-	if ( *bkprecision_912x_wvout == (MX_BKPRECISION_912X_WVOUT *) NULL ) {
+	if (bkprecision_912x_wvout_ptr == (MX_BKPRECISION_912X_WVOUT *) NULL)
+	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The MX_BKPRECISION_912X_WVOUT pointer for record '%s' is NULL.",
-			wvout->record->name );
+		"MX_BKPRECISION_912X_WVOUT pointer for record '%s' passed "
+		"by '%s' is NULL.",
+			wvout->record->name, calling_fname );
 	}
+
+	if ( bkprecision_912x_wvout != (MX_BKPRECISION_912X_WVOUT **) NULL ) {
+		*bkprecision_912x_wvout = bkprecision_912x_wvout_ptr;
+	}
+
+	if ( bkprecision_912x != (MX_BKPRECISION_912X **) NULL ) {
+		bkprecision_912x_record =
+			bkprecision_912x_wvout_ptr->bkprecision_912x_record;
+
+		if ( bkprecision_912x_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_BKPRECISION_912X pointer for analog "
+			"input record '%s' passed by '%s' is NULL.",
+				wvout->record->name, calling_fname );
+		}
+
+		*bkprecision_912x = (MX_BKPRECISION_912X *)
+			bkprecision_912x_record->record_type_struct;
+
+		if ( *bkprecision_912x == (MX_BKPRECISION_912X *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_BKPRECISION_912X pointer for BK Precision "
+			"power supply '%s' used by analog input record '%s'.",
+				bkprecision_912x_record->name,
+				wvout->record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -177,6 +200,9 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
+	int num_groups;
+	char command[40];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -187,14 +213,53 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	wvout = (MX_WAVEFORM_OUTPUT *) record->record_class_struct;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+
+	MX_DEBUG(-2,("%s: maximum_num_points = %lu",
+		fname, wvout->maximum_num_points));
 #endif
+
+	if ( wvout->maximum_num_points <= 25 ) {
+		num_groups = 8;
+	} else
+	if ( wvout->maximum_num_points <= 50 ) {
+		num_groups = 4;
+	} else
+	if ( wvout->maximum_num_points <= 100 ) {
+		num_groups = 2;
+	} else
+	if ( wvout->maximum_num_points <= 200 ) {
+		num_groups = 1;
+	} else {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested maximum number of points (%lu) for waveform "
+		"output '%s' is not in the allowed range of 2 to 200.",
+			wvout->maximum_num_points, record->name );
+	}
+
+	snprintf( command, sizeof(command), "LIST:AREA %d", num_groups );
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
+				NULL, 0, MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command),
+		"LIST:COUNT %lu", wvout->maximum_num_points );
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
+				NULL, 0, MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -211,10 +276,12 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_arm()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -233,10 +300,12 @@ mxd_bkprecision_912x_wvout_trigger( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_trigger()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -255,10 +324,12 @@ mxd_bkprecision_912x_wvout_stop( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_stop()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -277,10 +348,12 @@ mxd_bkprecision_912x_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_busy()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -299,10 +372,30 @@ mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_read_all()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* First, read channel 0 (voltage). */
+
+	wvout->channel_index = 0;
+
+	mx_status = mxd_bkprecision_912x_wvout_read_channel( wvout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Then, read channel 1 (current). */
+
+	wvout->channel_index = 1;
+
+	mx_status = mxd_bkprecision_912x_wvout_read_channel( wvout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -318,22 +411,63 @@ mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
 MX_EXPORT mx_status_type
 mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
+	static const char fname[] = "mxd_bkprecision_912x_wvout_read_channel()";
+
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
+	int ch, n, num_items;
+	char command[40];
+	char response[80];
+	double value;
 	mx_status_type mx_status;
 
-	/* Read the data from the FIFO. */
+	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
-	mx_status = mxd_bkprecision_912x_wvout_read_all( wvout );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Since wvout->data_array has the channel number as its leading
-	 * array index, the data is already laid out in wvout->data_array
-	 * in such a way that it can be passed back by the function
-	 * mx_waveform_output_read_channel() to the application program
-	 * by merely passing back a pointer to
-	 * wvout->data_array[channel_number][0].
-	 *
-	 * Thus, we do not need to copy any data, since it is already laid
-	 * out in memory the way we want it to be.
-	 */
+#if MXD_BKPRECISION_912X_WVOUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, wvout->record->name));
+#endif
+
+	/* Repoint 'channel_data' to the correct row in 'data_array'. */
+
+	ch = wvout->channel_index;
+
+	wvout->channel_data = (wvout->data_array)[ch];
+
+	/* Loop over all of the points in this channel. */
+
+	for ( n = 0; n < wvout->current_num_points; n++ ) {
+		if ( ch == 0 ) {
+			snprintf( command, sizeof(command),
+			"LIST:VOLTAGE? %d", n+1 );
+		} else {
+			snprintf( command, sizeof(command),
+			"LIST:CURRENT? %d", n+1 );
+		}
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, response, sizeof(response),
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lg", &value );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The response '%s' to the command '%s' for record '%s' "
+			"does not contain a numerical value.",
+				response, command, wvout->record->name );
+		}
+
+		wvout->channel_data[n] = value;
+	}
 
 	return mx_status;
 }
@@ -345,10 +479,12 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 			"mxd_bkprecision_912x_wvout_get_parameter()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -380,10 +516,12 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 			"mxd_bkprecision_912x_wvout_set_parameter()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout, fname );
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

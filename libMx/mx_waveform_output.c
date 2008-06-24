@@ -404,9 +404,9 @@ mx_waveform_output_is_busy( MX_RECORD *wvout_record, mx_bool_type *busy )
 
 MX_EXPORT mx_status_type
 mx_waveform_output_read_all( MX_RECORD *wvout_record,
-			unsigned long *num_channels,
-			unsigned long *num_points,
-			double ***wvout_data )
+				unsigned long *num_channels,
+				unsigned long *num_points,
+				double ***wvout_data )
 {
 	static const char fname[] = "mx_waveform_output_read_all()";
 
@@ -449,10 +449,89 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 }
 
 MX_EXPORT mx_status_type
+mx_waveform_output_write_all( MX_RECORD *wvout_record,
+				unsigned long num_channels,
+				unsigned long num_points,
+				double **wvout_data )
+{
+	static const char fname[] = "mx_waveform_output_write_all()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	double **dest;
+	unsigned long ch, num_points_to_zero;
+	mx_status_type ( *write_all_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	write_all_fn = function_list->read_channel;
+
+	if ( write_all_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Reading the waveform data one channel at a time "
+		"is not supported for waveform output '%s'.",
+			wvout_record->name );
+	}
+
+	if ( num_channels > wvout->maximum_num_channels ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number of channels (%lu) for waveform output "
+		"'%s' is larger than the maximum of %ld.", num_channels,
+			wvout_record->name, wvout->maximum_num_channels );
+	}
+
+	if ( num_points > wvout->maximum_num_points ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number of points (%lu) for waveform output "
+		"'%s' is larger than the maximum of %ld.", num_points,
+			wvout_record->name, wvout->maximum_num_points );
+	}
+
+	/* If the source and the destination are not identical pointers,
+	 * then we must copy from the source to the destination.
+	 */
+
+	if ( (wvout_data != NULL) && (wvout_data != wvout->data_array) )
+	{
+		dest = wvout->data_array;
+
+		for ( ch = 0; ch < num_channels; ch++ ) {
+			memcpy( dest[ch], wvout_data[ch],
+				num_points * sizeof(double) );
+
+			if ( num_points < wvout->maximum_num_points ) {
+				num_points_to_zero =
+				    wvout->maximum_num_points - num_points;
+
+				memset( &(dest[ch][0]) + num_points, 0,
+					num_points_to_zero * sizeof(double) );
+			}
+		}
+
+		for (ch = num_channels; ch < wvout->maximum_num_channels; ch++) 
+		{
+			memset( &(dest[ch][0]), 0,
+				wvout->maximum_num_points * sizeof(double) );
+		}
+	}
+
+	/* Now invoke the method function. */
+
+	mx_status = (*write_all_fn)( wvout );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_waveform_output_read_channel( MX_RECORD *wvout_record,
-			unsigned long channel_index,
-			unsigned long *num_points,
-			double **channel_data )
+				unsigned long channel_index,
+				unsigned long *num_points,
+				double **channel_data )
 {
 	static const char fname[] = "mx_waveform_output_read_channel()";
 
@@ -471,14 +550,14 @@ mx_waveform_output_read_channel( MX_RECORD *wvout_record,
 
 	if ( read_channel_fn == NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Reading the WAVEFORM_OUTPUT data one channel at a time "
-			"is not supported for WAVEFORM_OUTPUT '%s'.",
+		"Reading the waveform data one channel at a time "
+		"is not supported for waveform output '%s'.",
 			wvout_record->name );
 	}
 
 	if ( ((long) channel_index) >= wvout->maximum_num_channels ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Channel index %lu for WAVEFORM_OUTPUT record '%s' is outside "
+		"Channel index %lu for waveform output '%s' is outside "
 		"the allowed range of 0-%ld.",
 			channel_index, wvout_record->name,
 			wvout->maximum_num_channels - 1L );
@@ -501,6 +580,72 @@ mx_waveform_output_read_channel( MX_RECORD *wvout_record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_waveform_output_write_channel( MX_RECORD *wvout_record,
+				unsigned long channel_index,
+				unsigned long num_points,
+				double *channel_data )
+{
+	static const char fname[] = "mx_waveform_output_write_channel()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	unsigned long num_points_to_zero;
+	mx_status_type ( *write_channel_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	write_channel_fn = function_list->write_channel;
+
+	if ( write_channel_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Writing the waveform data one channel at a time "
+		"is not supported for waveform output '%s'.",
+			wvout_record->name );
+	}
+
+	if ( ((long) channel_index) >= wvout->maximum_num_channels ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Channel index %lu for waveform output '%s' is outside "
+		"the allowed range of 0-%ld.",
+			channel_index, wvout_record->name,
+			wvout->maximum_num_channels - 1L );
+	}
+
+	wvout->channel_index = (long) channel_index;
+
+	wvout->channel_data = (wvout->data_array) [ wvout->channel_index ];
+
+	/* If the source and the destination are not identical pointers,
+	 * then we must copy from the source to the destination.
+	 */
+
+	if ( (channel_data != NULL) && (channel_data != wvout->channel_data) )
+	{
+		memcpy( wvout->channel_data, channel_data,
+			num_points * sizeof(double) );
+
+		if ( num_points < wvout->maximum_num_points ) {
+			num_points_to_zero =
+				wvout->maximum_num_points - num_points;
+
+			memset( wvout->channel_data + num_points, 0,
+				num_points_to_zero * sizeof(double) );
+		}
+	}
+
+	/* Now invoke the method function. */
+
+	mx_status = (*write_channel_fn)( wvout );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

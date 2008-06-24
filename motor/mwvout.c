@@ -42,23 +42,38 @@ static int motor_wvout_read( MX_RECORD *wvout_record,
 static int motor_wvout_read_all( MX_RECORD *wvout_record,
 				MX_WAVEFORM_OUTPUT *wvout );
 
+#if 0
+static int motor_wvout_write( MX_RECORD *wvout_record,
+				MX_WAVEFORM_OUTPUT *wvout,
+				unsigned long channel );
+
+static int motor_wvout_write_all( MX_RECORD *wvout_record,
+				MX_WAVEFORM_OUTPUT *wvout );
+#endif
+
 static int motor_wvout_display_plot( MX_RECORD *wvout_record,
-				MX_WAVEFORM_OUTPUT *mcs,
+				MX_WAVEFORM_OUTPUT *wvout,
 				unsigned long channel_number );
+
+static int motor_wvout_display_all( MX_RECORD *wvout_record,
+				MX_WAVEFORM_OUTPUT *wvout );
+
 int
 motor_wvout_fn( int argc, char *argv[] )
 {
-	static const char cname[] = "mcs";
+	static const char cname[] = "wvout";
 
 	MX_RECORD *wvout_record;
 	MX_WAVEFORM_OUTPUT *wvout;
 	FILE *savefile;
 	int os_status, saved_errno;
 	char *endptr;
-	unsigned long i, j, channel, num_channels, num_points;
+	unsigned long i, j, channel, num_channels;
+	unsigned long num_points, num_points_to_zero;
 	double *channel_data;
 	double **wvout_data;
-	int status;
+	int status, num_items;
+	char buffer[40];
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -68,8 +83,12 @@ motor_wvout_fn( int argc, char *argv[] )
   "        wvout 'wvout_name' stop\n"
   "        wvout 'wvout_name' readall\n"
   "        wvout 'wvout_name' read 'channel_number'\n"
-  "        wvout 'wvout_name' saveall 'savefile'\n"
-  "        wvout 'wvout_name' save 'channel_number' 'savefile'\n"
+  "        wvout 'wvout_name' rawreadall\n"
+  "        wvout 'wvout_name' rawread 'channel_number'\n"
+  "        wvout 'wvout_name' saveall 'datafile'\n"
+  "        wvout 'wvout_name' save 'channel_number' 'datafile'\n"
+  "        wvout 'wvout_name' loadall 'datafile'\n"
+  "        wvout 'wvout_name' load 'channel_number' 'datafile'\n"
   "        wvout 'wvout_name' get num_points\n"
   "        wvout 'wvout_name' set num_points 'value'\n"
 	;
@@ -187,7 +206,7 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 		fprintf( output,
-			"MCS Save file '%s' successfully written.\n",
+		"Waveform output save file '%s' successfully written.\n",
 			argv[4] );
 	} else
 	if ( strncmp( "save", argv[3], strlen(argv[3]) ) == 0 ) {
@@ -199,7 +218,8 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		channel = atol( argv[4] );
 
-		mx_status = mx_waveform_output_read_channel( wvout_record, channel,
+		mx_status = mx_waveform_output_read_channel( wvout_record,
+						channel,
 						&num_points,
 						&channel_data );
 
@@ -243,9 +263,80 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 		fprintf( output,
-			"MCS Save file '%s' successfully written.\n",
+		"Waveform output save file '%s' successfully written.\n",
 			argv[5] );
-#if 0
+	} else
+	if ( strncmp( "load", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 6 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		channel = atol( argv[4] );
+
+		if ( channel >= wvout->maximum_num_channels ) {
+			fprintf( output, "The requested channel number (%lu) "
+			"for waveform output '%s' is larger than the "
+			"maximum value of %lu.\n", channel, wvout_record->name,
+				wvout->maximum_num_channels - 1 );
+
+			return FAILURE;
+		}
+
+		/* Load the channel data from a file. */
+
+		channel_data = (wvout->data_array)[channel];
+
+		savefile = fopen( argv[5], "r" );
+
+		if ( savefile == NULL ) {
+			saved_errno = errno;
+
+			fprintf( output,
+			"%s: cannot open load file '%s'.  Reason = '%s'\n",
+				cname, argv[5], strerror(saved_errno) );
+
+			return FAILURE;
+		}
+
+		for ( i = 0; i < wvout->maximum_num_points; i++ ) {
+			fgets( buffer, sizeof(buffer), savefile );
+
+			if ( feof(savefile) || ferror(savefile) ) {
+				break;
+			}
+
+			num_items = sscanf( buffer, "%lg", &(channel_data[i]) );
+
+			if ( num_items != 1 ) {
+				fprintf( output,
+				"Line %lu of savefile '%s' does not contain a "
+				"numerical value.  Instead, it contains '%s'.",
+					i+1, argv[5], buffer );
+
+				fclose( savefile );
+				return FAILURE;
+			}
+		}
+
+		fclose( savefile );
+
+		if ( i < wvout->maximum_num_points ) {
+			num_points_to_zero = wvout->maximum_num_points - 1;
+
+			memset( &(channel_data[i]), 0,
+				num_points_to_zero * sizeof(double) );
+		}
+
+		mx_status = mx_waveform_output_write_channel( wvout_record,
+						channel,
+						num_points,
+						channel_data );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 	} else
 	if ( strncmp( "readall", argv[3], max( strlen(argv[3]), 5 ) ) == 0 ) {
 
@@ -254,8 +345,7 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		status = motor_wvout_display_all( wvout_record, mcs );
-#endif
+		status = motor_wvout_display_all( wvout_record, wvout );
 	} else
 	if ( strncmp( "read", argv[3], strlen(argv[3]) ) == 0 ) {
 
@@ -325,7 +415,8 @@ motor_wvout_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			fprintf( output, "MCS '%s' measurement time = %g\n",
+			fprintf( output,
+			"Waveform output '%s' measurement time = %g\n",
 				wvout_record->name, measurement_time );
 		} else
 #endif
@@ -339,7 +430,7 @@ motor_wvout_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output,
-				"MCS '%s' num measurements = %lu\n",
+				"Waveform output '%s' num points = %lu\n",
 				wvout_record->name, num_points );
 		} else {
 			fprintf( output,
@@ -398,7 +489,8 @@ motor_wvout_fn( int argc, char *argv[] )
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
-"%s: Non-numeric characters found in MCS number of channels value '%s'\n",
+			"%s: Non-numeric characters found in waveform output "
+			"number of channels value '%s'\n",
 					cname, argv[5] );
 				return FAILURE;
 			}
@@ -438,7 +530,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 
 	/* Read out the acquired data. */
 
-	fprintf( output, "About to read MCS data.\n" );
+	fprintf( output, "About to read waveform output data.\n" );
 
 	mx_status = mx_waveform_output_read_channel( wvout_record,
 				channel_number, &num_points, &channel_data );
@@ -448,7 +540,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 
 	/* Display the data. */
 
-	fprintf( output, "MCS data successfully read.\n" );
+	fprintf( output, "Waveform output data successfully read.\n" );
 	fprintf( output, "\n" );
 
 #if 1
@@ -477,7 +569,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 }
 
 static int
-motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
+motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 {
 	unsigned long i, j, num_channels, num_points;
 	double **wvout_data;
@@ -485,7 +577,7 @@ motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 
 	/* Read out the acquired data. */
 
-	fprintf( output, "About to read MCS data.\n" );
+	fprintf( output, "About to read waveform output data.\n" );
 
 	mx_status = mx_waveform_output_read_all( wvout_record, &num_channels,
 					&num_points,
@@ -496,7 +588,7 @@ motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 
 	/* Display the data. */
 
-	fprintf( output, "MCS data successfully read.\n" );
+	fprintf( output, "Waveform output data successfully read.\n" );
 	fprintf( output, "\n" );
 
 #if 1
@@ -535,7 +627,7 @@ motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 
 static int
 motor_wvout_display_plot( MX_RECORD *wvout_record,
-				MX_WAVEFORM_OUTPUT *mcs,
+				MX_WAVEFORM_OUTPUT *wvout,
 				unsigned long channel_number )
 {
 	const char fname[] = "motor_wvout_display_plot()";
@@ -563,7 +655,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	if ( list_head->plotting_enabled == MXPF_PLOT_OFF )
 		return SUCCESS;
 
-	/* Read the data from the MCS. */
+	/* Read the data from the waveform output device. */
 
 	mx_status = mx_waveform_output_read_channel( wvout_record,
 				channel_number, &num_points, &channel_data );
@@ -604,7 +696,8 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 					"data %lu %g\n", i, channel_data[i] );
 	}
 
-	status = fprintf( plotgnu_pipe, "set title 'MCS display'\n" );
+	status = fprintf( plotgnu_pipe,
+			"set title 'Waveform output display'\n" );
 
 	status = fprintf( plotgnu_pipe, "set data style lines\n" );
 
@@ -638,9 +731,8 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	return SUCCESS;
 }
 
-#if 0
 static int
-motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
+motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 {
 	const char fname[] = "motor_wvout_display_all()";
 
@@ -667,7 +759,7 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 	if ( list_head->plotting_enabled == MXPF_PLOT_OFF )
 		return SUCCESS;
 
-	/* Read the data from the MCS. */
+	/* Read the data from the waveform output device. */
 
 	mx_status = mx_waveform_output_read_all( wvout_record, &num_channels,
 					&num_points, &wvout_data );
@@ -721,7 +813,8 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 		status = fprintf( plotgnu_pipe, "\n" );
 	}
 
-	status = fprintf( plotgnu_pipe, "set title 'MCS display'\n" );
+	status = fprintf( plotgnu_pipe,
+				"set title 'Waveform output display'\n" );
 
 	status = fprintf( plotgnu_pipe, "set data style lines\n" );
 
@@ -755,4 +848,3 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *mcs )
 	return SUCCESS;
 }
 
-#endif

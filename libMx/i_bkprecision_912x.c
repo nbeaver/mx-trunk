@@ -102,6 +102,7 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	int argc;
 	char **argv;
 	char *dup_string;
+	unsigned long no_error_checking;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -141,9 +142,12 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	 * it to identify itself.
 	 */
 
+	no_error_checking = MXT_BKPRECISION_912X_DEBUG
+				| MXT_BKPRECISION_912X_NO_ERROR_CHECKING;
+
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "*IDN?",
 						response, sizeof(response),
-						MXI_BKPRECISION_912X_DEBUG );
+						no_error_checking );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -192,6 +196,28 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 #endif
 
 	FREE_912X_STRINGS;
+
+	/* Turn on the standard event status register.  We turn on
+	 * all of the bits except for those that the documentation
+	 * says are unused.
+	 */
+
+	snprintf( command, sizeof(command), "*ESE %d", 0xBD );
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
+					NULL, 0, MXT_BKPRECISION_912X_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear out any existing event status register bits. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "*ESR?",
+						response, sizeof(response),
+						no_error_checking );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Figure out what function to use for the rear panel port. */
 
@@ -375,13 +401,21 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 			char *command,
 			char *response,
 			size_t response_buffer_length,
-			int debug_flag )
+			unsigned long transaction_flags )
 {
 	static const char fname[] = "mxi_bkprecision_912x_command()";
 
 	char status[80];
-	uint8_t stb;
+	mx_bool_type debug_flag, do_error_checking;
 	mx_status_type mx_status;
+
+	debug_flag = transaction_flags & MXT_BKPRECISION_912X_DEBUG;
+
+	if ( transaction_flags & MXT_BKPRECISION_912X_NO_ERROR_CHECKING ) {
+		do_error_checking = FALSE;
+	} else {
+		do_error_checking = TRUE;
+	}
 
 	/* Send the command. */
 
@@ -413,21 +447,26 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 
 	/*---- Did an error occur? ----*/
 
-	mx_status = mxi_bkprecision_912x_putline( bkprecision_912x, "*STB?", 0);
+	if ( do_error_checking ) {
+		uint8_t ESR;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
+							"*ESR?", 0);
 
-	mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
 						status, sizeof(status), 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	stb = atol( status );
+		ESR = atol( status );
 
-	if ( stb != 0 ) {
-		MX_DEBUG(-2,("%s: stb = %#x", fname, stb));
+		if ( ESR != 0 ) {
+			MX_DEBUG(-2,("%s: ESR = %#x", fname, ESR));
+		}
 	}
 
 	return mx_status;

@@ -112,7 +112,7 @@ typedef struct {
   \
   {-1, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, busy), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, 0}
 
 /* Note that the 'channel_data' field is special, since it has the MXFF_VARARGS
  * flag set, but the length of the first dimension is 0.  This means that

@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -254,6 +254,7 @@ mx_update_record_values( MX_RECORD *record )
 			case MXC_CCD:
 			case MXC_VIDEO_INPUT:
 			case MXC_AREA_DETECTOR:
+			case MXC_WAVEFORM_OUTPUT:
 				status = MX_SUCCESSFUL_RESULT;
 				break;
 			default:

@@ -9,3 +9,5 @@ in_p     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk powe
 ###in_r     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk resistance
 din      device digital_input bkprecision_912x_din "" "" 0 bk
 dout     device digital_output bkprecision_912x_dout "" "" 0 bk
+#
+wvout    device waveform_output bkprecision_912x_wvout "" "" 2 50 1 0 V bk
