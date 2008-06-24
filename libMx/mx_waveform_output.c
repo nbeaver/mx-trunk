@@ -425,8 +425,8 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 
 	if ( read_all_fn == NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Reading the WAVEFORM_OUTPUT data as one big block "
-		"is not supported for WAVEFORM_OUTPUT '%s'.",
+		"Reading the waveform data as one big block "
+		"is not supported for waveform output '%s'.",
 			wvout_record->name );
 	}
 
@@ -469,11 +469,11 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	write_all_fn = function_list->read_channel;
+	write_all_fn = function_list->write_all;
 
 	if ( write_all_fn == NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Reading the waveform data one channel at a time "
+		"Writing the waveform data as one big block "
 		"is not supported for waveform output '%s'.",
 			wvout_record->name );
 	}

@@ -49,7 +49,7 @@ MX_WAVEFORM_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_wvout_stop,
 	mxd_bkprecision_912x_wvout_busy,
 	mxd_bkprecision_912x_wvout_read_all,
-	NULL,
+	mxd_bkprecision_912x_wvout_write_all,
 	mxd_bkprecision_912x_wvout_read_channel,
 	mxd_bkprecision_912x_wvout_write_channel
 };
@@ -382,6 +382,11 @@ mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_BKPRECISION_912X_WVOUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, wvout->record->name));
+#endif
+
 	/* First, read channel 0 (voltage). */
 
 	wvout->channel_index = 0;
@@ -397,6 +402,22 @@ mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
 
 	mx_status = mxd_bkprecision_912x_wvout_read_channel( wvout );
 
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_bkprecision_912x_wvout_write_all( MX_WAVEFORM_OUTPUT *wvout )
+{
+	static const char fname[] = "mxd_bkprecision_912x_wvout_write_all()";
+
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
+	mx_status_type mx_status;
+
+	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -405,7 +426,22 @@ mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
 		fname, wvout->record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	/* First, write channel 0 (voltage). */
+
+	wvout->channel_index = 0;
+
+	mx_status = mxd_bkprecision_912x_wvout_write_channel( wvout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Then, write channel 1 (current). */
+
+	wvout->channel_index = 1;
+
+	mx_status = mxd_bkprecision_912x_wvout_write_channel( wvout );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -480,7 +516,7 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
-	int ch, n;
+	int ch, n, i, num_attempts;;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -504,6 +540,8 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	/* Loop over all of the points in this channel. */
 
+	num_attempts = 2;
+
 	for ( n = 0; n < wvout->current_num_points; n++ ) {
 		if ( ch == 0 ) {
 			snprintf( command, sizeof(command),
@@ -515,9 +553,29 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 				n+1, wvout->channel_data[n] );
 		}
 
-		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					command, NULL, 0,
+		/* Sometimes this command fails with a 'Command Error'.
+		 * If that happens, we retry the command as many times
+		 * as indicated by the 'num_attempts' variable.
+		 *
+		 * FIXME: The reason for these failures has not yet
+		 * been found.
+		 */
+
+		for ( i = 0; i < num_attempts; i++ ) {
+			mx_status = mxi_bkprecision_912x_command(
+					bkprecision_912x, command, NULL, 0,
 					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+			/* We only retry if we got an MXE_INTERFACE_IO_ERROR
+			 * with the 0x20 bit set in the ESR.
+			 */
+
+			if ( mx_status.code != MXE_INTERFACE_IO_ERROR )
+				break;
+
+			if ( ( bkprecision_912x->ESR & 0x20 ) == 0 )
+				break;
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

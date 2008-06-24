@@ -74,6 +74,7 @@ motor_wvout_fn( int argc, char *argv[] )
 	double **wvout_data;
 	int status, num_items;
 	char buffer[40];
+	char *ptr, *token_ptr;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -337,6 +338,83 @@ motor_wvout_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+	} else
+	if ( strncmp( "loadall", argv[3], max( strlen(argv[3]), 5 ) ) == 0 ) {
+
+		if ( argc != 5 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		savefile = fopen( argv[4], "r" );
+
+		if ( savefile == NULL ) {
+			saved_errno = errno;
+
+			fprintf( output,
+			"%s: cannot open save file '%s'.  Reason = '%s'\n",
+				cname, argv[4], strerror(saved_errno) );
+
+			return FAILURE;
+		}
+
+		wvout_data = wvout->data_array;
+
+		for ( i = 0; i < wvout->maximum_num_points; i++ ) {
+			fgets( buffer, sizeof(buffer), savefile );
+
+			if ( feof(savefile) || ferror(savefile) ) {
+				fprintf( output,
+				"%s: error reading from save file '%s'\n",
+					cname, argv[4] );
+
+				break;	/* Exit the for(i) loop. */
+			}
+
+			ptr = buffer;
+
+			for ( j = 0; j < wvout->maximum_num_channels; j++ ) {
+				token_ptr = mx_string_token( &ptr, " " );
+
+				if ( token_ptr == NULL ) {
+					/* There are no more tokens. */
+
+					fprintf( output,
+				"%s: line %lu of save file '%s' only "
+				"had %lu channels when %lu were expected.\n",
+						cname, i, argv[4], j,
+						wvout->maximum_num_channels );
+
+					fclose(savefile);
+					return FAILURE;
+				}
+
+				num_items = sscanf( token_ptr, "%lg",
+					&(wvout_data[j][i]) );
+
+				if ( num_items != 1 ) {
+					fprintf( output,
+				"No number was found in the token '%s' for "
+				"channel %lu at line %lu of save file '%s'.\n",
+					token_ptr, j, i, argv[4] );
+					return FAILURE;
+				}
+			}
+		}
+
+		fclose( savefile );
+
+		mx_status = mx_waveform_output_write_all( wvout_record,
+					wvout->maximum_num_channels,
+					wvout->maximum_num_points,
+					wvout_data );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		fprintf( output,
+		"Waveform output save file '%s' successfully loaded.\n",
+			argv[4] );
 	} else
 	if ( strncmp( "readall", argv[3], max( strlen(argv[3]), 5 ) ) == 0 ) {
 

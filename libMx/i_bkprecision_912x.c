@@ -406,6 +406,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	static const char fname[] = "mxi_bkprecision_912x_command()";
 
 	char status[80];
+	char error_type[40];
 	mx_bool_type debug_flag, do_error_checking;
 	unsigned long low_level_flags;
 	mx_status_type mx_status;
@@ -418,7 +419,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		do_error_checking = TRUE;
 	}
 
-#if 1
+#if 0
 	low_level_flags = 1;
 #else
 	low_level_flags = 0;
@@ -468,13 +469,68 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 						status, sizeof(status),
 						low_level_flags );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		/* For some reason, the controller does not always respond
+		 * to the *ESR? command and we get a timeout.  If this 
+		 * happens, we try the *ESR? command a second time.
+		 */
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_TIMED_OUT:
+			mx_status = mxi_bkprecision_912x_putline(
+					bkprecision_912x, "*ESR?",
+					low_level_flags );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxi_bkprecision_912x_getline(
+						bkprecision_912x,
+						status, sizeof(status),
+						low_level_flags );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+		default:
 			return mx_status;
+			break;
+		}
 
 		ESR = atol( status );
 
+		bkprecision_912x->ESR = ESR;
+
 		if ( ESR != 0 ) {
 			MX_DEBUG(-2,("%s: ESR = %#x", fname, ESR));
+
+			if ( ESR & 0x20 ) {
+				strlcpy( error_type, "Command Error",
+						sizeof(error_type) );
+			} else
+			if ( ESR & 0x10 ) {
+				strlcpy( error_type, "Execution Error",
+						sizeof(error_type) );
+			} else
+			if ( ESR & 0x04 ) {
+				strlcpy( error_type, "Query Error",
+						sizeof(error_type) );
+			} else
+			if ( ESR & 0x08 ) {
+				strlcpy( error_type, "Device-dependent Error",
+						sizeof(error_type) );
+			} else {
+				/* We ignore the other status bits in the ESR.*/
+
+				return mx_status;
+			}
+
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"%s seen for the command '%s' sent to BK Precision "
+			"912x power supply '%s'.",
+				error_type, command,
+				bkprecision_912x->record->name );
 		}
 	}
 
