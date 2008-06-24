@@ -407,6 +407,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 
 	char status[80];
 	mx_bool_type debug_flag, do_error_checking;
+	unsigned long low_level_flags;
 	mx_status_type mx_status;
 
 	debug_flag = transaction_flags & MXT_BKPRECISION_912X_DEBUG;
@@ -417,6 +418,12 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		do_error_checking = TRUE;
 	}
 
+#if 1
+	low_level_flags = 1;
+#else
+	low_level_flags = 0;
+#endif
+
 	/* Send the command. */
 
 	if ( debug_flag ) {
@@ -425,7 +432,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	}
 
 	mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
-						command, 0 );
+						command, low_level_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -434,7 +441,8 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 
 	if ( response != NULL ) {
 		mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
-					response, response_buffer_length, 0 );
+					response, response_buffer_length,
+					low_level_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -451,13 +459,14 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		uint8_t ESR;
 
 		mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
-							"*ESR?", 0);
+						"*ESR?", low_level_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mxi_bkprecision_912x_getline( bkprecision_912x,
-						status, sizeof(status), 0 );
+						status, sizeof(status),
+						low_level_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

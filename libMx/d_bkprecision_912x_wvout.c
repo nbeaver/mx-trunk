@@ -51,7 +51,7 @@ MX_WAVEFORM_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_wvout_read_all,
 	NULL,
 	mxd_bkprecision_912x_wvout_read_channel,
-	NULL,
+	mxd_bkprecision_912x_wvout_write_channel
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_wvout_record_field_defaults[] = {
@@ -470,6 +470,60 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
+{
+	static const char fname[] =
+			"mxd_bkprecision_912x_wvout_write_channel()";
+
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
+	int ch, n;
+	char command[40];
+	mx_status_type mx_status;
+
+	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BKPRECISION_912X_WVOUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, wvout->record->name));
+#endif
+
+	/* Repoint 'channel_data' to the correct row in 'data_array'. */
+
+	ch = wvout->channel_index;
+
+	wvout->channel_data = (wvout->data_array)[ch];
+
+	/* Loop over all of the points in this channel. */
+
+	for ( n = 0; n < wvout->current_num_points; n++ ) {
+		if ( ch == 0 ) {
+			snprintf( command, sizeof(command),
+			"LIST:VOLTAGE %d, %fV",
+				n+1, wvout->channel_data[n] );
+		} else {
+			snprintf( command, sizeof(command),
+			"LIST:CURRENT %d, %fA",
+				n+1, wvout->channel_data[n] );
+		}
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

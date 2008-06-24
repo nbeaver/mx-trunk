@@ -47,7 +47,11 @@ MX_API mx_status_type mxd_bkprecision_912x_wvout_busy(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_read_all(
 						MX_WAVEFORM_OUTPUT *wvout );
+MX_API mx_status_type mxd_bkprecision_912x_wvout_write_all(
+						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_read_channel(
+						MX_WAVEFORM_OUTPUT *wvout );
+MX_API mx_status_type mxd_bkprecision_912x_wvout_write_channel(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_get_parameter(
 						MX_WAVEFORM_OUTPUT *wvout );
