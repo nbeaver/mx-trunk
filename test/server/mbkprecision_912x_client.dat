@@ -1,0 +1,14 @@
+bk       server network tcp_server "" "" 0x20000000 localhost 9827
+voltage  device analog_output network_aoutput "" "" 0 1 0 V 0x0 bk voltage
+current  device analog_output network_aoutput "" "" 0 1 0 mA 0x0 bk current
+dvm      device analog_input network_ainput "" "" 0 1 0 V 0x0 0 "" bk dvm
+in_v     device analog_input network_ainput "" "" 0 1 0 V 0x0 0 "" bk in_v
+in_c     device analog_input network_ainput "" "" 0 1 0 V 0x0 0 "" bk in_c
+in_p     device analog_input network_ainput "" "" 0 1 0 V 0x0 0 "" bk in_p
+din      device digital_input network_dinput "" "" 0 bk din
+dout     device digital_output network_doutput "" "" 0 bk dout
+#
+wvout    device waveform_output network_wvout "" "" 3 200 1 0 V bk wvout
+#
+timer1   device timer soft_timer "" ""
+bk_timer device timer network_timer "" "" bk bk_timer

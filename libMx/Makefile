@@ -48,7 +48,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
-	pr_timer.c pr_variable.c pr_video_input.c \
+	pr_timer.c pr_variable.c pr_video_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \
 	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
 	m_count.c m_none.c m_pulse_period.c m_time.c \
@@ -104,6 +104,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_network_mca.c d_network_mce.c d_network_mcs.c d_network_motor.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
 	d_network_scaler.c d_network_timer.c d_network_vinput.c \
+	d_network_wvout.c \
 	d_newport.c d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
 	d_panasonic_kx_dp702.c d_panther.c d_pccd_170170.c \
 	d_pcmotion32.c d_pcstep.c \

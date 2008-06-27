@@ -30,10 +30,6 @@
 
 #include "mx_image.h"
 
-#if MXD_BKPRECISION_912X_WVOUT_DEBUG_TIMING
-#include "mx_hrt_debug.h"
-#endif
-
 MX_RECORD_FUNCTION_LIST mxd_bkprecision_912x_wvout_record_function_list = {
 	mxd_bkprecision_912x_wvout_initialize_type,
 	mxd_bkprecision_912x_wvout_create_record_structures,

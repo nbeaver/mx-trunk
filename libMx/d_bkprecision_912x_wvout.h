@@ -55,12 +55,14 @@ typedef struct {
   \
   {-1, -1, "list_mode_name", MXFT_STRING, NULL, \
 					1, {MXU_BKPRECISION_NAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_mode), \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_BKPRECISION_912X_WVOUT, list_mode_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "list_step_name", MXFT_STRING, NULL, \
 					1, {MXU_BKPRECISION_NAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_step), \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_BKPRECISION_912X_WVOUT, list_step_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "list_mode", MXFT_ULONG, NULL, 0, {0}, \

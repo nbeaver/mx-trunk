@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../server/mxserver -p 9827 -f mbkprecision_912x_server.dat -C msoftsrv.acl $*
+

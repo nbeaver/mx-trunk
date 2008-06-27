@@ -61,8 +61,8 @@ typedef struct {
 
 } MX_WAVEFORM_OUTPUT;
 
-#define MXLV_WVO_DATA_ARRAY	26001
-#define MXLV_WVO_CHANNEL_DATA	26002
+#define MXLV_WVO_CHANNEL_DATA	26001
+#define MXLV_WVO_CHANNEL_INDEX	26002
 #define MXLV_WVO_FREQUENCY	26003
 #define MXLV_WVO_TRIGGER_MODE	26004
 #define MXLV_WVO_ARM		26005
@@ -80,7 +80,7 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, maximum_num_steps),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_WVO_DATA_ARRAY, -1, "data_array", MXFT_DOUBLE, \
+  {-1, -1, "data_array", MXFT_DOUBLE, \
 			NULL, 2, {MXU_VARARGS_LENGTH, MXU_VARARGS_LENGTH}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, data_array), \
 	{sizeof(double), sizeof(double *)}, NULL, MXFF_VARARGS}, \
@@ -94,13 +94,13 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, current_num_steps),\
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "channel_index", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_WVO_CHANNEL_INDEX, -1, "channel_index", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, channel_index),\
 	{0}, NULL, 0}, \
   \
   {MXLV_WVO_CHANNEL_DATA, -1, "channel_data", MXFT_DOUBLE, NULL, 1, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, channel_data),\
-	{sizeof(double)}, NULL, 0}, \
+	{sizeof(double)}, NULL, MXFF_VARARGS}, \
   \
   {-1, -1, "scale", MXFT_DOUBLE, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, scale), \
