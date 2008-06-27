@@ -202,6 +202,7 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	 * says are unused.
 	 */
 
+#if 0
 	snprintf( command, sizeof(command), "*ESE %d", 0xBD );
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
@@ -209,10 +210,12 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
-	/* Clear out any existing event status register bits. */
+	/* Clear out any existing error status. */
 
-	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "*ESR?",
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+						"SYSTEM:ERROR?",
 						response, sizeof(response),
 						no_error_checking );
 
@@ -406,9 +409,10 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	static const char fname[] = "mxi_bkprecision_912x_command()";
 
 	char status[80];
-	char error_type[40];
 	mx_bool_type debug_flag, do_error_checking;
 	unsigned long low_level_flags;
+	int error_code;
+	char *error_info;
 	mx_status_type mx_status;
 
 	debug_flag = transaction_flags & MXT_BKPRECISION_912X_DEBUG;
@@ -457,10 +461,8 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	/*---- Did an error occur? ----*/
 
 	if ( do_error_checking ) {
-		uint8_t ESR;
-
 		mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
-						"*ESR?", low_level_flags );
+					"SYSTEM:ERROR?", low_level_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -470,8 +472,8 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 						low_level_flags );
 
 		/* For some reason, the controller does not always respond
-		 * to the *ESR? command and we get a timeout.  If this 
-		 * happens, we try the *ESR? command a second time.
+		 * to the SYSTEM:ERROR? command and we get a timeout.  If
+		 * this happens, we try the command a second time.
 		 */
 
 		switch( mx_status.code ) {
@@ -479,7 +481,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 			break;
 		case MXE_TIMED_OUT:
 			mx_status = mxi_bkprecision_912x_putline(
-					bkprecision_912x, "*ESR?",
+					bkprecision_912x, "SYSTEM:ERROR?",
 					low_level_flags );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -498,39 +500,26 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 			break;
 		}
 
-		ESR = atol( status );
+		error_code = atol( status );
 
-		bkprecision_912x->ESR = ESR;
+		bkprecision_912x->error_code = error_code;
 
-		if ( ESR != 0 ) {
-			MX_DEBUG(-2,("%s: ESR = %#x", fname, ESR));
+		if ( error_code != 0 ) {
+			error_info = strchr( status, '\'' );
 
-			if ( ESR & 0x20 ) {
-				strlcpy( error_type, "Command Error",
-						sizeof(error_type) );
-			} else
-			if ( ESR & 0x10 ) {
-				strlcpy( error_type, "Execution Error",
-						sizeof(error_type) );
-			} else
-			if ( ESR & 0x04 ) {
-				strlcpy( error_type, "Query Error",
-						sizeof(error_type) );
-			} else
-			if ( ESR & 0x08 ) {
-				strlcpy( error_type, "Device-dependent Error",
-						sizeof(error_type) );
-			} else {
-				/* We ignore the other status bits in the ESR.*/
-
-				return mx_status;
+			if ( error_info == NULL ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Error code %d seen for the command '%s' "
+				"sent to BK Precision 912x power supply '%s'.",
+					error_code, command,
+					bkprecision_912x->record->name );
 			}
 
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"%s seen for the command '%s' sent to BK Precision "
-			"912x power supply '%s'.",
-				error_type, command,
-				bkprecision_912x->record->name );
+				"%s (%d) error seen for the command '%s' sent "
+				"to BK Precision 912x power supply '%s'.",
+					error_info, error_code, command,
+					bkprecision_912x->record->name );
 		}
 	}
 

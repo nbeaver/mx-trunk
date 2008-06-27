@@ -92,7 +92,7 @@ mx_waveform_output_initialize_type( long record_type,
 			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
 			long *maximum_num_channels_varargs_cookie,
-			long *maximum_num_points_varargs_cookie )
+			long *maximum_num_steps_varargs_cookie )
 {
 	static const char fname[] = "mx_waveform_output_initialize_type()";
 
@@ -114,9 +114,9 @@ mx_waveform_output_initialize_type( long record_type,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 	    "maximum_num_channels_varargs_cookie pointer passed was NULL." );
 	}
-	if ( maximum_num_points_varargs_cookie == NULL ) {
+	if ( maximum_num_steps_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-	"maximum_num_points_varargs_cookie pointer passed was NULL." );
+	"maximum_num_steps_varargs_cookie pointer passed was NULL." );
 	}
 
 	driver = mx_get_driver_by_type( record_type );
@@ -153,7 +153,7 @@ mx_waveform_output_initialize_type( long record_type,
 	*num_record_fields = *(driver->num_record_fields);
 
 	/* Set varargs cookies in 'data_array' that depend on the values
-	 * of 'maximum_num_channels' and 'maximum_num_points'.
+	 * of 'maximum_num_channels' and 'maximum_num_steps'.
 	 */
 
 	mx_status = mx_find_record_field_defaults( *record_field_defaults,
@@ -177,29 +177,19 @@ mx_waveform_output_initialize_type( long record_type,
 
 	mx_status = mx_find_record_field_defaults_index(
 			*record_field_defaults, *num_record_fields,
-			"maximum_num_points", &referenced_field_index );
+			"maximum_num_steps", &referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
-				maximum_num_points_varargs_cookie );
+				maximum_num_steps_varargs_cookie );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	field->dimension[0] = *maximum_num_channels_varargs_cookie;
-	field->dimension[1] = *maximum_num_points_varargs_cookie;
-
-	/* 'timer_data' depends on 'maximum_num_points'. */
-
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "timer_data", &field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	field->dimension[0] = *maximum_num_points_varargs_cookie;
+	field->dimension[1] = *maximum_num_steps_varargs_cookie;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -213,7 +203,6 @@ mx_waveform_output_finish_record_initialization( MX_RECORD *wvout_record )
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
 	MX_RECORD_FIELD *channel_data_field;
-	MX_RECORD_FIELD *timer_data_field;
 	mx_status_type mx_status;
 
 	mx_status = mx_waveform_output_get_pointers( wvout_record,
@@ -229,7 +218,7 @@ mx_waveform_output_finish_record_initialization( MX_RECORD *wvout_record )
 			wvout_record->name );
 	}
 
-	if ( wvout->maximum_num_points == 0 ) {
+	if ( wvout->maximum_num_steps == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The waveform output '%s' is set to have zero points.  "
 	"This is an error since at least one point is required.",
@@ -237,11 +226,11 @@ mx_waveform_output_finish_record_initialization( MX_RECORD *wvout_record )
 	}
 
 	wvout->current_num_channels = wvout->maximum_num_channels;
-	wvout->current_num_points = wvout->maximum_num_points;
+	wvout->current_num_steps = wvout->maximum_num_steps;
 
 	/* Initialize the 'channel_data' pointer to point at the first
 	 * row of the 'data_array' field.  We also initialize the length
-	 * of the 'channel_data' field to be 'maximum_num_points' long.
+	 * of the 'channel_data' field to be 'maximum_num_steps' long.
 	 */
 
 	mx_status = mx_find_record_field( wvout_record, "channel_data",
@@ -250,17 +239,11 @@ mx_waveform_output_finish_record_initialization( MX_RECORD *wvout_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	channel_data_field->dimension[0] = wvout->maximum_num_points;
+	channel_data_field->dimension[0] = wvout->maximum_num_steps;
 
 	wvout->channel_index = 0;
 
 	wvout->channel_data = wvout->data_array[0];
-
-	mx_status = mx_find_record_field( wvout_record, "timer_data",
-					&timer_data_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -405,7 +388,7 @@ mx_waveform_output_is_busy( MX_RECORD *wvout_record, mx_bool_type *busy )
 MX_EXPORT mx_status_type
 mx_waveform_output_read_all( MX_RECORD *wvout_record,
 				unsigned long *num_channels,
-				unsigned long *num_points,
+				unsigned long *num_steps,
 				double ***wvout_data )
 {
 	static const char fname[] = "mx_waveform_output_read_all()";
@@ -413,6 +396,8 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_all_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type ( *read_channel_fn ) ( MX_WAVEFORM_OUTPUT * );
+	long ch;
 	mx_status_type mx_status;
 
 	mx_status = mx_waveform_output_get_pointers( wvout_record,
@@ -423,14 +408,28 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 
 	read_all_fn = function_list->read_all;
 
-	if ( read_all_fn == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Reading the waveform data as one big block "
-		"is not supported for waveform output '%s'.",
-			wvout_record->name );
-	}
+	if ( read_all_fn != NULL ) {
+		mx_status = (*read_all_fn)( wvout );
+	} else {
+		read_channel_fn = function_list->read_channel;
 
-	mx_status = (*read_all_fn)( wvout );
+		if ( read_channel_fn == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The device driver for record '%s' does not have "
+			"any working 'read' functions!", wvout_record->name );
+		}
+
+		for ( ch = 0; ch < wvout->current_num_channels; ch++ ) {
+			wvout->channel_index = ch;
+
+			wvout->channel_data = (wvout->data_array)[ch];
+
+			mx_status = (*read_channel_fn)( wvout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -438,8 +437,8 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 	if ( num_channels != NULL ) {
 		*num_channels = wvout->current_num_channels;
 	}
-	if ( num_points != NULL ) {
-		*num_points = wvout->current_num_points;
+	if ( num_steps != NULL ) {
+		*num_steps = wvout->current_num_steps;
 	}
 	if ( wvout_data != NULL ) {
 		*wvout_data = wvout->data_array;
@@ -451,7 +450,7 @@ mx_waveform_output_read_all( MX_RECORD *wvout_record,
 MX_EXPORT mx_status_type
 mx_waveform_output_write_all( MX_RECORD *wvout_record,
 				unsigned long num_channels,
-				unsigned long num_points,
+				unsigned long num_steps,
 				double **wvout_data )
 {
 	static const char fname[] = "mx_waveform_output_write_all()";
@@ -459,8 +458,9 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
 	double **dest;
-	unsigned long ch, num_points_to_zero;
+	unsigned long ch, num_steps_to_zero;
 	mx_status_type ( *write_all_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type ( *write_channel_fn ) ( MX_WAVEFORM_OUTPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_waveform_output_get_pointers( wvout_record,
@@ -469,15 +469,6 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	write_all_fn = function_list->write_all;
-
-	if ( write_all_fn == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Writing the waveform data as one big block "
-		"is not supported for waveform output '%s'.",
-			wvout_record->name );
-	}
-
 	if ( num_channels > wvout->maximum_num_channels ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested number of channels (%lu) for waveform output "
@@ -485,11 +476,11 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 			wvout_record->name, wvout->maximum_num_channels );
 	}
 
-	if ( num_points > wvout->maximum_num_points ) {
+	if ( num_steps > wvout->maximum_num_steps ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested number of points (%lu) for waveform output "
-		"'%s' is larger than the maximum of %ld.", num_points,
-			wvout_record->name, wvout->maximum_num_points );
+		"'%s' is larger than the maximum of %ld.", num_steps,
+			wvout_record->name, wvout->maximum_num_steps );
 	}
 
 	/* If the source and the destination are not identical pointers,
@@ -502,27 +493,52 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 
 		for ( ch = 0; ch < num_channels; ch++ ) {
 			memcpy( dest[ch], wvout_data[ch],
-				num_points * sizeof(double) );
+				num_steps * sizeof(double) );
 
-			if ( num_points < wvout->maximum_num_points ) {
-				num_points_to_zero =
-				    wvout->maximum_num_points - num_points;
+			if ( num_steps < wvout->maximum_num_steps ) {
+				num_steps_to_zero =
+				    wvout->maximum_num_steps - num_steps;
 
-				memset( &(dest[ch][0]) + num_points, 0,
-					num_points_to_zero * sizeof(double) );
+				memset( &(dest[ch][0]) + num_steps, 0,
+					num_steps_to_zero * sizeof(double) );
 			}
 		}
 
 		for (ch = num_channels; ch < wvout->maximum_num_channels; ch++) 
 		{
 			memset( &(dest[ch][0]), 0,
-				wvout->maximum_num_points * sizeof(double) );
+				wvout->maximum_num_steps * sizeof(double) );
 		}
 	}
 
-	/* Now invoke the method function. */
+	wvout->current_num_steps = num_steps;
 
-	mx_status = (*write_all_fn)( wvout );
+	/* Now write the data. */
+
+	write_all_fn = function_list->write_all;
+
+	if ( write_all_fn != NULL ) {
+		mx_status = (*write_all_fn)( wvout );
+	} else {
+		write_channel_fn = function_list->write_channel;
+
+		if ( write_channel_fn == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The device driver for record '%s' does not have "
+			"any working 'write' functions!", wvout_record->name );
+		}
+
+		for ( ch = 0; ch < wvout->current_num_channels; ch++ ) {
+			wvout->channel_index = ch;
+
+			wvout->channel_data = (wvout->data_array)[ch];
+
+			mx_status = (*write_channel_fn)( wvout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
 
 	return mx_status;
 }
@@ -530,7 +546,7 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 MX_EXPORT mx_status_type
 mx_waveform_output_read_channel( MX_RECORD *wvout_record,
 				unsigned long channel_index,
-				unsigned long *num_points,
+				unsigned long *num_steps,
 				double **channel_data )
 {
 	static const char fname[] = "mx_waveform_output_read_channel()";
@@ -572,8 +588,8 @@ mx_waveform_output_read_channel( MX_RECORD *wvout_record,
 
 	wvout->channel_data = (wvout->data_array) [ wvout->channel_index ];
 
-	if ( num_points != NULL ) {
-		*num_points = wvout->current_num_points;
+	if ( num_steps != NULL ) {
+		*num_steps = wvout->current_num_steps;
 	}
 	if ( channel_data != NULL ) {
 		*channel_data = wvout->channel_data;
@@ -585,14 +601,14 @@ mx_waveform_output_read_channel( MX_RECORD *wvout_record,
 MX_EXPORT mx_status_type
 mx_waveform_output_write_channel( MX_RECORD *wvout_record,
 				unsigned long channel_index,
-				unsigned long num_points,
+				unsigned long num_steps,
 				double *channel_data )
 {
 	static const char fname[] = "mx_waveform_output_write_channel()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
-	unsigned long num_points_to_zero;
+	unsigned long num_steps_to_zero;
 	mx_status_type ( *write_channel_fn ) ( MX_WAVEFORM_OUTPUT * );
 	mx_status_type mx_status;
 
@@ -619,6 +635,13 @@ mx_waveform_output_write_channel( MX_RECORD *wvout_record,
 			wvout->maximum_num_channels - 1L );
 	}
 
+	if ( num_steps > wvout->maximum_num_steps ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number of points (%lu) for waveform output "
+		"'%s' is larger than the maximum of %ld.", num_steps,
+			wvout_record->name, wvout->maximum_num_steps );
+	}
+
 	wvout->channel_index = (long) channel_index;
 
 	wvout->channel_data = (wvout->data_array) [ wvout->channel_index ];
@@ -630,16 +653,18 @@ mx_waveform_output_write_channel( MX_RECORD *wvout_record,
 	if ( (channel_data != NULL) && (channel_data != wvout->channel_data) )
 	{
 		memcpy( wvout->channel_data, channel_data,
-			num_points * sizeof(double) );
+			num_steps * sizeof(double) );
 
-		if ( num_points < wvout->maximum_num_points ) {
-			num_points_to_zero =
-				wvout->maximum_num_points - num_points;
+		if ( num_steps < wvout->maximum_num_steps ) {
+			num_steps_to_zero =
+				wvout->maximum_num_steps - num_steps;
 
-			memset( wvout->channel_data + num_points, 0,
-				num_points_to_zero * sizeof(double) );
+			memset( wvout->channel_data + num_steps, 0,
+				num_steps_to_zero * sizeof(double) );
 		}
 	}
+
+	wvout->current_num_steps = num_steps;
 
 	/* Now invoke the method function. */
 
@@ -648,14 +673,17 @@ mx_waveform_output_write_channel( MX_RECORD *wvout_record,
 	return mx_status;
 }
 
+/*--------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
-mx_waveform_output_get_num_points( MX_RECORD *wvout_record,
-				unsigned long *num_points )
+mx_waveform_output_get_frequency( MX_RECORD *wvout_record,
+					double *frequency )
 {
-	static const char fname[] = "mx_waveform_output_get_num_points()";
+	static const char fname[] = "mx_waveform_output_get_frequency()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_waveform_output_get_pointers( wvout_record,
@@ -664,21 +692,36 @@ mx_waveform_output_get_num_points( MX_RECORD *wvout_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: This should be a lookup table function. */
+	get_parameter_fn = function_list->get_parameter;
 
-	*num_points = wvout->current_num_points;
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_waveform_output_default_get_parameter_handler;
+	}
+
+	wvout->parameter_type = MXLV_WVO_FREQUENCY;
+
+	mx_status = (*get_parameter_fn)( wvout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( frequency != NULL ) {
+		*frequency = wvout->frequency;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mx_waveform_output_set_num_points( MX_RECORD *wvout_record,
-				unsigned long num_points )
+mx_waveform_output_set_frequency( MX_RECORD *wvout_record,
+					double frequency )
 {
-	static const char fname[] = "mx_waveform_output_set_num_points()";
+	static const char fname[] = "mx_waveform_output_set_frequency()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_waveform_output_get_pointers( wvout_record,
@@ -687,11 +730,93 @@ mx_waveform_output_set_num_points( MX_RECORD *wvout_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: This should be a lookup table function. */
+	set_parameter_fn = function_list->set_parameter;
 
-	wvout->current_num_points = num_points;
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_waveform_output_default_set_parameter_handler;
+	}
+
+	wvout->frequency = frequency;
+
+	wvout->parameter_type = MXLV_WVO_FREQUENCY;
+
+	mx_status = (*set_parameter_fn)( wvout );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_waveform_output_get_trigger_mode( MX_RECORD *wvout_record,
+					long *trigger_mode )
+{
+	static const char fname[] = "mx_waveform_output_get_trigger_mode()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_waveform_output_default_get_parameter_handler;
+	}
+
+	wvout->parameter_type = MXLV_WVO_TRIGGER_MODE;
+
+	mx_status = (*get_parameter_fn)( wvout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode != NULL ) {
+		*trigger_mode = wvout->trigger_mode;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_waveform_output_set_trigger_mode( MX_RECORD *wvout_record,
+					long trigger_mode )
+{
+	static const char fname[] = "mx_waveform_output_set_trigger_mode()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_waveform_output_default_set_parameter_handler;
+	}
+
+	wvout->trigger_mode = trigger_mode;
+
+	wvout->parameter_type = MXLV_WVO_TRIGGER_MODE;
+
+	mx_status = (*set_parameter_fn)( wvout );
+
+	return mx_status;
 }
 
 /*--------------------------------------------------------------------*/

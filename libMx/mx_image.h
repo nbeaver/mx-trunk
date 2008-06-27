@@ -213,6 +213,7 @@ typedef struct {
 #define MXT_IMAGE_NO_TRIGGER		0x0
 #define MXT_IMAGE_INTERNAL_TRIGGER	0x1
 #define MXT_IMAGE_EXTERNAL_TRIGGER	0x2
+#define MXT_IMAGE_MANUAL_TRIGGER	0x4
 
 /*----*/
 

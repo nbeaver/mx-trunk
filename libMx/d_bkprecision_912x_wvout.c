@@ -26,6 +26,10 @@
 #include "i_bkprecision_912x.h"
 #include "d_bkprecision_912x_wvout.h"
 
+/* FIXME: mx_image.h is needed in order to get the trigger macros! */
+
+#include "mx_image.h"
+
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG_TIMING
 #include "mx_hrt_debug.h"
 #endif
@@ -48,10 +52,12 @@ MX_WAVEFORM_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_wvout_trigger,
 	mxd_bkprecision_912x_wvout_stop,
 	mxd_bkprecision_912x_wvout_busy,
-	mxd_bkprecision_912x_wvout_read_all,
-	mxd_bkprecision_912x_wvout_write_all,
+	NULL,
+	NULL,
 	mxd_bkprecision_912x_wvout_read_channel,
-	mxd_bkprecision_912x_wvout_write_channel
+	mxd_bkprecision_912x_wvout_write_channel,
+	mxd_bkprecision_912x_wvout_get_parameter,
+	mxd_bkprecision_912x_wvout_set_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_wvout_record_field_defaults[] = {
@@ -135,14 +141,14 @@ mxd_bkprecision_912x_wvout_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
-	long maximum_num_points_varargs_cookie;
+	long maximum_num_steps_varargs_cookie;
 	mx_status_type status;
 
 	status = mx_waveform_output_initialize_type( record_type,
 				&num_record_fields,
 				&record_field_defaults,
 				&maximum_num_channels_varargs_cookie,
-				&maximum_num_points_varargs_cookie );
+				&maximum_num_steps_varargs_cookie );
 
 	return status;
 }
@@ -222,26 +228,26 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 
-	MX_DEBUG(-2,("%s: maximum_num_points = %lu",
-		fname, wvout->maximum_num_points));
+	MX_DEBUG(-2,("%s: maximum_num_steps = %lu",
+		fname, wvout->maximum_num_steps));
 #endif
 
-	if ( wvout->maximum_num_points <= 25 ) {
+	if ( wvout->maximum_num_steps <= 25 ) {
 		num_groups = 8;
 	} else
-	if ( wvout->maximum_num_points <= 50 ) {
+	if ( wvout->maximum_num_steps <= 50 ) {
 		num_groups = 4;
 	} else
-	if ( wvout->maximum_num_points <= 100 ) {
+	if ( wvout->maximum_num_steps <= 100 ) {
 		num_groups = 2;
 	} else
-	if ( wvout->maximum_num_points <= 200 ) {
+	if ( wvout->maximum_num_steps <= 200 ) {
 		num_groups = 1;
 	} else {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested maximum number of points (%lu) for waveform "
+		"The requested maximum number of steps (%lu) for waveform "
 		"output '%s' is not in the allowed range of 2 to 200.",
-			wvout->maximum_num_points, record->name );
+			wvout->maximum_num_steps, record->name );
 	}
 
 	snprintf( command, sizeof(command), "LIST:AREA %d", num_groups );
@@ -253,7 +259,7 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"LIST:COUNT %lu", wvout->maximum_num_points );
+		"LIST:COUNT %lu", wvout->maximum_num_steps );
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
 				NULL, 0, MXD_BKPRECISION_912X_WVOUT_DEBUG );
@@ -315,7 +321,11 @@ mxd_bkprecision_912x_wvout_trigger( MX_WAVEFORM_OUTPUT *wvout )
 		fname, wvout->record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"TRIGGER", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -367,84 +377,6 @@ mxd_bkprecision_912x_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 }
 
 MX_EXPORT mx_status_type
-mxd_bkprecision_912x_wvout_read_all( MX_WAVEFORM_OUTPUT *wvout )
-{
-	static const char fname[] = "mxd_bkprecision_912x_wvout_read_all()";
-
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
-	mx_status_type mx_status;
-
-	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout,
-					&bkprecision_912x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_BKPRECISION_912X_WVOUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, wvout->record->name));
-#endif
-
-	/* First, read channel 0 (voltage). */
-
-	wvout->channel_index = 0;
-
-	mx_status = mxd_bkprecision_912x_wvout_read_channel( wvout );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Then, read channel 1 (current). */
-
-	wvout->channel_index = 1;
-
-	mx_status = mxd_bkprecision_912x_wvout_read_channel( wvout );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_bkprecision_912x_wvout_write_all( MX_WAVEFORM_OUTPUT *wvout )
-{
-	static const char fname[] = "mxd_bkprecision_912x_wvout_write_all()";
-
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
-	mx_status_type mx_status;
-
-	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
-					&bkprecision_912x_wvout,
-					&bkprecision_912x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_BKPRECISION_912X_WVOUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, wvout->record->name));
-#endif
-
-	/* First, write channel 0 (voltage). */
-
-	wvout->channel_index = 0;
-
-	mx_status = mxd_bkprecision_912x_wvout_write_channel( wvout );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Then, write channel 1 (current). */
-
-	wvout->channel_index = 1;
-
-	mx_status = mxd_bkprecision_912x_wvout_write_channel( wvout );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_read_channel()";
@@ -454,7 +386,7 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 	int ch, n, num_items;
 	char command[40];
 	char response[80];
-	double value;
+	double raw_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -475,15 +407,33 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	wvout->channel_data = (wvout->data_array)[ch];
 
-	/* Loop over all of the points in this channel. */
+	/* Loop over all of the steps in this channel. */
 
-	for ( n = 0; n < wvout->current_num_points; n++ ) {
-		if ( ch == 0 ) {
+	for ( n = 0; n < wvout->current_num_steps; n++ ) {
+		switch( ch ) {
+		case MXF_BKPRECISION_912X_WVOUT_VOLTAGE:
 			snprintf( command, sizeof(command),
-			"LIST:VOLTAGE? %d", n+1 );
-		} else {
+				"LIST:VOLTAGE? %d", n+1 );
+			break;
+
+		case MXF_BKPRECISION_912X_WVOUT_CURRENT:
 			snprintf( command, sizeof(command),
-			"LIST:CURRENT? %d", n+1 );
+				"LIST:CURRENT? %d", n+1 );
+			break;
+
+		case MXF_BKPRECISION_912X_WVOUT_WIDTH:
+			snprintf( command, sizeof(command),
+				"LIST:WIDTH? %d", n+1 );
+			break;
+
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal channel number (%d) specified for "
+			"waveform output '%s'.  "
+			"The allowed values are 0 (for voltage), "
+			"1 (for current), and 2 (for step width).",
+				ch, wvout->record->name );
+			break;
 		}
 
 		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
@@ -493,7 +443,7 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%lg", &value );
+		num_items = sscanf( response, "%lg", &raw_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -502,7 +452,14 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 				response, command, wvout->record->name );
 		}
 
-		wvout->channel_data[n] = value;
+		if ( ch == MXF_BKPRECISION_912X_WVOUT_WIDTH ) {
+			/* Convert BK Precision milliseconds to MX seconds. */
+
+			raw_value = raw_value * 0.001;
+		}
+
+		wvout->channel_data[n] =
+			wvout->offset + wvout->scale * raw_value;
 	}
 
 	return mx_status;
@@ -538,19 +495,40 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	wvout->channel_data = (wvout->data_array)[ch];
 
-	/* Loop over all of the points in this channel. */
+	/* Loop over all of the steps in this channel. */
 
 	num_attempts = 2;
 
-	for ( n = 0; n < wvout->current_num_points; n++ ) {
-		if ( ch == 0 ) {
+	for ( n = 0; n < wvout->current_num_steps; n++ ) {
+		switch( ch ) {
+		case MXF_BKPRECISION_912X_WVOUT_VOLTAGE:
 			snprintf( command, sizeof(command),
-			"LIST:VOLTAGE %d, %fV",
+			"LIST:VOLTAGE %d, %f",
 				n+1, wvout->channel_data[n] );
-		} else {
+			break;
+
+		case MXF_BKPRECISION_912X_WVOUT_CURRENT:
 			snprintf( command, sizeof(command),
-			"LIST:CURRENT %d, %fA",
+			"LIST:CURRENT %d, %f",
 				n+1, wvout->channel_data[n] );
+			break;
+
+		case MXF_BKPRECISION_912X_WVOUT_WIDTH:
+			/* Convert MX seconds to BK Precision milliseconds. */
+
+			snprintf( command, sizeof(command),
+			"LIST:WIDTH %d, %ld",
+			    n+1, mx_round(1000.0 * wvout->channel_data[n]) );
+			break;
+
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal channel number (%d) specified for "
+			"waveform output '%s'.  "
+			"The allowed values are 0 (for voltage), "
+			"1 (for current), and 2 (for step width).",
+				ch, wvout->record->name );
+			break;
 		}
 
 		/* Sometimes this command fails with a 'Command Error'.
@@ -567,13 +545,13 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 					MXD_BKPRECISION_912X_WVOUT_DEBUG );
 
 			/* We only retry if we got an MXE_INTERFACE_IO_ERROR
-			 * with the 0x20 bit set in the ESR.
+			 * with an Invalid Command error code (70).
 			 */
 
 			if ( mx_status.code != MXE_INTERFACE_IO_ERROR )
 				break;
 
-			if ( ( bkprecision_912x->ESR & 0x20 ) == 0 )
+			if ( bkprecision_912x->error_code != 70 )
 				break;
 		}
 
@@ -592,6 +570,10 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
+	char command[40];
+	char response[80];
+	double step_time;	/* in milliseconds */
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -610,6 +592,62 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 #endif
 
 	switch( wvout->parameter_type ) {
+	case MXLV_WVO_FREQUENCY:
+		/* We just use the step width from the first step. */
+
+		strlcpy( command, "LIST:WIDTH? 1", sizeof(command) );
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, response, sizeof(response),
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lg", &step_time );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"No step time was seen in the response '%s' to "
+			"the '%s' command for waveform output '%s'.",
+				response, command, wvout->record->name );
+		}
+
+		/* Convert step time in milliseconds to frequency in Hz. */
+
+		wvout->frequency = mx_divide_safely( 1000.0, step_time );
+		break;
+
+	case MXLV_WVO_TRIGGER_MODE:
+		strlcpy( command, "TRIGGER:SOURCE?", sizeof(command) );
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, response, sizeof(response),
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* FIXME:
+		 * The trigger mode macros should not come from mx_image.h.
+		 */
+
+		if ( strcmp( response, "BUS" ) == 0 ) {
+			wvout->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		} else
+		if ( strcmp( response, "EXTERNAL" ) == 0 ) {
+			wvout->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+		} else
+		if ( strcmp( response, "IMMEDIATE" ) == 0 ) {
+			wvout->trigger_mode = MXT_IMAGE_MANUAL_TRIGGER;
+		} else {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unexpected response '%s' seen for command '%s' "
+			"sent to waveform output '%s'.",
+				response, command, wvout->record->name );
+		}
+		break;
+
 	default:
 		return mx_waveform_output_default_get_parameter_handler(wvout);
 	}
@@ -618,7 +656,7 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -629,6 +667,10 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
+	char command[40];
+	double step_time;
+	long num_milliseconds;
+	int n;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -647,11 +689,70 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 #endif
 
 	switch( wvout->parameter_type ) {
+	case MXLV_WVO_FREQUENCY:
+		/* Convert frequency in Hz to step time in milliseconds. */
+
+		step_time = mx_divide_safely( 1000.0, wvout->frequency );
+
+		num_milliseconds = mx_round( step_time );
+
+		/* For this command, we set all of the steps in
+		 * channel 2 (step width) for the waveform output.
+		 */
+
+		for ( n = 0; n < wvout->maximum_num_steps; n++ ) {
+			snprintf(command, sizeof(command),
+				"LIST:WIDTH %d, %ld", n+1, num_milliseconds );
+
+			mx_status = mxi_bkprecision_912x_command(
+					bkprecision_912x, command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+		break;
+
+	case MXLV_WVO_TRIGGER_MODE:
+		/* FIXME:
+		 * The trigger mode macros should not come from mx_image.h.
+		 */
+
+		switch( wvout->trigger_mode ) {
+		case MXT_IMAGE_INTERNAL_TRIGGER:
+			strlcpy( command, "TRIGGER:SOURCE BUS",
+						sizeof(command) );
+			break;
+		case MXT_IMAGE_EXTERNAL_TRIGGER:
+			strlcpy( command, "TRIGGER:SOURCE EXTERNAL",
+						sizeof(command) );
+			break;
+		case MXT_IMAGE_MANUAL_TRIGGER:
+			strlcpy( command, "TRIGGER:SOURCE IMMEDIATE",
+						sizeof(command) );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized trigger mode %#lx was requested "
+			"for waveform output '%s'.",
+				wvout->trigger_mode, wvout->record->name );
+			break;
+		}
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		break;
+
 	default:
 		return mx_waveform_output_default_set_parameter_handler(wvout);
 	}
-	MX_DEBUG( 2,("%s complete.", fname));
 
-	return MX_SUCCESSFUL_RESULT;
+#if MXD_BKPRECISION_912X_WVOUT_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return mx_status;
 }
 

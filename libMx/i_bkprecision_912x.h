@@ -43,7 +43,7 @@ typedef struct {
 
 	unsigned long port_function;
 	char model_name[10];
-	uint8_t ESR;
+	int error_code;
 } MX_BKPRECISION_912X;
 
 #define MXI_BKPRECISION_912X_STANDARD_FIELDS \

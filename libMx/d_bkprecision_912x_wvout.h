@@ -18,6 +18,14 @@
 #ifndef __D_BKPRECISION_912X_WVOUT_H__
 #define __D_BKPRECISION_912X_WVOUT_H__
 
+/* Internal channel numbers for LIST:VOLTAGE, LIST:CURRENT, and LIST:WIDTH. */
+
+#define MXF_BKPRECISION_912X_WVOUT_VOLTAGE	0
+#define MXF_BKPRECISION_912X_WVOUT_CURRENT	1
+#define MXF_BKPRECISION_912X_WVOUT_WIDTH	2
+
+/*----*/
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -44,10 +52,6 @@ MX_API mx_status_type mxd_bkprecision_912x_wvout_trigger(
 MX_API mx_status_type mxd_bkprecision_912x_wvout_stop(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_busy(
-						MX_WAVEFORM_OUTPUT *wvout );
-MX_API mx_status_type mxd_bkprecision_912x_wvout_read_all(
-						MX_WAVEFORM_OUTPUT *wvout );
-MX_API mx_status_type mxd_bkprecision_912x_wvout_write_all(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_read_channel(
 						MX_WAVEFORM_OUTPUT *wvout );

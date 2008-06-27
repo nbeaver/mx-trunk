@@ -67,11 +67,12 @@ motor_wvout_fn( int argc, char *argv[] )
 	MX_WAVEFORM_OUTPUT *wvout;
 	FILE *savefile;
 	int os_status, saved_errno;
-	char *endptr;
 	unsigned long i, j, channel, num_channels;
-	unsigned long num_points, num_points_to_zero;
+	unsigned long num_steps, num_steps_to_zero;
 	double *channel_data;
 	double **wvout_data;
+	double frequency;
+	long trigger_mode;
 	int status, num_items;
 	char buffer[40];
 	char *ptr, *token_ptr;
@@ -90,8 +91,10 @@ motor_wvout_fn( int argc, char *argv[] )
   "        wvout 'wvout_name' save 'channel_number' 'datafile'\n"
   "        wvout 'wvout_name' loadall 'datafile'\n"
   "        wvout 'wvout_name' load 'channel_number' 'datafile'\n"
-  "        wvout 'wvout_name' get num_points\n"
-  "        wvout 'wvout_name' set num_points 'value'\n"
+  "        wvout 'wvout_name' get frequency\n"
+  "        wvout 'wvout_name' set frequency 'value'\n"
+  "        wvout 'wvout_name' get trigger_mode\n"
+  "        wvout 'wvout_name' set trigger_mode 'value'\n"
 	;
 
 	if ( argc < 4 ) {
@@ -162,7 +165,7 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		mx_status = mx_waveform_output_read_all( wvout_record,
 					&num_channels,
-					&num_points,
+					&num_steps,
 					&wvout_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -180,7 +183,7 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		for ( i = 0; i < num_points; i++ ) {
+		for ( i = 0; i < num_steps; i++ ) {
 			for ( j = 0; j < num_channels; j++ ) {
 				fprintf(savefile, "%10g  ", wvout_data[j][i]);
 
@@ -221,7 +224,7 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		mx_status = mx_waveform_output_read_channel( wvout_record,
 						channel,
-						&num_points,
+						&num_steps,
 						&channel_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -239,7 +242,7 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		for ( i = 0; i < num_points; i++ ) {
+		for ( i = 0; i < num_steps; i++ ) {
 
 			fprintf(savefile, "%10g\n", channel_data[i]);
 
@@ -301,7 +304,7 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		for ( i = 0; i < wvout->maximum_num_points; i++ ) {
+		for ( i = 0; i < wvout->maximum_num_steps; i++ ) {
 			fgets( buffer, sizeof(buffer), savefile );
 
 			if ( feof(savefile) || ferror(savefile) ) {
@@ -323,16 +326,16 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		fclose( savefile );
 
-		if ( i < wvout->maximum_num_points ) {
-			num_points_to_zero = wvout->maximum_num_points - 1;
+		if ( i < wvout->maximum_num_steps ) {
+			num_steps_to_zero = wvout->maximum_num_steps - 1;
 
 			memset( &(channel_data[i]), 0,
-				num_points_to_zero * sizeof(double) );
+				num_steps_to_zero * sizeof(double) );
 		}
 
 		mx_status = mx_waveform_output_write_channel( wvout_record,
 						channel,
-						num_points,
+						wvout->maximum_num_steps,
 						channel_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -360,7 +363,7 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		wvout_data = wvout->data_array;
 
-		for ( i = 0; i < wvout->maximum_num_points; i++ ) {
+		for ( i = 0; i < wvout->maximum_num_steps; i++ ) {
 			fgets( buffer, sizeof(buffer), savefile );
 
 			if ( feof(savefile) || ferror(savefile) ) {
@@ -406,7 +409,7 @@ motor_wvout_fn( int argc, char *argv[] )
 
 		mx_status = mx_waveform_output_write_all( wvout_record,
 					wvout->maximum_num_channels,
-					wvout->maximum_num_points,
+					wvout->maximum_num_steps,
 					wvout_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -483,33 +486,33 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-#if 0
-		if ( strncmp( "measurement_time",
+		if ( strncmp( "frequency",
 				argv[4], strlen(argv[4]) ) == 0 )
 		{
-			mx_status = mx_waveform_output_get_measurement_time(
-					wvout_record, &measurement_time );
+			mx_status = mx_waveform_output_get_frequency(
+					wvout_record, &frequency );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-			"Waveform output '%s' measurement time = %g\n",
-				wvout_record->name, measurement_time );
+			"Waveform output '%s' frequency = %g\n",
+				wvout_record->name, frequency );
+
 		} else
-#endif
-		if ( strncmp( "num_points",
+		if ( strncmp( "trigger_mode",
 				argv[4], strlen(argv[4]) ) == 0 )
 		{
-			mx_status = mx_waveform_output_get_num_points(
-					wvout_record, &num_points );
+			mx_status = mx_waveform_output_get_trigger_mode(
+					wvout_record, &trigger_mode );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-				"Waveform output '%s' num points = %lu\n",
-				wvout_record->name, num_points );
+			"Waveform output '%s' trigger mode = %#lx\n",
+				wvout_record->name, trigger_mode );
+
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
@@ -529,56 +532,45 @@ motor_wvout_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-#if 0
-		if ( strncmp( "measurement_time",
+		if ( strncmp( "frequency",
 			argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
-	"%s: wrong number of arguments to 'set measurement_time' command\n",
+	"%s: wrong number of arguments to 'set frequency' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			measurement_time = atof( argv[5] );
+			frequency = atof( argv[5] );
 
-			mx_status = mx_waveform_output_set_measurement_time(
-					wvout_record, measurement_time );
+			mx_status = mx_waveform_output_set_frequency(
+						wvout_record, frequency );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else
-#endif
-		if ( strncmp( "num_points",
-			argv[4], strlen(argv[4]) ) == 0)
+		if ( strncmp( "trigger_mode",
+			argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
-	"%s: wrong number of arguments to 'set num_points' command\n",
+	"%s: wrong number of arguments to 'set trigger_mode' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			num_points = strtoul( argv[5], &endptr, 0 );
+			trigger_mode = mx_hex_string_to_unsigned_long(argv[5]);
 
-			if ( *endptr != '\0' ) {
-				fprintf( output,
-			"%s: Non-numeric characters found in waveform output "
-			"number of channels value '%s'\n",
-					cname, argv[5] );
-				return FAILURE;
-			}
-
-			mx_status = mx_waveform_output_set_num_points(
-					wvout_record, num_points );
+			mx_status = mx_waveform_output_set_trigger_mode(
+						wvout_record, trigger_mode );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
-
 		} else {
 			fprintf( output,
 				"%s: unknown set command argument '%s'\n",
@@ -602,7 +594,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 		MX_WAVEFORM_OUTPUT *wvout,
 		unsigned long channel_number)
 {
-	unsigned long i, num_points;
+	unsigned long i, num_steps;
 	double *channel_data;
 	mx_status_type mx_status;
 
@@ -611,7 +603,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 	fprintf( output, "About to read waveform output data.\n" );
 
 	mx_status = mx_waveform_output_read_channel( wvout_record,
-				channel_number, &num_points, &channel_data );
+				channel_number, &num_steps, &channel_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
@@ -626,7 +618,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 	(void) mx_getch();
 #endif
 
-	for ( i = 0; i < num_points; i++ ) {
+	for ( i = 0; i < num_steps; i++ ) {
 		if ( (i % VALUES_PER_ROW) == 0 ) {
 			fprintf( output, "\n%4lu: ", i );
 		}
@@ -649,7 +641,7 @@ motor_wvout_read( MX_RECORD *wvout_record,
 static int
 motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 {
-	unsigned long i, j, num_channels, num_points;
+	unsigned long i, j, num_channels, num_steps;
 	double **wvout_data;
 	mx_status_type mx_status;
 
@@ -658,7 +650,7 @@ motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 	fprintf( output, "About to read waveform output data.\n" );
 
 	mx_status = mx_waveform_output_read_all( wvout_record, &num_channels,
-					&num_points,
+					&num_steps,
 					&wvout_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -674,7 +666,7 @@ motor_wvout_read_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 	(void) mx_getch();
 #endif
 
-	for ( i = 0; i < num_points; i++ ) {
+	for ( i = 0; i < num_steps; i++ ) {
 		fprintf( output, "\n%4lu: ", i );
 
 		for ( j = 0; j < num_channels; j++ ) {
@@ -712,7 +704,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
-	unsigned long i, num_points;
+	unsigned long i, num_steps;
 	double *channel_data;
 	int status;
 	mx_status_type mx_status;
@@ -736,7 +728,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	/* Read the data from the waveform output device. */
 
 	mx_status = mx_waveform_output_read_channel( wvout_record,
-				channel_number, &num_points, &channel_data );
+				channel_number, &num_steps, &channel_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
@@ -769,7 +761,7 @@ motor_wvout_display_plot( MX_RECORD *wvout_record,
 	fprintf( output,
 		"Sending data to the plotting program.  Please wait...\n" );
 
-	for ( i = 0; i < num_points; i++ ) {
+	for ( i = 0; i < num_steps; i++ ) {
 		status = fprintf( plotgnu_pipe,
 					"data %lu %g\n", i, channel_data[i] );
 	}
@@ -816,7 +808,7 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
-	unsigned long i, j, num_channels, num_points;
+	unsigned long i, j, num_channels, num_steps;
 	double **wvout_data;
 	int status;
 	mx_status_type mx_status;
@@ -840,7 +832,7 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 	/* Read the data from the waveform output device. */
 
 	mx_status = mx_waveform_output_read_all( wvout_record, &num_channels,
-					&num_points, &wvout_data );
+					&num_steps, &wvout_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
@@ -880,7 +872,7 @@ motor_wvout_display_all( MX_RECORD *wvout_record, MX_WAVEFORM_OUTPUT *wvout )
 	fprintf( output,
 		"Sending data to the plotting program.  Please wait...\n" );
 
-	for ( i = 0; i < num_points; i++ ) {
+	for ( i = 0; i < num_steps; i++ ) {
 		status = fprintf( plotgnu_pipe, "data %lu", i );
 
 		for ( j = 0; j < num_channels; j++ ) {
