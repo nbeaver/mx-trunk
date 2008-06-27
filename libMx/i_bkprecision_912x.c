@@ -266,6 +266,15 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Turn off the output timer. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"OUTPUT:TIMER OFF", NULL, 0,
+					MXI_BKPRECISION_912X_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Turn on the output voltage. */
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "OUTPUT ON",

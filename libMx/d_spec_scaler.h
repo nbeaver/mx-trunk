@@ -3,9 +3,11 @@
  *
  * Purpose: Header file for Spec scalers.
  *
+ * Author:  William Lavender
+ *
  *-----------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

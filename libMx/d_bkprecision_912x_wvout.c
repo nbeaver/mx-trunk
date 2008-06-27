@@ -113,8 +113,8 @@ mxd_bkprecision_912x_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 
 		if ( bkprecision_912x_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_BKPRECISION_912X pointer for analog "
-			"input record '%s' passed by '%s' is NULL.",
+			"MX_BKPRECISION_912X pointer for waveform output "
+			"record '%s' passed by '%s' is NULL.",
 				wvout->record->name, calling_fname );
 		}
 
@@ -124,7 +124,8 @@ mxd_bkprecision_912x_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 		if ( *bkprecision_912x == (MX_BKPRECISION_912X *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_BKPRECISION_912X pointer for BK Precision "
-			"power supply '%s' used by analog input record '%s'.",
+			"power supply '%s' used by waveform output "
+			"record '%s'.",
 				bkprecision_912x_record->name,
 				wvout->record->name );
 		}
@@ -227,9 +228,6 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
-
-	MX_DEBUG(-2,("%s: maximum_num_steps = %lu",
-		fname, wvout->maximum_num_steps));
 #endif
 
 	if ( wvout->maximum_num_steps <= 25 ) {
@@ -267,6 +265,49 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Figure out the initial list mode to use. */
+
+	if ( mx_strncasecmp( "CONTINUOUS",
+		bkprecision_912x_wvout->list_mode_name,
+		strlen(bkprecision_912x_wvout->list_mode_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_mode =
+					MXF_BKPRECISION_912X_WVOUT_CONTINUOUS;
+	} else
+	if ( mx_strncasecmp( "STEP", bkprecision_912x_wvout->list_mode_name,
+		strlen(bkprecision_912x_wvout->list_mode_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_mode =
+					MXF_BKPRECISION_912X_WVOUT_STEP;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized list mode '%s' specified for "
+		"waveform output '%s'.",
+			bkprecision_912x_wvout->list_mode_name,
+			record->name );
+	}
+
+	/* Figure out the initial list step to use. */
+
+	if ( mx_strncasecmp( "ONCE", bkprecision_912x_wvout->list_step_name,
+		strlen(bkprecision_912x_wvout->list_step_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_step =
+					MXF_BKPRECISION_912X_WVOUT_ONCE;
+	} else
+	if ( mx_strncasecmp( "REPEAT", bkprecision_912x_wvout->list_step_name,
+		strlen(bkprecision_912x_wvout->list_step_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_step =
+					MXF_BKPRECISION_912X_WVOUT_REPEAT;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized list step '%s' specified for "
+		"waveform output '%s'.",
+			bkprecision_912x_wvout->list_step_name,
+			record->name );
+	}
+
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
@@ -283,6 +324,7 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
+	char command[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -296,8 +338,67 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, wvout->record->name));
 #endif
+	/* Set the list mode. */
 
-	return MX_SUCCESSFUL_RESULT;
+	switch( bkprecision_912x_wvout->list_mode ) {
+	case MXF_BKPRECISION_912X_WVOUT_CONTINUOUS:
+		/* For some reason, specifying the full name CONTINUOUS
+		 * causes the command to fail with error code 40.
+		 */
+
+		strlcpy( command, "LIST:MODE CONT", sizeof(command) );
+		break;
+
+	case MXF_BKPRECISION_912X_WVOUT_STEP:
+		strlcpy( command, "LIST:MODE STEP", sizeof(command) );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized list mode number %lu for waveform output '%s'",
+			bkprecision_912x_wvout->list_mode, wvout->record->name);
+		break;
+	}
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the list step. */
+
+	switch( bkprecision_912x_wvout->list_step ) {
+	case MXF_BKPRECISION_912X_WVOUT_ONCE:
+		strlcpy( command, "LIST:STEP ONCE", sizeof(command) );
+		break;
+
+	case MXF_BKPRECISION_912X_WVOUT_REPEAT:
+		strlcpy( command, "LIST:STEP REPEAT", sizeof(command) );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized list step number %lu for waveform output '%s'",
+			bkprecision_912x_wvout->list_step, wvout->record->name);
+		break;
+	}
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Finish by switching the power supply to list mode. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"MODE LIST", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

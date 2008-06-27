@@ -546,6 +546,17 @@ mxd_bkprecision_912x_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Begin by switching the power supply to fixed mode. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"MODE FIXED", NULL, 0,
+					MXD_BKPRECISION_912X_AIO_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Then set the output voltage or current. */
+
 	switch( bkprecision_912x_aoutput->output_type ) {
 	case MXT_BKPRECISION_912X_VOLTAGE:
 		snprintf( command, sizeof(command),
