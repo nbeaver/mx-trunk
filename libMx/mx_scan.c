@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,6 +39,9 @@
 #include "mx_mca.h"
 #include "mx_variable.h"
 #include "mx_array.h"
+
+#include "f_custom.h"
+#include "p_custom.h"
 
 /* --------------- */
 
@@ -771,6 +774,109 @@ mx_perform_scan( MX_RECORD *scan_record )
 		MX_DEBUG(-2,("%s: total scan time          = %g seconds",
 			fname, total_scan_time));
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_set_custom_datafile_handler( MX_RECORD *scan_record,
+				void *custom_args,
+				MX_DATAFILE_FUNCTION_LIST *custom_flist )
+{
+	static const char fname[] = "mx_scan_set_custom_datafile_handler()";
+
+	MX_DATAFILE_CUSTOM *custom_datafile;
+	MX_SCAN *scan;
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( scan_record->mx_superclass != MXR_SCAN ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' is not a scan record.",
+			scan_record->name );
+	}
+
+	scan = (MX_SCAN *) scan_record->record_superclass_struct;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SCAN pointer for scan '%s' is NULL.",
+			scan_record->name );
+	}
+
+	if ( scan->datafile.datafile_type_struct != NULL ) {
+		mx_free( scan->datafile.datafile_type_struct );
+	}
+
+	custom_datafile = (MX_DATAFILE_CUSTOM *)
+			calloc( 1, sizeof(MX_DATAFILE_CUSTOM) );
+
+	if ( custom_datafile == (MX_DATAFILE_CUSTOM *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_DATAFILE_CUSTOM structure." );
+	}
+
+	custom_datafile->custom_args = custom_args;
+
+	custom_datafile->custom_function_list = custom_flist;
+
+	scan->datafile.datafile_type_struct = custom_datafile;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_set_custom_plot_handler( MX_RECORD *scan_record,
+				void *custom_args,
+				MX_PLOT_FUNCTION_LIST *custom_flist )
+{
+	static const char fname[] = "mx_scan_set_custom_plot_handler()";
+
+	MX_PLOT_CUSTOM *custom_plot;
+	MX_SCAN *scan;
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( scan_record->mx_superclass != MXR_SCAN ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' is not a scan record.",
+			scan_record->name );
+	}
+
+	scan = (MX_SCAN *) scan_record->record_superclass_struct;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SCAN pointer for scan '%s' is NULL.",
+			scan_record->name );
+	}
+
+	if ( scan->plot.plot_type_struct != NULL ) {
+		mx_free( scan->plot.plot_type_struct );
+	}
+
+	custom_plot = (MX_PLOT_CUSTOM *) calloc( 1, sizeof(MX_PLOT_CUSTOM) );
+
+	if ( custom_plot == (MX_PLOT_CUSTOM *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_PLOT_CUSTOM structure." );
+	}
+
+	custom_plot->custom_args = custom_args;
+
+	custom_plot->custom_function_list = custom_flist;
+
+	scan->plot.plot_type_struct = custom_plot;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2681,7 +2787,8 @@ mx_scan_find_parent_scan( MX_SCAN *child_scan, MX_SCAN **parent_scan )
 static mx_status_type
 mx_scan_get_pointer_to_measurement_number( MX_SCAN *scan, long **ptr )
 {
-	static const char fname[] = "mx_scan_get_pointer_to_measurement_number()";
+	static const char fname[] =
+		"mx_scan_get_pointer_to_measurement_number()";
 
 	MX_SCAN *parent_scan;
 	mx_status_type mx_status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@
 #include "f_text.h"
 #include "f_sff.h"
 #include "f_xafs.h"
+#include "f_custom.h"
 
 MX_DATAFILE_TYPE_ENTRY mx_datafile_type_list[] = {
 	{ MXDF_NONE,  "none",  &mxdf_none_datafile_function_list },
@@ -38,6 +39,7 @@ MX_DATAFILE_TYPE_ENTRY mx_datafile_type_list[] = {
 	{ MXDF_TEXT,  "text",  &mxdf_text_datafile_function_list },
 	{ MXDF_SFF,   "sff",   &mxdf_sff_datafile_function_list },
 	{ MXDF_XAFS,  "xafs",  &mxdf_xafs_datafile_function_list },
+	{ MXDF_CUSTOM, "custom", &mxdf_custom_datafile_function_list },
 	{ -1, "", NULL }
 };
 

@@ -50,9 +50,9 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
 	pr_timer.c pr_variable.c pr_video_input.c pr_waveform_output.c \
 	fh_autoscale.c fh_simple.c \
-	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
+	f_child.c f_custom.c f_none.c f_sff.c f_text.c f_xafs.c \
 	m_count.c m_none.c m_pulse_period.c m_time.c \
-	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
+	p_child.c p_custom.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
 	ph_aps_topup.c ph_simple.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
 	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c

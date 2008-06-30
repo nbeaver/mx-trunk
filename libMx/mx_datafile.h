@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,8 @@ extern "C" {
 #define MXDF_CHILD	2
 #define MXDF_TEXT	3
 #define MXDF_SFF	4
-#define MXDF_XAFS 	11
+#define MXDF_XAFS 	5
+#define MXDF_CUSTOM	6
 
 /* List of datafile_open_flag values. */
 

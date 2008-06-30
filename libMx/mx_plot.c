@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,7 @@
 #include "p_none.h"
 #include "p_child.h"
 #include "p_gnuplot.h"
+#include "p_custom.h"
 
 #include "mx_motor.h"
 #include "p_gnuplot_xafs.h"
@@ -36,6 +37,7 @@ MX_PLOT_TYPE_ENTRY mx_plot_type_list[] = {
 	{ MXP_CHILD, "child", &mxp_child_function_list },
 	{ MXP_GNUPLOT, "gnuplot", &mxp_gnuplot_function_list },
 	{ MXP_GNUXAFS, "gnuxafs", &mxp_gnuxafs_function_list },
+	{ MXP_CUSTOM, "custom", &mxp_custom_function_list },
 	{ -1, "", NULL }
 };
 

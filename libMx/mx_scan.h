@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,6 +125,18 @@ MX_API mx_status_type mx_scan_print_scan_structure(
 					FILE *file, MX_RECORD *record );
 
 MX_API mx_status_type mx_perform_scan( MX_RECORD *record );
+
+MX_API mx_status_type mx_scan_set_custom_datafile_handler(
+					MX_RECORD *record,
+					void *custom_args,
+					MX_DATAFILE_FUNCTION_LIST *flist );
+
+MX_API mx_status_type mx_scan_set_custom_plot_handler(
+					MX_RECORD *record,
+					void *custom_args,
+					MX_PLOT_FUNCTION_LIST *flist );
+
+/*----*/
 
 MX_API mx_status_type mx_standard_prepare_for_scan_start( MX_SCAN *scan );
 
