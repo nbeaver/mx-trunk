@@ -39,6 +39,7 @@ extern "C" {
 /* Values for scan->scan_flags */
 
 #define MXF_SCAN_EARLY_MOVE			0x1
+#define MXF_SCAN_SUPPRESS_PROGRESS_DISPLAY	0x2
 
 /* Values for scan->shutter_policy */
 

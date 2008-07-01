@@ -1930,6 +1930,10 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
+	if ( scan->scan_flags & MXF_SCAN_SUPPRESS_PROGRESS_DISPLAY ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	motor_position = scan->motor_position;
 	motor_is_independent_variable = scan->motor_is_independent_variable;
 
