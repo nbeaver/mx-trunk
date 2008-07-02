@@ -48,11 +48,32 @@ mxs_area_detector_scan_initialize_type( long record_type )
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
-	long num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *field;
+	long i, num_record_fields;
+	long referenced_field_index;
 	long num_independent_variables_varargs_cookie;
 	long num_motors_varargs_cookie;
 	long num_input_devices_varargs_cookie;
+	long num_energies_varargs_cookie;
+	long num_static_motors_varargs_cookie;
 	mx_status_type mx_status;
+
+	static const char static_motor_field[][MXU_FIELD_NAME_LENGTH+1] = {
+		"static_motor_array",
+		"static_motor_positions"
+	};
+
+	long num_static_motor_fields = sizeof(static_motor_field)
+					/ sizeof(static_motor_field[0]);
+
+	static const char scan_position_field[][MXU_FIELD_NAME_LENGTH+1] = {
+		"start_position",
+		"step_size",
+		"num_measurements"
+	};
+
+	long num_scan_position_fields = sizeof(scan_position_field)
+					/ sizeof(scan_position_field[0]);
 
 #if MX_AREA_DETECTOR_DEBUG_SCAN
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -102,7 +123,68 @@ mxs_area_detector_scan_initialize_type( long record_type )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Varying length fields should be initialized here. */
+	/* Fixup the energy array field. */
+
+	mx_status = mx_find_record_field_defaults_index(
+			record_field_defaults, num_record_fields,
+			"num_energies", &referenced_field_index );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_construct_varargs_cookie(
+		referenced_field_index, 0, &num_energies_varargs_cookie );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_find_record_field_defaults(
+		record_field_defaults, num_record_fields,
+		"energy_array", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field->dimension[0] = num_energies_varargs_cookie;
+
+	/* Fixup the static motor fields. */
+
+	mx_status = mx_find_record_field_defaults_index(
+			record_field_defaults, num_record_fields,
+			"num_static_motors", &referenced_field_index );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_construct_varargs_cookie(
+		referenced_field_index, 0, &num_static_motors_varargs_cookie );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	for ( i = 0; i < num_static_motor_fields; i++ ) {
+		mx_status = mx_find_record_field_defaults(
+			record_field_defaults, num_record_fields,
+			static_motor_field[i], &field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		field->dimension[0] = num_static_motors_varargs_cookie;
+	}
+
+	/* Fixup the scan position fields. */
+
+	for ( i = 0; i < num_scan_position_fields; i++ ) {
+		mx_status = mx_find_record_field_defaults(
+			record_field_defaults, num_record_fields,
+			scan_position_field[i], &field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		field->dimension[0] = num_motors_varargs_cookie;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -305,7 +387,7 @@ mxs_area_detector_scan_prepare_for_scan_start( MX_SCAN *scan )
 #endif
 
 	flist = (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *)
-				(scan->record->class_specific_function_list);
+				scan->record->class_specific_function_list;
 
 	if ( flist == (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -353,13 +435,17 @@ mxs_area_detector_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	fptr = flist->prepare_for_scan_start;
 
+#if MX_AREA_DETECTOR_DEBUG_SCAN
+	MX_DEBUG(-2,("%s: flist->prepare_for_scan_start = %p", fname, fptr));
+#endif
+
 	/* It is not an error for flist->prepare_for_scan_start to be NULL,
 	 * this just means that this particular scan type does not need
 	 * to do anything special when a scan is starting.
 	 */
 
 	if ( fptr != NULL ) {
-		mx_status = (*fptr) (scan);
+		mx_status = (*fptr)( scan );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -374,16 +460,130 @@ mxs_area_detector_scan_execute_scan_body( MX_SCAN *scan )
 	static const char fname[] =
 		"mxs_area_detector_scan_execute_scan_body()";
 
+	MX_AREA_DETECTOR_SCAN *ad_scan;
+	MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *flist;
+	mx_status_type (*fptr) (MX_SCAN *);
+	mx_status_type mx_status;
+
 #if MX_AREA_DETECTOR_DEBUG_SCAN
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	ad_scan = (MX_AREA_DETECTOR_SCAN *) scan->record->record_class_struct;
+
+	if ( ad_scan == (MX_AREA_DETECTOR_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_AREA_DETECTOR_SCAN pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	flist = (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *)
+				scan->record->class_specific_function_list;
+
+	if ( flist == (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"MX_AREA_DETECTOR_SCAN_FUNCTION_LIST pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	fptr = flist->execute_scan_body;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The execute_scan_body function for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	/* Move all of the motors to the start position. */
+
+#if MX_AREA_DETECTOR_DEBUG_SCAN
+	MX_DEBUG(-2,("%s: moving motors to the start positions.", fname));
+#endif
+
+	mx_status = mx_motor_array_move_absolute( scan->num_motors,
+						scan->motor_record_array,
+						ad_scan->start_position, 0 );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_move_absolute( ad_scan->energy_record,
+						ad_scan->energy_array[0], 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_array_move_absolute( ad_scan->num_static_motors,
+						ad_scan->static_motor_array,
+						ad_scan->static_motor_positions,
+						0 );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the motors to get to their destinations. */
+
+#if MX_AREA_DETECTOR_DEBUG_SCAN
+	MX_DEBUG(-2,
+	("%s: waiting for motors to get to the start positions", fname));
+#endif
+
+	mx_status = mx_wait_for_motor_array_stop( scan->num_motors,
+						scan->motor_record_array, 0 );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_stop( ad_scan->energy_record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_wait_for_motor_array_stop( ad_scan->num_static_motors,
+						ad_scan->static_motor_array, 0);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now execute the body of the scan. */
+
+#if MX_AREA_DETECTOR_DEBUG_SCAN
+	MX_DEBUG(-2,("%s: ready to execute the scan body.", fname));
+#endif
+
+	mx_status = (*fptr)( scan );
+	
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxs_area_detector_scan_cleanup_after_scan_end( MX_SCAN *scan )
 {
-	return mx_standard_cleanup_after_scan_end( scan );
+	static const char fname[] =
+		"mxs_area_detector_scan_cleanup_after_scan_end()";
+
+	MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *flist;
+	mx_status_type (*fptr) (MX_SCAN *);
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_SCAN
+	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
+#endif
+
+	flist = (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *)
+				scan->record->class_specific_function_list;
+
+	if ( flist == (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"MX_AREA_DETECTOR_SCAN_FUNCTION_LIST pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	fptr = flist->cleanup_after_scan_end;
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( scan );
+	}
+	
+	mx_status =  mx_standard_cleanup_after_scan_end( scan );
+
+	return mx_status;
 }
 

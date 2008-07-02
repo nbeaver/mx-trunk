@@ -15,12 +15,25 @@
 #ifndef __SA_WEDGE_H__
 #define __SA_WEDGE_H__
 
+typedef struct {
+	MX_RECORD *record;
+
+	double wedge_size;
+} MX_WEDGE_SCAN;
+
+#define MXS_WEDGE_SCAN_STANDARD_FIELDS \
+  {-1, -1, "wedge_size", MXFT_DOUBLE, NULL, 0, {0}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_WEDGE_SCAN, wedge_size), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
+
 MX_API mx_status_type mxs_wedge_scan_create_record_structures(
 					MX_RECORD *record,
 					MX_SCAN *scan,
 					MX_AREA_DETECTOR_SCAN *ad_scan );
 MX_API mx_status_type mxs_wedge_scan_finish_record_initialization(
 					MX_RECORD *record );
+
+MX_API mx_status_type mxs_wedge_scan_execute_scan_body( MX_SCAN *scan );
 
 extern MX_AREA_DETECTOR_SCAN_FUNCTION_LIST
 			mxs_wedge_area_detector_scan_function_list;

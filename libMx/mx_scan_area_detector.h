@@ -26,8 +26,69 @@ extern "C" {
 typedef struct {
 	MX_SCAN *scan; /* Pointer to the parent scan superclass structure. */
 
+	mx_bool_type use_inverse_beam;
+
+	MX_RECORD *energy_record;
+	long num_energies;
+	double *energy_array;
+
+	long num_static_motors;
+	MX_RECORD **static_motor_array;
+	double *static_motor_positions;
+
+	double *start_position;
+	double *step_size;
+	long *num_measurements;
+
 	void *record_type_struct;
 } MX_AREA_DETECTOR_SCAN;
+
+#define MX_AREA_DETECTOR_SCAN_STANDARD_FIELDS \
+  {-1, -1, "use_inverse_beam", MXFT_BOOL, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR_SCAN, use_inverse_beam), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "energy_record", MXFT_RECORD, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, energy_record), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "num_energies", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, num_energies), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "energy_array", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, energy_array), \
+	{sizeof(double)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "num_static_motors", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR_SCAN, num_static_motors), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "static_motor_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR_SCAN, static_motor_array), \
+	{sizeof(MX_RECORD *)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "static_motor_positions", MXFT_DOUBLE, NULL, \
+  		1, {MXU_VARARGS_LENGTH}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR_SCAN, static_motor_positions), \
+	{sizeof(double)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "start_position", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, start_position), \
+	{sizeof(double)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "step_size", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, step_size), \
+	{sizeof(double)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "num_measurements", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR_SCAN, num_measurements), \
+	{sizeof(long)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}
 
 typedef struct {
 	mx_status_type ( *create_record_structures ) (
@@ -37,6 +98,10 @@ typedef struct {
 	mx_status_type ( *finish_record_initialization ) (
 				MX_RECORD *record );
 	mx_status_type ( *prepare_for_scan_start ) (
+				MX_SCAN *scan );
+	mx_status_type ( *execute_scan_body ) (
+				MX_SCAN *scan );
+	mx_status_type ( *cleanup_after_scan_end ) (
 				MX_SCAN *scan );
 } MX_AREA_DETECTOR_SCAN_FUNCTION_LIST;
 
@@ -60,8 +125,6 @@ MX_API_PRIVATE mx_status_type
 
 extern MX_RECORD_FUNCTION_LIST mxs_area_detector_scan_record_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_area_detector_scan_scan_function_list;
-
-#define MX_AREA_DETECTOR_SCAN_STANDARD_FIELDS
 
 #ifdef __cplusplus
 }
