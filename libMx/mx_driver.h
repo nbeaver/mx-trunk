@@ -124,6 +124,7 @@ extern "C" {
 #define MXS_LIST_SCAN			52
 #define MXS_XAFS_SCAN			53
 #define MXS_QUICK_SCAN			54
+#define MXS_AREA_DETECTOR_SCAN		55
 
 /* --- Variable classes --- */
 
@@ -721,6 +722,8 @@ extern "C" {
 
 #define MXS_QUI_JOERGER			407101
 #define MXS_QUI_APS_ID			407102
+
+#define MXS_AD_WEDGE			409001
 
 /* --- Variable types --- */
 

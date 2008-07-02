@@ -32,7 +32,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_ptz.c mx_pulse_generator.c \
 	mx_record.c mx_relay.c mx_rs232.c \
 	mx_sample_changer.c mx_sca.c mx_scaler.c \
-	mx_scan.c mx_scan_linear.c mx_scan_list.c \
+	mx_scan.c mx_scan_area_detector.c mx_scan_linear.c mx_scan_list.c \
 	mx_scan_quick.c mx_scan_xafs.c mx_semaphore.c mx_server_connect.c \
 	mx_signal.c mx_sleep.c mx_socket.c mx_spawn.c \
 	mx_spec.c mx_stack.c mx_syslog.c \
@@ -55,7 +55,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	p_child.c p_custom.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
 	ph_aps_topup.c ph_simple.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
-	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c
+	sa_wedge.c sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c
 
 MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_aframe_detector_motor.c \

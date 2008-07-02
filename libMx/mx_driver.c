@@ -81,6 +81,7 @@
 #include "mx_scan_list.h"
 #include "mx_scan_xafs.h"
 #include "mx_scan_quick.h"
+#include "mx_scan_area_detector.h"
 
 #include "mx_variable.h"
 #include "mx_vinline.h"
@@ -469,6 +470,7 @@
 #include "sq_mcs.h"
 #include "sq_joerger.h"
 #include "sq_aps_id.h"
+#include "sa_wedge.h"
 
 #include "d_auto_amplifier.h"
 #include "d_auto_filter.h"
@@ -3686,6 +3688,13 @@ MX_DRIVER mx_type_list[] = {
 /* aps_id_qscan is a variant of the mcs_qscan scan type. */
 
 #endif /* HAVE_EPICS */
+
+{"wedge_scan",     MXS_AD_WEDGE,      MXS_AREA_DETECTOR_SCAN, MXR_SCAN,
+				&mxs_area_detector_scan_record_function_list,
+				&mxs_area_detector_scan_scan_function_list,
+				&mxs_wedge_area_detector_scan_function_list,
+				&mxs_wedge_scan_num_record_fields,
+				&mxs_wedge_scan_def_ptr},
 
   /* =================== Variable types ================== */
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,6 +138,8 @@ MX_DRIVER mx_class_list[] = {
 {"xafs_scan_class",0, MXS_XAFS_SCAN,      MXR_SCAN,
 				NULL, NULL, NULL, NULL, NULL},
 {"quick_scan",     0, MXS_QUICK_SCAN,     MXR_SCAN,
+				NULL, NULL, NULL, NULL, NULL},
+{"ad_scan_class",  0, MXS_AREA_DETECTOR_SCAN, MXR_SCAN,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Variable classes ================== */
