@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,6 +60,8 @@ MX_API mx_status_type mxd_soft_area_detector_readout_frame(
 MX_API mx_status_type mxd_soft_area_detector_get_parameter(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_set_parameter(
+						MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_soft_area_detector_start_exposure(
 						MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_soft_area_detector_record_function_list;

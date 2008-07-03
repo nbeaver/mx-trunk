@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -757,6 +757,9 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	}
 
 	if ( file_vinput->current_filenum >= file_vinput->num_files ) {
+#if 1
+		file_vinput->current_filenum = 0;
+#else
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Video input record '%s' read image frame %ld "
 		"from directory '%s' which has only %ld files in it.",
@@ -764,6 +767,7 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			file_vinput->current_filenum,
 			file_vinput->directory_name,
 			file_vinput->num_files );
+#endif
 	}
 
 	i = file_vinput->current_filenum;

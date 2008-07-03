@@ -2555,6 +2555,48 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_start_exposure( MX_RECORD *ad_record,
+				MX_RECORD *motor_record,
+				double oscillation_distance,
+				double oscillation_time )
+{
+	static const char fname[] = "mx_area_detector_start_exposure()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type (*start_exposure)( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( ad_record,
+						&ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	start_exposure = flist->start_exposure;
+
+	if ( start_exposure == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Area detector '%s' does not support crystallographic "
+		"oscillation exposures.", ad_record->name );
+	}
+
+	ad->oscillation_motor_record = motor_record;
+
+	strlcpy( ad->oscillation_motor_name, motor_record->name,
+			sizeof(ad->oscillation_motor_name) );
+
+	ad->oscillation_distance = oscillation_distance;
+	ad->oscillation_time = oscillation_time;
+
+	ad->start_exposure = TRUE;
+
+	mx_status = (*start_exposure)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_setup_frame( MX_RECORD *record,
 				MX_IMAGE_FRAME **image_frame )
 {

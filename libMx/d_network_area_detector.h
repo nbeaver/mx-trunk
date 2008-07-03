@@ -61,6 +61,9 @@ typedef struct {
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD num_correction_measurements_nf;
+	MX_NETWORK_FIELD oscillation_motor_name_nf;
+	MX_NETWORK_FIELD oscillation_distance_nf;
+	MX_NETWORK_FIELD oscillation_time_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
@@ -70,6 +73,7 @@ typedef struct {
 	MX_NETWORK_FIELD save_frame_nf;
 	MX_NETWORK_FIELD sequence_start_delay_nf;
 	MX_NETWORK_FIELD shutter_enable_nf;
+	MX_NETWORK_FIELD start_exposure_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;
@@ -144,6 +148,8 @@ MX_API mx_status_type mxd_network_area_detector_get_parameter(
 MX_API mx_status_type mxd_network_area_detector_set_parameter(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_measure_correction(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_network_area_detector_start_exposure(
 							MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list;

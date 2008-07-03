@@ -371,6 +371,19 @@ typedef struct mx_area_detector_type {
 
 	MX_CALLBACK *datafile_management_callback;
 
+	/* The following entries are used for exposures that 
+	 * are synchronized with an oscillation by a motor
+	 * and a shutter.
+	 */
+
+	char oscillation_motor_name[MXU_RECORD_NAME_LENGTH+1];
+	double oscillation_distance;
+	double oscillation_time;
+	mx_bool_type start_exposure;
+
+	MX_RECORD *oscillation_motor_record;
+	char last_oscillation_motor_name[MXU_RECORD_NAME_LENGTH+1];
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -449,6 +462,9 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DATAFILE_NUMBER			12503
 #define MXLV_AD_LAST_DATAFILE_NAME		12504
 #define MXLV_AD_DATAFILE_FORMAT			12505
+
+#define MXLV_AD_OSCILLATION_MOTOR_NAME		12600
+#define MXLV_AD_START_EXPOSURE			12602
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -828,7 +844,17 @@ typedef struct mx_area_detector_type {
   {-1, -1, "datafile_total_num_frames", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, datafile_total_num_frames), \
-	{0}, NULL, MXFF_READ_ONLY}
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_OSCILLATION_MOTOR_NAME, -1, "oscillation_motor_name", MXFT_STRING, \
+  					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, oscillation_motor_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_START_EXPOSURE, -1, "start_exposure", MXFT_BOOL, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, start_exposure), \
+	{0}, NULL, 0}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
@@ -851,6 +877,7 @@ typedef struct {
 	mx_status_type ( *measure_correction ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *geometrical_correction ) ( MX_AREA_DETECTOR * ad,
 							MX_IMAGE_FRAME *frame );
+	mx_status_type ( *start_exposure ) ( MX_AREA_DETECTOR *ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -1090,6 +1117,13 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 						long *last_frame_number,
 						long *total_num_frames,
 						unsigned long *status_flags );
+
+MX_API mx_status_type mx_area_detector_start_exposure( MX_RECORD *ad_record,
+						MX_RECORD *motor_record,
+						double oscillation_distance,
+						double oscillation_time );
+
+/*---*/
 
 MX_API mx_status_type mx_area_detector_setup_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME **frame );

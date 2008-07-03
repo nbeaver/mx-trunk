@@ -996,6 +996,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+		case MXLV_AD_OSCILLATION_MOTOR_NAME:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:
@@ -1003,6 +1004,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_SEQUENCE_START_DELAY:
 		case MXLV_AD_SHUTTER_ENABLE:
+		case MXLV_AD_START_EXPOSURE:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
@@ -1141,6 +1143,33 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_maximum_framesize(
 							record, NULL, NULL );
 			break;
+		case MXLV_AD_OSCILLATION_MOTOR_NAME:
+			/* If the oscillation motor name has changed, then
+			 * we need to do a lookup of the corresponding
+			 * motor record.
+			 */
+
+			if ( strcmp( ad->oscillation_motor_name,
+			    ad->last_oscillation_motor_name ) != 0 )
+			{
+			    ad->oscillation_motor_record
+				  = mx_get_record( record,
+				  	ad->oscillation_motor_name );
+
+			    if ( ad->oscillation_motor_record == NULL ) {
+				ad->last_oscillation_motor_name[0] = '\0';
+
+				return mx_error( MXE_NOT_FOUND, fname,
+				"Oscillation motor '%s' was not found "
+				"in the MX database.",
+					ad->oscillation_motor_name );
+			    } else {
+			    	strlcpy( ad->last_oscillation_motor_name,
+					ad->oscillation_motor_name,
+				    sizeof(ad->last_oscillation_motor_name) );
+			    }
+			}
+			break;
 		case MXLV_AD_REGISTER_VALUE:
 			mx_status = mx_area_detector_get_register( record,
 						ad->register_name, NULL );
@@ -1169,6 +1198,12 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_SHUTTER_ENABLE:
 			mx_status = mx_area_detector_get_shutter_enable(
 								record, NULL );
+			break;
+		case MXLV_AD_START_EXPOSURE:
+			mx_status = mx_area_detector_start_exposure( record,
+						ad->oscillation_motor_record,
+						ad->oscillation_distance,
+						ad->oscillation_time );
 			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
