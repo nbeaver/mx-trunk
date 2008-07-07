@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BKPRECISION_912X_TIMER_DEBUG	TRUE
+#define MXD_BKPRECISION_912X_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,12 +32,7 @@
 MX_RECORD_FUNCTION_LIST mxd_bkprecision_912x_timer_record_function_list = {
 	NULL,
 	mxd_bkprecision_912x_timer_create_record_structures,
-	mx_timer_finish_record_initialization,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_bkprecision_912x_timer_open
+	mx_timer_finish_record_initialization
 };
 
 MX_TIMER_FUNCTION_LIST mxd_bkprecision_912x_timer_timer_function_list = {
@@ -164,38 +159,6 @@ mxd_bkprecision_912x_timer_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_bkprecision_912x_timer_open( MX_RECORD *record )
-{
-	static const char fname[] =
-		"mxd_bkprecision_912x_timer_finish_record_initialization()";
-
-	MX_TIMER *timer;
-	MX_BKPRECISION_912X_TIMER *bkprecision_912x_timer;
-	MX_BKPRECISION_912X *bkprecision_912x;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	timer = (MX_TIMER *) record->record_class_struct;
-
-	mx_status = mxd_bkprecision_912x_timer_get_pointers( timer,
-			&bkprecision_912x_timer, &bkprecision_912x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Enable the output timer. */
-
-	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					"OUTPUT:TIMER ON", NULL, 0,
-					MXD_BKPRECISION_912X_TIMER_DEBUG );
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_bkprecision_912x_timer_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_bkprecision_912x_timer_is_busy()";
@@ -204,7 +167,6 @@ mxd_bkprecision_912x_timer_is_busy( MX_TIMER *timer )
 	MX_BKPRECISION_912X *bkprecision_912x;
 	char command[40];
 	char response[80];
-	double bkprecision_time;
 	long busy;
 	int num_items;
 	mx_status_type mx_status;
@@ -219,7 +181,7 @@ mxd_bkprecision_912x_timer_is_busy( MX_TIMER *timer )
 	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
 #endif
 
-	strlcpy( command, "OUTPUT:TIMER:DATA?", sizeof(command) );
+	strlcpy( command, "OUTPUT:TIMER?", sizeof(command) );
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
 					command, response, sizeof(response),
@@ -228,7 +190,7 @@ mxd_bkprecision_912x_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lg", &bkprecision_time );
+	num_items = sscanf( response, "%ld", &busy );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -236,12 +198,6 @@ mxd_bkprecision_912x_timer_is_busy( MX_TIMER *timer )
 		"sent to BK Precision timer '%s'.",
 			response, command, timer->record->name );
 	}
-
-	/* Convert BK precision time (milliseconds) to MX time (seconds). */
-
-	timer->value = 0.001 * bkprecision_time;
-
-	busy = TRUE;
 
 	if ( busy ) {
 		timer->busy = TRUE;
@@ -275,16 +231,39 @@ mxd_bkprecision_912x_timer_start( MX_TIMER *timer )
 #if MXD_BKPRECISION_912X_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
 #endif
-	/* BK Precision times are specified in milliseconds. */
+	/* Output timer times are specified in an integer number of seconds. */
 
 	snprintf( command, sizeof(command), "OUTPUT:TIMER:DATA %lu",
-		mx_round( 1000.0 * timer->value ) );
+		mx_round( timer->value ) );
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
 					command, NULL, 0,
 					MXD_BKPRECISION_912X_TIMER_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The output must be on for the output timer to run. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"OUTPUT ON", NULL, 0,
+					MXD_BKPRECISION_912X_TIMER_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The 'OUTPUT:TIMER ON' command starts the timer. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"OUTPUT:TIMER ON", NULL, 0,
+					MXD_BKPRECISION_912X_TIMER_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	timer->busy = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -305,7 +284,22 @@ mxd_bkprecision_912x_timer_stop( MX_TIMER *timer )
 #if MXD_BKPRECISION_912X_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
 #endif
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"OUTPUT:TIMER OFF", NULL, 0,
+					MXD_BKPRECISION_912X_TIMER_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"OUTPUT OFF", NULL, 0,
+					MXD_BKPRECISION_912X_TIMER_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	timer->busy = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BKPRECISION_912X_WVOUT_DEBUG	TRUE
+#define MXD_BKPRECISION_912X_WVOUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -226,6 +226,8 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
+	bkprecision_912x_wvout->list_was_changed = FALSE;
+
 	if ( wvout->maximum_num_steps <= 25 ) {
 		num_groups = 8;
 	} else
@@ -304,11 +306,41 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/* Figure out what the list units are. */
+
+	if ( mx_strncasecmp( "SECOND", bkprecision_912x_wvout->list_unit_name,
+		strlen(bkprecision_912x_wvout->list_unit_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_unit =
+					MXF_BKPRECISION_912X_WVOUT_SECOND;
+
+		strlcpy( command, "LIST:UNIT SECOND", sizeof(command) );
+	} else
+	if ( mx_strncasecmp( "MSECOND", bkprecision_912x_wvout->list_unit_name,
+		strlen(bkprecision_912x_wvout->list_unit_name) ) == 0 )
+	{
+		bkprecision_912x_wvout->list_unit =
+					MXF_BKPRECISION_912X_WVOUT_MSECOND;
+
+		strlcpy( command, "LIST:UNIT MSECOND", sizeof(command) );
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized list unit '%s' specified for "
+		"waveform output '%s'.",
+			bkprecision_912x_wvout->list_unit_name,
+			record->name );
+	}
+
+	/* Reprogram the list units. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
+				NULL, 0, MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -388,6 +420,26 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Save the list file if necessary. */
+
+	if ( bkprecision_912x_wvout->list_was_changed ) {
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"LIST:NAME 'MX'", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"LIST:SAVE 1", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		bkprecision_912x_wvout->list_was_changed = FALSE;
+	}
+
 	/* Finish by switching the power supply to list mode. */
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
@@ -446,7 +498,11 @@ mxd_bkprecision_912x_wvout_stop( MX_WAVEFORM_OUTPUT *wvout )
 		fname, wvout->record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"MODE FIX", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -484,6 +540,7 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 	char command[40];
 	char response[80];
 	double raw_value;
+	unsigned long list_unit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -550,9 +607,14 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 		}
 
 		if ( ch == MXF_BKPRECISION_912X_WVOUT_WIDTH ) {
-			/* Convert BK Precision milliseconds to MX seconds. */
 
-			raw_value = raw_value * 0.001;
+			list_unit = bkprecision_912x_wvout->list_unit;
+
+			if ( list_unit == MXF_BKPRECISION_912X_WVOUT_MSECOND ) {
+				/* Convert BK milliseconds to MX seconds. */
+
+				raw_value = raw_value * 0.001;
+			}
 		}
 
 		wvout->channel_data[n] =
@@ -570,8 +632,10 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
-	int ch, n, i, num_attempts;;
+	int ch, n, i, num_attempts;
 	char command[40];
+	unsigned long list_unit;
+	long width_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -586,6 +650,8 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 		fname, wvout->record->name));
 #endif
 
+	bkprecision_912x_wvout->list_was_changed = TRUE;
+
 	/* Repoint 'channel_data' to the correct row in 'data_array'. */
 
 	ch = wvout->channel_index;
@@ -595,6 +661,8 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 	/* Loop over all of the steps in this channel. */
 
 	num_attempts = 2;
+
+	list_unit = bkprecision_912x_wvout->list_unit;
 
 	for ( n = 0; n < wvout->current_num_steps; n++ ) {
 		switch( ch ) {
@@ -611,11 +679,18 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 			break;
 
 		case MXF_BKPRECISION_912X_WVOUT_WIDTH:
-			/* Convert MX seconds to BK Precision milliseconds. */
+			if ( list_unit == MXF_BKPRECISION_912X_WVOUT_MSECOND ) {
+				/* Convert MX seconds to BK milliseconds. */
+
+				width_value = mx_round( 1000.0 *
+						wvout->channel_data[n] );
+			} else {
+				width_value = mx_round( wvout->channel_data[n]);
+			}
+				
 
 			snprintf( command, sizeof(command),
-			"LIST:WIDTH %d, %ld",
-			    n+1, mx_round(1000.0 * wvout->channel_data[n]) );
+				"LIST:WIDTH %d, %ld", n+1, width_value );
 			break;
 
 		default:
@@ -669,7 +744,8 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	MX_BKPRECISION_912X *bkprecision_912x;
 	char command[40];
 	char response[80];
-	double step_time;	/* in milliseconds */
+	unsigned long list_unit;
+	double step_time;
 	int num_items;
 	mx_status_type mx_status;
 
@@ -710,9 +786,17 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 				response, command, wvout->record->name );
 		}
 
-		/* Convert step time in milliseconds to frequency in Hz. */
+		list_unit = bkprecision_912x_wvout->list_unit;
 
-		wvout->frequency = mx_divide_safely( 1000.0, step_time );
+		if ( list_unit == MXF_BKPRECISION_912X_WVOUT_MSECOND ) {
+			/* Convert step time in millisec to frequency in Hz. */
+
+			wvout->frequency = mx_divide_safely( 1000.0, step_time);
+		} else {
+			/* Convert step time in seconds to frequency in Hz. */
+
+			wvout->frequency = mx_divide_safely( 1.0, step_time );
+		}
 		break;
 
 	case MXLV_WVO_TRIGGER_MODE:
@@ -765,8 +849,8 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
 	char command[40];
+	unsigned long list_unit;
 	double step_time;
-	long num_milliseconds;
 	int n;
 	mx_status_type mx_status;
 
@@ -787,11 +871,17 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 
 	switch( wvout->parameter_type ) {
 	case MXLV_WVO_FREQUENCY:
-		/* Convert frequency in Hz to step time in milliseconds. */
+		list_unit = bkprecision_912x_wvout->list_unit;
 
-		step_time = mx_divide_safely( 1000.0, wvout->frequency );
+		if ( list_unit == MXF_BKPRECISION_912X_WVOUT_MSECOND ) {
+			/* Convert frequency in Hz to step time in millisec. */
 
-		num_milliseconds = mx_round( step_time );
+			step_time = mx_divide_safely( 1000.0, wvout->frequency);
+		} else {
+			/* Convert frequency in Hz to step time in seconds. */
+
+			step_time = mx_divide_safely( 1.0, wvout->frequency );
+		}
 
 		/* For this command, we set all of the steps in
 		 * channel 2 (step width) for the waveform output.
@@ -799,7 +889,8 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 
 		for ( n = 0; n < wvout->maximum_num_steps; n++ ) {
 			snprintf(command, sizeof(command),
-				"LIST:WIDTH %d, %ld", n+1, num_milliseconds );
+				"LIST:WIDTH %d, %ld", n+1,
+				mx_round(step_time) );
 
 			mx_status = mxi_bkprecision_912x_command(
 					bkprecision_912x, command, NULL, 0,

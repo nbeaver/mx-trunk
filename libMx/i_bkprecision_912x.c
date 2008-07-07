@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_BKPRECISION_912X_DEBUG	TRUE
+#define MXI_BKPRECISION_912X_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +26,7 @@
 #include "mx_rs232.h"
 #include "mx_gpib.h"
 #include "i_bkprecision_912x.h"
+#include "d_bkprecision_912x_timer.h"
 
 MX_RECORD_FUNCTION_LIST mxi_bkprecision_912x_record_function_list = {
 	NULL,
@@ -96,13 +97,16 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	static const char fname[] = "mxi_bkprecision_912x_open()";
 
 	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_TIMER *bkprecision_912x_timer;
 	MX_RECORD *interface_record;
+	MX_RECORD *current_record;
 	char command[40];
 	char response[200];
 	int argc;
 	char **argv;
 	char *dup_string;
 	unsigned long no_error_checking;
+	mx_bool_type timer_found;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -142,8 +146,12 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	 * it to identify itself.
 	 */
 
+#if MXI_BKPRECISION_912X_DEBUG
 	no_error_checking = MXT_BKPRECISION_912X_DEBUG
 				| MXT_BKPRECISION_912X_NO_ERROR_CHECKING;
+#else
+	no_error_checking = MXT_BKPRECISION_912X_NO_ERROR_CHECKING;
+#endif
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "*IDN?",
 						response, sizeof(response),
@@ -275,10 +283,48 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn on the output voltage. */
+	/* See if the MX database contains a 'bkprecision_912x_timer' record
+	 * that depends on our interface record.
+	 */
 
-	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, "OUTPUT ON",
-					NULL, 0, MXI_BKPRECISION_912X_DEBUG );
+	timer_found = FALSE;
+
+	current_record = record->next_record;
+
+	while ( current_record != record ) {
+
+	    if ( current_record->mx_type == MXT_TIM_BKPRECISION_912X ) {
+		bkprecision_912x_timer = current_record->record_type_struct;
+
+		if ( record == bkprecision_912x_timer->bkprecision_912x_record )
+		{
+		    /* We have found a match, so exit the while() loop. */
+
+		    timer_found = TRUE;
+		    break;
+		}
+	    }
+
+	    current_record = current_record->next_record;
+	}
+
+#if 0 && MXI_BKPRECISION_912X_DEBUG
+	MX_DEBUG(-2,("%s: timer found = %d", fname, timer_found));
+#endif
+
+	/* If a 'bkprecision_912x_timer' record was found in the MX database,
+	 * then we turn off the output.  Otherwise, we turn it on.
+	 */
+
+	if ( timer_found ) {
+		strlcpy( command, "OUTPUT OFF", sizeof(command) );
+	} else {
+		strlcpy( command, "OUTPUT ON", sizeof(command) );
+	}
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+						command, NULL, 0,
+						MXI_BKPRECISION_912X_DEBUG );
 
 	return mx_status;
 }
@@ -405,6 +451,10 @@ mxi_bkprecision_912x_putline( MX_BKPRECISION_912X *bkprecision_912x,
 		break;
 	}
 
+#if 0
+	mx_msleep(5000);
+#endif
+
 	return mx_status;
 }
 
@@ -432,7 +482,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		do_error_checking = TRUE;
 	}
 
-#if 0
+#if 1
 	low_level_flags = 1;
 #else
 	low_level_flags = 0;
@@ -470,6 +520,22 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	/*---- Did an error occur? ----*/
 
 	if ( do_error_checking ) {
+		/* If no response was expected, then we must put in a delay
+		 * here, since sending commands to the controller at too
+		 * high a rate can result in 'Invalid Command' (70) errors.
+		 *
+		 * According to the OEM, it takes about 200 milliseconds
+		 * to process each command.
+		 */
+
+#if 0
+		if ( response == NULL ) {
+			mx_msleep(200);
+		}
+#endif
+
+		/* Now ask for the status of the most recent command. */
+
 		mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
 					"SYSTEM:ERROR?", low_level_flags );
 

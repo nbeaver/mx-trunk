@@ -34,6 +34,11 @@
 #define MXF_BKPRECISION_912X_WVOUT_ONCE		1
 #define MXF_BKPRECISION_912X_WVOUT_REPEAT	2
 
+/* Values for 'list_unit' */
+
+#define MXF_BKPRECISION_912X_WVOUT_SECOND	1
+#define MXF_BKPRECISION_912X_WVOUT_MSECOND	2
+
 /*----*/
 
 typedef struct {
@@ -42,9 +47,13 @@ typedef struct {
 	MX_RECORD *bkprecision_912x_record;
 	char list_mode_name[MXU_BKPRECISION_NAME_LENGTH+1];
 	char list_step_name[MXU_BKPRECISION_NAME_LENGTH+1];
+	char list_unit_name[MXU_BKPRECISION_NAME_LENGTH+1];
 
 	unsigned long list_mode;
 	unsigned long list_step;
+	unsigned long list_unit;
+
+	mx_bool_type list_was_changed;
 } MX_BKPRECISION_912X_WVOUT;
 
 #define MXD_BKPRECISION_912X_WVOUT_STANDARD_FIELDS \
@@ -65,12 +74,27 @@ typedef struct {
 			offsetof(MX_BKPRECISION_912X_WVOUT, list_step_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
+  {-1, -1, "list_unit_name", MXFT_STRING, NULL, \
+					1, {MXU_BKPRECISION_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_BKPRECISION_912X_WVOUT, list_unit_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {-1, -1, "list_mode", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_mode), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "list_step", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_step), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "list_unit", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_unit), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "list_was_changed", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BKPRECISION_912X_WVOUT, list_was_changed), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_bkprecision_912x_wvout_initialize_type( long type );
