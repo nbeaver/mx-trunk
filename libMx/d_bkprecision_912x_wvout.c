@@ -22,6 +22,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
+#include "mx_rs232.h"
 #include "mx_waveform_output.h"
 #include "i_bkprecision_912x.h"
 #include "d_bkprecision_912x_wvout.h"
@@ -632,6 +634,7 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_RECORD *interface_record;
 	int ch, n, i, num_attempts;
 	char command[40];
 	unsigned long list_unit;
@@ -712,19 +715,48 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 		 */
 
 		for ( i = 0; i < num_attempts; i++ ) {
-			mx_status = mxi_bkprecision_912x_command(
+
+		    if ( i > 0 ) {
+			/* The first attempt failed, so we are retrying
+			 * the command.
+			 */
+
+			/* Wait for any remaining input characters to arrive. */
+
+			mx_msleep(1000);
+
+			/* If we are connected via RS-232, then throw away
+			 * the unread part of the input buffer.
+			 */
+
+			interface_record =
+				    bkprecision_912x->port_interface.record;
+
+			if ( interface_record->mx_class == MXI_RS232 ) {
+			    mx_status = mx_rs232_discard_unread_input(
+					interface_record, 
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+			    if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			}
+		    }
+
+		    /* Now send the command. */
+
+		    mx_status = mxi_bkprecision_912x_command(
 					bkprecision_912x, command, NULL, 0,
 					MXD_BKPRECISION_912X_WVOUT_DEBUG );
 
-			/* We only retry if we got an MXE_INTERFACE_IO_ERROR
-			 * with an Invalid Command error code (70).
-			 */
+		    /* We only retry if we got an MXE_INTERFACE_IO_ERROR
+		     * with an Invalid Command error code (70).
+		     */
 
-			if ( mx_status.code != MXE_INTERFACE_IO_ERROR )
-				break;
+		    if ( mx_status.code != MXE_INTERFACE_IO_ERROR )
+			break;
 
-			if ( bkprecision_912x->error_code != 70 )
-				break;
+		    if ( bkprecision_912x->error_code != 70 )
+			break;
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )

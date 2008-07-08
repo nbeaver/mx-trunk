@@ -231,7 +231,16 @@ mxd_bkprecision_912x_timer_start( MX_TIMER *timer )
 #if MXD_BKPRECISION_912X_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for timer '%s'", fname, timer->record->name));
 #endif
-	/* Output timer times are specified in an integer number of seconds. */
+	/* Make sure that we are in FIXED mode and not in list mode. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"MODE FIXED", NULL, 0,
+					MXD_BKPRECISION_912X_TIMER_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Output timer times are specified as an integer number of seconds. */
 
 	snprintf( command, sizeof(command), "OUTPUT:TIMER:DATA %lu",
 		mx_round( timer->value ) );
