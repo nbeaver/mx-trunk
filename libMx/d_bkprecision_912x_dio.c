@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BKPRECISION_912X_DIO_DEBUG	FALSE
+#define MXD_BKPRECISION_912X_DIO_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

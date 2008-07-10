@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BKPRECISION_912X_WVOUT_DEBUG	FALSE
+#define MXD_BKPRECISION_912X_WVOUT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,6 +368,15 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, wvout->record->name));
 #endif
+	/* Switch to trigger mode. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					"PORT:FUNCTION TRIGGER", NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Set the list mode. */
 
 	switch( bkprecision_912x_wvout->list_mode ) {

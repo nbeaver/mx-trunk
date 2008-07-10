@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BKPRECISION_912X_TIMER_DEBUG	FALSE
+#define MXD_BKPRECISION_912X_TIMER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -252,19 +252,19 @@ mxd_bkprecision_912x_timer_start( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The output must be on for the output timer to run. */
+	/* 'OUTPUT:TIMER ON' must be set for the output timer to run. */
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					"OUTPUT ON", NULL, 0,
+					"OUTPUT:TIMER ON", NULL, 0,
 					MXD_BKPRECISION_912X_TIMER_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The 'OUTPUT:TIMER ON' command starts the timer. */
+	/* The 'OUTPUT ON' command starts the timer. */
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					"OUTPUT:TIMER ON", NULL, 0,
+					"OUTPUT ON", NULL, 0,
 					MXD_BKPRECISION_912X_TIMER_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )

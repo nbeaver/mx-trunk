@@ -1,14 +1,14 @@
 bk_rs232 interface rs232 tty "" "" 4800 8 N 1 N 0x0a 0x0a 5 0x0 /dev/ttyS0
-bk       interface generic bkprecision_912x "" "" bk_rs232 digital
+bk       interface generic bkprecision_912x "" "" bk_rs232 trigger
 voltage  device analog_output bkprecision_912x_aout "" "" 0 1 0 V 0x0 bk voltage
-current  device analog_output bkprecision_912x_aout "" "" 0 1 0 mA 0x0 bk current
+current  device analog_output bkprecision_912x_aout "" "" 0 1 0 A 0x0 bk current
 dvm      device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk dvm
 in_v     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk voltage
 in_c     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk current
 in_p     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk power
 ###in_r     device analog_input bkprecision_912x_ain "" "" 0 1 0 V 0x0 0 "" bk resistance
-din      device digital_input bkprecision_912x_din "" "" 0 bk
-dout     device digital_output bkprecision_912x_dout "" "" 0 bk
+###din      device digital_input bkprecision_912x_din "" "" 0 bk
+###dout     device digital_output bkprecision_912x_dout "" "" 0 bk
 #
 wvout    device waveform_output bkprecision_912x_wvout "" "" 3 50 1 0 V bk continuous once msecond
 #

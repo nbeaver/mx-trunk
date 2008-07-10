@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_BKPRECISION_912X_DEBUG	FALSE
+#define MXI_BKPRECISION_912X_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -451,10 +451,6 @@ mxi_bkprecision_912x_putline( MX_BKPRECISION_912X *bkprecision_912x,
 		break;
 	}
 
-#if 0
-	mx_msleep(5000);
-#endif
-
 	return mx_status;
 }
 
@@ -482,7 +478,7 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 		do_error_checking = TRUE;
 	}
 
-#if 1
+#if 0
 	low_level_flags = 1;
 #else
 	low_level_flags = 0;
@@ -520,21 +516,8 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 	/*---- Did an error occur? ----*/
 
 	if ( do_error_checking ) {
-		/* If no response was expected, then we must put in a delay
-		 * here, since sending commands to the controller at too
-		 * high a rate can result in 'Invalid Command' (70) errors.
-		 *
-		 * According to the OEM, it takes about 200 milliseconds
-		 * to process each command.
-		 */
 
-#if 0
-		if ( response == NULL ) {
-			mx_msleep(200);
-		}
-#endif
-
-		/* Now ask for the status of the most recent command. */
+		/* Ask for the status of the most recent command. */
 
 		mx_status = mxi_bkprecision_912x_putline( bkprecision_912x,
 					"SYSTEM:ERROR?", low_level_flags );
