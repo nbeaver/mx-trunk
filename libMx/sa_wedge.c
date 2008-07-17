@@ -388,7 +388,12 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 		mx_msleep(1);
 	}
 
-	MX_DEBUG(-2,("%s: exposure complete.", fname));
+	mx_status = mx_add_measurement_to_datafile( &(scan->datafile) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: frame complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
