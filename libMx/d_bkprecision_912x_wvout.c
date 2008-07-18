@@ -51,7 +51,7 @@ MX_WAVEFORM_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_wvout_stop,
 	mxd_bkprecision_912x_wvout_busy,
 	NULL,
-	NULL,
+	mxd_bkprecision_912x_wvout_write_all,
 	mxd_bkprecision_912x_wvout_read_channel,
 	mxd_bkprecision_912x_wvout_write_channel,
 	mxd_bkprecision_912x_wvout_get_parameter,
@@ -130,6 +130,27 @@ mxd_bkprecision_912x_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_bkprecision_912x_wvout_save_list( MX_BKPRECISION_912X *bkprecision_912x )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+				"LIST:NAME 'MX'", NULL, 0,
+				MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+				"LIST:SAVE 1", NULL, 0,
+				MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	return mx_status;
 }
 
 /* ====== */
@@ -228,7 +249,7 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
 #endif
 
-	bkprecision_912x_wvout->list_was_changed = FALSE;
+	bkprecision_912x_wvout->invoked_by_write_all = FALSE;
 
 	if ( wvout->maximum_num_steps <= 25 ) {
 		num_groups = 8;
@@ -431,26 +452,6 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Save the list file if necessary. */
-
-	if ( bkprecision_912x_wvout->list_was_changed ) {
-		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					"LIST:NAME 'MX'", NULL, 0,
-					MXD_BKPRECISION_912X_WVOUT_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-					"LIST:SAVE 1", NULL, 0,
-					MXD_BKPRECISION_912X_WVOUT_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		bkprecision_912x_wvout->list_was_changed = FALSE;
-	}
-
 	/* Finish by switching the power supply to list mode. */
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
@@ -541,6 +542,71 @@ mxd_bkprecision_912x_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 }
 
 MX_EXPORT mx_status_type
+mxd_bkprecision_912x_wvout_write_all( MX_WAVEFORM_OUTPUT *wvout )
+{
+	static const char fname[] = "mxd_bkprecision_912x_wvout_write_all()";
+
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	unsigned long ch;
+	mx_status_type (*write_channel_fn)( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
+					&bkprecision_912x_wvout,
+					&bkprecision_912x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_BKPRECISION_912X_WVOUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, wvout->record->name));
+#endif
+
+	function_list = wvout->record->class_specific_function_list;
+
+	if ( function_list == (MX_WAVEFORM_OUTPUT_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WAVEFORM_OUTPUT_FUNCTION_LIST pointer for "
+		"record '%s' is NULL.", wvout->record->name );
+	}
+
+	write_channel_fn = function_list->write_channel;
+
+	if ( write_channel_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The write_channel function for record '%s' is NULL.",
+			wvout->record->name );
+	}
+
+	bkprecision_912x_wvout->invoked_by_write_all = TRUE;
+
+	for ( ch = 0; ch < wvout->current_num_channels; ch++ ) {
+		wvout->channel_index = ch;
+
+		mx_status = (*write_channel_fn)( wvout );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			break;	/* Exit the for() loop, but do not return. */
+		}
+	}
+
+	/* Using 'break' in the for() loop above guarantees that the
+	 * 'invoked_by_write_all' flag will be turned off below.
+	 */
+
+	bkprecision_912x_wvout->invoked_by_write_all = FALSE;
+
+	/* Tell the power supply to save the new list. */
+
+	mx_status = mxd_bkprecision_912x_wvout_save_list( bkprecision_912x );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_read_channel()";
@@ -561,14 +627,14 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ch = wvout->channel_index;
+
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, wvout->record->name));
+	MX_DEBUG(-2,("%s invoked for record '%s', channel %d.",
+		fname, wvout->record->name, ch));
 #endif
 
 	/* Repoint 'channel_data' to the correct row in 'data_array'. */
-
-	ch = wvout->channel_index;
 
 	wvout->channel_data = (wvout->data_array)[ch];
 
@@ -657,16 +723,14 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ch = wvout->channel_index;
+
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, wvout->record->name));
+	MX_DEBUG(-2,("%s invoked for record '%s', channel %d.",
+		fname, wvout->record->name, ch));
 #endif
 
-	bkprecision_912x_wvout->list_was_changed = TRUE;
-
 	/* Repoint 'channel_data' to the correct row in 'data_array'. */
-
-	ch = wvout->channel_index;
 
 	wvout->channel_data = (wvout->data_array)[ch];
 
@@ -767,6 +831,19 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 		    if ( bkprecision_912x->error_code != 70 )
 			break;
 		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* If we have not been invoked by the write_all function, then
+	 * we must save the new list.  Otherwise, the new list will not
+	 * be used.
+	 */
+
+	if ( bkprecision_912x_wvout->invoked_by_write_all == FALSE ) {
+		mx_status = mxd_bkprecision_912x_wvout_save_list(
+							bkprecision_912x );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

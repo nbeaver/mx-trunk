@@ -53,7 +53,7 @@ typedef struct {
 	unsigned long list_step;
 	unsigned long list_unit;
 
-	mx_bool_type list_was_changed;
+	mx_bool_type invoked_by_write_all;
 } MX_BKPRECISION_912X_WVOUT;
 
 #define MXD_BKPRECISION_912X_WVOUT_STANDARD_FIELDS \
@@ -90,11 +90,6 @@ typedef struct {
   \
   {-1, -1, "list_unit", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_unit), \
-	{0}, NULL, 0}, \
-  \
-  {-1, -1, "list_was_changed", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_BKPRECISION_912X_WVOUT, list_was_changed), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_bkprecision_912x_wvout_initialize_type( long type );
@@ -111,6 +106,8 @@ MX_API mx_status_type mxd_bkprecision_912x_wvout_trigger(
 MX_API mx_status_type mxd_bkprecision_912x_wvout_stop(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_busy(
+						MX_WAVEFORM_OUTPUT *wvout );
+MX_API mx_status_type mxd_bkprecision_912x_wvout_write_all(
 						MX_WAVEFORM_OUTPUT *wvout );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_read_channel(
 						MX_WAVEFORM_OUTPUT *wvout );
