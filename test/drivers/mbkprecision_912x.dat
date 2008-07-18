@@ -15,4 +15,4 @@ wvout    device waveform_output bkprecision_912x_wvout "" "" 3 50 1 0 V bk conti
 time     device motor elapsed_time "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec -1
 #
 timer1   device timer soft_timer "" ""
-bk_timer device timer bkprecision_912x_timer "" "" bk
+###bk_timer device timer bkprecision_912x_timer "" "" bk
