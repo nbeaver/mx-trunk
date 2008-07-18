@@ -212,6 +212,10 @@ mxd_network_wvout_finish_record_initialization( MX_RECORD *record )
 		network_wvout->server_record,
 		"%s.frequency", network_wvout->remote_record_name );
 
+	mx_network_field_init( &(network_wvout->trigger_repeat_nf),
+		network_wvout->server_record,
+		"%s.trigger_repeat", network_wvout->remote_record_name );
+
 	mx_network_field_init( &(network_wvout->stop_nf),
 		network_wvout->server_record,
 		"%s.stop", network_wvout->remote_record_name );
@@ -459,9 +463,14 @@ mxd_network_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 				MXFT_DOUBLE, &(wvout->frequency) );
 		break;
 
+	case MXLV_WVO_TRIGGER_REPEAT:
+		mx_status = mx_get( &(network_wvout->trigger_repeat_nf),
+				MXFT_LONG, &(wvout->trigger_repeat) );
+		break;
+
 	case MXLV_WVO_TRIGGER_MODE:
-		mx_status = mx_get( &(network_wvout->trigger_nf),
-				MXFT_LONG, &(wvout->trigger) );
+		mx_status = mx_get( &(network_wvout->trigger_mode_nf),
+				MXFT_LONG, &(wvout->trigger_mode) );
 		break;
 
 	default:
@@ -504,9 +513,14 @@ mxd_network_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 				MXFT_DOUBLE, &(wvout->frequency) );
 		break;
 
+	case MXLV_WVO_TRIGGER_REPEAT:
+		mx_status = mx_put( &(network_wvout->trigger_repeat_nf),
+				MXFT_LONG, &(wvout->trigger_repeat) );
+		break;
+
 	case MXLV_WVO_TRIGGER_MODE:
-		mx_status = mx_put( &(network_wvout->trigger_nf),
-				MXFT_LONG, &(wvout->trigger) );
+		mx_status = mx_put( &(network_wvout->trigger_mode_nf),
+				MXFT_LONG, &(wvout->trigger_mode) );
 		break;
 
 	default:

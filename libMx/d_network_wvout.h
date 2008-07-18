@@ -32,6 +32,7 @@ typedef struct {
 	MX_NETWORK_FIELD channel_index_nf;
 	MX_NETWORK_FIELD current_num_steps_nf;
 	MX_NETWORK_FIELD frequency_nf;
+	MX_NETWORK_FIELD trigger_repeat_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;

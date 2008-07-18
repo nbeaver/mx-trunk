@@ -134,6 +134,11 @@ mxd_bkprecision_912x_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 
 /*---*/
 
+/* New values for the LISTs are only useable after 'LIST:NAME' and 'LIST:SAVE'
+ * are invoked.  If you do not do the save, then LIST mode will continue to
+ * use the old list.
+ */
+
 static mx_status_type
 mxd_bkprecision_912x_wvout_save_list( MX_BKPRECISION_912X *bkprecision_912x )
 {
@@ -229,6 +234,7 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	MX_BKPRECISION_912X *bkprecision_912x;
 	int num_groups;
 	char command[40];
+	char response[40];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -308,27 +314,6 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Figure out the initial list step to use. */
-
-	if ( mx_strncasecmp( "ONCE", bkprecision_912x_wvout->list_step_name,
-		strlen(bkprecision_912x_wvout->list_step_name) ) == 0 )
-	{
-		bkprecision_912x_wvout->list_step =
-					MXF_BKPRECISION_912X_WVOUT_ONCE;
-	} else
-	if ( mx_strncasecmp( "REPEAT", bkprecision_912x_wvout->list_step_name,
-		strlen(bkprecision_912x_wvout->list_step_name) ) == 0 )
-	{
-		bkprecision_912x_wvout->list_step =
-					MXF_BKPRECISION_912X_WVOUT_REPEAT;
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized list step '%s' specified for "
-		"waveform output '%s'.",
-			bkprecision_912x_wvout->list_step_name,
-			record->name );
-	}
-
 	/* Figure out what the list units are. */
 
 	if ( mx_strncasecmp( "SECOND", bkprecision_912x_wvout->list_unit_name,
@@ -358,6 +343,29 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x, command,
 				NULL, 0, MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Figure out whether or not the list is in one-shot mode. */
+
+	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+				"LIST:STEP?", response, sizeof(response),
+				MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( response, "ONCE" ) == 0 ) {
+		wvout->trigger_repeat = MXF_WVO_ONE_SHOT;
+	} else
+	if ( strcmp( response, "REPEAT" ) == 0 ) {
+		wvout->trigger_repeat = MXF_WVO_FOREVER;
+	} else {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"LIST:STEP for '%s' is not ONCE or REPEAT.  "
+		"Instead, it is '%s'.", wvout->record->name, response );
+	}
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
@@ -429,20 +437,10 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 
 	/* Set the list step. */
 
-	switch( bkprecision_912x_wvout->list_step ) {
-	case MXF_BKPRECISION_912X_WVOUT_ONCE:
+	if ( wvout->trigger_repeat == MXF_WVO_ONE_SHOT ) {
 		strlcpy( command, "LIST:STEP ONCE", sizeof(command) );
-		break;
-
-	case MXF_BKPRECISION_912X_WVOUT_REPEAT:
+	} else {
 		strlcpy( command, "LIST:STEP REPEAT", sizeof(command) );
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized list step number %lu for waveform output '%s'",
-			bkprecision_912x_wvout->list_step, wvout->record->name);
-		break;
 	}
 
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
@@ -947,6 +945,29 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 		}
 		break;
 
+	case MXLV_WVO_TRIGGER_REPEAT:
+		strlcpy( command, "LIST:STEP?", sizeof(command) );
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, response, sizeof(response),
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( strcmp( response, "ONCE" ) == 0 ) {
+			wvout->trigger_repeat = MXF_WVO_ONE_SHOT;
+		} else
+		if ( strcmp( response, "REPEAT" ) == 0 ) {
+			wvout->trigger_repeat = MXF_WVO_FOREVER;
+		} else {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unexpected response '%s' seen for command '%s' "
+			"sent to waveform output '%s'.",
+				response, command, wvout->record->name );
+		}
+		break;
+
 	default:
 		return mx_waveform_output_default_get_parameter_handler(wvout);
 	}
@@ -1043,6 +1064,22 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 			"for waveform output '%s'.",
 				wvout->trigger_mode, wvout->record->name );
 			break;
+		}
+
+		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
+					command, NULL, 0,
+					MXD_BKPRECISION_912X_WVOUT_DEBUG );
+
+		break;
+
+	case MXLV_WVO_TRIGGER_REPEAT:
+		MX_DEBUG(-2,("%s: wvout->trigger_repeat = %ld",
+			fname, wvout->trigger_repeat));
+
+		if ( wvout->trigger_repeat == MXF_WVO_ONE_SHOT ) {
+			strlcpy( command, "LIST:STEP ONCE", sizeof(command) );
+		} else {
+			strlcpy( command, "LIST:STEP REPEAT", sizeof(command) );
 		}
 
 		mx_status = mxi_bkprecision_912x_command( bkprecision_912x,

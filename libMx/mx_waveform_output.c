@@ -822,6 +822,79 @@ mx_waveform_output_set_trigger_mode( MX_RECORD *wvout_record,
 /*--------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_waveform_output_get_trigger_repeat( MX_RECORD *wvout_record,
+					long *trigger_repeat )
+{
+	static const char fname[] = "mx_waveform_output_get_trigger_repeat()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_waveform_output_default_get_parameter_handler;
+	}
+
+	wvout->parameter_type = MXLV_WVO_TRIGGER_REPEAT;
+
+	mx_status = (*get_parameter_fn)( wvout );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_repeat != NULL ) {
+		*trigger_repeat = wvout->trigger_repeat;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_waveform_output_set_trigger_repeat( MX_RECORD *wvout_record,
+					long trigger_repeat )
+{
+	static const char fname[] = "mx_waveform_output_set_trigger_repeat()";
+
+	MX_WAVEFORM_OUTPUT *wvout;
+	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_WAVEFORM_OUTPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_waveform_output_get_pointers( wvout_record,
+					&wvout, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_waveform_output_default_set_parameter_handler;
+	}
+
+	wvout->trigger_repeat = trigger_repeat;
+
+	wvout->parameter_type = MXLV_WVO_TRIGGER_REPEAT;
+
+	mx_status = (*set_parameter_fn)( wvout );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_waveform_output_default_get_parameter_handler( MX_WAVEFORM_OUTPUT *output )
 {
 	return MX_SUCCESSFUL_RESULT;

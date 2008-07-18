@@ -72,7 +72,7 @@ motor_wvout_fn( int argc, char *argv[] )
 	double *channel_data;
 	double **wvout_data;
 	double frequency;
-	long trigger_mode;
+	long trigger_mode, trigger_repeat;
 	int status, num_items;
 	char buffer[40];
 	char *ptr, *token_ptr;
@@ -95,6 +95,8 @@ motor_wvout_fn( int argc, char *argv[] )
   "        wvout 'wvout_name' set frequency 'value'\n"
   "        wvout 'wvout_name' get trigger_mode\n"
   "        wvout 'wvout_name' set trigger_mode 'value'\n"
+  "        wvout 'wvout_name' get trigger_repeat\n"
+  "        wvout 'wvout_name' set trigger_repeat 'value'\n"
 	;
 
 	if ( argc < 4 ) {
@@ -513,6 +515,20 @@ motor_wvout_fn( int argc, char *argv[] )
 			"Waveform output '%s' trigger mode = %#lx\n",
 				wvout_record->name, trigger_mode );
 
+		} else
+		if ( strncmp( "trigger_repeat",
+				argv[4], strlen(argv[4]) ) == 0 )
+		{
+			mx_status = mx_waveform_output_get_trigger_repeat(
+					wvout_record, &trigger_repeat );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Waveform output '%s' trigger repeat = %ld\n",
+				wvout_record->name, trigger_repeat );
+
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
@@ -568,6 +584,26 @@ motor_wvout_fn( int argc, char *argv[] )
 
 			mx_status = mx_waveform_output_set_trigger_mode(
 						wvout_record, trigger_mode );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp( "trigger_repeat",
+			argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 6 ) {
+				fprintf( output,
+	"%s: wrong number of arguments to 'set trigger_repeat' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			trigger_repeat = atol( argv[5] );
+
+			mx_status = mx_waveform_output_set_trigger_repeat(
+						wvout_record, trigger_repeat );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

@@ -24,6 +24,13 @@
 extern "C" {
 #endif
 
+/* Definitions for 'trigger_repeat'. */
+
+#define MXF_WVO_ONE_SHOT	0
+#define MXF_WVO_FOREVER		(-1)
+
+/*---*/
+
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this waveform output device.
@@ -53,6 +60,7 @@ typedef struct {
 
 	double frequency;		/* in steps/second */
 	long trigger_mode;
+	long trigger_repeat;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -65,10 +73,11 @@ typedef struct {
 #define MXLV_WVO_CHANNEL_INDEX	26002
 #define MXLV_WVO_FREQUENCY	26003
 #define MXLV_WVO_TRIGGER_MODE	26004
-#define MXLV_WVO_ARM		26005
-#define MXLV_WVO_TRIGGER	26006
-#define MXLV_WVO_STOP		26007
-#define MXLV_WVO_BUSY		26008
+#define MXLV_WVO_TRIGGER_REPEAT	26005
+#define MXLV_WVO_ARM		26006
+#define MXLV_WVO_TRIGGER	26007
+#define MXLV_WVO_STOP		26008
+#define MXLV_WVO_BUSY		26009
 
 #define MX_WAVEFORM_OUTPUT_STANDARD_FIELDS \
   {-1, -1, "maximum_num_channels", MXFT_LONG, NULL, 0, {0}, \
@@ -120,6 +129,10 @@ typedef struct {
   \
   {MXLV_WVO_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, trigger_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_WVO_TRIGGER_REPEAT, -1, "trigger_repeat", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_WAVEFORM_OUTPUT, trigger_repeat), \
 	{0}, NULL, 0}, \
   \
   {MXLV_WVO_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
@@ -218,6 +231,14 @@ MX_API mx_status_type mx_waveform_output_get_trigger_mode(
 MX_API mx_status_type mx_waveform_output_set_trigger_mode(
 						MX_RECORD *wvout_record,
 						long trigger_mode );
+
+MX_API mx_status_type mx_waveform_output_get_trigger_repeat(
+						MX_RECORD *wvout_record,
+						long *trigger_repeat );
+
+MX_API mx_status_type mx_waveform_output_set_trigger_repeat(
+						MX_RECORD *wvout_record,
+						long trigger_repeat );
 
 /*----*/
 

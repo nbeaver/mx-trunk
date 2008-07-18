@@ -1,2 +1,2 @@
 timer_scan                       scan linear_scan input_scan "" "" 1 1 0  2  dvm bk_timer  0 0 preset_time "1 bk_timer" text timer_scan.016 none $f[0]  0  1  10000
-dvm_scan                         scan linear_scan input_scan "" "" 1 1 0  2  dvm time  0 0 preset_time "0.5 timer1" text dvm_scan.013 none $f[0]  0  1  10000
+dvm_scan                         scan linear_scan input_scan "" "" 1 1 0  2  dvm time  0 0 preset_time "0.1 timer1" text dvm_scan.018 none $f[0]  0  1  10000
