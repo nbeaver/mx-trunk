@@ -145,7 +145,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 			fname, i, scan->motor_record_array[i]->name,
 			ad_scan->start_position[i],
 			ad_scan->step_size[i],
-			ad_scan->num_measurements[i]));
+			ad_scan->num_frames[i]));
 	}
 	MX_DEBUG(-2,("%s: wedge size = %f",
 		fname, wedge_scan->wedge_size));
@@ -196,7 +196,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 	motor_start     = ad_scan->start_position[0];
 	motor_step_size = ad_scan->step_size[0];
-	motor_num_steps = ad_scan->num_measurements[0];
+	motor_num_steps = ad_scan->num_frames[0];
 	motor_range     = motor_step_size * ( motor_num_steps - 1 );
 	motor_end       = motor_start + motor_range;
 
@@ -230,6 +230,8 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		fname, num_wedges, num_energies));
 
 	for ( w = 0; w < num_wedges; w++ ) {
+		wedge_scan->current_wedge_number = w;
+
 		wedge_start = motor_start + w * wedge_size;
 		wedge_end   = motor_start + (w+1) * wedge_size;
 
@@ -252,10 +254,21 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		MX_DEBUG(-2,("%s: raw_end_step = %f, end_step = %lu",
 			fname, raw_end_step, end_step));
 
+		if ( end_step > motor_num_steps ) {
+			end_step = motor_num_steps;
+
+			MX_DEBUG(-2,("%s: truncating end_step to %lu",
+					fname, end_step ));
+		}
+
 		for ( n = 0; n < num_energies; n++ ) {
+			ad_scan->current_energy_number = n;
+
 			energy = ad_scan->energy_array[n];
 
 			for ( i = start_step; i < end_step; i++ ) {
+				ad_scan->current_frame_number = i;
+
 				position = motor_start + i * motor_step_size;
 
 				MX_DEBUG(-2,("%s: energy = %f, position = %f",
@@ -293,6 +306,8 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 			/* Yes, we do use inverse beam. */
 
 			for ( i = start_step; i < end_step; i++ ) {
+				ad_scan->current_frame_number = i + 180;
+
 				position = motor_start + inverse_distance
 						+ i * motor_step_size;
 

@@ -38,7 +38,10 @@ typedef struct {
 
 	double *start_position;
 	double *step_size;
-	long *num_measurements;
+	long *num_frames;
+
+	long current_energy_number;
+	long current_frame_number;
 
 	void *record_type_struct;
 } MX_AREA_DETECTOR_SCAN;
@@ -85,9 +88,9 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR_SCAN, step_size), \
 	{sizeof(double)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
   \
-  {-1, -1, "num_measurements", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "num_frames", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
-			offsetof(MX_AREA_DETECTOR_SCAN, num_measurements), \
+			offsetof(MX_AREA_DETECTOR_SCAN, num_frames), \
 	{sizeof(long)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}
 
 typedef struct {

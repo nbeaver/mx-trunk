@@ -19,6 +19,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	double wedge_size;
+
+	long current_wedge_number;
 } MX_WEDGE_SCAN;
 
 #define MXS_WEDGE_SCAN_STANDARD_FIELDS \

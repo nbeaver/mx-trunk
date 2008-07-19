@@ -69,7 +69,7 @@ mxs_area_detector_scan_initialize_type( long record_type )
 	static const char scan_position_field[][MXU_FIELD_NAME_LENGTH+1] = {
 		"start_position",
 		"step_size",
-		"num_measurements"
+		"num_frames"
 	};
 
 	long num_scan_position_fields = sizeof(scan_position_field)
