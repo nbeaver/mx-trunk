@@ -869,6 +869,7 @@ mxd_soft_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	unsigned long ad_status;
+	char datafile_name[MXU_FILENAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_area_detector_get_pointers( ad,
@@ -928,10 +929,16 @@ mxd_soft_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME: Get a real filename. */
+	/* Write out the image file. */
+
+	snprintf( datafile_name, sizeof(datafile_name), "%s/%s",
+		ad->datafile_directory, ad->datafile_name );
+
+	MX_DEBUG(-2,("%s: Writing image frame '%s'", fname, datafile_name ));
 
 	mx_status = mx_image_write_file( ad->image_frame,
-					MXT_IMAGE_FILE_SMV, "fixme.smv" );
+					MXT_IMAGE_FILE_SMV,
+					datafile_name );
 
 	return mx_status;
 }

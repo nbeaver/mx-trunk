@@ -106,6 +106,9 @@ typedef struct {
 				MX_SCAN *scan );
 	mx_status_type ( *cleanup_after_scan_end ) (
 				MX_SCAN *scan );
+
+	mx_status_type ( *initialize_datafile_naming ) ( MX_SCAN *scan );
+	mx_status_type ( *construct_next_datafile_name ) ( MX_SCAN *scan );
 } MX_AREA_DETECTOR_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mxs_area_detector_scan_initialize_type( long );
@@ -128,6 +131,21 @@ MX_API_PRIVATE mx_status_type
 
 extern MX_RECORD_FUNCTION_LIST mxs_area_detector_scan_record_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_area_detector_scan_scan_function_list;
+
+/*---*/
+
+MX_API_PRIVATE mx_status_type
+mxs_area_detector_scan_default_initialize_datafile_naming( MX_SCAN *scan );
+
+MX_API_PRIVATE mx_status_type
+mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN *scan );
+
+/*---*/
+
+MX_API mx_status_type
+mx_area_detector_scan_setup_datafile_handlers( MX_RECORD *scan_record,
+				mx_status_type (*initialize_fn)(MX_SCAN *),
+				mx_status_type (*construct_fn)(MX_SCAN *) );
 
 #ifdef __cplusplus
 }

@@ -111,6 +111,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 {
 	static const char fname[] = "mxs_wedge_scan_execute_scan_body()";
 
+	MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *flist;
 	MX_AREA_DETECTOR_SCAN *ad_scan;
 	MX_WEDGE_SCAN *wedge_scan;
 	MX_RECORD *motor_record;
@@ -127,6 +128,9 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 	mx_bool_type use_inverse_beam;
 	mx_status_type mx_status;
 
+	mx_status_type (*initialize_datafile_naming_fn)( MX_SCAN *);
+	mx_status_type (*construct_next_datafile_name_fn)( MX_SCAN *);
+
 	if ( scan == (MX_SCAN *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SCAN pointer passed was NULL." );
@@ -137,6 +141,32 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 	wedge_scan = scan->record->record_type_struct;
 
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
+
+	flist = scan->record->class_specific_function_list;
+
+	/* Initialize the data structures for computing datafile names. */
+
+	if ( flist->initialize_datafile_naming == NULL ) {
+	    initialize_datafile_naming_fn =
+	    	mxs_area_detector_scan_default_initialize_datafile_naming;
+	} else {
+	    initialize_datafile_naming_fn = flist->initialize_datafile_naming;
+	}
+
+	mx_status = (*initialize_datafile_naming_fn)( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Find the function for constructing datafile names. */
+
+	if ( flist->construct_next_datafile_name == NULL ) {
+	    construct_next_datafile_name_fn =
+	    	mxs_area_detector_scan_default_construct_next_datafile_name;
+	} else {
+	    construct_next_datafile_name_fn =
+	    	flist->construct_next_datafile_name;
+	}
 
 #if 1
 	for ( i = 0; i < scan->num_motors; i++ ) {
@@ -288,6 +318,14 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
+				/* Construct the name of the next image frame.*/
+
+				mx_status =
+				    (*construct_next_datafile_name_fn)( scan );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
 				/* Perform the measurement. */
 
 				mx_status = mxp_wedge_scan_take_frame( 
@@ -324,6 +362,14 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 				mx_status = mx_wait_for_motor_stop(
 						motor_record, 0 );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* Construct the name of the next image frame.*/
+
+				mx_status =
+				    (*construct_next_datafile_name_fn)( scan );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;

@@ -23,6 +23,8 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_array.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_scan.h"
 #include "mx_scan_area_detector.h"
 
@@ -583,6 +585,157 @@ mxs_area_detector_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	}
 	
 	mx_status =  mx_standard_cleanup_after_scan_end( scan );
+
+	return mx_status;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
+mxs_area_detector_scan_default_initialize_datafile_naming( MX_SCAN * scan )
+{
+	static const char fname[] =
+		"mxs_area_detector_scan_default_initialize_datafile_naming()";
+
+	MX_RECORD *scan_record, *ad_record;
+	MX_AREA_DETECTOR *ad;
+	char *scan_datafile_name;
+	char *ptr, *datafile_name_ptr;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+
+	scan_record = scan->record;
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_SCAN %p is NULL.", scan );
+	}
+
+	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan_record->name ));
+
+	ad_record = scan->input_device_array[0];
+
+	if ( ad_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The first input device record for scan '%s' is NULL.",
+			scan_record->name );
+	}
+	if ( ad_record->mx_class != MXC_AREA_DETECTOR ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Input device '%s' for scan '%s' is not an area detector.",
+			ad_record->name, scan_record->name );
+	}
+
+	ad = ad_record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			ad_record->name );
+	}
+
+	/* The area detector image filenames are derived from the scan
+	 * datafile name.  We must split this into the datafile directory
+	 * part and the datafile name part.
+	 */
+
+	scan_datafile_name = strdup( scan->datafile_name );
+
+	if ( scan_datafile_name == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a copy of the "
+		"scan datafile name for scan '%s'.", scan_record->name );
+	}
+
+	ptr = strrchr( scan_datafile_name, '/' );
+
+	if ( ptr == NULL ) {
+		/* Use the current directory as the directory name. */
+
+		mx_get_current_directory_name( ad->datafile_directory,
+					sizeof(ad->datafile_directory) );
+
+		datafile_name_ptr = scan_datafile_name;
+	} else {
+		/* The datafile name starts after the directory separator. */
+
+		datafile_name_ptr = ptr + 1;
+
+		/* Null terminate the directory name and then copy it. */
+
+		*ptr = '\0';
+
+		strlcpy( ad->datafile_directory, scan_datafile_name,
+				sizeof(ad->datafile_directory) );
+	}
+
+	/* Now generate a datafile name pattern using the filename pointed
+	 * to by datafile_name_ptr.
+	 */
+
+	snprintf( ad->datafile_pattern, sizeof(ad->datafile_pattern),
+		"%s####.smv", datafile_name_ptr );
+
+	mx_free( scan_datafile_name );
+
+	MX_DEBUG(-2,("%s: datafile_directory = '%s', datafile_pattern = '%s'",
+		fname, ad->datafile_directory, ad->datafile_pattern));
+
+	mx_status = mx_area_detector_initialize_datafile_number( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN * scan )
+{
+	static const char fname[] =
+		"mxs_area_detector_scan_default_construct_next_datafile_name()";
+
+	MX_RECORD *scan_record, *ad_record;
+	MX_AREA_DETECTOR *ad;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+
+	scan_record = scan->record;
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_SCAN %p is NULL.", scan );
+	}
+
+	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan_record->name ));
+
+	ad_record = scan->input_device_array[0];
+
+	if ( ad_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The first input device record for scan '%s' is NULL.",
+			scan_record->name );
+	}
+	if ( ad_record->mx_class != MXC_AREA_DETECTOR ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Input device '%s' for scan '%s' is not an area detector.",
+			ad_record->name, scan_record->name );
+	}
+
+	ad = ad_record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			ad_record->name );
+	}
+
+	mx_status = mx_area_detector_construct_next_datafile_name( ad );
 
 	return mx_status;
 }
