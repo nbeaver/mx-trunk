@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,6 +58,9 @@ typedef struct {
 	long home_switch;
 
 	long num_write_terminator_chars;
+
+	mx_bool_type last_move_was_home_search;
+	mx_bool_type last_home_search_failed;
 } MX_MDRIVE;
 
 /* Define all of the interface functions. */

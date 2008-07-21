@@ -347,6 +347,9 @@ mxd_mdrive_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mdrive->last_move_was_home_search = FALSE;
+	mdrive->last_home_search_failed = FALSE;
+
 	/* Verify the line terminators. */
 
 	mx_status = mx_rs232_verify_configuration( mdrive->rs232_record,
@@ -498,6 +501,8 @@ mxd_mdrive_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mdrive->last_move_was_home_search = FALSE;
+
 	motor_steps = motor->raw_destination.stepper;
 
 	/* Format the move command and send it. */
@@ -589,6 +594,10 @@ mxd_mdrive_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( mdrive->last_move_was_home_search ) {
+		mdrive->last_home_search_failed = TRUE;
+	}
+
 	/* Command the MDrive to slew at zero velocity. */
 
 	mx_status = mxd_mdrive_command( mdrive, "SL=0",
@@ -612,6 +621,10 @@ mxd_mdrive_immediate_abort( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( mdrive->last_move_was_home_search ) {
+		mdrive->last_home_search_failed = TRUE;
+	}
 
 	/* From the manual: The ESCAPE key will stop the user program 
 	 * and stop the motor with no decel rate.
@@ -641,6 +654,9 @@ mxd_mdrive_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mdrive->last_move_was_home_search = TRUE;
+	mdrive->last_home_search_failed = FALSE;
+
 	if ( motor->home_search >= 0 ) {
 		strcpy( command, "HM=3" );
 	} else {
@@ -669,6 +685,8 @@ mxd_mdrive_constant_velocity_move( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mdrive->last_move_was_home_search = FALSE;
 
 	mx_status = mx_motor_get_speed( motor->record, &speed );
 
@@ -884,14 +902,6 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 		num_chars_expected++;
 	}
 
-	if ( mdrive->home_switch != 0 ) {
-		sprintf( ptr, " I%ld", mdrive->home_switch );
-
-		ptr = command + strlen(command);
-
-		num_chars_expected++;
-	}
-
 	MX_DEBUG( 2,("%s: num_chars_expected = %d", fname, num_chars_expected));
 
 	/* Send the status request command. */
@@ -937,13 +947,11 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 		i++;
 	}
 
-	if ( mdrive->home_switch != 0 ) {
-
-		if ( response[i] == '1' ) {
-			motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
-		}
-
-		i++;
+	if ( mdrive->last_move_was_home_search
+	  && ( mdrive->last_home_search_failed == FALSE )
+	  && ( (motor->status & MXSF_MTR_IS_BUSY) == FALSE ) )
+	{
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1120,6 +1128,16 @@ mxd_mdrive_command( MX_MDRIVE *mdrive, char *command,
 
 		if ( mdrive_error_code == 0 ) {
 			return MX_SUCCESSFUL_RESULT;
+		} else
+		if ( mdrive_error_code == 82 ) {
+			if ( mdrive->last_move_was_home_search ) {
+				mdrive->last_home_search_failed = TRUE;
+
+				return mx_error(
+				MXE_DEVICE_ACTION_FAILED, fname,
+				"The home search failed for MDrive motor '%s'.",
+					mdrive->record->name );
+			}
 		}
 
 		return mx_error( mx_error_code, fname,
