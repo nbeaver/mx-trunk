@@ -171,6 +171,41 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #elif defined(OS_LINUX)
 
+#  if ( (__GLIBC__ < 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 3)) )
+
+	/* Linux with Glibc 2.2 or before. */
+
+MX_EXPORT mx_status_type
+mx_get_process_affinity_mask( unsigned long process_id,
+				unsigned long *mask )
+{
+	static const char fname[] = "mx_get_process_affinity_mask()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Getting the CPU affinity mask is not supported on Linux "
+	"if MX is compiled with Glibc 2.2 or before." );
+}
+
+MX_EXPORT mx_status_type
+mx_set_process_affinity_mask( unsigned long process_id,
+				unsigned long mask )
+{
+	static const char fname[] = "mx_set_process_affinity_mask()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Setting the CPU affinity mask is not supported on Linux "
+	"if MX is compiled with Glibc 2.2 or before." );
+}
+
+#  else
+	/* Linux with Glibc 2.3 and above. */
+
+/* sched_setaffinity() and friends are Linux-specific calls that
+ * are supported on Linux 2.5.8 and above.  The Glibc interface
+ * was introduced in Glibc 2.3, so the macro above tests for
+ * the presence of Glibc 2.3 or higher.
+ */
+
 #include <sys/types.h>
 #include <errno.h>
 #include <unistd.h>
@@ -282,6 +317,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#  endif /* Linux with Glibc 2.3 and above. */
 
 /*------------------------------ Solaris ------------------------------*/
 
