@@ -111,6 +111,8 @@ typedef struct {
 	MX_PLOT plot;
 	char plot_description[MXU_PLOT_DESCRIPTION_LENGTH + 1];
 	char plot_arguments[MXU_PLOT_ARGUMENTS_LENGTH + 1];
+
+	void *application_ptr;
 } MX_SCAN;
 
 typedef struct {

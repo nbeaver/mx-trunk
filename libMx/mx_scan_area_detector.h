@@ -143,7 +143,7 @@ mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN *scan );
 /*---*/
 
 MX_API mx_status_type
-mx_area_detector_scan_setup_datafile_handlers( MX_RECORD *scan_record,
+mx_area_detector_scan_setup_datafile_naming( MX_RECORD *scan_record,
 				mx_status_type (*initialize_fn)(MX_SCAN *),
 				mx_status_type (*construct_fn)(MX_SCAN *) );
 

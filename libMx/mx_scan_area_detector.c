@@ -740,3 +740,40 @@ mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN * scan )
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_area_detector_scan_setup_datafile_naming( MX_RECORD *scan_record,
+				mx_status_type (*initialize_fn)(MX_SCAN *),
+				mx_status_type (*construct_fn)(MX_SCAN *) )
+{
+	static const char fname[] =
+		"mx_area_detector_scan_setup_datafile_naming()";
+
+	MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *flist;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( scan_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The scan record pointer passed was NULL." );
+	}
+	if ( scan_record->mx_class != MXS_AREA_DETECTOR_SCAN ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' is not an area detector scan record.",
+			scan_record->name );
+	}
+
+	flist = scan_record->class_specific_function_list;
+
+	if ( flist == (MX_AREA_DETECTOR_SCAN_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR_SCAN_FUNCTION_LIST pointer "
+		"for scan '%s' is NULL.", scan_record->name );
+	}
+
+	flist->initialize_datafile_naming = initialize_fn;
+
+	flist->construct_next_datafile_name = construct_fn;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
