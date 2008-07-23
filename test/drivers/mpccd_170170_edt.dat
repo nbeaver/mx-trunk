@@ -2,4 +2,4 @@ pdv  interface generic edt "" "" pdv
 edt   device video_input edt_video_input "" "" 16384 1024 grey16 -1 pdv 0 0 0x0 10
 port interface rs232 edt_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 edt
 trigger device digital_output soft_doutput "" "" 0
-ad device area_detector pccd_170170 "" "" 0 0x0 0x0 "" "" "" "" edt port trigger 0x1 0x3 "" ""
+ad device area_detector pccd_170170 "" "" 0 0x0 0x0 "" "" "" "" edt port trigger 0x1 0x3 "" "" ""

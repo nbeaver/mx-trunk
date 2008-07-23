@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_EPIX_XCLIB_DEBUG	TRUE
+#define MXI_EPIX_XCLIB_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -372,7 +372,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: Number of boards = %d", fname, pxd_infoUnits() ));
 
-	MX_DEBUG(-2,("%s: Number of frame buffers per board= %d",
+	MX_DEBUG(-2,("%s: Number of frame buffers per board = %d",
 					fname, pxd_imageZdim() ));
 
 	MX_DEBUG(-2,("%s: X dimension = %d, Y dimension = %d",

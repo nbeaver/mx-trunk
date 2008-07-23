@@ -111,6 +111,7 @@ typedef struct {
 	unsigned long pccd_170170_flags;
 	char geometrical_spline_filename[MXU_FILENAME_LENGTH+1];
 	char geometrical_mask_filename[MXU_FILENAME_LENGTH+1];
+	char bias_lookup_table_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type buffer_overrun;
 	mx_bool_type use_top_half_of_detector;
@@ -128,6 +129,8 @@ typedef struct {
 
 	MX_IMAGE_FRAME *geometrical_mask_frame;
 	MX_IMAGE_FRAME *rebinned_geometrical_mask_frame;
+
+	uint16_t *bias_lookup_table;
 
 	long old_framesize[2];
 
@@ -321,6 +324,12 @@ typedef struct {
   			1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_PCCD_170170, geometrical_mask_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "bias_lookup_table_filename", MXFT_STRING, NULL, \
+  			1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_PCCD_170170, bias_lookup_table_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   \

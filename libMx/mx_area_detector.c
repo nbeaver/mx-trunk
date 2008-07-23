@@ -4954,8 +4954,12 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&(ad->dark_current_frame) );
 
 		dest_frame = ad->dark_current_frame;
-		desired_correction_flags =
-			MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME;
+
+		desired_correction_flags = MXFT_AD_MASK_FRAME;
+
+		if ( ad->bias_frame != NULL ) {
+			desired_correction_flags |= MXFT_AD_BIAS_FRAME;
+		}
 		break;
 	
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -4965,7 +4969,11 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		dest_frame = ad->flood_field_frame;
 
 		desired_correction_flags = 
-	MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
+			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
+
+		if ( ad->bias_frame != NULL ) {
+			desired_correction_flags |= MXFT_AD_BIAS_FRAME;
+		}
 
 		if ( ( ad->geom_corr_after_flood == FALSE )
 		  && ( ad->correction_frame_geom_corr_last == FALSE )

@@ -21,13 +21,15 @@
 
 #define MXD_PCCD_170170_DEBUG				FALSE
 
+#define MXD_PCCD_170170_DEBUG_BIAS_LOOKUP		FALSE
+
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING		FALSE
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION		FALSE
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
+#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
 
 #define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
 
@@ -39,7 +41,7 @@
 
 #define MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES		FALSE
 
-#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
 
@@ -508,6 +510,102 @@ mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 	free( sector_array );
 
 	return;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
+{
+	static const char fname[] = "mxd_pccd_170170_load_bias_lookup_table()";
+
+	FILE *file;
+	int saved_errno;
+	unsigned long table_size, bytes_read;
+
+#if MXD_PCCD_170170_DEBUG_BIAS_LOOKUP
+	MX_DEBUG(-2,("%s invoked for detector '%s'.",
+		fname, pccd_170170->record->name ));
+#endif
+
+	/* The bias lookup file is a binary file in 'native' byte order that
+	 * contains 65536 16-bit integers.  No byte swapping is required.
+	 */
+
+	file = fopen( pccd_170170->bias_lookup_table_filename, "rb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open bias lookup table file '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			pccd_170170->bias_lookup_table_filename,
+			saved_errno, mx_strerror( saved_errno, NULL, 0 ) );
+	}
+
+	/* Allocate memory for the bias lookup table. */
+
+	table_size = 65536 * sizeof(uint16_t);
+
+	pccd_170170->bias_lookup_table = malloc( table_size );
+
+	if ( pccd_170170->bias_lookup_table == NULL ) {
+		fclose( file );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte "
+		"bias lookup table.", table_size );
+	}
+
+	/* Read the contents of the bias lookup table file into the 
+	 * local data structure.
+	 */
+
+	bytes_read = fread( pccd_170170->bias_lookup_table,
+				1, table_size, file );
+
+	fclose( file );
+
+	if ( bytes_read < table_size ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Only %lu bytes were read from the bias lookup table "
+		"file '%s'.  The file was supposed to be %lu bytes long.",
+			bytes_read, pccd_170170->bias_lookup_table_filename,
+			table_size );
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_pccd_170170_apply_bias_lookup_table( MX_PCCD_170170 *pccd_170170,
+					MX_IMAGE_FRAME *image_frame )
+{
+	uint16_t *image_data, *lookup_table;
+	uint16_t pixel;
+	unsigned long i;
+
+#if MXD_PCCD_170170_DEBUG_BIAS_LOOKUP
+	static const char fname[] = "mxd_pccd_170170_apply_bias_lookup_table()";
+
+	MX_DEBUG(-2,("%s invoked for detector '%s'.",
+		fname, pccd_170170->record->name ));
+#endif
+
+	image_data = image_frame->image_data;
+
+	lookup_table = pccd_170170->bias_lookup_table;
+
+	for ( i = 0; i < image_frame->image_length; i++ ) {
+		pixel = image_data[i];
+
+		image_data[i] = lookup_table[pixel];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -2280,6 +2378,18 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->use_top_half_of_detector = FALSE;
 
+	/* If requested, load the bias lookup table. */
+
+	if ( strlen(pccd_170170->bias_lookup_table_filename) > 0 ) {
+
+		mx_status = mxd_pccd_170170_load_bias_lookup_table(pccd_170170);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		pccd_170170->bias_lookup_table = NULL;
+	}
+
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
 	 */
@@ -3753,6 +3863,18 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
+	/* If required, apply the bias lookup table. */
+
+	if ( pccd_170170->bias_lookup_table != NULL ) {
+		mx_status = mxd_pccd_170170_apply_bias_lookup_table(
+						pccd_170170, ad->image_frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Dezingering test code. */
+
 	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
 
 		/* If we are testing the dezingering logic, we potentially
@@ -3877,22 +3999,22 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	 * that will be used to correct the data.
 	 */
 
-	/* We get the dimensions of the correction frames from the bias frame.*/
+	/* We get the dimensions of the correction frames from the mask frame.*/
 
 	mx_status = mx_area_detector_get_correction_frame( ad, ad->image_frame,
-							MXFT_AD_BIAS_FRAME,
-							"bias",
-							&bias_frame );
+							MXFT_AD_MASK_FRAME,
+							"mask",
+							&mask_frame );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	corr_row_framesize    = MXIF_ROW_FRAMESIZE(bias_frame);
-	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(bias_frame);
+	corr_row_framesize    = MXIF_ROW_FRAMESIZE(mask_frame);
+	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(mask_frame);
 
 	if ( image_column_framesize != corr_column_framesize ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
 		"The number of columns (%ld) in the image frame is not "
-		"same as the number of columns (%ld) in the bias frame "
+		"same as the number of columns (%ld) in the mask frame "
 		"for area detector '%s'.",
 			image_column_framesize, corr_column_framesize,
 			ad->record->name );
@@ -3951,6 +4073,9 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( (flags & MXFT_AD_MASK_FRAME) == 0 ) {
 		mask_data_ptr = NULL;
 	} else {
+#if 0
+		/* We already found the mask frame earlier in the routine. */
+
 		mx_status = mx_area_detector_get_correction_frame(
 							ad, ad->image_frame,
 							MXFT_AD_MASK_FRAME,
@@ -3958,6 +4083,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 							&mask_frame );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#endif
 
 		mask_data_ptr = mask_frame->image_data;
 		mask_data_ptr += corr_start_offset;
@@ -3966,9 +4092,6 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( (flags & MXFT_AD_BIAS_FRAME) == 0 ) {
 		bias_data_ptr = NULL;
 	} else {
-#if 0
-		/* We already found the bias frame earlier in the routine. */
-
 		mx_status = mx_area_detector_get_correction_frame(
 							ad, ad->image_frame,
 							MXFT_AD_BIAS_FRAME,
@@ -3976,7 +4099,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 							&bias_frame );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-#endif
+
 		bias_data_ptr = bias_frame->image_data;
 		bias_data_ptr += corr_start_offset;
 	}

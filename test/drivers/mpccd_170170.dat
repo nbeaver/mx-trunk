@@ -30,5 +30,5 @@ inttrigger device digital_output epix_xclib_doutput "" "" 0 epix
 gpin       device digital_input epix_xclib_dinput "" "" 0 epix -1
 trig0      device digital_input epix_xclib_dinput "" "" 0 epix 0
 trig1      device digital_input epix_xclib_dinput "" "" 0 epix 1
-###ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv
-ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x218 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv
+###ad         device area_detector pccd_170170 "" "" 4 0x0 0x100d /home/lavender/epix/pixel_mask.smv "" /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv /home/lavender/epix/reverse_bias_lookup.bin
+ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv ""
