@@ -77,7 +77,7 @@ mxs_area_detector_scan_initialize_type( long record_type )
 	long num_scan_position_fields = sizeof(scan_position_field)
 					/ sizeof(scan_position_field[0]);
 
-#if MX_AREA_DETECTOR_DEBUG_SCAN
+#if 0 && MX_AREA_DETECTOR_DEBUG_SCAN
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
