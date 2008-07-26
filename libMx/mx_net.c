@@ -48,7 +48,7 @@
 
 #define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
 
-#define NETWORK_DEBUG_TIMING			FALSE
+#define NETWORK_DEBUG_TIMING			TRUE
 
 #define NETWORK_DEBUG_HEADER_LENGTH		FALSE
 

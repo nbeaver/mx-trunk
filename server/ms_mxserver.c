@@ -23,21 +23,19 @@
  * while NETWORK_DEBUG_VERBOSE shows much more information.
  */
 
-#define NETWORK_DEBUG			FALSE
+#define NETWORK_DEBUG			TRUE
 
-#define NETWORK_DEBUG_VERBOSE		FALSE
+#define NETWORK_DEBUG_VERBOSE		TRUE
 
-#define NETWORK_DEBUG_TIMING		FALSE
+#define NETWORK_DEBUG_TIMING		TRUE
 
-#define NETWORK_DEBUG_TIMING_VERBOSE	FALSE
+#define NETWORK_DEBUG_FIELD_NAMES	TRUE
 
-#define NETWORK_DEBUG_FIELD_NAMES	FALSE
+#define NETWORK_DEBUG_HANDLES		TRUE
 
-#define NETWORK_DEBUG_HANDLES		FALSE
+#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
 
-#define NETWORK_DEBUG_HEADER_LENGTH	FALSE
-
-#define NETWORK_DEBUG_CALLBACKS		FALSE
+#define NETWORK_DEBUG_CALLBACKS		TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -84,16 +82,6 @@
 
 #  define NETWORK_DEBUG			TRUE
 #  define NETWORK_DEBUG_FIELD_NAMES	TRUE
-#endif
-
-/*
- * If NETWORK_DEBUG_TIMING_VERBOSE is TRUE, force NETWORK_DEBUG_TIMING to TRUE.
- */
-
-#if NETWORK_DEBUG_TIMING_VERBOSE
-#  undef NETWORK_DEBUG_TIMING
-
-#  define NETWORK_DEBUG_TIMING  FALSE
 #endif
 
 MXSRV_MX_SERVER_SOCKET mxsrv_tcp_server_socket_struct;
@@ -1170,8 +1158,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING recv_measurement, parse_measurement;
-	MX_HRT_TIMING queue_measurement, immediate_measurement;
+	MX_HRT_TIMING immediate_measurement, total_measurement;
 
+	MX_HRT_START( total_measurement );
 	MX_HRT_START( recv_measurement );
 #endif
 
@@ -1191,8 +1180,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
-				socket_handler->callback_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -1823,8 +1810,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
-				socket_handler->callback_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -1833,6 +1818,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( immediate_measurement );
+	MX_HRT_END( total_measurement );
 
 	if ( ( record != NULL ) && ( record_field != NULL ) ) {
 		MX_HRT_RESULTS( recv_measurement, fname,
@@ -1846,10 +1832,15 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		MX_HRT_RESULTS( immediate_measurement, fname,
 			"immediate processing for '%s.%s'",
 			record->name, record_field->name );
+
+		MX_HRT_RESULTS( total_measurement, fname,
+			"total processing for '%s.%s'",
+			record->name, record_field->name );
 	} else {
 		MX_HRT_RESULTS( recv_measurement, fname, "receiving" );
 		MX_HRT_RESULTS( parse_measurement, fname, "parsing" );
 		MX_HRT_RESULTS( immediate_measurement, fname, "immediate" );
+		MX_HRT_RESULTS( total_measurement, fname, "total" );
 	}
 #endif
 
@@ -1914,8 +1905,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	MX_DEBUG(-2,("socket_handler = %p", socket_handler));
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
-				socket_handler->callback_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -1998,8 +1987,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
-				socket_handler->callback_socket));
 	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
@@ -2028,6 +2015,8 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
+	static const char fname[] = "mxsrv_handle_get_array()";
+
 	MX_HRT_TIMING measurement;
 
 	MX_HRT_START( measurement );

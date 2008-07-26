@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG			FALSE
+#define MX_CALLBACK_DEBUG				FALSE
+
+#define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	TRUE
 
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
@@ -25,7 +27,7 @@
  * never be invoked.
  */
 
-#define MX_CALLBACK_DEBUG_WITHOUT_TIMER		FALSE
+#define MX_CALLBACK_DEBUG_WITHOUT_TIMER			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +43,10 @@
 #include "mx_net.h"
 #include "mx_pipe.h"
 #include "mx_callback.h"
+
+#if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
+#include "mx_hrt_debug.h"
+#endif
 
 /*------------------------------------------------------------------------*/
 
@@ -1566,10 +1572,18 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 	MX_CALLBACK *callback;
 	MX_CALLBACK_MESSAGE *callback_message;
 	mx_status_type (*cb_function)( MX_CALLBACK_MESSAGE *);
+	MX_VIRTUAL_TIMER *callback_timer;
 	unsigned long i, array_size;
 	long interval;
 	size_t bytes_read;
+	struct timespec current_timespec, timespec_difference;
 	mx_status_type mx_status;
+
+#if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
+	MX_HRT_TIMING total_processing_time_measurement;
+
+	MX_HRT_START( total_processing_time_measurement );
+#endif
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for %p.", fname, record_list));
@@ -1617,12 +1631,6 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 		MX_DEBUG(-2,
 		("%s: Poll all value changed callback handlers.", fname));
 #endif
-		/* Increment the counter that records how many poll callbacks
-		 * have occurred.
-		 */
-
-		list_head->num_poll_callbacks++;
-
 		if ( list_head != callback_message->list_head ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
 			"The callback has a different address %p for the "
@@ -1630,6 +1638,32 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 				callback_message->list_head,
 				list_head );
 		}
+
+		/* Increment the counter that records how many poll callbacks
+		 * have occurred.
+		 */
+
+		list_head->total_num_poll_callbacks++;
+
+		/* Check to see if poll callbacks are being generated faster
+		 * than they can be handled.
+		 */
+
+		current_timespec = mx_high_resolution_time();
+
+		timespec_difference = mx_subtract_high_resolution_times(
+			current_timespec, list_head->last_poll_callback_time );
+
+		callback_timer = list_head->callback_timer;
+
+		if ( callback_timer == (MX_VIRTUAL_TIMER *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The list head callback_timer pointer is NULL, "
+			"even though we are in a poll callback.  "
+			"This should not be able to happen." );
+		}
+
+		/*---*/
 
 		handle_table = list_head->server_callback_handle_table;
 
@@ -1683,7 +1717,7 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 			if ( interval > 0 ) {
 				unsigned long num_polls;
 
-				num_polls = list_head->num_poll_callbacks;
+				num_polls = list_head->num_poll_callbacks_taken;
 #if 1
 				MX_DEBUG(-2,
 			("%s: callback = %p, interval = %ld, num_polls = %lu",
@@ -1740,6 +1774,13 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 			callback_message->callback_type, fname );
 		break;
 	}
+
+#if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
+	MX_HRT_END( total_processing_time_measurement );
+
+	MX_HRT_RESULTS( total_processing_time_measurement,
+		fname, "total processing time" );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
