@@ -3203,6 +3203,13 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	case MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD:
 		attribute_value = record_field->value_change_threshold;
 		break;
+	case MX_NETWORK_ATTRIBUTE_POLL:
+		if ( record_field->flags & MXFF_POLL ) {
+			attribute_value = 1;
+		} else {
+			attribute_value = 0;
+		}
+		break;
 	default:
 		attribute_value = 0;
 		illegal_attribute_number = TRUE;
@@ -3407,6 +3414,14 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	switch( attribute_number ) {
 	case MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD:
 		record_field->value_change_threshold = attribute_value;
+		break;
+
+	case MX_NETWORK_ATTRIBUTE_POLL:
+		if ( attribute_value >= 0.001 ) {
+			record_field->flags |= MXFF_POLL;
+		} else {
+			record_field->flags &= (~MXFF_POLL);
+		}
 		break;
 
 	default:

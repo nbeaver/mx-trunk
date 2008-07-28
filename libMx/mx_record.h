@@ -84,6 +84,7 @@ extern "C" {
 #define MXFF_VARARGS			0x4
 #define MXFF_READ_ONLY			0x8
 #define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x10
+#define MXFF_POLL			0x20
 
 /* The following value is used only by mx_print_structure(). */
 

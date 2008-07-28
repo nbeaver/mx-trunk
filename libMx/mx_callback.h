@@ -48,6 +48,7 @@ typedef struct mx_callback_type {
 	uint32_t callback_id;
 	mx_bool_type active;
 	mx_bool_type get_new_value;
+	mx_bool_type first_callback;
 	long timer_interval;
 	mx_status_type ( *callback_function )
 				( struct mx_callback_type *, void * );
