@@ -259,6 +259,56 @@ mxsrv_setup_output_functions( void )
 
 /*------------------------------------------------------------------*/
 
+static mx_status_type
+mxsrv_poll_all( void )
+{
+	MX_DRIVER **mx_list_of_types;
+	MX_DRIVER *driver_list_ptr;
+	long i, num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *defaults_array;
+	MX_RECORD_FIELD_DEFAULTS *array_element;
+
+	/* mx_get_driver_lists() returns a 3-element array containing
+	 * the superclass list, the class list, and the type list.
+	 */
+
+	mx_list_of_types = mx_get_driver_lists();
+
+	/* We are interested in the third element of this array, since
+	 * that one is an array that contains all of the drivers found
+	 * in mx_driver.c.
+	 */
+
+	driver_list_ptr = mx_list_of_types[2];
+
+	/* Walk through all of the device drivers until we get to
+	 * the end of the array.
+	 */
+
+	while ( driver_list_ptr->mx_type != 0 ) {
+
+		MX_DEBUG( 2,("%s: ", driver_list_ptr->name ));
+
+		num_record_fields = *(driver_list_ptr->num_record_fields);
+
+		defaults_array = *(driver_list_ptr->record_field_defaults_ptr);
+
+		for ( i = 0; i < num_record_fields; i++ ) {
+			array_element = &defaults_array[i];
+
+			MX_DEBUG( 2,("   %s", array_element->name));
+
+			array_element->flags |= MXFF_POLL;
+		}
+
+		driver_list_ptr++;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------*/
+
 #if MS_MAIN_DEBUG_MEMORY_LEAK
 
 static void
@@ -341,7 +391,7 @@ mxserver_main( int argc, char *argv[] )
 	int server_port, default_display_precision, init_hw_flags;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
-	int bypass_signal_handlers, network_debug;
+	int bypass_signal_handlers, network_debug, poll_all;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -422,16 +472,22 @@ mxserver_main( int argc, char *argv[] )
 
 	network_debug = FALSE;
 
+	poll_all = FALSE;
+
 #if HAVE_GETOPT
         /* Process command line arguments, if any. */
 
         error_flag = FALSE;
 
-        while ((c = getopt(argc,argv,"Ab:cC:d:De:E:f:kl:L:n:p:P:sStu:Z")) != -1)
+        while ((c = getopt(argc, argv,
+		"Aab:cC:d:De:E:f:kl:L:n:p:P:sStu:Z")) != -1)
 	{
                 switch (c) {
 		case 'A':
 			network_debug = TRUE;
+			break;
+		case 'a':
+			poll_all = TRUE;
 			break;
 		case 'b':
 			if ( strcmp( optarg, "raw" ) == 0 ) {
@@ -653,6 +709,15 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	/* If requested, turn on the MXFF_POLL bit for all MX fields. */
+
+	if ( poll_all ) {
+		mx_status = mxsrv_poll_all();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit( mx_status.code );
+	}
 
 	/* Initialize the MX database. */
 
