@@ -4085,9 +4085,15 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
+#if 0
 		/* Send the current value of the field. */
 
 		send_value_changed_callback = TRUE;
+#else
+		/* Do _not_ send the current value of the field. */
+
+		send_value_changed_callback = FALSE;
+#endif
 	}
 
 	/* If we get here, see if we should send value changed callbacks

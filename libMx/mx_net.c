@@ -480,6 +480,24 @@ mx_network_update_message_id( unsigned long *message_id )
 
 /* ====================================================================== */
 
+#define RETURN_IF_TIMED_OUT \
+	do {                                                                  \
+		current_tick = mx_current_clock_tick();                       \
+                                                                              \
+		comparison = mx_compare_clock_ticks( current_tick, end_tick );\
+                                                                              \
+		if ( comparison >= 0 ) {                                      \
+			return mx_error( (MXE_TIMED_OUT | MXE_QUIET), fname,  \
+				"Timed out after waiting %g seconds for "     \
+				"message ID %#lx from MX server '%s'.",       \
+					timeout_in_seconds,                   \
+					(unsigned long) message_id,           \
+					server_record->name );                \
+		}                                                             \
+	} while (0)
+
+/* ----- */
+
 #define MX_NETWORK_MAX_ID_MISMATCH    10
 
 MX_EXPORT mx_status_type
@@ -584,21 +602,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		if ( message_is_available == FALSE ) {
 			if ( timeout_enabled ) {
-				current_tick = mx_current_clock_tick();
-
-				comparison = mx_compare_clock_ticks( 
-					current_tick, end_tick );
-
-				if ( comparison >= 0 ) {
-				    return mx_error(
-					(MXE_TIMED_OUT | MXE_QUIET), fname,
-					"Timed out after waiting %g seconds "
-					"for message ID %#lx from "
-					"MX server '%s'.",
-					    	timeout_in_seconds,
-						(unsigned long) message_id,
-						server_record->name );
-				}
+				RETURN_IF_TIMED_OUT;
 			}
 
 			/* Go back to the top of the loop and try again. */
@@ -731,6 +735,14 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 			mx_status = mx_invoke_callback( callback, FALSE ); 
 
+			/* If the timeout time has arrived, then return
+			 * to our caller.
+			 */
+
+			if ( timeout_enabled ) {
+				RETURN_IF_TIMED_OUT;
+			}
+
 			/* Go back to the top of the loop and look again
 			 * for the message ID that we are waiting for.
 			 */
@@ -834,6 +846,15 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				(unsigned long) message_id,
 				server_record->name );
 		}
+
+		/* We have finished processing this message, so check
+		 * to see if we have timed out.
+		 */
+
+		if ( timeout_enabled ) {
+			RETURN_IF_TIMED_OUT;
+		}
+
 	} while (1);
 }
 

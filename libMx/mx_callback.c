@@ -1430,7 +1430,8 @@ mx_invoke_callback( MX_CALLBACK *callback,
 #if MX_CALLBACK_DEBUG
 	static const char fname[] = "mx_invoke_callback()";
 
-	MX_DEBUG(-2,("%s invoked for callback %p", fname, callback));
+	MX_DEBUG(-2,("%s invoked for callback %p, ID = %#lx",
+		fname, callback, (unsigned long) callback->callback_id));
 #endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
