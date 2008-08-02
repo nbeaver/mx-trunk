@@ -4068,6 +4068,12 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		"Field name = '%s'", record_field->name );
 	}
 
+#if NETWORK_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s: field = '%s.%s', callback->get_new_value = %d",
+		fname, record->name, record_field->name,
+		callback->get_new_value));
+#endif
+
 	/* Do we need to get a new field value? */
 
 	if ( callback->get_new_value ) {
@@ -4085,24 +4091,26 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-#if 0
-		/* Send the current value of the field. */
+		/* We do _not_ process the record field, but we _do_ check
+		 * to see if the contents of the field have been changed
+		 * since the last time that we looked.
+		 */
 
-		send_value_changed_callback = TRUE;
-#else
-		/* Do _not_ send the current value of the field. */
+		mx_status = mx_test_for_value_changed( record_field,
+						&send_value_changed_callback );
 
-		send_value_changed_callback = FALSE;
-#endif
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* If we get here, see if we should send value changed callbacks
 	 * to the clients.
 	 */
 
-#if NETWORK_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s: send_value_changed_callback = %d",
-		fname, send_value_changed_callback));
+#if 1 || NETWORK_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s: field '%s.%s', send_value_changed_callback = %d",
+		fname, record->name, record_field->name,
+		send_value_changed_callback));
 #endif
 
 	if ( send_value_changed_callback ) {

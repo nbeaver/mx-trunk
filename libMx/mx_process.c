@@ -250,7 +250,7 @@ mx_process_record_field( MX_RECORD *record,
 
 	process_fn = record_field->process_function;
 
-#if PROCESS_DEBUG
+#if 1 || PROCESS_DEBUG
 	if ( direction == MX_PROCESS_GET ) {
 		MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_GET (%ld)",
 			fname, record->name, record_field->name,
@@ -338,6 +338,12 @@ mx_process_record_field( MX_RECORD *record,
 	 * then invoke the value changed callback.
 	 */
 
+#if 1
+	MX_DEBUG(-2,("%s: mx_status.code = %ld, '%s.%s' callback_list = %p",
+		fname, mx_status.code, record->name, record_field->name,
+		record_field->callback_list));
+#endif
+
 	if ( ( mx_status.code == MXE_SUCCESS )
 	  && ( record_field->callback_list != NULL ) )
 	{
@@ -345,6 +351,10 @@ mx_process_record_field( MX_RECORD *record,
 							&value_changed);
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if 1
+		MX_DEBUG(-2,("%s: value_changed = %d", fname, value_changed));
+#endif
 
 		if ( value_changed ) {
 			mx_status = mx_local_field_invoke_callback_list(
