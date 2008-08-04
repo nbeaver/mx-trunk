@@ -4045,13 +4045,6 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 			callback->callback_class, MXCBC_FIELD );
 	}
 
-	if ( callback->callback_type != MXCBT_VALUE_CHANGED ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal callback type %lu used.  Currently, "
-		"MXCBT_VALUE_CHANGED (%d) callbacks are allowed here.",
-			callback->callback_type, MXCBT_VALUE_CHANGED );
-	}
-
 	record_field = callback->u.record_field;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
@@ -4073,34 +4066,60 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		fname, record->name, record_field->name,
 		callback->get_new_value));
 #endif
+	send_value_changed_callback = FALSE;
 
-	/* Do we need to get a new field value? */
-
-	if ( callback->get_new_value ) {
-		/* Process the record field to get the new value. */
+	switch( callback->callback_type ) {
+	case MXCBT_NONE:
 
 #if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,("%s: Processing '%s.%s'",
-			fname, record->name, record_field->name));
+		MX_DEBUG(-2,("%s: callback_type = MXCBT_NONE", fname));
+#endif
+		send_value_changed_callback = FALSE;
+		break;
+
+	case MXCBT_UPDATE_CLIENT:
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: callback_type = MXCBT_UPDATE_CLIENT", fname));
+#endif
+		send_value_changed_callback = TRUE;
+		break;
+
+	case MXCBT_VALUE_CHANGED:
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: callback_type = MXCBT_VALUE_CHANGED", fname));
+#endif
+		/* Do we need to get a new field value? */
+
+		if ( callback->get_new_value ) {
+			/* Process the record field to get the new value. */
+
+#if NETWORK_DEBUG_CALLBACKS
+			MX_DEBUG(-2,("%s: Processing '%s.%s'",
+				fname, record->name, record_field->name));
 #endif
 
-		mx_status = mx_process_record_field( record, record_field,
+			mx_status = mx_process_record_field(
+						record, record_field,
 						MX_PROCESS_GET,
 						&send_value_changed_callback );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	} else {
-		/* We do _not_ process the record field, but we _do_ check
-		 * to see if the contents of the field have been changed
-		 * since the last time that we looked.
-		 */
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else {
+			/* We do _not_ process the record field, but we _do_ check
+			 * to see if the contents of the field have been changed
+			 * since the last time that we looked.
+			 */
 
-		mx_status = mx_test_for_value_changed( record_field,
+			mx_status = mx_test_for_value_changed( record_field,
 						&send_value_changed_callback );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+		break;
 	}
 
 	/* If we get here, see if we should send value changed callbacks

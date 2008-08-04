@@ -14,13 +14,13 @@
  *
  */
 
-#define PROCESS_DEBUG		FALSE
+#define PROCESS_DEBUG		TRUE
 
-#define PROCESS_DEBUG_TIMING	TRUE
+#define PROCESS_DEBUG_TIMING	FALSE
 
 #define PROCESS_DEBUG_QUEUEING	FALSE
 
-#define PROCESS_DEBUG_CALLBACKS	FALSE
+#define PROCESS_DEBUG_CALLBACKS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -220,6 +220,7 @@ mx_process_record_field( MX_RECORD *record,
 	static const char fname[] = "mx_process_record_field()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
+	mx_status_type (*vc_test_fn) ( MX_RECORD_FIELD *, mx_bool_type * );
 	mx_bool_type value_changed;
 	mx_status_type mx_status;
 
@@ -250,7 +251,7 @@ mx_process_record_field( MX_RECORD *record,
 
 	process_fn = record_field->process_function;
 
-#if 1 || PROCESS_DEBUG
+#if PROCESS_DEBUG
 	if ( direction == MX_PROCESS_GET ) {
 		MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_GET (%ld)",
 			fname, record->name, record_field->name,
@@ -326,34 +327,57 @@ mx_process_record_field( MX_RECORD *record,
 #endif
 	}
 
-	/* If the process function succeeded and the new value
-	 * exceeds the value change threshold, then invoke the
-	 * value changed callback.
-	 */
-
-	/* If
-	 *    1.  The process function succeeded.
-	 *    2.  The field has a callback list.
-	 *    3.  The new value exceeds the value change threshold.
-	 * then invoke the value changed callback.
-	 */
-
-#if 1
-	MX_DEBUG(-2,("%s: mx_status.code = %ld, '%s.%s' callback_list = %p",
-		fname, mx_status.code, record->name, record_field->name,
-		record_field->callback_list));
+#if PROCESS_DEBUG
+	MX_DEBUG(-2,("%s: mx_status.code = %ld", fname, mx_status.code ));
 #endif
 
-	if ( ( mx_status.code == MXE_SUCCESS )
-	  && ( record_field->callback_list != NULL ) )
-	{
-		mx_status = mx_test_for_value_changed( record_field,
-							&value_changed);
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( mx_status.code == MXE_SUCCESS ) {
 
-#if 1
-		MX_DEBUG(-2,("%s: value_changed = %d", fname, value_changed));
+		/* If the process function succeeded, then we must check to
+		 * see whether or not we must send value changed callbacks.
+		 */
+
+#if PROCESS_DEBUG
+		MX_DEBUG(-2,
+	("%s: '%s.%s' value_changed_test_function = %p, callback_list = %p",
+			fname, record->name, record_field->name,
+			record_field->value_changed_test_function,
+			record_field->callback_list));
+#endif
+		vc_test_fn = record_field->value_changed_test_function;
+
+		if ( vc_test_fn != NULL ) {
+			/* If the record field has a special value changed
+			 * test function, then invoke it.
+			 */
+
+			mx_status = (*vc_test_fn)( record_field,
+							&value_changed );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else
+		if ( record_field->callback_list != NULL ) {
+
+			/* Otherwise, if the field has a callback list,
+			 * then we invoke the generic value changed
+			 * test function.
+			 */
+
+			mx_status = mx_test_for_value_changed( record_field,
+							&value_changed );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else {
+			/* If both tests above are FALSE, then we do not
+			 * perform any value changed tests.
+			 */
+		}
+
+#if PROCESS_DEBUG
+		MX_DEBUG(-2,("%s: --> value_changed = %d",
+			fname, value_changed));
 #endif
 
 		if ( value_changed ) {
@@ -365,10 +389,6 @@ mx_process_record_field( MX_RECORD *record,
 	if ( value_changed_ptr != NULL ) {
 		*value_changed_ptr = value_changed;
 	}
-
-#if PROCESS_DEBUG
-	MX_DEBUG(-2,("%s: value_changed = %d", fname, (int)value_changed));
-#endif
 
 #if PROCESS_DEBUG_TIMING
 	MX_HRT_END( measurement );

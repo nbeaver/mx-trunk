@@ -149,6 +149,12 @@ typedef struct mx_area_detector_type {
 	unsigned long status;
 	char extended_status[ MXU_AD_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
+	/* Saving the field number for 'extended_status' makes finding
+	 * the field quicker for mx_area_detector_vctest_extended_status.
+	 */
+
+	long extended_status_field_number;
+
 	long subframe_size;	/* Not all detectors support this. */
 
 	long maximum_num_rois;
@@ -1249,6 +1255,9 @@ MX_API mx_status_type mx_area_detector_default_datafile_management_handler(
 
 MX_API_PRIVATE mx_status_type mx_area_detector_vctest_extended_status(
 					MX_RECORD_FIELD *, mx_bool_type * );
+
+MX_API_PRIVATE void mx_area_detector_update_extended_status_string(
+					MX_AREA_DETECTOR *ad );
 
 /************************************************************************
  * The following functions are intended for use only in device drivers. *

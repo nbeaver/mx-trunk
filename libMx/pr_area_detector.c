@@ -1094,12 +1094,7 @@ mx_area_detector_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			snprintf(
-			    ad->extended_status, sizeof(ad->extended_status),
-			    "%ld %ld %#lx",
-					ad->last_frame_number,
-					ad->total_num_frames,
-					ad->status );
+			mx_area_detector_update_extended_status_string( ad );
 
 #if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s: extended_status = %s",

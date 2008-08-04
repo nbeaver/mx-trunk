@@ -36,7 +36,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
 
 /*---*/
 
@@ -217,6 +217,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		"mx_area_detector_finish_record_initialization()";
 
 	MX_AREA_DETECTOR *ad;
+	MX_RECORD_FIELD *extended_status_field;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
@@ -230,13 +231,22 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_frames_are_unbinned = FALSE;
 
+	ad->byte_order = mx_native_byteorder();
+
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
 	ad->total_num_frames = -1;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
 
-	ad->byte_order = mx_native_byteorder();
+	mx_status = mx_find_record_field( ad->record,
+					"extended_status",
+					&extended_status_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->extended_status_field_number = extended_status_field->field_number;
 
 	ad->arm     = FALSE;
 	ad->trigger = FALSE;
@@ -7267,6 +7277,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	static const char fname[] = "mx_area_detector_vctest_extended_status()";
 
 	MX_RECORD *record;
+	MX_AREA_DETECTOR *ad;
 	MX_RECORD_FIELD *extended_status_field;
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
@@ -7293,6 +7304,14 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			record_field );
 	}
 
+	ad = record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
 #if MX_AREA_DETECTOR_DEBUG_VCTEST
 	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
 			fname, record->name, record_field->name));
@@ -7305,42 +7324,38 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 		/* This is _not_ the 'extended_status' field. */
 
-		/* If the 'extended_status' field has a callback list,
-		 * then we skip this test, since the 'extended_status'
-		 * field callback will take care of sending callbacks
-		 * to the current field for us.
+		/* Invoke the value changed test for the 'extended_status'
+		 * field, since this will ensure that the tests have been
+		 * performed for both this field and the 'extended_status'
+		 * field.
 		 */
 
-		mx_status = mx_find_record_field( record, "extended_status",
-						&extended_status_field );
+		extended_status_field =
+	    &(record->record_field_array[ ad->extended_status_field_number ]);
 
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+		MX_DEBUG(-2,("%s: extended_status_field = '%s'",
+			fname, extended_status_field->name ));
+#endif
+		mx_status = mx_area_detector_vctest_extended_status(
+							extended_status_field,
+							value_changed_ptr );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( extended_status_field->callback_list != NULL ) {
-#if MX_AREA_DETECTOR_DEBUG_VCTEST
-			MX_DEBUG(-2,
-	("%s: Skipping test of '%s' due to existing test of 'extended_status'",
-				fname, record_field->name ));
-#endif
-			*value_changed_ptr = FALSE;
+		/* If there was a change in 'extended_status', then send
+		 * out value changed callbacks for it.
+		 */
 
-			return MX_SUCCESSFUL_RESULT;
+		if ( *value_changed_ptr ) {
+			mx_status = mx_local_field_invoke_callback_list(
+				extended_status_field, MXCBT_UPDATE_CLIENT );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
-		/* If we get here, then this is not the extended status
-		 * field and we only need to check the field supplied
-		 * by the caller.
-		 */
-
-		mx_status = mx_default_test_for_value_changed( record_field,
-							value_changed_ptr );
-
-		/* This is all we need to do for fields that are not
-		 * the 'extended_status' field, so we return now.
-		 */
-
-		return mx_status;
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* If we get here, then this _is_ the 'extended_status' field. */
@@ -7406,6 +7421,12 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* If the values that extended_status depend on changed, then we
+	 * must update the string version of extended_status.
+	 */
+
+	mx_area_detector_update_extended_status_string( ad );
+
 	/* If we get here, then one or more of the fields 'last_frame_number',
 	 * 'total_num_frames', or 'status' changed its value.  For each field,
 	 * see if its value changed.  If the value changed, then invoke the
@@ -7452,6 +7473,27 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_area_detector_update_extended_status_string( MX_AREA_DETECTOR *ad )
+{
+	if ( ad == (MX_AREA_DETECTOR *) NULL )
+		return;
+
+	snprintf( ad->extended_status, sizeof(ad->extended_status),
+		"%ld %ld %#lx",
+			ad->last_frame_number,
+			ad->total_num_frames,
+			ad->status );
+
+#if 1
+	MX_DEBUG(-2,("area detector '%s', extended_status = '%s'",
+		ad->record->name, ad->extended_status));
+#endif
+	return;
 }
 
 /*-----------------------------------------------------------------------*/

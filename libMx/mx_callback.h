@@ -39,6 +39,7 @@ extern "C" {
 #define MXCBT_POLL		2
 #define MXCBT_MOTOR_BACKLASH	3
 #define MXCBT_FUNCTION		4
+#define MXCBT_UPDATE_CLIENT	5
 
 /*---*/
 

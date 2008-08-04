@@ -1221,6 +1221,15 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 			if ( callback->callback_function != NULL ) {
 				/* Invoke the callback. */
 
+#if 1
+	/* FIXME: Is directly setting the callback type
+	 * really the right thing to do?  This assumes that
+	 * there is only one callback function, per field
+	 * and that you change the callback's type to match.
+	 */
+	
+				callback->callback_type = callback_type;
+#endif
 				mx_status = mx_invoke_callback( callback,
 								get_new_value );
 
@@ -1455,6 +1464,12 @@ mx_invoke_callback( MX_CALLBACK *callback,
 			if ( ( nf->local_field != (MX_RECORD_FIELD *) NULL )
 			  && ( nf->do_not_copy_buffer_on_callback == FALSE ) )
 			{
+#if MX_CALLBACK_DEBUG
+				MX_DEBUG(-2,
+			    ("%s: Copying message for network field '%s:%s'",
+			    		fname, nf->server_record->name,
+					nf->nfname));
+#endif
 				mx_status = mx_network_copy_message_to_field(
 					nf->server_record, nf->local_field );
 			}
