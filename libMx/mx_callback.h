@@ -161,6 +161,8 @@ MX_API mx_status_type mx_process_callbacks( MX_RECORD *record_list,
 MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,
 							void *args );
 
+MX_API mx_status_type mx_poll_callback_handler(MX_CALLBACK_MESSAGE *message);
+
 MX_API mx_status_type mx_motor_backlash_callback(MX_CALLBACK_MESSAGE *message);
 
 #ifdef __cplusplus

@@ -44,6 +44,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_pipe.h"
+#include "mx_process.h"
 #include "mx_callback.h"
 
 #if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
@@ -1580,20 +1581,9 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 	static const char fname[] = "mx_process_callbacks()";
 
 	MX_LIST_HEAD *list_head;
-	MX_HANDLE_TABLE *handle_table;
-	MX_HANDLE_STRUCT *handle_struct;
-	signed long handle;
-	MX_CALLBACK *callback;
 	MX_CALLBACK_MESSAGE *callback_message;
 	mx_status_type (*cb_function)( MX_CALLBACK_MESSAGE *);
-	MX_VIRTUAL_TIMER *callback_timer;
-	MX_RECORD_FIELD *rfield;
-	mx_bool_type get_new_value;
-	unsigned long i, array_size;
-	long interval;
 	size_t bytes_read;
-	struct timespec current_timespec, timespec_difference;
-	int time_comparison;
 	mx_status_type mx_status;
 
 #if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
@@ -1644,248 +1634,10 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 	case MXCBT_POLL:
 		/* Poll all value changed callback handlers. */
 
-#if MX_CALLBACK_DEBUG
-		MX_DEBUG(-2,
-		("%s: Poll all value changed callback handlers.", fname));
-#endif
-		if ( list_head != callback_message->list_head ) {
-			return mx_error( MXE_IPC_IO_ERROR, fname,
-			"The callback has a different address %p for the "
-			"list head than the server's list head address %p.",
-				callback_message->list_head,
-				list_head );
-		}
+		mx_status = mx_poll_callback_handler( callback_message );
 
-		/* Check to see if poll callbacks are being generated faster
-		 * than they can be handled.  If the poll callback processing
-		 * takes a "long" time, then poll callbacks will queue up in
-		 * the * callback pipe waiting to be processed.  If the
-		 * difference between the current time and the timestamp
-		 * at the end of the last poll processing loop is less than
-		 * the poll callback timer's time interval, then we assume
-		 * that the current poll callback is a queued up callback
-		 * that can be thrown away.
-		 */
-
-		current_timespec = mx_high_resolution_time();
-
-		timespec_difference = mx_subtract_high_resolution_times(
-			current_timespec, list_head->last_poll_callback_time );
-
-		callback_timer = list_head->callback_timer;
-
-		if ( callback_timer == (MX_VIRTUAL_TIMER *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The list head callback_timer pointer is NULL, "
-			"even though we are in a poll callback.  "
-			"This should not be able to happen." );
-		}
-
-		time_comparison = mx_compare_high_resolution_times(
-			timespec_difference, callback_timer->timer_period );
-
-#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
-		MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
-		MX_DEBUG(-2,("%s: last_poll_callback_time = (%lu,%lu), "
-		"current_timespec = (%lu,%lu)",
-    			fname, list_head->last_poll_callback_time.tv_sec,
-			list_head->last_poll_callback_time.tv_nsec,
-			current_timespec.tv_sec,
-			current_timespec.tv_nsec));
-
-		MX_DEBUG(-2,("%s: timespec_difference = (%lu,%lu), "
-		"timer_period = (%lu,%lu), time_comparison = %d",
-	    		fname, timespec_difference.tv_sec,
-			timespec_difference.tv_nsec,
-			callback_timer->timer_period.tv_sec,
-			callback_timer->timer_period.tv_nsec,
-			time_comparison));
-
-#endif
-		/* Increment the counter that records how many poll callbacks
-		 * have occurred.
-		 */
-
-		list_head->total_num_poll_callbacks++;
-
-		/* If the total amount of time since the last poll callback
-		 * is less than the timer period for the callback timer,
-		 * then we will skip this poll callback.
-		 */
-
-		if ( time_comparison < 0 ) {
-			list_head->num_poll_callbacks_skipped++;
-		} else {
-			list_head->num_poll_callbacks_taken++;
-		}
-
-#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
-		MX_DEBUG(-2,("%s: total_num_poll_callbacks = %lu, "
-	    "num_poll_callbacks_taken = %lu, num_poll_callbacks_skipped = %lu",
-	    		fname, list_head->total_num_poll_callbacks,
-			list_head->num_poll_callbacks_taken,
-			list_head->num_poll_callbacks_skipped));
-		MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
-#endif
-
-		/* If we are skipping this poll callback, then we are done
-		 * and can return now.
-		 */
-
-		if ( time_comparison < 0 ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		/*---*/
-
-		/* If we get here, then we are _not_ skipping this callback. */
-
-		handle_table = list_head->server_callback_handle_table;
-
-		if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
-#if MX_CALLBACK_DEBUG
-			MX_DEBUG(-2,
-			("%s: No callback handle table installed.", fname));
-#endif
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		if ( handle_table->handle_struct_array
-				== (MX_HANDLE_STRUCT *) NULL )
-		{
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"handle_struct_array pointer for callback handle "
-			"table is NULL." );
-		}
-
-		array_size = handle_table->block_size
-				* handle_table->num_blocks;
-
-		for ( i = 0; i < array_size; i++ ) {
-		    handle_struct = &(handle_table->handle_struct_array[i]);
-
-		    handle   = handle_struct->handle;
-		    callback = handle_struct->pointer;
-
-#if 0
-		    MX_DEBUG(-2,
-	    ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
-				fname, i, handle_struct, handle, callback));
-#endif
-
-		    if ( ( handle == MX_ILLEGAL_HANDLE )
-		      || ( callback == NULL ) )
-		    {
-			/* Skip unused handles. */
-
-			continue;
-		    }
-
-		    /* If this callback has a timer interval,
-		     * check to see if this is the right time
-		     * to invoke the callback.
-		     */
-
-		    interval = callback->timer_interval;
-
-		    if ( interval > 0 ) {
-			unsigned long num_polls;
-
-			num_polls = list_head->num_poll_callbacks_taken;
-#if 1
-			MX_DEBUG(-2,
-			("%s: callback = %p, interval = %ld, num_polls = %lu",
-					fname, callback, interval, num_polls));
-#endif
-			if ( (num_polls % interval) != 0 ) {
-			    /* This is the wrong time,
-			     * so skip this callback.
-			     */
-
-			    continue;
-			}
-#if 1
-			MX_DEBUG(-2,("%s: will perform callback %p",
-					fname, callback));
-#endif
-		    }
-#if 0
-		    MX_DEBUG(-2,("%s: callback->callback_function = %p",
-				fname, callback->callback_function));
-#endif
-		    /* If a callback function is defined, then we invoke it
-		     * via mx_invoke_callback().
-		     *
-		     * We must decide whether or not a new value will be
-		     * fetched from the hardware and store that decision
-		     * in the variable get_new_value.
-		     */
-
-		    if ( callback->callback_function != NULL ) {
-
-			/* If this is the first time that this callback
-			 * has been invoked, then we unconditionally 
-			 * get a new value from the hardware.
-			 */
-
-			if ( callback->first_callback ) {
-			    callback->first_callback = FALSE;
-
-			    get_new_value = TRUE;
-
-			/* Else, if this is a local field callback, we
-			 * check to see if the MXFF_POLL flag is set.
-			 * If MXFF_POLL is set, then we fetch a new
-			 * value from the hardware.  Otherwise, we
-			 * do not.
-			 *
-			 * MX client programs can modify the state
-			 * of the MXFF_POLL flag by setting the
-			 * MX_NETWORK_ATTRIBUTE_POLL (2) attribute
-			 * via the mx_network_field_set_attribute()
-			 * function.
-			 */
-			 
-			} else
-			if ( callback->callback_class == MXCBC_FIELD ) {
-			    rfield = callback->u.record_field;
-
-			    if ( rfield->flags & MXFF_POLL ) {
-			    	get_new_value = TRUE;
-			    } else {
-			    	get_new_value = FALSE;
-			    }
-
-			/* If none of the above conditions apply, then
-			 * we will get a new value from the hardware.
-			 */
-
-			} else {
-			    get_new_value = TRUE;
-			}
-
-#if MX_CALLBACK_DEBUG
-			MX_DEBUG(-2,
-	("%s: calling mx_invoke_callback(): i = %lu, handle = %ld, callback = %p, callback->callback_function = %p, get_new_value = %d",
-					fname, i, handle, callback,
-					callback->callback_function,
-					(int) get_new_value ));
-#endif
-			/* We are now ready to invoke the callback function. */
-
-			mx_status = mx_invoke_callback( callback,
-							MXCBT_POLL,
-							get_new_value );
-		    }
-		}
-
-		/* Record a timestamp at the end of the poll callback
-		 * processing loop.
-		 */
-
-		list_head->last_poll_callback_time = mx_high_resolution_time();
-
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		break;
 	case MXCBT_MOTOR_BACKLASH:
 		mx_status = mx_motor_backlash_callback( callback_message );
@@ -1956,5 +1708,310 @@ mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 				sizeof(MX_CALLBACK_MESSAGE *) );
 
 	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
+{
+	static const char fname[] = "mx_poll_callback_handler()";
+
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *handle_table;
+	MX_HANDLE_STRUCT *handle_struct;
+	signed long handle;
+	MX_CALLBACK *callback;
+	MX_VIRTUAL_TIMER *callback_timer;
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD *record;
+	mx_bool_type get_new_value, send_value_changed_callback;
+	unsigned long i, array_size;
+	long interval;
+	struct timespec current_timespec, timespec_difference;
+	int time_comparison;
+	mx_status_type mx_status;
+
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
+	}
+
+	/* Poll all record fields that have value changed callback handlers. */
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s invoked for callback message %p.",
+		fname, callback_message));
+#endif
+	list_head = callback_message->list_head;
+
+	/* Check to see if poll callbacks are being generated faster
+	 * than they can be handled.  If the poll callback processing
+	 * takes a "long" time, then poll callbacks will queue up in
+	 * the * callback pipe waiting to be processed.  If the
+	 * difference between the current time and the timestamp
+	 * at the end of the last poll processing loop is less than
+	 * the poll callback timer's time interval, then we assume
+	 * that the current poll callback is a queued up callback
+	 * that can be thrown away.
+	 */
+
+	current_timespec = mx_high_resolution_time();
+
+	timespec_difference = mx_subtract_high_resolution_times(
+		current_timespec, list_head->last_poll_callback_time );
+
+	callback_timer = list_head->callback_timer;
+
+	if ( callback_timer == (MX_VIRTUAL_TIMER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list head callback_timer pointer is NULL, "
+		"even though we are in a poll callback.  "
+		"This should not be able to happen." );
+	}
+
+	time_comparison = mx_compare_high_resolution_times(
+		timespec_difference, callback_timer->timer_period );
+
+#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
+	MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
+	MX_DEBUG(-2,("%s: last_poll_callback_time = (%lu,%lu), "
+	"current_timespec = (%lu,%lu)",
+    			fname, list_head->last_poll_callback_time.tv_sec,
+		list_head->last_poll_callback_time.tv_nsec,
+		current_timespec.tv_sec,
+		current_timespec.tv_nsec));
+
+	MX_DEBUG(-2,("%s: timespec_difference = (%lu,%lu), "
+	"timer_period = (%lu,%lu), time_comparison = %d",
+    		fname, timespec_difference.tv_sec,
+		timespec_difference.tv_nsec,
+		callback_timer->timer_period.tv_sec,
+		callback_timer->timer_period.tv_nsec,
+		time_comparison));
+
+#endif
+	/* Increment the counter that records how many poll callbacks
+	 * have occurred.
+	 */
+
+	list_head->total_num_poll_callbacks++;
+
+	/* If the total amount of time since the last poll callback
+	 * is less than the timer period for the callback timer,
+	 * then we will skip this poll callback.
+	 */
+
+	if ( time_comparison < 0 ) {
+		list_head->num_poll_callbacks_skipped++;
+	} else {
+		list_head->num_poll_callbacks_taken++;
+	}
+
+#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
+	MX_DEBUG(-2,("%s: total_num_poll_callbacks = %lu, "
+    "num_poll_callbacks_taken = %lu, num_poll_callbacks_skipped = %lu",
+    		fname, list_head->total_num_poll_callbacks,
+		list_head->num_poll_callbacks_taken,
+		list_head->num_poll_callbacks_skipped));
+	MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
+#endif
+
+	/* If we are skipping this poll callback, then we are done
+	 * and can return now.
+	 */
+
+	if ( time_comparison < 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---*/
+
+	/* If we get here, then we are _not_ skipping this callback. */
+
+	handle_table = list_head->server_callback_handle_table;
+
+	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,
+		("%s: No callback handle table installed.", fname));
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( handle_table->handle_struct_array
+			== (MX_HANDLE_STRUCT *) NULL )
+	{
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"handle_struct_array pointer for callback handle "
+		"table is NULL." );
+	}
+
+	array_size = handle_table->block_size
+			* handle_table->num_blocks;
+
+	for ( i = 0; i < array_size; i++ ) {
+	    handle_struct = &(handle_table->handle_struct_array[i]);
+
+	    handle   = handle_struct->handle;
+	    callback = handle_struct->pointer;
+
+#if 0
+	    MX_DEBUG(-2,
+    ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
+			fname, i, handle_struct, handle, callback));
+#endif
+
+	    if ( ( handle == MX_ILLEGAL_HANDLE )
+	      || ( callback == NULL ) )
+	    {
+		/* Skip unused handles. */
+
+		continue;
+	    }
+
+	    /* If this callback has a timer interval,
+	     * check to see if this is the right time
+	     * to invoke the callback.
+	     */
+
+	    interval = callback->timer_interval;
+
+	    if ( interval > 0 ) {
+		unsigned long num_polls;
+
+		num_polls = list_head->num_poll_callbacks_taken;
+#if 1
+		MX_DEBUG(-2,
+		("%s: callback = %p, interval = %ld, num_polls = %lu",
+				fname, callback, interval, num_polls));
+#endif
+		if ( (num_polls % interval) != 0 ) {
+		    /* This is the wrong time,
+		     * so skip this callback.
+		     */
+
+		    continue;
+		}
+#if 1
+		MX_DEBUG(-2,("%s: will perform callback %p",
+				fname, callback));
+#endif
+	    }
+#if 0
+	    MX_DEBUG(-2,("%s: callback->callback_function = %p",
+			fname, callback->callback_function));
+#endif
+	    /* If a callback function is defined, then we invoke it
+	     * via mx_invoke_callback().
+	     *
+	     * We must decide whether or not a new value will be
+	     * fetched from the hardware and store that decision
+	     * in the variable get_new_value.
+	     */
+
+	    if ( callback->callback_function != NULL ) {
+
+		/* If this is the first time that this callback
+		 * has been invoked, then we unconditionally 
+		 * get a new value from the hardware.
+		 */
+
+		if ( callback->first_callback ) {
+		    callback->first_callback = FALSE;
+
+		    get_new_value = TRUE;
+
+		/* Else, if this is a local field callback, we
+		 * check to see if the MXFF_POLL flag is set.
+		 * If MXFF_POLL is set, then we fetch a new
+		 * value from the hardware.  Otherwise, we
+		 * do not.
+		 *
+		 * MX client programs can modify the state
+		 * of the MXFF_POLL flag by setting the
+		 * MX_NETWORK_ATTRIBUTE_POLL (2) attribute
+		 * via the mx_network_field_set_attribute()
+		 * function.
+		 */
+		 
+		} else
+		if ( callback->callback_class == MXCBC_FIELD ) {
+		    record_field = callback->u.record_field;
+
+		    if ( record_field->flags & MXFF_POLL ) {
+		    	get_new_value = TRUE;
+		    } else {
+		    	get_new_value = FALSE;
+		    }
+
+		/* If none of the above conditions apply, then
+		 * we will not get a new value from the hardware.
+		 */
+
+		} else {
+		    get_new_value = FALSE;
+		}
+
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,("%s: calling mx_invoke_callback(): i = %lu, "
+			"handle = %ld, callback = %p, "
+			"callback->callback_function = %p, get_new_value = %d",
+				fname, i, handle, callback,
+				callback->callback_function,
+				(int) get_new_value ));
+#endif
+		
+		/* Do we need to get a new field value? */
+
+		if ( get_new_value ) {
+			/* Process the record field to get the new value. */
+
+			record = record_field->record;
+
+#if MX_CALLBACK_DEBUG
+			MX_DEBUG(-2,("%s: Processing '%s.%s'",
+			fname, record->name, record_field->name));
+#endif
+			mx_status = mx_process_record_field(
+						record, record_field,
+						MX_PROCESS_GET,
+						&send_value_changed_callback );
+		} else {
+			/* We do _not_ process the record field, but we _do_ 
+			 * check to see if the contents of the field have 
+			 * changed since the last time that we looked.
+			 */
+					
+			mx_status = mx_test_for_value_changed( record_field,
+						&send_value_changed_callback );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( send_value_changed_callback ) {
+
+			/* We are now ready to invoke the value changed
+			 * callback function.
+			 */
+
+			mx_status = mx_invoke_callback( callback,
+						MXCBT_VALUE_CHANGED, FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	    }
+	}
+
+	/* Record a timestamp at the end of the poll callback
+	 * processing loop.
+	 */
+
+	list_head->last_poll_callback_time = mx_high_resolution_time();
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
