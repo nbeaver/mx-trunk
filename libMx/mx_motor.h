@@ -199,6 +199,14 @@ typedef struct {
 	unsigned long status;
 	char extended_status[ MXU_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
+	/* The following saved field numbers are used by the function
+	 * mx_motor_vctest_extended_status().
+	 */
+
+	long extended_status_field_number;
+	long position_field_number;
+	long status_field_number;
+
 	MX_RECORD *real_motor_record;
 
 	double compute_extended_scan_range[ MX_MOTOR_NUM_SCAN_RANGE_PARAMS ];

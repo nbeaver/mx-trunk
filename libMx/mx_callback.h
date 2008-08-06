@@ -35,16 +35,16 @@ extern "C" {
 /*--- Callback types ---*/
 
 #define MXCBT_NONE		0
-#define MXCBT_VALUE_CHANGED	1
-#define MXCBT_POLL		2
-#define MXCBT_MOTOR_BACKLASH	3
-#define MXCBT_FUNCTION		4
-#define MXCBT_UPDATE_CLIENT	5
+#define MXCBT_VALUE_CHANGED	0x1
+#define MXCBT_POLL		0x2
+#define MXCBT_MOTOR_BACKLASH	0x4
+#define MXCBT_FUNCTION		0x8
 
 /*---*/
 
 typedef struct mx_callback_type {
 	unsigned long callback_class;
+	unsigned long supported_callback_types;
 	unsigned long callback_type;
 	uint32_t callback_id;
 	mx_bool_type active;
@@ -107,7 +107,7 @@ MX_API mx_status_type mx_setup_callback_pipe( MX_RECORD *record_list,
 						MX_PIPE **callback_pipe );
 
 MX_API mx_status_type mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
-					unsigned long callback_type,
+					unsigned long supported_callback_types,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
@@ -116,7 +116,7 @@ MX_API mx_status_type mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK *cb );
 
 MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
-					unsigned long callback_type,
+					unsigned long supported_callback_types,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
@@ -125,7 +125,7 @@ MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
 MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK *cb );
 
 MX_API mx_status_type mx_local_field_find_callback( MX_RECORD_FIELD *rf,
-					unsigned long *callback_type,
+					unsigned long *supported_callback_types,
 					uint32_t      *callback_id,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
@@ -148,6 +148,7 @@ MX_API mx_status_type mx_function_add_callback( MX_RECORD *record_list,
 MX_API mx_status_type mx_function_delete_callback( MX_CALLBACK_MESSAGE *cbm );
 
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
+					unsigned long callback_type,
 					mx_bool_type get_new_field_value );
 
 MX_API mx_status_type mx_delete_callback( MX_CALLBACK *cb );

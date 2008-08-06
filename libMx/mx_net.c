@@ -733,7 +733,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * invoke the callback.
 			 */
 
-			mx_status = mx_invoke_callback( callback, FALSE ); 
+			mx_status = mx_invoke_callback( callback,
+						MXCBT_VALUE_CHANGED, FALSE ); 
 
 			/* If the timeout time has arrived, then return
 			 * to our caller.
@@ -1279,7 +1280,7 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 
 	uint32_message[0] = mx_htonl( nf->record_handle );
 	uint32_message[1] = mx_htonl( nf->field_handle );
-	uint32_message[2] = mx_htonl( callback->callback_type );
+	uint32_message[2] = mx_htonl( callback->supported_callback_types );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 3 * sizeof(uint32_t) );
 

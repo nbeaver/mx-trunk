@@ -218,6 +218,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_RECORD_FIELD *extended_status_field;
+	MX_RECORD_FIELD *last_frame_number_field;
+	MX_RECORD_FIELD *total_num_frames_field;
+	MX_RECORD_FIELD *status_field;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
@@ -238,15 +241,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->total_num_frames = -1;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
-
-	mx_status = mx_find_record_field( ad->record,
-					"extended_status",
-					&extended_status_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	ad->extended_status_field_number = extended_status_field->field_number;
 
 	ad->arm     = FALSE;
 	ad->trigger = FALSE;
@@ -311,6 +305,49 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->dark_current_offset_array = NULL;
 	ad->flood_field_scale_array = NULL;
 	ad->old_exposure_time = -1.0;
+
+	/*-------*/
+
+	mx_status = mx_find_record_field( record, "extended_status",
+						&extended_status_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->extended_status_field_number = extended_status_field->field_number;
+
+	/*---*/
+
+	mx_status = mx_find_record_field( record, "last_frame_number",
+						&last_frame_number_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->last_frame_number_field_number =
+			last_frame_number_field->field_number;
+
+	/*---*/
+
+	mx_status = mx_find_record_field( record, "total_num_frames",
+						&total_num_frames_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->total_num_frames_field_number =
+			total_num_frames_field->field_number;
+
+	/*---*/
+
+	mx_status = mx_find_record_field( record, "status", &status_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->status_field_number = status_field->field_number;
+
+	/*-------*/
 
 	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
 
@@ -7343,13 +7380,13 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* If there was a change in 'extended_status', then send
-		 * out value changed callbacks for it.
+		/* If there was a change in 'extended_status', then call
+		 * the value changed callback functions for it.
 		 */
 
 		if ( *value_changed_ptr ) {
 			mx_status = mx_local_field_invoke_callback_list(
-				extended_status_field, MXCBT_UPDATE_CLIENT );
+				extended_status_field, MXCBT_VALUE_CHANGED );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -7364,10 +7401,8 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 	/* Test the 'last_frame_number' field. */
 
-	mx_status = mx_find_record_field( record, "last_frame_number",
-						&last_frame_number_field );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	last_frame_number_field = 
+	    &(record->record_field_array[ ad->last_frame_number_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( last_frame_number_field,
 						&last_frame_number_changed );
@@ -7376,10 +7411,8 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 	/* Test the 'total_num_frames' field. */
 
-	mx_status = mx_find_record_field( record, "total_num_frames",
-						&total_num_frames_field );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	total_num_frames_field = 
+	    &(record->record_field_array[ ad->total_num_frames_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( total_num_frames_field,
 						&total_num_frames_changed );
@@ -7388,10 +7421,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 
 	/* Test the 'status' field. */
 
-	mx_status = mx_find_record_field( record, "status",
-						&status_field );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	status_field = &(record->record_field_array[ ad->status_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( status_field,
 						&status_changed );
@@ -7439,7 +7469,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		if ( last_frame_number_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
-				last_frame_number_field, MXCBT_NONE );
+				last_frame_number_field, MXCBT_VALUE_CHANGED );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -7452,7 +7482,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		if ( total_num_frames_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
-				total_num_frames_field, MXCBT_NONE );
+				total_num_frames_field, MXCBT_VALUE_CHANGED );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -7465,7 +7495,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		if ( status_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
-				status_field, MXCBT_NONE );
+				status_field, MXCBT_VALUE_CHANGED );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

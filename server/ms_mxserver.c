@@ -4077,15 +4077,15 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		send_value_changed_callback = FALSE;
 		break;
 
-	case MXCBT_UPDATE_CLIENT:
+	case MXCBT_VALUE_CHANGED:
 
 #if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,("%s: callback_type = MXCBT_UPDATE_CLIENT", fname));
+		MX_DEBUG(-2,("%s: callback_type = MXCBT_VALUE_CHANGED", fname));
 #endif
 		send_value_changed_callback = TRUE;
 		break;
 
-	case MXCBT_VALUE_CHANGED:
+	case MXCBT_POLL:
 
 #if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,("%s: callback_type = MXCBT_VALUE_CHANGED", fname));
@@ -4126,7 +4126,7 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 	 * to the clients.
 	 */
 
-#if 1 || NETWORK_DEBUG_CALLBACKS
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: field '%s.%s', send_value_changed_callback = %d",
 		fname, record->name, record_field->name,
 		send_value_changed_callback));

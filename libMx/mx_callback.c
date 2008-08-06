@@ -436,7 +436,7 @@ mx_setup_callback_pipe( MX_RECORD *record_list, MX_PIPE **callback_pipe )
 
 MX_EXPORT mx_status_type
 mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
-			unsigned long callback_type,
+			unsigned long supported_callback_types,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
@@ -554,7 +554,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 	uint32_message[0] = mx_htonl( nf->record_handle );
 	uint32_message[1] = mx_htonl( nf->field_handle );
-	uint32_message[2] = mx_htonl( callback_type );
+	uint32_message[2] = mx_htonl( supported_callback_types );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 3 * sizeof(uint32_t) );
 
@@ -630,7 +630,8 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,
 	("%s: The callback ID of type %lu for handle (%lu,%lu) is %#lx",
-		fname, callback_type, nf->record_handle, nf->field_handle,
+		fname, supported_callback_types,
+		nf->record_handle, nf->field_handle,
 		callback_id ));
 #endif
 
@@ -644,7 +645,8 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	}
 
 	callback_ptr->callback_class    = MXCBC_NETWORK;
-	callback_ptr->callback_type     = callback_type;
+	callback_ptr->supported_callback_types
+					= supported_callback_types;
 	callback_ptr->callback_id       = callback_id;
 	callback_ptr->active            = FALSE;
 	callback_ptr->callback_function = callback_function;
@@ -872,7 +874,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 
 MX_EXPORT mx_status_type
 mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
-			unsigned long callback_type,
+			unsigned long supported_callback_types,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
@@ -961,7 +963,8 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 	}
 
 	callback_ptr->callback_class    = MXCBC_FIELD;
-	callback_ptr->callback_type     = callback_type;
+	callback_ptr->supported_callback_types
+					= supported_callback_types;
 	callback_ptr->active            = FALSE;
 	callback_ptr->get_new_value	= FALSE;
 	callback_ptr->first_callback    = TRUE;
@@ -1024,7 +1027,7 @@ mx_local_field_delete_callback( MX_CALLBACK *callback )
 
 MX_EXPORT mx_status_type
 mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
-			unsigned long *callback_type,
+			unsigned long *supported_callback_types,
 			uint32_t      *callback_id,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
@@ -1099,9 +1102,12 @@ mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
 		if ( callback_ptr == NULL )
 			continue;
 
-		if ( callback_type != NULL ) {
-		    if ( (*callback_type) != callback_ptr->callback_type )
+		if ( supported_callback_types != NULL ) {
+		    if ( (*supported_callback_types)
+		    		!= callback_ptr->supported_callback_types )
+		    {
 		    	continue;
+		    }
 		}
 
 		if ( callback_id != NULL ) {
@@ -1154,18 +1160,10 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
 		fname, field->name, callback_type));
 #endif
-	switch( callback_type ) {
-	case MXCBT_POLL:
+	if ( callback_type == MXCBT_POLL ) {
 		get_new_value = TRUE;
-		break;
-
-	case MXCBT_NONE:
+	} else {
 		get_new_value = FALSE;
-		break;
-
-	default:
-		get_new_value = FALSE;
-		break;
 	}
 
 	callback_list = field->callback_list;
@@ -1221,16 +1219,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 			if ( callback->callback_function != NULL ) {
 				/* Invoke the callback. */
 
-#if 1
-	/* FIXME: Is directly setting the callback type
-	 * really the right thing to do?  This assumes that
-	 * there is only one callback function, per field
-	 * and that you change the callback's type to match.
-	 */
-	
-				callback->callback_type = callback_type;
-#endif
 				mx_status = mx_invoke_callback( callback,
+								callback_type,
 								get_new_value );
 
 				/* If the callback is invalid, remove the
@@ -1430,6 +1420,7 @@ mx_function_delete_callback( MX_CALLBACK_MESSAGE *callback_message )
 
 MX_EXPORT mx_status_type
 mx_invoke_callback( MX_CALLBACK *callback,
+		unsigned long callback_type,
 		mx_bool_type get_new_value )
 {
 	mx_status_type (*function)( MX_CALLBACK *, void * );
@@ -1439,21 +1430,24 @@ mx_invoke_callback( MX_CALLBACK *callback,
 #if MX_CALLBACK_DEBUG
 	static const char fname[] = "mx_invoke_callback()";
 
-	MX_DEBUG(-2,("%s invoked for callback %p, ID = %#lx",
-		fname, callback, (unsigned long) callback->callback_id));
+	MX_DEBUG(-2,("%s invoked for callback %p, ID = %#lx, "
+		"callback_type = %lu, get_new_value = %d",
+		fname, callback, (unsigned long) callback->callback_id,
+		callback_type, get_new_value));
 #endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
-	
+
 	/* If this is a network value changed callback, then copy the values
 	 * from the callback's network message to the local record field
 	 * (if any).
 	 */
 
 	if ( (callback->callback_class == MXCBC_NETWORK)
-	  && (callback->callback_type == MXCBT_VALUE_CHANGED) )
+	  && (callback->supported_callback_types & MXCBT_VALUE_CHANGED)
+	  && (callback_type == MXCBT_VALUE_CHANGED) )
 	{
 		MX_NETWORK_FIELD *nf;
 
@@ -1476,6 +1470,7 @@ mx_invoke_callback( MX_CALLBACK *callback,
 		}
 	}
 
+	callback->callback_type = callback_type;
 	callback->get_new_value = get_new_value;
 
 	function = callback->callback_function;
@@ -1879,7 +1874,9 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 #endif
 			/* We are now ready to invoke the callback function. */
 
-			mx_status = mx_invoke_callback(callback, get_new_value);
+			mx_status = mx_invoke_callback( callback,
+							MXCBT_POLL,
+							get_new_value );
 		    }
 		}
 
