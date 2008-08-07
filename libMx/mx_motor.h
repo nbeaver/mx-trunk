@@ -284,7 +284,7 @@ typedef struct {
   \
   {-1, -1, "raw_position", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_position.stepper), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}, \
   \
   {-1, -1, "raw_backlash_correction", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, \
@@ -314,7 +314,7 @@ typedef struct {
   \
   {-1, -1, "raw_position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_position.analog), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}, \
   \
   {-1, -1, "raw_backlash_correction", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, \
@@ -389,7 +389,7 @@ typedef struct {
   \
   {MXLV_MTR_POSITION, -1, "position", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, position), \
-	{0}, NULL, 0, \
+	{0}, NULL, MXFF_POLL, \
 	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_SET_POSITION, -1, "set_position", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -494,7 +494,7 @@ typedef struct {
   \
   {MXLV_MTR_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, busy), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MTR_SOFT_ABORT, -1, "soft_abort", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, soft_abort), \
@@ -507,12 +507,12 @@ typedef struct {
   {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_BOOL, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, negative_limit_hit), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MTR_POSITIVE_LIMIT_HIT, -1, "positive_limit_hit", MXFT_BOOL, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, positive_limit_hit), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MTR_HOME_SEARCH, -1, "home_search", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, home_search), \
@@ -525,13 +525,13 @@ typedef struct {
   \
   {MXLV_MTR_GET_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, status), \
-	{0}, NULL, 0, \
+	{0}, NULL, MXFF_POLL, \
 	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_GET_EXTENDED_STATUS, -1, "extended_status", \
 		MXFT_STRING, NULL, 1, {MXU_EXTENDED_STATUS_STRING_LENGTH+1}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, extended_status), \
-	{sizeof(char)}, NULL, 0, \
+	{sizeof(char)}, NULL, MXFF_POLL, \
 	0, 0, mx_motor_vctest_extended_status}, \
   \
   {MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE, -1, "compute_extended_scan_range", \

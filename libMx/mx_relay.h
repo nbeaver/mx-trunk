@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ typedef struct {
   \
   {MXLV_RLY_RELAY_STATUS, -1, "relay_status", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RELAY, relay_status), \
-	{0}, NULL, MXFF_IN_SUMMARY}
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_POLL)}
 
 typedef struct {
 	mx_status_type ( *relay_command ) ( MX_RELAY *relay );

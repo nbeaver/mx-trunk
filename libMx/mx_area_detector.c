@@ -36,7 +36,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
 
 /*---*/
 
@@ -7519,7 +7519,7 @@ mx_area_detector_update_extended_status_string( MX_AREA_DETECTOR *ad )
 			ad->total_num_frames,
 			ad->status );
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("area detector '%s', extended_status = '%s'",
 		ad->record->name, ad->extended_status));
 #endif

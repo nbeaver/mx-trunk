@@ -150,7 +150,7 @@ typedef struct {
   \
   {MXLV_MCS_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MCS_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, mode), \

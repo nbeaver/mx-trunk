@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,11 +66,11 @@ typedef struct {
 #define MX_SCALER_STANDARD_FIELDS \
   {MXLV_SCL_VALUE, -1, "value", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, value), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_POLL)}, \
   \
   {MXLV_SCL_RAW_VALUE, -1, "raw_value", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, raw_value), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_POLL }, \
   \
   {MXLV_SCL_DARK_CURRENT, -1, "dark_current", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, dark_current), \
@@ -94,7 +94,7 @@ typedef struct {
   \
   {MXLV_SCL_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, busy), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_POLL }, \
   \
   {MXLV_SCL_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, stop), \

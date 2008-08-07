@@ -440,6 +440,7 @@ typedef struct {
 	unsigned long num_poll_callbacks_skipped;
 
 	struct timespec last_poll_callback_time;
+	struct timespec minimum_poll_callback_time_interval;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,7 +169,7 @@ typedef struct {
   \
   {MXLV_MCA_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, busy), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MCA_NEW_DATA_AVAILABLE, -1, "new_data_available", \
 						MXFT_BOOL, NULL, 0, {0}, \

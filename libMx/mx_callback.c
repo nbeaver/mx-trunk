@@ -14,11 +14,11 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG				TRUE
+#define MX_CALLBACK_DEBUG				FALSE
 
-#define MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING	TRUE
+#define MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING	FALSE
 
-#define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	TRUE
+#define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
 
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
@@ -65,9 +65,10 @@
  * If MX_CALLBACK_DEBUG_WITHOUT_TIMER is defined, then we assume that we
  * are trying to debug the operation of value changed poll messages.
  * In that case, we do not actually start a poll callback timer.  Instead,
- * we provide a function that can be called from the debugger to trigger
- * a manual poll callback.
- *
+ * we provide a function called mxp_poll_callback() that can be called from
+ * the debugger to trigger a manual poll callback.  In addition, you can
+ * also invoke mxp_poll_callback() by sending a SIGUSR2 signal to the
+ * server process.
  */
 
 void mxp_poll_callback( int );
@@ -85,6 +86,11 @@ mx_initialize_callback_support( MX_RECORD *record )
 	MX_LIST_HEAD *list_head;
 	MX_HANDLE_TABLE *callback_handle_table;
 	mx_status_type mx_status;
+
+	mx_warning("The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER has been "
+	"set to TRUE for this process!  This means that poll callbacks "
+	"will _not_ automatically take place.  Instead, you must send "
+	"SIGUSR2 signals to the process for a poll callback to take place.");
 
 	/* Return if callback support is already initialized. */
 
@@ -276,6 +282,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 	MX_HANDLE_TABLE *callback_handle_table;
 	MX_INTERVAL_TIMER *master_timer;
 	MX_VIRTUAL_TIMER *callback_timer;
+	double callback_timer_interval;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -349,7 +356,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 		poll_callback_message->callback_type = MXCBT_POLL;
 		poll_callback_message->list_head = list_head;
 
-		/* Now create the virtual timer. */
+		/* Now create the callback virtual timer. */
 
 		mx_status = mx_virtual_timer_create( &callback_timer,
 						list_head->master_timer,
@@ -362,8 +369,16 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		list_head->callback_timer = callback_timer;
 
+		callback_timer_interval = 0.1;	/* in seconds */
+
+		list_head->minimum_poll_callback_time_interval =
+			mx_convert_seconds_to_high_resolution_time(
+				0.8 * callback_timer_interval );
+
+		/* Start the callback virtual timer. */
+
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
-							0.1 );
+						callback_timer_interval );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1763,6 +1778,20 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 	callback_timer = list_head->callback_timer;
 
+	/*-----------------------------------*/
+
+#if MX_CALLBACK_DEBUG_WITHOUT_TIMER
+
+	/* In debug mode, we do not have a callback timer, so we always
+	 * assert that the time has arrived for the poll callback.
+	 */
+
+	time_comparison = 1;
+
+#else /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
+
+	/* In normal mode, the absence of the callback timer is a fatal error.*/
+
 	if ( callback_timer == (MX_VIRTUAL_TIMER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The list head callback_timer pointer is NULL, "
@@ -1770,26 +1799,30 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		"This should not be able to happen." );
 	}
 
-	time_comparison = mx_compare_high_resolution_times(
-		timespec_difference, callback_timer->timer_period );
+	time_comparison =
+		mx_compare_high_resolution_times( timespec_difference,
+			list_head->minimum_poll_callback_time_interval );
+
+#endif /* MX_CALLBACK_DEBUG_WITHOUT_TIMER */
+
+	/*-----------------------------------*/
 
 #if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
-	MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
-	MX_DEBUG(-2,("%s: last_poll_callback_time = (%lu,%lu), "
-	"current_timespec = (%lu,%lu)",
-    			fname, list_head->last_poll_callback_time.tv_sec,
+	MX_DEBUG(-2,("vvv~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vvv"));
+	MX_DEBUG(-2,
+("%s: last_poll_callback_time = (%lu,%lu), current_timespec = (%lu,%lu)",
+		fname, list_head->last_poll_callback_time.tv_sec,
 		list_head->last_poll_callback_time.tv_nsec,
 		current_timespec.tv_sec,
-		current_timespec.tv_nsec));
+		current_timespec.tv_nsec ));
 
-	MX_DEBUG(-2,("%s: timespec_difference = (%lu,%lu), "
-	"timer_period = (%lu,%lu), time_comparison = %d",
-    		fname, timespec_difference.tv_sec,
+	MX_DEBUG(-2,("%s: timespec_difference = (%lu,%lu), minimum = (%ld,%ld) "
+	"time_comparison = %d",
+		fname, timespec_difference.tv_sec,
 		timespec_difference.tv_nsec,
-		callback_timer->timer_period.tv_sec,
-		callback_timer->timer_period.tv_nsec,
+		list_head->minimum_poll_callback_time_interval.tv_sec,
+		list_head->minimum_poll_callback_time_interval.tv_nsec,
 		time_comparison));
-
 #endif
 	/* Increment the counter that records how many poll callbacks
 	 * have occurred.
@@ -1814,7 +1847,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
     		fname, list_head->total_num_poll_callbacks,
 		list_head->num_poll_callbacks_taken,
 		list_head->num_poll_callbacks_skipped));
-	MX_DEBUG(-2,("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
+	MX_DEBUG(-2,("^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^"));
 #endif
 
 	/* If we are skipping this poll callback, then we are done
@@ -1913,6 +1946,23 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 	    if ( callback->callback_function != NULL ) {
 
+	    	record_field = callback->u.record_field;
+
+		if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"No MX_RECORD_FIELD pointer was specified for "
+			"callback %p", callback );
+		}
+
+		record = record_field->record;
+
+		if ( record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Callbacks are not supported for temporary "
+			"record fields.  Field name = '%s'.",
+				record_field->name );
+		}
+
 		/* If this is the first time that this callback
 		 * has been invoked, then we unconditionally 
 		 * get a new value from the hardware.
@@ -1938,8 +1988,6 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		 
 		} else
 		if ( callback->callback_class == MXCBC_FIELD ) {
-		    record_field = callback->u.record_field;
-
 		    if ( record_field->flags & MXFF_POLL ) {
 		    	get_new_value = TRUE;
 		    } else {
@@ -1954,19 +2002,16 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		    get_new_value = FALSE;
 		}
 
-#if MX_CALLBACK_DEBUG
-		MX_DEBUG(-2,("%s: calling mx_invoke_callback(): i = %lu, "
-			"handle = %ld, callback = %p, "
-			"callback->callback_function = %p, get_new_value = %d",
-				fname, i, handle, callback,
-				callback->callback_function,
-				(int) get_new_value ));
-#endif
-		
 		/* Do we need to get a new field value? */
 
 		if ( get_new_value ) {
-			/* Process the record field to get the new value. */
+
+			/* Process the record field to get the new value.
+			 *
+			 * mx_process_record_field() will automatically
+			 * send out any value changed messages that are
+			 * necessary.
+			 */
 
 			record = record_field->record;
 
@@ -1976,8 +2021,10 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 #endif
 			mx_status = mx_process_record_field(
 						record, record_field,
-						MX_PROCESS_GET,
-						&send_value_changed_callback );
+						MX_PROCESS_GET, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		} else {
 			/* We do _not_ process the record field, but we _do_ 
 			 * check to see if the contents of the field have 
@@ -1986,22 +2033,24 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 					
 			mx_status = mx_test_for_value_changed( record_field,
 						&send_value_changed_callback );
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( send_value_changed_callback ) {
-
-			/* We are now ready to invoke the value changed
-			 * callback function.
-			 */
-
-			mx_status = mx_invoke_callback( callback,
-						MXCBT_VALUE_CHANGED, FALSE );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			if ( send_value_changed_callback ) {
+
+				/* mx_test_for_value_changed() does _not_
+				 * automatically send out any value changed
+				 * messages, so we must explicitly do that
+				 * here.
+				 */
+
+				mx_status = mx_invoke_callback( callback,
+						MXCBT_VALUE_CHANGED, FALSE );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		}
 	    }
 	}

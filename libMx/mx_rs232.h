@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -197,7 +197,7 @@ typedef struct {
   {MXLV_232_NUM_INPUT_BYTES_AVAILABLE, -1, "num_input_bytes_available", \
 						MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, num_input_bytes_available), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_232_DISCARD_UNREAD_INPUT, -1, "discard_unread_input", \
 						MXFT_BOOL, NULL, 0, {0}, \

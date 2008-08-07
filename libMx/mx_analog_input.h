@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,13 +61,13 @@ typedef struct {
   {MXLV_AIN_RAW_VALUE, -1, "raw_value", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_ANALOG_INPUT, raw_value.long_value), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}
 
 #define MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS \
   {MXLV_AIN_RAW_VALUE, -1, "raw_value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_ANALOG_INPUT, raw_value.double_value), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_POLL)}
 
 #define MX_ANALOG_INPUT_STANDARD_FIELDS \
   {-1, -1, "subclass", MXFT_LONG, NULL, 0, {0}, \
@@ -76,7 +76,7 @@ typedef struct {
   \
   {MXLV_AIN_VALUE, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ANALOG_INPUT, value), \
-	{0}, NULL, MXFF_IN_SUMMARY}, \
+	{0}, NULL, (MXFF_IN_SUMMARY | MXFF_POLL)}, \
   \
   {-1, -1, "scale", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ANALOG_INPUT, scale), \

@@ -541,23 +541,23 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_LAST_FRAME_NUMBER, -1, "last_frame_number", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, last_frame_number), \
-	{0}, NULL, MXFF_READ_ONLY, \
+	{0}, NULL, (MXFF_READ_ONLY | MXFF_POLL), \
 	0, 0, mx_area_detector_vctest_extended_status}, \
   \
   {MXLV_AD_TOTAL_NUM_FRAMES, -1, "total_num_frames", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, total_num_frames), \
-	{0}, NULL, MXFF_READ_ONLY, \
+	{0}, NULL, (MXFF_READ_ONLY | MXFF_POLL), \
 	0, 0, mx_area_detector_vctest_extended_status}, \
   \
   {MXLV_AD_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, status), \
-	{0}, NULL, MXFF_READ_ONLY, \
+	{0}, NULL, (MXFF_READ_ONLY | MXFF_POLL), \
 	0, 0, mx_area_detector_vctest_extended_status}, \
   \
   {MXLV_AD_EXTENDED_STATUS, -1, "extended_status", MXFT_STRING, \
 			NULL, 1, {MXU_AD_EXTENDED_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, extended_status), \
-	{sizeof(char)}, NULL, MXFF_READ_ONLY, \
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_POLL), \
 	0, 0, mx_area_detector_vctest_extended_status}, \
   \
   {MXLV_AD_MAXIMUM_NUM_ROIS, -1, "maximum_num_rois", \

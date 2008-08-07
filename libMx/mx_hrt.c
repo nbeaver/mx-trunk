@@ -37,6 +37,7 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
@@ -153,6 +154,30 @@ mx_compare_high_resolution_times( struct timespec time1,
 			return 0;
 		}
 	}
+}
+
+MX_EXPORT struct timespec
+mx_rescale_high_resolution_time( double scale_factor,
+				struct timespec original_time )
+{
+	struct timespec new_time;
+	double new_seconds, new_nanoseconds, extra_seconds;
+
+	new_seconds = scale_factor * original_time.tv_sec;
+	new_nanoseconds = scale_factor * original_time.tv_nsec;
+
+	if ( new_nanoseconds >= 1.0e9 ) {
+		extra_seconds = (long) (new_nanoseconds / 1.0e9);
+
+		new_seconds = new_seconds + extra_seconds;
+		new_nanoseconds = fmod( new_nanoseconds, 1.0e9 );
+	}
+
+	new_time.tv_sec = mx_round( new_seconds );
+
+	new_time.tv_nsec = mx_round( new_nanoseconds );
+
+	return new_time;
 }
 
 MX_EXPORT struct timespec

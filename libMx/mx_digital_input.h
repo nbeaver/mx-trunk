@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ typedef struct {
 #define MX_DIGITAL_INPUT_STANDARD_FIELDS \
   {MXLV_DIN_VALUE, -1, "value", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_DIGITAL_INPUT, value), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_POLL)}
 
 /*
  * The structure type MX_DIGITAL_INPUT_FUNCTION_LIST contains a list of

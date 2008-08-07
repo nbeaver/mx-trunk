@@ -51,6 +51,9 @@ MX_API struct timespec mx_subtract_high_resolution_times( struct timespec time1,
 MX_API int mx_compare_high_resolution_times( struct timespec time1,
 						struct timespec time2 );
 
+MX_API struct timespec mx_rescale_high_resolution_time( double scale_factor,
+						struct timespec original_time );
+
 MX_API struct timespec mx_convert_seconds_to_high_resolution_time(
 						double seconds );
 

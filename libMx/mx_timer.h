@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,11 +49,11 @@ typedef struct {
 #define MX_TIMER_STANDARD_FIELDS \
   {MXLV_TIM_VALUE, -1, "value", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, value), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_POLL }, \
   \
   {MXLV_TIM_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, busy), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_POLL }, \
   \
   {MXLV_TIM_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, stop), \
