@@ -6578,6 +6578,8 @@ mxd_pccd_170170_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
+	MX_AREA_DETECTOR *ad;
+	unsigned long *register_value_ptr;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -6594,6 +6596,14 @@ mxd_pccd_170170_process_function( void *record_ptr,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
@@ -6601,18 +6611,26 @@ mxd_pccd_170170_process_function( void *record_ptr,
 		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
 			mx_status = mx_area_detector_get_register(
 					record, record_field->name, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			register_value_ptr =
+				mx_get_field_value_pointer( record_field );
+
+			*register_value_ptr = ad->register_value;
 		}
 		break;
 
 	case MX_PROCESS_PUT:
 		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
-			MX_AREA_DETECTOR *ad;
 
-			ad = record->record_class_struct;
+			register_value_ptr =
+				mx_get_field_value_pointer( record_field );
 
 			mx_status = mx_area_detector_set_register(
 					record, record_field->name,
-					ad->register_value );
+					*register_value_ptr );
 		} else {
 			switch( record_field->label_value ) {
 			case MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME:
