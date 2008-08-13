@@ -1,7 +1,7 @@
 /*
  * Name:    mx_gcc.h
  *
- * Purpose: Definitions used with the GNU C compiler, GCC.
+ * Purpose: Definitions used with GCC related software packages.
  *
  * Author:  William Lavender
  *
@@ -35,9 +35,17 @@ extern "C" {
  */
 
 #define MX_GCC_VERSION \
-	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL )
+	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ )
 
 #endif /* __GNUC__ */
+
+
+#if defined(__GLIBC__)
+
+#define MX_GLIBC_VERSION \
+	(__GLIBC__ * 10000 + __GLIBC_MINOR__ * 100 )
+
+#endif /* __GLIBC__ */
 
 #ifdef __cplusplus
 }

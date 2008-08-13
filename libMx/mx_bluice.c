@@ -1387,7 +1387,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 		 */
 
 		snprintf( format, sizeof(format), "%%%ds",
-			sizeof(completion_status) );
+			(int) sizeof(completion_status) );
 
 		num_items = sscanf( ptr, format, completion_status );
 
