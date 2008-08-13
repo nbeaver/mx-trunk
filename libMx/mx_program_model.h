@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,10 @@
 
 #ifndef __MX_PROGRAM_MODEL_H__
 #define __MX_PROGRAM_MODEL_H__
+
+#if defined(__GNUC__)
+#  include "mx_gcc.h"
+#endif
 
 /* See http://www.unix.org/version2/whatsnew/lp64_wp.html for a discussion
  * of the various programming models.  In 2006, the most common programming
@@ -84,6 +88,30 @@
 #  else
 #     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
 #  endif
+
+#elif defined(__GNUC__) && ( MX_GCC_VERSION >= 30400 )
+
+   /* GCC 3.4 and above define the __LP64__ and _LP64 macros on all
+    * 64-bit platforms.  This was not true for GCC 3.3 and before.
+    *
+    * This is stated in the "Porting to 64 bit" paper presented at
+    * the 2003 GCC Developers Summit and can be found at page 107 of
+    * http://www.linux.org.uk/~ajh/gcc/gccsummit-2003-proceedings.pdf
+    * or as a separate PDF document at
+    * http://gcc.fyxm.net/summit/2003/Porting%20to%2064%20bit.pdf
+    */
+
+#  if defined(__LP64__)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+#  else
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+#  endif
+
+   /* Jim Fait has suggested looking for the equality of __LONG_MAX__
+    * to either __INT_MAX__ or __LONG_LONG_MAX__ to test for a 64-bit
+    * wordsize on other systems.  This possibility has not yet been
+    * investigated.
+    */
 
 #else
    /* All other cases. */
