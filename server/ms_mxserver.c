@@ -3210,6 +3210,13 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 			attribute_value = 0;
 		}
 		break;
+	case MX_NETWORK_ATTRIBUTE_READ_ONLY:
+		if ( record_field->flags & MXFF_READ_ONLY ) {
+			attribute_value = 1;
+		} else {
+			attribute_value = 0;
+		}
+		break;
 	default:
 		attribute_value = 0;
 		illegal_attribute_number = TRUE;
@@ -3359,7 +3366,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	uint32_t *uint32_value_ptr;
 	XDR xdrs;
 	int xdr_status;
-	mx_bool_type illegal_attribute_number;
+	mx_bool_type illegal_attribute_number, permission_denied;
 	mx_status_type mx_status;
 
 	header = network_message->u.uint32_buffer;
@@ -3410,6 +3417,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	/* Set the requested attribute value. */
 
 	illegal_attribute_number = FALSE;
+	permission_denied = FALSE;
 
 	switch( attribute_number ) {
 	case MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD:
@@ -3422,6 +3430,10 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		} else {
 			record_field->flags &= (~MXFF_POLL);
 		}
+		break;
+
+	case MX_NETWORK_ATTRIBUTE_READ_ONLY:
+		permission_denied = TRUE;
 		break;
 
 	default:
@@ -3453,6 +3465,17 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 
 	/* Construct the body of the message. */
 
+	if ( permission_denied ) {
+		sprintf( send_buffer_char_message,
+		"Cannot change the read only status of record field '%s'.",
+				record_field->name );
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
+			= mx_htonl( strlen(send_buffer_char_message) + 1 );
+
+		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
+				= mx_htonl( MXE_PERMISSION_DENIED );
+	} else
 	if ( illegal_attribute_number ) {
 		sprintf( send_buffer_char_message,
 				"Illegal attribute number %#lx",

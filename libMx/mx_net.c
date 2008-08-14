@@ -4813,6 +4813,8 @@ static struct {
 } mxp_network_attribute_list[] = 
 {
 	{MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD, "value_change_threshold"},
+	{MX_NETWORK_ATTRIBUTE_POLL, "poll"},
+	{MX_NETWORK_ATTRIBUTE_READ_ONLY, "read_only"},
 };
 
 static unsigned long mxp_num_network_attributes =
