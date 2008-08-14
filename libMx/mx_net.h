@@ -299,9 +299,9 @@ typedef struct {
 
 /* Attribute ids for MX network field. */
 
-#define MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD	1
-#define MX_NETWORK_ATTRIBUTE_POLL			2
-#define MX_NETWORK_ATTRIBUTE_READ_ONLY			3
+#define MXNA_VALUE_CHANGE_THRESHOLD		1
+#define MXNA_POLL				2
+#define MXNA_READ_ONLY				3
 
 /*---*/
 

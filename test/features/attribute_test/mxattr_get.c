@@ -12,7 +12,7 @@ MX_API int optind;
 int
 main( int argc, char *argv[] )
 {
-	static const char fname[] = "vcc_set";
+	static const char fname[] = "mxattr_get";
 
 	char description[ MXU_RECORD_DESCRIPTION_LENGTH+1 ];
 	char *description_ptr;
@@ -29,12 +29,15 @@ main( int argc, char *argv[] )
 	int c, server_port, num_items;
 	mx_bool_type network_debug, start_debugger;
 	unsigned long server_flags;
-	double value_change_threshold;
+	char *attribute_name;
+	unsigned long attribute_number;
+	double attribute_value;
 	mx_status_type mx_status;
 
 	if ( argc < 3 ) {
 		fprintf( stderr,
-	"\nUsage: %s network_field_name value_change_threshold\n\n", fname );
+		"\nUsage: %s network_field_name attribute_name\n\n", fname );
+
 		exit(1);
 	}
 
@@ -68,17 +71,12 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	value_change_threshold = atof( argv[optind+1] );
-
 #if 0
 	MX_DEBUG(-2,("%s: server_name = '%s', server_arguments = '%s'",
 		fname, server_name, server_arguments));
 
 	MX_DEBUG(-2,("%s: record_name = '%s', field_name = '%s'",
 		fname, record_name, field_name));
-
-	MX_DEBUG(-2,("%s: value_change_threshold = %g",
-		fname, value_change_threshold));
 #endif
 
 	num_items = sscanf( server_arguments, "%d", &server_port );
@@ -107,7 +105,7 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	mx_status = mx_set_program_name( record_list, "vcc_set" );
+	mx_status = mx_set_program_name( record_list, "mxattr_get" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
@@ -133,14 +131,24 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	/* Set a new value for the value change threshold. */
+	/* Get the current value of the requested attribute. */
 
-	mx_status = mx_network_field_set_attribute( &nf,
-				MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD,
-				value_change_threshold );
+	attribute_name = argv[optind+1];
+
+	num_items = sscanf( attribute_name, "%lu", &attribute_number );
+
+	if ( num_items > 0 ) {
+		mx_status = mx_network_field_get_attribute(
+				&nf, attribute_number, &attribute_value );
+	} else {
+		mx_status = mx_network_field_get_attribute_by_name(
+				&nf, attribute_name, &attribute_value );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	printf( "%g\n", attribute_value );
 
 	exit(0);
 }
