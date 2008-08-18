@@ -16,8 +16,6 @@
 
 #define MX_CALLBACK_DEBUG				FALSE
 
-#define MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING	FALSE
-
 #define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
 
 /*
@@ -356,11 +354,19 @@ mx_initialize_callback_support( MX_RECORD *record )
 		poll_callback_message->callback_type = MXCBT_POLL;
 		poll_callback_message->list_head = list_head;
 
-		/* Now create the callback virtual timer. */
+		/* Now create the callback virtual timer.  The timer
+		 * is intentionally a one-shot timer, so the poll
+		 * callback function is expected to restart the timer
+		 * at the beginning of that function.  This ensures
+		 * that there is, at most, one poll callback message
+		 * in the callback pipe at any given time and prevents
+		 * the callback pipe from filling up with a multitude
+		 * of poll callbacks if the callback function is slow.
+		 */
 
 		mx_status = mx_virtual_timer_create( &callback_timer,
 						list_head->master_timer,
-						MXIT_PERIODIC_TIMER,
+						MXIT_ONE_SHOT_TIMER,
 						mx_request_value_changed_poll,
 						poll_callback_message );
 
@@ -371,10 +377,6 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		callback_timer_interval = 0.1;	/* in seconds */
 
-		list_head->minimum_poll_callback_time_interval =
-			mx_convert_seconds_to_high_resolution_time(
-				0.8 * callback_timer_interval );
-
 		/* Start the callback virtual timer. */
 
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
@@ -382,6 +384,12 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,
+		("%s: callback timer started with timer interval %g seconds.",
+			fname, callback_timer_interval));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1727,6 +1735,10 @@ mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 
 /*--------------------------------------------------------------------------*/
 
+/* mx_poll_callback_handler() polls all record fields that
+ * currently have value changed callback handlers.
+ */
+
 MX_EXPORT mx_status_type
 mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 {
@@ -1737,130 +1749,52 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	MX_HANDLE_STRUCT *handle_struct;
 	signed long handle;
 	MX_CALLBACK *callback;
-	MX_VIRTUAL_TIMER *callback_timer;
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD *record;
 	mx_bool_type get_new_value, send_value_changed_callback;
 	unsigned long i, array_size;
 	long interval;
-	struct timespec current_timespec, timespec_difference;
-	int time_comparison;
 	mx_status_type mx_status;
-
-	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
-	}
-
-	/* Poll all record fields that have value changed callback handlers. */
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for callback message %p.",
 		fname, callback_message));
 #endif
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
+	}
+
 	list_head = callback_message->list_head;
 
-	/* Check to see if poll callbacks are being generated faster
-	 * than they can be handled.  If the poll callback processing
-	 * takes a "long" time, then poll callbacks will queue up in
-	 * the * callback pipe waiting to be processed.  If the
-	 * difference between the current time and the timestamp
-	 * at the end of the last poll processing loop is less than
-	 * the poll callback timer's time interval, then we assume
-	 * that the current poll callback is a queued up callback
-	 * that can be thrown away.
-	 */
+	list_head->num_poll_callbacks++;
 
-	current_timespec = mx_high_resolution_time();
-
-	timespec_difference = mx_subtract_high_resolution_times(
-		current_timespec, list_head->last_poll_callback_time );
-
-	callback_timer = list_head->callback_timer;
-
-	/*-----------------------------------*/
-
-#if MX_CALLBACK_DEBUG_WITHOUT_TIMER
-
-	/* In debug mode, we do not have a callback timer, so we always
-	 * assert that the time has arrived for the poll callback.
-	 */
-
-	time_comparison = 1;
-
-#else /* not MX_CALLBACK_DEBUG_WITHOUT_TIMER */
-
-	/* In normal mode, the absence of the callback timer is a fatal error.*/
-
-	if ( callback_timer == (MX_VIRTUAL_TIMER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The list head callback_timer pointer is NULL, "
-		"even though we are in a poll callback.  "
-		"This should not be able to happen." );
-	}
-
-	time_comparison =
-		mx_compare_high_resolution_times( timespec_difference,
-			list_head->minimum_poll_callback_time_interval );
-
-#endif /* MX_CALLBACK_DEBUG_WITHOUT_TIMER */
-
-	/*-----------------------------------*/
-
-#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
-	MX_DEBUG(-2,("vvv~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vvv"));
-	MX_DEBUG(-2,
-("%s: last_poll_callback_time = (%lu,%lu), current_timespec = (%lu,%lu)",
-		fname, list_head->last_poll_callback_time.tv_sec,
-		list_head->last_poll_callback_time.tv_nsec,
-		current_timespec.tv_sec,
-		current_timespec.tv_nsec ));
-
-	MX_DEBUG(-2,("%s: timespec_difference = (%lu,%lu), minimum = (%ld,%ld) "
-	"time_comparison = %d",
-		fname, timespec_difference.tv_sec,
-		timespec_difference.tv_nsec,
-		list_head->minimum_poll_callback_time_interval.tv_sec,
-		list_head->minimum_poll_callback_time_interval.tv_nsec,
-		time_comparison));
-#endif
-	/* Increment the counter that records how many poll callbacks
-	 * have occurred.
-	 */
-
-	list_head->total_num_poll_callbacks++;
-
-	/* If the total amount of time since the last poll callback
-	 * is less than the timer period for the callback timer,
-	 * then we will skip this poll callback.
-	 */
-
-	if ( time_comparison < 0 ) {
-		list_head->num_poll_callbacks_skipped++;
-	} else {
-		list_head->num_poll_callbacks_taken++;
-	}
-
-#if MX_CALLBACK_DEBUG_POLL_CALLBACK_SKIPPING
-	MX_DEBUG(-2,("%s: total_num_poll_callbacks = %lu, "
-    "num_poll_callbacks_taken = %lu, num_poll_callbacks_skipped = %lu",
-    		fname, list_head->total_num_poll_callbacks,
-		list_head->num_poll_callbacks_taken,
-		list_head->num_poll_callbacks_skipped));
-	MX_DEBUG(-2,("^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^"));
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: list_head->num_poll_callbacks = %lu",
+		fname, list_head->num_poll_callbacks));
 #endif
 
-	/* If we are skipping this poll callback, then we are done
-	 * and can return now.
+	/* Restart the callback virtual timer.  This is done here to make
+	 * sure that the timer is restarted, since a failure later on in
+	 * this callback function might otherwise prevent the timer from
+	 * being restarted.  Since this poll callback is executed in the
+	 * main thread and the callback pipe is read in the main thread,
+	 * there is no danger of multiple copies of this callback being
+	 * run at the same time.  In addition, there is no danger of the
+	 * callback pipe filling up with poll callback messages.
 	 */
 
-	if ( time_comparison < 0 ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
+	mx_status = mx_virtual_timer_restart( list_head->callback_timer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: virtual timer %p restarted.",
+		fname, list_head->callback_timer));
+#endif
 
 	/*---*/
-
-	/* If we get here, then we are _not_ skipping this callback. */
 
 	handle_table = list_head->server_callback_handle_table;
 
@@ -1914,7 +1848,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	    if ( interval > 0 ) {
 		unsigned long num_polls;
 
-		num_polls = list_head->num_poll_callbacks_taken;
+		num_polls = list_head->num_poll_callbacks;
 #if 1
 		MX_DEBUG(-2,
 		("%s: callback = %p, interval = %ld, num_polls = %lu",
@@ -2054,12 +1988,6 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		}
 	    }
 	}
-
-	/* Record a timestamp at the end of the poll callback
-	 * processing loop.
-	 */
-
-	list_head->last_poll_callback_time = mx_high_resolution_time();
 
 	return MX_SUCCESSFUL_RESULT;
 }

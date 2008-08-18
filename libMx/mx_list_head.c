@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -168,12 +168,7 @@ mxr_create_list_head( MX_RECORD *record )
 
 	list_head_struct->callback_pipe = NULL;
 
-	list_head_struct->total_num_poll_callbacks = 0;
-	list_head_struct->num_poll_callbacks_taken = 0;
-	list_head_struct->num_poll_callbacks_skipped = 0;
-
-	list_head_struct->last_poll_callback_time.tv_sec = 0;
-	list_head_struct->last_poll_callback_time.tv_nsec = 0;
+	list_head_struct->num_poll_callbacks = 0;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 

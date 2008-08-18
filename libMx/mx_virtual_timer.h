@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,6 +71,9 @@ mx_virtual_timer_is_busy( MX_VIRTUAL_TIMER *vtimer, mx_bool_type *busy );
 MX_API mx_status_type
 mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 				double timer_period_in_seconds );
+
+#define mx_virtual_timer_restart(v) \
+		mx_virtual_timer_start( (v), -1.0 )
 
 MX_API mx_status_type
 mx_virtual_timer_stop( MX_VIRTUAL_TIMER *vtimer, double *seconds_left );

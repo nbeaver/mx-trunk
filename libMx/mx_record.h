@@ -435,12 +435,7 @@ typedef struct {
 
 	void *callback_pipe;
 
-	unsigned long total_num_poll_callbacks;
-	unsigned long num_poll_callbacks_taken;
-	unsigned long num_poll_callbacks_skipped;
-
-	struct timespec last_poll_callback_time;
-	struct timespec minimum_poll_callback_time_interval;
+	unsigned long num_poll_callbacks;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

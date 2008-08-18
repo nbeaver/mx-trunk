@@ -5,14 +5,16 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_VIRTUAL_TIMER_DEBUG	FALSE
+#define MX_VIRTUAL_TIMER_DEBUG			FALSE
+
+#define MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -616,13 +618,18 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 	long lock_status;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s: itimer = %p", fname, itimer));
-	MX_DEBUG( 2,("%s: args = %p", fname, args));
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+	MX_DEBUG(-2,("vvv------------------------------------------------vvv"));
+	MX_DEBUG(-2,("%s invoked for itimer = %p, args = %p",
+		fname, itimer, args));
+#endif
 
 	event_list = (MX_MASTER_TIMER_EVENT_LIST *) args;
 
-	MX_DEBUG( 2,("%s: num_timer_events = %lu",
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+	MX_DEBUG(-2,("%s: num_timer_events = %lu",
 		fname, event_list->num_timer_events));
+#endif
 
 	/* Attempt to lock the mutex for the timer event list. */
 
@@ -632,14 +639,18 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 	case MXE_SUCCESS:
 		/* We have acquired the mutex. */
 
-		MX_DEBUG( 2,("%s: Locked the mutex for timer event list %p",
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+		MX_DEBUG(-2,("%s: Locked the mutex for timer event list %p",
 				fname, event_list));
+#endif
 		break;
 	case MXE_NOT_AVAILABLE:
 		/* Somebody else has the mutex.  We will try again later. */
 
-		MX_DEBUG( 2,("%s: timer event list %p mutex is unavailable.",
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+		MX_DEBUG(-2,("%s: timer event list %p mutex is unavailable.",
 				fname, event_list ));
+#endif
 		return;
 	default:
 		/* Something bad happened, so we abort noisily. */
@@ -650,6 +661,12 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 		return;
 	}
 
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+	MX_DEBUG(-2,("%s: Entering event processing loop.", fname));
+
+	mx_show_event_list( fname, event_list );
+#endif
+
 	/* Process and delete events in the event list that are before
 	 * or at the current time.
 	 */
@@ -658,6 +675,10 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 	for (;;) {
 		current_event = event_list->timer_event_list;
+
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+		MX_DEBUG(-2,("%s: current_event = %p", fname, current_event));
+#endif
 
 		if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
 			/* We have reached the end of the event list. */
@@ -669,6 +690,14 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 		comparison = mx_compare_high_resolution_times(
 						current_time, expiration_time );
+
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+		MX_DEBUG(-2,("%s: current_time = (%lu,%lu), "
+			"expiration_time = (%lu,%lu), comparison = %d",
+			fname, current_time.tv_sec, current_time.tv_nsec,
+			expiration_time.tv_sec, expiration_time.tv_nsec,
+			comparison));
+#endif
 
 		if ( comparison < 0 ) {
 			/* If this event is scheduled to happen in the future,
@@ -711,6 +740,14 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 			if ( mx_status.code != MXE_SUCCESS ) {
 				break;	/* Exit the for(;;) loop. */
 			}
+
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+			MX_DEBUG(-2,
+		    ("%s: periodic timer %p, new_expiration_time = (%lu,%lu)",
+				fname, vtimer,
+				new_expiration_time.tv_sec,
+				new_expiration_time.tv_nsec));
+#endif
 		}
 		
 		/* Invoke the callback function if there is one. */
@@ -741,8 +778,11 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 	UNLOCK_EVENT_LIST(event_list);
 
-	MX_DEBUG( 2,("%s: Unlocked the mutex for timer event list %p",
+#if MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK
+	MX_DEBUG(-2,("%s: Unlocked the mutex for timer event list %p",
 			fname, event_list ));
+	MX_DEBUG(-2,("^^^------------------------------------------------^^^"));
+#endif
 
 	return;
 }
@@ -966,7 +1006,6 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	MX_INTERVAL_TIMER *master_timer;
 	MX_MASTER_TIMER_EVENT_LIST *event_list;
-	struct timespec timer_period;
 	long lock_status;
 	mx_status_type mx_status;
 
@@ -980,19 +1019,49 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 		return mx_status;
 
 #if MX_VIRTUAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG(-2,("%s invoked for vtimer %p, timer_period_in_seconds = %g",
+		fname, vtimer, timer_period_in_seconds));
 #endif
+
+	if ( timer_period_in_seconds > 0.0 ) {
+
+		/* Save the timer period. */
+
+		vtimer->timer_period =
+			mx_convert_seconds_to_high_resolution_time(
+				timer_period_in_seconds );
+
+	} else {
+		/* If the timer period in seconds is zero or a negative
+		 * number, then we assume that we are going to reuse the
+		 * previous timer period.  However, if the virtual timer
+		 * has never been started, the internal timer period will
+		 * be zero, which is an error that we must check for.
+		 */
+
+		if ( ( vtimer->timer_period.tv_sec == 0 )
+		  && ( vtimer->timer_period.tv_nsec == 0 ) )
+		{
+			if ( timer_period_in_seconds == 0.0 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Starting a new virtual timer with a "
+				"timer period of 0 seconds is not supported." );
+			} else {
+				return mx_error( MXE_INITIALIZATION_ERROR,fname,
+				"Restarting virtual timer %p cannot be done "
+				"until after the virtual timer has had at "
+				"one normal start.", vtimer );
+			}
+		}
+
+		/* If we get here, then the timer will be restarted with
+		 * the preexisting contents of vtimer->timer_period.
+		 */
+	}
 
 	/* We need to add a timer event to the timer event list managed
 	 * by the master timer that this virtual timer uses.
 	 */
-
-	/* Save the timer period. */
-
-	timer_period = mx_convert_seconds_to_high_resolution_time(
-					timer_period_in_seconds );
-
-	vtimer->timer_period = timer_period;
 
 	/* Get exclusive access to the master timer event list. */
 
@@ -1008,11 +1077,25 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 	}
 
 #if MX_VIRTUAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
-		fname, timer_period_in_seconds,
-		(long) vtimer->timer_period.tv_sec,
-		vtimer->timer_period.tv_nsec,
-		vtimer ));
+	if ( timer_period_in_seconds > 0.0 ) {
+		MX_DEBUG(-2,
+		("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
+			fname, timer_period_in_seconds,
+			(long) vtimer->timer_period.tv_sec,
+			vtimer->timer_period.tv_nsec,
+			vtimer ));
+	} else {
+		timer_period_in_seconds =
+		mx_convert_high_resolution_time_to_seconds(
+				vtimer->timer_period );
+
+		MX_DEBUG(-2,
+	    ("%s: Resubmitting %g second (%ld,%ld) timer event for vtimer %p",
+			fname, timer_period_in_seconds,
+			(long) vtimer->timer_period.tv_sec,
+			vtimer->timer_period.tv_nsec,
+			vtimer ));
+	}
 #endif
 
 	/* Get rid of any old events due to this virtual timer. */
@@ -1026,7 +1109,8 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	/* Add a list entry for the next virtual timer event. */
 
-	mx_status = mx_add_vtimer_event( event_list, vtimer, timer_period,
+	mx_status = mx_add_vtimer_event( event_list,
+					vtimer, vtimer->timer_period,
 					MXF_VTIMER_RELATIVE_TIME );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
