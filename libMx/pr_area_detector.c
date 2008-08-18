@@ -1372,6 +1372,14 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_stop( record );
 			break;
 		case MXLV_AD_TRANSFER_FRAME:
+			if ( ad->image_frame == NULL ) {
+				return mx_error( MXE_NOT_READY, fname,
+				"No image frames have been acquired by area "
+				"detector '%s' since the last time that it "
+				"was started.",
+					record->name );
+			}
+
 			mx_status = mx_area_detector_transfer_frame( record,
 					ad->transfer_frame, ad->image_frame );
 			break;

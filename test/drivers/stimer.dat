@@ -1,1 +1,1 @@
-xafs_test                        scan xafs_scan_class xafs_scan "" "" 1 0 0  2  Io I 0 0 preset_time "0 xia_timer" xafs junk.out gnuxafs log($f[0]/$f[1]) 2 1 1 3  -20 5 5  1 1  1 1
+xafs_test                        scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0 preset_time "0 xia_timer" xafs junk.out gnuxafs log($f[0]/$f[1]) 2 1 1 3  -20 5 5  1 0.1  1 1

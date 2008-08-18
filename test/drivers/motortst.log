@@ -512,3 +512,11 @@ Thu Jul 31 00:33:39 2003  lavender  Scan slow1k started
 Thu Jul 31 00:33:46 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
 Thu Jul 31 00:33:58 2003  lavender  Scan test2 started
 Thu Jul 31 00:34:12 2003  lavender  Scan test2 ended    MXE_INTERRUPTED   The measurement retry loop was interrupted.
+Mon Aug 18 14:55:43 2008  lavender  Scan xafs_test started
+Mon Aug 18 14:55:46 2008  lavender  Scan xafs_test ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Aug 18 14:56:00 2008  lavender  Scan xafs_test started
+Mon Aug 18 14:56:29 2008  lavender  Scan xafs_test ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Aug 18 14:57:21 2008  lavender  Scan xafs_test started
+Mon Aug 18 14:57:59 2008  lavender  Scan xafs_test ended
+Mon Aug 18 14:58:45 2008  lavender  Scan xafs_test started
+Mon Aug 18 15:00:03 2008  lavender  Scan xafs_test ended
