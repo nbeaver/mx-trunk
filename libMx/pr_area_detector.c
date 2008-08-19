@@ -991,6 +991,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+		case MXLV_AD_DATAFILE_DIRECTORY:
+		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
@@ -1047,6 +1049,7 @@ mx_area_detector_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_AREA_DETECTOR *ad;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -1293,6 +1296,17 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status =
 	    mxp_area_detector_measure_correction_frame_handler( record, ad );
 
+			break;
+		case MXLV_AD_DATAFILE_DIRECTORY:
+		case MXLV_AD_DATAFILE_PATTERN:
+			flags = ad->area_detector_flags;
+
+			if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
+			  || (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )
+			{
+				mx_status =
+			    mx_area_detector_initialize_datafile_number(record);
+			}
 			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,
