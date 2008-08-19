@@ -1020,7 +1020,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	}
 
 	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
-	    mx_status = mx_area_detector_setup_datafile_management( ad, NULL );
+	    mx_status = 
+	    	mx_area_detector_setup_datafile_management( record, NULL );
 
 	    if ( mx_status.code != MXE_SUCCESS )
 	    	return mx_status;
@@ -1074,7 +1075,8 @@ mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
 	ad->last_frame_number = -1;
 
 	if ( bluice_area_detector->initialize_datafile_number ) {
-		mx_status = mx_area_detector_initialize_datafile_number(ad);
+		mx_status =
+		    mx_area_detector_initialize_datafile_number( ad->record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1082,7 +1084,7 @@ mxd_bluice_area_detector_arm( MX_AREA_DETECTOR *ad )
 		bluice_area_detector->initialize_datafile_number = FALSE;
 	}
 
-	mx_status = mx_area_detector_construct_next_datafile_name( ad );
+	mx_status = mx_area_detector_construct_next_datafile_name( ad->record );
 
 	return mx_status;
 }

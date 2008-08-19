@@ -375,8 +375,7 @@ typedef struct mx_area_detector_type {
 	unsigned long datafile_format;
 
 	long datafile_total_num_frames;
-	mx_status_type (*datafile_management_handler)
-			(struct mx_area_detector_type *);
+	mx_status_type (*datafile_management_handler)(MX_RECORD *);
 
 	MX_CALLBACK *datafile_management_callback;
 
@@ -1240,19 +1239,19 @@ MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
 /*---*/
 
 MX_API mx_status_type mx_area_detector_initialize_datafile_number(
-							MX_AREA_DETECTOR *ad );
+							MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_construct_next_datafile_name(
-							MX_AREA_DETECTOR *ad );
+							MX_RECORD *ad_record );
 
 /*---*/
 
 MX_API mx_status_type mx_area_detector_setup_datafile_management(
-			MX_AREA_DETECTOR *ad,
-			mx_status_type (*handler_fn)(MX_AREA_DETECTOR *) );
+				MX_RECORD *ad_record,
+				mx_status_type (*handler_fn)(MX_RECORD *) );
 
 MX_API mx_status_type mx_area_detector_default_datafile_management_handler(
-						MX_AREA_DETECTOR *ad );
+							MX_RECORD *ad_record );
 
 /*---*/
 

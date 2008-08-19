@@ -685,7 +685,7 @@ mxs_area_detector_scan_default_initialize_datafile_naming( MX_SCAN * scan )
 	MX_DEBUG(-2,("%s: datafile_directory = '%s', datafile_pattern = '%s'",
 		fname, ad->datafile_directory, ad->datafile_pattern));
 
-	mx_status = mx_area_detector_initialize_datafile_number( ad );
+	mx_status = mx_area_detector_initialize_datafile_number( ad_record );
 
 	return mx_status;
 }
@@ -735,7 +735,7 @@ mxs_area_detector_scan_default_construct_next_datafile_name( MX_SCAN * scan )
 			ad_record->name );
 	}
 
-	mx_status = mx_area_detector_construct_next_datafile_name( ad );
+	mx_status = mx_area_detector_construct_next_datafile_name( ad_record );
 
 	return mx_status;
 }

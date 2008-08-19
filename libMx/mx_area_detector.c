@@ -6842,11 +6842,12 @@ mx_area_detector_frame_correction( MX_RECORD *record,
  */
 
 MX_EXPORT mx_status_type
-mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
+mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 {
 	static const char fname[] =
 		"mx_area_detector_initialize_datafile_number()";
 
+	MX_AREA_DETECTOR *ad;
 	char *start_of_varying_number, *trailing_segment;
 	int length_of_varying_number, length_of_leading_segment;
 	int saved_errno, num_items;
@@ -6856,9 +6857,15 @@ mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
 	struct dirent *dirent_ptr;
 	char *name_ptr;
 	unsigned long datafile_number;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+		fname, record->name ));
 
 	/* If the datafile pattern is empty, then set the datafile number
 	 * to zero, since it will not be used.
@@ -6900,7 +6907,7 @@ mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
 		"datafile pattern char '%c' was found.  "
 		"It should be impossible for this to happen.",
 			length_of_varying_number,
-			ad->datafile_pattern, ad->record->name,
+			ad->datafile_pattern, record->name,
 			MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
 	}
 
@@ -6939,7 +6946,7 @@ mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot access the datafile directory '%s' for "
 		"area detector '%s'.  Errno = %d, error message = '%s'",
-			ad->datafile_directory, ad->record->name,
+			ad->datafile_directory, record->name,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -6980,8 +6987,7 @@ mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
 				"files in the datafile directory '%s' for "
 				"area detector '%s'.  "
 				"Errno = %d, error message = '%s'",
-					ad->datafile_directory,
-					ad->record->name,
+					ad->datafile_directory, record->name,
 					saved_errno, strerror(saved_errno) );
 			}
 		}
@@ -6994,18 +7000,25 @@ mx_area_detector_initialize_datafile_number( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_construct_next_datafile_name( MX_AREA_DETECTOR *ad )
+mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 {
 	static const char fname[] =
 		"mx_area_detector_construct_next_datafile_name()";
 
+	MX_AREA_DETECTOR *ad;
 	char *start_of_varying_number, *trailing_segment;
 	int length_of_varying_number, length_of_leading_segment;
 	char datafile_number_string[40];
 	char format[10];
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+		fname, record->name ));
 
 	/* If the datafile pattern is empty, we use the existing contents
 	 * of datafile_name as is.
@@ -7014,7 +7027,7 @@ mx_area_detector_construct_next_datafile_name( MX_AREA_DETECTOR *ad )
 	if ( ad->datafile_pattern[0] == '\0' ) {
 		MX_DEBUG(-2,
 		("%s: Using datafile name '%s' for area detector '%s' as is.",
-			fname, ad->datafile_name, ad->record->name ));
+			fname, ad->datafile_name, record->name ));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7035,7 +7048,7 @@ mx_area_detector_construct_next_datafile_name( MX_AREA_DETECTOR *ad )
 		MX_DEBUG(-2,
 		("%s: Using datafile pattern as the datafile name '%s' "
 		"for area detector '%s'.",
-			fname, ad->datafile_name, ad->record->name ));
+			fname, ad->datafile_name, record->name ));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7055,7 +7068,7 @@ mx_area_detector_construct_next_datafile_name( MX_AREA_DETECTOR *ad )
 		"datafile pattern char '%c' was found.  "
 		"It should be impossible for this to happen.",
 			length_of_varying_number,
-			ad->datafile_pattern, ad->record->name,
+			ad->datafile_pattern, record->name,
 			MX_AREA_DETECTOR_DATAFILE_PATTERN_CHAR );
 	}
 
@@ -7096,24 +7109,20 @@ mxp_area_detector_datafile_management_callback( MX_CALLBACK *callback,
 	static const char fname[] =
 		"mxp_area_detector_datafile_management_callback()";
 
+	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
-	mx_status_type (*handler_fn)(MX_AREA_DETECTOR *);
+	mx_status_type (*handler_fn)(MX_RECORD *);
 	mx_status_type mx_status;
 
-	ad = argument;
+	record = argument;
 
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
-	if ( ad->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL",
-			ad );
-	}
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+		fname, record->name ));
 
 	handler_fn = ad->datafile_management_handler;
 
@@ -7123,36 +7132,32 @@ mxp_area_detector_datafile_management_callback( MX_CALLBACK *callback,
 		"installed for area detector '%s'.", ad->record->name );
 	}
 
-	mx_status = (*handler_fn)(ad);
+	mx_status = (*handler_fn)( record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
-			mx_status_type (*handler_fn)(MX_AREA_DETECTOR *) )
+mx_area_detector_setup_datafile_management( MX_RECORD *record,
+			mx_status_type (*handler_fn)(MX_RECORD *) )
 {
 	static const char fname[] =
 		"mx_area_detector_setup_datafile_management()";
 
+	MX_AREA_DETECTOR *ad;
 	MX_LIST_HEAD *list_head;
 	MX_CALLBACK *callback_object;
 	MX_RECORD_FIELD *field;
 	unsigned long flags, mask;
 	mx_status_type mx_status;
 
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
-	if ( ad->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL.",
-	    		ad );
-	}
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+		fname, record->name ));
 
 	flags = ad->area_detector_flags;
 
@@ -7168,7 +7173,7 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 		"Skipping datafile management setup for area detector '%s', "
 		"since neither loading frames nor saving frames "
 		"have been configured.",
-			ad->record->name );
+			record->name );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7198,7 +7203,7 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 	    "Area detector '%s' was configure to both save image frames "
 	    "and load image frames after image acquisition completes.  "
 	    "These two actions are contradictory, so only the save image "
-	    "frame operation will be performed.", ad->record->name );
+	    "frame operation will be performed.", record->name );
 	}
 
 	/* If we are running in a server with an active callback pipe,
@@ -7206,13 +7211,13 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 	 * callback handler.
 	 */
 
-	list_head = mx_get_record_list_head_struct( ad->record );
+	list_head = mx_get_record_list_head_struct( record );
 
 	if ( list_head == (MX_LIST_HEAD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_LIST_HEAD struct for the database containing "
 		"area detector '%s' is NULL.  This should never happen.",
-			ad->record->name );
+			record->name );
 	}
 
 	if ( list_head->callback_pipe == NULL ) {
@@ -7229,7 +7234,7 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 	 * 'total_num_frames' field of the area detector.
 	 */
 
-	mx_status = mx_find_record_field( ad->record,
+	mx_status = mx_find_record_field( record,
 					"total_num_frames",
 					&field );
 
@@ -7237,7 +7242,7 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 		return mx_status;
 
 	MX_DEBUG(-2,("%s: Installing value changed callback for field '%s.%s'",
-		fname, ad->record->name, field->name));
+		fname, record->name, field->name));
 
 	mx_status = mx_local_field_add_callback( field,
 				MXCBT_VALUE_CHANGED,
@@ -7249,29 +7254,25 @@ mx_area_detector_setup_datafile_management( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
+mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 {
 	static const char fname[] =
 		"mx_area_detector_default_datafile_management_handler()";
 
+	MX_AREA_DETECTOR *ad;
 	char filename[MXU_FILENAME_LENGTH+1];
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
-	if ( ad->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RECORD pointer for MX_AREA_DETECTOR pointer %p is NULL",
-			ad );
-	}
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+		fname, record->name ));
 
 	flags = ad->area_detector_flags;
 
@@ -7282,12 +7283,12 @@ mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The image frame directory and filename have not yet "
 		"been specified for area detector '%s'.",
-			ad->record->name );
+			record->name );
 	}
 
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
-			fname, ad->record->name, filename));
+			fname, record->name, filename));
 
 		mx_status = mx_image_write_file( ad->image_frame,
 						ad->datafile_format,
@@ -7295,7 +7296,7 @@ mx_area_detector_default_datafile_management_handler( MX_AREA_DETECTOR *ad )
 	} else
 	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
 		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
-			fname, ad->record->name, filename));
+			fname, record->name, filename));
 
 		mx_status = mx_image_read_file( &(ad->image_frame),
 						ad->datafile_format,
