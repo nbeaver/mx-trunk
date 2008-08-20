@@ -2280,7 +2280,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
 	long ad_binsize[2];
-	unsigned long flags;
+	unsigned long ad_flags, pccd_flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
 	unsigned long control_register_value;
 	long x_framesize, y_framesize;
@@ -2307,19 +2307,21 @@ mxd_pccd_170170_open( MX_RECORD *record )
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	ad_flags = ad->area_detector_flags;
 
-	flags = pccd_170170->pccd_170170_flags;
+	pccd_flags = pccd_170170->pccd_170170_flags;
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: pccd_170170_flags = %#lx", fname, flags));
+	MX_DEBUG(-2,("%s: area_detector_flags = %#lx", fname, ad_flags));
+	MX_DEBUG(-2,("%s: pccd_170170_flags = %#lx", fname, pccd_flags));
 #endif
 
-	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
+	if ( pccd_flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
 		mx_warning( "Area detector '%s' will not descramble "
 			"images from the camera head.",
 				record->name );
 	}
-	if ( flags & MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR ) {
+	if ( pccd_flags & MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR ) {
 		mx_warning( "Area detector '%s' will use "
 	"an Aviex detector head simulator instead of a real detector head.",
 				record->name );
@@ -2340,6 +2342,36 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		"The MX_VIDEO_INPUT pointer for video input record '%s' "
 		"used by area detector '%s' is NULL.",
 			video_input_record->name, record->name );
+	}
+
+	/* Automatic loading of image frames does not make any sense for
+	 * this detector.
+	 */
+
+	if ( ad_flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+	    ad->area_detector_flags &= (~MXF_AD_LOAD_FRAME_AFTER_ACQUISITION);
+
+	    (void) mx_error( MXE_UNSUPPORTED, fname,
+		"Automatic loading of image frames from disk files "
+		"after an acquisition sequence "
+		"is not supported for area detector '%s', since that "
+		"would result in the loss of all data from the detector.  "
+		"The load frame flag has been turned off.",
+			record->name );
+	}
+
+	/* See if the user has requested the saving of image frames by MX. */
+
+	if ( ad_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+
+		MX_DEBUG(-2,("%s: Enabling automatic saving of image frames "
+		"for area detector '%s'.", fname, record->name ));
+
+		mx_status =
+		    mx_area_detector_setup_datafile_management( record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Initialize the geometrical mask frames. */
@@ -2713,7 +2745,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* If requested, turn on the test mode pattern. */
 
-	if ( flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
+	if ( pccd_flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
 		control_register_value |= MXF_PCCD_170170_TEST_MODE_ON;
 
 		mx_warning( "Area detector '%s' will return a test image "
@@ -2900,12 +2932,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
+	if ( pccd_flags & MXF_PCCD_170170_TEST_DEZINGER ) {
 
 		/* If we are doing a dezinger test, provide a seed value for
-		 * the random number generator.  The seed does not need to be
-		 * very random, so we just use the computer's high resolution
-		 * clock to generate the seed.
+		 * the random number generator.  The numbers that we generate
+		 * here do not need to be very random, so we just use the
+		 * computer's high resolution clock to generate the seed.
 		 */
 #if 1
 		hrt.tv_sec = 1;

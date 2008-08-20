@@ -40,9 +40,9 @@
 
 /*---*/
 
-#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -305,6 +305,26 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->dark_current_offset_array = NULL;
 	ad->flood_field_scale_array = NULL;
 	ad->old_exposure_time = -1.0;
+
+	ad->datafile_directory[0] = '\0';
+	ad->datafile_pattern[0] = '\0';
+	ad->datafile_name[0] = '\0';
+	ad->datafile_number = -1;
+
+	ad->last_datafile_name[0] = '\0';
+	ad->datafile_format = 0;
+
+	ad->datafile_total_num_frames = -1;
+	ad->datafile_management_handler = NULL;
+	ad->datafile_management_callback = NULL;
+
+	ad->oscillation_motor_name[0] = '\0';
+	ad->oscillation_distance = 0.0;
+	ad->oscillation_time = 0.0;
+	ad->start_exposure = FALSE;
+
+	ad->oscillation_motor_record = NULL;
+	ad->last_oscillation_motor_name[0] = '\0';
 
 	/*-------*/
 
@@ -2434,7 +2454,7 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 	  && (ad->datafile_management_callback == NULL)
 	  && (ad->total_num_frames > ad->datafile_total_num_frames) )
 	{
-		mx_status = (*ad->datafile_management_handler)(ad);
+		mx_status = (*ad->datafile_management_handler)(record);
 	}
 
 #endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE */
@@ -2593,7 +2613,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	  && (ad->datafile_management_callback == NULL)
 	  && (ad->total_num_frames > ad->datafile_total_num_frames) )
 	{
-		mx_status = (*ad->datafile_management_handler)(ad);
+		mx_status = (*ad->datafile_management_handler)(record);
 	}
 
 #endif /* MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE */

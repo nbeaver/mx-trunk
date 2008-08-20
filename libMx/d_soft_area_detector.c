@@ -184,6 +184,7 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	MX_RECORD *video_input_record;
 	long i;
+	unsigned long mask;
 	mx_status_type mx_status;
 
 	soft_area_detector = NULL;
@@ -291,6 +292,19 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Configure automatic saving or loading of image frames. */
+
+	mask = MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
+		| MXF_AD_LOAD_FRAME_AFTER_ACQUISITION;
+
+	if ( ad->area_detector_flags & mask ) {
+		mx_status =
+		    mx_area_detector_setup_datafile_management( record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
