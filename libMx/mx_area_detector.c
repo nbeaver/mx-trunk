@@ -42,7 +42,7 @@
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7267,7 +7267,7 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	mx_status = mx_local_field_add_callback( field,
 				MXCBT_VALUE_CHANGED,
 				mxp_area_detector_datafile_management_callback,
-				ad,
+				record,
 				&callback_object );
 
 	return mx_status;
@@ -7291,7 +7291,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 
 	flags = ad->area_detector_flags;
@@ -7300,10 +7300,12 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"%s/%s", ad->datafile_directory, ad->datafile_name );
 
 	if ( strcmp(filename, "/") == 0 ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The image frame directory and filename have not yet "
-		"been specified for area detector '%s'.",
-			record->name );
+#if 0
+		mx_warning("The image frame directory and filename have not "
+		"yet been specified for area detector '%s'.", record->name );
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
