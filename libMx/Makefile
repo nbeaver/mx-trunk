@@ -28,7 +28,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
 	mx_mfault.c mx_modbus.c mx_motor.c \
 	mx_mpermit.c mx_mutex.c mx_net.c mx_net_socket.c mx_os_version.c \
-	mx_pipe.c mx_plot.c mx_portio.c mx_process.c \
+	mx_pipe.c mx_plot.c mx_pointer.c mx_portio.c mx_process.c \
 	mx_ptz.c mx_pulse_generator.c \
 	mx_record.c mx_relay.c mx_rs232.c \
 	mx_sample_changer.c mx_sca.c mx_scaler.c \

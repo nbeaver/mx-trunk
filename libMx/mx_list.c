@@ -255,6 +255,10 @@ mx_list_entry_create( MX_LIST_ENTRY **list_entry,
 	(*list_entry)->list_entry_data = list_entry_data;
 	(*list_entry)->destructor      = destructor;
 
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s: list entry %p created.", fname, *list_entry));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -262,6 +266,12 @@ MX_EXPORT void
 mx_list_entry_destroy( MX_LIST_ENTRY *list_entry )
 {
 	void (*destructor)( MX_LIST_ENTRY * );
+
+#if MX_LIST_DEBUG
+	static const char fname[] = "mx_list_entry_destroy()";
+
+	MX_DEBUG(-2,("%s: destroying list entry %p", fname, list_entry));
+#endif
 
 	if ( list_entry == (MX_LIST_ENTRY *) NULL )
 		return;
@@ -290,6 +300,11 @@ mx_list_traverse( MX_LIST *list,
 
 	MX_LIST_ENTRY *list_start, *current_list_entry, *next_list_entry;
 	mx_status_type mx_status;
+
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s invoked for list %p, function %p, argument %p",
+		fname, list, function, argument));
+#endif
 
 	if ( list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -330,6 +345,10 @@ mx_list_traverse( MX_LIST *list,
 
 	} while ( current_list_entry != list_start );
 
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -341,6 +360,11 @@ mx_list_find_list_entry( MX_LIST *list,
 	static const char fname[] = "mx_list_find_list_entry()";
 
 	MX_LIST_ENTRY *list_start, *list_entry_ptr;
+
+#if MX_LIST_DEBUG
+	MX_DEBUG(-2,("%s invoked for list %p, list_entry_data %p",
+		fname, list, list_entry_data));
+#endif
 
 	if ( list == (MX_LIST *)NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -366,8 +390,19 @@ mx_list_find_list_entry( MX_LIST *list,
 	list_entry_ptr = list_start;
 
 	do {
+
+#if MX_LIST_DEBUG
+		MX_DEBUG(-2,("%s: list_entry_ptr = %p", fname, list_entry_ptr));
+		MX_DEBUG(-2,("%s: list_entry_ptr->list_entry_data = %p",
+			fname, list_entry_ptr->list_entry_data));
+#endif
+
 		if ( list_entry_data == list_entry_ptr->list_entry_data ) {
 			*list_entry = list_entry_ptr;
+#if MX_LIST_DEBUG
+			MX_DEBUG(-2,("%s: list entry %p found.",
+				fname, *list_entry));
+#endif
 			return MX_SUCCESSFUL_RESULT;
 		}
 

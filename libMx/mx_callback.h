@@ -23,9 +23,11 @@
 extern "C" {
 #endif
 
+#include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_virtual_timer.h"
 #include "mx_pipe.h"
+#include "mx_process.h"
 
 /*--- Callback classes ---*/
 
@@ -115,7 +117,15 @@ MX_API mx_status_type mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 					
 MX_API mx_status_type mx_remote_field_delete_callback( MX_CALLBACK *cb );
 
-MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
+MX_API mx_status_type mx_local_field_add_socket_handler_to_callback(
+					MX_RECORD_FIELD *rf,
+					unsigned long supported_callback_types,
+					mx_status_type ( *callback_function )
+						( MX_CALLBACK *, void * ),
+					MX_SOCKET_HANDLER *socket_handler,
+					MX_CALLBACK **callback_object );
+
+MX_API mx_status_type mx_local_field_add_new_callback( MX_RECORD_FIELD *rf,
 					unsigned long supported_callback_types,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
@@ -124,7 +134,7 @@ MX_API mx_status_type mx_local_field_add_callback( MX_RECORD_FIELD *rf,
 
 MX_API mx_status_type mx_local_field_delete_callback( MX_CALLBACK *cb );
 
-MX_API mx_status_type mx_local_field_find_callback( MX_RECORD_FIELD *rf,
+MX_API mx_status_type mx_local_field_find_old_callback( MX_RECORD_FIELD *rf,
 					unsigned long *supported_callback_types,
 					uint32_t      *callback_id,
 					mx_status_type ( *callback_function )

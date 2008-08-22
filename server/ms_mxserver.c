@@ -243,6 +243,11 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 		callback_handle_struct_array =
 			callback_handle_table->handle_struct_array;
 
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: callback_handle_struct_array = %p",
+			fname, callback_handle_struct_array));
+#endif
+
 		if (callback_handle_struct_array == (MX_HANDLE_STRUCT *) NULL)
 		{
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -253,6 +258,10 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 		array_size = callback_handle_table->block_size
 				* callback_handle_table->num_blocks;
 
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: array_size = %lu", fname, array_size));
+#endif
+
 		for ( i = 0; i < array_size; i++ ) {
 
 			/* Step A */
@@ -260,8 +269,19 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			callback_handle_struct =
 				&(callback_handle_struct_array[i]);
 
+#if NETWORK_DEBUG_CALLBACKS
+			MX_DEBUG(-2,("%s: i = %lu, callback_handle_struct = %p",
+				fname, i, callback_handle_struct));
+#endif
+
 			callback_handle = callback_handle_struct->handle;
 			callback_ptr    = callback_handle_struct->pointer;
+
+#if NETWORK_DEBUG_CALLBACKS
+			MX_DEBUG(-2,
+			("%s: callback_handle = %#lx, callback_ptr = %p",
+				fname, callback_handle, callback_ptr));
+#endif
 
 			/* Step B */
 
@@ -269,6 +289,13 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			  && (callback_ptr != NULL) )
 			{
 			    /* Step C */
+
+#if NETWORK_DEBUG_CALLBACKS
+			    MX_DEBUG(-2,
+			    ("%s: callback_class = %lu, callback_type = %lu",
+			    	fname, callback_ptr->callback_class,
+				callback_ptr->callback_type));
+#endif
 
 			    /* Is this a record field callback? */
 
@@ -292,6 +319,11 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			     */
 
 			    field = callback_ptr->u.record_field;
+
+#if NETWORK_DEBUG_CALLBACKS
+			    MX_DEBUG(-2,("%s: record field = %p",
+			    	fname, field));
+#endif
 
 			    if ( field == (MX_RECORD_FIELD *) NULL ) {
 			    	(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE,
@@ -317,15 +349,23 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    callback_socket_handler_list =
 			    		callback_ptr->callback_argument;
 
+#if NETWORK_DEBUG_CALLBACKS
+			    MX_DEBUG(-2,
+			    ("%s: callback_socket_handler_list = %p",
+			    	fname, callback_socket_handler_list));
+#endif
+
 			    if (callback_socket_handler_list == (MX_LIST *)NULL)
 			    {
-			        (void) mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-				fname, "The socket handler list for callback "
+#if NETWORK_DEBUG_CALLBACKS
+				MX_DEBUG(-2,
+				("%s: The socket handler list for callback "
 				"%p used by record field '%s.%s' is NULL.",
-					callback_ptr,
-					field->record->name, field->name );
+					fname, callback_ptr,
+					field->record->name, field->name ));
+#endif
 
-				continue;    /* Skip this broken callback. */
+				continue;    /* Skip this callback. */
 			    }
 
 #if NETWORK_DEBUG_CALLBACKS
@@ -339,6 +379,13 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    /* See if the socket handler MX_LIST contains
 			     * the socket handler that we are looking for.
 			     */
+
+#if NETWORK_DEBUG_CALLBACKS
+			    MX_DEBUG(-2,("%s: looking for socket_handler %p "
+			    	"on callback_socket_handler_list %p",
+					fname, socket_handler,
+					callback_socket_handler_list));
+#endif
 
 			    mx_status = mx_list_find_list_entry(
 			    			callback_socket_handler_list,
@@ -417,9 +464,10 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    {
 #if NETWORK_DEBUG_CALLBACKS
 			    	MX_DEBUG(-2,
-				("%s: The callback socket handler list for "
+				("%s: callback socket handler list %p for "
 				"record field '%s.%s' is NOT empty.",
-				    fname, field->record->name, field->name));
+				    fname, callback_socket_handler_list,
+				    field->record->name, field->name));
 #endif
 
 				/* We are done with this callback, so skip
@@ -436,6 +484,12 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			     * list is empty.  If so, then we start to delete *
 			     * all references to the callback.                *
 			     * ************************************************/
+#if NETWORK_DEBUG_CALLBACKS
+			    MX_DEBUG(-2,
+			    ("%s: callback_socket_handler_list %p is empty.",
+			    	fname, callback_socket_handler_list));
+#endif
+
 
 			    /* Step F, part 1 */
 
@@ -4231,9 +4285,13 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/*------------------------------------------------------------*/
 
+	/* FIXME: This section of code should be replaced by a call
+	 * to mx_local_field_add_socket_handler_to_callback().
+	 */
+
 	/* See if a callback of this type already exists. */
 
-	mx_status = mx_local_field_find_callback( field,
+	mx_status = mx_local_field_find_old_callback( field,
 					&callback_type,
 					NULL,
 					mxsrv_record_field_callback,
@@ -4313,7 +4371,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 		/* Create the callback. */
 
-		mx_status = mx_local_field_add_callback( field,
+		mx_status = mx_local_field_add_new_callback( field,
 					callback_type,
 					mxsrv_record_field_callback,
 					socket_handler_list,

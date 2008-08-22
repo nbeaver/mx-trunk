@@ -7129,12 +7129,15 @@ mxp_area_detector_datafile_management_callback( MX_CALLBACK *callback,
 	static const char fname[] =
 		"mxp_area_detector_datafile_management_callback()";
 
+	MX_RECORD_FIELD *record_field;
 	MX_RECORD *record;
 	MX_AREA_DETECTOR *ad;
 	mx_status_type (*handler_fn)(MX_RECORD *);
 	mx_status_type mx_status;
 
-	record = argument;
+	record_field = callback->u.record_field;
+
+	record = record_field->record;
 
 	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
 
@@ -7251,8 +7254,12 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	}
 
 	/* We need to install a value-changed callback for the
-	 * 'total_num_frames' field of the area detector.
+	 * 'total_num_frames' field of the area detector with
+	 * a NULL socket handler, since the value-changed
+	 * callback is internal to the server.
 	 */
+
+	/* Find the MX_RECORD_FIELD structure for the field. */
 
 	mx_status = mx_find_record_field( record,
 					"total_num_frames",
@@ -7264,10 +7271,11 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	MX_DEBUG(-2,("%s: Installing value changed callback for field '%s.%s'",
 		fname, record->name, field->name));
 
-	mx_status = mx_local_field_add_callback( field,
+	mx_status = mx_local_field_add_socket_handler_to_callback(
+				field,
 				MXCBT_VALUE_CHANGED,
 				mxp_area_detector_datafile_management_callback,
-				record,
+				NULL,
 				&callback_object );
 
 	return mx_status;

@@ -19,6 +19,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined( OS_WIN32 )
 #include <windows.h>
@@ -66,6 +67,33 @@ mx_is_valid_heap_pointer( void *pointer )
 }
 
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT int
+mx_free_pointer( void *pointer )
+{
+	if ( pointer == NULL ) {
+		return TRUE;
+	}
+
+	if ( mx_is_valid_heap_pointer( pointer ) ) {
+		free( pointer );
+		return TRUE;
+	} else {
+		/* Experimentation shows that freeing a pointer that fails
+		 * the mx_is_valid_heap_pointer() test usually causes a
+		 * program crash, so we must just live with the possibilty
+		 * of a memory leak instead.
+		 */
+
+		mx_warning(
+	"Pointer %p passed to mx_free_pointer() is not a valid heap pointer.",
+			pointer );
+
+		return FALSE;
+	}
+}
 
 /*-------------------------------------------------------------------------*/
 

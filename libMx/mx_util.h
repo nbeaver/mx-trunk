@@ -418,14 +418,16 @@ MX_API int mx_parse_command_line( char *command_line,
 
 MX_API int mx_free_pointer( void *pointer );
 
-/* mx_free() is a macro that calls mx_free_pointer() and then sets
- * the pointer to NULL if mx_free_pointer() returned TRUE.
+/* mx_free() is a macro that checks to see if the pointer is NULL
+ * before attempting to free it.  After the pointer is freed, the
+ * local copy of the pointer is set to NULL.
  */
 
 #define mx_free( ptr ) \
-			do { \
-				if ( mx_free_pointer( ptr ) ) { \
-					(ptr) = NULL; \
+			do {				\
+				if ( (ptr) != NULL ) {	\
+					free(ptr);	\
+					(ptr) = NULL;	\
 				} \
 			} while (0)
 

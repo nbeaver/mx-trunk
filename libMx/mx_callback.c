@@ -16,7 +16,7 @@
 
 #define MX_CALLBACK_DEBUG				FALSE
 
-#define MX_CALLBACK_DEBUG_CALLBACK_POINTERS		TRUE
+#define MX_CALLBACK_DEBUG_CALLBACK_POINTERS		FALSE
 
 #define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
 
@@ -494,6 +494,35 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		nf->record_handle, nf->field_handle ));
 #endif
 
+#if MX_CALLBACK_DEBUG_CALLBACK_POINTERS
+	{
+		int is_valid;
+
+		is_valid = mx_is_valid_pointer( callback_function,
+						sizeof(callback_function),
+						R_OK );
+
+		if ( is_valid == FALSE ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Callback function pointer %p is not valid.",
+				callback_function );
+		}
+
+		if ( callback_argument != NULL ) {
+			is_valid = mx_is_valid_pointer( callback_argument,
+						sizeof(callback_argument),
+						R_OK | W_OK );
+
+			if ( is_valid == FALSE ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"Callback argument pointer %p is not valid.",
+					callback_argument );
+			}
+		}
+	}
+#endif
+
 	server_record = nf->server_record;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -899,14 +928,137 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
+mx_local_field_add_socket_handler_to_callback(
+			MX_RECORD_FIELD *record_field,
+			unsigned long supported_callback_types,
+			mx_status_type ( *callback_function )(
+						MX_CALLBACK *, void * ),
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_CALLBACK **callback_object )
+{
+#if 0
+	static const char fname[] =
+		"mx_local_field_add_socket_handler_to_callback()";
+#endif
+	MX_LIST *socket_handler_list;
+	MX_LIST_ENTRY *list_entry;
+	unsigned long old_supported_callback_types;
+	mx_status_type mx_status;
+
+	/* See if a callback of this type already exists. */
+
+	mx_status = mx_local_field_find_old_callback( record_field,
+						&old_supported_callback_types,
+						NULL,
+						callback_function,
+						NULL,
+						callback_object );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+
+		if ( socket_handler != NULL ) {
+
+			/* mx_local_field_find_old_callback() successfully
+			 * found an existing callback.
+			 */
+
+			socket_handler_list =
+				(*callback_object)->callback_argument;
+
+			/* Is this socket handler already in the list? */
+
+			mx_status = mx_list_find_list_entry(
+							socket_handler_list,
+							socket_handler,
+							&list_entry );
+
+			if ( mx_status.code == MXE_SUCCESS ) {
+				/* Do nothing. */
+			} else
+			if ( mx_status.code == MXE_NOT_FOUND ) {
+				/* If the socket_handler is not already in
+				 * the list, then add it to the list.
+				 */
+
+				mx_status = mx_list_entry_create( &list_entry,
+						socket_handler, NULL );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				mx_status = mx_list_add_entry(
+					socket_handler_list, list_entry );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			} else {
+				/* An unexpected error occurred. */
+
+				return mx_status;
+			}
+		}
+	} else
+	if ( mx_status.code == MXE_NOT_FOUND ) {
+		/* If an existing callback was not found,
+		 * then we must create a new one.
+		 */
+							
+		/* Create a new list of socket handlers for this field
+		 * and add this socket handler to the list.
+		 */
+
+		mx_status = mx_list_create( &socket_handler_list );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( socket_handler != NULL ) {
+
+			mx_status = mx_list_entry_create( &list_entry,
+						socket_handler, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_list_add_entry( socket_handler_list,
+							list_entry );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Create the callback. */
+
+		mx_status = mx_local_field_add_new_callback( record_field,
+						supported_callback_types,
+						callback_function,
+						socket_handler_list,
+						callback_object );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* We got an unexpected error, so return that error
+		 * to the caller.
+		 */
+
+		return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 			unsigned long supported_callback_types,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_local_field_add_callback()";
+	static const char fname[] = "mx_local_field_add_new_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_list;
@@ -942,6 +1094,35 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 		fname, record->name, record_field->name ));
 #endif
 
+#if MX_CALLBACK_DEBUG_CALLBACK_POINTERS
+	{
+		int is_valid;
+
+		is_valid = mx_is_valid_pointer( callback_function,
+						sizeof(callback_function),
+						R_OK );
+
+		if ( is_valid == FALSE ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Callback function pointer %p is not valid.",
+				callback_function );
+		}
+
+		if ( callback_argument != NULL ) {
+			is_valid = mx_is_valid_pointer( callback_argument,
+						sizeof(callback_argument),
+						R_OK | W_OK );
+
+			if ( is_valid == FALSE ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"Callback argument pointer %p is not valid.",
+					callback_argument );
+			}
+		}
+	}
+#endif
+
 	list_head = mx_get_record_list_head_struct( record );
 
 	if ( list_head == (MX_LIST_HEAD *) NULL ) {
@@ -963,6 +1144,12 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 
 	callback_handle_table = list_head->server_callback_handle_table;
 
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,
+	("%s: callback_handle_table = %p, record_field->callback_list = %p",
+		fname, callback_handle_table, record_field->callback_list));
+#endif
+
 	/* If the record field does not yet have a callback list, then
 	 * create one now.  Otherwise, just use the list that is 
 	 * already there.
@@ -979,9 +1166,17 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 		callback_list = record_field->callback_list;
 	}
 
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_list = %p", fname, callback_list));
+#endif
+
 	/* Allocate an MX_CALLBACK structure to contain the callback info. */
 
 	callback_ptr = malloc( sizeof(MX_CALLBACK) );
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_ptr = %p", fname, callback_ptr));
+#endif
 
 	if ( callback_ptr == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1002,6 +1197,8 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback_ptr->callback_function = %p",
 		fname, callback_ptr->callback_function));
+	MX_DEBUG(-2,("%s: callback_ptr->callback_argument = %p",
+		fname, callback_ptr->callback_argument));
 #endif
 
 	/* Add this callback to the server's callback handle table. */
@@ -1011,6 +1208,12 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_ptr %p was added to "
+		"callback_handle_table %p with handle %lu",
+		fname, callback_ptr, callback_handle_table, callback_handle));
+#endif
 
 	callback_ptr->callback_id =
 		MX_NETWORK_MESSAGE_ID_MASK & (uint32_t) callback_handle;
@@ -1028,6 +1231,13 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_ptr %p was added to callback_list %p "
+		"of record field '%s.%s' with list_entry = %p",
+		fname, callback_ptr, callback_list,
+		record->name, record_field->name, list_entry ));
+#endif
 
 	/* If requested, return the new callback object to the caller. */
 
@@ -1052,7 +1262,7 @@ mx_local_field_delete_callback( MX_CALLBACK *callback )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
+mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 			unsigned long *supported_callback_types,
 			uint32_t      *callback_id,
 			mx_status_type ( *callback_function )(
@@ -1060,7 +1270,7 @@ mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
 			void          *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_local_field_find_callback()";
+	static const char fname[] = "mx_local_field_find_old_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_list;
@@ -1298,7 +1508,7 @@ mx_function_add_callback( MX_RECORD *record_list,
 					MX_CALLBACK_MESSAGE * ),
 			mx_status_type ( *callback_destructor )(
 					MX_CALLBACK_MESSAGE * ),
-			void *callback_arguments,
+			void *callback_argument,
 			double callback_interval,
 			MX_CALLBACK_MESSAGE **callback_message )
 {
@@ -1317,6 +1527,36 @@ mx_function_add_callback( MX_RECORD *record_list,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The callback function pointer passed was NULL." );
 	}
+
+#if MX_CALLBACK_DEBUG_CALLBACK_POINTERS
+	{
+		int is_valid;
+
+		is_valid = mx_is_valid_pointer( callback_function,
+						sizeof(callback_function),
+						R_OK );
+
+		if ( is_valid == FALSE ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Callback function pointer %p is not valid.",
+				callback_function );
+		}
+
+		if ( callback_argument != NULL ) {
+			is_valid = mx_is_valid_pointer( callback_argument,
+						sizeof(callback_argument),
+						R_OK | W_OK );
+
+			if ( is_valid == FALSE ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"Callback argument pointer %p is not valid.",
+					callback_argument );
+			}
+		}
+	}
+#endif
+
 	if ( callback_interval <= 0.0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The callback interval %g is not a legal callback interval.  "
@@ -1356,7 +1596,7 @@ mx_function_add_callback( MX_RECORD *record_list,
 	callback_message_ptr->u.function.callback_destructor =
 							callback_destructor;
 
-	callback_message_ptr->u.function.callback_args = callback_arguments;
+	callback_message_ptr->u.function.callback_args = callback_argument;
 
 	/* Specify the callback interval in seconds. */
 
