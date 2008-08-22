@@ -246,6 +246,17 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 #else
 
+/* FIXME: Apparently for other operating systems, the appropriate 
+ * equivalents are:
+ *
+ * FreeBSD               /proc/curproc/map
+ * All BSDs:             mincore()
+ * MacOS X:              vm_region()
+ * Irix, OSF/1, Solaris: ioctl(PIOCMAP)
+ *
+ * These will be implemented as time permits.
+ */
+
 MX_EXPORT int
 mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 {
