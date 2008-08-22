@@ -999,20 +999,22 @@ mx_local_field_add_socket_handler_to_callback(
 		}
 	} else
 	if ( mx_status.code == MXE_NOT_FOUND ) {
+
 		/* If an existing callback was not found,
 		 * then we must create a new one.
 		 */
 							
-		/* Create a new list of socket handlers for this field
-		 * and add this socket handler to the list.
-		 */
+		if ( socket_handler == NULL ) {
+			socket_handler_list = NULL;
+		} else {
+			/* Create a new list of socket handlers for this field
+			 * and add this socket handler to the list.
+			 */
 
-		mx_status = mx_list_create( &socket_handler_list );
+			mx_status = mx_list_create( &socket_handler_list );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( socket_handler != NULL ) {
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			mx_status = mx_list_entry_create( &list_entry,
 						socket_handler, NULL );
