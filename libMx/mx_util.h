@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -299,12 +299,19 @@ MX_API int mx_heap_check( void );
 
 /*--- Other debugging tools ---*/
 
-/* mx_is_valid_pointer() __attempts__ to see if the supplied pointer
- * is a valid pointer.  This is not guaranteed to work on all platforms
- * by any means.
+/* mx_is_valid_pointer() __attempts__ to see if the memory range pointed
+ * to by the supplied pointer is mapped into the current process with
+ * the requested access mode.  The length argument is the length of the
+ * memory range that is checked.  The access mode is a bit-wise OR of the
+ * desired R_OK and W_OK bits as defined in "mx_unistd.h".
+ *
+ * WARNING: mx_is_valid_pointer() is not guaranteed to work on all
+ * platforms by any means.  On some platforms, it may have a severe
+ * performance penalty and can have other very undesirable side effects.
+ * You should not use this function during normal operation!
  */
 
-MX_API int mx_is_valid_pointer( void *pointer );
+MX_API int mx_is_valid_pointer( void *pointer, size_t length, int access_mode );
 
 /*
  * mx_force_core_dump() attempts to force the creation of a snapshot

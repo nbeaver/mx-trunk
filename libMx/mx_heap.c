@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007 Illinois Institute of Technology
+ * Copyright 2004-2005, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 
 #if defined( OS_WIN32 ) && defined( _DEBUG )
 
@@ -50,14 +51,18 @@ mx_is_valid_heap_pointer( void *pointer )
 
 #else
 
+/* If we do not have a heap-specific pointer check function, then we
+ * just check to see if the pointer points to valid memory.
+ */
+
 MX_EXPORT int
 mx_is_valid_heap_pointer( void *pointer )
 {
-	if ( pointer == NULL ) {
-		return FALSE;
-	} else {
-		return TRUE;
-	}
+	int result;
+
+	result = mx_is_valid_pointer( pointer, sizeof(void *), R_OK );
+
+	return result;
 }
 
 #endif
