@@ -2307,6 +2307,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Set the datafile format to the frame file format. */
+
+	/* FIXME: Are both of these necessary? */
+
+	ad->datafile_format = ad->frame_file_format;
+
 	ad_flags = ad->area_detector_flags;
 
 	pccd_flags = pccd_170170->pccd_170170_flags;

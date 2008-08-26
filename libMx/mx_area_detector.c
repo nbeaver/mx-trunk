@@ -42,7 +42,7 @@
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -314,7 +314,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->last_datafile_name[0] = '\0';
 	ad->datafile_format = 0;
 
-	ad->datafile_total_num_frames = -1;
+	ad->datafile_total_num_frames = 0;
+	ad->datafile_last_frame_number = 0;
 	ad->datafile_management_handler = NULL;
 	ad->datafile_management_callback = NULL;
 
@@ -2132,6 +2133,8 @@ mx_area_detector_arm( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		ad->datafile_last_frame_number = 0;
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,
 		("%s: area detector '%s', datafile_total_num_frames = %ld",
@@ -2440,7 +2443,7 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 
 #if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if 0 && MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: ad->datafile_management_handler = %p",
 		fname, ad->datafile_management_handler));
 	MX_DEBUG(-2,("%s: ad->datafile_management_callback = %p",
@@ -7288,50 +7291,150 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"mx_area_detector_default_datafile_management_handler()";
 
 	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	char filename[MXU_FILENAME_LENGTH+1];
 	unsigned long flags;
 	mx_status_type mx_status;
 
-	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	MX_DEBUG( 2,("%s invoked for area detector '%s'.",
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
-
-	flags = ad->area_detector_flags;
-
-	snprintf( filename, sizeof(filename),
-		"%s/%s", ad->datafile_directory, ad->datafile_name );
-
-	if ( strcmp(filename, "/") == 0 ) {
-#if 0
-		mx_warning("The image frame directory and filename have not "
-		"yet been specified for area detector '%s'.", record->name );
 #endif
 
+	/* Get the current value of the total number of frames by calling the
+	 * driver function directly.  mx_area_detector_get_total_num_frames()
+	 * is not used here since that would result in another recursive call
+	 * to the datafile management handler and the program would crash when
+	 * the resulting infinite series of recursive calls exceeded the
+	 * maximum stack size.
+	 */
+
+	if ( flist->get_total_num_frames != NULL ) {
+		mx_status = (flist->get_total_num_frames)( ad );
+	} else
+	if ( flist->get_extended_status != NULL ) {
+		mx_status = (flist->get_extended_status)( ad );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Area detector '%s' does not provide a way to get the "
+		"total number of frames since startup.  This means that "
+		"the default datafile management handler cannot be used "
+		"for this detector.", record->name );
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+	MX_DEBUG(-2,
+		("%s: total_num_frames = %lu, datafile_total_num_frames = %lu",
+		fname, ad->total_num_frames,
+		ad->datafile_total_num_frames));
+#endif
+
+	if ( ad->total_num_frames <= ad->datafile_total_num_frames ) {
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+		MX_DEBUG(-2,("%s: No new image frames are available to be "
+		"saved or loaded.", fname));
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+	MX_DEBUG(-2,("%s: datafile_directory = '%s'",
+		fname, ad->datafile_directory));
+	MX_DEBUG(-2,("%s: datafile_pattern = '%s'",
+		fname, ad->datafile_pattern));
+	MX_DEBUG(-2,("%s: datafile_name = '%s'", fname, ad->datafile_name));
+#endif
+
+	if ( strlen(ad->datafile_directory) == 0 ) {
+
+		if ( strlen(ad->datafile_name) == 0 ) {
+			ad->datafile_total_num_frames++;
+
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The image frame directory and filename have not "
+			"yet been specified for area detector '%s'.",
+				record->name );
+		} else {
+			strlcpy( filename, ad->datafile_name,
+				sizeof(filename) );
+		}
+	} else
+	if ( strlen(ad->datafile_name) == 0 ) {
+		ad->datafile_total_num_frames++;
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No image frame filename has been specified for "
+		"image frame directory '%s' used by area detector '%s'.",
+			ad->datafile_directory, record->name );
+	} else {
+		snprintf( filename, sizeof(filename),
+			"%s/%s", ad->datafile_directory, ad->datafile_name );
+	}
+
+	flags = ad->area_detector_flags;
+
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+		if ( ad->image_frame == NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+			MX_DEBUG(-2,("%s: Setting up initial image frame "
+			"for area detector '%s'.", fname, record->name ));
+#endif
+			mx_status = mx_area_detector_setup_frame( record,
+							&(ad->image_frame) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+		MX_DEBUG(-2,("%s: Reading out image frame %lu",
+			fname, ad->datafile_last_frame_number));
+#endif
+		mx_status = mx_area_detector_readout_frame( record,
+						ad->datafile_last_frame_number);
+
+		ad->datafile_last_frame_number++;
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+		MX_DEBUG(-2,("%s: Correcting the image frame.", fname));
+#endif
+		mx_status = mx_area_detector_correct_frame( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
 			fname, record->name, filename));
+#endif
 
 		mx_status = mx_image_write_file( ad->image_frame,
 						ad->datafile_format,
 						filename );
 	} else
 	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
 			fname, record->name, filename));
+#endif
 
 		mx_status = mx_image_read_file( &(ad->image_frame),
 						ad->datafile_format,
 						filename );
 	}
+
+	ad->datafile_total_num_frames++;
 
 	return mx_status;
 }

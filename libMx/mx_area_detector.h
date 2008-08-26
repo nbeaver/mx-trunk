@@ -375,6 +375,7 @@ typedef struct mx_area_detector_type {
 	unsigned long datafile_format;
 
 	long datafile_total_num_frames;
+	long datafile_last_frame_number;
 	mx_status_type (*datafile_management_handler)(MX_RECORD *);
 
 	MX_CALLBACK *datafile_management_callback;
