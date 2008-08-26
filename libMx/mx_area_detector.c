@@ -38,11 +38,13 @@
 
 #define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION	FALSE
+
 /*---*/
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6887,8 +6889,10 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
+#endif
 
 	/* If the datafile pattern is empty, then set the datafile number
 	 * to zero, since it will not be used.
@@ -6955,7 +6959,9 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 	snprintf( ptr, sizeof(format) - length_of_leading_segment,
 		"%%lu%s", trailing_segment );
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+#endif
 
 	ad->datafile_number = 0;
 
@@ -6981,7 +6987,9 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 		if ( dirent_ptr != NULL ) {
 			name_ptr = dirent_ptr->d_name;
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 			MX_DEBUG(-2,("%s: name_ptr = '%s'", fname, name_ptr));
+#endif
 
 			if ( strcmp( name_ptr, "." ) == 0 ) {
 				continue;
@@ -7016,8 +7024,10 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 		}
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 	MX_DEBUG(-2,("%s: ad->datafile_number = %lu",
 		fname, ad->datafile_number));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -7040,17 +7050,22 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
+#endif
 
 	/* If the datafile pattern is empty, we use the existing contents
 	 * of datafile_name as is.
 	 */
 
 	if ( ad->datafile_pattern[0] == '\0' ) {
+
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 		MX_DEBUG(-2,
 		("%s: Using datafile name '%s' for area detector '%s' as is.",
 			fname, ad->datafile_name, record->name ));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7068,10 +7083,12 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 		strlcpy( ad->datafile_name, ad->datafile_pattern,
 			sizeof(ad->datafile_name) );
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 		MX_DEBUG(-2,
 		("%s: Using datafile pattern as the datafile name '%s' "
 		"for area detector '%s'.",
 			fname, ad->datafile_name, record->name ));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7117,8 +7134,10 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 	strlcat( ad->datafile_name, trailing_segment,
 				sizeof(ad->datafile_name) );
 
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
 	MX_DEBUG(-2,("%s: ad->datafile_name = '%s'",
 		fname, ad->datafile_name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -7147,8 +7166,10 @@ mxp_area_detector_datafile_management_callback( MX_CALLBACK *callback,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
+#endif
 
 	handler_fn = ad->datafile_management_handler;
 
@@ -7182,8 +7203,10 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
+#endif
 
 	flags = ad->area_detector_flags;
 
@@ -7251,7 +7274,9 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 		 * set up a callback.  This means that we are done here.
 		 */
 
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,("%s: No callback pipe, so returning...", fname));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -7271,8 +7296,10 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: Installing value changed callback for field '%s.%s'",
 		fname, record->name, field->name));
+#endif
 
 	mx_status = mx_local_field_add_socket_handler_to_callback(
 				field,
@@ -7344,6 +7371,32 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	flags = ad->area_detector_flags;
+
+	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+		/* If a datafile pattern has been specified, then construct
+		 * the next filename that fits the pattern.
+		 */
+
+		if ( ad->datafile_pattern[0] != '\0' ) {
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+			MX_DEBUG(-2,("%s: Constructing new filename for "
+			"area detector '%s' using pattern '%s'.",
+				fname, record->name, ad->datafile_pattern));
+#endif
+			mx_status =
+			  mx_area_detector_construct_next_datafile_name(record);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+			MX_DEBUG(-2,("%s: New filename = '%s'.",
+				fname, ad->datafile_name));
+#endif
+		}
+	}
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 	MX_DEBUG(-2,("%s: datafile_directory = '%s'",
 		fname, ad->datafile_directory));
@@ -7377,8 +7430,6 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		snprintf( filename, sizeof(filename),
 			"%s/%s", ad->datafile_directory, ad->datafile_name );
 	}
-
-	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		if ( ad->image_frame == NULL ) {

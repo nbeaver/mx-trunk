@@ -370,6 +370,7 @@ typedef struct mx_area_detector_type {
 	char datafile_pattern[MXU_FILENAME_LENGTH+1];
 	char datafile_name[MXU_FILENAME_LENGTH+1];
 	unsigned long datafile_number;
+	mx_bool_type construct_next_datafile_name;
 
 	char last_datafile_name[MXU_FILENAME_LENGTH+1];
 	unsigned long datafile_format;
@@ -469,8 +470,9 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DATAFILE_PATTERN		12501
 #define MXLV_AD_DATAFILE_NAME			12502
 #define MXLV_AD_DATAFILE_NUMBER			12503
-#define MXLV_AD_LAST_DATAFILE_NAME		12504
-#define MXLV_AD_DATAFILE_FORMAT			12505
+#define MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME	12504
+#define MXLV_AD_LAST_DATAFILE_NAME		12505
+#define MXLV_AD_DATAFILE_FORMAT			12506
 
 #define MXLV_AD_OSCILLATION_MOTOR_NAME		12600
 #define MXLV_AD_START_EXPOSURE			12602
@@ -843,6 +845,12 @@ typedef struct mx_area_detector_type {
   \
   {MXLV_AD_DATAFILE_NUMBER, -1, "datafile_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_number), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME, -1, "construct_next_datafile_name", \
+  					MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, construct_next_datafile_name), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_LAST_DATAFILE_NAME, -1, "last_datafile_name", MXFT_STRING, \
