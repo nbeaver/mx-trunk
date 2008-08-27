@@ -4433,6 +4433,15 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	uint32_message[0] = mx_htonl( callback_object->callback_id );
 
+#if NETWORK_DEBUG_MESSAGES
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
+
+		mx_network_display_message( network_message, NULL );
+	}
+#endif
+
 	/* Send the message to the client. */
 
 	mx_status = mx_network_socket_send_message(
@@ -4733,6 +4742,15 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	char_message = (char *) uint32_message;
 
 	char_message[0] = '\0';
+
+#if NETWORK_DEBUG_MESSAGES
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
+
+		mx_network_display_message( network_message, NULL );
+	}
+#endif
 
 	/* Send the message to the client. */
 
