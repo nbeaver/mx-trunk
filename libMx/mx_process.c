@@ -359,20 +359,41 @@ mx_process_record_field( MX_RECORD *record,
 		} else
 		if ( record_field->callback_list != NULL ) {
 
-			/* Otherwise, if the field has a callback list,
-			 * then we invoke the generic value changed
-			 * test function.
-			 */
+			/* The field has a callback list. */
 
-			mx_status = mx_test_for_value_changed( record_field,
-							&value_changed );
+			if ( (record_field->datatype == MXFT_STRING)
+			  || (record_field->num_dimensions >= 2) )
+			{
+				/* FIXME: For strings or multidimensional
+				 * arrays, we treat PUT operations as if
+				 * they _always_ change the value.  This
+				 * is oversimplistic.
+				 */
+				 
+				if ( direction == MX_PROCESS_PUT ) {
+					value_changed = TRUE;
+				} else {
+					value_changed = FALSE;
+				}
+			} else {
+				/* For 0-d and 1-d arrays that are not
+				 * strings, we invoke the generic value
+				 * changed test function.
+				 */
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				mx_status = mx_test_for_value_changed(
+						record_field, &value_changed );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		} else {
-			/* If both tests above are FALSE, then we do not
-			 * perform any value changed tests.
+			/* If the field does not have a callback list, or a
+			 * a special value changed function, then there is
+			 * no place to send a value changed notification.
 			 */
+
+			value_changed = FALSE;
 		}
 
 #if PROCESS_DEBUG
