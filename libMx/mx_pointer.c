@@ -244,7 +244,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	return valid;
 }
 
-#else
+#elif 0
 
 /* FIXME: Apparently for other operating systems, the appropriate 
  * equivalents are:
@@ -266,6 +266,10 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		return TRUE;
 	}
 }
+
+#else
+
+#error mx_is_valid_pointer() has not yet been defined for this build target.
 
 #endif
 
