@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,6 +74,14 @@ typedef struct {
 	char marccd_host[ MXU_HOSTNAME_LENGTH + 1 ];
 	long marccd_port;
 
+	/* Thread to monitor messages sent by MarCCD. */
+
+	MX_THREAD *marccd_monitor_thread;
+
+	/* Receive buffer for messages sent by MarCCD. */
+
+	char receive_buffer[ 80 ];
+
 	/* The command that currently should be executing. */
 
 	int current_command;
@@ -124,9 +132,11 @@ MX_API mx_status_type mxd_marccd_command( MX_AREA_DETECTOR *ad,
 					char *command,
 					unsigned long flags );
 
+#if 0
 MX_API mx_status_type mxd_marccd_check_for_responses( MX_AREA_DETECTOR *ad,
 							MX_MARCCD *marccd,
 							unsigned long flags );
+#endif
 
 extern MX_RECORD_FUNCTION_LIST mxd_marccd_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_ad_function_list;

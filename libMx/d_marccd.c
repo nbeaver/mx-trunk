@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_socket.h"
+#include "mx_thread.h"
 #include "mx_unistd.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
@@ -79,7 +80,17 @@ long mxd_marccd_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_marccd_rfield_def_ptr
 			= &mxd_marccd_record_field_defaults[0];
 
-/*---*/
+/*-------------------------------------------------------------------------*/
+
+static int mxd_marccd_input_is_available( MX_MARCCD * );
+
+static mx_status_type mxd_marccd_handle_response( MX_AREA_DETECTOR *,
+						MX_MARCCD *, unsigned long );
+
+static mx_status_type mxd_marccd_handle_state_value( MX_AREA_DETECTOR *,
+						MX_MARCCD *, int );
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_marccd_get_pointers( MX_AREA_DETECTOR *ad,
@@ -93,24 +104,94 @@ mxd_marccd_get_pointers( MX_AREA_DETECTOR *ad,
 			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (marccd == NULL) {
+	if ( marccd == (MX_MARCCD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_MARCCD pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*marccd = (MX_MARCCD *)
-				ad->record->record_type_struct;
+	*marccd = (MX_MARCCD *) ad->record->record_type_struct;
 
 	if ( *marccd == (MX_MARCCD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_MARCCD pointer for record '%s' passed by '%s' is NULL.",
+		"MX_MARCCD pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*-------------------------------------------------------------------------*/
+
+/* Once started, mxd_marccd_monitor_thread() is the only thread that is
+ * allowed to receive messages from MarCCD.
+ */
+
+static mx_status_type
+mxd_marccd_monitor_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxd_marccd_monitor_thread()";
+
+	MX_RECORD *marccd_record;
+	MX_AREA_DETECTOR *ad;
+	MX_MARCCD *marccd;
+	int input_available;
+	unsigned long sleep_us;
+	mx_status_type mx_status;
+
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	marccd_record = (MX_RECORD *) args;
+
+#if MARCCD_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+		fname, marccd_record->name ));
+#endif
+	ad = (MX_AREA_DETECTOR *) marccd_record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			marccd_record->name );
+	}
+
+	marccd = (MX_MARCCD *) marccd_record->record_type_struct;
+
+	if ( marccd == (MX_MARCCD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MARCCD pointer for record '%s' is NULL.",
+			marccd_record->name );
+	}
+
+	sleep_us = 10;
+
+	while (1) {
+		/* Check for a new message from MarCCD. */
+
+		input_available = mxd_marccd_input_is_available(marccd);
+
+		if ( input_available ) {
+			mx_status = mxd_marccd_handle_response( ad, marccd, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxd_marccd_handle_state_value( ad, marccd,
+							marccd->current_state );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_usleep( sleep_us );
+
+		mx_status = mx_thread_check_for_stop_request( thread );
+	}
+}
+
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_marccd_find_file_descriptors( MX_MARCCD *marccd )
@@ -276,7 +357,6 @@ mxd_marccd_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_MARCCD *marccd;
-	int flags;
 	mx_status_type mx_status;
 
 	marccd = NULL;
@@ -321,13 +401,12 @@ mxd_marccd_open( MX_RECORD *record )
 
 	marccd->use_finish_time = FALSE;
 
-	/* MarCCD sends an 'is_state' response message at startup
-	 * followed by 'is_size' and 'is_bin' messages.
-	 */
+	/* Start a thread to monitor messages sent by MarCCD. */
 
-	flags = MXF_MARCCD_FORCE_READ | MXD_MARCCD_DEBUG;
-
-	mx_status = mxd_marccd_check_for_responses( ad, marccd, flags );
+	mx_status = mx_thread_create(
+			&(marccd->marccd_monitor_thread),
+			mxd_marccd_monitor_thread,
+			record );
 
 	return mx_status;
 }
@@ -530,11 +609,16 @@ mxd_marccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
+#if 0
+	/* FIXME: Use mutex here? */
+
 	mx_status = mxd_marccd_check_for_responses( ad,
 						marccd, MXD_MARCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	current_time = mx_current_clock_tick();
 
@@ -818,9 +902,13 @@ mxd_marccd_command( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: finished sending command '%s'.",
 			fname, command));
 
+#if 0
 	mx_status = mxd_marccd_check_for_responses( ad, marccd, flags );
 
 	return mx_status;
+#else
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 static const char *
@@ -1219,67 +1307,5 @@ mxd_marccd_input_is_available( MX_MARCCD *marccd )
 	} else {
 		return FALSE;
 	}
-}
-
-MX_EXPORT mx_status_type
-mxd_marccd_check_for_responses( MX_AREA_DETECTOR *ad,
-				MX_MARCCD *marccd,
-				unsigned long flags )
-{
-	static const char fname[] = "mxd_marccd_check_for_responses()";
-
-	int input_available;
-	unsigned long i, num_times_to_check, sleep_us;
-	mx_status_type mx_status;
-
-	MX_DEBUG(-2,("%s *** invoked.", fname));
-
-	num_times_to_check = 100;
-
-	sleep_us = 1;
-
-	for ( i = 0; i < num_times_to_check; i++ ) {
-
-		input_available = mxd_marccd_input_is_available( marccd );
-
-		MX_DEBUG(-2,("%s: input_available = %d",
-			fname, input_available));
-
-		if ( flags & MXF_MARCCD_FORCE_READ ) {
-			input_available = 1;
-
-			flags &= ( ~MXF_MARCCD_FORCE_READ );
-
-			MX_DEBUG(-2,("%s: Read was FORCED.", fname));
-		}
-
-		if ( input_available == 0 ) {
-			/* No input is available, so exit the while() loop. */
-
-			break;
-		}
-
-		mx_status = mxd_marccd_handle_response( ad, marccd, flags );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_usleep(sleep_us);
-	}
-
-	if ( i >= num_times_to_check ) {
-		return mx_error( MXE_TIMED_OUT, fname,
-			"Timed out after %g seconds while waiting for input "
-			"from MarCCD detector '%s' to stop.",
-			1.0e-6 * (double)( num_times_to_check * sleep_us ),
-				ad->record->name );
-	}
-
-	MX_DEBUG(-2,("%s: *** returning after %lu checks.", fname, i));
-
-	mx_status = mxd_marccd_handle_state_value( ad, marccd,
-						marccd->current_state );
-
-	return mx_status;
 }
 
