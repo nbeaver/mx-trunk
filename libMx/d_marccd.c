@@ -173,7 +173,8 @@ mxd_marccd_monitor_thread( MX_THREAD *thread, void *args )
 		input_available = mxd_marccd_input_is_available(marccd);
 
 		if ( input_available ) {
-			mx_status = mxd_marccd_handle_response( ad, marccd, 0 );
+			mx_status = mxd_marccd_handle_response( ad,
+						marccd, MXD_MARCCD_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -441,9 +442,8 @@ mxd_marccd_close( MX_RECORD *record )
 
 	marccd->current_command = MXF_MARCCD_CMD_END_AUTOMATION;
 
-	mx_status = mxd_marccd_command( ad, marccd,
-				"end_automation",
-				MXD_MARCCD_DEBUG );
+	mx_status = mxd_marccd_command( marccd,
+				"end_automation", MXD_MARCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -546,7 +546,7 @@ mxd_marccd_trigger( MX_AREA_DETECTOR *ad )
 
 	marccd->current_command = MXF_MARCCD_CMD_START;
 
-	mx_status = mxd_marccd_command( ad, marccd, "start", MXD_MARCCD_DEBUG );
+	mx_status = mxd_marccd_command( marccd, "start", MXD_MARCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -583,7 +583,7 @@ mxd_marccd_stop( MX_AREA_DETECTOR *ad )
 
 	marccd->current_command = MXF_MARCCD_CMD_ABORT;
 
-	mx_status = mxd_marccd_command( ad, marccd, "abort", MXD_MARCCD_DEBUG );
+	mx_status = mxd_marccd_command( marccd, "abort", MXD_MARCCD_DEBUG );
 
 	return mx_status;
 }
@@ -667,7 +667,7 @@ mxd_marccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	marccd->current_command = MXF_MARCCD_CMD_READOUT;
 
-	mx_status = mxd_marccd_command( ad, marccd, "readout,0",
+	mx_status = mxd_marccd_command( marccd, "readout,0",
 				MXF_MARCCD_FORCE_READ | MXD_MARCCD_DEBUG );
 
 	return mx_status;
@@ -695,7 +695,7 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 	marccd->current_command = MXF_MARCCD_CMD_CORRECT;
 	marccd->next_state = MXF_MARCCD_STATE_CORRECT;
 
-	mx_status = mxd_marccd_command(ad, marccd, "correct", MXD_MARCCD_DEBUG);
+	mx_status = mxd_marccd_command( marccd, "correct", MXD_MARCCD_DEBUG );
 
 	return mx_status;
 }
@@ -729,12 +729,12 @@ mxd_marccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		mx_status = mxd_marccd_command( ad, marccd, "get_size",
+		mx_status = mxd_marccd_command( marccd, "get_size",
 							MXD_MARCCD_DEBUG );
 		break;
 
 	case MXLV_AD_BINSIZE:
-		mx_status = mxd_marccd_command( ad, marccd, "get_bin",
+		mx_status = mxd_marccd_command( marccd, "get_bin",
 							MXD_MARCCD_DEBUG );
 		break;
 
@@ -812,10 +812,9 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 /* --- */
 
 MX_EXPORT mx_status_type
-mxd_marccd_command( MX_AREA_DETECTOR *ad,
-		MX_MARCCD *marccd,
-		char *command,
-		unsigned long flags )
+mxd_marccd_command( MX_MARCCD *marccd,
+			char *command,
+			unsigned long flags )
 {
 	static const char fname[] = "mxd_marccd_command()";
 
@@ -902,13 +901,7 @@ mxd_marccd_command( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: finished sending command '%s'.",
 			fname, command));
 
-#if 0
-	mx_status = mxd_marccd_check_for_responses( ad, marccd, flags );
-
-	return mx_status;
-#else
 	return MX_SUCCESSFUL_RESULT;
-#endif
 }
 
 static const char *

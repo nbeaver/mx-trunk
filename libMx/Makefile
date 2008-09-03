@@ -16,7 +16,7 @@
 MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_area_detector.c mx_array.c mx_autoscale.c mx_bit.c \
 	mx_bluice.c mx_boot.c mx_callback.c mx_camac.c mx_camera_link.c \
-	mx_ccd.c mx_cfn.c mx_clock.c \
+	mx_cfn.c mx_clock.c \
 	mx_coprocess.c mx_cpu.c mx_cpu_arch.c mx_dead_reckoning.c mx_debug.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_dirent.c \
 	mx_driver_class.c mx_dynamic_library.c \
@@ -44,7 +44,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_waveform_output.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c \
 	pr_area_detector.c pr_autoscale.c \
-	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
+	pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
@@ -91,7 +91,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \
 	d_lakeshore330_motor.c d_linear_function.c d_linux_parport.c d_lpt.c \
-	d_marccd.c d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
+	d_marccd.c d_marccd_shutter.c \
+	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
 	d_mca_timer.c d_mca_value.c d_mcai_function.c \
 	d_mclennan.c d_mclennan_aio.c d_mclennan_dio.c \
@@ -100,7 +101,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_modbus_aio.c d_modbus_dio.c d_monochromator.c \
 	d_net_amplifier.c d_net_sample_changer.c \
 	d_network_ainput.c d_network_aoutput.c d_network_area_detector.c \
-	d_network_ccd.c d_network_dinput.c d_network_doutput.c \
+	d_network_dinput.c d_network_doutput.c \
 	d_network_mca.c d_network_mce.c d_network_mcs.c d_network_motor.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
 	d_network_scaler.c d_network_timer.c d_network_vinput.c \
@@ -117,7 +118,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_pmactc.c d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
 	d_polynomial_motor.c d_portio_dio.c d_ptz_motor.c d_pulsed_relay.c \
 	d_qbpm_mcai.c d_qmotor.c d_qs450.c d_record_field_motor.c \
-	d_remote_marccd.c d_remote_marccd_shutter.c d_roentec_rcl_mca.c \
+	d_roentec_rcl_mca.c \
 	d_rtc018.c d_scaler_function.c d_scaler_function_mcs.c \
 	d_scipe_aio.c d_scipe_amplifier.c d_scipe_dio.c d_scipe_motor.c \
 	d_scipe_scaler.c d_scipe_timer.c d_src_mono.c d_segmented_move.c \

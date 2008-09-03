@@ -127,8 +127,7 @@ MX_API mx_status_type mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad );
 
-MX_API mx_status_type mxd_marccd_command( MX_AREA_DETECTOR *ad,
-					MX_MARCCD *marccd,
+MX_API mx_status_type mxd_marccd_command( MX_MARCCD *marccd,
 					char *command,
 					unsigned long flags );
 

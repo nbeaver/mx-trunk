@@ -47,7 +47,6 @@ COMMAND command_list[] = {
 			    2, "area_detector" },
 	{ motor_area_detector_fn,
 			    2, "ad"            }, /* alias for 'area_detector'*/
-	{ motor_ccd_fn,     2, "ccd"           },
 	{ motor_cd_fn,      2, "cd"            },
 	{ motor_sample_changer_fn,
 		            2, "changer"       },

@@ -104,8 +104,6 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"sca",            0, MXC_SINGLE_CHANNEL_ANALYZER, MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
-{"ccd",            0, MXC_CCD,            MXR_DEVICE,
-				NULL, NULL, NULL, NULL, NULL},
 {"sample_changer", 0, MXC_SAMPLE_CHANGER, MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
 {"mcai",           0, MXC_MULTICHANNEL_ANALOG_INPUT, MXR_DEVICE,

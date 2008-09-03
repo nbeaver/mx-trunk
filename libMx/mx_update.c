@@ -251,7 +251,6 @@ mx_update_record_values( MX_RECORD *record )
 			case MXC_MULTICHANNEL_ENCODER:
 			case MXC_MULTICHANNEL_SCALER:
 			case MXC_TABLE:
-			case MXC_CCD:
 			case MXC_VIDEO_INPUT:
 			case MXC_AREA_DETECTOR:
 			case MXC_WAVEFORM_OUTPUT:

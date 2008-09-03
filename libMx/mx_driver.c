@@ -68,7 +68,6 @@
 #include "mx_autoscale.h"
 #include "mx_pulse_generator.h"
 #include "mx_sca.h"
-#include "mx_ccd.h"
 #include "mx_sample_changer.h"
 #include "mx_mcai.h"
 #include "mx_ptz.h"
@@ -359,6 +358,7 @@
 #include "d_blind_relay.h"
 #include "d_pulsed_relay.h"
 #include "d_pfcu.h"
+#include "d_marccd_shutter.h"
 #include "d_mardtb_shutter.h"
 #include "d_bluice_shutter.h"
 
@@ -428,9 +428,6 @@
 #include "d_cyberstar_x1000.h"
 #include "d_cyberstar_x1000_aout.h"
 
-#include "d_network_ccd.h"
-#include "d_remote_marccd.h"
-#include "d_remote_marccd_shutter.h"
 
 #include "d_soft_sample_changer.h"
 #include "d_net_sample_changer.h"
@@ -3182,6 +3179,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_pfcu_shutter_num_record_fields,
 				&mxd_pfcu_shutter_rfield_def_ptr},
 
+{"marccd_shutter", MXT_RLY_MARCCD_SHUTTER, MXC_RELAY,          MXR_DEVICE,
+				&mxd_marccd_shutter_record_function_list,
+				NULL,
+				&mxd_marccd_shutter_rly_function_list,
+				&mxd_marccd_shutter_num_record_fields,
+				&mxd_marccd_shutter_rfield_def_ptr},
+
 {"mardtb_shutter", MXT_RLY_MARDTB_SHUTTER, MXC_RELAY,     MXR_DEVICE,
 				&mxd_mardtb_shutter_record_function_list,
 				NULL,
@@ -3295,27 +3299,6 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_cyberstar_x1000_aout_analog_output_function_list,
 				&mxd_cyberstar_x1000_aout_num_record_fields,
 				&mxd_cyberstar_x1000_aout_rfield_def_ptr},
-
-{"network_ccd",    MXT_CCD_NETWORK,   MXC_CCD,            MXR_DEVICE,
-				&mxd_network_ccd_record_function_list,
-				NULL,
-				&mxd_network_ccd_ccd_function_list,
-				&mxd_network_ccd_num_record_fields,
-				&mxd_network_ccd_rfield_def_ptr},
-
-{"remote_marccd",  MXT_CCD_MARCCD,    MXC_CCD,            MXR_DEVICE,
-				&mxd_remote_marccd_record_function_list,
-				NULL,
-				&mxd_remote_marccd_ccd_function_list,
-				&mxd_remote_marccd_num_record_fields,
-				&mxd_remote_marccd_rfield_def_ptr},
-
-{"remote_marccd_shutter",  MXT_RLY_MARCCD,   MXC_RELAY,          MXR_DEVICE,
-				&mxd_remote_marccd_shutter_record_function_list,
-				NULL,
-				&mxd_remote_marccd_shutter_rly_function_list,
-				&mxd_remote_marccd_shutter_num_record_fields,
-				&mxd_remote_marccd_shutter_rfield_def_ptr},
 
 {"soft_sample_changer",  MXT_CHG_SOFTWARE, MXC_SAMPLE_CHANGER, MXR_DEVICE,
 				&mxd_soft_sample_changer_record_function_list,
