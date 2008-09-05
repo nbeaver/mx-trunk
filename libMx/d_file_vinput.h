@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,12 @@ typedef struct {
 	long num_files;
 	char **filename_array;
 	long current_filenum;
+
+	long old_total_num_frames;
+	long num_frames_in_sequence;
+	double seconds_per_frame;
+	MX_CLOCK_TICK start_tick;
+	mx_bool_type sequence_in_progress;
 } MX_FILE_VINPUT;
 
 
@@ -52,11 +58,10 @@ MX_API mx_status_type mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_file_vinput_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_file_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_file_vinput_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_file_vinput_get_last_frame_number(
+MX_API mx_status_type mxd_file_vinput_asynchronous_capture(
 						MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_file_vinput_get_total_num_frames(
+MX_API mx_status_type mxd_file_vinput_get_extended_status(
 						MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_file_vinput_get_status( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_file_vinput_get_parameter(MX_VIDEO_INPUT *vinput);
 MX_API mx_status_type mxd_file_vinput_set_parameter(MX_VIDEO_INPUT *vinput);

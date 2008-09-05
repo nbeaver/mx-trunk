@@ -49,11 +49,11 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_file_vinput_video_input_function_list = {
 	mxd_file_vinput_trigger,
 	mxd_file_vinput_stop,
 	mxd_file_vinput_abort,
+	mxd_file_vinput_asynchronous_capture,
 	NULL,
-	mxd_file_vinput_get_last_frame_number,
-	mxd_file_vinput_get_total_num_frames,
-	mxd_file_vinput_get_status,
 	NULL,
+	NULL,
+	mxd_file_vinput_get_extended_status,
 	mxd_file_vinput_get_frame,
 	mxd_file_vinput_get_parameter,
 	mxd_file_vinput_set_parameter,
@@ -561,6 +561,7 @@ mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_file_vinput_arm()";
 
 	MX_FILE_VINPUT *file_vinput;
+	MX_SEQUENCE_PARAMETERS *seq;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
@@ -572,6 +573,36 @@ mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	file_vinput->old_total_num_frames = vinput->total_num_frames;
+
+	seq = &(vinput->sequence_parameters);
+
+	switch( seq->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+		file_vinput->seconds_per_frame = seq->parameter_array[0];
+		file_vinput->num_frames_in_sequence = 1;
+		break;
+	case MXT_SQ_MULTIFRAME:
+		file_vinput->seconds_per_frame = seq->parameter_array[2];
+		file_vinput->num_frames_in_sequence = seq->parameter_array[0];
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported sequence type %lu requested for video input '%s'.",
+			seq->sequence_type, vinput->record->name );
+		break;
+	}
+
+	switch( vinput->trigger_mode ) {
+	case MXT_IMAGE_INTERNAL_TRIGGER:
+		file_vinput->sequence_in_progress = FALSE;
+		break;
+	case MXT_IMAGE_EXTERNAL_TRIGGER:
+		file_vinput->sequence_in_progress = TRUE;
+		file_vinput->start_tick = mx_current_clock_tick();
+		break;
+	}
 
 	return mx_status;
 }
@@ -593,6 +624,8 @@ mxd_file_vinput_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	file_vinput->sequence_in_progress = TRUE;
+	file_vinput->start_tick = mx_current_clock_tick();
 
 	return mx_status;
 }
@@ -614,6 +647,7 @@ mxd_file_vinput_stop( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	file_vinput->sequence_in_progress = FALSE;
 
 	return mx_status;
 }
@@ -635,40 +669,43 @@ mxd_file_vinput_abort( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	file_vinput->sequence_in_progress = FALSE;
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_file_vinput_get_last_frame_number( MX_VIDEO_INPUT *vinput )
+mxd_file_vinput_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_file_vinput_get_last_frame_number()";
+	static const char fname[] = "mxd_file_vinput_asynchronous_capture()";
 
 	MX_FILE_VINPUT *file_vinput;
 	mx_status_type mx_status;
 
-	mx_status = mxd_file_vinput_get_pointers( vinput,
-						&file_vinput, fname );
+	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->last_frame_number = 0;
-
 #if MXD_FILE_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: last_frame_number = %ld",
-		fname, vinput->last_frame_number));
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
 #endif
+	file_vinput->sequence_in_progress = TRUE;
+	file_vinput->start_tick = mx_current_clock_tick();
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_file_vinput_get_total_num_frames( MX_VIDEO_INPUT *vinput )
+mxd_file_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_file_vinput_get_total_num_frames()";
+	static const char fname[] = "mxd_file_vinput_get_extended_status()";
 
 	MX_FILE_VINPUT *file_vinput;
+	MX_CLOCK_TICK clock_ticks_since_start;
+	double seconds_since_start, frames_since_start_dbl;
+	long frames_since_start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput,
@@ -677,39 +714,75 @@ mxd_file_vinput_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The value of total_num_frames has already been set by the
-	 * function mxd_file_vinput_get_frame().
-	 */
+	if ( file_vinput->sequence_in_progress == FALSE ) {
+		vinput->status = 0;
+	} else {
+		clock_ticks_since_start = mx_subtract_clock_ticks(
+			mx_current_clock_tick(), file_vinput->start_tick );
+
+		seconds_since_start = mx_convert_clock_ticks_to_seconds(
+						clock_ticks_since_start );
+
+		frames_since_start_dbl = mx_divide_safely( seconds_since_start,
+						file_vinput->seconds_per_frame);
+
+		frames_since_start = mx_round( frames_since_start_dbl );
+
+		switch( vinput->sequence_parameters.sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			if ( frames_since_start < 1 ) {
+				vinput->status = MXSF_VIN_IS_BUSY;
+				vinput->last_frame_number = -1;
+				vinput->total_num_frames =
+					file_vinput->old_total_num_frames;
+			} else {
+				vinput->status = 0;
+				vinput->last_frame_number = 0;
+				vinput->total_num_frames =
+					file_vinput->old_total_num_frames + 1;
+
+				file_vinput->sequence_in_progress = FALSE;
+			}
+			break;
+
+		case MXT_SQ_CONTINUOUS:
+			vinput->status = MXSF_VIN_IS_BUSY;
+			vinput->last_frame_number = 0;
+			vinput->total_num_frames =
+		    file_vinput->old_total_num_frames + frames_since_start;
+
+		    	break;
+
+		case MXT_SQ_MULTIFRAME:
+			if ( frames_since_start <
+				file_vinput->num_frames_in_sequence )
+			{
+				vinput->status = MXSF_VIN_IS_BUSY;
+			} else {
+				vinput->status = 0;
+				file_vinput->sequence_in_progress = FALSE;
+			}
+
+			vinput->last_frame_number = frames_since_start - 1;
+
+			vinput->total_num_frames =
+					file_vinput->old_total_num_frames
+						+ frames_since_start;
+			break;
+		}
+	}
+
+	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
+		vinput->busy = TRUE;
+	} else {
+		vinput->busy = FALSE;
+	}
 
 #if MXD_FILE_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: total_num_frames = %ld",
-		fname, vinput->total_num_frames));
-#endif
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_file_vinput_get_status( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] = "mxd_file_vinput_get_status()";
-
-	MX_FILE_VINPUT *file_vinput;
-	mx_status_type mx_status;
-
-	mx_status = mxd_file_vinput_get_pointers( vinput,
-						&file_vinput, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	vinput->busy = FALSE;
-
-	vinput->status = 0;
-
-#if MXD_FILE_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: busy = %d, status = %ld",
-		fname, (int) vinput->busy, vinput->status));
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
+		fname, vinput->last_frame_number, vinput->total_num_frames,
+		vinput->status));
 #endif
 
 	return mx_status;
@@ -788,7 +861,6 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->total_num_frames++;
 	file_vinput->current_filenum++;
 
 #if MXD_FILE_VINPUT_DEBUG
