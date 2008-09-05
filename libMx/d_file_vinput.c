@@ -256,6 +256,8 @@ mxd_file_vinput_open( MX_RECORD *record )
 
 	vinput->total_num_frames = 0;
 
+	file_vinput->old_total_num_frames = 0;
+
 	switch( vinput->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB:
 		vinput->bytes_per_pixel = 3;
