@@ -704,6 +704,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 					= supported_callback_types;
 	callback_ptr->callback_id       = callback_id;
 	callback_ptr->active            = FALSE;
+	callback_ptr->usage_count	= 0;	/* Not used for remote cb. */
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.network_field   = nf;
@@ -1189,12 +1190,18 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 	callback_ptr->supported_callback_types
 					= supported_callback_types;
 	callback_ptr->active            = FALSE;
+	callback_ptr->usage_count	= 1;	/* New cb has only 1 user. */
 	callback_ptr->get_new_value	= FALSE;
 	callback_ptr->first_callback    = TRUE;
 	callback_ptr->timer_interval	= record_field->timer_interval;
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.record_field    = record_field;
+
+#if 1 || MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_ptr = %p, usage_count = %lu",
+		fname, callback_ptr, callback_ptr->usage_count));
+#endif
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback_ptr->callback_function = %p",
@@ -1363,7 +1370,18 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 			continue;
 		}
 
-		/* If we get here, we have a match. */
+		/* If we get here, we have a match, so increment
+		 * the usage count.
+		 */
+
+		callback_ptr->usage_count++;
+
+#if 1 || MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,("%s: callback_ptr = %p, usage_count = %lu",
+			fname, callback_ptr, callback_ptr->usage_count));
+#endif
+
+		/* Return the callback object to the caller. */
 
 		*callback_object = callback_ptr;
 

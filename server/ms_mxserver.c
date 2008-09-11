@@ -35,7 +35,7 @@
 
 #define NETWORK_DEBUG_HEADER_LENGTH	FALSE
 
-#define NETWORK_DEBUG_CALLBACKS		FALSE
+#define NETWORK_DEBUG_CALLBACKS		TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -4645,6 +4645,12 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 		 * If we get there, then the callback's socket handler list *
 		 * is empty and we need to delete the callback itself.      *
 		 ************************************************************/
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,
+		("%s: no other clients are still using callback %p, id %#lx",
+		    fname, callback, (unsigned long) callback->callback_id));
+#endif
 
 		/* Delete the callback from the server's
 		 * callback handle table.
