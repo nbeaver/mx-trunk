@@ -438,7 +438,11 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 #endif
 
-	/* Does this record field have a custom value changed test function? */
+	/* Does this record field have a custom value changed test function?
+	 *
+	 * We always invoke the test function, just in case the test function
+	 * has necessary side effects.
+	 */
 
 	value_changed_test_fn = record_field->value_changed_test_function;
 
@@ -453,6 +457,16 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		mx_status = mx_default_test_for_value_changed( record_field,
 							value_changed_ptr );
 	}
+
+	/* If the field has the value_has_changed_manual_override flag set,
+	 * then we unconditionally say that the value has changed.
+	 */
+
+	if ( record_field->value_has_changed_manual_override ) {
+		*value_changed_ptr = TRUE;
+	}
+
+	record_field->value_has_changed_manual_override = FALSE;
 
 #if PROCESS_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: *value_changed_ptr = %d",

@@ -2021,6 +2021,7 @@ mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
 	field->value_change_threshold
 				= field_defaults->value_change_threshold;
 	field->last_value           = 0.0;
+	field->value_has_changed_manual_override = FALSE;
 	field->value_changed_test_function
 				= field_defaults->value_changed_test_function;
 	field->callback_list        = NULL;

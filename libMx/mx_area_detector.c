@@ -7056,6 +7056,7 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 		"mx_area_detector_construct_next_datafile_name()";
 
 	MX_AREA_DETECTOR *ad;
+	MX_RECORD_FIELD *datafile_name_field;
 	char *start_of_varying_number, *trailing_segment;
 	int length_of_varying_number, length_of_leading_segment;
 	char datafile_number_string[40];
@@ -7071,6 +7072,16 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 #endif
+
+	/* If this record has a datafile_name field, then we set the
+	 * value_has_changed_manual_override flag to TRUE.
+	 */
+
+	datafile_name_field = mx_get_record_field( record, "datafile_name" );
+
+	if ( datafile_name_field != (MX_RECORD_FIELD *) NULL ) {
+		datafile_name_field->value_has_changed_manual_override = TRUE;
+	}
 
 	/* If the datafile pattern is empty, we use the existing contents
 	 * of datafile_name as is.
