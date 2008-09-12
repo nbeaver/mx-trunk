@@ -150,13 +150,15 @@ typedef struct mx_area_detector_type {
 	char extended_status[ MXU_AD_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
 	/* Saving field numbers makes finding the fields quicker for
-	 * the mx_area_detector_vctest_extended_status() function.
+	 * the mx_area_detector_vctest_extended_status() function and
+	 * other related status functions.
 	 */
 
 	long extended_status_field_number;
 	long last_frame_number_field_number;
 	long total_num_frames_field_number;
 	long status_field_number;
+	long last_datafile_name_field_number;
 
 	long subframe_size;	/* Not all detectors support this. */
 

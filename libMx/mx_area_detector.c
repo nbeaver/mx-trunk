@@ -223,6 +223,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
+	MX_RECORD_FIELD *last_datafile_name_field;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
@@ -369,6 +370,22 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	ad->status_field_number = status_field->field_number;
+
+	/*-------*/
+
+	/* 'last_datafile_name_field' is not present for all
+	 * area detector drivers.
+	 */
+
+	last_datafile_name_field = mx_get_record_field( record,
+						"last_datafile_name" );
+
+	if ( last_datafile_name_field == NULL ) {
+		ad->last_datafile_name_field_number = -1;
+	} else {
+		ad->last_datafile_name_field_number =
+			last_datafile_name_field->field_number;
+	}
 
 	/*-------*/
 
