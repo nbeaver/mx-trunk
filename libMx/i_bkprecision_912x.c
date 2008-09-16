@@ -26,7 +26,6 @@
 #include "mx_rs232.h"
 #include "mx_gpib.h"
 #include "i_bkprecision_912x.h"
-#include "d_bkprecision_912x_timer.h"
 
 MX_RECORD_FUNCTION_LIST mxi_bkprecision_912x_record_function_list = {
 	NULL,
@@ -97,16 +96,13 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	static const char fname[] = "mxi_bkprecision_912x_open()";
 
 	MX_BKPRECISION_912X *bkprecision_912x;
-	MX_BKPRECISION_912X_TIMER *bkprecision_912x_timer;
 	MX_RECORD *interface_record;
-	MX_RECORD *current_record;
 	char command[40];
 	char response[200];
 	int argc;
 	char **argv;
 	char *dup_string;
 	unsigned long no_error_checking;
-	mx_bool_type timer_found;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -279,52 +275,6 @@ mxi_bkprecision_912x_open( MX_RECORD *record )
 	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
 					"OUTPUT:TIMER OFF", NULL, 0,
 					MXI_BKPRECISION_912X_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* See if the MX database contains a 'bkprecision_912x_timer' record
-	 * that depends on our interface record.
-	 */
-
-	timer_found = FALSE;
-
-	current_record = record->next_record;
-
-	while ( current_record != record ) {
-
-	    if ( current_record->mx_type == MXT_TIM_BKPRECISION_912X ) {
-		bkprecision_912x_timer = current_record->record_type_struct;
-
-		if ( record == bkprecision_912x_timer->bkprecision_912x_record )
-		{
-		    /* We have found a match, so exit the while() loop. */
-
-		    timer_found = TRUE;
-		    break;
-		}
-	    }
-
-	    current_record = current_record->next_record;
-	}
-
-#if 0 && MXI_BKPRECISION_912X_DEBUG
-	MX_DEBUG(-2,("%s: timer found = %d", fname, timer_found));
-#endif
-
-	/* If a 'bkprecision_912x_timer' record was found in the MX database,
-	 * then we turn off the output.  Otherwise, we turn it on.
-	 */
-
-	if ( timer_found ) {
-		strlcpy( command, "OUTPUT OFF", sizeof(command) );
-	} else {
-		strlcpy( command, "OUTPUT ON", sizeof(command) );
-	}
-
-	mx_status = mxi_bkprecision_912x_command( bkprecision_912x,
-						command, NULL, 0,
-						MXI_BKPRECISION_912X_DEBUG );
 
 	return mx_status;
 }

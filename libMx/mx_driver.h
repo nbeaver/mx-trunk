@@ -556,7 +556,6 @@ extern "C" {
 #define MXT_TIM_BLUICE_DHS		80018
 #define MXT_TIM_HANDEL			80019
 #define MXT_TIM_XIA_DXP			80020
-#define MXT_TIM_BKPRECISION_912X	80021
 
 /* --- Amplifier types --- */
 

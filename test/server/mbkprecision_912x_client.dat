@@ -11,4 +11,3 @@ dout     device digital_output network_doutput "" "" 0 bk dout
 wvout    device waveform_output network_wvout "" "" 3 200 1 0 V bk wvout
 #
 timer1   device timer soft_timer "" ""
-bk_timer device timer network_timer "" "" bk bk_timer
