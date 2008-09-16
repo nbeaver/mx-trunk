@@ -4595,38 +4595,56 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	MX_DEBUG(-2,("%s: callback %p has callback id %#lx",
 		fname, callback, (unsigned long) callback_id ));
 #endif
+	/* Record the fact that the number of users of this callback
+	 * for this socket handler has now been reduced by 1.
+	 */
 
-	/* Find the list of socket handlers attached to this callback. */
+	callback->usage_count--;
 
-	socket_handler_list = callback->callback_argument;
+#if NETWORK_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s: callback %p, new usage count = %lu",
+		fname, callback, callback->usage_count));
+#endif
 
-	if ( socket_handler_list == (MX_LIST *) NULL ) {
+	/* If the callback has no more users for this socket handler,
+	 * then delete the callback from the socket handler list.
+	 */
+
+	if ( callback->usage_count == 0 ) {
+
+	    /* Find the list of socket handlers attached to this callback. */
+
+	    socket_handler_list = callback->callback_argument;
+
+	    if ( socket_handler_list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The socket_handler_list for callback %p, id %#lx is NULL.",
 			callback, (unsigned long) callback->callback_id );
-	}
+	    }
 
-	/* Delete the current socket handler from the socket handler list. */
+	    /* Delete the current socket handler from the socket handler list.*/
 
-	mx_status = mx_list_find_list_entry( socket_handler_list,
+	    mx_status = mx_list_find_list_entry( socket_handler_list,
 				socket_handler, &socket_handler_list_entry );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_list_delete_entry( socket_handler_list,
+	    mx_status = mx_list_delete_entry( socket_handler_list,
 					socket_handler_list_entry );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_list_entry_destroy( socket_handler_list_entry );
+	    mx_list_entry_destroy( socket_handler_list_entry );
 
-	/* This socket handler's reference to the callback is now deleted. */
+	    /* This socket handler's reference to the callback is now deleted.*/
 
-	/*** Was this the last entry in the callback's socket handler list? ***/
+	    /******************************************************************
+	     * Was this the last entry in the callback's socket handler list? * 
+	     ******************************************************************/
 
-	if ( socket_handler_list->num_list_entries > 0 ) {
+	    if ( socket_handler_list->num_list_entries > 0 ) {
 
 		/* No, there are other socket handlers that currently are
 		 * still using this callback, so we leave all of the other
@@ -4639,12 +4657,12 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 		    fname, callback, (unsigned long) callback->callback_id));
 		MX_DEBUG(-2,("%s: callback %p not deleted.", fname, callback));
 #endif
-	} else {
+	    } else {
 
-		/************************************************************
-		 * If we get there, then the callback's socket handler list *
-		 * is empty and we need to delete the callback itself.      *
-		 ************************************************************/
+		/***********************************************************
+		 * If we get here, then the callback's socket handler list *
+		 * is empty and we need to delete the callback itself.     *
+		 ***********************************************************/
 
 #if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,
@@ -4713,6 +4731,11 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 		mx_free( callback );
 
 		/* The callback is fully deleted now. */
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: The callback is now fully deleted.", fname));
+#endif
+	    }
 	}
 
 	/* Send a message back to the client to tell it that the

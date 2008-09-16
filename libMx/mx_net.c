@@ -2140,6 +2140,20 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	/*-------------------------------------------------------------------*/
 
+	case MX_NETMSG_DELETE_CALLBACK:
+		callback_id = mx_ntohl( uint32_message[0] );
+
+		fprintf( stderr,
+		"  DELETE_CALLBACK: callback_id = %#lx\n", callback_id );
+		break;
+
+	case mx_server_response(MX_NETMSG_DELETE_CALLBACK):
+		fprintf( stderr,
+		"  DELETE_CALLBACK response.\n" );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
 	case mx_server_response(MX_NETMSG_CALLBACK):
 		fprintf( stderr,
 		"  CALLBACK from server: callback id = %#lx, value = ",
