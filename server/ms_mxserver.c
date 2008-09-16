@@ -4216,8 +4216,6 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	unsigned long header_length, message_length;
 	unsigned long record_handle, field_handle, callback_type;
 	MX_CALLBACK *callback_object;
-	MX_LIST *socket_handler_list;
-	MX_LIST_ENTRY *list_entry;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_CALLBACKS
@@ -4285,117 +4283,15 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/*------------------------------------------------------------*/
 
-	/* FIXME: This section of code should be replaced by a call
-	 * to mx_local_field_add_socket_handler_to_callback().
-	 */
-
-	/* See if a callback of this type already exists. */
-
-	mx_status = mx_local_field_find_old_callback( field,
-					&callback_type,
-					NULL,
-					mxsrv_record_field_callback,
-					NULL,
-					&callback_object );
-
-	if ( mx_status.code == MXE_SUCCESS ) {
-
-		/* mx_local_field_find_callback() successfully found
-		 * an existing callback.
-		 */
-
-		socket_handler_list = callback_object->callback_argument;
-
-		/* Is this socket handler already in the list? */
-
-		mx_status = mx_list_find_list_entry( socket_handler_list,
-							socket_handler,
-							&list_entry );
-
-#if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,("%s: OLD callback: socket_handler_list = %p",
-			fname, socket_handler_list));
-		MX_DEBUG(-2,
-		("%s: OLD callback: list_entry = %p, socket_handler = %p",
-			fname, list_entry, socket_handler));
-#endif
-		if ( mx_status.code == MXE_SUCCESS ) {
-			/* Do nothing. */
-		} else
-		if ( mx_status.code == MXE_NOT_FOUND ) {
-			/* If the socket handler is not already in the list,
-			 * then add it to the list.
-			 */
-
-			mx_status = mx_list_entry_create( &list_entry,
-						socket_handler, NULL );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			mx_status = mx_list_add_entry( socket_handler_list,
-							list_entry );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		} else {
-			/* An unexpected error occurred. */
-
-			return mx_status;
-		}
-	} else
-	if ( mx_status.code == MXE_NOT_FOUND ) {
-		/* If an existing callback was not found,
-		 * then we must create a new one.
-		 */
-
-		/* Create a new list of socket handlers for this field
-		 * and add this socket handler to the list.
-		 */
-
-		mx_status = mx_list_create( &socket_handler_list );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_list_entry_create( &list_entry,
-						socket_handler, NULL );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_list_add_entry(socket_handler_list, list_entry);
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Create the callback. */
-
-		mx_status = mx_local_field_add_new_callback( field,
+	mx_status = mx_local_field_add_socket_handler_to_callback(
+					field,
 					callback_type,
 					mxsrv_record_field_callback,
-					socket_handler_list,
+					socket_handler,
 					&callback_object );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,("%s: ADD callback: socket_handler_list = %p",
-			fname, socket_handler_list));
-		MX_DEBUG(-2,
-		("%s: ADD callback: list_entry = %p, socket_handler = %p",
-			fname, list_entry, socket_handler));
-#endif
-	} else {
-		/* We got an unexpected error, so return that error
-		 * to the caller.
-		 */
-
+	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-	}
-
-	/*------------------------------------------------------------*/
 
 	if ( callback_object == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
