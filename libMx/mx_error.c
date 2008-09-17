@@ -79,6 +79,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_MIGHT_CAUSE_DEADLOCK,		"MXE_MIGHT_CAUSE_DEADLOCK" },
 { MXE_ALREADY_EXISTS,			"MXE_ALREADY_EXISTS" },
 { MXE_INVALID_CALLBACK,			"MXE_INVALID_CALLBACK" },
+{ MXE_EARLY_EXIT,			"MXE_EARLY_EXIT" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

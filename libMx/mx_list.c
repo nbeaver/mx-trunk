@@ -293,8 +293,9 @@ mx_list_entry_destroy( MX_LIST_ENTRY *list_entry )
 
 MX_EXPORT mx_status_type
 mx_list_traverse( MX_LIST *list,
-		mx_status_type (*function)( MX_LIST_ENTRY *, void * ),
-		void *argument )
+		mx_status_type (*function)( MX_LIST_ENTRY *, void *, void ** ),
+		void *input_argument,
+		void **output_argument )
 {
 	static const char fname[] = "mx_list_traverse()";
 
@@ -328,7 +329,8 @@ mx_list_traverse( MX_LIST *list,
 	current_list_entry = list_start;
 
 	do {
-		mx_status = (*function)( current_list_entry, argument );
+		mx_status = (*function)( current_list_entry,
+				input_argument, output_argument );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

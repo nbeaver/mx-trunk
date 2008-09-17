@@ -63,6 +63,12 @@ typedef struct mx_callback_type {
 	} u;
 } MX_CALLBACK;
 
+typedef struct {
+	MX_CALLBACK *callback;
+	MX_SOCKET_HANDLER *socket_handler;
+	unsigned long usage_count;
+} MX_CALLBACK_SOCKET_HANDLER_INFO;
+
 /* Declare 'struct mx_callback_message_type' as an incomplete type.
  * The type will be completed as part of the MX_CALLBACK_MESSAGE typedef.
  */
@@ -175,6 +181,13 @@ MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,
 MX_API mx_status_type mx_poll_callback_handler(MX_CALLBACK_MESSAGE *message);
 
 MX_API mx_status_type mx_motor_backlash_callback(MX_CALLBACK_MESSAGE *message);
+
+/*---*/
+
+MX_API_PRIVATE mx_status_type mxp_local_field_find_socket_handler_in_list(
+				MX_LIST *callback_socket_handler_list,
+				MX_SOCKET_HANDLER *socket_handler,
+			MX_LIST_ENTRY **callback_socket_handler_list_entry );
 
 #ifdef __cplusplus
 }

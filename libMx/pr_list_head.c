@@ -584,6 +584,7 @@ mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
 	MX_CALLBACK *callback;
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
 	MX_SOCKET_HANDLER *socket_handler;
 	unsigned long i, num_table_entries;
 	uint32_t callback_id;
@@ -654,21 +655,33 @@ mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
 	list_entry = list_start;
 
 	do {
-		socket_handler = list_entry->list_entry_data;
+		csh_info = list_entry->list_entry_data;
 
-		if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
-			fprintf( stderr, "  Socket handler (null)\n" );
+		if ( csh_info == (MX_CALLBACK_SOCKET_HANDLER_INFO *) NULL ) {
+			fprintf( stderr,
+				    "  Callback socket handler info (null)\n");
 		} else {
-			fprintf( stderr, "  Socket handler %p, socket %d\n",
+			socket_handler = csh_info->socket_handler;
+
+			if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+				fprintf( stderr,
+				    "  Socket handler (null)\n" );
+			} else {
+				fprintf( stderr,
+				    "  Socket handler %p, socket %d\n",
 				socket_handler,
 				socket_handler->synchronous_socket->socket_fd );
-			fprintf( stderr, "    Client '%s', username '%s'\n",
+
+				fprintf( stderr,
+				    "    Client '%s', username '%s'\n",
 				socket_handler->client_address_string,
 				socket_handler->username );
-			fprintf( stderr,
-				"    Program name '%s', process id = %lu\n",
+
+				fprintf( stderr,
+				    "    Program name '%s', process id = %lu\n",
 				socket_handler->program_name,
 				socket_handler->process_id );
+			}
 		}
 
 		list_entry = list_entry->next_list_entry;

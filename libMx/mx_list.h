@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,9 +60,11 @@ MX_API mx_status_type mx_list_entry_create( MX_LIST_ENTRY **,
 
 MX_API void           mx_list_entry_destroy( MX_LIST_ENTRY * );
 
-MX_API mx_status_type mx_list_traverse( MX_LIST *list,
-			mx_status_type (*function)(MX_LIST_ENTRY *, void *),
-			void *argument );
+MX_API mx_status_type mx_list_traverse(
+		MX_LIST *list,
+		mx_status_type (*function)(MX_LIST_ENTRY *, void *, void **),
+		void *input_argument,
+		void **output_argument );
 
 MX_API mx_status_type mx_list_find_list_entry( MX_LIST *list,
 					void *list_entry_data,

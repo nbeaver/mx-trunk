@@ -928,6 +928,117 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 
 /*--------------------------------------------------------------------------*/
 
+static mx_status_type
+mxp_local_field_traverse_function( MX_LIST_ENTRY *list_entry,
+					void *input_argument,
+					void **output_argument )
+{
+	static const char fname[] = "mxp_local_field_traverse_function()";
+
+	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
+	MX_SOCKET_HANDLER *socket_handler;
+	unsigned long mx_status_code;
+
+	if ( list_entry == (MX_LIST_ENTRY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LIST_ENTRY pointer passed was NULL." );
+	}
+	if ( input_argument == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET_HANDLER pointer passed was NULL.");
+	}
+	if ( output_argument == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The pointer for the MX_LIST_ENTRY that matches "
+		"the MX_SOCKET_HANDLER is NULL." );
+	}
+
+	MX_DEBUG(-2,
+	("%s: list_entry = %p, input_argument = %p, output_argument = %p",
+		fname, list_entry, input_argument, output_argument));
+
+	socket_handler = (MX_SOCKET_HANDLER *) input_argument;
+
+	MX_DEBUG(-2,("%s: socket_handler = %p", fname, socket_handler));
+
+	csh_info = (MX_CALLBACK_SOCKET_HANDLER_INFO *)
+			list_entry->list_entry_data;
+
+	MX_DEBUG(-2,("%s: csh_info = %p", fname, csh_info));
+
+#if 1
+	MX_DEBUG(-2, ("%s: csh_info->socket_handler = %p, socket_handler = %p",
+		fname, csh_info->socket_handler, socket_handler));
+#endif
+
+	if ( csh_info->socket_handler == socket_handler ) {
+		*output_argument = list_entry;
+
+#if 1
+		mx_status_code = MXE_EARLY_EXIT;
+#else
+		mx_status_code = MXE_EARLY_EXIT | MXE_QUIET;
+#endif
+		return mx_error( mx_status_code, fname,
+		"Found the list entry for the requested socket handler." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxp_local_field_find_socket_handler_in_list(
+			MX_LIST *callback_socket_handler_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_LIST_ENTRY **callback_socket_handler_list_entry )
+{
+#if 1
+	static const char fname[] =
+		"mxp_local_field_find_socket_handler_in_list()";
+#endif
+	void *list_entry_ptr;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: list_entry_ptr = %p", fname, list_entry_ptr));
+	MX_DEBUG(-2,("%s: callback_socket_handler_list_entry = %p",
+		fname, callback_socket_handler_list_entry));
+
+	mx_status = mx_list_traverse( callback_socket_handler_list,
+				mxp_local_field_traverse_function,
+				socket_handler,
+				&list_entry_ptr );
+
+	MX_DEBUG(-2,("%s: mx_status.code = %ld", fname, mx_status.code));
+
+	if ( mx_status.code == MXE_EARLY_EXIT ) {
+
+		/* The structure containing the socket handler was found. */
+
+		*callback_socket_handler_list_entry = list_entry_ptr;
+
+		MX_DEBUG(-2,
+	("%s: list_entry_ptr = %p, *callback_socket_handler_list_entry = %p",
+			fname, list_entry_ptr,
+			*callback_socket_handler_list_entry ));
+
+		return MX_SUCCESSFUL_RESULT;
+
+	}
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Socket handler %p was not found "
+		"in callback socket handler list %p",
+			socket_handler, callback_socket_handler_list );
+	}
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_local_field_add_socket_handler_to_callback(
 			MX_RECORD_FIELD *record_field,
@@ -937,12 +1048,12 @@ mx_local_field_add_socket_handler_to_callback(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_CALLBACK **callback_object )
 {
-#if 0
 	static const char fname[] =
 		"mx_local_field_add_socket_handler_to_callback()";
-#endif
+
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *callback_socket_handler_list_entry;
+	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
 	unsigned long old_supported_callback_types;
 	mx_status_type mx_status;
 
@@ -968,22 +1079,57 @@ mx_local_field_add_socket_handler_to_callback(
 
 			/* Is this socket handler already in the list? */
 
-			mx_status = mx_list_find_list_entry(
+			mx_status = mxp_local_field_find_socket_handler_in_list(
 					callback_socket_handler_list,
 					socket_handler,
 					&callback_socket_handler_list_entry );
 
 			if ( mx_status.code == MXE_SUCCESS ) {
-				/* Do nothing. */
+
+#if 1
+				MX_DEBUG(-2,
+		("%s: Found matching callback socket handler list entry = %p",
+				    fname, callback_socket_handler_list_entry));
+#endif
+				/* The socket handler info struct is
+				 * already in the list, so we must
+				 * increment its usage count.
+				 */
+
+				csh_info =
+			    callback_socket_handler_list_entry->list_entry_data;
+
+			    	csh_info->usage_count++;
+
 			} else
 			if ( mx_status.code == MXE_NOT_FOUND ) {
+
 				/* If the socket_handler is not already in
-				 * the list, then add it to the list.
+				 * the list, then we allocate memory for an
+				 * MX_CALLBACK_SOCKET_HANDLER_INFO structure
+				 * and then add that to the list.
 				 */
+
+				csh_info =
+			    malloc( sizeof(MX_CALLBACK_SOCKET_HANDLER_INFO) );
+
+			    	if ( csh_info == NULL ) {
+					return mx_error(
+					MXE_OUT_OF_MEMORY, fname,
+					"Ran out of memory trying to allocate "
+					"an MX_CALLBACK_SOCKET_HANDLER_INFO "
+					"structure." );
+				}
+
+				csh_info->callback = *callback_object;
+				csh_info->socket_handler = socket_handler;
+				csh_info->usage_count = 1;
+
+				/* Add the csh_info structure to the list. */
 
 				mx_status = mx_list_entry_create(
 					&callback_socket_handler_list_entry,
-					socket_handler, NULL );
+					csh_info, NULL );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -1008,10 +1154,10 @@ mx_local_field_add_socket_handler_to_callback(
 		 */
 							
 		if ( socket_handler == NULL ) {
-			callback_socket_handler_list = NULL;
+			csh_info = NULL;
 		} else {
 			/* Create a new list of socket handlers for this
-			 * callback and add this socket handler to the list.
+			 * callback.
 			 */
 
 			mx_status = mx_list_create(
@@ -1020,9 +1166,31 @@ mx_local_field_add_socket_handler_to_callback(
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+			/* If so, then we allocate memory for an
+			 * MX_CALLBACK_SOCKET_HANDLER_INFO structure
+			 * and then add that to the list.
+			 */
+
+			csh_info =
+			    malloc( sizeof(MX_CALLBACK_SOCKET_HANDLER_INFO) );
+
+			if ( csh_info == NULL ) {
+				return mx_error(
+				MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate "
+				"an MX_CALLBACK_SOCKET_HANDLER_INFO "
+				"structure." );
+			}
+
+			csh_info->callback = *callback_object;
+			csh_info->socket_handler = socket_handler;
+			csh_info->usage_count = 1;
+
+			/* Add the csh_info structure to the list. */
+
 			mx_status = mx_list_entry_create(
 					&callback_socket_handler_list_entry,
-						socket_handler, NULL );
+						csh_info, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1287,7 +1455,7 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 	static const char fname[] = "mx_local_field_find_old_callback()";
 
 	MX_CALLBACK *callback_ptr;
-	MX_LIST *callback_list;
+	MX_LIST *record_field_callback_list;
 	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_RECORD *record;
 
@@ -1319,9 +1487,9 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 		fname, record->name, record_field->name ));
 #endif
 
-	callback_list = record_field->callback_list;
+	record_field_callback_list = record_field->callback_list;
 
-	if ( callback_list == (MX_LIST *) NULL ) {
+	if ( record_field_callback_list == (MX_LIST *) NULL ) {
 		*callback_object = NULL;
 
 		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
@@ -1329,7 +1497,7 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 			record->name, record_field->name );
 	}
 
-	list_start = callback_list->list_start;
+	list_start = record_field_callback_list->list_start;
 
 	/* If the list is empty, then return a "not found" status. */
 
@@ -1401,25 +1569,25 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
+mx_local_field_invoke_callback_list( MX_RECORD_FIELD *record_field,
 				unsigned long callback_type )
 {
 	static const char fname[] = "mx_local_field_invoke_callback_list()";
 
-	MX_LIST *callback_list;
+	MX_LIST *record_field_callback_list;
 	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
 	MX_CALLBACK *callback;
 	mx_bool_type get_new_value;
 	mx_status_type mx_status;
 
-	if ( field == (MX_RECORD_FIELD *) NULL ) {
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
-		fname, field->name, callback_type));
+		fname, record_field->name, callback_type));
 #endif
 	if ( callback_type == MXCBT_POLL ) {
 		get_new_value = TRUE;
@@ -1427,21 +1595,22 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 		get_new_value = FALSE;
 	}
 
-	callback_list = field->callback_list;
+	record_field_callback_list = record_field->callback_list;
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: get_new_value = %d",
 				fname, (int) get_new_value));
-	MX_DEBUG(-2,("%s: callback_list = %p", fname, callback_list));
+	MX_DEBUG(-2,("%s: record_field_callback_list = %p",
+				fname, record_field_callback_list));
 #endif
 
-	if ( callback_list == (MX_LIST *) NULL ) {
+	if ( record_field_callback_list == (MX_LIST *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* Walk through the list of callbacks. */
 
-	list_start = callback_list->list_start;
+	list_start = record_field_callback_list->list_start;
 
 #if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: list_start = %p", fname, list_start));
@@ -1450,7 +1619,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
 		mx_warning("%s: The list_start entry for callback list %p "
 		"used by record field '%s.%s' is NULL.", fname,
-			callback_list, field->record->name, field->name );
+			record_field_callback_list,
+			record_field->record->name, record_field->name );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -1469,8 +1639,9 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The next_list_entry pointer for list entry %p "
 			"of callback list %p for record field '%s.%s' is NULL.",
-				list_entry, callback_list,
-				field->record->name, field->name );
+				list_entry, record_field_callback_list,
+				record_field->record->name,
+				record_field->name );
 		}
 
 		callback = list_entry->list_entry_data;
@@ -1491,7 +1662,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 				if ( mx_status.code == MXE_INVALID_CALLBACK ) {
 
 					mx_status = mx_list_delete_entry(
-						callback_list, list_entry );
+						record_field_callback_list,
+						list_entry );
 
 					if ( mx_status.code == MXE_SUCCESS ) {
 						mx_list_entry_destroy(
@@ -1504,7 +1676,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 					 * list_start callback.
 					 */
 
-					list_start = callback_list->list_start;
+					list_start =
+				    record_field_callback_list->list_start;
 
 					if (list_start == (MX_LIST_ENTRY *)NULL)
 					{

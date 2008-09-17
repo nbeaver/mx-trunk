@@ -799,6 +799,7 @@ MX_API int mx_command_found( char *command_name );
 #define MXE_MIGHT_CAUSE_DEADLOCK		1048
 #define MXE_ALREADY_EXISTS			1049
 #define MXE_INVALID_CALLBACK			1050
+#define MXE_EARLY_EXIT				1051
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.
