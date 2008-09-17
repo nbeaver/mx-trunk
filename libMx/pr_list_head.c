@@ -526,7 +526,7 @@ mx_list_head_record_show_callbacks( MX_LIST_HEAD *list_head )
 	MX_HANDLE_TABLE *callback_handle_table;
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
 	MX_CALLBACK *callback;
-	MX_LIST *socket_handler_list;
+	MX_LIST *callback_socket_handler_list;
 	unsigned long i, num_table_entries;
 
 	callback_handle_table = list_head->server_callback_handle_table;
@@ -558,16 +558,17 @@ mx_list_head_record_show_callbacks( MX_LIST_HEAD *list_head )
 
 			/* Find the list of socket handlers for this callback.*/
 
-			socket_handler_list = callback->callback_argument;
+			callback_socket_handler_list =
+				callback->callback_argument;
 
-			if ( socket_handler_list == NULL ) {
+			if ( callback_socket_handler_list == NULL ) {
 				fprintf(stderr, "ID = %#lx\n",
 					(unsigned long) callback->callback_id );
 			} else {
 				fprintf(stderr,
 				"ID = %#lx, num socket handlers = %lu\n",
 					(unsigned long) callback->callback_id,
-					socket_handler_list->num_list_entries );
+				callback_socket_handler_list->num_list_entries);
 			}
 		}
 	}
@@ -581,7 +582,7 @@ mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
 	MX_HANDLE_TABLE *callback_handle_table;
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
 	MX_CALLBACK *callback;
-	MX_LIST *socket_handler_list;
+	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_SOCKET_HANDLER *socket_handler;
 	unsigned long i, num_table_entries;
@@ -632,17 +633,17 @@ mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
 
 	/* Find the list of socket handlers for this callback.*/
 
-	socket_handler_list = callback->callback_argument;
+	callback_socket_handler_list = callback->callback_argument;
 
-	if ( socket_handler_list == (MX_LIST *) NULL ) {
+	if ( callback_socket_handler_list == (MX_LIST *) NULL ) {
 		fprintf( stderr, "  No socket handlers.\n" );
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 	fprintf( stderr, "  Num socket handlers = %lu\n",
-		socket_handler_list->num_list_entries );
+		callback_socket_handler_list->num_list_entries );
 
-	list_start = socket_handler_list->list_start;
+	list_start = callback_socket_handler_list->list_start;
 
 	if ( list_start == NULL ) {
 		fprintf(stderr, "  Socket handler list is empty.\n" );

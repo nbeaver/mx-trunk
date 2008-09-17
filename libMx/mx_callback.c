@@ -941,8 +941,8 @@ mx_local_field_add_socket_handler_to_callback(
 	static const char fname[] =
 		"mx_local_field_add_socket_handler_to_callback()";
 #endif
-	MX_LIST *socket_handler_list;
-	MX_LIST_ENTRY *list_entry;
+	MX_LIST *callback_socket_handler_list;
+	MX_LIST_ENTRY *callback_socket_handler_list_entry;
 	unsigned long old_supported_callback_types;
 	mx_status_type mx_status;
 
@@ -963,15 +963,15 @@ mx_local_field_add_socket_handler_to_callback(
 			 * found an existing callback.
 			 */
 
-			socket_handler_list =
+			callback_socket_handler_list =
 				(*callback_object)->callback_argument;
 
 			/* Is this socket handler already in the list? */
 
 			mx_status = mx_list_find_list_entry(
-							socket_handler_list,
-							socket_handler,
-							&list_entry );
+					callback_socket_handler_list,
+					socket_handler,
+					&callback_socket_handler_list_entry );
 
 			if ( mx_status.code == MXE_SUCCESS ) {
 				/* Do nothing. */
@@ -981,14 +981,16 @@ mx_local_field_add_socket_handler_to_callback(
 				 * the list, then add it to the list.
 				 */
 
-				mx_status = mx_list_entry_create( &list_entry,
-						socket_handler, NULL );
+				mx_status = mx_list_entry_create(
+					&callback_socket_handler_list_entry,
+					socket_handler, NULL );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
 				mx_status = mx_list_add_entry(
-					socket_handler_list, list_entry );
+					callback_socket_handler_list,
+					callback_socket_handler_list_entry );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -1006,25 +1008,28 @@ mx_local_field_add_socket_handler_to_callback(
 		 */
 							
 		if ( socket_handler == NULL ) {
-			socket_handler_list = NULL;
+			callback_socket_handler_list = NULL;
 		} else {
-			/* Create a new list of socket handlers for this field
-			 * and add this socket handler to the list.
+			/* Create a new list of socket handlers for this
+			 * callback and add this socket handler to the list.
 			 */
 
-			mx_status = mx_list_create( &socket_handler_list );
+			mx_status = mx_list_create(
+					&callback_socket_handler_list );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_list_entry_create( &list_entry,
+			mx_status = mx_list_entry_create(
+					&callback_socket_handler_list_entry,
 						socket_handler, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_list_add_entry( socket_handler_list,
-							list_entry );
+			mx_status = mx_list_add_entry(
+					callback_socket_handler_list,
+					callback_socket_handler_list_entry );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1035,7 +1040,7 @@ mx_local_field_add_socket_handler_to_callback(
 		mx_status = mx_local_field_add_new_callback( record_field,
 						supported_callback_types,
 						callback_function,
-						socket_handler_list,
+						callback_socket_handler_list,
 						callback_object );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -144,7 +144,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	signed long callback_handle;
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_socket_handler_list;
-	MX_LIST_ENTRY *socket_handler_list_entry;
+	MX_LIST_ENTRY *callback_socket_handler_list_entry;
 	MX_LIST *field_callback_list;
 	MX_LIST_ENTRY *field_callback_list_entry;
 	MX_RECORD_FIELD *field;
@@ -390,7 +390,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    mx_status = mx_list_find_list_entry(
 			    			callback_socket_handler_list,
 						socket_handler,
-						&socket_handler_list_entry );
+					&callback_socket_handler_list_entry );
 
 			    if ( mx_status.code == MXE_NOT_FOUND ) {
 
@@ -436,9 +436,10 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 			    mx_status = mx_list_delete_entry(
 			    			callback_socket_handler_list,
-						socket_handler_list_entry );
+					callback_socket_handler_list_entry );
 
-			    mx_list_entry_destroy( socket_handler_list_entry );
+			    mx_list_entry_destroy(
+			    		callback_socket_handler_list_entry );
 
 			    if ( mx_status.code != MXE_SUCCESS ) {
 			    	/* Something unexpected happened when
@@ -4365,8 +4366,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
 	MX_CALLBACK *callback, *callback_ptr;
 	signed long callback_handle;
-	MX_LIST *socket_handler_list;
-	MX_LIST_ENTRY *socket_handler_list_entry;
+	MX_LIST *callback_socket_handler_list;
+	MX_LIST_ENTRY *callback_socket_handler_list_entry;
 	MX_RECORD_FIELD *record_field;
 	MX_LIST *rf_callback_list;
 	MX_LIST_ENTRY *rf_callback_list_entry;
@@ -4510,29 +4511,30 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 
 	    /* Find the list of socket handlers attached to this callback. */
 
-	    socket_handler_list = callback->callback_argument;
+	    callback_socket_handler_list = callback->callback_argument;
 
-	    if ( socket_handler_list == (MX_LIST *) NULL ) {
+	    if ( callback_socket_handler_list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The socket_handler_list for callback %p, id %#lx is NULL.",
+		"The socket handler list for callback %p, id %#lx is NULL.",
 			callback, (unsigned long) callback->callback_id );
 	    }
 
 	    /* Delete the current socket handler from the socket handler list.*/
 
-	    mx_status = mx_list_find_list_entry( socket_handler_list,
-				socket_handler, &socket_handler_list_entry );
+	    mx_status = mx_list_find_list_entry( callback_socket_handler_list,
+					socket_handler,
+					&callback_socket_handler_list_entry );
 
 	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	    mx_status = mx_list_delete_entry( socket_handler_list,
-					socket_handler_list_entry );
+	    mx_status = mx_list_delete_entry( callback_socket_handler_list,
+					callback_socket_handler_list_entry );
 
 	    if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	    mx_list_entry_destroy( socket_handler_list_entry );
+	    mx_list_entry_destroy( callback_socket_handler_list_entry );
 
 	    /* This socket handler's reference to the callback is now deleted.*/
 
@@ -4540,7 +4542,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	     * Was this the last entry in the callback's socket handler list? * 
 	     ******************************************************************/
 
-	    if ( socket_handler_list->num_list_entries > 0 ) {
+	    if ( callback_socket_handler_list->num_list_entries > 0 ) {
 
 		/* No, there are other socket handlers that currently are
 		 * still using this callback, so we leave all of the other
