@@ -953,20 +953,24 @@ mxp_local_field_traverse_function( MX_LIST_ENTRY *list_entry,
 		"the MX_SOCKET_HANDLER is NULL." );
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,
 	("%s: list_entry = %p, input_argument = %p, output_argument = %p",
 		fname, list_entry, input_argument, output_argument));
+#endif
 
 	socket_handler = (MX_SOCKET_HANDLER *) input_argument;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: socket_handler = %p", fname, socket_handler));
+#endif
 
 	csh_info = (MX_CALLBACK_SOCKET_HANDLER_INFO *)
 			list_entry->list_entry_data;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: csh_info = %p", fname, csh_info));
 
-#if 1
 	MX_DEBUG(-2, ("%s: csh_info->socket_handler = %p, socket_handler = %p",
 		fname, csh_info->socket_handler, socket_handler));
 #endif
@@ -974,7 +978,7 @@ mxp_local_field_traverse_function( MX_LIST_ENTRY *list_entry,
 	if ( csh_info->socket_handler == socket_handler ) {
 		*output_argument = list_entry;
 
-#if 1
+#if MX_CALLBACK_DEBUG
 		mx_status_code = MXE_EARLY_EXIT;
 #else
 		mx_status_code = MXE_EARLY_EXIT | MXE_QUIET;
@@ -994,23 +998,26 @@ mxp_local_field_find_socket_handler_in_list(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_LIST_ENTRY **callback_socket_handler_list_entry )
 {
-#if 1
 	static const char fname[] =
 		"mxp_local_field_find_socket_handler_in_list()";
-#endif
+
 	void *list_entry_ptr;
 	mx_status_type mx_status;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: list_entry_ptr = %p", fname, list_entry_ptr));
 	MX_DEBUG(-2,("%s: callback_socket_handler_list_entry = %p",
 		fname, callback_socket_handler_list_entry));
+#endif
 
 	mx_status = mx_list_traverse( callback_socket_handler_list,
 				mxp_local_field_traverse_function,
 				socket_handler,
 				&list_entry_ptr );
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: mx_status.code = %ld", fname, mx_status.code));
+#endif
 
 	if ( mx_status.code == MXE_EARLY_EXIT ) {
 
@@ -1018,17 +1025,19 @@ mxp_local_field_find_socket_handler_in_list(
 
 		*callback_socket_handler_list_entry = list_entry_ptr;
 
+#if MX_CALLBACK_DEBUG
 		MX_DEBUG(-2,
 	("%s: list_entry_ptr = %p, *callback_socket_handler_list_entry = %p",
 			fname, list_entry_ptr,
 			*callback_socket_handler_list_entry ));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 
 	}
 
 	if ( mx_status.code == MXE_SUCCESS ) {
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 		"Socket handler %p was not found "
 		"in callback socket handler list %p",
 			socket_handler, callback_socket_handler_list );
@@ -1099,7 +1108,7 @@ mx_local_field_add_socket_handler_to_callback(
 
 			if ( mx_status.code == MXE_SUCCESS ) {
 
-#if 1
+#if 0
 				MX_DEBUG(-2,
 		("%s: Found matching callback socket handler list entry = %p",
 				    fname, callback_socket_handler_list_entry));
@@ -1394,7 +1403,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.record_field    = record_field;
 
-#if 1 || MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback_ptr = %p, usage_count = %lu",
 		fname, callback_ptr, callback_ptr->usage_count));
 #endif
@@ -1572,7 +1581,7 @@ mx_local_field_find_old_callback( MX_RECORD_FIELD *record_field,
 
 		callback_ptr->usage_count++;
 
-#if 1 || MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG
 		MX_DEBUG(-2,("%s: callback_ptr = %p, usage_count = %lu",
 			fname, callback_ptr, callback_ptr->usage_count));
 #endif
