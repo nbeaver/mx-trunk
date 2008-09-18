@@ -145,6 +145,8 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *callback_socket_handler_list_entry;
+	MX_LIST_ENTRY *list_start;
+	unsigned long num_list_entries;
 	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
 	MX_LIST *field_callback_list;
 	MX_LIST_ENTRY *field_callback_list_entry;
@@ -337,9 +339,10 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 #if NETWORK_DEBUG_CALLBACKS
 			    MX_DEBUG(-2,
-			    ("%s: Callback %p is for record field '%s.%s'.",
+		        ("%s: Callback %p is for record field '%s.%s', ID %#lx",
 			    	fname, callback_ptr,
-				field->record->name, field->name));
+				field->record->name, field->name,
+				(unsigned long) callback_ptr->callback_id));
 #endif
 			    /* Step D */
 
@@ -369,12 +372,31 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 				continue;    /* Skip this callback. */
 			    }
 
+			    num_list_entries =
+			    	callback_socket_handler_list->num_list_entries;
+
+			    list_start =
+			    	callback_socket_handler_list->list_start;
+
 #if NETWORK_DEBUG_CALLBACKS
-			    MX_DEBUG(-2,
-			    ("%s: #1 Callback %p, num_list_entries = %lu",
-			    	fname, callback_ptr,
-			      callback_socket_handler_list->num_list_entries));
+			    MX_DEBUG(-2,("%s: #1 Callback %p, "
+			    "num_list_entries = %lu, list_start = %p",
+			    fname, callback_ptr, num_list_entries, list_start));
 #endif
+
+			    if ((num_list_entries == 0) || (list_start == NULL))
+			    {
+#if NETWORK_DEBUG_CALLBACKS
+				MX_DEBUG(-2,
+				("%s: callback_socket_handler_list %p "
+				"for callback %p is empty.  Skipping...",
+					fname, callback_socket_handler_list,
+					callback_ptr ));
+#endif
+
+				continue;	/* Skip this callback. */
+			    }
+
 			    /* Step E */
 
 			    /* See if the socket handler MX_LIST contains

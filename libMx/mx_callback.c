@@ -1068,12 +1068,25 @@ mx_local_field_add_socket_handler_to_callback(
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 
-		if ( socket_handler != NULL ) {
+		/* mx_local_field_find_old_callback() successfully
+		 * found an existing callback.
+		 */
 
-			/* mx_local_field_find_old_callback() successfully
-			 * found an existing callback.
+		if ( socket_handler == NULL ) {
+
+			/* If the socket handler is a NULL pointer, then
+			 * this means that this reference of the callback
+			 * is not associated with an MX socket.
+			 *
+			 * If that is the case, then there is no point
+			 * in trying to add a nonexistent socket handler
+			 * to the socket handler list, so we return
+			 * without doing anything further.
 			 */
 
+			return MX_SUCCESSFUL_RESULT;
+			
+		} else {
 			callback_socket_handler_list =
 				(*callback_object)->callback_argument;
 
@@ -1149,26 +1162,33 @@ mx_local_field_add_socket_handler_to_callback(
 	} else
 	if ( mx_status.code == MXE_NOT_FOUND ) {
 
-		/* If an existing callback was not found,
-		 * then we must create a new one.
+		/* If we get here, then we did _not_ find an already
+		 * existing callback that matches.  Thus, we must
+		 * create a new callback.
 		 */
 							
+		/* Create a new list of socket handlers for this callback. */
+
+		mx_status = mx_list_create( &callback_socket_handler_list );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		csh_info = NULL;
+
 		if ( socket_handler == NULL ) {
-			csh_info = NULL;
-		} else {
-			/* Create a new list of socket handlers for this
-			 * callback.
+
+			/* If the socket handler that was passed to us
+			 * was NULL, then there is nothing to add to the
+			 * new callback socket handler list, so we leave
+			 * the list empty.
 			 */
 
-			mx_status = mx_list_create(
-					&callback_socket_handler_list );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* If so, then we allocate memory for an
-			 * MX_CALLBACK_SOCKET_HANDLER_INFO structure
-			 * and then add that to the list.
+		} else {
+			/* If the socket handler that was passed to us
+			 * was not NULL, then we must allocate memory
+			 * for an MX_CALLBACK_SOCKET_HANDLER_INFO
+			 * structure and then add that to the list.
 			 */
 
 			csh_info =
@@ -1182,7 +1202,6 @@ mx_local_field_add_socket_handler_to_callback(
 				"structure." );
 			}
 
-			csh_info->callback = *callback_object;
 			csh_info->socket_handler = socket_handler;
 			csh_info->usage_count = 1;
 
@@ -1213,6 +1232,10 @@ mx_local_field_add_socket_handler_to_callback(
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		if ( csh_info != NULL ) {
+			csh_info->callback = *callback_object;
+		}
 	} else {
 		/* We got an unexpected error, so return that error
 		 * to the caller.
