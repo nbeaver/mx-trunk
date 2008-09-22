@@ -17,9 +17,7 @@
 #ifndef __MX_PROGRAM_MODEL_H__
 #define __MX_PROGRAM_MODEL_H__
 
-#if defined(__GNUC__)
-#  include "mx_gcc.h"
-#endif
+#include "mx_private_version.h"
 
 /* See http://www.unix.org/version2/whatsnew/lp64_wp.html for a discussion
  * of the various programming models.  In 2006, the most common programming
@@ -89,7 +87,7 @@
 #     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
 #  endif
 
-#elif defined(__GNUC__) && ( MX_GCC_VERSION >= 30400 )
+#elif defined(__GNUC__) && ( MX_GNUC_VERSION >= 3004000L )
 
    /* GCC 3.4 and above define the __LP64__ and _LP64 macros on all
     * 64-bit platforms.  This was not true for GCC 3.3 and before.

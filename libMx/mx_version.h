@@ -1,13 +1,15 @@
 /*
  * Name:    mx_version.h
  *
- * Purpose: Header file for functions to display the version of MX being used.
+ * Purpose: Functions and macro definitions that report the version of MX
+ *          in use, as well as other definitions for the version of the
+ *          compiler or runtime libraries in use.
  *
  * Author:  William Lavender
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +24,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "mx_private_version.h"
 
 MX_API int mx_get_major_version( void );
 

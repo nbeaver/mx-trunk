@@ -227,9 +227,11 @@ mx_clean:
 	-$(RM) *.tds
 	-$(RM) core*
 	-$(MX_LIBRARY_DELETE)
+	-$(RM) $(MX_PRIVATE_VERSION_NAME)
 
 mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)
+	-$(RM) mx_private_version.h
 
 mx_depend:
 	$(MAKEDEPEND)
@@ -371,9 +373,21 @@ mx_key.$(OBJ): mx_key.c mxconfig.h
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c
 	$(COMPILE) $(CFLAGS_MX_VERS) mx_list_head.c
 
-mx_version.$(OBJ): Makefile.version mx_version.c
-	$(COMPILE) $(CFLAGS_MX_VERS) mx_version.c
-
 u_xia_dxp.$(OBJ): u_xia_dxp.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) u_xia_dxp.c
+
+#---
+
+mx_version.$(OBJ): Makefile.version mx_version.c mx_version.h
+	$(COMPILE) $(CFLAGS_MX_VERS) mx_version.c
+
+mx_version.h: mx_private_version.h
+
+mx_private_version.h: $(MX_PRIVATE_VERSION_NAME)
+	$(RUN_MX_PRIVATE_VERSION)
+
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.c
+	$(COMPILE) $(CFLAGS_MX_VERS) mx_private_version.c
+	$(CC) $(LINKFLAGS) -o $(MX_PRIVATE_VERSION_NAME) \
+					mx_private_version.$(OBJ)
 
