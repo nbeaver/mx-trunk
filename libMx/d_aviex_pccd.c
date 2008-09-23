@@ -1,7 +1,7 @@
 /*
- * Name:    d_pccd_170170.c
+ * Name:    d_aviex_pccd.c
  *
- * Purpose: MX driver for Aviex PCCD series CCD detector.
+ * Purpose: MX driver for the Aviex PCCD series of CCD detectors.
  *
  * Author:  William Lavender
  *
@@ -19,35 +19,35 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG				FALSE
+#define MXD_AVIEX_PCCD_DEBUG				FALSE
 
-#define MXD_PCCD_170170_DEBUG_BIAS_LOOKUP		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP		FALSE
 
-#define MXD_PCCD_170170_DEBUG_DESCRAMBLING		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING		FALSE
 
-#define MXD_PCCD_170170_DEBUG_ALLOCATION		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION		FALSE
 
-#define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
+#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_SERIAL			FALSE
 
-#define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
 
-#define MXD_PCCD_170170_DEBUG_TIMING			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_TIMING			FALSE
 
-#define MXD_PCCD_170170_DEBUG_FRAME_CORRECTION		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION		FALSE
 
-#define MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
+#define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES		FALSE
 
-#define MXD_PCCD_170170_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_PCCD_170170_DEBUG_MEMORY_LEAK		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
-#define MXD_PCCD_170170_DEBUG_CONTROL_REGISTER		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		FALSE
 
-#define MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE		TRUE
+#define MXD_AVIEX_PCCD_GEOMETRICAL_MASK_KLUDGE		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,15 +73,15 @@
 #include "mx_area_detector.h"
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
-#include "d_pccd_170170.h"
+#include "d_aviex_pccd.h"
 
-#if MXD_PCCD_170170_DEBUG_TIMING
+#if MXD_AVIEX_PCCD_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
 #endif
 
 /*------------------------------------------------------------------------*/
 
-#if MXD_PCCD_170170_DEBUG_MEMORY_LEAK
+#if MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK
 #  define DISPLAY_MEMORY_USAGE( label ) \
 	do {                                                                  \
 	    MX_PROCESS_MEMINFO meminfo;                                       \
@@ -96,7 +96,7 @@
 
 /*------------------------------------------------------------------------*/
 
-#if MXD_PCCD_170170_DEBUG_CONTROL_REGISTER
+#if MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER
 #  define DISPLAY_CONTROL_REGISTER( label ) \
 	do {                                                                  \
 		long dse_dh_control;                                          \
@@ -125,41 +125,41 @@ smvspatial( void *imarr,
 
 #define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
 
-MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
-	mxd_pccd_170170_initialize_type,
-	mxd_pccd_170170_create_record_structures,
+MX_RECORD_FUNCTION_LIST mxd_aviex_pccd_record_function_list = {
+	mxd_aviex_pccd_initialize_type,
+	mxd_aviex_pccd_create_record_structures,
 	mx_area_detector_finish_record_initialization,
-	mxd_pccd_170170_delete_record,
+	mxd_aviex_pccd_delete_record,
 	NULL,
 	NULL,
 	NULL,
-	mxd_pccd_170170_open,
-	mxd_pccd_170170_close,
+	mxd_aviex_pccd_open,
+	mxd_aviex_pccd_close,
 	NULL,
-	mxd_pccd_170170_resynchronize,
-	mxd_pccd_170170_special_processing_setup
+	mxd_aviex_pccd_resynchronize,
+	mxd_aviex_pccd_special_processing_setup
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
-	mxd_pccd_170170_arm,
-	mxd_pccd_170170_trigger,
-	mxd_pccd_170170_stop,
-	mxd_pccd_170170_abort,
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_aviex_pccd_ad_function_list = {
+	mxd_aviex_pccd_arm,
+	mxd_aviex_pccd_trigger,
+	mxd_aviex_pccd_stop,
+	mxd_aviex_pccd_abort,
 	NULL,
 	NULL,
 	NULL,
-	mxd_pccd_170170_get_extended_status,
-	mxd_pccd_170170_readout_frame,
-	mxd_pccd_170170_correct_frame,
+	mxd_aviex_pccd_get_extended_status,
+	mxd_aviex_pccd_readout_frame,
+	mxd_aviex_pccd_correct_frame,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
-	mxd_pccd_170170_get_parameter,
-	mxd_pccd_170170_set_parameter,
+	mxd_aviex_pccd_get_parameter,
+	mxd_aviex_pccd_set_parameter,
 	mx_area_detector_default_measure_correction,
-	mxd_pccd_170170_geometrical_correction
+	mxd_aviex_pccd_geometrical_correction
 };
 
 /* PCCD-170170 data structures. */
@@ -168,7 +168,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_PCCD_170170_STANDARD_FIELDS
+	MXD_AVIEX_PCCD_STANDARD_FIELDS
 };
 
 long mxd_pccd_170170_num_record_fields
@@ -184,7 +184,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pccd_4824_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_PCCD_170170_STANDARD_FIELDS
+	MXD_AVIEX_PCCD_STANDARD_FIELDS
 };
 
 long mxd_pccd_4824_num_record_fields
@@ -200,7 +200,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pccd_16080_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_PCCD_170170_STANDARD_FIELDS
+	MXD_AVIEX_PCCD_STANDARD_FIELDS
 };
 
 long mxd_pccd_16080_num_record_fields
@@ -214,8 +214,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr
 
 #define INIT_REGISTER( i, v, r, t, n, x ) \
 	do {                                                          \
-		mx_status = mxd_pccd_170170_init_register(            \
-			pccd_170170, (i), (v), (r), (t), (n), (x) );  \
+		mx_status = mxd_aviex_pccd_init_register(             \
+			aviex_pccd, (i), (v), (r), (t), (n), (x) );   \
 	                                                              \
 		if ( mx_status.code != MXE_SUCCESS )                  \
 			return mx_status;                             \
@@ -223,44 +223,43 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr
 
 /*---*/
 
-static mx_status_type mxd_pccd_170170_process_function( void *record_ptr,
+static mx_status_type mxd_aviex_pccd_process_function( void *record_ptr,
 							void *record_field_ptr,
 							int operation );
 
 static mx_status_type
-mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
-			MX_PCCD_170170 **pccd_170170,
+mxd_aviex_pccd_get_pointers( MX_AREA_DETECTOR *ad,
+			MX_AVIEX_PCCD **aviex_pccd,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_pccd_170170_get_pointers()";
+	static const char fname[] = "mxd_aviex_pccd_get_pointers()";
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
+		"The MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (pccd_170170 == NULL) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD **) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PCCD_170170 pointer passed by '%s' was NULL.",
+		"The MX_AVIEX_PCCD pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*pccd_170170 = (MX_PCCD_170170 *)
-				ad->record->record_type_struct;
+	*aviex_pccd = (MX_AVIEX_PCCD *) ad->record->record_type_struct;
 
-	if ( *pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( *aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_PCCD_170170 pointer for record '%s' passed by '%s' is NULL.",
+	"The MX_AVIEX_PCCD pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION
 static void
-mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array, int num_sectors )
+mxd_aviex_pccd_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 {
-	static const char fname[] = "mxd_pccd_170170_display_ul_corners()";
+	static const char fname[] = "mxd_aviex_pccd_display_ul_corners()";
 
 	long k;
 	char *ptr;
@@ -283,14 +282,14 @@ mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 #endif
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
+mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
 					long sector_height,
 					long num_sector_rows,
 					long num_sector_columns,
 					uint16_t *image_data )
 {
-	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
+	static const char fname[] = "mxd_aviex_pccd_alloc_sector_array()";
 
 	uint16_t ***sector_array;
 	uint16_t **sector_array_row_ptr;
@@ -308,7 +307,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 			"The image_data pointer passed was NULL." );
 	}
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION
 	MX_DEBUG(-2,("%s: sector_width = %ld, sector_height = %ld",
 		fname, sector_width, sector_height));
 #endif
@@ -325,12 +324,12 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"sector array pointer.", num_sectors );
 	}
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s: allocated sector_array = %p, length = %lu",
 		fname, sector_array, num_sectors * sizeof(uint16_t **) ));
 #endif
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	memset( sector_array, 0, num_sectors * sizeof(uint16_t **) );
 #endif
 
@@ -345,7 +344,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"of row pointers.", num_sectors * sector_height );
 	}
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s: allocated sector_array_row_ptr = %p, length = %lu",
 		fname, sector_array_row_ptr,
 		num_sectors * sector_height * sizeof(uint16_t *) ));
@@ -355,7 +354,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,
 	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
 		fname, row_byte_offset, row_byte_offset,
@@ -369,7 +368,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
 			fname, n, sector_array[n] ));
 #endif
@@ -406,13 +405,13 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,
 ("%s: image_data = %p, sizeof_full_row = %#lx, sizeof_row_of_sectors = %#lx",
 		fname, image_data, sizeof_full_row, sizeof_row_of_sectors));
 #endif
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s:\n"
 		"    byte_offset = ( %#lx ) * sector_row\n"
 		"                  + ( %#lx ) * row\n"
@@ -444,21 +443,21 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 		    if ( row == 0 ) {
 			MX_DEBUG(-2,
 	("*** n = %ld, sector_row = %ld, sector_column = %ld, addr = %#lx ***",
 				n, sector_row, sector_column,
 				(long) byte_offset + (long) image_data));
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-			mxd_pccd_170170_display_ul_corners( sector_array,
+#if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
+			mxd_aviex_pccd_display_ul_corners( sector_array,
 								num_sectors );
 #endif
 		    }
 #endif
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 		    MX_DEBUG(-2,
 	    ("offset = %#lx = %#lx * (%#lx) + %#lx * (%#lx) + %#lx * (%#lx)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -466,7 +465,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 			sizeof_sector_row, sector_column));
 #endif
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 		    MX_DEBUG(-2,
 	    ("offset = %ld = %ld * (%ld) + %ld * (%ld) + %ld * (%ld)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -479,8 +478,8 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	*sector_array_ptr = sector_array;
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION
-	mxd_pccd_170170_display_ul_corners( sector_array, num_sectors );
+#if MXD_AVIEX_PCCD_DEBUG_ALLOCATION
+	mxd_aviex_pccd_display_ul_corners( sector_array, num_sectors );
 
 #if 0
 	fprintf(stderr, "Type any key to continue..." );
@@ -493,7 +492,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 }
 
 MX_EXPORT void
-mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
+mxd_aviex_pccd_free_sector_array( uint16_t ***sector_array )
 {
 	uint16_t **sector_array_row_ptr;
 
@@ -515,15 +514,15 @@ mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
+mxd_aviex_pccd_load_bias_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
 {
-	static const char fname[] = "mxd_pccd_170170_load_bias_lookup_table()";
+	static const char fname[] = "mxd_aviex_pccd_load_bias_lookup_table()";
 
 	FILE *file;
 	int saved_errno;
 	unsigned long table_size, bytes_read;
 
-#if MXD_PCCD_170170_DEBUG_BIAS_LOOKUP
+#if MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP
 	MX_DEBUG(-2,("%s invoked for detector '%s'.",
 		fname, pccd_170170->record->name ));
 #endif
@@ -532,7 +531,7 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 	 * contains 65536 16-bit integers.  No byte swapping is required.
 	 */
 
-	file = fopen( pccd_170170->bias_lookup_table_filename, "rb" );
+	file = fopen( aviex_pccd->bias_lookup_table_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -540,7 +539,7 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The attempt to open bias lookup table file '%s' failed.  "
 		"Errno = %d, error message = '%s'",
-			pccd_170170->bias_lookup_table_filename,
+			aviex_pccd->bias_lookup_table_filename,
 			saved_errno, mx_strerror( saved_errno, NULL, 0 ) );
 	}
 
@@ -548,9 +547,9 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 
 	table_size = 65536 * sizeof(uint16_t);
 
-	pccd_170170->bias_lookup_table = malloc( table_size );
+	aviex_pccd->bias_lookup_table = malloc( table_size );
 
-	if ( pccd_170170->bias_lookup_table == NULL ) {
+	if ( aviex_pccd->bias_lookup_table == NULL ) {
 		fclose( file );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -562,7 +561,7 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 	 * local data structure.
 	 */
 
-	bytes_read = fread( pccd_170170->bias_lookup_table,
+	bytes_read = fread( aviex_pccd->bias_lookup_table,
 				1, table_size, file );
 
 	fclose( file );
@@ -571,7 +570,7 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Only %lu bytes were read from the bias lookup table "
 		"file '%s'.  The file was supposed to be %lu bytes long.",
-			bytes_read, pccd_170170->bias_lookup_table_filename,
+			bytes_read, aviex_pccd->bias_lookup_table_filename,
 			table_size );
 	}
 	
@@ -581,15 +580,15 @@ mxd_pccd_170170_load_bias_lookup_table( MX_PCCD_170170 *pccd_170170 )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_pccd_170170_apply_bias_lookup_table( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_apply_bias_lookup_table( MX_AVIEX_PCCD *aviex_pccd,
 					MX_IMAGE_FRAME *image_frame )
 {
 	uint16_t *image_data, *lookup_table;
 	uint16_t pixel;
 	unsigned long i;
 
-#if MXD_PCCD_170170_DEBUG_BIAS_LOOKUP
-	static const char fname[] = "mxd_pccd_170170_apply_bias_lookup_table()";
+#if MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP
+	static const char fname[] = "mxd_aviex_pccd_apply_bias_lookup_table()";
 
 	MX_DEBUG(-2,("%s invoked for detector '%s'.",
 		fname, pccd_170170->record->name ));
@@ -597,7 +596,7 @@ mxd_pccd_170170_apply_bias_lookup_table( MX_PCCD_170170 *pccd_170170,
 
 	image_data = image_frame->image_data;
 
-	lookup_table = pccd_170170->bias_lookup_table;
+	lookup_table = aviex_pccd->bias_lookup_table;
 
 	for ( i = 0; i < image_frame->image_length; i++ ) {
 		pixel = image_data[i];
@@ -610,20 +609,20 @@ mxd_pccd_170170_apply_bias_lookup_table( MX_PCCD_170170 *pccd_170170,
 
 /*-------------------------------------------------------------------------*/
 
-MX_EXPORT mx_status_type
+static mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
 				long i_framesize,
 				long j_framesize )
 {
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
 #endif
 
 	long i, j;
 
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_pccd_170170_display_ul_corners( image_sector_array, 16 );
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
+	mxd_aviex_pccd_display_ul_corners( image_sector_array, 16 );
 #endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
@@ -669,7 +668,7 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 	    }
 	}
 
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	{
 		long k;
 
@@ -691,14 +690,14 @@ mxd_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
 				long i_framesize,
 				long j_framesize )
 {
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_4824_descramble_raw_data()";
 #endif
 
 	long i, j;
 
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_pccd_170170_display_ul_corners( image_sector_array, 4 );
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
+	mxd_aviex_pccd_display_ul_corners( image_sector_array, 4 );
 #endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
@@ -716,7 +715,7 @@ mxd_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
 	    }
 	}
 
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	{
 		long k;
 
@@ -734,7 +733,7 @@ mxd_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
 
 static mx_status_type
 mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
-				MX_PCCD_170170 *pccd_170170,
+				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
@@ -789,7 +788,7 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 			rfs = row_framesize;
 
-			if ( pccd_170170->use_top_half_of_detector ) {
+			if ( aviex_pccd->use_top_half_of_detector ) {
 				image_ptr[j]               = raw_ptr[16*j + 14];
 				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 15];
 				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 10];
@@ -829,7 +828,7 @@ mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 
 static mx_status_type
 mxd_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
-				MX_PCCD_170170 *pccd_170170,
+				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
@@ -901,12 +900,12 @@ mxd_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
-				MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
+				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
-	static const char fname[] = "mxd_pccd_170170_descramble_image()";
+	static const char fname[] = "mxd_aviex_pccd_descramble_image()";
 
 	MX_SEQUENCE_PARAMETERS *sp;
 	long i, i_framesize, j_framesize;
@@ -915,7 +914,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	uint16_t *frame_data;
 	mx_status_type mx_status;
 
-#if MXD_PCCD_170170_DEBUG_TIMING
+#if MXD_AVIEX_PCCD_DEBUG_TIMING
 	MX_HRT_TIMING memcpy_measurement;
 	MX_HRT_TIMING total_measurement;
 
@@ -965,15 +964,15 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status = mxd_pccd_170170_descramble_streak_camera(
-				ad, pccd_170170, image_frame, raw_frame );
+				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		case MXT_AD_PCCD_4824:
 			mx_status = mxd_pccd_4824_descramble_streak_camera(
-				ad, pccd_170170, image_frame, raw_frame );
+				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		}
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,
 		("%s: Streak camera descrambling complete.", fname));
 #endif
@@ -986,13 +985,13 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
 
-#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+#if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 		MX_DEBUG(-2,
 	("%s: Invoking mx_image_alloc() for pccd_170170->temp_frame = %p",
-			fname, pccd_170170->temp_frame ));
+			fname, aviex_pccd->temp_frame ));
 #endif
 
-		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
+		mx_status = mx_image_alloc( &(aviex_pccd->temp_frame),
 					MXIF_ROW_FRAMESIZE(image_frame),
 					MXIF_COLUMN_FRAMESIZE(image_frame),
 					MXIF_IMAGE_FORMAT(image_frame),
@@ -1004,12 +1003,12 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		frame_data = pccd_170170->temp_frame->image_data;
+		frame_data = aviex_pccd->temp_frame->image_data;
 	} else {
 		frame_data = image_frame->image_data;
 	}
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	{
 		long num_pixels;
 
@@ -1051,10 +1050,10 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-	if ( pccd_170170->sector_array == NULL ) {
+	if ( aviex_pccd->sector_array == NULL ) {
 
-		mx_status = mxd_pccd_170170_alloc_sector_array(
-				&(pccd_170170->sector_array),
+		mx_status = mxd_aviex_pccd_alloc_sector_array(
+				&(aviex_pccd->sector_array),
 				j_framesize, i_framesize,
 				num_sector_rows, num_sector_columns,
 				frame_data );
@@ -1070,13 +1069,13 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	case MXT_AD_PCCD_170170:
 		mx_status = mxd_pccd_170170_descramble_raw_data(
 				raw_frame->image_data,
-				pccd_170170->sector_array,
+				aviex_pccd->sector_array,
 				i_framesize, j_framesize );
 		break;
 	case MXT_AD_PCCD_4824:
 		mx_status = mxd_pccd_4824_descramble_raw_data(
 				raw_frame->image_data,
-				pccd_170170->sector_array,
+				aviex_pccd->sector_array,
 				i_framesize, j_framesize );
 		break;
 	}
@@ -1097,7 +1096,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		num_subimages          = sp->parameter_array[1];
 		frame_width            = MXIF_ROW_FRAMESIZE(image_frame);
 
-		temp_ptr  = pccd_170170->temp_frame->image_data;
+		temp_ptr  = aviex_pccd->temp_frame->image_data;
 		image_ptr = image_frame->image_data;
 
 		bytes_per_half_subimage =
@@ -1108,7 +1107,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				* MXIF_COLUMN_FRAMESIZE(image_frame)
 				* ( sizeof(uint16_t) / 2L );
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,("%s: num_lines_per_subimage = %ld",
 			fname, num_lines_per_subimage));
 		MX_DEBUG(-2,("%s: num_subimages = %ld", fname, num_subimages));
@@ -1123,13 +1122,13 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		 * half of the detector rather than the bottom half.
 		 */
 
-		if ( pccd_170170->use_top_half_of_detector ) {
+		if ( aviex_pccd->use_top_half_of_detector ) {
 			use_top_half = 1L;
 		} else {
 			use_top_half = 0L;
 		}
 
-#if MXD_PCCD_170170_DEBUG_TIMING
+#if MXD_AVIEX_PCCD_DEBUG_TIMING
 		MX_HRT_START( memcpy_measurement );
 #endif
 
@@ -1159,7 +1158,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 					bytes_per_half_subimage );
 		}
 
-#if MXD_PCCD_170170_DEBUG_TIMING
+#if MXD_AVIEX_PCCD_DEBUG_TIMING
 		MX_HRT_END( memcpy_measurement );
 #endif
 
@@ -1176,14 +1175,14 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 #endif
 	}
 
-#if MXD_PCCD_170170_DEBUG_TIMING
+#if MXD_AVIEX_PCCD_DEBUG_TIMING
 	MX_HRT_END( total_measurement );
 
 	MX_HRT_RESULTS( memcpy_measurement, fname, "for subimage memcpy." );
 	MX_HRT_RESULTS( total_measurement, fname, "for total descramble." );
 #endif
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
 #endif
 
@@ -1191,25 +1190,25 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_check_value( MX_AVIEX_PCCD *aviex_pccd,
 				unsigned long register_address,
 				unsigned long register_value,
-				MX_PCCD_170170_REGISTER **register_pointer )
+				MX_AVIEX_PCCD_REGISTER **register_pointer )
 {
-	static const char fname[] = "mxd_pccd_170170_check_value()";
+	static const char fname[] = "mxd_aviex_pccd_check_value()";
 
-	MX_PCCD_170170_REGISTER *reg;
+	MX_AVIEX_PCCD_REGISTER *reg;
 
 	if ( register_address < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal register address %lu.", register_address );
 	} else
-	if ( register_address >= pccd_170170->num_registers ) {
+	if ( register_address >= aviex_pccd->num_registers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal register address %lu.", register_address );
 	}
 
-	reg = &(pccd_170170->register_array[register_address]);
+	reg = &(aviex_pccd->register_array[register_address]);
 
 	if ( reg->read_only ) {
 		return mx_error( MXE_READ_ONLY, fname,
@@ -1241,7 +1240,7 @@ mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 			register_address, reg->maximum );
 	}
 
-	if ( register_pointer != (MX_PCCD_170170_REGISTER **) NULL ) {
+	if ( register_pointer != (MX_AVIEX_PCCD_REGISTER **) NULL ) {
 		*register_pointer = reg;
 	}
 
@@ -1249,7 +1248,7 @@ mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 }
 
 static mx_status_type
-mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_init_register( MX_AVIEX_PCCD *aviex_pccd,
 				long register_index,
 				unsigned long register_value,
 				mx_bool_type read_only,
@@ -1257,25 +1256,25 @@ mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long minimum,
 				unsigned long maximum )
 {
-	static const char fname[] = "mxd_pccd_170170_init_register()";
+	static const char fname[] = "mxd_aviex_pccd_init_register()";
 
-	MX_PCCD_170170_REGISTER *reg;
+	MX_AVIEX_PCCD_REGISTER *reg;
 	long register_address;
 	MX_RECORD_FIELD *register_field;
 	mx_status_type mx_status;
 
-	register_address = register_index - MXLV_PCCD_170170_DH_BASE;
+	register_address = register_index - MXLV_AVIEX_PCCD_DH_BASE;
 
 	if ( register_address < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal register address %ld.", register_address );
 	} else
-	if ( register_address >= pccd_170170->num_registers ) {
+	if ( register_address >= aviex_pccd->num_registers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal register address %ld.", register_address );
 	}
 
-	reg = &(pccd_170170->register_array[register_address]);
+	reg = &(aviex_pccd->register_array[register_address]);
 
 	reg->value        = register_value;
 	reg->read_only    = read_only;
@@ -1284,7 +1283,7 @@ mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 	reg->maximum      = maximum;
 	reg->name         = NULL;
 
-	mx_status = mx_get_field_by_label_value( pccd_170170->record,
+	mx_status = mx_get_field_by_label_value( aviex_pccd->record,
 						register_index,
 						&register_field );
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1296,15 +1295,15 @@ mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 }
 
 static mx_status_type
-mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 					char *command,
 					char *response,
 					size_t max_response_length,
 					int debug_flag )
 {
-	static const char fname[] = "mxd_pccd_170170_simulated_cl_command()";
+	static const char fname[] = "mxd_aviex_pccd_simulated_cl_command()";
 
-	MX_PCCD_170170_REGISTER *reg;
+	MX_AVIEX_PCCD_REGISTER *reg;
 	unsigned long register_address, register_value, combined_value;
 	int num_items;
 	mx_status_type mx_status;
@@ -1316,16 +1315,16 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Illegal command '%s' sent to detector '%s'.",
-				command, pccd_170170->record->name );
+				command, aviex_pccd->record->name );
 		}
 
-		if ( register_address >= MX_PCCD_170170_NUM_REGISTERS ) {
+		if ( register_address >= MX_AVIEX_PCCD_NUM_REGISTERS ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Illegal register address %lu.",
 				register_address );
 		}
 
-		reg = &(pccd_170170->register_array[register_address]);
+		reg = &(aviex_pccd->register_array[register_address]);
 
 		snprintf( response, max_response_length, "S%05lu", reg->value );
 		break;
@@ -1335,13 +1334,13 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Illegal command '%s' sent to detector '%s'.",
-				command, pccd_170170->record->name );
+				command, aviex_pccd->record->name );
 		}
 
 		register_address = combined_value / 100000;
 		register_value   = combined_value % 100000;
 
-		mx_status = mxd_pccd_170170_check_value( pccd_170170,
+		mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
 							register_address,
 							register_value,
 							&reg );
@@ -1362,22 +1361,21 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 }
 
 static mx_status_type
-mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
+mxp_aviex_pccd_epix_save_start_timespec( MX_AVIEX_PCCD *aviex_pccd )
 {
-	static const char fname[] =
-			"mxp_pccd_170170_epix_save_start_timespec()";
+	static const char fname[] = "mxp_aviex_pccd_epix_save_start_timespec()";
 
 	MX_EPIX_XCLIB *xclib;
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	struct timespec absolute_timespec, relative_timespec;
 
-	epix_xclib_vinput = pccd_170170->video_input_record->record_type_struct;
+	epix_xclib_vinput = aviex_pccd->video_input_record->record_type_struct;
 
 	if ( epix_xclib_vinput == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_EPIX_XCLIB_VIDEO_INPUT pointer "
 		"for record '%s' is NULL.",
-			pccd_170170->video_input_record->name );
+			aviex_pccd->video_input_record->name );
 	}
 	if ( epix_xclib_vinput->xclib_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1401,7 +1399,7 @@ mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
 
 	xclib->sequence_start_timespec = absolute_timespec;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s:\n"
 		"sequence_start_timespec = (%lu,%ld),\n"
 		"system_boot_timespec    = (%lu,%ld),\n"
@@ -1420,9 +1418,9 @@ mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
 
 static mx_status_type
 mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
-					MX_PCCD_170170 *pccd_170170 )
+					MX_AVIEX_PCCD *aviex_pccd )
 {
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	static const char fname[] = "mxd_pccd_170170_compute_sequence_times()";
 #endif
 
@@ -1449,62 +1447,62 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	/* Read out the necessary register values from the detector head. */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_CONTROL,
 				&control_register );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( control_register & MXF_PCCD_170170_HIGH_SPEED ) {
+	if ( control_register & MXF_AVIEX_PCCD_HIGH_SPEED ) {
 		high_speed = TRUE;
 	} else {
 		high_speed = FALSE;
 	}
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_PHYSICAL_LINES_IN_QUADRANT,
 				&linenum );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_PHYSICAL_PIXELS_IN_QUADRANT,
 				&pixnum );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_LINES_READ_IN_QUADRANT,
 				&linesrd );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_PIXELS_READ_IN_QUADRANT,
 				&pixrd );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_LINE_BINNING,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_LINE_BINNING,
 				&lbin );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_PIXEL_BINNING,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_PIXEL_BINNING,
 				&pixbin );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,
 	("%s: sequence_type = %ld, control_register = %#lx, high_speed = %d",
 		fname, sp->sequence_type, control_register, (int) high_speed));
@@ -1514,8 +1512,8 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: lbin = %ld, pixbin = %ld", fname, lbin, pixbin));
 #endif
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_INITIAL_DELAY_TIME,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_INITIAL_DELAY_TIME,
 				&tpre_raw );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1523,8 +1521,8 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	tpre = 10.0e-6 * (double) tpre_raw;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_EXPOSURE_TIME,
 				&tshut_raw );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1532,8 +1530,8 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	tshut = 1.0e-3 * (double) tshut_raw;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_READOUT_DELAY_TIME,
 				&tpost_raw );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1541,8 +1539,8 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	tpost = 10.0e-6 * (double) tpost_raw;
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_GAP_TIME,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_GAP_TIME,
 				&tbe_raw );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1550,19 +1548,19 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	tbe = 1.0e-3 * (double) tbe_raw;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: tshut = %g, tbe = %g, tpre = %g, tpost = %g",
 			fname, tshut, tbe, tpre, tpost));
 #endif
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_FRAMES_PER_SEQUENCE,
 				&numframes );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: numframes = %ld", fname, numframes));
 #endif
 
@@ -1570,42 +1568,42 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	  || ( sp->sequence_type == MXT_SQ_STREAK_CAMERA )
 	  || ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) )
 	{
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_EXPOSURE_MULTIPLIER,
 				&mtshut );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_GAP_MULTIPLIER,
 				&mtbe );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_SUBFRAME_SIZE,
 				&nlsi );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_SUBIMAGES_PER_READ,
 				&nsi );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_STREAK_MODE_LINES,
 				&nsc );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 		MX_DEBUG(-2,("%s: mtshut = %ld, mtbe = %ld",
 			fname, mtshut, mtbe));
 		MX_DEBUG(-2,("%s: nlsi = %ld, nsi = %ld, nsc = %ld",
@@ -1652,7 +1650,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: STREAK: N = %ld, sumlimit = %ld",
 		fname, N, sumlimit));
 	    MX_DEBUG(-2,("%s: STREAK: tshut_sum = %g, tbe_sum = %g",
@@ -1777,7 +1775,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: SUBIMAGE: tshut_sum = %g, tbe_sum = %g",
 		fname, tshut_sum, tbe_sum));
 #endif
@@ -2072,7 +2070,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	    exposure_time = tshut;
 	    gap_time      = tbe;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: exposure_time = %g, gap_time = %g",
 	    	fname, exposure_time, gap_time));
 	    MX_DEBUG(-2,("%s: detector_readout_time = %g",
@@ -2108,7 +2106,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	    	exposure_multiplier = 1.0 + 0.0039 * (double) mtshut;
 		gap_multiplier      = 1.0 + 0.0039 * (double) mtbe;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 		MX_DEBUG(-2,("%s: mtshut = %ld, mtbe = %ld",
 			fname, mtshut, mtbe));
 		MX_DEBUG(-2,
@@ -2120,7 +2118,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 		for ( i = 0; i < numframes; i++ ) {
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 			MX_DEBUG(-2,
 ("%s: i = %ld, exposure_time = %g, gap_time = %g, detector_readout_time = %g",
 		fname, i, exposure_time, gap_time, ad->detector_readout_time));
@@ -2133,7 +2131,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 			exposure_time *= exposure_multiplier;
 			gap_time *= gap_multiplier;
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 			MX_DEBUG(-2,("%s: i = %ld, total_acquisition_time = %g",
 				fname, i, ad->total_acquisition_time));
 #endif
@@ -2151,7 +2149,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	}
 
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: ad->sequence_start_delay = %g",
 			fname, ad->sequence_start_delay));
 	MX_DEBUG(-2,("%s: ad->total_acquisition_time = %g",
@@ -2167,7 +2165,7 @@ mxd_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_initialize_type( long record_type )
+mxd_aviex_pccd_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long num_record_fields;
@@ -2182,13 +2180,12 @@ mxd_pccd_170170_initialize_type( long record_type )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_create_record_structures( MX_RECORD *record )
+mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-			"mxd_pccd_170170_create_record_structures()";
+	static const char fname[] = "mxd_aviex_pccd_create_record_structures()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 
 	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
 
@@ -2197,29 +2194,27 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	pccd_170170 = (MX_PCCD_170170 *)
-				malloc( sizeof(MX_PCCD_170170) );
+	aviex_pccd = (MX_AVIEX_PCCD *) malloc( sizeof(MX_AVIEX_PCCD) );
 
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Cannot allocate memory for an MX_PCCD_170170 structure." );
 	}
 
 	record->record_class_struct = ad;
-	record->record_type_struct = pccd_170170;
-	record->class_specific_function_list = 
-			&mxd_pccd_170170_function_list;
+	record->record_type_struct = aviex_pccd;
+	record->class_specific_function_list = &mxd_aviex_pccd_ad_function_list;
 
 	memset( &(ad->sequence_parameters),
 			0, sizeof(ad->sequence_parameters) );
 
 	ad->record = record;
-	pccd_170170->record = record;
+	aviex_pccd->record = record;
 
-	pccd_170170->first_dh_command = TRUE;
+	aviex_pccd->first_dh_command = TRUE;
 
-	pccd_170170->horiz_descramble_factor = -1;
-	pccd_170170->vert_descramble_factor = -1;
+	aviex_pccd->horiz_descramble_factor = -1;
+	aviex_pccd->vert_descramble_factor = -1;
 
 	/* Set the default file format. */
 
@@ -2229,15 +2224,15 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_delete_record( MX_RECORD *record )
+mxd_aviex_pccd_delete_record( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pccd_170170_delete_record()";
+	static const char fname[] = "mxd_aviex_pccd_delete_record()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2246,16 +2241,16 @@ mxd_pccd_170170_delete_record( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pccd_170170 != NULL ) {
-		if ( pccd_170170->raw_frame != NULL ) {
-			mx_free( pccd_170170->raw_frame );
+	if ( aviex_pccd != NULL ) {
+		if ( aviex_pccd->raw_frame != NULL ) {
+			mx_free( aviex_pccd->raw_frame );
 		}
-		mx_free( pccd_170170 );
+		mx_free( aviex_pccd );
 	}
 
 	if ( ad != NULL ) {
@@ -2270,12 +2265,12 @@ mxd_pccd_170170_delete_record( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_open( MX_RECORD *record )
+mxd_aviex_pccd_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pccd_170170_open()";
+	static const char fname[] = "mxd_aviex_pccd_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_RECORD *video_input_record;
 	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
@@ -2290,7 +2285,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2299,12 +2294,12 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 	/* Set the datafile format to the frame file format. */
@@ -2315,25 +2310,25 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	ad_flags = ad->area_detector_flags;
 
-	pccd_flags = pccd_170170->pccd_170170_flags;
+	pccd_flags = aviex_pccd->aviex_pccd_flags;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: area_detector_flags = %#lx", fname, ad_flags));
-	MX_DEBUG(-2,("%s: pccd_170170_flags = %#lx", fname, pccd_flags));
+	MX_DEBUG(-2,("%s: aviex_pccd_flags = %#lx", fname, pccd_flags));
 #endif
 
-	if ( pccd_flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
+	if ( pccd_flags & MXF_AVIEX_PCCD_SUPPRESS_DESCRAMBLING ) {
 		mx_warning( "Area detector '%s' will not descramble "
 			"images from the camera head.",
 				record->name );
 	}
-	if ( pccd_flags & MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR ) {
+	if ( pccd_flags & MXF_AVIEX_PCCD_USE_DETECTOR_HEAD_SIMULATOR ) {
 		mx_warning( "Area detector '%s' will use "
 	"an Aviex detector head simulator instead of a real detector head.",
 				record->name );
 	}
 
-	video_input_record = pccd_170170->video_input_record;
+	video_input_record = aviex_pccd->video_input_record;
 
 	if ( video_input_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2382,8 +2377,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Initialize the geometrical mask frames. */
 
-	pccd_170170->geometrical_mask_frame = NULL;
-	pccd_170170->rebinned_geometrical_mask_frame = NULL;
+	aviex_pccd->geometrical_mask_frame = NULL;
+	aviex_pccd->rebinned_geometrical_mask_frame = NULL;
 
 	/* Set a limit on the range of values for
 	 * the flood field scaling factor.
@@ -2396,184 +2391,184 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * for the exposure time and the gap time.
 	 */
 
-	pccd_170170->exposure_and_gap_step_size = 0.001;
+	aviex_pccd->exposure_and_gap_step_size = 0.001;
 
 	/* Make sure the internal trigger output is low. */
 
 	mx_status = mx_digital_output_write(
-				pccd_170170->internal_trigger_record, 0 );
+				aviex_pccd->internal_trigger_record, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Turn off the buffer overrun flag. */
 
-	pccd_170170->buffer_overrun = FALSE;
+	aviex_pccd->buffer_overrun = FALSE;
 
 	/* Turn off the flag that tells the subimage and streak camera modes
 	 * to use the top half of the detector rather than the bottom half.
 	 */
 
-	pccd_170170->use_top_half_of_detector = FALSE;
+	aviex_pccd->use_top_half_of_detector = FALSE;
 
 	/* If requested, load the bias lookup table. */
 
-	if ( strlen(pccd_170170->bias_lookup_table_filename) > 0 ) {
+	if ( strlen(aviex_pccd->bias_lookup_table_filename) > 0 ) {
 
-		mx_status = mxd_pccd_170170_load_bias_lookup_table(pccd_170170);
+		mx_status = mxd_aviex_pccd_load_bias_lookup_table( aviex_pccd );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		pccd_170170->bias_lookup_table = NULL;
+		aviex_pccd->bias_lookup_table = NULL;
 	}
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
 	 */
 
-	array_size = MX_PCCD_170170_NUM_REGISTERS
-			* sizeof(MX_PCCD_170170_REGISTER);
+	array_size = MX_AVIEX_PCCD_NUM_REGISTERS
+			* sizeof(MX_AVIEX_PCCD_REGISTER);
 
 	/* Allocate memory for the simulated register array. */
 
-	pccd_170170->num_registers = MX_PCCD_170170_NUM_REGISTERS;
+	aviex_pccd->num_registers = MX_AVIEX_PCCD_NUM_REGISTERS;
 
-	pccd_170170->register_array = malloc( array_size );
+	aviex_pccd->register_array = malloc( array_size );
 
-	if ( pccd_170170->register_array == NULL ) {
-		pccd_170170->num_registers = 0;
+	if ( aviex_pccd->register_array == NULL ) {
+		aviex_pccd->num_registers = 0;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %d element array "
 		"of simulated detector head registers for detector '%s.'",
-			MX_PCCD_170170_NUM_REGISTERS,
-			pccd_170170->record->name );
+			MX_AVIEX_PCCD_NUM_REGISTERS,
+			aviex_pccd->record->name );
 	}
 
-	memset( pccd_170170->register_array, 0, array_size );
+	memset( aviex_pccd->register_array, 0, array_size );
 
 	/* Initialize register attributes. */
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_CONTROL,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_CONTROL,
 					0x184, FALSE, FALSE, 0,  0xffff );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OVERSCANNED_PIXELS_PER_LINE,
 					4,     FALSE, FALSE, 1,  2048 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_PHYSICAL_LINES_IN_QUADRANT,
 					1046,  FALSE, FALSE, 1,  8192 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_PHYSICAL_PIXELS_IN_QUADRANT,
 					1050,  FALSE, FALSE, 1,  8192 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_LINES_READ_IN_QUADRANT,
 					1024,  FALSE, FALSE, 1,  8192 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_PIXELS_READ_IN_QUADRANT,
 					1024,  FALSE, FALSE, 1,  8192 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_INITIAL_DELAY_TIME,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_INITIAL_DELAY_TIME,
 					0,     FALSE, FALSE, 0,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_EXPOSURE_TIME,
 					0,     FALSE, FALSE, 0,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_READOUT_DELAY_TIME,
 					0,     FALSE, FALSE, 0,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_FRAMES_PER_SEQUENCE,
 					1,     FALSE, FALSE, 1,  69999 );
 
 #if 0
-	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_GAP_TIME,
 					1,     FALSE, FALSE, 0,  65535 );
 #else
-	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_GAP_TIME,
 					1,     FALSE, FALSE, 1,  65535 );
 #endif
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_EXPOSURE_MULTIPLIER,
 					0,     FALSE, FALSE, 0,  255 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_GAP_MULTIPLIER,
 					0,     FALSE, FALSE, 0,  255 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_CONTROLLER_FPGA_VERSION,
 					17010, TRUE,  FALSE, 0,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_LINE_BINNING,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_LINE_BINNING,
 					1,     FALSE, TRUE,  1,  128 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_PIXEL_BINNING,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_PIXEL_BINNING,
 					1,     FALSE, TRUE,  1,  128 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_SUBFRAME_SIZE,
 					1024,  FALSE, TRUE,  16, 1024 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_SUBIMAGES_PER_READ,
 					1,     FALSE, FALSE, 1,  128 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_STREAK_MODE_LINES,
 					1,     FALSE, FALSE, 1,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_COMM_FPGA_VERSION,
 					17010, TRUE,  FALSE, 0,  65535 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A1,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_A1,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A2,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_A2,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A3,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_A3,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A4,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_A4,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B1,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_B1,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B2,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_B2,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B3,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_B3,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B4,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_B4,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C1,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_C1,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C2,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_C2,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C3,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_C3,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C4,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_C4,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D1,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_D1,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D2,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_D2,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D3,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_D3,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D4,
+	INIT_REGISTER( MXLV_AVIEX_PCCD_DH_OFFSET_D4,
 					0,     FALSE, FALSE, 0,  65534 );
 
 	/* Check to find out the firmware versions that are being used by
 	 * the detector head.
 	 */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_CONTROLLER_FPGA_VERSION,
 				&controller_fpga_version );
 
 	switch( mx_status.code ) {
@@ -2593,14 +2588,14 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		break;
 	}
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-				MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_COMM_FPGA_VERSION,
 				&comm_fpga_version );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: controller FPGA version = %lu",
 			fname, controller_fpga_version ));
 	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
@@ -2630,10 +2625,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		ad->maximum_framesize[0] = 4096;
 		ad->maximum_framesize[1] = 4096;
 
-		pccd_170170->horiz_descramble_factor = 4;
-		pccd_170170->vert_descramble_factor = 4;
+		aviex_pccd->horiz_descramble_factor = 4;
+		aviex_pccd->vert_descramble_factor = 4;
 
-		pccd_170170->pixel_clock_frequency = 60.0e6;
+		aviex_pccd->pixel_clock_frequency = 60.0e6;
 		break;
 
 	case MXT_AD_PCCD_4824:
@@ -2650,17 +2645,17 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		ad->maximum_framesize[0] = 3584;
 		ad->maximum_framesize[1] = 2048;
 
-		pccd_170170->horiz_descramble_factor = 2;
-		pccd_170170->vert_descramble_factor  = 2;
+		aviex_pccd->horiz_descramble_factor = 2;
+		aviex_pccd->vert_descramble_factor  = 2;
 
 #if 0
 		/* For the real detector. */
 
-		pccd_170170->pixel_clock_frequency = 45.4545e6;
+		aviex_pccd->pixel_clock_frequency = 45.4545e6;
 #else
 		/* For the simulator. */
 
-		pccd_170170->pixel_clock_frequency = 50.0e6;
+		aviex_pccd->pixel_clock_frequency = 50.0e6;
 #endif
 		break;
 
@@ -2697,7 +2692,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: x_framesize = %ld, y_framesize = %ld",
 		fname, x_framesize, y_framesize));
 #endif
@@ -2721,21 +2716,21 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Read the control register so that we can change it. */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					&control_register_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: OLD control_register_value = %#lx",
 		fname, control_register_value));
 #endif
 
 	/* Put the detector head in full frame mode. */
 
-	control_register_value &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
+	control_register_value &= (~MXF_AVIEX_PCCD_DETECTOR_READOUT_MASK);
 
 	/* Turn on an initial runt Frame Valid pulse.  This is used to
 	 * work around a misfeature of the PIXCI E4 board.  The E4 board
@@ -2747,29 +2742,29 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * that we do not want anyway.
 	 */
 
-	control_register_value |= MXF_PCCD_170170_DUMMY_FRAME_VALID;
+	control_register_value |= MXF_AVIEX_PCCD_DUMMY_FRAME_VALID;
 
 	/* If requested, turn on the test mode pattern. */
 
-	if ( pccd_flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
-		control_register_value |= MXF_PCCD_170170_TEST_MODE_ON;
+	if ( pccd_flags & MXF_AVIEX_PCCD_USE_TEST_PATTERN ) {
+		control_register_value |= MXF_AVIEX_PCCD_TEST_MODE_ON;
 
 		mx_warning( "Area detector '%s' will return a test image "
 			"instead of taking a real image.",
 				record->name );
 	} else {
-		control_register_value &= (~MXF_PCCD_170170_TEST_MODE_ON);
+		control_register_value &= (~MXF_AVIEX_PCCD_TEST_MODE_ON);
 	}
 
 	/* Write out the new control register value. */
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: NEW control_register_value = %#lx",
 		fname, control_register_value));
 #endif
 
-	mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					control_register_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2778,7 +2773,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Set the pixel clock frequency in the video card. */
 
 	mx_status = mx_video_input_set_pixel_clock_frequency(
-		video_input_record, pccd_170170->pixel_clock_frequency );
+		video_input_record, aviex_pccd->pixel_clock_frequency );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2804,7 +2799,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-				pccd_170170->initial_trigger_mode );
+				aviex_pccd->initial_trigger_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2814,7 +2809,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 */
 
 	camera_is_master =
-	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
 
 	if ( camera_is_master ) {
 		master_clock = MXF_VIN_MASTER_CAMERA;
@@ -2863,8 +2858,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pccd_170170->vinput_normal_framesize[0] = vinput_framesize[0];
-	pccd_170170->vinput_normal_framesize[1] = vinput_framesize[1];
+	aviex_pccd->vinput_normal_framesize[0] = vinput_framesize[0];
+	aviex_pccd->vinput_normal_framesize[1] = vinput_framesize[1];
 
 	mx_status = mx_area_detector_get_binsize( record,
 						&ad_binsize[0], &ad_binsize[1]);
@@ -2872,8 +2867,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pccd_170170->normal_binsize[0] = ad_binsize[0];
-	pccd_170170->normal_binsize[1] = ad_binsize[1];
+	aviex_pccd->normal_binsize[0] = ad_binsize[0];
+	aviex_pccd->normal_binsize[1] = ad_binsize[1];
 
 	/* Allocate space for a raw frame buffer.  This buffer will be used to
 	 * read in the raw pixels from the imaging board before descrambling.
@@ -2895,13 +2890,13 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
 #endif
 
-#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+#if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
 	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame = %p",
 		fname, pccd_170170->raw_frame ));
 #endif
 
-	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
+	mx_status = mx_image_alloc( &(aviex_pccd->raw_frame),
 					vinput_framesize[0],
 					vinput_framesize[1],
 					ad->image_format,
@@ -2913,14 +2908,14 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MXIF_ROW_BINSIZE(pccd_170170->raw_frame) = 1;
-	MXIF_COLUMN_BINSIZE(pccd_170170->raw_frame) = 1;
-	MXIF_BITS_PER_PIXEL(pccd_170170->raw_frame) = ad->bits_per_pixel;
+	MXIF_ROW_BINSIZE(aviex_pccd->raw_frame) = 1;
+	MXIF_COLUMN_BINSIZE(aviex_pccd->raw_frame) = 1;
+	MXIF_BITS_PER_PIXEL(aviex_pccd->raw_frame) = ad->bits_per_pixel;
 
-	pccd_170170->old_framesize[0] = -1;
-	pccd_170170->old_framesize[1] = -1;
+	aviex_pccd->old_framesize[0] = -1;
+	aviex_pccd->old_framesize[1] = -1;
 
-	pccd_170170->sector_array = NULL;
+	aviex_pccd->sector_array = NULL;
 
 	/* Load the image correction files. */
 
@@ -2938,7 +2933,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pccd_flags & MXF_PCCD_170170_TEST_DEZINGER ) {
+	if ( pccd_flags & MXF_AVIEX_PCCD_TEST_DEZINGER ) {
 
 		/* If we are doing a dezinger test, provide a seed value for
 		 * the random number generator.  The numbers that we generate
@@ -2955,7 +2950,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		ad->dezinger_threshold = 2.0;
 	}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -2963,21 +2958,21 @@ mxd_pccd_170170_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_close( MX_RECORD *record )
+mxd_aviex_pccd_close( MX_RECORD *record )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_resynchronize( MX_RECORD *record )
+mxd_aviex_pccd_resynchronize( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pccd_170170_resynchronize()";
+	static const char fname[] = "mxd_aviex_pccd_resynchronize()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2986,12 +2981,12 @@ mxd_pccd_170170_resynchronize( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 	/* Send an 'Initialize CCD Controller' command to the detector head
@@ -3000,7 +2995,7 @@ mxd_pccd_170170_resynchronize( MX_RECORD *record )
 
 #if 0
 	mx_status = mx_camera_link_pulse_cc_line(
-					pccd_170170->camera_link_record, 4,
+					aviex_pccd->camera_link_record, 4,
 					-1, 1000 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3009,17 +3004,17 @@ mxd_pccd_170170_resynchronize( MX_RECORD *record )
 
 	/* Restart the PIXCI library. */
 
-	mx_status = mx_resynchronize_record( pccd_170170->video_input_record );
+	mx_status = mx_resynchronize_record( aviex_pccd->video_input_record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_arm()";
+	static const char fname[] = "mxd_aviex_pccd_arm()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_CLOCK_TICK num_ticks_to_wait, finish_tick;
@@ -3030,14 +3025,14 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	mx_bool_type camera_is_master, external_trigger, circular;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pccd_170170->video_input_record == (MX_RECORD *) NULL ) {
+	if ( aviex_pccd->video_input_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	    "The video_input_record pointer for area detector '%s' is NULL.",
 			ad->record->name );
@@ -3045,28 +3040,28 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 
 	DISPLAY_CONTROL_REGISTER(fname);
 
-	vinput = pccd_170170->video_input_record->record_class_struct;
+	vinput = aviex_pccd->video_input_record->record_class_struct;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_VIDEO_INPUT pointer for video input '%s' "
 		"used by area detector '%s' is NULL.",
-			pccd_170170->video_input_record->name,
+			aviex_pccd->video_input_record->name,
 			ad->record->name );
 	}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
 	sp = &(ad->sequence_parameters);
 
 	camera_is_master =
-	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
 
 	external_trigger = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: camera_is_master = %d, external_trigger = %d",
 		fname, (int) camera_is_master, (int) external_trigger));
 #endif
@@ -3093,7 +3088,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 
 	/* Stop any currently running imaging sequence. */
 
-	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
+	mx_status = mx_video_input_abort( aviex_pccd->video_input_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3152,27 +3147,27 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 
 	/* Turn off the buffer overrun flag. */
 
-	pccd_170170->buffer_overrun = FALSE;
+	aviex_pccd->buffer_overrun = FALSE;
 
 	/* Configure the detector head to use either an internal or
 	 * an external trigger.
 	 */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					&control_register_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( external_trigger ) {
-		control_register_value |= MXF_PCCD_170170_EXTERNAL_TRIGGER;
+		control_register_value |= MXF_AVIEX_PCCD_EXTERNAL_TRIGGER;
 	} else {
-		control_register_value &= (~MXF_PCCD_170170_EXTERNAL_TRIGGER);
+		control_register_value &= (~MXF_AVIEX_PCCD_EXTERNAL_TRIGGER);
 	}
 
-	mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					control_register_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3200,30 +3195,30 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		}
 
 		mx_status = mx_video_input_asynchronous_capture(
-					pccd_170170->video_input_record,
+					aviex_pccd->video_input_record,
 					num_frames_in_sequence, circular );
 	} else {
 		mx_status = mx_video_input_arm(
-					pccd_170170->video_input_record );
+					aviex_pccd->video_input_record );
 	}
 
 	/* If we are using an EPIX PIXCI imaging board, record the time
 	 * that the sequence started in the 'epix_xclib' record.
 	 */
 
-	if ( pccd_170170->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
-	    mx_status = mxp_pccd_170170_epix_save_start_timespec(pccd_170170);
+	if ( aviex_pccd->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
+	    mx_status = mxp_aviex_pccd_epix_save_start_timespec(aviex_pccd);
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_trigger()";
+	static const char fname[] = "mxd_aviex_pccd_trigger()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	long num_frames_in_sequence;
@@ -3231,32 +3226,32 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	mx_bool_type camera_is_master, internal_trigger, circular;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pccd_170170->video_input_record == (MX_RECORD *) NULL ) {
+	if ( aviex_pccd->video_input_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	    "The video_input_record pointer for area detector '%s' is NULL.",
 			ad->record->name );
 	}
 
-	vinput = pccd_170170->video_input_record->record_class_struct;
+	vinput = aviex_pccd->video_input_record->record_class_struct;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_VIDEO_INPUT pointer for video input '%s' "
 		"used by area detector '%s' is NULL.",
-			pccd_170170->video_input_record->name,
+			aviex_pccd->video_input_record->name,
 			ad->record->name );
 	}
 
 	DISPLAY_CONTROL_REGISTER(fname);
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -3285,11 +3280,11 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	}
 
 	camera_is_master =
-	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
 
 	internal_trigger = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: camera_is_master = %d, internal_trigger = %d",
 		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
@@ -3334,13 +3329,13 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		}
 
 		mx_status = mx_video_input_asynchronous_capture(
-					pccd_170170->video_input_record,
+					aviex_pccd->video_input_record,
 					num_frames_in_sequence, circular );
 	} else {
 		/* Send the trigger request to the video input board. */
 
 		mx_status = mx_video_input_trigger(
-					pccd_170170->video_input_record );
+					aviex_pccd->video_input_record );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3367,13 +3362,13 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 			/* Set the output high. */
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 			MX_DEBUG(-2,
 				("%s: Sending trigger to camera head.", fname));
 #endif
 
 			mx_status = mx_digital_output_write(
-				pccd_170170->internal_trigger_record, 1 );
+				aviex_pccd->internal_trigger_record, 1 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -3383,7 +3378,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			/* Set the output low. */
 
 			mx_status = mx_digital_output_write(
-				pccd_170170->internal_trigger_record, 0 );
+				aviex_pccd->internal_trigger_record, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -3394,7 +3389,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -3403,25 +3398,25 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_stop()";
+	static const char fname[] = "mxd_aviex_pccd_stop()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
 	double timeout;
 	int comparison;
 	mx_bool_type busy, timed_out;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -3430,7 +3425,7 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	 */
 
 	mx_status = mx_camera_link_pulse_cc_line(
-					pccd_170170->camera_link_record, 2,
+					aviex_pccd->camera_link_record, 2,
 					-1, 1000 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3443,13 +3438,13 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	 * of the current sequence before acknowledging the stop command.
 	 */
 
-	if ( pccd_170170->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
+	if ( aviex_pccd->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
 
 		mx_status = mx_video_input_abort(
-				pccd_170170->video_input_record );
+				aviex_pccd->video_input_record );
 	} else {
 		mx_status = mx_video_input_stop(
-				pccd_170170->video_input_record );
+				aviex_pccd->video_input_record );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3471,7 +3466,7 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 
 	for (;;) {
 		mx_status = mx_video_input_is_busy(
-				pccd_170170->video_input_record, &busy );
+				aviex_pccd->video_input_record, &busy );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3494,28 +3489,28 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Timed out after waiting %g seconds for video input '%s' "
 		"to stop acquiring the current frame.",
-			timeout, pccd_170170->video_input_record->name );
+			timeout, aviex_pccd->video_input_record->name );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_abort()";
+	static const char fname[] = "mxd_aviex_pccd_abort()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -3525,7 +3520,7 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	 */
 
 	mx_status = mx_camera_link_pulse_cc_line(
-					pccd_170170->camera_link_record, 3,
+					aviex_pccd->camera_link_record, 3,
 					-1, 1000 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3533,30 +3528,30 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 
 	/* Tell the imaging board to immediately stop acquiring frames. */
 
-	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
+	mx_status = mx_video_input_abort( aviex_pccd->video_input_record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_get_extended_status()";
+	static const char fname[] = "mxd_aviex_pccd_get_extended_status()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	long last_frame_number;
 	long total_num_frames;
 	unsigned long status_flags;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -3565,7 +3560,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	/* Ask the video board for its current status. */
 
 	mx_status = mx_video_input_get_extended_status(
-						pccd_170170->video_input_record,
+						aviex_pccd->video_input_record,
 						&last_frame_number,
 						&total_num_frames,
 						&status_flags );
@@ -3573,7 +3568,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG_EXTENDED_STATUS
+#if MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,
 ("%s: last_frame_number = %ld, total_num_frames = %ld, status_flags = %#lx",
 		fname, last_frame_number, total_num_frames, status_flags));
@@ -3589,7 +3584,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
-	if ( pccd_170170->buffer_overrun ) {
+	if ( aviex_pccd->buffer_overrun ) {
 		ad->status |= MXSF_AD_BUFFER_OVERRUN;
 	}
 
@@ -3597,10 +3592,10 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 }
 
 static void
-mxd_pccd_170170_save_raw_frame( uint16_t *image_data,
+mxd_aviex_pccd_save_raw_frame( uint16_t *image_data,
 				unsigned long image_length )
 {
-	static const char fname[] = "mxd_pccd_170170_save_raw_frame()";
+	static const char fname[] = "mxd_aviex_pccd_save_raw_frame()";
 
 	FILE *file;
 	int saved_errno, filename_type;
@@ -3650,11 +3645,11 @@ mxd_pccd_170170_save_raw_frame( uint16_t *image_data,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_readout_frame()";
+	static const char fname[] = "mxd_aviex_pccd_readout_frame()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	unsigned long flags;
 	long frame_number, maximum_num_frames, total_num_frames;
 	long frame_difference, num_times_looped;
@@ -3665,14 +3660,14 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -3684,7 +3679,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	ad->parameter_type = MXLV_AD_MAXIMUM_FRAME_NUMBER;
 
-	mx_status = mxd_pccd_170170_get_parameter( ad );
+	mx_status = mxd_aviex_pccd_get_parameter( ad );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3693,7 +3688,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	frame_number = ad->readout_frame % maximum_num_frames;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s: Reading raw frame %ld", fname, frame_number));
 	MX_DEBUG(-2,("%s: ad->readout_frame = %ld, maximum_num_frames = %ld",
 		fname, ad->readout_frame, maximum_num_frames));
@@ -3701,7 +3696,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	/* Has this frame already been overwritten? */
 
 	mx_status = mx_video_input_get_total_num_frames(
-						pccd_170170->video_input_record,
+						aviex_pccd->video_input_record,
 						&total_num_frames );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3709,7 +3704,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	frame_difference = total_num_frames - ad->readout_frame;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,
 ("%s: frame_difference = %ld, total_num_frames = %ld, ad->readout_frame = %ld",
 		fname, frame_difference, total_num_frames, ad->readout_frame));
@@ -3724,12 +3719,12 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	{
 		num_times_looped = frame_difference / maximum_num_frames;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 		MX_DEBUG(-2,("%s: num_times_looped = %ld",
 			fname, num_times_looped));
 #endif
 		if ( num_times_looped > 0 ) {
-			pccd_170170->buffer_overrun = TRUE;
+			aviex_pccd->buffer_overrun = TRUE;
 
 			number_of_frame_that_overwrote_the_frame_we_want
 				= ad->readout_frame
@@ -3744,12 +3739,12 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	{
 		long video_x_width, video_y_width;
 
 		mx_status = mx_video_input_get_framesize(
-				pccd_170170->video_input_record,
+				aviex_pccd->video_input_record,
 				&video_x_width, &video_y_width );
 
 		MX_DEBUG(-2,("%s: video_x_width = %ld, video_y_width = %ld",
@@ -3761,24 +3756,24 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 		MX_DEBUG(-2,
 		("%s: raw_frame x width = %ld, raw_frame y width = %ld",
-			fname, (long)MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame),
-			(long)MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) ));
+			fname, (long)MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame),
+			(long)MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame) ));
 	}
 #endif
 
 	/* Read in the raw image frame. */
 
 	mx_status = mx_video_input_get_frame(
-		pccd_170170->video_input_record,
-		frame_number, &(pccd_170170->raw_frame) );
+		aviex_pccd->video_input_record,
+		frame_number, &(aviex_pccd->raw_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Set the binsize in the header. */
 
-	MXIF_ROW_BINSIZE(pccd_170170->raw_frame)    = ad->binsize[0];
-	MXIF_COLUMN_BINSIZE(pccd_170170->raw_frame) = ad->binsize[1];
+	MXIF_ROW_BINSIZE(aviex_pccd->raw_frame)    = ad->binsize[0];
+	MXIF_COLUMN_BINSIZE(aviex_pccd->raw_frame) = ad->binsize[1];
 
 	/* Compute and add the exposure time to the image frame header. */
 
@@ -3791,21 +3786,21 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	exposure_timespec =
 		mx_convert_seconds_to_high_resolution_time( exposure_time );
 
-	MXIF_EXPOSURE_TIME_SEC(pccd_170170->raw_frame)
+	MXIF_EXPOSURE_TIME_SEC(aviex_pccd->raw_frame)
 						= exposure_timespec.tv_sec;
 
-	MXIF_EXPOSURE_TIME_NSEC(pccd_170170->raw_frame)
+	MXIF_EXPOSURE_TIME_NSEC(aviex_pccd->raw_frame)
 						= exposure_timespec.tv_nsec;
 
 	/* Make sure that the image frame is the correct size. */
 
-	row_framesize = MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame)
-				/ pccd_170170->horiz_descramble_factor;
+	row_framesize = MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame)
+				/ aviex_pccd->horiz_descramble_factor;
 
-	column_framesize = MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame)
-				* pccd_170170->vert_descramble_factor;
+	column_framesize = MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame)
+				* aviex_pccd->vert_descramble_factor;
 
-#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+#if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
 	("%s: Invoking mx_image_alloc() for ad->image_frame = %p",
 		fname, ad->image_frame));
@@ -3814,18 +3809,18 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_image_alloc( &(ad->image_frame),
 				row_framesize,
 				column_framesize,
-				MXIF_IMAGE_FORMAT(pccd_170170->raw_frame),
-				MXIF_BYTE_ORDER(pccd_170170->raw_frame),
-				MXIF_BYTES_PER_PIXEL(pccd_170170->raw_frame),
-				pccd_170170->raw_frame->header_length,
-				pccd_170170->raw_frame->image_length );
+				MXIF_IMAGE_FORMAT(aviex_pccd->raw_frame),
+				MXIF_BYTE_ORDER(aviex_pccd->raw_frame),
+				MXIF_BYTES_PER_PIXEL(aviex_pccd->raw_frame),
+				aviex_pccd->raw_frame->header_length,
+				aviex_pccd->raw_frame->image_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Copy the image header. */
 
-	mx_status = mx_image_copy_header( pccd_170170->raw_frame,
+	mx_status = mx_image_copy_header( aviex_pccd->raw_frame,
 					ad->image_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3839,23 +3834,23 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MXIF_COLUMN_FRAMESIZE(ad->image_frame) = column_framesize;
 
-	flags = pccd_170170->pccd_170170_flags;
+	flags = aviex_pccd->aviex_pccd_flags;
 
 	/* If requested, save a copy of the undescrambled data. */
 
-	if ( flags & MXF_PCCD_170170_SAVE_RAW_FRAME ) {
-		mxd_pccd_170170_save_raw_frame(
-			pccd_170170->raw_frame->image_data,
-			pccd_170170->raw_frame->image_length );
+	if ( flags & MXF_AVIEX_PCCD_SAVE_RAW_FRAME ) {
+		mxd_aviex_pccd_save_raw_frame(
+			aviex_pccd->raw_frame->image_data,
+			aviex_pccd->raw_frame->image_length );
 	}
 
 	/* If required, we now descramble the image. */
 
-	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
+	if ( flags & MXF_AVIEX_PCCD_SUPPRESS_DESCRAMBLING ) {
 
 		/* Just copy directly from the raw frame to the image frame. */
 
-		raw_frame_length = pccd_170170->raw_frame->image_length;
+		raw_frame_length = aviex_pccd->raw_frame->image_length;
 
 		image_length = ad->image_frame->image_length;
 
@@ -3865,13 +3860,13 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 			bytes_to_copy = image_length;
 		}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 		MX_DEBUG(-2,
 	    ("%s: Copying camera simulator image.  Image length = %lu bytes.",
 			fname, (unsigned long) bytes_to_copy ));
 #endif
 		memcpy( ad->image_frame->image_data,
-			pccd_170170->raw_frame->image_data,
+			aviex_pccd->raw_frame->image_data,
 			bytes_to_copy );
 	} else {
 		/* Descramble the image. */
@@ -3879,10 +3874,10 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
-			mx_status = mxd_pccd_170170_descramble_image( ad,
-							pccd_170170,
+			mx_status = mxd_aviex_pccd_descramble_image( ad,
+							aviex_pccd,
 							ad->image_frame,
-							pccd_170170->raw_frame);
+							aviex_pccd->raw_frame);
 			break;
 		case MXT_AD_PCCD_16080:
 			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -3903,9 +3898,9 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* If required, apply the bias lookup table. */
 
-	if ( pccd_170170->bias_lookup_table != NULL ) {
-		mx_status = mxd_pccd_170170_apply_bias_lookup_table(
-						pccd_170170, ad->image_frame );
+	if ( aviex_pccd->bias_lookup_table != NULL ) {
+		mx_status = mxd_aviex_pccd_apply_bias_lookup_table(
+						aviex_pccd, ad->image_frame );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3913,7 +3908,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Dezingering test code. */
 
-	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
+	if ( flags & MXF_AVIEX_PCCD_TEST_DEZINGER ) {
 
 		/* If we are testing the dezingering logic, we potentially
 		 * introduce fake zingers here.
@@ -3944,11 +3939,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_correct_frame()";
+	static const char fname[] = "mxd_aviex_pccd_correct_frame()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_IMAGE_FRAME *mask_frame;
 	MX_IMAGE_FRAME *bias_frame;
@@ -3968,9 +3963,9 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	long i, j, k;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3979,7 +3974,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	flags = ad->correction_flags;
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 	MX_DEBUG(-2,("%s: ad->correction_flags = %#lx", fname, flags));
@@ -4002,7 +3997,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	image_row_framesize    = MXIF_ROW_FRAMESIZE(ad->image_frame);
 	image_column_framesize = MXIF_COLUMN_FRAMESIZE(ad->image_frame);
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
 	("%s: image_row_framesize = %ld, image_column_framesize = %ld",
 		fname, image_row_framesize, image_column_framesize));
@@ -4058,7 +4053,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
 	("%s: corr_row_framesize = %ld, corr_column_framesize = %ld",
 		fname, corr_row_framesize, corr_column_framesize));
@@ -4066,7 +4061,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	/* Find the centerline of the correction frame data. */
 
-	if ( pccd_170170->use_top_half_of_detector ) {
+	if ( aviex_pccd->use_top_half_of_detector ) {
 		corr_centerline = mx_round(0.25 * (double) corr_row_framesize);
 	} else {
 		corr_centerline = mx_round(0.75 * (double) corr_row_framesize);
@@ -4083,7 +4078,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 	image_pixels_per_stripe =
 			image_row_framesize * corr_num_rows_per_stripe;
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
 	("%s: corr_centerline = %ld, corr_num_rows_per_stripe = %ld",
 		fname, corr_centerline, corr_num_rows_per_stripe));
@@ -4097,7 +4092,7 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 
 	corr_start_offset = corr_first_row * corr_column_framesize;
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s: corr_first_row = %ld, corr_start_offset = %ld",
 		fname, corr_first_row, corr_start_offset));
 #endif
@@ -4228,13 +4223,13 @@ mxd_pccd_170170_correct_frame( MX_AREA_DETECTOR *ad )
 }
 
 static mx_status_type
-mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
-					MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_find_register( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd,
 					long *parameter_type,
 					void **value_ptr,
 					MX_RECORD_FIELD **field )
 {
-	static const char fname[] = "mxd_pccd_170170_find_register()";
+	static const char fname[] = "mxd_aviex_pccd_find_register()";
 
 	MX_RECORD_FIELD *register_value_field;
 	mx_status_type mx_status;
@@ -4254,7 +4249,7 @@ mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
 
 		*parameter_type = (*field)->label_value;
 
-		if ( *parameter_type < MXLV_PCCD_170170_DH_BASE ) {
+		if ( *parameter_type < MXLV_AVIEX_PCCD_DH_BASE ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"'%s' is not the name of a register for area detector '%s'.",
 				ad->register_name, ad->record->name );
@@ -4272,7 +4267,7 @@ mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
 
 		*value_ptr = mx_get_field_value_pointer( register_value_field );
 	} else
-	if ( *parameter_type >= MXLV_PCCD_170170_DH_BASE ) {
+	if ( *parameter_type >= MXLV_AVIEX_PCCD_DH_BASE ) {
 		/* If we were passed the field label value directly, then the
 		 * 'register_value' field was not involved in getting here.
 		 *
@@ -4303,11 +4298,11 @@ mxd_pccd_170170_find_register( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
-					MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd,
 					long parameter_type )
 {
-	static const char fname[] = "mxd_pccd_170170_get_register_value()";
+	static const char fname[] = "mxd_aviex_pccd_get_register_value()";
 
 	MX_RECORD_FIELD *field;
 	unsigned long control_register, pseudo_reg_value;
@@ -4315,12 +4310,12 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 	unsigned long *ulong_value_ptr;
 	mx_status_type mx_status;
 
-	/* Note: mxd_pccd_170170_find_register() will modify the value of
+	/* Note: mxd_aviex_pccd_find_register() will modify the value of
 	 * 'parameter_type' if the original value of 'parameter_type' is
 	 * less than zero.
 	 */
 
-	mx_status = mxd_pccd_170170_find_register( ad, pccd_170170,
+	mx_status = mxd_aviex_pccd_find_register( ad, aviex_pccd,
 							&parameter_type,
 							&value_ptr,
 							&field );
@@ -4331,8 +4326,8 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 
 	/* For real registers, getting the value is simple. */
 
-	if ( parameter_type < MXLV_PCCD_170170_DH_PSEUDO_BASE ) {
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
 						parameter_type, value_ptr );
 		return mx_status;
 	}
@@ -4341,39 +4336,39 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 	 * the control register.
 	 */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					&control_register );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	switch( parameter_type ) {
-	case MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE:
+	case MXLV_AVIEX_PCCD_DH_DETECTOR_READOUT_MODE:
 		pseudo_reg_value = (control_register >> 5) & 0x3;
 		break;
-	case MXLV_PCCD_170170_DH_READOUT_SPEED:
+	case MXLV_AVIEX_PCCD_DH_READOUT_SPEED:
 		pseudo_reg_value = (control_register >> 1) & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_TEST_MODE:
+	case MXLV_AVIEX_PCCD_DH_TEST_MODE:
 		pseudo_reg_value = control_register & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
+	case MXLV_AVIEX_PCCD_DH_OFFSET_CORRECTION:
 		pseudo_reg_value = (control_register >> 2) & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+	case MXLV_AVIEX_PCCD_DH_EXPOSURE_MODE:
 		pseudo_reg_value = (control_register >> 3) & 0x3;
 		break;
-	case MXLV_PCCD_170170_DH_LINEARIZATION:
+	case MXLV_AVIEX_PCCD_DH_LINEARIZATION:
 		pseudo_reg_value = (control_register >> 7) & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID:
+	case MXLV_AVIEX_PCCD_DH_DUMMY_FRAME_VALID:
 		pseudo_reg_value = (control_register >> 9) & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_SHUTTER_DISABLE:
+	case MXLV_AVIEX_PCCD_DH_SHUTTER_DISABLE:
 		pseudo_reg_value = (control_register >> 10) & 0x1;
 		break;
-	case MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING:
+	case MXLV_AVIEX_PCCD_DH_OVER_EXPOSURE_WARNING:
 		pseudo_reg_value = (control_register >> 11) & 0x1;
 		break;
 	default:
@@ -4389,11 +4384,11 @@ mxd_pccd_170170_get_register_value( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
-					MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd,
 					long parameter_type )
 {
-	static const char fname[] = "mxd_pccd_170170_set_register_value()";
+	static const char fname[] = "mxd_aviex_pccd_set_register_value()";
 
 	MX_RECORD_FIELD *field;
 	unsigned long control_register, register_value, pseudo_reg_value;
@@ -4401,12 +4396,12 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 	unsigned long *ulong_value_ptr;
 	mx_status_type mx_status;
 
-	/* Note: mxd_pccd_170170_find_register() will modify the value of
+	/* Note: mxd_aviex_pccd_find_register() will modify the value of
 	 * 'parameter_type' if the original value of 'parameter_type' is
 	 * less than zero.
 	 */
 
-	mx_status = mxd_pccd_170170_find_register( ad, pccd_170170,
+	mx_status = mxd_aviex_pccd_find_register( ad, aviex_pccd,
 							&parameter_type,
 							&value_ptr,
 							&field );
@@ -4425,8 +4420,8 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 
 	/* For real registers, setting the value is simple. */
 
-	if ( parameter_type < MXLV_PCCD_170170_DH_PSEUDO_BASE ) {
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
 					parameter_type, *ulong_value_ptr );
 		return mx_status;
 	}
@@ -4435,8 +4430,8 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 	 * the control register.
 	 */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					&control_register );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -4445,63 +4440,63 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 	register_value = *ulong_value_ptr;
 
 	switch( parameter_type ) {
-	case MXLV_PCCD_170170_DH_DETECTOR_READOUT_MODE:
+	case MXLV_AVIEX_PCCD_DH_DETECTOR_READOUT_MODE:
 		pseudo_reg_value = ( register_value & 0x3 ) << 5;
 
 		control_register &= ~0x60;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_READOUT_SPEED:
+	case MXLV_AVIEX_PCCD_DH_READOUT_SPEED:
 		pseudo_reg_value = ( register_value & 0x1 ) << 0x1;
 
 		control_register &= ~0x2;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_TEST_MODE:
+	case MXLV_AVIEX_PCCD_DH_TEST_MODE:
 		pseudo_reg_value = register_value & 0x1;
 
 		control_register &= ~0x1;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_OFFSET_CORRECTION:
+	case MXLV_AVIEX_PCCD_DH_OFFSET_CORRECTION:
 		pseudo_reg_value = ( register_value & 0x1 ) << 2;
 
 		control_register &= ~0x4;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_EXPOSURE_MODE:
+	case MXLV_AVIEX_PCCD_DH_EXPOSURE_MODE:
 		pseudo_reg_value = ( register_value & 0x3 ) << 3;
 
 		control_register &= ~0x18;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_LINEARIZATION:
+	case MXLV_AVIEX_PCCD_DH_LINEARIZATION:
 		pseudo_reg_value = ( register_value & 0x1 ) << 7;
 
 		control_register &= ~0x80;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_DUMMY_FRAME_VALID:
+	case MXLV_AVIEX_PCCD_DH_DUMMY_FRAME_VALID:
 		pseudo_reg_value = ( register_value & 0x1 ) << 9;
 
 		control_register &= ~0x200;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_SHUTTER_DISABLE:
+	case MXLV_AVIEX_PCCD_DH_SHUTTER_DISABLE:
 		pseudo_reg_value = ( register_value & 0x1 ) << 10;
 
 		control_register &= ~0x400;
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_PCCD_170170_DH_OVER_EXPOSURE_WARNING:
+	case MXLV_AVIEX_PCCD_DH_OVER_EXPOSURE_WARNING:
 		pseudo_reg_value = ( register_value & 0x1 ) << 11;
 
 		control_register &= ~0x800;
@@ -4510,31 +4505,31 @@ mxd_pccd_170170_set_register_value( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-	mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					control_register );
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_get_parameter()";
+	static const char fname[] = "mxd_aviex_pccd_get_parameter()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long shutter_disabled;
 	mx_status_type mx_status;
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
@@ -4545,7 +4540,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 				name_buffer, sizeof(name_buffer)) ));
 	}
 #endif
-	video_input_record = pccd_170170->video_input_record;
+	video_input_record = aviex_pccd->video_input_record;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
@@ -4561,15 +4556,15 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		/* See the comments about the Aviex camera in the function
-		 * mxd_pccd_170170_open() for the explanation of where the
+		 * mxd_aviex_pccd_open() for the explanation of where the
 		 * horizontal and vertical descramble factors come from.
 		 */
 
 		ad->framesize[0] = 
-		  vinput_horiz_framesize / pccd_170170->horiz_descramble_factor;
+		  vinput_horiz_framesize / aviex_pccd->horiz_descramble_factor;
 
 		ad->framesize[1] =
-		  vinput_vert_framesize * pccd_170170->vert_descramble_factor;
+		  vinput_vert_framesize * aviex_pccd->vert_descramble_factor;
 
 		break;
 
@@ -4603,7 +4598,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status = mxd_pccd_170170_compute_sequence_times(
-							ad, pccd_170170 );
+							ad, aviex_pccd );
 			break;
 		case MXT_AD_PCCD_4824:
 			ad->sequence_start_delay = 0.0;
@@ -4630,7 +4625,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 		MX_DEBUG(-2,("%s: ad->total_sequence_time = %g",
 			fname, ad->total_sequence_time));
 #endif
@@ -4647,8 +4642,8 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:
-		mx_status = mxd_pccd_170170_get_register_value( ad,
-							pccd_170170, -1 );
+		mx_status = mxd_aviex_pccd_get_register_value( ad,
+							aviex_pccd, -1 );
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
@@ -4666,9 +4661,9 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	default:
-		if ( ad->parameter_type >= MXLV_PCCD_170170_DH_BASE ) {
-			mx_status = mxd_pccd_170170_get_register_value( ad,
-					    pccd_170170, ad->parameter_type );
+		if ( ad->parameter_type >= MXLV_AVIEX_PCCD_DH_BASE ) {
+			mx_status = mxd_aviex_pccd_get_register_value( ad,
+					    aviex_pccd, ad->parameter_type );
 		} else {
 			mx_status =
 			    mx_area_detector_default_get_parameter_handler(ad);
@@ -4680,11 +4675,11 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
+mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_set_parameter()";
+	static const char fname[] = "mxd_aviex_pccd_set_parameter()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	MX_SEQUENCE_PARAMETERS *sp;
 	unsigned long old_control_register_value, new_control_register_value;
 	unsigned long old_detector_readout_mode;
@@ -4708,14 +4703,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
@@ -4726,7 +4721,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				name_buffer, sizeof(name_buffer)) ));
 	}
 #endif
-	flags = pccd_170170->pccd_170170_flags;
+	flags = aviex_pccd->aviex_pccd_flags;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -4736,10 +4731,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Invalidate any existing image sector array. */
 
-		mxd_pccd_170170_free_sector_array(
-				pccd_170170->sector_array );
+		mxd_aviex_pccd_free_sector_array(
+				aviex_pccd->sector_array );
 
-		pccd_170170->sector_array = NULL;
+		aviex_pccd->sector_array = NULL;
 
 		/* Find a compatible framesize and binsize. */
 
@@ -4760,7 +4755,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				saved_vert_binsize = 2;
 			}
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 			MX_DEBUG(-2,
 		("%s: saved_vert_binsize = %ld, saved_vert_framesize = %ld",
 			    fname, saved_vert_binsize, saved_vert_framesize));
@@ -4794,15 +4789,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Tell the detector head to change its binsize. */
 
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_PIXEL_BINNING,
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_PIXEL_BINNING,
 					ad->binsize[0] );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_LINE_BINNING,
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_LINE_BINNING,
 					ad->binsize[1] );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -4811,21 +4806,21 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		/* Tell the video input to change its framesize. */
 
 		/* See the comments about the Aviex camera in the function
-		 * mxd_pccd_170170_open() for the explanation of where the
+		 * mxd_aviex_pccd_open() for the explanation of where the
 		 * horizontal and vertical descramble factors come from.
 		 */
 
 		vinput_horiz_framesize =
-			ad->framesize[0] * pccd_170170->horiz_descramble_factor;
+			ad->framesize[0] * aviex_pccd->horiz_descramble_factor;
 
 		vinput_vert_framesize =
-			ad->framesize[1] / pccd_170170->vert_descramble_factor;
+			ad->framesize[1] / aviex_pccd->vert_descramble_factor;
 
 		horiz_binsize = ad->binsize[0];
 		vert_binsize  = ad->binsize[1];
 
 		mx_status = mx_video_input_set_framesize(
-					pccd_170170->video_input_record,
+					aviex_pccd->video_input_record,
 					vinput_horiz_framesize,
 					vinput_vert_framesize );
 
@@ -4836,15 +4831,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		 * later use in switching to and from streak camera mode.
 		 */
 
-		pccd_170170->vinput_normal_framesize[0] =
+		aviex_pccd->vinput_normal_framesize[0] =
 						vinput_horiz_framesize;
 
-		pccd_170170->vinput_normal_framesize[1] =
+		aviex_pccd->vinput_normal_framesize[1] =
 						vinput_vert_framesize;
 
-		pccd_170170->normal_binsize[0] = horiz_binsize;
+		aviex_pccd->normal_binsize[0] = horiz_binsize;
 
-		pccd_170170->normal_binsize[1] = vert_binsize;
+		aviex_pccd->normal_binsize[1] = vert_binsize;
 
 		/* Update the number of bytes per frame for this resolution. */
 
@@ -4873,15 +4868,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Invalidate any existing image sector array. */
 
-		mxd_pccd_170170_free_sector_array(
-				pccd_170170->sector_array );
+		mxd_aviex_pccd_free_sector_array( aviex_pccd->sector_array );
 
-		pccd_170170->sector_array = NULL;
+		aviex_pccd->sector_array = NULL;
 
 		/* Update the maximum frame number. */
 
 		mx_status = mx_video_input_get_maximum_frame_number(
-					pccd_170170->video_input_record,
+					aviex_pccd->video_input_record,
 					&(ad->maximum_frame_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -4906,7 +4900,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			if ( num_frames >
-				MXF_PCCD_170170_MAXIMUM_DETECTOR_HEAD_FRAMES )
+				MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES )
 			{
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"The circular multiframe sequence requested "
@@ -4914,7 +4908,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"frames (%ld) than the maximum number of "
 				"frames available (%d).",
 				ad->record->name, num_frames,
-				MXF_PCCD_170170_MAXIMUM_DETECTOR_HEAD_FRAMES );
+				MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES );
 			}
 			break;
 		default:
@@ -4926,7 +4920,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"input '%s'.",
 					ad->record->name, num_frames,
 					ad->maximum_frame_number + 1,
-					pccd_170170->video_input_record->name );
+					aviex_pccd->video_input_record->name );
 			}
 			break;
 		}
@@ -4935,17 +4929,17 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		 * used by the following code.
 		 */
 
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_CONTROL,
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_CONTROL,
 					&old_control_register_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		old_detector_readout_mode = old_control_register_value
-				& MXF_PCCD_170170_DETECTOR_READOUT_MASK;
+				& MXF_AVIEX_PCCD_DETECTOR_READOUT_MASK;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
 		MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
@@ -4960,7 +4954,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		 */
 
 		new_control_register_value
-			&= (~MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER);
+			&= (~MXF_AVIEX_PCCD_EXTERNAL_DURATION_TRIGGER);
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
@@ -4975,7 +4969,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			if ( sp->sequence_type == MXT_SQ_BULB ) {
 				new_control_register_value
-				  |= MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER;
+				  |= MXF_AVIEX_PCCD_EXTERNAL_DURATION_TRIGGER;
 			}
 
 			/* Get the detector readout time. */
@@ -5000,7 +4994,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_multiplier_steps = 0L;
 			}
 
-#if MXD_PCCD_170170_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
 			MX_DEBUG(-2,
 			("%s: exposure_multiplier = %g, gap_multiplier = %g",
 				fname, exposure_multiplier, gap_multiplier));
@@ -5010,17 +5004,17 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_multiplier_steps));
 #endif
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_EXPOSURE_MULTIPLIER,
 					exposure_multiplier_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_GAP_MULTIPLIER,
 					gap_multiplier_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5030,7 +5024,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* We must switch to full frame mode. */
 
 				new_control_register_value
-				    &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
+				    &= (~MXF_AVIEX_PCCD_DETECTOR_READOUT_MASK);
 
 				/* If we were previously in streak camera mode,
 				 * we must restore the normal imaging board
@@ -5038,20 +5032,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				 */
 
 				if ( old_detector_readout_mode
-					== MXF_PCCD_170170_STREAK_CAMERA_MODE )
+					== MXF_AVIEX_PCCD_STREAK_CAMERA_MODE )
 				{
 				    mx_status = mx_video_input_set_framesize(
-					pccd_170170->video_input_record,
-					pccd_170170->vinput_normal_framesize[0],
-				       pccd_170170->vinput_normal_framesize[1]);
+					aviex_pccd->video_input_record,
+					aviex_pccd->vinput_normal_framesize[0],
+				       aviex_pccd->vinput_normal_framesize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
 				    mx_status = mx_area_detector_set_binsize(
-					pccd_170170->record,
-					pccd_170170->normal_binsize[0],
-					pccd_170170->normal_binsize[1]);
+					aviex_pccd->record,
+					aviex_pccd->normal_binsize[0],
+					aviex_pccd->normal_binsize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -5102,7 +5096,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				}
 
 				exposure_time =
-					pccd_170170->exposure_and_gap_step_size;
+					aviex_pccd->exposure_and_gap_step_size;
 
 				frame_time = exposure_time;
 			} else
@@ -5114,7 +5108,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_time = frame_time - exposure_time
 						- ad->detector_readout_time;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 				MX_DEBUG(-2,("%s: num_frames = %ld",
 					fname, num_frames));
 				MX_DEBUG(-2,("%s: exposure_time = %g",
@@ -5134,20 +5128,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					sp->sequence_type );
 			}
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_FRAMES_PER_SEQUENCE,
 					num_frames );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			exposure_steps = mx_round_down( exposure_time
-				/ pccd_170170->exposure_and_gap_step_size );
+				/ aviex_pccd->exposure_and_gap_step_size );
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_EXPOSURE_TIME,
 					exposure_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5159,9 +5153,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				 * will take frames as fast as it can.
 				 */
 
-				mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_GAP_TIME,
+				mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_GAP_TIME,
 					1 );
 
 				if ( mx_status.code != MXE_SUCCESS )
@@ -5175,7 +5169,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_time = frame_time - exposure_time
 						- ad->detector_readout_time;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 				MX_DEBUG(-2,
 				("%s: num_frames = %ld, gap_time = %g",
 					fname, num_frames, gap_time));
@@ -5194,7 +5188,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				}
 
 				gap_steps = mx_round_down( gap_time
-				    / pccd_170170->exposure_and_gap_step_size );
+				    / aviex_pccd->exposure_and_gap_step_size );
 
 				if ( gap_steps > 65535 ) {
 					return mx_error(
@@ -5203,7 +5197,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"greater than the maximum allowed gap time "
 				"(%g seconds) for detector '%s'.",
 						gap_time,
-			pccd_170170->exposure_and_gap_step_size * (double)65535,
+			aviex_pccd->exposure_and_gap_step_size * (double)65535,
 						ad->record->name );
 				}
 
@@ -5214,13 +5208,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"less than the minimum allowed gap time "
 				"(%g seconds) for detector '%s'.",
 					gap_time,
-					pccd_170170->exposure_and_gap_step_size,
+					aviex_pccd->exposure_and_gap_step_size,
 					ad->record->name );
 				}
 
-				mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_GAP_TIME,
+				mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_GAP_TIME,
 					gap_steps );
 
 				if ( mx_status.code != MXE_SUCCESS )
@@ -5249,17 +5243,17 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Turn off the multipliers. */
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_EXPOSURE_MULTIPLIER,
 					0L );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_GAP_MULTIPLIER,
 					0L );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5268,7 +5262,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			/* Get the current framesize. */
 
 			mx_status = mx_video_input_get_framesize(
-					pccd_170170->video_input_record,
+					aviex_pccd->video_input_record,
 					&vinput_horiz_framesize,
 					&vinput_vert_framesize );
 
@@ -5276,34 +5270,34 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			if ( old_detector_readout_mode
-				!= MXF_PCCD_170170_STREAK_CAMERA_MODE )
+				!= MXF_AVIEX_PCCD_STREAK_CAMERA_MODE )
 			{
 				/* Before switching to streak camera mode,
 				 * save the video board's current framesize
 				 * for later restoration.
 				 */
 
-				pccd_170170->vinput_normal_framesize[0]
+				aviex_pccd->vinput_normal_framesize[0]
 					= vinput_horiz_framesize;
 
-				pccd_170170->vinput_normal_framesize[1]
+				aviex_pccd->vinput_normal_framesize[1]
 					= vinput_vert_framesize;
 
-				pccd_170170->normal_binsize[0] = ad->binsize[0];
+				aviex_pccd->normal_binsize[0] = ad->binsize[0];
 
-				pccd_170170->normal_binsize[1] = ad->binsize[1];
+				aviex_pccd->normal_binsize[1] = ad->binsize[1];
 
 				/* Now switch to streak camera mode. */
 
 				new_control_register_value
-					|= MXF_PCCD_170170_STREAK_CAMERA_MODE;
+					|= MXF_AVIEX_PCCD_STREAK_CAMERA_MODE;
 			}
 
 			/* Set the number of frames in sequence to 1. */
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_FRAMES_PER_SEQUENCE,
 					1 );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5311,9 +5305,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of streak camera mode lines.*/
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_STREAK_MODE_LINES,
 					num_streak_mode_lines );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5324,11 +5318,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_time = sp->parameter_array[1];
 
 			exposure_steps = mx_round_down( exposure_time
-				/ pccd_170170->exposure_and_gap_step_size );
+				/ aviex_pccd->exposure_and_gap_step_size );
 
-			mx_status = mxd_pccd_170170_write_register(
-				pccd_170170,
-				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+			mx_status = mxd_aviex_pccd_write_register(
+				aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_EXPOSURE_TIME,
 				exposure_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5343,7 +5337,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			gap_time = line_time - exposure_time;
 
 			gap_steps = mx_round_down( gap_time
-				/ pccd_170170->exposure_and_gap_step_size );
+				/ aviex_pccd->exposure_and_gap_step_size );
 
 			if ( gap_steps < 1 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -5351,15 +5345,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"less than the minimum allowed gap time "
 				"(%g seconds) for detector '%s'.",
 					gap_time,
-					pccd_170170->exposure_and_gap_step_size,
+					aviex_pccd->exposure_and_gap_step_size,
 					ad->record->name );
 			}
 
 			/* Set the gap time. */
 
-			mx_status = mxd_pccd_170170_write_register(
-				pccd_170170,
-				MXLV_PCCD_170170_DH_GAP_TIME,
+			mx_status = mxd_aviex_pccd_write_register(
+				aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_GAP_TIME,
 				gap_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5368,7 +5362,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			/* Set the streak-mode framesize. */
 
 			mx_status = mx_video_input_set_framesize(
-				pccd_170170->video_input_record,
+				aviex_pccd->video_input_record,
 				vinput_horiz_framesize,
 				num_streak_mode_lines / 2L );
 
@@ -5406,15 +5400,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			}
 
 			if ( old_detector_readout_mode
-				!= MXF_PCCD_170170_SUBIMAGE_MODE )
+				!= MXF_AVIEX_PCCD_SUBIMAGE_MODE )
 			{
 				/* Switch to sub-image mode. */
 
 				new_control_register_value
-				    &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
+				    &= (~MXF_AVIEX_PCCD_DETECTOR_READOUT_MASK);
 
 				new_control_register_value
-					|= MXF_PCCD_170170_SUBIMAGE_MODE;
+					|= MXF_AVIEX_PCCD_SUBIMAGE_MODE;
 
 				/* If we were previously in streak camera mode,
 				 * we must also restore the normal imaging
@@ -5422,20 +5416,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				 */
 
 				if ( old_detector_readout_mode
-					== MXF_PCCD_170170_STREAK_CAMERA_MODE )
+					== MXF_AVIEX_PCCD_STREAK_CAMERA_MODE )
 				{
 				    mx_status = mx_video_input_set_framesize(
-					pccd_170170->video_input_record,
-					pccd_170170->vinput_normal_framesize[0],
-				       pccd_170170->vinput_normal_framesize[1]);
+					aviex_pccd->video_input_record,
+					aviex_pccd->vinput_normal_framesize[0],
+				       aviex_pccd->vinput_normal_framesize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
 				    mx_status = mx_area_detector_set_binsize(
-					pccd_170170->record,
-					pccd_170170->normal_binsize[0],
-				       pccd_170170->normal_binsize[1]);
+					aviex_pccd->record,
+					aviex_pccd->normal_binsize[0],
+				       aviex_pccd->normal_binsize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -5444,8 +5438,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of frames in sequence to 1. */
 
-			mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+			mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_FRAMES_PER_SEQUENCE,
 					1 );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5456,8 +5450,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			 * the value of the "subframe size".
 			 */
 
-			mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
+			mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_SUBFRAME_SIZE,
 				    mx_round_down(sp->parameter_array[0]/2.0) );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5465,8 +5459,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of subimages per frame. */
 
-			mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
+			mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_SUBIMAGES_PER_READ,
 					mx_round_down(sp->parameter_array[1]) );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5477,11 +5471,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_time = sp->parameter_array[2];
 
 			exposure_steps = mx_round_down( exposure_time
-				/ pccd_170170->exposure_and_gap_step_size );
+				/ aviex_pccd->exposure_and_gap_step_size );
 
-			mx_status = mxd_pccd_170170_write_register(
-				pccd_170170,
-				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+			mx_status = mxd_aviex_pccd_write_register(
+				aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_EXPOSURE_TIME,
 				exposure_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5494,7 +5488,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			gap_time = subimage_time - exposure_time;
 
 			gap_steps = mx_round_down( gap_time
-				/ pccd_170170->exposure_and_gap_step_size );
+				/ aviex_pccd->exposure_and_gap_step_size );
 
 			if ( gap_steps < 1 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -5502,15 +5496,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				"less than the minimum allowed gap time "
 				"(%g seconds) for detector '%s'.",
 					gap_time,
-					pccd_170170->exposure_and_gap_step_size,
+					aviex_pccd->exposure_and_gap_step_size,
 					ad->record->name );
 			}
 
 			/* Set the gap time. */
 
-			mx_status = mxd_pccd_170170_write_register(
-				pccd_170170,
-				MXLV_PCCD_170170_DH_GAP_TIME,
+			mx_status = mxd_aviex_pccd_write_register(
+				aviex_pccd,
+				MXLV_AVIEX_PCCD_DH_GAP_TIME,
 				gap_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5521,9 +5515,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_multiplier_steps = 
 			   mx_round_down( (exposure_multiplier - 1.0) * 256.0 );
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_EXPOSURE_MULTIPLIER,
 					exposure_multiplier_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5534,9 +5528,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			gap_multiplier_steps = 
 				mx_round_down( (gap_multiplier - 1.0) * 256.0 );
 
-			mx_status = mxd_pccd_170170_write_register(
-					pccd_170170,
-					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+			mx_status = mxd_aviex_pccd_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_GAP_MULTIPLIER,
 					gap_multiplier_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5565,7 +5559,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Reprogram the control register for the new mode. */
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 		MX_DEBUG(-2, ("%s: old_control_register_value = %#lx",
 				fname, old_control_register_value));
 		MX_DEBUG(-2, ("%s: new_control_register_value = %#lx",
@@ -5574,9 +5568,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		if (new_control_register_value != old_control_register_value) {
 
-			mx_status = mxd_pccd_170170_write_register(
-						pccd_170170,
-						MXLV_PCCD_170170_DH_CONTROL,
+			mx_status = mxd_aviex_pccd_write_register(
+						aviex_pccd,
+						MXLV_AVIEX_PCCD_DH_CONTROL,
 						new_control_register_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5586,7 +5580,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		/* Reprogram the imaging board. */
 
 		mx_status = mx_video_input_set_sequence_parameters(
-					pccd_170170->video_input_record, sp );
+					aviex_pccd->video_input_record, sp );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -5597,14 +5591,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_CONTINUOUS:
 			mx_status = mx_video_input_set_trigger_mode( 
-						pccd_170170->video_input_record,
+						aviex_pccd->video_input_record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 			break;
 
 		case MXT_SQ_STROBE:
 		case MXT_SQ_BULB:
 			mx_status = mx_video_input_set_trigger_mode( 
-						pccd_170170->video_input_record,
+						aviex_pccd->video_input_record,
 						MXT_IMAGE_EXTERNAL_TRIGGER );
 			break;
 
@@ -5637,8 +5631,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_START_DELAY:
 		new_delay_time = mx_round( 1.0e5 * ad->sequence_start_delay );
 
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_INITIAL_DELAY_TIME,
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_DH_INITIAL_DELAY_TIME,
 					new_delay_time );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -5647,7 +5641,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_TRIGGER_MODE:
 		mx_status = mx_video_input_set_trigger_mode(
-				pccd_170170->video_input_record,
+				aviex_pccd->video_input_record,
 				ad->trigger_mode );
 		break;
 
@@ -5660,8 +5654,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:
-		mx_status = mxd_pccd_170170_set_register_value( ad,
-							pccd_170170, -1 );
+		mx_status = mxd_aviex_pccd_set_register_value( ad,
+							aviex_pccd, -1 );
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
@@ -5677,9 +5671,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	default:
-		if ( ad->parameter_type >= MXLV_PCCD_170170_DH_BASE ) {
-			mx_status = mxd_pccd_170170_set_register_value( ad,
-					    pccd_170170, ad->parameter_type );
+		if ( ad->parameter_type >= MXLV_AVIEX_PCCD_DH_BASE ) {
+			mx_status = mxd_aviex_pccd_set_register_value( ad,
+					    aviex_pccd, ad->parameter_type );
 		} else {
 			mx_status =
 			    mx_area_detector_default_set_parameter_handler(ad);
@@ -5690,20 +5684,20 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-#if MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE
+#if MXD_AVIEX_PCCD_GEOMETRICAL_MASK_KLUDGE
 
 static mx_status_type
-mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
-					MX_PCCD_170170 *pccd_170170 )
+mxp_aviex_pccd_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
 {
-	static const char fname[] = "mxp_pccd_170170_geometrical_mask_kludge()";
+	static const char fname[] = "mxp_aviex_pccd_geometrical_mask_kludge()";
 
 	MX_IMAGE_FRAME *mask_frame;
 	long mask_row_binsize, mask_column_binsize;
 	long mask_row_framesize, mask_column_framesize;
 	long unbinned_row_framesize, unbinned_column_framesize;
 
-	mask_frame = pccd_170170->geometrical_mask_frame;
+	mask_frame = aviex_pccd->geometrical_mask_frame;
 
 	if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -5726,7 +5720,7 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s: computing mask binsize for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -5746,7 +5740,7 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 	mask_row_framesize    = MXIF_ROW_FRAMESIZE(mask_frame);
 	mask_column_framesize = MXIF_COLUMN_FRAMESIZE(mask_frame);
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,
 	("%s: unbinned_row_framesize = %lu, unbinned_column_framesize = %lu",
 		fname, unbinned_row_framesize, unbinned_column_framesize));
@@ -5763,7 +5757,7 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 		"mask frame '%s' is larger than the maximum image "
 		"size (%ld,%ld) for area detector '%s'.",
 			mask_row_framesize, mask_column_framesize,
-			pccd_170170->geometrical_mask_filename,
+			aviex_pccd->geometrical_mask_filename,
 			unbinned_row_framesize, unbinned_column_framesize,
 			ad->record->name );
 	}
@@ -5776,7 +5770,7 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 		"mask frame '%s' is not an integer fraction of "
 		"the maximum image size (%ld,%ld) for area detector '%s'.",
 			mask_row_framesize, mask_column_framesize,
-			pccd_170170->geometrical_mask_filename,
+			aviex_pccd->geometrical_mask_filename,
 			unbinned_row_framesize, unbinned_column_framesize,
 			ad->record->name );
 	}
@@ -5784,7 +5778,7 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 	mask_row_binsize = unbinned_row_framesize / mask_row_framesize;
 	mask_column_binsize = unbinned_column_framesize / mask_column_framesize;
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,
 	("%s: mask_row_binsize = %lu, mask_column_binsize = %lu",
 		fname, mask_row_binsize, mask_column_binsize));
@@ -5799,14 +5793,14 @@ mxp_pccd_170170_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 #endif
 
 static mx_status_type
-mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
-				MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
+				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
 				uint16_t **geometrical_mask_frame_buffer )
 {
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	static const char fname[] =
-			"mxd_pccd_170170_setup_geometrical_mask_frame()";
+			"mxd_aviex_pccd_setup_geometrical_mask_frame()";
 #endif
 
 	MX_IMAGE_FRAME *mask_frame;
@@ -5821,7 +5815,7 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	image_row_binsize    = MXIF_ROW_BINSIZE(image_frame);
 	image_column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s: image_row_binsize = %ld, image_column_binsize = %ld",
 		fname, image_row_binsize, image_column_binsize));
 
@@ -5833,21 +5827,21 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	 * has been loaded.
 	 */
 
-	if ( pccd_170170->geometrical_mask_frame == (MX_IMAGE_FRAME *) NULL ) {
-		mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+	if ( aviex_pccd->geometrical_mask_frame == (MX_IMAGE_FRAME *) NULL ) {
+		mx_image_free( aviex_pccd->rebinned_geometrical_mask_frame );
 
-		pccd_170170->rebinned_geometrical_mask_frame = NULL;
+		aviex_pccd->rebinned_geometrical_mask_frame = NULL;
 
 		mx_status = mx_image_read_smv_file(
-				&(pccd_170170->geometrical_mask_frame),
-				pccd_170170->geometrical_mask_filename );
+				&(aviex_pccd->geometrical_mask_frame),
+				aviex_pccd->geometrical_mask_filename );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_PCCD_170170_GEOMETRICAL_MASK_KLUDGE
-		mx_status = mxp_pccd_170170_geometrical_mask_kludge( ad,
-								pccd_170170 );
+#if MXD_AVIEX_PCCD_GEOMETRICAL_MASK_KLUDGE
+		mx_status = mxp_aviex_pccd_geometrical_mask_kludge( ad,
+								aviex_pccd );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -5859,12 +5853,12 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	}
 
 	mask_row_binsize =
-		MXIF_ROW_BINSIZE(pccd_170170->geometrical_mask_frame);
+		MXIF_ROW_BINSIZE(aviex_pccd->geometrical_mask_frame);
 
 	mask_column_binsize =
-		MXIF_COLUMN_BINSIZE(pccd_170170->geometrical_mask_frame);
+		MXIF_COLUMN_BINSIZE(aviex_pccd->geometrical_mask_frame);
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s: mask_row_binsize = %ld, mask_column_binsize = %ld",
 		fname, mask_row_binsize, mask_column_binsize));
 #endif
@@ -5880,7 +5874,7 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 		need_rebinned_mask_frame = FALSE;
 	}
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,
 	("%s: new_mask_frame_loaded = %d, need_rebinned_mask_frame = %d",
 		fname, (int) new_mask_frame_loaded,
@@ -5897,9 +5891,9 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 		 * such frame that currently exists.
 		 */
 
-		mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+		mx_image_free( aviex_pccd->rebinned_geometrical_mask_frame );
 
-		pccd_170170->rebinned_geometrical_mask_frame = NULL;
+		aviex_pccd->rebinned_geometrical_mask_frame = NULL;
 	} else {
 		/* We _do_ need a rebinned mask frame.
 		 * Do we need to create a new one now?
@@ -5910,7 +5904,7 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 		if ( new_mask_frame_loaded ) {
 			create_rebinned_mask_frame = TRUE;
 		} else
-		if ( pccd_170170->rebinned_geometrical_mask_frame == NULL ) {
+		if ( aviex_pccd->rebinned_geometrical_mask_frame == NULL ) {
 			create_rebinned_mask_frame = TRUE;
 		} else {
 			/* See if the existing rebinned mask frame already has
@@ -5919,12 +5913,12 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 			 */
 
 			rebinned_row_binsize =
-	    MXIF_ROW_BINSIZE(pccd_170170->rebinned_geometrical_mask_frame);
+	    MXIF_ROW_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
 		
 			rebinned_column_binsize =
-	    MXIF_COLUMN_BINSIZE(pccd_170170->rebinned_geometrical_mask_frame);
+	    MXIF_COLUMN_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 			MX_DEBUG(-2,
 	    ("%s: rebinned_row_binsize = %ld, rebinned_column_binsize = %ld",
 			fname, rebinned_row_binsize, rebinned_column_binsize));
@@ -5945,8 +5939,8 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 			column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
 			mx_status = mx_image_rebin(
-			    &(pccd_170170->rebinned_geometrical_mask_frame),
-			    	pccd_170170->geometrical_mask_frame,
+			    &(aviex_pccd->rebinned_geometrical_mask_frame),
+			    	aviex_pccd->geometrical_mask_frame,
 				row_framesize, column_framesize );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -5959,17 +5953,17 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	 */
 
 	if ( need_rebinned_mask_frame == FALSE ) {
-		mask_frame = pccd_170170->geometrical_mask_frame;
+		mask_frame = aviex_pccd->geometrical_mask_frame;
 	} else {
-		mask_frame = pccd_170170->rebinned_geometrical_mask_frame;
+		mask_frame = aviex_pccd->rebinned_geometrical_mask_frame;
 	}
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
-	MX_DEBUG(-2,("%s: pccd_170170->geometrical_mask_frame = %p",
-		fname, pccd_170170->geometrical_mask_frame));
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
+	MX_DEBUG(-2,("%s: aviex_pccd->geometrical_mask_frame = %p",
+		fname, aviex_pccd->geometrical_mask_frame));
 
-	MX_DEBUG(-2,("%s: pccd_170170->rebinned_geometrical_mask_frame = %p",
-		fname, pccd_170170->rebinned_geometrical_mask_frame));
+	MX_DEBUG(-2,("%s: aviex_pccd->rebinned_geometrical_mask_frame = %p",
+		fname, aviex_pccd->rebinned_geometrical_mask_frame));
 
 	MX_DEBUG(-2,("%s: mask_frame = %p", fname, mask_frame));
 #endif
@@ -5985,12 +5979,12 @@ mxd_pccd_170170_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
+mxd_aviex_pccd_geometrical_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame )
 {
-	static const char fname[] = "mxd_pccd_170170_geometrical_correction()";
+	static const char fname[] = "mxd_aviex_pccd_geometrical_correction()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 	int spatial_status, os_status, saved_errno;
 	int row_framesize, column_framesize;
 	uint16_t *geometrical_mask_frame_buffer;
@@ -5998,10 +5992,10 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 
 	/* Suppress stupid GCC 4 initialization warnings. */
 
-	pccd_170170 = NULL;
+	aviex_pccd = NULL;
 	geometrical_mask_frame_buffer = NULL;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -6022,28 +6016,28 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 	  "The image_frame->image_data pointer for area detector '%s' is NULL.",
 			ad->record->name );
 	}
-	if ( pccd_170170->geometrical_spline_filename == NULL ) {
+	if ( aviex_pccd->geometrical_spline_filename == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The geometrical_spline_filename pointer for "
 		"area detector '%s' is NULL.", ad->record->name );
 	}
-	if ( strlen( pccd_170170->geometrical_spline_filename ) == 0 ) {
+	if ( strlen( aviex_pccd->geometrical_spline_filename ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"No geometrical correction spline filename was provided for "
 		"area detector '%s'.", ad->record->name );
 	}
-	if ( pccd_170170->geometrical_mask_filename == NULL ) {
+	if ( aviex_pccd->geometrical_mask_filename == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The geometrical_mask_filename pointer for "
 		"area detector '%s' is NULL.", ad->record->name );
 	}
-	if ( strlen( pccd_170170->geometrical_mask_filename ) == 0 ) {
+	if ( strlen( aviex_pccd->geometrical_mask_filename ) == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"No geometrical correction mask filename was provided for "
 		"area detector '%s'.", ad->record->name );
 	}
 
-	os_status = access( pccd_170170->geometrical_spline_filename, R_OK );
+	os_status = access( aviex_pccd->geometrical_spline_filename, R_OK );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -6051,11 +6045,11 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read geometrical correction spline file '%s'.  "
 		"errno = %d, error message = '%s'.",
-			pccd_170170->geometrical_spline_filename,
+			aviex_pccd->geometrical_spline_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
-	os_status = access( pccd_170170->geometrical_mask_filename, R_OK );
+	os_status = access( aviex_pccd->geometrical_mask_filename, R_OK );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -6063,7 +6057,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot read geometrical correction mask file '%s'.  "
 		"errno = %d, error message = '%s'.",
-			pccd_170170->geometrical_mask_filename,
+			aviex_pccd->geometrical_mask_filename,
 			saved_errno, strerror(saved_errno) );
 	}
 
@@ -6073,8 +6067,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 
 	DISPLAY_MEMORY_USAGE( "BEFORE setup of geometrical mask" );
 
-	mx_status = mxd_pccd_170170_setup_geometrical_mask_frame(
-			ad, pccd_170170, image_frame,
+	mx_status = mxd_aviex_pccd_setup_geometrical_mask_frame(
+			ad, aviex_pccd, image_frame,
 			&geometrical_mask_frame_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -6083,7 +6077,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("BEFORE smvspatial(), image_frame histogram = "));
 	mx_image_statistics( image_frame );
 #endif
@@ -6103,7 +6097,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 
 	spatial_status = smvspatial( image_frame->image_data, 
 				row_framesize, column_framesize, 0,
-				pccd_170170->geometrical_spline_filename,
+				aviex_pccd->geometrical_spline_filename,
 				geometrical_mask_frame_buffer );
 #else
 	mx_warning("XGEN geometrical correction is currently only available "
@@ -6126,8 +6120,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 			"smvspatial() was unable to open one of the correction "
 			"files '%s' or '%s' for area detector '%s'.",
-				pccd_170170->geometrical_spline_filename,
-				pccd_170170->geometrical_mask_filename,
+				aviex_pccd->geometrical_spline_filename,
+				aviex_pccd->geometrical_mask_filename,
 				ad->record->name );
 		break;
 	case EIO:
@@ -6135,8 +6129,8 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 			"An error occurred in smvspatial() while reading one "
 			"of the correction files '%s' or '%s' for "
 			"area detector '%s'.",
-				pccd_170170->geometrical_spline_filename,
-				pccd_170170->geometrical_mask_filename,
+				aviex_pccd->geometrical_spline_filename,
+				aviex_pccd->geometrical_mask_filename,
 				ad->record->name );
 		break;
 	case ENOMEM:
@@ -6161,7 +6155,7 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 		break;
 	}
 
-#if MXD_PCCD_170170_DEBUG_FRAME_CORRECTION
+#if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("AFTER smvspatial(), image_frame histogram = "));
 	mx_image_statistics( image_frame );
 #endif
@@ -6170,13 +6164,13 @@ mxd_pccd_170170_geometrical_correction( MX_AREA_DETECTOR *ad,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 					char *command,
 					char *response,
 					size_t max_response_length,
 					int debug_flag )
 {
-	static const char fname[] = "mxd_pccd_170170_camera_link_command()";
+	static const char fname[] = "mxd_aviex_pccd_camera_link_command()";
 
 	MX_RECORD *camera_link_record;
 	size_t command_length, response_length;
@@ -6189,38 +6183,38 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 	int comparison;
 	mx_status_type mx_status;
 
-#if MXD_PCCD_170170_DEBUG_SERIAL
+#if MXD_AVIEX_PCCD_DEBUG_SERIAL
 	debug_flag |= 1;
 #endif
 
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
 	}
 	if ( command == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The command pointer passed for record '%s' was NULL.",
-			pccd_170170->record->name );
+			aviex_pccd->record->name );
 	}
 	if ( response == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The response pointer passed for record '%s' was NULL.",
-			pccd_170170->record->name );
+			aviex_pccd->record->name );
 	}
 	if ( max_response_length < 1 ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The requested response buffer length %lu for record '%s' "
 		"is too short to hold a minimum length response.",
 			(unsigned long) max_response_length,
-			pccd_170170->record->name );
+			aviex_pccd->record->name );
 	}
 
-	camera_link_record = pccd_170170->camera_link_record;
+	camera_link_record = aviex_pccd->camera_link_record;
 
 	if ( camera_link_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The camera_link_record pointer for record '%s' is NULL.",
-			pccd_170170->record->name );
+			aviex_pccd->record->name );
 	}
 
 	if ( debug_flag ) {
@@ -6228,15 +6222,15 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			fname, command, camera_link_record->name ));
 	}
 
-	use_dh_simulator = pccd_170170->pccd_170170_flags
-				& MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR;
+	use_dh_simulator = aviex_pccd->aviex_pccd_flags
+				& MXF_AVIEX_PCCD_USE_DETECTOR_HEAD_SIMULATOR;
 
 	if ( use_dh_simulator ) {
 
 		/* Talk to a simulated detector head. */
 
-		mx_status = mxd_pccd_170170_simulated_cl_command( 
-						pccd_170170, command,
+		mx_status = mxd_aviex_pccd_simulated_cl_command( 
+						aviex_pccd, command,
 						response, max_response_length,
 						debug_flag );
 	} else {
@@ -6298,7 +6292,7 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			buffer_left = response_length - total_bytes_read;
 
 			if ( bytes_available < 1 ) {
-#if 0 && MXD_PCCD_170170_DEBUG_SERIAL
+#if 0 && MXD_AVIEX_PCCD_DEBUG_SERIAL
 				MX_DEBUG(-2,
 				("%s: No bytes available from '%s'.",
 					fname, camera_link_record->name));
@@ -6397,35 +6391,35 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 				unsigned long register_address,
 				unsigned long *register_value )
 {
-	static const char fname[] = "mxd_pccd_170170_read_register()";
+	static const char fname[] = "mxd_aviex_pccd_read_register()";
 
 	char command[20], response[20];
 	int num_items;
 	mx_status_type mx_status;
 
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
 	}
 	if ( register_value == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The register_value pointer passed for record '%s' was NULL.",
-			pccd_170170->record->name );
+			aviex_pccd->record->name );
 	}
 
-	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {
-		register_address -= MXLV_PCCD_170170_DH_BASE;
+	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
+		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
 	}
 
 	snprintf( command, sizeof(command), "R%03lu", register_address );
 
-	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
+	mx_status = mxd_aviex_pccd_camera_link_command( aviex_pccd,
 					command, response, sizeof(response),
-					MXD_PCCD_170170_DEBUG );
+					MXD_AVIEX_PCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -6439,11 +6433,11 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 		 * error message.
 		 */
 
-		if ( pccd_170170->first_dh_command ) {
-			pccd_170170->first_dh_command = FALSE;
+		if ( aviex_pccd->first_dh_command ) {
+			aviex_pccd->first_dh_command = FALSE;
 
-			mx_status = mxd_pccd_170170_read_register(
-						pccd_170170,
+			mx_status = mxd_aviex_pccd_read_register(
+						aviex_pccd,
 						register_address,
 						register_value );
 
@@ -6452,7 +6446,7 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Could not find the register value in the response "
 			"'%s' by detector '%s' to the command '%s'.",
-				response, pccd_170170->record->name, command );
+				response, aviex_pccd->record->name, command );
 		}
 	}
 
@@ -6460,28 +6454,28 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
+mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 				unsigned long register_address,
 				unsigned long register_value )
 {
-	static const char fname[] = "mxd_pccd_170170_write_register()";
+	static const char fname[] = "mxd_aviex_pccd_write_register()";
 
 	char command[20], response[20];
 	unsigned long value_read, flags;
 	mx_status_type mx_status;
 
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
 	}
 
-	flags = pccd_170170->pccd_170170_flags;
+	flags = aviex_pccd->aviex_pccd_flags;
 
-	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {
-		register_address -= MXLV_PCCD_170170_DH_BASE;
+	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
+		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
 	}
 
-	mx_status = mxd_pccd_170170_check_value( pccd_170170,
+	mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
 					register_address, register_value, NULL);
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -6492,16 +6486,16 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 
 	/* Write the new value. */
 
-	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
+	mx_status = mxd_aviex_pccd_camera_link_command( aviex_pccd,
 					command, response, sizeof(response),
-					MXD_PCCD_170170_DEBUG );
+					MXD_AVIEX_PCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Read the value back to verify that the value was set correctly. */
 
-	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
 						register_address, &value_read );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -6514,7 +6508,7 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 		"The attempt to set '%s' register %lu to %lu "
 		"appears to have failed since the value read back "
 		"from that register is now %lu.",
-			pccd_170170->record->name, register_address,
+			aviex_pccd->record->name, register_address,
 			register_value, value_read );
 	}
 
@@ -6534,33 +6528,33 @@ mxp_pccd_170170_geometrical_mask_changed( MX_RECORD *record )
 	static const char fname[] =
 			"mxp_pccd_170170_geometrical_mask_changed()";
 
-	MX_PCCD_170170 *pccd_170170;
+	MX_AVIEX_PCCD *aviex_pccd;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	pccd_170170 = record->record_type_struct;
+	aviex_pccd = record->record_type_struct;
 
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_PCCD_170170 pointer for record '%s' is NULL.",
 			record->name );
 	}
 
-#if MXD_PCCD_170170_DEBUG_SETUP_GEOMETRICAL_MASK
+#if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s invoked for area detector '%s', filename = '%s'",
-		fname, record->name, pccd_170170->geometrical_mask_filename));
+		fname, record->name, aviex_pccd->geometrical_mask_filename));
 #endif
 
-	mx_image_free( pccd_170170->geometrical_mask_frame );
+	mx_image_free( aviex_pccd->geometrical_mask_frame );
 
-	pccd_170170->geometrical_mask_frame = NULL;
+	aviex_pccd->geometrical_mask_frame = NULL;
 
-	mx_image_free( pccd_170170->rebinned_geometrical_mask_frame );
+	mx_image_free( aviex_pccd->rebinned_geometrical_mask_frame );
 
-	pccd_170170->rebinned_geometrical_mask_frame = NULL;
+	aviex_pccd->rebinned_geometrical_mask_frame = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -6568,18 +6562,17 @@ mxp_pccd_170170_geometrical_mask_changed( MX_RECORD *record )
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
+mxd_aviex_pccd_special_processing_setup( MX_RECORD *record )
 {
-#if MXD_PCCD_170170_DEBUG
-	static const char fname[] =
-		"mxd_pccd_170170_special_processing_setup()";
+#if MXD_AVIEX_PCCD_DEBUG
+	static const char fname[] = "mxd_aviex_pccd_special_processing_setup()";
 #endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
@@ -6589,14 +6582,14 @@ mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 
 		record_field = &record_field_array[i];
 
-		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_AVIEX_PCCD_DH_BASE ) {
 			record_field->process_function
-					= mxd_pccd_170170_process_function;
+					= mxd_aviex_pccd_process_function;
 		} else {
 			switch( record_field->label_value ) {
-			case MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME:
+			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:
 				record_field->process_function
-					= mxd_pccd_170170_process_function;
+					= mxd_aviex_pccd_process_function;
 				break;
 			default:
 				break;
@@ -6608,11 +6601,11 @@ mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 }
 
 static mx_status_type
-mxd_pccd_170170_process_function( void *record_ptr,
+mxd_aviex_pccd_process_function( void *record_ptr,
 				void *record_field_ptr,
 				int operation )
 {
-	static const char fname[] = "mxd_pccd_170170_process_function()";
+	static const char fname[] = "mxd_aviex_pccd_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
@@ -6646,7 +6639,7 @@ mxd_pccd_170170_process_function( void *record_ptr,
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
-		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_AVIEX_PCCD_DH_BASE ) {
 			mx_status = mx_area_detector_get_register(
 					record, record_field->name, NULL );
 
@@ -6661,7 +6654,7 @@ mxd_pccd_170170_process_function( void *record_ptr,
 		break;
 
 	case MX_PROCESS_PUT:
-		if ( record_field->label_value >= MXLV_PCCD_170170_DH_BASE ) {
+		if ( record_field->label_value >= MXLV_AVIEX_PCCD_DH_BASE ) {
 
 			register_value_ptr =
 				mx_get_field_value_pointer( record_field );
@@ -6671,7 +6664,7 @@ mxd_pccd_170170_process_function( void *record_ptr,
 					*register_value_ptr );
 		} else {
 			switch( record_field->label_value ) {
-			case MXLV_PCCD_170170_GEOMETRICAL_MASK_FILENAME:
+			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:
 				mx_status =
 			    mxp_pccd_170170_geometrical_mask_changed( record );
 

@@ -360,6 +360,7 @@ MX_LIB_OBJS += ../tools/smvspatial.o
 RM		= rm -f
 MAKE		= make
 MKDIR		= mkdir
+TOUCH		= touch
 
 OBJ		= o
 
