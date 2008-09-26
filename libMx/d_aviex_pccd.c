@@ -732,6 +732,23 @@ mxd_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
+mxd_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
+				uint16_t ***image_sector_array,
+				long i_framesize,
+				long j_framesize )
+{
+	static const char fname[] = "mxd_pccd_16080_descramble_raw_data()";
+
+	mx_warning(
+	"%s: Descrambling is not yet implemented for PCCD-16080 detectors.",
+		fname );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
 mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
@@ -900,6 +917,22 @@ mxd_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
+mxd_pccd_16080_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+				MX_AVIEX_PCCD *aviex_pccd,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *raw_frame )
+{
+	static const char fname[] = "mxd_pccd_16080_descramble_streak_camera()";
+
+	mx_warning("%s: Streak camera descrambling is not yet implemented "
+		"for PCCD-16080 detectors.", fname );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
 mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd,
 				MX_IMAGE_FRAME *image_frame,
@@ -948,6 +981,10 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		num_sector_rows = 2;
 		num_sector_columns = 2;
 		break;
+	case MXT_AD_PCCD_16080:
+		num_sector_rows = 2;
+		num_sector_columns = 4;
+		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MX driver type '%s' passed for record '%s'.",
@@ -968,6 +1005,10 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 			break;
 		case MXT_AD_PCCD_4824:
 			mx_status = mxd_pccd_4824_descramble_streak_camera(
+				ad, aviex_pccd, image_frame, raw_frame );
+			break;
+		case MXT_AD_PCCD_16080:
+			mx_status = mxd_pccd_16080_descramble_streak_camera(
 				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		}
@@ -1048,6 +1089,10 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		i_framesize = column_framesize / 2;
 		j_framesize = row_framesize / 2;
 		break;
+	case MXT_AD_PCCD_16080:
+		i_framesize = column_framesize / 4;
+		j_framesize = row_framesize / 2;
+		break;
 	}
 
 	if ( aviex_pccd->sector_array == NULL ) {
@@ -1074,6 +1119,12 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		break;
 	case MXT_AD_PCCD_4824:
 		mx_status = mxd_pccd_4824_descramble_raw_data(
+				raw_frame->image_data,
+				aviex_pccd->sector_array,
+				i_framesize, j_framesize );
+		break;
+	case MXT_AD_PCCD_16080:
+		mx_status = mxd_pccd_16080_descramble_raw_data(
 				raw_frame->image_data,
 				aviex_pccd->sector_array,
 				i_framesize, j_framesize );
@@ -2660,9 +2711,23 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		break;
 
 	case MXT_AD_PCCD_16080:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"PCCD-16080 specific code for the AVIEX PCCD driver "
-			"has not yet been implemented." );
+
+		/* The PCCD-16080 camera has two CCD chips with a maximum
+		 * image size of 4096 by 2048.  Each line from the detector
+		 * contains 1024 groups of pixels with 8 pixels per group.
+		 * A full frame image has 1024 lines.  This means that the
+		 * maximum resolution of the video card should be 8192 by 1024.
+		 */
+
+		ad->maximum_framesize[0] = 4096;
+		ad->maximum_framesize[1] = 2048;
+
+		aviex_pccd->horiz_descramble_factor = 2;
+		aviex_pccd->vert_descramble_factor  = 2;
+
+		/* FIXME - The following is a guess! */
+
+		aviex_pccd->pixel_clock_frequency = 60.0e6;
 		break;
 
 	default:
@@ -3874,17 +3939,11 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_16080:
 			mx_status = mxd_aviex_pccd_descramble_image( ad,
 							aviex_pccd,
 							ad->image_frame,
 							aviex_pccd->raw_frame);
-			break;
-		case MXT_AD_PCCD_16080:
-			mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Image descrambling for area detector '%s' is not "
-			"yet implemented for AVIEX cameras of type '%s'.",
-				ad->record->name,
-				mx_get_driver_name( ad->record ) );
 			break;
 		default:
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -4601,17 +4660,11 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 							ad, aviex_pccd );
 			break;
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_16080:
 			ad->sequence_start_delay = 0.0;
 			ad->total_acquisition_time = 0.0;
 			ad->detector_readout_time = 0.0;
 			ad->total_sequence_time = 0.0;
-			break;
-		case MXT_AD_PCCD_16080:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Computed sequence times are not yet available "
-			"for record '%s' which uses driver '%s'.",
-				ad->record->name,
-				mx_get_driver_name( ad->record ) );
 			break;
 		default:
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -6415,7 +6468,14 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
 	}
 
-	snprintf( command, sizeof(command), "R%03lu", register_address );
+	switch( aviex_pccd->record->mx_type ) {
+	case MXT_AD_PCCD_16080:
+		snprintf(command, sizeof(command), "R%02lu", register_address);
+		break;
+	default:
+		snprintf(command, sizeof(command), "R%03lu", register_address);
+		break;
+	}
 
 	mx_status = mxd_aviex_pccd_camera_link_command( aviex_pccd,
 					command, response, sizeof(response),
@@ -6481,8 +6541,16 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command),
-		"W%03lu%05lu", register_address, register_value );
+	switch( aviex_pccd->record->mx_type ) {
+	case MXT_AD_PCCD_16080:
+		snprintf( command, sizeof(command),
+			"W%02lu%03lu", register_address, register_value );
+		break;
+	default:
+		snprintf( command, sizeof(command),
+			"W%03lu%05lu", register_address, register_value );
+		break;
+	}
 
 	/* Write the new value. */
 
