@@ -281,13 +281,13 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 	snprintf( start_oscillation_format,
 		sizeof(start_oscillation_format),
 			"%%%ds %%%ds %%lg",
-			sizeof(request_name)+1,
-			sizeof(motor_name)+1 );
+			(int) sizeof(request_name)+1,
+			(int) sizeof(motor_name)+1 );
 
 	snprintf( prepare_for_oscillation_format,
 		sizeof(prepare_for_oscillation_format),
 			"%%%ds %%lg",
-			sizeof(request_name)+1 );
+			(int) sizeof(request_name)+1 );
 
 	/*-------------------------------------------*/
 

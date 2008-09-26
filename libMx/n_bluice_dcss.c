@@ -1723,6 +1723,8 @@ stog_set_string_completed( MX_THREAD *thread,
 	size_t string_length;
 	mx_status_type mx_status;
 
+	new_string = NULL;
+
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_BLUICE_SERVER pointer passed was NULL." );

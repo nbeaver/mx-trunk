@@ -2883,7 +2883,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		fname, datafile_name));
 #endif
 	snprintf( header_token_format, sizeof(header_token_format),
-			"%%*s %%*s %%%ds", sizeof(header_token) - 1 );
+			"%%*s %%*s %%%ds", (int) sizeof(header_token) - 1 );
 
 	/* Open the data file. */
 

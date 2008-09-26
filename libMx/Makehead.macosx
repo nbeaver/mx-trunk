@@ -12,11 +12,11 @@
 #
 INCLUDES	= $(MX_INCLUDES)
 
-LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	=
+#LIB_DIRS	= -L$(MX_LIB_DIR)
+#LIBRARIES	=
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -117,6 +117,7 @@ MX_LIB_OBJS += ../tools/smvspatial.o ../tools/xdr_hyper.o
 
 RM		= rm -f
 MAKE		= make
+TOUCH_OLD	= touch -t 197001010000
 
 OBJ		= o
 
@@ -239,4 +240,12 @@ mxserial.o: mxserial_fork.c
 util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+
+MX_PRIVATE_VERSION_NAME = mx_private_version
+
+RUN_MX_PRIVATE_VERSION = ./mx_private_version
 

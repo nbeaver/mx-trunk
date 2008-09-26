@@ -219,7 +219,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 	MX_SOCKET *dhs_socket;
 
 	MX_RECORD **dhs_record_array;
-	MX_RECORD *dhs_record;
+	MX_RECORD *dhs_record = NULL;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	unsigned long i, num_dhs_records;
@@ -478,9 +478,9 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 		/* Parse the returned string. */
 
 		snprintf( format, sizeof(format), "%%%ds %%%ds %%%ds",
-			sizeof(client_type) - 1,
-			sizeof(dhs_name) - 1,
-			sizeof(protocol_name) - 1 );
+			(int) sizeof(client_type) - 1,
+			(int) sizeof(dhs_name) - 1,
+			(int) sizeof(protocol_name) - 1 );
 
 #if BLUICE_DHS_MANAGER_DEBUG
 		MX_DEBUG(-2,("%s: format = '%s'", fname, format));

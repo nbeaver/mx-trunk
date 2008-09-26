@@ -581,7 +581,7 @@ mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
 {
 	MX_HANDLE_TABLE *callback_handle_table;
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
-	MX_CALLBACK *callback;
+	MX_CALLBACK *callback = NULL;
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;

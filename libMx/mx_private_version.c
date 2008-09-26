@@ -30,7 +30,7 @@ int
 main( int argc, char **argv )
 {
 	FILE *version_file;
-	int saved_errno;
+	int saved_errno = 0;
 
 	version_file = fopen( VERSION_FILE, "w" );
 
@@ -156,13 +156,17 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX)
+#if defined(__GNUC__)
 
 static void
 mxp_generate_macros( FILE *version_file )
 {
 	mxp_generate_gnuc_macros( version_file );
+
+#if defined(__GLIBC__)
 	mxp_generate_glibc_macros( version_file );
+#endif
+	return;
 }
 
 #else
