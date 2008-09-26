@@ -12,11 +12,11 @@
 #
 INCLUDES	= $(MX_INCLUDES)
 
-#LIB_DIRS	= -L$(MX_LIB_DIR)
-#LIBRARIES	=
+LIB_DIRS	= -L$(MX_LIB_DIR)
+LIBRARIES	=
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -117,7 +117,7 @@ MX_LIB_OBJS += ../tools/smvspatial.o ../tools/xdr_hyper.o
 
 RM		= rm -f
 MAKE		= make
-TOUCH_OLD	= touch -t 197001010000
+TOUCH		= touch -a
 
 OBJ		= o
 

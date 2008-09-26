@@ -233,13 +233,8 @@ mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)
 	-$(RM) mx_private_version.h
 
-#
-# $(TOUCH_OLD) is supposed to set the file time to a time that is
-# guaranteed to be older than any other file in the MX source code.
-#
-
 mx_depend:
-	$(TOUCH_OLD) mx_private_version.h
+	$(TOUCH) mx_private_version.h
 	$(MAKEDEPEND)
 
 mx_install: library_install
