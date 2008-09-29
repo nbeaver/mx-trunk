@@ -327,9 +327,14 @@ motor_main( int argc, char *argv[] )
 
 	mx_set_debug_level( debug_level );
 
-#if 0
-	fprintf(output, "mx_is_valid_pointer() = %d\n",
-		mx_is_valid_pointer((void *)&debug_level, sizeof(int), R_OK) );
+#if 1
+	{
+		int test;
+		test = mx_is_valid_pointer(
+			(void *)&debug_level, sizeof(int), R_OK);
+
+		fprintf(output, "mx_is_valid_pointer() = %d\n", test);
+	}
 #endif
 
 	fprintf(output, "\nMX version %s\n", mx_get_version_string() );

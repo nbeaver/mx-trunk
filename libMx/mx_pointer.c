@@ -374,11 +374,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #elif defined(OS_SOLARIS)
 
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/signal.h>
-#include <sys/fault.h>
-#include <sys/syscall.h>
-#include <sys/procfs.h>
+#include <procfs.h>
 
 MX_EXPORT int
 mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
@@ -389,10 +385,10 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	int saved_errno;
 	prmap_t map_entry;
 	size_t items_read;
-	char *pointer_addr;
+	unsigned long pointer_addr;
 	unsigned long object_offset, object_end, flags;
 
-	pointer_addr = pointer;
+	pointer_addr = (unsigned long) pointer;
 
 #if MX_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: pointer_addr = %#lx", fname, pointer_addr));
@@ -412,12 +408,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		return FALSE;
 	}
 
-	/* Walk through the array of virtual address map entries.
-	 *
-	 * FIXME: We _assume_ the mappings are in increasing order
-	 * although we haven't yet found a document that explicitly
-	 * states that.  It works though.
-	 */
+	/* Walk through the array of virtual address map entries. */
 
 	while (1) {
 		items_read = fread(&map_entry, sizeof(map_entry), 1, proc_file);
@@ -447,10 +438,11 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 			continue;
 
 #if MX_POINTER_DEBUG
-		MX_DEBUG(-2,("%s: %#lx, %#lx, %#x", fname,
+		MX_DEBUG(-2,("%s: %#lx, %#lx, %#x, '%s'", fname,
 			(unsigned long) map_entry.pr_vaddr,
 			(unsigned long) map_entry.pr_size,
-			(unsigned int) map_entry.pr_mflags ));
+			map_entry.pr_mflags,
+			map_entry.pr_mapname));
 #endif
 
 		if ( pointer_addr < map_entry.pr_vaddr ) {
@@ -516,7 +508,12 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0 /* FIXME: Unfinished PIOCMAP implementation. */
+#elif 0
+
+/* FIXME: The PIOCMAP implementation below causes core dumps 
+ * for an unknown reason, although the memory map information
+ * is read out correctly (?).
+ */
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -587,6 +584,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		fname, num_mappings));
 #endif
 
+#if 0
 	/* Allocate memory for an array of memory mappings. */
 
 	prmap_array = (prmap_t *) malloc( num_mappings * sizeof(prmap_t) );
@@ -599,6 +597,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		close( proc_fd );
 		return FALSE;
 	}
+#endif
 
 	/* Fill in the array of memory mappings.
 	 *
@@ -622,7 +621,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		"Errno = %d, error message = '%s'",
 			proc_filename, saved_errno, strerror(saved_errno) );
 
-		free( prmap_array );
+		/* free( prmap_array ); */
 		close( proc_fd );
 		return FALSE;
 	}
@@ -631,14 +630,23 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 	close( proc_fd );
 
-	/* Walk through the array of prmap_t structures. */
+	/* Walk through the array of virtual address map entries. */
 
 	for ( i = 0; i < num_mappings; i++ ) {
 		array_element = &prmap_array[i];
+
+#if MX_POINTER_DEBUG
+		MX_DEBUG(-2,("%s: %#lx %#lx %#x", fname,
+			(unsigned long) array_element->pr_vaddr,
+			(unsigned long) array_element->pr_size,
+			(unsigned int) array_element->pr_mflags ));
+#endif
 	}
 
 #if MX_POINTER_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
 #endif
+	return FALSE;
 }
 
 /*-------------------------------------------------------------------------*/
