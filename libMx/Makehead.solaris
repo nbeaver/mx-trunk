@@ -12,7 +12,7 @@
 #
 # If you wish to compile a 64-bit version of MX, uncomment the following line.
 #
-#USE_64_BITS = -xarch=generic64
+USE_64_BITS = -xarch=generic64
 
 #
 INCLUDES	= $(MX_INCLUDES)
@@ -76,6 +76,8 @@ CFLAGS		= -g -KPIC -errwarn=%all $(INCLUDES) -DOS_SOLARIS \
 				-D_POSIX_PER_PROCESS_TIMER_SOURCE \
 				-D_POSIX_THREAD_SEMANTICS \
 				$(EXTRA_FLAGS) -DDEBUG $(USE_64_BITS)
+
+LINKFLAGS	= $(CFLAGS)
 
 CFLAGS_EPICS	= $(CFLAGS)
 
