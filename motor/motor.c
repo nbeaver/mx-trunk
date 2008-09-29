@@ -327,7 +327,7 @@ motor_main( int argc, char *argv[] )
 
 	mx_set_debug_level( debug_level );
 
-#if 1
+#if 0
 	{
 		int test;
 		test = mx_is_valid_pointer(
