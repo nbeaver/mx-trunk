@@ -171,7 +171,18 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #elif defined(OS_LINUX)
 
-#  if ( (__GLIBC__ < 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 3)) )
+#include <sys/types.h>
+#include <errno.h>
+#include <unistd.h>
+
+#define __USE_GNU
+
+#include <sched.h>
+
+#include "mx_version.h"
+#include "mx_program_model.h"
+
+#  if ( MX_GLIBC_VERSION < 2003000L )
 
 	/* Linux with Glibc 2.2 or before. */
 
@@ -201,20 +212,19 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	/* Linux with Glibc 2.3 and above. */
 
 /* sched_setaffinity() and friends are Linux-specific calls that
- * are supported on Linux 2.5.8 and above.  The Glibc interface
- * was introduced in Glibc 2.3, so the macro above tests for
- * the presence of Glibc 2.3 or higher.
+ * have an interesting history.  The Linux kernel interface is
+ * available in Linux 2.5.8 and above, while the Glibc interface
+ * is available in Glibc 2.3 and above.  However, Glibc 2.3.2
+ * and Glibc 2.3.3 had different function prototypes than the 
+ * versions below or after them.  Thus, we must specially check
+ * for Glibc 2.3.2 and 2.3.3.
  */
 
-#include <sys/types.h>
-#include <errno.h>
-#include <unistd.h>
-
-#define __USE_GNU
-
-#include <sched.h>
-
-#include "mx_program_model.h"
+#if ( ( MX_GLIBC_VERSION == 2003002L ) || ( MX_GLIBC_VERSION == 2003003L ) )
+#  define MXP_USE_SHORTER_FUNCTION_PROTOTYPE	TRUE
+#else
+#  define MXP_USE_SHORTER_FUNCTION_PROTOTYPE	FALSE
+#endif
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -239,7 +249,11 @@ mx_get_process_affinity_mask( unsigned long process_id,
 
 	CPU_ZERO( &cpu_set );
 
+#if MXP_USE_SHORTER_FUNCTION_PROTOTYPE
+	os_status = sched_getaffinity( process_id, &cpu_set );
+#else
 	os_status = sched_getaffinity( process_id, sizeof(cpu_set), &cpu_set );
+#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -303,7 +317,11 @@ mx_set_process_affinity_mask( unsigned long process_id,
 		}
 	}
 
+#if MXP_USE_SHORTER_FUNCTION_PROTOTYPE
+	os_status = sched_setaffinity( process_id, &cpu_set );
+#else
 	os_status = sched_setaffinity( process_id, sizeof(cpu_set), &cpu_set );
+#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -317,6 +335,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#undef MXP_USE_SHORTER_FUNCTION_PROTOTYPE
 
 #  endif /* Linux with Glibc 2.3 and above. */
 
