@@ -1745,7 +1745,6 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	int num_fds, select_status, socket_errno;
 	struct timeval timeout;
 	char *error_string;
-	long mask, error_code;
 
 #if HAVE_FD_SET
 	fd_set read_mask;
@@ -1832,6 +1831,8 @@ mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
 	 */
 
 	if ( *num_input_bytes_available == 0 ) {
+		long mask, error_code;
+
 		mask = MXF_SOCKET_QUIET | MXF_SOCKET_QUIET_CONNECTION;
 
 		if ( mx_socket->socket_flags & mask ) {

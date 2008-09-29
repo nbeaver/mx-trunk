@@ -120,6 +120,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 RM		= rm -f
 MAKE		= make
+TOUCH		= touch -a
 
 OBJ		= o
 

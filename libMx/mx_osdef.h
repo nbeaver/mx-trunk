@@ -75,7 +75,7 @@
 
 /* Do we have a version of FIONREAD that supports sockets? */
 
-#if defined( OS_LINUX ) || defined( OS_MACOSX )
+#if defined( OS_LINUX ) || defined( OS_MACOSX ) || defined( OS_SOLARIS )
 #  define HAVE_FIONREAD_FOR_SOCKETS	1
 #else
 #  define HAVE_FIONREAD_FOR_SOCKETS	0

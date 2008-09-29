@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_POINTER_DEBUG	FALSE
+#define MX_POINTER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

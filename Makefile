@@ -45,7 +45,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = solaris
+MX_ARCH = solaris-gcc
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest

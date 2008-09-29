@@ -30,7 +30,11 @@
 #include "mx_measurement.h"
 #include "command.h"
 
-#include "mx_poison.h"
+#if defined(OS_SOLARIS)
+    /* Solaris uses the poisoned identifier sprintf() in its header files. */
+#else
+#   include "mx_poison.h"
+#endif
 
 #ifndef SUCCESS
 #define INTERRUPTED 2
