@@ -169,8 +169,17 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
+#elif defined(OS_SOLARIS)
+
+static void
+mxp_generate_macros( FILE *version_file )
+{
+	return;
+}
+
 #else
 
-#  error mx_private_version.h has not been configured for this build target.
+#  error mx_private_version.c has not been configured for this build target.
 
 #endif   /* OS_LINUX */
+

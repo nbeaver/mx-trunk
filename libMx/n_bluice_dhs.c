@@ -1222,9 +1222,9 @@ mxn_bluice_dhs_server_close( MX_RECORD *record )
 	    mx_free( bluice_server->ion_chamber_array );
 	}
 
-#endif /* Disabled for now. */
-
 	return MX_SUCCESSFUL_RESULT;
+
+#endif /* Disabled for now. */
 }
 
 MX_EXPORT mx_status_type

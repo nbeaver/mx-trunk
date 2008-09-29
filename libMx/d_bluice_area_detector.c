@@ -602,11 +602,6 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 #endif
 	}
 
-#if MXD_BLUICE_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s is exiting for area detector '%s'",
-		fname, ad->record->name));
-#endif
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
