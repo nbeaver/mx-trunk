@@ -3036,7 +3036,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_aviex_pccd_set_register_value()";
 
 	MX_RECORD_FIELD *field;
-	unsigned long register_value, pseudo_reg_value;
+	unsigned long register_value;
 	void *value_ptr;
 	mx_status_type mx_status;
 
@@ -3080,7 +3080,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_aviex_pccd_170170_set_pseudo_register(
 							aviex_pccd,
 							parameter_type,
-							pseudo_reg_value );
+							register_value );
 		break;
 	case MXT_AD_PCCD_16080:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
