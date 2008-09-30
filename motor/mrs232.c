@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,12 +78,22 @@ motor_rs232_readline( MX_RECORD *record )
 		transfer_flags |= MXF_232_IGNORE_NULLS;
 	}
 
+	if ( rs232->num_read_terminator_chars == 0 ) {
+		memset( receive_buffer, 0, sizeof(receive_buffer) );
+	}
+
 	mx_status = mx_rs232_getline( record,
 				receive_buffer, sizeof( receive_buffer ),
 				NULL, transfer_flags );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+	case MXE_TIMED_OUT:
+		break;
+	default:
 		return FAILURE;
+		break;
+	}
 
 	/* Print the response we received. */
 
