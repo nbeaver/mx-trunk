@@ -87,16 +87,6 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr;
 /*-------------------------------------------------------------*/
 
 MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *,
-					uint16_t ***, long, long );
-
-MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *,
-						struct mx_aviex_pccd *,
-						MX_IMAGE_FRAME *,
-						MX_IMAGE_FRAME * );
-
-MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *,
 					MX_AREA_DETECTOR *,
 					struct mx_aviex_pccd *,
@@ -116,6 +106,16 @@ mxd_aviex_pccd_170170_set_external_trigger_mode( struct mx_aviex_pccd *,
 
 MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_170170_set_binsize( MX_AREA_DETECTOR *, struct mx_aviex_pccd * );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *,
+					uint16_t ***, long, long );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *,
+						struct mx_aviex_pccd *,
+						MX_IMAGE_FRAME *,
+						MX_IMAGE_FRAME * );
 
 MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_170170_set_sequence_start_delay( struct mx_aviex_pccd *,
@@ -280,9 +280,6 @@ mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *,
 #define MXLV_AVIEX_PCCD_170170_DH_COMM_FPGA_VERSION \
 						(MXLV_AVIEX_PCCD_DH_BASE + 116)
 
-
-#define MX_AVIEX_PCCD_170170_NUM_REGISTERS \
-	(MXLV_AVIEX_PCCD_170170_DH_OFFSET_D4 - MXLV_AVIEX_PCCD_DH_BASE + 1)
 
 /* Define some pseudo registers to manipulate individual bits
  * in the control register.

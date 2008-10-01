@@ -79,298 +79,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr
 
 /*-------------------------------------------------------------------------*/
 
-MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
-					uint16_t ***image_sector_array,
-					long i_framesize,
-					long j_framesize )
-{
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	static const char fname[] =
-		"mxd_aviex_pccd_170170_descramble_raw_data()";
-#endif
-
-	long i, j;
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_aviex_pccd_display_ul_corners( image_sector_array, 16 );
-#endif
-
-	for ( i = 0; i < i_framesize; i++ ) {
-	    for ( j = 0; j < j_framesize; j++ ) {
-
-		image_sector_array[0][i][j] = raw_frame_data[14];
-
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
-
-		image_sector_array[2][i][j] = raw_frame_data[10];
-
-		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
-
-		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
-
-		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[12];
-
-		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
-
-		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[8];
-
-		image_sector_array[8][i][j] = raw_frame_data[0];
-
-		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
-
-		image_sector_array[10][i][j] = raw_frame_data[4];
-
-		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
-
-		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
-
-		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[2];
-
-		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
-
-		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[6];
-
-		raw_frame_data += 16;
-	    }
-	}
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	{
-		long k;
-
-		for ( k = 0; k < 16; k++ ) {
-			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
-				fname, k, image_sector_array[k][0][0] ));
-		}
-	}
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_aviex_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
-					uint16_t ***image_sector_array,
-					long i_framesize,
-					long j_framesize )
-{
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	static const char fname[] = "mxd_aviex_pccd_4824_descramble_raw_data()";
-#endif
-
-	long i, j;
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_aviex_pccd_display_ul_corners( image_sector_array, 4 );
-#endif
-
-	for ( i = 0; i < i_framesize; i++ ) {
-	    for ( j = 0; j < j_framesize; j++ ) {
-
-		image_sector_array[0][i][j] = raw_frame_data[2];
-
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[3];
-
-		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[1];
-
-		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[0];
-		raw_frame_data += 4;
-	    }
-	}
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	{
-		long k;
-
-		for ( k = 0; k < 4; k++ ) {
-			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
-				fname, k, image_sector_array[k][0][0] ));
-		}
-	}
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
-					MX_AVIEX_PCCD *aviex_pccd,
-					MX_IMAGE_FRAME *image_frame,
-					MX_IMAGE_FRAME *raw_frame )
-{
-#if 0
-	static const char fname[] =
-		"mxd_aviex_pccd_170170_descramble_streak_camera()";
-#endif
-	uint16_t *image_data, *raw_data;
-	uint16_t *image_ptr, *raw_ptr;
-	long i, j, row_framesize, column_framesize, total_raw_pixels;
-	long rfs;
-	mx_status_type mx_status;
-
-	/* First, we figure out how many pixels are in each line
-	 * of the raw data by asking for the framesize.
-	 */
-
-	mx_status = mx_area_detector_get_framesize( ad->record,
-					&row_framesize, &column_framesize );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	total_raw_pixels = row_framesize * column_framesize;
-
-	raw_data   = raw_frame->image_data;
-	image_data = image_frame->image_data;
-
-#if 0
-	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
-		fname, row_framesize, column_framesize));
-#endif
-
-	/* Loop through the lines of the raw image. */
-
-	for ( i = 0; i < (column_framesize/2L); i++ ) {
-		/* The raw data arrives in groups of 16 pixels that need
-		 * to be appropriately copied to the final image frame.
-		 *
-		 * We transform 4 lines worth of raw data into 2 lines
-		 * worth of image data, since half of the raw data is
-		 * discarded.
-		 */
-
-		raw_ptr = raw_data + i * row_framesize * 4L;
-
-		image_ptr = image_data + i * row_framesize * 2L;
-
-		/* Copy the pixels. */
-
-		for ( j = 0; j < (row_framesize/4L); j++ ) {
-
-			rfs = row_framesize;
-
-			if ( aviex_pccd->use_top_half_of_detector ) {
-				image_ptr[j]               = raw_ptr[16*j + 14];
-				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 15];
-				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 10];
-				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 11];
-				image_ptr[rfs + j]         = raw_ptr[16*j + 13];
-				image_ptr[rfs + rfs/2 - 1 - j]
-							   = raw_ptr[16*j + 12];
-				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 9];
-				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 8];
-			} else {
-				image_ptr[j]               = raw_ptr[16*j];
-				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 1];
-				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 4];
-				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 5];
-				image_ptr[rfs + j]         = raw_ptr[16*j + 3];
-				image_ptr[rfs + rfs/2 - 1 - j]
-							   = raw_ptr[16*j + 2];
-				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 7];
-				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 6];
-			}
-		}
-	}
-
-	/* Patch the column framesize and the image length so that
-	 * it matches the total size of the streak camera image.
-	 */
-
-	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
-
-	image_frame->image_length = ( total_raw_pixels / 2L )
-			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
-				MX_AVIEX_PCCD *aviex_pccd,
-				MX_IMAGE_FRAME *image_frame,
-				MX_IMAGE_FRAME *raw_frame )
-{
-#if 0
-	static const char fname[] =
-			"mxd_aviex_pccd_4824_descramble_streak_camera()";
-#endif
-	uint16_t *image_data, *raw_data;
-	uint16_t *image_ptr, *raw_ptr;
-	long i, j, row_framesize, column_framesize, total_raw_pixels;
-	long rfs;
-	mx_status_type mx_status;
-
-	/* First, we figure out how many pixels are in each line
-	 * of the raw data by asking for the framesize.
-	 */
-
-	mx_status = mx_area_detector_get_framesize( ad->record,
-					&row_framesize, &column_framesize );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	total_raw_pixels = row_framesize * column_framesize;
-
-	raw_data   = raw_frame->image_data;
-	image_data = image_frame->image_data;
-
-#if 0
-	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
-		fname, row_framesize, column_framesize));
-#endif
-
-	/* Loop through the lines of the raw image. */
-
-	for ( i = 0; i < (column_framesize/2L); i++ ) {
-		/* The raw data arrives in groups of 4 pixels that need
-		 * to be appropriately copied to the final image frame.
-		 */
-
-		raw_ptr = raw_data + i * row_framesize * 2L;
-
-		image_ptr = image_data + i * row_framesize * 2L;
-
-		/* Copy the pixels. */
-
-		for ( j = 0; j < (row_framesize/4L); j++ ) {
-
-			rfs = row_framesize;
-
-			image_ptr[j]                   = raw_ptr[16*j + 2];
-			image_ptr[rfs/2 - 1 - j]       = raw_ptr[16*j + 3];
-			image_ptr[rfs + j]             = raw_ptr[16*j + 1];
-			image_ptr[rfs + rfs/2 - 1 - j] = raw_ptr[16*j + 0];
-		}
-	}
-
-	/* Patch the column framesize and the image length so that
-	 * it matches the total size of the streak camera image.
-	 */
-
-	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
-
-	image_frame->image_length = ( total_raw_pixels / 2L )
-			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
 /* mxd_aviex_pccd_170170_initialize_detector() is invoked by the function
  * mxd_aviex_pccd_open() and performs initialization steps that are specific
  * to the PCCD-170170 and PCCD-4824 detectors.
@@ -397,7 +105,8 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 	 * of each detector head register.
 	 */
 
-	aviex_pccd->num_registers = MX_AVIEX_PCCD_170170_NUM_REGISTERS;
+	aviex_pccd->num_registers =
+	    MXLV_AVIEX_PCCD_170170_DH_OFFSET_D4 - MXLV_AVIEX_PCCD_DH_BASE + 1;
 
 	array_size = aviex_pccd->num_registers * sizeof(MX_AVIEX_PCCD_REGISTER);
 
@@ -918,6 +627,298 @@ mxd_aviex_pccd_170170_set_binsize( MX_AREA_DETECTOR *ad,
 				ad->binsize[1] );
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
+					uint16_t ***image_sector_array,
+					long i_framesize,
+					long j_framesize )
+{
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	static const char fname[] =
+		"mxd_aviex_pccd_170170_descramble_raw_data()";
+#endif
+
+	long i, j;
+
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	mxd_aviex_pccd_display_ul_corners( image_sector_array, 16 );
+#endif
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j] = raw_frame_data[14];
+
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
+
+		image_sector_array[2][i][j] = raw_frame_data[10];
+
+		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
+
+		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
+
+		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[12];
+
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[8];
+
+		image_sector_array[8][i][j] = raw_frame_data[0];
+
+		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
+
+		image_sector_array[10][i][j] = raw_frame_data[4];
+
+		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
+
+		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
+
+		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[2];
+
+		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
+
+		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[6];
+
+		raw_frame_data += 16;
+	    }
+	}
+
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	{
+		long k;
+
+		for ( k = 0; k < 16; k++ ) {
+			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
+				fname, k, image_sector_array[k][0][0] ));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
+					uint16_t ***image_sector_array,
+					long i_framesize,
+					long j_framesize )
+{
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	static const char fname[] = "mxd_aviex_pccd_4824_descramble_raw_data()";
+#endif
+
+	long i, j;
+
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	mxd_aviex_pccd_display_ul_corners( image_sector_array, 4 );
+#endif
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j] = raw_frame_data[2];
+
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[3];
+
+		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[1];
+
+		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[0];
+		raw_frame_data += 4;
+	    }
+	}
+
+#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+	{
+		long k;
+
+		for ( k = 0; k < 4; k++ ) {
+			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
+				fname, k, image_sector_array[k][0][0] ));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *raw_frame )
+{
+#if 0
+	static const char fname[] =
+		"mxd_aviex_pccd_170170_descramble_streak_camera()";
+#endif
+	uint16_t *image_data, *raw_data;
+	uint16_t *image_ptr, *raw_ptr;
+	long i, j, row_framesize, column_framesize, total_raw_pixels;
+	long rfs;
+	mx_status_type mx_status;
+
+	/* First, we figure out how many pixels are in each line
+	 * of the raw data by asking for the framesize.
+	 */
+
+	mx_status = mx_area_detector_get_framesize( ad->record,
+					&row_framesize, &column_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	total_raw_pixels = row_framesize * column_framesize;
+
+	raw_data   = raw_frame->image_data;
+	image_data = image_frame->image_data;
+
+#if 0
+	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
+		fname, row_framesize, column_framesize));
+#endif
+
+	/* Loop through the lines of the raw image. */
+
+	for ( i = 0; i < (column_framesize/2L); i++ ) {
+		/* The raw data arrives in groups of 16 pixels that need
+		 * to be appropriately copied to the final image frame.
+		 *
+		 * We transform 4 lines worth of raw data into 2 lines
+		 * worth of image data, since half of the raw data is
+		 * discarded.
+		 */
+
+		raw_ptr = raw_data + i * row_framesize * 4L;
+
+		image_ptr = image_data + i * row_framesize * 2L;
+
+		/* Copy the pixels. */
+
+		for ( j = 0; j < (row_framesize/4L); j++ ) {
+
+			rfs = row_framesize;
+
+			if ( aviex_pccd->use_top_half_of_detector ) {
+				image_ptr[j]               = raw_ptr[16*j + 14];
+				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 15];
+				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 10];
+				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 11];
+				image_ptr[rfs + j]         = raw_ptr[16*j + 13];
+				image_ptr[rfs + rfs/2 - 1 - j]
+							   = raw_ptr[16*j + 12];
+				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 9];
+				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 8];
+			} else {
+				image_ptr[j]               = raw_ptr[16*j];
+				image_ptr[rfs/2 - 1 - j]   = raw_ptr[16*j + 1];
+				image_ptr[rfs/2 + j]       = raw_ptr[16*j + 4];
+				image_ptr[rfs - 1 - j]     = raw_ptr[16*j + 5];
+				image_ptr[rfs + j]         = raw_ptr[16*j + 3];
+				image_ptr[rfs + rfs/2 - 1 - j]
+							   = raw_ptr[16*j + 2];
+				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 7];
+				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 6];
+			}
+		}
+	}
+
+	/* Patch the column framesize and the image length so that
+	 * it matches the total size of the streak camera image.
+	 */
+
+	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
+
+	image_frame->image_length = ( total_raw_pixels / 2L )
+			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+				MX_AVIEX_PCCD *aviex_pccd,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *raw_frame )
+{
+#if 0
+	static const char fname[] =
+			"mxd_aviex_pccd_4824_descramble_streak_camera()";
+#endif
+	uint16_t *image_data, *raw_data;
+	uint16_t *image_ptr, *raw_ptr;
+	long i, j, row_framesize, column_framesize, total_raw_pixels;
+	long rfs;
+	mx_status_type mx_status;
+
+	/* First, we figure out how many pixels are in each line
+	 * of the raw data by asking for the framesize.
+	 */
+
+	mx_status = mx_area_detector_get_framesize( ad->record,
+					&row_framesize, &column_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	total_raw_pixels = row_framesize * column_framesize;
+
+	raw_data   = raw_frame->image_data;
+	image_data = image_frame->image_data;
+
+#if 0
+	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
+		fname, row_framesize, column_framesize));
+#endif
+
+	/* Loop through the lines of the raw image. */
+
+	for ( i = 0; i < (column_framesize/2L); i++ ) {
+		/* The raw data arrives in groups of 4 pixels that need
+		 * to be appropriately copied to the final image frame.
+		 */
+
+		raw_ptr = raw_data + i * row_framesize * 2L;
+
+		image_ptr = image_data + i * row_framesize * 2L;
+
+		/* Copy the pixels. */
+
+		for ( j = 0; j < (row_framesize/4L); j++ ) {
+
+			rfs = row_framesize;
+
+			image_ptr[j]                   = raw_ptr[16*j + 2];
+			image_ptr[rfs/2 - 1 - j]       = raw_ptr[16*j + 3];
+			image_ptr[rfs + j]             = raw_ptr[16*j + 1];
+			image_ptr[rfs + rfs/2 - 1 - j] = raw_ptr[16*j + 0];
+		}
+	}
+
+	/* Patch the column framesize and the image length so that
+	 * it matches the total size of the streak camera image.
+	 */
+
+	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
+
+	image_frame->image_length = ( total_raw_pixels / 2L )
+			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/

@@ -1402,9 +1402,8 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 					    record, ad, aviex_pccd, vinput );
 		break;
 	case MXT_AD_PCCD_16080:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Initialize detector support not yet implemented for "
-		"PCCD-16080 detector '%s'.", record->name );
+		mx_status = mxd_aviex_pccd_16080_initialize_detector(
+					    record, ad, aviex_pccd, vinput );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -2992,8 +2991,19 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 	/* For real registers, getting the value is simple. */
 
 	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
-		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
-						parameter_type, value_ptr );
+
+		switch( aviex_pccd->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+		case MXT_AD_PCCD_4824:
+			mx_status = mxd_aviex_pccd_read_register(
+					aviex_pccd, parameter_type, value_ptr );
+			break;
+		case MXT_AD_PCCD_16080:
+			mx_status = mxd_aviex_pccd_16080_read_register(
+					aviex_pccd, parameter_type, value_ptr );
+			break;
+		}
+
 		return mx_status;
 	}
 
@@ -3065,8 +3075,19 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 	/* For real registers, setting the value is simple. */
 
 	if ( parameter_type < MXLV_AVIEX_PCCD_DH_PSEUDO_BASE ) {
-		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
-					parameter_type, register_value );
+
+		switch( aviex_pccd->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+		case MXT_AD_PCCD_4824:
+			mx_status = mxd_aviex_pccd_write_register(
+				aviex_pccd, parameter_type, register_value );
+			break;
+		case MXT_AD_PCCD_16080:
+			mx_status = mxd_aviex_pccd_16080_write_register(
+				aviex_pccd, parameter_type, register_value );
+			break;
+		}
+
 		return mx_status;
 	}
 
@@ -4139,6 +4160,7 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 	MX_RECORD *camera_link_record;
 	size_t command_length, response_length;
 	size_t i, bytes_available, bytes_to_read, total_bytes_read, buffer_left;
+	long total_bytes_expected;
 	char *ptr;
 	unsigned long use_dh_simulator;
 	double timeout_in_seconds;
@@ -4233,11 +4255,40 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 		timeout_tick = mx_add_clock_ticks( start_tick,
 						timeout_in_clock_ticks );
 
+		/* For some detectors, we must count the number
+		 * of characters received rather than look for
+		 * a carriage return character.
+		 */
+
+		switch( aviex_pccd->record->mx_type ) {
+		case MXT_AD_PCCD_16080:
+			switch( command[0] ) {
+			case 'A':
+				total_bytes_expected = 5;
+				break;
+			case 'R':
+				total_bytes_expected = 4;
+				break;
+			case 'W':
+				total_bytes_expected = 1;
+				break;
+			default:
+				total_bytes_expected = 0;
+				break;
+			}
+			break;
+		default:
+			total_bytes_expected = -1;
+			break;
+		}
+		
 		/* Leave room in the response buffer to null terminate
 		 * the response.
 		 */
 
 		response_length = max_response_length - 1;
+
+		/* Read in the response. */
 
 		total_bytes_read = 0;
 
@@ -4302,24 +4353,37 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 
 			total_bytes_read += bytes_to_read;
 
-			/* Were there any carriage returns in the bytes
-			 * that we just received?  If so, we have reached
-			 * the end of the response and can now break out of
-			 * this loop.
-			 */
-
-			for ( i = 0; i < bytes_to_read; i++ ) {
-				if ( ptr[i] == MX_CR ) {
-					ptr[i] = '\0';
-					break;	/* Exit the for(i) loop. */
+			if ( total_bytes_expected >= 0 ) {
+				if ( total_bytes_read >= total_bytes_expected )
+				{
+					/* We have received all of the
+					 * characters we expected, so
+					 * we break out of for(;;) loop.
+					 */
+					break;
 				}
-			}
-
-			if ( i < bytes_to_read ) {
-				/* We saw a carriage return, so break out
-				 * of the for(;;) loop as well.
+			} else {
+				/* Were there any carriage returns in the bytes
+				 * that we just received?  If so, we have
+				 * reached the end of the response and can
+				 * now break out of this loop.
 				 */
-				break;
+
+				for ( i = 0; i < bytes_to_read; i++ ) {
+					if ( ptr[i] == MX_CR ) {
+						ptr[i] = '\0';
+
+						/* Exit the for(i) loop. */
+						break;
+					}
+				}
+
+				if ( i < bytes_to_read ) {
+					/* We saw a carriage return, so break
+					 * out of the for(;;) loop as well.
+					 */
+					break;
+				}
 			}
 
 			current_tick = mx_current_clock_tick();
