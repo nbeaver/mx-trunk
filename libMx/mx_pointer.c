@@ -508,18 +508,15 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
-
-/* FIXME: The PIOCMAP implementation below causes core dumps 
- * for an unknown reason, although the memory map information
- * is read out correctly (?).
- */
+#elif defined(OS_IRIX)
 
 #include <fcntl.h>
+#if 0
 #include <sys/types.h>
 #include <sys/signal.h>
 #include <sys/fault.h>
 #include <sys/syscall.h>
+#endif
 #include <sys/procfs.h>
 
 MX_EXPORT int
@@ -527,16 +524,26 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 {
 	static const char fname[] = "mx_is_valid_pointer()";
 
-	prmap_t *prmap_array, *array_element;
-	int i, num_mappings;
+	prmap_t *prmap_array = NULL;
+	prmap_t *array_element;
+	int i, num_mappings, num_mappings_to_allocate;
+	unsigned long pointer_addr, pr_vaddr;
+	unsigned long object_offset, object_end, flags;
 	int proc_fd, saved_errno, os_status;
-	void *ioctl_ptr;
 	char proc_filename[40];
+
+	pointer_addr = (unsigned long) pointer;
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,
+	("%s: pointer_addr = %#lx, length = %#lx, access_mode = %#x",
+		fname, pointer_addr, (unsigned long) length, access_mode));
+#endif
 
 	/* Open the /proc file for the current process. */
 
 	snprintf( proc_filename, sizeof(proc_filename),
-		"/proc/%d", mx_process_id() );
+		"/proc/%lu", mx_process_id() );
 
 #if MX_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: About to open '%s' for read-only access.",
@@ -575,19 +582,20 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	}
 
 #if MX_POINTER_DEBUG
-	/* FIXME: It may actually be unsafe to make this MX_DEBUG()
-	 * call here.  What if the call to MX_DEBUG() increases the
-	 * number of memory mappings?
-	 */
-
 	MX_DEBUG(-2,("%s: number of memory mappings = %d",
 		fname, num_mappings));
 #endif
 
-#if 0
-	/* Allocate memory for an array of memory mappings. */
+	/* Allocate memory for an array of memory mappings.
+	 * We deliberately allocate memory for a lot more
+	 * mappings than that reported by PIOCNMAP just
+	 * in case the number of mappings has increased.
+	 */
 
-	prmap_array = (prmap_t *) malloc( num_mappings * sizeof(prmap_t) );
+	num_mappings_to_allocate = 2 * num_mappings + 10;
+
+	prmap_array = (prmap_t *) calloc( num_mappings_to_allocate,
+						sizeof(prmap_t) );
 
 	if ( prmap_array == NULL ) {
 		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -597,7 +605,6 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		close( proc_fd );
 		return FALSE;
 	}
-#endif
 
 	/* Fill in the array of memory mappings.
 	 *
@@ -621,7 +628,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 		"Errno = %d, error message = '%s'",
 			proc_filename, saved_errno, strerror(saved_errno) );
 
-		/* free( prmap_array ); */
+		mx_free( prmap_array );
 		close( proc_fd );
 		return FALSE;
 	}
@@ -632,19 +639,88 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 	/* Walk through the array of virtual address map entries. */
 
-	for ( i = 0; i < num_mappings; i++ ) {
+	for ( i = 0; i < num_mappings_to_allocate; i++ ) {
 		array_element = &prmap_array[i];
 
+		pr_vaddr = (unsigned long) array_element->pr_vaddr;
+
+		if ( pr_vaddr == 0 ) {
+			/* We have reached the end of the array. */
+			break;
+		}
+
 #if MX_POINTER_DEBUG
-		MX_DEBUG(-2,("%s: %#lx %#lx %#x", fname,
-			(unsigned long) array_element->pr_vaddr,
+		MX_DEBUG(-2,("%s: %#lx %#lx %#x", fname, pr_vaddr,
 			(unsigned long) array_element->pr_size,
 			(unsigned int) array_element->pr_mflags ));
 #endif
+
+		if ( pointer_addr < pr_vaddr ) {
+			/* The pointer is located before this address
+			 * mapping, but was not found by a previous
+			 * pass through the loop.  This means that
+			 * either the pointer is before the first
+			 * mapping or is inbetween mappings.  Either
+			 * way the pointer is invalid.
+			 */
+
+#if MX_POINTER_DEBUG
+			MX_DEBUG(-2,("%s: Invalid pointer %p", fname, pointer));
+#endif
+			mx_free( prmap_array );
+			return FALSE;
+		}
+
+		object_offset = pointer_addr - pr_vaddr;
+
+		object_end = object_offset + length;
+
+		if ( object_end < array_element->pr_size ) {
+
+			/* We have found the correct map entry. */
+#if MX_POINTER_DEBUG
+			MX_DEBUG(-2,("%s: map entry found!", fname));
+			MX_DEBUG(-2,
+			("%s: object_offset = %#lx, object_end = %#lx",
+				fname, object_offset, object_end));
+#endif
+
+			/* Does the requested access mode match? */
+
+			flags = 0;
+
+			if ( access_mode & R_OK ) {
+				flags |= MA_READ;
+			}
+			if ( access_mode & W_OK ) {
+				flags |= MA_WRITE;
+			}
+			if ( access_mode & X_OK ) {
+				flags |= MA_EXEC;
+			}
+
+			if ( (array_element->pr_mflags & flags) == flags ) {
+#if MX_POINTER_DEBUG
+				MX_DEBUG(-2,
+			  ("%s: The requested access is allowed.", fname));
+#endif
+				mx_free( prmap_array );
+
+				return TRUE;
+			} else {
+#if MX_POINTER_DEBUG
+				MX_DEBUG(-2,
+			  ("%s: The requested access is NOT allowed.", fname));
+#endif
+				mx_free( prmap_array );
+
+				return FALSE;
+			}
+		}
 	}
 
 #if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG(-2,("%s: No entry found in array.", fname));
 #endif
 	return FALSE;
 }
