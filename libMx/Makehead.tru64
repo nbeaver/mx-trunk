@@ -82,6 +82,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 
 RM		= rm -f
 MAKE		= make
+TOUCH		= touch -a
 
 OBJ		= o
 
@@ -211,4 +212,15 @@ mxserial.o: mxserial_fork.c
 util_install:
 	/usr/bin/install -m 755 $(MXDRIVERINFO_NAME) -f $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -m 755 $(MXSERIAL_NAME) -f $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+
+MX_PRIVATE_VERSION_NAME = mx_private_version
+
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.o
+	$(CC) $(CFLAGS) -o $(MX_PRIVATE_VERSION_NAME) mx_private_version.o
+
+RUN_MX_PRIVATE_VERSION = ./mx_private_version
 

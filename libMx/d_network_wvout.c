@@ -333,7 +333,7 @@ mxd_network_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 				MXFT_BOOL, &(wvout->busy) );
 
 #if MXD_NETWORK_WVOUT_DEBUG
-	MX_DEBUG(-2,("%s: busy = %d", fname, wvout->busy));
+	MX_DEBUG(-2,("%s: busy = %d", fname, (int) wvout->busy));
 #endif
 	return mx_status;
 }

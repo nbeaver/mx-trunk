@@ -514,12 +514,6 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #elif defined(OS_IRIX)
 
 #include <fcntl.h>
-#if 0
-#include <sys/types.h>
-#include <sys/signal.h>
-#include <sys/fault.h>
-#include <sys/syscall.h>
-#endif
 #include <sys/procfs.h>
 
 MX_EXPORT int
@@ -730,17 +724,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
-
-/* FIXME: Apparently for other operating systems, the appropriate 
- * equivalents are:
- *
- * FreeBSD               /proc/curproc/map
- * All BSDs:             mincore()
- * Irix, OSF/1, Solaris: ioctl(PIOCMAP)
- *
- * These will be implemented as time permits.
- */
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT int
 mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
@@ -753,6 +737,16 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 }
 
 #else
+
+/* FIXME: Apparently for other operating systems, the appropriate 
+ * equivalents are:
+ *
+ * FreeBSD     /proc/curproc/map
+ * All BSDs:   mincore()
+ * OSF/1:      ioctl(PIOCMAP)
+ *
+ * These will be implemented as time permits.
+ */
 
 #error mx_is_valid_pointer() has not yet been defined for this build target.
 

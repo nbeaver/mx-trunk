@@ -199,7 +199,8 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 	use_inverse_beam = ad_scan->use_inverse_beam;
 
-	MX_DEBUG(-2,("%s: use_inverse_beam = %d", fname, use_inverse_beam));
+	MX_DEBUG(-2,("%s: use_inverse_beam = %d",
+			fname, (int) use_inverse_beam));
 
 	units_length = strlen( motor->units );
 

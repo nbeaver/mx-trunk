@@ -958,7 +958,8 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	long total_num_subimage_lines;
 	double exposure_time, frame_time, gap_time, subimage_time, line_time;
-	double exposure_multiplier, gap_multiplier;
+	double exposure_multiplier = 0.0;
+	double gap_multiplier = 0.0;
 	mx_status_type mx_status;
 
 	sp = &(ad->sequence_parameters);

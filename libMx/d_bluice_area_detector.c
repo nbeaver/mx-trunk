@@ -1187,7 +1187,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	}
 
 	MX_DEBUG(-2,("%s: flags = %#lx, reuse_dark = %d",
-		fname, flags, reuse_dark));
+		fname, flags, (int) reuse_dark));
 
 	switch( ad->record->mx_type ) {
 	case MXT_AD_BLUICE_DCSS:
@@ -1204,7 +1204,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			datafile_directory,
 			bluice_dcss_server->bluice_username,
 			exposure_time,
-			reuse_dark );
+			(int) reuse_dark );
 		break;
 
 	case MXT_AD_BLUICE_DHS:
@@ -1240,7 +1240,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 			wavelength,
 			detector_x,
 			detector_y,
-			reuse_dark );
+			(int) reuse_dark );
 
 		/* If this is a DHS area detector record, we manage
 		 * the detector_collect_image operation in a

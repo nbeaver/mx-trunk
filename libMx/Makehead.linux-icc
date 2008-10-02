@@ -176,6 +176,7 @@ MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 RM		= rm -f
 MAKE		= make
 MKDIR		= mkdir
+TOUCH		= touch -a
 
 OBJ		= o
 
@@ -303,4 +304,15 @@ mxserial.o: mxserial_fork.c
 util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+
+MX_PRIVATE_VERSION_NAME = mx_private_version
+
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.o
+	$(CC) $(CFLAGS) -o $(MX_PRIVATE_VERSION_NAME) mx_private_version.o
+
+RUN_MX_PRIVATE_VERSION = ./mx_private_version
 

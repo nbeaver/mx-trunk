@@ -1222,12 +1222,14 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 		if ( status_ptr == NULL ) {
 			MX_DEBUG(-2,
-		("%s: motor '%s', move_in_progress = %d, position = %g",
-			fname, motor_name, move_in_progress, motor_position));
+			("%s: motor '%s', move_in_progress = %d, position = %g",
+				fname, motor_name, (int) move_in_progress,
+				motor_position));
 		} else {
 			MX_DEBUG(-2,
 	 ("%s: motor '%s', move_in_progress = %d, position = %g, status = '%s'",
-	      fname, motor_name, move_in_progress, motor_position, status_ptr));
+				fname, motor_name, (int) move_in_progress,
+				motor_position, status_ptr));
 		}
 	}
 #endif
