@@ -422,7 +422,7 @@ MOTOR_NAME	= motor
 MOTOR_NAME2	= motor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+	
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
 			 -lMx $(LIBRARIES) $(READLINE_LIBRARIES)
 	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
@@ -476,6 +476,10 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
+#
+#---------------------------------------------------
+#
+
 MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
@@ -494,6 +498,9 @@ util_install:
 #
 
 MX_PRIVATE_VERSION_NAME = mx_private_version
+
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.o
+	$(CC) $(LINKFLAGS) -o $(MX_PRIVATE_VERSION_NAME) mx_private_version.o
 
 RUN_MX_PRIVATE_VERSION = ./mx_private_version
 

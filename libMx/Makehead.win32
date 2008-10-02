@@ -462,5 +462,9 @@ util_install:
 
 MX_PRIVATE_VERSION_NAME = mx_private_version.exe
 
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
+	link /debug /nologo /out:mx_private_version.exe \
+			mx_private_version.obj $(WIN32_LIBS)
+
 RUN_MX_PRIVATE_VERSION = ./mx_private_version
 

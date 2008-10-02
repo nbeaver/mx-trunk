@@ -389,6 +389,8 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 			spellman_df3->record->name );
 		break;
 	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

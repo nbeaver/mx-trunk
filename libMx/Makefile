@@ -387,8 +387,3 @@ mx_version.h: mx_private_version.h
 mx_private_version.h: $(MX_PRIVATE_VERSION_NAME)
 	$(RUN_MX_PRIVATE_VERSION)
 
-$(MX_PRIVATE_VERSION_NAME): mx_private_version.c
-	$(COMPILE) $(CFLAGS_MX_VERS) mx_private_version.c
-	$(CC) $(LINKFLAGS) -o $(MX_PRIVATE_VERSION_NAME) \
-					mx_private_version.$(OBJ)
-
