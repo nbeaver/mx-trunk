@@ -15,7 +15,9 @@
  *
  */
 
+#define MXD_AVIEX_PCCD_170170_DEBUG			TRUE
 #define MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
+#define MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,7 +272,7 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: controller FPGA version = %lu",
 			fname, controller_fpga_version ));
 	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
@@ -371,7 +373,7 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: OLD control_register_value = %#lx",
 		fname, control_register_value));
 #endif
@@ -407,7 +409,7 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 
 	/* Write out the new control register value. */
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: NEW control_register_value = %#lx",
 		fname, control_register_value));
 #endif
@@ -975,7 +977,7 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	old_detector_readout_mode = old_control_register_value
 			& MXF_AVIEX_PCCD_170170_DETECTOR_READOUT_MASK;
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 		fname, old_control_register_value));
 	MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
@@ -1030,7 +1032,7 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			gap_multiplier_steps = 0L;
 		}
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 		MX_DEBUG(-2,
 		("%s: exposure_multiplier = %g, gap_multiplier = %g",
 			fname, exposure_multiplier, gap_multiplier));
@@ -1144,7 +1146,7 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			gap_time = frame_time - exposure_time
 					- ad->detector_readout_time;
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 			MX_DEBUG(-2,("%s: num_frames = %ld",
 				fname, num_frames));
 			MX_DEBUG(-2,("%s: exposure_time = %g",
@@ -1205,7 +1207,7 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			gap_time = frame_time - exposure_time
 					- ad->detector_readout_time;
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 			MX_DEBUG(-2,
 			("%s: num_frames = %ld, gap_time = %g",
 				fname, num_frames, gap_time));
@@ -1595,7 +1597,7 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 	/* Reprogram the control register for the new mode. */
 
-#if MXD_AVIEX_PCCD_DEBUG
+#if MXD_AVIEX_PCCD_170170_DEBUG
 	MX_DEBUG(-2, ("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
 	MX_DEBUG(-2, ("%s: new_control_register_value = %#lx",
@@ -1624,7 +1626,7 @@ MX_EXPORT mx_status_type
 mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 					MX_AVIEX_PCCD *aviex_pccd )
 {
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	static const char fname[] =
 			"mxd_aviex_pccd_170170_compute_sequence_times()";
 #endif
@@ -1707,7 +1709,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,
 	("%s: sequence_type = %ld, control_register = %#lx, high_speed = %d",
 		fname, sp->sequence_type, control_register, (int) high_speed));
@@ -1753,7 +1755,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 	tbe = 1.0e-3 * (double) tbe_raw;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: tshut = %g, tbe = %g, tpre = %g, tpost = %g",
 			fname, tshut, tbe, tpre, tpost));
 #endif
@@ -1765,7 +1767,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: numframes = %ld", fname, numframes));
 #endif
 
@@ -1808,7 +1810,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 		MX_DEBUG(-2,("%s: mtshut = %ld, mtbe = %ld",
 			fname, mtshut, mtbe));
 		MX_DEBUG(-2,("%s: nlsi = %ld, nsi = %ld, nsc = %ld",
@@ -1855,7 +1857,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: STREAK: N = %ld, sumlimit = %ld",
 		fname, N, sumlimit));
 	    MX_DEBUG(-2,("%s: STREAK: tshut_sum = %g, tbe_sum = %g",
@@ -1980,7 +1982,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 		tshut_product = tshut_product * ( mtshut + 1 );
 	    }
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: SUBIMAGE: tshut_sum = %g, tbe_sum = %g",
 		fname, tshut_sum, tbe_sum));
 #endif
@@ -2275,7 +2277,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	    exposure_time = tshut;
 	    gap_time      = tbe;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	    MX_DEBUG(-2,("%s: exposure_time = %g, gap_time = %g",
 	    	fname, exposure_time, gap_time));
 	    MX_DEBUG(-2,("%s: detector_readout_time = %g",
@@ -2311,7 +2313,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	    	exposure_multiplier = 1.0 + 0.0039 * (double) mtshut;
 		gap_multiplier      = 1.0 + 0.0039 * (double) mtbe;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 		MX_DEBUG(-2,("%s: mtshut = %ld, mtbe = %ld",
 			fname, mtshut, mtbe));
 		MX_DEBUG(-2,
@@ -2323,7 +2325,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 
 		for ( i = 0; i < numframes; i++ ) {
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 			MX_DEBUG(-2,
 ("%s: i = %ld, exposure_time = %g, gap_time = %g, detector_readout_time = %g",
 		fname, i, exposure_time, gap_time, ad->detector_readout_time));
@@ -2336,7 +2338,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 			exposure_time *= exposure_multiplier;
 			gap_time *= gap_multiplier;
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 			MX_DEBUG(-2,("%s: i = %ld, total_acquisition_time = %g",
 				fname, i, ad->total_acquisition_time));
 #endif
@@ -2354,7 +2356,7 @@ mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *ad,
 	}
 
 
-#if MXD_AVIEX_PCCD_DEBUG_SEQUENCE_TIMES
+#if MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES
 	MX_DEBUG(-2,("%s: ad->sequence_start_delay = %g",
 			fname, ad->sequence_start_delay));
 	MX_DEBUG(-2,("%s: ad->total_acquisition_time = %g",

@@ -328,14 +328,14 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	case MXT_AD_PCCD_16080:
 
 		/* The PCCD-16080 camera has two CCD chips with a maximum
-		 * image size of 4096 by 2048.  Each line from the detector
+		 * image size of 4168 by 2084.  Each line from the detector
 		 * contains 1024 groups of pixels with 8 pixels per group.
 		 * A full frame image has 1024 lines.  This means that the
 		 * maximum resolution of the video card should be 8192 by 1024.
 		 */
 
-		ad->maximum_framesize[0] = 4096;
-		ad->maximum_framesize[1] = 2048;
+		ad->maximum_framesize[0] = 4168;
+		ad->maximum_framesize[1] = 2084;
 
 		aviex_pccd->horiz_descramble_factor = 2;
 		aviex_pccd->vert_descramble_factor  = 2;
