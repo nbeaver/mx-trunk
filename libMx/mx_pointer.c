@@ -27,6 +27,8 @@
 
 #if defined(OS_WIN32)
 
+#include <windows.h>
+
 /* The following implementation is inspired by the following web page:
  *
  *     http://blogs.msdn.com/ericlippert/articles/105186.aspx
@@ -85,7 +87,8 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	 * to the start of the memory region it is in.
 	 */
 
-	pointer_offset = (unsigned long) ( pointer - meminfo.BaseAddress );
+	pointer_offset = (unsigned long)
+		( ((char *) pointer) - meminfo.BaseAddress );
 
 	/* unused_region_size is the amount of the memory region that is
 	 * not used by the memory range specified in the call to this

@@ -169,7 +169,7 @@ mxp_generate_macros( FILE *version_file )
 	return;
 }
 
-#elif defined(OS_SOLARIS)
+#elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_WIN32)
 
 static void
 mxp_generate_macros( FILE *version_file )
