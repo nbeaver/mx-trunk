@@ -182,9 +182,14 @@ mx_set_process_affinity_mask( unsigned long process_id,
 #include "mx_version.h"
 #include "mx_program_model.h"
 
-#  if ( MX_GLIBC_VERSION < 2003000L )
+#  if ( MX_GLIBC_VERSION < 2003004L )
 
-	/* Linux with Glibc 2.2 or before. */
+	/* Linux with Glibc 2.3.3 or before.
+	 * 
+	 * Although the affinity interfaces were added at the start
+	 * of the Glibc 2.3 series, the interfaces did not stabilize
+	 * until 2.3.4.
+	 */
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -194,7 +199,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Getting the CPU affinity mask is not supported on Linux "
-	"if MX is compiled with Glibc 2.2 or before." );
+	"if MX is compiled with Glibc 2.3.3 or before." );
 }
 
 MX_EXPORT mx_status_type
@@ -205,26 +210,11 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Setting the CPU affinity mask is not supported on Linux "
-	"if MX is compiled with Glibc 2.2 or before." );
+	"if MX is compiled with Glibc 2.3.3 or before." );
 }
 
 #  else
-	/* Linux with Glibc 2.3 and above. */
-
-/* sched_setaffinity() and friends are Linux-specific calls that
- * have an interesting history.  The Linux kernel interface is
- * available in Linux 2.5.8 and above, while the Glibc interface
- * is available in Glibc 2.3 and above.  However, Glibc 2.3.2
- * and Glibc 2.3.3 had different function prototypes than the 
- * versions below or after them.  Thus, we must specially check
- * for Glibc 2.3.2 and 2.3.3.
- */
-
-#if ( ( MX_GLIBC_VERSION == 2003002L ) || ( MX_GLIBC_VERSION == 2003003L ) )
-#  define MXP_USE_SHORTER_FUNCTION_PROTOTYPE	TRUE
-#else
-#  define MXP_USE_SHORTER_FUNCTION_PROTOTYPE	FALSE
-#endif
+	/* Linux with Glibc 2.3.4 and above. */
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -249,11 +239,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 
 	CPU_ZERO( &cpu_set );
 
-#if MXP_USE_SHORTER_FUNCTION_PROTOTYPE
-	os_status = sched_getaffinity( process_id, &cpu_set );
-#else
 	os_status = sched_getaffinity( process_id, sizeof(cpu_set), &cpu_set );
-#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -317,11 +303,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 		}
 	}
 
-#if MXP_USE_SHORTER_FUNCTION_PROTOTYPE
-	os_status = sched_setaffinity( process_id, &cpu_set );
-#else
 	os_status = sched_setaffinity( process_id, sizeof(cpu_set), &cpu_set );
-#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -336,9 +318,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#undef MXP_USE_SHORTER_FUNCTION_PROTOTYPE
-
-#  endif /* Linux with Glibc 2.3 and above. */
+#  endif /* Linux with Glibc 2.3.4 and above. */
 
 /*------------------------------ Solaris ------------------------------*/
 

@@ -1354,7 +1354,15 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * for the exposure time and the gap time.
 	 */
 
-	aviex_pccd->exposure_and_gap_step_size = 0.001;
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+	case MXT_AD_PCCD_4824:
+		aviex_pccd->exposure_and_gap_step_size = 0.001;
+		break;
+	case MXT_AD_PCCD_16080:
+		aviex_pccd->exposure_and_gap_step_size = 0.01;
+		break;
+	}
 
 	/* Make sure the internal trigger output is low. */
 
@@ -1413,6 +1421,13 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		return mx_status;
 
 	/*-------------------------------------------------------------------*/
+
+	/* Initialize the bytes per pixel from the video driver. */
+
+	mx_status = mx_area_detector_get_bytes_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the default framesize and binning. */
 
@@ -1513,11 +1528,6 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	ad->header_length = 0;
 
 	mx_status = mx_area_detector_get_image_format( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_get_bytes_per_pixel( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3388,8 +3398,8 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 								aviex_pccd );
 			break;
 		case MXT_AD_PCCD_16080:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Not yet implemented." );
+			mx_status = mxd_aviex_pccd_16080_set_binsize( ad,
+								aviex_pccd );
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -3535,9 +3545,9 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 							ad, aviex_pccd );
 			break;
 		case MXT_AD_PCCD_16080:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"mxd_aviex_pccd_16080_configure_for_sequence() "
-			"is not yet implemented." );
+			mx_status =
+			    mxd_aviex_pccd_16080_configure_for_sequence(
+							ad, aviex_pccd );
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,

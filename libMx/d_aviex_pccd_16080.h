@@ -61,10 +61,23 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_16080_rfield_def_ptr;
 /*-------------------------------------------------------------*/
 
 MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_read_register( struct mx_aviex_pccd *aviex_pccd,
+					unsigned long register_address,
+					unsigned long *register_value );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_write_register( struct mx_aviex_pccd *aviex_pccd,
+					unsigned long register_address,
+					unsigned long register_value );
+
+MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *,
 					MX_AREA_DETECTOR *,
 					struct mx_aviex_pccd *,
 					MX_VIDEO_INPUT * );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *, struct mx_aviex_pccd * );
 
 MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *,
@@ -77,14 +90,8 @@ mxd_aviex_pccd_16080_descramble_streak_camera( MX_AREA_DETECTOR *,
 						MX_IMAGE_FRAME * );
 
 MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_16080_read_register( struct mx_aviex_pccd *aviex_pccd,
-					unsigned long register_address,
-					unsigned long *register_value );
-
-MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_16080_write_register( struct mx_aviex_pccd *aviex_pccd,
-					unsigned long register_address,
-					unsigned long register_value );
+mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
+						struct mx_aviex_pccd * );
 
 /*-------------------------------------------------------------*/
 
