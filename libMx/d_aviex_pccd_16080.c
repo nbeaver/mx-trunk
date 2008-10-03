@@ -275,88 +275,85 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	/* Initialize register attributes. */
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_FPGA_VERSION,
-					1,  0x0, TRUE, FALSE, 0,  0xff );
+					1,  100, TRUE, FALSE, 0,  255 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_CONTROL,
-					1,  5, FALSE, FALSE, 0,  0xff );
+					1,  2, FALSE, FALSE, 0,  31 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VIDBIN,
-					1,  1, FALSE, FALSE, 0,  0xff );
+					1,  1, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
-					1,  1, FALSE, FALSE, 0,  0xff );
+					1,  1, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROILINES,
-					1,  1, FALSE, FALSE, 0,  0xff );
+					1,  1, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_NOF,
-					1,  1, FALSE, FALSE, 0,  0xff );
+					1,  1, FALSE, FALSE, 1,  128 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VREAD,
-					2,  1042, FALSE, FALSE, 0,  0xffff );
+					2,  1042, FALSE, FALSE, 1,  1042 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VDARK,
-					1,  2, FALSE, FALSE, 0,  0xff );
+					1,  2, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HLEAD,
-					1,  4, FALSE, FALSE, 0,  0xff );
+					1,  4, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HPIX,
-					2,  1042, FALSE, FALSE, 0,  0xffff );
+					2,  1042, FALSE, FALSE, 1,  1042 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_TPRE,
-					2,  100, FALSE, FALSE, 0,  0xffff );
+					2,  100, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_SHUTTER,
-					2,  10, FALSE, FALSE, 0,  0xffff );
+					2,  10, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_TPOST,
-					2,  100, FALSE, FALSE, 0,  0xffff );
+					2,  100, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HDARK,
-					1,  6, FALSE, FALSE, 0,  0xff );
+					1,  6, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HBIN,
-					1,  1, FALSE, FALSE, 0,  0xff );
+					1,  1, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROIOFFS,
-					2,  0, FALSE, FALSE, 0,  0xffff );
+					2,  0, FALSE, FALSE, 0,  2047 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_SPARE1,
-					1,  0, FALSE, FALSE, 0,  0xff );
-
-	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_SPARE2,
-					1,  0, FALSE, FALSE, 0,  0xff );
+	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_NOE,
+					2,  0, FALSE, FALSE, 1,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XAOFFS,
-					2,  1790, FALSE, FALSE, 0,  0xffff );
+					2,  1620, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XBOFFS,
-					2,  1230, FALSE, FALSE, 0,  0xffff );
+					2,  1000, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XCOFFS,
-					2,  1220, FALSE, FALSE, 0,  0xffff );
+					2,  1100, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XDOFFS,
-					2,  1630, FALSE, FALSE, 0,  0xffff );
+					2,  1260, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YAOFFS,
-					2,  1560, FALSE, FALSE, 0,  0xffff );
+					2,  1520, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YBOFFS,
-					2,  470, FALSE, FALSE, 0,  0xffff );
+					2,  264, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YCOFFS,
-					2,  2155, FALSE, FALSE, 0,  0xffff );
+					2,  1968, FALSE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YDOFFS,
-					2,  1840, FALSE, FALSE, 0,  0xffff );
+					2,  1648, FALSE, FALSE, 0,  4095 );
 
 	/* Check to find out the firmware version that is being used by
 	 * the detector head.
 	 */
 
-	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
 			MXLV_AVIEX_PCCD_16080_DH_FPGA_VERSION,
 			&fpga_version );
 
@@ -418,7 +415,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 
 	/* Read the control register so that we can change it. */
 
-	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
 					&control_register_value );
 
@@ -467,11 +464,147 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		fname, control_register_value));
 #endif
 
-	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
 					control_register_value );
 #endif /* 0 */
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_16080_get_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
+					long parameter_type,
+					unsigned long *pseudo_reg_value )
+{
+	static const char fname[] =
+			"mxd_aviex_pccd_16080_get_pseudo_register()";
+
+	unsigned long control_register;
+	mx_status_type mx_status;
+
+	/* For pseudo registers, we must extract the value from
+	 * the control register.
+	 */
+
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+					&control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( parameter_type ) {
+	case MXLV_AVIEX_PCCD_16080_DH_CCD_ON:
+		*pseudo_reg_value = control_register & 0x1;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_READOUT_SPEED:
+		*pseudo_reg_value = (control_register >> 1) & 0x1;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_OFFSET_CORRECTION:
+		*pseudo_reg_value = (control_register >> 2) & 0x1;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE:
+		*pseudo_reg_value = (control_register >> 3) & 0x3;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal pseudoregister %lu requested for area detector '%s'.",
+			parameter_type, aviex_pccd->record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_16080_set_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
+					long parameter_type,
+					unsigned long register_value )
+{
+	unsigned long control_register, pseudo_reg_value;
+	mx_status_type mx_status;
+
+	/* For pseudo registers, we must change specific bits in
+	 * the control register.
+	 */
+
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+					&control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( parameter_type ) {
+	case MXLV_AVIEX_PCCD_16080_DH_CCD_ON:
+		pseudo_reg_value = register_value & 0x1;
+
+		control_register &= ~0x1;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_READOUT_SPEED:
+		pseudo_reg_value = ( register_value & 0x1 ) << 0x1;
+
+		control_register &= ~0x2;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_OFFSET_CORRECTION:
+		pseudo_reg_value = ( register_value & 0x1 ) << 2;
+
+		control_register &= ~0x4;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE:
+		pseudo_reg_value = ( register_value & 0x3 ) << 3;
+
+		control_register &= ~0x18;
+
+		control_register |= pseudo_reg_value;
+		break;
+	}
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+					control_register );
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_16080_set_external_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
+                                                mx_bool_type external_trigger )
+{
+        unsigned long control_register_value;
+        mx_status_type mx_status;
+
+        mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
+                                        MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+                                        &control_register_value );
+
+        if ( mx_status.code != MXE_SUCCESS )
+                return mx_status;
+
+        if ( external_trigger ) {
+                control_register_value
+                        |= MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER;
+        } else {
+                control_register_value
+                        &= (~MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER);
+        }
+
+        mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+                                        MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+                                        control_register_value );
+
+        return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -482,11 +615,14 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 {
 	mx_status_type mx_status;
 
-	/* The PCCD-16080 only provides a way to do vertical binning.
-	 * Any horizontal binning must be done in MX.
-	 */
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_HBIN,
+					ad->binsize[0] );
 
-	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
 					ad->binsize[1] );
 	return mx_status;
@@ -548,8 +684,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 	/* Find out whether or not we are currently in streak camera mode. */
 
-	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
-				MXLV_AVIEX_PCCD_16080_DH_SPARE1,
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_16080_DH_NOE,
 				&old_streak_count );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -565,8 +701,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		if ( old_streak_count > 0 ) {
 			/* We must turn off streak camera mode. */
 
-			mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_SPARE1, 0 );
+			mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_NOE, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -604,7 +740,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 				sp->sequence_type );
 		}
 
-		mx_status = mxd_aviex_pccd_write_register(
+		mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd,
 				MXLV_AVIEX_PCCD_16080_DH_NOF,
 				num_frames );
@@ -661,7 +797,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 		/* Set the number of frames in the sequence to 1. */
 
-		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 				MXLV_AVIEX_PCCD_16080_DH_NOF, 1 );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -669,8 +805,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 		/* Set the number of streak camera mode lines.*/
 
-		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_SPARE1,
+		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_NOE,
 					num_streak_mode_lines );
 
 		if ( mx_status.code != MXE_SUCCESS )

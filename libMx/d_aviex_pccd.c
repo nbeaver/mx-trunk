@@ -39,7 +39,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		TRUE
 
 #define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
@@ -1839,6 +1839,8 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 						aviex_pccd, external_trigger );
 		break;
 	case MXT_AD_PCCD_16080:
+		mx_status = mxd_aviex_pccd_16080_set_external_trigger_mode(
+						aviex_pccd, external_trigger );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -2044,19 +2046,32 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			MX_DEBUG(-2,
 				("%s: Sending trigger to camera head.", fname));
 #endif
+			switch( ad->record->mx_type ) {
+			case MXT_AD_PCCD_170170:
+			case MXT_AD_PCCD_4824:
+				/* Send a 0.1 second pulse. */
 
-			mx_status = mx_digital_output_write(
-				aviex_pccd->internal_trigger_record, 1 );
+				mx_status = mx_digital_output_pulse(
+					aviex_pccd->internal_trigger_record,
+					1, FALSE, 100000 );
+				break;
+			case MXT_AD_PCCD_16080:
+#if 0
+				/* Send a 0.001 second pulse. */
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			mx_msleep(100);		/* Wait 0.1 seconds. */
-
-			/* Set the output low. */
-
-			mx_status = mx_digital_output_write(
-				aviex_pccd->internal_trigger_record, 0 );
+				mx_status = mx_camera_link_pulse_cc_line(
+					aviex_pccd->camera_link_record, 1,
+					-1, 1000 );
+				break;
+#endif
+			default:
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Triggering detector type %lu, record '%s', "
+				"is not supported.",
+					ad->record->mx_type,
+					ad->record->name );
+				break;
+			}
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2229,10 +2244,6 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_AVIEX_PCCD_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
 	DISPLAY_CONTROL_REGISTER(fname);
 
 	/* Ask the video board for its current status. */
@@ -3028,8 +3039,10 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 							&pseudo_reg_value );
 		break;
 	case MXT_AD_PCCD_16080:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Not yet implemented for PCCD-16080." );
+		mx_status = mxd_aviex_pccd_16080_get_pseudo_register(
+							aviex_pccd,
+							parameter_type,
+							&pseudo_reg_value );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -3112,8 +3125,10 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 							register_value );
 		break;
 	case MXT_AD_PCCD_16080:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Not yet implemented for PCCD-16080." );
+		mx_status = mxd_aviex_pccd_16080_set_pseudo_register(
+							aviex_pccd,
+							parameter_type,
+							register_value );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

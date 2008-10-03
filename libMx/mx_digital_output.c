@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_hrt.h"
 #include "mx_digital_output.h"
 
 /* mx_digital_output_read() is for reading the value currently being output. */
@@ -113,6 +114,39 @@ mx_digital_output_write( MX_RECORD *record, unsigned long value )
 	digital_output->value = value;
 
 	mx_status = (*write_fn)( digital_output );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_digital_output_pulse( MX_RECORD *record,
+			long polarity,
+			mx_bool_type busy_wait,
+			unsigned long pulse_duration_in_microseconds )
+{
+	unsigned long initial_value, final_value;
+	mx_status_type mx_status;
+
+	if ( polarity >= 0 ) {
+		initial_value = 1;
+		final_value = 0;
+	} else {
+		initial_value = 0;
+		final_value = 1;
+	}
+
+	mx_status = mx_digital_output_write( record, initial_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( busy_wait ) {
+		mx_udelay( pulse_duration_in_microseconds );
+	} else {
+		mx_usleep( pulse_duration_in_microseconds );
+	}
+
+	mx_status = mx_digital_output_write( record, final_value );
 
 	return mx_status;
 }

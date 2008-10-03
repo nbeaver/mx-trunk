@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,11 +50,16 @@ typedef struct {
 	mx_status_type ( *write ) ( MX_DIGITAL_OUTPUT *doutput );
 } MX_DIGITAL_OUTPUT_FUNCTION_LIST;
 
-MX_API mx_status_type mx_digital_output_read(MX_RECORD *doutput,
+MX_API mx_status_type mx_digital_output_read(MX_RECORD *doutput_record,
 							unsigned long *value);
 
-MX_API mx_status_type mx_digital_output_write(MX_RECORD *doutput,
+MX_API mx_status_type mx_digital_output_write(MX_RECORD *doutput_record,
 							unsigned long value);
+
+MX_API mx_status_type mx_digital_output_pulse( MX_RECORD *doutput_record,
+				long polarity,
+				mx_bool_type busy_wait,
+				unsigned long pulse_duration_in_microseconds );
 
 extern MX_RECORD_FUNCTION_LIST mx_digital_output_record_function_list;
 

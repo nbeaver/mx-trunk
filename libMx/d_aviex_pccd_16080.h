@@ -41,9 +41,7 @@ typedef struct {
 	unsigned long hdark;
 	unsigned long hbin;
 	unsigned long roioffs;
-
-	unsigned long spare1;
-	unsigned long spare2;
+	unsigned long noe;
 
 	unsigned long xaoffs;
 	unsigned long xboffs;
@@ -53,6 +51,12 @@ typedef struct {
 	unsigned long yboffs;
 	unsigned long ycoffs;
 	unsigned long ydoffs;
+
+	unsigned long ccd_on;
+	unsigned long readout_speed;
+	unsigned long offset_correction;
+	unsigned long exposure_mode;
+	unsigned long edge_triggered;
 } MX_AVIEX_PCCD_16080_DETECTOR_HEAD;
 
 extern long mxd_aviex_pccd_16080_num_record_fields;
@@ -77,6 +81,18 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *,
 					MX_VIDEO_INPUT * );
 
 MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_get_pseudo_register( struct mx_aviex_pccd *,
+                                        long, unsigned long * );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_set_pseudo_register( struct mx_aviex_pccd *,
+                                        long, unsigned long );
+
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_set_external_trigger_mode( struct mx_aviex_pccd *,
+                                                        mx_bool_type );
+
+MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *, struct mx_aviex_pccd * );
 
 MX_API_PRIVATE mx_status_type
@@ -90,8 +106,39 @@ mxd_aviex_pccd_16080_descramble_streak_camera( MX_AREA_DETECTOR *,
 						MX_IMAGE_FRAME * );
 
 MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_set_sequence_start_delay( struct mx_aviex_pccd *,
+                                                        unsigned long );
+
+MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
 						struct mx_aviex_pccd * );
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_compute_sequence_times( MX_AREA_DETECTOR *,
+                                                struct mx_aviex_pccd * );
+
+/*-------------------------------------------------------------*/
+
+/* Control register bit definitions. */
+
+/* CCD on (bit 0) */
+
+#define MXF_AVIEX_PCCD_16080_CCD_ON				0x1
+
+/* Low noise-high speed (bit 1) */
+
+#define MXF_AVIEX_PCCD_16080_HIGH_SPEED				0x2
+
+/* Automatic offset correction (bit 2) */
+
+#define MXF_AVIEX_PCCD_16080_AUTOMATIC_OFFSET_CORRECTION_ON	0x4
+
+/* Internal/External trigger mode (bit 3) */
+
+#define MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER			0x8
+
+/* Edge or duration trigger (bit 4) */
+
+#define MXF_AVIEX_PCCD_16080_EXTERNAL_DURATION_TRIGGER		0x10
 
 /*-------------------------------------------------------------*/
 
@@ -139,9 +186,9 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
 
 /* ROIOFFS also uses register 21 */
 
-#define MXLV_AVIEX_PCCD_16080_DH_SPARE1		(MXLV_AVIEX_PCCD_DH_BASE + 22)
+#define MXLV_AVIEX_PCCD_16080_DH_NOE		(MXLV_AVIEX_PCCD_DH_BASE + 22)
 
-#define MXLV_AVIEX_PCCD_16080_DH_SPARE2		(MXLV_AVIEX_PCCD_DH_BASE + 23)
+/* NOE also uses register 23 */
 
 #define MXLV_AVIEX_PCCD_16080_DH_XAOFFS		(MXLV_AVIEX_PCCD_DH_BASE + 24)
 
@@ -174,6 +221,15 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
 #define MXLV_AVIEX_PCCD_16080_DH_YDOFFS		(MXLV_AVIEX_PCCD_DH_BASE + 38)
 
 /* YDOFFS also uses register 39 */
+
+/* Define some pseudo registers to manipulate individual bits
+ * in the control register.
+ */
+
+#define MXLV_AVIEX_PCCD_16080_DH_CCD_ON			200000
+#define MXLV_AVIEX_PCCD_16080_DH_READOUT_SPEED		200001
+#define MXLV_AVIEX_PCCD_16080_DH_OFFSET_CORRECTION	200002
+#define MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE		200003
 
 
 /*-------------------------------------------------------------*/
@@ -263,14 +319,9 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_16080.roioffs), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AVIEX_PCCD_16080_DH_SPARE1, \
-		-1, "dh_spare1", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_16080.spare1), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_AVIEX_PCCD_16080_DH_SPARE2, \
-		-1, "dh_spare2", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_16080.spare2), \
+  {MXLV_AVIEX_PCCD_16080_DH_NOE, \
+		-1, "dh_noe", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_16080.noe), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AVIEX_PCCD_16080_DH_XAOFFS, \
@@ -311,6 +362,31 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *,
   {MXLV_AVIEX_PCCD_16080_DH_YDOFFS, \
 		-1, "dh_ydoffs", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_16080.ydoffs), \
+	{0}, NULL, 0}, \
+  \
+  \
+  {MXLV_AVIEX_PCCD_16080_DH_CCD_ON, \
+  		-1, "dh_ccd_on", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_16080.ccd_on), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_16080_DH_READOUT_SPEED, \
+  		-1, "dh_readout_speed", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_16080.readout_speed), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_16080_DH_OFFSET_CORRECTION, \
+  		-1, "dh_offset_correction", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_AVIEX_PCCD, u.dh_16080.offset_correction), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE, \
+  		-1, "dh_exposure_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_16080.exposure_mode), \
 	{0}, NULL, 0}
 
 #endif /* __D_AVIEX_PCCD_16080_H__ */
