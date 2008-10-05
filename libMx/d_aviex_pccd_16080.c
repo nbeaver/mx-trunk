@@ -182,9 +182,10 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 	switch( register_size ) {
 	case 1:
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
-					register_index, register_size,
-					register_value, read_only,
-					power_of_two, minimum, maximum );
+					register_index, FALSE,
+					register_size, register_value,
+					read_only, power_of_two,
+					minimum, maximum );
 		break;
 
 	case 2:
@@ -204,16 +205,18 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 		}
 
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
-					register_index, register_size,
-					low_byte, read_only, power_of_two,
+					register_index, FALSE,
+					register_size, low_byte,
+					read_only, power_of_two,
 					low_minimum, low_maximum );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
-					register_index, register_size,
-					high_byte, read_only, power_of_two,
+					register_index + 1, TRUE,
+					register_size, high_byte,
+					read_only, power_of_two,
 					high_minimum, high_maximum );
 		break;
 	}
@@ -237,10 +240,15 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	static const char fname[] =
 			"mxd_aviex_pccd_16080_initialize_detector()";
 
+#if 0
+	MX_AVIEX_PCCD_REGISTER *reg;
+	int i, min_register, max_register;
+#endif
 	size_t array_size;
 	unsigned long fpga_version;
 	unsigned long control_register_value;
 	unsigned long pccd_flags;
+	unsigned long delay_microseconds;
 	mx_status_type mx_status;
 
 	pccd_flags = aviex_pccd->aviex_pccd_flags;
@@ -251,6 +259,10 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 
 	aviex_pccd->num_registers =
 		MXLV_AVIEX_PCCD_16080_DH_YDOFFS - MXLV_AVIEX_PCCD_DH_BASE + 1;
+
+	/* The last actual register is at MXLV_AVIEX_PCCD_16080_DH_YDOFFS + 1 */
+
+	aviex_pccd->num_registers++;
 
 	array_size = aviex_pccd->num_registers * sizeof(MX_AVIEX_PCCD_REGISTER);
 
@@ -413,61 +425,76 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		break;
 	}
 
-	/* Read the control register so that we can change it. */
-
-	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
-					&control_register_value );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_AVIEX_PCCD_16080_DEBUG
-	MX_DEBUG(-2,("%s: OLD control_register_value = %#lx",
-		fname, control_register_value));
-#endif
-
 #if 0
-	/* Put the detector head in full frame mode. */
-
-	control_register_value
-		&= (~MXF_AVIEX_PCCD_16080_DETECTOR_READOUT_MASK);
-
-	/* Turn on an initial runt Frame Valid pulse.  This is used to
-	 * work around a misfeature of the PIXCI E4 board.  The E4 board
-	 * always ignores the first frame sent by the camera after 
-	 * starting a new sequence.  EPIX says that this is to protect
-	 * against a race condition in their system.  Aviex's solution
-	 * is to send an extra runt Frame Valid pulse at the start of
-	 * a sequence, so that the frame thrown away by EPIX is a frame
-	 * that we do not want anyway.
+	/* Initialize all of the output offset registers, since the
+	 * FPGA firmware does not do that.
+	 *
+	 * FIXME! - Should this be read from a file?
 	 */
 
-	control_register_value |= MXF_AVIEX_PCCD_16080_DUMMY_FRAME_VALID;
+	min_register =
+		MXLV_AVIEX_PCCD_16080_DH_XAOFFS - MXLV_AVIEX_PCCD_DH_BASE;
 
-	/* If requested, turn on the test mode pattern. */
+	max_register =
+		MXLV_AVIEX_PCCD_16080_DH_YDOFFS - MXLV_AVIEX_PCCD_DH_BASE + 1;
 
-	if ( pccd_flags & MXF_AVIEX_PCCD_USE_TEST_PATTERN ) {
-		control_register_value |= MXF_AVIEX_PCCD_16080_TEST_MODE_ON;
+	for ( i = min_register; i <= max_register; i++ ) {
+		reg = &(aviex_pccd->register_array[i]);
 
-		mx_warning( "Area detector '%s' will return a test image "
-			"instead of taking a real image.",
-				record->name );
-	} else {
-		control_register_value &= (~MXF_AVIEX_PCCD_16080_TEST_MODE_ON);
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+							i, reg->value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
-
-	/* Write out the new control register value. */
-
-#if MXD_AVIEX_PCCD_16080_DEBUG
-	MX_DEBUG(-2,("%s: NEW control_register_value = %#lx",
-		fname, control_register_value));
 #endif
+
+	/* Set the control register to internal trigger with high speed
+	 * readout and automatic offset adjustment on.
+	 */
+
+	control_register_value = MXF_AVIEX_PCCD_16080_CCD_ON
+			| MXF_AVIEX_PCCD_16080_HIGH_SPEED
+			| MXF_AVIEX_PCCD_16080_AUTOMATIC_OFFSET_CORRECTION_ON;
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
 					control_register_value );
-#endif /* 0 */
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the horizontal and vertical dark pixel lines. */
+
+#if 0
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_HDARK, 4 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_VDARK, 4 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
+	/* Initialize the pre and post shutter delay times (in microseconds). */
+
+	delay_microseconds = 100;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_TPRE,
+					delay_microseconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_TPOST,
+					delay_microseconds );
+
 	return mx_status;
 }
 
@@ -613,7 +640,17 @@ MX_EXPORT mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd )
 {
+	unsigned long roilines, roilines_register;
 	mx_status_type mx_status;
+
+	/*=== Set the registers for the horizontal binsize. ===*/
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_HPIX,
+					ad->framesize[0] / 4 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_HBIN,
@@ -622,9 +659,51 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/*=== Set the registers for the vertical binsize. ===*/
+
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
 					ad->binsize[1] );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of frames to 1. */
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_NOF, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the ROILINES register. */
+
+	roilines = ad->framesize[1] / 2;
+
+	roilines_register = 9 - ad->binsize[1];
+
+	MX_DEBUG(-2,("xxx: roilines = %lu, roilines_register = %lu",
+		roilines, roilines_register));
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_ROILINES,
+					roilines_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Since NOF has been set to 0, then VREAD = ROILINES and ROIOFFS = 0 */
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_VREAD,
+					roilines );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_ROIOFFS, 0 );
+
 	return mx_status;
 }
 
@@ -701,8 +780,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		if ( old_streak_count > 0 ) {
 			/* We must turn off streak camera mode. */
 
-			mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_NOE, 0 );
+			mx_status = mxd_aviex_pccd_16080_write_register(
+				aviex_pccd, MXLV_AVIEX_PCCD_16080_DH_NOE, 0 );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

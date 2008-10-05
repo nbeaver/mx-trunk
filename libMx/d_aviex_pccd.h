@@ -199,6 +199,7 @@ MX_API mx_status_type mxd_aviex_pccd_write_register(
 MX_API_PRIVATE mx_status_type mxd_aviex_pccd_init_register(
 					MX_AVIEX_PCCD *aviex_pccd,
 					long register_index,
+					mx_bool_type use_low_byte_name,
 					int register_size,
 					unsigned long register_value,
 					mx_bool_type read_only,

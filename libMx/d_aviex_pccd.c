@@ -914,6 +914,7 @@ mxd_aviex_pccd_check_value( MX_AVIEX_PCCD *aviex_pccd,
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_init_register( MX_AVIEX_PCCD *aviex_pccd,
 				long register_index,
+				mx_bool_type use_low_byte_name,
 				int register_size,		/* in bytes */
 				unsigned long register_value,
 				mx_bool_type read_only,
@@ -948,6 +949,10 @@ mxd_aviex_pccd_init_register( MX_AVIEX_PCCD *aviex_pccd,
 	reg->minimum       = minimum;
 	reg->maximum       = maximum;
 	reg->name          = NULL;
+
+	if ( use_low_byte_name ) {
+		register_index--;
+	}
 
 	mx_status = mx_get_field_by_label_value( aviex_pccd->record,
 						register_index,
