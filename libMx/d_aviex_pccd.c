@@ -703,7 +703,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		j_framesize = row_framesize / 2;
 		break;
 	case MXT_AD_PCCD_16080:
-		i_framesize = column_framesize / 4;
+		i_framesize = column_framesize / 2;
 		j_framesize = row_framesize / 2;
 		break;
 	}

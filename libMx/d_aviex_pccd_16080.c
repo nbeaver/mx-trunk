@@ -640,6 +640,10 @@ MX_EXPORT mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd )
 {
+#if 1
+	static const char fname[] = "mxd_aviex_pccd_16080_set_binsize()";
+#endif
+
 	unsigned long roilines, roilines_register;
 	mx_status_type mx_status;
 
@@ -682,8 +686,8 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 
 	roilines_register = 9 - ad->binsize[1];
 
-	MX_DEBUG(-2,("xxx: roilines = %lu, roilines_register = %lu",
-		roilines, roilines_register));
+	MX_DEBUG(-2,("%s: roilines = %lu, roilines_register = %lu",
+		fname, roilines, roilines_register));
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_ROILINES,
@@ -715,12 +719,37 @@ mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
 					long i_framesize,
 					long j_framesize )
 {
+#if 1
 	static const char fname[] =
 			"mxd_aviex_pccd_16080_descramble_raw_data()";
 
-	mx_warning(
-	"%s: Descrambling is not yet implemented for PCCD-16080 detectors.",
-		fname );
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	long i, j;
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+                image_sector_array[0][i][j] = raw_frame_data[6];
+
+                image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[7];
+
+                image_sector_array[2][i][j] = raw_frame_data[2];
+
+                image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[3];
+
+                image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[5];
+
+                image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+                                                        = raw_frame_data[4];
+
+                image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[1];
+
+                image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+                                                        = raw_frame_data[0];
+	    }
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -776,6 +805,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_MULTIFRAME:
 
 		if ( old_streak_count > 0 ) {
 			/* We must turn off streak camera mode. */
@@ -812,6 +842,10 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
+		} else
+		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = sp->parameter_array[1];
 		} else {
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Inconsistent control structures for "
@@ -897,10 +931,6 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 
 		exposure_steps = mx_round_down( exposure_time
 			/ aviex_pccd->exposure_and_gap_step_size );
-
-		MX_DEBUG(-2,
-		("%s: FIXME! It is almost certain that setting the "
-		"exposure time per line this way is wrong!!!", fname));
 
 		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 			MXLV_AVIEX_PCCD_16080_DH_SHUTTER, exposure_steps );
