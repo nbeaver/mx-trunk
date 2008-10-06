@@ -719,14 +719,12 @@ mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
 					long i_framesize,
 					long j_framesize )
 {
-#if 1
 	static const char fname[] =
 			"mxd_aviex_pccd_16080_descramble_raw_data()";
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-#endif
-
 	long i, j;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {

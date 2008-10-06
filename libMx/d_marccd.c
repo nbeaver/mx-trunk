@@ -145,7 +145,7 @@ mxd_marccd_monitor_thread( MX_THREAD *thread, void *args )
 
 	marccd_record = (MX_RECORD *) args;
 
-#if MARCCD_DEBUG
+#if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, marccd_record->name ));
 #endif
@@ -382,6 +382,13 @@ mxd_marccd_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
+	ad->bytes_per_pixel = 2;
+	ad->bits_per_pixel = 16;
+
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	/*------------------------------------------------------------*/
+
 	if ( strlen( marccd->marccd_host )  == 0 ) {
 
 		/* If the MarCCD host name is of zero length, then we assume
@@ -399,6 +406,17 @@ mxd_marccd_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_MARCCD_DEBUG
+	if ( marccd->marccd_socket != NULL ) {
+		MX_DEBUG(-2,("%s: connected to remote socket %d",
+			fname, marccd->marccd_socket->socket_fd ));
+	} else {
+		MX_DEBUG(-2,(
+	    "%s: connected via pipes, fd_from_marccd = %d, fd_to_marccd = %d",
+			fname, marccd->fd_from_marccd, marccd->fd_to_marccd));
+	}
+#endif
 
 	marccd->use_finish_time = FALSE;
 
@@ -834,11 +852,6 @@ mxd_marccd_command( MX_MARCCD *marccd,
 		"The command string pointer passed was NULL." );
 	}
 
-	if ( marccd->fd_to_marccd < 0 ) {
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-	"The connection to MarCCD has not been correctly initialized." );
-	}
-
 	if ( flags ) {
 		MX_DEBUG(-2,("%s: sent '%s' to '%s'",
 			fname, command, marccd->record->name));
@@ -849,6 +862,13 @@ mxd_marccd_command( MX_MARCCD *marccd,
 		mx_status = mx_socket_putline( marccd->marccd_socket,
 						command, MX_CR_LF );
 	} else {
+		if ( marccd->fd_to_marccd < 0 ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The connection to MarCCD has not been "
+			"correctly initialized, fd_to_marccd = %d",
+				marccd->fd_to_marccd );
+		}
+
 		ptr            = command;
 		num_bytes_left = strlen( command );
 
@@ -1135,15 +1155,11 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 	long num_bytes_read;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: invoked.",fname));
+	MX_DEBUG(-2,("%s invoked.",fname));
 
 	if ( marccd == (MX_MARCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MARCCD pointer passed was NULL." );
-	}
-	if ( marccd->fd_from_marccd < 0 ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The connection from MarCCD has not been fully initialized." );
 	}
 
 	/* Read the response line from MarCCD. */
@@ -1155,6 +1171,11 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 						MX_CR_LF );
 	} else {
 		/* Read until we get a newline. */
+
+		if ( marccd->fd_from_marccd < 0 ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The connection from MarCCD has not been fully initialized." );
+		}
 
 		for ( i = 0; i < sizeof(response); i++ ) {
 
@@ -1280,7 +1301,18 @@ mxd_marccd_input_is_available( MX_MARCCD *marccd )
 	long mask;
 #endif
 
-	fd = marccd->fd_from_marccd;
+	if ( marccd->marccd_socket != NULL ) {
+		fd = marccd->marccd_socket->socket_fd;
+	} else {
+		fd = marccd->fd_from_marccd;
+	}
+
+	if ( fd < 0 ) {
+		(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Attempted to use select() on invalid socket %d", fd );
+
+		return FALSE;
+	}
 
 #if HAVE_FD_SET
 	FD_ZERO( &mask );
@@ -1293,9 +1325,9 @@ mxd_marccd_input_is_available( MX_MARCCD *marccd )
 
 	select_status = select( 1 + fd, &mask, NULL, NULL, &timeout );
 
-	MX_DEBUG(-2,("%s: select_status = %d", fname, select_status));
-
 	if ( select_status ) {
+		MX_DEBUG(-2,("%s: select_status = %d", fname, select_status));
+
 		return TRUE;
 	} else {
 		return FALSE;
