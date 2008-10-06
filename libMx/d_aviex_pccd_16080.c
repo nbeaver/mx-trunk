@@ -155,13 +155,13 @@ mxd_aviex_pccd_16080_write_register( struct mx_aviex_pccd *aviex_pccd,
 
 /*-------------------------------------------------------------------------*/
 
-#define INIT_REGISTER( i, s, v, r, t, n, x ) \
-        do {                                                             \
-                mx_status = mxd_aviex_pccd_16080_init_register(          \
-                        aviex_pccd, (i), (s), (v), (r), (t), (n), (x) ); \
-                                                                         \
-                if ( mx_status.code != MXE_SUCCESS )                     \
-                        return mx_status;                                \
+#define INIT_REGISTER( i, s, v, r, w, t, n, x ) \
+        do {								    \
+                mx_status = mxd_aviex_pccd_16080_init_register( aviex_pccd, \
+			(i), (s), (v), (r), (w), (t), (n), (x) );	    \
+									    \
+                if ( mx_status.code != MXE_SUCCESS )			    \
+                        return mx_status;				    \
         } while(0)
 
 static mx_status_type
@@ -170,6 +170,7 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 					int register_size,	/* in bytes */
 					unsigned long register_value,
 					mx_bool_type read_only,
+					mx_bool_type write_only,
 					mx_bool_type power_of_two,
 					unsigned long minimum,
 					unsigned long maximum )
@@ -184,7 +185,7 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
 					register_index, FALSE,
 					register_size, register_value,
-					read_only, power_of_two,
+					read_only, write_only, power_of_two,
 					minimum, maximum );
 		break;
 
@@ -207,7 +208,7 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
 					register_index, FALSE,
 					register_size, low_byte,
-					read_only, power_of_two,
+					read_only, write_only, power_of_two,
 					low_minimum, low_maximum );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -216,7 +217,7 @@ mxd_aviex_pccd_16080_init_register( MX_AVIEX_PCCD *aviex_pccd,
 		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,
 					register_index + 1, TRUE,
 					register_size, high_byte,
-					read_only, power_of_two,
+					read_only, write_only, power_of_two,
 					high_minimum, high_maximum );
 		break;
 	}
@@ -240,10 +241,9 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	static const char fname[] =
 			"mxd_aviex_pccd_16080_initialize_detector()";
 
-#if 0
 	MX_AVIEX_PCCD_REGISTER *reg;
 	int i, min_register, max_register;
-#endif
+
 	size_t array_size;
 	unsigned long fpga_version;
 	unsigned long control_register_value;
@@ -287,79 +287,79 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	/* Initialize register attributes. */
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_FPGA_VERSION,
-					1,  100, TRUE, FALSE, 0,  255 );
+				1,  100, TRUE, FALSE, FALSE, 0,  255 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_CONTROL,
-					1,  2, FALSE, FALSE, 0,  31 );
+				1,  2, FALSE, FALSE, FALSE, 0,  31 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VIDBIN,
-					1,  1, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
-					1,  1, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROILINES,
-					1,  1, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_NOF,
-					1,  1, FALSE, FALSE, 1,  128 );
+				1,  1, FALSE, FALSE, FALSE, 1,  128 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VREAD,
-					2,  1042, FALSE, FALSE, 1,  1042 );
+				2,  1042, FALSE, FALSE, FALSE, 1,  1042 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VDARK,
-					1,  2, FALSE, FALSE, 0,  7 );
+				1,  2, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HLEAD,
-					1,  4, FALSE, FALSE, 0,  7 );
+				1,  4, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HPIX,
-					2,  1042, FALSE, FALSE, 1,  1042 );
+				2,  1042, FALSE, FALSE, FALSE, 1,  1042 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_TPRE,
-					2,  100, FALSE, FALSE, 0,  65535 );
+				2,  100, FALSE, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_SHUTTER,
-					2,  10, FALSE, FALSE, 0,  65535 );
+				2,  10, FALSE, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_TPOST,
-					2,  100, FALSE, FALSE, 0,  65535 );
+				2,  100, FALSE, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HDARK,
-					1,  6, FALSE, FALSE, 0,  7 );
+				1,  6, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HBIN,
-					1,  1, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROIOFFS,
-					2,  0, FALSE, FALSE, 0,  2047 );
+				2,  0, FALSE, FALSE, FALSE, 0,  2047 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_NOE,
-					2,  0, FALSE, FALSE, 1,  65535 );
+				2,  0, FALSE, FALSE, FALSE, 1,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XAOFFS,
-					2,  1620, FALSE, FALSE, 0,  4095 );
+				2,  1620, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XBOFFS,
-					2,  1000, FALSE, FALSE, 0,  4095 );
+				2,  1000, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XCOFFS,
-					2,  1100, FALSE, FALSE, 0,  4095 );
+				2,  1100, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_XDOFFS,
-					2,  1260, FALSE, FALSE, 0,  4095 );
+				2,  1260, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YAOFFS,
-					2,  1520, FALSE, FALSE, 0,  4095 );
+				2,  1520, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YBOFFS,
-					2,  264, FALSE, FALSE, 0,  4095 );
+				2,  264, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YCOFFS,
-					2,  1968, FALSE, FALSE, 0,  4095 );
+				2,  1968, FALSE, TRUE, FALSE, 0,  4095 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_YDOFFS,
-					2,  1648, FALSE, FALSE, 0,  4095 );
+				2,  1648, FALSE, TRUE, FALSE, 0,  4095 );
 
 	/* Check to find out the firmware version that is being used by
 	 * the detector head.
@@ -425,7 +425,6 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		break;
 	}
 
-#if 0
 	/* Initialize all of the output offset registers, since the
 	 * FPGA firmware does not do that.
 	 *
@@ -447,7 +446,6 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-#endif
 
 	/* Set the control register to internal trigger with high speed
 	 * readout and automatic offset adjustment on.
@@ -466,19 +464,21 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 
 	/* Set the horizontal and vertical dark pixel lines. */
 
-#if 0
+	/* These values for HDARK and VDARK are for the detector
+	 * at BioCAT sector 18-ID.
+	 */
+
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_HDARK, 4 );
+					MXLV_AVIEX_PCCD_16080_DH_HDARK, 6 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_VDARK, 4 );
+					MXLV_AVIEX_PCCD_16080_DH_VDARK, 2 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-#endif
 
 	/* Initialize the pre and post shutter delay times (in microseconds). */
 
@@ -748,6 +748,8 @@ mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
 
                 image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
                                                         = raw_frame_data[0];
+
+		raw_frame_data += 8;
 	    }
 	}
 

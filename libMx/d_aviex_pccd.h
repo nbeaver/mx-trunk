@@ -41,6 +41,7 @@ typedef struct {
 	int size;	/* Register size in bytes, typically 2 for 16-bits. */
 	unsigned long value;
 	mx_bool_type read_only;
+	mx_bool_type write_only;
 	mx_bool_type power_of_two;
 	unsigned long minimum;
 	unsigned long maximum;
@@ -203,6 +204,7 @@ MX_API_PRIVATE mx_status_type mxd_aviex_pccd_init_register(
 					int register_size,
 					unsigned long register_value,
 					mx_bool_type read_only,
+					mx_bool_type write_only,
 					mx_bool_type power_of_two,
 					unsigned long minimum,
 					unsigned long maximum );

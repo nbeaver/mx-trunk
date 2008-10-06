@@ -704,7 +704,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		break;
 	case MXT_AD_PCCD_16080:
 		i_framesize = column_framesize / 2;
-		j_framesize = row_framesize / 2;
+		j_framesize = row_framesize / 4;
 		break;
 	}
 
@@ -918,6 +918,7 @@ mxd_aviex_pccd_init_register( MX_AVIEX_PCCD *aviex_pccd,
 				int register_size,		/* in bytes */
 				unsigned long register_value,
 				mx_bool_type read_only,
+				mx_bool_type write_only,
 				mx_bool_type power_of_two,
 				unsigned long minimum,
 				unsigned long maximum )
@@ -945,6 +946,7 @@ mxd_aviex_pccd_init_register( MX_AVIEX_PCCD *aviex_pccd,
 	reg->size          = register_size;
 	reg->value         = register_value;
 	reg->read_only     = read_only;
+	reg->write_only    = write_only;
 	reg->power_of_two  = power_of_two;
 	reg->minimum       = minimum;
 	reg->maximum       = maximum;
@@ -4453,6 +4455,7 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 {
 	static const char fname[] = "mxd_aviex_pccd_read_register()";
 
+	MX_AVIEX_PCCD_REGISTER *reg;
 	char command[20], response[20];
 	int num_items;
 	mx_status_type mx_status;
@@ -4469,6 +4472,18 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 
 	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
 		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
+	}
+
+	reg = &(aviex_pccd->register_array[register_address]);
+
+	/* If the register is write only, then return a value with all bits
+	 * set to 1.
+	 */
+
+	if ( reg->write_only ) {
+		*register_value = ~0;
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	switch( aviex_pccd->record->mx_type ) {
@@ -4523,6 +4538,7 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 {
 	static const char fname[] = "mxd_aviex_pccd_write_register()";
 
+	MX_AVIEX_PCCD_REGISTER *reg;
 	char command[20], response[20];
 	unsigned long value_read, flags;
 	mx_status_type mx_status;
@@ -4537,6 +4553,8 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
 		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
 	}
+
+	reg = &(aviex_pccd->register_array[register_address]);
 
 	mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
 					register_address, register_value, NULL);
@@ -4564,23 +4582,28 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Read the value back to verify that the value was set correctly. */
+	if ( reg->write_only == FALSE ) {
 
-	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+		/* Read the value back to verify that the value
+		 * was set correctly.
+		 */
+
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
 						register_address, &value_read );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	/* Verify that the value read back matches the value sent. */
+		/* Verify that the value read back matches the value sent. */
 
-	if ( value_read != register_value ) {
-		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
-		"The attempt to set '%s' register %lu to %lu "
-		"appears to have failed since the value read back "
-		"from that register is now %lu.",
-			aviex_pccd->record->name, register_address,
-			register_value, value_read );
+		if ( value_read != register_value ) {
+			return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
+			"The attempt to set '%s' register %lu to %lu "
+			"appears to have failed since the value read back "
+			"from that register is now %lu.",
+				aviex_pccd->record->name, register_address,
+				register_value, value_read );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

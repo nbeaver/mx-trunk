@@ -70,8 +70,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr
 
 #define INIT_REGISTER( i, s, v, r, t, n, x ) \
 	do {                                                             \
-		mx_status = mxd_aviex_pccd_init_register(                \
-		  aviex_pccd, (i), FALSE, (s), (v), (r), (t), (n), (x) );\
+		mx_status = mxd_aviex_pccd_init_register( aviex_pccd,    \
+		    (i), FALSE, (s), (v), (r), FALSE, (t), (n), (x) );   \
 	                                                                 \
 		if ( mx_status.code != MXE_SUCCESS )                     \
 			return mx_status;                                \
