@@ -308,7 +308,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 				2,  1042, FALSE, FALSE, FALSE, 1,  1042 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VDARK,
-				1,  2, FALSE, FALSE, FALSE, 0,  7 );
+				1,  4, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HLEAD,
 				1,  4, FALSE, FALSE, FALSE, 0,  7 );
@@ -326,7 +326,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 				2,  100, FALSE, FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HDARK,
-				1,  6, FALSE, FALSE, FALSE, 0,  7 );
+				1,  4, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HBIN,
 				1,  1, FALSE, FALSE, FALSE, 1,  8 );
@@ -469,13 +469,13 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	 */
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_HDARK, 6 );
+					MXLV_AVIEX_PCCD_16080_DH_HDARK, 4 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_VDARK, 2 );
+					MXLV_AVIEX_PCCD_16080_DH_VDARK, 4 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
