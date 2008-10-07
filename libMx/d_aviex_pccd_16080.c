@@ -462,9 +462,17 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Unconditionally set VIDBIN to 1, since it isn't really used. */
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_VIDBIN, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Set the horizontal and vertical dark pixel lines. */
 
-	/* These values for HDARK and VDARK are for the detector
+	/* These values for HDARK, VDARK, and HLEAD are for the detector
 	 * at BioCAT sector 18-ID.
 	 */
 
@@ -476,6 +484,12 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_VDARK, 4 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_HLEAD, 4 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
