@@ -1698,8 +1698,10 @@ mx_socket_putline( MX_SOCKET *mx_socket, char *buffer, char *line_terminators )
 
 	/* Send the line terminators. */
 
-	mx_status = mx_socket_send( mx_socket, line_terminators,
-					strlen( line_terminators ) );
+	if ( line_terminators != NULL ) {
+		mx_status = mx_socket_send( mx_socket, line_terminators,
+						strlen(line_terminators) );
+	}
 
 	return mx_status;
 }
@@ -1713,7 +1715,11 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 
 	*buffer = '\0';
 
-	line_terminator_length = strlen( line_terminators );
+	if ( line_terminators == NULL ) {
+		line_terminator_length = 0;
+	} else {
+		line_terminator_length = strlen( line_terminators );
+	}
 
 	mx_status = mx_socket_receive( mx_socket,
 					buffer, buffer_length,

@@ -1,0 +1,5 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mmarccd_server_socket.dat \
+			-s ./smarccd_server_socket.dat $*
+

@@ -92,7 +92,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \
 	d_lakeshore330_motor.c d_linear_function.c d_linux_parport.c d_lpt.c \
-	d_marccd.c d_marccd_shutter.c \
+	d_marccd.c d_marccd_server_socket.c d_marccd_shutter.c \
 	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
 	d_mca_timer.c d_mca_value.c d_mcai_function.c \

@@ -458,6 +458,7 @@ mxd_marccd_close( MX_RECORD *record )
 
 	/* Tell MarCCD that it is time to exit remote mode. */
 
+#if 0
 	marccd->current_command = MXF_MARCCD_CMD_END_AUTOMATION;
 
 	mx_status = mxd_marccd_command( marccd,
@@ -465,11 +466,11 @@ mxd_marccd_close( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
 	/* Wait a moment for the remote end to respond to what we have done. */
 
 	mx_msleep(100);
 
+#endif
 	/* Shutdown the connection. */
 
 	if ( marccd->marccd_socket != NULL ) {

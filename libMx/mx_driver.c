@@ -451,6 +451,7 @@
 #include "d_aviex_pccd.h"
 #include "d_brandeis_biocat.h"
 #include "d_marccd.h"
+#include "d_marccd_server_socket.h"
 #include "d_bluice_area_detector.h"
 
 #include "d_network_wvout.h"
@@ -3458,6 +3459,14 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxd_marccd_num_record_fields,
 				&mxd_marccd_rfield_def_ptr},
+
+{"marccd_server_socket",
+		MXT_AD_MARCCD_SERVER_SOCKET, MXC_AREA_DETECTOR, MXR_DEVICE,
+				&mxd_marccd_server_socket_record_function_list,
+				NULL,
+				NULL,
+				&mxd_marccd_server_socket_num_record_fields,
+				&mxd_marccd_server_socket_rfield_def_ptr},
 
 {"bluice_dcss_area_detector", MXT_AD_BLUICE_DCSS, MXC_AREA_DETECTOR, MXR_DEVICE,
 				&mxd_bluice_area_detector_record_function_list,
