@@ -878,6 +878,11 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		exposure_steps = mx_round_down( exposure_time
 			/ aviex_pccd->exposure_and_gap_step_size );
 
+#if MXD_AVIEX_PCCD_16080_DEBUG
+		MX_DEBUG(-2,("%s: exposure_steps = %lu",
+			fname, exposure_steps));
+#endif
+
 		mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd,
 				MXLV_AVIEX_PCCD_16080_DH_SHUTTER,

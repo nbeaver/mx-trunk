@@ -1774,10 +1774,13 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 
 	/* Stop any currently running imaging sequence. */
 
-	mx_status = mx_video_input_abort( aviex_pccd->video_input_record );
+	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+		mx_status = mx_video_input_abort(
+					aviex_pccd->video_input_record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Wait for up to 5 seconds for the video input to stop. */
 
@@ -2121,15 +2124,17 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	/* Send an 'Abort Exposure' command to the detector head by
-	 * toggling the CC2 line.
+	 * toggling the CC2 line.  (but not for the PCCD-16080)
 	 */
 
-	mx_status = mx_camera_link_pulse_cc_line(
+	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 2,
 					-1, 1000 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Tell the imaging board to stop acquiring frames after the end
 	 * of the current frame.  If we are using an EPIX video board via
@@ -2138,13 +2143,16 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 	 * of the current sequence before acknowledging the stop command.
 	 */
 
-	if ( aviex_pccd->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
-
-		mx_status = mx_video_input_abort(
+	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+		if ( aviex_pccd->video_input_record->mx_type
+				== MXT_VIN_EPIX_XCLIB )
+		{
+			mx_status = mx_video_input_abort(
 				aviex_pccd->video_input_record );
-	} else {
-		mx_status = mx_video_input_stop(
+		} else {
+			mx_status = mx_video_input_stop(
 				aviex_pccd->video_input_record );
+		}
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2216,19 +2224,23 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 #endif
 	/* Send a 'Reset CCD Controller' command to the detector head by
 	 * toggling the CC3 line.  Not all versions of the firmware 
-	 * actually pay attention to CC3.
+	 * actually pay attention to CC3.  (but not for the PCCD-16080)
 	 */
 
-	mx_status = mx_camera_link_pulse_cc_line(
+	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 3,
 					-1, 1000 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	/* Tell the imaging board to immediately stop acquiring frames. */
+		/* Tell the imaging board to immediately stop acquiring frames.
+		 */
 
-	mx_status = mx_video_input_abort( aviex_pccd->video_input_record );
+		mx_status = mx_video_input_abort(
+					aviex_pccd->video_input_record );
+	}
 
 	return mx_status;
 }
