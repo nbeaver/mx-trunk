@@ -412,9 +412,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		aviex_pccd->horiz_descramble_factor = 2;
 		aviex_pccd->vert_descramble_factor  = 2;
 
-		/* FIXME - The following is a guess! */
-
-		aviex_pccd->pixel_clock_frequency = 60.0e6;
+		aviex_pccd->pixel_clock_frequency = 40.0e6;
 		break;
 
 	default:
