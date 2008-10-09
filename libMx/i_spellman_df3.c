@@ -390,7 +390,9 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 		break;
 	}
 
+#if !defined(OS_SOLARIS)
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
