@@ -2,7 +2,7 @@
  * Name:    d_aviex_pccd_170170.h
  *
  * Purpose: Header file definitions that are specific to the Aviex
- *          PCCD-170170 and PCCD-4824 detectors.
+ *          PCCD-170170 detector.
  *
  * Author:  William Lavender
  *
@@ -81,9 +81,6 @@ typedef struct {
 extern long mxd_aviex_pccd_170170_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_170170_rfield_def_ptr;
 
-extern long mxd_aviex_pccd_4824_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr;
-
 /*-------------------------------------------------------------*/
 
 MX_API_PRIVATE mx_status_type
@@ -128,18 +125,6 @@ mxd_aviex_pccd_170170_configure_for_sequence( MX_AREA_DETECTOR *,
 MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_170170_compute_sequence_times( MX_AREA_DETECTOR *,
 						struct mx_aviex_pccd * );
-
-/*-------------------------------------------------------------*/
-
-MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_4824_descramble_raw_data( uint16_t *,
-					uint16_t ***, long, long );
-
-MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *,
-						struct mx_aviex_pccd *,
-						MX_IMAGE_FRAME *,
-						MX_IMAGE_FRAME * );
 
 /*-------------------------------------------------------------*/
 

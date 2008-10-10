@@ -2,7 +2,7 @@
  * Name:    d_aviex_pccd_170170.c
  *
  * Purpose: Functions and definitions that are specific to the
- *          Aviex PCCD-170170 and PCCD-4824 detectors.
+ *          Aviex PCCD-170170 detector.
  *
  * Author:  William Lavender
  *
@@ -50,22 +50,6 @@ long mxd_aviex_pccd_170170_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_170170_rfield_def_ptr
 			= &mxd_aviex_pccd_170170_record_field_defaults[0];
 
-/* PCCD-4824 data structures. */
-
-MX_RECORD_FIELD_DEFAULTS mxd_aviex_pccd_4824_record_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_AREA_DETECTOR_STANDARD_FIELDS,
-	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_AVIEX_PCCD_STANDARD_FIELDS
-};
-
-long mxd_aviex_pccd_4824_num_record_fields
-		= sizeof( mxd_aviex_pccd_4824_record_field_defaults )
-		/ sizeof( mxd_aviex_pccd_4824_record_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr
-			= &mxd_aviex_pccd_4824_record_field_defaults[0];
-
 /*-------------------------------------------------------------------------*/
 
 #define INIT_REGISTER( i, s, v, r, t, n, x ) \
@@ -83,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_aviex_pccd_4824_rfield_def_ptr
 
 /* mxd_aviex_pccd_170170_initialize_detector() is invoked by the function
  * mxd_aviex_pccd_open() and performs initialization steps that are specific
- * to the PCCD-170170 and PCCD-4824 detectors.
+ * to the PCCD-170170 detector.
  */
 
 MX_EXPORT mx_status_type
@@ -304,54 +288,6 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 
 		aviex_pccd->horiz_descramble_factor = 4;
 		aviex_pccd->vert_descramble_factor = 4;
-
-		aviex_pccd->pixel_clock_frequency = 60.0e6;
-		break;
-
-	case MXT_AD_PCCD_4824:
-
-		/* The PCCD-4824 camera is similar to the PCCD-170170 above,
-		 * but it only has a single CCD chip which has a maximum
-		 * image size of 3584 by 2048.  Each line from the detector
-		 * contains 1792 groups of pixels with 4 pixels per group.
-		 * A full frame image has 1024 lines.  This means that the
-		 * maximum resolution of the video card should be 7168 by 1024
-		 * and that the descramble factors should be 2.
-		 */
-
-		ad->maximum_framesize[0] = 3584;
-		ad->maximum_framesize[1] = 2048;
-
-		aviex_pccd->horiz_descramble_factor = 2;
-		aviex_pccd->vert_descramble_factor  = 2;
-
-#if 0
-		/* For the real detector. */
-
-		aviex_pccd->pixel_clock_frequency = 45.4545e6;
-#else
-		/* For the simulator. */
-
-		aviex_pccd->pixel_clock_frequency = 50.0e6;
-#endif
-		break;
-
-	case MXT_AD_PCCD_16080:
-
-		/* The PCCD-16080 camera has two CCD chips with a maximum
-		 * image size of 4096 by 2048.  Each line from the detector
-		 * contains 1024 groups of pixels with 8 pixels per group.
-		 * A full frame image has 1024 lines.  This means that the
-		 * maximum resolution of the video card should be 8192 by 1024.
-		 */
-
-		ad->maximum_framesize[0] = 4096;
-		ad->maximum_framesize[1] = 2048;
-
-		aviex_pccd->horiz_descramble_factor = 2;
-		aviex_pccd->vert_descramble_factor  = 2;
-
-		/* FIXME - The following is a guess! */
 
 		aviex_pccd->pixel_clock_frequency = 60.0e6;
 		break;
@@ -710,53 +646,6 @@ mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_4824_descramble_raw_data( uint16_t *raw_frame_data,
-					uint16_t ***image_sector_array,
-					long i_framesize,
-					long j_framesize )
-{
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	static const char fname[] = "mxd_aviex_pccd_4824_descramble_raw_data()";
-#endif
-
-	long i, j;
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_aviex_pccd_display_ul_corners( image_sector_array, 4 );
-#endif
-
-	for ( i = 0; i < i_framesize; i++ ) {
-	    for ( j = 0; j < j_framesize; j++ ) {
-
-		image_sector_array[0][i][j] = raw_frame_data[2];
-
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[3];
-
-		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[1];
-
-		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[0];
-		raw_frame_data += 4;
-	    }
-	}
-
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	{
-		long k;
-
-		for ( k = 0; k < 4; k++ ) {
-			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
-				fname, k, image_sector_array[k][0][0] ));
-		}
-	}
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
 mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 					MX_AVIEX_PCCD *aviex_pccd,
 					MX_IMAGE_FRAME *image_frame,
@@ -834,80 +723,6 @@ mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
 				image_ptr[rfs + rfs/2 + j] = raw_ptr[16*j + 7];
 				image_ptr[2 * rfs - 1 - j] = raw_ptr[16*j + 6];
 			}
-		}
-	}
-
-	/* Patch the column framesize and the image length so that
-	 * it matches the total size of the streak camera image.
-	 */
-
-	MXIF_COLUMN_FRAMESIZE(image_frame) = column_framesize / 2L;
-
-	image_frame->image_length = ( total_raw_pixels / 2L )
-			* mx_round( MXIF_BYTES_PER_PIXEL(raw_frame) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *ad,
-				MX_AVIEX_PCCD *aviex_pccd,
-				MX_IMAGE_FRAME *image_frame,
-				MX_IMAGE_FRAME *raw_frame )
-{
-#if 0
-	static const char fname[] =
-			"mxd_aviex_pccd_4824_descramble_streak_camera()";
-#endif
-	uint16_t *image_data, *raw_data;
-	uint16_t *image_ptr, *raw_ptr;
-	long i, j, row_framesize, column_framesize, total_raw_pixels;
-	long rfs;
-	mx_status_type mx_status;
-
-	/* First, we figure out how many pixels are in each line
-	 * of the raw data by asking for the framesize.
-	 */
-
-	mx_status = mx_area_detector_get_framesize( ad->record,
-					&row_framesize, &column_framesize );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	total_raw_pixels = row_framesize * column_framesize;
-
-	raw_data   = raw_frame->image_data;
-	image_data = image_frame->image_data;
-
-#if 0
-	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
-		fname, row_framesize, column_framesize));
-#endif
-
-	/* Loop through the lines of the raw image. */
-
-	for ( i = 0; i < (column_framesize/2L); i++ ) {
-		/* The raw data arrives in groups of 4 pixels that need
-		 * to be appropriately copied to the final image frame.
-		 */
-
-		raw_ptr = raw_data + i * row_framesize * 2L;
-
-		image_ptr = image_data + i * row_framesize * 2L;
-
-		/* Copy the pixels. */
-
-		for ( j = 0; j < (row_framesize/4L); j++ ) {
-
-			rfs = row_framesize;
-
-			image_ptr[j]                   = raw_ptr[16*j + 2];
-			image_ptr[rfs/2 - 1 - j]       = raw_ptr[16*j + 3];
-			image_ptr[rfs + j]             = raw_ptr[16*j + 1];
-			image_ptr[rfs + rfs/2 - 1 - j] = raw_ptr[16*j + 0];
 		}
 	}
 

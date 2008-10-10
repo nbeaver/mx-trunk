@@ -1410,8 +1410,11 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	switch( record->mx_type ) {
 	case MXT_AD_PCCD_170170:
-	case MXT_AD_PCCD_4824:
 		mx_status = mxd_aviex_pccd_170170_initialize_detector(
+					    record, ad, aviex_pccd, vinput );
+		break;
+	case MXT_AD_PCCD_4824:
+		mx_status = mxd_aviex_pccd_4824_initialize_detector(
 					    record, ad, aviex_pccd, vinput );
 		break;
 	case MXT_AD_PCCD_16080:
@@ -1844,8 +1847,11 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 
 	switch( ad->record->mx_type ) {
 	case MXT_AD_PCCD_170170:
-	case MXT_AD_PCCD_4824:
 		mx_status = mxd_aviex_pccd_170170_set_external_trigger_mode(
+						aviex_pccd, external_trigger );
+		break;
+	case MXT_AD_PCCD_4824:
+		mx_status = mxd_aviex_pccd_4824_set_external_trigger_mode(
 						aviex_pccd, external_trigger );
 		break;
 	case MXT_AD_PCCD_16080:
@@ -3427,8 +3433,11 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
-		case MXT_AD_PCCD_4824:
 			mx_status = mxd_aviex_pccd_170170_set_binsize( ad,
+								aviex_pccd );
+			break;
+		case MXT_AD_PCCD_4824:
+			mx_status = mxd_aviex_pccd_4824_set_binsize( ad,
 								aviex_pccd );
 			break;
 		case MXT_AD_PCCD_16080:
@@ -3573,9 +3582,13 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
-		case MXT_AD_PCCD_4824:
 			mx_status =
 			    mxd_aviex_pccd_170170_configure_for_sequence(
+							ad, aviex_pccd );
+			break;
+		case MXT_AD_PCCD_4824:
+			mx_status =
+			    mxd_aviex_pccd_4824_configure_for_sequence(
 							ad, aviex_pccd );
 			break;
 		case MXT_AD_PCCD_16080:
@@ -3646,9 +3659,13 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
-		case MXT_AD_PCCD_4824:
 			mx_status =
 			    mxd_aviex_pccd_170170_set_sequence_start_delay(
+						aviex_pccd, new_delay_time );
+			break;
+		case MXT_AD_PCCD_4824:
+			mx_status =
+			    mxd_aviex_pccd_4824_set_sequence_start_delay(
 						aviex_pccd, new_delay_time );
 			break;
 		case MXT_AD_PCCD_16080:
@@ -4499,11 +4516,12 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 	}
 
 	switch( aviex_pccd->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		snprintf(command, sizeof(command), "R%03lu", register_address);
+		break;
+	case MXT_AD_PCCD_4824:
 	case MXT_AD_PCCD_16080:
 		snprintf(command, sizeof(command), "R%02lu", register_address);
-		break;
-	default:
-		snprintf(command, sizeof(command), "R%03lu", register_address);
 		break;
 	}
 
@@ -4575,13 +4593,17 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 		return mx_status;
 
 	switch( aviex_pccd->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		snprintf( command, sizeof(command),
+			"W%03lu%05lu", register_address, register_value );
+		break;
+	case MXT_AD_PCCD_4824:
+		snprintf( command, sizeof(command),
+			"W%02lu%05lu", register_address, register_value );
+		break;
 	case MXT_AD_PCCD_16080:
 		snprintf( command, sizeof(command),
 			"W%02lu%03lu", register_address, register_value );
-		break;
-	default:
-		snprintf( command, sizeof(command),
-			"W%03lu%05lu", register_address, register_value );
 		break;
 	}
 
@@ -4595,6 +4617,10 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 		return mx_status;
 
 	if ( reg->write_only == FALSE ) {
+
+		if ( aviex_pccd->record->mx_type == MXT_AD_PCCD_4824 ) {
+			mx_msleep(100);
+		}
 
 		/* Read the value back to verify that the value
 		 * was set correctly.

@@ -18,6 +18,7 @@
 #define __D_AVIEX_PCCD_H__
 
 #include "d_aviex_pccd_170170.h"
+#include "d_aviex_pccd_4824.h"
 #include "d_aviex_pccd_16080.h"
 
 /* Values for 'aviex_pccd_flags'. */
@@ -92,6 +93,7 @@ typedef struct mx_aviex_pccd {
 
 	union {
 		MX_AVIEX_PCCD_170170_DETECTOR_HEAD dh_170170;
+		MX_AVIEX_PCCD_4824_DETECTOR_HEAD dh_4824;
 		MX_AVIEX_PCCD_16080_DETECTOR_HEAD dh_16080;
 	} u;
 } MX_AVIEX_PCCD;
@@ -227,9 +229,6 @@ MX_API_PRIVATE void mxd_aviex_pccd_free_sector_array(uint16_t ***sector_array);
 
 extern MX_RECORD_FUNCTION_LIST mxd_aviex_pccd_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_aviex_pccd_ad_function_list;
-
-extern long mxd_pccd_16080_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_pccd_16080_rfield_def_ptr;
 
 #endif /* __D_AVIEX_PCCD_H__ */
 
