@@ -664,6 +664,10 @@ mxd_aviex_pccd_170170_linearity_descramble_raw_data( uint16_t *raw_frame_data,
 
 	long i, j;
 
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+	MX_HRT_START( measurement );
+#endif
+
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
 
