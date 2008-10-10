@@ -16,7 +16,7 @@
  */
 
 #define MXD_AVIEX_PCCD_170170_DEBUG			TRUE
-#define MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
+#define MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES	TRUE
 #define MXD_AVIEX_PCCD_170170_DEBUG_SEQUENCE_TIMES	TRUE
 
 #include <stdio.h>
@@ -30,6 +30,10 @@
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_aviex_pccd.h"
+
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+#  include "mx_hrt_debug.h"
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -290,6 +294,8 @@ mxd_aviex_pccd_170170_initialize_detector( MX_RECORD *record,
 		aviex_pccd->vert_descramble_factor = 4;
 
 		aviex_pccd->pixel_clock_frequency = 60.0e6;
+
+		aviex_pccd->num_ccd_taps = 16;
 		break;
 
 	default:
@@ -575,15 +581,17 @@ mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 					long i_framesize,
 					long j_framesize )
 {
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
 	static const char fname[] =
 		"mxd_aviex_pccd_170170_descramble_raw_data()";
+
+	MX_HRT_TIMING measurement;
 #endif
 
 	long i, j;
 
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_aviex_pccd_display_ul_corners( image_sector_array, 16 );
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+	MX_HRT_START( measurement );
 #endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
@@ -629,15 +637,92 @@ mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 	    }
 	}
 
-#if 0 && MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING
-	{
-		long k;
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+	MX_HRT_END( measurement );
 
-		for ( k = 0; k < 16; k++ ) {
-			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
-				fname, k, image_sector_array[k][0][0] ));
-		}
+	MX_HRT_RESULTS( measurement, fname, " " );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_170170_linearity_descramble_raw_data( uint16_t *raw_frame_data,
+						uint16_t ***image_sector_array,
+						long i_framesize,
+						long j_framesize,
+						uint16_t *lookup_table )
+{
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+	static const char fname[] =
+		"mxd_aviex_pccd_170170_linearity_descramble_raw_data()";
+
+	MX_HRT_TIMING measurement;
+#endif
+
+	long i, j;
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 14 );
+
+		image_sector_array[1][i][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 15 );
+
+		image_sector_array[2][i][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 10 );
+
+		image_sector_array[3][i][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 11 );
+
+		image_sector_array[4][i_framesize-i-1][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 13 );
+
+		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 12 );
+
+		image_sector_array[6][i_framesize-i-1][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 9 );
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 8 );
+
+		image_sector_array[8][i][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 0 );
+
+		image_sector_array[9][i][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 1 );
+
+		image_sector_array[10][i][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 4 );
+
+		image_sector_array[11][i][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 5 );
+
+		image_sector_array[12][i_framesize-i-1][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 3 );
+
+		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 2 );
+
+		image_sector_array[14][i_framesize-i-1][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 7 );
+
+		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 6 );
+
+		raw_frame_data += 16;
+	    }
 	}
+
+#if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, " " );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

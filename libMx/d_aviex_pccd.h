@@ -28,6 +28,7 @@
 
 #define MXF_AVIEX_PCCD_CAMERA_IS_MASTER			0x8
 #define MXF_AVIEX_PCCD_USE_TEST_PATTERN			0x10
+#define MXF_AVIEX_PCCD_USE_BIAS_LOOKUP_TABLE		0x20
 
 #define MXF_AVIEX_PCCD_TEST_DEZINGER			0x100
 #define MXF_AVIEX_PCCD_SAVE_RAW_FRAME			0x200
@@ -59,7 +60,7 @@ typedef struct mx_aviex_pccd {
 	unsigned long aviex_pccd_flags;
 	char geometrical_spline_filename[MXU_FILENAME_LENGTH+1];
 	char geometrical_mask_filename[MXU_FILENAME_LENGTH+1];
-	char bias_lookup_table_filename[MXU_FILENAME_LENGTH+1];
+	char linearity_lookup_table_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type buffer_overrun;
 	mx_bool_type use_top_half_of_detector;
@@ -78,13 +79,15 @@ typedef struct mx_aviex_pccd {
 	MX_IMAGE_FRAME *geometrical_mask_frame;
 	MX_IMAGE_FRAME *rebinned_geometrical_mask_frame;
 
-	uint16_t *bias_lookup_table;
+	unsigned long num_linearity_lookup_table_entries;
+	uint16_t *linearity_lookup_table;
 
 	long old_framesize[2];
 
 	long horiz_descramble_factor;
 	long vert_descramble_factor;
 	double pixel_clock_frequency;
+	unsigned long num_ccd_taps;
 
 	uint16_t ***sector_array;
 
@@ -97,6 +100,16 @@ typedef struct mx_aviex_pccd {
 		MX_AVIEX_PCCD_16080_DETECTOR_HEAD dh_16080;
 	} u;
 } MX_AVIEX_PCCD;
+
+/* In the definition of the MXD_AVIEX_PCCD_LOOKUP() macro,
+ *
+ *   lt = lookup table array
+ *   rd = raw frame data array
+ *   tap = CCD tap number.
+ */
+
+#define MXD_AVIEX_PCCD_LOOKUP( lt, rd, tap ) \
+	( (lt)[ (tap) * 65536L + (rd)[(tap)] ] )
 
 /*-------------------------------------------------------------*/
 
@@ -143,10 +156,10 @@ typedef struct mx_aviex_pccd {
 			offsetof(MX_AVIEX_PCCD, geometrical_mask_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "bias_lookup_table_filename", MXFT_STRING, NULL, \
+  {-1, -1, "linearity_lookup_table_filename", MXFT_STRING, NULL, \
   			1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_AVIEX_PCCD, bias_lookup_table_filename), \
+		offsetof(MX_AVIEX_PCCD, linearity_lookup_table_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   \

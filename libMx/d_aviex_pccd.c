@@ -21,7 +21,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG				TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		TRUE
 
 #define MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING		FALSE
 
@@ -447,96 +447,78 @@ mxd_aviex_pccd_free_sector_array( uint16_t ***sector_array )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxd_aviex_pccd_load_bias_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
+mxd_aviex_pccd_load_linearity_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
 {
-	static const char fname[] = "mxd_aviex_pccd_load_bias_lookup_table()";
+	static const char fname[] =
+		"mxd_aviex_pccd_load_linearity_lookup_table()";
 
 	FILE *file;
 	int saved_errno;
 	unsigned long table_size, bytes_read;
 
-#if MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP
+#if MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP
 	MX_DEBUG(-2,("%s invoked for detector '%s'.",
 		fname, aviex_pccd->record->name ));
 #endif
 
-	/* The bias lookup file is a binary file in 'native' byte order that
-	 * contains 65536 16-bit integers.  No byte swapping is required.
+	/* The linearity lookup file is a binary file in 'native' byte order
+	 * that contains 65536 16-bit integers.  No byte swapping is required.
 	 */
 
-	file = fopen( aviex_pccd->bias_lookup_table_filename, "rb" );
+	file = fopen( aviex_pccd->linearity_lookup_table_filename, "rb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"The attempt to open bias lookup table file '%s' failed.  "
+		"The attempt to open linearity lookup table file '%s' failed.  "
 		"Errno = %d, error message = '%s'",
-			aviex_pccd->bias_lookup_table_filename,
+			aviex_pccd->linearity_lookup_table_filename,
 			saved_errno, mx_strerror( saved_errno, NULL, 0 ) );
 	}
 
-	/* Allocate memory for the bias lookup table. */
+	/* Allocate memory for the linearity lookup table. */
 
-	table_size = 65536 * sizeof(uint16_t);
+	aviex_pccd->num_linearity_lookup_table_entries =
+					65536 * aviex_pccd->num_ccd_taps;
 
-	aviex_pccd->bias_lookup_table = malloc( table_size );
+#if MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP
+	MX_DEBUG(-2,
+	("%s: num_ccd_taps = %lu, num_linearity_lookup_table_entries = %lu",
+		fname, aviex_pccd->num_ccd_taps,
+		aviex_pccd->num_linearity_lookup_table_entries));
+#endif
 
-	if ( aviex_pccd->bias_lookup_table == NULL ) {
+	table_size = sizeof(uint16_t) *
+			aviex_pccd->num_linearity_lookup_table_entries;
+
+	aviex_pccd->linearity_lookup_table = malloc( table_size );
+
+	if ( aviex_pccd->linearity_lookup_table == NULL ) {
 		fclose( file );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte "
-		"bias lookup table.", table_size );
+		"linearity lookup table.", table_size );
 	}
 
-	/* Read the contents of the bias lookup table file into the 
+	/* Read the contents of the linearity lookup table file into the 
 	 * local data structure.
 	 */
 
-	bytes_read = fread( aviex_pccd->bias_lookup_table,
+	bytes_read = fread( aviex_pccd->linearity_lookup_table,
 				1, table_size, file );
 
 	fclose( file );
 
 	if ( bytes_read < table_size ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Only %lu bytes were read from the bias lookup table "
+		"Only %lu bytes were read from the linearity lookup table "
 		"file '%s'.  The file was supposed to be %lu bytes long.",
-			bytes_read, aviex_pccd->bias_lookup_table_filename,
+			bytes_read, aviex_pccd->linearity_lookup_table_filename,
 			table_size );
 	}
 	
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-static mx_status_type
-mxd_aviex_pccd_apply_bias_lookup_table( MX_AVIEX_PCCD *aviex_pccd,
-					MX_IMAGE_FRAME *image_frame )
-{
-	uint16_t *image_data, *lookup_table;
-	uint16_t pixel;
-	unsigned long i;
-
-#if MXD_AVIEX_PCCD_DEBUG_BIAS_LOOKUP
-	static const char fname[] = "mxd_aviex_pccd_apply_bias_lookup_table()";
-
-	MX_DEBUG(-2,("%s invoked for detector '%s'.",
-		fname, aviex_pccd->record->name ));
-#endif
-
-	image_data = image_frame->image_data;
-
-	lookup_table = aviex_pccd->bias_lookup_table;
-
-	for ( i = 0; i < image_frame->image_length; i++ ) {
-		pixel = image_data[i];
-
-		image_data[i] = lookup_table[pixel];
-	}
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -555,6 +537,8 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	long row_framesize, column_framesize;
 	long num_sector_rows, num_sector_columns;
 	uint16_t *frame_data;
+	unsigned long pccd_flags;
+	mx_bool_type use_linearity_lookup_table;
 	mx_status_type mx_status;
 
 #if MXD_AVIEX_PCCD_DEBUG_TIMING
@@ -579,6 +563,20 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The raw_frame pointer passed was NULL." );
 	}
+
+	/*---*/
+
+	pccd_flags = aviex_pccd->aviex_pccd_flags;
+
+	if ( (pccd_flags & MXF_AVIEX_PCCD_USE_BIAS_LOOKUP_TABLE)
+	  && (aviex_pccd->linearity_lookup_table != NULL) )
+	{
+		use_linearity_lookup_table = TRUE;
+	} else {
+		use_linearity_lookup_table = FALSE;
+	}
+
+	/*---*/
 
 	sp = &(ad->sequence_parameters);
 
@@ -722,19 +720,36 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* Copy and descramble the pixels from the raw frame to the image frame.
 	 */
-
 	switch( ad->record->mx_type ) {
 	case MXT_AD_PCCD_170170:
-		mx_status = mxd_aviex_pccd_170170_descramble_raw_data(
+		if ( use_linearity_lookup_table ) {
+			mx_status =
+			    mxd_aviex_pccd_170170_linearity_descramble_raw_data(
+					raw_frame->image_data,
+					aviex_pccd->sector_array,
+					i_framesize, j_framesize,
+					aviex_pccd->linearity_lookup_table );
+		} else {
+			mx_status = mxd_aviex_pccd_170170_descramble_raw_data(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
+		}
 		break;
 	case MXT_AD_PCCD_4824:
-		mx_status = mxd_aviex_pccd_4824_descramble_raw_data(
+		if ( use_linearity_lookup_table ) {
+			mx_status =
+			    mxd_aviex_pccd_4824_linearity_descramble_raw_data(
+					raw_frame->image_data,
+					aviex_pccd->sector_array,
+					i_framesize, j_framesize,
+					aviex_pccd->linearity_lookup_table );
+		} else {
+			mx_status = mxd_aviex_pccd_4824_descramble_raw_data(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
+		}
 		break;
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_descramble_raw_data(
@@ -1389,18 +1404,6 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	aviex_pccd->use_top_half_of_detector = FALSE;
 
-	/* If requested, load the bias lookup table. */
-
-	if ( strlen(aviex_pccd->bias_lookup_table_filename) > 0 ) {
-
-		mx_status = mxd_aviex_pccd_load_bias_lookup_table( aviex_pccd );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	} else {
-		aviex_pccd->bias_lookup_table = NULL;
-	}
-
 	/*-------------------------------------------------------------------*/
 
 	/* Some of the detector initialization steps are specific to the
@@ -1429,6 +1432,21 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*-------------------------------------------------------------------*/
+
+	/* If requested, load the linearity lookup table. */
+
+	if ( strlen(aviex_pccd->linearity_lookup_table_filename) > 0 ) {
+
+		mx_status =
+		    mxd_aviex_pccd_load_linearity_lookup_table( aviex_pccd );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		aviex_pccd->linearity_lookup_table = NULL;
+	}
 
 	/*-------------------------------------------------------------------*/
 
@@ -2602,16 +2620,6 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 				mx_get_driver_name( ad->record ) );
 			break;
 		}
-	}
-
-	/* If required, apply the bias lookup table. */
-
-	if ( aviex_pccd->bias_lookup_table != NULL ) {
-		mx_status = mxd_aviex_pccd_apply_bias_lookup_table(
-						aviex_pccd, ad->image_frame );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 	}
 
 	/* Dezingering test code. */
@@ -4618,9 +4626,11 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 
 	if ( reg->write_only == FALSE ) {
 
+#if 1
 		if ( aviex_pccd->record->mx_type == MXT_AD_PCCD_4824 ) {
 			mx_msleep(100);
 		}
+#endif
 
 		/* Read the value back to verify that the value
 		 * was set correctly.

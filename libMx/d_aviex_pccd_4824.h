@@ -91,6 +91,10 @@ mxd_aviex_pccd_4824_descramble_raw_data( uint16_t *,
 					uint16_t ***, long, long );
 
 MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_4824_linearity_descramble_raw_data( uint16_t *,
+					uint16_t ***, long, long, uint16_t * );
+
+MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_4824_descramble_streak_camera( MX_AREA_DETECTOR *,
 						struct mx_aviex_pccd *,
 						MX_IMAGE_FRAME *,

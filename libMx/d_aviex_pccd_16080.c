@@ -413,6 +413,8 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		aviex_pccd->vert_descramble_factor  = 2;
 
 		aviex_pccd->pixel_clock_frequency = 40.0e6;
+
+		aviex_pccd->num_ccd_taps = 8;
 		break;
 
 	default:
