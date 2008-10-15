@@ -239,8 +239,8 @@ mxd_spellman_df3_din_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_spellman_df3_din_read()";
 
-	MX_SPELLMAN_DF3_DINPUT *spellman_df3_dinput;
-	MX_SPELLMAN_DF3 *spellman_df3;
+	MX_SPELLMAN_DF3_DINPUT *spellman_df3_dinput = NULL;
+	MX_SPELLMAN_DF3 *spellman_df3 = NULL;
 	unsigned long offset, num_digital_monitors;
 	mx_status_type mx_status;
 
@@ -332,8 +332,8 @@ mxd_spellman_df3_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	static const char fname[] = "mxd_spellman_df3_dout_write()";
 
-	MX_SPELLMAN_DF3_DOUTPUT *spellman_df3_doutput;
-	MX_SPELLMAN_DF3 *spellman_df3;
+	MX_SPELLMAN_DF3_DOUTPUT *spellman_df3_doutput = NULL;
+	MX_SPELLMAN_DF3 *spellman_df3 = NULL;
 	unsigned long offset, num_digital_controls;
 	mx_status_type mx_status;
 

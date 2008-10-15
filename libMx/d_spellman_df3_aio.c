@@ -244,8 +244,8 @@ mxd_spellman_df3_ain_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_spellman_df3_ain_read()";
 
-	MX_SPELLMAN_DF3_AINPUT *spellman_df3_ainput;
-	MX_SPELLMAN_DF3 *spellman_df3;
+	MX_SPELLMAN_DF3_AINPUT *spellman_df3_ainput = NULL;
+	MX_SPELLMAN_DF3 *spellman_df3 = NULL;
 	unsigned long offset, num_analog_monitors;
 	mx_status_type mx_status;
 
@@ -340,8 +340,8 @@ mxd_spellman_df3_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_spellman_df3_aout_write()";
 
-	MX_SPELLMAN_DF3_AOUTPUT *spellman_df3_aoutput;
-	MX_SPELLMAN_DF3 *spellman_df3;
+	MX_SPELLMAN_DF3_AOUTPUT *spellman_df3_aoutput = NULL;
+	MX_SPELLMAN_DF3 *spellman_df3 = NULL;
 	unsigned long offset, num_analog_controls;
 	mx_status_type mx_status;
 

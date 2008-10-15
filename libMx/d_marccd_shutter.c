@@ -149,7 +149,7 @@ mxd_marccd_shutter_relay_command( MX_RELAY *relay )
 	static const char fname[] = "mxd_marccd_shutter_relay_command()";
 
 	MX_MARCCD_SHUTTER *marccd_shutter;
-	MX_MARCCD *marccd;
+	MX_MARCCD *marccd = NULL;
 	int marccd_flag;
 	char command[40];
 	mx_status_type mx_status;
