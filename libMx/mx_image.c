@@ -792,7 +792,7 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	double pixel, diff, pixel_sd;
 	double first_pixel;
 	mx_bool_type pixels_are_all_equal;
-	unsigned long pixel_bin;
+	long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
 
 	first_pixel = 0;

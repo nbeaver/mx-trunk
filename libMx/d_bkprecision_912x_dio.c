@@ -41,18 +41,18 @@ MX_DIGITAL_INPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_din_read
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_din_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_din_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DIGITAL_INPUT_STANDARD_FIELDS,
 	MXD_BKPRECISION_912X_DINPUT_STANDARD_FIELDS
 };
 
 long mxd_bkprecision_912x_din_num_record_fields
-		= sizeof( mxd_bkprecision_912x_din_record_field_defaults )
-		    / sizeof( mxd_bkprecision_912x_din_record_field_defaults[0] );
+		= sizeof( mxd_bkprecision_912x_din_rf_defaults )
+		    / sizeof( mxd_bkprecision_912x_din_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_din_rfield_def_ptr
-			= &mxd_bkprecision_912x_din_record_field_defaults[0];
+			= &mxd_bkprecision_912x_din_rf_defaults[0];
 
 /* === */
 
@@ -68,18 +68,18 @@ MX_DIGITAL_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_dout_write
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_dout_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_dout_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DIGITAL_OUTPUT_STANDARD_FIELDS,
 	MXD_BKPRECISION_912X_DOUTPUT_STANDARD_FIELDS
 };
 
 long mxd_bkprecision_912x_dout_num_record_fields
-		= sizeof( mxd_bkprecision_912x_dout_record_field_defaults )
-		    / sizeof( mxd_bkprecision_912x_dout_record_field_defaults[0] );
+		= sizeof( mxd_bkprecision_912x_dout_rf_defaults )
+		    / sizeof( mxd_bkprecision_912x_dout_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_dout_rfield_def_ptr
-			= &mxd_bkprecision_912x_dout_record_field_defaults[0];
+			= &mxd_bkprecision_912x_dout_rf_defaults[0];
 
 static mx_status_type
 mxd_bkprecision_912x_din_get_pointers( MX_DIGITAL_INPUT *dinput,
@@ -243,7 +243,7 @@ mxd_bkprecision_912x_din_read( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_bkprecision_912x_din_read()";
 
 	MX_BKPRECISION_912X_DINPUT *bkprecision_912x_dinput;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	int num_items;
 	char response[40];
 	mx_status_type mx_status;
@@ -342,7 +342,7 @@ mxd_bkprecision_912x_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_bkprecision_912x_dout_write()";
 
 	MX_BKPRECISION_912X_DOUTPUT *bkprecision_912x_doutput;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	char command[40];
 	mx_status_type mx_status;
 

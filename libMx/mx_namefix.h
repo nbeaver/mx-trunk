@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,43 @@
  */
 
 #define mx_area_detector_get_bytes_per_pixel      mx_ad_get_bytes_per_pixel
+
+/* mx_area_detector_get_correction_frame() collides with
+ * mx_area_detector_get_correction_flags().
+ */
+
+#define mx_area_detector_get_correction_frame     mx_ad_get_correction_frame
+
+/* mx_area_detector_get_maximum_frame_number() collides with
+ * mx_area_detector_get_maximum_framesize().
+ */
+
+#define mx_area_detector_get_maximum_frame_number mx_ad_get_maximum_frame_number
+
+/* mx_network_field_get_attribute_number() collides with
+ * mx_network_field_get_attribute_by_name().
+ */
+
+#define mx_network_field_get_attribute_number     mx_nf_get_attribute_number
+
+/* mx_waveform_output_get_trigger_repeat() collides with
+ * mx_waveform_output_get_trigger_mode().
+ */
+
+#define mx_waveform_output_get_trigger_repeat     mx_wvo_get_trigger_repeat
+
+/* mx_waveform_output_set_trigger_repeat() collides with
+ * mx_waveform_output_set_trigger_mode().
+ */
+
+#define mx_waveform_output_set_trigger_repeat     mx_wvo_set_trigger_repeat
+
+/* mxs_area_detector_scan_default_construct_next_datafile_name() collides with
+ * mxs_area_detector_scan_default_initialize_datafile_naming().
+ */
+
+#define mxs_area_detector_scan_default_initialize_datafile_naming \
+				mxs_ad_default_initialize_datafile_naming
 
 #endif /* OS_VMS */
 

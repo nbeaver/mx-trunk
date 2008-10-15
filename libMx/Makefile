@@ -302,7 +302,7 @@ i_am9513.$(OBJ): i_am9513.c
 	$(COMPILE) $(CFLAGS) $(AM9513_INCLUDES) i_am9513.c
 
 i_camera_link_api.$(OBJ): i_camera_link_api.c
-	$(COMPILE) $(CFLAGS) -DIS_MX_DRIVER i_camera_link_api.c
+	$(COMPILE) $(CFLAGS) i_camera_link_api.c
 
 i_driverlinx_portio.$(OBJ): i_driverlinx_portio.c
 	$(COMPILE) $(CFLAGS) $(DRIVERLINX_INCLUDES) i_driverlinx_portio.c
@@ -389,5 +389,6 @@ mx_private_version.$(OBJ): Makefile.version mx_private_version.c
 	$(COMPILE) $(CFLAGS_MX_VERS) mx_private_version.c
 
 mx_private_version.h: $(MX_PRIVATE_VERSION_NAME)
-	$(RUN_MX_PRIVATE_VERSION)
+
+mx_driver.c: mx_private_version.h
 

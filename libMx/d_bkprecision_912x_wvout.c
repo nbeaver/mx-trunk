@@ -51,25 +51,25 @@ MX_WAVEFORM_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_wvout_stop,
 	mxd_bkprecision_912x_wvout_busy,
 	NULL,
-	mxd_bkprecision_912x_wvout_write_all,
+	mxd_bkprecision_912x_wvout_wr_all,
 	mxd_bkprecision_912x_wvout_read_channel,
 	mxd_bkprecision_912x_wvout_write_channel,
 	mxd_bkprecision_912x_wvout_get_parameter,
 	mxd_bkprecision_912x_wvout_set_parameter
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_wvout_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_wvout_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_WAVEFORM_OUTPUT_STANDARD_FIELDS,
 	MXD_BKPRECISION_912X_WVOUT_STANDARD_FIELDS
 };
 
 long mxd_bkprecision_912x_wvout_num_record_fields
-		= sizeof( mxd_bkprecision_912x_wvout_record_field_defaults )
-		/ sizeof( mxd_bkprecision_912x_wvout_record_field_defaults[0] );
+		= sizeof( mxd_bkprecision_912x_wvout_rf_defaults )
+		/ sizeof( mxd_bkprecision_912x_wvout_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_wvout_rfield_def_ptr
-			= &mxd_bkprecision_912x_wvout_record_field_defaults[0];
+			= &mxd_bkprecision_912x_wvout_rf_defaults[0];
 
 /* --- */
 
@@ -540,9 +540,9 @@ mxd_bkprecision_912x_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 }
 
 MX_EXPORT mx_status_type
-mxd_bkprecision_912x_wvout_write_all( MX_WAVEFORM_OUTPUT *wvout )
+mxd_bkprecision_912x_wvout_wr_all( MX_WAVEFORM_OUTPUT *wvout )
 {
-	static const char fname[] = "mxd_bkprecision_912x_wvout_write_all()";
+	static const char fname[] = "mxd_bkprecision_912x_wvout_wr_all()";
 
 	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
 	MX_BKPRECISION_912X *bkprecision_912x;

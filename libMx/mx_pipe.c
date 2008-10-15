@@ -482,7 +482,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 /************************ Unix ***********************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS)
 
 #include <limits.h>
 #include <fcntl.h>

@@ -66,7 +66,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_server_socket_function_list = {
 	mx_area_detector_default_measure_correction
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_marccd_server_socket_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_marccd_server_socket_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
@@ -74,11 +74,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_marccd_server_socket_record_field_defaults[] = {
 };
 
 long mxd_marccd_server_socket_num_record_fields
-		= sizeof( mxd_marccd_server_socket_record_field_defaults )
-		/ sizeof( mxd_marccd_server_socket_record_field_defaults[0] );
+		= sizeof( mxd_marccd_server_socket_rf_defaults )
+		/ sizeof( mxd_marccd_server_socket_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_marccd_server_socket_rfield_def_ptr
-			= &mxd_marccd_server_socket_record_field_defaults[0];
+			= &mxd_marccd_server_socket_rf_defaults[0];
 
 /*-------------------------------------------------------------------------*/
 

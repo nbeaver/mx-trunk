@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_BOOT_DEBUG	FALSE
+#define MX_BOOT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <errno.h>
@@ -155,6 +155,140 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 			system_boot_timespec->tv_sec,
 			system_boot_timespec->tv_nsec));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------- VMS --------------------------*/
+
+#elif defined(OS_VMS)
+
+#include <math.h>
+
+#include <ssdef.h>
+#include <stsdef.h>
+#include <syidef.h>
+#include <descrip.h>
+#include <lib$routines.h>
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	long item_code;
+	int32_t boottime[2];
+	unsigned long boottime_low, boottime_high;
+	unsigned long unix_epoch_low, unix_epoch_high;
+	unsigned long difference_low, difference_high;
+	unsigned long nanoseconds;
+	double hundreds_of_nanoseconds;
+	double seconds_since_unix_epoch;
+	struct timespec result;
+	unsigned long vms_status;
+
+	item_code = SYI$_BOOTTIME;
+
+	vms_status = lib$getsyi( &item_code,
+				boottime,
+				0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Cannot get the boot time for this computer.  "
+		"VMS error number %d, error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	/* VMS native time is a 64-bit integer and expresses the current
+	 * time in terms of the number of 100 nanosecond ticks since the
+	 * VMS Epoch of 00:00 on November 17, 1858.
+	 */
+
+	/* VAXes, Alphas, and Itaniums are little-endian. */
+
+	boottime_low  = boottime[0];
+	boottime_high = boottime[1];
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: VMS boot time = (%#lx,%#lx)",
+		fname, boottime_high, boottime_low));
+#endif
+
+	/* The Unix Epoch of 00:00 on January 1, 1970 occurred at a 
+	 * VMS time of 0x007c95674beb4000.
+	 */
+
+	unix_epoch_low = 0x4beb4000;
+	unix_epoch_high = 0x007c9567;
+	
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: Unix Epoch = (%#lx,%#lx)",
+		fname, unix_epoch_high, unix_epoch_low));
+#endif
+
+	/* Subtract the Unix Epoch from the VMS boot time.  This gives
+	 * us the Unix boot time, but in units of 100 nanoseconds.
+	 */
+
+	difference_low  = boottime_low  - unix_epoch_low;
+	difference_high = boottime_high - unix_epoch_high;
+
+	/* Check for borrow. */
+
+	if ( boottime_low < unix_epoch_low ) {
+		difference_high--;
+	}
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: Difference in VMS units = (%#lx,%#lx)",
+		fname, difference_high, difference_low));
+#endif
+
+	/*--- Convert to struct timespec ---*/
+
+	/* The nanosecond part is easy. */
+
+	nanoseconds = 100L * ( difference_low % 10000000L );
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: nanoseconds = %lu (%#lx)",
+		fname, nanoseconds, nanoseconds));
+#endif
+	difference_low -= nanoseconds;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,
+	("%s: Difference in integer seconds in VMS units = (%#lx,%#lx)",
+		fname, difference_high, difference_low));
+#endif
+
+	/* At this point, it is easiest to convert the integer second
+	 * part of the difference to a double precision floating point
+	 * number, which should now be safe from roundoff.
+	 */
+
+	hundreds_of_nanoseconds = pow( 2.0, 32.0 ) * (double) difference_high;
+
+	hundreds_of_nanoseconds += (double) difference_low;
+
+	seconds_since_unix_epoch = hundreds_of_nanoseconds / 10000000.0;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,
+	("%s: hundreds_of_nanoseconds = %g, seconds since Unix epoch = %g",
+		fname, hundreds_of_nanoseconds, seconds_since_unix_epoch));
+#endif
+
+	result.tv_sec = mx_round( seconds_since_unix_epoch );
+	result.tv_nsec = nanoseconds;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: result = (%lu,%lu)",
+		fname, result.tv_sec, result.tv_nsec));
+#endif
+
+	*system_boot_timespec = result;
 
 	return MX_SUCCESSFUL_RESULT;
 }

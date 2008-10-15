@@ -56,7 +56,7 @@ MX_MOTOR_FUNCTION_LIST mxd_cubic_spline_motor_motor_function_list = {
 
 /* Cubic spline motor data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_cubic_spline_motor_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_cubic_spline_motor_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
@@ -64,11 +64,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_cubic_spline_motor_record_field_defaults[] = {
 };
 
 long mxd_cubic_spline_motor_num_record_fields
-		= sizeof( mxd_cubic_spline_motor_record_field_defaults )
-		    / sizeof( mxd_cubic_spline_motor_record_field_defaults[0] );
+		= sizeof( mxd_cubic_spline_motor_rf_defaults )
+		    / sizeof( mxd_cubic_spline_motor_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_cubic_spline_motor_rfield_def_ptr
-			= &mxd_cubic_spline_motor_record_field_defaults[0];
+			= &mxd_cubic_spline_motor_rf_defaults[0];
 
 /* A private function for the use of the driver. */
 

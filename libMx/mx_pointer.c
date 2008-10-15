@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_POINTER_DEBUG	FALSE
+#define MX_POINTER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -720,6 +720,47 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	MX_DEBUG(-2,("%s: No entry found in array.", fname));
 #endif
 	return FALSE;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+#include <sys_starlet_c/psldef.h>
+
+/* FIXME: I should not have to make these definitions, but including
+ * <builtins.h> does not do the trick for some reason.
+ */
+
+int __PAL_PROBER( const void *__base_address, int __length, char __mode );
+int __PAL_PROBEW( const void *__base_address, int __length, char __mode );
+
+MX_EXPORT int
+mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+{
+	int valid;
+
+	if ( pointer == NULL ) {
+		return FALSE;
+	}
+
+	valid = FALSE;
+
+	if ( (access_mode & R_OK) && (access_mode & W_OK) ) {
+		valid = __PAL_PROBER( pointer, length, PSL$C_USER );
+
+		if ( valid ) {
+			valid = __PAL_PROBEW( pointer, length, PSL$C_USER );
+		}
+	} else
+	if ( access_mode & R_OK ) {
+		valid = __PAL_PROBER( pointer, length, PSL$C_USER );
+	} else
+	if ( access_mode & W_OK ) {
+		valid = __PAL_PROBEW( pointer, length, PSL$C_USER );
+	}
+
+	return valid;
 }
 
 /*-------------------------------------------------------------------------*/

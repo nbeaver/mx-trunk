@@ -728,13 +728,12 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
+mxd_aviex_pccd_16080_descramble( uint16_t *raw_frame_data,
 					uint16_t ***image_sector_array,
 					long i_framesize,
 					long j_framesize )
 {
-	static const char fname[] =
-			"mxd_aviex_pccd_16080_descramble_raw_data()";
+	static const char fname[] = "mxd_aviex_pccd_16080_descramble()";
 
 	long i, j;
 
@@ -771,13 +770,13 @@ mxd_aviex_pccd_16080_descramble_raw_data( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_16080_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+mxd_aviex_pccd_16080_streak_camera_descramble( MX_AREA_DETECTOR *ad,
 					MX_AVIEX_PCCD *aviex_pccd,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *raw_frame )
 {
 	static const char fname[] =
-			"mxd_aviex_pccd_16080_descramble_streak_camera()";
+			"mxd_aviex_pccd_16080_streak_camera_descramble()";
 
 	mx_warning("%s: Streak camera descrambling is not yet implemented "
 		"for PCCD-16080 detectors.", fname );

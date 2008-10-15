@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+#include "mx_namefix.h"
+
 typedef struct {
 	MX_SCAN *scan; /* Pointer to the parent scan superclass structure. */
 

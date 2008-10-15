@@ -111,6 +111,7 @@ MXDRIVERINFO_CM_OBJS = $(subst $(space),$(comma),$(MXDRIVERINFO_OBJS))
 
 RM		= rm
 MAKE		= make
+TOUCH		= touch -a
 
 OBJ		= obj
 
@@ -197,4 +198,14 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+
+MX_PRIVATE_VERSION_NAME = mx_private_version.exe
+
+$(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
+	dcl "link /exe=mx_private_version.exe mx_private_version.obj"
+	dcl "run mx_private_version"
 

@@ -576,14 +576,13 @@ mxd_aviex_pccd_170170_set_binsize( MX_AREA_DETECTOR *ad,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
+mxd_aviex_pccd_170170_descramble( uint16_t *raw_frame_data,
 					uint16_t ***image_sector_array,
 					long i_framesize,
 					long j_framesize )
 {
 #if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
-	static const char fname[] =
-		"mxd_aviex_pccd_170170_descramble_raw_data()";
+	static const char fname[] = "mxd_aviex_pccd_170170_descramble()";
 
 	MX_HRT_TIMING measurement;
 #endif
@@ -649,7 +648,7 @@ mxd_aviex_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_linearity_descramble_raw_data( uint16_t *raw_frame_data,
+mxd_aviex_pccd_170170_linearity_descramble( uint16_t *raw_frame_data,
 						uint16_t ***image_sector_array,
 						long i_framesize,
 						long j_framesize,
@@ -657,7 +656,7 @@ mxd_aviex_pccd_170170_linearity_descramble_raw_data( uint16_t *raw_frame_data,
 {
 #if MXD_AVIEX_PCCD_170170_DEBUG_DESCRAMBLING_TIMES
 	static const char fname[] =
-		"mxd_aviex_pccd_170170_linearity_descramble_raw_data()";
+		"mxd_aviex_pccd_170170_linearity_descramble()";
 
 	MX_HRT_TIMING measurement;
 #endif
@@ -735,14 +734,14 @@ mxd_aviex_pccd_170170_linearity_descramble_raw_data( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+mxd_aviex_pccd_170170_streak_camera_descramble( MX_AREA_DETECTOR *ad,
 					MX_AVIEX_PCCD *aviex_pccd,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *raw_frame )
 {
 #if 0
 	static const char fname[] =
-		"mxd_aviex_pccd_170170_descramble_streak_camera()";
+		"mxd_aviex_pccd_170170_streak_camera_descramble()";
 #endif
 	uint16_t *image_data, *raw_data;
 	uint16_t *image_ptr, *raw_ptr;

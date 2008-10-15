@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#include "mx_namefix.h"
+
 /* Definitions for 'trigger_repeat'. */
 
 #define MXF_WVO_ONE_SHOT	0

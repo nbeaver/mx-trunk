@@ -154,7 +154,7 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 			mx_status =
-			    mx_list_head_record_show_callback_id( list_head );
+			    mx_list_head_record_show_clbk_id( list_head );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -577,7 +577,7 @@ mx_list_head_record_show_callbacks( MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_record_show_callback_id( MX_LIST_HEAD *list_head )
+mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 {
 	MX_HANDLE_TABLE *callback_handle_table;
 	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;

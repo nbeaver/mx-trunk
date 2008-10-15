@@ -38,7 +38,7 @@
 MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
 	mxd_bluice_area_detector_initialize_type,
 	mxd_bluice_area_detector_create_record_structures,
-	mxd_bluice_area_detector_finish_record_initialization,
+	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
 	NULL,
@@ -69,7 +69,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
 	mx_area_detector_default_measure_correction
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bluice_dcss_area_detector_record_field_defaults[]
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dcss_area_detector_defaults[]
 = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
@@ -78,15 +78,15 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_dcss_area_detector_record_field_defaults[]
 };
 
 long mxd_bluice_dcss_area_detector_num_record_fields
-	= sizeof( mxd_bluice_dcss_area_detector_record_field_defaults )
-	    / sizeof( mxd_bluice_dcss_area_detector_record_field_defaults[0] );
+	= sizeof( mxd_bluice_dcss_area_detector_defaults )
+	    / sizeof( mxd_bluice_dcss_area_detector_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dcss_area_detector_rfield_def_ptr
-		= &mxd_bluice_dcss_area_detector_record_field_defaults[0];
+		= &mxd_bluice_dcss_area_detector_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxd_bluice_dhs_area_detector_record_field_defaults[]
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_dhs_area_detector_defaults[]
 = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
@@ -95,11 +95,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_dhs_area_detector_record_field_defaults[]
 };
 
 long mxd_bluice_dhs_area_detector_num_record_fields
-	= sizeof( mxd_bluice_dhs_area_detector_record_field_defaults )
-	    / sizeof( mxd_bluice_dhs_area_detector_record_field_defaults[0] );
+	= sizeof( mxd_bluice_dhs_area_detector_defaults )
+	    / sizeof( mxd_bluice_dhs_area_detector_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bluice_dhs_area_detector_rfield_def_ptr
-		= &mxd_bluice_dhs_area_detector_record_field_defaults[0];
+		= &mxd_bluice_dhs_area_detector_defaults[0];
 
 /*-------------------------------------------------------------------------*/
 
@@ -657,12 +657,6 @@ mxd_bluice_area_detector_create_record_structures( MX_RECORD *record )
 	bluice_area_detector->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bluice_area_detector_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_area_detector_finish_record_initialization( record );
 }
 
 /* The mxp_setup_dhs_record() macro is used to setup the record pointer for the

@@ -46,7 +46,7 @@ MX_ANALOG_INPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_ain_read
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_ain_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_ain_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
@@ -54,11 +54,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_ain_record_field_defaults[] = {
 };
 
 long mxd_bkprecision_912x_ain_num_record_fields
-		= sizeof( mxd_bkprecision_912x_ain_record_field_defaults )
-		  / sizeof( mxd_bkprecision_912x_ain_record_field_defaults[0] );
+		= sizeof( mxd_bkprecision_912x_ain_rf_defaults )
+		  / sizeof( mxd_bkprecision_912x_ain_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_ain_rfield_def_ptr
-			= &mxd_bkprecision_912x_ain_record_field_defaults[0];
+			= &mxd_bkprecision_912x_ain_rf_defaults[0];
 
 /* === */
 
@@ -80,7 +80,7 @@ MX_ANALOG_OUTPUT_FUNCTION_LIST
 	mxd_bkprecision_912x_aout_write
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_aout_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_aout_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DOUBLE_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
@@ -88,11 +88,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_bkprecision_912x_aout_record_field_defaults[] = {
 };
 
 long mxd_bkprecision_912x_aout_num_record_fields
-		= sizeof( mxd_bkprecision_912x_aout_record_field_defaults )
-		  / sizeof( mxd_bkprecision_912x_aout_record_field_defaults[0]);
+		= sizeof( mxd_bkprecision_912x_aout_rf_defaults )
+		  / sizeof( mxd_bkprecision_912x_aout_rf_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_aout_rfield_def_ptr
-			= &mxd_bkprecision_912x_aout_record_field_defaults[0];
+			= &mxd_bkprecision_912x_aout_rf_defaults[0];
 
 static mx_status_type
 mxd_bkprecision_912x_ain_get_pointers( MX_ANALOG_INPUT *ainput,

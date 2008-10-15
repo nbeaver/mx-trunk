@@ -1889,10 +1889,9 @@ mx_current_os_time( void )
 
 	struct timespec result;
 	struct timeval os_timeofday;
-	struct timezone os_timezone;
 	int os_status, saved_errno;
 
-	os_status = gettimeofday( &os_timeofday, &os_timezone );
+	os_status = gettimeofday( &os_timeofday, NULL );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;

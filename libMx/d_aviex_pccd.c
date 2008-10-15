@@ -609,17 +609,17 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		switch( ad->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 			mx_status =
-			    mxd_aviex_pccd_170170_descramble_streak_camera(
+			    mxd_aviex_pccd_170170_streak_camera_descramble(
 				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		case MXT_AD_PCCD_4824:
 			mx_status =
-			    mxd_aviex_pccd_4824_descramble_streak_camera(
+			    mxd_aviex_pccd_4824_streak_camera_descramble(
 				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		case MXT_AD_PCCD_16080:
 			mx_status =
-			    mxd_aviex_pccd_16080_descramble_streak_camera(
+			    mxd_aviex_pccd_16080_streak_camera_descramble(
 				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		}
@@ -724,13 +724,13 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	case MXT_AD_PCCD_170170:
 		if ( use_linearity_lookup_table ) {
 			mx_status =
-			    mxd_aviex_pccd_170170_linearity_descramble_raw_data(
+			    mxd_aviex_pccd_170170_linearity_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize,
 					aviex_pccd->linearity_lookup_table );
 		} else {
-			mx_status = mxd_aviex_pccd_170170_descramble_raw_data(
+			mx_status = mxd_aviex_pccd_170170_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
@@ -739,20 +739,20 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	case MXT_AD_PCCD_4824:
 		if ( use_linearity_lookup_table ) {
 			mx_status =
-			    mxd_aviex_pccd_4824_linearity_descramble_raw_data(
+			    mxd_aviex_pccd_4824_linearity_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize,
 					aviex_pccd->linearity_lookup_table );
 		} else {
-			mx_status = mxd_aviex_pccd_4824_descramble_raw_data(
+			mx_status = mxd_aviex_pccd_4824_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
 		}
 		break;
 	case MXT_AD_PCCD_16080:
-		mx_status = mxd_aviex_pccd_16080_descramble_raw_data(
+		mx_status = mxd_aviex_pccd_16080_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
@@ -878,10 +878,6 @@ mxd_aviex_pccd_check_value( MX_AVIEX_PCCD *aviex_pccd,
 
 	MX_AVIEX_PCCD_REGISTER *reg;
 
-	if ( register_address < 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal register address %lu.", register_address );
-	} else
 	if ( register_address >= aviex_pccd->num_registers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal register address %lu.", register_address );

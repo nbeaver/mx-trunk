@@ -17,6 +17,8 @@
 #ifndef __D_BLUICE_AREA_DETECTOR_H__
 #define __D_BLUICE_AREA_DETECTOR_H__
 
+#include "mx_namefix.h"
+
 /* Flag bits for the 'bluice_flags' field. */
 
 #define MXF_BLUICE_AD_REUSE_DARK	0x1
@@ -64,8 +66,6 @@ typedef struct {
 MX_API mx_status_type mxd_bluice_area_detector_initialize_type(
 							long record_type );
 MX_API mx_status_type mxd_bluice_area_detector_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_bluice_area_detector_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_area_detector_open( MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_area_detector_finish_delayed_initialization(

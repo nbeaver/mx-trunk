@@ -856,8 +856,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 			switch( vinput->image_format ) {
 			case MXT_IMAGE_FORMAT_GREY16:
-				if ( (i >= 0) && (i <= i_max)
-				  && (j >= 0) && (j <= j_max) )
+				if ( (i <= i_max) && (j <= j_max) )
 				{
 					image_array_u16[i][j] = 65535;
 				}

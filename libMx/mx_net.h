@@ -18,6 +18,7 @@
 #define __MX_NET_H__
 
 #include "mx_stdint.h"
+#include "mx_namefix.h"
 
 /* Make the header file C++ safe. */
 

@@ -590,6 +590,101 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------ OpenVMS ------------------------------*/
+
+#elif defined(OS_VMS)
+
+#if defined(__VAX)
+
+MX_EXPORT mx_status_type
+mx_get_process_affinity_mask( unsigned long process_id,
+				unsigned long *mask )
+{
+	static const char fname[] = "mx_get_process_affinity_mask()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"VAX computers do not support a CPU affinity mask." );
+}
+
+MX_EXPORT mx_status_type
+mx_set_process_affinity_mask( unsigned long process_id,
+				unsigned long mask )
+{
+	static const char fname[] = "mx_set_process_affinity_mask()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"VAX computers do not support a CPU affinity mask." );
+}
+
+#else  /* Alpha or Itanium */
+
+#include "mx_stdint.h"
+
+#include <errno.h>
+#include <ssdef.h>
+#include <iodef.h>
+#include <starlet.h>
+
+MX_EXPORT mx_status_type
+mx_get_process_affinity_mask( unsigned long process_id,
+				unsigned long *mask )
+{
+	static const char fname[] = "mx_get_process_affinity_mask()";
+
+	unsigned int pidadr;
+	uint64_t prev_mask;
+	int vms_status;
+
+	if ( process_id == 0 ) {
+		process_id = mx_process_id();
+	}
+
+	vms_status = sys$process_affinity( 0, 0, 0, 0, &prev_mask, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the process affinity mask failed "
+		"with a VMS status of %d.  Error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	*mask = prev_mask;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_set_process_affinity_mask( unsigned long process_id,
+				unsigned long mask )
+{
+	static const char fname[] = "mx_set_process_affinity_mask()";
+
+	unsigned int pidadr;
+	uint64_t select_mask, modify_mask;
+	int vms_status;
+
+	if ( process_id == 0 ) {
+		process_id = mx_process_id();
+	}
+
+	select_mask = (~0);
+	modify_mask = mask;
+
+	vms_status = sys$process_affinity( 0, 0,
+				&select_mask, &modify_mask, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the process affinity mask failed "
+		"with a VMS status of %d.  Error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
 /*------------------------------ Unsupported ------------------------------*/
 
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN)

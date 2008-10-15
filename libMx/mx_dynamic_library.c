@@ -374,7 +374,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_IRIX) || defined(OS_CYGWIN) \
-	|| defined(OS_QNX)
+	|| defined(OS_QNX) || defined(OS_VMS)
 
 #include <errno.h>
 #include <dlfcn.h>

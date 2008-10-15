@@ -711,7 +711,22 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 #elif defined(_POSIX_THREADS) || defined(OS_HPUX) || defined(__OpenBSD__)
 
+/*---*/
+
+/* FIXME: On VAX VMS, we get a mysterious error about redefinition of
+ *        'struct timespec' apparently involving <decc_rtldef/timers.h>
+ *        The following kludge works around that.
+ */
+
+#if defined(OS_VMS) && defined(__VAX) && !defined(_TIMESPEC_T_)
+#  define _TIMESPEC_T_
+#endif
+
+/*---*/
+
 #include <pthread.h>
+
+/*---*/
 
 #if defined(OS_LINUX)
 
@@ -726,6 +741,8 @@ extern int pthread_mutexattr_settype( pthread_mutexattr_t *, int );
 #define PTHREAD_MUTEX_RECURSIVE		PTHREAD_MUTEX_RECURSIVE_NP
 
 #endif /* OS_LINUX */
+
+/*---*/
 
 MX_EXPORT mx_status_type
 mx_mutex_create( MX_MUTEX **mutex )

@@ -1197,6 +1197,19 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 #elif defined(_POSIX_THREADS) || defined(OS_HPUX) || defined(__OpenBSD__)
 
+/*---*/
+
+/* FIXME: On VAX VMS, we get a mysterious error about redefinition of
+ *        'struct timespec' apparently involving <decc_rtldef/timers.h>
+ *        The following kludge works around that.
+ */
+
+#if defined(OS_VMS) && defined(__VAX) && !defined(_TIMESPEC_T_)
+#  define _TIMESPEC_T_
+#endif
+
+/*---*/
+
 #include <pthread.h>
 
 typedef struct {
