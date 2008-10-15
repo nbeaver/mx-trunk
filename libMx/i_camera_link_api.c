@@ -19,7 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define IS_MX_DRIVER	TRUE
+#if !defined(IS_MX_DRIVER)
+#  define IS_MX_DRIVER		TRUE
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
