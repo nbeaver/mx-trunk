@@ -88,7 +88,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	 */
 
 	pointer_offset = (unsigned long)
-		( ((char *) pointer) - meminfo.BaseAddress );
+		( ((char *) pointer) - ((char *) meminfo.BaseAddress) );
 
 	/* unused_region_size is the amount of the memory region that is
 	 * not used by the memory range specified in the call to this

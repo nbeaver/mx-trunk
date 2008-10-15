@@ -32,6 +32,11 @@
 
 #if defined(OS_SOLARIS)
     /* Solaris uses the poisoned identifier sprintf() in its header files. */
+
+#elif defined(OS_WIN32) && defined(__GNUC__)
+    /* Windows headers use the poisoned identifier strcpy(), which trips
+     * up compilation with MinGW.
+     */
 #else
 #   include "mx_poison.h"
 #endif
