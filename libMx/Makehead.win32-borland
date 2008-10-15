@@ -80,15 +80,18 @@ CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
+
 #
 # For makedepend, you can use either the Cygwin 'makedepend' command
 # or you can use the 'makedepend' from UnxUtils.  UnxUtils can be found
 # at http://sourceforge.net/projects/unxutils.
 #
-MAKEDEPEND_CMD = makedepend
 
-MAKEDEPEND = \
-$(MAKEDEPEND_CMD) -o.obj -Y -I../libMx -f- *.c 2>nul > Makefile.depend
+MAKEDEPEND       = \
+    ( rm Makefile.depend ; \
+      makedepend -o.obj -Y -I../libMx -f- [a-l]*.c 2>nul > Makefile.depend ; \
+      makedepend -o.obj -Y -I../libMx -f- [m-z]*.c 2>nul >> Makefile.depend )
+
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 
