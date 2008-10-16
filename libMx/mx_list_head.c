@@ -20,6 +20,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_version.h"
 #include "mx_list_head.h"
 
 MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list = {
