@@ -470,10 +470,10 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #endif
 
-#if defined(OS_ECOS)
+#if defined(OS_ECOS) || defined(OS_VXWORKS)
 
 /* This provides a definition of strdup() for systems that do not
- * come with it.
+ * have a definition.
  */
 
 MX_API char *strdup( const char *s );

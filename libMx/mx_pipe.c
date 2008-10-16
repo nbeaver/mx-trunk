@@ -918,6 +918,292 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ VxWorks ***********************/
+
+#elif defined(OS_VXWORKS)
+
+#include <msgQLib.h>
+
+/* FIXME: The rest of MX expects that pipes are stream oriented devices.
+ *        However, for VxWorks, both pipes and message queues are message
+ *        oriented rather than stream oriented.  For now, we just use
+ *        VxWorks message queues with the message size set to 1 to 
+ *        simulate" stream oriented behavior.  This may actually be very
+ *        inefficient, but we have not tested the performance yet.
+ */
+
+typedef struct {
+	MSG_Q_ID message_queue_id;
+	mx_bool_type blocking_mode;
+} MX_VXWORKS_PIPE;
+
+static mx_status_type
+mx_pipe_get_pointers( MX_PIPE *mx_pipe,
+			MX_VXWORKS_PIPE **vxworks_pipe,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_pipe_get_pointers()";
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed by '%s' was NULL.", calling_fname );
+	}
+
+	if ( vxworks_pipe == (MX_VXWORKS_PIPE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_VXWORKS_PIPE pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	(*vxworks_pipe) = mx_pipe->private_ptr;
+
+	if ( (*vxworks_pipe) == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_VXWORKS_PIPE pointer for MX_PIPE %p "
+			"passed by '%s' was NULL.", mx_pipe, calling_fname );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_open( MX_PIPE **mx_pipe )
+{
+	static const char fname[] = "mx_pipe_open()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	int saved_errno;
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( mx_pipe == (MX_PIPE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	*mx_pipe = (MX_PIPE *) malloc( sizeof(MX_PIPE) );
+
+	if ( *mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_PIPE structure." );
+	}
+
+	vxworks_pipe = (MX_VXWORKS_PIPE *) malloc( sizeof(MX_VXWORKS_PIPE) );
+
+	if ( vxworks_pipe == (MX_VXWORKS_PIPE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_VXWORKS_PIPE pointer." );
+	}
+
+	(*mx_pipe)->private_ptr = vxworks_pipe;
+
+	vxworks_pipe->blocking_mode = TRUE;
+
+	/* Create the message queue with 1-byte messages and a maximum
+	 * size of 512 messages.  The queue returns messages in FIFO order.
+	 */
+
+	vxworks_pipe->message_queue_id = msgQCreate( 512, 1, MSG_Q_FIFO );
+
+	if ( vxworks_pipe->message_queue_id == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to create a VxWorks message queue failed.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s: MX pipe %p created.  VxWorks message queue id = %lu",
+		fname, mx_pipe, vxworks_pipe));
+#endif
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_close( MX_PIPE *mx_pipe, int flags )
+{
+	static const char fname[] = "mx_pipe_close()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	STATUS os_status;
+	mx_status_type mx_status;
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MX pipe %p.", fname, mx_pipe));
+#endif
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &vxworks_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	os_status = msgQDelete( vxworks_pipe->message_queue_id );
+
+	if ( os_status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while attempting to close a "
+		"VxWorks message queue.  VxWorks status = %d",
+			os_status );
+	}
+
+	mx_free( vxworks_pipe );
+
+	mx_free( mx_pipe );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_read( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t max_bytes_to_read,
+		size_t *bytes_read )
+{
+	static const char fname[] = "mx_pipe_read()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	STATUS os_status;
+	int i, timeout;
+	mx_status_type mx_status;
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &vxworks_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer pointer passed was NULL." );
+	}
+
+	if ( vxworks_pipe->blocking_mode ) {
+		timeout = WAIT_FOREVER;
+	} else {
+		timeout = NO_WAIT;
+	}
+
+	for ( i = 0; i < max_bytes_to_read; i++ ) {
+		os_status = msgQReceive( vxworks_pipe->message_queue_id,
+						&buffer[i], 1, timeout );
+
+		if ( os_status != OK ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An error occurred while reading from MX pipe %p.  "
+			"VxWorks error code = %d", mx_pipe, (int) os_status );
+		}
+	}
+
+	if ( bytes_read != NULL ) {
+		if ( i >= max_bytes_to_read ) {
+			*bytes_read = max_bytes_to_read;
+		} else {
+			*bytes_read = i;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_write( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t bytes_to_write )
+{
+	static const char fname[] = "mx_pipe_write()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	STATUS os_status;
+	int i, timeout;
+	mx_status_type mx_status;
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &vxworks_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer pointer passed was NULL." );
+	}
+
+	if ( vxworks_pipe->blocking_mode ) {
+		timeout = WAIT_FOREVER;
+	} else {
+		timeout = NO_WAIT;
+	}
+
+	for ( i = 0; i < bytes_to_write; i++ ) {
+		os_status = msgQSend( vxworks_pipe->message_queue_id,
+				&buffer[i], 1, timeout, MSG_PRI_NORMAL );
+
+		if ( os_status != OK ) {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An error occurred while writing to MX pipe %p.  "
+			"VxWorks error code = %d", mx_pipe, (int) os_status );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_pipe_num_bytes_available()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	mx_status_type mx_status;
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &vxworks_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_bytes_available == NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_bytes_available argument passed was NULL." );
+	}
+
+	*num_bytes_available = msgQNumMsgs( vxworks_pipe->message_queue_id );
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MX pipe %p, num_bytes_available = %ld",
+		fname, mx_pipe, (long) *num_bytes_available));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
+				int flags,
+				mx_bool_type blocking_mode )
+{
+	static const char fname[] = "mx_pipe_set_blocking_mode()";
+
+	MX_VXWORKS_PIPE *vxworks_pipe;
+	mx_status_type mx_status;
+
+#if MX_PIPE_DEBUG
+	MX_DEBUG(-2,("%s invoked for MX pipe %p, blocking_mode = %d",
+		fname, mx_pipe, (int) blocking_mode));
+#endif
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &vxworks_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vxworks_pipe->blocking_mode = blocking_mode;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ Not supported ***********************/
 
 #elif defined(OS_ECOS) || defined(OS_RTEMS)

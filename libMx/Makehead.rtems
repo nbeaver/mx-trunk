@@ -195,6 +195,7 @@ MX_LIB_OBJS += ../tools/xdr_hyper.o
 RM		= rm -f
 MAKE		= make
 MKDIR		= mkdir
+TOUCH		= touch -a
 
 OBJ		= o
 

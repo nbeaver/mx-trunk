@@ -452,7 +452,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	"    situation is to restart the MX server.  If you ever actually\n"
 	"    see this error message, please tell Bill Lavender about it.\n",
 			cname, starting_total_num_frames, num_frames,
-			LONG_MAX, LONG_MAX );
+			(long) LONG_MAX, (long) LONG_MAX );
 
 			return FAILURE;
 		}

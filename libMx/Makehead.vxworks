@@ -111,6 +111,10 @@ CC		= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/cc$(WIND_ARCH)
 
 LD		= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/ld$(WIND_ARCH)
 
+TARGET_CPP	= $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/cpp$(WIND_ARCH)
+
+HOST_CC		= cc
+
 CFLAGS		= -g $(GCCFLAGS) $(INCLUDES) -fno-builtin -nostdinc \
 				-DOS_VXWORKS -DCPU=$(WIND_CPU) \
 				-I$(WIND_BASE)/target/h $(EXTRA_FLAGS) -DDEBUG
@@ -158,6 +162,7 @@ MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 
 RM		= rm -f
 MAKE		= make
+TOUCH		= touch -a
 
 OBJ		= o
 

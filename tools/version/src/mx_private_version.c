@@ -71,7 +71,17 @@ main( int argc, char **argv )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_VXWORKS)
+#if defined(OS_VXWORKS)
+
+static void
+mxp_generate_gnuc_macros( FILE *version_file )
+{
+	return;
+}
+
+/*---*/
+
+#elif defined(OS_ECOS) || defined(OS_RTEMS)
 
 static void
 mxp_generate_gnuc_macros( FILE *version_file )
@@ -117,7 +127,7 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_RTEMS)
+#if defined(OS_RTEMS) || defined(OS_VXWORKS)
 
       static void
       mxp_generate_glibc_macros( FILE *version_file )
