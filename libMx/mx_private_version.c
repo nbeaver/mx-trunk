@@ -80,6 +80,10 @@ main( int argc, char **argv )
 
 #if defined(__GNUC__)
 
+#  if !defined(__GNUC_PATCHLEVEL__)
+#    define __GNUC_PATCHLEVEL__  0
+#  endif
+
 static void
 mxp_generate_gnuc_macros( FILE *version_file )
 {

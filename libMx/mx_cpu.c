@@ -685,6 +685,66 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #endif
 
+/*------------------------------ QNX ------------------------------*/
+
+#elif defined(OS_QNX)
+
+#include <sys/neutrino.h>
+#include <errno.h>
+
+static int affinity_mask = ~0;
+
+MX_EXPORT mx_status_type
+mx_get_process_affinity_mask( unsigned long process_id,
+				unsigned long *mask )
+{
+	static const char fname[] = "mx_get_process_affinity_mask()";
+
+	if ( (process_id == 0) || (process_id == mx_process_id()) )
+	{
+		*mask = affinity_mask;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the CPU affinity mask for a different process "
+		"is not supported on QNX." );
+}
+
+MX_EXPORT mx_status_type
+mx_set_process_affinity_mask( unsigned long process_id,
+				unsigned long mask )
+{
+	static const char fname[] = "mx_set_process_affinity_mask()";
+
+	int runmask, os_status, saved_errno;
+
+	if ( (process_id != 0) && (process_id != mx_process_id()) )
+	{
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Setting the CPU affinity mask for a different process "
+			"is not supported on QNX." );
+	}
+
+	runmask = (int) mask;
+
+	os_status = ThreadCtl( _NTO_TCTL_RUNMASK, &runmask );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while attempting to set the "
+		"CPU affinity to %#lx.  Errno = %d, error message = '%s'",
+			mask, saved_errno, strerror(saved_errno) );
+	}
+
+	affinity_mask = (int) mask;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*------------------------------ Unsupported ------------------------------*/
 
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN)

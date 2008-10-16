@@ -1133,14 +1133,14 @@ mxp_aviex_pccd_epix_save_start_timespec( MX_AVIEX_PCCD *aviex_pccd )
 
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s:\n"
-		"sequence_start_timespec = (%lu,%ld),\n"
-		"system_boot_timespec    = (%lu,%ld),\n"
-		"relative_timespec       = (%lu,%ld)",
-			fname, xclib->sequence_start_timespec.tv_sec,
+		"sequence_start_timespec = (%ld,%ld),\n"
+		"system_boot_timespec    = (%ld,%ld),\n"
+		"relative_timespec       = (%ld,%ld)",
+			fname, (long) xclib->sequence_start_timespec.tv_sec,
 			xclib->sequence_start_timespec.tv_nsec,
-			xclib->system_boot_timespec.tv_sec,
+			(long) xclib->system_boot_timespec.tv_sec,
 			xclib->system_boot_timespec.tv_nsec,
-			relative_timespec.tv_sec,
+			(long) relative_timespec.tv_sec,
 			relative_timespec.tv_nsec));
 #endif
 	return MX_SUCCESSFUL_RESULT;

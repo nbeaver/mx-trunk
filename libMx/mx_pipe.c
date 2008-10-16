@@ -748,7 +748,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	static const char fname[] = "mx_pipe_num_bytes_available()";
 
 	MX_UNIX_PIPE *unix_pipe;
-	int os_status, saved_errno;
+	int os_status;
 	mx_status_type mx_status;
 
 	unix_pipe = NULL;
@@ -771,6 +771,8 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 		|| defined(OS_IRIX) || defined(OS_CYGWIN)
 	{
+		int saved_errno;
+
 		/* Use FIONREAD */
 
 		int num_chars_available;
