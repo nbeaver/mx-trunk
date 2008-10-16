@@ -16,7 +16,7 @@ EDITLINE_MAKECMD = \
 # We build libedit on all versions of BSD
 #
 
-BSD_TOOLS = mx_private_version unix/src/editline/libedit.a
+BSD_TOOLS = unix/src/editline/libedit.a
 
 #
 # On OpenBSD, we build xdr_hyper.o as well.
@@ -32,7 +32,7 @@ BSD_TOOLS += xdr_hyper.o
 # Now state the build rules.
 #
 
-all: ${BSD_TOOLS}
+all: mx_private_version ${BSD_TOOLS}
 
 include ../libMx/Makefile.version
 
