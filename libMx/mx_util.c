@@ -1829,6 +1829,39 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 #if 0
 
+MX_EXPORT char *
+strdup( const char *original )
+{
+	char *duplicate;
+	size_t original_length;
+
+	if ( original == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+
+	original_length = strlen(original) + 1;
+
+	duplicate = malloc( original_length );
+
+	if ( duplicate == NULL ) {
+		errno = ENOMEM;
+
+		return NULL;
+	}
+
+	strlcpy( duplicate, original, sizeof(duplicate) );
+
+	return duplicate;
+}
+
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if 0
+
 MX_EXPORT struct timespec
 mx_current_os_time( void )
 {
@@ -2173,7 +2206,7 @@ mx_string_split( char *original_string,
 	  || (argc == NULL)
 	  || (argv == NULL) )
 	{
-		errno = EFAULT;
+		errno = EINVAL;
 		return -1;
 	}
 

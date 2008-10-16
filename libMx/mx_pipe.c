@@ -918,6 +918,74 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ Not supported ***********************/
+
+#elif defined(OS_ECOS)
+
+MX_EXPORT mx_status_type
+mx_pipe_open( MX_PIPE **mx_pipe )
+{
+	static const char fname[] = "mx_pipe_open()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_close( MX_PIPE *mx_pipe, int flags )
+{
+	static const char fname[] = "mx_pipe_close()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_read( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t max_bytes_to_read,
+		size_t *bytes_read )
+{
+	static const char fname[] = "mx_pipe_read()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_write( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t bytes_to_write )
+{
+	static const char fname[] = "mx_pipe_write()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_pipe_num_bytes_available()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
+				int flags,
+				mx_bool_type blocking_mode )
+{
+	static const char fname[] = "mx_pipe_set_blocking_mode()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Pipes are not supported for this operating system." );
+}
+
+/************************ Not yet implemented ***********************/
+
 #else
 
 #error MX pipe functions have not yet been defined for this platform.

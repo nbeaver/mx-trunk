@@ -1,8 +1,17 @@
 
-all: xdr.obj xdr_hyper.obj getopt.obj strlcpy.obj strlcat.obj \
-	smvspatial.obj mxgnuplt.exe
+all: mx_private_version.exe xdr.obj xdr_hyper.obj getopt.obj \
+	strlcpy.obj strlcat.obj smvspatial.obj mxgnuplt.exe
+
+include ../libMx/Makefile.version
 
 include ../libMx/Makehead.win32
+
+mx_private_version.exe: ../libMx/Makefile.version \
+				version/src/mx_private_version.c
+	cl -nologo -c $(CFLAGS_MX_VERS) mx_private_version.c
+	link /nologo /debugtype:cv /out:mx_private_version.exe \
+				mx_private_version.obj
+	mx_private_version
 
 xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \

@@ -385,10 +385,3 @@ mx_version.$(OBJ): Makefile.version mx_version.c mx_version.h
 
 mx_version.h: mx_private_version.h
 
-mx_private_version.$(OBJ): Makefile.version mx_private_version.c
-	$(COMPILE) $(CFLAGS_MX_VERS) mx_private_version.c
-
-mx_private_version.h: $(MX_PRIVATE_VERSION_NAME)
-
-mx_driver.c: mx_private_version.h
-

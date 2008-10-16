@@ -17,7 +17,9 @@
  *
  */
 
-#define VERSION_FILE	"mx_private_version.h"
+#if defined(OS_ECOS)
+#  include "../../version_temp.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,56 +31,72 @@ static void mxp_generate_macros( FILE *file );
 int
 main( int argc, char **argv )
 {
-	FILE *version_file;
-	int saved_errno = 0;
-
-	version_file = fopen( VERSION_FILE, "w" );
-
-	if ( version_file == NULL ) {
-		fprintf( stderr,
-		"The attempt to create the MX version file '%s' failed.  "
-		"Errno = %d, error message = '%s'.\n",
-			VERSION_FILE, saved_errno, strerror(saved_errno) );
-		exit(1);
-	}
-
-	fprintf( version_file, "/*\n" );
-	fprintf( version_file, " * Name:    mx_private_version.h\n" );
-	fprintf( version_file, " *\n" );
-	fprintf( version_file, " * Purpose: Macro definitions for the "
+	fprintf( stdout, "/*\n" );
+	fprintf( stdout, " * Name:    mx_private_version.h\n" );
+	fprintf( stdout, " *\n" );
+	fprintf( stdout, " * Purpose: Macro definitions for the "
 	    "version of MX and the versions\n" );
-	fprintf( version_file, " *          of other software used by MX.\n" );
-	fprintf( version_file, " *\n" );
-	fprintf( version_file, " * WARNING: This file is MACHINE GENERATED.  "
+	fprintf( stdout, " *          of other software used by MX.\n" );
+	fprintf( stdout, " *\n" );
+	fprintf( stdout, " * WARNING: This file is MACHINE GENERATED.  "
 	    "Do not edit it!\n" );
-	fprintf( version_file, " */\n" );
-	fprintf( version_file, "\n" );
+	fprintf( stdout, " */\n" );
+	fprintf( stdout, "\n" );
 
-	fprintf( version_file, "#ifndef __MX_PRIVATE_VERSION_H__\n");
-	fprintf( version_file, "#define __MX_PRIVATE_VERSION_H__\n");
+	fprintf( stdout, "#ifndef __MX_PRIVATE_VERSION_H__\n");
+	fprintf( stdout, "#define __MX_PRIVATE_VERSION_H__\n");
 
-	fprintf( version_file, "\n" );
+	fprintf( stdout, "\n" );
 
-	fprintf( version_file, "#define MX_VERSION     %luL\n",
+	fprintf( stdout, "#define MX_VERSION     %luL\n",
 		MX_MAJOR_VERSION * 1000000L
 		+ MX_MINOR_VERSION * 1000L
 		+ MX_UPDATE_VERSION );
 
-	fprintf( version_file, "\n" );
+	fprintf( stdout, "\n" );
 
-	mxp_generate_macros( version_file );
+	fprintf( stdout, "#define MX_MAJOR_VERSION    %d\n", MX_MAJOR_VERSION );
+	fprintf( stdout, "#define MX_MINOR_VERSION    %d\n", MX_MINOR_VERSION );
+	fprintf( stdout, "#define MX_UPDATE_VERSION   %d\n", MX_UPDATE_VERSION);
 
-	fprintf( version_file, "#endif /* __MX_PRIVATE_VERSION_H__ */\n");
-	fprintf( version_file, "\n" );
+	fprintf( stdout, "\n" );
 
-	fclose( version_file );
+	mxp_generate_macros( stdout );
+
+	fprintf( stdout, "#endif /* __MX_PRIVATE_VERSION_H__ */\n");
+	fprintf( stdout, "\n" );
 
 	return 0;
 }
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(__GNUC__)
+#if defined(OS_ECOS)
+
+static void
+mxp_generate_gnuc_macros( FILE *version_file )
+{
+	int num_items;
+	unsigned long major, minor, patchlevel;
+
+	num_items = sscanf( MX_GNUC_TARGET_VERSION, "%lu.%lu.%lu",
+			&major, &minor, &patchlevel );
+
+	if ( num_items < 3 ) {
+		patchlevel = 0;
+	}
+
+	fprintf( version_file, "#define MX_GNUC_VERSION    %luL\n",
+		major * 1000000L + minor * 1000L + patchlevel );
+
+	fprintf( version_file, "\n" );
+
+	return;
+}
+
+/*---*/
+
+#elif defined(__GNUC__)
 
 #  if !defined(__GNUC_PATCHLEVEL__)
 #    define __GNUC_PATCHLEVEL__  0
@@ -172,6 +190,8 @@ mxp_generate_macros( FILE *version_file )
 #endif
 	return;
 }
+
+/*---*/
 
 #elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_WIN32) \
 	|| defined(OS_VMS)

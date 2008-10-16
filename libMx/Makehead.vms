@@ -180,13 +180,3 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 util_install:
 	copy $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR).bin]
 
-#
-#---------------------------------------------------
-#
-
-MX_PRIVATE_VERSION_NAME = mx_private_version.exe
-
-$(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
-	link /exe=$(MX_PRIVATE_VERSION_NAME) mx_private_version.obj
-	run mx_private_version
-

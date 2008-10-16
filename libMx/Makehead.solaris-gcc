@@ -247,13 +247,3 @@ util_install:
 	/usr/ucb/install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/ucb/install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 
-#
-#---------------------------------------------------
-#
-
-MX_PRIVATE_VERSION_NAME = mx_private_version
-
-$(MX_PRIVATE_VERSION_NAME): mx_private_version.o
-	$(CC) $(CFLAGS) -o $(MX_PRIVATE_VERSION_NAME) mx_private_version.o
-	./mx_private_version
-

@@ -240,10 +240,3 @@ $(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
 			$(WIN32_LIBS)
 	./mx_private_version
 
-#
-#---------------------------------------------------
-#
-
-mx_util_borland.obj: mx_util_borland.c
-	$(COMPILE) $(CFLAGS) mx_util_borland.c
-

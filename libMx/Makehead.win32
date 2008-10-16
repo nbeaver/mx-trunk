@@ -456,14 +456,3 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 
-#
-#---------------------------------------------------
-#
-
-MX_PRIVATE_VERSION_NAME = mx_private_version.exe
-
-$(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
-	link /debug /nologo /out:mx_private_version.exe \
-			mx_private_version.obj $(WIN32_LIBS)
-	./mx_private_version
-

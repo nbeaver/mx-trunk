@@ -57,7 +57,11 @@ ifeq ($(ECOS_BSP),linux)
 	MX_LIB_SRCS = mx_driver_ecos.c $(MX_CORE_SRCS) $(MX_DRIVER_ECOS_SRCS)
 
 	PKG_INSTALL_DIR = $(ECOS_TOP_DIR)/$(ECOS_BSP)/ecos_install
-	CC = i386-elf-gcc
+
+	CC  = i386-elf-gcc
+	CPP = i386-elf-cpp
+
+	HOST_CC = gcc
 endif
 
 ifeq ($(ECOS_BSP),i386_pc)
@@ -66,22 +70,16 @@ ifeq ($(ECOS_BSP),i386_pc)
 	MX_LIB_SRCS = mx_driver_ecos.c $(MX_CORE_SRCS) $(MX_DRIVER_ECOS_SRCS)
 
 	PKG_INSTALL_DIR = $(ECOS_TOP_DIR)/$(ECOS_BSP)/ecos_install
-	CC = i386-elf-gcc
+	CC  = i386-elf-gcc
+	CPP = i386-elf-cpp
+
+	HOST_CC = gcc
 endif
 
 #------------------------------------------------------------------------
 
 #
 # gcc specific flags
-#
-#GCCFLAGS = -Wall -Werror \
-#-Wstrict-prototypes \
-#-Wpointer-arith \
-#-Wcast-align \
-#-Wcast-qual \
-#-Wmissing-prototypes \
-#-Wnested-externs \
-#-Winline
 #
 GCCFLAGS = -Wall -Werror
 
@@ -135,6 +133,7 @@ MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 RM		= rm -f
 MAKE		= make
 MKDIR		= mkdir
+TOUCH		= touch -a
 
 OBJ		= o
 
