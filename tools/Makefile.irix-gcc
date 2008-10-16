@@ -4,6 +4,10 @@
 
 CC = gcc
 
+include ../libMx/Makefile.version
+
+include ../libMx/Makehead.irix-gcc
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -16,8 +20,13 @@ EDITLINE_MAKECMD = \
 
 all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+	./mx_private_version > ../libMx/mx_private_version.h
+
 mx_clean:
-	-rm *.o
+	-rm *.o mx_private_version
 	( cd unix/src/editline ; make clean )
 
 strlcpy.o: generic/src/strlcpy.c

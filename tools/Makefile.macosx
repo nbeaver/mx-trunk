@@ -4,6 +4,8 @@
 
 all:  smvspatial.o xdr_hyper.o unix/src/editline/libedit.a
 
+include ../libMx/Makefile.version
+
 include ../libMx/Makehead.macosx
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
@@ -17,8 +19,13 @@ EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
 mx_clean:
-	-rm *.o
+	-rm *.o mx_private_version
 	( cd unix/src/editline ; make clean )
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+	./mx_private_version > ../libMx/mx_private_version.h
 
 smvspatial.o: xgen/smvspatial.c
 	gcc -c $(CFLAGS) -DOS_MACOSX -D__MX_LIBRARY__ xgen/smvspatial.c

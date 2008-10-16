@@ -2,7 +2,9 @@
 # tools/Makefile.irix
 #
 
-all: strlcpy.o strlcat.o unix/src/editline/libedit.a
+all: mx_private_version strlcpy.o strlcat.o unix/src/editline/libedit.a
+
+include ../libMx/Makefile.version
 
 include ../libMx/Makehead.irix
 
@@ -19,8 +21,13 @@ EDITLINE_MAKECMD = \
   make CC="$(EDITLINE_CC)" CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
 mx_clean:
-	-rm *.o
+	-rm *.o mx_private_version
 	( cd unix/src/editline ; make clean )
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+	./mx_private_version > ../libMx/mx_private_version.h
 
 strlcpy.o: generic/src/strlcpy.c
 	$(CC) -c -I../libMx -DOS_IRIX -D__MX_LIBRARY__ generic/src/strlcpy.c

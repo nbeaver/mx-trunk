@@ -1,7 +1,16 @@
 
-all: xdr.obj xdr_hyper.obj getopt.obj strlcpy.obj strlcat.obj mxgnuplt.exe
+all: mx_private_version.exe xdr.obj xdr_hyper.obj getopt.obj \
+		strlcpy.obj strlcat.obj mxgnuplt.exe
+
+include ../libMx/Makefile.version
 
 include ../libMx/Makehead.win32-borland
+
+mx_private_version.exe: ../liMx/Makefile.version \
+				version/src/mx_private_version.c
+	bcc32 -tWM -c version/src/mx_private_version.c -o mx_private_version.obj
+	bcc32 -tWM -L$(BCC_DIR)/lib -emx_private_version.exe \
+		mx_private_version.obj cw32mt.lib
 
 xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
 	$(CC) $(CFLAGS) -c -Ixdr/src -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
