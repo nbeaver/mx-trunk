@@ -2,11 +2,13 @@
 # tools/Makefile.irix-gcc
 #
 
-CC = gcc
+all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.irix-gcc
+
+CC = gcc
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
@@ -17,8 +19,6 @@ EDITLINE_RANLIB = touch
 
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
-
-all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \

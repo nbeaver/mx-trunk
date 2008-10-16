@@ -2,6 +2,8 @@
 # tools/Makefile.linux-icc
 #
 
+all: strlcpy.o strlcat.o unix/src/editline/libedit.a
+
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.linux-icc
@@ -19,8 +21,6 @@ EDITLINE_RANLIB = ranlib
 
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
-
-all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \

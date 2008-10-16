@@ -1,3 +1,5 @@
+all: mx_private_version.exe strlcpy.obj strlcat.obj
+
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.vms
@@ -11,8 +13,6 @@ CFLAGS_MX_VERS = /debug /noopt /include=[-.libMx] \
   "MX_MINOR_VERSION=$(MX_MINOR_VERSION)", \
   "MX_UPDATE_VERSION=$(MX_UPDATE_VERSION)"), \
   /warnings=(disable=longextern,errors=all)  /error_limit=10
-
-all: mx_private_version.exe strlcpy.obj strlcat.obj
 
 mx_clean:
 	-\$ @[-.scripts]vms_delete *.obj

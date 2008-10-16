@@ -1,6 +1,8 @@
 
 all: xdr.o xdr_hyper.o getopt.o strlcpy.o strlcat.o mxgnuplt.exe
 
+include ../libMx/Makefile.version
+
 include ../libMx/Makehead.win32-mingw
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
