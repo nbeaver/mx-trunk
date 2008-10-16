@@ -372,8 +372,7 @@ mx_interval_timer.$(OBJ): mx_interval_timer.c
 
 mx_key.$(OBJ): mx_key.c mxconfig.h
 
-mx_list_head.$(OBJ): Makefile.version mx_list_head.c
-	$(COMPILE) $(CFLAGS) mx_list_head.c
+mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 
 u_xia_dxp.$(OBJ): u_xia_dxp.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) u_xia_dxp.c
@@ -381,7 +380,6 @@ u_xia_dxp.$(OBJ): u_xia_dxp.c
 #---
 
 mx_version.$(OBJ): Makefile.version mx_version.c mx_version.h
-	$(COMPILE) $(CFLAGS) mx_version.c
 
 mx_version.h: mx_private_version.h
 

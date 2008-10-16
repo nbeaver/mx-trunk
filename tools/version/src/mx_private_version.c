@@ -17,7 +17,7 @@
  *
  */
 
-#if defined(OS_ECOS)
+#if defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_VXWORKS)
 #  include "../../version_temp.h"
 #endif
 
@@ -71,7 +71,7 @@ main( int argc, char **argv )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_ECOS)
+#if defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_VXWORKS)
 
 static void
 mxp_generate_gnuc_macros( FILE *version_file )
@@ -117,7 +117,17 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(__GLIBC__)
+#if defined(OS_RTEMS)
+
+      static void
+      mxp_generate_glibc_macros( FILE *version_file )
+      {
+          return;
+      }
+
+/*---*/
+
+#elif defined(__GLIBC__)
 
 #  if (__GLIBC__ < 2)
 #     define MXP_USE_GNU_GET_LIBC_VERSION   0

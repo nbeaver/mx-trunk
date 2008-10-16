@@ -91,18 +91,27 @@ ifeq ($(RTEMS_BSP),pc486)
 	BSP_FLAGS = -DMX_RTEMS_BSP_PC486
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
+
+	HOST_CC = gcc
+	TARGET_CPP = i386-rtems-cpp
 endif
 
 ifeq ($(RTEMS_BSP),mvme162)
 	BSP_FLAGS = -DMX_RTEMS_BSP_MVME162  -DHAVE_RTEMS_VME
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
+
+	HOST_CC = gcc
+	TARGET_CPP = m68k-rtems-cpp
 endif
 
 ifeq ($(RTEMS_BSP),mvme2307)
 	BSP_FLAGS = -DMX_RTEMS_BSP_MVME2307 -DHAVE_RTEMS_VME
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
+
+	HOST_CC = gcc
+	TARGET_CPP = powerpc-rtems-cpp
 endif
 
 #------------------------------------------------------------------------
@@ -151,7 +160,7 @@ CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 
 CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
 
-CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+CFLAGS_MX_VERS  = -DOS_RTEMS -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
 			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
 

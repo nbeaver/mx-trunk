@@ -747,7 +747,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 /*------------------------------ Unsupported ------------------------------*/
 
-#elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_ECOS)
+#elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
+	|| defined(OS_RTEMS)
 
 /* FIXME for OS_MACOSX:
  *        If you have the CHUD package installed on MacOS X, CHUD apparently

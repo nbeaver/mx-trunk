@@ -920,7 +920,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 /************************ Not supported ***********************/
 
-#elif defined(OS_ECOS)
+#elif defined(OS_ECOS) || defined(OS_RTEMS)
 
 MX_EXPORT mx_status_type
 mx_pipe_open( MX_PIPE **mx_pipe )
