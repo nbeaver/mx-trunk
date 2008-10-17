@@ -23,7 +23,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +204,7 @@ mxd_timer_fanout_create_record_structures( MX_RECORD *record )
 			"mxd_timer_fanout_create_record_structures()";
 
 	MX_TIMER *timer;
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -268,7 +268,7 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_is_busy()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	mx_bool_type busy;
@@ -304,7 +304,7 @@ mxd_timer_fanout_start( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_start()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	double seconds_to_count;
@@ -335,7 +335,7 @@ mxd_timer_fanout_stop( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_stop()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	double seconds_left;
@@ -371,7 +371,7 @@ mxd_timer_fanout_clear( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_clear()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	mx_status_type mx_status;
@@ -401,7 +401,7 @@ mxd_timer_fanout_read( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_read()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	double seconds;
@@ -436,7 +436,7 @@ mxd_timer_fanout_get_mode( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_get_mode()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i, mode;
 	mx_bool_type first_time;
@@ -481,7 +481,7 @@ mxd_timer_fanout_set_mode( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_timer_fanout_set_mode()";
 
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i, mode;
 	mx_status_type mx_status;
@@ -522,7 +522,7 @@ mxd_timer_fanout_get_last_measurement_time( MX_TIMER *timer )
 	"_really_ gates the module instead.", timer->record->name,
 					timer->record->name );
 #else
-	MX_TIMER_FANOUT *timer_fanout;
+	MX_TIMER_FANOUT *timer_fanout = NULL;
 	MX_RECORD *child_timer_record;
 	long i;
 	double last_measurement_time, last_measurement_time_sum;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,8 +79,8 @@ mx_ptz_command( MX_RECORD *record, unsigned long command )
 {
 	static const char fname[] = "mx_ptz_command()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -111,8 +111,8 @@ mx_ptz_get_status( MX_RECORD *record, unsigned long *status )
 {
 	static const char fname[] = "mx_ptz_get_status()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *status_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -147,8 +147,8 @@ mx_ptz_get_parameter( MX_RECORD *record,
 {
 	static const char fname[] = "mx_ptz_get_parameter()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -185,8 +185,8 @@ mx_ptz_set_parameter( MX_RECORD *record,
 {
 	static const char fname[] = "mx_ptz_get_parameter()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -299,8 +299,8 @@ mx_ptz_pan_left( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_pan_left()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -330,8 +330,8 @@ mx_ptz_pan_right( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_pan_right()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -361,8 +361,8 @@ mx_ptz_pan_stop( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_pan_stop()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -393,8 +393,8 @@ mx_ptz_get_pan( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_pan()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -429,8 +429,8 @@ mx_ptz_set_pan( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_pan()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -462,8 +462,8 @@ mx_ptz_get_pan_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_pan_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -498,8 +498,8 @@ mx_ptz_set_pan_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_pan_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -532,8 +532,8 @@ mx_ptz_tilt_up( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_tilt_up()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -563,8 +563,8 @@ mx_ptz_tilt_down( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_tilt_down()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -594,8 +594,8 @@ mx_ptz_tilt_stop( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_tilt_stop()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -626,8 +626,8 @@ mx_ptz_get_tilt( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_tilt()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -662,8 +662,8 @@ mx_ptz_set_tilt( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_tilt()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -695,8 +695,8 @@ mx_ptz_get_tilt_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_tilt_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -731,8 +731,8 @@ mx_ptz_set_tilt_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_tilt_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -765,8 +765,8 @@ mx_ptz_zoom_in( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_in()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -796,8 +796,8 @@ mx_ptz_zoom_out( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_out()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -827,8 +827,8 @@ mx_ptz_zoom_stop( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_stop()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -859,8 +859,8 @@ mx_ptz_get_zoom( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_zoom()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -895,8 +895,8 @@ mx_ptz_set_zoom( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_zoom()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -928,8 +928,8 @@ mx_ptz_get_zoom_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_zoom_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -964,8 +964,8 @@ mx_ptz_set_zoom_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_zoom_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -996,8 +996,8 @@ mx_ptz_zoom_off( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_off()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1028,8 +1028,8 @@ mx_ptz_zoom_on( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_off()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1062,8 +1062,8 @@ mx_ptz_focus_manual( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_focus_manual()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1094,8 +1094,8 @@ mx_ptz_focus_auto( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_focus_auto()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1126,8 +1126,8 @@ mx_ptz_focus_far( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_focus_far()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1157,8 +1157,8 @@ mx_ptz_focus_near( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_focus_near()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1188,8 +1188,8 @@ mx_ptz_focus_stop( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_focus_stop()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1220,8 +1220,8 @@ mx_ptz_get_focus( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_focus()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1256,8 +1256,8 @@ mx_ptz_set_focus( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_focus()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1289,8 +1289,8 @@ mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_get_focus_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 
@@ -1325,8 +1325,8 @@ mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
 {
 	static const char fname[] = "mx_ptz_set_focus_speed()";
 
-	MX_PAN_TILT_ZOOM *ptz;
-	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	MX_PAN_TILT_ZOOM *ptz = NULL;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
 	mx_status_type mx_status;
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -118,7 +118,7 @@ mxi_kohzu_sc_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_kohzu_sc_create_record_structures()";
 
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -146,8 +146,8 @@ mxi_kohzu_sc_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_kohzu_sc_open()";
 
-	MX_KOHZU_SC *kohzu_sc;
-	MX_INTERFACE *port_interface;
+	MX_KOHZU_SC *kohzu_sc = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	MX_RS232 *rs232;
 	int i;
 	mx_status_type mx_status;
@@ -238,8 +238,8 @@ mxi_kohzu_sc_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_kohzu_sc_resynchronize()";
 
-	MX_KOHZU_SC *kohzu_sc;
-	MX_INTERFACE *port_interface;
+	MX_KOHZU_SC *kohzu_sc = NULL;
+	MX_INTERFACE *port_interface = NULL;
 	char response[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char token[80];
 	mx_status_type mx_status;
@@ -381,7 +381,7 @@ mxi_kohzu_sc_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -563,7 +563,7 @@ mxi_kohzu_sc_command( MX_KOHZU_SC *kohzu_sc, char *command,
 {
 	static const char fname[] = "mxi_kohzu_sc_command()";
 
-	MX_INTERFACE *port_interface;
+	MX_INTERFACE *port_interface = NULL;
 	char command_buffer[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char response_buffer[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char response_status;

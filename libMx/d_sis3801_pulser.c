@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -120,7 +120,7 @@ mxd_sis3801_pulser_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3801_pulser_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 
 	pulse_generator = (MX_PULSE_GENERATOR *)
 				malloc( sizeof(MX_PULSE_GENERATOR) );
@@ -158,7 +158,7 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3801_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	uint32_t module_id_register, control_register;
 	mx_status_type mx_status;
 
@@ -312,7 +312,7 @@ mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3801_pulser_busy()";
 
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	MX_CLOCK_TICK current_time;
 	mx_status_type mx_status;
 
@@ -374,7 +374,7 @@ mxd_sis3801_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3801_pulser_start()";
 
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	MX_CLOCK_TICK start_time, finish_time, countdown_ticks;
 	double total_countdown_time;
 	mx_status_type mx_status;
@@ -461,7 +461,7 @@ mxd_sis3801_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3801_pulser_stop()";
 
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_pulser_get_pointers( pulse_generator,
@@ -509,7 +509,7 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3801_pulser_get_parameter()";
 
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	uint32_t prescale_factor;
 	mx_status_type mx_status;
 
@@ -585,7 +585,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3801_pulser_set_parameter()";
 
-	MX_SIS3801_PULSER *sis3801_pulser;
+	MX_SIS3801_PULSER *sis3801_pulser = NULL;
 	double maximum_pulse_period;
 	uint32_t prescale_factor, control_register_value;
 	mx_status_type mx_status;

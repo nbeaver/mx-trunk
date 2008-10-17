@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,7 +252,7 @@ mxd_sr570_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_sr570_create_record_structures()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -293,7 +293,7 @@ mxd_sr570_open( MX_RECORD *record )
 	static const char fname[] = "mxd_sr570_open()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	mx_status_type mx_status;
 
 	amplifier = (MX_AMPLIFIER *) (record->record_class_struct);
@@ -438,7 +438,7 @@ mxd_sr570_set_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_set_gain()";
 
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	char command[20];
 	double requested_gain;
 	int mantissa, exponent, sensitivity_setting;
@@ -536,7 +536,7 @@ mxd_sr570_set_offset( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_set_offset()";
 
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	char command[40];
 	double offset_current, abs_offset_current, requested_offset;
 	double max_offset_current, min_offset_current;
@@ -687,7 +687,7 @@ mxd_sr570_set_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_set_time_constant()";
 
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sr570_get_pointers( amplifier, &sr570, fname );
@@ -711,7 +711,7 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_get_parameter()";
 
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sr570_get_pointers( amplifier, &sr570, fname );
@@ -751,7 +751,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sr570_set_parameter()";
 
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	char command[80];
 	int bias_voltage_setting, three_db_point_setting;
 	int mantissa, exponent;
@@ -1123,7 +1123,7 @@ mxd_sr570_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_SR570 *sr570;
+	MX_SR570 *sr570 = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;

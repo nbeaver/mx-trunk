@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -272,7 +272,7 @@ mxi_micro488ex_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_micro488ex_create_record_structures()";
 
 	MX_GPIB *gpib;
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -312,7 +312,7 @@ MX_EXPORT mx_status_type
 mxi_micro488ex_print_interface_structure( FILE *file, MX_RECORD *record )
 {
 	MX_GPIB *gpib;
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char read_eos_char, write_eos_char;
 
 	gpib = (MX_GPIB *) (record->record_class_struct);
@@ -361,7 +361,7 @@ mxi_micro488ex_open( MX_RECORD *record )
 	static const char fname[] = "mxi_micro488ex_open()";
 
 	MX_GPIB *gpib;
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	MX_RS232 *rs232;
 	char command[40];
 	char response[80];
@@ -470,7 +470,7 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_micro488ex_read()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	int debug;
 	unsigned long micro488ex_flags;
 	char command[20];
@@ -537,7 +537,7 @@ mxi_micro488ex_write( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_micro488ex_write()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char prefix[ MX_PREFIX_BUFFER_LENGTH + 1 ];
 	int debug;
 	unsigned long micro488ex_flags;
@@ -601,7 +601,7 @@ mxi_micro488ex_interface_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_micro488ex_interface_clear()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_micro488ex_get_pointers( gpib, &micro488ex, fname );
@@ -619,7 +619,7 @@ mxi_micro488ex_device_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_micro488ex_device_clear()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_micro488ex_get_pointers( gpib, &micro488ex, fname );
@@ -637,7 +637,7 @@ mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_selective_device_clear()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -658,7 +658,7 @@ mxi_micro488ex_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_micro488ex_local_lockout()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_micro488ex_get_pointers( gpib, &micro488ex, fname );
@@ -676,7 +676,7 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_remote_enable()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -701,7 +701,7 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_go_to_local()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -726,7 +726,7 @@ mxi_micro488ex_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_trigger_device()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
@@ -765,7 +765,7 @@ mxi_micro488ex_serial_poll( MX_GPIB *gpib, long address,
 {
 	static const char fname[] = "mxi_micro488ex_serial_poll()";
 
-	MX_MICRO488EX *micro488ex;
+	MX_MICRO488EX *micro488ex = NULL;
 	char command[20];
 	char response[20];
 	unsigned short short_value;

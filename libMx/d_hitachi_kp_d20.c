@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -448,7 +448,7 @@ mxd_hitachi_kp_d20_create_record_structures( MX_RECORD *record )
 			"mxd_hitachi_kp_d20_create_record_structures()";
 
         MX_PAN_TILT_ZOOM *ptz;
-        MX_HITACHI_KP_D20 *hitachi_kp_d20;
+        MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -486,7 +486,7 @@ mxd_hitachi_kp_d20_open( MX_RECORD *record )
 	static const char fname[] = "mxd_hitach_kp_d20_open()";
 
 	MX_PAN_TILT_ZOOM *ptz;
-	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -517,7 +517,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_command()";
 
-	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -569,7 +569,7 @@ mxd_hitachi_kp_d20_get_status( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_get_status()";
 
-	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_get_pointers( ptz,
@@ -592,7 +592,7 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_get_parameter()";
 
-	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 	char command[40];
 	char response[40];
 	char *response_ptr;
@@ -662,7 +662,7 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_set_parameter()";
 
-	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	MX_HITACHI_KP_D20 *hitachi_kp_d20 = NULL;
 	char command[80];
 	mx_status_type mx_status;
 

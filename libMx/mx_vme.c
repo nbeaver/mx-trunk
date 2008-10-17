@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2001-2003, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ mx_vme_finish_record_initialization( MX_RECORD *record )
 {
 	const char fname[] = "mx_vme_finish_record_initialization()";
 
-	MX_VME *vme;
+	MX_VME *vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_vme_get_pointers( record, &vme, NULL, fname );
@@ -105,8 +105,8 @@ mx_vme_in8( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_in8()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -146,8 +146,8 @@ mx_vme_in16( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_in16()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -187,8 +187,8 @@ mx_vme_in32( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_in32()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -228,8 +228,8 @@ mx_vme_out8( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_out8()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	uint8_t local_value;
 	mx_status_type mx_status;
@@ -272,8 +272,8 @@ mx_vme_out16( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_out16()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	uint16_t local_value;
 	mx_status_type mx_status;
@@ -316,8 +316,8 @@ mx_vme_out32( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_out32()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	uint32_t local_value;
 	mx_status_type mx_status;
@@ -362,8 +362,8 @@ mx_vme_multi_in8( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_in8()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -406,8 +406,8 @@ mx_vme_multi_in16( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_in16()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -450,8 +450,8 @@ mx_vme_multi_in32( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_in32()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -494,8 +494,8 @@ mx_vme_multi_out8( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_out8()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -538,8 +538,8 @@ mx_vme_multi_out16( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_out16()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -582,8 +582,8 @@ mx_vme_multi_out32( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_multi_out32()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -622,8 +622,8 @@ mx_vme_get_read_address_increment( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_get_read_address_increment()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -660,8 +660,8 @@ mx_vme_set_read_address_increment( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_set_read_address_increment()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -696,8 +696,8 @@ mx_vme_get_write_address_increment( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_get_write_address_increment()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 
@@ -734,8 +734,8 @@ mx_vme_set_write_address_increment( MX_RECORD *record,
 {
 	const char fname[] = "mx_vme_set_write_address_increment()";
 
-	MX_VME *vme;
-	MX_VME_FUNCTION_LIST *flist;
+	MX_VME *vme = NULL;
+	MX_VME_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *fptr ) ( MX_VME * );
 	mx_status_type mx_status;
 

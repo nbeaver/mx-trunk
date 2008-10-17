@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,7 +134,7 @@ mxd_network_mcs_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_network_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -171,7 +171,7 @@ mxd_network_mcs_finish_record_initialization( MX_RECORD *record )
 		= "mxd_network_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_status_type mx_status;
 
 	mcs = (MX_MCS *) record->record_class_struct;
@@ -263,7 +263,7 @@ mxd_network_mcs_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_network_mcs_print_structure()";
 
 	MX_MCS *mcs;
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -299,7 +299,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 	static const char fname[] = "mxd_network_mcs_open()";
 
 	MX_MCS *mcs;
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	MX_NETWORK_TIMER *network_timer;
 	MX_MCS_TIMER *mcs_timer;
 	MX_RECORD *current_record, *list_head_record;
@@ -428,7 +428,7 @@ mxd_network_mcs_start( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_start()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_bool_type start;
 	mx_status_type mx_status;
 
@@ -449,7 +449,7 @@ mxd_network_mcs_stop( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_stop()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_bool_type stop;
 	mx_status_type mx_status;
 
@@ -470,7 +470,7 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_clear()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_bool_type clear;
 	mx_status_type mx_status;
 
@@ -491,7 +491,7 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_busy()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -545,7 +545,7 @@ mxd_network_mcs_read_scaler( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_read_scaler()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long dimension_array[1];
 	long *data_ptr;
 	mx_status_type mx_status;
@@ -622,7 +622,7 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_read_measurement()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long dimension_array[1];
 	mx_status_type mx_status;
 
@@ -671,7 +671,7 @@ mxd_network_mcs_read_timer( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_read_timer()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long dimension_array[1];
 	mx_status_type mx_status;
 
@@ -714,7 +714,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_get_parameter()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long mode;
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
@@ -803,7 +803,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_set_parameter()";
 
-	MX_NETWORK_MCS *network_mcs;
+	MX_NETWORK_MCS *network_mcs = NULL;
 	long mode;
 	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;

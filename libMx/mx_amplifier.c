@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -82,8 +82,8 @@ mx_amplifier_get_gain( MX_RECORD *amplifier_record, double *gain )
 {
 	static const char fname[] = "mx_amplifier_get_gain()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_gain_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -111,8 +111,8 @@ mx_amplifier_set_gain( MX_RECORD *amplifier_record, double gain )
 {
 	static const char fname[] = "mx_amplifier_set_gain()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_gain_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -138,8 +138,8 @@ mx_amplifier_get_offset( MX_RECORD *amplifier_record, double *offset )
 {
 	static const char fname[] = "mx_amplifier_get_offset()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_offset_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -167,8 +167,8 @@ mx_amplifier_set_offset( MX_RECORD *amplifier_record, double offset )
 {
 	static const char fname[] = "mx_amplifier_set_offset()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_offset_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -195,8 +195,8 @@ mx_amplifier_get_time_constant( MX_RECORD *amplifier_record,
 {
 	static const char fname[] = "mx_amplifier_get_time_constant()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_time_constant_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -225,8 +225,8 @@ mx_amplifier_set_time_constant( MX_RECORD *amplifier_record,
 {
 	static const char fname[] = "mx_amplifier_set_time_constant()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *function_list;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_time_constant_fn ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 
@@ -254,8 +254,8 @@ mx_amplifier_get_parameter( MX_RECORD *amplifier_record, long parameter_type )
 {
 	static const char fname[] = "mx_amplifier_get_parameter()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr = NULL;
 	mx_status_type ( *fptr ) ( MX_AMPLIFIER * );
 	mx_status_type status;
 
@@ -285,8 +285,8 @@ mx_amplifier_set_parameter( MX_RECORD *amplifier_record, long parameter_type )
 {
 	static const char fname[] = "mx_amplifier_set_parameter()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr = NULL;
 	mx_status_type ( *fptr ) ( MX_AMPLIFIER * );
 	mx_status_type status;
 
@@ -371,8 +371,8 @@ mx_amplifier_get_gain_range( MX_RECORD *amplifier_record,
 {
 	static const char fname[] = "mx_amplifier_get_gain_range()";
 
-	MX_AMPLIFIER *amplifier;
-	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr;
+	MX_AMPLIFIER *amplifier = NULL;
+	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr = NULL;
 	mx_status_type ( *fptr ) ( MX_AMPLIFIER * );
 	mx_status_type mx_status;
 

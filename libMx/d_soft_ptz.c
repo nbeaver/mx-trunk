@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -100,7 +100,7 @@ mxd_soft_ptz_create_record_structures( MX_RECORD *record )
 			"mxd_soft_ptz_create_record_structures()";
 
         MX_PAN_TILT_ZOOM *ptz;
-        MX_SOFT_PTZ *soft_ptz;
+        MX_SOFT_PTZ *soft_ptz = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -137,7 +137,7 @@ mxd_soft_ptz_open( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_ptz_open()";
 
 	MX_PAN_TILT_ZOOM *ptz;
-	MX_SOFT_PTZ *soft_ptz;
+	MX_SOFT_PTZ *soft_ptz = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -162,7 +162,7 @@ mxd_soft_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_soft_ptz_command()";
 
-	MX_SOFT_PTZ *soft_ptz;
+	MX_SOFT_PTZ *soft_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_ptz_get_pointers( ptz, &soft_ptz, fname );
@@ -267,7 +267,7 @@ mxd_soft_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_soft_ptz_get_status()";
 
-	MX_SOFT_PTZ *soft_ptz;
+	MX_SOFT_PTZ *soft_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_ptz_get_pointers( ptz, &soft_ptz, fname );
@@ -287,7 +287,7 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_soft_ptz_get_parameter()";
 
-	MX_SOFT_PTZ *soft_ptz;
+	MX_SOFT_PTZ *soft_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_ptz_get_pointers( ptz, &soft_ptz, fname );
@@ -346,7 +346,7 @@ mxd_soft_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_soft_ptz_set_parameter()";
 
-	MX_SOFT_PTZ *soft_ptz;
+	MX_SOFT_PTZ *soft_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_ptz_get_pointers( ptz, &soft_ptz, fname );

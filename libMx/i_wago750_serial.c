@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2007 Illinois Institute of Technology
+ * Copyright 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -339,7 +339,7 @@ mxi_wago750_serial_create_record_structures( MX_RECORD *record )
 		"mxi_wago750_serial_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -378,7 +378,7 @@ mxi_wago750_serial_finish_record_initialization( MX_RECORD *record )
 		"mxi_wago750_serial_finish_record_initialization()";
 
 	MX_RS232 *rs232;
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	mx_status_type status;
 
 	MX_WAGO_DEBUG(("%s invoked.", fname));
@@ -416,12 +416,14 @@ mxi_wago750_serial_open( MX_RECORD *record )
 	static const char fname[] = "mxi_wago750_serial_open()";
 
 	MX_RS232 *rs232;
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	uint8_t status_byte, data_byte_0;
 	long initialization_acknowledge_bit;
 	unsigned long i, wait_ms, max_attempts;
 	double real_max_attempts, actual_timeout;
 	mx_status_type mx_status;
+
+	status_byte = 0;
 
 	MX_WAGO_DEBUG(("*** %s invoked ***", fname));
 
@@ -608,7 +610,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_wago750_serial_getchar()";
 
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	uint16_t input_register_array[3];
 	uint8_t *input_buffer;
 	uint8_t new_control_byte, control_byte, status_byte, data_byte_0;
@@ -874,17 +876,21 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_wago750_serial_write()";
 
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	uint16_t output_buffer[3];
 	uint8_t status_byte, data_byte_0;
 	uint8_t old_control_byte, new_control_byte;
 	char *buffer_ptr;
 	unsigned long i, j, num_full_blocks, num_registers_to_write;
 	unsigned long write_size, final_write_size, real_write_size;
+	unsigned long array_length;
 	long input_buffer_full, transmit_request, transmit_acknowledge;
 	long new_transmit_request, new_transmit_acknowledge;
 	long old_receive_acknowledge;
 	mx_status_type mx_status;
+
+	old_control_byte = 0;
+	status_byte = 0;
 
 	mx_status = mxi_wago750_serial_get_pointers( rs232,
 						&wago750_serial, fname );
@@ -1025,7 +1031,9 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 		 * without lots of if...then...else logic.
 		 */
 
-		for ( j = 0; j < sizeof(output_buffer); j++ ) {
+		array_length = sizeof(output_buffer) / sizeof(output_buffer[0]);
+
+		for ( j = 0; j < array_length; j++ ) {
 			output_buffer[j] = 0;
 		}
 
@@ -1246,7 +1254,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_wago750_serial_num_input_bytes_available()";
 
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	uint8_t status_byte, control_byte, data_byte_0;
 	long receive_request, receive_acknowledge;
 	long num_bytes_available;
@@ -1384,7 +1392,7 @@ mxi_wago750_serial_discard_unread_input( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_wago750_serial_discard_unread_input()";
 
-	MX_WAGO750_SERIAL *wago750_serial;
+	MX_WAGO750_SERIAL *wago750_serial = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_wago750_serial_get_pointers( rs232,

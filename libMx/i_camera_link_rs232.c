@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -190,7 +190,7 @@ mxi_camera_link_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_CAMERA_LINK_RS232 *camera_link_rs232;
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -223,7 +223,7 @@ mxi_camera_link_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_camera_link_rs232_getchar()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	size_t buffer_size;
 	mx_status_type mx_status;
 
@@ -259,7 +259,7 @@ mxi_camera_link_rs232_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_camera_link_rs232_putchar()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	size_t buffer_size;
 	mx_status_type mx_status;
 
@@ -290,7 +290,7 @@ mxi_camera_link_rs232_read( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_camera_link_rs232_read()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	size_t cl_buffer_size;
 	mx_status_type mx_status;
 
@@ -348,7 +348,7 @@ mxi_camera_link_rs232_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_camera_link_rs232_write()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	size_t cl_buffer_size;
 	mx_status_type mx_status;
 
@@ -399,7 +399,7 @@ mxi_camera_link_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_camera_link_rs232_num_input_bytes_available()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	size_t num_bytes_avail;
 	mx_status_type mx_status;
 
@@ -429,7 +429,7 @@ mxi_camera_link_rs232_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_camera_link_rs232_discard_unread_input()";
 
-	MX_RECORD *camera_link_record;
+	MX_RECORD *camera_link_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_camera_link_rs232_get_pointers( rs232,

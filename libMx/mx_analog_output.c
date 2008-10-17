@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,8 +80,8 @@ mx_analog_output_read( MX_RECORD *record, double *value )
 {
 	static const char fname[] = "mx_analog_output_read()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	double raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
@@ -123,8 +123,8 @@ mx_analog_output_write( MX_RECORD *record, double value )
 {
 	static const char fname[] = "mx_analog_output_write()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *write_fn ) ( MX_ANALOG_OUTPUT * );
 	double scale, offset, raw_value;
 	mx_status_type mx_status;
@@ -172,8 +172,8 @@ mx_analog_output_read_raw_long( MX_RECORD *record, long *raw_value )
 {
 	static const char fname[] = "mx_analog_output_read_raw_long()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	long local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
@@ -219,8 +219,8 @@ mx_analog_output_write_raw_long( MX_RECORD *record, long raw_value )
 {
 	static const char fname[] = "mx_analog_output_write_raw_long()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *write_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
 
@@ -265,8 +265,8 @@ mx_analog_output_read_raw_double( MX_RECORD *record, double *raw_value )
 {
 	static const char fname[] = "mx_analog_output_read_raw_double()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	double local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
@@ -312,8 +312,8 @@ mx_analog_output_write_raw_double( MX_RECORD *record, double raw_value )
 {
 	static const char fname[] = "mx_analog_output_write_raw_double()";
 
-	MX_ANALOG_OUTPUT *analog_output;
-	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_OUTPUT *analog_output = NULL;
+	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *write_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
 

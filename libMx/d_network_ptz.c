@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -96,7 +96,7 @@ mxd_network_ptz_create_record_structures( MX_RECORD *record )
 			"mxd_network_ptz_create_record_structures()";
 
         MX_PAN_TILT_ZOOM *ptz;
-        MX_NETWORK_PTZ *network_ptz;
+        MX_NETWORK_PTZ *network_ptz = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -135,7 +135,7 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 		"mxd_network_ptz_finish_record_initialization()";
 
 	MX_PAN_TILT_ZOOM *ptz;
-	MX_NETWORK_PTZ *network_ptz;
+	MX_NETWORK_PTZ *network_ptz = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -226,7 +226,7 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_network_ptz_command()";
 
-	MX_NETWORK_PTZ *network_ptz;
+	MX_NETWORK_PTZ *network_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );
@@ -286,7 +286,7 @@ mxd_network_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_network_ptz_get_status()";
 
-	MX_NETWORK_PTZ *network_ptz;
+	MX_NETWORK_PTZ *network_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );
@@ -309,7 +309,7 @@ mxd_network_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_network_ptz_get_parameter()";
 
-	MX_NETWORK_PTZ *network_ptz;
+	MX_NETWORK_PTZ *network_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );
@@ -370,7 +370,7 @@ mxd_network_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] = "mxd_network_ptz_set_parameter()";
 
-	MX_NETWORK_PTZ *network_ptz;
+	MX_NETWORK_PTZ *network_ptz = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );

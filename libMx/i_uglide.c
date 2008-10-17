@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2007 Illinois Institute of Technology
+ * Copyright 2002, 2005-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -104,7 +104,7 @@ mxi_uglide_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_uglide_create_record_structures()";
 
-	MX_UGLIDE *uglide;
+	MX_UGLIDE *uglide = NULL;
 
 	uglide = (MX_UGLIDE *) malloc( sizeof(MX_UGLIDE) );
 
@@ -133,7 +133,7 @@ mxi_uglide_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_uglide_finish_record_initialization()";
 
-	MX_UGLIDE *uglide;
+	MX_UGLIDE *uglide = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_uglide_get_pointers( record, &uglide, fname );
@@ -166,7 +166,7 @@ mxi_uglide_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_uglide_open()";
 
-	MX_UGLIDE *uglide;
+	MX_UGLIDE *uglide = NULL;
 	char command[80];
 	char response[80];
 	char operation[40];

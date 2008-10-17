@@ -185,7 +185,7 @@ mxd_bkprecision_912x_wvout_create_record_structures( MX_RECORD *record )
 		"mxd_bkprecision_912x_wvout_create_record_structures()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
 
 	wvout = (MX_WAVEFORM_OUTPUT *) malloc( sizeof(MX_WAVEFORM_OUTPUT) );
 
@@ -230,8 +230,8 @@ mxd_bkprecision_912x_wvout_open( MX_RECORD *record )
 	static const char fname[] = "mxd_bkprecision_912x_wvout_open()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	int num_groups;
 	char command[40];
 	char response[40];
@@ -381,8 +381,8 @@ mxd_bkprecision_912x_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_arm()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -464,8 +464,8 @@ mxd_bkprecision_912x_wvout_trigger( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_trigger()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -492,8 +492,8 @@ mxd_bkprecision_912x_wvout_stop( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_stop()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -520,8 +520,8 @@ mxd_bkprecision_912x_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_busy()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bkprecision_912x_wvout_get_pointers( wvout,
@@ -544,8 +544,8 @@ mxd_bkprecision_912x_wvout_wr_all( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_wr_all()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	MX_WAVEFORM_OUTPUT_FUNCTION_LIST *function_list;
 	unsigned long ch;
 	mx_status_type (*write_channel_fn)( MX_WAVEFORM_OUTPUT * );
@@ -609,8 +609,8 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_bkprecision_912x_wvout_read_channel()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	int ch, n, num_items;
 	char command[40];
 	char response[80];
@@ -705,8 +705,8 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] =
 			"mxd_bkprecision_912x_wvout_write_channel()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	MX_RECORD *interface_record;
 	int ch, n, i, num_attempts;
 	char command[40];
@@ -856,8 +856,8 @@ mxd_bkprecision_912x_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] =
 			"mxd_bkprecision_912x_wvout_get_parameter()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	char command[40];
 	char response[80];
 	unsigned long list_unit;
@@ -985,8 +985,8 @@ mxd_bkprecision_912x_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] =
 			"mxd_bkprecision_912x_wvout_set_parameter()";
 
-	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_WVOUT *bkprecision_912x_wvout = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	char command[40];
 	unsigned long list_unit;
 	double step_time;

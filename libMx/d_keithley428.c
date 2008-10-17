@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -141,7 +141,7 @@ mxd_keithley428_create_record_structures( MX_RECORD *record )
 			"mxd_keithley428_create_record_structures()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_KEITHLEY428 *keithley428;
+	MX_KEITHLEY428 *keithley428 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -182,7 +182,7 @@ mxd_keithley428_finish_record_initialization( MX_RECORD *record )
 	static const char fname[]
 		= "mxd_keithley428_finish_record_initialization()";
 
-	MX_KEITHLEY428 *keithley428;
+	MX_KEITHLEY428 *keithley428 = NULL;
 	MX_RECORD *gpib_record;
 	long gpib_address;
 
@@ -224,8 +224,8 @@ mxd_keithley428_open( MX_RECORD *record )
 	static const char fname[] = "mxd_keithley428_open()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	MX_GPIB *gpib;
 	char command[20];
 	unsigned long read_terminator;
@@ -334,8 +334,8 @@ mxd_keithley428_close( MX_RECORD *record )
 	static const char fname[] = "mxd_keithley428_close()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	mx_status_type mx_status;
 
 	amplifier = (MX_AMPLIFIER *) (record->record_class_struct);
@@ -380,8 +380,8 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_get_gain()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char buffer[50];
 	int num_items, gain_setting;
 	mx_bool_type fast_mode;
@@ -432,8 +432,8 @@ mxd_keithley428_set_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_set_gain()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char command[20];
 	double requested_gain, rounded_requested_gain, exponent;
 	int gain_setting;
@@ -504,8 +504,8 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_get_offset()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char response[50];
 	double current_suppress_value;
 	int num_items;
@@ -562,8 +562,8 @@ mxd_keithley428_set_offset( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_set_offset()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char command[40];
 	double current_offset;
 	mx_status_type mx_status;
@@ -618,8 +618,8 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_get_time_constant()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char buffer[50];
 	int num_items, filter_enabled, rise_time_setting;
 	mx_bool_type fast_mode;
@@ -717,8 +717,8 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_keithley428_set_time_constant()";
 
-	MX_KEITHLEY428 *keithley428;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY428 *keithley428 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char command[20];
 	double time_constant;
 	int enable_filter, rise_time_range;

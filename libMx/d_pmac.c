@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -347,7 +347,7 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_move_absolute()";
 
 	MX_PMAC_MOTOR *pmac_motor;
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	char command[20];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -459,7 +459,7 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_set_position()";
 
 	MX_PMAC_MOTOR *pmac_motor;
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	long motor_position_scale_factor;
 	char command[40];
 	char response[40];
@@ -926,7 +926,7 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 	MX_RECORD *pmac_interface_record, *motor_record;
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor;
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	char command_buffer[500];
 	char *ptr;
 	double raw_position;
@@ -1310,7 +1310,7 @@ mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
 {
 	static const char fname[] = "mxd_pmac_jog_command()";
 
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char *ptr;
 	size_t length, buffer_left;
@@ -1350,7 +1350,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 {
 	static const char fname[] = "mxd_pmac_get_motor_variable()";
 
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
@@ -1435,7 +1435,7 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 {
 	static const char fname[] = "mxd_pmac_set_motor_variable()";
 
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char response[100];
 	char *ptr;

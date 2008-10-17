@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,7 +85,7 @@ mx_analog_input_finish_record_initialization( MX_RECORD *analog_input_record )
 	static const char fname[] =
 			"mx_analog_input_finish_record_initialization()";
 
-	MX_ANALOG_INPUT *analog_input;
+	MX_ANALOG_INPUT *analog_input = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_analog_input_get_pointers( analog_input_record,
@@ -139,8 +139,8 @@ mx_analog_input_read( MX_RECORD *record, double *value_ptr )
 {
 	static const char fname[] = "mx_analog_input_read()";
 
-	MX_ANALOG_INPUT *analog_input;
-	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_INPUT *analog_input = NULL;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list = NULL;
 	MX_RECORD *timer_record;
 	double value, raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_INPUT * );
@@ -285,8 +285,8 @@ mx_analog_input_read_raw_long( MX_RECORD *record, long *raw_value )
 {
 	static const char fname[] = "mx_analog_input_read_raw_long()";
 
-	MX_ANALOG_INPUT *analog_input;
-	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_INPUT *analog_input = NULL;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list = NULL;
 	long local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_INPUT * );
 	mx_status_type mx_status;
@@ -332,8 +332,8 @@ mx_analog_input_read_raw_double( MX_RECORD *record, double *raw_value )
 {
 	static const char fname[] = "mx_analog_input_read_raw_double()";
 
-	MX_ANALOG_INPUT *analog_input;
-	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_INPUT *analog_input = NULL;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list = NULL;
 	double local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_INPUT * );
 	mx_status_type mx_status;
@@ -379,8 +379,8 @@ mx_analog_input_get_dark_current( MX_RECORD *record, double *dark_current )
 {
 	static const char fname[] = "mx_analog_input_get_dark_current()";
 
-	MX_ANALOG_INPUT *analog_input;
-	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_INPUT *analog_input = NULL;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *get_dark_current_fn ) ( MX_ANALOG_INPUT * );
 	mx_status_type mx_status;
 
@@ -412,8 +412,8 @@ mx_analog_input_set_dark_current( MX_RECORD *record, double dark_current )
 {
 	static const char fname[] = "mx_analog_input_set_dark_current()";
 
-	MX_ANALOG_INPUT *analog_input;
-	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	MX_ANALOG_INPUT *analog_input = NULL;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list = NULL;
 	mx_status_type ( *set_dark_current_fn ) ( MX_ANALOG_INPUT * );
 	mx_status_type mx_status;
 

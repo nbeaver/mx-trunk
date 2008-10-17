@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -143,7 +143,7 @@ mxd_mardtb_motor_create_record_structures( MX_RECORD *record )
 			= "mxd_mardtb_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_MARDTB_MOTOR *mardtb_motor;
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -188,7 +188,7 @@ mxd_mardtb_motor_finish_record_initialization( MX_RECORD *record )
 		= "mxd_mardtb_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_MARDTB_MOTOR *mardtb_motor;
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -231,7 +231,7 @@ mxd_mardtb_motor_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_mardtb_motor_resynchronize()";
 
 	MX_MOTOR *motor;
-	MX_MARDTB *mardtb;
+	MX_MARDTB *mardtb = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -295,8 +295,8 @@ mxd_mardtb_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_mardtb_motor_move_absolute()";
 
-	MX_MARDTB_MOTOR *mardtb_motor;
-	MX_MARDTB *mardtb;
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
+	MX_MARDTB *mardtb = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -350,8 +350,8 @@ mxd_mardtb_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_mardtb_motor_soft_abort()";
 
-	MX_MARDTB_MOTOR *mardtb_motor;
-	MX_MARDTB *mardtb;
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
+	MX_MARDTB *mardtb = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -382,8 +382,8 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_mardtb_motor_get_extended_status()";
 
-	MX_MARDTB_MOTOR *mardtb_motor;
-	MX_MARDTB *mardtb;
+	MX_MARDTB_MOTOR *mardtb_motor = NULL;
+	MX_MARDTB *mardtb = NULL;
 	char command[80];
 	char response[100];
 	char statusword[80];

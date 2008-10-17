@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -283,7 +283,7 @@ mxd_picomotor_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_picomotor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_PICOMOTOR *picomotor;
+	MX_PICOMOTOR *picomotor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -330,8 +330,8 @@ mxd_picomotor_finish_record_initialization( MX_RECORD *record )
 		"mxd_picomotor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
-	MX_PICOMOTOR *picomotor;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
+	MX_PICOMOTOR *picomotor = NULL;
 	int num_items;
 	mx_status_type mx_status;
 
@@ -392,8 +392,8 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_picomotor_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	double position, move_deadband, speed;
 	long driver_number;
 	mx_status_type mx_status;
@@ -486,8 +486,8 @@ mxd_picomotor_open( MX_RECORD *record )
 	static const char fname[] = "mxd_picomotor_open()";
 
 	MX_MOTOR *motor;
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	long driver_number, driver_type;
 	mx_status_type mx_status;
 
@@ -525,7 +525,7 @@ mxd_picomotor_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_picomotor_resynchronize()";
 
-	MX_PICOMOTOR *picomotor;
+	MX_PICOMOTOR *picomotor = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -554,8 +554,8 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_move_absolute()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	long position_change;
 	long driver_type;
@@ -635,8 +635,8 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_get_position()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	long motor_steps;
@@ -723,8 +723,8 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_set_position()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[100];
 	long position_difference;
 	long driver_type;
@@ -801,8 +801,8 @@ mxd_picomotor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_soft_abort()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -825,8 +825,8 @@ mxd_picomotor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_immediate_abort()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -849,8 +849,8 @@ mxd_picomotor_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_find_home_position()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -890,8 +890,8 @@ mxd_picomotor_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_constant_velocity_move()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -921,8 +921,8 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_get_parameter()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char *ptr;
@@ -1085,8 +1085,8 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_set_parameter()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	unsigned long ulong_value;
 	long driver_type;
@@ -1220,8 +1220,8 @@ mxd_picomotor_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_picomotor_get_status()";
 
-	MX_PICOMOTOR *picomotor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	MX_PICOMOTOR *picomotor = NULL;
+	MX_PICOMOTOR_CONTROLLER *picomotor_controller = NULL;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char *ptr;

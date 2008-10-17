@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -212,7 +212,7 @@ mxi_vp9000_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_vp9000_create_record_structures()";
 
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	MX_VP9000 *vp9000;
 
 	/* Allocate memory for the necessary structures. */
@@ -270,7 +270,7 @@ mxi_vp9000_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_vp9000_open()";
 
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	MX_VP9000 *vp9000;
 	MX_RECORD *rs232_record;
 	MX_RS232 *rs232;
@@ -451,7 +451,7 @@ mxi_vp9000_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_vp9000_close()";
 
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	MX_VP9000 *vp9000;
 	mx_status_type status;
 
@@ -664,7 +664,7 @@ mxi_vp9000_command( MX_VP9000 *vp9000, long controller_number,
 {
 	static const char fname[] = "mxi_vp9000_command()";
 
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	unsigned long sleep_ms;
 	int i, max_attempts;
 	mx_status_type status;
@@ -931,7 +931,7 @@ MX_EXPORT mx_status_type
 mxi_vp9000_getc( MX_VP9000 *vp9000, long controller_number,
 			char *c, int debug_flag )
 {
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	mx_status_type status;
 
 	generic = (MX_GENERIC *) vp9000->record->record_class_struct;
@@ -953,7 +953,7 @@ MX_EXPORT mx_status_type
 mxi_vp9000_putc( MX_VP9000 *vp9000, long controller_number,
 			char c, int debug_flag )
 {
-	MX_GENERIC *generic;
+	MX_GENERIC *generic = NULL;
 	mx_status_type status;
 
 	generic = (MX_GENERIC *) vp9000->record->record_class_struct;

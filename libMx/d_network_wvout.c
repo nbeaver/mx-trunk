@@ -126,7 +126,7 @@ mxd_network_wvout_create_record_structures( MX_RECORD *record )
 		"mxd_network_wvout_create_record_structures()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 
 	wvout = (MX_WAVEFORM_OUTPUT *) malloc( sizeof(MX_WAVEFORM_OUTPUT) );
 
@@ -162,7 +162,7 @@ mxd_network_wvout_finish_record_initialization( MX_RECORD *record )
 			"mxd_network_wvout_finish_record_initialization()";
 
 	MX_WAVEFORM_OUTPUT *wvout;
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -238,7 +238,7 @@ mxd_network_wvout_arm( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_arm()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,
@@ -264,7 +264,7 @@ mxd_network_wvout_trigger( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_trigger()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,
@@ -290,7 +290,7 @@ mxd_network_wvout_stop( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_stop()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,
@@ -316,7 +316,7 @@ mxd_network_wvout_busy( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_busy()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,
@@ -343,7 +343,7 @@ mxd_network_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_read_channel()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	long dimension_array[1];
 	long ch;
 	mx_status_type mx_status;
@@ -395,7 +395,7 @@ mxd_network_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 {
 	static const char fname[] = "mxd_network_wvout_write_channel()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	long dimension_array[1];
 	long ch;
 	mx_status_type mx_status;
@@ -440,7 +440,7 @@ mxd_network_wvout_get_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] =
 			"mxd_network_wvout_get_parameter()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,
@@ -490,7 +490,7 @@ mxd_network_wvout_set_parameter( MX_WAVEFORM_OUTPUT *wvout )
 	static const char fname[] =
 			"mxd_network_wvout_set_parameter()";
 
-	MX_NETWORK_WVOUT *network_wvout;
+	MX_NETWORK_WVOUT *network_wvout = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_wvout_get_pointers( wvout,

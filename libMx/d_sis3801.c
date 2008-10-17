@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -155,7 +155,7 @@ mxd_sis3801_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3801_create_record_structures()";
 
 	MX_MCS *mcs;
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 
 	mcs = (MX_MCS *) malloc( sizeof(MX_MCS) );
 
@@ -198,7 +198,7 @@ mxd_sis3801_open( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3801_open()";
 
 	MX_MCS *mcs;
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	uint32_t module_id_register, control_register, status_register;
 	mx_status_type mx_status;
 
@@ -393,7 +393,7 @@ mxd_sis3801_close( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3801_close()";
 
 	MX_MCS *mcs;
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -430,7 +430,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_start()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	MX_CLOCK_TICK start_time, finish_time, measurement_ticks;
 	double total_measurement_time, maximum_measurement_time;
 	double pulse_period, clock_frequency;
@@ -714,7 +714,7 @@ mxd_sis3801_stop( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_stop()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_get_pointers( mcs, &sis3801, fname );
@@ -760,7 +760,7 @@ mxd_sis3801_clear( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_clear()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	unsigned long i, j;
 	mx_status_type mx_status;
 
@@ -802,7 +802,7 @@ mxd_sis3801_busy( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_busy()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	MX_CLOCK_TICK current_time;
 	mx_status_type mx_status;
 
@@ -855,7 +855,7 @@ mxd_sis3801_read_all( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_read_all()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	long i, j, num_measurements;
 	uint32_t fifo_value, status_register;
 	mx_status_type mx_status;
@@ -1010,7 +1010,7 @@ mxd_sis3801_read_measurement( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_read_measurement()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	unsigned long i, j;
 	mx_status_type mx_status;
 
@@ -1046,7 +1046,7 @@ mxd_sis3801_get_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_get_parameter()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_get_pointers( mcs, &sis3801, fname );
@@ -1085,7 +1085,7 @@ mxd_sis3801_set_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_sis3801_set_parameter()";
 
-	MX_SIS3801 *sis3801;
+	MX_SIS3801 *sis3801 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_get_pointers( mcs, &sis3801, fname );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -150,7 +150,7 @@ mxd_phidget_old_stepper_create_record_structures( MX_RECORD *record )
 		"mxd_phidget_old_stepper_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -205,7 +205,7 @@ mxd_phidget_old_stepper_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_phidget_old_stepper_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -273,7 +273,7 @@ mxd_phidget_old_stepper_open( MX_RECORD *record )
 	static const char fname[] = "mxd_phidget_old_stepper_open()";
 
 	MX_MOTOR *motor;
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
 	double raw_acceleration_parameters[ MX_MOTOR_NUM_ACCELERATION_PARAMS ];
 	mx_status_type mx_status;
 
@@ -320,7 +320,7 @@ mxd_phidget_old_stepper_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_phidget_old_stepper_resynchronize()";
 
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -347,8 +347,9 @@ mxd_phidget_old_stepper_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_phidget_old_stepper_move_absolute()";
 
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
-	MX_PHIDGET_OLD_STEPPER_CONTROLLER *phidget_old_stepper_controller;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
+	MX_PHIDGET_OLD_STEPPER_CONTROLLER
+				*phidget_old_stepper_controller = NULL;
 	long destination;
 	unsigned long speed, acceleration;
 	char buffer[100];
@@ -408,7 +409,7 @@ mxd_phidget_old_stepper_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_phidget_old_stepper_soft_abort()";
 
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_phidget_old_stepper_get_pointers( motor,
@@ -439,8 +440,10 @@ mxd_phidget_old_stepper_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] =
 		"mxd_phidget_old_stepper_get_extended_status()";
 
-	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper;
-	MX_PHIDGET_OLD_STEPPER_CONTROLLER *phidget_old_stepper_controller;
+	MX_PHIDGET_OLD_STEPPER *phidget_old_stepper = NULL;
+	MX_PHIDGET_OLD_STEPPER_CONTROLLER
+			*phidget_old_stepper_controller = NULL;
+
 	long first_motor_position, second_motor_position;
 	char buffer[100];
 	int num_bytes_read, base;

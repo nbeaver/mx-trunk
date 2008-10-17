@@ -87,7 +87,7 @@ mxp_custom_open( MX_PLOT *plot )
 {
 	static const char fname[] = "mxp_custom_open()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*open_fn)( MX_PLOT * );
 	mx_status_type mx_status;
 
@@ -119,7 +119,7 @@ mxp_custom_close( MX_PLOT *plot )
 {
 	static const char fname[] = "mxp_custom_close()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*close_fn)( MX_PLOT * );
 	mx_status_type mx_status;
 
@@ -151,7 +151,7 @@ mxp_custom_add_measurement_to_plot_buffer( MX_PLOT *plot )
 	static const char fname[] =
 		"mxp_custom_add_measurement_to_plot_buffer()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*add_measurement_to_plot_buffer_fn)( MX_PLOT * );
 	mx_status_type mx_status;
 
@@ -181,7 +181,7 @@ mxp_custom_add_array_to_plot_buffer( MX_PLOT *plot,
 {
 	static const char fname[] = "mxp_custom_add_array_to_plot_buffer()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*add_array_to_plot_buffer_fn)( MX_PLOT *,
 						long, long, void *,
 						long, long, void * );
@@ -212,7 +212,7 @@ mxp_custom_display_plot( MX_PLOT *plot )
 {
 	static const char fname[] = "mxp_custom_display_plot()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*display_plot_fn)( MX_PLOT * );
 	mx_status_type mx_status;
 
@@ -239,7 +239,7 @@ mxp_custom_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
 	static const char fname[] = "mxp_custom_set_x_range()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*set_x_range_fn)( MX_PLOT *, double, double );
 	mx_status_type mx_status;
 
@@ -266,7 +266,7 @@ mxp_custom_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
 	static const char fname[] = "mxp_custom_set_y_range()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*set_y_range_fn)( MX_PLOT *, double, double );
 	mx_status_type mx_status;
 
@@ -293,7 +293,7 @@ mxp_custom_start_plot_section( MX_PLOT *plot )
 {
 	static const char fname[] = "mxp_custom_start_plot_section()";
 
-	MX_PLOT_FUNCTION_LIST *flist;
+	MX_PLOT_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*start_plot_section_fn)( MX_PLOT * );
 	mx_status_type mx_status;
 

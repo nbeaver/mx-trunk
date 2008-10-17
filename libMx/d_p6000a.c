@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -113,7 +113,7 @@ mxd_p6000a_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_p6000a_create_record_structures()";
 
 	MX_ANALOG_INPUT *ainput;
-	MX_P6000A *p6000a;
+	MX_P6000A *p6000a = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -151,7 +151,7 @@ mxd_p6000a_open( MX_RECORD *record )
 	static const char fname[] = "mxd_p6000a_open()";
 
 	MX_ANALOG_INPUT *ainput;
-	MX_P6000A *p6000a;
+	MX_P6000A *p6000a = NULL;
 	mx_status_type mx_status;
 
 	ainput = (MX_ANALOG_INPUT *) (record->record_class_struct);
@@ -206,7 +206,7 @@ mxd_p6000a_close( MX_RECORD *record )
 	static const char fname[] = "mxd_p6000a_close()";
 
 	MX_ANALOG_INPUT *ainput;
-	MX_P6000A *p6000a;
+	MX_P6000A *p6000a = NULL;
 	mx_status_type mx_status;
 
 	ainput = (MX_ANALOG_INPUT *) (record->record_class_struct);
@@ -235,7 +235,7 @@ mxd_p6000a_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_p6000a_read()";
 
-	MX_P6000A *p6000a;
+	MX_P6000A *p6000a = NULL;
 	char message_buffer[80];
 	char *value_ptr;
 	int num_items;

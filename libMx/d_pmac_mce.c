@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -136,7 +136,7 @@ mxd_pmac_mce_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_pmac_mce_create_record_structures()";
 
 	MX_MCE *mce;
-	MX_PMAC_MCE *pmac_mce;
+	MX_PMAC_MCE *pmac_mce = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -174,8 +174,8 @@ mxd_pmac_mce_finish_record_initialization( MX_RECORD *record )
 
 	MX_RECORD *list_head_record, *current_record, *real_motor_record;
 	MX_MCE *mce;
-	MX_PMAC_MCE *pmac_mce;
-	MX_MCS *mcs;
+	MX_PMAC_MCE *pmac_mce = NULL;
+	MX_MCS *mcs = NULL;
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor;
 	int is_a_motor;
@@ -350,8 +350,8 @@ mxd_pmac_mce_read( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_pmac_mce_read()";
 
-	MX_PMAC_MCE *pmac_mce;
-	MX_MCS *mcs;
+	MX_PMAC_MCE *pmac_mce = NULL;
+	MX_MCS *mcs = NULL;
 	MX_MOTOR *selected_motor;
 	double motor_scale, raw_encoder_value, scaled_encoder_value;
 	long i;
@@ -443,8 +443,8 @@ mxd_pmac_mce_get_current_num_values( MX_MCE *mce )
 {
 	static const char fname[] = "mxd_pmac_mce_get_current_num_values()";
 
-	MX_PMAC_MCE *pmac_mce;
-	MX_MCS *mcs;
+	MX_PMAC_MCE *pmac_mce = NULL;
+	MX_MCS *mcs = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_mce_get_pointers( mce,
@@ -468,7 +468,7 @@ mxd_pmac_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 {
 	static const char fname[] = "mxd_pmac_mce_connect_mce_to_motor()";
 
-	MX_PMAC_MCE *pmac_mce;
+	MX_PMAC_MCE *pmac_mce = NULL;
 	MX_RECORD *pmac_interface_record;
 	MX_PMAC *pmac;
 	MX_PMAC_MOTOR *pmac_motor;

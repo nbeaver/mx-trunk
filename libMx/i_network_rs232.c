@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -115,7 +115,7 @@ mxi_network_rs232_create_record_structures( MX_RECORD *record )
 		"mxi_network_rs232_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -152,7 +152,7 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 		"mxi_network_rs232_finish_record_initialization()";
 
 	MX_RS232 *rs232;
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -237,7 +237,7 @@ mxi_network_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_network_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	MX_RECORD *server_record;
 	MX_NETWORK_SERVER *server;
 	unsigned long remote_mx_version;
@@ -459,7 +459,7 @@ mxi_network_rs232_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_network_rs232_resynchronize()";
 
 	MX_RS232 *rs232;
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
@@ -493,7 +493,7 @@ mxi_network_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_network_rs232_getchar()";
 
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	int int_c, datatype;
 	mx_status_type mx_status;
 
@@ -537,7 +537,7 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_network_rs232_putchar()";
 
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	int int_c, datatype;
 	mx_status_type mx_status;
 
@@ -574,7 +574,7 @@ mxi_network_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_network_rs232_num_input_bytes_available()";
 
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_rs232_get_pointers( rs232,
@@ -594,7 +594,7 @@ mxi_network_rs232_discard_unread_input( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_network_rs232_discard_unread_input()";
 
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	mx_bool_type discard_unread_input;
 	mx_status_type mx_status;
 
@@ -618,7 +618,7 @@ mxi_network_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_network_rs232_discard_unwritten_output()";
 
-	MX_NETWORK_RS232 *network_rs232;
+	MX_NETWORK_RS232 *network_rs232 = NULL;
 	mx_bool_type discard_unwritten_output;
 	mx_status_type mx_status;
 

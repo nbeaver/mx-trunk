@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -307,7 +307,7 @@ mxi_mmap_vme_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_mmap_vme_create_record_structures()";
 
 	MX_VME *vme;
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -360,7 +360,7 @@ mxi_mmap_vme_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxi_mmap_vme_print_structure()";
 
 	MX_VME *vme;
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -389,7 +389,7 @@ mxi_mmap_vme_open( MX_RECORD *record )
 	static const char fname[] = "mxi_mmap_vme_open()";
 
 	MX_VME *vme;
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	size_t system_page_size;
 	int saved_errno;
 	mx_status_type mx_status;
@@ -517,7 +517,7 @@ mxi_mmap_vme_close( MX_RECORD *record )
 	static const char fname[] = "mxi_mmap_vme_close()";
 
 	MX_VME *vme;
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	int status, saved_errno;
 	unsigned long i;
 	mx_status_type mx_status;
@@ -656,7 +656,7 @@ mxi_mmap_vme_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_input()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	void *vme_local_address;
 	uint8_t *uint8_input_ptr;
 	uint16_t *uint16_input_ptr;
@@ -714,7 +714,7 @@ mxi_mmap_vme_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_output()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	void *vme_local_address;
 	uint8_t *uint8_output_ptr;
 	uint16_t *uint16_output_ptr;
@@ -772,7 +772,7 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_multi_input()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	unsigned long i;
 
 	/* We need the void pointer so that it can be cast to other
@@ -863,7 +863,7 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_multi_output()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	unsigned long i;
 
 	/* We need the void pointer so that it can be cast to other
@@ -954,7 +954,7 @@ mxi_mmap_vme_get_parameter( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_get_parameter()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );
@@ -995,7 +995,7 @@ mxi_mmap_vme_set_parameter( MX_VME *vme )
 {
 	static const char fname[] = "mxi_mmap_vme_set_parameter()";
 
-	MX_MMAP_VME *mmap_vme;
+	MX_MMAP_VME *mmap_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );

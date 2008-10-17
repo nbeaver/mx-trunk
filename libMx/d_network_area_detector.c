@@ -136,7 +136,7 @@ mxd_network_area_detector_create_record_structures( MX_RECORD *record )
 		"mxd_network_area_detector_create_record_structures()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 
 	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
 
@@ -177,7 +177,7 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		"mxd_network_area_detector_finish_record_initialization()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -524,7 +524,7 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	static const char fname[] = "mxd_network_area_detector_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -693,7 +693,7 @@ mxd_network_area_detector_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_network_area_detector_resynchronize()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
@@ -729,7 +729,7 @@ mxd_network_area_detector_arm( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_arm()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -756,7 +756,7 @@ mxd_network_area_detector_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_trigger()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -783,7 +783,7 @@ mxd_network_area_detector_stop( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_stop()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -810,7 +810,7 @@ mxd_network_area_detector_abort( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_abort()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -838,7 +838,7 @@ mxd_network_area_detector_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mxd_network_area_detector_get_last_frame_number()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -866,7 +866,7 @@ mxd_network_area_detector_get_total_num_frames( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mxd_network_area_detector_get_total_num_frames()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -893,7 +893,7 @@ mxd_network_area_detector_get_status( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_get_status()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -921,7 +921,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 			"mxd_network_area_detector_get_extended_status()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	int num_items;
 	mx_status_type mx_status;
@@ -978,7 +978,7 @@ mxd_network_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_readout_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -1008,7 +1008,7 @@ mxd_network_area_detector_correct_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_correct_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -1036,7 +1036,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 			"mxd_network_area_detector_transfer_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	MX_IMAGE_FRAME *destination_frame;
 	unsigned long local_frame_header_length, remote_frame_header_length;
 	long dimension[1];
@@ -1241,7 +1241,7 @@ mxd_network_area_detector_load_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_load_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1280,7 +1280,7 @@ mxd_network_area_detector_save_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_save_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1319,7 +1319,7 @@ mxd_network_area_detector_copy_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_copy_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1348,7 +1348,7 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_get_roi_frame()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	MX_IMAGE_FRAME *roi_frame;
 	long dimension[1];
 	mx_status_type mx_status;
@@ -1462,7 +1462,7 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_get_parameter()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1709,7 +1709,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_network_area_detector_set_parameter()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -1925,7 +1925,7 @@ mxd_network_area_detector_measure_correction( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mxd_network_area_detector_measure_correction()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	mx_status_type mx_status;
 
 	network_area_detector = NULL;
@@ -1989,7 +1989,7 @@ mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mxd_network_area_detector_start_exposure()";
 
-	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
 	mx_status_type mx_status;
 

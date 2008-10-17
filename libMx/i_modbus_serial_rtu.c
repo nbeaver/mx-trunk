@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -197,7 +197,7 @@ mxi_modbus_serial_rtu_create_record_structures( MX_RECORD *record )
 		"mxi_modbus_serial_rtu_create_record_structures()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
+	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -235,7 +235,7 @@ mxi_modbus_serial_rtu_open( MX_RECORD *record )
 	static const char fname[] = "mxi_modbus_serial_rtu_open()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
+	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -266,7 +266,7 @@ mxi_modbus_serial_rtu_send_request( MX_MODBUS *modbus )
 {
 	static const char fname[] = "mxi_modbus_serial_rtu_send_request()";
 
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
+	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
 	uint8_t crc_low_byte, crc_high_byte;
 	uint8_t *ptr;
 	mx_status_type mx_status;
@@ -318,7 +318,7 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 {
 	static const char fname[] = "mxi_modbus_serial_rtu_receive_response()";
 
-	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
+	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu = NULL;
 	size_t response_length, bytes_to_read;
 	uint8_t response_address;
 	uint8_t *message_ptr;

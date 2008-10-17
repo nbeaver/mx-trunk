@@ -218,7 +218,7 @@ mxd_bkprecision_912x_ain_create_record_structures( MX_RECORD *record )
 		"mxd_bkprecision_912x_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
-        MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput;
+        MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -260,7 +260,7 @@ mxd_bkprecision_912x_ain_open( MX_RECORD *record )
 	static const char fname[] = "mxd_bkprecision_912x_ain_open()";
 
 	MX_ANALOG_INPUT *ainput;
-	MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput;
+	MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -322,8 +322,8 @@ mxd_bkprecision_912x_ain_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_bkprecision_912x_ain_read()";
 
-	MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_AINPUT *bkprecision_912x_ainput = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	int num_items;
 	char response[40];
 	mx_status_type mx_status;
@@ -397,7 +397,7 @@ mxd_bkprecision_912x_aout_create_record_structures( MX_RECORD *record )
 		"mxd_bkprecision_912x_aout_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
-        MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput;
+        MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -440,7 +440,7 @@ mxd_bkprecision_912x_aout_open( MX_RECORD *record )
 	static const char fname[] = "mxd_bkprecision_912x_aout_open()";
 
 	MX_ANALOG_OUTPUT *aoutput;
-	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput;
+	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -485,8 +485,8 @@ mxd_bkprecision_912x_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_bkprecision_912x_aout_read()";
 
-	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	int num_items;
 	char response[40];
 	mx_status_type mx_status;
@@ -535,8 +535,8 @@ mxd_bkprecision_912x_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_bkprecision_912x_aout_write()";
 
-	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput;
-	MX_BKPRECISION_912X *bkprecision_912x;
+	MX_BKPRECISION_912X_AOUTPUT *bkprecision_912x_aoutput = NULL;
+	MX_BKPRECISION_912X *bkprecision_912x = NULL;
 	char command[40];
 	mx_status_type mx_status;
 

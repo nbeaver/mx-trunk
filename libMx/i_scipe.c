@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,7 +125,7 @@ mxi_scipe_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_scipe_create_record_structures()";
 
 	MX_GENERIC *generic;
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -165,7 +165,7 @@ mxi_scipe_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_scipe_delete_record( MX_RECORD *record )
 {
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 
         if ( record == NULL ) {
                 return MX_SUCCESSFUL_RESULT;
@@ -203,7 +203,7 @@ mxi_scipe_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_scipe_open()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	MX_RS232 *rs232;
 	mx_status_type status;
 
@@ -260,7 +260,7 @@ mxi_scipe_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_scipe_close()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -289,7 +289,7 @@ mxi_scipe_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_scipe_resynchronize()";
 
 	MX_GENERIC *generic;
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	char site_name[80], scipe_name[80];
 	char response[80];
 	char *result_ptr;
@@ -384,7 +384,7 @@ mxi_scipe_getchar( MX_GENERIC *generic, char *c, int flags )
 {
 	static const char fname[] = "mxi_scipe_getchar()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -404,7 +404,7 @@ mxi_scipe_putchar( MX_GENERIC *generic, char c, int flags )
 {
 	static const char fname[] = "mxi_scipe_putchar()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -424,7 +424,7 @@ mxi_scipe_read( MX_GENERIC *generic, void *buffer, size_t count )
 {
 	static const char fname[] = "mxi_scipe_read()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -444,7 +444,7 @@ mxi_scipe_write( MX_GENERIC *generic, void *buffer, size_t count )
 {
 	static const char fname[] = "mxi_scipe_write()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -465,7 +465,7 @@ mxi_scipe_num_input_bytes_available( MX_GENERIC *generic,
 {
 	static const char fname[] = "mxi_scipe_num_input_bytes_available()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -486,7 +486,7 @@ mxi_scipe_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 {
 	static const char fname[] = "mxi_scipe_discard_unread_input()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,
@@ -507,7 +507,7 @@ mxi_scipe_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 {
 	static const char fname[] = "mxi_scipe_discard_unwritten_output()";
 
-	MX_SCIPE_SERVER *scipe_server;
+	MX_SCIPE_SERVER *scipe_server = NULL;
 	mx_status_type status;
 
 	status = mxi_scipe_get_pointers( generic,

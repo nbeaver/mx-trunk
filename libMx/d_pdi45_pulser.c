@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -128,7 +128,7 @@ mxd_pdi45_pulser_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_pdi45_pulser_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_PDI45_PULSER *pdi45_pulser;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
 
 	pulse_generator = (MX_PULSE_GENERATOR *)
 				malloc( sizeof(MX_PULSE_GENERATOR) );
@@ -166,8 +166,8 @@ mxd_pdi45_pulser_open( MX_RECORD *record )
 	static const char fname[] = "mxd_pdi45_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -199,8 +199,8 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_pdi45_pulser_is_busy()";
 
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	char command[80];
 	char response[80];
 	int num_items, pulser_on;
@@ -246,8 +246,8 @@ mxd_pdi45_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_pdi45_pulser_start()";
 
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -271,8 +271,8 @@ mxd_pdi45_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_pdi45_pulser_stop()";
 
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -296,8 +296,8 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_pdi45_pulser_get_parameter()";
 
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	char command[80];
 	char response[80];
 	int num_items;
@@ -353,8 +353,8 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_pdi45_pulser_set_parameter()";
 
-	MX_PDI45_PULSER *pdi45_pulser;
-	MX_PDI45 *pdi45;
+	MX_PDI45_PULSER *pdi45_pulser = NULL;
+	MX_PDI45 *pdi45 = NULL;
 	char command[80];
 	long hex_value;
 	mx_status_type mx_status;

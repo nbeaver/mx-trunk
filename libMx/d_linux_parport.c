@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -194,7 +194,8 @@ mxd_linux_parport_out_get_pointers( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mxd_linux_parport_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_linux_parport_in_create_record_structures()";
+        static const char fname[] =
+		"mxd_linux_parport_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_LINUX_PARPORT_IN *linux_parport_in;
@@ -232,7 +233,7 @@ mxd_linux_parport_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_linux_parport_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] =
+        static const char fname[] =
 		"mxd_linux_parport_in_finish_record_initialization()";
 
         MX_LINUX_PARPORT_IN *linux_parport_in;
@@ -291,10 +292,10 @@ mxd_linux_parport_in_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_linux_parport_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_linux_parport_in_read()";
+	static const char fname[] = "mxd_linux_parport_in_read()";
 
-	MX_LINUX_PARPORT_IN *linux_parport_in;
-	MX_LINUX_PARPORT *linux_parport;
+	MX_LINUX_PARPORT_IN *linux_parport_in = NULL;
+	MX_LINUX_PARPORT *linux_parport = NULL;
 	uint8_t value;
 	mx_status_type mx_status;
 
@@ -326,10 +327,11 @@ mxd_linux_parport_in_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_linux_parport_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_linux_parport_out_create_record_structures()";
+        static const char fname[] =
+		"mxd_linux_parport_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
-        MX_LINUX_PARPORT_OUT *linux_parport_out;
+        MX_LINUX_PARPORT_OUT *linux_parport_out = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -364,10 +366,10 @@ mxd_linux_parport_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_linux_parport_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] =
+        static const char fname[] =
 		"mxd_linux_parport_out_finish_record_initialization()";
 
-        MX_LINUX_PARPORT_OUT *linux_parport_out;
+        MX_LINUX_PARPORT_OUT *linux_parport_out = NULL;
 	int i, length, record_matches;
 
         linux_parport_out = (MX_LINUX_PARPORT_OUT *) record->record_type_struct;
@@ -423,10 +425,10 @@ mxd_linux_parport_out_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_linux_parport_out_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_linux_parport_out_read()";
+	static const char fname[] = "mxd_linux_parport_out_read()";
 
-	MX_LINUX_PARPORT_OUT *linux_parport_out;
-	MX_LINUX_PARPORT *linux_parport;
+	MX_LINUX_PARPORT_OUT *linux_parport_out = NULL;
+	MX_LINUX_PARPORT *linux_parport = NULL;
 	uint8_t value;
 	mx_status_type mx_status;
 
@@ -451,10 +453,10 @@ mxd_linux_parport_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_linux_parport_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_linux_parport_out_write()";
+	static const char fname[] = "mxd_linux_parport_out_write()";
 
-	MX_LINUX_PARPORT_OUT *linux_parport_out;
-	MX_LINUX_PARPORT *linux_parport;
+	MX_LINUX_PARPORT_OUT *linux_parport_out = NULL;
+	MX_LINUX_PARPORT *linux_parport = NULL;
 	uint8_t value;
 	mx_status_type mx_status;
 

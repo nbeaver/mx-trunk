@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,7 +111,7 @@ mxi_soft_rs232_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_soft_rs232_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -147,7 +147,7 @@ mxi_soft_rs232_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxi_soft_rs232_finish_record_initialization()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -180,7 +180,7 @@ mxi_soft_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_soft_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -212,7 +212,7 @@ mxi_soft_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_soft_rs232_getchar()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_soft_rs232_get_pointers( rs232, &soft_rs232, fname );
@@ -263,7 +263,7 @@ mxi_soft_rs232_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_soft_rs232_putchar()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 #if MXI_SOFT_RS232_DEBUG
@@ -309,7 +309,7 @@ mxi_soft_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_soft_rs232_num_input_bytes_available()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_soft_rs232_get_pointers( rs232, &soft_rs232, fname );
@@ -331,7 +331,7 @@ mxi_soft_rs232_discard_unread_input( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_soft_rs232_discard_unread_input()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_soft_rs232_get_pointers( rs232, &soft_rs232, fname );
@@ -352,7 +352,7 @@ mxi_soft_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_soft_rs232_discard_unwritten_output()";
 
-	MX_SOFT_RS232 *soft_rs232;
+	MX_SOFT_RS232 *soft_rs232 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_soft_rs232_get_pointers( rs232, &soft_rs232, fname );

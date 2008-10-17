@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,7 +111,7 @@ mxd_soft_timer_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_timer_create_record_structures()";
 
 	MX_TIMER *timer;
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -149,7 +149,7 @@ mxd_soft_timer_finish_record_initialization( MX_RECORD *record )
 		"mxd_soft_timer_finish_record_initialization()";
 
 	MX_TIMER *timer;
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -181,7 +181,7 @@ mxd_soft_timer_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_soft_timer_is_busy()";
 
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
 	mx_status_type mx_status;
@@ -218,7 +218,7 @@ mxd_soft_timer_start( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_soft_timer_start()";
 
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
 	mx_status_type mx_status;
@@ -259,7 +259,7 @@ mxd_soft_timer_stop( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_soft_timer_stop()";
 
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_timer_get_pointers( timer, &soft_timer, fname );
@@ -277,7 +277,7 @@ mxd_soft_timer_read( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_soft_timer_read()";
 
-	MX_SOFT_TIMER *soft_timer;
+	MX_SOFT_TIMER *soft_timer = NULL;;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	MX_CLOCK_TICK time_left_in_clock_ticks;
 	mx_status_type mx_status;

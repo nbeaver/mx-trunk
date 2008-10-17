@@ -87,7 +87,7 @@ mxdf_custom_open( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_open()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*open_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -119,7 +119,7 @@ mxdf_custom_close( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_close()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*close_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -150,7 +150,7 @@ mxdf_custom_write_main_header( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_write_main_header()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*write_main_header_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -177,7 +177,7 @@ mxdf_custom_write_segment_header( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_write_segment_header()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*write_segment_header_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -204,7 +204,7 @@ mxdf_custom_write_trailer( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_write_trailer()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*write_trailer_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -231,7 +231,7 @@ mxdf_custom_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
 	static const char fname[] = "mxdf_custom_add_measurement_to_datafile()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*add_measurement_to_datafile_fn)( MX_DATAFILE * );
 	mx_status_type mx_status;
 
@@ -260,7 +260,7 @@ mxdf_custom_add_array_to_datafile( MX_DATAFILE *datafile,
 {
 	static const char fname[] = "mxdf_custom_add_array_to_datafile()";
 
-	MX_DATAFILE_FUNCTION_LIST *flist;
+	MX_DATAFILE_FUNCTION_LIST *flist = NULL;
 	mx_status_type (*add_array_to_datafile_fn)( MX_DATAFILE *,
 							long, long, void *,
 							long, long, void * );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,7 @@ mxd_cyberstar_x1000_create_record_structures( MX_RECORD *record )
 		= "mxd_cyberstar_x1000_create_record_structures()";
 
 	MX_SCA *sca;
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -161,7 +161,7 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 	static const char fname[] = "mxd_cyberstar_x1000_open()";
 
 	MX_SCA *sca;
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
@@ -270,7 +270,7 @@ mxd_cyberstar_x1000_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_cyberstar_x1000_resynchronize()";
 
 	MX_SCA *sca;
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -313,7 +313,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 {
 	static const char fname[] = "mxd_cyberstar_x1000_get_parameter()";
 
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 	char command[40];
 	char response[80];
 	int num_items;
@@ -525,7 +525,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 {
 	static const char fname[] = "mxd_cyberstar_x1000_set_parameter()";
 
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 	char command[40], on_off[10];
 	long time_constant_value;
 	mx_status_type mx_status;
@@ -748,7 +748,7 @@ mxd_cyberstar_x1000_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_CYBERSTAR_X1000 *cyberstar_x1000;
+	MX_CYBERSTAR_X1000 *cyberstar_x1000 = NULL;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;

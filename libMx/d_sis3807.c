@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2007 Illinois Institute of Technology
+ * Copyright 2002, 2005-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,7 +134,7 @@ mxd_sis3807_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3807_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_SIS3807_PULSER *sis3807_pulser;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
 
 	pulse_generator = (MX_PULSE_GENERATOR *)
 				malloc( sizeof(MX_PULSE_GENERATOR) );
@@ -172,8 +172,8 @@ mxd_sis3807_open( MX_RECORD *record )
 	static const char fname[] = "mxd_sis3807_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -237,8 +237,8 @@ mxd_sis3807_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_busy()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	MX_CLOCK_TICK current_time;
 	uint32_t status_register;
 	mx_status_type mx_status;
@@ -341,8 +341,8 @@ mxd_sis3807_send_single_pulse( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_send_single_pulse()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	uint32_t pulse_register;
 	mx_status_type mx_status;
 
@@ -397,8 +397,8 @@ mxd_sis3807_start_with_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_start_with_burst_register()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	uint32_t enable_channel_value;
 	mx_status_type mx_status;
 
@@ -452,8 +452,8 @@ mxd_sis3807_start_without_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 	static const char fname[]
 		= "mxd_sis3807_start_without_burst_register()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	MX_CLOCK_TICK start_time, finish_time, countdown_ticks;
 	MX_CLOCK_TICK pulse_duration_ticks;
 	double total_countdown_time, pulse_time;
@@ -572,8 +572,8 @@ mxd_sis3807_start( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_start()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -598,8 +598,8 @@ mxd_sis3807_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_stop()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	uint32_t disable_channel_value;
 	mx_status_type mx_status;
 
@@ -643,8 +643,8 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_get_parameter()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	uint32_t status_register, mask;
 	mx_status_type mx_status;
 
@@ -755,8 +755,8 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
 	static const char fname[] = "mxd_sis3807_set_parameter()";
 
-	MX_SIS3807_PULSER *sis3807_pulser;
-	MX_SIS3807 *sis3807;
+	MX_SIS3807_PULSER *sis3807_pulser = NULL;
+	MX_SIS3807 *sis3807 = NULL;
 	double time_quantum, real_preset_value_plus_one;
 	uint32_t preset_value_plus_one, control_register;
 	uint32_t preset_value, preset_register;

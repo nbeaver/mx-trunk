@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005, 2007 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,7 +129,7 @@ mxd_si9650_motor_create_record_structures( MX_RECORD *record )
 		= "mxd_si9650_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -174,7 +174,7 @@ mxd_si9650_motor_finish_record_initialization( MX_RECORD *record )
 		= "mxd_si9650_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -230,7 +230,7 @@ mxd_si9650_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		= "mxd_si9650_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	MX_INTERFACE *controller_interface;
 	double position, move_deadband, busy_deadband;
 	double speed, ramp_rate;
@@ -328,7 +328,7 @@ mxd_si9650_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_si9650_motor_open()";
 
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	MX_INTERFACE *controller_interface;
 	char response[80];
 	int num_items;
@@ -397,7 +397,7 @@ mxd_si9650_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_si9650_motor_move_absolute()";
 
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -430,7 +430,7 @@ mxd_si9650_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_si9650_motor_soft_abort()";
 
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	double position;
 	mx_status_type mx_status;
 
@@ -468,7 +468,7 @@ mxd_si9650_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[]
 		= "mxd_si9650_motor_get_extended_status()";
 
-	MX_SI9650_MOTOR *si9650_motor;
+	MX_SI9650_MOTOR *si9650_motor = NULL;
 	char command[40];
 	char response[80];
 	int num_items;

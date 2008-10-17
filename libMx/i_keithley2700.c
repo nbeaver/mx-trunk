@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -104,7 +104,7 @@ mxi_keithley2700_create_record_structures( MX_RECORD *record )
 	static const char fname[] =
 			"mxi_keithley2700_create_record_structures()";
 
-	MX_KEITHLEY2700 *keithley2700;
+	MX_KEITHLEY2700 *keithley2700 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -132,7 +132,7 @@ mxi_keithley2700_finish_record_initialization( MX_RECORD *record )
 	static const char fname[]
 		= "mxi_keithley2700_finish_record_initialization()";
 
-	MX_KEITHLEY2700 *keithley2700;
+	MX_KEITHLEY2700 *keithley2700 = NULL;
 	MX_RECORD *port_record;
 	long gpib_address;
 
@@ -182,8 +182,8 @@ mxi_keithley2700_open( MX_RECORD *record )
 
 	static char idcode[] = "KEITHLEY INSTRUMENTS INC.,MODEL 27";
 
-	MX_KEITHLEY2700 *keithley2700;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY2700 *keithley2700 = NULL;
+	MX_INTERFACE *interface = NULL;
 	char command[80];
 	char response[160];
 	long i, j, max_channels, module_type, num_items, channel_type;
@@ -492,8 +492,8 @@ mxi_keithley2700_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_keithley2700_close()";
 
-	MX_KEITHLEY2700 *keithley2700;
-	MX_INTERFACE *interface;
+	MX_KEITHLEY2700 *keithley2700 = NULL;
+	MX_INTERFACE *interface = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_keithley2700_get_pointers( record,

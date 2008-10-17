@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -606,7 +606,8 @@ mxd_monochromator_finish_record_initialization( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_MONOCHROMATOR *monochromator;
 	MX_RECORD *list_record;
-	long i, dependency_type;
+	long i;
+	long dependency_type = -1;
 	mx_bool_type theta_dependency_found, energy_dependency_found;
 	mx_status_type mx_status;
 
@@ -882,7 +883,8 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 	mx_status_type (*fptr)( MX_MONOCHROMATOR *, MX_RECORD *, long,
 					double, double, int );
 	double raw_destination, old_raw_position, dummy;
-	long i, dependency_type;
+	long i;
+	long dependency_type = -1;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1008,7 +1010,7 @@ mxd_monochromator_get_position( MX_MOTOR *motor )
 	MX_MONOCHROMATOR_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)(MX_MONOCHROMATOR *, MX_RECORD *, long, double *);
 	double position;
-	long dependency_type;
+	long dependency_type = -1;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1081,7 +1083,7 @@ mxd_monochromator_set_position( MX_MOTOR *motor )
 	MX_MONOCHROMATOR_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_MONOCHROMATOR *, MX_RECORD *, long, double );
 	double raw_set_position;
-	long dependency_type;
+	long dependency_type = -1;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1635,6 +1637,7 @@ mxd_monochromator_get_status( MX_MOTOR *motor )
 
 	MX_HRT_START( measurement );
 #endif
+	dependency_type = -1;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 

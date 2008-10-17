@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,7 +192,7 @@ mxd_xia_dxp_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_xia_dxp_create_record_structures()";
 
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	int i;
 
 
@@ -270,7 +270,7 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 			"mxd_xia_dxp_finish_record_initialization()";
 
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -338,7 +338,7 @@ mxd_xia_dxp_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_xia_dxp_print_structure()";
 
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1097,7 +1097,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	static const char fname[] = "mxd_xia_dxp_open()";
 
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	MX_RECORD *xia_dxp_record;
 #if HAVE_XIA_HANDEL
 	MX_XIA_HANDEL *xia_handel;
@@ -1575,7 +1575,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 	static const char fname[] = "mxd_xia_dxp_close()";
 
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	MX_RECORD *xia_dxp_record;
 	MX_XIA_NETWORK *xia_network;
 	MX_RECORD **mca_record_array;
@@ -1694,7 +1694,7 @@ mxd_xia_dxp_start( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_start()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	double preset_time;
 	double xia_clock_ticks, xia_high_order_double, xia_low_order_double;
 	unsigned long xia_preset_type;
@@ -1967,7 +1967,7 @@ mxd_xia_dxp_stop( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_stop()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -1993,7 +1993,7 @@ mxd_xia_dxp_read( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_read()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2017,7 +2017,7 @@ mxd_xia_dxp_clear( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_clear()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2037,7 +2037,7 @@ mxd_xia_dxp_busy( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_busy()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2086,7 +2086,7 @@ mxd_xia_dxp_get_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_get_parameter()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2113,7 +2113,7 @@ mxd_xia_dxp_set_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_set_parameter()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2179,7 +2179,7 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_default_get_mx_parameter()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	unsigned long low_limit, high_limit;
 	unsigned long i, j, roi_boundary;
 	unsigned long roi[2];
@@ -2322,7 +2322,7 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_xia_dxp_default_set_mx_parameter()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	unsigned long i, low_limit, high_limit;
 	char name[20];
 	mx_status_type mx_status;
@@ -2507,7 +2507,7 @@ mxd_xia_dxp_get_rate_corrected_roi_integral( MX_MCA *mca,
 	static const char fname[] =
 		"mxd_xia_dxp_get_rate_corrected_roi_integral()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	unsigned long mca_value;
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
@@ -2553,7 +2553,7 @@ mxd_xia_dxp_get_livetime_corrected_roi_integral( MX_MCA *mca,
 	static const char fname[] =
 		"mxd_xia_dxp_get_livetime_corrected_roi_integral()";
 
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	unsigned long mca_value;
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
@@ -2659,7 +2659,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_MCA *mca;
-	MX_XIA_DXP_MCA *xia_dxp_mca;
+	MX_XIA_DXP_MCA *xia_dxp_mca = NULL;
 	unsigned long parameter_value;
 	mx_status_type mx_status;
 

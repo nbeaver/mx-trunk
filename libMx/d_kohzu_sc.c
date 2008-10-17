@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,7 +134,7 @@ mxd_kohzu_sc_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_kohzu_sc_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -180,8 +180,8 @@ mxd_kohzu_sc_finish_record_initialization( MX_RECORD *record )
 		"mxd_kohzu_sc_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_KOHZU_SC *kohzu_sc;
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
+	MX_KOHZU_SC *kohzu_sc = NULL;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
 	long i;
 	mx_status_type mx_status;
 
@@ -213,8 +213,8 @@ mxd_kohzu_sc_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_kohzu_sc_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	double position, move_deadband, speed;
 	mx_status_type mx_status;
 
@@ -296,7 +296,7 @@ mxd_kohzu_sc_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_kohzu_sc_resynchronize()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -325,8 +325,8 @@ mxd_kohzu_sc_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_move_absolute()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -351,8 +351,8 @@ mxd_kohzu_sc_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_get_position()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char response[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char token[80];
@@ -389,8 +389,8 @@ mxd_kohzu_sc_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_set_position()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
@@ -415,8 +415,8 @@ mxd_kohzu_sc_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_soft_abort()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -439,8 +439,8 @@ mxd_kohzu_sc_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_immediate_abort()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -463,8 +463,8 @@ mxd_kohzu_sc_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_find_home_position()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -488,8 +488,8 @@ mxd_kohzu_sc_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_constant_velocity_move()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	int rotational_direction;
 	mx_status_type mx_status;
@@ -523,8 +523,8 @@ mxd_kohzu_sc_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_get_parameter()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char response[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char token[80];
@@ -639,8 +639,8 @@ mxd_kohzu_sc_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_set_parameter()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	unsigned long kohzu_base_speed, kohzu_speed, kohzu_acceleration_time;
 	int excitation_output;
@@ -749,7 +749,7 @@ mxd_kohzu_sc_simultaneous_start( long num_motor_records,
 
 	MX_RECORD *motor_record, *current_interface_record;
 	MX_MOTOR *motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	MX_KOHZU_SC *current_kohzu_sc;
 	MX_KOHZU_SC_MOTOR *current_kohzu_sc_motor;
 	int i;
@@ -813,8 +813,8 @@ mxd_kohzu_sc_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_kohzu_sc_get_status()";
 
-	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	MX_KOHZU_SC *kohzu_sc;
+	MX_KOHZU_SC_MOTOR *kohzu_sc_motor = NULL;
+	MX_KOHZU_SC *kohzu_sc = NULL;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char response[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char token[80];

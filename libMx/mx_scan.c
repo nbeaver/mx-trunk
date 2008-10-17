@@ -2823,7 +2823,7 @@ mx_scan_get_pointer_to_measurement_number( MX_SCAN *scan, long **ptr )
 MX_EXPORT mx_status_type
 mx_scan_increment_measurement_number( MX_SCAN *scan )
 {
-	long *number_ptr;
+	long *number_ptr = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_scan_get_pointer_to_measurement_number(
@@ -2880,7 +2880,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	MX_MCA *mca;
 	MX_RECORD *input_device;
 	int os_status, saved_errno, exit_i_loop;
-	long *number_ptr;
+	long *number_ptr = NULL;
 	long i, j, measurement_number, mca_number;
 	unsigned long mca_data_value, max_current_num_channels;
 	char *datafile_filename, *extension_ptr;

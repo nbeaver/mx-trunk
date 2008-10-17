@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,7 +140,7 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_mca_create_record_structures()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -175,7 +175,7 @@ mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	mx_status_type mx_status;
 
 	mca = (MX_MCA *) record->record_class_struct;
@@ -210,7 +210,7 @@ MX_EXPORT mx_status_type
 mxd_soft_mca_delete_record( MX_RECORD *record )
 {
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 
 	if ( record == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -245,7 +245,7 @@ mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_soft_mca_print_structure()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -285,7 +285,7 @@ mxd_soft_mca_open( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_mca_open()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	FILE *channel_file;
 	char buffer[81];
 	long i;
@@ -398,7 +398,7 @@ mxd_soft_mca_start( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_start()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
 	mx_status_type status;
@@ -438,7 +438,7 @@ mxd_soft_mca_stop( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_stop()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	mx_status_type status;
 
 	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
@@ -460,7 +460,7 @@ mxd_soft_mca_read( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_read()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i;
 	double double_value;
 	mx_status_type status;
@@ -499,7 +499,7 @@ mxd_soft_mca_clear( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_clear()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i;
 	mx_status_type status;
 
@@ -526,7 +526,7 @@ mxd_soft_mca_busy( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_busy()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
 	mx_status_type status;
@@ -562,7 +562,7 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_get_parameter()";
 
-	MX_SOFT_MCA *soft_mca;
+	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i, j, channel_value, integral;
 	double double_value;
 	mx_status_type status;

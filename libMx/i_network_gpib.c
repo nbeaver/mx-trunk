@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -175,7 +175,7 @@ mxi_network_gpib_create_record_structures( MX_RECORD *record )
 		"mxi_network_gpib_create_record_structures()";
 
 	MX_GPIB *gpib;
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -212,7 +212,7 @@ mxi_network_gpib_finish_record_initialization( MX_RECORD *record )
 		"mxi_network_gpib_finish_record_initialization()";
 
 	MX_GPIB *gpib;
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 #if MXI_NETWORK_GPIB_DEBUG
@@ -323,7 +323,7 @@ mxi_network_gpib_open( MX_RECORD *record )
 	static const char fname[] = "mxi_network_gpib_open()";
 
 	MX_GPIB *gpib;
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	char rfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 	mx_status_type mx_status;
 
@@ -374,7 +374,7 @@ mxi_network_gpib_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_network_gpib_resynchronize()";
 
 	MX_GPIB *gpib;
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
@@ -403,7 +403,7 @@ mxi_network_gpib_open_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_open_device()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -430,7 +430,7 @@ mxi_network_gpib_close_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_close_device()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -462,7 +462,7 @@ mxi_network_gpib_read( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_network_gpib_read()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	long local_bytes_to_read, local_bytes_read;
 	long dimension_array[1];
 	mx_status_type mx_status;
@@ -537,7 +537,7 @@ mxi_network_gpib_write( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_network_gpib_write()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	long local_bytes_to_write, local_bytes_written;
 	long dimension_array[1];
 	mx_status_type mx_status;
@@ -607,7 +607,7 @@ mxi_network_gpib_interface_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_network_gpib_interface_clear()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
@@ -636,7 +636,7 @@ mxi_network_gpib_device_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_network_gpib_device_clear()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
@@ -665,7 +665,7 @@ mxi_network_gpib_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_selective_device_clear()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -693,7 +693,7 @@ mxi_network_gpib_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_network_gpib_local_lockout()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
@@ -722,7 +722,7 @@ mxi_network_gpib_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_remote_enable()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -750,7 +750,7 @@ mxi_network_gpib_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_go_to_local()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -778,7 +778,7 @@ mxi_network_gpib_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_trigger()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -805,7 +805,7 @@ mxi_network_gpib_wait_for_service_request( MX_GPIB *gpib, double timeout )
 	static const char fname[] =
 		"mxi_network_gpib_wait_for_service_request()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -834,7 +834,7 @@ mxi_network_gpib_serial_poll( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_network_gpib_serial_poll()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	unsigned char local_serial_poll_byte;
 	mx_status_type mx_status;
 
@@ -876,7 +876,7 @@ mxi_network_gpib_serial_poll_disable( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_network_gpib_serial_poll_disable()";
 
-	MX_NETWORK_GPIB *network_gpib;
+	MX_NETWORK_GPIB *network_gpib = NULL;
 	mx_bool_type bool_value;
 	mx_status_type mx_status;
 

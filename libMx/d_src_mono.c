@@ -135,7 +135,7 @@ mxd_src_mono_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_src_mono_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_SRC_MONO *src_mono;
+	MX_SRC_MONO *src_mono = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -180,7 +180,7 @@ mxd_src_mono_open( MX_RECORD *record )
 	static const char fname[] = "mxd_src_mono_open()";
 
 	MX_MOTOR *motor;
-	MX_SRC_MONO *src_mono;
+	MX_SRC_MONO *src_mono = NULL;
 	MX_RS232 *rs232;
 	mx_status_type mx_status;
 
@@ -230,7 +230,7 @@ mxd_src_mono_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_src_mono_move_absolute()";
 
-	MX_SRC_MONO *src_mono;
+	MX_SRC_MONO *src_mono = NULL;
 	char command[200];
 	char response[200];
 	mx_status_type mx_status;
@@ -287,7 +287,7 @@ mxd_src_mono_get_extended_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_src_mono_get_extended_status()";
 
-	MX_SRC_MONO *src_mono;
+	MX_SRC_MONO *src_mono = NULL;
 	unsigned long num_input_bytes_available;
 	double current_position;
 	int num_items;

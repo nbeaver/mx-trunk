@@ -112,7 +112,7 @@ mxd_file_vinput_create_record_structures( MX_RECORD *record )
 		"mxd_file_vinput_create_record_structures()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 
 	vinput = (MX_VIDEO_INPUT *) malloc( sizeof(MX_VIDEO_INPUT) );
 
@@ -152,7 +152,7 @@ mxd_file_vinput_finish_record_initialization( MX_RECORD *record )
 		"mxd_file_vinput_finish_record_initialization()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -217,7 +217,7 @@ mxd_file_vinput_open( MX_RECORD *record )
 	static const char fname[] = "mxd_file_vinput_open()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	long i, pixels_per_frame;
 	DIR *dir;
 	struct dirent *dirent_ptr;
@@ -522,7 +522,7 @@ mxd_file_vinput_close( MX_RECORD *record )
 	static const char fname[] = "mxd_file_vinput_close()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	long dimension_array[2];
 	size_t sizeof_array[2];
 	mx_status_type mx_status;
@@ -562,7 +562,7 @@ mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_arm()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *seq;
 	mx_status_type mx_status;
 
@@ -614,7 +614,7 @@ mxd_file_vinput_trigger( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_trigger()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
@@ -637,7 +637,7 @@ mxd_file_vinput_stop( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_stop()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
@@ -659,7 +659,7 @@ mxd_file_vinput_abort( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_abort()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
@@ -681,7 +681,7 @@ mxd_file_vinput_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_asynchronous_capture()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput, &file_vinput, fname );
@@ -704,7 +704,7 @@ mxd_file_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_get_extended_status()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	MX_CLOCK_TICK clock_ticks_since_start;
 	double seconds_since_start, frames_since_start_dbl;
 	long frames_since_start;
@@ -795,7 +795,7 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_get_frame()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	MX_IMAGE_FRAME *frame;
 	long i;
 	char datafile_name[MXU_FILENAME_LENGTH+1];
@@ -899,7 +899,7 @@ mxd_file_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_get_parameter()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput,
@@ -968,7 +968,7 @@ mxd_file_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_file_vinput_set_parameter()";
 
-	MX_FILE_VINPUT *file_vinput;
+	MX_FILE_VINPUT *file_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_vinput_get_pointers( vinput,

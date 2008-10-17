@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,7 +129,7 @@ mxd_mcs_scaler_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_mcs_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -165,9 +165,9 @@ mxd_mcs_scaler_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_mcs_scaler_finish_record_initialization()";
 
-	MX_MCS *mcs;
+	MX_MCS *mcs = NULL;
 	MX_SCALER *scaler;
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	long scaler_index;
 	mx_status_type mx_status;
 
@@ -213,7 +213,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_mcs_scaler_print_structure()";
 
 	MX_SCALER *scaler;
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	long current_value;
 	mx_status_type mx_status;
 
@@ -274,7 +274,7 @@ mxd_mcs_scaler_clear( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_clear()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_scaler_get_pointers( scaler,
@@ -303,8 +303,8 @@ mxd_mcs_scaler_read( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_read()";
 
-	MX_MCS_SCALER *mcs_scaler;
-	MX_MCS *mcs;
+	MX_MCS_SCALER *mcs_scaler = NULL;
+	MX_MCS *mcs = NULL;
 	MX_RECORD *timer_record;
 	long scaler_index, offset;
 	mx_bool_type fast_mode;
@@ -409,8 +409,8 @@ mxd_mcs_scaler_read_raw( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_read_raw()";
 
-	MX_MCS_SCALER *mcs_scaler;
-	MX_MCS *mcs;
+	MX_MCS_SCALER *mcs_scaler = NULL;
+	MX_MCS *mcs = NULL;
 	long scaler_index;
 	mx_status_type mx_status;
 
@@ -454,7 +454,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_is_busy()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -481,7 +481,7 @@ mxd_mcs_scaler_start( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_start()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_scaler_get_pointers( scaler,
@@ -520,7 +520,7 @@ mxd_mcs_scaler_stop( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_stop()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_scaler_get_pointers( scaler,
@@ -544,7 +544,7 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_get_parameter()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	unsigned long scaler_index;
 	long mode;
 	double dark_current;
@@ -589,7 +589,7 @@ mxd_mcs_scaler_set_parameter( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mcs_scaler_set_parameter()";
 
-	MX_MCS_SCALER *mcs_scaler;
+	MX_MCS_SCALER *mcs_scaler = NULL;
 	unsigned long scaler_index;
 	mx_status_type mx_status;
 

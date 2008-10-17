@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,7 +107,7 @@ mxd_ks3640_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_ks3640_create_record_structures()";
 
 	MX_ENCODER *encoder;
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -146,7 +146,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ks3640_finish_record_initialization()";
 
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 
 	ks3640 = (MX_KS3640 *) record->record_type_struct;
 
@@ -253,7 +253,7 @@ mxd_ks3640_open( MX_RECORD *record )
 	static const char fname[] = "mxd_ks3640_open()";
 
 	MX_ENCODER *encoder;
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
@@ -292,7 +292,7 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 {
 	static const char fname[] = "mxd_ks3640_get_overflow_status()";
 
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 	int32_t data, status_bits;
 	int32_t underflow_set_temp, overflow_set_temp;
 	long N, A;
@@ -363,7 +363,7 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 {
 	static const char fname[] = "mxd_ks3640_reset_overflow_status()";
 
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 	int32_t data;
 	long N, A;
 	int camac_Q, camac_X;
@@ -407,7 +407,7 @@ mxd_ks3640_read( MX_ENCODER *encoder )
 {
 	static const char fname[] = "mxd_ks3640_read()";
 
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
@@ -436,7 +436,7 @@ mxd_ks3640_write( MX_ENCODER *encoder )
 {
 	static const char fname[] = "mxd_ks3640_write()";
 
-	MX_KS3640 *ks3640;
+	MX_KS3640 *ks3640 = NULL;
 	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;

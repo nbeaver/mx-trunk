@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,7 +144,7 @@ mxd_soft_mcs_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_soft_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -180,7 +180,7 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 			"mxd_soft_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_RECORD *scaler_record;
 	long i;
 
@@ -219,7 +219,7 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_start()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK total_counting_time_in_clock_ticks;
 	double total_counting_time;
@@ -270,7 +270,7 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_stop()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
@@ -290,7 +290,7 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_clear()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	long i, j;
 	mx_status_type mx_status;
 
@@ -315,7 +315,7 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_busy()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
 	mx_status_type mx_status;
@@ -361,7 +361,7 @@ mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_read_measurement()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	unsigned long i;
 	mx_status_type mx_status;
 
@@ -389,7 +389,7 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_get_parameter()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );
@@ -427,7 +427,7 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_soft_mcs_set_parameter()";
 
-	MX_SOFT_MCS *soft_mcs;
+	MX_SOFT_MCS *soft_mcs = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_soft_mcs_get_pointers( mcs, &soft_mcs, fname );

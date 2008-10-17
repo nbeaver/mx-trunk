@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,7 +129,7 @@ mxd_cryostream600_motor_create_record_structures( MX_RECORD *record )
 		= "mxd_cryostream600_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	long dimension[2];
 	size_t dimension_size[2];
 
@@ -196,7 +196,7 @@ mxd_cryostream600_motor_finish_record_initialization( MX_RECORD *record )
 		= "mxd_cryostream600_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -249,7 +249,7 @@ mxd_cryostream600_motor_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_cryostream600_motor_delete_record( MX_RECORD *record )
 {
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	long dimension[2];
 	size_t dimension_size[2];
 
@@ -285,7 +285,7 @@ mxd_cryostream600_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		= "mxd_cryostream600_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	double position, move_deadband, busy_deadband;
 	double speed, ramp_rate;
 	mx_status_type mx_status;
@@ -366,7 +366,7 @@ mxd_cryostream600_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_cryostream600_motor_open()";
 
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	char response[80];
 	mx_status_type mx_status;
 
@@ -427,7 +427,7 @@ mxd_cryostream600_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cryostream600_motor_move_absolute()";
 
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	char command[80];
 	char response[80];
 	double ramp_rate;
@@ -516,7 +516,7 @@ mxd_cryostream600_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_cryostream600_motor_soft_abort()";
 
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
@@ -620,7 +620,7 @@ mxd_cryostream600_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[]
 		= "mxd_cryostream600_motor_get_extended_status()";
 
-	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
+	MX_CRYOSTREAM600_MOTOR *cryostream600_motor = NULL;
 	char response[80];
 	char **token_array;
 	double set_temperature, temperature_error, difference;

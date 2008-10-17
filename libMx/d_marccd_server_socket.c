@@ -135,7 +135,7 @@ mxd_marccd_server_socket_create_record_structures( MX_RECORD *record )
 			"mxd_marccd_server_socket_create_record_structures()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 
 	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
 
@@ -180,7 +180,7 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 	static const char fname[] = "mxd_marccd_server_socket_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	unsigned long mar_framesize[2], mar_binsize[2];
 	char response[40];
 	int num_items;
@@ -298,7 +298,7 @@ mxd_marccd_server_socket_close( MX_RECORD *record )
 	static const char fname[] = "mxd_marccd_server_socket_close()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -329,7 +329,7 @@ mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_trigger()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	MX_CLOCK_TICK clock_ticks_to_wait, start_time;
@@ -389,7 +389,7 @@ mxd_marccd_server_socket_stop( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_stop()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	char response[40];
 	mx_status_type mx_status;
 
@@ -417,7 +417,7 @@ mxd_marccd_server_socket_get_extended_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 			"mxd_marccd_server_socket_get_extended_status()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	MX_CLOCK_TICK current_time;
 	int comparison;
 	mx_status_type mx_status;
@@ -475,7 +475,7 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_readout_frame()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	char response[40];
 	mx_status_type mx_status;
 
@@ -501,7 +501,7 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_correct_frame()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	char response[40];
 	mx_status_type mx_status;
 
@@ -527,7 +527,7 @@ mxd_marccd_server_socket_get_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_get_parameter()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	char response[40];
 	mx_status_type mx_status;
 
@@ -583,7 +583,7 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_set_parameter()";
 
-	MX_MARCCD_SERVER_SOCKET *mss;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 

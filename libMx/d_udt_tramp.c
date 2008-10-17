@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,7 +111,7 @@ mxd_udt_tramp_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_udt_tramp_create_record_structures()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_UDT_TRAMP *udt_tramp;
+	MX_UDT_TRAMP *udt_tramp = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -152,7 +152,7 @@ mxd_udt_tramp_open( MX_RECORD *record )
 	static const char fname[] = "mxd_udt_tramp_open()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_UDT_TRAMP *udt_tramp;
+	MX_UDT_TRAMP *udt_tramp = NULL;
 	mx_status_type mx_status;
 
 	amplifier = (MX_AMPLIFIER *) (record->record_class_struct);
@@ -178,7 +178,7 @@ mxd_udt_tramp_get_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_udt_tramp_get_gain()";
 
-	MX_UDT_TRAMP *udt_tramp;
+	MX_UDT_TRAMP *udt_tramp = NULL;
 	unsigned long doutput_value;
 	mx_status_type mx_status;
 
@@ -209,7 +209,7 @@ mxd_udt_tramp_set_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_udt_tramp_set_gain()";
 
-	MX_UDT_TRAMP *udt_tramp;
+	MX_UDT_TRAMP *udt_tramp = NULL;
 	unsigned long power, doutput_value;
 	mx_status_type mx_status;
 
