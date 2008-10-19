@@ -1,9 +1,18 @@
 
-all: xdr.o xdr_hyper.o getopt.o strlcpy.o strlcat.o mxgnuplt.exe
+all: ../libMx/mx_private_version.h xdr.o xdr_hyper.o getopt.o \
+	strlcpy.o strlcat.o mxgnuplt.exe
 
 include ../libMx/Makefile.version
 
 include ../libMx/Makehead.win32-mingw
+
+mx_private_version: ../libMx/Makefile.version \
+				version/src/mx_private_version.c
+	gcc $(CFLAGS_MX_VERS) version/src/mx_private_version.c \
+				-o mx_private_version
+
+../libMx/mx_private_version.h: mx_private_version
+	./mx_private_version > ../libMx/mx_private_version.h
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
