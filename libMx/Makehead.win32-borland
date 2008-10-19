@@ -228,15 +228,3 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 
-#
-#---------------------------------------------------
-#
-
-MX_PRIVATE_VERSION_NAME = mx_private_version.exe
-
-$(MX_PRIVATE_VERSION_NAME): mx_private_version.obj
-	$(CC) -v -lv -M -e$(MX_PRIVATE_VERSION_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj mx_private_version.obj \
-			$(WIN32_LIBS)
-	./mx_private_version
-
