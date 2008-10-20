@@ -42,7 +42,7 @@
  */
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
 	DWORD dwSize, dwFlags;
 	MEMORY_BASIC_INFORMATION meminfo;
@@ -115,9 +115,9 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #include <sys/mman.h>
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
-	static const char fname[] = "mx_is_valid_pointer()";
+	static const char fname[] = "mx_pointer_is_valid()";
 
 	FILE *file;
 	char buffer[300];
@@ -258,9 +258,9 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #include <mach/mach.h>
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
-	static const char fname[] = "mx_is_valid_pointer()";
+	static const char fname[] = "mx_pointer_is_valid()";
 
 	task_t task;
 	vm_address_t region_address;
@@ -380,9 +380,9 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #include <procfs.h>
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
-	static const char fname[] = "mx_is_valid_pointer()";
+	static const char fname[] = "mx_pointer_is_valid()";
 
 	FILE *proc_file;
 	int saved_errno;
@@ -517,9 +517,9 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 #include <sys/procfs.h>
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
-	static const char fname[] = "mx_is_valid_pointer()";
+	static const char fname[] = "mx_pointer_is_valid()";
 
 	prmap_t *prmap_array = NULL;
 	prmap_t *array_element;
@@ -736,7 +736,7 @@ int __PAL_PROBER( const void *__base_address, int __length, char __mode );
 int __PAL_PROBEW( const void *__base_address, int __length, char __mode );
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
 	int valid;
 
@@ -769,7 +769,7 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD)
 
 MX_EXPORT int
-mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 {
 	if ( pointer == NULL ) {
 		return FALSE;
@@ -783,14 +783,13 @@ mx_is_valid_pointer( void *pointer, size_t length, int access_mode )
 /* FIXME: Apparently for other operating systems, the appropriate 
  * equivalents are:
  *
- * FreeBSD     /proc/curproc/map  (Not mounted by default!)
  * All BSDs:   mincore()
  * OSF/1:      ioctl(PIOCMAP)
  *
  * These will be implemented as time permits.
  */
 
-#error mx_is_valid_pointer() has not yet been defined for this build target.
+#error mx_pointer_is_valid() has not yet been defined for this build target.
 
 #endif
 

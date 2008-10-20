@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1134,7 +1134,7 @@ static mx_status_type mx_read_database_private(MX_RECORD *,
  */
 
 MX_EXPORT mx_status_type
-mx_setup_database( MX_RECORD **record_list, char *filename )
+mx_setup_database( MX_RECORD **record_list, char *database_filename )
 {
 	static const char fname[] = "mx_setup_database()";
 
@@ -1145,15 +1145,15 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The record_list argument to this function was NULL." );
 	}
-	if ( filename == NULL ) {
+	if ( database_filename == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The filename argument passed to this function is NULL." );
+	    "The database filename argument passed to this function is NULL." );
 	}
 
 	memset( &db_source, 0, sizeof(db_source) );
 
 	db_source.is_array = FALSE;
-	db_source.filename = filename;
+	db_source.filename = database_filename;
 
 	mx_status = mx_setup_database_private( record_list, &db_source );
 
@@ -1190,6 +1190,43 @@ mx_setup_database_from_array( MX_RECORD **record_list,
 	mx_status = mx_setup_database_private( record_list, &db_source );
 
 	return mx_status;
+}
+
+/* Here are some alternates that that return the database pointer as the
+ * function return value.  This is for use by applications like LabVIEW.
+ */
+
+MX_EXPORT MX_RECORD *
+mx_setup_database_pointer( char *database_filename )
+{
+	MX_RECORD *record_list;
+	mx_status_type mx_status;
+
+	mx_status = mx_setup_database( &record_list, database_filename );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		record_list = NULL;
+	}
+
+	return record_list;
+}
+
+MX_EXPORT MX_RECORD *
+mx_setup_database_pointer_from_array( long num_descriptions,
+					char **description_array )
+{
+	MX_RECORD *record_list;
+	mx_status_type mx_status;
+
+	mx_status = mx_setup_database_from_array( &record_list,
+						num_descriptions,
+						description_array );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		record_list = NULL;
+	}
+
+	return record_list;
 }
 
 /* Here is the function that does the real work. */

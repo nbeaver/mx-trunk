@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -170,7 +170,7 @@ mxi_epics_gpib_finish_record_initialization( MX_RECORD *record )
 		"mxi_epics_gpib_finish_record_initialization()";
 
 	MX_GPIB *gpib;
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -273,7 +273,7 @@ mxi_epics_gpib_open( MX_RECORD *record )
 	static const char fname[] = "mxi_epics_gpib_open()";
 
 	MX_GPIB *gpib;
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	long format, command;
 	mx_status_type mx_status;
@@ -423,7 +423,7 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_epics_gpib_read()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	long long_address, timeout, num_chars_read;
 	mx_status_type mx_status;
 
@@ -551,7 +551,7 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_epics_gpib_write()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	long timeout;
 	mx_status_type mx_status;
 
@@ -660,7 +660,7 @@ mxi_epics_gpib_device_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_epics_gpib_device_clear()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -679,7 +679,7 @@ mxi_epics_gpib_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_selective_device_clear()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -698,7 +698,7 @@ mxi_epics_gpib_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_epics_gpib_local_lockout()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -726,7 +726,7 @@ mxi_epics_gpib_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_go_to_local()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -745,7 +745,7 @@ mxi_epics_gpib_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_trigger_device()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -776,7 +776,7 @@ mxi_epics_gpib_serial_poll( MX_GPIB *gpib, long address,
 {
 	static const char fname[] = "mxi_epics_gpib_serial_poll()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	char buffer[40];
 	size_t bytes_read;
 	mx_status_type mx_status;
@@ -810,7 +810,7 @@ mxi_epics_gpib_serial_poll_disable( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_epics_gpib_serial_poll_disable()";
 
-	MX_EPICS_GPIB *epics_gpib;
+	MX_EPICS_GPIB *epics_gpib = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );

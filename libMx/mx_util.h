@@ -283,11 +283,11 @@ MX_API int mx_stack_check( void );
 
 /*--- Heap debugging tools ---*/
 
-/* mx_is_valid_heap_pointer() checks to see if the supplied pointer
+/* mx_heap_pointer_is_valid() checks to see if the supplied pointer
  * was allocated from the heap.
  */
 
-MX_API int mx_is_valid_heap_pointer( void *pointer );
+MX_API int mx_heap_pointer_is_valid( void *pointer );
 
 /* mx_heap_check() looks to see if the heap is in a valid state.
  * It returns TRUE if the heap is valid and FALSE if the heap is
@@ -299,19 +299,19 @@ MX_API int mx_heap_check( void );
 
 /*--- Other debugging tools ---*/
 
-/* mx_is_valid_pointer() __attempts__ to see if the memory range pointed
+/* mx_pointer_is_valid() __attempts__ to see if the memory range pointed
  * to by the supplied pointer is mapped into the current process with
  * the requested access mode.  The length argument is the length of the
  * memory range that is checked.  The access mode is a bit-wise OR of the
  * desired R_OK and W_OK bits as defined in "mx_unistd.h".
  *
- * WARNING: mx_is_valid_pointer() is not guaranteed to work on all
+ * WARNING: mx_pointer_is_valid() is not guaranteed to work on all
  * platforms by any means.  On some platforms, it may have a severe
  * performance penalty and can have other very undesirable side effects.
  * You should not use this function during normal operation!
  */
 
-MX_API int mx_is_valid_pointer( void *pointer, size_t length, int access_mode );
+MX_API int mx_pointer_is_valid( void *pointer, size_t length, int access_mode );
 
 /*
  * mx_force_core_dump() attempts to force the creation of a snapshot

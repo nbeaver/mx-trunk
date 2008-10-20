@@ -529,7 +529,7 @@ MX_API mx_status_type  mx_write_database_file( MX_RECORD *record_list,
  */
 
 MX_API mx_status_type  mx_setup_database( MX_RECORD **record_list,
-						char *filename );
+					char *database_filename );
 
 /* --- */
 
@@ -545,6 +545,19 @@ MX_API mx_status_type  mx_read_database_from_array( MX_RECORD *record_list,
 						long num_descriptions,
 						char **description_array,
 						unsigned long flags );
+/* --- */
+
+/* These functions return the record list pointer as the function return
+ * value.  This is to make it easier for applications like LabVIEW which
+ * do not have easy ways of dealing with doubly-indirect C pointers.
+ */
+
+MX_API MX_RECORD *mx_setup_database_pointer( char *database_filename );
+
+MX_API MX_RECORD *mx_setup_database_pointer_from_array(
+						long num_descriptions,
+						char **description_array );
+
 /* --- */
 
 MX_API mx_status_type  mx_print_structure( FILE *file,

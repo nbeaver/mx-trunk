@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -661,7 +661,7 @@ mxi_epics_vme_finish_record_initialization( MX_RECORD *record )
 		"mxi_epics_vme_finish_record_initialization()";
 
 	MX_VME *vme;
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -748,7 +748,7 @@ mxi_epics_vme_open( MX_RECORD *record )
 	static const char fname[] = "mxi_epics_vme_open()";
 
 	MX_VME *vme;
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -837,7 +837,7 @@ mxi_epics_vme_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_epics_vme_input()";
 
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_vme_get_pointers( vme, &epics_vme, fname );
@@ -856,7 +856,7 @@ mxi_epics_vme_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_epics_vme_output()";
 
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_vme_get_pointers( vme, &epics_vme, fname );
@@ -875,7 +875,7 @@ mxi_epics_vme_multi_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_epics_vme_input()";
 
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_vme_get_pointers( vme, &epics_vme, fname );
@@ -894,7 +894,7 @@ mxi_epics_vme_multi_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_epics_vme_output()";
 
-	MX_EPICS_VME *epics_vme;
+	MX_EPICS_VME *epics_vme = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_vme_get_pointers( vme, &epics_vme, fname );

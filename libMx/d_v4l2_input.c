@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -491,7 +491,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_arm()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	long pixels_per_frame;
 	size_t new_length;
 	mx_status_type mx_status;
@@ -585,7 +585,7 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_trigger()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	fd_set fds;
 	struct timeval tv;
 	int fd, result, saved_errno;
@@ -750,7 +750,7 @@ mxd_v4l2_input_stop( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_stop()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_v4l2_input_get_pointers( vinput,
@@ -772,7 +772,7 @@ mxd_v4l2_input_abort( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_abort()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_v4l2_input_get_pointers( vinput,
@@ -794,7 +794,7 @@ mxd_v4l2_input_get_status( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_get_status()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_v4l2_input_get_pointers( vinput,
@@ -820,7 +820,7 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_get_frame()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	MX_IMAGE_FRAME *frame;
 	mx_status_type mx_status;
 
@@ -852,9 +852,10 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput )
 	frame->header_length = 0;
 	frame->header_data = 0;
 
-	frame->bytes_per_pixel = vinput->bytes_per_pixel;
 	frame->image_length    = vinput->bytes_per_frame;
 	frame->image_data      = v4l2_input->v4l2_frame_buffer;
+
+	MXIF_SET_BYTES_PER_PIXEL( frame, vinput->bytes_per_pixel );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -864,7 +865,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_get_parameter()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	struct v4l2_format format;
 	unsigned long pf;
 	char A, B, C, D;
@@ -1005,7 +1006,7 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_set_parameter()";
 
-	MX_V4L2_INPUT *v4l2_input;
+	MX_V4L2_INPUT *v4l2_input = NULL;
 	struct v4l2_format format;
 	int os_status, saved_errno;
 	mx_status_type mx_status;

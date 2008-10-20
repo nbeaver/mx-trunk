@@ -41,7 +41,7 @@
  */
 
 MX_EXPORT int
-mx_is_valid_heap_pointer( void *pointer )
+mx_heap_pointer_is_valid( void *pointer )
 {
 	if ( pointer == NULL ) {
 		return FALSE;
@@ -57,11 +57,11 @@ mx_is_valid_heap_pointer( void *pointer )
  */
 
 MX_EXPORT int
-mx_is_valid_heap_pointer( void *pointer )
+mx_heap_pointer_is_valid( void *pointer )
 {
 	int result;
 
-	result = mx_is_valid_pointer( pointer, sizeof(void *), R_OK );
+	result = mx_pointer_is_valid( pointer, sizeof(void *), R_OK );
 
 	return result;
 }
@@ -77,12 +77,12 @@ mx_free_pointer( void *pointer )
 		return TRUE;
 	}
 
-	if ( mx_is_valid_heap_pointer( pointer ) ) {
+	if ( mx_heap_pointer_is_valid( pointer ) ) {
 		free( pointer );
 		return TRUE;
 	} else {
 		/* Experimentation shows that freeing a pointer that fails
-		 * the mx_is_valid_heap_pointer() test usually causes a
+		 * the mx_heap_pointer_is_valid() test usually causes a
 		 * program crash, so we must just live with the possibilty
 		 * of a memory leak instead.
 		 */
