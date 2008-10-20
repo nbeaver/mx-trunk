@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_NETWORK_WVOUT_DEBUG	TRUE
+#define MXD_NETWORK_WVOUT_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

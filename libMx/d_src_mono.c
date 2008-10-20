@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SRC_MONO_DEBUG	TRUE
+#define MXD_SRC_MONO_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

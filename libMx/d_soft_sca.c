@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_SOFT_SCA_DEBUG	TRUE
+#define MXD_SOFT_SCA_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,7 +169,9 @@ mxd_soft_sca_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_sca_open( MX_RECORD *record )
 {
+#if MXD_SOFT_SCA_DEBUG
 	static const char fname[] = "mxd_soft_sca_open()";
+#endif
 
 #if MXD_SOFT_SCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
@@ -181,7 +183,9 @@ mxd_soft_sca_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_sca_get_parameter( MX_SCA *sca )
 {
+#if MXD_SOFT_SCA_DEBUG
 	static const char fname[] = "mxd_soft_sca_get_parameter()";
+#endif
 
 	mx_status_type mx_status;
 
@@ -201,7 +205,9 @@ mxd_soft_sca_get_parameter( MX_SCA *sca )
 MX_EXPORT mx_status_type
 mxd_soft_sca_set_parameter( MX_SCA *sca )
 {
+#if MXD_SOFT_SCA_DEBUG
 	static const char fname[] = "mxd_soft_sca_set_parameter()";
+#endif
 
 	mx_status_type mx_status;
 

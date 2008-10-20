@@ -14,7 +14,7 @@
  *
  */
 
-#define MXP_CUSTOM_DEBUG	TRUE
+#define MXP_CUSTOM_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

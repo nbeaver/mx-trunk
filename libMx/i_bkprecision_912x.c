@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_BKPRECISION_912X_DEBUG	TRUE
+#define MXI_BKPRECISION_912X_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

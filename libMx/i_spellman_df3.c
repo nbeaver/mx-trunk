@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_SPELLMAN_DF3_DEBUG	TRUE
+#define MXI_SPELLMAN_DF3_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
