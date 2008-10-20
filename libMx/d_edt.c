@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -137,7 +137,7 @@ mxd_edt_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_edt_create_record_structures()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 
 	vinput = (MX_VIDEO_INPUT *) malloc( sizeof(MX_VIDEO_INPUT) );
 
@@ -190,8 +190,8 @@ mxd_edt_open( MX_RECORD *record )
 	static const char fname[] = "mxd_edt_open()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_EDT_VIDEO_INPUT *edt_vinput;
-	MX_EDT *edt;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
+	MX_EDT *edt = NULL;
 	unsigned int buffer_size;
 	int i, edt_status, timeout;
 	mx_status_type mx_status;
@@ -432,7 +432,7 @@ mxd_edt_close( MX_RECORD *record )
 	static const char fname[] = "mxd_edt_close()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 
@@ -471,7 +471,7 @@ mxd_edt_arm( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_arm()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
@@ -506,7 +506,7 @@ mxd_edt_trigger( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_trigger()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int edt_status, num_frames, milliseconds;
 	double exposure_time;
@@ -610,7 +610,7 @@ mxd_edt_stop( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_stop()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 
@@ -639,7 +639,7 @@ mxd_edt_abort( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_abort()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 
@@ -669,7 +669,7 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_get_status()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int done_count, busy, num_timeouts, overrun;
 	uint status_register;
 	mx_status_type mx_status;
@@ -779,7 +779,7 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_get_frame()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	MX_IMAGE_FRAME *frame;
 	unsigned char **ring_buffer_array;
 	unsigned char *image_data;
@@ -883,8 +883,9 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-	frame->image_time.tv_sec = time_array[0];
-	frame->image_time.tv_nsec = 1000L * (long) time_array[1];
+	MXIF_TIMESTAMP_SEC(frame) = time_array[0];
+
+	MXIF_TIMESTAMP_NSEC(frame) = 1000L * (long) time_array[1];
 
 #if MXD_EDT_DEBUG
 	MX_DEBUG(-2,("%s: Frame successfully copied.", fname));
@@ -898,7 +899,7 @@ mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_get_parameter()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int bit_depth;
 	mx_status_type mx_status;
 
@@ -996,7 +997,7 @@ mxd_edt_set_parameter( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_edt_set_parameter()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 

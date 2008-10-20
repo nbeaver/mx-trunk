@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -195,7 +195,7 @@ mxi_edt_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_edt_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -279,7 +279,7 @@ mxi_edt_rs232_read( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_edt_rs232_read()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	struct timespec start_time, timeout_time;
 	struct timespec current_time, timeout_interval;
 	long bytes_to_read, bytes_left, bytes_available, bytes_read;
@@ -434,7 +434,7 @@ mxi_edt_rs232_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_edt_rs232_write()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 
@@ -491,7 +491,7 @@ mxi_edt_rs232_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_edt_rs232_putline()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int edt_status;
 	mx_status_type mx_status;
 
@@ -538,7 +538,7 @@ mxi_edt_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_edt_rs232_num_input_bytes_available()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	int bytes_available;
 	mx_status_type mx_status;
 
@@ -579,7 +579,7 @@ mxi_edt_rs232_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_edt_rs232_discard_unread_input()";
 
-	MX_EDT_VIDEO_INPUT *edt_vinput;
+	MX_EDT_VIDEO_INPUT *edt_vinput = NULL;
 	unsigned long bytes_available, bytes_to_read;
 	mx_status_type mx_status;
 	char buffer[100];
