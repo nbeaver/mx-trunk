@@ -2,7 +2,7 @@
 # tools/Makefile.linux
 #
 
-all:   mx_private_version smvspatial.o strlcpy.o strlcat.o \
+all:   ../libMx/mx_private_version.h smvspatial.o strlcpy.o strlcat.o \
 	unix/src/editline/libedit.a
 
 include ../libMx/Makefile.version
@@ -29,6 +29,8 @@ mx_clean:
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
 smvspatial.o: xgen/smvspatial.c
