@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,7 @@ mxd_epics_scaler_create_record_structures( MX_RECORD *record )
 	const char fname[] = "mxd_epics_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -164,7 +164,7 @@ mxd_epics_scaler_print_structure( FILE *file, MX_RECORD *record )
 	const char fname[] = "mxd_epics_scaler_print_structure()";
 
 	MX_SCALER *scaler;
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long current_value;
 	mx_status_type mx_status;
 
@@ -219,7 +219,7 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_scaler_open()";
 
 	MX_SCALER *scaler;
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	double version_number;
 	long i, scaler_number;
 	mx_status_type mx_status;
@@ -326,7 +326,7 @@ mxd_epics_scaler_read( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_read()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value;
 	mx_status_type mx_status;
 
@@ -357,7 +357,7 @@ mxd_epics_scaler_read_raw( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_read_raw()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value;
 	mx_status_type mx_status;
 
@@ -381,7 +381,7 @@ mxd_epics_scaler_is_busy( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_is_busy()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long count_field;
 	mx_status_type mx_status;
 
@@ -420,7 +420,7 @@ mxd_epics_scaler_start( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_start()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value, count_field;
 	mx_status_type mx_status;
 
@@ -458,7 +458,7 @@ mxd_epics_scaler_stop( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_stop()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long count_field;
 	mx_status_type mx_status;
 
@@ -485,7 +485,7 @@ mxd_epics_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_get_parameter( MX_SCALER *scaler )
 {
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -527,7 +527,7 @@ mxd_epics_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_set_parameter( MX_SCALER *scaler )
 {
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -571,7 +571,7 @@ mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_get_mode()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long gate_control, offset;
 	mx_status_type mx_status;
 
@@ -616,7 +616,7 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 {
 	const char fname[] = "mxd_epics_scaler_set_mode()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	long gate_control, counter_mode, offset;
 	mx_status_type mx_status;
 
@@ -679,7 +679,7 @@ mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 	const char fname[]
 		= "mxd_epics_scaler_set_modes_of_associated_counters()";
 
-	MX_EPICS_SCALER *epics_scaler;
+	MX_EPICS_SCALER *epics_scaler = NULL;
 	MX_EPICS_GROUP epics_group;
 	int i;
 	long gate_control;

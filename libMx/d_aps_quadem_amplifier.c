@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -123,7 +123,7 @@ mxd_aps_quadem_create_record_structures( MX_RECORD *record )
 			"mxd_aps_quadem_create_record_structures()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -170,7 +170,7 @@ mxd_aps_quadem_open( MX_RECORD *record )
 	static const char fname[] = "mxd_aps_quadem_open()";
 
 	MX_AMPLIFIER *amplifier;
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -201,7 +201,7 @@ mxd_aps_quadem_get_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_get_gain()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	short selected_gain_range;
 	mx_status_type mx_status;
 
@@ -257,7 +257,7 @@ mxd_aps_quadem_set_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_set_gain()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	short gain_range;
 	mx_status_type mx_status;
 
@@ -302,7 +302,7 @@ mxd_aps_quadem_get_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_get_time_constant()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	double raw_time_constant;
 	mx_status_type mx_status;
 
@@ -325,7 +325,7 @@ mxd_aps_quadem_set_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_set_time_constant()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	double raw_time_constant;
 	mx_status_type mx_status;
 
@@ -348,7 +348,7 @@ mxd_aps_quadem_get_parameter( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_get_parameter()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aps_quadem_get_pointers( amplifier,
@@ -375,7 +375,7 @@ mxd_aps_quadem_set_parameter( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_aps_quadem_set_parameter()";
 
-	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier;
+	MX_APS_QUADEM_AMPLIFIER *aps_quadem_amplifier = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aps_quadem_get_pointers( amplifier,

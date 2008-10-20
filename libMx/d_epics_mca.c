@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -139,7 +139,7 @@ mxd_epics_mca_create_record_structures( MX_RECORD *record )
 	const char fname[] = "mxd_epics_mca_create_record_structures()";
 
 	MX_MCA *mca;
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -229,7 +229,7 @@ mxd_epics_mca_print_structure( FILE *file, MX_RECORD *record )
 	const char fname[] = "mxd_epics_mca_print_structure()";
 
 	MX_MCA *mca;
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -267,7 +267,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_mca_open()";
 
 	MX_MCA *mca;
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long i;
 mx_status_type mx_status;
 
@@ -413,7 +413,7 @@ mxd_epics_mca_start( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_start()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
 	long start, preset_counts;
 	double preset_real_time, preset_live_time;
@@ -518,7 +518,7 @@ mxd_epics_mca_stop( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_stop()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	long stop;
 	mx_status_type mx_status;
 
@@ -539,7 +539,7 @@ mxd_epics_mca_read( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_read()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long num_channels;
 	mx_status_type mx_status;
 
@@ -564,7 +564,7 @@ mxd_epics_mca_clear( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_clear()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	long erase;
 	mx_status_type mx_status;
 
@@ -585,7 +585,7 @@ mxd_epics_mca_busy( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_busy()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	long busy, proc;
 	mx_status_type mx_status;
 
@@ -625,7 +625,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_get_parameter()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
 	double preset_live_time, preset_real_time;
 	unsigned long preset_counts;
@@ -851,7 +851,7 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 {
 	const char fname[] = "mxd_epics_mca_set_parameter()";
 
-	MX_EPICS_MCA *epics_mca;
+	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
 	long i;
 	short no_background;

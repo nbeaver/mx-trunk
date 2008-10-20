@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -166,7 +166,7 @@ mxd_epics_motor_finish_record_initialization( MX_RECORD *record )
 		"mxd_epics_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -238,7 +238,7 @@ mxd_epics_motor_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_epics_motor_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -300,7 +300,7 @@ mxd_epics_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_move_absolute()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	double new_destination;
 	mx_status_type mx_status;
 
@@ -342,7 +342,7 @@ mxd_epics_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_get_position()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	double position;
 	mx_status_type mx_status;
 
@@ -374,7 +374,7 @@ mxd_epics_motor_set_position( MX_MOTOR *motor )
 
 	static const char fname[] = "mxd_epics_motor_set_position()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	double user_set_position;
 	short set_flag;
 	mx_status_type mx_status;
@@ -424,7 +424,7 @@ mxd_epics_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_soft_abort()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	short stop_field, spmg_field;
 	mx_status_type mx_status;
 
@@ -486,7 +486,7 @@ mxd_epics_motor_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_immediate_abort()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	short spmg_field;
 	mx_status_type mx_status;
 
@@ -510,7 +510,7 @@ mxd_epics_motor_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_find_home_position()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	MX_EPICS_PV *pv;
 	short home_value;
 	mx_status_type mx_status;
@@ -540,7 +540,7 @@ mxd_epics_motor_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_constant_velocity_move()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	MX_EPICS_PV *pv;
 	short move_command;
 	mx_status_type mx_status;
@@ -570,7 +570,7 @@ mxd_epics_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_get_parameter()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	float float_value;
 	mx_status_type mx_status;
 
@@ -670,7 +670,7 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_motor_set_parameter()";
 
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	float float_value;
 	mx_status_type mx_status;
 
@@ -791,7 +791,7 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	int i;
 	double raw_destination;
 	mx_status_type mx_status;
@@ -843,7 +843,7 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 	const char fname[] = "mxd_epics_motor_get_extended_status()";
 
 	MX_EPICS_GROUP epics_group;
-	MX_EPICS_MOTOR *epics_motor;
+	MX_EPICS_MOTOR *epics_motor = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	char driver_name[60];
 	float version_number;

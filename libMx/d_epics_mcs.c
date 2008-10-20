@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -139,7 +139,7 @@ mxd_epics_mcs_create_record_structures( MX_RECORD *record )
 	const char fname[] = "mxd_epics_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -186,7 +186,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_mcs_open()";
 
 	MX_MCS *mcs;
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	double version_number;
 	long i, nmax, allowed_maximum;
 	unsigned long do_not_skip;
@@ -431,7 +431,7 @@ mxd_epics_mcs_start( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_start()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	long start;
 	mx_status_type mx_status;
 
@@ -459,7 +459,7 @@ mxd_epics_mcs_stop( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_stop()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	long stop;
 	mx_status_type mx_status;
 
@@ -484,7 +484,7 @@ mxd_epics_mcs_clear( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_clear()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	long erase;
 	mx_status_type mx_status;
 
@@ -505,7 +505,7 @@ mxd_epics_mcs_busy( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_busy()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	long busy;
 	mx_status_type mx_status;
 
@@ -556,7 +556,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_read_scaler()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	unsigned long do_not_skip, num_measurements_from_epics;
 	long read_cmd;
 	long *data_ptr, *source_ptr, *destination_ptr;
@@ -644,7 +644,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_get_parameter()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -682,7 +682,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 {
 	const char fname[] = "mxd_epics_mcs_set_parameter()";
 
-	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_MCS *epics_mcs = NULL;
 	MX_EPICS_GROUP epics_group;
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;

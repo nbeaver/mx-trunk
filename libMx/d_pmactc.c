@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +204,7 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 		"mxd_pmac_tc_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
 
@@ -287,7 +287,7 @@ mxd_pmac_tc_motor_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_pmac_tc_motor_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -385,7 +385,7 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_tc_motor_motor_is_busy()";
 
 	MX_CLOCK_TICK current_tick;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	short in_position_value;
 	int comparison;
 	mx_status_type mx_status;
@@ -530,7 +530,7 @@ mxd_pmac_tc_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_tc_motor_move_absolute()";
 
 	MX_CLOCK_TICK current_tick;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double new_destination;
 	mx_status_type mx_status;
 
@@ -565,7 +565,7 @@ mxd_pmac_tc_motor_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_tc_motor_get_position()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double raw_position;
 	mx_status_type mx_status;
 
@@ -591,7 +591,7 @@ mxd_pmac_tc_motor_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_tc_motor_soft_abort()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	short abort_field;
 	mx_status_type mx_status;
 
@@ -634,7 +634,7 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_tc_motor_get_parameter()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	char command[41], response[41];
 	int num_items;
 	unsigned long pmac_speed;
@@ -704,7 +704,7 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_tc_motor_set_parameter()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	char command[41];
 	mx_status_type mx_status;
 
@@ -750,7 +750,7 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_bio_motor_get_parameter()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double double_value;
 	long long_value;
 	mx_status_type mx_status;
@@ -859,7 +859,7 @@ mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmac_bio_motor_set_parameter()";
 
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double double_value;
 	mx_status_type mx_status;
 

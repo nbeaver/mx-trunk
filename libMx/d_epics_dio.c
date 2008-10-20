@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,7 +169,7 @@ mxd_epics_din_create_record_structures( MX_RECORD *record )
         const char fname[] = "mxd_epics_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
-        MX_EPICS_DINPUT *epics_dinput;
+        MX_EPICS_DINPUT *epics_dinput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -206,7 +206,7 @@ mxd_epics_din_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
-	MX_EPICS_DINPUT *epics_dinput;
+	MX_EPICS_DINPUT *epics_dinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -232,7 +232,7 @@ mxd_epics_din_read( MX_DIGITAL_INPUT *dinput )
 {
 	const char fname[] = "mxd_epics_din_read()";
 
-	MX_EPICS_DINPUT *epics_dinput;
+	MX_EPICS_DINPUT *epics_dinput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_din_get_pointers( dinput, &epics_dinput, fname );
@@ -254,7 +254,7 @@ mxd_epics_dout_create_record_structures( MX_RECORD *record )
         const char fname[] = "mxd_epics_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
-        MX_EPICS_DOUTPUT *epics_doutput;
+        MX_EPICS_DOUTPUT *epics_doutput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -292,7 +292,7 @@ mxd_epics_dout_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
-	MX_EPICS_DOUTPUT *epics_doutput;
+	MX_EPICS_DOUTPUT *epics_doutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -318,7 +318,7 @@ mxd_epics_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
 	const char fname[] = "mxd_epics_dout_read()";
 
-	MX_EPICS_DOUTPUT *epics_doutput;
+	MX_EPICS_DOUTPUT *epics_doutput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_dout_get_pointers(doutput, &epics_doutput, fname);
@@ -337,7 +337,7 @@ mxd_epics_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	const char fname[] = "mxd_epics_dout_write()";
 
-	MX_EPICS_DOUTPUT *epics_doutput;
+	MX_EPICS_DOUTPUT *epics_doutput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_dout_get_pointers(doutput, &epics_doutput, fname);

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,7 +157,7 @@ mxd_epics_timer_open( MX_RECORD *record )
 	const char fname[] = "mxd_epics_timer_open()";
 
 	MX_TIMER *timer;
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	double version_number;
 	long i;
 	mx_status_type mx_status;
@@ -239,7 +239,7 @@ mxd_epics_timer_is_busy( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_is_busy()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	long count_field;
 	mx_status_type mx_status;
 
@@ -278,7 +278,7 @@ mxd_epics_timer_start( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_start()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	double seconds;
 	long count_field;
 	mx_status_type mx_status;
@@ -343,7 +343,7 @@ mxd_epics_timer_stop( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_stop()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	long count_field;
 	mx_status_type mx_status;
 
@@ -394,7 +394,7 @@ mxd_epics_timer_read( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_read()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	double seconds;
 	mx_status_type mx_status;
 
@@ -419,7 +419,7 @@ mxd_epics_timer_get_mode( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_get_mode()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	long gate_control;
 	mx_status_type mx_status;
 
@@ -463,7 +463,7 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 {
 	const char fname[] = "mxd_epics_timer_set_mode()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	long gate_control, counter_mode;
 	mx_status_type mx_status;
 
@@ -524,7 +524,7 @@ mxd_epics_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 	const char fname[]
 		= "mxd_epics_timer_set_modes_of_associated_counters()";
 
-	MX_EPICS_TIMER *epics_timer;
+	MX_EPICS_TIMER *epics_timer = NULL;
 	MX_EPICS_GROUP epics_group;
 	int i;
 	long gate_control;

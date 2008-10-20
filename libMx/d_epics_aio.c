@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,7 +173,7 @@ mxd_epics_ain_create_record_structures( MX_RECORD *record )
         static const char fname[] = "mxd_epics_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
-        MX_EPICS_AINPUT *epics_ainput;
+        MX_EPICS_AINPUT *epics_ainput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -214,7 +214,7 @@ mxd_epics_ain_open( MX_RECORD *record )
 	static const char fname[] = "mxd_epics_ain_open()";
 
 	MX_ANALOG_INPUT *ainput;
-	MX_EPICS_AINPUT *epics_ainput;
+	MX_EPICS_AINPUT *epics_ainput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -243,7 +243,7 @@ mxd_epics_ain_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_epics_ain_read()";
 
-	MX_EPICS_AINPUT *epics_ainput;
+	MX_EPICS_AINPUT *epics_ainput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ain_get_pointers( ainput, &epics_ainput, fname );
@@ -262,7 +262,7 @@ mxd_epics_ain_get_dark_current( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_epics_ain_get_dark_current()";
 
-	MX_EPICS_AINPUT *epics_ainput;
+	MX_EPICS_AINPUT *epics_ainput = NULL;
 	mx_status_type mx_status;
 
         /* If the database is configured such that the server maintains
@@ -292,7 +292,7 @@ mxd_epics_ain_set_dark_current( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_epics_ain_set_dark_current()";
 
-	MX_EPICS_AINPUT *epics_ainput;
+	MX_EPICS_AINPUT *epics_ainput = NULL;
 	mx_status_type mx_status;
 
         /* If the database is configured such that the server maintains
@@ -325,7 +325,7 @@ mxd_epics_aout_create_record_structures( MX_RECORD *record )
         static const char fname[] = "mxd_epics_aout_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
-        MX_EPICS_AOUTPUT *epics_aoutput;
+        MX_EPICS_AOUTPUT *epics_aoutput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -367,7 +367,7 @@ mxd_epics_aout_open( MX_RECORD *record )
 	static const char fname[] = "mxd_epics_aout_open()";
 
 	MX_ANALOG_OUTPUT *aoutput;
-	MX_EPICS_AOUTPUT *epics_aoutput;
+	MX_EPICS_AOUTPUT *epics_aoutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -394,7 +394,7 @@ mxd_epics_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_epics_aout_read()";
 
-	MX_EPICS_AOUTPUT *epics_aoutput;
+	MX_EPICS_AOUTPUT *epics_aoutput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_aout_get_pointers( aoutput,
@@ -414,7 +414,7 @@ mxd_epics_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_epics_aout_write()";
 
-	MX_EPICS_AOUTPUT *epics_aoutput;
+	MX_EPICS_AOUTPUT *epics_aoutput = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_aout_get_pointers( aoutput,

@@ -5,13 +5,11 @@
  *
  * Author:  William Lavender
  *
- * WARNING: I have not yet finished writing this driver.  It doesn't work yet!
- *
  *          The SCAN field for the EPICS record must be set to 'Passive'.
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -98,7 +96,7 @@ mxi_epics_rs232_get_pointers( MX_RS232 *rs232,
 			MX_EPICS_RS232 **epics_rs232,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_epics_rs232_get_pointers()";
+	static const char fname[] = "mxi_epics_rs232_get_pointers()";
 
 	MX_RECORD *epics_rs232_record;
 
@@ -140,7 +138,8 @@ mxi_epics_rs232_get_pointers( MX_RS232 *rs232,
 MX_EXPORT mx_status_type
 mxi_epics_rs232_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_epics_rs232_create_record_structures()";
+	static const char fname[] =
+		"mxi_epics_rs232_create_record_structures()";
 
 	MX_RS232 *rs232;
 	MX_EPICS_RS232 *epics_rs232;
@@ -176,7 +175,8 @@ mxi_epics_rs232_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_epics_rs232_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_epics_rs232_finish_record_initialization()";
+	static const char fname[] =
+		"mxi_epics_rs232_finish_record_initialization()";
 
 	MX_EPICS_RS232 *epics_rs232;
 	mx_status_type status;
@@ -266,10 +266,10 @@ mxi_epics_rs232_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_epics_rs232_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_epics_rs232_open()";
+	static const char fname[] = "mxi_epics_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	char output_delimiter;
 	long format;
@@ -551,9 +551,9 @@ mxi_epics_rs232_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_epics_rs232_getchar( MX_RS232 *rs232, char *c )
 {
-	const char fname[] = "mxi_epics_rs232_getchar()";
+	static const char fname[] = "mxi_epics_rs232_getchar()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -590,9 +590,9 @@ mxi_epics_rs232_getchar( MX_RS232 *rs232, char *c )
 MX_EXPORT mx_status_type
 mxi_epics_rs232_putchar( MX_RS232 *rs232, char c )
 {
-	const char fname[] = "mxi_epics_rs232_putchar()";
+	static const char fname[] = "mxi_epics_rs232_putchar()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -615,9 +615,9 @@ mxi_epics_rs232_read( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	const char fname[] = "mxi_epics_rs232_read()";
+	static const char fname[] = "mxi_epics_rs232_read()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -642,9 +642,9 @@ mxi_epics_rs232_write( MX_RS232 *rs232,
 			size_t max_bytes_to_write,
 			size_t *bytes_written )
 {
-	const char fname[] = "mxi_epics_rs232_write()";
+	static const char fname[] = "mxi_epics_rs232_write()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -669,9 +669,9 @@ mxi_epics_rs232_getline( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	const char fname[] = "mxi_epics_rs232_getline()";
+	static const char fname[] = "mxi_epics_rs232_getline()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -703,9 +703,9 @@ mxi_epics_rs232_putline( MX_RS232 *rs232,
 			char *buffer,
 			size_t *bytes_written )
 {
-	const char fname[] = "mxi_epics_rs232_putline()";
+	static const char fname[] = "mxi_epics_rs232_putline()";
 
-	MX_EPICS_RS232 *epics_rs232;
+	MX_EPICS_RS232 *epics_rs232 = NULL;
 	long num_chars;
 	mx_status_type mx_status;
 
@@ -782,7 +782,7 @@ mxi_epics_rs232_read_buffer( MX_EPICS_RS232 *epics_rs232,
 				long *num_chars,
 				int enable_input_delimiter )
 {
-	const char fname[] = "mxi_epics_rs232_read_buffer()";
+	static const char fname[] = "mxi_epics_rs232_read_buffer()";
 
 	int first_time;
 	long i, timeout, input_delimiter, num_chars_read;
@@ -961,7 +961,7 @@ mxi_epics_rs232_write_buffer( MX_EPICS_RS232 *epics_rs232,
 				long *num_chars,
 				int add_output_delimiters )
 {
-	const char fname[] = "mxi_epics_rs232_write_buffer()";
+	static const char fname[] = "mxi_epics_rs232_write_buffer()";
 
 	long i, timeout, real_num_chars_to_write;
 	char *ptr, *buffer_ptr;
