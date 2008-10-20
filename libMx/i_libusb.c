@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2007 Illinois Institute of Technology
+ * Copyright 2004, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -85,7 +85,7 @@ mxi_libusb_get_pointers( MX_USB *usb,
 			MX_LIBUSB **libusb,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_libusb_get_pointers()";
+	static const char fname[] = "mxi_libusb_get_pointers()";
 
 	MX_RECORD *libusb_record;
 
@@ -126,7 +126,7 @@ mxi_libusb_get_pointers( MX_USB *usb,
 MX_EXPORT mx_status_type
 mxi_libusb_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_libusb_create_record_structures()";
+	static const char fname[] = "mxi_libusb_create_record_structures()";
 
 	MX_USB *usb;
 	MX_LIBUSB *libusb;
@@ -172,7 +172,7 @@ mxi_libusb_delete_record( MX_RECORD *record )
 	static const char fname[] = "mxi_libusb_delete_record()";
 
 	MX_USB *usb;
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -205,7 +205,7 @@ mxi_libusb_open( MX_RECORD *record )
 	static const char fname[] = "mxi_libusb_open()";
 
 	MX_USB *usb;
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -241,7 +241,7 @@ mxi_libusb_close( MX_RECORD *record )
 	static const char fname[] = "mxi_libusb_close()";
 
 	MX_USB *usb;
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -268,7 +268,7 @@ mxi_libusb_enumerate_devices( MX_USB *usb )
 {
 	static const char fname[] = "mxi_libusb_enumerate_devices()";
 
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	int num_bus_changes, num_device_changes;
 	mx_status_type mx_status;
 
@@ -505,7 +505,7 @@ mxi_libusb_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 
 	struct usb_bus *current_bus;
 	struct usb_device *current_device;
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	unsigned long vendor_id, product_id;
 	int order_number, num_matching_devices_found, product_id_in_use;
 	int quiet_flag;
@@ -665,7 +665,7 @@ mxi_libusb_delete_device( MX_USB_DEVICE *usb_device )
 {
 	static const char fname[] = "mxi_libusb_delete_device()";
 
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	int usb_status;
 	mx_status_type mx_status;
 
@@ -733,7 +733,7 @@ mxi_libusb_control_transfer( MX_USB_DEVICE *usb_device,
 {
 	static const char fname[] = "mxi_libusb_control_transfer()";
 
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	int usb_result;
 	mx_status_type mx_status;
 
@@ -806,7 +806,7 @@ mxi_libusb_bulk_read( MX_USB_DEVICE *usb_device,
 {
 	static const char fname[] = "mxi_libusb_bulk_read()";
 
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	int usb_result;
 	mx_status_type mx_status;
 
@@ -896,7 +896,7 @@ mxi_libusb_bulk_write( MX_USB_DEVICE *usb_device,
 {
 	static const char fname[] = "mxi_libusb_bulk_write()";
 
-	MX_LIBUSB *libusb;
+	MX_LIBUSB *libusb = NULL;
 	int usb_result;
 	mx_status_type mx_status;
 

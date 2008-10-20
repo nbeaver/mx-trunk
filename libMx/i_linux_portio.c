@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,7 +87,8 @@ MX_RECORD_FIELD_DEFAULTS *mxi_linux_portio_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxi_linux_portio_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_portio_create_record_structures()";
+	static const char fname[] =
+		"mxi_linux_portio_create_record_structures()";
 
 	MX_LINUX_PORTIO *linux_portio;
 
@@ -113,7 +114,7 @@ mxi_linux_portio_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_linux_portio_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_portio_open()";
+	static const char fname[] = "mxi_linux_portio_open()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	int saved_errno;
@@ -150,7 +151,7 @@ mxi_linux_portio_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_linux_portio_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_linux_portio_close()";
+	static const char fname[] = "mxi_linux_portio_close()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	int result;
@@ -188,7 +189,7 @@ mxi_linux_portio_close( MX_RECORD *record )
 MX_EXPORT uint8_t
 mxi_linux_portio_inp8( MX_RECORD *record, unsigned long port_number )
 {
-	const char fname[] = "mxi_linux_portio_inp8()";
+	static const char fname[] = "mxi_linux_portio_inp8()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	portio_message message;
@@ -232,7 +233,7 @@ mxi_linux_portio_inp8( MX_RECORD *record, unsigned long port_number )
 MX_EXPORT uint16_t
 mxi_linux_portio_inp16( MX_RECORD *record, unsigned long port_number )
 {
-	const char fname[] = "mxi_linux_portio_inp16()";
+	static const char fname[] = "mxi_linux_portio_inp16()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	portio_message message;
@@ -278,7 +279,7 @@ mxi_linux_portio_outp8( MX_RECORD *record,
 			unsigned long port_number,
 			uint8_t byte_value )
 {
-	const char fname[] = "mxi_linux_portio_outp8()";
+	static const char fname[] = "mxi_linux_portio_outp8()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	portio_message message;
@@ -325,7 +326,7 @@ mxi_linux_portio_outp16( MX_RECORD *record,
 			unsigned long port_number,
 			uint16_t word_value )
 {
-	const char fname[] = "mxi_linux_portio_outp16()";
+	static const char fname[] = "mxi_linux_portio_outp16()";
 
 	MX_LINUX_PORTIO *linux_portio;
 	portio_message message;
@@ -372,7 +373,7 @@ mxi_linux_portio_request_region( MX_RECORD *record,
 				unsigned long port_number,
 				unsigned long length )
 {
-	const char fname[] = "mxi_linux_portio_request_region()";
+	static const char fname[] = "mxi_linux_portio_request_region()";
 
 	portio_permission_map map;
 	MX_LINUX_PORTIO *linux_portio;

@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -264,7 +264,7 @@ mxi_ni488_print_interface_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxi_ni488_print_interface_structure()";
 
 	MX_GPIB *gpib;
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	char read_eos_char, write_eos_char;
 	mx_status_type mx_status;
 
@@ -321,7 +321,7 @@ mxi_ni488_open( MX_RECORD *record )
 	static const char fname[] = "mxi_ni488_open()";
 
 	MX_GPIB *gpib;
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	long i;
 	mx_status_type mx_status;
 
@@ -555,7 +555,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_open_device()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, time_duration_code;
 	unsigned long eos_value;
 	short device_present;
@@ -659,7 +659,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_close_device()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value, value, time_duration_code;
 	mx_status_type mx_status;
 
@@ -767,7 +767,7 @@ mxi_ni488_read( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_ni488_read()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	char *ptr;
 	int dev, ibsta_value;
 	mx_status_type mx_status;
@@ -838,7 +838,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 {
 	static const char fname[] = "mxi_ni488_write()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int dev, ibsta_value;
 	size_t local_bytes_to_write;
 	char stack_buffer[100];
@@ -993,7 +993,7 @@ mxi_ni488_interface_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_ni488_interface_clear()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
 	mx_status_type mx_status;
 
@@ -1023,7 +1023,7 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_ni488_device_clear()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
 	mx_status_type mx_status;
 
@@ -1056,7 +1056,7 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_selective_device_clear()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
 	mx_status_type mx_status;
 
@@ -1093,7 +1093,7 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 {
 	static const char fname[] = "mxi_ni488_local_lockout()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
 	mx_status_type mx_status;
 
@@ -1126,7 +1126,7 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_remote_enable()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value;
 	mx_status_type mx_status;
 
@@ -1158,7 +1158,7 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_go_to_local()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
 	mx_status_type mx_status;
 
@@ -1195,7 +1195,7 @@ mxi_ni488_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_trigger()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
 	mx_status_type mx_status;
 
@@ -1232,7 +1232,7 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 {
 	static const char fname[] = "mxi_ni488_wait_for_service_request()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
 	mx_status_type mx_status;
 
@@ -1271,7 +1271,7 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 {
 	static const char fname[] = "mxi_ni488_serial_poll()";
 
-	MX_NI488 *ni488;
+	MX_NI488 *ni488 = NULL;
 	int ibsta_value, dev;
 	mx_status_type mx_status;
 

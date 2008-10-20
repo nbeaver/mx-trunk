@@ -7,12 +7,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_VXI_MEMACC_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -65,10 +67,6 @@ long mxi_vxi_memacc_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_vxi_memacc_rfield_def_ptr
 		= &mxi_vxi_memacc_record_field_defaults[0];
-
-/*--*/
-
-#define MX_VXI_MEMACC_DEBUG	FALSE
 
 /*--*/
 
@@ -135,7 +133,7 @@ mxi_vxi_memacc_get_pointers( MX_VME *vme,
 				MX_VXI_MEMACC_CRATE **crate,
 				const char calling_fname[] )
 {
-	const char fname[] = "mxi_vxi_memacc_get_pointers()";
+	static const char fname[] = "mxi_vxi_memacc_get_pointers()";
 
 	MX_VXI_MEMACC *vxi_memacc_ptr;
 
@@ -192,7 +190,7 @@ mxi_vxi_memacc_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxi_memacc_create_record_structures()";
+	static const char fname[] = "mxi_vxi_memacc_create_record_structures()";
 
 	MX_VME *vme;
 	MX_VXI_MEMACC *vxi_memacc;
@@ -229,11 +227,11 @@ mxi_vxi_memacc_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 			"mxi_vxi_memacc_finish_record_initialization()";
 
 	MX_VME *vme;
-	MX_VXI_MEMACC *vxi_memacc;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -278,11 +276,11 @@ mxi_vxi_memacc_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxi_memacc_print_structure()";
+	static const char fname[] = "mxi_vxi_memacc_print_structure()";
 
 	MX_VME *vme;
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	unsigned long i, num_crates;
 	mx_status_type mx_status;
 
@@ -341,11 +339,11 @@ mxi_vxi_memacc_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxi_memacc_open()";
+	static const char fname[] = "mxi_vxi_memacc_open()";
 
 	MX_VME *vme;
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViStatus visa_status;
 	ViFindList find_list;
 	ViUInt32 i, num_matches;
@@ -500,10 +498,10 @@ mxi_vxi_memacc_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_vxi_memacc_close()";
+	static const char fname[] = "mxi_vxi_memacc_close()";
 
 	MX_VME *vme;
-	MX_VXI_MEMACC *vxi_memacc;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
 	ViStatus visa_status;
 	mx_status_type mx_status;
 
@@ -554,10 +552,10 @@ mxi_vxi_memacc_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_input( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_input()";
+	static const char fname[] = "mxi_vxi_memacc_input()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViUInt8 *uint8_ptr;
 	ViUInt16 *uint16_ptr;
 	ViUInt32 *uint32_ptr;
@@ -634,10 +632,10 @@ mxi_vxi_memacc_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_output( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_output()";
+	static const char fname[] = "mxi_vxi_memacc_output()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViUInt8 *uint8_ptr;
 	ViUInt16 *uint16_ptr;
 	ViUInt32 *uint32_ptr;
@@ -714,10 +712,10 @@ mxi_vxi_memacc_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_multi_input( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_multi_input()";
+	static const char fname[] = "mxi_vxi_memacc_multi_input()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViUInt8 *uint8_ptr;
 	ViUInt16 *uint16_ptr;
 	ViUInt32 *uint32_ptr;
@@ -808,10 +806,10 @@ mxi_vxi_memacc_multi_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_multi_output( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_multi_output()";
+	static const char fname[] = "mxi_vxi_memacc_multi_output()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViUInt8 *uint8_ptr;
 	ViUInt16 *uint16_ptr;
 	ViUInt32 *uint32_ptr;
@@ -902,10 +900,10 @@ mxi_vxi_memacc_multi_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_get_parameter( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_get_parameter()";
+	static const char fname[] = "mxi_vxi_memacc_get_parameter()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	void *data_ptr;
 	ViInt32 int32_value;
 	ViStatus visa_status;
@@ -991,10 +989,10 @@ mxi_vxi_memacc_get_parameter( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_set_parameter( MX_VME *vme )
 {
-	const char fname[] = "mxi_vxi_memacc_set_parameter()";
+	static const char fname[] = "mxi_vxi_memacc_set_parameter()";
 
-	MX_VXI_MEMACC *vxi_memacc;
-	MX_VXI_MEMACC_CRATE *crate;
+	MX_VXI_MEMACC *vxi_memacc = NULL;
+	MX_VXI_MEMACC_CRATE *crate = NULL;
 	ViInt32 int32_value;
 	ViStatus visa_status;
 	ViChar visa_error_message[MXU_NI_VISA_ERROR_MESSAGE_LENGTH + 1];

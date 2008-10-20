@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -291,7 +291,7 @@ mxi_sis3100_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxi_sis3100_print_structure()";
 
 	MX_VME *vme;
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -428,7 +428,7 @@ mxi_sis3100_open( MX_RECORD *record )
 	static const char fname[] = "mxi_sis3100_open()";
 
 	MX_VME *vme;
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	u_int32_t version_register, control_register;
 	int os_status, vme_status, saved_errno;
 	int device_node_major_number, device_node_minor_number;
@@ -557,7 +557,7 @@ mxi_sis3100_close( MX_RECORD *record )
 	static const char fname[] = "mxi_sis3100_close()";
 
 	MX_VME *vme;
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	u_int32_t control_register;
 	int close_status, vme_status, saved_errno;
 	mx_status_type mx_status;
@@ -617,7 +617,7 @@ mxi_sis3100_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_sis3100_resynchronize()";
 
 	MX_VME *vme;
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	int vme_status;
 	mx_status_type mx_status;
 
@@ -651,7 +651,7 @@ mxi_sis3100_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_input()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	int vme_status;
 	mx_status_type mx_status;
 
@@ -780,7 +780,7 @@ mxi_sis3100_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_output()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	int vme_status;
 	mx_status_type mx_status;
 
@@ -909,7 +909,7 @@ mxi_sis3100_multi_input( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_multi_input()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	u_int32_t vme_address, read_address_increment;
 	u_int8_t *vme_8bit_data_pointer;
 	u_int16_t *vme_16bit_data_pointer;
@@ -1207,7 +1207,7 @@ mxi_sis3100_multi_output( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_multi_output()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	u_int32_t vme_address, write_address_increment;
 	u_int8_t *vme_8bit_data_pointer;
 	u_int16_t *vme_16bit_data_pointer;
@@ -1489,7 +1489,7 @@ mxi_sis3100_get_parameter( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_get_parameter()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sis3100_get_pointers( vme, &sis3100, fname );
@@ -1530,7 +1530,7 @@ mxi_sis3100_set_parameter( MX_VME *vme )
 {
 	static const char fname[] = "mxi_sis3100_set_parameter()";
 
-	MX_SIS3100 *sis3100;
+	MX_SIS3100 *sis3100 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sis3100_get_pointers( vme, &sis3100, fname );

@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +72,7 @@ mxi_esone_camac_get_pointers( MX_CAMAC *camac,
 			MX_ESONE_CAMAC **esone_camac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_esone_camac_get_pointers()";
+	static const char fname[] = "mxi_esone_camac_get_pointers()";
 
 	MX_RECORD *esone_camac_record;
 
@@ -114,7 +114,8 @@ mxi_esone_camac_get_pointers( MX_CAMAC *camac,
 MX_EXPORT mx_status_type
 mxi_esone_camac_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_esone_camac_create_record_structures()";
+	static const char fname[] =
+		"mxi_esone_camac_create_record_structures()";
 
 	MX_CAMAC *crate;
 	MX_ESONE_CAMAC *esone_camac;
@@ -146,12 +147,12 @@ mxi_esone_camac_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_esone_camac_get_lam_status( MX_CAMAC *camac, int *lam_status )
+mxi_esone_camac_get_lam_status( MX_CAMAC *camac, long *lam_status )
 {
 	static const char fname[] = "mxi_esone_camac_get_lam_status()";
 
-	MX_ESONE_CAMAC *esone_camac;
-	int ext;
+	MX_ESONE_CAMAC *esone_camac = NULL;
+	int ext, int_lam_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_esone_camac_get_pointers( camac, &esone_camac, fname );
@@ -161,17 +162,19 @@ mxi_esone_camac_get_lam_status( MX_CAMAC *camac, int *lam_status )
 
 	cdreg( &ext, camac->branch_number, camac->crate_number, 0, 0 );
 
-	ctlm( ext, lam_status );
+	ctlm( ext, &int_lam_status );
+
+	*lam_status = (long) int_lam_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_esone_camac_controller_command(MX_CAMAC *camac, int command )
+mxi_esone_camac_controller_command( MX_CAMAC *camac, long command )
 {
 	static const char fname[] = "mxi_esone_camac_controller_command()";
 
-	MX_ESONE_CAMAC *esone_camac;
+	MX_ESONE_CAMAC *esone_camac = NULL;
 	int ext;
 	mx_status_type mx_status;
 
@@ -198,12 +201,12 @@ mxi_esone_camac_controller_command(MX_CAMAC *camac, int command )
 }
 
 MX_EXPORT mx_status_type
-mxi_esone_camac( MX_CAMAC *camac, int slot, int subaddress,
-		int function_code, int32_t *data, int *Q, int *X)
+mxi_esone_camac( MX_CAMAC *camac, long slot, long subaddress,
+		long function_code, int32_t *data, int *Q, int *X)
 {
 	static const char fname[] = "mxi_esone_camac()";
 
-	MX_ESONE_CAMAC *esone_camac;
+	MX_ESONE_CAMAC *esone_camac = NULL;
 	int ext;
 	mx_status_type mx_status;
 

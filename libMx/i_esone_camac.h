@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,13 +28,13 @@ MX_API mx_status_type mxi_esone_camac_create_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxi_esone_camac_get_lam_status( MX_CAMAC *crate,
-							int *lam_status);
+							long *lam_status);
 
 MX_API mx_status_type mxi_esone_camac_controller_command( MX_CAMAC *crate,
-							int command );
+							long command );
 
 MX_API mx_status_type mxi_esone_camac( MX_CAMAC *crate,
-		int slot, int subaddress, int function_code,
+		long slot, long subaddress, long function_code,
 		int32_t *data, int *Q, int *X );
 
 /* Define the data structures used by the ESONE CAMAC interface code. */
