@@ -163,8 +163,8 @@ mxd_u500_status_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_u500_status_read()";
 
-	MX_U500_STATUS *u500_status;
-	MX_U500 *u500;
+	MX_U500_STATUS *u500_status = NULL;
+	MX_U500 *u500 = NULL;
 	AERERR_CODE wapi_status;
 	mx_status_type mx_status;
 

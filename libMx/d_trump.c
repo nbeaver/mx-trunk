@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,10 +40,10 @@ MX_RECORD_FUNCTION_LIST mxd_trump_record_function_list = {
 	mxd_trump_initialize_type,
 	mxd_trump_create_record_structures,
 	mxd_trump_finish_record_initialization,
-	mxd_trump_delete_record,
+	NULL,
 	mxd_trump_print_structure,
-	mxd_trump_read_parms_from_hardware,
-	mxd_trump_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_trump_open,
 	mxd_trump_close
 };
@@ -81,7 +81,7 @@ mxd_trump_get_pointers( MX_MCA *mca,
 			MX_UMCBI_DETECTOR **umcbi_detector,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_trump_get_pointers()";
+	static const char fname[] = "mxd_trump_get_pointers()";
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -144,7 +144,7 @@ mxd_trump_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_trump_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_trump_create_record_structures()";
+	static const char fname[] = "mxd_trump_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_TRUMP_MCA *trump_mca;
@@ -179,7 +179,7 @@ mxd_trump_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_trump_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_trump_finish_record_initialization()";
+	static const char fname[] = "mxd_trump_finish_record_initialization()";
 
 	MX_MCA *mca;
 	MX_TRUMP_MCA *trump_mca;
@@ -209,32 +209,13 @@ mxd_trump_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_trump_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_trump_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_trump_print_structure()";
+	static const char fname[] = "mxd_trump_print_structure()";
 
 	MX_MCA *mca;
 	MX_TRUMP_MCA *trump_mca;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -269,21 +250,9 @@ mxd_trump_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_trump_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trump_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_trump_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_trump_open()";
+	static const char fname[] = "mxd_trump_open()";
 
 	MX_MCA *mca;
 	MX_TRUMP_MCA *trump_mca;
@@ -291,7 +260,7 @@ mxd_trump_open( MX_RECORD *record )
 	void *detector_handle;
 	char response[80];
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -322,11 +291,11 @@ mxd_trump_open( MX_RECORD *record )
 		mca->roi_array[i][1] = 0;
 	}
 
-	status = mxi_umcbi_get_detector_struct( trump_mca->umcbi_record,
+	mx_status = mxi_umcbi_get_detector_struct( trump_mca->umcbi_record,
 			trump_mca->detector_number, &detector );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	trump_mca->detector = detector;
 
@@ -344,11 +313,11 @@ mxd_trump_open( MX_RECORD *record )
 
 	/* Verify that we are talking to a Trump MCA card. */
 
-	status = mxi_umcbi_command( detector, "SHOW_VERSION",
+	mx_status = mxi_umcbi_command( detector, "SHOW_VERSION",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strncmp( response, "$FTRMP", 6 ) != 0 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -368,7 +337,7 @@ mxd_trump_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_trump_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_trump_close()";
+	static const char fname[] = "mxd_trump_close()";
 
 	MX_TRUMP_MCA *trump_mca;
 	BOOL status;
@@ -405,24 +374,24 @@ mxd_trump_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_trump_start( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_start()";
+	static const char fname[] = "mxd_trump_start()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
 	char command[50];
 	unsigned long tick_count;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_umcbi_command( detector,
+	mx_status = mxi_umcbi_command( detector,
 				"CLEAR", NULL, 0, MXD_TRUMP_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_TRUMP_DEBUG
 	MX_DEBUG(-2,("%s: preset_type = %d", fname, mca->preset_type));
@@ -430,17 +399,17 @@ mxd_trump_start( MX_MCA *mca )
 
 	switch( mca->preset_type ) {
 	case MXF_MCA_PRESET_NONE:
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				"SET_LIVE_PRESET 0", NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				"SET_TRUE_PRESET 0", NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		break;
 
@@ -450,17 +419,17 @@ mxd_trump_start( MX_MCA *mca )
 
 		sprintf( command, "SET_LIVE_PRESET %lu", tick_count );
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				command, NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				"SET_TRUE_PRESET 0", NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		break;
 
@@ -470,17 +439,17 @@ mxd_trump_start( MX_MCA *mca )
 
 		sprintf( command, "SET_TRUE_PRESET %lu", tick_count );
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				command, NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				"SET_LIVE_PRESET 0", NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		break;
 	default:
@@ -490,59 +459,59 @@ mxd_trump_start( MX_MCA *mca )
 		break;
 	}
 
-	status = mxi_umcbi_command( detector,
+	mx_status = mxi_umcbi_command( detector,
 				"START", NULL, 0, MXD_TRUMP_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trump_stop( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_stop()";
+	static const char fname[] = "mxd_trump_stop()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
-	mx_status_type status;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
+	mx_status_type mx_status;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_umcbi_command( detector,
+	mx_status = mxi_umcbi_command( detector,
 				"STOP", NULL, 0, MXD_TRUMP_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trump_read( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_read()";
+	static const char fname[] = "mxd_trump_read()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
 	unsigned long i, num_channels;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	DWORD *data_ptr;
 	DWORD data_mask, roi_mask;
 	WORD returned_channels;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_TRUMP_DEBUG
 	MX_DEBUG(-2,("%s: Before mxd_trump_get_num_channels()", fname));
 #endif
 
-	status = mx_mca_get_num_channels( mca->record, &num_channels );
+	mx_status = mx_mca_get_num_channels( mca->record, &num_channels );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_TRUMP_DEBUG
 	MX_DEBUG(-2,("%s: mca = %p", fname, mca));
@@ -593,39 +562,39 @@ mxd_trump_read( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_trump_clear( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_clear()";
+	static const char fname[] = "mxd_trump_clear()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
-	mx_status_type status;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
+	mx_status_type mx_status;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_umcbi_command( detector,
+	mx_status = mxi_umcbi_command( detector,
 				"CLEAR", NULL, 0, MXD_TRUMP_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trump_busy( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_busy()";
+	static const char fname[] = "mxd_trump_busy()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
 	char response[20];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_umcbi_command( detector, "SHOW_ACTIVE",
+	mx_status = mxi_umcbi_command( detector, "SHOW_ACTIVE",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
 	if ( strcmp( response, "$C00000087" ) == 0 ) {
@@ -634,32 +603,32 @@ mxd_trump_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trump_get_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_get_parameter()";
+	static const char fname[] = "mxd_trump_get_parameter()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
 	char response[80];
 	char buffer[80];
 	char *ptr;
 	int num_items;
 	unsigned long num_roi_channels, raw_real_time, raw_live_time;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	WORD num_channels;
 	DWORD *data_ptr;
 	DWORD long_value, data_mask, roi_mask;
 	WORD returned_channels;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
@@ -677,11 +646,11 @@ mxd_trump_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
 
-		status = mxi_umcbi_command( detector, "SHOW_ROI",
+		mx_status = mxi_umcbi_command( detector, "SHOW_ROI",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( (response[0] != '$') || (response[1] != 'D') ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -726,11 +695,11 @@ mxd_trump_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
 
-		status = mxi_umcbi_command( detector, "SHOW_INTEGRAL",
+		mx_status = mxi_umcbi_command( detector, "SHOW_INTEGRAL",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( (response[0] != '$') || (response[1] != 'G') ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -805,11 +774,11 @@ mxd_trump_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
 
-		status = mxi_umcbi_command( detector, "SHOW_TRUE",
+		mx_status = mxi_umcbi_command( detector, "SHOW_TRUE",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( (response[0] != '$') || (response[1] != 'G') ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -838,11 +807,11 @@ mxd_trump_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_LIVE_TIME ) {
 
-		status = mxi_umcbi_command( detector, "SHOW_LIVE",
+		mx_status = mxi_umcbi_command( detector, "SHOW_LIVE",
 				response, sizeof response, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( (response[0] != '$') || (response[1] != 'G') ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -878,26 +847,26 @@ mxd_trump_get_parameter( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_trump_set_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxd_trump_set_parameter()";
+	static const char fname[] = "mxd_trump_set_parameter()";
 
-	MX_TRUMP_MCA *trump_mca;
-	MX_UMCBI_DETECTOR *detector;
+	MX_TRUMP_MCA *trump_mca = NULL;
+	MX_UMCBI_DETECTOR *detector = NULL;
 	char command[80];
 	unsigned long start, length;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
+	mx_status = mxd_trump_get_pointers( mca, &trump_mca, &detector, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				"CLEAR_ROI", NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		start  = mca->roi[0];
 		length = mca->roi[1] - mca->roi[0] + 1L;
@@ -910,11 +879,11 @@ mxd_trump_set_parameter( MX_MCA *mca )
 
 		sprintf( command, "SET_ROI %lu %lu", start, length );
 
-		status = mxi_umcbi_command( detector,
+		mx_status = mxi_umcbi_command( detector,
 				command, NULL, 0, MXD_TRUMP_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 	} else
 	if ( mca->parameter_type == MXLV_MCA_CHANNEL_NUMBER ) {

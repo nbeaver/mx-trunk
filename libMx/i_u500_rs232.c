@@ -195,7 +195,7 @@ mxi_u500_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_u500_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_U500_RS232 *u500_rs232;
+	MX_U500_RS232 *u500_rs232 = NULL;
 	int os_major, os_minor, os_update;
 	mx_status_type mx_status;
 
@@ -278,7 +278,7 @@ mxi_u500_rs232_close( MX_RECORD *record )
 	static const char fname[] = "mxi_u500_rs232_close()";
 
 	MX_RS232 *rs232;
-	MX_U500_RS232 *u500_rs232;
+	MX_U500_RS232 *u500_rs232 = NULL;
 	mx_status_type mx_status;
 
 	BOOL close_status;
@@ -325,7 +325,7 @@ mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_u500_rs232_getchar()";
 
-	MX_U500_RS232 *u500_rs232;
+	MX_U500_RS232 *u500_rs232 = NULL;
 	mx_status_type mx_status;
 
 	BOOL read_status;
@@ -369,8 +369,8 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_u500_rs232_putline()";
 
-	MX_U500_RS232 *u500_rs232;
-	MX_U500 *u500;
+	MX_U500_RS232 *u500_rs232 = NULL;
+	MX_U500 *u500 = NULL;
 	char local_buffer[500];
 	size_t prefix_length;
 	mx_status_type mx_status;
@@ -416,7 +416,7 @@ mxi_u500_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_u500_rs232_num_input_bytes_available()";
 
-	MX_U500_RS232 *u500_rs232;
+	MX_U500_RS232 *u500_rs232 = NULL;
 	mx_status_type mx_status;
 
 	BOOL pipe_status;

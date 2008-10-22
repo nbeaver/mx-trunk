@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -203,8 +203,8 @@ mxd_pmc_mcapi_finish_record_initialization( MX_RECORD *record )
 		"mxd_pmc_mcapi_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_PMC_MCAPI *pmc_mcapi;
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
@@ -229,8 +229,8 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_pmc_mcapi_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	double position, move_deadband, speed;
 	mx_status_type mx_status;
 
@@ -317,8 +317,8 @@ mxd_pmc_mcapi_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_pmc_mcapi_resynchronize()";
 
 	MX_MOTOR *motor;
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -346,8 +346,8 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_move_absolute()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	long mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
@@ -438,8 +438,8 @@ mxd_pmc_mcapi_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_get_position()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	long mcapi_status;
 	mx_status_type mx_status;
 
@@ -479,8 +479,8 @@ mxd_pmc_mcapi_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_set_position()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_get_pointers( motor, &pmc_mcapi_motor,
@@ -506,8 +506,8 @@ mxd_pmc_mcapi_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_soft_abort()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_get_pointers( motor, &pmc_mcapi_motor,
@@ -531,8 +531,8 @@ mxd_pmc_mcapi_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_immediate_abort()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_get_pointers( motor, &pmc_mcapi_motor,
@@ -556,8 +556,8 @@ mxd_pmc_mcapi_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_find_home_position()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	char response[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -588,8 +588,8 @@ mxd_pmc_mcapi_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_constant_velocity_move()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	WORD direction;
 	long mcapi_status;
 	mx_status_type mx_status;
@@ -659,8 +659,8 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_get_parameter()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	MCMOTIONEX motion_config;
 	MCFILTEREX filter_config;
 	MCAXISCONFIG axis_config;
@@ -853,8 +853,8 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_set_parameter()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	MCMOTIONEX motion_config;
 	MCFILTEREX filter_config;
 	double double_value;
@@ -1121,7 +1121,7 @@ mxd_pmc_mcapi_simultaneous_start( int num_motor_records,
 
 	MX_RECORD *current_motor_record, *current_controller_record;
 	MX_MOTOR *current_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	MX_PMC_MCAPI *current_pmc_mcapi;
 	MX_PMC_MCAPI_MOTOR *current_pmc_mcapi_motor;
 	int i;
@@ -1195,8 +1195,8 @@ mxd_pmc_mcapi_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pmc_mcapi_get_status()";
 
-	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	MCSTATUSEX status_struct;
 	long mcapi_status;
 	int is_at_target, is_stopped;

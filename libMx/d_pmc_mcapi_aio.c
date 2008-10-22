@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -221,7 +221,7 @@ mxd_pmc_mcapi_ain_create_record_structures( MX_RECORD *record )
 			"mxd_pmc_mcapi_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
-        MX_PMC_MCAPI_AINPUT *pmc_mcapi_ainput;
+        MX_PMC_MCAPI_AINPUT *pmc_mcapi_ainput = NULL;
 
         /* Allocate memory for the necessary structures. */
 
@@ -262,8 +262,8 @@ mxd_pmc_mcapi_ain_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_ain_read()";
 
-	MX_PMC_MCAPI_AINPUT *pmc_mcapi_ainput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_AINPUT *pmc_mcapi_ainput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	DWORD value;
 	long mcapi_status;
 	char error_buffer[100];
@@ -345,8 +345,8 @@ mxd_pmc_mcapi_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_aout_read()";
 
-	MX_PMC_MCAPI_AOUTPUT *pmc_mcapi_aoutput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_AOUTPUT *pmc_mcapi_aoutput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	DWORD value;
 	long mcapi_status;
 	char error_buffer[100];
@@ -383,8 +383,8 @@ mxd_pmc_mcapi_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_aout_write()";
 
-	MX_PMC_MCAPI_AOUTPUT *pmc_mcapi_aoutput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_AOUTPUT *pmc_mcapi_aoutput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	DWORD value;
 	long mcapi_status;
 	char error_buffer[100];

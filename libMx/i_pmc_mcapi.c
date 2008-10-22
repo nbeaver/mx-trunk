@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,7 +144,7 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_pmc_mcapi_open()";
 
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	short mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
@@ -256,7 +256,7 @@ mxi_pmc_mcapi_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_pmc_mcapi_close()";
 
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	HCTRLR handle;
 	short mcapi_status;
 	char error_buffer[100];
@@ -301,7 +301,7 @@ mxi_pmc_mcapi_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_pmc_mcapi_resynchronize()";
 
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_pmc_mcapi_get_pointers( record,

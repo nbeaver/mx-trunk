@@ -13,7 +13,7 @@ mx_private_version.exe: ../libMx/Makefile.version \
 				mx_private_version.obj
 
 ../libMx/mx_private_version.h: mx_private_version.exe
-	mx_private_version > ../libMx/mx_private_version.h
+	./mx_private_version > ../libMx/mx_private_version.h
 
 xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \

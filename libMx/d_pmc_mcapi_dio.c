@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -292,8 +292,8 @@ mxd_pmc_mcapi_din_open( MX_RECORD *record )
 	static const char fname[] = "mxd_pmc_mcapi_din_read()";
 
 	MX_DIGITAL_INPUT *dinput;
-	MX_PMC_MCAPI_DINPUT *pmc_mcapi_dinput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_DINPUT *pmc_mcapi_dinput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	short configure_status;
 	unsigned long mx_flags;
 	WORD mcapi_flags;
@@ -346,8 +346,8 @@ mxd_pmc_mcapi_din_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_din_read()";
 
-	MX_PMC_MCAPI_DINPUT *pmc_mcapi_dinput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_DINPUT *pmc_mcapi_dinput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_din_get_pointers( dinput,
@@ -410,8 +410,8 @@ mxd_pmc_mcapi_dout_open( MX_RECORD *record )
 	static const char fname[] = "mxd_pmc_mcapi_dout_read()";
 
 	MX_DIGITAL_OUTPUT *doutput;
-	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	short configure_status;
 	unsigned long mx_flags;
 	WORD mcapi_flags;
@@ -464,8 +464,8 @@ mxd_pmc_mcapi_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_dout_read()";
 
-	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_dout_get_pointers( doutput,
@@ -485,8 +485,8 @@ mxd_pmc_mcapi_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	static const char fname[] = "mxd_pmc_mcapi_dout_write()";
 
-	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput;
-	MX_PMC_MCAPI *pmc_mcapi;
+	MX_PMC_MCAPI_DOUTPUT *pmc_mcapi_doutput = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_dout_get_pointers( doutput,

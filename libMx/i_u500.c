@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -229,7 +229,7 @@ mxi_u500_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_u500_open()";
 
-	MX_U500 *u500;
+	MX_U500 *u500 = NULL;
 	char *calibration_filename, *pso_filename;
 	int not_initialized;
 	SHORT board_number;
@@ -445,7 +445,7 @@ mxi_u500_close( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_u500_close()";
 
-	MX_U500 *u500;
+	MX_U500 *u500 = NULL;
 	SHORT i;
 	AERERR_CODE wapi_status;
 	mx_status_type mx_status;
@@ -716,7 +716,7 @@ mxi_u500_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_U500 *u500;
+	MX_U500 *u500 = NULL;
 	AERERR_CODE wapi_status;
 	mx_status_type mx_status;
 

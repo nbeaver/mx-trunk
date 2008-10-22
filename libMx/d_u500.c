@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,7 +146,7 @@ mxd_u500_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_u500_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_U500_MOTOR *u500_motor;
+	MX_U500_MOTOR *u500_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -189,7 +189,7 @@ mxd_u500_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_u500_finish_record_initialization()";
 
-	MX_U500_MOTOR *u500_motor;
+	MX_U500_MOTOR *u500_motor = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -233,7 +233,7 @@ mxd_u500_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_u500_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_U500_MOTOR *u500_motor;
+	MX_U500_MOTOR *u500_motor = NULL;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -310,8 +310,8 @@ mxd_u500_open( MX_RECORD *record )
 	static const char fname[] = "mxd_u500_open()";
 
 	MX_MOTOR *motor;
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	int board_number;
 	char axis_name;
 	SHORT motor_number, return_code;
@@ -491,7 +491,7 @@ mxd_u500_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_u500_resynchronize()";
 
 	MX_MOTOR *motor;
-	MX_U500_MOTOR *u500_motor;
+	MX_U500_MOTOR *u500_motor = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -519,8 +519,8 @@ mxd_u500_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_move_absolute()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	char command[200];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -546,8 +546,8 @@ mxd_u500_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_get_position()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	AERERR_CODE wapi_status;
 	mx_status_type mx_status;
 
@@ -589,8 +589,8 @@ mxd_u500_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_set_position()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	char command[200];
 	int board_number;
 	char axis_name;
@@ -628,8 +628,8 @@ mxd_u500_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_soft_abort()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_u500_get_pointers( motor, &u500_motor, &u500, fname );
@@ -647,8 +647,8 @@ mxd_u500_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_find_home_position()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	char command[200];
 	mx_status_type mx_status;
 
@@ -669,8 +669,8 @@ mxd_u500_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_constant_velocity_move()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	char command[200];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -698,8 +698,8 @@ mxd_u500_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_get_parameter()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	int board_number;
 	double double_value;
 	long long_value;
@@ -735,8 +735,8 @@ mxd_u500_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_set_parameter()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	int board_number;
 	char axis_name;
 	double double_value;
@@ -847,8 +847,8 @@ mxd_u500_get_status( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_u500_get_status()";
 
-	MX_U500_MOTOR *u500_motor;
-	MX_U500 *u500;
+	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	ULONG status_word_1, status_word_2;
 	ULONG enable_bitmask, busy_bitmask;
 	AERERR_CODE wapi_status;

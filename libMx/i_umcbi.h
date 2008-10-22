@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,13 +56,9 @@ typedef struct {
  * of zero length.
  */
 
-MX_API mx_status_type mxi_umcbi_initialize_type( long type );
 MX_API mx_status_type mxi_umcbi_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_umcbi_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_umcbi_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_umcbi_read_parms_from_hardware(MX_RECORD *record);
-MX_API mx_status_type mxi_umcbi_write_parms_to_hardware(MX_RECORD *record);
 MX_API mx_status_type mxi_umcbi_open( MX_RECORD *record );
 MX_API mx_status_type mxi_umcbi_close( MX_RECORD *record );
 

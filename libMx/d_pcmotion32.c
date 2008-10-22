@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -152,7 +152,7 @@ mxd_pcmotion32_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxd_pcmotion32_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -193,8 +193,8 @@ mxd_pcmotion32_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_pcmotion32_finish_record_initialization()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	int axis_id;
 	mx_status_type status;
 
@@ -245,8 +245,8 @@ mxd_pcmotion32_delete_record( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pcmotion32_delete_record()";
 
-	MX_PCMOTION32 *pcmotion32;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
+	MX_PCMOTION32 *pcmotion32 = NULL;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
 	MX_RECORD *motor_record_ptr;
 	int axis_id;
 
@@ -305,8 +305,8 @@ mxd_pcmotion32_print_structure( FILE *file, MX_RECORD *record )
 	static const char fname[] = "mxd_pcmotion32_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	double position, move_deadband;
 	mx_status_type mx_status;
 
@@ -394,8 +394,8 @@ mxd_pcmotion32_open( MX_RECORD *record )
 	static const char fname[] = "mxd_pcmotion32_open()";
 
 	MX_MOTOR *motor;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	double speed, base_speed;
 	double raw_acceleration_parameters[MX_MOTOR_NUM_ACCELERATION_PARAMS];
 	DWORD steps_and_lines_factor;
@@ -531,8 +531,8 @@ mxd_pcmotion32_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_pcmotion32_resynchronize()";
 
 	MX_MOTOR *motor;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == NULL ) {
@@ -565,8 +565,8 @@ mxd_pcmotion32_motor_is_busy( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_motor_is_busy()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	WORD status_word;
 	BYTE boardID, axisID;
 	int status;
@@ -611,8 +611,8 @@ mxd_pcmotion32_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_move_absolute()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	DWORD destination;
 	WORD mode_control_data_word;
 	BYTE boardID, axisID;
@@ -670,8 +670,8 @@ mxd_pcmotion32_get_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_get_position()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	DWORD current_position;
 	BYTE boardID, axisID;
 	int status;
@@ -704,8 +704,8 @@ mxd_pcmotion32_set_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_set_position()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	BYTE boardID, axisID;
 	int status;
 	mx_status_type mx_status;
@@ -741,8 +741,8 @@ mxd_pcmotion32_soft_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_soft_abort()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	BYTE boardID, axisID;
 	int status;
 	mx_status_type mx_status;
@@ -772,8 +772,8 @@ mxd_pcmotion32_immediate_abort( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_immediate_abort()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	BYTE boardID, axisID;
 	int status;
 	mx_status_type mx_status;
@@ -803,8 +803,8 @@ mxd_pcmotion32_positive_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_positive_limit_hit()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	WORD limit_switch_status, limit_bit;
 	BYTE boardID, axisID;
 	int status;
@@ -843,8 +843,8 @@ mxd_pcmotion32_negative_limit_hit( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_negative_limit_hit()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	WORD limit_switch_status, limit_bit;
 	BYTE boardID, axisID;
 	int status;
@@ -883,8 +883,8 @@ mxd_pcmotion32_find_home_position( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_find_home_position()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	WORD direction_bits;
 	BYTE boardID, axisID;
 	int status;
@@ -921,8 +921,8 @@ mxd_pcmotion32_constant_velocity_move( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_constant_velocity_move()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	DWORD direction;
 	WORD mode_control_data_word;
 	BYTE boardID, axisID;
@@ -984,8 +984,8 @@ mxd_pcmotion32_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_get_parameter()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	WORD velocity;
 	BYTE boardID, axisID;
 	int status;
@@ -1047,8 +1047,8 @@ mxd_pcmotion32_set_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_pcmotion32_set_parameter()";
 
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
+	MX_PCMOTION32_MOTOR *pcmotion32_motor = NULL;
+	MX_PCMOTION32 *pcmotion32 = NULL;
 	DWORD velocity, acceleration;
 	WORD base_velocity, acceleration_factor;
 	BYTE boardID, axisID;
