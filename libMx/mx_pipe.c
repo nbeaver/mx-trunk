@@ -482,7 +482,8 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 /************************ Unix ***********************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
+	|| defined(OS_DJGPP)
 
 #include <limits.h>
 #include <fcntl.h>
@@ -824,6 +825,10 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#if defined(OS_DJGPP)
+#  define O_NDELAY	O_NONBLOCK
+#endif
 
 MX_EXPORT mx_status_type
 mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,

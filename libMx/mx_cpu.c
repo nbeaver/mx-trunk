@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -748,7 +748,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 /*------------------------------ Unsupported ------------------------------*/
 
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
-	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD)
+	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
+	|| defined(OS_DJGPP)
 
 /* FIXME for OS_MACOSX:
  *        If you have the CHUD package installed on MacOS X, CHUD apparently

@@ -109,6 +109,7 @@ MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 
 RM		= rm -f
 MAKE		= make
+TOUCH		= touch -a
 
 OBJ		= o
 

@@ -766,7 +766,8 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_ECOS) \
-	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD)
+	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
+	|| defined(OS_DJGPP)
 
 MX_EXPORT int
 mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
