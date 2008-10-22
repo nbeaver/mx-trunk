@@ -327,17 +327,28 @@ motor_main( int argc, char *argv[] )
 
 	mx_set_debug_level( debug_level );
 
+	fprintf(output, "\nMX version %s\n", mx_get_version_string() );
+
+	/* Here is some test code to check the operation of the
+	 * mx_pointer_is_valid() function.  This code should 
+	 * normally be commented out.
+	 */
+
 #if 0
 	{
 		int test;
-		test = mx_is_valid_pointer(
+#if 1
+		test = mx_pointer_is_valid(
+			(void *) 27, sizeof(int), R_OK);
+#else
+		test = mx_pointer_is_valid(
 			(void *)&debug_level, sizeof(int), R_OK);
-
-		fprintf(output, "mx_is_valid_pointer() = %d\n", test);
-	}
 #endif
 
-	fprintf(output, "\nMX version %s\n", mx_get_version_string() );
+		fprintf(output, "mx_pointer_is_valid() = %d\n", test);
+	}
+#endif
+	/*---*/
 
 	/* Filenames specified on the command line may have been relative
 	 * pathnames rather than absolute pathnames.  Just in case this
