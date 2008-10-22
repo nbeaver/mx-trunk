@@ -2,7 +2,7 @@
 # tools/Makefile.solaris
 #
 
-all: mx_private_version unix/src/editline/libedit.a
+all: ../libMx/mx_private_version.h unix/src/editline/libedit.a
 
 include ../libMx/Makefile.version
 
@@ -23,6 +23,8 @@ EDITLINE_MAKECMD = \
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
 unix/src/editline/libedit.a:

@@ -3,10 +3,17 @@ CC = cc -c
 CFLAGS = -g -I../libMx -DOS_VMS -DDEBUG \
 	-msg_disable longextern -msg_error all -error_limit 10
 
-all: strlcpy.obj strlcat.obj
+all: ../libMx/mx_private_version.h strlcpy.obj strlcat.obj
 
 mx_clean:
-	-rm *.obj
+	-rm *.obj mx_private_version
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
+	./mx_private_version > ../libMx/mx_private_version.h
 
 strlcpy.obj: generic/src/strlcpy.c
 	$(CC) $(CFLAGS) generic/src/strlcpy.c -o strlcpy.obj

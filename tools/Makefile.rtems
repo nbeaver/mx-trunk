@@ -2,7 +2,7 @@
 # tools/Makefile.rtems
 #
 
-all:  mx_private_version strlcpy.o strlcat.o xdr_hyper.o
+all: ../libMx/mx_private_version.h strlcpy.o strlcat.o xdr_hyper.o
 
 include ../libMx/Makefile.version
 
@@ -18,6 +18,8 @@ mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 		| sed 's/__VERSION__/MX_GNUC_TARGET_VERSION/' > version_temp.h
 	$(HOST_CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
 strlcpy.o: generic/src/strlcpy.c

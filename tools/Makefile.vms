@@ -1,4 +1,4 @@
-all: mx_private_version.exe strlcpy.obj strlcat.obj
+all: ../libMx/mx_private_version.h strlcpy.obj strlcat.obj
 
 include ../libMx/Makefile.version
 
@@ -22,6 +22,8 @@ mx_private_version.exe: ../libMx/Makefile.version \
 			version/src/mx_private_version.c
 	cc $(CFLAGS_MX_VERS) [.version.src]mx_private_version.c
 	link /exe=mx_private_version.exe mx_private_version.obj
+
+../libMx/mx_private_version.h: mx_private_version.exe
 	run mx_private_version
 
 strlcpy.obj: generic/src/strlcpy.c

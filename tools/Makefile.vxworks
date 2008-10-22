@@ -2,7 +2,7 @@
 # tools/Makefile.vxworks
 #
 
-all: mx_private_version getopt.o strlcpy.o strlcat.o
+all: ../libMx/mx_private_version.h getopt.o strlcpy.o strlcat.o
 
 include ../libMx/Makefile.version
 
@@ -14,6 +14,8 @@ mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
 	touch version_temp.h
 	$(HOST_CC) $(CFLAGS_MX_VERS) -o mx_private_version \
 		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
 
 XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
