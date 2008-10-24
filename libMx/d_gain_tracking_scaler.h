@@ -5,7 +5,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,15 +21,7 @@ typedef struct {
 	double gain_tracking_scale;
 } MX_GAIN_TRACKING_SCALER;
 
-MX_API mx_status_type mxd_gain_tracking_scaler_initialize_type( long type );
 MX_API mx_status_type mxd_gain_tracking_scaler_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_gain_tracking_scaler_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_gain_tracking_scaler_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_gain_tracking_scaler_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_gain_tracking_scaler_write_parms_to_hardware(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_gain_tracking_scaler_open( MX_RECORD *record );
 MX_API mx_status_type mxd_gain_tracking_scaler_close( MX_RECORD *record );

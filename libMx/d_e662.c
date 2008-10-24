@@ -8,12 +8,14 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define E662_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +32,13 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_e662_record_function_list = {
-	mxd_e662_initialize_type,
+	NULL,
 	mxd_e662_create_record_structures,
-	mxd_e662_finish_record_initialization,
-	mxd_e662_delete_record,
+	mx_motor_finish_record_initialization,
+	NULL,
 	mxd_e662_print_motor_structure,
-	mxd_e662_read_parms_from_hardware,
-	mxd_e662_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_e662_open,
 	mxd_e662_close,
 	NULL,
@@ -44,18 +46,13 @@ MX_RECORD_FUNCTION_LIST mxd_e662_record_function_list = {
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_e662_motor_function_list = {
-	mxd_e662_motor_is_busy,
+	NULL,
 	mxd_e662_move_absolute,
 	mxd_e662_get_position,
 	mxd_e662_set_position,
 	mxd_e662_soft_abort,
-	mxd_e662_immediate_abort,
-	mxd_e662_positive_limit_hit,
-	mxd_e662_negative_limit_hit,
-	mxd_e662_find_home_position
+	mxd_e662_immediate_abort
 };
-
-#define E662_DEBUG	FALSE
 
 /* Physik Instrumente E662 motor data structures. */
 
@@ -80,7 +77,7 @@ mxd_e662_get_pointers( MX_MOTOR *motor,
 			MX_E662 **e662,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_e662_get_pointers()";
+	static const char fname[] = "mxd_e662_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -110,15 +107,9 @@ mxd_e662_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_e662_initialize_type( long type )
-{
-		return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_e662_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e662_create_record_structures()";
+	static const char fname[] = "mxd_e662_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_E662 *e662;
@@ -159,39 +150,14 @@ mxd_e662_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_e662_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_motor_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_e662_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_e662_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_e662_print_motor_structure()";
+	static const char fname[] = "mxd_e662_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_E662 *e662;
+	MX_E662 *e662 = NULL;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -200,10 +166,10 @@ mxd_e662_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_e662_get_pointers( motor, &e662, fname );
+	mx_status = mxd_e662_get_pointers( motor, &e662, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
@@ -212,9 +178,9 @@ mxd_e662_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  rs232 port          = %s\n",
 						e662->rs232_record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -250,39 +216,13 @@ mxd_e662_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_e662_read_parms_from_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_e662_read_parms_from_hardware()";
-
-	double position;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	/* Update the current position in the motor structure. */
-
-	status = mx_motor_get_position( record, &position );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_e662_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_e662_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e662_open()";
+	static const char fname[] = "mxd_e662_open()";
 
 	MX_E662 *e662;
 	MX_RS232 *rs232;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -350,25 +290,25 @@ mxd_e662_open( MX_RECORD *record )
 			rs232->read_terminators, rs232->write_terminators);
 	}
 
-	status = mxd_e662_resynchronize( record );
+	mx_status = mxd_e662_resynchronize( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Put the E-662 into remote control mode. */
 
-	status = mxd_e662_command( e662, "DEV:CONT REM", NULL, 0, E662_DEBUG );
+	mx_status = mxd_e662_command( e662, "DEV:CONT REM", NULL, 0, E662_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_e662_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e662_close()";
+	static const char fname[] = "mxd_e662_close()";
 
 	MX_E662 *e662;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -386,20 +326,20 @@ mxd_e662_close( MX_RECORD *record )
 
 	/* Put the E-662 into local control mode. */
 
-	status = mxd_e662_command( e662, "DEV:CONT LOC", NULL, 0, E662_DEBUG );
+	mx_status = mxd_e662_command( e662, "DEV:CONT LOC", NULL, 0, E662_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_e662_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e662_resynchronize()";
+	static const char fname[] = "mxd_e662_resynchronize()";
 
 	MX_E662 *e662;
 	char response[80], banner[40];
 	size_t length;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -415,25 +355,28 @@ mxd_e662_resynchronize( MX_RECORD *record )
 
 	/* Discard any unread RS-232 input or unwritten RS-232 output. */
 
-	status = mx_rs232_discard_unwritten_output( e662->rs232_record,
+	mx_status = mx_rs232_discard_unwritten_output( e662->rs232_record,
 								E662_DEBUG );
 
-	if ( status.code != MXE_SUCCESS && status.code != MXE_UNSUPPORTED )
-		return status;
+	if ( (mx_status.code != MXE_SUCCESS)
+	  && (mx_status.code != MXE_UNSUPPORTED) )
+	{
+		return mx_status;
+	}
 
-	status = mx_rs232_discard_unread_input( e662->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( e662->rs232_record,
 								E662_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send a get version command to verify that the controller is there. */
 
-	status = mxd_e662_command( e662, "PZT?",
+	mx_status = mxd_e662_command( e662, "PZT?",
 			response, sizeof response, E662_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Verify that we got the identification message that we expected. */
 
@@ -451,57 +394,49 @@ mxd_e662_resynchronize( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_e662_motor_is_busy( MX_MOTOR *motor )
-{
-	motor->busy = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_e662_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e662_move_absolute()";
+	static const char fname[] = "mxd_e662_move_absolute()";
 
-	MX_E662 *e662;
+	MX_E662 *e662 = NULL;;
 	char command[20];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_e662_get_pointers( motor, &e662, fname );
+	mx_status = mxd_e662_get_pointers( motor, &e662, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Format the move command and send it. */
 
 	sprintf( command, "POS %g", motor->raw_destination.analog );
 
-	status = mxd_e662_command( e662, command, NULL, 0, E662_DEBUG );
+	mx_status = mxd_e662_command( e662, command, NULL, 0, E662_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_e662_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e662_get_position()";
+	static const char fname[] = "mxd_e662_get_position()";
 
-	MX_E662 *e662;
+	MX_E662 *e662 = NULL;
 	char response[30];
 	int num_items;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_e662_get_pointers( motor, &e662, fname );
+	mx_status = mxd_e662_get_pointers( motor, &e662, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_e662_command( e662, "POS?",
+	mx_status = mxd_e662_command( e662, "POS?",
 			response, sizeof response, E662_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%lg", &position );
 
@@ -518,7 +453,7 @@ mxd_e662_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e662_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e662_set_position()";
+	static const char fname[] = "mxd_e662_set_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 "The E-662 controller does not allow the piezo position to be redefined." );
@@ -536,40 +471,15 @@ mxd_e662_immediate_abort( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxd_e662_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_e662_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_e662_find_home_position( MX_MOTOR *motor )
-{
-	const char fname[] = "mxd_e662_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"The E-662 controller does not support home search operations." );
-}
-
 /* === Extra functions for the use of this driver. === */
 
 MX_EXPORT mx_status_type
 mxd_e662_command( MX_E662 *e662, char *command, char *response,
 		int response_buffer_length, int debug_flag )
 {
-	const char fname[] = "mxd_e662_command()";
+	static const char fname[] = "mxd_e662_command()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( e662 == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -587,20 +497,20 @@ mxd_e662_command( MX_E662 *e662, char *command, char *response,
 
 	/* Send the command string. */
 
-	status = mx_rs232_putline( e662->rs232_record,
+	mx_status = mx_rs232_putline( e662->rs232_record,
 					command, NULL, debug_flag );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the response. */
 
 	if ( response != NULL ) {
-		status = mx_rs232_getline( e662->rs232_record,
+		mx_status = mx_rs232_getline( e662->rs232_record,
 			response, response_buffer_length, NULL, debug_flag );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: response = '%s'", fname, response ));

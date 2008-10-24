@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -332,7 +332,7 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 		"mxd_roentec_rcl_finish_record_initialization()";
 
 	MX_MCA *mca;
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -396,7 +396,7 @@ MX_EXPORT mx_status_type
 mxd_roentec_rcl_delete_record( MX_RECORD *record )
 {
 	MX_MCA *mca;
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 
 	if ( record == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -438,7 +438,7 @@ mxd_roentec_rcl_open( MX_RECORD *record )
 	static const char fname[] = "mxd_roentec_rcl_open()";
 
 	MX_MCA *mca;
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	long i;
 	char response[80];
 	mx_status_type mx_status;
@@ -499,7 +499,7 @@ mxd_roentec_rcl_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_roentec_rcl_resynchronize()";
 
 	MX_MCA *mca;
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	char response[80];
 	mx_status_type mx_status;
 
@@ -596,7 +596,7 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_start()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -659,7 +659,7 @@ mxd_roentec_rcl_stop( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_stop()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	mx_status_type mx_status;
 
 	roentec_rcl_mca = NULL;
@@ -682,7 +682,7 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_read()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -742,7 +742,7 @@ mxd_roentec_rcl_clear( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_clear()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	mx_status_type mx_status;
 
 	roentec_rcl_mca = NULL;
@@ -763,7 +763,7 @@ mxd_roentec_rcl_busy( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_busy()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	char response[80];
 	int num_items;
 	char pause_status;
@@ -820,7 +820,7 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_get_parameter()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	int num_items, atomic_number;
 	unsigned long i, ulong_value;
 	unsigned long starting_channel, ending_channel;
@@ -1112,7 +1112,7 @@ mxd_roentec_rcl_set_parameter( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_roentec_rcl_set_parameter()";
 
-	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca = NULL;
 	unsigned long i;
 	double raw_energy_gain, raw_energy_offset;
 	double low_ev, high_ev;

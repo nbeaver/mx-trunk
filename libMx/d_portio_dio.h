@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,6 +74,7 @@ MX_API mx_status_type mxd_portio_din_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_portio_din_open( MX_RECORD *record );
 MX_API mx_status_type mxd_portio_din_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_portio_din_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_portio_din_record_function_list;
@@ -89,7 +90,7 @@ MX_API mx_status_type mxd_portio_dout_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_portio_dout_open( MX_RECORD *record );
 MX_API mx_status_type mxd_portio_dout_close( MX_RECORD *record );
-MX_API mx_status_type mxd_portio_dout_read( MX_DIGITAL_OUTPUT *doutput );
+
 MX_API mx_status_type mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_portio_dout_record_function_list;

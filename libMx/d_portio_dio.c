@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,7 +74,7 @@ MX_RECORD_FUNCTION_LIST mxd_portio_dout_record_function_list = {
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_portio_dout_digital_output_function_list = {
-	mxd_portio_dout_read,
+	NULL,
 	mxd_portio_dout_write
 };
 
@@ -96,7 +96,7 @@ mxd_portio_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PORTIO_DINPUT **portio_dinput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_portio_din_get_pointers()";
+	static const char fname[] = "mxd_portio_din_get_pointers()";
 
 	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -130,7 +130,7 @@ mxd_portio_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PORTIO_DOUTPUT **portio_doutput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_portio_dout_get_pointers()";
+	static const char fname[] = "mxd_portio_dout_get_pointers()";
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -201,9 +201,9 @@ mxd_portio_din_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_portio_din_open()";
+	static const char fname[] = "mxd_portio_din_open()";
 
-	MX_PORTIO_DINPUT *portio_dinput;
+	MX_PORTIO_DINPUT *portio_dinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -229,9 +229,9 @@ mxd_portio_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_portio_din_close()";
+	static const char fname[] = "mxd_portio_din_close()";
 
-	MX_PORTIO_DINPUT *portio_dinput;
+	MX_PORTIO_DINPUT *portio_dinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -257,9 +257,9 @@ mxd_portio_din_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_portio_din_read()";
+	static const char fname[] = "mxd_portio_din_read()";
 
-	MX_PORTIO_DINPUT *portio_dinput;
+	MX_PORTIO_DINPUT *portio_dinput = NULL;
 	uint8_t d8_value;
 	uint16_t d16_value;
 #if 0
@@ -323,7 +323,8 @@ mxd_portio_dout_create_record_structures( MX_RECORD *record )
                 "Can't allocate memory for MX_DIGITAL_OUTPUT structure." );
         }
 
-        portio_doutput = (MX_PORTIO_DOUTPUT *) malloc( sizeof(MX_PORTIO_DOUTPUT) );
+        portio_doutput = (MX_PORTIO_DOUTPUT *)
+				malloc( sizeof(MX_PORTIO_DOUTPUT) );
 
         if ( portio_doutput == (MX_PORTIO_DOUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -346,9 +347,9 @@ mxd_portio_dout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_portio_dout_open()";
+	static const char fname[] = "mxd_portio_dout_open()";
 
-	MX_PORTIO_DOUTPUT *portio_doutput;
+	MX_PORTIO_DOUTPUT *portio_doutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -374,9 +375,9 @@ mxd_portio_dout_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_dout_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_portio_dout_close()";
+	static const char fname[] = "mxd_portio_dout_close()";
 
-	MX_PORTIO_DOUTPUT *portio_doutput;
+	MX_PORTIO_DOUTPUT *portio_doutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -399,26 +400,21 @@ mxd_portio_dout_close( MX_RECORD *record )
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxd_portio_dout_read( MX_DIGITAL_OUTPUT *doutput )
-{
-	/* For some devices, it is not safe or appropriate to read from
-	 * an output address.  Thus, we merely return here the last value
-	 * written to the address.
-	 *
-	 * If you actually need to be able to read from this address,
-	 * create a portio_dinput record that points to the same address.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
+/* We do not provide an mxd_portio_dout_read() function here, since
+ * for some devices, it is not safe or appropriate to read from
+ * an output address.  Thus, mx_digital_output_read() will merely
+ * return the last value written to the address.
+ *
+ * If you actually need to be able to read from this address,
+ * create a portio_dinput record that points to the same address.
+ */
 
 MX_EXPORT mx_status_type
 mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_portio_dout_write()";
+	static const char fname[] = "mxd_portio_dout_write()";
 
-	MX_PORTIO_DOUTPUT *portio_doutput;
+	MX_PORTIO_DOUTPUT *portio_doutput = NULL;
 	uint8_t d8_value;
 	uint16_t d16_value;
 #if 0

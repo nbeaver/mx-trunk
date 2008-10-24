@@ -23,7 +23,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,13 +42,13 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_gain_tracking_scaler_record_function_list = {
-	mxd_gain_tracking_scaler_initialize_type,
+	NULL,
 	mxd_gain_tracking_scaler_create_record_structures,
 	mx_scaler_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_gain_tracking_scaler_read_parms_from_hardware,
-	mxd_gain_tracking_scaler_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_gain_tracking_scaler_open,
 	mxd_gain_tracking_scaler_close
 };
@@ -87,7 +87,7 @@ mxd_gain_tracking_scaler_get_pointers( MX_SCALER *scaler,
 			MX_GAIN_TRACKING_SCALER **gain_tracking_scaler,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_get_pointers()";
+	static const char fname[] = "mxd_gain_tracking_scaler_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -120,15 +120,9 @@ mxd_gain_tracking_scaler_get_pointers( MX_SCALER *scaler,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_gain_tracking_scaler_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_gain_tracking_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
@@ -164,49 +158,12 @@ mxd_gain_tracking_scaler_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_gain_tracking_scaler_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_gain_tracking_scaler_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_gain_tracking_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_gain_tracking_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_open()";
+	static const char fname[] = "mxd_gain_tracking_scaler_open()";
 
 	MX_SCALER *scaler;
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -230,10 +187,10 @@ mxd_gain_tracking_scaler_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_close()";
+	static const char fname[] = "mxd_gain_tracking_scaler_close()";
 
 	MX_SCALER *scaler;
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -257,9 +214,9 @@ mxd_gain_tracking_scaler_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_clear()";
+	static const char fname[] = "mxd_gain_tracking_scaler_clear()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gain_tracking_scaler_get_pointers(
@@ -278,9 +235,9 @@ mxd_gain_tracking_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_overflow_set()";
+	static const char fname[] = "mxd_gain_tracking_scaler_overflow_set()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
@@ -301,9 +258,9 @@ mxd_gain_tracking_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_read()";
+	static const char fname[] = "mxd_gain_tracking_scaler_read()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	long real_scaler_value;
 	double numerator, amplifier_gain, modified_scaler_value;
 	mx_status_type mx_status;
@@ -340,9 +297,9 @@ mxd_gain_tracking_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_is_busy()";
+	static const char fname[] = "mxd_gain_tracking_scaler_is_busy()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -363,9 +320,9 @@ mxd_gain_tracking_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_start()";
+	static const char fname[] = "mxd_gain_tracking_scaler_start()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	long real_scaler_value;
 	double numerator, amplifier_gain, modified_scaler_value;
 	mx_status_type mx_status;
@@ -400,9 +357,9 @@ mxd_gain_tracking_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_stop()";
+	static const char fname[] = "mxd_gain_tracking_scaler_stop()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	long real_scaler_value;
 	double numerator, amplifier_gain, modified_scaler_value;
 	mx_status_type mx_status;
@@ -439,9 +396,9 @@ mxd_gain_tracking_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_get_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_get_parameter()";
+	static const char fname[] = "mxd_gain_tracking_scaler_get_parameter()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	long mode;
 	double dark_current;
 	mx_status_type mx_status;
@@ -476,9 +433,9 @@ mxd_gain_tracking_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_gain_tracking_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_gain_tracking_scaler_set_parameter()";
+	static const char fname[] = "mxd_gain_tracking_scaler_set_parameter()";
 
-	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
+	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gain_tracking_scaler_get_pointers(

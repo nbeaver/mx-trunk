@@ -28,28 +28,18 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_e662_initialize_type( long type );
 MX_API mx_status_type mxd_e662_create_record_structures( MX_RECORD *record );
-MX_API mx_status_type mxd_e662_finish_record_initialization(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_e662_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_e662_read_parms_from_hardware( MX_RECORD *record);
-MX_API mx_status_type mxd_e662_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_open( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_close( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_resynchronize( MX_RECORD *record );
 
-MX_API mx_status_type mxd_e662_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_e662_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_e662_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_e662_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_e662_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_e662_motor_function_list;

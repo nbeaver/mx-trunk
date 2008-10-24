@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -632,7 +632,7 @@ mxi_tty_read( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_tty_read()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	char *buffer_ptr;
 	ssize_t result;
 	unsigned long total_bytes_read, bytes_left_to_read;
@@ -760,7 +760,7 @@ mxi_tty_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_tty_write()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	ssize_t result;
 	unsigned long bytes_left_to_write, local_bytes_written;
 	int saved_errno;
@@ -862,7 +862,7 @@ mxi_tty_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_tty_write()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct iovec iovec_array[2];
 	ssize_t result;
 	size_t buffer_length;
@@ -1059,7 +1059,7 @@ mxi_tty_select_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_tty_select_num_input_bytes_available()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int tty_fd, select_status;
 	struct timeval timeout;
 	mx_status_type mx_status;
@@ -1403,7 +1403,7 @@ mxi_tty_posix_termios_initialize_settings( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_tty_posix_termios_initialize_settings()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	mx_status_type mx_status;
@@ -1552,7 +1552,7 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_set_speed()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	speed_t speed;
 	int termios_status, saved_errno;
@@ -1658,7 +1658,7 @@ mxi_tty_posix_termios_set_word_size( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_set_word_size()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	unsigned long word_bit;
@@ -1721,7 +1721,7 @@ mxi_tty_posix_termios_set_parity( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_set_parity()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	mx_status_type mx_status;
@@ -1865,7 +1865,7 @@ mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_set_stop_bits()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	mx_status_type mx_status;
@@ -1927,7 +1927,7 @@ mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_set_flow_control()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	mx_status_type mx_status;
@@ -2029,7 +2029,7 @@ mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_posix_termios_print_settings()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	struct termios attr;
 	int termios_status, saved_errno;
 	mx_status_type mx_status;

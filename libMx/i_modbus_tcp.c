@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ mxi_modbus_tcp_get_pointers( MX_MODBUS *modbus,
 			MX_MODBUS_TCP **modbus_tcp,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_modbus_tcp_get_pointers()";
+	static const char fname[] = "mxi_modbus_tcp_get_pointers()";
 
 	MX_RECORD *modbus_tcp_record;
 
@@ -108,7 +108,7 @@ mxi_modbus_tcp_get_pointers( MX_MODBUS *modbus,
 MX_EXPORT mx_status_type
 mxi_modbus_tcp_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_modbus_tcp_create_record_structures()";
+	static const char fname[] = "mxi_modbus_tcp_create_record_structures()";
 
 	MX_MODBUS *modbus;
 	MX_MODBUS_TCP *modbus_tcp;
@@ -151,7 +151,7 @@ mxi_modbus_tcp_open( MX_RECORD *record )
 	static const char fname[] = "mxi_modbus_tcp_open()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_TCP *modbus_tcp;
+	MX_MODBUS_TCP *modbus_tcp = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -214,7 +214,7 @@ mxi_modbus_tcp_close( MX_RECORD *record )
 	static const char fname[] = "mxi_modbus_tcp_close()";
 
 	MX_MODBUS *modbus;
-	MX_MODBUS_TCP *modbus_tcp;
+	MX_MODBUS_TCP *modbus_tcp = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -246,7 +246,7 @@ mxi_modbus_tcp_reconnect_socket( MX_MODBUS *modbus )
 {
 	static const char fname[] = "mxi_modbus_tcp_reconnect_socket()";
 
-	MX_MODBUS_TCP *modbus_tcp;
+	MX_MODBUS_TCP *modbus_tcp = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_tcp_get_pointers( modbus, &modbus_tcp, fname );
@@ -284,7 +284,7 @@ mxi_modbus_tcp_send_request( MX_MODBUS *modbus )
 {
 	static const char fname[] = "mxi_modbus_tcp_send_request()";
 
-	MX_MODBUS_TCP *modbus_tcp;
+	MX_MODBUS_TCP *modbus_tcp = NULL;
 	uint16_t transaction_id, length;
 	mx_status_type mx_status;
 
@@ -357,7 +357,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 {
 	static const char fname[] = "mxi_modbus_tcp_receive_response()";
 
-	MX_MODBUS_TCP *modbus_tcp;
+	MX_MODBUS_TCP *modbus_tcp = NULL;
 	uint8_t *receive_header;
 	uint16_t transaction_id, protocol_id, length;
 	uint8_t unit_id;

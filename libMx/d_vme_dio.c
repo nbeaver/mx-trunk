@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,15 +31,14 @@
 /* Initialize the VME digital I/O driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_vme_din_record_function_list = {
-	mxd_vme_din_initialize_type,
-	mxd_vme_din_create_record_structures,
-	mxd_vme_din_finish_record_initialization,
-	mxd_vme_din_delete_record,
 	NULL,
-	mxd_vme_din_read_parms_from_hardware,
-	mxd_vme_din_write_parms_to_hardware,
-	mxd_vme_din_open,
-	mxd_vme_din_close
+	mxd_vme_din_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_vme_din_open
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_vme_din_digital_input_function_list = {
@@ -62,19 +61,18 @@ MX_RECORD_FIELD_DEFAULTS *mxd_vme_din_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_vme_dout_record_function_list = {
-	mxd_vme_dout_initialize_type,
-	mxd_vme_dout_create_record_structures,
-	mxd_vme_dout_finish_record_initialization,
-	mxd_vme_dout_delete_record,
 	NULL,
-	mxd_vme_dout_read_parms_from_hardware,
-	mxd_vme_dout_write_parms_to_hardware,
-	mxd_vme_dout_open,
-	mxd_vme_dout_close
+	mxd_vme_dout_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_vme_dout_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_vme_dout_digital_output_function_list = {
-	mxd_vme_dout_read,
+	NULL,
 	mxd_vme_dout_write
 };
 
@@ -96,7 +94,7 @@ mxd_vme_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_VME_DINPUT **vme_dinput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_vme_din_get_pointers()";
+	static const char fname[] = "mxd_vme_din_get_pointers()";
 
 	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -129,7 +127,7 @@ mxd_vme_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_VME_DOUTPUT **vme_doutput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_vme_dout_get_pointers()";
+	static const char fname[] = "mxd_vme_dout_get_pointers()";
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -158,12 +156,6 @@ mxd_vme_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 }
 
 /* ===== Input functions. ===== */
-
-MX_EXPORT mx_status_type
-mxd_vme_din_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_vme_din_create_record_structures( MX_RECORD *record )
@@ -203,49 +195,12 @@ mxd_vme_din_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_vme_din_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_din_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_din_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_din_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_vme_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme_din_open()";
+	static const char fname[] = "mxd_vme_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
-	MX_VME_DINPUT *vme_dinput;
+	MX_VME_DINPUT *vme_dinput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -284,36 +239,11 @@ mxd_vme_din_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_vme_din_close( MX_RECORD *record )
-{
-	const char fname[] = "mxd_vme_din_close()";
-
-	MX_DIGITAL_INPUT *dinput;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
-
-	/* Read the value of the input so that it can be recorded
-	 * correctly in the database file if the database file is
-	 * configured to be written to at program shutdown.
-	 */
-
-	mx_status = mxd_vme_din_read( dinput );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_vme_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_vme_din_read()";
+	static const char fname[] = "mxd_vme_din_read()";
 
-	MX_VME_DINPUT *vme_dinput;
+	MX_VME_DINPUT *vme_dinput = NULL;
 	uint8_t d8_value;
 	uint16_t d16_value;
 	uint32_t d32_value;
@@ -373,15 +303,9 @@ mxd_vme_din_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_vme_dout_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_vme_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_vme_dout_create_record_structures()";
+	static const char fname[] = "mxd_vme_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_VME_DOUTPUT *vme_doutput;
@@ -417,49 +341,12 @@ mxd_vme_dout_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_vme_dout_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_dout_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_dout_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_dout_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_vme_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vme_dout_open()";
+	static const char fname[] = "mxd_vme_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
-	MX_VME_DOUTPUT *vme_doutput;
+	MX_VME_DOUTPUT *vme_doutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -487,42 +374,24 @@ mxd_vme_dout_open( MX_RECORD *record )
 	mx_status = mx_vme_parse_data_size( vme_doutput->data_size_name,
 						&(vme_doutput->data_size) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Read the current value of the register. */
-
-	mx_status = mxd_vme_dout_read( doutput );
-
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxd_vme_dout_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_vme_dout_read( MX_DIGITAL_OUTPUT *doutput )
-{
-	/* For some devices, it is not safe or appropriate to read from
-	 * an output address.  Thus, we merely return here the last value
-	 * written to the address.
-	 *
-	 * If you actually need to be able to read from this address,
-	 * create a vme_dinput record that points to the same address.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
+/* We do not provide an mxd_vme_dout_read() function here, since
+ * for some devices, it is not safe or appropriate to read from
+ * an output address.  Thus, we merely return here the last value
+ * written to the address.
+ *
+ * If you actually need to be able to read from this address,
+ * create a vme_dinput record that points to the same address.
+ */
 
 MX_EXPORT mx_status_type
 mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_vme_dout_write()";
+	static const char fname[] = "mxd_vme_dout_write()";
 
-	MX_VME_DOUTPUT *vme_doutput;
+	MX_VME_DOUTPUT *vme_doutput = NULL;
 	uint8_t d8_value;
 	uint16_t d16_value;
 	uint32_t d32_value;

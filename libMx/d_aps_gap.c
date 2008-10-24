@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +80,7 @@ mxd_aps_gap_get_pointers( MX_MOTOR *motor,
 			MX_APS_GAP **aps_gap,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_aps_gap_get_pointers()";
+	static const char fname[] = "mxd_aps_gap_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -116,7 +116,7 @@ mxd_aps_gap_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_aps_gap_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_aps_gap_create_record_structures()";
+	static const char fname[] = "mxd_aps_gap_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_APS_GAP *aps_gap;
@@ -156,7 +156,7 @@ mxd_aps_gap_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_aps_gap_finish_record_initialization()";
+	static const char fname[] = "mxd_aps_gap_finish_record_initialization()";
 
 	MX_APS_GAP *aps_gap;
 	mx_status_type mx_status;
@@ -271,10 +271,10 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_gap_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_aps_gap_print_structure()";
+	static const char fname[] = "mxd_aps_gap_print_structure()";
 
 	MX_MOTOR *motor;
-	MX_APS_GAP *aps_gap;
+	MX_APS_GAP *aps_gap = NULL;
 	char raw_units[4];
 	double position, move_deadband;
 	mx_status_type mx_status;
@@ -350,9 +350,9 @@ mxd_aps_gap_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_gap_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_gap_move_absolute()";
+	static const char fname[] = "mxd_aps_gap_move_absolute()";
 
-	MX_APS_GAP *aps_gap;
+	MX_APS_GAP *aps_gap = NULL;
 	double new_destination;
 	int sector;
 	long access_mode, move_command;
@@ -402,9 +402,9 @@ mxd_aps_gap_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_gap_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_gap_get_position()";
+	static const char fname[] = "mxd_aps_gap_get_position()";
 
-	MX_APS_GAP *aps_gap;
+	MX_APS_GAP *aps_gap = NULL;
 	double raw_position;
 	mx_status_type mx_status;
 
@@ -424,9 +424,9 @@ mxd_aps_gap_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_gap_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_gap_soft_abort()";
+	static const char fname[] = "mxd_aps_gap_soft_abort()";
 
-	MX_APS_GAP *aps_gap;
+	MX_APS_GAP *aps_gap = NULL;
 	short stop_field;
 	mx_status_type mx_status;
 
@@ -466,9 +466,9 @@ mxd_aps_gap_set_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_gap_get_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_gap_get_status()";
+	static const char fname[] = "mxd_aps_gap_get_status()";
 
-	MX_APS_GAP *aps_gap;
+	MX_APS_GAP *aps_gap = NULL;
 	short busy_record_value;
 	mx_status_type mx_status;
 
