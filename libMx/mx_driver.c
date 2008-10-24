@@ -430,7 +430,6 @@
 
 #include "d_soft_sample_changer.h"
 #include "d_net_sample_changer.h"
-#include "d_als_robot_java.h"
 #include "d_sercat_als_robot.h"
 
 #include "d_soft_ptz.h"
@@ -3306,13 +3305,6 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_net_sample_changer_sample_changer_function_list,
 				&mxd_net_sample_changer_num_record_fields,
 				&mxd_net_sample_changer_rfield_def_ptr},
-
-{"als_robot_java_server",MXT_CHG_ALS_ROBOT_JAVA, MXC_SAMPLE_CHANGER, MXR_DEVICE,
-				&mxd_als_robot_java_record_function_list,
-				NULL,
-			&mxd_als_robot_java_sample_changer_function_list,
-				&mxd_als_robot_java_num_record_fields,
-				&mxd_als_robot_java_rfield_def_ptr},
 
 {"sercat_als_robot", MXT_CHG_SERCAT_ALS_ROBOT, MXC_SAMPLE_CHANGER, MXR_DEVICE,
 				&mxd_sercat_als_robot_record_function_list,

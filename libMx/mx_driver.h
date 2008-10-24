@@ -644,7 +644,7 @@ extern "C" {
 
 #define MXT_CHG_SOFTWARE		190001
 #define MXT_CHG_NETWORK			190002
-#define MXT_CHG_ALS_ROBOT_JAVA		190003
+
 #define MXT_CHG_SERCAT_ALS_ROBOT	190004
 
 /* --- Multichannel analog input types --- */
