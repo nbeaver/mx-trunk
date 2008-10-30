@@ -24,6 +24,7 @@
 #include "mx_osdef.h"
 
 #include "mx_util.h"
+#include "mx_version.h"
 
 #if defined( OS_SOLARIS )
 
@@ -124,7 +125,7 @@ mx_stack_traceback( void )
 	return;
 }
 
-#elif ( (__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 1)) )
+#elif ( MX_GLIBC_VERSION >= 2001000L )
 
 /* GNU Glibc 2.1 introduces the backtrace() family of functions. */
 
@@ -194,3 +195,4 @@ mx_stack_check( void )
 }
 
 #endif
+
