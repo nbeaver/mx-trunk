@@ -151,7 +151,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_rs232.c i_epix_xclib.c \
 	i_esone_camac.c i_fossil.c i_hsc1.c \
-	i_iseries.c i_k500serial.c i_ks3344.c \
+	i_iseries.c i_isobus.c i_k500serial.c i_ks3344.c \
 	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
 	i_kohzu_sc.c i_lpt.c \

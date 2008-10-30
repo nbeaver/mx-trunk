@@ -237,6 +237,7 @@ extern "C" {
 #define MXI_GEN_EDT			450
 #define MXI_GEN_SPELLMAN_DF3		451
 #define MXI_GEN_BKPRECISION_912X	452
+#define MXI_GEN_ISOBUS			453
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
