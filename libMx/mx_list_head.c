@@ -154,9 +154,13 @@ mxr_create_list_head( MX_RECORD *record )
 
 	list_head_struct->default_precision = 8;
 
+#if 0
 	list_head_struct->mx_version  = MX_MAJOR_VERSION * 1000000L;
 	list_head_struct->mx_version += MX_MINOR_VERSION * 1000L;
 	list_head_struct->mx_version += MX_UPDATE_VERSION;
+#else
+	list_head_struct->mx_version = MX_VERSION;
+#endif
 
 	list_head_struct->num_server_records = 0;
 	list_head_struct->server_record_array = NULL;
