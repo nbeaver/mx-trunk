@@ -1,5 +1,7 @@
-itc_rs232   interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d -1 0x0 /dev/ttyS7
-itc503      device motor itc503_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 K itc_rs232 -1 0x3 3 0.5
+###isobus_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d -1 0x0 /dev/ttyS7
+isobus_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0d -1 0x0 localhost 5555 0x0
+isobus       interface generic isobus "" "" isobus_rs232
+itc503      device motor itc503_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 K isobus -1 0x3 3 0.5
 setpoint    device analog_input itc503_status "" "" 0 1 0 K 0x0 0 "" itc503 0
 temp1       device analog_input itc503_status "" "" 0 1 0 K 0x0 0 "" itc503 1
 temp2       device analog_input itc503_status "" "" 0 1 0 K 0x0 0 "" itc503 2

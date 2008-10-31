@@ -11,14 +11,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define ITC503_CONTROL_DEBUG	FALSE
+#define ITC503_CONTROL_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +28,7 @@
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_analog_output.h"
+#include "i_isobus.h"
 #include "d_itc503_motor.h"
 #include "d_itc503_control.h"
 
@@ -72,12 +73,14 @@ static mx_status_type
 mxd_itc503_control_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 				MX_ITC503_CONTROL **itc503_control,
 				MX_ITC503_MOTOR **itc503_motor,
+				MX_ISOBUS **isobus,
 				const char *calling_fname )
 {
 	static const char fname[] = "mxd_itc503_control_get_pointers()";
 
 	MX_ITC503_CONTROL *local_itc503_control;
-	MX_RECORD *itc503_record;
+	MX_RECORD *itc503_motor_record, *isobus_record;
+	MX_ITC503_MOTOR *itc503_motor_ptr;
 
 	if ( aoutput == (MX_ANALOG_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -102,32 +105,53 @@ mxd_itc503_control_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 		*itc503_control = local_itc503_control;
 	}
 
-	itc503_record = local_itc503_control->itc503_record;
+	itc503_motor_record = local_itc503_control->itc503_motor_record;
 
-	if ( itc503_record == (MX_RECORD *) NULL ) {
+	if ( itc503_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"cryostream_motor_record pointer for analog output '%s' is NULL.",
 			aoutput->record->name );
 	}
 
-	if ( itc503_record->mx_type != MXT_MTR_ITC503 ) {
+	if ( itc503_motor_record->mx_type != MXT_MTR_ITC503 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"itc503_record '%s' for ITC503 status record '%s' "
 	"is not an 'itc503_motor' record.  Instead, it is of type '%s'.",
-			itc503_record->name, aoutput->record->name,
-			mx_get_driver_name( itc503_record ) );
+			itc503_motor_record->name, aoutput->record->name,
+			mx_get_driver_name( itc503_motor_record ) );
+	}
+
+	itc503_motor_ptr = (MX_ITC503_MOTOR *)
+				itc503_motor_record->record_type_struct;
+
+	if ( itc503_motor_ptr == (MX_ITC503_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_ITC503_MOTOR pointer for ITC503 motor '%s' "
+		"used by ITC503 status record '%s' is NULL.",
+			itc503_motor_record->name,
+			aoutput->record->name );
 	}
 
 	if ( itc503_motor != (MX_ITC503_MOTOR **) NULL ) {
-		*itc503_motor = (MX_ITC503_MOTOR *)
-				itc503_record->record_type_struct;
+		*itc503_motor = itc503_motor_ptr;
+	}
 
-		if ( (*itc503_motor) == (MX_ITC503_MOTOR *) NULL ) {
+	if ( isobus != (MX_ISOBUS **) NULL ) {
+		isobus_record = itc503_motor_ptr->isobus_record;
+
+		if ( isobus_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_ITC503_MOTOR pointer for ITC503 motor '%s' "
-	"used by ITC503 status record '%s' is NULL.",
-				itc503_record->name,
-				aoutput->record->name );
+			"The isobus_record pointer for ITC503 "
+			"motor record '%s' is NULL.",
+				itc503_motor_record->name );
+		}
+
+		*isobus = isobus_record->record_type_struct;
+
+		if ( (*isobus) == (MX_ISOBUS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_ISOBUS pointer for ISOBUS record '%s' "
+			"is NULL.", isobus_record->name );
 		}
 	}
 
@@ -203,7 +227,8 @@ mxd_itc503_control_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mx_resynchronize_record( itc503_control->itc503_record );
+	mx_status = mx_resynchronize_record(
+			itc503_control->itc503_motor_record );
 
 	return mx_status;
 }
@@ -213,8 +238,9 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_itc503_control_read()";
 
-	MX_ITC503_CONTROL *itc503_control;
-	MX_ITC503_MOTOR *itc503_motor;
+	MX_ITC503_CONTROL *itc503_control = NULL;
+	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
 	char buffer[5];
@@ -224,7 +250,7 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_itc503_control_get_pointers( aoutput,
-				&itc503_control, &itc503_motor, fname );
+			&itc503_control, &itc503_motor, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -240,11 +266,13 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 	switch( parameter_type ) {
 	case 'A':	/* Auto/manual status */
 
-		strcpy( command, "X" );
+		strlcpy( command, "X", sizeof(command) );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -263,11 +291,13 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'C':	/* Local/remote/lock status */
 
-		strcpy( command, "X" );
+		strlcpy( command, "X", sizeof(command) );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -286,11 +316,13 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'G':	/* Gas flow */
 
-		strcpy( command, "R7" );
+		strlcpy( command, "R7", sizeof(command) );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -304,11 +336,13 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'O':	/* Heater output volts */
 
-		strcpy( command, "R5" );
+		strlcpy( command, "R5", sizeof(command) );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -343,8 +377,9 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 {
 	static const char fname[] = "mxd_itc503_control_write()";
 
-	MX_ITC503_CONTROL *itc503_control;
-	MX_ITC503_MOTOR *itc503_motor;
+	MX_ITC503_CONTROL *itc503_control = NULL;
+	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
 	long parameter_value;
@@ -352,7 +387,7 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_itc503_control_get_pointers( aoutput,
-				&itc503_control, &itc503_motor, fname );
+			&itc503_control, &itc503_motor, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -378,11 +413,13 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		sprintf( command, "A%ld", parameter_value );
+		snprintf( command, sizeof(command), "A%ld", parameter_value );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 		break;
 
 	case 'C':	/* Local/remote/lock command */
@@ -399,11 +436,13 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		sprintf( command, "C%ld", parameter_value );
+		snprintf( command, sizeof(command), "C%ld", parameter_value );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 		break;
 
 	case 'G':	/* Gas flow command */
@@ -421,11 +460,13 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		sprintf( command, "G%03ld", parameter_value );
+		snprintf( command, sizeof(command), "G%03ld", parameter_value );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 		break;
 		
 	case 'O':	/* Heater output command */
@@ -443,11 +484,13 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		sprintf( command, "O%03ld", parameter_value );
+		snprintf( command, sizeof(command), "O%03ld", parameter_value );
 
-		mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_CONTROL_DEBUG );
+		mx_status = mxi_isobus_command( isobus,
+					itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_CONTROL_DEBUG );
 		break;
 		
 	default:

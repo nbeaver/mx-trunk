@@ -15,7 +15,7 @@
  *
  */
 
-#define ITC503_MOTOR_DEBUG	FALSE
+#define ITC503_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +30,7 @@
 #include "mx_motor.h"
 #include "mx_rs232.h"
 #include "mx_gpib.h"
+#include "i_isobus.h"
 #include "d_itc503_motor.h"
 
 /* Initialize the motor driver jump table. */
@@ -37,7 +38,7 @@
 MX_RECORD_FUNCTION_LIST mxd_itc503_motor_record_function_list = {
 	NULL,
 	mxd_itc503_motor_create_record_structures,
-	mxd_itc503_motor_finish_record_initialization,
+	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_itc503_motor_print_motor_structure,
 	NULL,
@@ -87,33 +88,54 @@ MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr
 static mx_status_type
 mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 			MX_ITC503_MOTOR **itc503_motor,
+			MX_ISOBUS **isobus,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_itc503_motor_get_pointers()";
+
+	MX_ITC503_MOTOR *itc503_motor_ptr;
+	MX_RECORD *isobus_record;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_MOTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( itc503_motor == (MX_ITC503_MOTOR **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_ITC503_MOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
 
 	if ( motor->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_RECORD pointer for the MX_MOTOR pointer passed is NULL." );
+	    "The MX_RECORD pointer for the MX_MOTOR pointer passed is NULL." );
 	}
 
-	*itc503_motor = (MX_ITC503_MOTOR *)
+	itc503_motor_ptr = (MX_ITC503_MOTOR *)
 				motor->record->record_type_struct;
 
-	if ( *itc503_motor == (MX_ITC503_MOTOR *) NULL ) {
+	if ( itc503_motor_ptr == (MX_ITC503_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_ITC503_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
+	}
+
+	if ( itc503_motor != (MX_ITC503_MOTOR **) NULL ) {
+		*itc503_motor = itc503_motor_ptr;
+	}
+
+	if ( isobus != (MX_ISOBUS **) NULL ) {
+		isobus_record = itc503_motor_ptr->isobus_record;
+
+		if ( isobus_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The isobus_record pointer for ITC503 motor '%s' "
+			"is NULL.", motor->record->name );
+		}
+
+		*isobus = isobus_record->record_type_struct;
+
+		if ( (*isobus) == (MX_ISOBUS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_ISOBUS pointer for ISOBUS record '%s' is NULL.",
+				isobus_record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -167,16 +189,6 @@ mxd_itc503_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_itc503_motor_finish_record_initialization( MX_RECORD *record )
-{
-	mx_status_type mx_status;
-
-	mx_status = mx_motor_finish_record_initialization( record );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[]
@@ -184,6 +196,7 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ISOBUS *isobus = NULL;
 	double position, move_deadband, busy_deadband;
 	mx_status_type mx_status;
 
@@ -195,7 +208,7 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) record->record_class_struct;
 
 	mx_status = mxd_itc503_motor_get_pointers( motor,
-						&itc503_motor, fname );
+					&itc503_motor, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -204,27 +217,7 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  Motor type         = ITC503_MOTOR.\n\n");
 	fprintf(file, "  name               = %s\n", record->name);
-
-	switch( itc503_motor->controller_interface.record->mx_class ) {
-	case MXI_RS232:
-		fprintf(file,
-		      "  RS-232 interface   = %s\n",
-			itc503_motor->controller_interface.record->name);
-		break;
-	case MXI_GPIB:
-		fprintf(file,
-		      "  GPIB interface     = %s\n",
-		      	itc503_motor->controller_interface.record->name);
-		fprintf(file,
-		      "  GPIB address       = %ld\n",
-		      	itc503_motor->controller_interface.address);
-		break;
-	default:
-		fprintf(file,
-		      "  Unsupported interface = %s\n",
-		      	itc503_motor->controller_interface.record->name);
-		break;
-	}
+	fprintf(file, "  ISOBUS record      = %s\n", isobus->record->name);
 
 	busy_deadband = motor->scale * itc503_motor->busy_deadband;
 
@@ -274,122 +267,47 @@ mxd_itc503_motor_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_itc503_motor_open()";
 
+	MX_MOTOR *motor;
 	MX_ITC503_MOTOR *itc503_motor = NULL;
-	MX_RECORD *interface_record;
-	long gpib_address;
+	MX_ISOBUS *isobus = NULL;
 	int c_command_value;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked for record '%s'.",
+#if ITC503_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, record->name));
+#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
+			"MX_RECORD pointer passed is NULL." );
 	}
 
-	itc503_motor =
-		(MX_ITC503_MOTOR *) record->record_type_struct;
+	motor = (MX_MOTOR *) record->record_class_struct;
 
-	if ( itc503_motor == (MX_ITC503_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_ITC503_MOTOR pointer for analog input '%s' is NULL",
-			record->name );
-	}
+	mx_status = mxd_itc503_motor_get_pointers( motor,
+					&itc503_motor, &isobus, fname );
 
-	interface_record = itc503_motor->controller_interface.record;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Construct a command that will be used to tell the controller
-	 * to terminate responses only with a <CR> character.
-	 */
+	/* Tell the ITC503 to terminate responses only with a <CR> character. */
 
-	if ( itc503_motor->isobus_address < 0 ) {
-		snprintf( command, sizeof(command), "Q0" );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					"Q0", NULL, 0, -1,
+					ITC503_MOTOR_DEBUG );
 
-	} else if ( itc503_motor->isobus_address <= 9 ) {
-		snprintf( command, sizeof(command),
-			"@%ldQ0", itc503_motor->isobus_address );
-
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal ISOBUS address %ld specified for ITC503 controller '%s'.",
-			itc503_motor->isobus_address, record->name );
-	}
-
-	switch( interface_record->mx_class ) {
-	case MXI_RS232:
-		/* Verify that the RS-232 port has the right settings. */
-
-		mx_status = mx_rs232_verify_configuration( interface_record,
-				9600, 8, 'N', 1, 'N', 0x0d, 0x0d );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Reinitialize the serial port. */
-
-		mx_status = mx_resynchronize_record( interface_record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_msleep(1000);
-
-		/* Discard any characters waiting to be output. */
-
-		mx_status = mx_rs232_discard_unwritten_output(
-					interface_record, ITC503_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Send the Q0 command. */
-
-		mx_status = mx_rs232_putline( interface_record, command,
-						NULL, ITC503_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Wait a moment and then discard any characters in the
-		 * input buffer.
-		 */
-
-		mx_msleep(1000);
-
-		mx_status = mx_rs232_discard_unread_input(
-					interface_record, ITC503_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
-
-	case MXI_GPIB:
-		/* Send the Q0 command. */
-
-		gpib_address = itc503_motor->controller_interface.address;
-
-		mx_status = mx_gpib_putline( interface_record, gpib_address,
-					command, NULL, ITC503_MOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
-	default:
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-"Only RS-232 and GPIB interfaces are supported for ITC503 controller '%s'.  "
-"Interface record '%s' is of unsupported type '%s'.",
-			record->name, interface_record->name,
-			mx_get_driver_name( interface_record ) );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Ask for the version number of the controller. */
 
-	mx_status = mxd_itc503_motor_command( itc503_motor, "V",
-						response, sizeof(response),
-						ITC503_MOTOR_DEBUG );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					"V", response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -409,9 +327,10 @@ mxd_itc503_motor_open( MX_RECORD *record )
 
 	snprintf( command, sizeof(command), "C%d", c_command_value );
 
-	mx_status = mxd_itc503_motor_command( itc503_motor, command,
-						response, sizeof(response),
-						ITC503_MOTOR_DEBUG );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_MOTOR_DEBUG );
 
 	return mx_status;
 }
@@ -422,11 +341,13 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_itc503_motor_move_absolute()";
 
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_itc503_motor_get_pointers(motor, &itc503_motor, fname);
+	mx_status = mxd_itc503_motor_get_pointers( motor,
+					&itc503_motor, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -435,9 +356,10 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	 * to send a move command by getting the controller status.
 	 */
 
-	mx_status = mxd_itc503_motor_command( itc503_motor, "X",
-						response, sizeof(response),
-						ITC503_MOTOR_DEBUG );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					"X", response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -468,8 +390,9 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"T%f", motor->raw_destination.analog );
 
-	mx_status = mxd_itc503_motor_command( itc503_motor,
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
 					command, response, sizeof(response),
+					itc503_motor->maximum_retries,
 					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -485,16 +408,8 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_itc503_motor_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_itc503_motor_soft_abort()";
-
-	MX_ITC503_MOTOR *itc503_motor = NULL;
 	double position;
 	mx_status_type mx_status;
-
-	mx_status = mxd_itc503_motor_get_pointers(motor, &itc503_motor, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Get the current_temperature. */
 
@@ -523,21 +438,25 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_itc503_motor_get_extended_status()";
 
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ISOBUS *isobus = NULL;
 	char response[80];
 	int num_items;
 	double measured_temperature, set_temperature, temperature_error;
 	mx_status_type mx_status;
 
-	mx_status = mxd_itc503_motor_get_pointers(motor, &itc503_motor, fname);
+	mx_status = mxd_itc503_motor_get_pointers( motor,
+					&itc503_motor, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Read the set temperature. */
 
-	mx_status = mxd_itc503_motor_command( itc503_motor, "R0",
-						response, sizeof(response),
-						ITC503_MOTOR_DEBUG );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					"R0", response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_MOTOR_DEBUG );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -552,9 +471,11 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 
 	/* Read the current temperature error. */
 
-	mx_status = mxd_itc503_motor_command( itc503_motor, "R4",
-						response, sizeof(response),
-						ITC503_MOTOR_DEBUG );
+	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+					"R4", response, sizeof(response),
+					itc503_motor->maximum_retries,
+					ITC503_MOTOR_DEBUG );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -583,217 +504,5 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/********/
-
-static mx_status_type
-mxd_itc503_motor_wait_for_rs232_response( MX_RECORD *rs232_record,
-						char *command )
-{
-	static const char fname[]
-		= "mxd_itc503_motor_wait_for_rs232)response()";
-
-	int i, max_retries;
-	unsigned long wait_ms, num_input_bytes_available;
-	mx_status_type mx_status;
-
-	max_retries = 50;
-	wait_ms = 100;
-
-	for ( i = 0; i <= max_retries; i++ ) {
-		mx_status = mx_rs232_num_input_bytes_available( rs232_record,
-						&num_input_bytes_available );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( num_input_bytes_available > 0 )
-			break;		/* Exit the for() loop. */
-
-		mx_msleep( wait_ms );
-	}
-
-	if ( i > max_retries ) {
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-	"Timed out waiting for a response to the command '%s' from "
-	"the ITC503 series controller attached to RS-232 port '%s'.  "
-	"Are you sure it is connected and turned on?",
-			command, rs232_record->name );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
-						char *command,
-						char *response,
-						size_t max_response_length,
-						int debug_flag )
-{
-	static const char fname[] = "mxd_itc503_motor_command()";
-
-	MX_RECORD *interface_record;
-	long gpib_address;
-	char local_command_buffer[100];
-	char *command_ptr;
-	size_t length;
-	int i, error_occurred;
-	mx_status_type mx_status;
-
-	if ( itc503_motor == (MX_ITC503_MOTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_ITC503_MOTOR pointer passed was NULL." );
-	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command pointer passed was NULL." );
-	}
-
-	interface_record = itc503_motor->controller_interface.record;
-
-	if ( interface_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The interface record pointer for ITC503 motor '%s' is NULL.",
-			itc503_motor->record->name );
-	}
-
-	/* Format the command to be sent. */
-
-	if ( itc503_motor->isobus_address < 0 ) {
-		command_ptr = command;
-	} else {
-		command_ptr = local_command_buffer;
-
-		snprintf( local_command_buffer, sizeof(local_command_buffer),
-			"@%ld%s", itc503_motor->isobus_address, command );
-	}
-
-	error_occurred = FALSE;
-
-	for ( i = 0; i <= itc503_motor->maximum_retries; i++ ) {
-
-		if ( i > 0 ) {
-			mx_info( "ITC503 controller '%s' command retry #%d.",
-				itc503_motor->record->name, i );
-		}
-
-		/* Send the command and get the response. */
-
-		if ( debug_flag ) {
-			MX_DEBUG(-2,("%s: sending command '%s' to '%s'.",
-			    fname, command_ptr, itc503_motor->record->name));
-		}
-
-		error_occurred = FALSE;
-
-		if ( interface_record->mx_class == MXI_RS232 ) {
-			mx_status = mx_rs232_putline( interface_record,
-						command_ptr, NULL, 0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( response != NULL ) {
-				/* Wait for the response. */
-
-				mx_status =
-				    mxd_itc503_motor_wait_for_rs232_response(
-						interface_record, command_ptr );
-
-				if ( mx_status.code != MXE_SUCCESS ) {
-					error_occurred = TRUE;
-				} else {
-					mx_status = mx_rs232_getline(
-						interface_record, response,
-						max_response_length, NULL, 0);
-
-					if ( mx_status.code != MXE_SUCCESS ) {
-						error_occurred = TRUE;
-					} else {
-						/* Remove any trailing carriage
-						 * return characters.
-						 */
-
-						length = strlen( response );
-
-						if (length <
-							max_response_length )
-						{
-							if ( response[length-1]
-								== MX_CR )
-							{
-							    response[length-1]
-								= '\0';
-							}
-						}
-					}
-				}
-			}
-		} else {	/* GPIB */
-
-			gpib_address =
-				itc503_motor->controller_interface.address;
-
-			mx_status = mx_gpib_putline(
-						interface_record, gpib_address,
-						command_ptr, NULL, 0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( response != NULL ) {
-				mx_status = mx_gpib_getline(
-					interface_record, gpib_address,
-					response, max_response_length, NULL, 0);
-
-				if ( mx_status.code != MXE_SUCCESS ) {
-					error_occurred = TRUE;
-				}
-			}
-		}
-
-		if ( error_occurred == FALSE ) {
-
-			/* If the first character in the response is a
-			 * question mark '?', then an error occurred.
-			 */
-
-			if ( response != NULL ) {
-				if ( response[0] == '?' ) {
-
-					mx_status = mx_error(
-						MXE_DEVICE_ACTION_FAILED, fname,
-			"The command '%s' to ITC503 controller '%s' failed.  "
-			"Controller error message = '%s'", command_ptr,
-					itc503_motor->record->name, response );
-
-					error_occurred = TRUE;
-				} else {
-					if ( debug_flag ) {
-						MX_DEBUG(-2,
-					("%s: received response '%s' from '%s'",
-					fname, response,
-					itc503_motor->record->name));
-					}
-				}
-			}
-		}
-
-		if ( error_occurred == FALSE ) {
-			break;		/* Exit the for() loop. */
-		}
-	}
-
-	if ( error_occurred ) {
-		return mx_error( MXE_TIMED_OUT, fname,
-	"The command '%s' to ITC503 controller '%s' is still failing "
-	"after %ld retries.  Giving up...", command_ptr,
-				itc503_motor->record->name,
-				itc503_motor->maximum_retries );
-	} else {
-		return MX_SUCCESSFUL_RESULT;
-	}
 }
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_INTERFACE controller_interface;
+	MX_RECORD *isobus_record;
 	long isobus_address;
 
 	unsigned long itc503_motor_flags;
@@ -54,9 +54,6 @@ typedef struct {
 
 MX_API mx_status_type mxd_itc503_motor_create_record_structures(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_itc503_motor_finish_record_initialization(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_itc503_motor_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_itc503_motor_print_motor_structure(
 					FILE *file, MX_RECORD *record );
 MX_API mx_status_type mxd_itc503_motor_open( MX_RECORD *record );
@@ -65,12 +62,6 @@ MX_API mx_status_type mxd_itc503_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_itc503_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_itc503_motor_get_extended_status( MX_MOTOR *motor );
 
-MX_API mx_status_type mxd_itc503_motor_command(
-				MX_ITC503_MOTOR *itc503_motor,
-				char *command,
-				char *response, size_t max_response_length,
-				int debug_flag );
-
 extern MX_RECORD_FUNCTION_LIST mxd_itc503_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_itc503_motor_motor_function_list;
 
@@ -78,8 +69,8 @@ extern long mxd_itc503_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr;
 
 #define MXD_ITC503_MOTOR_STANDARD_FIELDS \
-  {-1, -1, "controller_interface", MXFT_INTERFACE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, controller_interface), \
+  {-1, -1, "isobus_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, isobus_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "isobus_address", MXFT_LONG, NULL, 0, {0}, \
@@ -99,3 +90,4 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr;
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __D_ITC503_MOTOR_H__ */
+
