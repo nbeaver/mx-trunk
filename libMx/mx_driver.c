@@ -200,6 +200,7 @@
 #include "i_spellman_df3.h"
 #include "i_bkprecision_912x.h"
 #include "i_isobus.h"
+#include "i_ilm.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -262,6 +263,7 @@
 #include "d_spellman_df3_dio.h"
 #include "d_bkprecision_912x_aio.h"
 #include "d_bkprecision_912x_dio.h"
+#include "d_ilm_ainput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1057,6 +1059,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_isobus_num_record_fields,
 				&mxi_isobus_rfield_def_ptr},
 
+{"ilm",           MXI_GEN_ILM,           MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_ilm_record_function_list,
+				NULL,
+				NULL,
+				&mxi_ilm_num_record_fields,
+				&mxi_ilm_rfield_def_ptr},
+
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
 				&mxi_epix_camera_link_record_function_list,
@@ -1636,6 +1645,13 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_bkprecision_912x_aout_analog_output_function_list,
 				&mxd_bkprecision_912x_aout_num_record_fields,
 				&mxd_bkprecision_912x_aout_rfield_def_ptr},
+
+{"ilm_ainput",     MXT_AIN_ILM,        MXC_ANALOG_INPUT,   MXR_DEVICE,
+				&mxd_ilm_ainput_record_function_list,
+				NULL,
+				&mxd_ilm_ainput_analog_input_function_list,
+				&mxd_ilm_ainput_num_record_fields,
+				&mxd_ilm_ainput_rfield_def_ptr},
 
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,

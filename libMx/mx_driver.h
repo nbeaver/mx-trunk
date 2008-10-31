@@ -238,6 +238,8 @@ extern "C" {
 #define MXI_GEN_SPELLMAN_DF3		451
 #define MXI_GEN_BKPRECISION_912X	452
 #define MXI_GEN_ISOBUS			453
+#define MXI_GEN_ILM			454
+#define MXI_GEN_CRYOJET			455
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -305,6 +307,8 @@ extern "C" {
 #define MXT_AIN_BLUICE_DHS_ION_CHAMBER	10037
 #define MXT_AIN_SPELLMAN_DF3		10038
 #define MXT_AIN_BKPRECISION_912X	10039
+#define MXT_AIN_CRYOJET			10040
+#define MXT_AIN_ILM			10041
 
 /* --- Analog input subclasses -- */
 
@@ -337,6 +341,7 @@ extern "C" {
 #define MXT_AOU_SR630			20021
 #define MXT_AOU_SPELLMAN_DF3		20022
 #define MXT_AOU_BKPRECISION_912X	20023
+#define MXT_AOU_CRYOJET			20024
 
 /* --- Analog output subclasses -- */
 
@@ -376,6 +381,8 @@ extern "C" {
 #define MXT_DIN_EPIX_XCLIB		30028
 #define MXT_DIN_SPELLMAN_DF3		30029
 #define MXT_DIN_BKPRECISION_912X	30030
+#define MXT_DIN_CRYOJET			30031
+#define MXT_DIN_ILM			30032
 
 /* --- Digital output types --- */
 
