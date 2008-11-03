@@ -264,6 +264,8 @@
 #include "d_bkprecision_912x_aio.h"
 #include "d_bkprecision_912x_dio.h"
 #include "d_ilm_ainput.h"
+#include "d_ilm_status.h"
+#include "d_ilm_sample_rate.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1991,6 +1993,20 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_bkprecision_912x_dout_digital_output_function_list,
 				&mxd_bkprecision_912x_dout_num_record_fields,
 				&mxd_bkprecision_912x_dout_rfield_def_ptr},
+
+{"ilm_status",       MXT_DIN_ILM_STATUS, MXC_DIGITAL_INPUT,   MXR_DEVICE,
+				&mxd_ilm_status_record_function_list,
+				NULL,
+				&mxd_ilm_status_digital_input_function_list,
+				&mxd_ilm_status_num_record_fields,
+				&mxd_ilm_status_rfield_def_ptr},
+
+{"ilm_sample_rate",  MXT_DOU_ILM_SAMPLE_RATE, MXC_DIGITAL_OUTPUT,   MXR_DEVICE,
+				&mxd_ilm_sample_rate_record_function_list,
+				NULL,
+			&mxd_ilm_sample_rate_digital_output_function_list,
+				&mxd_ilm_sample_rate_num_record_fields,
+				&mxd_ilm_sample_rate_rfield_def_ptr},
 
 
 #ifdef OS_LINUX

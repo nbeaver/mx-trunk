@@ -382,7 +382,7 @@ extern "C" {
 #define MXT_DIN_SPELLMAN_DF3		30029
 #define MXT_DIN_BKPRECISION_912X	30030
 #define MXT_DIN_CRYOJET			30031
-#define MXT_DIN_ILM			30032
+#define MXT_DIN_ILM_STATUS		30032
 
 /* --- Digital output types --- */
 
@@ -421,6 +421,7 @@ extern "C" {
 #define MXT_DOU_EPIX_XCLIB		40032
 #define MXT_DOU_SPELLMAN_DF3		40033
 #define MXT_DOU_BKPRECISION_912X	40034
+#define MXT_DOU_ILM_SAMPLE_RATE		40035
 
 /* --- Motor subclasses --- */
 

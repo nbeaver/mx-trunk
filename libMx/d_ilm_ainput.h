@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *ilm_record;
-	long channel;
+	long variable_number;
 } MX_ILM_AINPUT;
 
 #define MXD_ILM_AINPUT_STANDARD_FIELDS \
@@ -30,8 +30,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, ilm_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel", MXFT_LONG, NULL, 0, {0}, \
-  	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, channel), \
+  {-1, -1, "variable_number", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, variable_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_ilm_ainput_create_record_structures(

@@ -200,6 +200,7 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 	MX_ILM *ilm = NULL;
 	MX_ISOBUS *isobus = NULL;
 	char response[80];
+	int channel, channel_usage;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -219,6 +220,16 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( (ilm_ainput->variable_number < 1)
+	  || (ilm_ainput->variable_number > 13) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal variable number %ld specified for ILM ainput "
+		"record '%s'.  The allowed values are from 1 to 13.",
+			ilm_ainput->variable_number,
+			ilm_ainput->record->name );
+	}
+
 	/* Get the ILM status. */
 
 	mx_status = mxi_isobus_command( isobus, ilm->isobus_address,
@@ -226,7 +237,58 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 					ilm->maximum_retries,
 					MXD_ILM_AINPUT_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( ilm_ainput->variable_number ) {
+	case 1:
+	case 6:
+	case 11:
+		channel = 1;
+		channel_usage = mx_hex_char_to_unsigned_long( response[1] );
+		break;
+	case 2:
+	case 7:
+	case 12:
+		channel = 2;
+		channel_usage = mx_hex_char_to_unsigned_long( response[2] );
+		break;
+	case 3:
+	case 13:
+		channel = 3;
+		channel_usage = mx_hex_char_to_unsigned_long( response[2] );
+		break;
+	default:
+		channel = -1;
+		channel_usage = -1;
+		break;
+	}
+
+	switch( channel_usage ) {
+	case 1:
+	case 2:
+	case 3:
+		break;
+	case 0:
+		mx_warning( "Channel %d for ILM ainput record '%s' "
+		"is marked as 'not in use'.",
+			channel, ilm_ainput->record->name );
+		break;
+	case 9:
+		mx_warning( "Channel %d for ILM ainput record '%s' "
+		"has an error (usually means probe unplugged).",
+			channel, ilm_ainput->record->name );
+		break;
+	default:
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unrecognized channel usage value %x reported "
+		"for channel %d of ILM ainput record '%s'.",
+			channel_usage, channel,
+			ilm_ainput->record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -249,7 +311,8 @@ mxd_ilm_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "R%ld", ilm_ainput->channel );
+	snprintf( command, sizeof(command),
+			"R%ld", ilm_ainput->variable_number );
 
 	mx_status = mxi_isobus_command( isobus, ilm->isobus_address,
 					command, response, sizeof(response),
