@@ -18,34 +18,12 @@
 #ifndef __D_ITC503_MOTOR_H__
 #define __D_ITC503_MOTOR_H__
 
-/* Values for 'itc503_motor_flags' below */
-
-#define MXF_ITC503_ENABLE_REMOTE_MODE	0x1
-#define MXF_ITC503_UNLOCK		0x2
-
-/* The two lowest order bits in 'itc503_motor_flags' are used to
- * construct a 'Cn' control command.  The 'Cn' determines whether
- * or not the controller is in LOCAL or REMOTE mode and also
- * whether or not the LOC/REM button is locked or active.  The
- * possible values for the 'Cn' command are:
- * 
- * C0 - Local and locked (default state)
- * C1 - Remote and locked (front panel disabled)
- * C2 - Local and unlocked
- * C3 - Remote and unlocked (front panel disabled)
- */
-
 /* ===== ITC503 motor data structures ===== */
 
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *isobus_record;
-	long isobus_address;
-
-	unsigned long itc503_motor_flags;
-
-	long maximum_retries;
+	MX_RECORD *itc503_record;
 
 	double busy_deadband;		/* in K */
 } MX_ITC503_MOTOR;
@@ -56,7 +34,6 @@ MX_API mx_status_type mxd_itc503_motor_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_itc503_motor_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_itc503_motor_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_itc503_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_itc503_motor_soft_abort( MX_MOTOR *motor );
@@ -69,20 +46,8 @@ extern long mxd_itc503_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr;
 
 #define MXD_ITC503_MOTOR_STANDARD_FIELDS \
-  {-1, -1, "isobus_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, isobus_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "isobus_address", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, isobus_address), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "itc503_motor_flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, itc503_motor_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "maximum_retries", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, maximum_retries), \
+  {-1, -1, "itc503_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, itc503_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "busy_deadband", MXFT_DOUBLE, NULL, 0, {0}, \

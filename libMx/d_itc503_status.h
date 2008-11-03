@@ -21,7 +21,7 @@
 #include "mx_analog_input.h"
 
 typedef struct {
-	MX_RECORD *itc503_motor_record;
+	MX_RECORD *itc503_record;
 	long parameter_type;
 } MX_ITC503_STATUS;
 
@@ -61,8 +61,8 @@ extern long mxd_itc503_status_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_status_rfield_def_ptr;
 
 #define MXD_ITC503_STATUS_STANDARD_FIELDS \
-  {-1, -1, "itc503_motor_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, itc503_motor_record), \
+  {-1, -1, "itc503_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, itc503_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \

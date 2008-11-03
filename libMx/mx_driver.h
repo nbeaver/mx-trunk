@@ -238,8 +238,8 @@ extern "C" {
 #define MXI_GEN_SPELLMAN_DF3		451
 #define MXI_GEN_BKPRECISION_912X	452
 #define MXI_GEN_ISOBUS			453
-#define MXI_GEN_ILM			454
-#define MXI_GEN_CRYOJET			455
+#define MXI_GEN_ITC503			454
+#define MXI_GEN_ILM			455
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501

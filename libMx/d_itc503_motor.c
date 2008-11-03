@@ -31,6 +31,7 @@
 #include "mx_rs232.h"
 #include "mx_gpib.h"
 #include "i_isobus.h"
+#include "i_itc503.h"
 #include "d_itc503_motor.h"
 
 /* Initialize the motor driver jump table. */
@@ -40,13 +41,7 @@ MX_RECORD_FUNCTION_LIST mxd_itc503_motor_record_function_list = {
 	mxd_itc503_motor_create_record_structures,
 	mx_motor_finish_record_initialization,
 	NULL,
-	mxd_itc503_motor_print_motor_structure,
-	NULL,
-	NULL,
-	mxd_itc503_motor_open,
-	NULL,
-	NULL,
-	mxd_itc503_motor_open
+	mxd_itc503_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_itc503_motor_motor_function_list = {
@@ -83,28 +78,29 @@ long mxd_itc503_motor_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr
 			= &mxd_itc503_motor_recfield_defaults[0];
 
-/* A private function for the use of the driver. */
+/* ===== */
 
 static mx_status_type
 mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
-			MX_ITC503_MOTOR **itc503_motor,
-			MX_ISOBUS **isobus,
-			const char *calling_fname )
+				MX_ITC503_MOTOR **itc503_motor,
+				MX_ITC503 **itc503,
+				MX_ISOBUS **isobus,
+				const char *calling_fname )
 {
 	static const char fname[] = "mxd_itc503_motor_get_pointers()";
 
 	MX_ITC503_MOTOR *itc503_motor_ptr;
-	MX_RECORD *isobus_record;
+	MX_RECORD *itc503_record, *isobus_record;
+	MX_ITC503 *itc503_ptr;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_MOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
+		"The MX_MOTOR pointer passed was NULL." );
 	}
 
 	if ( motor->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The MX_RECORD pointer for the MX_MOTOR pointer passed is NULL." );
+	    "The MX_RECORD pointer for the MX_MOTOR pointer passed was NULL." );
 	}
 
 	itc503_motor_ptr = (MX_ITC503_MOTOR *)
@@ -112,7 +108,7 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 
 	if ( itc503_motor_ptr == (MX_ITC503_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_ITC503_MOTOR pointer for record '%s' is NULL.",
+		"MX_ITC503_MOTOR pointer for analog output '%s' is NULL",
 			motor->record->name );
 	}
 
@@ -120,28 +116,59 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 		*itc503_motor = itc503_motor_ptr;
 	}
 
+	itc503_record = itc503_motor_ptr->itc503_record;
+
+	if ( itc503_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"itc503_record pointer for analog output '%s' is NULL.",
+			motor->record->name );
+	}
+
+	if ( itc503_record->mx_type != MXI_GEN_ITC503 ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"itc503_record '%s' for ITC503 control record '%s' "
+		"is not an 'itc503' record.  Instead, it is of type '%s'.",
+			itc503_record->name, motor->record->name,
+			mx_get_driver_name( itc503_record ) );
+	}
+
+	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
+
+	if ( itc503_ptr == (MX_ITC503 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_ITC503 pointer for ITC503 controller '%s' "
+		"used by ITC503 status record '%s' is NULL.",
+			itc503_record->name,
+			motor->record->name );
+	}
+
+	if ( itc503 != (MX_ITC503 **) NULL ) {
+		*itc503 = itc503_ptr;
+	}
+
 	if ( isobus != (MX_ISOBUS **) NULL ) {
-		isobus_record = itc503_motor_ptr->isobus_record;
+		isobus_record = itc503_ptr->isobus_record;
 
 		if ( isobus_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The isobus_record pointer for ITC503 motor '%s' "
-			"is NULL.", motor->record->name );
+			"The isobus_record pointer for ITC503 "
+			"controller record '%s' is NULL.",
+				itc503_record->name );
 		}
 
 		*isobus = isobus_record->record_type_struct;
 
 		if ( (*isobus) == (MX_ISOBUS *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_ISOBUS pointer for ISOBUS record '%s' is NULL.",
-				isobus_record->name );
+			"The MX_ISOBUS pointer for ISOBUS record '%s' "
+			"is NULL.", isobus_record->name );
 		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* === */
+/* ===== */
 
 MX_EXPORT mx_status_type
 mxd_itc503_motor_create_record_structures( MX_RECORD *record )
@@ -196,6 +223,7 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ITC503 *itc503 = NULL;
 	MX_ISOBUS *isobus = NULL;
 	double position, move_deadband, busy_deadband;
 	mx_status_type mx_status;
@@ -208,7 +236,7 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) record->record_class_struct;
 
 	mx_status = mxd_itc503_motor_get_pointers( motor,
-					&itc503_motor, &isobus, fname );
+				&itc503_motor, &itc503, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -263,91 +291,19 @@ mxd_itc503_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_itc503_motor_open( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_itc503_motor_open()";
-
-	MX_MOTOR *motor;
-	MX_ITC503_MOTOR *itc503_motor = NULL;
-	MX_ISOBUS *isobus = NULL;
-	int c_command_value;
-	char command[80];
-	char response[80];
-	mx_status_type mx_status;
-
-#if ITC503_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-		fname, record->name));
-#endif
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_itc503_motor_get_pointers( motor,
-					&itc503_motor, &isobus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Tell the ITC503 to terminate responses only with a <CR> character. */
-
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
-					"Q0", NULL, 0, -1,
-					ITC503_MOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Ask for the version number of the controller. */
-
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
-					"V", response, sizeof(response),
-					itc503_motor->maximum_retries,
-					ITC503_MOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( strncmp( response, "JET", 3 ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"ITC503 motor '%s' did not return the expected "
-		"version string in its response to the V command.  "
-		"Response = '%s'", record->name, response );
-	}
-
-	/* Send a 'Cn' control command.  See the header file
-	 * 'd_itc503_motor.h' for a description of this command.
-	 */
-
-	c_command_value = (int) (( itc503_motor->itc503_motor_flags ) & 0x3);
-
-	snprintf( command, sizeof(command), "C%d", c_command_value );
-
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
-					command, response, sizeof(response),
-					itc503_motor->maximum_retries,
-					ITC503_MOTOR_DEBUG );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_itc503_motor_move_absolute()";
 
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ITC503 *itc503 = NULL;
 	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_itc503_motor_get_pointers( motor,
-					&itc503_motor, &isobus, fname );
+				&itc503_motor, &itc503, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -356,9 +312,9 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	 * to send a move command by getting the controller status.
 	 */
 
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
 					"X", response, sizeof(response),
-					itc503_motor->maximum_retries,
+					itc503->maximum_retries,
 					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -390,9 +346,9 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	snprintf( command, sizeof(command),
 		"T%f", motor->raw_destination.analog );
 
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
 					command, response, sizeof(response),
-					itc503_motor->maximum_retries,
+					itc503->maximum_retries,
 					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -438,6 +394,7 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_itc503_motor_get_extended_status()";
 
 	MX_ITC503_MOTOR *itc503_motor = NULL;
+	MX_ITC503 *itc503 = NULL;
 	MX_ISOBUS *isobus = NULL;
 	char response[80];
 	int num_items;
@@ -445,16 +402,16 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 	mx_status_type mx_status;
 
 	mx_status = mxd_itc503_motor_get_pointers( motor,
-					&itc503_motor, &isobus, fname );
+				&itc503_motor, &itc503, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Read the set temperature. */
 
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
 					"R0", response, sizeof(response),
-					itc503_motor->maximum_retries,
+					itc503->maximum_retries,
 					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -471,9 +428,9 @@ mxd_itc503_motor_get_extended_status( MX_MOTOR *motor )
 
 	/* Read the current temperature error. */
 
-	mx_status = mxi_isobus_command( isobus, itc503_motor->isobus_address,
+	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
 					"R4", response, sizeof(response),
-					itc503_motor->maximum_retries,
+					itc503->maximum_retries,
 					ITC503_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )

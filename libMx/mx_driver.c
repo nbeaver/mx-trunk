@@ -200,6 +200,7 @@
 #include "i_spellman_df3.h"
 #include "i_bkprecision_912x.h"
 #include "i_isobus.h"
+#include "i_itc503.h"
 #include "i_ilm.h"
 
 #include "d_ks3512.h"
@@ -1060,6 +1061,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_isobus_num_record_fields,
 				&mxi_isobus_rfield_def_ptr},
+
+{"itc503",        MXI_GEN_ITC503,        MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_itc503_record_function_list,
+				NULL,
+				NULL,
+				&mxi_itc503_num_record_fields,
+				&mxi_itc503_rfield_def_ptr},
 
 {"ilm",           MXI_GEN_ILM,           MXI_GENERIC,    MXR_INTERFACE,
 				&mxi_ilm_record_function_list,

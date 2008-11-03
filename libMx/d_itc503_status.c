@@ -28,7 +28,7 @@
 #include "mx_motor.h"
 #include "mx_analog_input.h"
 #include "i_isobus.h"
-#include "d_itc503_motor.h"
+#include "i_itc503.h"
 #include "d_itc503_status.h"
 
 MX_RECORD_FUNCTION_LIST mxd_itc503_status_record_function_list = {
@@ -64,6 +64,96 @@ long mxd_itc503_status_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_itc503_status_rfield_def_ptr
 			= &mxd_itc503_status_field_default[0];
+
+/* ===== */
+
+static mx_status_type
+mxd_itc503_status_get_pointers( MX_ANALOG_INPUT *ainput,
+				MX_ITC503_STATUS **itc503_status,
+				MX_ITC503 **itc503,
+				MX_ISOBUS **isobus,
+				const char *calling_fname )
+{
+	static const char fname[] = "mxd_itc503_status_get_pointers()";
+
+	MX_ITC503_STATUS *itc503_status_ptr;
+	MX_RECORD *itc503_record, *isobus_record;
+	MX_ITC503 *itc503_ptr;
+
+	if ( ainput == (MX_ANALOG_INPUT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_ANALOG_INPUT pointer passed was NULL." );
+	}
+
+	if ( ainput->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+    "The MX_RECORD pointer for the MX_ANALOG_INPUT pointer passed was NULL." );
+	}
+
+	itc503_status_ptr = (MX_ITC503_STATUS *)
+				ainput->record->record_type_struct;
+
+	if ( itc503_status_ptr == (MX_ITC503_STATUS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_ITC503_STATUS pointer for analog input '%s' is NULL",
+			ainput->record->name );
+	}
+
+	if ( itc503_status != (MX_ITC503_STATUS **) NULL ) {
+		*itc503_status = itc503_status_ptr;
+	}
+
+	itc503_record = itc503_status_ptr->itc503_record;
+
+	if ( itc503_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"itc503_record pointer for analog input '%s' is NULL.",
+			ainput->record->name );
+	}
+
+	if ( itc503_record->mx_type != MXI_GEN_ITC503 ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"itc503_record '%s' for ITC503 control record '%s' "
+		"is not an 'itc503' record.  Instead, it is of type '%s'.",
+			itc503_record->name, ainput->record->name,
+			mx_get_driver_name( itc503_record ) );
+	}
+
+	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
+
+	if ( itc503_ptr == (MX_ITC503 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_ITC503 pointer for ITC503 controller '%s' "
+		"used by ITC503 status record '%s' is NULL.",
+			itc503_record->name,
+			ainput->record->name );
+	}
+
+	if ( itc503 != (MX_ITC503 **) NULL ) {
+		*itc503 = itc503_ptr;
+	}
+
+	if ( isobus != (MX_ISOBUS **) NULL ) {
+		isobus_record = itc503_ptr->isobus_record;
+
+		if ( isobus_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The isobus_record pointer for ITC503 "
+			"controller record '%s' is NULL.",
+				itc503_record->name );
+		}
+
+		*isobus = isobus_record->record_type_struct;
+
+		if ( (*isobus) == (MX_ISOBUS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_ISOBUS pointer for ISOBUS record '%s' "
+			"is NULL.", isobus_record->name );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /* ===== */
 
@@ -134,8 +224,7 @@ mxd_itc503_status_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mx_resynchronize_record(
-			itc503_status->itc503_motor_record );
+	mx_status = mx_resynchronize_record( itc503_status->itc503_record );
 
 	return mx_status;
 }
@@ -145,82 +234,20 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_itc503_status_read()";
 
-	MX_ITC503_STATUS *itc503_status;
-	MX_ITC503_MOTOR *itc503_motor;
-	MX_RECORD *itc503_motor_record;
-	MX_RECORD *isobus_record;
-	MX_ISOBUS *isobus;
+	MX_ITC503_STATUS *itc503_status = NULL;
+	MX_ITC503 *itc503 = NULL;
+	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
 	int num_items;
 	double double_value;
 	mx_status_type mx_status;
 
-	/*-----------------------------------------------------*/
+	mx_status = mxd_itc503_status_get_pointers( ainput,
+				&itc503_status, &itc503, &isobus, fname );
 
-	/* Find and check a bunch of pointers. */
-
-	if ( ainput == (MX_ANALOG_INPUT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_ANALOG_INPUT pointer passed was NULL." );
-	}
-	if ( ainput->record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-    "The MX_RECORD pointer for the MX_ANALOG_INPUT pointer passed was NULL." );
-	}
-
-	itc503_status = (MX_ITC503_STATUS *) ainput->record->record_type_struct;
-
-	if ( itc503_status == (MX_ITC503_STATUS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_ITC503_STATUS pointer for analog input '%s' is NULL",
-			ainput->record->name );
-	}
-
-	itc503_motor_record = itc503_status->itc503_motor_record;
-
-	if ( itc503_motor_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"itc503_motor_record pointer for analog input '%s' is NULL.",
-			ainput->record->name );
-	}
-
-	if ( itc503_motor_record->mx_type != MXT_MTR_ITC503 ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"itc503_motor_record '%s' for ITC503 status record '%s' "
-	"is not an 'itc503_motor' record.  Instead, it is of type '%s'.",
-			itc503_motor_record->name, ainput->record->name,
-			mx_get_driver_name( itc503_motor_record ) );
-	}
-
-	itc503_motor = (MX_ITC503_MOTOR *)
-				itc503_motor_record->record_type_struct;
-
-	if ( itc503_motor == (MX_ITC503_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_ITC503_MOTOR pointer for ITC503 motor '%s' "
-		"used by ITC503 status record '%s' is NULL.",
-			itc503_motor_record->name,
-			ainput->record->name );
-	}
-
-	isobus_record = itc503_motor->isobus_record;
-
-	if ( isobus_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The isobus_record pointer for ITC503 motor '%s' is NULL.",
-			itc503_motor_record->name );
-	}
-
-	isobus = isobus_record->record_type_struct;
-
-	if ( isobus == (MX_ISOBUS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_ISOBUS pointer for ISOBUS record '%s' is NULL.",
-			isobus_record->name );
-	}
-
-	/*-----------------------------------------------------*/
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( ( itc503_status->parameter_type < 0 )
 	  || ( itc503_status->parameter_type > 13 ) )
@@ -242,9 +269,9 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	/* Send the READ command to the controller. */
 
 	mx_status = mxi_isobus_command( isobus,
-					itc503_motor->isobus_address,
+					itc503->isobus_address,
 					command, response, sizeof(response),
-					itc503_motor->maximum_retries,
+					itc503->maximum_retries,
 					ITC503_STATUS_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -256,7 +283,7 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Could not parse the response by ITC503 controller '%s' to "
 		"the READ command '%s'.  Response = '%s'",
-			itc503_motor->record->name, command, response );
+			itc503->record->name, command, response );
 	}
 
 	ainput->raw_value.double_value = double_value;
