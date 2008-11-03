@@ -395,8 +395,8 @@
 #include "d_si9650_status.h"
 
 #include "d_itc503_motor.h"
-#include "d_itc503_status.h"
-#include "d_itc503_control.h"
+#include "d_itc503_ainput.h"
+#include "d_itc503_aoutput.h"
 
 #include "d_am9513_motor.h"
 #include "d_am9513_scaler.h"
@@ -1062,6 +1062,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_isobus_num_record_fields,
 				&mxi_isobus_rfield_def_ptr},
 
+{"ilm",           MXI_GEN_ILM,           MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_ilm_record_function_list,
+				NULL,
+				NULL,
+				&mxi_ilm_num_record_fields,
+				&mxi_ilm_rfield_def_ptr},
+
 {"itc503",        MXI_GEN_ITC503,        MXI_GENERIC,    MXR_INTERFACE,
 				&mxi_itc503_record_function_list,
 				NULL,
@@ -1069,12 +1076,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_itc503_num_record_fields,
 				&mxi_itc503_rfield_def_ptr},
 
-{"ilm",           MXI_GEN_ILM,           MXI_GENERIC,    MXR_INTERFACE,
-				&mxi_ilm_record_function_list,
+{"cryojet",       MXI_GEN_CRYOJET,       MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_itc503_record_function_list,
 				NULL,
 				NULL,
-				&mxi_ilm_num_record_fields,
-				&mxi_ilm_rfield_def_ptr},
+				&mxi_itc503_num_record_fields,
+				&mxi_itc503_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
@@ -2002,7 +2009,7 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_bkprecision_912x_dout_num_record_fields,
 				&mxd_bkprecision_912x_dout_rfield_def_ptr},
 
-{"ilm_status",       MXT_DIN_ILM_STATUS, MXC_DIGITAL_INPUT,   MXR_DEVICE,
+{"ilm_status",       MXT_DIN_ILM, MXC_DIGITAL_INPUT,   MXR_DEVICE,
 				&mxd_ilm_status_record_function_list,
 				NULL,
 				&mxd_ilm_status_digital_input_function_list,
@@ -3551,20 +3558,21 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_si9650_motor_num_record_fields,
 				&mxd_si9650_motor_rfield_def_ptr},
 
+/*---*/
 
-{"itc503_control", MXT_AOU_ITC503,    MXC_ANALOG_OUTPUT, MXR_DEVICE,
-				&mxd_itc503_control_record_function_list,
+{"itc503_ainput",  MXT_AIN_ITC503,    MXC_ANALOG_INPUT,  MXR_DEVICE,
+				&mxd_itc503_ainput_record_function_list,
 				NULL,
-				&mxd_itc503_control_analog_output_function_list,
-				&mxd_itc503_control_num_record_fields,
-				&mxd_itc503_control_rfield_def_ptr},
+				&mxd_itc503_ainput_analog_input_function_list,
+				&mxd_itc503_ainput_num_record_fields,
+				&mxd_itc503_ainput_rfield_def_ptr},
 
-{"itc503_status",  MXT_AIN_ITC503,    MXC_ANALOG_INPUT,  MXR_DEVICE,
-				&mxd_itc503_status_record_function_list,
+{"itc503_aoutput", MXT_AOU_ITC503,    MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_itc503_aoutput_record_function_list,
 				NULL,
-				&mxd_itc503_status_analog_input_function_list,
-				&mxd_itc503_status_num_record_fields,
-				&mxd_itc503_status_rfield_def_ptr},
+				&mxd_itc503_aoutput_analog_output_function_list,
+				&mxd_itc503_aoutput_num_record_fields,
+				&mxd_itc503_aoutput_rfield_def_ptr},
 
 {"itc503_motor",   MXT_MTR_ITC503,    MXC_MOTOR,         MXR_DEVICE,
 				&mxd_itc503_motor_record_function_list,
@@ -3573,6 +3581,32 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_itc503_motor_num_record_fields,
 				&mxd_itc503_motor_rfield_def_ptr},
 
+/*---*/
+
+/* Cryojet devices use the ITC503 drivers. */
+
+{"cryojet_ainput", MXT_AIN_CRYOJET,   MXC_ANALOG_INPUT,  MXR_DEVICE,
+				&mxd_itc503_ainput_record_function_list,
+				NULL,
+				&mxd_itc503_ainput_analog_input_function_list,
+				&mxd_itc503_ainput_num_record_fields,
+				&mxd_itc503_ainput_rfield_def_ptr},
+
+{"cryojet_aoutput", MXT_AOU_CRYOJET,  MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_itc503_aoutput_record_function_list,
+				NULL,
+				&mxd_itc503_aoutput_analog_output_function_list,
+				&mxd_itc503_aoutput_num_record_fields,
+				&mxd_itc503_aoutput_rfield_def_ptr},
+
+{"cryojet_motor",   MXT_MTR_CRYOJET,   MXC_MOTOR,         MXR_DEVICE,
+				&mxd_itc503_motor_record_function_list,
+				NULL,
+				&mxd_itc503_motor_motor_function_list,
+				&mxd_itc503_motor_num_record_fields,
+				&mxd_itc503_motor_rfield_def_ptr},
+
+/*---*/
 
 {"am9513_motor",   MXT_MTR_AM9513,    MXC_MOTOR,         MXR_DEVICE,
 				&mxd_am9513_motor_record_function_list,

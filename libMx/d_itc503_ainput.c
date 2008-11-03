@@ -1,5 +1,5 @@
 /*
- * Name:    d_itc503_status.c
+ * Name:    d_itc503_ainput.c
  *
  * Purpose: MX analog input driver for the Oxford Instruments ITC503
  *          temperature controller.
@@ -18,7 +18,7 @@
  *
  */
 
-#define ITC503_STATUS_DEBUG	TRUE
+#define ITC503_AINPUT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,11 +29,11 @@
 #include "mx_analog_input.h"
 #include "i_isobus.h"
 #include "i_itc503.h"
-#include "d_itc503_status.h"
+#include "d_itc503_ainput.h"
 
-MX_RECORD_FUNCTION_LIST mxd_itc503_status_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_itc503_ainput_record_function_list = {
 	NULL,
-	mxd_itc503_status_create_record_structures,
+	mxd_itc503_ainput_create_record_structures,
 	mx_analog_input_finish_record_initialization,
 	NULL,
 	NULL,
@@ -42,41 +42,41 @@ MX_RECORD_FUNCTION_LIST mxd_itc503_status_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_itc503_status_resynchronize
+	mxd_itc503_ainput_resynchronize
 };
 
 MX_ANALOG_INPUT_FUNCTION_LIST
-	mxd_itc503_status_analog_input_function_list =
+	mxd_itc503_ainput_analog_input_function_list =
 {
-	mxd_itc503_status_read
+	mxd_itc503_ainput_read
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_itc503_status_field_default[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_itc503_ainput_field_default[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
-	MXD_ITC503_STATUS_STANDARD_FIELDS
+	MXD_ITC503_AINPUT_STANDARD_FIELDS
 };
 
-long mxd_itc503_status_num_record_fields
-		= sizeof( mxd_itc503_status_field_default )
-		/ sizeof( mxd_itc503_status_field_default[0] );
+long mxd_itc503_ainput_num_record_fields
+		= sizeof( mxd_itc503_ainput_field_default )
+		/ sizeof( mxd_itc503_ainput_field_default[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_itc503_status_rfield_def_ptr
-			= &mxd_itc503_status_field_default[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_itc503_ainput_rfield_def_ptr
+			= &mxd_itc503_ainput_field_default[0];
 
 /* ===== */
 
 static mx_status_type
-mxd_itc503_status_get_pointers( MX_ANALOG_INPUT *ainput,
-				MX_ITC503_STATUS **itc503_status,
+mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
+				MX_ITC503_AINPUT **itc503_ainput,
 				MX_ITC503 **itc503,
 				MX_ISOBUS **isobus,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxd_itc503_status_get_pointers()";
+	static const char fname[] = "mxd_itc503_ainput_get_pointers()";
 
-	MX_ITC503_STATUS *itc503_status_ptr;
+	MX_ITC503_AINPUT *itc503_ainput_ptr;
 	MX_RECORD *itc503_record, *isobus_record;
 	MX_ITC503 *itc503_ptr;
 
@@ -90,20 +90,20 @@ mxd_itc503_status_get_pointers( MX_ANALOG_INPUT *ainput,
     "The MX_RECORD pointer for the MX_ANALOG_INPUT pointer passed was NULL." );
 	}
 
-	itc503_status_ptr = (MX_ITC503_STATUS *)
+	itc503_ainput_ptr = (MX_ITC503_AINPUT *)
 				ainput->record->record_type_struct;
 
-	if ( itc503_status_ptr == (MX_ITC503_STATUS *) NULL ) {
+	if ( itc503_ainput_ptr == (MX_ITC503_AINPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_ITC503_STATUS pointer for analog input '%s' is NULL",
+		"MX_ITC503_AINPUT pointer for analog input '%s' is NULL",
 			ainput->record->name );
 	}
 
-	if ( itc503_status != (MX_ITC503_STATUS **) NULL ) {
-		*itc503_status = itc503_status_ptr;
+	if ( itc503_ainput != (MX_ITC503_AINPUT **) NULL ) {
+		*itc503_ainput = itc503_ainput_ptr;
 	}
 
-	itc503_record = itc503_status_ptr->itc503_record;
+	itc503_record = itc503_ainput_ptr->itc503_record;
 
 	if ( itc503_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -158,13 +158,13 @@ mxd_itc503_status_get_pointers( MX_ANALOG_INPUT *ainput,
 /* ===== */
 
 MX_EXPORT mx_status_type
-mxd_itc503_status_create_record_structures( MX_RECORD *record )
+mxd_itc503_ainput_create_record_structures( MX_RECORD *record )
 {
         static const char fname[] =
-		"mxd_itc503_status_create_record_structures()";
+		"mxd_itc503_ainput_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
-        MX_ITC503_STATUS *itc503_status;
+        MX_ITC503_AINPUT *itc503_ainput;
 
         /* Allocate memory for the necessary structures. */
 
@@ -175,20 +175,20 @@ mxd_itc503_status_create_record_structures( MX_RECORD *record )
                 "Can't allocate memory for MX_ANALOG_INPUT structure." );
         }
 
-        itc503_status = (MX_ITC503_STATUS *)
-				malloc( sizeof(MX_ITC503_STATUS) );
+        itc503_ainput = (MX_ITC503_AINPUT *)
+				malloc( sizeof(MX_ITC503_AINPUT) );
 
-        if ( itc503_status == (MX_ITC503_STATUS *) NULL ) {
+        if ( itc503_ainput == (MX_ITC503_AINPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-               "Can't allocate memory for MX_ITC503_STATUS structure." );
+               "Can't allocate memory for MX_ITC503_AINPUT structure." );
         }
 
         /* Now set up the necessary pointers. */
 
         record->record_class_struct = analog_input;
-        record->record_type_struct = itc503_status;
+        record->record_type_struct = itc503_ainput;
         record->class_specific_function_list
-			= &mxd_itc503_status_analog_input_function_list;
+			= &mxd_itc503_ainput_analog_input_function_list;
 
         analog_input->record = record;
 
@@ -200,11 +200,11 @@ mxd_itc503_status_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_itc503_status_resynchronize( MX_RECORD *record )
+mxd_itc503_ainput_resynchronize( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_itc503_status_resynchronize()";
+	static const char fname[] = "mxd_itc503_ainput_resynchronize()";
 
-	MX_ITC503_STATUS *itc503_status;
+	MX_ITC503_AINPUT *itc503_ainput;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
@@ -215,26 +215,26 @@ mxd_itc503_status_resynchronize( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	itc503_status =
-		(MX_ITC503_STATUS *) record->record_type_struct;
+	itc503_ainput =
+		(MX_ITC503_AINPUT *) record->record_type_struct;
 
-	if ( itc503_status == (MX_ITC503_STATUS *) NULL ) {
+	if ( itc503_ainput == (MX_ITC503_AINPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_ITC503_STATUS pointer for analog input '%s' is NULL",
+		"MX_ITC503_AINPUT pointer for analog input '%s' is NULL",
 			record->name );
 	}
 
-	mx_status = mx_resynchronize_record( itc503_status->itc503_record );
+	mx_status = mx_resynchronize_record( itc503_ainput->itc503_record );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
+mxd_itc503_ainput_read( MX_ANALOG_INPUT *ainput )
 {
-	static const char fname[] = "mxd_itc503_status_read()";
+	static const char fname[] = "mxd_itc503_ainput_read()";
 
-	MX_ITC503_STATUS *itc503_status = NULL;
+	MX_ITC503_AINPUT *itc503_ainput = NULL;
 	MX_ITC503 *itc503 = NULL;
 	MX_ISOBUS *isobus = NULL;
 	char command[80];
@@ -243,20 +243,20 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	double double_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_itc503_status_get_pointers( ainput,
-				&itc503_status, &itc503, &isobus, fname );
+	mx_status = mxd_itc503_ainput_get_pointers( ainput,
+				&itc503_ainput, &itc503, &isobus, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ( itc503_status->parameter_type < 0 )
-	  || ( itc503_status->parameter_type > 13 ) )
+	if ( ( itc503_ainput->parameter_type < 0 )
+	  || ( itc503_ainput->parameter_type > 13 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal parameter type %ld requested for ITC503 status record '%s'.  "
 	"Allowed parameter types are from 0 to 13.  Read the description of "
 	"the 'R' command in the ITC503 manual for more information.",
-			itc503_status->parameter_type, ainput->record->name );
+			itc503_ainput->parameter_type, ainput->record->name );
 	}
 
 	/* The requested parameter type is used directly to construct
@@ -264,7 +264,7 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	 */
 
 	snprintf( command, sizeof(command),
-			"R%ld", itc503_status->parameter_type );
+			"R%ld", itc503_ainput->parameter_type );
 
 	/* Send the READ command to the controller. */
 
@@ -272,7 +272,7 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 					itc503->isobus_address,
 					command, response, sizeof(response),
 					itc503->maximum_retries,
-					ITC503_STATUS_DEBUG );
+					ITC503_AINPUT_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

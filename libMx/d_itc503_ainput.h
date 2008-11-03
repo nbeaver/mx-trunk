@@ -1,5 +1,5 @@
 /*
- * Name:    d_itc503_status.h
+ * Name:    d_itc503_ainput.h
  *
  * Purpose: Header file for reading status values from an Oxford Instruments
  *          ITC503 temperature controller.
@@ -15,15 +15,15 @@
  *
  */
 
-#ifndef __D_ITC503_STATUS_H__
-#define __D_ITC503_STATUS_H__
+#ifndef __D_ITC503_AINPUT_H__
+#define __D_ITC503_AINPUT_H__
 
 #include "mx_analog_input.h"
 
 typedef struct {
 	MX_RECORD *itc503_record;
 	long parameter_type;
-} MX_ITC503_STATUS;
+} MX_ITC503_AINPUT;
 
 /* The value of 'parameter_type' is used to construct an ITC503 'R' command.
  * Thus, the values of the parameters are as listed in the Oxford manual:
@@ -47,27 +47,27 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_itc503_status_create_record_structures(
+MX_API mx_status_type mxd_itc503_ainput_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_itc503_status_resynchronize( MX_RECORD *record );
+MX_API mx_status_type mxd_itc503_ainput_resynchronize( MX_RECORD *record );
 
-MX_API mx_status_type mxd_itc503_status_read( MX_ANALOG_INPUT *ainput );
+MX_API mx_status_type mxd_itc503_ainput_read( MX_ANALOG_INPUT *ainput );
 
-extern MX_RECORD_FUNCTION_LIST mxd_itc503_status_record_function_list;
+extern MX_RECORD_FUNCTION_LIST mxd_itc503_ainput_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
-			mxd_itc503_status_analog_input_function_list;
+			mxd_itc503_ainput_analog_input_function_list;
 
-extern long mxd_itc503_status_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_status_rfield_def_ptr;
+extern long mxd_itc503_ainput_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_ainput_rfield_def_ptr;
 
-#define MXD_ITC503_STATUS_STANDARD_FIELDS \
+#define MXD_ITC503_AINPUT_STANDARD_FIELDS \
   {-1, -1, "itc503_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, itc503_record), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_AINPUT, itc503_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
-     MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, parameter_type), \
+     MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_AINPUT, parameter_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-#endif /* __D_ITC503_STATUS_H__ */
+#endif /* __D_ITC503_AINPUT_H__ */
 

@@ -43,6 +43,12 @@ typedef struct {
 	unsigned long itc503_flags;
 
 	long maximum_retries;
+
+	/* The 'label' below is used in messages to the user.  Currently,
+	 * it either has the value 'ITC503' or 'Cryojet'.
+	 */
+
+	char label[10];
 } MX_ITC503;
 
 #define MXI_ITC503_STANDARD_FIELDS \

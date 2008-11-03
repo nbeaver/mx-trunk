@@ -238,8 +238,9 @@ extern "C" {
 #define MXI_GEN_SPELLMAN_DF3		451
 #define MXI_GEN_BKPRECISION_912X	452
 #define MXI_GEN_ISOBUS			453
-#define MXI_GEN_ITC503			454
-#define MXI_GEN_ILM			455
+#define MXI_GEN_ILM			454
+#define MXI_GEN_ITC503			455
+#define MXI_GEN_CRYOJET			456
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -307,8 +308,8 @@ extern "C" {
 #define MXT_AIN_BLUICE_DHS_ION_CHAMBER	10037
 #define MXT_AIN_SPELLMAN_DF3		10038
 #define MXT_AIN_BKPRECISION_912X	10039
-#define MXT_AIN_CRYOJET			10040
-#define MXT_AIN_ILM			10041
+#define MXT_AIN_ILM			10040
+#define MXT_AIN_CRYOJET			10041
 
 /* --- Analog input subclasses -- */
 
@@ -381,8 +382,9 @@ extern "C" {
 #define MXT_DIN_EPIX_XCLIB		30028
 #define MXT_DIN_SPELLMAN_DF3		30029
 #define MXT_DIN_BKPRECISION_912X	30030
-#define MXT_DIN_CRYOJET			30031
-#define MXT_DIN_ILM_STATUS		30032
+#define MXT_DIN_ILM			30031
+#define MXT_DIN_ITC503			30032
+#define MXT_DIN_CRYOJET			30033
 
 /* --- Digital output types --- */
 
@@ -422,6 +424,8 @@ extern "C" {
 #define MXT_DOU_SPELLMAN_DF3		40033
 #define MXT_DOU_BKPRECISION_912X	40034
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
+#define MXT_DOU_ITC503			40036
+#define MXT_DOU_CRYOJET			40036
 
 /* --- Motor subclasses --- */
 
@@ -483,6 +487,7 @@ extern "C" {
 #define MXT_MTR_BLUICE_DHS		50050
 #define MXT_MTR_PTZ			50051
 #define MXT_MTR_SRC_MONO		50052
+#define MXT_MTR_CRYOJET			50053
 
    /* Pseudomotors. */
 
