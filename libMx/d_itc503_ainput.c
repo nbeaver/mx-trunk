@@ -39,7 +39,7 @@ MX_RECORD_FUNCTION_LIST mxd_itc503_ainput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	mxd_itc503_ainput_open,
 	NULL,
 	NULL,
 	mxd_itc503_ainput_resynchronize
@@ -111,12 +111,18 @@ mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name );
 	}
 
-	if ( itc503_record->mx_type != MXI_GEN_ITC503 ) {
+	switch( itc503_record->mx_type ) {
+	case MXI_GEN_ITC503:
+	case MXI_GEN_CRYOJET:
+		break;
+	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"itc503_record '%s' for ITC503 control record '%s' "
-		"is not an 'itc503' record.  Instead, it is of type '%s'.",
+		"is not an 'itc503' or 'cryojet' record.  Instead, "
+		"it is of type '%s'.",
 			itc503_record->name, ainput->record->name,
 			mx_get_driver_name( itc503_record ) );
+		break;
 	}
 
 	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
@@ -138,8 +144,9 @@ mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 
 		if ( isobus_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The isobus_record pointer for ITC503 "
+			"The isobus_record pointer for %s "
 			"controller record '%s' is NULL.",
+				itc503_ptr->label,
 				itc503_record->name );
 		}
 
@@ -200,6 +207,85 @@ mxd_itc503_ainput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_itc503_ainput_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_itc503_ainput_open()";
+
+	MX_ANALOG_INPUT *ainput;
+	MX_ITC503_AINPUT *itc503_ainput = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ainput = record->record_class_struct;
+
+	mx_status = mxd_itc503_ainput_get_pointers( ainput,
+				&itc503_ainput, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Check to see if the requested parameter type is supported
+	 * for this device.
+	 */
+
+	switch( record->mx_type ) {
+	case MXT_AIN_ITC503:
+		if ( (itc503_ainput->parameter_type < 0)
+		  || (itc503_ainput->parameter_type > 13) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested parameter type %ld for ITC503 "
+			"analog input record '%s' is not valid.  "
+			"The allowed values are from 1 to 13.",
+				itc503_ainput->parameter_type,
+				record->name );
+		}
+		break;
+
+	case MXT_AIN_CRYOJET:
+		switch( itc503_ainput->parameter_type ) {
+		case 0:
+		case 1:
+
+		case 4:
+		case 5:
+		case 6:
+
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+
+		case 18:
+		case 19:
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested parameter type %ld for Cryojet "
+			"analog input record '%s' is not valid.  "
+			"The allowed values are 0, 1, 4, 5, 6, 8, 9, "
+			"10, 11, 18, and 19.",
+				itc503_ainput->parameter_type,
+				record->name );
+			break;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Record '%s' is not supported by this driver.",
+			record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_itc503_ainput_resynchronize( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_itc503_ainput_resynchronize()";
@@ -250,13 +336,15 @@ mxd_itc503_ainput_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	if ( ( itc503_ainput->parameter_type < 0 )
-	  || ( itc503_ainput->parameter_type > 13 ) )
+	  || ( itc503_ainput->parameter_type > 19 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal parameter type %ld requested for ITC503 status record '%s'.  "
-	"Allowed parameter types are from 0 to 13.  Read the description of "
+	"Illegal parameter type %ld requested for %s analog input record '%s'."
+	"  Allowed parameter types are from 0 to 19.  Read the description of "
 	"the 'R' command in the ITC503 manual for more information.",
-			itc503_ainput->parameter_type, ainput->record->name );
+			itc503_ainput->parameter_type,
+			itc503->label,
+			ainput->record->name );
 	}
 
 	/* The requested parameter type is used directly to construct
@@ -281,9 +369,9 @@ mxd_itc503_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Could not parse the response by ITC503 controller '%s' to "
+		"Could not parse the response by %s controller '%s' to "
 		"the READ command '%s'.  Response = '%s'",
-			itc503->record->name, command, response );
+			itc503->label, itc503->record->name, command, response);
 	}
 
 	ainput->raw_value.double_value = double_value;

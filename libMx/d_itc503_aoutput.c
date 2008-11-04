@@ -112,12 +112,18 @@ mxd_itc503_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			aoutput->record->name );
 	}
 
-	if ( itc503_record->mx_type != MXI_GEN_ITC503 ) {
+	switch( itc503_record->mx_type ) {
+	case MXI_GEN_ITC503:
+	case MXI_GEN_CRYOJET:
+		break;
+	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"itc503_record '%s' for ITC503 control record '%s' "
-		"is not an 'itc503' record.  Instead, it is of type '%s'.",
+		"is not an 'itc503' or a 'cryojet' record.  Instead, "
+		"it is of type '%s'.",
 			itc503_record->name, aoutput->record->name,
 			mx_get_driver_name( itc503_record ) );
+		break;
 	}
 
 	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
@@ -139,8 +145,9 @@ mxd_itc503_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 
 		if ( isobus_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The isobus_record pointer for ITC503 "
+			"The isobus_record pointer for %s "
 			"controller record '%s' is NULL.",
+				itc503_ptr->label,
 				itc503_record->name );
 		}
 
@@ -311,9 +318,76 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 		}
 		break;
 
-	case 'G':	/* Gas flow */
+	case 'G':	/* Gas flow - only for ITC503 */
+
+		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'G' command.  Only the ITC503 "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
 
 		strlcpy( command, "R7", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
+	case 'J':	/* Shield flow - only for Cryojet */
+
+		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'J' command.  Only the Cryojet "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
+
+		strlcpy( command, "R18", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
+	case 'K':	/* Sample flow - only for Cryojet */
+
+		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'K' command.  Only the Cryojet "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
+
+		strlcpy( command, "R19", sizeof(command) );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -353,15 +427,17 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	"Unsupported ITC503 control parameter type '%c' for record '%s'.",
-			itc503_aoutput->parameter_type, aoutput->record->name );
+		"Unsupported %s control parameter type '%c' for record '%s'.",
+			itc503->label,
+			itc503_aoutput->parameter_type,
+			aoutput->record->name );
 	}
 
 	if ( parse_failure ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Could not parse the response by ITC503 controller '%s' to "
+		"Could not parse the response by %s controller '%s' to "
 		"the command '%s'.  Response = '%s'",
-			itc503->record->name, command, response );
+			itc503->label, itc503->record->name, command, response);
 	}
 
 	aoutput->raw_value.double_value = double_value;
@@ -442,7 +518,16 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 					ITC503_AOUTPUT_DEBUG );
 		break;
 
-	case 'G':	/* Gas flow command */
+	case 'G':	/* Gas flow command - only for ITC503 */
+
+		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'G' command.  Only the ITC503 "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
 
 		parameter_value =
 			mx_round( 10.0 * aoutput->raw_value.double_value );
@@ -465,7 +550,73 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 					itc503->maximum_retries,
 					ITC503_AOUTPUT_DEBUG );
 		break;
+
+	case 'J':	/* Shield flow - only for Cryojet */
 		
+		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'K' command.  Only the Cryojet "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
+
+		parameter_value =
+			mx_round( 10.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'J' shield flow control value passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 99.9.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "J%03ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
+	case 'K':	/* Sample flow - only for Cryojet */
+		
+		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The %s controller used by record '%s' is not "
+			"supported for the 'K' command.  Only the Cryojet "
+			"is supported for that command.",
+				itc503->label,
+				itc503->record->name );
+		}
+
+		parameter_value =
+			mx_round( 10.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'K' sample flow control value passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 99.9.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "K%03ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
 	case 'O':	/* Heater output command */
 
 		parameter_value =
@@ -492,8 +643,10 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	"Unsupported ITC503 control parameter type '%c' for record '%s'.",
-			itc503_aoutput->parameter_type, aoutput->record->name );
+		"Unsupported %s control parameter type '%c' for record '%s'.",
+			itc503->label,
+			itc503_aoutput->parameter_type,
+			aoutput->record->name );
 	}
 	return mx_status;
 }

@@ -220,13 +220,13 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( (ilm_ainput->variable_number < 1)
-	  || (ilm_ainput->variable_number > 13) )
+	if ( (ilm_ainput->parameter_type < 1)
+	  || (ilm_ainput->parameter_type > 13) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal variable number %ld specified for ILM ainput "
+		"Illegal parameter number %ld specified for ILM ainput "
 		"record '%s'.  The allowed values are from 1 to 13.",
-			ilm_ainput->variable_number,
+			ilm_ainput->parameter_type,
 			ilm_ainput->record->name );
 	}
 
@@ -240,7 +240,7 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( ilm_ainput->variable_number ) {
+	switch( ilm_ainput->parameter_type ) {
 	case 1:
 	case 6:
 	case 11:
@@ -312,7 +312,7 @@ mxd_ilm_ainput_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-			"R%ld", ilm_ainput->variable_number );
+			"R%ld", ilm_ainput->parameter_type );
 
 	mx_status = mxi_isobus_command( isobus, ilm->isobus_address,
 					command, response, sizeof(response),

@@ -22,6 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "i_isobus.h"
 #include "i_itc503.h"
 
@@ -119,6 +120,23 @@ mxi_itc503_open( MX_RECORD *record )
 			itc503->isobus_record->name );
 	}
 
+	switch( record->mx_type ) {
+	case MXI_GEN_ITC503:
+		strlcpy( itc503->label, "ITC503", sizeof(itc503->label) );
+		break;
+
+	case MXI_GEN_CRYOJET:
+		strlcpy( itc503->label, "Cryojet", sizeof(itc503->label) );
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' is of MX type %lu, which is not supported "
+		"by this driver.",
+			record->name, record->mx_type );
+		break;
+	}
+
 	/* Tell the ITC503 to terminate responses only with a <CR> character. */
 
 	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
@@ -145,9 +163,9 @@ mxi_itc503_open( MX_RECORD *record )
 
 	if ( strncmp( response, "JET", 3 ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"ITC503 controller '%s' did not return the expected "
+		"%s controller '%s' did not return the expected "
 		"version string in its response to the V command.  "
-		"Response = '%s'", record->name, response );
+		"Response = '%s'", itc503->label, record->name, response );
 	}
 
 	/* Send a 'Cn' control command.  See the header file

@@ -18,11 +18,27 @@
 #ifndef __D_ILM_AINPUT_H__
 #define __D_ILM_AINPUT_H__
 
+/* The allowed values for 'parameter_type' are:
+ *
+ *  1 - Channel 1 level
+ *  2 - Channel 2 level
+ *  3 - Channel 3 level
+ *
+ *  6 - Channel 6 wire current
+ *  7 - Channel 7 wire current
+ *
+ * 10 - Needle valve position
+ * 11 - Channel 1 input frequency / 40
+ * 12 - Channel 2 input frequency / 40
+ * 13 - Channel 3 input frequency / 40
+ *
+ */
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *ilm_record;
-	long variable_number;
+	long parameter_type;
 } MX_ILM_AINPUT;
 
 #define MXD_ILM_AINPUT_STANDARD_FIELDS \
@@ -30,8 +46,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, ilm_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "variable_number", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, variable_number), \
+  {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ILM_AINPUT, parameter_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_ilm_ainput_create_record_structures(

@@ -25,8 +25,9 @@ typedef struct {
 	long parameter_type;
 } MX_ITC503_AINPUT;
 
-/* The value of 'parameter_type' is used to construct an ITC503 'R' command.
- * Thus, the values of the parameters are as listed in the Oxford manual:
+/* The value of 'parameter_type' is used to construct an Oxford 'R' command.
+ *
+ * For the ITC503, the available parameters are:
  *
  *  0 - Set temperature
  *  1 - Sensor 1 temperature
@@ -43,12 +44,29 @@ typedef struct {
  * 12 - Channel 2 freq/4
  * 13 - Channel 3 freq/4
  *
+ * For the Cryojet, the available parameters are:
+ *
+ *  0 - Set temperature
+ *  1 - Sensor temperature
+ *
+ *  4 - Temperature error
+ *  5 - Heater O/P (as % of current limit)
+ *  6 - Heater O/P ( as Volts, approx.)
+ *
+ *  8 - Proportional band
+ *  9 - Integral action time
+ * 10 - Derivative action time
+ * 11 - Channel 1 freq/4
+ *
+ * 18 - Shield flow (litres/min)
+ * 19 - Sample flow (litres/min)
  */
 
 /* Define all of the interface functions. */
 
 MX_API mx_status_type mxd_itc503_ainput_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_itc503_ainput_open( MX_RECORD *record );
 MX_API mx_status_type mxd_itc503_ainput_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_itc503_ainput_read( MX_ANALOG_INPUT *ainput );

@@ -33,6 +33,11 @@ typedef struct {
  * 'G' - Set gas flow ( in manual only )
  * 'O' - Set heater output volts ( in manual only )
  *
+ * The Cryojet has the following additional parameters:
+ *
+ * 'J' - Set shield flow
+ * 'K' - Set sample flow
+ *
  * There are several other ITC503 control commands, but only the ones likely
  * to be used in routine operation are supported.
  *
