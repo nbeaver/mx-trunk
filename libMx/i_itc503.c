@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_ITC503_DEBUG	TRUE
+#define MXI_ITC503_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

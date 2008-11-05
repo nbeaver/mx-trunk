@@ -87,7 +87,7 @@ mxi_isobus_open( MX_RECORD *record )
 
 	MX_ISOBUS *isobus;
 	MX_RECORD *interface_record;
-	unsigned long flags, read_terminator;
+	unsigned long isobus_flags, read_terminator;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -102,8 +102,11 @@ mxi_isobus_open( MX_RECORD *record )
 		"MX_ISOBUS pointer for record '%s' is NULL.", record->name);
 	}
 
+	isobus_flags = isobus->isobus_flags;
+
 #if MXI_ISOBUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+	MX_DEBUG(-2,("%s invoked for record '%s', isobus_flags = %#lx.",
+		fname, record->name, isobus_flags ));
 #endif
 
 	interface_record = isobus->isobus_interface.record;
@@ -112,9 +115,7 @@ mxi_isobus_open( MX_RECORD *record )
 	case MXI_RS232:
 		/* Verify that the RS-232 port has the right settings. */
 
-		flags = isobus->isobus_flags;
-
-		if ( flags & MXF_ISOBUS_READ_TERMINATOR_IS_LINEFEED ) {
+		if ( isobus_flags & MXF_ISOBUS_READ_TERMINATOR_IS_LINEFEED ) {
 			read_terminator = MX_LF;
 		} else {
 			read_terminator = MX_CR;

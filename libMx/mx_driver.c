@@ -3607,6 +3607,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_itc503_aoutput_num_record_fields,
 				&mxd_itc503_aoutput_rfield_def_ptr},
 
+{"cryojet_doutput", MXT_DOU_CRYOJET,  MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_itc503_doutput_record_function_list,
+				NULL,
+			    &mxd_itc503_doutput_digital_output_function_list,
+				&mxd_itc503_doutput_num_record_fields,
+				&mxd_itc503_doutput_rfield_def_ptr},
+
 {"cryojet_motor",   MXT_MTR_CRYOJET,   MXC_MOTOR,         MXR_DEVICE,
 				&mxd_itc503_motor_record_function_list,
 				NULL,

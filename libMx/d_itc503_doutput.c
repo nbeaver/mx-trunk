@@ -18,7 +18,7 @@
  *
  */
 
-#define ITC503_DOUTPUT_DEBUG	TRUE
+#define ITC503_DOUTPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -298,7 +298,7 @@ mxd_itc503_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 			return mx_status;
 
 		if ( ( response[0] != 'X' )
-		  || ( response[2] != 'C' ) )
+		  || ( response[4] != 'C' ) )
 		{
 			parse_failure = TRUE;
 		} else {

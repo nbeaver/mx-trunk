@@ -17,9 +17,10 @@
  *
  */
 
-#define MXD_ILM_STATUS_DEBUG	TRUE
+#define MXD_ILM_STATUS_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -245,6 +246,11 @@ mxd_ilm_status_open( MX_RECORD *record )
 	channel_usage = mx_hex_char_to_unsigned_long(
 				response[ilm_status->channel] );
 
+#if MXD_ILM_STATUS_DEBUG
+	MX_DEBUG(-2,("%s: channel %ld, channel_usage = %d",
+		fname, ilm_status->channel, channel_usage));
+#endif
+
 	switch( channel_usage ) {
 	case 1:
 	case 2:
@@ -302,7 +308,7 @@ mxd_ilm_status_read( MX_DIGITAL_INPUT *dinput )
 	num_items = sscanf( response, "X%*3cS%2lx%2lx%2lxR%2lx",
 		&status[0], &status[1], &status[2], &status[3] );
 
-	if ( num_items != 1 ) {
+	if ( num_items != 4 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Unrecognizable response '%s' was returned for ILM status "
 		"channel '%s' from ILM controller '%s'.",

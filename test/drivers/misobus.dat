@@ -1,0 +1,18 @@
+rs232_1 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0d -1 0x0 localhost 5555 0x0
+isobus1 interface generic isobus "" "" rs232_1 0x3
+#
+ilm1          interface generic ilm "" "" isobus1 1 0x0 5
+ilm1_level_1  device analog_input ilm_ainput "" "" 0 1 0 "%" 0x0 0 "" ilm1 1
+ilm1_status_1 device digital_input ilm_status "" "" 0 ilm1 1
+#
+cj1          interface generic cryojet "" "" isobus1 2 0x0 5
+cj1_get_tsp  device analog_input cryojet_ainput "" "" 0 1 0   K   0x0 0 "" cj1 0
+cj1_get_temp device analog_input cryojet_ainput "" "" 0 1 0   K   0x0 0 "" cj1 1
+cj1_get_sf   device analog_input cryojet_ainput "" "" 0 1 0 l/min 0x0 0 "" cj1 18
+cj1_get_cf   device analog_input cryojet_ainput "" "" 0 1 0 l/min 0x0 0 "" cj1 19
+cj1_set_tsp  device analog_output cryojet_aoutput "" "" 0 1 0   K   0x0 cj1 T
+cj1_set_sf   device analog_output cryojet_aoutput "" "" 0 1 0 l/min 0x0 cj1 J
+cj1_set_cf   device analog_output cryojet_aoutput "" "" 0 1 0 l/min 0x0 cj1 K
+cj1_fix_temp device digital_output cryojet_doutput "" "" 0 cj1 A
+cj1_loc_rem  device digital_output cryojet_doutput "" "" 0 cj1 C
+cj1_motor    device motor cryojet_motor "" "" 0 0 0 320 0 -1 -1 1 0 K cj1 0.5

@@ -18,7 +18,7 @@
  *
  */
 
-#define ITC503_AINPUT_DEBUG	TRUE
+#define ITC503_AINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

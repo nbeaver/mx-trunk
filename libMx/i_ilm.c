@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_ILM_DEBUG	TRUE
+#define MXI_ILM_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

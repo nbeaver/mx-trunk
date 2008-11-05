@@ -18,7 +18,7 @@
  *
  */
 
-#define ITC503_AOUTPUT_DEBUG	TRUE
+#define ITC503_AOUTPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -307,7 +307,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 			return mx_status;
 
 		if ( ( response[0] != 'X' )
-		  || ( response[2] != 'C' ) )
+		  || ( response[4] != 'C' ) )
 		{
 			parse_failure = TRUE;
 		} else {
@@ -405,9 +405,29 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 		}
 		break;
 
-	case 'O':	/* Heater output volts */
+	case 'O':	/* Heater output (volts) */
 
 		strlcpy( command, "R5", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
+	case 'T':	/* Temperature set point (kelvin) */
+
+		strlcpy( command, "R0", sizeof(command) );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -640,7 +660,31 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 					itc503->maximum_retries,
 					ITC503_AOUTPUT_DEBUG );
 		break;
+
+	case 'T':	/* Temperature setpoint */
 		
+		parameter_value =
+			mx_round( 100.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 99999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'T' temperature setpoint value passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 999.99.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "T%05ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported %s control parameter type '%c' for record '%s'.",

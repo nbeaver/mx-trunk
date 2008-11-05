@@ -15,7 +15,7 @@
  *
  */
 
-#define ITC503_MOTOR_DEBUG	TRUE
+#define ITC503_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,12 +124,17 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 			motor->record->name );
 	}
 
-	if ( itc503_record->mx_type != MXI_GEN_ITC503 ) {
+	switch( itc503_record->mx_type ) {
+	case MXI_GEN_ITC503:
+	case MXI_GEN_CRYOJET:
+		break;
+	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"itc503_record '%s' for ITC503 control record '%s' "
 		"is not an 'itc503' record.  Instead, it is of type '%s'.",
 			itc503_record->name, motor->record->name,
 			mx_get_driver_name( itc503_record ) );
+		break;
 	}
 
 	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
@@ -300,6 +305,7 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
+	unsigned long raw_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_itc503_motor_get_pointers( motor,
@@ -343,8 +349,9 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	snprintf( command, sizeof(command),
-		"T%f", motor->raw_destination.analog );
+	raw_destination = mx_round( 100.0 * motor->raw_destination.analog );
+
+	snprintf( command, sizeof(command), "T%05lu", raw_destination );
 
 	mx_status = mxi_isobus_command( isobus, itc503->isobus_address,
 					command, response, sizeof(response),

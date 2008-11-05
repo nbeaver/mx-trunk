@@ -15,9 +15,10 @@
  *
  */
 
-#define MXD_ILM_SAMPLE_RATE_DEBUG	TRUE
+#define MXD_ILM_SAMPLE_RATE_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_driver.h"

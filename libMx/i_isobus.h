@@ -36,7 +36,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISOBUS, isobus_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "isobus_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "isobus_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISOBUS, isobus_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
