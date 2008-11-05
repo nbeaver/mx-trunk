@@ -398,7 +398,7 @@ mxd_e662_move_absolute( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_e662_move_absolute()";
 
-	MX_E662 *e662 = NULL;;
+	MX_E662 *e662 = NULL;
 	char command[20];
 	mx_status_type mx_status;
 
