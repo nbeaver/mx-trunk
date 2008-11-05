@@ -161,11 +161,19 @@ mxi_itc503_open( MX_RECORD *record )
 		fname, record->name, response));
 #endif
 
-	if ( strncmp( response, "JET", 3 ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"%s controller '%s' did not return the expected "
-		"version string in its response to the V command.  "
-		"Response = '%s'", itc503->label, record->name, response );
+	switch( itc503->record->mx_type ) {
+	case MXI_GEN_ITC503:
+		if ( strncmp( response, "JET", 3 ) != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"%s controller '%s' did not return the expected "
+			"version string in its response to the V command.  "
+			"Response = '%s'",
+				itc503->label, record->name, response );
+		}
+		break;
+
+	case MXI_GEN_CRYOJET:
+		break;
 	}
 
 	/* Send a 'Cn' control command.  See the header file

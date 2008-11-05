@@ -21,17 +21,23 @@
 
 /* Values for 'isobus_flags' */
 
-#define MXF_ISOBUS_DEBUG	0x1
+#define MXF_ISOBUS_DEBUG			0x1
+#define MXF_ISOBUS_READ_TERMINATOR_IS_LINEFEED	0x2
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_INTERFACE isobus_interface;
+	unsigned long isobus_flags;
 } MX_ISOBUS;
 
 #define MXI_ISOBUS_STANDARD_FIELDS \
   {-1, -1, "isobus_interface", MXFT_INTERFACE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISOBUS, isobus_interface), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "isobus_flags", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ISOBUS, isobus_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 MX_API mx_status_type mxi_isobus_create_record_structures( MX_RECORD *record );

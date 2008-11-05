@@ -87,6 +87,7 @@ mxi_isobus_open( MX_RECORD *record )
 
 	MX_ISOBUS *isobus;
 	MX_RECORD *interface_record;
+	unsigned long flags, read_terminator;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -111,8 +112,16 @@ mxi_isobus_open( MX_RECORD *record )
 	case MXI_RS232:
 		/* Verify that the RS-232 port has the right settings. */
 
+		flags = isobus->isobus_flags;
+
+		if ( flags & MXF_ISOBUS_READ_TERMINATOR_IS_LINEFEED ) {
+			read_terminator = MX_LF;
+		} else {
+			read_terminator = MX_CR;
+		}
+
 		mx_status = mx_rs232_verify_configuration( interface_record,
-				9600, 8, 'N', 1, 'N', 0x0d, 0x0d );
+				9600, 8, 'N', 1, 'N', read_terminator, 0x0d );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

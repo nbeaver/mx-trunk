@@ -245,7 +245,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 	MX_ITC503_AOUTPUT *itc503_aoutput = NULL;
 	MX_ITC503 *itc503 = NULL;
 	MX_ISOBUS *isobus = NULL;
-	char command[80];
+	char command[10];
 	char response[80];
 	char buffer[5];
 	char parameter_type;
@@ -311,7 +311,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 		{
 			parse_failure = TRUE;
 		} else {
-			buffer[0] = response[3];
+			buffer[0] = response[5];
 			buffer[1] = '\0';
 
 			double_value = atof( buffer );

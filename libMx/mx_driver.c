@@ -397,6 +397,7 @@
 #include "d_itc503_motor.h"
 #include "d_itc503_ainput.h"
 #include "d_itc503_aoutput.h"
+#include "d_itc503_doutput.h"
 
 #include "d_am9513_motor.h"
 #include "d_am9513_scaler.h"
@@ -3573,6 +3574,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_itc503_aoutput_analog_output_function_list,
 				&mxd_itc503_aoutput_num_record_fields,
 				&mxd_itc503_aoutput_rfield_def_ptr},
+
+{"itc503_doutput", MXT_DOU_ITC503,    MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_itc503_doutput_record_function_list,
+				NULL,
+			    &mxd_itc503_doutput_digital_output_function_list,
+				&mxd_itc503_doutput_num_record_fields,
+				&mxd_itc503_doutput_rfield_def_ptr},
 
 {"itc503_motor",   MXT_MTR_ITC503,    MXC_MOTOR,         MXR_DEVICE,
 				&mxd_itc503_motor_record_function_list,
