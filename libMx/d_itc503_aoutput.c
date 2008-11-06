@@ -318,6 +318,26 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 		}
 		break;
 
+	case 'D':	/* Derivative action time */
+
+		strlcpy( command, "R10", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
 	case 'G':	/* Gas flow - only for ITC503 */
 
 		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
@@ -330,6 +350,26 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 		}
 
 		strlcpy( command, "R7", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
+	case 'I':	/* Integral action time */
+
+		strlcpy( command, "R9", sizeof(command) );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -408,6 +448,26 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 	case 'O':	/* Heater output (volts) */
 
 		strlcpy( command, "R5", sizeof(command) );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "R%lg", &double_value );
+
+		if ( num_items != 1 ) {
+			parse_failure = TRUE;
+		}
+		break;
+
+	case 'P':	/* Proportional band */
+
+		strlcpy( command, "R8", sizeof(command) );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -538,6 +598,30 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 					ITC503_AOUTPUT_DEBUG );
 		break;
 
+	case 'D':	/* Derivative action time */
+
+		parameter_value =
+			mx_round( 10.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 9999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'D' derivative action time passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 999.9.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "D%04ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
 	case 'G':	/* Gas flow command - only for ITC503 */
 
 		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
@@ -563,6 +647,30 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		}
 
 		snprintf( command, sizeof(command), "G%03ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
+	case 'I':	/* Integral action time */
+
+		parameter_value =
+			mx_round( 10.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 9999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'I' integral action time passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 999.9.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "I%04ld", parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -653,6 +761,30 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		}
 
 		snprintf( command, sizeof(command), "O%03ld", parameter_value );
+
+		mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		break;
+
+	case 'P':	/* Proportional band */
+
+		parameter_value =
+			mx_round( 10.0 * aoutput->raw_value.double_value );
+
+		if ( ( parameter_value < 0 )
+		  || ( parameter_value > 9999 ) )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The 'P' proportional band control value passed (%g) for record '%s' "
+	"is not in the allowed range of values from 0.0 to 999.9.",
+				aoutput->raw_value.double_value,
+				aoutput->record->name );
+		}
+
+		snprintf( command, sizeof(command), "P%04ld", parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
