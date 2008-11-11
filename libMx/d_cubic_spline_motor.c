@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,10 @@ MX_RECORD_FUNCTION_LIST mxd_cubic_spline_motor_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_cubic_spline_motor_open
+	mxd_cubic_spline_motor_open,
+	NULL,
+	NULL,
+	mxd_cubic_spline_motor_resynchronize
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_cubic_spline_motor_motor_function_list = {
@@ -362,6 +365,68 @@ mxd_cubic_spline_motor_open( MX_RECORD *record )
 	}
 
 	/* Initialize the cubic spline using the current X and Y arrays. */
+
+	mx_status = mx_create_clamped_cubic_spline( x_num_points,
+						x_value_ptr, y_value_ptr,
+						0.0, 0.0,
+						&(cubic_spline_motor->spline) );
+
+	return mx_status;
+}
+
+/* mxd_cubic_spline_motor_resynchronize() can be used at run time
+ * to update the cubic spline with new X and Y values.
+ */
+
+MX_EXPORT mx_status_type
+mxd_cubic_spline_motor_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_cubic_spline_motor_resynchronize()";
+
+	MX_MOTOR *motor;
+	MX_CUBIC_SPLINE_MOTOR *cubic_spline_motor;
+	MX_RECORD *dependent_motor_record;
+	MX_RECORD_FIELD *x_value_field;
+	MX_RECORD_FIELD *y_value_field;
+	long x_num_points;
+	double *x_value_ptr, *y_value_ptr;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_cubic_spline_motor_get_pointers( motor,
+					&cubic_spline_motor,
+					&dependent_motor_record, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The necessary pointers were verified as valid in the open routine. */
+
+	x_value_field = mx_get_record_field(
+				cubic_spline_motor->x_array_record, "value" );
+
+	x_num_points = x_value_field->dimension[0];
+
+	x_value_ptr = mx_get_field_value_pointer( x_value_field );
+
+	/*---*/
+
+	y_value_field = mx_get_record_field(
+				cubic_spline_motor->y_array_record, "value" );
+
+	y_value_ptr = mx_get_field_value_pointer( y_value_field );
+
+	/* We delete the old cubic spline. */
+
+	mx_delete_cubic_spline( cubic_spline_motor->spline );
+
+	/* Then, we initialize the new cubic spline. */
 
 	mx_status = mx_create_clamped_cubic_spline( x_num_points,
 						x_value_ptr, y_value_ptr,

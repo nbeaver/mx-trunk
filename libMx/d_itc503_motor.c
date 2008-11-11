@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_motor.c 
  *
- * Purpose: MX motor driver to control Oxford Instruments ITC503
- *          temperature controllers as if they were motors.
+ * Purpose: MX motor driver to control Oxford Instruments ITC503 and
+ *          Cryojet temperature controllers as if they were motors.
  *
  * Author:  William Lavender
  *

@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_ainput.c
  *
- * Purpose: MX analog input driver for the Oxford Instruments ITC503
- *          temperature controller.
+ * Purpose: MX analog input driver for Oxford Instruments ITC503 and
+ *          Cryojet temperature controllers.
  *
  *          Please note that this driver only reads status values.  It does
  *          not attempt to change the temperature settings.

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,7 @@ MX_API mx_status_type mxd_cubic_spline_motor_finish_record_initialization(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_cubic_spline_motor_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_cubic_spline_motor_open( MX_RECORD *record );
+MX_API mx_status_type mxd_cubic_spline_motor_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_cubic_spline_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_cubic_spline_motor_soft_abort( MX_MOTOR *motor );

@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_aoutput.h
  *
- * Purpose: Header file for setting control parameters in an
- *          Oxford Instruments ITC503 temperature controller.
+ * Purpose: Header file for setting control parameters in Oxford Instruments
+ *          ITC503 and Cryojet temperature controllers.
  *
  * Author:  William Lavender
  *
@@ -30,8 +30,15 @@ typedef struct {
  *
  * 'A' - Set auto/manual for heater and gas
  * 'C' - Set local/remote/lock status
- * 'G' - Set gas flow ( in manual only )
+ * 'D' - Set derivative action time
+ * 'I' - Set integral action time
  * 'O' - Set heater output volts ( in manual only )
+ * 'P' - Set proportional band
+ * 'T' - Set temperature setpoint
+ *
+ * The Cryojet has the following additional parameter:
+ *
+ * 'G' - Set gas flow ( in manual only )
  *
  * The Cryojet has the following additional parameters:
  *

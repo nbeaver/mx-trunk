@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_ainput.h
  *
- * Purpose: Header file for reading status values from an Oxford Instruments
- *          ITC503 temperature controller.
+ * Purpose: Header file for reading status values from Oxford Instruments
+ *          ITC503 and Cryojet temperature controllers.
  *
  * Author:  William Lavender
  *

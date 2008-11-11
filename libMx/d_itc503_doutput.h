@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_doutput.h
  *
- * Purpose: Header file for setting control parameters in an
- *          Oxford Instruments ITC503 temperature controller.
+ * Purpose: Header file for setting control parameters in Oxford Instruments
+ *          ITC503 and Cryojet temperature controllers.
  *
  * Author:  William Lavender
  *

@@ -1,7 +1,8 @@
 /*
  * Name:    i_itc503.c
  *
- * Purpose: MX driver for Oxford Instruments ITC503 temperature controllers.
+ * Purpose: MX driver for Oxford Instruments ITC503 and Cryojet
+ *          temperature controllers.
  *          
  *
  * Author:  William Lavender

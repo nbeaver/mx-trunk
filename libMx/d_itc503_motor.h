@@ -1,8 +1,8 @@
 /*
  * Name:    d_itc503_motor.h
  *
- * Purpose: Header file for MX motor driver to control an Oxford Instruments
- *          ITC503 temperature controller as if it were a motor.
+ * Purpose: Header file for MX motor driver to control Oxford Instruments
+ *          ITC503 and Cryojet temperature controllers as if they were motors.
  *
  * Author:  William Lavender
  *

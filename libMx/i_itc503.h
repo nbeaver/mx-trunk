@@ -1,7 +1,8 @@
 /*
  * Name:    i_itc503.h
  *
- * Purpose: Header file for Oxford Instruments ITC503 temperature controllers.
+ * Purpose: Header file for Oxford Instruments ITC503 and Cryojet
+ *          temperature controllers.
  *
  * Author:  William Lavender
  *

@@ -1,11 +1,8 @@
 /*
  * Name:    d_itc503_aoutput.c
  *
- * Purpose: MX analog output driver for the Oxford Instruments ITC503
- *          temperature controller.
- *
- *          Please note that this driver only writes status values.  It does
- *          not attempt to change the temperature settings.
+ * Purpose: MX analog output driver for Oxford Instruments ITC503 and
+ *          Cryojet temperature controllers.
  *
  * Author:  William Lavender
  *
