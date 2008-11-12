@@ -274,6 +274,68 @@ mxd_ilm_sample_rate_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_ilm_sample_rate_read( MX_DIGITAL_OUTPUT *doutput )
+{
+	static const char fname[] = "mxd_ilm_sample_rate_read()";
+
+	MX_ILM_SAMPLE_RATE *ilm_sample_rate = NULL;
+	MX_ILM *ilm = NULL;
+	MX_ISOBUS *isobus = NULL;
+	char response[80];
+	int num_items;
+	unsigned long status[4];
+	unsigned long status_value;
+	mx_status_type mx_status;
+
+	mx_status = mxd_ilm_sample_rate_get_pointers( doutput,
+				&ilm_sample_rate, &ilm, &isobus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_isobus_command( isobus, ilm->isobus_address,
+					"X", response, sizeof(response),
+					ilm->maximum_retries,
+					MXD_ILM_SAMPLE_RATE_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "X%*3cS%2lx%2lx%2lxR%2lx",
+		&status[0], &status[1], &status[2], &status[3] );
+
+	if ( num_items != 4 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unrecognizable response '%s' was returned for ILM sample rate "
+		"channel '%s' from ILM controller '%s'.",
+			response, ilm_sample_rate->record->name,
+			ilm->record->name );
+	}
+
+	status_value = status[ ilm_sample_rate->channel - 1 ];
+
+#if MXD_ILM_SAMPLE_RATE_DEBUG
+	MX_DEBUG(-2,("%s: ILM channel '%s' status = %#02lx",
+		fname, ilm_sample_rate->record->name, status_value ));
+#endif
+
+	if ( status_value & 0x2 ) {
+		doutput->value = 1;	/* FAST rate */
+	} else
+	if ( status_value & 0x4 ) {
+		doutput->value = 0;	/* SLOW rate */
+	} else {
+		doutput->value = -1;
+	}
+
+#if MXD_ILM_SAMPLE_RATE_DEBUG
+	MX_DEBUG(-2,("%s: ILM channel '%s' sample rate = %ld",
+		fname, ilm_sample_rate->record->name, doutput->value));
+#endif
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_ilm_sample_rate_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	static const char fname[] = "mxd_ilm_sample_rate_write()";

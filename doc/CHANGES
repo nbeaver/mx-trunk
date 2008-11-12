@@ -1,8 +1,4 @@
-Version 1.5.0 (not yet released - changelog current as of SVN revision 874
-                with some changes after that included):
-
-        [Note to self, got to line 68061 of diff.log.  This is 60% of
-        the way done. - Nov 10, 2008]
+Version 1.5.0 (11/11/08):
 
         A major feature of this release is full functionality for the
         PCCD-170170 area detector from Aviex LLC.  The detector is designed
@@ -120,6 +116,35 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
         are sent for the field 'theta.position' for an MX server running
         on the machine 'ida' at port 9827.
 
+        The new API functions used to implement 'vcc_monitor' are
+
+            mx_remote_field_add_callback() - This asks an MX server to
+                set up a value changed callback for the specified
+                network field with a programmer supplied callback function.
+
+            mx_network_wait_for_messages() - This function waits for
+                messages to arrive from any connected MX server until
+                the specified timeout expires.  Any callback messages
+                sent by the remote server will trigger the matching
+                local callback function when they arrive.
+
+        Other useful new functions include
+
+            mx_remote_field_delete_callback() - This deletes a callback
+                created by mx_remote_field_add_callback().
+
+            mx_network_wait_for_messages_from_server() - This is just
+                like mx_network_wait_for_messages() except for the fact
+                that it only looks for messages from a particular MX
+                server.
+
+            mx_network_wait_for_message_id() - This function waits for
+                messages from the specified MX server until either a
+                message with the specifed message id shows up, or the
+                specified timeout expires.  This can be useful if you
+                are interested in waiting until a particular callback
+                message is sent.
+
             ---------------------------------------------------------
 
         MX now has a new Waveform Output class.  Initially, it is used
@@ -152,7 +177,9 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                 bluice_dhs_ion_chamber - Returns values reported by the
                         Blu-Ice DHS message 'htos_report_ion_chambers'.
 
-                cryojet_ainput -
+                cryojet_ainput - Reports internal parameter values of
+                        the Oxford Instruments Cryojet temperature
+                        controller via the 'R' command.
 
                 cryojet_aoutput - Can be used to set the values of the
                         derivative action time 'D', integral action time
@@ -161,9 +188,13 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         setpoint 'T' for an Oxford Instruments Cryojet
                         temperature controller.
 
-                ilm_ainput -
+                ilm_ainput - Reports internal parameter values of the
+                        Oxford Instruments ILM (Intelligent Level Meter)
+                        controller via the 'R' command.
 
-                itc503_ainput - replaces_itc503_status
+                itc503_ainput - Reports internal parameter values of
+                        the Oxford Instruments ITC503 temperature
+                        controller via the 'R' command.
 
                 itc503_aoutput - Can be used to set the values of the
                         derivative action time 'D', gas flow 'G',
@@ -173,8 +204,16 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         controller.  This driver replaces the old
                         'itc503_control' driver.
                 
-                spellman_df3_ain -
-                spellman_df3_aout -
+                spellman_df3_ain - Reports internal parameters of the
+                        Spellman DF3/FF3 series of high voltage power
+                        supplies for X-ray generators via the Query 'Q'
+                        command.
+
+                spellman_df3_aout - Sets internal parameters (voltage,
+                        current, power, filament current) of the 
+                        Spellman DF3/FF3 series of high voltage power
+                        supplies for X-ray generators via the Set 'S'
+                        command.
 
             Area Detector drivers:
                 bluice_dcss_area_detector - Communicates with a Blu-Ice
@@ -185,10 +224,21 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         DHS controlled area detector via the
                         detector_collect_image family of operations.
 
-                pccd_4824 -
-                pccd_16080 -
-                marccd -
-                marccd_server_socket -
+                pccd_170170 - This driver for the Aviex PCCD-170170 is
+                        now fully functional.
+
+                pccd_4824 - Driver for the Aviex PCCD-4824 area detector.
+
+                pccd_16080 - Driver for the Aviex PCCD-16080 area detector
+                        at the BioCAT sector of the Advanced Photon Source.
+
+                marccd - Acts as the remote mode server for a MarCCD 
+                        detector.  It is started from the 'Server Command'
+                        field of the Remote mode dialog box.
+
+                marccd_server_socket - Communicates with the example
+                        remote mode server 'marccd_server_socket' that
+                        is provided with MarCCD.
 
             Camera Link drivers:
                 camera_link_api - This driver dynamically loads a vendor
@@ -216,32 +266,55 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         series of high voltage power supplies.
 
             Digital I/O drivers:
-                bkprecision_912x_ain -
-                bkprecision_912x_aout -
+                bkprecision_912x_din - Reports the status from the
+                        'DIGITAL:INPUT?' command for the BK Precision 912x
+                        series of power supplies.
 
-                cryojet_doutput -
+                bkprecision_912x_dout - Sets the digital outputs of the
+                        BK Precision 912x power supply using the 
+                        'DIGITAL:OUTPUT' command.
+
+                cryojet_doutput - This driver can be used to control the
+                        auto/manual setting 'A' and the local/remote/lock
+                        setting 'C' for Oxford Instruments Cryojet
+                        temperature controllers.
 
                 epix_xclib_dinput -
                 epix_xclib_doutput - These are digital I/O drivers for
                         digital input and output ports attached to video
                         imaging boards from EPIX, Inc.
 
-                ilm_sample_rate -
+                ilm_sample_rate - This driver can be used to change the
+                        sample rate for an Oxford Instruments ILM
+                        (Intelligent Level Meter) controller.
 
                 ilm_status - This driver reports nitrogen, helium, or
                         relay status for the Oxford Instruments ILM
                         (Intelligent Level Meter) controllers.
 
-                itc503_doutput -
+                itc503_doutput - This driver can be used to control the
+                        auto/manual setting 'A' and the local/remote/lock
+                        setting 'C' for Oxford Instruments ITC503
+                        temperature controllers.
 
-                spellman_df3_din -
-                spellman_df3_dout -
+                spellman_df3_din - Reports internal parameters of the
+                        Spellman DF3/FF3 series of high voltage power
+                        supplies for X-ray generators via the Query 'Q'
+                        command.
+
+                spellman_df3_dout - Sets internal parameters (X-ray on,
+                        X-ray off, power supply reset) of the
+                        Spellman DF3/FF3 series of high voltage power
+                        supplies for X-ray generators via the Set 'S'
+                        command.
 
                 u500_status - Returns the value reported by the function
                         WAPIAerReadStatus().
 
             Interface drivers:
-                isobus -
+                isobus - This driver communicates with data acquisition
+                        and control hardware over the Oxford Instruments
+                        ISOBUS.
 
             Motor drivers:
                 bluice_dcss_motor - Controls a Blu-Ice motor via a Blu-Ice
@@ -272,9 +345,15 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         the controller via the new 'itc503' and 'isobus'
                         drivers.
 
-                polynomial_motor -
+                polynomial_motor - MX pseudomotor driver that uses a
+                        polynomial to compute the position of a dependent
+                        motor.  The most typical use of this pseudomotor
+                        is as a dependent motor in an MX 'monochromator'
+                        record.
 
-                src_mono -
+                src_mono - MX motor driver for monochromators at the
+                        Synchrotron Radiation Center (SRC) of the
+                        University of Wisconsin-Madison.
 
             Relay drivers:
                 bluice_dcss_shutter - This driver sets the position of
@@ -298,7 +377,11 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                 epix_rs232 - This driver provides access to serial ports
                         on video imaging boards from Epix, Inc.
 
-                u500_rs232 -
+                u500_rs232 - Used to upload programs to the Aerotech
+                        Unidex 500 series of motor controllers.  U500
+                        programs can send back responses to the MX driver
+                        using the custom 'MX' macro implemented in the
+                        mxi_u500_rs232_putline() function of the driver.
 
             Scan drivers:
                 wedge_scan - Runs an area detector wedge scan with support
@@ -344,14 +427,14 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                 bluice_self_string - Reads the value of a Blu-Ice string in
                         the current process.
 
-                file_double -
-                file_long -
-                file_ulong -
-                file_string -
-
             Timer drivers:
-                bluice_dcss_timer -
-                bluice_dhs_timer -
+                bluice_dcss_timer - This driver starts an ion chamber
+                        measurement by sending a 'gtos_read_ion_chambers'
+                        message to a Blu-Ice DCSS.
+
+                bluice_dhs_timer - This driver starts an ion chamber
+                        measurement by sending an 'stoh_read_ion_chambers'
+                        message to a Blu-Ice DHS.
 
             Variable drivers:
                 file_double -
@@ -360,8 +443,8 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                 file_ulong - These drivers provide read and optionally
                         write access to operating system files.  They
                         were originally developed for use with Linux
-                        /proc files, but they can be used with other
-                        things such as named pipes.
+                        /proc and /sys files, but they can be used with
+                        other things such as named pipes.
 
             Video input drivers:
                 file_vinput - This is a video input driver that reads
@@ -371,13 +454,48 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
                         for a simulated area detector.
 
             Waveform Output drivers:
-                bkprecision_912x_wvout -
+                bkprecision_912x_wvout - Generates a waveform output from
+                        the BK Precision 912x series of power supplies.
 
-                network_wvout -
+                network_wvout - Controls the output of a waveform output
+                        record in a remote MX server.
 
             ---------------------------------------------------------
 
-        [Blu-Ice info goes here]
+        Blu-Ice:
+
+            A significant amount of work has been done to expand the
+        interface between Blu-Ice and MX.  New drivers and a new server
+        have been written to let MX code play any of the following four
+        roles:
+
+            1.  MX acting as a Blu-Ice GUI client.
+
+            2.  MX acting as DCSS for one or more Blu-Ice DHS processes.
+
+            These two cases are handled by the new MX drivers listed
+            in the previous section.  The drivers that start with
+            'bluice_dcss_' are used when MX is playing role 1, while
+            the drivers that start with 'bluice_dhs_' are used when
+            MX is playing role 2.
+
+            3.  MX acting as DCSS for one or more Blu-Ice GUI clients.
+
+            4.  MX acting as a DHS that connects to a Blu-Ice DCSS.
+
+            These two cases are handled by the separately distributed
+            'mx_bluice_server' package.  You can find this package
+            on the MX web site as the file
+
+                http://mx.iit.edu/src/mx_bluice_server.tar.gz
+
+            or on the CSRRI Subversion server at
+
+                http://svn.csrri.iit.edu/mx_bluice_server
+
+        Please note that it is possible for a given MX process to play
+        more than one of the above four roles at the same time, which
+        may be useful under certain circumstances.
 
             ---------------------------------------------------------
 
@@ -560,8 +678,8 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 874
         with pointers.  Never use it in production code.
 
         Added a new digital input function called mx_digital_input_clear()
-        for use with digital inputs that latch their value.  However, this
-        is not yet used by of the MX digital input drivers.
+        for use with digital inputs that latch their value.  So far, it
+        has only been implemented for the 'epix_xclib_dinput' driver.
 
         Added a new digital output function called mx_digital_output_pulse().
         This function turns on a digital output and then, after a

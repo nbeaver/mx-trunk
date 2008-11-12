@@ -39,6 +39,7 @@ MX_API mx_status_type mxd_ilm_sample_rate_create_record_structures(
 
 MX_API mx_status_type mxd_ilm_sample_rate_open( MX_RECORD *record );
 
+MX_API mx_status_type mxd_ilm_sample_rate_read( MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_ilm_sample_rate_write( MX_DIGITAL_OUTPUT *doutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_ilm_sample_rate_record_function_list;
