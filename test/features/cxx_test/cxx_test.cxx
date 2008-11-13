@@ -29,7 +29,6 @@
 #include "mx_cfn_defaults.h"
 #include "mx_clock.h"
 #include "mx_constants.h"
-#include "mx_coprocess.h"
 #include "mx_datafile.h"
 #include "mx_dead_reckoning.h"
 #include "mx_digital_input.h"
@@ -78,6 +77,7 @@
 #include "mx_sca.h"
 #include "mx_scaler.h"
 #include "mx_scan.h"
+#include "mx_scan_area_detector.h"
 #include "mx_scan_linear.h"
 #include "mx_scan_list.h"
 #include "mx_scan_quick.h"
@@ -103,7 +103,12 @@
 #include "mx_virtual_timer.h"
 #include "mx_vme.h"
 #include "mx_vnet.h"
+#include "mx_waveform_output.h"
 #include "mx_xdr.h"
+
+#if defined(OS_UNIX)
+#  include "mx_coprocess.h"
+#endif
 
 int
 main( int argc, char *argv[] )
