@@ -144,6 +144,14 @@ mxi_ilm_open( MX_RECORD *record )
 		fname, record->name, response));
 #endif
 
+	if ( strncmp( response, "ILM", 3 ) != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The record '%s' does not appear to be an ILM controller "
+		"since its response to the V (version) command does not "
+		"start with the string ILM.  The actual response was '%s'",
+			record->name, response );
+	}
+
 	/* Send a 'Cn' control command.  See the header file
 	 * 'i_ilm.h' for a description of this command.
 	 */
