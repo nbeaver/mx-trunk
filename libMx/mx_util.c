@@ -1860,6 +1860,32 @@ strdup( const char *original )
 
 /*-------------------------------------------------------------------------*/
 
+#if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
+
+/* Visual C++ 6.0 SP 6 does not have a direct way of converting an
+ * unsigned 64 bit integer to a double.
+ */
+
+MX_EXPORT double
+mx_uint64_to_double( unsigned __int64 uint64_value )
+{
+	int64_t int64_temp;
+	double result;
+
+	int64_temp = uint64_value & 0x7FFFFFFFFFFFFFFF;
+	
+	result = (double) int64_temp;
+
+	if ( uint64_value >= 0x8000000000000000 ) {
+		result += 9223372036854775808.0;
+	}
+
+	return result;
+}
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 #if 0
 
 MX_EXPORT struct timespec

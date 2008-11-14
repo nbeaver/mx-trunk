@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001-2002, 2004-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -552,15 +552,12 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 
 #if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
 			/* For Visual C++ 6.0 SP6 */
-			{
-				int64_t  temp64;
 
-				temp64 = (int64_t)
-						*(uint64_t *) pointer_to_value;
-
-				*value = (double) temp64;
-			}
+			*value = mx_uint64_to_double(
+					*((uint64_t *) pointer_to_value) );
 #else
+			/* For everyone else. */
+
 			*value = (double) *(uint64_t *) pointer_to_value;
 #endif
 			break;

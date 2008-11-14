@@ -497,6 +497,12 @@ MX_API char *strdup( const char *s );
 #  define mx_strncasecmp  strncasecmp
 #endif
 
+/* The following function is only used by Visual C++ 6.0 SP6 and before. */
+
+#if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
+MX_API double mx_uint64_to_double( unsigned __int64 );
+#endif
+
 /* == Debugging functions. == */
 
 /* Note that in any call to MX_DEBUG(), _all_ the arguments together 

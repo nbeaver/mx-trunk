@@ -608,9 +608,24 @@ mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		case MXFT_UINT64:
 			uint64_array = array_ptr;
 			
+#if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
+			/* For Visual C++ 6.0 SP6 and before */
+
+			for ( i = 0; i < num_elements; i++ ) {
+				double double_temp;
+
+				double_temp =
+					mx_uint64_to_double( uint64_array[i] );
+
+				sum += double_temp;
+			}
+#else
+			/* For everyone else. */
+
 			for ( i = 0; i < num_elements; i++ ) {
 				sum += uint64_array[i];
 			}
+#endif
 			break;
 		default:
 			break;
