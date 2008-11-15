@@ -93,8 +93,8 @@ typedef uint64_t		uintmax_t;
 #include <machine/types.h>
 
 /*=======================================================================*/
-#elif defined(OS_IRIX) || defined(OS_HPUX) || defined(OS_VMS) \
-	|| defined(OS_TRU64) || defined(__OpenBSD__)
+#elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_HPUX) \
+	|| defined(OS_VMS) || defined(OS_TRU64) || defined(__OpenBSD__)
 
    /* Some build targets do not have <stdint.h>, but have the same
     * information available in <inttypes.h>.
