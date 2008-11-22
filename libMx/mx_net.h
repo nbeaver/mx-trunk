@@ -516,6 +516,10 @@ MX_API mx_status_type mx_network_request_data_format(
 
 MX_API mx_status_type mx_network_request_64bit_longs(MX_RECORD *server_record);
 
+MX_API char *mx_network_get_nf_label( MX_RECORD *server_record,
+				char *remote_record_field_name,
+				char *label, size_t max_label_length );
+
 MX_API mx_status_type mx_parse_network_field_id( char *network_field_id,
 		char *server_name, size_t max_server_name_length,
 		char *server_arguments, size_t max_server_arguments_length,

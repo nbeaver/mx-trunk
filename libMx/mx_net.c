@@ -512,6 +512,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	MX_CLOCK_TICK current_tick, end_tick, timeout_in_ticks;
 	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_CALLBACK *callback;
+	MX_LIST_HEAD *record_list_head;
 	mx_bool_type message_is_available, timeout_enabled;
 	mx_bool_type debug_enabled, callback_found;
 	int comparison;
@@ -530,6 +531,13 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	record_list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( record_list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer is NULL." );
 	}
 
 	if ( buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
@@ -2156,7 +2164,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	case mx_server_response(MX_NETMSG_CALLBACK):
 		fprintf( stderr,
-		"  CALLBACK from server: callback id = %#lx, value = ",
+		"  *** CALLBACK *** from server: callback id = %#lx, value = ",
 			(unsigned long) message_id );
 
 		mx_network_buffer_show_value( uint32_message,
@@ -2611,6 +2619,60 @@ mx_internal_put_array( MX_RECORD *server_record,
 
 /* ====================================================================== */
 
+MX_EXPORT char *
+mx_network_get_nf_label( MX_RECORD *server_record,
+			char *remote_record_field_name,
+			char *label, size_t max_label_length )
+{
+	MX_TCPIP_SERVER *tcpip_server;
+	MX_UNIX_SERVER *unix_server;
+
+	if ( label == NULL )
+		return NULL;
+
+	if ( remote_record_field_name == NULL ) {
+		strlcpy( label, "", max_label_length );
+
+		return label;
+	}
+
+	if ( server_record == NULL ) {
+		strlcpy( label, remote_record_field_name, max_label_length );
+
+		return label;
+	}
+
+	switch( server_record->mx_type ) {
+	case MXN_NET_TCPIP:
+		tcpip_server = server_record->record_type_struct;
+
+		snprintf( label, max_label_length,
+			"%s@%ld:%s",
+			tcpip_server->hostname,
+			tcpip_server->port,
+			remote_record_field_name );
+		break;
+	case MXN_NET_UNIX:
+		unix_server = server_record->record_type_struct;
+
+		snprintf( label, max_label_length,
+			"%s:%s",
+			unix_server->pathname,
+			remote_record_field_name );
+		break;
+	default:
+		snprintf( label, max_label_length,
+			"unknown server type %ld:%s",
+			server_record->mx_type,
+			remote_record_field_name );
+		break;
+	}
+
+	return label;
+}
+
+/* ====================================================================== */
+
 #define MXU_GET_PUT_ARRAY_ASCII_LOCATION_LENGTH \
 	MXU_HOSTNAME_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 80
 
@@ -2657,6 +2719,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
 	mx_status_type ( *token_parser )
 		(void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
@@ -2728,9 +2792,16 @@ mx_get_field_array( MX_RECORD *server_record,
 		use_network_handles = FALSE;
 	}
 
-	MX_DEBUG( 2,
-	("%s: server_record = '%s', remote_record_field_name = '%s'",
-		fname, server_record->name, remote_record_field_name));
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** GET ARRAY from '%s'",
+			mx_network_get_nf_label(
+				server_record,
+				remote_record_field_name,
+				nf_label, sizeof(nf_label) )
+			));
+	}
 
 	if ( local_field->flags & MXFF_VARARGS ) {
 		array_is_dynamically_allocated = TRUE;
@@ -3055,6 +3126,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 	long datatype, num_dimensions, *dimension_array;
@@ -3123,6 +3196,17 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	if ( server->server_supports_network_handles == FALSE ) {
 		use_network_handles = FALSE;
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** PUT ARRAY to '%s'",
+			mx_network_get_nf_label(
+				server_record,
+				remote_record_field_name,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	if ( local_field->flags & MXFF_VARARGS ) {
@@ -3521,6 +3605,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -3552,6 +3638,16 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			nf->server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( nf->server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** GET NETWORK HANDLE for '%s'",
+			mx_network_get_nf_label(
+				nf->server_record, nf->nfname,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	mx_status = mx_network_reconnect_if_down( nf->server_record );
@@ -3721,6 +3817,8 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -3748,6 +3846,17 @@ mx_get_field_type( MX_RECORD *server_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** GET FIELD TYPE for '%s'",
+			mx_network_get_nf_label(
+				server_record,
+				remote_record_field_name,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	mx_status = mx_network_reconnect_if_down( server_record );
@@ -3908,6 +4017,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_LIST_HEAD *list_head;
 	uint32_t *header;
 	char *buffer, *message, *ptr;
 	uint32_t header_length, message_length;
@@ -3918,9 +4028,6 @@ mx_set_client_info( MX_RECORD *server_record,
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
-
-	MX_DEBUG( 2,("%s invoked, username = '%s', program_name = '%s'",
-			fname, username, program_name));
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3933,6 +4040,14 @@ mx_set_client_info( MX_RECORD *server_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,
+    ("\n*** SET CLIENT INFO for server '%s', username '%s', program name '%s'.",
+			server_record->name, username, program_name));
 	}
 
 	/* If the network connection is not currently up for some reason,
@@ -4069,6 +4184,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_get_option()";
 
 	MX_NETWORK_SERVER *server;
+	MX_LIST_HEAD *list_head;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
@@ -4099,6 +4215,13 @@ mx_network_get_option( MX_RECORD *server_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** GET OPTION %lu for server '%s'.",
+			option_number, server_record->name ));
 	}
 
 	/************ Send the 'get option' message. *************/
@@ -4240,6 +4363,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_LIST_HEAD *list_head;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
 	uint32_t header_length, message_length;
@@ -4265,6 +4389,13 @@ mx_network_set_option( MX_RECORD *server_record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** SET OPTION %lu for server '%s'.",
+			option_number, server_record->name ));
 	}
 
 	/************ Send the 'set option' message. *************/
@@ -4390,6 +4521,8 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	static const char fname[] = "mx_network_field_get_attribute()";
 
 	MX_NETWORK_SERVER *server;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
@@ -4440,6 +4573,16 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			nf->server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( nf->server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** GET ATTRIBUTE from '%s'",
+			mx_network_get_nf_label(
+				nf->server_record, nf->nfname,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	/************ Send the 'get attribute' message. *************/
@@ -4614,6 +4757,8 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	static const char fname[] = "mx_network_field_set_attribute()";
 
 	MX_NETWORK_SERVER *server;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
@@ -4662,6 +4807,16 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			nf->server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( nf->server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** SET ATTRIBUTE for '%s'",
+			mx_network_get_nf_label(
+				nf->server_record, nf->nfname,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	/************ Send the 'set attribute' message. *************/

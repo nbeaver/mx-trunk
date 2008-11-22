@@ -473,12 +473,14 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	MX_CALLBACK *callback_ptr;
 	MX_LIST_ENTRY *list_entry;
 	MX_RECORD *server_record;
+	MX_LIST_HEAD *list_head;
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t *header, *uint32_message;
 	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long data_type, message_id, callback_id;
+	char nf_label[80];
 	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
 
@@ -498,7 +500,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	{
 		int is_valid;
 
-		is_valid = mx_is_valid_pointer( callback_function,
+		is_valid = mx_pointer_is_valid( callback_function,
 						sizeof(callback_function),
 						R_OK );
 
@@ -509,7 +511,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		}
 
 		if ( callback_argument != NULL ) {
-			is_valid = mx_is_valid_pointer( callback_argument,
+			is_valid = mx_pointer_is_valid( callback_argument,
 						sizeof(callback_argument),
 						R_OK | W_OK );
 
@@ -561,6 +563,16 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,("\n*** ADD CALLBACK for '%s'",
+			mx_network_get_nf_label(
+				server_record, nf->nfname,
+				nf_label, sizeof(nf_label) )
+			));
 	}
 
 	/* If the server structure does not already have a callback list,
@@ -747,6 +759,8 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	MX_NETWORK_FIELD *nf;
 	MX_RECORD *server_record;
 	MX_NETWORK_SERVER *server;
+	MX_LIST_HEAD *list_head;
+	char nf_label[80];
 	MX_LIST *callback_list;
 	MX_LIST_ENTRY *callback_list_entry;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
@@ -789,6 +803,18 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head->network_debug ) {
+		MX_DEBUG(-2,
+		("\n*** DELETE CALLBACK for callback id %#lx, field '%s'.",
+			(unsigned long) callback->callback_id,
+			mx_network_get_nf_label( nf->server_record,
+						nf->nfname,
+						nf_label, sizeof(nf_label) )
+		));
 	}
 
 	/* Find the message buffer for this server. */
@@ -1306,7 +1332,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 	{
 		int is_valid;
 
-		is_valid = mx_is_valid_pointer( callback_function,
+		is_valid = mx_pointer_is_valid( callback_function,
 						sizeof(callback_function),
 						R_OK );
 
@@ -1317,7 +1343,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 		}
 
 		if ( callback_argument != NULL ) {
-			is_valid = mx_is_valid_pointer( callback_argument,
+			is_valid = mx_pointer_is_valid( callback_argument,
 						sizeof(callback_argument),
 						R_OK | W_OK );
 
@@ -1762,7 +1788,7 @@ mx_function_add_callback( MX_RECORD *record_list,
 	{
 		int is_valid;
 
-		is_valid = mx_is_valid_pointer( callback_function,
+		is_valid = mx_pointer_is_valid( callback_function,
 						sizeof(callback_function),
 						R_OK );
 
@@ -1773,7 +1799,7 @@ mx_function_add_callback( MX_RECORD *record_list,
 		}
 
 		if ( callback_argument != NULL ) {
-			is_valid = mx_is_valid_pointer( callback_argument,
+			is_valid = mx_pointer_is_valid( callback_argument,
 						sizeof(callback_argument),
 						R_OK | W_OK );
 

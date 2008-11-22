@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,7 +381,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	MX_DEBUG(-2,("%s: Received message from socket %d <--",
 		fname, mx_socket->socket_fd ));
 
-	mx_network_display_message( message_buffer );
+	mx_network_display_message( message_buffer, NULL );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -489,7 +489,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	MX_DEBUG(-2,("%s: Sending message to socket %d -->",
 		fname, mx_socket->socket_fd ));
 
-	mx_network_display_message( message_buffer );
+	mx_network_display_message( message_buffer, NULL );
 #endif
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
@@ -663,7 +663,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 			error_message.code,
 			mx_socket->socket_fd );
 
-		mx_network_display_message( message_buffer );
+		mx_network_display_message( message_buffer, NULL );
 	}
 #endif
 
