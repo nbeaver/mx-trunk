@@ -181,9 +181,6 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
-	unsigned long mar_framesize[2], mar_binsize[2];
-	char response[40];
-	int num_items;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -239,52 +236,22 @@ mxd_marccd_server_socket_open( MX_RECORD *record )
 
 	/* Get the current framesize. */
 
-	mx_status = mxd_marccd_server_socket_command( mss, "get_size",
-						response, sizeof(response),
-						MXD_MARCCD_DEBUG );
+	mx_status = mx_area_detector_get_framesize( ad->record, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	num_items = sscanf( response, "%lu,%lu",
-			&(mar_framesize[0]), &(mar_framesize[1]) );
-
-	if ( num_items != 2 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"A 'get_size' command send to '%s' did not return "
-		"a recognizable response.  Response = '%s'",
-			record->name, response );
-	}
 
 	/* Get the current binsize. */
 
-	mx_status = mxd_marccd_server_socket_command( mss, "get_bin",
-						response, sizeof(response),
-						MXD_MARCCD_DEBUG );
+	mx_status = mx_area_detector_get_binsize( ad->record, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu,%lu",
-			&(mar_binsize[0]), &(mar_binsize[1]) );
-
-	if ( num_items != 2 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"A 'get_size' command send to '%s' did not return "
-		"a recognizable response.  Response = '%s'",
-			record->name, response );
-	}
-
 	/* Set the local copy of the area detector frame and bin sizes. */
 
-	ad->maximum_framesize[0] = mar_framesize[0] * mar_binsize[0];
-	ad->maximum_framesize[1] = mar_framesize[1] * mar_binsize[1];
-
-	ad->framesize[0] = mar_framesize[0];
-	ad->framesize[1] = mar_framesize[1];
-
-	ad->binsize[0] = mar_binsize[0];
-	ad->binsize[1] = mar_binsize[1];
+	ad->maximum_framesize[0] = ad->framesize[0] * ad->binsize[0];
+	ad->maximum_framesize[1] = ad->framesize[1] * ad->binsize[1];
 
 	ad->bytes_per_frame =
 	  mx_round( ad->framesize[0] * ad->framesize[1] * ad->bytes_per_pixel );
@@ -333,7 +300,6 @@ mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	MX_CLOCK_TICK clock_ticks_to_wait, start_time;
-	char response[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -370,11 +336,12 @@ mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad )
 	/* Send the start command. */
 
 	mx_status = mxd_marccd_server_socket_command( mss, "start",
-						response, sizeof(response),
-						MXD_MARCCD_DEBUG );
+						NULL, 0, MXD_MARCCD_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 
 #if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -390,7 +357,6 @@ mxd_marccd_server_socket_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_marccd_server_socket_stop()";
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
-	char response[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -406,8 +372,8 @@ mxd_marccd_server_socket_stop( MX_AREA_DETECTOR *ad )
 	mss->finish_time = mx_current_clock_tick();
 
 	mx_status = mxd_marccd_server_socket_command( mss, "abort",
-						response, sizeof(response),
-						MXD_MARCCD_DEBUG );
+						NULL, 0, MXD_MARCCD_DEBUG );
+
 	return mx_status;
 }
 
@@ -437,7 +403,6 @@ mxd_marccd_server_socket_get_extended_status( MX_AREA_DETECTOR *ad )
 	comparison = mx_compare_clock_ticks( current_time, mss->finish_time );
 
 	if ( comparison < 0 ) {
-		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
 		ad->last_frame_number = -1;
 	} else {
 		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
@@ -476,7 +441,9 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_marccd_server_socket_readout_frame()";
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
+	char command[40];
 	char response[40];
+	int marccd_state, num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -488,12 +455,52 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	if ( ad->readout_frame != 0 ) {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal frame number %ld requested from MarCCD detector '%s'."
+		"  Only frame number 0 is valid for detector '%s'",
+			ad->readout_frame, ad->record->name, ad->record->name );
 
-	mx_status = mxd_marccd_server_socket_command( mss, "readout,0",
+		ad->readout_frame = 0;
+		return mx_status;
+	}
+
+	strlcpy( command, "readout,0", sizeof(command) );
+
+	mx_status = mxd_marccd_server_socket_command( mss, command,
 						response, sizeof(response),
 						MXD_MARCCD_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%d", &marccd_state );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Did not find the current MarCCD state in the response '%s' "
+		"to the command '%s' sent to MarCCD detector '%s'.",
+			response, command, ad->record->name );
+	}
+
+	switch( marccd_state ) {
+	case 0:			/* State: idle */
+		break;
+	case 7:			/* State: error */
+
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to readout an image frame for MarCCD "
+		"detector '%s' failed with an error.",
+			ad->record->name );
+		break;
+	default:
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	    "Received unexpected MarCCD state %d from MarCCD detector '%s'.",
+			marccd_state, ad->record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -502,7 +509,9 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_marccd_server_socket_correct_frame()";
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
+	char command[40];
 	char response[40];
+	int marccd_state, num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -515,11 +524,42 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	mx_status = mxd_marccd_server_socket_command( mss, "correct",
+	strlcpy( command, "correct", sizeof(command) );
+
+	mx_status = mxd_marccd_server_socket_command( mss, command,
 						response, sizeof(response),
 						MXD_MARCCD_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%d", &marccd_state );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Did not find the current MarCCD state in the response '%s' "
+		"to the command '%s' sent to MarCCD detector '%s'.",
+			response, command, ad->record->name );
+	}
+
+	switch( marccd_state ) {
+	case 0:			/* State: idle */
+		break;
+	case 7:			/* State: error */
+
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to correct an image frame for MarCCD "
+		"detector '%s' failed with an error.",
+			ad->record->name );
+		break;
+	default:
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	    "Received unexpected MarCCD state %d from MarCCD detector '%s'.",
+			marccd_state, ad->record->name );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -529,6 +569,7 @@ mxd_marccd_server_socket_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	char response[40];
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -553,17 +594,47 @@ mxd_marccd_server_socket_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mxd_marccd_server_socket_command( mss, "get_size",
 						response, sizeof(response),
 						MXD_MARCCD_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu,%lu",
+				&(ad->framesize[0]), &(ad->framesize[1]) );
+
+		if ( num_items != 2 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"A 'get_size' command sent to '%s' did not return "
+			"a recognizable response.  Response = '%s'",
+				ad->record->name, response );
+		}
+
+		ad->bytes_per_frame =
+	    mx_round(ad->framesize[0] * ad->framesize[1] * ad->bytes_per_pixel);
+
 		break;
 
 	case MXLV_AD_BINSIZE:
 		mx_status = mxd_marccd_server_socket_command( mss, "get_bin",
 						response, sizeof(response),
 						MXD_MARCCD_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		num_items = sscanf( response, "%lu,%lu",
+				&(ad->binsize[0]), &(ad->binsize[1]) );
+
+		if ( num_items != 2 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"A 'get_bin' command sent to '%s' did not return "
+			"a recognizable response.  Response = '%s'",
+				ad->record->name, response );
+		}
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-		ad->image_format = MXT_IMAGE_FILE_TIFF;
+		ad->image_format = MXT_IMAGE_FORMAT_GREY16;
 
 		mx_status = mx_image_get_format_name_from_type(
 				ad->image_format, ad->image_format_name,
@@ -585,7 +656,14 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	char command[40];
+	/* char response[40]; */
 	mx_status_type mx_status;
+
+	static long allowed_binsize[] = { 1, 2, 4 };
+
+	static int num_allowed_binsizes = sizeof( allowed_binsize )
+						/ sizeof( allowed_binsize[0] );
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
 
@@ -607,12 +685,43 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 	sp = &(ad->sequence_parameters);
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command), "set_bin,%lu,%lu",
+			ad->binsize[0], ad->binsize[1] );
+
+		mx_status = mxd_marccd_server_socket_command( mss, command,
+						NULL, 0, MXD_MARCCD_DEBUG );
+		break;
+
 	case MXLV_AD_SEQUENCE_TYPE:
 		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Sequence type %ld is not supported for MarCCD "
-		      "detector '%s'.  Only one-shot sequences are supported.",
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Sequence type %ld is not supported for MarCCD detector"
+		    "'%s'.  Only one-shot sequences (type 1) are supported.",
 				sp->sequence_type, ad->record->name );
+
+			sp->sequence_type = MXT_SQ_ONE_SHOT;
+			return mx_status;
+		}
+		break;
+
+	case MXLV_AD_TRIGGER_MODE:
+		if ( ad->trigger_mode != MXT_IMAGE_INTERNAL_TRIGGER ) {
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Trigger mode %ld is not supported for MarCCD detector "
+		    "'%s'.  Only internal trigger mode (mode 1) is supported.",
+				ad->trigger_mode, ad->record->name );
+
+			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			return mx_status;
 		}
 		break;
 
