@@ -1,2 +1,2 @@
-marccd  device area_detector marccd "" "" 0 0x0 0x0 "" "" "" ""
-shutter device relay marccd_shutter "" "" marccd
+mar     device area_detector marccd "" "" 0 0x0 0x0 "" "" "" ""
+shutter device relay marccd_shutter "" "" mar

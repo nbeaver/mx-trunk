@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,12 +51,22 @@
 #define MXF_MARCCD_STATE_ERROR		7
 #define MXF_MARCCD_STATE_BUSY		8
 
+/* MarCCD version tests. */
+
+#define MX_MARCCD_VER_REMOTE_MODE_0	 6006
+#define MX_MARCCD_VER_GET_SIZE_BKG	 9002
+#define MX_MARCCD_VER_FRAMESHIFT	 9009
+#define MX_MARCCD_VER_REMOTE_MODE_1	10010
+#define MX_MARCCD_VER_THUMBNAILS	10017
+
 /* Flag values for the command routines below. */
 
 #define MXF_MARCCD_FORCE_READ	0x2
 
 typedef struct {
 	MX_RECORD *record;
+
+	unsigned long marccd_version;
 
 	/* Since we were started directly by MarCCD, the following two file
 	 * descriptors are used to talk to MarCCD.

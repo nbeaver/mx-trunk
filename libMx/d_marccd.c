@@ -176,14 +176,8 @@ mxd_marccd_monitor_thread( MX_THREAD *thread, void *args )
 			mx_status = mxd_marccd_handle_response( ad,
 						marccd, MXD_MARCCD_DEBUG );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
 			mx_status = mxd_marccd_handle_state_value( ad, marccd,
 							marccd->current_state );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
 		}
 
 		mx_usleep( sleep_us );
@@ -312,7 +306,7 @@ mxd_marccd_create_record_structures( MX_RECORD *record )
 	marccd->fd_from_marccd = -1;
 	marccd->fd_to_marccd = -1;
 
-	marccd->current_command = MXF_MARCCD_CMD_UNKNOWN;
+	marccd->current_command = MXF_MARCCD_CMD_NONE;
 	marccd->current_state = MXF_MARCCD_STATE_UNKNOWN;
 	marccd->next_state = MXF_MARCCD_STATE_UNKNOWN;
 
@@ -361,6 +355,14 @@ mxd_marccd_open( MX_RECORD *record )
 
 	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
 
+	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+						ad->image_format_name,
+						MXU_IMAGE_FORMAT_NAME_LENGTH );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+
 	/*------------------------------------------------------------*/
 
 	/* Find the MarCCD file descriptors in the local environment. */
@@ -371,11 +373,13 @@ mxd_marccd_open( MX_RECORD *record )
 		return mx_status;
 
 #if MXD_MARCCD_DEBUG
-	MX_DEBUG(-2,("%s: pipe fds, fd_from_marccd = %d, fd_to_marccd = %d",
+	MX_DEBUG(-2,("%s: fd_from_marccd = %d, fd_to_marccd = %d",
 			fname, marccd->fd_from_marccd, marccd->fd_to_marccd));
 #endif
 
 	marccd->use_finish_time = FALSE;
+
+	marccd->marccd_version = MX_MARCCD_VER_REMOTE_MODE_0;
 
 	/* Start a thread to monitor messages sent by MarCCD. */
 
@@ -415,7 +419,7 @@ mxd_marccd_close( MX_RECORD *record )
 
 	/* Tell MarCCD that it is time to exit remote mode. */
 
-#if 0
+#if 1
 	marccd->current_command = MXF_MARCCD_CMD_END_AUTOMATION;
 
 	mx_status = mxd_marccd_command( marccd,
@@ -423,9 +427,10 @@ mxd_marccd_close( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
 	/* Wait a moment for the remote end to respond to what we have done. */
 
-	mx_msleep(100);
+	mx_msleep(1000);
 
 #endif
 	/* Shutdown the connection. */
@@ -519,6 +524,8 @@ mxd_marccd_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+
 #if MXD_MARCCD_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
@@ -578,22 +585,19 @@ mxd_marccd_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-#if 0
-	/* FIXME: Use mutex here? */
-
-	mx_status = mxd_marccd_check_for_responses( ad,
-						marccd, MXD_MARCCD_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
 	current_time = mx_current_clock_tick();
 
 	comparison = mx_compare_clock_ticks(current_time, marccd->finish_time);
 
+#if MXD_MARCCD_DEBUG
+	MX_DEBUG(-2,
+    ("%s: current_time = (%lu,%lu), finish_time = (%lu,%lu), comparison = %d",
+		fname, current_time.high_order, current_time.low_order,
+		marccd->finish_time.high_order, marccd->finish_time.low_order,
+		comparison ));
+#endif
+
 	if ( comparison < 0 ) {
-		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
 		ad->last_frame_number = -1;
 	} else {
 		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
@@ -606,6 +610,8 @@ mxd_marccd_get_extended_status( MX_AREA_DETECTOR *ad )
 		}
 
 		ad->last_frame_number = 0;
+
+		ad->status &= (~MXSF_AD_ACQUISITION_IN_PROGRESS);
 
 		marccd->use_finish_time = FALSE;
 	}
@@ -632,6 +638,15 @@ mxd_marccd_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	if ( ad->readout_frame != 0 ) {
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal frame number %ld requested from MarCCD detector '%s'."
+		"  Only frame number 0 is valid for detector '%s'",
+			ad->readout_frame, ad->record->name, ad->record->name );
+
+		ad->readout_frame = 0;
+		return mx_status;
+	}
 
 	marccd->current_command = MXF_MARCCD_CMD_READOUT;
 
@@ -697,18 +712,17 @@ mxd_marccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		mx_status = mxd_marccd_command( marccd, "get_size",
-							MXD_MARCCD_DEBUG );
-		break;
-
 	case MXLV_AD_BINSIZE:
-		mx_status = mxd_marccd_command( marccd, "get_bin",
-							MXD_MARCCD_DEBUG );
+		/* We do not send 'get_size' or 'get_bin' commands to MarCCD
+		 * here, since MarCCD will keep us up to date via 'is_size'
+		 * and 'is_bin' messages.
+		 */
+
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-		ad->image_format = MXT_IMAGE_FILE_TIFF;
+		ad->image_format = MXT_IMAGE_FORMAT_GREY16;
 
 		mx_status = mx_image_get_format_name_from_type(
 				ad->image_format, ad->image_format_name,
@@ -730,7 +744,13 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_MARCCD *marccd;
 	MX_SEQUENCE_PARAMETERS *sp;
+	char command[40];
 	mx_status_type mx_status;
+
+	static long allowed_binsize_array[] = { 1, 2, 4 };
+
+	static int num_allowed_binsizes = sizeof(allowed_binsize_array)
+					/ sizeof(allowed_binsize_array[0]);
 
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
 
@@ -752,12 +772,45 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 	sp = &(ad->sequence_parameters);
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize_array );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( command, sizeof(command),
+			"set_bin,%lu,%lu",
+			ad->binsize[0], ad->binsize[1] );
+
+		mx_status = mxd_marccd_command( marccd, command,
+						MXD_MARCCD_DEBUG );
+		break;
+
 	case MXLV_AD_SEQUENCE_TYPE:
 		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Sequence type %ld is not supported for MarCCD "
-		      "detector '%s'.  Only one-shot sequences are supported.",
+			"detector '%s'.  "
+			"Only one-shot sequences (type 1) are supported.",
 				sp->sequence_type, ad->record->name );
+
+			sp->sequence_type = MXT_SQ_ONE_SHOT;
+			return mx_status;
+		}
+		break;
+
+	case MXLV_AD_TRIGGER_MODE:
+		if ( ad->trigger_mode != MXT_IMAGE_INTERNAL_TRIGGER ) {
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Trigger mode %ld is not supported for MarCCD detector "
+		    "'%s'.  Only internal trigger mode (mode 1) is supported.",
+				ad->trigger_mode, ad->record->name );
+
+			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			return mx_status;
 		}
 		break;
 
@@ -817,8 +870,6 @@ mxd_marccd_command( MX_MARCCD *marccd,
 	num_bytes_left = strlen( command );
 
 	while ( num_bytes_left > 0 ) {
-		MX_DEBUG(-2,("%s: num_bytes_left = %ld",
-			fname, (long) num_bytes_left));
 
 		num_bytes_written = write( marccd->fd_to_marccd,
 					ptr, num_bytes_left );
@@ -833,16 +884,11 @@ mxd_marccd_command( MX_MARCCD *marccd,
 				strerror( saved_errno ) );
 		}
 
-		MX_DEBUG(-2,("%s: num_bytes_written = %ld",
-			fname, (long) num_bytes_written));
-
 		ptr            += num_bytes_written;
 		num_bytes_left -= num_bytes_written;
 	}
 
 	/* Write a trailing newline. */
-
-	MX_DEBUG(-2,("%s: about to write a trailing newline.",fname));
 
 	num_bytes_written = 0;
 
@@ -861,8 +907,10 @@ mxd_marccd_command( MX_MARCCD *marccd,
 		}
 	}
 
+#if 0
 	MX_DEBUG(-2,("%s: finished sending command '%s'.",
 			fname, command));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -959,6 +1007,18 @@ mxd_marccd_handle_state_value( MX_AREA_DETECTOR *ad,
 	  current_command, mxd_marccd_get_command_name(current_command),
 	  current_state, mxd_marccd_get_state_name(current_state) ));
 
+	/* Check to see if we have been asked to shut down. */
+
+	if ( current_state == MXF_MARCCD_STATE_UNAVAILABLE ) {
+		/* Tell MarCCD that we are shutting down. */
+
+		(void) mx_close_hardware( marccd->record );
+
+		/* Stop the MX server nicely. */
+
+		(void) mx_kill_process( mx_process_id() );
+	}
+
 	/* The interpretation of the state flag depends on the command that
 	 * is currently supposed to be executing.
 	 */
@@ -967,11 +1027,17 @@ mxd_marccd_handle_state_value( MX_AREA_DETECTOR *ad,
 
 	switch( current_command ) {
 	case MXF_MARCCD_CMD_NONE:
+	default:
 		switch( current_state ) {
 		case MXF_MARCCD_STATE_IDLE:
 			MX_DEBUG(-2,("%s: MarCCD is idle.", fname));
 
 			ad->status = 0;
+			break;
+		case MXF_MARCCD_STATE_BUSY:
+			MX_DEBUG(-2,("%s: MarCCD is busy.", fname));
+
+			ad->status = MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS;
 			break;
 		default:
 			MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
@@ -1077,9 +1143,6 @@ mxd_marccd_handle_state_value( MX_AREA_DETECTOR *ad,
 			break;
 		}
 		break;
-	default:
-		MX_MARCCD_UNHANDLED_COMMAND_MESSAGE;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1163,6 +1226,24 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 			fname, response, marccd->record->name ));
 	}
 
+	if ( strncmp( response, "is_size_bkg", 11 ) == 0 ) {
+
+		if ( marccd->marccd_version < MX_MARCCD_VER_GET_SIZE_BKG ) {
+			marccd->marccd_version = MX_MARCCD_VER_GET_SIZE_BKG;
+		}
+
+		mx_warning( "Handler for '%s' is not yet implemented.",
+			response);
+	} else
+	if ( strncmp( response, "is_frameshift", 11 ) == 0 ) {
+
+		if ( marccd->marccd_version < MX_MARCCD_VER_FRAMESHIFT ) {
+			marccd->marccd_version = MX_MARCCD_VER_FRAMESHIFT;
+		}
+
+		mx_warning( "Handler for '%s' is not yet implemented.",
+			response);
+	} else
 	if ( strncmp( response, "is_size", 7 ) == 0 ) {
 
 		num_items = sscanf( response, "is_size,%ld,%ld",
@@ -1173,6 +1254,10 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 				"Cannot find the MarCCD data frame size in the "
 				"response '%s'.", response );
 		}
+
+		ad->bytes_per_frame =
+			mx_round( ad->framesize[0] * ad->framesize[1]
+							* ad->bytes_per_pixel );
 
 		MX_DEBUG(-2,
 		("%s: ad->framesize[0] = %ld, ad->framesize[1] = %ld",
@@ -1210,15 +1295,35 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 				"response '%s'.", response );
 		}
 
+#if 1
+		/* Checking the state value here is redundant, since it will
+		 * also be done by the calling routine.
+		 */
+
 		mx_status = mxd_marccd_handle_state_value( ad,
 						marccd, marccd_state );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#endif
 	} else {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Unrecognizable response '%s' from MarCCD '%s'.",
 			response, ad->record->name );
+	}
+
+	/* If the maximum framesize has never been set, then we check
+	 * to see if we have both the framesize and binsize values
+	 * necessary to set it.
+	 */
+
+	if ( ad->maximum_framesize[0] == 0 ) {
+		if ( ( ad->framesize[0] != 0 ) && ( ad->binsize[0] != 0 ) ) {
+			ad->maximum_framesize[0]
+				= ad->framesize[0] * ad->binsize[0];
+			ad->maximum_framesize[1]
+				= ad->framesize[1] * ad->binsize[1];
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
