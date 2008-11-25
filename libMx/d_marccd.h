@@ -58,21 +58,12 @@
 typedef struct {
 	MX_RECORD *record;
 
-	/* If we were started directly by MarCCD, the following two file
+	/* Since we were started directly by MarCCD, the following two file
 	 * descriptors are used to talk to MarCCD.
 	 */
 
 	int fd_from_marccd;
 	int fd_to_marccd;
-
-	/* If we are talking to the Mar provided remote server, then the
-	 * following socket is used to talk to it.
-	 */
-
-	MX_SOCKET *marccd_socket;
-
-	char marccd_host[ MXU_HOSTNAME_LENGTH + 1 ];
-	long marccd_port;
 
 	/* Thread to monitor messages sent by MarCCD. */
 
@@ -102,14 +93,7 @@ typedef struct {
 	int use_finish_time;
 } MX_MARCCD;
 
-#define MXD_MARCCD_STANDARD_FIELDS \
-  {-1, -1, "marccd_host", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH + 1}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MARCCD, marccd_host), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "marccd_port", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MARCCD, marccd_port), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+#define MXD_MARCCD_STANDARD_FIELDS
 
 MX_API mx_status_type mxd_marccd_initialize_type( long record_type );
 MX_API mx_status_type mxd_marccd_create_record_structures( MX_RECORD *record );

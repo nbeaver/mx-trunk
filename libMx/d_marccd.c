@@ -258,30 +258,6 @@ mxd_marccd_find_file_descriptors( MX_MARCCD *marccd )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static mx_status_type
-mxd_marccd_connect_to_server( MX_MARCCD *marccd )
-{
-	MX_SOCKET *client_socket;
-	mx_status_type mx_status;
-
-	/* If this function is called, it means that we are supposed to 
-	 * connect via TCP/IP to 'marccd_server_socket' or some workalike
-	 * running on the remote MarCCD computer.
-	 */
-
-	mx_status = mx_tcp_socket_open_as_client( &client_socket,
-					marccd->marccd_host,
-					marccd->marccd_port, 0,
-					MX_SOCKET_DEFAULT_BUFFER_SIZE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	marccd->marccd_socket = client_socket;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -332,8 +308,6 @@ mxd_marccd_create_record_structures( MX_RECORD *record )
 
 	ad->record = record;
 	marccd->record = record;
-
-	marccd->marccd_socket = NULL;
 
 	marccd->fd_from_marccd = -1;
 	marccd->fd_to_marccd = -1;
@@ -389,33 +363,16 @@ mxd_marccd_open( MX_RECORD *record )
 
 	/*------------------------------------------------------------*/
 
-	if ( strlen( marccd->marccd_host )  == 0 ) {
+	/* Find the MarCCD file descriptors in the local environment. */
 
-		/* If the MarCCD host name is of zero length, then we assume
-		 * that the current process was started by MarCCD itself.
-		 */
-
-		mx_status = mxd_marccd_find_file_descriptors( marccd );
-	} else {
-		/* Otherwise, we assume that we need to connect via TCP/IP
-		 * to a server spawned by MarCCD on the MarCCD host.
-		 */
-
-		mx_status = mxd_marccd_connect_to_server( marccd );
-	}
+	mx_status = mxd_marccd_find_file_descriptors( marccd );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_MARCCD_DEBUG
-	if ( marccd->marccd_socket != NULL ) {
-		MX_DEBUG(-2,("%s: connected to remote socket %d",
-			fname, marccd->marccd_socket->socket_fd ));
-	} else {
-		MX_DEBUG(-2,(
-	    "%s: connected via pipes, fd_from_marccd = %d, fd_to_marccd = %d",
+	MX_DEBUG(-2,("%s: pipe fds, fd_from_marccd = %d, fd_to_marccd = %d",
 			fname, marccd->fd_from_marccd, marccd->fd_to_marccd));
-	}
 #endif
 
 	marccd->use_finish_time = FALSE;
@@ -473,37 +430,29 @@ mxd_marccd_close( MX_RECORD *record )
 #endif
 	/* Shutdown the connection. */
 
-	if ( marccd->marccd_socket != NULL ) {
+	mx_status = MX_SUCCESSFUL_RESULT;
 
-		mx_status = mx_socket_close( marccd->marccd_socket );
+	status_to_marccd = close( marccd->fd_to_marccd );
 
-	} else {
-		mx_status = MX_SUCCESSFUL_RESULT;
+	if ( status_to_marccd != 0 ) {
+		saved_errno = errno;
 
-		status_to_marccd = close( marccd->fd_to_marccd );
-
-		if ( status_to_marccd != 0 ) {
-			saved_errno = errno;
-
-			mx_status = mx_error( MXE_IPC_IO_ERROR, fname,
-		"An error occurred while closing the pipe to MarCCD.  "
-		"Error number = %d, error message = '%s'",
-				saved_errno, strerror( saved_errno ) );
-		}
-
-		status_from_marccd = close( marccd->fd_from_marccd );
-
-		if ( status_from_marccd != 0 ) {
-			saved_errno = errno;
-
-			mx_status = mx_error( MXE_IPC_IO_ERROR, fname,
-		"An error occurred while closing the pipe from MarCCD.  "
-		"Error number = %d, error message = '%s'",
-				saved_errno, strerror( saved_errno ) );
-		}
+		mx_status = mx_error( MXE_IPC_IO_ERROR, fname,
+	"An error occurred while closing the pipe to MarCCD.  "
+	"Error number = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
 	}
 
-	marccd->marccd_socket = NULL;
+	status_from_marccd = close( marccd->fd_from_marccd );
+
+	if ( status_from_marccd != 0 ) {
+		saved_errno = errno;
+
+		mx_status = mx_error( MXE_IPC_IO_ERROR, fname,
+		"An error occurred while closing the pipe from MarCCD.  "
+		"Error number = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
 
 	marccd->fd_from_marccd = -1;
 	marccd->fd_to_marccd = -1;
@@ -842,7 +791,6 @@ mxd_marccd_command( MX_MARCCD *marccd,
 	char newline = '\n';
 	int saved_errno;
 	long num_bytes_written;
-	mx_status_type mx_status;
 
 	if ( marccd == (MX_MARCCD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -858,64 +806,58 @@ mxd_marccd_command( MX_MARCCD *marccd,
 			fname, command, marccd->record->name));
 	}
 
-	if ( marccd->marccd_socket != NULL ) {
+	if ( marccd->fd_to_marccd < 0 ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The connection to MarCCD has not been "
+		"correctly initialized, fd_to_marccd = %d",
+			marccd->fd_to_marccd );
+	}
 
-		mx_status = mx_socket_putline( marccd->marccd_socket,
-						command, MX_CR_LF );
-	} else {
-		if ( marccd->fd_to_marccd < 0 ) {
+	ptr            = command;
+	num_bytes_left = strlen( command );
+
+	while ( num_bytes_left > 0 ) {
+		MX_DEBUG(-2,("%s: num_bytes_left = %ld",
+			fname, (long) num_bytes_left));
+
+		num_bytes_written = write( marccd->fd_to_marccd,
+					ptr, num_bytes_left );
+
+		if ( num_bytes_written < 0 ) {
+			saved_errno = errno;
+
 			return mx_error( MXE_IPC_IO_ERROR, fname,
-			"The connection to MarCCD has not been "
-			"correctly initialized, fd_to_marccd = %d",
-				marccd->fd_to_marccd );
+		"Error sending command '%s' to MarCCD '%s'.  "
+		"Error message = '%s'.",
+				command, marccd->record->name,
+				strerror( saved_errno ) );
 		}
 
-		ptr            = command;
-		num_bytes_left = strlen( command );
+		MX_DEBUG(-2,("%s: num_bytes_written = %ld",
+			fname, (long) num_bytes_written));
 
-		while ( num_bytes_left > 0 ) {
-			MX_DEBUG(-2,("%s: num_bytes_left = %ld",
-				fname, (long) num_bytes_left));
+		ptr            += num_bytes_written;
+		num_bytes_left -= num_bytes_written;
+	}
 
-			num_bytes_written = write( marccd->fd_to_marccd,
-						ptr, num_bytes_left );
+	/* Write a trailing newline. */
 
-			if ( num_bytes_written < 0 ) {
-				saved_errno = errno;
+	MX_DEBUG(-2,("%s: about to write a trailing newline.",fname));
 
-				return mx_error( MXE_IPC_IO_ERROR, fname,
-			"Error sending command '%s' to MarCCD '%s'.  "
-			"Error message = '%s'.",
-					command, marccd->record->name,
-					strerror( saved_errno ) );
-			}
+	num_bytes_written = 0;
 
-			MX_DEBUG(-2,("%s: num_bytes_written = %ld",
-				fname, (long) num_bytes_written));
+	while ( num_bytes_written == 0 ) {
+		num_bytes_written = write( marccd->fd_to_marccd,
+					&newline, 1 );
 
-			ptr            += num_bytes_written;
-			num_bytes_left -= num_bytes_written;
-		}
+		if ( num_bytes_written < 0 ) {
+			saved_errno = errno;
 
-		/* Write a trailing newline. */
-
-		MX_DEBUG(-2,("%s: about to write a trailing newline.",fname));
-
-		num_bytes_written = 0;
-
-		while ( num_bytes_written == 0 ) {
-			num_bytes_written = write( marccd->fd_to_marccd,
-						&newline, 1 );
-
-			if ( num_bytes_written < 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_IPC_IO_ERROR, fname,
-			"Error writing the trailing newline for command '%s' "
-			"to MarCCD '%s'.  Error message = '%s'.",
-					command, marccd->record->name,
-					strerror( saved_errno ) );
-			}
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Error writing the trailing newline for command '%s' "
+		"to MarCCD '%s'.  Error message = '%s'.",
+				command, marccd->record->name,
+				strerror( saved_errno ) );
 		}
 	}
 
@@ -1165,55 +1107,48 @@ mxd_marccd_handle_response( MX_AREA_DETECTOR *ad,
 
 	/* Read the response line from MarCCD. */
 
-	if ( marccd->marccd_socket != NULL ) {
+	/* Read until we get a newline. */
 
-		mx_status = mx_socket_getline( marccd->marccd_socket,
-						response, sizeof(response),
-						MX_CR_LF );
-	} else {
-		/* Read until we get a newline. */
-
-		if ( marccd->fd_from_marccd < 0 ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	if ( marccd->fd_from_marccd < 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The connection from MarCCD has not been fully initialized." );
+	}
+
+	for ( i = 0; i < sizeof(response); i++ ) {
+
+		num_bytes_read = read( marccd->fd_from_marccd,
+					&(response[i]), 1 );
+
+		if ( num_bytes_read < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Error reading from MarCCD '%s'.  "
+			"Error message = '%s'.",
+				marccd->record->name,
+				strerror( saved_errno ) );
 		}
-
-		for ( i = 0; i < sizeof(response); i++ ) {
-
-			num_bytes_read = read( marccd->fd_from_marccd,
-						&(response[i]), 1 );
-
-			if ( num_bytes_read < 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_IPC_IO_ERROR, fname,
-				"Error reading from MarCCD '%s'.  "
-				"Error message = '%s'.",
-					marccd->record->name,
-					strerror( saved_errno ) );
-			}
-			if ( num_bytes_read == 0 ) {
-				response[i] = '\0';
-				break;		/* Exit the for() loop. */
-			}
-			if ( response[i] == '\n' ) {
-				/* Found the end of the line. */
-
-				response[i] = '\0';
-				break;		/* Exit the for() loop. */
-			}
+		if ( num_bytes_read == 0 ) {
+			response[i] = '\0';
+			break;		/* Exit the for() loop. */
 		}
+		if ( response[i] == '\n' ) {
+			/* Found the end of the line. */
 
-		/* If the response was too long, print an error message. */
-
-		if ( i >= sizeof(response) ) {
-			response[ sizeof(response) - 1 ] = '\0';
-
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The response from MarCCD '%s' is too long to fit into "
-			"our input buffer.  The response begins with '%s'.",
-				marccd->record->name, response );
+			response[i] = '\0';
+			break;		/* Exit the for() loop. */
 		}
+	}
+
+	/* If the response was too long, print an error message. */
+
+	if ( i >= sizeof(response) ) {
+		response[ sizeof(response) - 1 ] = '\0';
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The response from MarCCD '%s' is too long to fit into "
+		"our input buffer.  The response begins with '%s'.",
+			marccd->record->name, response );
 	}
 
 	/* Delete any trailing newline if present. */
@@ -1302,11 +1237,7 @@ mxd_marccd_input_is_available( MX_MARCCD *marccd )
 	long mask;
 #endif
 
-	if ( marccd->marccd_socket != NULL ) {
-		fd = marccd->marccd_socket->socket_fd;
-	} else {
-		fd = marccd->fd_from_marccd;
-	}
+	fd = marccd->fd_from_marccd;
 
 	if ( fd < 0 ) {
 		(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
