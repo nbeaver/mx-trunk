@@ -7271,6 +7271,7 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	 * load frame flag and generate a warning message.
 	 */
 
+#if 0
 	if ( (flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION)
 	  && (flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION) )
 	{
@@ -7282,6 +7283,7 @@ mx_area_detector_setup_datafile_management( MX_RECORD *record,
 	    "These two actions are contradictory, so only the save image "
 	    "frame operation will be performed.", record->name );
 	}
+#endif
 
 	/* If we are running in a server with an active callback pipe,
 	 * then setup a timer callback with the handler function as the
@@ -7459,6 +7461,17 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			"%s/%s", ad->datafile_directory, ad->datafile_name );
 	}
 
+	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
+			fname, record->name, filename));
+#endif
+
+		mx_status = mx_image_read_file( &(ad->image_frame),
+						ad->datafile_format,
+						filename );
+	}
+
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		if ( ad->image_frame == NULL ) {
 
@@ -7499,16 +7512,6 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #endif
 
 		mx_status = mx_image_write_file( ad->image_frame,
-						ad->datafile_format,
-						filename );
-	} else
-	if ( flags & MXF_AD_LOAD_FRAME_AFTER_ACQUISITION ) {
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
-		MX_DEBUG(-2,("%s: Loading '%s' image frame from '%s'.",
-			fname, record->name, filename));
-#endif
-
-		mx_status = mx_image_read_file( &(ad->image_frame),
 						ad->datafile_format,
 						filename );
 	}
