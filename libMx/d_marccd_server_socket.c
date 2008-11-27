@@ -56,7 +56,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_server_socket_function_list = {
 	mxd_marccd_server_socket_get_extended_status,
 	mxd_marccd_server_socket_readout_frame,
 	mxd_marccd_server_socket_correct_frame,
-	NULL,
+	mxd_marccd_server_socket_transfer_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -564,6 +564,116 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_marccd_server_socket_transfer_frame()";
+
+	MX_MARCCD_SERVER_SOCKET *marccd_server_socket = NULL;
+	size_t dirname_length;
+	char remote_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	char local_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	char *remote_filename_ptr, *remote_prefix_ptr;
+	unsigned long remote_prefix_length;
+	mx_status_type mx_status;
+
+	mx_status = mxd_marccd_server_socket_get_pointers( ad,
+						&marccd_server_socket, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* We can only handle transferring the image frame. */
+
+	if ( ad->transfer_frame != MXFT_AD_IMAGE_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Transferring frame type %lu is not supported for "
+		"MarCCD detector '%s'.  Only the image frame (type 0) "
+		"is supported.  MarCCD calls it the 'raw frame'.",
+			ad->transfer_frame, ad->record->name );
+	}
+
+	/* We attempt to read in the most recently saved MarCCD image. */
+
+	dirname_length = strlen( ad->datafile_directory );
+
+	if ( dirname_length > 0 ) {
+		snprintf( remote_marccd_filename,
+			sizeof(remote_marccd_filename),
+			"%s/%s", ad->datafile_directory, ad->datafile_name );
+	} else {
+		snprintf( remote_marccd_filename,
+			sizeof(remote_marccd_filename),
+			"%s", ad->datafile_name );
+	}
+
+#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+	MX_DEBUG(-2,("%s: Remote MarCCD filename = '%s'",
+		fname, remote_marccd_filename));
+#endif
+	if ( strlen( remote_marccd_filename ) == 0 ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MarCCD 'datafile_directory' and 'datafile_name' "
+		"fields have not been initialized for detector '%s', so "
+		"we cannot read in the most recently acquired MarCCD image.",
+			ad->record->name );
+	}
+
+	/* Usually, this driver is not running on the same computer as 
+	 * the one running the 'marccd' program.  If so, then we can only
+	 * load the MarCCD file if it has been exported to us via somthing
+	 * like NFS or SMB.  If so, the local filename is probably different
+	 * from the filename on the 'marccd' server computer.  We handle
+	 * this by stripping off the remote prefix and then prepending that
+	 * with the local prefix.
+	 */
+
+	/* If present, strip off the remote prefix. */
+
+	remote_prefix_ptr = marccd_server_socket->remote_filename_prefix;
+
+	remote_prefix_length = strlen( remote_prefix_ptr );
+
+	if ( remote_prefix_length == 0 ) {
+		remote_filename_ptr = remote_marccd_filename;
+	} else {
+		/* See if the remote prefix matches the start of the
+		 * remote filename.
+		 */
+
+		if ( strncmp( remote_prefix_ptr, remote_marccd_filename,
+				remote_prefix_length ) != 0 )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The remote prefix '%s' for MarCCD detector '%s' "
+			"does not match the beginning of the remote "
+			"MarCCD filename '%s'.",
+				remote_prefix_ptr, ad->record->name,
+				remote_marccd_filename );
+		} else {
+			remote_filename_ptr =
+				remote_marccd_filename + remote_prefix_length;
+		}
+	}
+
+	/* Create the local filename. */
+
+	snprintf( local_marccd_filename, sizeof(local_marccd_filename),
+		"%s/%s", marccd_server_socket->local_filename_prefix,
+		remote_filename_ptr );
+
+	/* Now we can read in the MarCCD file. */
+
+	mx_status = mx_image_read_marccd_file( &(ad->image_frame),
+						local_marccd_filename );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

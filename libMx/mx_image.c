@@ -27,6 +27,8 @@
 #include <float.h>
 #include <math.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "mx_util.h"
 #include "mx_hrt.h"
@@ -2860,24 +2862,166 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
  * by 16-bit image pixels in little endian order.
  */
 
+#define MX_MARCCD_HEADER_SIZE	4096L
+
 mx_status_type
-mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 {
 	static const char fname[] = "mx_image_read_marccd_file()";
+
+	FILE *marccd_file;
+	struct stat marccd_stat;
+	int marccd_fd, os_status, saved_errno;
+	unsigned long file_size_in_bytes, image_size_in_bytes;
+	unsigned long image_size_in_pixels, image_width, image_height;
+	unsigned long bytes_read;
+	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
-	if ( datafile_name == (char *) NULL ) {
+	if ( marccd_filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The datafile_name pointer passed was NULL." );
+		"The marccd_filename pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name));
 #endif
+
+	/* Try to open the file. */
+
+	marccd_file = fopen( marccd_filename, "r" );
+
+	if ( marccd_file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+	    "Cannot open MarCCD file '%s'.  Errno = %d, error message = '%s'",
+			marccd_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Find out how big the file is. */
+
+	marccd_fd = fileno(marccd_file);
+
+	os_status = fstat( marccd_fd, &marccd_stat );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		fclose(marccd_file);
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot get the file status for MarCCD file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			marccd_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	file_size_in_bytes = marccd_stat.st_size;
+
+	/* Subtract 4096 bytes for the MarCCD header. */
+
+	image_size_in_bytes = file_size_in_bytes - MX_MARCCD_HEADER_SIZE;
+
+	image_size_in_pixels = image_size_in_bytes / 2L;
+
+	/* FIXME: _If_ (!) the image is square, we can find the
+	 * image dimensions by taking the square root of the
+	 * image size.  What we should _really_ be doing is to
+	 * fetch the image dimensions from the TIFF header.
+	 */
+
+	image_width = mx_round( sqrt( image_size_in_pixels ) );
+
+	image_height = image_width;
+
+	if ( image_size_in_pixels != ( image_width * image_height ) ) {
+		fclose(marccd_file);
+
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The computed image dimensions (%lu, %lu) do not match "
+		"the total number of pixels (%lu) in the image '%s'.",
+			image_width, image_height,
+			image_size_in_pixels,
+			marccd_filename );
+	}
+	
+	/* Allocate an MX_IMAGE_FRAME with the right size for the image. */
+
+	mx_status = mx_image_alloc( frame,
+				image_width,
+				image_height,
+				MXT_IMAGE_FORMAT_GREY16,
+				MX_DATAFMT_LITTLE_ENDIAN,
+				2,
+				MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+				image_size_in_bytes );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fclose( marccd_file );
+
+		return mx_status;
+	}
+
+	/* If setting up the image frame worked, then try to read the
+	 * image data into the image_data field of ad->image_frame.
+	 */
+
+	/* First, move the file pointer to the start of image data. */
+
+	os_status = fseek( marccd_file, MX_MARCCD_HEADER_SIZE, SEEK_SET );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		fclose(marccd_file);
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot seek to %ld bytes from the start of MarCCD file '%s'.  "
+		"Errno = %d, error message = '%s'", MX_MARCCD_HEADER_SIZE,
+			marccd_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Now read in the image data. */
+
+	bytes_read = fread( (*frame)->image_data,
+				image_size_in_bytes, 1,
+				marccd_file );
+
+	fclose(marccd_file);
+
+	if ( bytes_read < image_size_in_bytes ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Short read from MarCCD file '%s'.  We should have read "
+		"%lu bytes from the file, but actually read %lu bytes.",
+			marccd_filename, image_size_in_bytes, bytes_read );
+	}
+
+	/* MarCCD image data is in little-endian order, so if the machine
+	 * we are running on is _not_ little-endian, then we must byteswap
+	 * the image data.
+	 */
+
+	if ( mx_native_byteorder() != MX_DATAFMT_LITTLE_ENDIAN ) {
+		uint16_t *uint16_array;
+		unsigned long i;
+
+		uint16_array = (*frame)->image_data;
+
+		for ( i = 0; i < image_size_in_pixels; i++ ) {
+			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+		}
+	}
+
+	/* Patch the timestamp in the header using the last modification
+	 * time from the 'marccd_stat' structure that we read earlier.
+	 */
+
+	MXIF_TIMESTAMP_SEC(*frame)  = marccd_stat.st_mtime;
+	MXIF_TIMESTAMP_NSEC(*frame) = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }

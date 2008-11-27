@@ -40,6 +40,8 @@ typedef struct {
 
 	char marccd_host[ MXU_HOSTNAME_LENGTH + 1 ];
 	long marccd_port;
+	char remote_filename_prefix[ MXU_FILENAME_LENGTH + 1 ]; 
+	char local_filename_prefix[ MXU_FILENAME_LENGTH + 1 ];
 
 	/* Calculated time for the most recent 'start' command to finish. */
 
@@ -54,7 +56,19 @@ typedef struct {
   \
   {-1, -1, "marccd_port", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARCCD_SERVER_SOCKET, marccd_port), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "remote_filename_prefix", \
+  		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MARCCD_SERVER_SOCKET, remote_filename_prefix), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "local_filename_prefix", \
+  		MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_MARCCD_SERVER_SOCKET, local_filename_prefix), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_marccd_server_socket_initialize_type(
 							long record_type );
@@ -73,6 +87,8 @@ MX_API mx_status_type mxd_marccd_server_socket_get_extended_status(
 MX_API mx_status_type mxd_marccd_server_socket_readout_frame(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_server_socket_correct_frame(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_marccd_server_socket_transfer_frame(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_server_socket_get_parameter(
 							MX_AREA_DETECTOR *ad );

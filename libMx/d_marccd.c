@@ -849,22 +849,14 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-#define MXD_MARCCD_HEADER_SIZE	4096L
-
 MX_EXPORT mx_status_type
 mxd_marccd_transfer_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_transfer_frame()";
 
 	MX_MARCCD *marccd = NULL;
-	FILE *marccd_file;
 	char marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
-	struct stat marccd_stat;
-	int marccd_fd, os_status, saved_errno;
 	size_t dirname_length;
-	unsigned long file_size_in_bytes, image_size_in_bytes;
-	unsigned long image_size_in_pixels, image_width, image_height;
-	unsigned long bytes_read;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_get_pointers( ad, &marccd, fname );
@@ -876,10 +868,17 @@ mxd_marccd_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* We can only handle transferring the image frame. */
 
-	/* We begin by attempting to read in the most recently saved
-	 * MarCCD image.
-	 */
+	if ( ad->transfer_frame != MXFT_AD_IMAGE_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Transferring frame type %lu is not supported for "
+		"MarCCD detector '%s'.  Only the image frame (type 0) "
+		"is supported.  MarCCD calls it the 'raw frame'.",
+			ad->transfer_frame, ad->record->name );
+	}
+
+	/* We attempt to read in the most recently saved MarCCD image. */
 
 	dirname_length = strlen( ad->datafile_directory );
 
@@ -903,128 +902,10 @@ mxd_marccd_transfer_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	/* Try to open the file. */
+	mx_status = mx_image_read_marccd_file( &(ad->image_frame),
+						marccd_filename );
 
-	marccd_file = fopen( marccd_filename, "r" );
-
-	if ( marccd_file == NULL ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-	    "Cannot open MarCCD file '%s'.  Errno = %d, error message = '%s'",
-			marccd_filename, saved_errno, strerror(saved_errno) );
-	}
-
-	/* Find out how big the file is. */
-
-	marccd_fd = fileno(marccd_file);
-
-	os_status = fstat( marccd_fd, &marccd_stat );
-
-	if ( os_status < 0 ) {
-		saved_errno = errno;
-
-		fclose(marccd_file);
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot get the file status for MarCCD file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			marccd_filename, saved_errno, strerror(saved_errno) );
-	}
-
-	file_size_in_bytes = marccd_stat.st_size;
-
-	/* Subtract 4096 bytes for the MarCCD header. */
-
-	image_size_in_bytes = file_size_in_bytes - MXD_MARCCD_HEADER_SIZE;
-
-	image_size_in_pixels = image_size_in_bytes / 2L;
-
-	/* FIXME: _If_ (!) the image is square, we can find the
-	 * image dimensions by taking the square root of the
-	 * image size.  What we should _really_ be doing is to
-	 * fetch the image dimensions from the TIFF header.
-	 */
-
-	image_width = mx_round( sqrt( image_size_in_pixels ) );
-
-	image_height = image_width;
-
-	if ( image_size_in_pixels != ( image_width * image_height ) ) {
-		fclose(marccd_file);
-
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"The computed image dimensions (%lu, %lu) do not match "
-		"the total number of pixels (%lu) in the image '%s' "
-		"for MarCCD detector '%s'.",
-			image_width, image_height,
-			image_size_in_pixels,
-			marccd_filename,
-			ad->record->name );
-	}
-	
-	/* Allocate an MX_IMAGE_FRAME with the right size for the image. */
-
-	ad->framesize[0] = image_width;
-	ad->framesize[1] = image_height;
-
-	ad->bytes_per_frame =
-		mx_round( image_width * image_height * ad->bytes_per_pixel );
-
-	mx_status = mx_image_alloc( &(ad->image_frame),
-				ad->framesize[0],
-				ad->framesize[1],
-				ad->image_format,
-				ad->byte_order,
-				ad->bytes_per_pixel,
-				ad->header_length,
-				ad->bytes_per_frame );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		fclose( marccd_file );
-
-		return mx_status;
-	}
-
-	/* If setting up the image frame worked, then try to read the
-	 * image data into the image_data field of ad->image_frame.
-	 */
-
-	/* First, move the file pointer to the start of image data. */
-
-	os_status = fseek( marccd_file, MXD_MARCCD_HEADER_SIZE, SEEK_SET );
-
-	if ( os_status < 0 ) {
-		saved_errno = errno;
-
-		fclose(marccd_file);
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot seek to %ld bytes from the start of MarCCD file '%s'.  "
-		"Errno = %d, error message = '%s'", MXD_MARCCD_HEADER_SIZE,
-			marccd_filename, saved_errno, strerror(saved_errno) );
-	}
-
-	/* Now read in the image data. */
-
-	bytes_read = fread( ad->image_frame->image_data,
-				ad->bytes_per_frame, 1,
-				marccd_file );
-
-	if ( bytes_read < ad->bytes_per_frame ) {
-		fclose(marccd_file);
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Short read from MarCCD file '%s'.  We should have read "
-		"%lu bytes from the file, but actually read %lu bytes.",
-			marccd_filename, ad->bytes_per_frame, bytes_read );
-	}
-
-	/* Patch the exposure time in the header. */
-
-	/* Patch the timestamp in the header. */
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
