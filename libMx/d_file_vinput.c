@@ -315,8 +315,8 @@ mxd_file_vinput_open( MX_RECORD *record )
 	if ( mx_strcasecmp( "pnm", file_vinput->file_format_name ) == 0 ) {
 		file_vinput->file_format = MXT_IMAGE_FILE_PNM;
 	} else
-	if ( mx_strcasecmp( "tiff", file_vinput->file_format_name ) == 0 ) {
-		file_vinput->file_format = MXT_IMAGE_FILE_TIFF;
+	if ( mx_strcasecmp( "marccd", file_vinput->file_format_name ) == 0 ) {
+		file_vinput->file_format = MXT_IMAGE_FILE_MARCCD;
 	} else
 	if ( mx_strcasecmp( "smv", file_vinput->file_format_name ) == 0 ) {
 		file_vinput->file_format = MXT_IMAGE_FILE_SMV;

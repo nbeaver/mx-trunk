@@ -41,9 +41,12 @@ extern "C" {
 /*---- Datafile format definitions ----*/
 
 #define MXT_IMAGE_FILE_PNM			1
-#define MXT_IMAGE_FILE_TIFF			2
-#define MXT_IMAGE_FILE_SMV			3
-#define MXT_IMAGE_FILE_EDF			4
+
+    /* The following are area detector file formats. */
+
+#define MXT_IMAGE_FILE_SMV			101
+#define MXT_IMAGE_FILE_MARCCD			102
+#define MXT_IMAGE_FILE_EDF			103
 
 #define MXU_IMAGE_SMV_HEADER_LENGTH		512
 
@@ -303,6 +306,11 @@ MX_API mx_status_type mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
+						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_marccd_file( MX_IMAGE_FRAME **frame,
 						char *datafile_name );
 
 /*----*/

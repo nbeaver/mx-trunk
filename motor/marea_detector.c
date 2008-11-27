@@ -226,8 +226,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( strcmp( argv[5], "pnm" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_PNM;
 		} else
-		if ( strcmp( argv[5], "tiff" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_TIFF;
+		if ( strcmp( argv[5], "marccd" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_MARCCD;
 		} else
 		if ( strcmp( argv[5], "smv" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_SMV;
@@ -365,8 +365,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 			datafile_type = MXT_IMAGE_FILE_PNM;
 			strlcpy( filename_ext, "pnm", sizeof(filename_ext) );
 		} else
-		if ( strcmp( argv[4], "tiff" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_TIFF;
+		if ( strcmp( argv[4], "marccd" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_MARCCD;
 			strlcpy( filename_ext, "tiff", sizeof(filename_ext) );
 		} else
 		if ( strcmp( argv[4], "smv" ) == 0 ) {
@@ -695,8 +695,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( strcmp( argv[5], "pnm" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_PNM;
 		} else
-		if ( strcmp( argv[5], "tiff" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_TIFF;
+		if ( strcmp( argv[5], "marccd" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_MARCCD;
 		} else
 		if ( strcmp( argv[5], "smv" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_SMV;

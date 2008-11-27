@@ -113,6 +113,10 @@ mxd_marccd_server_socket_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*-------------------------------------------------------------------------*/
 
+
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_marccd_server_socket_initialize_type( long record_type )
 {

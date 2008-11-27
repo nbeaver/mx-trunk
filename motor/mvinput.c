@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,9 +90,6 @@ motor_vinput_fn( int argc, char *argv[] )
 
 		if ( strcmp( argv[5], "pnm" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_PNM;
-		} else
-		if ( strcmp( argv[5], "tiff" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_TIFF;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",

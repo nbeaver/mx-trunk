@@ -55,12 +55,24 @@ extern "C" {
 
 /* Bit definitions for the 'area_detector_flags' variable. */
 
-#define MXF_AD_GEOM_CORR_AFTER_FLOOD		0x1
-#define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	0x2
-#define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	0x4
+#define MXF_AD_GEOM_CORR_AFTER_FLOOD		   0x1
+#define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   0x2
+#define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   0x4
 
-#define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	0x1000
-#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	0x2000
+#define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   0x1000
+#define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   0x2000
+
+  /* If MX is communicating with a vendor provided external
+   * control system, then "remote frames" are frames that
+   * are loaded in memory belonging to the external control
+   * system.
+   *
+   * For example, if we are controlling MarCCD, the
+   * "remote frame" is the data frame buffer belonging
+   * to the "marccd" program.
+   */
+
+#define MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION 0x4000
 
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.

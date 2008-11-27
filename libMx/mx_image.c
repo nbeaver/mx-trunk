@@ -1745,6 +1745,10 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
 		break;
+	case MXT_IMAGE_FILE_MARCCD:
+		mx_status = mx_image_read_marccd_file( frame_ptr,
+							datafile_name );
+		break;
 	case MXT_IMAGE_FILE_EDF:
 		mx_status = mx_image_read_edf_file( frame_ptr, datafile_name );
 		break;
@@ -2842,6 +2846,37 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+/* Read MarCCD image files. */
+
+/* FIXME: MarCCD images are TIFF images, but for now I do a brute force
+ * read of the image assuming that there is a 4096 byte header followed
+ * by 16-bit image pixels in little endian order.
+ */
+
+mx_status_type
+mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_marccd_file()";
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
