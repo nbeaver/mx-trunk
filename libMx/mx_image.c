@@ -2874,7 +2874,8 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 	int marccd_fd, os_status, saved_errno;
 	unsigned long file_size_in_bytes, image_size_in_bytes;
 	unsigned long image_size_in_pixels, image_width, image_height;
-	unsigned long bytes_read;
+	unsigned long items_read;
+	double sqrt_image_size;
 	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
@@ -2934,7 +2935,18 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 	 * fetch the image dimensions from the TIFF header.
 	 */
 
+	MX_DEBUG(-2,("%s: image_size_in_pixels = %lu",
+		fname, image_size_in_pixels));
+#if 0
 	image_width = mx_round( sqrt( image_size_in_pixels ) );
+#else
+	sqrt_image_size = sqrt( (double) image_size_in_pixels );
+
+	MX_DEBUG(-2,("%s: sqrt_image_size = %f", fname, sqrt_image_size));
+
+	image_width = mx_round( sqrt_image_size );
+#endif
+	MX_DEBUG(-2,("%s: image_width = %lu", fname, image_width));
 
 	image_height = image_width;
 
@@ -2987,17 +2999,16 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 
 	/* Now read in the image data. */
 
-	bytes_read = fread( (*frame)->image_data,
+	items_read = fread( (*frame)->image_data,
 				image_size_in_bytes, 1,
 				marccd_file );
 
 	fclose(marccd_file);
 
-	if ( bytes_read < image_size_in_bytes ) {
+	if ( items_read != 1 ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Short read from MarCCD file '%s'.  We should have read "
-		"%lu bytes from the file, but actually read %lu bytes.",
-			marccd_filename, image_size_in_bytes, bytes_read );
+		"An attempt to read %lu bytes from MarCCD file '%s' failed.",
+			image_size_in_bytes, marccd_filename );
 	}
 
 	/* MarCCD image data is in little-endian order, so if the machine
