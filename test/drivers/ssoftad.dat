@@ -1,1 +1,1 @@
-testscan scan ad_scan_class wedge_scan "" "" 1 1 1 gonio_phi 1 ad 0x0 0 preset_time "1 timer1" none /data/lavender/july/testscan none "" 0 energy 1 9000.0 0 7.5 0.5 11 180
+testscan scan ad_scan_class wedge_scan "" "" 1 1 1 gonio_phi 2 ad shutter 0x0 0 preset_time "1 timer1" none /data/lavender/july/testscan none "" 0 energy 1 9000.0 0 7.5 0.5 11 180
