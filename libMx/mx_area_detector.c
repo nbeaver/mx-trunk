@@ -2750,10 +2750,22 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 	} else {
 		check_for_timeout = TRUE;
 
+		exposure_ticks =
+			mx_convert_seconds_to_clock_ticks( ad->shutter_time );
+
 		current_tick = mx_current_clock_tick();
 
 		finish_tick = mx_add_clock_ticks( current_tick,
 						exposure_ticks );
+#if 0
+		MX_DEBUG(-2,("%s: exposure_ticks = (%lu,%lu)", fname,
+			exposure_ticks.high_order, exposure_ticks.low_order));
+
+		MX_DEBUG(-2,
+		("%s: current_tick = (%lu,%lu), finish_tick = (%lu,%lu)",
+			fname, current_tick.high_order, current_tick.low_order,
+			finish_tick.high_order, finish_tick.low_order));
+#endif
 	}
 
 	/* Wait for the motor to stop moving. */
@@ -2772,8 +2784,8 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 		if ( check_for_timeout ) {
 			current_tick = mx_current_clock_tick();
 
-			comparison = mx_compare_clock_ticks( finish_tick,
-								current_tick );
+			comparison = mx_compare_clock_ticks( current_tick,
+								finish_tick );
 
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
@@ -2824,8 +2836,8 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 		if ( check_for_timeout ) {
 			current_tick = mx_current_clock_tick();
 
-			comparison = mx_compare_clock_ticks( finish_tick,
-								current_tick );
+			comparison = mx_compare_clock_ticks( current_tick,
+								finish_tick );
 
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
@@ -2853,9 +2865,15 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 		if ( check_for_timeout ) {
 			current_tick = mx_current_clock_tick();
 
-			comparison = mx_compare_clock_ticks( finish_tick,
-								current_tick );
-
+			comparison = mx_compare_clock_ticks( current_tick,
+								finish_tick );
+#if 0
+			MX_DEBUG(-2,
+    ("%s: finish_tick = (%lu,%lu), current_tick = (%lu,%lu), comparison = %d",
+			fname, finish_tick.high_order, finish_tick.low_order,
+			current_tick.high_order, current_tick.low_order,
+			comparison));
+#endif
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 				"Timed out after waiting %f seconds for the "

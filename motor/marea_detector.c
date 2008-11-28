@@ -127,7 +127,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 "\n"
 "  area_detector 'name' expose 'motor_name' 'shutter_name' \n"
 "                             'oscillation_distance' 'exposure_time'\n"
-"\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
 "  area_detector 'name' start\n"
