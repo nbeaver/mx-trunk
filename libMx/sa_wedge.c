@@ -400,6 +400,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	MX_AREA_DETECTOR *ad;
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
+	MX_RECORD *shutter_record;
 	double delta, exposure_time;
 	unsigned long ad_status;
 	mx_status_type mx_status;
@@ -409,6 +410,8 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	ad_record = scan->input_device_array[0];
 
 	ad = ad_record->record_class_struct;
+
+	shutter_record = scan->input_device_array[1];
 
 	delta = ad_scan->step_size[0];
 
@@ -422,13 +425,15 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 
 	motor = motor_record->record_class_struct;
 
-	MX_DEBUG(-2,("%s: starting exposure of '%s' for %f seconds "
-	"with oscillation of '%s' for %f %s",
+	MX_DEBUG(-2,("%s: Starting exposure of '%s' for %f seconds "
+	"using shutter '%s' with an oscillation of '%s' for %f %s",
 		fname, ad_record->name, exposure_time,
-		motor_record->name, delta, motor->units ));
+		shutter_record->name, motor_record->name,
+		delta, motor->units ));
 
 	mx_status = mx_area_detector_start_exposure( ad_record,
 						motor_record,
+						shutter_record,
 						delta,
 						exposure_time );
 	if ( mx_status.code != MXE_SUCCESS )

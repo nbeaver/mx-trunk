@@ -63,7 +63,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 	mxd_soft_area_detector_set_parameter,
 	NULL,
 	NULL,
-	mxd_soft_area_detector_start_exposure
+	mx_area_detector_start_unsafe_exposure
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_area_detector_rf_defaults[] = {
@@ -872,87 +872,6 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_soft_area_detector_start_exposure()";
-
-	MX_SOFT_AREA_DETECTOR *soft_area_detector;
-	unsigned long ad_status;
-	char datafile_name[MXU_FILENAME_LENGTH+1];
-	mx_status_type mx_status;
-
-	mx_status = mxd_soft_area_detector_get_pointers( ad,
-						&soft_area_detector, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-	/* WARNING: The following is just for simulation purposes.
-	 * You should not regard it as a good example of implementing
-	 * exposures, since there is absolutely no synchronization.
-	 */
-
-	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
-						ad->oscillation_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_motor_move_relative( ad->oscillation_motor_record,
-						ad->oscillation_distance, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_start( ad->record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_wait_for_motor_stop( ad->oscillation_motor_record, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	for(;;) {
-		mx_status = mx_area_detector_get_status( ad->record,
-							&ad_status );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( ( ad_status & MXSF_AD_IS_BUSY ) == 0 ) {
-			break;		/* Exit the for(;;) loop. */
-		}
-
-		mx_msleep(10);
-	}
-
-	mx_status = mx_area_detector_get_frame( ad->record,
-						-1, &(ad->image_frame) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Write out the image file. */
-
-	snprintf( datafile_name, sizeof(datafile_name), "%s/%s",
-		ad->datafile_directory, ad->datafile_name );
-
-	MX_DEBUG(-2,("%s: Writing image frame '%s'", fname, datafile_name ));
-
-	mx_status = mx_image_write_file( ad->image_frame,
-					MXT_IMAGE_FILE_SMV,
-					datafile_name );
 
 	return mx_status;
 }

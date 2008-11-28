@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@ mx_setup_relay_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_RLY_RELAY_COMMAND:
+		case MXLV_RLY_PULSE_DURATION:
 		case MXLV_RLY_RELAY_STATUS:
 			record_field->process_function
 					    = mx_relay_process_function;
@@ -91,6 +92,12 @@ mx_relay_process_function( void *record_ptr,
 		case MXLV_RLY_RELAY_COMMAND:
 			mx_status = mx_relay_command( record,
 						relay->relay_command );
+			break;
+		case MXLV_RLY_PULSE_DURATION:
+			mx_status = mx_relay_pulse( record,
+						relay->pulse_on_value,
+						relay->pulse_off_value,
+						relay->pulse_duration );
 			break;
 		default:
 			MX_DEBUG( 1,(

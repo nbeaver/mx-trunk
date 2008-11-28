@@ -2085,7 +2085,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 
 				mx_status = mx_digital_output_pulse(
 					aviex_pccd->internal_trigger_record,
-					1, FALSE, 100000 );
+					1, 0, 0.1 );
 				break;
 			case MXT_AD_PCCD_16080:
 #if 0

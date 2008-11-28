@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,8 @@ MX_RECORD_FUNCTION_LIST mxd_network_doutput_record_function_list = {
 MX_DIGITAL_OUTPUT_FUNCTION_LIST
 			mxd_network_doutput_digital_output_function_list = {
 	mxd_network_doutput_read,
-	mxd_network_doutput_write
+	mxd_network_doutput_write,
+	mxd_network_doutput_pulse
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_doutput_record_field_defaults[] = {
@@ -206,6 +207,40 @@ mxd_network_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	value = doutput->value;
 
 	mx_status = mx_put( &(network_doutput->value_nf), MXFT_HEX, &value );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_doutput_pulse( MX_DIGITAL_OUTPUT *doutput )
+{
+	static const char fname[] = "mxd_network_doutput_pulse()";
+
+	MX_NETWORK_DOUTPUT *network_doutput;
+	mx_status_type mx_status;
+
+	network_doutput = NULL;
+
+	mx_status = mxd_network_doutput_get_pointers(
+					doutput, &network_doutput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_doutput->pulse_on_value_nf),
+				MXFT_LONG, &(doutput->pulse_on_value) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_doutput->pulse_off_value_nf),
+				MXFT_LONG, &(doutput->pulse_off_value) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_doutput->pulse_duration_nf),
+				MXFT_DOUBLE, &(doutput->pulse_duration) );
 
 	return mx_status;
 }

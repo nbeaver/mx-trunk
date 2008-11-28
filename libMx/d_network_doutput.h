@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,9 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD pulse_duration_nf;
+	MX_NETWORK_FIELD pulse_on_value_nf;
+	MX_NETWORK_FIELD pulse_off_value_nf;
 	MX_NETWORK_FIELD value_nf;
 } MX_NETWORK_DOUTPUT;
 
@@ -35,6 +38,7 @@ MX_API mx_status_type mxd_network_doutput_finish_record_initialization(
 
 MX_API mx_status_type mxd_network_doutput_read( MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_network_doutput_write( MX_DIGITAL_OUTPUT *doutput );
+MX_API mx_status_type mxd_network_doutput_pulse( MX_DIGITAL_OUTPUT *doutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_doutput_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST

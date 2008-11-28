@@ -61,8 +61,6 @@ MX_API mx_status_type mxd_soft_area_detector_get_parameter(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_set_parameter(
 						MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_soft_area_detector_start_exposure(
-						MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_soft_area_detector_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_ad_function_list;

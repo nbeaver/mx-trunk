@@ -400,11 +400,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.oscillation_distance",
 			network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->oscillation_time_nf),
-			network_area_detector->server_record,
-			"%s.oscillation_time",
-			network_area_detector->remote_record_name );
-
 	mx_network_field_init( &(network_area_detector->readout_frame_nf),
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
@@ -445,6 +440,15 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->shutter_enable_nf),
 		network_area_detector->server_record,
 		"%s.shutter_enable",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->shutter_name_nf),
+		network_area_detector->server_record,
+		"%s.shutter_name", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->shutter_time_nf),
+			network_area_detector->server_record,
+			"%s.shutter_time",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->start_exposure_nf),
@@ -2015,21 +2019,29 @@ mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mx_put_array( &(network_area_detector->shutter_name_nf),
+				MXFT_STRING, 1, dimension, ad->shutter_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_put( &(network_area_detector->oscillation_distance_nf),
 				MXFT_DOUBLE, &(ad->oscillation_distance) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_put( &(network_area_detector->oscillation_time_nf),
-				MXFT_DOUBLE, &(ad->oscillation_time) );
+	mx_status = mx_put( &(network_area_detector->shutter_time_nf),
+				MXFT_DOUBLE, &(ad->shutter_time) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Start the exposure. */
 
-	mx_status = mx_put( &(network_area_detector->oscillation_time_nf),
+	ad->start_exposure = TRUE;
+
+	mx_status = mx_put( &(network_area_detector->start_exposure_nf),
 				MXFT_BOOL, &(ad->start_exposure) );
 
 	return mx_status;

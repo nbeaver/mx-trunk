@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,8 @@
 mx_status_type
 mx_setup_digital_output_process_functions( MX_RECORD *record )
 {
-	static const char fname[] = "mx_setup_digital_output_process_functions()";
+	static const char fname[] =
+		"mx_setup_digital_output_process_functions()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -45,6 +46,7 @@ mx_setup_digital_output_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_DOU_VALUE:
+		case MXLV_DOU_PULSE_DURATION:
 			record_field->process_function
 					= mx_digital_output_process_function;
 			break;
@@ -65,19 +67,19 @@ mx_digital_output_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_DIGITAL_OUTPUT *digital_output;
 	unsigned long value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	digital_output = (MX_DIGITAL_OUTPUT *) (record->record_class_struct);
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_DOU_VALUE:
-			status = mx_digital_output_read(record, &value);
+			mx_status = mx_digital_output_read( record, &value );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -89,8 +91,14 @@ mx_digital_output_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_DOU_VALUE:
-			status = mx_digital_output_write(record,
-							digital_output->value);
+			mx_status = mx_digital_output_write( record,
+							digital_output->value );
+			break;
+		case MXLV_DOU_PULSE_DURATION:
+			mx_status = mx_digital_output_pulse( record,
+						digital_output->pulse_on_value,
+						digital_output->pulse_off_value,
+						digital_output->pulse_duration);
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -104,6 +112,6 @@ mx_digital_output_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

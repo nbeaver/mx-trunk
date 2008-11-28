@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2007 Illinois Institute of Technology
+ * Copyright 2002-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,8 @@ MX_RECORD_FUNCTION_LIST mxd_network_relay_record_function_list = {
 
 MX_RELAY_FUNCTION_LIST mxd_network_relay_relay_function_list = {
 	mxd_network_relay_relay_command,
-	mxd_network_relay_get_relay_status
+	mxd_network_relay_get_relay_status,
+	mxd_network_relay_pulse
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_relay_record_field_defaults[] = {
@@ -57,7 +58,7 @@ mxd_network_relay_get_pointers( MX_RELAY *relay,
 			MX_NETWORK_RELAY **network_relay,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_network_relay_get_pointers()";
+	static const char fname[] = "mxd_network_relay_get_pointers()";
 
 	if ( relay == (MX_RELAY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -87,7 +88,7 @@ mxd_network_relay_get_pointers( MX_RELAY *relay,
 MX_EXPORT mx_status_type
 mxd_network_relay_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_network_relay_create_record_structures()";
+        static const char fname[] = "mxd_network_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_NETWORK_RELAY *network_relay;
@@ -146,6 +147,18 @@ mxd_network_relay_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_network_field_init( &(network_relay->pulse_duration_nf),
+		network_relay->server_record,
+		"%s.pulse_duration", network_relay->remote_record_name );
+
+	mx_network_field_init( &(network_relay->pulse_on_value_nf),
+		network_relay->server_record,
+		"%s.pulse_on_value", network_relay->remote_record_name );
+
+	mx_network_field_init( &(network_relay->pulse_off_value_nf),
+		network_relay->server_record,
+		"%s.pulse_off_value", network_relay->remote_record_name );
+
 	mx_network_field_init( &(network_relay->relay_command_nf),
 		network_relay->server_record,
 		"%s.relay_command", network_relay->remote_record_name );
@@ -160,7 +173,7 @@ mxd_network_relay_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_network_relay_relay_command( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_network_relay_relay_command()";
+	static const char fname[] = "mxd_network_relay_relay_command()";
 
 	MX_NETWORK_RELAY *network_relay;
 	mx_status_type mx_status;
@@ -182,7 +195,7 @@ mxd_network_relay_relay_command( MX_RELAY *relay )
 MX_EXPORT mx_status_type
 mxd_network_relay_get_relay_status( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_network_relay_get_relay_status()";
+	static const char fname[] = "mxd_network_relay_get_relay_status()";
 
 	MX_NETWORK_RELAY *network_relay;
 	long relay_status;
@@ -209,5 +222,39 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_relay_pulse( MX_RELAY *relay )
+{
+	static const char fname[] = "mxd_network_relay_pulse()";
+
+	MX_NETWORK_RELAY *network_relay;
+	mx_status_type mx_status;
+
+	network_relay = NULL;
+
+	mx_status = mxd_network_relay_get_pointers(
+					relay, &network_relay, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_relay->pulse_on_value_nf),
+				MXFT_LONG, &(relay->pulse_on_value) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_relay->pulse_off_value_nf),
+				MXFT_LONG, &(relay->pulse_off_value) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_relay->pulse_duration_nf),
+				MXFT_DOUBLE, &(relay->pulse_duration) );
+
+	return mx_status;
 }
 

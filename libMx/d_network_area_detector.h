@@ -63,7 +63,6 @@ typedef struct {
 	MX_NETWORK_FIELD num_correction_measurements_nf;
 	MX_NETWORK_FIELD oscillation_motor_name_nf;
 	MX_NETWORK_FIELD oscillation_distance_nf;
-	MX_NETWORK_FIELD oscillation_time_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
@@ -73,6 +72,8 @@ typedef struct {
 	MX_NETWORK_FIELD save_frame_nf;
 	MX_NETWORK_FIELD sequence_start_delay_nf;
 	MX_NETWORK_FIELD shutter_enable_nf;
+	MX_NETWORK_FIELD shutter_name_nf;
+	MX_NETWORK_FIELD shutter_time_nf;
 	MX_NETWORK_FIELD start_exposure_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;

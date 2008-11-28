@@ -63,6 +63,9 @@
 #include "mx_memory.h"
 #include "mx_key.h"
 #include "mx_array.h"
+#include "mx_motor.h"
+#include "mx_digital_output.h"
+#include "mx_relay.h"
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_image.h"
@@ -323,12 +326,17 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_management_callback = NULL;
 
 	ad->oscillation_motor_name[0] = '\0';
+	ad->shutter_name[0] = '\0';
+
 	ad->oscillation_distance = 0.0;
-	ad->oscillation_time = 0.0;
+	ad->shutter_time = 0.0;
 	ad->start_exposure = FALSE;
 
 	ad->oscillation_motor_record = NULL;
 	ad->last_oscillation_motor_name[0] = '\0';
+
+	ad->shutter_record = NULL;
+	ad->last_shutter_name[0] = '\0';
 
 	/*-------*/
 
@@ -2646,14 +2654,16 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_start_exposure( MX_RECORD *ad_record,
 				MX_RECORD *motor_record,
+				MX_RECORD *shutter_record,
 				double oscillation_distance,
-				double oscillation_time )
+				double shutter_time )
 {
 	static const char fname[] = "mx_area_detector_start_exposure()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type (*start_exposure)( MX_AREA_DETECTOR * );
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( ad_record,
@@ -2662,12 +2672,18 @@ mx_area_detector_start_exposure( MX_RECORD *ad_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start_exposure = flist->start_exposure;
+	flags = ad->area_detector_flags;
 
-	if ( start_exposure == NULL ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Area detector '%s' does not support crystallographic "
-		"oscillation exposures.", ad_record->name );
+	if ( flags & MXF_AD_USE_UNSAFE_EXPOSURE ) {
+		start_exposure = mx_area_detector_start_unsafe_exposure;
+	} else {
+		start_exposure = flist->start_exposure;
+
+		if ( start_exposure == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Area detector '%s' does not support "
+			"oscillation exposures.", ad_record->name );
+		}
 	}
 
 	ad->oscillation_motor_record = motor_record;
@@ -2675,8 +2691,14 @@ mx_area_detector_start_exposure( MX_RECORD *ad_record,
 	strlcpy( ad->oscillation_motor_name, motor_record->name,
 			sizeof(ad->oscillation_motor_name) );
 
+	ad->shutter_record = shutter_record;
+
+	strlcpy( ad->shutter_name, shutter_record->name,
+			sizeof(ad->shutter_name) );
+
 	ad->oscillation_distance = oscillation_distance;
-	ad->oscillation_time = oscillation_time;
+
+	ad->shutter_time = shutter_time;
 
 	ad->start_exposure = TRUE;
 
@@ -2684,6 +2706,237 @@ mx_area_detector_start_exposure( MX_RECORD *ad_record,
 
 	return mx_status;
 }
+
+MX_EXPORT mx_status_type
+mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
+					double timeout )
+{
+	static const char fname[] = "mx_area_detector_wait_for_exposure_end()";
+
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_DIGITAL_OUTPUT *doutput = NULL;
+	MX_RELAY *relay = NULL;
+	MX_MOTOR *motor = NULL;
+
+	MX_CLOCK_TICK current_tick, finish_tick, exposure_ticks;
+	int comparison;
+	mx_bool_type check_for_timeout, exit_loop;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	motor = ad->oscillation_motor_record->record_class_struct;
+
+	switch( ad->shutter_record->mx_class ) {
+	case MXC_DIGITAL_OUTPUT:
+		doutput = ad->shutter_record->record_class_struct;
+		break;
+	case MXC_RELAY:
+		relay = ad->shutter_record->record_class_struct;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Area detector '%s' shutter record '%s' is not a "
+		"digital output or relay record.",
+			record->name, ad->shutter_record->name );
+		break;
+	}
+
+	if ( timeout < 0.0 ) {
+		check_for_timeout = FALSE;
+	} else {
+		check_for_timeout = TRUE;
+
+		current_tick = mx_current_clock_tick();
+
+		finish_tick = mx_add_clock_ticks( current_tick,
+						exposure_ticks );
+	}
+
+	/* Wait for the motor to stop moving. */
+
+	for(;;) {
+		mx_status = mx_motor_get_status(
+				ad->oscillation_motor_record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			break;		/* Exit the for(;;) loop. */
+		}
+
+		if ( check_for_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( finish_tick,
+								current_tick );
+
+			if ( comparison > 0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %f seconds for the "
+				"oscillation motor to stop moving for "
+				"area detector '%s'.",
+					timeout, record->name );
+			}
+		}
+
+		mx_msleep(10);
+	}
+
+	/* Wait for the shutter to finish its pulse. */
+
+	for(;;) {
+		exit_loop = FALSE;
+
+		switch( ad->shutter_record->mx_class ) {
+		case MXC_DIGITAL_OUTPUT:
+			mx_status = mx_digital_output_read(
+					ad->shutter_record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( doutput->value == doutput->pulse_off_value ) {
+				exit_loop = TRUE;
+			}
+			break;
+		case MXC_RELAY:
+			mx_status = mx_get_relay_status(
+					ad->shutter_record, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( relay->relay_status == relay->pulse_off_value ) {
+				exit_loop = TRUE;
+			}
+			break;
+		}
+
+		if ( exit_loop ) {
+			break;		/* Exit the for(;;) loop. */
+		}
+
+		if ( check_for_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( finish_tick,
+								current_tick );
+
+			if ( comparison > 0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %f seconds for the "
+				"shutter pulse to end for area detector '%s'.",
+					timeout, record->name );
+			}
+		}
+
+		mx_msleep(10);
+	}
+
+	/* Wait for the area detector to finish acquiring its image frame. */
+
+	for(;;) {
+		mx_status = mx_area_detector_get_status( ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ( ad->status & MXSF_AD_IS_BUSY ) == 0 ) {
+			break;		/* Exit the for(;;) loop. */
+		}
+
+		if ( check_for_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( finish_tick,
+								current_tick );
+
+			if ( comparison > 0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %f seconds for the "
+				"exposure to end for area detector '%s'.",
+					timeout, record->name );
+			}
+		}
+
+		mx_msleep(10);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* WARNING: mx_area_detector_start_unsafe_exposure() is just for simulation
+ * purposes.  You should not regard it as a good example of implementing
+ * exposures, since there is absolutely no synchronization.
+ */
+
+MX_EXPORT mx_status_type
+mx_area_detector_start_unsafe_exposure( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_area_detector_start_unsafe_exposure()";
+
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
+						ad->shutter_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ad->oscillation_motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+	    "No oscillation motor has been specified for area detector '%s'.",
+			ad->record->name );
+	}
+
+	if ( ad->shutter_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No shutter has been specified for area detector '%s'.",
+			ad->record->name );
+	}
+
+	mx_status = mx_motor_move_relative( ad->oscillation_motor_record,
+						ad->oscillation_distance, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( ad->shutter_record->mx_class ) {
+	case MXC_DIGITAL_OUTPUT:
+		mx_status = mx_digital_output_pulse( ad->shutter_record,
+						1, 0, ad->shutter_time );
+		break;
+	case MXC_RELAY:
+		mx_status = mx_relay_pulse( ad->shutter_record,
+						1, 0, ad->shutter_time );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Shutter record '%s' for area detector '%s' is not "
+		"a digital output record or a relay record.",
+			ad->shutter_record->name, ad->record->name );
+		break;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_start( ad->record );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_setup_frame( MX_RECORD *record,
