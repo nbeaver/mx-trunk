@@ -179,7 +179,8 @@ mx_digital_output_pulse_wait( MX_RECORD *record,
 			double pulse_duration,
 			mx_bool_type busy_wait )
 {
-	unsigned long pulse_seconds, pulse_microseconds;
+	unsigned long pulse_seconds = 0;
+	unsigned long pulse_microseconds = 0;
 	mx_bool_type use_seconds;
 	mx_status_type mx_status;
 
