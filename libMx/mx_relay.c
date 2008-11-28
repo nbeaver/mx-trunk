@@ -151,8 +151,8 @@ mx_relay_pulse( MX_RECORD *record,
 	pulse_fn = flist->pulse;
 
 	if ( pulse_fn == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"pulse function pointer for record '%s' is NULL.",
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Pulses are not supported for relay '%s'.",
 			record->name );
 	}
 

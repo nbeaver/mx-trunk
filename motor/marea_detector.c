@@ -48,6 +48,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
+	MX_RECORD *record_list, *motor_record, *shutter_record;
+	double oscillation_distance, shutter_time;
 	MX_SEQUENCE_PARAMETERS sp;
 	char *filename, *endptr;
 	char *filename_stem;
@@ -122,6 +124,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' write frame 'file_format' 'filename'\n"
 "  area_detector 'name' write roiframe 'file_format' 'filename'\n"
 "  area_detector 'name' sequence 'file_format' 'filename'\n"
+"\n"
+"  area_detector 'name' expose 'motor_name' 'shutter_name' \n"
+"                             'oscillation_distance' 'exposure_time'\n"
 "\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -641,6 +646,78 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		fprintf( output, "Sequence complete.\n" );
 		fflush( output );
+
+	} else
+	if ( strncmp( "expose", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 8 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'expose' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		record_list = ad_record->list_head;
+
+		motor_record = mx_get_record( record_list, argv[4] );
+
+		if ( motor_record == NULL ) {
+			fprintf( output, "Motor '%s' does not exist.\n", 
+				argv[4] );
+			return FAILURE;
+		}
+
+		if ( motor_record->mx_class != MXC_MOTOR ) {
+			fprintf( output, "Record '%s' is not a motor.\n",
+				argv[4] );
+		}
+
+		shutter_record = mx_get_record( record_list, argv[5] );
+
+		if ( shutter_record == NULL ) {
+			fprintf( output, "Shutter '%s' does not exist.\n", 
+				argv[5] );
+			return FAILURE;
+		}
+
+		switch( shutter_record->mx_class ) {
+		case MXC_DIGITAL_OUTPUT:
+		case MXC_RELAY:
+			break;
+		default:
+			fprintf( output,
+			"Record '%s' is not a digital output or a relay.\n",
+				argv[5] );
+			return FAILURE;
+		}
+
+		oscillation_distance = atof( argv[6] );
+
+		shutter_time = atof( argv[7] );
+
+		mx_status = mx_area_detector_start_exposure( ad_record,
+							motor_record,
+							shutter_record,
+							oscillation_distance,
+							shutter_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_area_detector_wait_for_exposure_end(
+				ad_record, 10.0 * shutter_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_area_detector_get_frame( ad_record,
+						-1, &(ad->image_frame) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 	} else
 	if ( strncmp( "take", argv[3], strlen(argv[3]) ) == 0 ) {
 
