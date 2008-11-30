@@ -7441,6 +7441,142 @@ mx_area_detector_construct_next_datafile_name( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_area_detector_initialize_remote_datafile_number( MX_RECORD *record,
+						char *remote_prefix,
+						char *local_prefix )
+{
+	static const char fname[] =
+		"mx_area_detector_initialize_remote_datafile_number()";
+
+	MX_AREA_DETECTOR *ad;
+	char saved_datafile_directory[2*MXU_FILENAME_LENGTH+20];
+	char remote_datafile_directory[2*MXU_FILENAME_LENGTH+20];
+	char local_datafile_directory[2*MXU_FILENAME_LENGTH+20];
+	char *remote_ptr, *slash_ptr;
+	size_t remote_prefix_length;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, record->name ));
+#endif
+
+	/* If no datafile directory has been specified, then we assume that
+	 * datafiles are to be written to the current directory.
+	 */
+
+	if ( strlen( ad->datafile_directory ) == 0 ) {
+		mx_status =
+		    mx_area_detector_initialize_datafile_number( ad->record );
+
+		return mx_status;
+	}
+
+	/* If the datafile pattern is empty, then set the datafile number
+	 * to zero, since it will not be used.
+	 */
+
+	if ( strlen( ad->datafile_pattern ) == 0 ) {
+		ad->datafile_number = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* The user may have specified the complete path of the datafile
+	 * in ad->datafile_pattern, so we must construct the complete
+	 * datafile directory and pattern in order to successfully 
+	 * strip.
+	 */
+
+	snprintf( remote_datafile_directory, sizeof(remote_datafile_directory),
+		"%s/%s", ad->datafile_directory, ad->datafile_pattern );
+
+	/* Strip off any trailing filename. */
+
+	slash_ptr = strrchr( remote_datafile_directory, '/' );
+
+	if ( slash_ptr != NULL ) {
+		*slash_ptr = '\0';
+	}
+
+	/* If there is no remote prefix, then we can immediately construct
+	 * the local datafile directory name.
+	 */
+
+	if ( remote_prefix == NULL ) {
+		if ( local_prefix != NULL ) {
+			snprintf( local_datafile_directory,
+				sizeof(local_datafile_directory),
+				"%s/%s", local_prefix,
+				remote_datafile_directory );
+		} else {
+			strlcpy( local_datafile_directory,
+				remote_datafile_directory,
+				sizeof(local_datafile_directory) );
+		}
+	} else {
+		/* See if the remote prefix passed to us matches the beginning 
+		 * of the constructed remote datafile directory name.
+		 */
+
+		remote_prefix_length = strlen( remote_prefix );
+
+		if ( strncmp( remote_prefix,
+			remote_datafile_directory,
+			remote_prefix_length ) != 0 )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The remote pathname prefix '%s' specified for "
+			"area detector '%s' does not match the beginning "
+			"of the remote datafile directory name '%s'.",
+				remote_prefix, record->name,
+				remote_datafile_directory );
+		}
+
+		/* Find the first character after the end of the remote prefix.
+		 */
+
+		remote_ptr = remote_datafile_directory + remote_prefix_length;
+		
+		/* Now we can construct the local datafile directory name. */
+
+		snprintf( local_datafile_directory,
+			sizeof(local_datafile_directory),
+			"%s/%s", local_prefix, remote_ptr );
+	}
+
+	/* Save the existing contents of ad->datafile_directory so that
+	 * it can be restored after initializing the datafile number.
+	 */
+
+	strlcpy( saved_datafile_directory, ad->datafile_directory,
+				sizeof(saved_datafile_directory) );
+
+	/* Set the directory name to the local directory name. */
+
+	strlcpy( ad->datafile_directory, local_datafile_directory,
+				MXU_FILENAME_LENGTH );
+
+	/* Now we can finally initialize the datafile number. */
+
+	mx_status = mx_area_detector_initialize_datafile_number( record );
+
+	/* Unconditionally restore the value of ad->datafile_directory
+	 * and then exit.
+	 */
+
+	strlcpy( ad->datafile_directory, saved_datafile_directory,
+				MXU_FILENAME_LENGTH );
+
+	return mx_status;
+}
+
 /*-----------------------------------------------------------------------*/
 
 static mx_status_type

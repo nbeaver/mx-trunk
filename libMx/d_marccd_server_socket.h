@@ -78,6 +78,8 @@ MX_API mx_status_type mxd_marccd_server_socket_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_marccd_server_socket_open( MX_RECORD *record );
 MX_API mx_status_type mxd_marccd_server_socket_close( MX_RECORD *record );
+MX_API mx_status_type mxd_marccd_server_socket_resynchronize(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_server_socket_stop( MX_AREA_DETECTOR *ad );

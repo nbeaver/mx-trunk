@@ -824,6 +824,16 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Return if there is no correction to be performed. */
+
+	mask = MXFT_AD_FLOOD_FIELD_FRAME | MXFT_AD_GEOMETRICAL_CORRECTION;
+
+	if ( ( mask & ad->correction_flags ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Send the 'correct' command. */
+
 	marccd->current_command = MXF_MARCCD_CMD_CORRECT;
 	marccd->next_state = MXF_MARCCD_STATE_CORRECT;
 
@@ -835,9 +845,6 @@ mxd_marccd_correct_frame( MX_AREA_DETECTOR *ad )
 	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION ) {
-
-		mask = MXFT_AD_FLOOD_FIELD_FRAME
-				| MXFT_AD_GEOMETRICAL_CORRECTION;
 
 		/* We save here if there _is_ a correction to be performed. */
 

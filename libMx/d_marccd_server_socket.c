@@ -42,7 +42,9 @@ MX_RECORD_FUNCTION_LIST mxd_marccd_server_socket_record_function_list = {
 	NULL,
 	NULL,
 	mxd_marccd_server_socket_open,
-	mxd_marccd_server_socket_close
+	mxd_marccd_server_socket_close,
+	NULL,
+	mxd_marccd_server_socket_resynchronize
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_server_socket_function_list = {
@@ -113,7 +115,76 @@ mxd_marccd_server_socket_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxd_marccd_server_socket_writefile( MX_AREA_DETECTOR *ad,
+			MX_MARCCD_SERVER_SOCKET *mss,
+			mx_bool_type write_corrected_frame )
+{
+	static const char fname[] = "mxd_marccd_server_socket_writefile()";
 
+	char command[(2*MXU_FILENAME_LENGTH)+20];
+	size_t dirname_length;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+	if ( mss == (MX_MARCCD_SERVER_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MARCCD_SERVER_SOCKET pointer passed was NULL." );
+	}
+
+	mx_status = mx_area_detector_construct_next_datafile_name( ad->record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strlen(ad->datafile_name) == 0 ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"The MarCCD datafile name pattern has not "
+		"been initialized for MarCCD detector '%s'.  "
+		"You can fix this by assigning a value to the MX server "
+		"variable '%s.datafile_pattern'.",
+			ad->record->name, ad->record->name );
+	}
+
+#if MXD_MARCCD_DEBUG
+	MX_DEBUG(-2,("%s: next datafile name = '%s'",
+		fname, ad->datafile_name));
+#endif
+
+	/* Now write the corrected frame. */
+
+	dirname_length = strlen( ad->datafile_directory );
+
+	if ( write_corrected_frame ) {
+		if ( dirname_length > 0 ) {
+			snprintf( command, sizeof(command),
+				"writefile,%s/%s,1",
+					ad->datafile_directory,
+					ad->datafile_name );
+		} else {
+			snprintf( command, sizeof(command),
+				"writefile,%s,1", ad->datafile_name );
+		}
+	} else {
+		if ( dirname_length > 0 ) {
+			snprintf( command, sizeof(command),
+				"writefile,%s/%s,0",
+					ad->datafile_directory,
+					ad->datafile_name );
+		} else {
+			snprintf( command, sizeof(command),
+				"writefile,%s,0", ad->datafile_name );
+		}
+	}
+
+	mx_status = mxd_marccd_server_socket_command( mss,
+					command, NULL, 0, MXD_MARCCD_DEBUG );
+
+	return mx_status;
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -296,6 +367,36 @@ mxd_marccd_server_socket_close( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_marccd_server_socket_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_marccd_server_socket_resynchronize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s invoked for record '%s'.", fname, record->name));
+
+	/* Discard any unread messages from the MarCCD server socket. */
+
+	mx_status = mx_socket_discard_unread_input( mss->marccd_socket );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_marccd_server_socket_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_trigger()";
@@ -448,6 +549,7 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 	char command[40];
 	char response[40];
 	int marccd_state, num_items;
+	unsigned long mask, flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -468,6 +570,22 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 		ad->readout_frame = 0;
 		return mx_status;
 	}
+
+	/* If the datafile_name field is empty, then we assume that no
+	 * files have been acquired yet and attempt to initialize the
+	 * datafile_number based on the contents of the remote directory.
+	 */
+
+	if ( strlen( ad->datafile_name ) == 0 ) {
+		mx_status = mx_area_detector_initialize_remote_datafile_number(
+				ad->record, mss->remote_filename_prefix,
+				mss->local_filename_prefix );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Now tell the detector to read out an image. */
 
 	strlcpy( command, "readout,0", sizeof(command) );
 
@@ -504,7 +622,22 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	flags = ad->area_detector_flags;
+
+	if ( flags & MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION ) {
+
+		mask = MXFT_AD_FLOOD_FIELD_FRAME
+				| MXFT_AD_GEOMETRICAL_CORRECTION;
+
+		/* We save here if no correction is to be performed. */
+
+		if ( ( mask & ad->correction_flags ) == 0 ) {
+			mx_status =
+			  mxd_marccd_server_socket_writefile( ad, mss, FALSE );
+		}
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -516,6 +649,7 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 	char command[40];
 	char response[40];
 	int marccd_state, num_items;
+	unsigned long mask, flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -527,6 +661,15 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Return if there is no correction to be performed. */
+
+	mask = MXFT_AD_FLOOD_FIELD_FRAME | MXFT_AD_GEOMETRICAL_CORRECTION;
+
+	if ( ( mask & ad->correction_flags ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Send the correct command. */
 
 	strlcpy( command, "correct", sizeof(command) );
 
@@ -563,7 +706,19 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	flags = ad->area_detector_flags;
+
+	if ( flags & MXF_AD_SAVE_REMOTE_FRAME_AFTER_ACQUISITION ) {
+
+		/* We save here if there _is_ a correction to be performed. */
+
+		if ( ( mask & ad->correction_flags ) != 0 ) {
+			mx_status =
+			  mxd_marccd_server_socket_writefile( ad, mss, TRUE );
+		}
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

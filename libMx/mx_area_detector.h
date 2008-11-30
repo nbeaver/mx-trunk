@@ -1304,6 +1304,11 @@ MX_API mx_status_type mx_area_detector_initialize_datafile_number(
 MX_API mx_status_type mx_area_detector_construct_next_datafile_name(
 							MX_RECORD *ad_record );
 
+MX_API mx_status_type mx_area_detector_initialize_remote_datafile_number(
+							MX_RECORD *ad_record,
+							char *remote_prefix,
+							char *local_prefix );
+
 /*---*/
 
 MX_API mx_status_type mx_area_detector_setup_datafile_management(
