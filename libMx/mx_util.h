@@ -697,6 +697,12 @@ MX_API mx_status_type mx_get_system_boot_time_from_ticks(
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 
+MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
+						char *old_prefix,
+						char *new_prefix,
+						char *new_filename,
+						size_t max_new_filename_length);
+
 MX_API int mx_process_exists( unsigned long process_id );
 
 MX_API mx_status_type mx_kill_process( unsigned long process_id );

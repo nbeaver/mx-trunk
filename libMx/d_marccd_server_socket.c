@@ -65,7 +65,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_server_socket_function_list = {
 	NULL,
 	mxd_marccd_server_socket_get_parameter,
 	mxd_marccd_server_socket_set_parameter,
-	mx_area_detector_default_measure_correction
+	mxd_marccd_server_socket_measure_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_marccd_server_socket_rf_defaults[] = {
@@ -123,6 +123,7 @@ mxd_marccd_server_socket_writefile( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_marccd_server_socket_writefile()";
 
 	char command[(2*MXU_FILENAME_LENGTH)+20];
+	char response[40];
 	size_t dirname_length;
 	mx_status_type mx_status;
 
@@ -180,8 +181,13 @@ mxd_marccd_server_socket_writefile( MX_AREA_DETECTOR *ad,
 		}
 	}
 
-	mx_status = mxd_marccd_server_socket_command( mss,
-					command, NULL, 0, MXD_MARCCD_DEBUG );
+	/* Send the writefile command.  This call synchronously waits
+	 * until the file is written.
+	 */
+
+	mx_status = mxd_marccd_server_socket_command( mss, command,
+						response, sizeof(response),
+						MXD_MARCCD_DEBUG );
 
 	return mx_status;
 }
@@ -585,7 +591,9 @@ mxd_marccd_server_socket_readout_frame( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
-	/* Now tell the detector to read out an image. */
+	/* Now tell the detector to read out an image.  This call
+	 * synchronously waits until the readout is complete.
+	 */
 
 	strlcpy( command, "readout,0", sizeof(command) );
 
@@ -669,7 +677,9 @@ mxd_marccd_server_socket_correct_frame( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Send the correct command. */
+	/* Send the correction command.  This call synchronously waits
+	 * until the correction is complete.
+	 */
 
 	strlcpy( command, "correct", sizeof(command) );
 
@@ -726,7 +736,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_server_socket_transfer_frame()";
 
-	MX_MARCCD_SERVER_SOCKET *marccd_server_socket = NULL;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
 	size_t dirname_length;
 	char remote_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
 	char local_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
@@ -734,8 +744,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 	unsigned long remote_prefix_length;
 	mx_status_type mx_status;
 
-	mx_status = mxd_marccd_server_socket_get_pointers( ad,
-						&marccd_server_socket, fname );
+	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -791,7 +800,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/* If present, strip off the remote prefix. */
 
-	remote_prefix_ptr = marccd_server_socket->remote_filename_prefix;
+	remote_prefix_ptr = mss->remote_filename_prefix;
 
 	remote_prefix_length = strlen( remote_prefix_ptr );
 
@@ -820,8 +829,7 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 	/* Create the local filename. */
 
 	snprintf( local_marccd_filename, sizeof(local_marccd_filename),
-		"%s/%s", marccd_server_socket->local_filename_prefix,
-		remote_filename_ptr );
+		"%s/%s", mss->local_filename_prefix, remote_filename_ptr );
 
 	/* Now we can read in the MarCCD file. */
 
@@ -867,6 +875,23 @@ mxd_marccd_server_socket_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* Sometimes, marccd_server_socket sends us the string '0'
+		 * instead of the size that we asked for.  If it does this,
+		 * then ask a second time.
+		 */
+
+		if ( strcmp( response, "0" ) == 0 ) {
+			mx_status = mxd_marccd_server_socket_command(
+						mss, "get_size",
+						response, sizeof(response),
+						MXD_MARCCD_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Parse the response that we got back. */
+
 		num_items = sscanf( response, "%lu,%lu",
 				&(ad->framesize[0]), &(ad->framesize[1]) );
 
@@ -889,6 +914,23 @@ mxd_marccd_server_socket_get_parameter( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Sometimes, marccd_server_socket sends us the string '0'
+		 * instead of the binsize that we asked for.  If it does this,
+		 * then ask a second time.
+		 */
+
+		if ( strcmp( response, "0" ) == 0 ) {
+			mx_status = mxd_marccd_server_socket_command(
+						mss, "get_bin",
+						response, sizeof(response),
+						MXD_MARCCD_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Parse the response that we got back. */
 
 		num_items = sscanf( response, "%lu,%lu",
 				&(ad->binsize[0]), &(ad->binsize[1]) );
@@ -929,7 +971,7 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 	/* char response[40]; */
 	mx_status_type mx_status;
 
-	static long allowed_binsize[] = { 1, 2, 4 };
+	static long allowed_binsize[] = { 1, 2, 4, 8 };
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
@@ -1010,7 +1052,39 @@ mxd_marccd_server_socket_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-/* --- */
+MX_EXPORT mx_status_type
+mxd_marccd_server_socket_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+			"mxd_marccd_server_socket_measure_correction()";
+
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
+	/* char saved_datafile_name[MXU_FILENAME_LENGTH+1]; */
+	mx_status_type mx_status;
+
+	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MARCCD_SERVER_SOCKET_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	if ( ad->correction_measurement_type != MXFT_AD_DARK_CURRENT_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Correction measurement type %lu is not supported for "
+		"MarCCD detector '%s'.  Only dark current/background "
+		"(type %d) measurements are supported.",
+			ad->correction_measurement_type,
+			ad->record->name,
+			MXFT_AD_DARK_CURRENT_FRAME );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_marccd_server_socket_command( MX_MARCCD_SERVER_SOCKET *mss,

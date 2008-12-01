@@ -96,6 +96,8 @@ MX_API mx_status_type mxd_marccd_server_socket_get_parameter(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_marccd_server_socket_set_parameter(
 							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_marccd_server_socket_measure_correction(
+							MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mxd_marccd_server_socket_command(
 					MX_MARCCD_SERVER_SOCKET *mss,

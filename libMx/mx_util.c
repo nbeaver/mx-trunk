@@ -495,6 +495,110 @@ mx_get_current_directory_name( char *filename_buffer,
 
 /*-------------------------------------------------------------------------*/
 
+/* mx_change_filename_prefix() is intended for use in cases where a given
+ * system can access a file under two different names and it is necessary
+ * to convert between the two names.  For example, suppose that a client
+ * program running on host 'ad_client' is communicating with an area
+ * detector server running on host 'ad_server'.  Also suppose, that area
+ * detector images are saved on 'ad_server' in the directory /data/lavender
+ * which is NFS or SMB exported to 'ad_client' as /mnt/ad_server/lavender.
+ * In this case, mx_change_filename_prefix() can be used to strip off the
+ * leading /data string at the start of the filename and replace it with
+ * /mnt/ad_server or vice versa.
+ */
+
+MX_EXPORT mx_status_type
+mx_change_filename_prefix( char *old_filename,
+			char *old_filename_prefix,
+			char *new_filename_prefix,
+			char *new_filename,
+			size_t max_new_filename_length )
+{
+	static const char fname[] = "mx_change_filename_prefix()";
+
+	char *old_filename_ptr;
+	size_t old_prefix_length, new_prefix_length;
+	char end_char;
+
+	if ( old_filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The old_filename pointer passed was NULL." );
+	}
+	if ( new_filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The new_filename pointer passed was NULL." );
+	}
+
+	/* If present, strip off the old prefix. */
+
+	if ( old_filename_prefix == NULL ) {
+		old_filename_ptr = old_filename;
+	} else {
+		old_prefix_length = strlen(old_filename_prefix);
+
+		if ( old_prefix_length == 0 ) {
+			old_filename_ptr = old_filename;
+		} else {
+			/* Does the old prefix match the start of the
+			 * old filename?
+			 */
+
+			if ( strncmp( old_filename_prefix, old_filename,
+					old_prefix_length ) != 0 )
+			{
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The old filename prefix '%s' does not match "
+				"the start of the old filename '%s'.",
+					old_filename_prefix,
+					old_filename );
+			} else {
+				old_filename_ptr =
+					old_filename + old_prefix_length;
+			}
+		}
+	}
+
+	/* Now create the new filename. */
+
+	if ( new_filename_prefix == NULL ) {
+		strlcpy( new_filename, old_filename_ptr, sizeof(new_filename) );
+	} else {
+		new_prefix_length = strlen(new_filename_prefix);
+
+		if ( new_prefix_length == 0 ) {
+			strlcpy( new_filename, old_filename_ptr,
+					sizeof(new_filename) );
+		} else {
+			/* Does the new prefix have a path separator '/'
+			 * at the end of the filename?
+			 */
+
+			end_char = new_filename_prefix[ new_prefix_length - 1 ];
+
+			if (end_char == '/') {
+				/* If the filename already contains a path
+				 * separator, then we can just concatenate
+				 * the strings as is.
+				 */
+
+				snprintf( new_filename, max_new_filename_length,
+					"%s%s", new_filename_prefix,
+					old_filename_ptr );
+			} else {
+				/* Otherwise, we must insert a path separator.*/
+
+				snprintf( new_filename, max_new_filename_length,
+					"%s/%s", new_filename_prefix,
+					old_filename_ptr );
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #if defined( OS_UNIX )
 
 MX_EXPORT int

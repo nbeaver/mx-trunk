@@ -182,11 +182,6 @@ mxd_marccd_monitor_thread( MX_THREAD *thread, void *args )
 		if ( input_available ) {
 			mx_status = mxd_marccd_handle_response( ad,
 						marccd, MXD_MARCCD_DEBUG );
-
-#if 0
-			mx_status = mxd_marccd_handle_state_value( ad, marccd,
-							marccd->current_state );
-#endif
 		}
 
 		mx_usleep( sleep_us );
@@ -264,6 +259,63 @@ mxd_marccd_find_file_descriptors( MX_MARCCD *marccd )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
+mxd_marccd_wait_for_idle( MX_MARCCD *marccd, double timeout )
+{
+	static const char fname[] = "mxd_marccd_wait_for_idle()";
+
+	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
+	int comparison;
+	mx_bool_type exit_loop;
+
+	timeout_in_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+
+	current_tick = mx_current_clock_tick();
+
+	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+
+	exit_loop = FALSE;
+
+	while(1) {
+		switch( marccd->current_state ) {
+		case MXF_MARCCD_STATE_IDLE:
+			exit_loop = TRUE;
+			break;
+
+		case MXF_MARCCD_STATE_ERROR:
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+				"The most recent command sent to MarCCD "
+				"detector '%s' failed with an error.",
+				marccd->record->name );
+			break;
+
+		default:	/* MarCCD is busy doing something. */
+			break;
+		}
+
+		if ( exit_loop ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
+
+		if ( comparison >= 0 ) {
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after waiting %f seconds for MarCCD "
+			"detector '%s' to become idle.",
+				timeout, marccd->record->name );
+		}
+
+		mx_msleep(10);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
 mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 			MX_MARCCD *marccd,
 			mx_bool_type write_corrected_frame )
@@ -271,10 +323,8 @@ mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_marccd_writefile()";
 
 	char command[(2*MXU_FILENAME_LENGTH)+20];
-	unsigned long i, max_attempts, wait_ms;
 	double timeout;
 	size_t dirname_length;
-	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -304,54 +354,14 @@ mxd_marccd_writefile( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s: next datafile name = '%s'",
 		fname, ad->datafile_name));
 #endif
-	/* If the area detector is busy, wait for it to stop being busy. */
+	/* Wait for the area detector to become idle. */
 
-	max_attempts = 5;
-	wait_ms = 1000;
+	timeout = 5.0;		/* in seconds */
 
-	exit_loop = FALSE;
+	mx_status = mxd_marccd_wait_for_idle( marccd, timeout );
 
-	for ( i = 0; i < max_attempts; i++ ) {
-
-#if MXD_MARCCD_DEBUG
-		MX_DEBUG(-2,("%s: marccd->current_state = %d",
-			fname, marccd->current_state));
-#endif
-
-		switch( marccd->current_state ) {
-		case MXF_MARCCD_STATE_IDLE:
-			exit_loop = TRUE;
-			break;
-
-		case MXF_MARCCD_STATE_ERROR:
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"An error occurred while MarCCD detector '%s' "
-			"was executing a '%s' command.", ad->record->name,
-			mxd_marccd_get_command_name(marccd->current_command) );
-
-			break;
-		default:
-			/* MarCCD is busy doing something. */
-			break;
-		}
-
-		if ( exit_loop ) {
-			break;		/* Exit the for() loop. */
-		}
-
-		mx_msleep( wait_ms );
-	}
-
-	if ( i >= max_attempts ) {
-		timeout = max_attempts * 0.001 * (double) wait_ms;
-
-		return mx_error( MXE_TIMED_OUT, fname,
-		"Timed out after waiting %f seconds for MarCCD detector '%s' "
-		"to complete a '%s' command.  MarCCD was in state '%s'.",
-			timeout, ad->record->name,
-			mxd_marccd_get_command_name( marccd->current_command ),
-			mxd_marccd_get_state_name( marccd->current_state ) );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now write the corrected frame. */
 
@@ -979,7 +989,7 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 	char command[40];
 	mx_status_type mx_status;
 
-	static long allowed_binsize_array[] = { 1, 2, 4 };
+	static long allowed_binsize_array[] = { 1, 2, 4, 8 };
 
 	static int num_allowed_binsizes = sizeof(allowed_binsize_array)
 					/ sizeof(allowed_binsize_array[0]);
@@ -1062,7 +1072,7 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-/* --- */
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_marccd_command( MX_MARCCD *marccd,
