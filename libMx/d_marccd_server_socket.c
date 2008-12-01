@@ -740,8 +740,6 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 	size_t dirname_length;
 	char remote_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
 	char local_marccd_filename[(2*MXU_FILENAME_LENGTH) + 20];
-	char *remote_filename_ptr, *remote_prefix_ptr;
-	unsigned long remote_prefix_length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_marccd_server_socket_get_pointers( ad, &mss, fname );
@@ -798,38 +796,14 @@ mxd_marccd_server_socket_transfer_frame( MX_AREA_DETECTOR *ad )
 	 * with the local prefix.
 	 */
 
-	/* If present, strip off the remote prefix. */
+	mx_status = mx_change_filename_prefix( remote_marccd_filename,
+						mss->remote_filename_prefix,
+						mss->local_filename_prefix,
+						local_marccd_filename,
+						sizeof(local_marccd_filename) );
 
-	remote_prefix_ptr = mss->remote_filename_prefix;
-
-	remote_prefix_length = strlen( remote_prefix_ptr );
-
-	if ( remote_prefix_length == 0 ) {
-		remote_filename_ptr = remote_marccd_filename;
-	} else {
-		/* See if the remote prefix matches the start of the
-		 * remote filename.
-		 */
-
-		if ( strncmp( remote_prefix_ptr, remote_marccd_filename,
-				remote_prefix_length ) != 0 )
-		{
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The remote prefix '%s' for MarCCD detector '%s' "
-			"does not match the beginning of the remote "
-			"MarCCD filename '%s'.",
-				remote_prefix_ptr, ad->record->name,
-				remote_marccd_filename );
-		} else {
-			remote_filename_ptr =
-				remote_marccd_filename + remote_prefix_length;
-		}
-	}
-
-	/* Create the local filename. */
-
-	snprintf( local_marccd_filename, sizeof(local_marccd_filename),
-		"%s/%s", mss->local_filename_prefix, remote_filename_ptr );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now we can read in the MarCCD file. */
 

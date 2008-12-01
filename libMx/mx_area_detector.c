@@ -7453,8 +7453,7 @@ mx_area_detector_initialize_remote_datafile_number( MX_RECORD *record,
 	char saved_datafile_directory[2*MXU_FILENAME_LENGTH+20];
 	char remote_datafile_directory[2*MXU_FILENAME_LENGTH+20];
 	char local_datafile_directory[2*MXU_FILENAME_LENGTH+20];
-	char *remote_ptr, *slash_ptr;
-	size_t remote_prefix_length;
+	char *slash_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
@@ -7505,51 +7504,18 @@ mx_area_detector_initialize_remote_datafile_number( MX_RECORD *record,
 		*slash_ptr = '\0';
 	}
 
-	/* If there is no remote prefix, then we can immediately construct
-	 * the local datafile directory name.
+	/* Construct a local datafile directory name from the remote
+	 * datafile directory name using the remote and local prefixes.
 	 */
 
-	if ( remote_prefix == NULL ) {
-		if ( local_prefix != NULL ) {
-			snprintf( local_datafile_directory,
-				sizeof(local_datafile_directory),
-				"%s/%s", local_prefix,
-				remote_datafile_directory );
-		} else {
-			strlcpy( local_datafile_directory,
-				remote_datafile_directory,
-				sizeof(local_datafile_directory) );
-		}
-	} else {
-		/* See if the remote prefix passed to us matches the beginning 
-		 * of the constructed remote datafile directory name.
-		 */
+	mx_status = mx_change_filename_prefix( remote_datafile_directory,
+						remote_prefix,
+						local_prefix,
+						local_datafile_directory,
+					    sizeof(local_datafile_directory) );
 
-		remote_prefix_length = strlen( remote_prefix );
-
-		if ( strncmp( remote_prefix,
-			remote_datafile_directory,
-			remote_prefix_length ) != 0 )
-		{
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The remote pathname prefix '%s' specified for "
-			"area detector '%s' does not match the beginning "
-			"of the remote datafile directory name '%s'.",
-				remote_prefix, record->name,
-				remote_datafile_directory );
-		}
-
-		/* Find the first character after the end of the remote prefix.
-		 */
-
-		remote_ptr = remote_datafile_directory + remote_prefix_length;
-		
-		/* Now we can construct the local datafile directory name. */
-
-		snprintf( local_datafile_directory,
-			sizeof(local_datafile_directory),
-			"%s/%s", local_prefix, remote_ptr );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Save the existing contents of ad->datafile_directory so that
 	 * it can be restored after initializing the datafile number.

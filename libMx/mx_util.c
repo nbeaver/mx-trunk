@@ -594,6 +594,15 @@ mx_change_filename_prefix( char *old_filename,
 		}
 	}
 
+#if 1
+	MX_DEBUG(-2,("%s: old_filename = '%s'", fname, old_filename));
+	MX_DEBUG(-2,("%s: old_filename_prefix = '%s'",
+					fname, old_filename_prefix));
+	MX_DEBUG(-2,("%s: new_filename_prefix = '%s'",
+					fname, new_filename_prefix));
+	MX_DEBUG(-2,("%s: new_filename = '%s'", fname, new_filename));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
