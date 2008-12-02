@@ -19,6 +19,8 @@
 
 #define MX_IMAGE_DEBUG_REBIN	FALSE
 
+#define MX_IMAGE_DEBUG_MARCCD	TRUE
+
 #define MX_IMAGE_TEST_DEZINGER	FALSE
 
 #include <stdio.h>
@@ -2887,9 +2889,9 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 		"The marccd_filename pointer passed was NULL." );
 	}
 
-#if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
-		fname, datafile_name));
+#if MX_IMAGE_DEBUG_MARCCD
+	MX_DEBUG(-2,("%s invoked for MarCCD file '%s'.",
+		fname, marccd_filename));
 #endif
 
 	/* Try to open the file. */
@@ -2935,20 +2937,21 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 	 * fetch the image dimensions from the TIFF header.
 	 */
 
+#if MX_IMAGE_DEBUG_MARCCD
 	MX_DEBUG(-2,("%s: image_size_in_pixels = %lu",
 		fname, image_size_in_pixels));
-#if 0
-	image_width = mx_round( sqrt( image_size_in_pixels ) );
-#else
+#endif
+
 	sqrt_image_size = sqrt( (double) image_size_in_pixels );
 
-	MX_DEBUG(-2,("%s: sqrt_image_size = %f", fname, sqrt_image_size));
-
 	image_width = mx_round( sqrt_image_size );
-#endif
-	MX_DEBUG(-2,("%s: image_width = %lu", fname, image_width));
 
 	image_height = image_width;
+
+#if MX_IMAGE_DEBUG_MARCCD
+	MX_DEBUG(-2,("%s: image dimensions = (%lu,%lu)",
+		fname, image_width, image_height));
+#endif
 
 	if ( image_size_in_pixels != ( image_width * image_height ) ) {
 		fclose(marccd_file);
@@ -3033,6 +3036,10 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 
 	MXIF_TIMESTAMP_SEC(*frame)  = marccd_stat.st_mtime;
 	MXIF_TIMESTAMP_NSEC(*frame) = 0;
+
+#if MX_IMAGE_DEBUG_MARCCD
+	MX_DEBUG(-2,("%s complete.",fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

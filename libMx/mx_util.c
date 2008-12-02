@@ -558,6 +558,12 @@ mx_change_filename_prefix( char *old_filename,
 		}
 	}
 
+	/* Skip over any leading '/' character. */
+
+	if ( *old_filename_ptr == '/' ) {
+		old_filename_ptr++;
+	}
+
 	/* Now create the new filename. */
 
 	if ( new_filename_prefix == NULL ) {
