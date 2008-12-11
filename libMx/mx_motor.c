@@ -918,7 +918,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 
 			/* Did someone hit a key? */
 
-			interrupt = mx_user_requested_interrupt();
+			interrupt = mx_user_requested_interrupt_or_pause();
 
 			switch( interrupt ) {
 			case MXF_USER_INT_NONE:
@@ -1068,7 +1068,8 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 			if ( ignore_keyboard == FALSE ) {
 				/* Did someone hit a key? */
 
-				interrupt = mx_user_requested_interrupt();
+				interrupt =
+					mx_user_requested_interrupt_or_pause();
 
 				switch( interrupt ) {
 				case MXF_USER_INT_NONE:

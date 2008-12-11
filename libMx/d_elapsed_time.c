@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007 Illinois Institute of Technology
+ * Copyright 1999-2003, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -345,7 +345,7 @@ mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 			time_since_reset = current_time
 				- elapsed_time_motor->time_of_last_reset;
 
-			interrupt = mx_user_requested_interrupt();
+			interrupt = mx_user_requested_interrupt_or_pause();
 
 			if ( interrupt == MXF_USER_INT_ABORT ) {
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2007 Illinois Institute of Technology
+ * Copyright 2001, 2007-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@ mxph_topup_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 			MX_TOPUP_MEASUREMENT_PERMIT **topup_permit_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxph_topup_get_pointers()";
+	static const char fname[] = "mxph_topup_get_pointers()";
 
 	if ( permit_handler == (MX_MEASUREMENT_PERMIT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -69,7 +69,7 @@ mxph_topup_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 				void *permit_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxph_topup_create_handler()";
+	static const char fname[] = "mxph_topup_create_handler()";
 
 	MX_MEASUREMENT_PERMIT_DRIVER *permit_driver;
 	MX_MEASUREMENT_PERMIT *permit_handler_ptr;
@@ -178,7 +178,7 @@ mxph_topup_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 MX_EXPORT mx_status_type
 mxph_topup_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_topup_destroy_handler()";
+	static const char fname[] = "mxph_topup_destroy_handler()";
 
 	MX_TOPUP_MEASUREMENT_PERMIT *topup_permit_struct;
 	mx_status_type mx_status;
@@ -209,7 +209,7 @@ mxph_topup_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 MX_EXPORT mx_status_type
 mxph_topup_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_topup_check_for_permission()";
+	static const char fname[] = "mxph_topup_check_for_permission()";
 
 	MX_TOPUP_MEASUREMENT_PERMIT *topup_permit_struct;
 	MX_RECORD *topup_time_to_inject_record;

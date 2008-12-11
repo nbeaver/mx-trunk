@@ -559,6 +559,7 @@ MX_API void mx_debug_pause( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 #define MXF_USER_INT_ERROR	(-1)
 
 MX_API int  mx_user_requested_interrupt( void );
+MX_API int  mx_user_requested_interrupt_or_pause( void );
 MX_API void mx_set_user_interrupt_function( int (*)( void ) );
 MX_API int  mx_default_user_interrupt_function( void );
 

@@ -1611,7 +1611,7 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 
 		MX_DEBUG( 2,("%s: beginning of fault_occurred loop.", fname ));
 
-		interrupt = mx_user_requested_interrupt();
+		interrupt = mx_user_requested_interrupt_or_pause();
 
 		switch ( interrupt ) {
 		case MXF_USER_INT_NONE:

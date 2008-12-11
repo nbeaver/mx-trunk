@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,21 @@ static int ( *mx_user_interrupt_function )( void )
 MX_EXPORT int
 mx_user_requested_interrupt( void )
 {
-	const char fname[] = "mx_user_requested_interrupt()";
+	int user_interrupt;
+
+	user_interrupt = mx_user_requested_interrupt_or_pause();
+
+	if ( user_interrupt == MXF_USER_INT_PAUSE ) {
+		user_interrupt = MXF_USER_INT_NONE;
+	}
+
+	return user_interrupt;
+}
+
+MX_EXPORT int
+mx_user_requested_interrupt_or_pause( void )
+{
+	static const char fname[] = "mx_user_requested_interrupt_or_pause()";
 
 	int user_interrupt;
 
