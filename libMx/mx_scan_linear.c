@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST	TRUE
+#define DEBUG_PAUSE_REQUEST	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -855,13 +855,14 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 					unsigned long ),
 				mx_bool_type start_fast_mode )
 {
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 	static const char fname[] = "mxs_linear_scan_do_normal_scan()";
 #endif
 	long i;
+	mx_bool_type exit_loop = FALSE;
 	mx_status_type mx_status;
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 	if ( scan->num_motors > 0 ) {
@@ -883,24 +884,56 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		do {		/** Pause/abort retry loop. **/
+		/********** Start of pause/abort retry loop #1. **********/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
 
 			/* Move to the computed motor positions. */
 
 			mx_status = mxs_linear_scan_move_absolute(
 				scan, linear_scan, move_special_fptr );
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 			MX_DEBUG(-2,
 			("%s: mxs_linear_scan_move_absolute(), mx_status = %ld",
 				fname, mx_status.code));
 #endif
 
-			if ( ( mx_status.code != MXE_SUCCESS )
-			  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
-			{
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
 				return mx_status;
 			}
+
+		}
+
+		/********** End of pause/abort retry loop #1. **********/
+
+		/********** Start of pause/abort retry loop #2. **********/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
 
 			/* Wait for the move to complete. */
 
@@ -908,59 +941,83 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 				scan->num_motors,
 				scan->motor_record_array,
 				MXF_MTR_SCAN_IN_PROGRESS );
-
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 			MX_DEBUG(-2,
 			("%s: mx_wait_for_motor_array_stop(), mx_status = %ld",
 				fname, mx_status.code));
 #endif
 
-			if ( ( mx_status.code != MXE_SUCCESS )
-			  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
-			{
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
 				return mx_status;
 			}
 
+		}
+
+		/********** End of pause/abort retry loop #2. **********/
+
+		/********** Start of pause/abort retry loop #3. **********/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
 			/* Perform the measurement. */
 
-			if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
+			mx_status = mx_scan_acquire_and_readout_data( scan );
 
-			    mx_status =
-			       mx_scan_acquire_and_readout_data( scan );
-
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,
 		("%s: mx_scan_acquire_and_readout_data(), mx_status = %ld",
 					fname, mx_status.code));
 #endif
 
-				if ( ( mx_status.code != MXE_SUCCESS )
-				  && ( mx_status.code !=
-						MXE_PAUSE_REQUESTED ) )
-				{
-					return mx_status;
-				}
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
 			}
 
-			/* If a pause has not been requested by the
-			 * user, exit the pause/abort retry loop.
-			 */
-
-			if ( mx_status.code == MXE_SUCCESS ) {
-				break;   /* Exit the do..while loop */
-			}
-
-			/* If we get here, the most recent status
-			 * code was MXE_PAUSE_REQUESTED, so invoke
-			 * a function to handle the pause request.
-			 */
-
-			mx_status = mx_scan_handle_pause_request(scan);
-
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
 				return mx_status;
+			}
 
-		} while (1);	/** End of pause/abort retry loop. **/
+		}
+
+		/********** End of pause/abort retry loop #3. **********/
 
 		/* If alternate X axis motors have been specified,
 		 * get and save their current positions for use
@@ -1054,14 +1111,15 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 					unsigned long ),
 				mx_bool_type start_fast_mode )
 {
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 	static const char fname[] = "mxs_linear_scan_do_early_move_scan()";
 #endif
 
 	long i;
+	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
@@ -1091,7 +1149,11 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 
 	for ( i = 0; i < num_dimension_steps; i++ ) {
 
-		do {		/** Pause/abort retry loop #1. **/
+		/********** Start of pause/abort retry loop #1. **********/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
 
 			/* Wait for the motors to get to the next position. */
 
@@ -1099,48 +1161,38 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 						scan->num_motors,
 						scan->motor_record_array,
 						MXF_MTR_SCAN_IN_PROGRESS );
-
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 			MX_DEBUG(-2,
 			("%s: mx_wait_for_motor_array_stop(), mx_status = %ld",
 				fname, mx_status.code));
 #endif
-			/* If the move completed successfully, then
-			 * exit the pause/abort retry loop.
-			 */
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
 
-			if ( mx_status.code == MXE_SUCCESS ) {
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
 				break;
 			}
 
-			/* If something other than a pause request
-			 * was returned, then return the error to
-			 * the caller.
-			 */
-
-			if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
-
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
 				MX_DEBUG(-2,("%s: Aborting on error code %ld",
 					fname, mx_status.code));
 #endif
 				return mx_status;
 			}
 
-			/* If we get here, a pause was requested, so 
-			 * handle the pause request.
-			 */
+		}
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
-			MX_DEBUG(-2,("%s: PAUSE #1", fname));
-#endif
-
-			mx_status = mx_scan_handle_pause_request( scan );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-		} while (1);	/** End of pause/abort retry loop #1. **/
+		/********** End of pause/abort retry loop #1. **********/
 
 		/* If alternate X axis motors have been specified,
 		 * get and save their current positions for use
@@ -1152,53 +1204,48 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		do {		/** Pause/abort retry loop #2. **/
+		/********** Start of pause/abort retry loop #2. **********/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
 
 			/* Acquire data for the current measurement. */
 
 			mx_status = mx_scan_acquire_data( scan );
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST
 			MX_DEBUG(-2,
 			("%s: mx_scan_acquire_data(), mx_status = %ld",
 				fname, mx_status.code));
 #endif
-			/* If the data were acquired successfully, then
-			 * exit the pause/abort retry loop.
-			 */
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
 
-			if ( mx_status.code == MXE_SUCCESS ) {
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: PAUSE #2", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
 				break;
 			}
 
-			/* If something other than a pause request
-			 * was returned, then return the error to
-			 * the caller.
-			 */
-
-			if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
-
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
 				MX_DEBUG(-2,("%s: Aborting on error code %ld",
 					fname, mx_status.code));
 #endif
 				return mx_status;
 			}
 
-			/* If we get here, a pause was requested, so 
-			 * handle the pause request.
-			 */
+		}
 
-#if MX_SCAN_LINEAR_DEBUG_PAUSE_REQUEST
-			MX_DEBUG(-2,("%s: PAUSE #2", fname));
-#endif
-
-			mx_status = mx_scan_handle_pause_request( scan );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-		} while (1);	/** End of pause/abort retry loop #2. **/
+		/********** End of pause/abort retry loop #2. **********/
 
 		/* If this is not the last step of the scan level, then
 		 * start the move to the next step position.  We do not
@@ -1217,13 +1264,53 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			/* Start the move to the computed motor positions. */
+			/******** Start of pause/abort retry loop #3. ********/
 
-			mx_status = mxs_linear_scan_move_absolute(
+			exit_loop = FALSE;
+
+			while (exit_loop == FALSE) {
+
+				/* Start the move to the computed
+				 * motor positions.
+				 */
+
+				mx_status = mxs_linear_scan_move_absolute(
 					scan, linear_scan, move_special_fptr );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+			("%s: mxs_linear_scan_move_absolute(), mx_status = %ld",
+					fname, mx_status.code));
+#endif
+				switch( mx_status.code ) {
+				case MXE_SUCCESS:
+					exit_loop = TRUE;
+					break;
+
+				case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: PAUSE #2", fname));
+#endif
+					mx_status =
+					    mx_scan_handle_pause_request(scan);
+					break;
+
+				default:
+					break;
+				}
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+					MX_DEBUG(-2,
+					("%s: Aborting on error code %ld",
+						fname, mx_status.code));
+#endif
+					return mx_status;
+				}
+
+			}
+
+			/******** End of pause/abort retry loop #3. ********/
 		} else {
 			/* If this _is_ the last step of the scan level, tell
 			 * the scan to update all of the 'old_destination"
