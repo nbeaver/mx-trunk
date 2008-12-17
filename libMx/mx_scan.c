@@ -1871,9 +1871,10 @@ mx_scan_handle_pause_request( MX_SCAN *scan )
 	case MXE_SUCCESS:
 		mx_info("Retrying the last scan step.");
 
-		mx_status = mx_wait_for_motor_array_stop(
-				scan->num_motors, scan->motor_record_array,
-			( MXF_MTR_SCAN_IN_PROGRESS | MXF_MTR_IGNORE_PAUSE ) );
+		/* Pass control back to the caller so that the caller
+		 * can recover from the pause.
+		 */
+
 		break;
 	case MXE_STOP_REQUESTED:
 		mx_info( "Waiting for the motors to stop moving.");

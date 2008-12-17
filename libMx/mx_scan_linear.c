@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_PAUSE_REQUEST	TRUE
+#define DEBUG_PAUSE_REQUEST	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,9 +43,37 @@ MX_SCAN_FUNCTION_LIST mxs_linear_scan_scan_function_list = {
 	mxs_linear_scan_cleanup_after_scan_end
 };
 
-/* Prototype an internal use only function. */
+/*-----------------------------------------------------------------------*/
 
-static mx_status_type
+/* If pause request debugging is on, we will be displaying stack traces.
+ * If so, we expand MXS_STATIC to an empty string, so that we can see the
+ * names of such functions in stack tracebacks.  Under normal conditions,
+ * we expand MXS_STATIC to 'static' so that external functions cannot 
+ * directly invoke such functions.
+ */
+
+#if DEBUG_PAUSE_REQUEST
+#  define MXS_STATIC
+#else
+#  define MXS_STATIC	static
+#endif
+
+/*-----------------------------------------------------------------------*/
+
+/* Prototype internal use only functions. */
+
+MXS_STATIC mx_status_type
+mxs_linear_scan_move_absolute(
+	MX_SCAN *scan,
+	MX_LINEAR_SCAN *linear_scan,
+	mx_status_type (*move_special_fptr)
+				( MX_SCAN *, MX_LINEAR_SCAN *,
+				long, MX_RECORD **, double *,
+				MX_MOTOR_MOVE_REPORT_FUNCTION,
+				unsigned long )
+	);
+
+MXS_STATIC mx_status_type
 mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		MX_LINEAR_SCAN *linear_scan,
 		long dimension_level,
@@ -58,7 +86,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					unsigned long)
 		);
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
 				long array_index,
@@ -72,7 +100,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 					unsigned long ),
 				mx_bool_type start_fast_mode );
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
 				long array_index,
@@ -684,7 +712,7 @@ mxs_linear_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	return mx_standard_cleanup_after_scan_end( scan );
 }
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_move_absolute(
 	MX_SCAN *scan,
 	MX_LINEAR_SCAN *linear_scan,
@@ -733,7 +761,7 @@ mxs_linear_scan_move_absolute(
 	return mx_status;
 }
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		MX_LINEAR_SCAN *linear_scan,
 		long dimension_level,
@@ -841,7 +869,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 
 /*---*/
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
 				long array_index,
@@ -884,7 +912,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/********** Start of pause/abort retry loop #1. **********/
+		/** Start of pause/abort retry loop #1. **/
 
 		exit_loop = FALSE;
 
@@ -927,9 +955,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		}
 
-		/********** End of pause/abort retry loop #1. **********/
+		/** End of pause/abort retry loop #1. **/
 
-		/********** Start of pause/abort retry loop #2. **********/
+		/** Start of pause/abort retry loop #2. **/
 
 		exit_loop = FALSE;
 
@@ -954,7 +982,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 			case MXE_PAUSE_REQUESTED:
 #if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+				MX_DEBUG(-2,("%s: PAUSE #2", fname));
 #endif
 				mx_status = mx_scan_handle_pause_request(scan);
 				break;
@@ -973,9 +1001,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		}
 
-		/********** End of pause/abort retry loop #2. **********/
+		/** End of pause/abort retry loop #2. **/
 
-		/********** Start of pause/abort retry loop #3. **********/
+		/** Start of pause/abort retry loop #3. **/
 
 		exit_loop = FALSE;
 
@@ -998,7 +1026,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 			case MXE_PAUSE_REQUESTED:
 #if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+				MX_DEBUG(-2,("%s: PAUSE #3", fname));
 #endif
 				mx_status = mx_scan_handle_pause_request(scan);
 				break;
@@ -1017,7 +1045,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		}
 
-		/********** End of pause/abort retry loop #3. **********/
+		/** End of pause/abort retry loop #3. **/
 
 		/* If alternate X axis motors have been specified,
 		 * get and save their current positions for use
@@ -1097,7 +1125,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 /*---*/
 
-static mx_status_type
+MXS_STATIC mx_status_type
 mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
 				long array_index,
@@ -1137,19 +1165,54 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Move to the start position. */
+	/** Start of pause/abort retry loop #1. **/
 
-	mx_status = mxs_linear_scan_move_absolute(
+	exit_loop = FALSE;
+
+	while (exit_loop == FALSE) {
+
+		/* Move to the start position. */
+
+		mx_status = mxs_linear_scan_move_absolute(
 			scan, linear_scan, move_special_fptr );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+#if DEBUG_PAUSE_REQUEST
+		MX_DEBUG(-2,
+		("%s: mxs_linear_scan_move_absolute(), mx_status = %ld",
+			fname, mx_status.code));
+#endif
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			exit_loop = TRUE;
+			break;
 
-	/*** Now loop through the measurements. ***/
+		case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: PAUSE #1", fname));
+#endif
+			mx_status = mx_scan_handle_pause_request(scan);
+			break;
+
+		default:
+			break;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: Aborting on error code %ld",
+				fname, mx_status.code));
+#endif
+			return mx_status;
+		}
+	}
+
+	/** End of pause/abort retry loop #1. **/
+
+	/***** Now loop through the measurements. *****/
 
 	for ( i = 0; i < num_dimension_steps; i++ ) {
 
-		/********** Start of pause/abort retry loop #1. **********/
+		/** Start of pause/abort retry loop #2. **/
 
 		exit_loop = FALSE;
 
@@ -1173,7 +1236,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 
 			case MXE_PAUSE_REQUESTED:
 #if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #1", fname));
+				MX_DEBUG(-2,("%s: PAUSE #2", fname));
 #endif
 				mx_status = mx_scan_handle_pause_request(scan);
 				break;
@@ -1189,10 +1252,9 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 #endif
 				return mx_status;
 			}
-
 		}
 
-		/********** End of pause/abort retry loop #1. **********/
+		/** End of pause/abort retry loop #2. **/
 
 		/* If alternate X axis motors have been specified,
 		 * get and save their current positions for use
@@ -1204,7 +1266,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/********** Start of pause/abort retry loop #2. **********/
+		/** Start of pause/abort retry loop #3. **/
 
 		exit_loop = FALSE;
 
@@ -1226,7 +1288,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 
 			case MXE_PAUSE_REQUESTED:
 #if DEBUG_PAUSE_REQUEST
-			MX_DEBUG(-2,("%s: PAUSE #2", fname));
+			MX_DEBUG(-2,("%s: PAUSE #3", fname));
 #endif
 				mx_status = mx_scan_handle_pause_request(scan);
 				break;
@@ -1242,10 +1304,9 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 #endif
 				return mx_status;
 			}
-
 		}
 
-		/********** End of pause/abort retry loop #2. **********/
+		/** End of pause/abort retry loop #3. **/
 
 		/* If this is not the last step of the scan level, then
 		 * start the move to the next step position.  We do not
@@ -1264,7 +1325,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			/******** Start of pause/abort retry loop #3. ********/
+			/** Start of pause/abort retry loop #4. **/
 
 			exit_loop = FALSE;
 
@@ -1289,7 +1350,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 
 				case MXE_PAUSE_REQUESTED:
 #if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #2", fname));
+				MX_DEBUG(-2,("%s: PAUSE #4", fname));
 #endif
 					mx_status =
 					    mx_scan_handle_pause_request(scan);
@@ -1307,10 +1368,9 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 #endif
 					return mx_status;
 				}
-
 			}
 
-			/******** End of pause/abort retry loop #3. ********/
+			/** End of pause/abort retry loop #4. **/
 		} else {
 			/* If this _is_ the last step of the scan level, tell
 			 * the scan to update all of the 'old_destination"

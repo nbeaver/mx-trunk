@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_USER_INTERRUPT	FALSE
+
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -54,6 +56,15 @@ mx_user_requested_interrupt_or_pause( void )
 
 		user_interrupt = MXF_USER_INT_ERROR;
 	}
+
+#if DEBUG_USER_INTERRUPT
+	MX_DEBUG(-2,("%s: returning user_intterupt = %d",
+		fname, user_interrupt));
+
+	if ( user_interrupt != MXF_USER_INT_NONE ) {
+		mx_stack_traceback();
+	}
+#endif
 	return user_interrupt;
 }
 
