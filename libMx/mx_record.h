@@ -484,7 +484,7 @@ MX_API mx_status_type  mx_insert_after_record( MX_RECORD *old_record,
 						MX_RECORD *new_record );
 
 MX_API MX_RECORD      *mx_get_record( MX_RECORD *record_list,
-						char *record_name );
+						const char *record_name );
 
 MX_API mx_status_type  mx_default_delete_record_handler( MX_RECORD *record );
 
@@ -512,7 +512,7 @@ MX_API mx_status_type  mx_set_event_interval( MX_RECORD *record,
 MX_API mx_status_type  mx_create_empty_database( MX_RECORD **record_list );
 
 MX_API mx_status_type  mx_read_database_file( MX_RECORD *record_list,
-				char *filename, unsigned long flags );
+				const char *filename, unsigned long flags );
 
 MX_API mx_status_type  mx_finish_record_initialization( MX_RECORD *record );
 
@@ -520,7 +520,7 @@ MX_API mx_status_type  mx_finish_database_initialization(
 				MX_RECORD *record_list );
 
 MX_API mx_status_type  mx_write_database_file( MX_RECORD *record_list,
-						char *filename,
+						const char *filename,
 						long num_record_superclasses,
 						long *record_superclass_list );
 
@@ -529,7 +529,7 @@ MX_API mx_status_type  mx_write_database_file( MX_RECORD *record_list,
  */
 
 MX_API mx_status_type  mx_setup_database( MX_RECORD **record_list,
-					char *database_filename );
+					const char *database_filename );
 
 /* --- */
 
@@ -552,7 +552,7 @@ MX_API mx_status_type  mx_read_database_from_array( MX_RECORD *record_list,
  * do not have easy ways of dealing with doubly-indirect C pointers.
  */
 
-MX_API MX_RECORD *mx_setup_database_pointer( char *database_filename );
+MX_API MX_RECORD *mx_setup_database_pointer( const char *database_filename );
 
 MX_API MX_RECORD *mx_setup_database_pointer_from_array(
 						long num_descriptions,

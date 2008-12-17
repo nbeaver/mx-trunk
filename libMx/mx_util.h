@@ -531,7 +531,7 @@ MX_API double mx_uint64_to_double( unsigned __int64 );
  * with something like:   mx_debug_function "This doesn't work" ;
  */
 
-MX_API void mx_debug_function( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+MX_API void mx_debug_function( const char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
 #ifndef DEBUG
 #define MX_DEBUG( level, text )
@@ -548,7 +548,7 @@ MX_API int  mx_get_debug_level( void );
 MX_API void mx_set_debug_output_function( void (*)( char * ) );
 MX_API void mx_debug_default_output_function( char *string );
 
-MX_API void mx_debug_pause( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+MX_API void mx_debug_pause( const char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
 /* === User interrupts. === */
 
@@ -565,7 +565,7 @@ MX_API int  mx_default_user_interrupt_function( void );
 
 /* === Informational messages. === */
 
-MX_API void mx_info( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+MX_API void mx_info( const char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
 MX_API void mx_info_dialog( char *text_prompt,
 					char *gui_prompt,
@@ -592,14 +592,14 @@ MX_API void mx_info_default_entry_dialog_function(
  * applications may want to suppress them, but not suppress other messages.
  */
 
-MX_API void mx_scanlog_info( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+MX_API void mx_scanlog_info( const char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
 MX_API void mx_set_scanlog_enable( int enable_flag );
 MX_API int  mx_get_scanlog_enable( void );
 
 /* === Warning messages. === */
 
-MX_API void mx_warning( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+MX_API void mx_warning( const char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
 MX_API void mx_set_warning_output_function( void (*)( char * ) );
 MX_API void mx_warning_default_output_function( char *string );
@@ -628,7 +628,7 @@ typedef struct {
 
 MX_API mx_status_type mx_error( long error_code,
 				const char *location,
-				char *format, ... ) MX_PRINTFLIKE( 3, 4 );
+				const char *format, ... ) MX_PRINTFLIKE( 3, 4 );
 
 #define MX_CHECK_FOR_ERROR( function )				\
 	do { 							\

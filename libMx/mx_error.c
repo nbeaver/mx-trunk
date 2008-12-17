@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,7 +95,7 @@ static char mx_error_message_buffer[MXU_ERROR_MESSAGE_LENGTH + 1];
 #endif /* USE_STACK_BASED_MX_ERROR */
 
 MX_EXPORT mx_status_type
-mx_error( long error_code, const char *location, char *format, ... )
+mx_error( long error_code, const char *location, const char *format, ... )
 {
 	mx_status_type status_struct;
 

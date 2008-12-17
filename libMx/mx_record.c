@@ -826,7 +826,7 @@ mx_insert_after_record( MX_RECORD *old_record, MX_RECORD *new_record )
 }
 
 MX_EXPORT MX_RECORD *
-mx_get_record( MX_RECORD *specified_record, char *record_name )
+mx_get_record( MX_RECORD *specified_record, const char *record_name )
 {
 	static const char fname[] = "mx_get_record()";
 
@@ -1116,7 +1116,7 @@ typedef struct {
 	long line_number;
 
 	FILE *file;
-	char *filename;
+	const char *filename;
 
 	long num_lines;
 	char **array_ptr;
@@ -1134,7 +1134,7 @@ static mx_status_type mx_read_database_private(MX_RECORD *,
  */
 
 MX_EXPORT mx_status_type
-mx_setup_database( MX_RECORD **record_list, char *database_filename )
+mx_setup_database( MX_RECORD **record_list, const char *database_filename )
 {
 	static const char fname[] = "mx_setup_database()";
 
@@ -1197,7 +1197,7 @@ mx_setup_database_from_array( MX_RECORD **record_list,
  */
 
 MX_EXPORT MX_RECORD *
-mx_setup_database_pointer( char *database_filename )
+mx_setup_database_pointer( const char *database_filename )
 {
 	MX_RECORD *record_list;
 	mx_status_type mx_status;
@@ -1322,7 +1322,7 @@ mx_create_empty_database( MX_RECORD **record_list )
 
 MX_EXPORT mx_status_type
 mx_read_database_file( MX_RECORD *record_list,
-			char *filename,
+			const char *filename,
 			unsigned long flags )
 {
 	static const char fname[] = "mx_read_database_file()";
@@ -1836,7 +1836,7 @@ mx_finish_database_initialization( MX_RECORD *record_list_head )
 }
 
 MX_EXPORT mx_status_type
-mx_write_database_file( MX_RECORD *record_list, char *filename,
+mx_write_database_file( MX_RECORD *record_list, const char *filename,
 	long num_record_superclasses, long *record_superclass_list )
 {
 	static const char fname[] = "mx_write_database_file()";

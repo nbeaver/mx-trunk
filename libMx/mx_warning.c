@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@ static void (*mx_warning_output_function)( char * )
 					= mx_warning_default_output_function;
 
 MX_EXPORT void
-mx_warning( char *format, ... )
+mx_warning( const char *format, ... )
 {
 	va_list args;
 	char buffer[2500];

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2000, 2002, 2005-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@ static void (*mx_info_entry_dialog_function)( char *,
 					= mx_info_default_entry_dialog_function;
 
 MX_EXPORT void
-mx_info( char *format, ... )
+mx_info( const char *format, ... )
 {
 	va_list args;
 	char buffer[2500];
@@ -187,7 +187,7 @@ mx_info_default_entry_dialog_function( char *text_prompt, char *gui_prompt,
 static int mx_scanlog_enabled = TRUE;
 
 MX_EXPORT void
-mx_scanlog_info( char *format, ... )
+mx_scanlog_info( const char *format, ... )
 {
 	va_list args;
 	char buffer[2500];

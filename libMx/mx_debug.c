@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@ static void (*mx_debug_output_function)( char * )
 				= mx_debug_default_output_function;
 
 MX_EXPORT void
-mx_debug_function( char *format, ... )
+mx_debug_function( const char *format, ... )
 {
 	va_list args;
 	static char buffer[250];
@@ -76,7 +76,7 @@ mx_debug_default_output_function( char *string )
 }
 
 MX_EXPORT void
-mx_debug_pause( char *format, ... )
+mx_debug_pause( const char *format, ... )
 {
 	va_list args;
 	static char buffer[250];
