@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_SPELLMAN_DF3_DEBUG	FALSE
+#define MXI_SPELLMAN_DF3_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -225,7 +225,8 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 	char local_command[100];
 	unsigned long i, command_length, response_length;
 	unsigned long command_checksum, expected_checksum, actual_checksum;
-	char *checksum_ptr, *ptr;
+	char *checksum_ptr;
+	mx_bool_type response_has_checksum;
 	mx_status_type mx_status;
 
 	if ( spellman_df3 == (MX_SPELLMAN_DF3 *) NULL ) {
@@ -253,7 +254,7 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 	/* Format the command to be sent to the power supply. */
 
 	snprintf( local_command, sizeof(local_command),
-		"%c%s%0lX", MX_CTRL_A, command, command_checksum );
+		"%c%s%02lX", MX_CTRL_A, command, command_checksum );
 
 #if 0
 	{
@@ -288,41 +289,84 @@ mxi_spellman_df3_command( MX_SPELLMAN_DF3 *spellman_df3,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* See if the two byte checksum is correct. */
-
 	response_length = strlen(response);
 
-	checksum_ptr = response + response_length - 2;
-
 #if 0
-	MX_DEBUG(-2,("%s: response '%s' checksum = '%s'",
-		fname, response, checksum_ptr));
+	{
+		int c;
+
+		for ( i = 0; i < response_length; i++ ) {
+			c = response[i];
+
+			MX_DEBUG(-2,("%s: response[%lu] = %#x '%c'",
+				fname, i, c, c));
+		}
+	}
 #endif
 
-	expected_checksum = 0;
+	/* Should this response have a checksum? */
 
-	for ( ptr = response; ptr < checksum_ptr; ptr++ ) {
-		expected_checksum = expected_checksum + *ptr;
+	switch( response[0] ) {
+	case 'A':
+		response_has_checksum = FALSE;
+		break;
+	case 'B':
+	case 'E':
+	case 'R':
+		response_has_checksum = TRUE;
+		break;
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' to the command '%s' sent to "
+		"Spellman DF3/FF# '%s' starts with the unexpected "
+		"character %X '%c'.",
+			response, command, spellman_df3->record->name,
+			response[0], response[0] );
+		break;
 	}
 
-	expected_checksum = expected_checksum % 256;
+	if ( response_has_checksum ) {
 
-	/*---*/
+		/* See if the two byte checksum is correct. */
 
-	actual_checksum = 16 * mx_hex_char_to_unsigned_long( checksum_ptr[0] )
+		checksum_ptr = response + response_length - 2;
+
+#if 0
+		MX_DEBUG(-2,("%s: response '%s' checksum = '%s'",
+			fname, response, checksum_ptr));
+#endif
+
+		/* The checksum leaves out the first character in the response
+		 * as well as the two byte checksum at the end.
+		 */
+
+		expected_checksum = 0;
+
+		for ( i = 1; i < (response_length - 2); i++ ) {
+			expected_checksum = expected_checksum + response[i];
+		}
+
+		expected_checksum = expected_checksum % 256;
+
+		/*---*/
+
+		actual_checksum
+			= 16 * mx_hex_char_to_unsigned_long( checksum_ptr[0] )
 			     + mx_hex_char_to_unsigned_long( checksum_ptr[1] );
 
-	if ( actual_checksum != expected_checksum ) {
-		mx_warning( "The response '%s' to the command '%s' sent to "
-		"Spellman DF3/FF3 '%s' had a checksum %#lX that did not match "
-		"the expected checksum of %#lX.  Continuing anyway.",
-			response, command, spellman_df3->record->name,
-			actual_checksum, expected_checksum );
+		if ( actual_checksum != expected_checksum ) {
+			mx_warning( "The response '%s' to the command '%s' "
+			"sent to Spellman DF3/FF3 '%s' had a checksum %#lX "
+			"that did not match the expected checksum of %#lX.  "
+			"Continuing anyway.",
+				response, command, spellman_df3->record->name,
+				actual_checksum, expected_checksum );
+		}
+
+		/* Strip off the two byte checksum. */
+
+		*checksum_ptr = '\0';
 	}
-
-	/* Strip off the two byte checksum. */
-
-	*checksum_ptr = '\0';
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
@@ -611,22 +655,22 @@ mxi_spellman_df3_set_command( MX_SPELLMAN_DF3 *spellman_df3 )
 	raw_voltage_command =
 	    spellman_df3->analog_control[MXF_SPELLMAN_DF3_VOLTAGE_CONTROL];
 
-	snprintf( &(command[1]), 4, "%0X", raw_voltage_command );
+	snprintf( &(command[1]), 4, "%03X", raw_voltage_command );
 
 	raw_current_command =
 	    spellman_df3->analog_control[MXF_SPELLMAN_DF3_CURRENT_CONTROL];
 
-	snprintf( &(command[4]), 4, "%0X", raw_current_command );
+	snprintf( &(command[4]), 4, "%03X", raw_current_command );
 
 	raw_power_limit =
 	    spellman_df3->analog_control[MXF_SPELLMAN_DF3_POWER_LIMIT];
 
-	snprintf( &(command[7]), 4, "%0X", raw_power_limit );
+	snprintf( &(command[7]), 4, "%03X", raw_power_limit );
 
 	raw_filament_current_limit =
     spellman_df3->analog_control[MXF_SPELLMAN_DF3_FILAMENT_CURRENT_LIMIT];
 
-	snprintf( &(command[10]), 4, "%0X", raw_filament_current_limit );
+	snprintf( &(command[10]), 4, "%03X", raw_filament_current_limit );
 
 	digital_control = spellman_df3->digital_control;
 
@@ -642,7 +686,7 @@ mxi_spellman_df3_set_command( MX_SPELLMAN_DF3 *spellman_df3 )
 		digital_control_data = 0;
 	}
 
-	snprintf( &(command[13]), 2, "%0X", digital_control_data );
+	snprintf( &(command[13]), 2, "%01X", digital_control_data );
 
 #if 0
 	{

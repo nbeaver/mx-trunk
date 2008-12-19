@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SPELLMAN_DF3_AIO_DEBUG	FALSE
+#define MXD_SPELLMAN_DF3_AIO_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

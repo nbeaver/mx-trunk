@@ -1,6 +1,6 @@
-###spellman_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d 1 0x0 /dev/ttyS0
-spellman_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 300 0x1 localhost 12345 0x0
-spellman interface generic spellman_df3 "" "" spellman_rs232 1 0x1ff 0x1ff
+###spellman_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0a 0x0a 300 0x1 localhost 12345 0x0
+spellman_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d 1 0x0 /dev/ttyS1
+spellman interface generic spellman_df3 "" "" spellman_rs232 1 0x4cc 0xccc
 #
 voltage_cmd     device analog_output spellman_df3_aout "" "" 0 0.0146520 0 kV 0x0 spellman 0
 current_cmd     device analog_output spellman_df3_aout "" "" 0 0.0195360 0 mA 0x0 spellman 1
