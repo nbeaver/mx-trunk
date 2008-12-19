@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_PAUSE_REQUEST	FALSE
+#define DEBUG_PAUSE_REQUEST	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +40,7 @@ MX_RECORD_FUNCTION_LIST mxs_list_scan_record_function_list = {
 MX_SCAN_FUNCTION_LIST mxs_list_scan_scan_function_list = {
 	mxs_list_scan_prepare_for_scan_start,
 	mxs_list_scan_execute_scan_body,
-	mxs_list_scan_cleanup_after_scan_end
+	mx_standard_cleanup_after_scan_end
 };
 
 MX_EXPORT mx_status_type
@@ -514,6 +514,535 @@ mxs_list_scan_prepare_for_scan_start( MX_SCAN *scan )
 		(void) (*close_list_fptr) (list_scan); \
 	} while(0)
 
+/*===*/
+
+static mx_status_type
+mxs_list_scan_do_normal_scan( MX_SCAN *scan,
+			MX_LIST_SCAN *list_scan,
+			mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * ),
+			mx_status_type (*get_next_measurement_parameters_fptr)
+				( MX_SCAN *, MX_LIST_SCAN * ),
+			mx_bool_type start_fast_mode )
+{
+	static const char fname[] = "mxs_list_scan_do_normal_scan()";
+
+	mx_bool_type exit_loop;
+	mx_status_type mx_status;
+
+	/* Now step through all the positions in the position list. */
+
+	mx_scanlog_info("Moving to start position.");
+
+	for(;;) {
+		/* Get the next set of motor positions. */
+
+		mx_status =
+		  (*get_next_measurement_parameters_fptr)( scan, list_scan );
+
+		if ( mx_status.code == MXE_END_OF_DATA ) {
+			/* We have reached the end of the position list
+			 * so we can exit the for() loop.
+			 */
+			break;
+
+		} else if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		} 
+
+		/** Start of pause/abort retry loop - move to position. **/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
+			/* Move to the computed motor positions. */
+
+			mx_status = mx_motor_array_move_absolute_with_report(
+				scan->num_motors,
+				scan->motor_record_array,
+				scan->motor_position,
+				NULL,
+				MXF_MTR_SCAN_IN_PROGRESS );
+
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,
+			("%s: mx_motor_array_move_absolute_with_report(), "
+				"mx_status = %ld", fname, mx_status.code));
+#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+				("%s: PAUSE - move to position", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		/** End of pause/abort retry loop - move to position. **/
+
+		/** Start of pause/abort retry loop - acquire and rdout data.**/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
+			/* Perform the measurement. */
+
+			mx_status = mx_scan_acquire_and_readout_data( scan );
+
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,
+			("%s: mx_scan_acquire_and_readout_data(), "
+				"mx_status = %ld", fname, mx_status.code));
+#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+			    ("%s: PAUSE - acquire and readout data", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		/** End of pause/abort retry loop - acquire and rdout data. **/
+
+		/* If alternate X axis motors have been specified,
+		 * get and save their current positions for use
+		 * by the datafile handling code.
+		 */
+
+		mx_status = mx_scan_handle_alternate_x_motors( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/**** Write the result out to the datafile. ****/
+
+		mx_status = mx_add_measurement_to_datafile( &(scan->datafile) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+
+		/* Report the progress of the scan back to the user. */
+
+		mx_status = mx_scan_display_scan_progress( scan );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+
+		/* Finally, if enabled, add the measurement to the
+		 * running scan plot.
+		 */
+
+		if ( mx_plotting_is_enabled( scan->record ) ) {
+
+			mx_status = mx_add_measurement_to_plot_buffer(
+						&(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+
+			mx_status = mx_display_plot( &(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		mx_status = mx_scan_increment_measurement_number( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = mx_set_fast_mode( scan->record, TRUE );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+
+			start_fast_mode = FALSE;
+		}
+	}
+
+	/* Close the position list without ignoring the returned status. */
+
+	mx_status = (*close_list_fptr) ( list_scan );
+
+	return mx_status;
+}
+
+/*===*/
+
+static mx_status_type
+mxs_list_scan_do_early_move_scan( MX_SCAN *scan,
+			MX_LIST_SCAN *list_scan,
+			mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * ),
+			mx_status_type (*get_next_measurement_parameters_fptr)
+				( MX_SCAN *, MX_LIST_SCAN * ),
+			mx_bool_type start_fast_mode )
+{
+	static const char fname[] = "mxs_list_scan_do_early_move_scan()";
+
+	mx_bool_type exit_loop;
+	mx_status_type mx_status;
+
+	/* Move to the start position. */
+
+	mx_scanlog_info("Moving to start position.");
+
+	mx_status = (*get_next_measurement_parameters_fptr)( scan, list_scan );
+
+	if ( mx_status.code == MXE_END_OF_DATA ) {
+		mx_status = mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"The scan position file is empty." );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		CLOSE_POSITION_LIST;
+		return mx_status;
+	} 
+
+	/** Start of pause/abort retry loop - move to start. **/
+
+	exit_loop = FALSE;
+
+	while (exit_loop == FALSE) {
+
+		/* Move to the start positions. */
+
+		mx_status = mx_motor_array_move_absolute_with_report(
+				scan->num_motors,
+				scan->motor_record_array,
+				scan->motor_position,
+				NULL,
+				MXF_MTR_NOWAIT | MXF_MTR_SCAN_IN_PROGRESS );
+
+#if DEBUG_PAUSE_REQUEST
+		MX_DEBUG(-2,("%s: mx_motor_array_move_absolute_with_report(), "
+			"mx_status = %ld", fname, mx_status.code));
+#endif
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			exit_loop = TRUE;
+			break;
+
+		case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: PAUSE - move to start", fname));
+#endif
+			mx_status = mx_scan_handle_pause_request(scan);
+			break;
+
+		default:
+			break;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+	}
+
+	/** End of pause/abort retry loop - move to start. **/
+
+	/* Now step through all the positions in the position list. */
+
+	for(;;) {
+		/** Start of pause/abort retry loop - wait for motors. **/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
+			/* Wait for the motors to get to the next position. */
+
+			mx_status = mx_wait_for_motor_array_stop(
+						scan->num_motors,
+						scan->motor_record_array,
+						MXF_MTR_SCAN_IN_PROGRESS );
+
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: mx_wait_for_motor_array_stop(), "
+				"mx_status = %ld", fname, mx_status.code));
+#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+				("%s: PAUSE - wait for motors", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		/** End of pause/abort retry loop - wait for motors. **/
+
+		/* If alternate X axis motors have been specified,
+		 * get and save their current positions for use
+		 * by the datafile handling code.
+		 */
+
+		mx_status = mx_scan_handle_alternate_x_motors( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/** Start of pause/abort retry loop - acquire data. **/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
+			/* Perform the measurement. */
+
+			mx_status = mx_scan_acquire_data( scan );
+
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: mx_scan_acquire_data(), "
+				"mx_status = %ld", fname, mx_status.code));
+#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+				("%s: PAUSE - acquire_data", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		/** End of pause/abort retry loop - acquire data. **/
+
+		/* Get the next set of motor positions. */
+
+		mx_status =
+		  (*get_next_measurement_parameters_fptr)( scan, list_scan );
+
+		if ( mx_status.code == MXE_END_OF_DATA ) {
+			/* We have reached the end of the position list
+			 * so we can exit the for() loop.
+			 */
+			break;
+
+		} else if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		} 
+
+		/** Start of pause/abort retry loop - move to next position. **/
+
+		exit_loop = FALSE;
+
+		while (exit_loop == FALSE) {
+
+			/* Move to the computed motor positions. */
+
+			mx_status = mx_motor_array_move_absolute_with_report(
+				scan->num_motors,
+				scan->motor_record_array,
+				scan->motor_position,
+				NULL,
+				MXF_MTR_NOWAIT | MXF_MTR_SCAN_IN_PROGRESS );
+
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,
+			("%s: mx_motor_array_move_absolute_with_report(), "
+				"mx_status = %ld", fname, mx_status.code));
+#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				exit_loop = TRUE;
+				break;
+
+			case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,
+				("%s: PAUSE - move to next position", fname));
+#endif
+				mx_status = mx_scan_handle_pause_request(scan);
+				break;
+
+			default:
+				break;
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+				MX_DEBUG(-2,("%s: Aborting on error code %ld",
+					fname, mx_status.code));
+#endif
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		/** End of pause/abort retry loop - move to next position **/
+
+		/* Read out the acquired data while the motors are
+		 * moving to the next step position.
+		 */
+
+		mx_status = mx_readout_data( &(scan->measurement) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+
+		/**** Write the result out to the datafile. ****/
+
+		mx_status = mx_add_measurement_to_datafile( &(scan->datafile) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+
+		/* Report the progress of the scan back to the user. */
+
+		mx_status = mx_scan_display_scan_progress( scan );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			CLOSE_POSITION_LIST;
+			return mx_status;
+		}
+
+		/* Finally, if enabled, add the measurement to the
+		 * running scan plot.
+		 */
+
+		if ( mx_plotting_is_enabled( scan->record ) ) {
+
+			mx_status = mx_add_measurement_to_plot_buffer(
+						&(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+
+			mx_status = mx_display_plot( &(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+		}
+
+		mx_status = mx_scan_increment_measurement_number( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = mx_set_fast_mode( scan->record, TRUE );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				CLOSE_POSITION_LIST;
+				return mx_status;
+			}
+
+			start_fast_mode = FALSE;
+		}
+	}
+
+	/* Close the position list without ignoring the returned status. */
+
+	mx_status = (*close_list_fptr) ( list_scan );
+
+	return mx_status;
+}
+
+/*===*/
+
 MX_EXPORT mx_status_type
 mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 {
@@ -522,7 +1051,6 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 	MX_LIST_SCAN *list_scan;
 	MX_LIST_SCAN_FUNCTION_LIST *flist;
 	mx_bool_type fast_mode, start_fast_mode, early_move_flag;
-	mx_bool_type exit_loop;
 	mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * );
 	mx_status_type (*get_next_measurement_parameters_fptr)
 						( MX_SCAN *, MX_LIST_SCAN * );
@@ -594,203 +1122,20 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 	MX_DEBUG(-2,("%s: early_move_flag = %d", fname, (int) early_move_flag));
 
-	/* Now step through all the positions in the position list. */
-
-	mx_scanlog_info("Moving to start position.");
-
-	for(;;) {
-		/* Get the next set of motor positions. */
-
-		mx_status =
-		  (*get_next_measurement_parameters_fptr)( scan, list_scan );
-
-		MX_DEBUG(-2,("%s: next mx_status.code = %ld",
-			fname, mx_status.code));
-
-		if ( mx_status.code == MXE_END_OF_DATA ) {
-			/* We have reached the end of the position list
-			 * so we can exit the for() loop.
-			 */
-			break;
-
-		} else if ( mx_status.code != MXE_SUCCESS ) {
-			CLOSE_POSITION_LIST;
-			return mx_status;
-		} 
-
-		/** Start of pause/abort retry loop #1. **/
-
-		exit_loop = FALSE;
-
-		while (exit_loop == FALSE) {
-
-			/* Move to the computed motor positions. */
-
-			mx_status = mx_motor_array_move_absolute_with_report(
-				scan->num_motors,
-				scan->motor_record_array,
-				scan->motor_position,
-				NULL,
-				MXF_MTR_SCAN_IN_PROGRESS );
-
-#if DEBUG_PAUSE_REQUEST
-			MX_DEBUG(-2,
-			("%s: mx_motor_array_move_absolute_with_report(), "
-				"mx_status = %ld", fname, mx_status.code));
-#endif
-			switch( mx_status.code ) {
-			case MXE_SUCCESS:
-				exit_loop = TRUE;
-				break;
-
-			case MXE_PAUSE_REQUESTED:
-#if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #1", fname));
-#endif
-				mx_status = mx_scan_handle_pause_request(scan);
-				break;
-
-			default:
-				break;
-			}
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-#if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: Aborting on error code %ld",
-					fname, mx_status.code));
-#endif
-				CLOSE_POSITION_LIST;
-				return mx_status;
-			}
-		}
-
-		/** End of pause/abort retry loop #1. **/
-
-		/** Start of pause/abort retry loop #2. **/
-
-		exit_loop = FALSE;
-
-		while (exit_loop == FALSE) {
-
-			/* Perform the measurement. */
-
-			mx_status = mx_scan_acquire_and_readout_data( scan );
-
-#if DEBUG_PAUSE_REQUEST
-			MX_DEBUG(-2,
-			("%s: mx_scan_acquire_and_readout_data(), "
-				"mx_status = %ld", fname, mx_status.code));
-#endif
-			switch( mx_status.code ) {
-			case MXE_SUCCESS:
-				exit_loop = TRUE;
-				break;
-
-			case MXE_PAUSE_REQUESTED:
-#if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: PAUSE #1", fname));
-#endif
-				mx_status = mx_scan_handle_pause_request(scan);
-				break;
-
-			default:
-				break;
-			}
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-#if DEBUG_PAUSE_REQUEST
-				MX_DEBUG(-2,("%s: Aborting on error code %ld",
-					fname, mx_status.code));
-#endif
-				CLOSE_POSITION_LIST;
-				return mx_status;
-			}
-		}
-
-		/** End of pause/abort retry loop #2. **/
-
-		/* If alternate X axis motors have been specified,
-		 * get and save their current positions for use
-		 * by the datafile handling code.
-		 */
-
-		mx_status = mx_scan_handle_alternate_x_motors( scan );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/**** Write the result out to the datafile. ****/
-
-		mx_status = mx_add_measurement_to_datafile( &(scan->datafile) );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			CLOSE_POSITION_LIST;
-			return mx_status;
-		}
-
-		/* Report the progress of the scan back to the user. */
-
-		mx_status = mx_scan_display_scan_progress( scan );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			CLOSE_POSITION_LIST;
-			return mx_status;
-		}
-
-		/* Finally, if enabled, add the measurement to the
-		 * running scan plot.
-		 */
-
-		if ( mx_plotting_is_enabled( scan->record ) ) {
-
-			mx_status = mx_add_measurement_to_plot_buffer(
-						&(scan->plot) );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				CLOSE_POSITION_LIST;
-				return mx_status;
-			}
-
-			mx_status = mx_display_plot( &(scan->plot) );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				CLOSE_POSITION_LIST;
-				return mx_status;
-			}
-		}
-
-		mx_status = mx_scan_increment_measurement_number( scan );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* If needed, start fast mode. */
-
-		if ( start_fast_mode ) {
-			mx_status = mx_set_fast_mode( scan->record, TRUE );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				CLOSE_POSITION_LIST;
-				return mx_status;
-
-			start_fast_mode = FALSE;
-		}
+	if ( early_move_flag == FALSE ) {
+		mx_status = mxs_list_scan_do_normal_scan( scan,
+					list_scan,
+					close_list_fptr,
+					get_next_measurement_parameters_fptr,
+					start_fast_mode );
+	} else {
+		mx_status = mxs_list_scan_do_early_move_scan( scan,
+					list_scan,
+					close_list_fptr,
+					get_next_measurement_parameters_fptr,
+					start_fast_mode );
 	}
 
-	/* Close the position list without ignoring the returned status. */
-
-	mx_status = (*close_list_fptr) ( list_scan );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
-
-MX_EXPORT mx_status_type
-mxs_list_scan_cleanup_after_scan_end( MX_SCAN *scan )
-{
-	return mx_standard_cleanup_after_scan_end( scan );
-}
-
 
