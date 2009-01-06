@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_PAUSE_REQUEST	TRUE
+#define DEBUG_PAUSE_REQUEST	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

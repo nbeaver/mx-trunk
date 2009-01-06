@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_PAUSE_REQUEST	TRUE
+#define DEBUG_PAUSE_REQUEST	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -524,7 +524,9 @@ mxs_list_scan_do_normal_scan( MX_SCAN *scan,
 				( MX_SCAN *, MX_LIST_SCAN * ),
 			mx_bool_type start_fast_mode )
 {
+#if DEBUG_PAUSE_REQUEST
 	static const char fname[] = "mxs_list_scan_do_normal_scan()";
+#endif
 
 	mx_bool_type exit_loop;
 	mx_status_type mx_status;

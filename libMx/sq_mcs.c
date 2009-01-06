@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_PAUSE_REQUEST	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1800,6 +1802,64 @@ mxs_mcs_quick_scan_compute_motor_positions(
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxs_mcs_quick_scan_move_absolute_and_wait( MX_SCAN *scan,
+					double *position_array )
+{
+#if DEBUG_PAUSE_REQUEST
+	static const char fname[] =
+		"mxs_mcs_quick_scan_move_absolute_and_wait()";
+#endif
+
+	mx_bool_type exit_loop;
+	mx_status_type mx_status;
+
+	mx_status = mx_motor_array_move_absolute( scan->num_motors,
+						scan->motor_record_array,
+						position_array,
+						MXF_MTR_NOWAIT );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	exit_loop = FALSE;
+
+	while (exit_loop == FALSE) {
+		mx_status = mx_wait_for_motor_array_stop( scan->num_motors,
+						scan->motor_record_array, 0 );
+
+#if DEBUG_PAUSE_REQUEST
+		MX_DEBUG(-2,
+		("%s: mx_wait_for_motor_array_stop(), mx_status = %ld",
+			fname, mx_status.code));
+#endif
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			exit_loop = TRUE;
+			break;
+
+		case MXE_PAUSE_REQUESTED:
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: PAUSE - wait for motors", fname));
+#endif
+			mx_status = mx_scan_handle_pause_request( scan );
+			break;
+
+		default:
+			break;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+#if DEBUG_PAUSE_REQUEST
+			MX_DEBUG(-2,("%s: Aborting on error code %ld",
+				fname, mx_status.code));
+#endif
+			return mx_status;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 {
@@ -2040,19 +2100,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_info("Moving to the start of the scan region.");
 
-	status = mx_motor_array_move_absolute(
-			scan->num_motors,
-			scan->motor_record_array,
-			quick_scan->start_position,
-			MXF_MTR_NOWAIT );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	/**** Wait for the motors to get to their start positions. ****/
-
-	status = mx_wait_for_motor_array_stop( scan->num_motors,
-				scan->motor_record_array, 0 );
+	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+						quick_scan->start_position );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -2082,17 +2131,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_info("Correcting for quick scan backlash." );
 
-	status = mx_motor_array_move_absolute(
-			scan->num_motors,
-			scan->motor_record_array,
-			mcs_quick_scan->backlash_position,
-			MXF_MTR_NOWAIT );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_wait_for_motor_array_stop( scan->num_motors,
-				scan->motor_record_array, 0 );
+	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+					mcs_quick_scan->backlash_position );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -2103,17 +2143,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_info("Moving to the start position.");
 
-	status = mx_motor_array_move_absolute(
-			scan->num_motors,
-			scan->motor_record_array,
-			mcs_quick_scan->real_start_position,
-			MXF_MTR_NOWAIT );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_wait_for_motor_array_stop( scan->num_motors,
-				scan->motor_record_array, 0 );
+	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+					mcs_quick_scan->real_start_position );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -2240,7 +2271,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	if ( scan->measurement.type == MXM_PRESET_PULSE_PERIOD ) {
 
-#if 1 /* WML: FIXME - This is a temporary kludge. */
+#if 1 /* WML: FIXME - This is a "temporary" kludge. */
 		{
 			MX_RECORD *kludge_record;
 			long pulse_mode;
@@ -2615,6 +2646,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	 * We have already done backlash correction of the motors used by
 	 * the quick scan by the time we get here, so this move command
 	 * ignores backlash corrections.
+	 *
+	 * Note: We do not use mxs_mcs_quick_scan_move_absolute_and_wait()
+	 * here, since the pause/retry logic in that function is not
+	 * appropriate for the main move of a quick scan.  After all,
+	 * how can you "retry" a quick scan without restarting it from
+	 * the beginning?
 	 */
 
 	mx_info("Starting the motors.");
