@@ -4,3 +4,4 @@ testearly                        scan linear_scan motor_scan "" "" 1 1 1  m1 3  
 testscan                         scan linear_scan motor_scan "" "" 1 1 1  m1 3  scaler2 scaler3 scaler4  0 0 preset_time "5 timer1" text junk.out none $f[0]  -5000  1000  11
 testtime                         scan linear_scan motor_scan "" "" 1 1 1  time 1  scaler2  0 0 preset_time "5 timer1" text junk.out none $f[0]  30  10  5
 testlist                         scan list_scan file_list_scan "" "" 1 1 1  m1 3  scaler2 scaler3 scaler4  0 0 preset_time "0 timer1" text mylist_m1.out none $f[0] mylist_m1.dat
+testxafs                         scan xafs_scan_class xafs_scan "" "" 1 0 0  3  scaler2 scaler3 scaler4  0 0 preset_time "0 timer1" xafs junk.out none $f[0] 4 2 2 5  -150 -10 5 2 5  20 5 0.5 1  0.5 0.5 0.5 0.5
