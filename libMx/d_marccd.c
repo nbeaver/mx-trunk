@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_RECORD_FUNCTION_LIST mxd_marccd_record_function_list = {
 	mxd_marccd_close
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_function_list = {
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_marccd_ad_function_list = {
 	NULL,
 	mxd_marccd_trigger,
 	mxd_marccd_stop,
@@ -436,8 +436,7 @@ mxd_marccd_create_record_structures( MX_RECORD *record )
 
 	record->record_class_struct = ad;
 	record->record_type_struct = marccd;
-	record->class_specific_function_list = 
-			&mxd_marccd_function_list;
+	record->class_specific_function_list = &mxd_marccd_ad_function_list;
 
 	memset( &(ad->sequence_parameters),
 			0, sizeof(ad->sequence_parameters) );

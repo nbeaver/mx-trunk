@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mepics_ccd.dat -s ./sepics_ccd.dat $*
+

@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -705,6 +705,7 @@ extern "C" {
 #define MXT_AD_BLUICE_DCSS		240009
 #define MXT_AD_BLUICE_DHS		240010
 #define MXT_AD_MARCCD_SERVER_SOCKET	240011
+#define MXT_AD_EPICS_CCD		240012
 
 /* --- Waveform output types --- */
 

@@ -531,6 +531,7 @@
 #include "i_epics_gpib.h"
 #include "i_epics_vme.h"
 #include "d_epics_aio.h"
+#include "d_epics_ccd.h"
 #include "d_epics_dio.h"
 #include "d_epics_mca.h"
 #include "d_epics_mcs.h"
@@ -2551,6 +2552,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epics_aout_analog_output_function_list,
 				&mxd_epics_aout_num_record_fields,
 				&mxd_epics_aout_rfield_def_ptr},
+{"epics_ccd",      MXT_AD_EPICS_CCD, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_epics_ccd_record_function_list,
+				NULL,
+				&mxd_epics_ccd_ad_function_list,
+				&mxd_epics_ccd_num_record_fields,
+				&mxd_epics_ccd_rfield_def_ptr},
 {"epics_dinput",   MXT_DIN_EPICS,    MXC_DIGITAL_INPUT,   MXR_DEVICE,
 				&mxd_epics_din_record_function_list,
 				NULL,
@@ -3462,49 +3469,49 @@ MX_DRIVER mx_type_list[] = {
 {"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_soft_area_detector_record_function_list,
 				NULL,
-				NULL,
+				&mxd_soft_area_detector_ad_function_list,
 				&mxd_soft_area_detector_num_record_fields,
 				&mxd_soft_area_detector_rfield_def_ptr},
 
 {"network_area_detector",  MXT_AD_NETWORK,   MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_network_area_detector_record_function_list,
 				NULL,
-				NULL,
+				&mxd_network_area_detector_ad_function_list,
 				&mxd_network_area_detector_num_record_fields,
 				&mxd_network_area_detector_rfield_def_ptr},
 
 {"pccd_170170",    MXT_AD_PCCD_170170, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_aviex_pccd_record_function_list,
 				NULL,
-				NULL,
+				&mxd_aviex_pccd_ad_function_list,
 				&mxd_aviex_pccd_170170_num_record_fields,
 				&mxd_aviex_pccd_170170_rfield_def_ptr},
 
 {"pccd_4824",      MXT_AD_PCCD_4824, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_aviex_pccd_record_function_list,
 				NULL,
-				NULL,
+				&mxd_aviex_pccd_ad_function_list,
 				&mxd_aviex_pccd_4824_num_record_fields,
 				&mxd_aviex_pccd_4824_rfield_def_ptr},
 
 {"pccd_16080",     MXT_AD_PCCD_16080, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_aviex_pccd_record_function_list,
 				NULL,
-				NULL,
+				&mxd_aviex_pccd_ad_function_list,
 				&mxd_aviex_pccd_16080_num_record_fields,
 				&mxd_aviex_pccd_16080_rfield_def_ptr},
 
 {"brandeis_biocat", MXT_AD_BRANDEIS_BIOCAT, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_brandeis_biocat_record_function_list,
 				NULL,
-				NULL,
+				&mxd_brandeis_biocat_ad_function_list,
 				&mxd_brandeis_biocat_num_record_fields,
 				&mxd_brandeis_biocat_rfield_def_ptr},
 
 {"marccd",         MXT_AD_MARCCD,      MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_marccd_record_function_list,
 				NULL,
-				NULL,
+				&mxd_marccd_ad_function_list,
 				&mxd_marccd_num_record_fields,
 				&mxd_marccd_rfield_def_ptr},
 
@@ -3512,21 +3519,21 @@ MX_DRIVER mx_type_list[] = {
 		MXT_AD_MARCCD_SERVER_SOCKET, MXC_AREA_DETECTOR, MXR_DEVICE,
 				&mxd_marccd_server_socket_record_function_list,
 				NULL,
-				NULL,
+				&mxd_marccd_server_socket_ad_function_list,
 				&mxd_marccd_server_socket_num_record_fields,
 				&mxd_marccd_server_socket_rfield_def_ptr},
 
 {"bluice_dcss_area_detector", MXT_AD_BLUICE_DCSS, MXC_AREA_DETECTOR, MXR_DEVICE,
 				&mxd_bluice_area_detector_record_function_list,
 				NULL,
-				NULL,
+				&mxd_bluice_area_detector_ad_function_list,
 			      &mxd_bluice_dcss_area_detector_num_record_fields,
 				&mxd_bluice_dcss_area_detector_rfield_def_ptr},
 
 {"bluice_dhs_area_detector", MXT_AD_BLUICE_DHS, MXC_AREA_DETECTOR, MXR_DEVICE,
 				&mxd_bluice_area_detector_record_function_list,
 				NULL,
-				NULL,
+				&mxd_bluice_area_detector_ad_function_list,
 				&mxd_bluice_dhs_area_detector_num_record_fields,
 				&mxd_bluice_dhs_area_detector_rfield_def_ptr},
 

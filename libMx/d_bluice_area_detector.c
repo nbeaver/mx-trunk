@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
 	mxd_bluice_area_detector_finish_delayed_initialization
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_function_list = {
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_bluice_area_detector_ad_function_list = {
 	mxd_bluice_area_detector_arm,
 	mxd_bluice_area_detector_trigger,
 	mxd_bluice_area_detector_stop,
@@ -648,7 +648,7 @@ mxd_bluice_area_detector_create_record_structures( MX_RECORD *record )
 	record->record_class_struct = ad;
 	record->record_type_struct = bluice_area_detector;
 	record->class_specific_function_list = 
-			&mxd_bluice_area_detector_function_list;
+			&mxd_bluice_area_detector_ad_function_list;
 
 	memset( &(ad->sequence_parameters),
 			0, sizeof(ad->sequence_parameters) );
