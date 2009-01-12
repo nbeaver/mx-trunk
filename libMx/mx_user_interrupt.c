@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,8 @@ mx_user_requested_interrupt( void )
 	user_interrupt = mx_user_requested_interrupt_or_pause();
 
 	if ( user_interrupt == MXF_USER_INT_PAUSE ) {
+		mx_info( "Cannot pause now." );
+
 		user_interrupt = MXF_USER_INT_NONE;
 	}
 
