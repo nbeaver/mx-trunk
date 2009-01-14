@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -560,8 +560,6 @@ mxi_xia_xerxes_delete_modules_file( char *modules_filename )
 
 	int fileio_status, saved_errno;
 
-#if defined(OS_WIN32) && defined(_MSC_VER)
-
 	/* FIXME
 	 *
 	 * dxp_read_config() has a bug where it opens a configuration file
@@ -570,26 +568,60 @@ mxi_xia_xerxes_delete_modules_file( char *modules_filename )
 	 * annoying since there is no straightforward way to deal with it.
 	 */
 
-#endif
-	/* Although the following will work on a Linux/Unix system as is,
-	 * it will not work on systems like Microsoft Windows if the file
-	 * is currently open.
+	/* Attempt to directly remove the modules file.  This should work
+	 * on Linux/Unix systems, but will fail on Microsoft Windows, since
+	 * Windows will not let you delete a file that is in use.
 	 */
 
 	fileio_status = remove( modules_filename );
 
-	if ( fileio_status != 0 ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname, 
-		"The attempt to delete the temporary XIASYSTEMS.CFG "
-		"file '%s' failed.  This error is of minor significance "
-		"and does not affect the running of the MCA.  "
-		"Error code = %d, error status = '%s'.",
-			modules_filename, saved_errno, strerror(saved_errno) );
+	if ( fileio_status == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* If we get here, the attempt to delete the modules file failed. */
+
+	saved_errno = errno;
+
+#if defined(OS_WIN32)
+	/* If we got an EACCES error on Win32, that probably means that
+	 * the file is still open.  We attempt to recover by using
+	 * MoveFileEx() to request that the file be deleted the next
+	 * time that the computer is booted.
+	 */
+
+	if ( saved_errno == EACCES ) {
+		BOOL win32_status;
+		DWORD last_error_code;
+		TCHAR message_buffer[100];
+
+		win32_status = MoveFileEx( modules_filename, NULL,
+					MOVEFILE_DELAY_UNTIL_REBOOT );
+
+		if ( win32_status != 0 ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to schedule the temporary XIASYSTEMS.CFG "
+		"file '%s' for deletion during the next boot failed.  "
+		"This error is of minor significance and does not affect the "
+		"running of the MCA.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			modules_filename, last_error_code, message_buffer );
+	}
+#endif
+
+	return mx_error( MXE_FILE_IO_ERROR, fname,
+	"The attempt to delete the temporary XIASYSTEMS.CFG file '%s' failed.  "
+	"This error is of minor significance and does not affect the running "
+	"of the MCA.  Error code = %d, error message = '%s'.",
+		modules_filename, saved_errno, strerror(saved_errno) );
 }
 
 /* mxi_xia_xerxes_read_config() either reads the xiasystems.cfg file specified
