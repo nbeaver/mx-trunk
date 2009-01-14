@@ -3,7 +3,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			0
+#define HAVE_EPICS			1
 
 /*****************************************************************************
  *
@@ -219,7 +219,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			1
+#define HAVE_XIA_HANDEL			0
 
 /*****************************************************************************
  *
@@ -230,7 +230,7 @@
  *
  */
 
-#define HAVE_XIA_XERXES			1
+#define HAVE_XIA_XERXES			0
 
 #endif /* _MXCONFIG_H_ */
 
