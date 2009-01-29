@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,8 @@
 #define MX_EPICS_DEBUG_CA_POLL		FALSE
 
 #define MX_EPICS_DEBUG_PERFORMANCE	FALSE
+
+#define MX_EPICS_EXPORT_KLUDGE		TRUE
 
 #include "mxconfig.h"
 

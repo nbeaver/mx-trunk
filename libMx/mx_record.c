@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <math.h>
 
+#include "mxconfig.h"
+
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_inttypes.h"
@@ -34,6 +36,7 @@
 #include "mx_list_head.h"
 #include "mx_net.h"
 #include "mx_motor.h"
+#include "mx_export.h"
 
 /* === Private function definitions === */
 
@@ -1580,6 +1583,15 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 			MX_DEBUG( 2,("%s: Successfully read include file '%s'",
 				fname, token));
+
+		} else if ( strncmp( buffer, "!export ", 8 ) == 0 ) {
+
+			mx_status = mx_invoke_export_callback( record_list_head,
+								buffer );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 		} else {
 			/* Otherwise, we assume this line is just a
 			 * record description and try to parse it.
