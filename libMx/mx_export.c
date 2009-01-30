@@ -47,8 +47,12 @@ mx_register_export_callback( char *export_typename,
 		fname, export_typename));
 #endif
 
+	if ( 0 ) {
+#if HAVE_EPICS
+	} else
 	if ( strcmp( export_typename, "epics" ) == 0 ) {
 		mx_epics_export_callback_fn = callback_fn;
+#endif
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unrecognized export type '%s' requested.", export_typename );
@@ -60,7 +64,9 @@ mx_register_export_callback( char *export_typename,
 MX_EXPORT mx_status_type
 mx_invoke_export_callback( MX_RECORD *record_list, char *buffer )
 {
+#if MX_EXPORT_DEBUG
 	static const char fname[] = "mx_invoke_export_callback()";
+#endif
 
 	char *dup_buffer;
 	char **argv;
