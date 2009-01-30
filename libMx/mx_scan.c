@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1795,6 +1795,12 @@ mx_scan_update_old_destinations( MX_SCAN *scan )
 		"Scan '%s' attempted to update the old motor destination "
 		"values when the early move flag was not set.  "
 		"This is not allowed.",  scan->record->name );
+	}
+
+	/* If the scan does not use motors, then there is nothing to update. */
+
+	if ( scan->num_motors == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	motor_record_array = scan->motor_record_array;

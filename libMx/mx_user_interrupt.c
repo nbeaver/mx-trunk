@@ -33,7 +33,8 @@ mx_user_requested_interrupt( void )
 	user_interrupt = mx_user_requested_interrupt_or_pause();
 
 	if ( user_interrupt == MXF_USER_INT_PAUSE ) {
-		mx_info( "Cannot pause now." );
+		mx_info( "Cannot pause now.  "
+		"Press any other key to interrupt." );
 
 		user_interrupt = MXF_USER_INT_NONE;
 	}
