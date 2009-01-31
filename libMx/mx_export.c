@@ -19,22 +19,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mxconfig.h"
-
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_list.h"
 #include "mx_export.h"
 
-#if HAVE_EPICS
-#include "mx_epics.h"
+static MX_LIST *mx_export_list = NULL;
 
-static mx_status_type (*mx_epics_export_callback_fn)(MX_RECORD *, char *);
-#endif
+typedef struct {
+	char name[80];
+	mx_status_type (*callback_fn)( MX_RECORD *, char * );
+} MX_EXPORT_LIST_ENTRY;
 
-/* FIXME: Danger Will Robinson! KLUDGE! KLUDGE! KLUDGE!  We need a _real_
- * mechanism for setting up exports to other control systems such as EPICS.
- * This kludge has been in place since February 2009.  Please FIXME.
- */
+/*----*/
+
+static mx_status_type
+mx_export_list_traverse_fn( MX_LIST_ENTRY *list_entry,
+				void *export_type_name_ptr,
+				void **callback_fn_ptr )
+{
+	MX_EXPORT_LIST_ENTRY *export_list_entry;
+	char *export_type_name;
+
+	export_list_entry = list_entry->list_entry_data;
+
+	export_type_name = export_type_name_ptr;
+
+	if ( strcmp( export_type_name, export_list_entry->name ) == 0 ) {
+		*callback_fn_ptr = export_list_entry->callback_fn;
+
+		return mx_error( MXE_EARLY_EXIT | MXE_QUIET, "", " " );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
 
 MX_EXPORT mx_status_type
 mx_register_export_callback( char *export_typename,
@@ -42,23 +62,43 @@ mx_register_export_callback( char *export_typename,
 {
 	static const char fname[] = "mx_register_export_callback()";
 
+	MX_LIST_ENTRY *list_entry;
+	MX_EXPORT_LIST_ENTRY *export_list_entry;
+	mx_status_type mx_status;
+
 #if MX_EXPORT_DEBUG
 	MX_DEBUG(-2,("%s invoked for export typename = '%s'",
 		fname, export_typename));
 #endif
 
-	if ( 0 ) {
-#if HAVE_EPICS
-	} else
-	if ( strcmp( export_typename, "epics" ) == 0 ) {
-		mx_epics_export_callback_fn = callback_fn;
-#endif
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unrecognized export type '%s' requested.", export_typename );
+	if ( mx_export_list == (MX_LIST *) NULL ) {
+		mx_status = mx_list_create( &mx_export_list );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	export_list_entry = malloc( sizeof(MX_EXPORT_LIST_ENTRY) );
+
+	if ( export_list_entry == (MX_EXPORT_LIST_ENTRY *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a new "
+			"MX_EXPORT_LIST_ENTRY structure." );
+	}
+
+	strlcpy( export_list_entry->name, export_typename,
+		sizeof( export_list_entry->name ) );
+
+	export_list_entry->callback_fn = callback_fn;
+
+	mx_status = mx_list_entry_create(&list_entry, export_list_entry, NULL);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_add_entry( mx_export_list, list_entry );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -67,6 +107,9 @@ mx_invoke_export_callback( MX_RECORD *record_list, char *buffer )
 #if MX_EXPORT_DEBUG
 	static const char fname[] = "mx_invoke_export_callback()";
 #endif
+
+	mx_status_type (*callback_fn)( MX_RECORD *, char * );
+	void *callback_fn_ptr;
 
 	char *dup_buffer;
 	char **argv;
@@ -90,25 +133,29 @@ mx_invoke_export_callback( MX_RECORD *record_list, char *buffer )
 				    buffer );
 	} else {
 
-#if (HAVE_EPICS == FALSE)
-		if ( 0 ) {
-#else
-		if ( strcmp( argv[1], "epics" ) == 0 ) {
+		mx_status = mx_list_traverse( mx_export_list,
+					mx_export_list_traverse_fn,
+					argv[1], &callback_fn_ptr );
 
-			if ( mx_epics_export_callback_fn == NULL ) {
-				mx_status = mx_error( MXE_NOT_AVAILABLE, fname,
-					"Support for EPICS export is not "
-					"available for this server.  "
-					"Requested by line '%s'", buffer );
-			} else {
-				mx_status = (*mx_epics_export_callback_fn)(
-						record_list, buffer );
-			}
-#endif /* HAVE_EPICS */
+		switch( mx_status.code ) {
+		case MXE_EARLY_EXIT:
+			/* Invoke the export callback that we have found. */
 
-		} else {
+			callback_fn = callback_fn_ptr;
+
+			mx_status = (*callback_fn)( record_list, buffer );
+			break;
+
+		case MXE_SUCCESS:
 			mx_warning( "Skipping unrecognized !export line '%s'.",
 					buffer );
+			break;
+
+		default:
+			/* Return the status code returned by
+			 * mx_list_traverse().
+			 */
+			break;
 		}
 	}
 
