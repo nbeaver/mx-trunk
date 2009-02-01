@@ -131,6 +131,11 @@ mx_invoke_export_callback( MX_RECORD *record_list, char *buffer )
 	if ( argc < 2 ) {
 		mx_warning( "Skipping truncated !export directive '%s'",
 				    buffer );
+	} else
+	if ( mx_export_list == (MX_LIST *) NULL ) {
+		mx_warning( "No !export handlers have been registered." );
+
+		mx_status = MX_SUCCESSFUL_RESULT;
 	} else {
 
 		mx_status = mx_list_traverse( mx_export_list,
