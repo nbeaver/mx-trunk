@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -133,7 +133,9 @@ mx_timer_is_busy( MX_RECORD *timer_record, mx_bool_type *busy )
 
 	mx_status = (*timer_is_busy_fn)( timer );
 
-	*busy = timer->busy;
+	if ( busy != (mx_bool_type *) NULL) {
+		*busy = timer->busy;
+	}
 
 	return mx_status;
 }
@@ -220,7 +222,9 @@ mx_timer_stop( MX_RECORD *timer_record, double *seconds_left )
 
 	mx_status = (*timer_stop)( timer );
 
-	*seconds_left = timer->value;
+	if ( seconds_left != (double *) NULL ) {
+		*seconds_left = timer->value;
+	}
 
 	return mx_status;
 }
@@ -276,7 +280,9 @@ mx_timer_read( MX_RECORD *timer_record, double *seconds )
 		timer->value = 0.0;
 	}
 
-	*seconds = timer->value;
+	if ( seconds != (double *) NULL ) {
+		*seconds = timer->value;
+	}
 
 	return mx_status;
 }
@@ -303,7 +309,9 @@ mx_timer_get_mode( MX_RECORD *timer_record, long *mode )
 		mx_status = (*timer_get_mode)( timer );
 	}
 
-	*mode = timer->mode;
+	if ( mode != (long *) NULL ) {
+		*mode = timer->mode;
+	}
 
 	return mx_status;
 }
@@ -387,7 +395,7 @@ mx_timer_get_last_measurement_time( MX_RECORD *timer_record,
 		mx_status = (*get_last_measurement_time)( timer );
 	}
 
-	if ( last_measurement_time != NULL ) {
+	if ( last_measurement_time != (double *) NULL ) {
 		*last_measurement_time = timer->last_measurement_time;
 	}
 
