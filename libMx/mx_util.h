@@ -340,6 +340,16 @@ MX_API void mx_start_debugger( char *command );
 
 MX_API void mx_wait_for_debugger( void );
 
+/* mx_breakpoint_helper() is a tiny function that can be used as the
+ * target of a debugger breakpoint, assuming it hasn't been optimized
+ * away by compiler optimization.  It exists because some versions of
+ * GDB have problems with setting breakpoints in C++ constructors.
+ * By adding a call to the empty mx_breakpoint_helper() function, it
+ * now becomes easy to set a breakpoint in a constructor.
+ */
+
+MX_API int mx_breakpoint_helper( void );
+
 /*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same
