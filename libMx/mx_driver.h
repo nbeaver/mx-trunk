@@ -179,6 +179,7 @@ extern "C" {
 #define MXI_GPIB_EPICS			204
 #define MXI_GPIB_MICRO488EX		205
 #define MXI_GPIB_NETWORK		206
+#define MXI_GPIB_PROLOGIX		207
 
 #define MXI_CAM_SOFTWARE		300
 #define MXI_CAM_DSP6001			301
@@ -343,6 +344,7 @@ extern "C" {
 #define MXT_AOU_SPELLMAN_DF3		20022
 #define MXT_AOU_BKPRECISION_912X	20023
 #define MXT_AOU_CRYOJET			20024
+#define MXT_AOU_SYSTRON_DONNER_M107	20025
 
 /* --- Analog output subclasses -- */
 
@@ -546,6 +548,7 @@ extern "C" {
 #define MXT_SCL_SCALER_FUNCTION		70017
 #define MXT_SCL_SPEC			70018
 #define MXT_SCL_GM10			70019
+#define MXT_SCL_FUNCTION_GENERATOR	70020
 
 /* --- Timer types --- */
 

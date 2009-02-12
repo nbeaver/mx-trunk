@@ -357,6 +357,7 @@
 #include "d_gm10_timer.h"
 #include "d_interval_timer.h"
 #include "d_bluice_timer.h"
+#include "d_fg_scaler.h"
 
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
@@ -2798,6 +2799,14 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_gm10_scaler_scaler_function_list,
 				&mxd_gm10_scaler_num_record_fields,
 				&mxd_gm10_scaler_rfield_def_ptr},
+
+{"function_generator_scaler",
+		   MXT_SCL_FUNCTION_GENERATOR, MXC_SCALER, MXR_DEVICE,
+				&mxd_fg_scaler_record_function_list,
+				NULL,
+				&mxd_fg_scaler_scaler_function_list,
+				&mxd_fg_scaler_num_record_fields,
+				&mxd_fg_scaler_rfield_def_ptr},
 
 {"mcs_encoder",    MXT_MCE_MCS,       MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_mcs_encoder_record_function_list,
