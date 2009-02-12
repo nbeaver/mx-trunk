@@ -37,7 +37,6 @@ MX_API mx_status_type mxd_fg_scaler_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_fg_scaler_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_fg_scaler_clear( MX_SCALER *scaler );
 MX_API mx_status_type mxd_fg_scaler_read( MX_SCALER *scaler );
 
 extern MX_RECORD_FUNCTION_LIST mxd_fg_scaler_record_function_list;
@@ -53,6 +52,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_fg_scaler_rfield_def_ptr;
   \
   {-1, -1, "frequency", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FG_SCALER, frequency), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "function", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_FG_SCALER, function), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __D_FG_SCALER_H__ */

@@ -38,3 +38,4 @@ maxdevscan                       scan linear_scan motor_scan "" "" 1 1 1  energy
 Nbxafs                           scan xafs_scan_class xafs_scan "" "" 100 0 0  3  Io It If  0 0.1 preset_time "0 timer1" xafs Ndunksamp7.012 gnuxafs log($f[0]/$f[1]) 6 4 2 7  -1500 -100 -20 15 30 8 12  1000 5 0.3 0.5 0.07 0.07  0.1 2 4 6 8 10
 Nbxafs_test                      scan xafs_scan_class xafs_scan "" "" 1 0 0  3  Io It If  0 0.1 preset_time "0 timer1" xafs Ndunksamp7.017 gnuxafs $f[0] 6 4 2 7  -1500 -100 -20 15 30 8 12  1000 5 3 5 1 1  0.1 0.1 0.1 0.1 0.1 0.1
 timescan3                        scan linear_scan input_scan "" "" 1 1 0  1  time  0 0 preset_time "1 timer1" sff junk.out none $f[0]  0  1  10
+fg_scan                          scan linear_scan input_scan "" "" 1 1 0  3  Istep Isine Isaw  0 0 preset_time "0.5 timer1" text junk.out gnuplot $f[0];$f[1];$f[2]  0  1  10000

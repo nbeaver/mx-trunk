@@ -40,7 +40,7 @@ MX_RECORD_FUNCTION_LIST mxd_fg_scaler_record_function_list = {
 };
 
 MX_SCALER_FUNCTION_LIST mxd_fg_scaler_scaler_function_list = {
-	mxd_fg_scaler_clear,
+	NULL,
 	NULL,
 	mxd_fg_scaler_read
 };
@@ -121,28 +121,6 @@ mxd_fg_scaler_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_fg_scaler_clear( MX_SCALER *scaler )
-{
-	static const char fname[] = "mxd_fg_scaler_clear()";
-
-	MX_FG_SCALER *fg_scaler;
-
-	fg_scaler = (MX_FG_SCALER *) scaler->record->record_type_struct;
-
-	if ( fg_scaler == (MX_FG_SCALER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_FG_SCALER pointer for record '%s' is NULL.",
-			scaler->record->name );
-	}
-
-	fg_scaler->start_time = mx_high_resolution_time();
-
-	fg_scaler->period = mx_divide_safely( 1.0, fg_scaler->frequency );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_fg_scaler_read( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_fg_scaler_read()";
@@ -184,8 +162,8 @@ mxd_fg_scaler_read( MX_SCALER *scaler )
 		}
 		break;
 	case MXT_FG_SCALER_SINE_WAVE:
-		raw_value = fg_scaler->amplitude
-				* sin( 2.0 * MX_PI * period_fraction );
+		raw_value = 0.5 * fg_scaler->amplitude
+			* ( 1.0 + sin( 2.0 * MX_PI * period_fraction ) );
 		break;
 	case MXT_FG_SCALER_SAWTOOTH_WAVE:
 		raw_value = period_fraction * fg_scaler->amplitude;
