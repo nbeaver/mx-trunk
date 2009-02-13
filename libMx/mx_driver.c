@@ -135,6 +135,7 @@
 #include "i_ni488.h"
 #include "i_k500serial.h"
 #include "i_micro488ex.h"
+#include "i_prologix.h"
 
 #include "i_soft_camac.h"
 #include "i_dsp6001.h"
@@ -267,6 +268,7 @@
 #include "d_ilm_ainput.h"
 #include "d_ilm_status.h"
 #include "d_ilm_sample_rate.h"
+#include "d_sd_m107.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -749,6 +751,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_micro488ex_gpib_function_list,
 				&mxi_micro488ex_num_record_fields,
 				&mxi_micro488ex_rfield_def_ptr},
+
+{"prologix",       MXI_GPIB_PROLOGIX,   MXI_GPIB,         MXR_INTERFACE,
+				&mxi_prologix_record_function_list,
+				NULL,
+				&mxi_prologix_gpib_function_list,
+				&mxi_prologix_num_record_fields,
+				&mxi_prologix_rfield_def_ptr},
 
 {"soft_camac",     MXI_CAM_SOFTWARE,  MXI_CAMAC,          MXR_INTERFACE,
 				&mxi_scamac_record_function_list,
@@ -2026,6 +2035,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_ilm_sample_rate_num_record_fields,
 				&mxd_ilm_sample_rate_rfield_def_ptr},
 
+{"systron_donner_m107", MXT_AOU_SYSTRON_DONNER_M107,
+					MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_sd_m107_record_function_list,
+				NULL,
+				&mxd_sd_m107_analog_output_function_list,
+				&mxd_sd_m107_num_record_fields,
+				&mxd_sd_m107_rfield_def_ptr},
 
 #ifdef OS_LINUX
 

@@ -124,7 +124,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_roentec_rcl_mca.c \
 	d_rtc018.c d_scaler_function.c d_scaler_function_mcs.c \
 	d_scipe_aio.c d_scipe_amplifier.c d_scipe_dio.c d_scipe_motor.c \
-	d_scipe_scaler.c d_scipe_timer.c d_src_mono.c d_segmented_move.c \
+	d_scipe_scaler.c d_scipe_timer.c d_sd_m107.c d_segmented_move.c \
 	d_sercat_als_robot.c \
 	d_si9650_motor.c d_si9650_status.c \
 	d_sis3801.c d_sis3801_pulser.c d_sis3807.c d_slit_motor.c \
@@ -136,7 +136,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_soft_vinput.c \
 	d_sony_visca_ptz.c d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
 	d_spellman_df3_aio.c d_spellman_df3_dio.c \
-	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_stp100.c \
+	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_src_mono.c d_stp100.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
 	d_trans_motor.c d_trump.c \
@@ -163,7 +163,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c i_ni488.c i_ortec974.c \
 	i_panasonic_kx_dp702.c i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c i_pmac.c \
-	i_pmc_mcapi.c i_rtems_vme.c i_scipe.c i_sis3100.c i_sis3807.c \
+	i_pmc_mcapi.c i_prologix.c i_rtems_vme.c \
+	i_scipe.c i_sis3100.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
 	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
