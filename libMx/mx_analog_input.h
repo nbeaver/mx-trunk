@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -112,6 +112,7 @@ typedef struct {
 	mx_status_type ( *read ) ( MX_ANALOG_INPUT *adc );
 	mx_status_type ( *get_dark_current ) ( MX_ANALOG_INPUT *adc );
 	mx_status_type ( *set_dark_current ) ( MX_ANALOG_INPUT *adc );
+	mx_status_type ( *clear ) ( MX_ANALOG_INPUT *adc );
 } MX_ANALOG_INPUT_FUNCTION_LIST;
 
 MX_API mx_status_type mx_analog_input_finish_record_initialization(
@@ -131,6 +132,8 @@ MX_API mx_status_type mx_analog_input_get_dark_current( MX_RECORD *adc_record,
 
 MX_API mx_status_type mx_analog_input_set_dark_current( MX_RECORD *adc_record,
 							double dark_current );
+
+MX_API mx_status_type mx_analog_input_clear( MX_RECORD *adc_record );
 
 extern MX_RECORD_FUNCTION_LIST mx_analog_input_record_function_list;
 

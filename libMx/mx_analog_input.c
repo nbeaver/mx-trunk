@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -436,5 +436,48 @@ mx_analog_input_set_dark_current( MX_RECORD *record, double dark_current )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_analog_input_clear( MX_RECORD *record )
+{
+	static const char fname[] = "mx_analog_input_read()";
+
+	MX_ANALOG_INPUT *analog_input;
+	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
+	mx_status_type ( *clear_fn ) ( MX_ANALOG_INPUT * );
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL.");
+	}
+
+	analog_input = (MX_ANALOG_INPUT *) record->record_class_struct;
+
+	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_ANALOG_INPUT pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	function_list = (MX_ANALOG_INPUT_FUNCTION_LIST *)
+				(record->class_specific_function_list);
+
+	if ( function_list == (MX_ANALOG_INPUT_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_ANALOG_INPUT_FUNCTION_LIST ptr for record '%s' is NULL.",
+			record->name );
+	}
+
+	clear_fn = function_list->clear;
+
+	if ( clear_fn == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = (*clear_fn)( analog_input );
+
+	return mx_status;
 }
 
