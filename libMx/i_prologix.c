@@ -169,6 +169,7 @@ mxi_prologix_create_record_structures( MX_RECORD *record )
 				= &mxi_prologix_gpib_function_list;
 
 	gpib->record = record;
+	prologix->record = record;
 
 	prologix->current_address = -1;
 
@@ -194,7 +195,9 @@ mxi_prologix_open( MX_RECORD *record )
 	MX_GPIB *gpib;
 	MX_PROLOGIX *prologix = NULL;
 	MX_RS232 *rs232;
+	char command[40];
 	char response[80];
+	unsigned long read_timeout_ms;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -240,16 +243,35 @@ mxi_prologix_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the read timeout to 1000 milliseconds. */
+	/* Set the read timeout. */
+
+	read_timeout_ms = mx_round( 1000.0 * gpib->default_io_timeout );
+
+	if ( read_timeout_ms > 4000 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested default I/O timeout of %f seconds "
+		"for GPIB interface '%s' exceeds the maximum allowed value "
+		"of 4.0 seconds.",
+			gpib->default_io_timeout, gpib->record->name );
+	}
+
+	snprintf( command, sizeof(command),
+		"++read_tmo_ms %lu", read_timeout_ms );
 
 	mx_status = mx_rs232_putline( prologix->rs232_record,
-					"++read_tmo_ms 1000",
+					command,
 					NULL, MXI_PROLOGIX_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Enable EOI on last character. */
+	/* Enable/disable EOI on last character. */
+
+	if ( gpib->default_eoi_mode != 0 ) {
+		strlcpy( command, "++eoi 1", sizeof(command) );
+	} else {
+		strlcpy( command, "++eoi 0", sizeof(command) );
+	}
 
 	mx_status = mx_rs232_putline( prologix->rs232_record,
 					"++eoi 1",
@@ -297,7 +319,23 @@ mxi_prologix_open( MX_RECORD *record )
 					response, sizeof(response),
 					NULL, MXI_PROLOGIX_DEBUG );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PROLOGIX_DEBUG
 	MX_DEBUG(-2,("%s: Prologix version = '%s'", fname, response));
+#endif
+
+	if ( strncmp( response, "Prologix", 8 ) != 0 ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The device connected to RS-232 record '%s' "
+		"used by the Prologix GPIB record '%s' is not "
+		"a Prologix controller.  Its response to a "
+		"Prologix '++ver' command was '%s'.",
+			prologix->rs232_record->name,
+			prologix->record->name,
+			response );
+	}
 
 	gpib->read_buffer_length = 0;
 	gpib->write_buffer_length = 0;

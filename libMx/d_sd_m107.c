@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_SD_M107_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -152,9 +154,11 @@ mxd_sd_m107_write( MX_ANALOG_OUTPUT *dac )
 		normalized_voltage = mx_round( 1000000.0 * abs_voltage );
 	}
 
+#if MXD_SD_M107_DEBUG
 	MX_DEBUG(-2,
 	("m107: voltage = %f, polarity = %d, range = %d, normalized = %lu",
 		voltage, polarity, range, normalized_voltage));
+#endif
 
 	/* Construct a voltage command for the M107. */
 
@@ -180,11 +184,13 @@ mxd_sd_m107_write( MX_ANALOG_OUTPUT *dac )
 	    "A%luB%luC%luD%luE%luF%luR%dP%dS",
 	    digit5, digit4, digit3, digit2, digit1, digit0, range, polarity );
 
+#if MXD_SD_M107_DEBUG
 	MX_DEBUG(-2,("m107: command = '%s'", command));
+#endif
 		
 	mx_status = mx_gpib_putline( sd_m107->gpib_record,
 				sd_m107->address,
-				command, NULL, 0 );
+				command, NULL, MXD_SD_M107_DEBUG );
 
 	return mx_status;
 }

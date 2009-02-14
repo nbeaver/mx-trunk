@@ -1,4 +1,5 @@
-ttyUSB0   interface rs232 tty "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyUSB0
-prologix  interface gpib prologix "" "" 13 0 0xa 0xa 0x0 ttyUSB0
+##ttyUSB0   interface rs232 tty "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyUSB0
+ttyUSB0   interface rs232 tty "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 /dev/tty.usbserial-PXPU4P27
+prologix  interface gpib prologix "" "" 1.0 1 0xa 0xa 0x0 ttyUSB0
 m107      device analog_output systron_donner_m107 "" "" 0 1 0 V 0x0 prologix 2
 timer1    device timer soft_timer "" ""
