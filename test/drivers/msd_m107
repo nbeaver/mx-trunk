@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./msd_m107.dat -s ./ssd_m107.dat $*
+
