@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_SD_M107_DEBUG	TRUE
+#define MXD_SD_M107_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_PROLOGIX_DEBUG	TRUE
+#define MXI_PROLOGIX_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

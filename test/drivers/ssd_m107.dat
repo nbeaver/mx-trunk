@@ -1,0 +1,1 @@
+m107scan                         scan linear_scan motor_scan "" "" 1 1 1  m107_motor 1  m107  0 0 preset_time "1 timer1" text junk.out none $f[0]  0  1  11
