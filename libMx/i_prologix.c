@@ -15,7 +15,9 @@
  *
  */
 
-#define MXI_PROLOGIX_DEBUG	FALSE
+#define MXI_PROLOGIX_DEBUG		FALSE
+
+#define MXI_PROLOGIX_DEBUG_ESCAPE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +28,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
+#include "mx_ascii.h"
 #include "mx_hrt.h"
 #include "mx_gpib.h"
 #include "mx_rs232.h"
@@ -172,17 +175,6 @@ mxi_prologix_create_record_structures( MX_RECORD *record )
 	prologix->record = record;
 
 	prologix->current_address = -1;
-
-	prologix->escaped_buffer_length = 100;
-	prologix->escaped_buffer = malloc( prologix->escaped_buffer_length );
-
-	if ( prologix->escaped_buffer == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to create a %ld byte "
-		"escaped command buffer for GPIB interface '%s'.",
-			prologix->escaped_buffer_length,
-			record->name );
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -342,6 +334,28 @@ mxi_prologix_open( MX_RECORD *record )
 
 	mx_status = mx_gpib_setup_communication_buffers( record );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* According to the Prologix manual, we need to put an ESC byte
+	 * in front of any ESC, CR, or LF bytes that appear in a message
+	 * to be sent to the Prologix controller.  Thus, we allocate
+	 * a write buffer for the escaped data to be written to.
+	 */
+
+	prologix->write_buffer =
+			(char *) malloc( MX_GPIB_DEFAULT_BUFFER_LENGTH );
+
+	if ( prologix->write_buffer == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %d byte "
+			"Prologix write buffer for GPIB interface '%s'.",
+				MX_GPIB_DEFAULT_BUFFER_LENGTH,
+				record->name );
+	}
+
+	prologix->write_buffer_length = MX_GPIB_DEFAULT_BUFFER_LENGTH;
+
 	return mx_status;
 }
 
@@ -406,8 +420,6 @@ mxi_prologix_read( MX_GPIB *gpib,
 	return mx_status;
 }
 
-#define MX_PREFIX_BUFFER_LENGTH   10
-
 MX_EXPORT mx_status_type
 mxi_prologix_write( MX_GPIB *gpib,
 		long address,
@@ -419,7 +431,8 @@ mxi_prologix_write( MX_GPIB *gpib,
 	static const char fname[] = "mxi_prologix_write()";
 
 	MX_PROLOGIX *prologix = NULL;
-	int debug;
+	int i, j, debug;
+	char c;
 	mx_status_type mx_status;
 
 	mx_status = mxi_prologix_get_pointers( gpib, &prologix, fname );
@@ -445,13 +458,67 @@ mxi_prologix_write( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Copy bytes from the caller's buffer to prologix->write_buffer.
+	 * If we find any ESC, CR, or LF bytes, then we insert an extra
+	 * ESC byte in front of them.
+	 */
+
+	j = 0;
+
+	for ( i = 0; i < bytes_to_write; i++ ) {
+
+		if ( j >= prologix->write_buffer_length ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The supplied buffer is too long to fit into the "
+			"%lu character write buffer for the Prologix GPIB "
+			"interface '%s'.",
+				prologix->write_buffer_length,
+				gpib->record->name );
+		}
+
+		c = buffer[i];
+
+		switch (c) {
+		case MX_ESC:
+		case MX_CR:
+		case MX_LF:
+
+#if MXI_PROLOGIX_DEBUG_ESCAPE
+			MX_DEBUG(-2,("%s: Inserting an ESC character.", fname));
+#endif
+
+			prologix->write_buffer[j] = MX_ESC;
+
+			j++;
+
+			if ( j >= prologix->write_buffer_length ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The supplied buffer is too long to fit into "
+				"the %lu character write buffer for the "
+				"Prologix GPIB interface '%s'.",
+					prologix->write_buffer_length,
+					gpib->record->name );
+			}
+
+			/* Fall through to the 'default' case. */
+		default:
+
+#if MXI_PROLOGIX_DEBUG_ESCAPE
+			MX_DEBUG(-2,("%s: Copying '%c'", fname, c));
+#endif
+
+			prologix->write_buffer[j] = c;
+			break;
+		}
+
+		j++;
+	}
+
 	mx_status = mx_rs232_putline( prologix->rs232_record,
 				buffer, bytes_written, transfer_flags );
 
 	return mx_status;
 }
-
-#undef MX_PREFIX_BUFFER_LENGTH
 
 MX_EXPORT mx_status_type
 mxi_prologix_interface_clear( MX_GPIB *gpib )

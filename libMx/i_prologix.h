@@ -29,8 +29,8 @@ typedef struct {
 
 	int current_address;
 
-	long escaped_buffer_length;
-	char *escaped_buffer;
+	size_t write_buffer_length;
+	char *write_buffer;
 } MX_PROLOGIX;
 
 /* Define all of the interface functions. */
