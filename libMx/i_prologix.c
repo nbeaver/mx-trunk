@@ -472,7 +472,7 @@ mxi_prologix_write( MX_GPIB *gpib,
 			"The supplied buffer is too long to fit into the "
 			"%lu character write buffer for the Prologix GPIB "
 			"interface '%s'.",
-				prologix->write_buffer_length,
+				(unsigned long) prologix->write_buffer_length,
 				gpib->record->name );
 		}
 
@@ -496,7 +496,7 @@ mxi_prologix_write( MX_GPIB *gpib,
 				"The supplied buffer is too long to fit into "
 				"the %lu character write buffer for the "
 				"Prologix GPIB interface '%s'.",
-					prologix->write_buffer_length,
+				(unsigned long) prologix->write_buffer_length,
 					gpib->record->name );
 			}
 
