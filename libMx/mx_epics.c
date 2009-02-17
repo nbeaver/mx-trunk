@@ -37,7 +37,33 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include "mx_util.h"
 #include "mx_unistd.h"
+
+/* EPICS makes its own definition of 'struct timespec' in the EPICS
+ * header file "osdTime.h".  This collides with the definition of
+ * 'struct timespec' made by MX in "mx_util.h".  However, the MX
+ * definition and the EPICS definition are identical, so we just
+ * inhibit the including of "osdTime.h" by predefining its wrapper
+ * variable 'osdTimeh'.
+ *
+ * Note: At present, we only do this on platforms where the compiler
+ * complains about the redefinition.
+ */
+
+#if defined(OS_WIN32)
+#  define osdTimeh
+#endif
+
+/* Microsoft Visual C++ does not define __STDC__, but the EPICS include
+ * files depend on its presence, so we set __STDC__ to 0 here.
+ */
+
+#if defined(OS_WIN32) && defined(_MSC_VER)
+#  ifndef __STDC__
+#     define __STDC__ 0
+#  endif
+#endif
 
 /* The following header files come from the EPICS base source code
  * distribution.
@@ -170,15 +196,16 @@ mx_epics_atexit_handler( void )
 
 	/* If a VME crate is shut down before we exit, we may hang in
 	 * ca_context_destroy().  In order to recover from this, we set
-	 * an alarm() to timeout ca_context_destroy().
-	 *
-	 * Since we are in the process of exiting, using SIGALRM in the
-	 * form of alarm() is probably OK.
+	 * up a timeout mechanism for ca_context_destroy().
 	 */
+
+#if ! defined(OS_WIN32)
+	/* On Unix-like systems, we use alarm() and SIGALRM to terminate. */
 
 	signal( SIGALRM, SIG_DFL );
 
 	alarm(5);
+#endif
 
 #if MX_EPICS_DEBUG_HANDLERS
 	MX_DEBUG(-2,("%s: About to shutdown Channel Access.", fname));
@@ -325,11 +352,7 @@ mx_epics_initialize( void )
 	{
 		enum ca_preemptive_callback_select callback_type;
 
-#  if 1
 		callback_type = ca_enable_preemptive_callback;
-#  else
-		callback_type = ca_disable_preemptive_callback;
-#  endif
 
 #  if MX_EPICS_DEBUG_IO
 		if ( callback_type == ca_enable_preemptive_callback ) {
