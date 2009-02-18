@@ -690,6 +690,10 @@ mx_motor_process_function( void *record_ptr,
 				record, motor->raw_acceleration_parameters );
 
 			break;
+		case MXLV_MTR_ACCELERATION_TIME:
+			mx_status = mx_motor_set_acceleration_time( record,
+						motor->acceleration_time );
+			break;
 		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 			position1 = motor->speed_choice_parameters[0];
 			position2 = motor->speed_choice_parameters[1];
