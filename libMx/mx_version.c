@@ -20,7 +20,7 @@
 #include "mx_util.h"
 #include "mx_version.h"
 
-#define MX_DATE "February 18, 2009"
+#define MX_DATE "February 19, 2009"
 
 static char buffer[60];
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,8 +46,8 @@ MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list = {
 	mxd_soft_motor_immediate_abort,
 	mxd_soft_motor_positive_limit_hit,
 	mxd_soft_motor_negative_limit_hit,
-	NULL,
-	NULL,
+	mxd_soft_motor_find_home_position,
+	mxd_soft_motor_constant_velocity_move,
 	mxd_soft_motor_get_parameter,
 	mxd_soft_motor_set_parameter,
 	mxd_soft_motor_simultaneous_start
@@ -437,6 +437,31 @@ mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor )
 	motor->negative_limit_hit = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_motor_find_home_position( MX_MOTOR *motor )
+{
+	motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_motor_constant_velocity_move( MX_MOTOR *motor )
+{
+	double destination;
+	mx_status_type mx_status;
+
+	if ( motor->constant_velocity_move >= 0 ) {
+		destination = motor->positive_limit;
+	} else {
+		destination = motor->negative_limit;
+	}
+
+	mx_status = mx_motor_move_absolute( motor->record, destination, 0 );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

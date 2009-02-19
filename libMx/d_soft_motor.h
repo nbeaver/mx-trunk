@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,8 @@ MX_API mx_status_type mxd_soft_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor );
+MX_API mx_status_type mxd_soft_motor_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_soft_motor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_simultaneous_start( long num_motor_records,
