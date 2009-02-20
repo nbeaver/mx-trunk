@@ -12,7 +12,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1071,8 +1071,22 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 				command, aviex_pccd->record->name );
 		}
 
-		register_address = combined_value / 100000;
-		register_value   = combined_value % 100000;
+		switch( aviex_pccd->record->mx_type ) {
+		case MXT_AD_PCCD_16080:
+			register_address = combined_value / 1000;
+			register_value   = combined_value % 1000;
+			break;
+		case MXT_AD_PCCD_170170:
+		case MXT_AD_PCCD_4824:
+			register_address = combined_value / 100000;
+			register_value   = combined_value % 100000;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported Aviex record type %lu",
+				aviex_pccd->record->mx_type );
+			break;
+		}
 
 		mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
 							register_address,
@@ -2088,7 +2102,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 					1, 0, 0.1 );
 				break;
 			case MXT_AD_PCCD_16080:
-#if 0
+#if 1
 				/* Send a 0.001 second pulse. */
 
 				mx_status = mx_camera_link_pulse_cc_line(
