@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -325,15 +325,15 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_management_handler = NULL;
 	ad->datafile_management_callback = NULL;
 
-	ad->oscillation_motor_name[0] = '\0';
+	ad->exposure_motor_name[0] = '\0';
 	ad->shutter_name[0] = '\0';
 
-	ad->oscillation_distance = 0.0;
+	ad->exposure_distance = 0.0;
 	ad->shutter_time = 0.0;
-	ad->start_exposure = FALSE;
+	ad->trigger_exposure = FALSE;
 
-	ad->oscillation_motor_record = NULL;
-	ad->last_oscillation_motor_name[0] = '\0';
+	ad->exposure_motor_record = NULL;
+	ad->last_exposure_motor_name[0] = '\0';
 
 	ad->shutter_record = NULL;
 	ad->last_shutter_name[0] = '\0';
@@ -2652,17 +2652,56 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_start_exposure( MX_RECORD *ad_record,
+mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 				MX_RECORD *motor_record,
 				MX_RECORD *shutter_record,
-				double oscillation_distance,
+				double exposure_distance,
 				double shutter_time )
 {
-	static const char fname[] = "mx_area_detector_start_exposure()";
+	static const char fname[] = "mx_area_detector_setup_exposure()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type (*start_exposure)( MX_AREA_DETECTOR * );
+	mx_status_type (*setup_exposure)( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( ad_record,
+						&ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->exposure_motor_record = motor_record;
+
+	strlcpy( ad->exposure_motor_name, motor_record->name,
+			sizeof(ad->exposure_motor_name) );
+
+	ad->shutter_record = shutter_record;
+
+	strlcpy( ad->shutter_name, shutter_record->name,
+			sizeof(ad->shutter_name) );
+
+	ad->exposure_distance = exposure_distance;
+
+	ad->shutter_time = shutter_time;
+
+	setup_exposure = flist->setup_exposure;
+
+	if ( setup_exposure != NULL ) {
+		mx_status = (*setup_exposure)( ad );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_trigger_exposure( MX_RECORD *ad_record )
+{
+	static const char fname[] = "mx_area_detector_trigger_exposure()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type (*trigger_exposure)( MX_AREA_DETECTOR * );
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -2675,34 +2714,19 @@ mx_area_detector_start_exposure( MX_RECORD *ad_record,
 	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_USE_UNSAFE_EXPOSURE ) {
-		start_exposure = mx_area_detector_start_unsafe_exposure;
+		trigger_exposure = mx_area_detector_trigger_unsafe_exposure;
 	} else {
-		start_exposure = flist->start_exposure;
+		trigger_exposure = flist->trigger_exposure;
 
-		if ( start_exposure == NULL ) {
+		if ( trigger_exposure == NULL ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector '%s' does not support "
-			"oscillation exposures.", ad_record->name );
+			"exposures coordinated with a shutter and a motor.",
+				ad_record->name );
 		}
 	}
 
-	ad->oscillation_motor_record = motor_record;
-
-	strlcpy( ad->oscillation_motor_name, motor_record->name,
-			sizeof(ad->oscillation_motor_name) );
-
-	ad->shutter_record = shutter_record;
-
-	strlcpy( ad->shutter_name, shutter_record->name,
-			sizeof(ad->shutter_name) );
-
-	ad->oscillation_distance = oscillation_distance;
-
-	ad->shutter_time = shutter_time;
-
-	ad->start_exposure = TRUE;
-
-	mx_status = (*start_exposure)( ad );
+	mx_status = (*trigger_exposure)( ad );
 
 	return mx_status;
 }
@@ -2728,7 +2752,7 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	motor = ad->oscillation_motor_record->record_class_struct;
+	motor = ad->exposure_motor_record->record_class_struct;
 
 	switch( ad->shutter_record->mx_class ) {
 	case MXC_DIGITAL_OUTPUT:
@@ -2772,7 +2796,7 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 
 	for(;;) {
 		mx_status = mx_motor_get_status(
-				ad->oscillation_motor_record, NULL );
+				ad->exposure_motor_record, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2790,7 +2814,7 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 			if ( comparison > 0 ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 				"Timed out after waiting %f seconds for the "
-				"oscillation motor to stop moving for "
+				"exposure motor to stop moving for "
 				"area detector '%s'.",
 					timeout, record->name );
 			}
@@ -2888,15 +2912,16 @@ mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* WARNING: mx_area_detector_start_unsafe_exposure() is just for simulation
+/* WARNING: mx_area_detector_trigger_unsafe_exposure() is just for simulation
  * purposes.  You should not regard it as a good example of implementing
  * exposures, since there is absolutely no synchronization.
  */
 
 MX_EXPORT mx_status_type
-mx_area_detector_start_unsafe_exposure( MX_AREA_DETECTOR *ad )
+mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mx_area_detector_start_unsafe_exposure()";
+	static const char fname[] =
+		"mx_area_detector_trigger_unsafe_exposure()";
 
 	mx_status_type mx_status;
 
@@ -2911,9 +2936,9 @@ mx_area_detector_start_unsafe_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ad->oscillation_motor_record == (MX_RECORD *) NULL ) {
+	if ( ad->exposure_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "No oscillation motor has been specified for area detector '%s'.",
+	    "No exposure motor has been specified for area detector '%s'.",
 			ad->record->name );
 	}
 
@@ -2923,8 +2948,8 @@ mx_area_detector_start_unsafe_exposure( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	mx_status = mx_motor_move_relative( ad->oscillation_motor_record,
-						ad->oscillation_distance, 0 );
+	mx_status = mx_motor_move_relative( ad->exposure_motor_record,
+						ad->exposure_distance, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

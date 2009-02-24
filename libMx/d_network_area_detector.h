@@ -43,6 +43,8 @@ typedef struct {
 	MX_NETWORK_FIELD datafile_name_nf;
 	MX_NETWORK_FIELD datafile_pattern_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
+	MX_NETWORK_FIELD exposure_motor_name_nf;
+	MX_NETWORK_FIELD exposure_distance_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;
@@ -61,8 +63,6 @@ typedef struct {
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD num_correction_measurements_nf;
-	MX_NETWORK_FIELD oscillation_motor_name_nf;
-	MX_NETWORK_FIELD oscillation_distance_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
@@ -74,7 +74,7 @@ typedef struct {
 	MX_NETWORK_FIELD shutter_enable_nf;
 	MX_NETWORK_FIELD shutter_name_nf;
 	MX_NETWORK_FIELD shutter_time_nf;
-	MX_NETWORK_FIELD start_exposure_nf;
+	MX_NETWORK_FIELD setup_exposure_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;
@@ -83,6 +83,7 @@ typedef struct {
 	MX_NETWORK_FIELD total_sequence_time_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;
 	MX_NETWORK_FIELD trigger_nf;
+	MX_NETWORK_FIELD trigger_exposure_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;
 	MX_NETWORK_FIELD use_scaled_dark_current_nf;
 
@@ -150,11 +151,14 @@ MX_API mx_status_type mxd_network_area_detector_set_parameter(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_measure_correction(
 							MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_network_area_detector_start_exposure(
+MX_API mx_status_type mxd_network_area_detector_setup_exposure(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_network_area_detector_trigger_exposure(
 							MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list;
-extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_network_area_detector_ad_function_list;
+extern MX_AREA_DETECTOR_FUNCTION_LIST
+			mxd_network_area_detector_ad_function_list;
 
 extern long mxd_network_area_detector_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_network_area_detector_rfield_def_ptr;

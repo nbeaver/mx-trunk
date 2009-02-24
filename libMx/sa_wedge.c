@@ -5,7 +5,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -431,11 +431,22 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 		shutter_record->name, motor_record->name,
 		delta, motor->units ));
 
-	mx_status = mx_area_detector_start_exposure( ad_record,
+	/* FIXME - Move this call to mx_area_detector_setup_exposure()
+	 * to somewhere else, so that we are not doing it for each frame.
+	 */
+
+	mx_status = mx_area_detector_setup_exposure( ad_record,
 						motor_record,
 						shutter_record,
 						delta,
 						exposure_time );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Trigger the exposure. */
+
+	mx_status = mx_area_detector_trigger_exposure( ad_record );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 

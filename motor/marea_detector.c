@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -696,11 +696,16 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		shutter_time = atof( argv[7] );
 
-		mx_status = mx_area_detector_start_exposure( ad_record,
+		mx_status = mx_area_detector_setup_exposure( ad_record,
 							motor_record,
 							shutter_record,
 							oscillation_distance,
 							shutter_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_area_detector_trigger_exposure( ad_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

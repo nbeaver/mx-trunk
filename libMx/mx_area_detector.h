@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -404,23 +404,23 @@ typedef struct mx_area_detector_type {
 	MX_CALLBACK *datafile_management_callback;
 
 	/* The following entries are used for exposures that 
-	 * are synchronized with an oscillation by a motor
-	 * and a shutter.
+	 * are synchronized with a motor and a shutter.
 	 */
 
-	char oscillation_motor_name[MXU_RECORD_NAME_LENGTH+1];
+	char exposure_motor_name[MXU_RECORD_NAME_LENGTH+1];
 
-	MX_RECORD *oscillation_motor_record;
-	char last_oscillation_motor_name[MXU_RECORD_NAME_LENGTH+1];
+	MX_RECORD *exposure_motor_record;
+	char last_exposure_motor_name[MXU_RECORD_NAME_LENGTH+1];
 
 	char shutter_name[MXU_RECORD_NAME_LENGTH+1];
 
 	MX_RECORD *shutter_record;
 	char last_shutter_name[MXU_RECORD_NAME_LENGTH+1];
 
-	double oscillation_distance;
+	double exposure_distance;
 	double shutter_time;
-	mx_bool_type start_exposure;
+	mx_bool_type setup_exposure;
+	mx_bool_type trigger_exposure;
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -501,11 +501,12 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_LAST_DATAFILE_NAME		12505
 #define MXLV_AD_DATAFILE_FORMAT			12506
 
-#define MXLV_AD_OSCILLATION_MOTOR_NAME		12600
+#define MXLV_AD_EXPOSURE_MOTOR_NAME		12600
 #define MXLV_AD_SHUTTER_NAME			12601
-#define MXLV_AD_OSCILLATION_DISTANCE		12602
+#define MXLV_AD_EXPOSURE_DISTANCE		12602
 #define MXLV_AD_SHUTTER_TIME			12603
-#define MXLV_AD_START_EXPOSURE			12604
+#define MXLV_AD_SETUP_EXPOSURE			12604
+#define MXLV_AD_TRIGGER_EXPOSURE		12605
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -893,10 +894,10 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, datafile_total_num_frames), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AD_OSCILLATION_MOTOR_NAME, -1, "oscillation_motor_name", MXFT_STRING, \
+  {MXLV_AD_EXPOSURE_MOTOR_NAME, -1, "exposure_motor_name", MXFT_STRING, \
   					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
-			offsetof(MX_AREA_DETECTOR, oscillation_motor_name), \
+			offsetof(MX_AREA_DETECTOR, exposure_motor_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_AD_SHUTTER_NAME, -1, "shutter_name", MXFT_STRING, \
@@ -904,17 +905,21 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, shutter_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_OSCILLATION_DISTANCE, -1, "oscillation_distance", MXFT_DOUBLE, \
+  {MXLV_AD_EXPOSURE_DISTANCE, -1, "exposure_distance", MXFT_DOUBLE, \
 					NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, oscillation_distance),\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, exposure_distance),\
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_SHUTTER_TIME, -1, "shutter_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, shutter_time),\
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_START_EXPOSURE, -1, "start_exposure", MXFT_BOOL, NULL, 0, {0}, \
-  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, start_exposure), \
+  {MXLV_AD_SETUP_EXPOSURE, -1, "setup_exposure", MXFT_BOOL, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, setup_exposure), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_TRIGGER_EXPOSURE, -1, "trigger_exposure", MXFT_BOOL, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, trigger_exposure), \
 	{0}, NULL, 0}
 
 typedef struct {
@@ -938,7 +943,8 @@ typedef struct {
 	mx_status_type ( *measure_correction ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *geometrical_correction ) ( MX_AREA_DETECTOR * ad,
 							MX_IMAGE_FRAME *frame );
-	mx_status_type ( *start_exposure ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *setup_exposure ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *trigger_exposure ) ( MX_AREA_DETECTOR *ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -1179,16 +1185,20 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 						long *total_num_frames,
 						unsigned long *status_flags );
 
-MX_API mx_status_type mx_area_detector_start_exposure( MX_RECORD *ad_record,
+/*---*/
+
+MX_API mx_status_type mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 						MX_RECORD *motor_record,
 						MX_RECORD *shutter_record,
-						double oscillation_distance,
+						double exposure_distance,
 						double shutter_time );
+
+MX_API mx_status_type mx_area_detector_trigger_exposure( MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 							double timeout );
 
-MX_API mx_status_type mx_area_detector_start_unsafe_exposure(
+MX_API mx_status_type mx_area_detector_trigger_unsafe_exposure(
 						MX_AREA_DETECTOR *ad );
 
 /*---*/

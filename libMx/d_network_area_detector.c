@@ -65,7 +65,8 @@ mxd_network_area_detector_ad_function_list = {
 	mxd_network_area_detector_set_parameter,
 	mxd_network_area_detector_measure_correction,
 	NULL,
-	mxd_network_area_detector_start_exposure
+	mxd_network_area_detector_setup_exposure,
+	mxd_network_area_detector_trigger_exposure
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_rf_defaults[] = {
@@ -301,6 +302,18 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.detector_readout_time",
 			network_area_detector->remote_record_name );
 
+	mx_network_field_init(
+		&(network_area_detector->exposure_motor_name_nf),
+		network_area_detector->server_record,
+			"%s.exposure_motor_name",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->exposure_distance_nf),
+		network_area_detector->server_record,
+			"%s.exposure_distance",
+			network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->extended_status_nf),
 		network_area_detector->server_record,
 	    "%s.extended_status", network_area_detector->remote_record_name );
@@ -388,18 +401,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.num_correction_measurements",
 			network_area_detector->remote_record_name );
 
-	mx_network_field_init(
-		&(network_area_detector->oscillation_motor_name_nf),
-		network_area_detector->server_record,
-			"%s.oscillation_motor_name",
-			network_area_detector->remote_record_name );
-
-	mx_network_field_init(
-		&(network_area_detector->oscillation_distance_nf),
-		network_area_detector->server_record,
-			"%s.oscillation_distance",
-			network_area_detector->remote_record_name );
-
 	mx_network_field_init( &(network_area_detector->readout_frame_nf),
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
@@ -451,9 +452,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			"%s.shutter_time",
 			network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->start_exposure_nf),
+	mx_network_field_init( &(network_area_detector->setup_exposure_nf),
 		network_area_detector->server_record,
-		"%s.start_exposure", network_area_detector->remote_record_name);
+		"%s.setup_exposure", network_area_detector->remote_record_name);
 
 	mx_network_field_init( &(network_area_detector->status_nf),
 		network_area_detector->server_record,
@@ -491,6 +492,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->trigger_nf),
 		network_area_detector->server_record,
 		"%s.trigger", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->trigger_exposure_nf),
+		network_area_detector->server_record,
+		"%s.trigger_exposure",
+			network_area_detector->remote_record_name);
 
 	mx_network_field_init( &(network_area_detector->trigger_mode_nf),
 		network_area_detector->server_record,
@@ -1988,10 +1994,10 @@ mxd_network_area_detector_measure_correction( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
+mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
-		"mxd_network_area_detector_start_exposure()";
+		"mxd_network_area_detector_setup_exposure()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
 	long dimension[1];
@@ -2005,16 +2011,16 @@ mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', motor '%s', "
-	"oscillation distance = %f, oscillation time = %f",
-		fname, ad->record->name, ad->oscillation_motor_name,
-		ad->oscillation_distance, ad->oscillation_time ));
+	"exposure distance = %f, exposure time = %f",
+		fname, ad->record->name, ad->exposure_motor_name,
+		ad->exposure_distance, ad->exposure_time ));
 #endif
 
 	dimension[0] = MXU_RECORD_NAME_LENGTH;
 
 	mx_status = mx_put_array(
-		&(network_area_detector->oscillation_motor_name_nf),
-		MXFT_STRING, 1, dimension, ad->oscillation_motor_name );
+		&(network_area_detector->exposure_motor_name_nf),
+		MXFT_STRING, 1, dimension, ad->exposure_motor_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2025,8 +2031,8 @@ mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_put( &(network_area_detector->oscillation_distance_nf),
-				MXFT_DOUBLE, &(ad->oscillation_distance) );
+	mx_status = mx_put( &(network_area_detector->exposure_distance_nf),
+				MXFT_DOUBLE, &(ad->exposure_distance) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2037,12 +2043,40 @@ mxd_network_area_detector_start_exposure( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Start the exposure. */
+	/* Setup the exposure. */
 
-	ad->start_exposure = TRUE;
+	ad->setup_exposure = TRUE;
 
-	mx_status = mx_put( &(network_area_detector->start_exposure_nf),
-				MXFT_BOOL, &(ad->start_exposure) );
+	mx_status = mx_put( &(network_area_detector->setup_exposure_nf),
+				MXFT_BOOL, &(ad->setup_exposure) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_trigger_exposure( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxd_network_area_detector_trigger_exposure()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	ad->trigger_exposure = TRUE;
+
+	mx_status = mx_put( &(network_area_detector->trigger_exposure_nf),
+				MXFT_BOOL, &(ad->trigger_exposure) );
 
 	return mx_status;
 }

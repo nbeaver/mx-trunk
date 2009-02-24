@@ -63,7 +63,8 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_ad_function_list = {
 	mxd_soft_area_detector_set_parameter,
 	NULL,
 	NULL,
-	mx_area_detector_start_unsafe_exposure
+	NULL,
+	mx_area_detector_trigger_unsafe_exposure
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_area_detector_rf_defaults[] = {

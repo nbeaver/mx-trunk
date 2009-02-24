@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -995,6 +995,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DATAFILE_DIRECTORY:
 		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
+		case MXLV_AD_EXPOSURE_MOTOR_NAME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
@@ -1006,7 +1007,6 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
-		case MXLV_AD_OSCILLATION_MOTOR_NAME:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:
@@ -1015,7 +1015,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_SEQUENCE_START_DELAY:
 		case MXLV_AD_SHUTTER_ENABLE:
 		case MXLV_AD_SHUTTER_NAME:
-		case MXLV_AD_START_EXPOSURE:
+		case MXLV_AD_SETUP_EXPOSURE:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TOTAL_ACQUISITION_TIME:
@@ -1023,6 +1023,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_TOTAL_SEQUENCE_TIME:
 		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
+		case MXLV_AD_TRIGGER_EXPOSURE:
 		case MXLV_AD_TRIGGER_MODE:
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -1179,13 +1180,6 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_shutter_enable(
 								record, NULL );
 			break;
-		case MXLV_AD_START_EXPOSURE:
-			mx_status = mx_area_detector_start_exposure( record,
-						ad->oscillation_motor_record,
-						ad->shutter_record,
-						ad->oscillation_distance,
-						ad->shutter_time );
-			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
@@ -1288,6 +1282,50 @@ mx_area_detector_process_function( void *record_ptr,
 			    mx_area_detector_initialize_datafile_number(record);
 			}
 			break;
+		case MXLV_AD_EXPOSURE_MOTOR_NAME:
+			/* If the exposure motor name has changed, then
+			 * we need to do a lookup of the corresponding
+			 * motor record.
+			 */
+
+			if ( strcmp( ad->exposure_motor_name,
+			    ad->last_exposure_motor_name ) != 0 )
+			{
+			    ad->exposure_motor_record
+				  = mx_get_record( record,
+				  	ad->exposure_motor_name );
+
+			    if ( ad->exposure_motor_record == NULL ) {
+				ad->last_exposure_motor_name[0] = '\0';
+
+				return mx_error( MXE_NOT_FOUND, fname,
+				"exposure motor '%s' was not found "
+				"in the MX database.",
+					ad->exposure_motor_name );
+			    } else {
+				/* Is this record a motor record? */
+
+				switch(ad->exposure_motor_record->mx_class) {
+				case MXC_MOTOR:
+					break;
+				default:
+					mx_status = mx_error(
+					MXE_ILLEGAL_ARGUMENT, fname,
+					"The record '%s' specified as the "
+					"exposure motor record is not "
+					"actually a motor record.",
+						ad->exposure_motor_name );
+
+					ad->exposure_motor_record = NULL;
+					ad->exposure_motor_name[0] = '\0';
+				}
+
+			    	strlcpy( ad->last_exposure_motor_name,
+					ad->exposure_motor_name,
+				    sizeof(ad->last_exposure_motor_name) );
+			    }
+			}
+			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,
 						ad->framesize[0],
@@ -1319,50 +1357,6 @@ mx_area_detector_process_function( void *record_ptr,
 			if ( ad->load_frame == MXFT_AD_IMAGE_FRAME ) {
 				mx_status =
 				    mxp_area_detector_update_frame_pointers(ad);
-			}
-			break;
-		case MXLV_AD_OSCILLATION_MOTOR_NAME:
-			/* If the oscillation motor name has changed, then
-			 * we need to do a lookup of the corresponding
-			 * motor record.
-			 */
-
-			if ( strcmp( ad->oscillation_motor_name,
-			    ad->last_oscillation_motor_name ) != 0 )
-			{
-			    ad->oscillation_motor_record
-				  = mx_get_record( record,
-				  	ad->oscillation_motor_name );
-
-			    if ( ad->oscillation_motor_record == NULL ) {
-				ad->last_oscillation_motor_name[0] = '\0';
-
-				return mx_error( MXE_NOT_FOUND, fname,
-				"Oscillation motor '%s' was not found "
-				"in the MX database.",
-					ad->oscillation_motor_name );
-			    } else {
-				/* Is this record a motor record? */
-
-				switch(ad->oscillation_motor_record->mx_class) {
-				case MXC_MOTOR:
-					break;
-				default:
-					mx_status = mx_error(
-					MXE_ILLEGAL_ARGUMENT, fname,
-					"The record '%s' specified as the "
-					"oscillation motor record is not "
-					"actually a motor record.",
-						ad->oscillation_motor_name );
-
-					ad->oscillation_motor_record = NULL;
-					ad->oscillation_motor_name[0] = '\0';
-				}
-
-			    	strlcpy( ad->last_oscillation_motor_name,
-					ad->oscillation_motor_name,
-				    sizeof(ad->last_oscillation_motor_name) );
-			    }
 			}
 			break;
 		case MXLV_AD_REGISTER_VALUE:
@@ -1402,6 +1396,13 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_set_sequence_start_delay(
 					record, ad->sequence_start_delay );
 			break;
+		case MXLV_AD_SETUP_EXPOSURE:
+			mx_status = mx_area_detector_setup_exposure( record,
+						ad->exposure_motor_record,
+						ad->shutter_record,
+						ad->exposure_distance,
+						ad->shutter_time );
+			break;
 		case MXLV_AD_SHUTTER_ENABLE:
 			mx_status = mx_area_detector_set_shutter_enable(
 						record, ad->shutter_enable );
@@ -1437,7 +1438,7 @@ mx_area_detector_process_function( void *record_ptr,
 					"The record '%s' specified as the "
 					"shutter record is not actually a"
 					"digital output or relay.",
-						ad->oscillation_motor_name );
+						ad->shutter_name );
 
 					ad->shutter_record = NULL;
 					ad->shutter_name[0] = '\0';
@@ -1466,6 +1467,9 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_TRIGGER:
 			mx_status = mx_area_detector_trigger( record );
+			break;
+		case MXLV_AD_TRIGGER_EXPOSURE:
+			mx_status = mx_area_detector_trigger_exposure( record );
 			break;
 		case MXLV_AD_TRIGGER_MODE:
 			mx_status = mx_area_detector_set_trigger_mode(
