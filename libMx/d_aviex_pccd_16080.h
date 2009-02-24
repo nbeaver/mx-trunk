@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -137,7 +137,11 @@ mxd_aviex_pccd_16080_compute_sequence_times( MX_AREA_DETECTOR *,
 
 /* Edge or duration trigger (bit 4) */
 
-#define MXF_AVIEX_PCCD_16080_EXTERNAL_DURATION_TRIGGER		0x10
+#define MXF_AVIEX_PCCD_16080_EDGE_TRIGGER			0x10
+
+/* Test mode (bit 5) */
+
+#define MXF_AVIEX_PCCD_16080_TEST_MODE_ON			0x20
 
 /*-------------------------------------------------------------*/
 

@@ -1,0 +1,14 @@
+ready      device digital_output soft_doutput "" "" 0
+#
+xclib  interface generic epix_xclib "" "" /opt/mx/etc/aviex/pccd_16080_v1_xcap3.fmt 0x0
+port  interface camera_link epix_camera_link "" "" 9600 0.5 1
+rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0xd 0.25 0x1000 port
+epix       device video_input epix_xclib_video_input "" "" 8336 1042 grey16 -1 xclib 1 ready 0x1001 0x5555
+inttrigger device digital_output epix_xclib_doutput "" "" 0 epix
+gpin       device digital_input epix_xclib_dinput "" "" 0 epix -1
+trig0      device digital_input epix_xclib_dinput "" "" 0 epix 0
+trig1      device digital_input epix_xclib_dinput "" "" 0 epix 1
+ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x1 0x11 "" "" ""
+#
+#
+####ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x1 0x0 "" "" ""

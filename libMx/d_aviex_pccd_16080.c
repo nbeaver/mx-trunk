@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -290,7 +290,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 				1,  100, TRUE, FALSE, FALSE, 0,  255 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_CONTROL,
-				1,  2, FALSE, FALSE, FALSE, 0,  31 );
+				1,  2, FALSE, FALSE, FALSE, 0,  63 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VIDBIN,
 				1,  1, FALSE, FALSE, FALSE, 1,  8 );
@@ -453,7 +453,20 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 
 	control_register_value = MXF_AVIEX_PCCD_16080_CCD_ON
 			| MXF_AVIEX_PCCD_16080_HIGH_SPEED
-			| MXF_AVIEX_PCCD_16080_AUTOMATIC_OFFSET_CORRECTION_ON;
+			| MXF_AVIEX_PCCD_16080_AUTOMATIC_OFFSET_CORRECTION_ON
+			| MXF_AVIEX_PCCD_16080_EDGE_TRIGGER;
+
+	/* If requested, turn on the test mode pattern. */
+
+	if ( pccd_flags & MXF_AVIEX_PCCD_USE_TEST_PATTERN ) {
+		control_register_value |= MXF_AVIEX_PCCD_16080_TEST_MODE_ON;
+
+		mx_warning( "Area detector '%s' will return a test image "
+			"instead of taking a real image.",
+				record->name );
+	}
+
+	/* Write the control register. */
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
