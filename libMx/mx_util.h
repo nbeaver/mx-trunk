@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -349,6 +349,12 @@ MX_API void mx_wait_for_debugger( void );
  */
 
 MX_API int mx_breakpoint_helper( void );
+
+/* mx_breakpoint() inserts a debugger breakpoint into the code.
+ * This function is not available on all platforms.
+ */
+
+MX_API void mx_breakpoint( void );
 
 /*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an

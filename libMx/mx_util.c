@@ -1065,6 +1065,80 @@ mx_force_core_dump( void )
 
 /*-------------------------------------------------------------------------*/
 
+/* mx_breakpoint_helper() is a tiny function that can be used as the
+ * target of a debugger breakpoint, assuming it hasn't been optimized
+ * away by compiler optimization.  It exists because some versions of
+ * GDB have problems with setting breakpoints in C++ constructors.
+ * By adding a call to the empty mx_breakpoint_helper() function, it
+ * now becomes easy to set a breakpoint in a constructor.
+ */
+
+MX_EXPORT int
+mx_breakpoint_helper( void )
+{
+	/* Make it harder for the optimizer to optimize us away. */
+
+	volatile int i;
+
+	i = 42;
+
+	return i;
+}
+
+/*-------------------------------------------------------------------------*/
+
+/* mx_breakpoint() inserts a debugger breakpoint into the code.
+ * It is not possible to implement this for all platforms.
+ */
+
+#if defined(OS_WIN32)
+
+#define MXP_HAS_REAL_BREAKPOINT		TRUE
+
+MX_EXPORT void
+mx_breakpoint( void )
+{
+	DebugBreak();
+}
+
+#elif ( defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)) )
+
+#define MXP_HAS_REAL_BREAKPOINT		TRUE
+
+#if 0
+static void
+mxp_sigtrap_handler(int signum)
+{
+}
+#endif
+
+MX_EXPORT void
+mx_breakpoint( void )
+{
+	__asm__("int3");
+}
+
+#else
+
+/* For unsupported platforms, we just "implement" it as
+ * a call to mx_breakpoint_helper() above.
+ */
+
+#define MXP_HAS_REAL_BREAKPOINT		FALSE
+
+MX_EXPORT void
+mx_breakpoint( void )
+{
+	mx_warning(
+	"mx_breakpoint() was invoked on a platform that does not support it." );
+
+	mx_breakpoint_helper();
+}
+
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 #if defined(OS_WIN32)
 
 MX_EXPORT void
@@ -1276,6 +1350,16 @@ mx_start_debugger( char *command )
 
 /*-------------------------------------------------------------------------*/
 
+#if 0 && MXP_HAS_REAL_BREAKPOINT
+
+MX_EXPORT void
+mx_wait_for_debugger( void )
+{
+	mx_breakpoint();
+}
+
+#else /* Not MXP_HAS_REAL_BREAKPOINT */
+
 MX_EXPORT void
 mx_wait_for_debugger( void )
 {
@@ -1325,27 +1409,7 @@ mx_wait_for_debugger( void )
 	return;
 }
 
-/*-------------------------------------------------------------------------*/
-
-/* mx_breakpoint_helper() is a tiny function that can be used as the
- * target of a debugger breakpoint, assuming it hasn't been optimized
- * away by compiler optimization.  It exists because some versions of
- * GDB have problems with setting breakpoints in C++ constructors.
- * By adding a call to the empty mx_breakpoint_helper() function, it
- * now becomes easy to set a breakpoint in a constructor.
- */
-
-MX_EXPORT int
-mx_breakpoint_helper( void )
-{
-	/* Make it harder for the optimizer to optimize us away. */
-
-	volatile int i;
-
-	i = 42;
-
-	return i;
-}
+#endif /* Not MXP_HAS_REAL_BREAKPOINT */
 
 /*-------------------------------------------------------------------------*/
 
