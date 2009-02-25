@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -905,6 +905,14 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 
 	epix_xclib_vinput->fake_frame_numbers[0] = -1000;
 	epix_xclib_vinput->fake_frame_numbers[1] = -1000;
+
+	/* 'test_num_pixels_to_save' is for test purposes only.
+	 * If it is set to a value greater than or equal to zero,
+	 * then only the specified number of pixels will be saved
+	 * after a call to pxd_readushort().
+	 */
+
+	epix_xclib_vinput->test_num_pixels_to_save = -1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2418,6 +2426,24 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 					fname, (int) checksum));
 		}
 #endif
+		/* For testing of descrambling, we provide a way to 
+		 * overwrite all but the first few pixels.
+		 */
+
+#if 1
+		if ( epix_xclib_vinput->test_num_pixels_to_save >= 0 ) {
+			long i_start;
+
+			image_data16 = frame->image_data;
+
+			i_start = epix_xclib_vinput->test_num_pixels_to_save;
+
+			for ( i = i_start; i < words_to_read; i++ ) {
+				image_data16[i] = 0x4444;
+			}
+		}
+#endif
+
 	} else {
 		result = pxd_readuchar( epix_xclib_vinput->unitmap,
 				epix_frame_number,
