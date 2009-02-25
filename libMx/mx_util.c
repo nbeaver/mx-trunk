@@ -1105,13 +1105,6 @@ mx_breakpoint( void )
 
 #define MXP_HAS_REAL_BREAKPOINT		TRUE
 
-#if 0
-static void
-mxp_sigtrap_handler(int signum)
-{
-}
-#endif
-
 MX_EXPORT void
 mx_breakpoint( void )
 {
@@ -1350,16 +1343,6 @@ mx_start_debugger( char *command )
 
 /*-------------------------------------------------------------------------*/
 
-#if 0 && MXP_HAS_REAL_BREAKPOINT
-
-MX_EXPORT void
-mx_wait_for_debugger( void )
-{
-	mx_breakpoint();
-}
-
-#else /* Not MXP_HAS_REAL_BREAKPOINT */
-
 MX_EXPORT void
 mx_wait_for_debugger( void )
 {
@@ -1408,8 +1391,6 @@ mx_wait_for_debugger( void )
 
 	return;
 }
-
-#endif /* Not MXP_HAS_REAL_BREAKPOINT */
 
 /*-------------------------------------------------------------------------*/
 
