@@ -667,7 +667,7 @@ MX_EXPORT mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd )
 {
-#if 1
+#if MXD_AVIEX_PCCD_16080_DEBUG
 	static const char fname[] = "mxd_aviex_pccd_16080_set_binsize()";
 #endif
 
@@ -713,8 +713,10 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 
 	roilines_register = 9 - ad->binsize[1];
 
+#if MXD_AVIEX_PCCD_16080_DEBUG
 	MX_DEBUG(-2,("%s: roilines = %lu, roilines_register = %lu",
 		fname, roilines, roilines_register));
+#endif
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_ROILINES,

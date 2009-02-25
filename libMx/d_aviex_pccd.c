@@ -156,7 +156,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_aviex_pccd_ad_function_list = {
 	NULL,
 	mxd_aviex_pccd_get_parameter,
 	mxd_aviex_pccd_set_parameter,
-	mx_area_detector_default_measure_correction,
+	mxd_aviex_pccd_measure_correction,
 	mxd_aviex_pccd_geometrical_correction
 };
 
@@ -3317,16 +3317,23 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
-		mx_status = mx_area_detector_get_register( ad->record,
+		switch( ad->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+			mx_status = mx_area_detector_get_register( ad->record,
 							"dh_shutter_disable",
 							&shutter_disabled );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		if ( shutter_disabled ) {
+			if ( shutter_disabled ) {
+				ad->shutter_enable = FALSE;
+			} else {
+				ad->shutter_enable = TRUE;
+			}
+			break;
+		default:
 			ad->shutter_enable = FALSE;
-		} else {
-			ad->shutter_enable = TRUE;
+			break;
 		}
 		break;
 
@@ -3723,15 +3730,22 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
-		if ( ad->shutter_enable ) {
-			shutter_disable = 0;
-		} else {
-			shutter_disable = 1;
-		}
+		switch( ad->record->mx_type ) {
+		case MXT_AD_PCCD_170170:
+			if ( ad->shutter_enable ) {
+				shutter_disable = 0;
+			} else {
+				shutter_disable = 1;
+			}
 
-		mx_status = mx_area_detector_set_register( ad->record,
+			mx_status = mx_area_detector_set_register( ad->record,
 							"dh_shutter_disable",
 							shutter_disable );
+			break;
+		default:
+			ad->shutter_enable = FALSE;
+			break;
+		}
 		break;
 
 	default:
@@ -3746,6 +3760,52 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_aviex_pccd_measure_correction()";
+
+	MX_AVIEX_PCCD *aviex_pccd;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	flags = aviex_pccd->aviex_pccd_flags;
+
+	if ( (flags & MXF_AVIEX_PCCD_SKIP_FIRST_CORRECTION_FRAME) == 0 ) {
+
+		/* If we are not supposed to skip the first frame, then
+		 * just invoke the default correction measurement function.
+		 */
+
+		mx_status = mx_area_detector_default_measure_correction( ad );
+
+		return mx_status;
+	}
+
+	/* We have been asked to skip the first frame of a correction
+	 * measurement sequence.  This means that we must use a multiframe
+	 * sequence rather than a series of one-shot exposures.
+	 */
+
+	mx_status = mx_area_detector_set_multiframe_mode( ad->record,
+					ad->num_correction_measurements + 1,
+					ad->correction_measurement_time,
+					ad->correction_measurement_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the sequence. */
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Skipping the first frame has not yet been implemented." );
 }
 
 #if MXD_AVIEX_PCCD_GEOMETRICAL_MASK_KLUDGE

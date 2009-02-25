@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,7 @@
 
 #define MXF_AVIEX_PCCD_TEST_DEZINGER			0x100
 #define MXF_AVIEX_PCCD_SAVE_RAW_FRAME			0x200
+#define MXF_AVIEX_PCCD_SKIP_FIRST_CORRECTION_FRAME	0x400
 
 /*---*/
 
@@ -191,6 +192,7 @@ MX_API mx_status_type mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_aviex_pccd_geometrical_correction(
 						MX_AREA_DETECTOR *ad,
 						MX_IMAGE_FRAME *frame );
