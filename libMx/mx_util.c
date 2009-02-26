@@ -1343,6 +1343,77 @@ mx_start_debugger( char *command )
 
 /*-------------------------------------------------------------------------*/
 
+#if 0
+
+/* FIXME - This does not work. */
+
+static void
+mxp_sigtrap_handler( int signum )
+{
+	write( 2, "SIGTRAP!\n\n", 10 );
+}
+
+MX_EXPORT void
+mx_wait_for_debugger( void )
+{
+	static const char fname[] = "mx_wait_for_debugger()";
+
+	struct sigaction sa;
+	int os_status, saved_errno;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	sa.sa_flags = 0;	/* Not SA_RESTART */
+
+	sa.sa_handler = mxp_sigtrap_handler;
+
+	os_status = sigaction( SIGTRAP, &sa, NULL );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		MX_DEBUG(-2,("%s: sigaction() errno = %d", fname, saved_errno));
+	}
+
+#if 0
+	{
+		/* nanosleep() version. */
+
+		struct timespec sleep_time;
+
+		sleep_time.tv_sec = LONG_MAX;
+		sleep_time.tv_nsec = 0;
+
+		MX_DEBUG(-2,("%s: Calling nanosleep()", fname));
+
+		os_status = nanosleep( &sleep_time, NULL );
+	}
+#else
+	{
+		/* select() version. */
+
+		struct timeval sleep_time;
+
+		sleep_time.tv_sec = LONG_MAX;
+		sleep_time.tv_usec = 0;
+
+		MX_DEBUG(-2,("%s: Calling select()", fname));
+
+		os_status = select( 0, NULL, NULL, NULL, &sleep_time );
+	}
+#endif
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		MX_DEBUG(-2,("%s: Wait errno = %d", fname, saved_errno));
+	}
+
+	return;
+}
+
+#else
+
 MX_EXPORT void
 mx_wait_for_debugger( void )
 {
@@ -1391,6 +1462,8 @@ mx_wait_for_debugger( void )
 
 	return;
 }
+
+#endif
 
 /*-------------------------------------------------------------------------*/
 
