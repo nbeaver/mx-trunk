@@ -112,7 +112,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set streak_camera_mode '# lines'\n"
 "                             'exposure time per line' 'total time per line'\n"
 "  area_detector 'name' set subimage_mode '# lines per subimage' '#subimages'\n"
-"      'exposure time' 'subimage time' 'exposure multiplier' 'gap multiplier'\n"
+"    'exposure time' 'subimage time' ['exposure multiplier' ['gap multiplier']]\n"
 "\n"
 "  area_detector 'name' get binsize\n"
 "  area_detector 'name' set binsize 'x_binsize' 'y_binsize'\n"
@@ -2004,7 +2004,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strncmp("subimage_mode", argv[4], strlen(argv[4])) == 0)
 		{
-			if ( argc != 11 ) {
+			if ( argc < 9 ) {
 				fprintf( output,
 			"Wrong number of arguments specified for 'set %s'.\n",
 					argv[4] );
@@ -2035,9 +2035,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			subimage_time = atof( argv[8] );
 
-			exposure_multiplier = atof( argv[9] );
+			if ( argc < 10 ) {
+				exposure_multiplier = 1.0;
+			} else {
+				exposure_multiplier = atof( argv[9] );
+			}
 
-			gap_multiplier = atof( argv[10] );
+			if ( argc < 11 ) {
+				gap_multiplier = 1.0;
+			} else {
+				gap_multiplier = atof( argv[10] );
+			}
 
 			mx_status = mx_area_detector_set_subimage_mode(
 				ad_record, num_lines_per_subimage,

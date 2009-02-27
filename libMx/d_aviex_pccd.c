@@ -620,9 +620,10 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				ad, aviex_pccd, image_frame, raw_frame );
 			break;
 		case MXT_AD_PCCD_16080:
-			mx_status =
-			    mxd_aviex_pccd_16080_streak_camera_descramble(
-				ad, aviex_pccd, image_frame, raw_frame );
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Streak camera mode is not supported for "
+				"Aviex PCCD-16080 detectors.  "
+				"Use subimage mode instead." );
 			break;
 		}
 

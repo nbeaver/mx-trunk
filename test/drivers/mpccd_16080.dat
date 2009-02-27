@@ -11,8 +11,8 @@ trig1      device digital_input epix_xclib_dinput "" "" 0 epix 1
 #
 # For simulator image
 #
-ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x1 0x11 "" "" ""
-##ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x1 0x0 "" "" ""
+##ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x1 0x11 "" "" ""
+ad         device area_detector pccd_16080 "" "" 0 0x0 0x0 "" /opt/mx/etc/aviex/bias_200_4168x2084.smv "" "" epix port inttrigger 0x3 0x0 "" "" ""
 #
 # For real image
 #

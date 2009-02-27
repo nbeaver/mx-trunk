@@ -30,6 +30,8 @@
 #include "mx_area_detector.h"
 #include "d_aviex_pccd.h"
 
+#define MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES	2048
+
 /*-------------------------------------------------------------------------*/
 
 /* PCCD-16080 data structures. */
@@ -785,23 +787,6 @@ mxd_aviex_pccd_16080_descramble( uint16_t *raw_frame_data,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_16080_streak_camera_descramble( MX_AREA_DETECTOR *ad,
-					MX_AVIEX_PCCD *aviex_pccd,
-					MX_IMAGE_FRAME *image_frame,
-					MX_IMAGE_FRAME *raw_frame )
-{
-	static const char fname[] =
-			"mxd_aviex_pccd_16080_streak_camera_descramble()";
-
-	mx_warning("%s: Streak camera descrambling is not yet implemented "
-		"for PCCD-16080 detectors.", fname );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
 mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 					MX_AVIEX_PCCD *aviex_pccd )
 {
@@ -809,34 +794,32 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		"mxd_aviex_pccd_16080_configure_for_sequence()";
 
 	MX_SEQUENCE_PARAMETERS *sp;
-	unsigned long old_streak_count;
+#if 0
 	long vinput_horiz_framesize, vinput_vert_framesize;
-	long num_streak_mode_lines;
+#endif
 	long num_frames, exposure_steps;
+	unsigned long roilines, noe, vread, roioffs;
 	double exposure_time;
+	long total_num_subimage_lines;
+#if 0
+	double subimage_time, gap_time;
+	long gap_steps;
+#endif
 	mx_status_type mx_status;
 
-	sp = &(ad->sequence_parameters);
-
-	/* Find out whether or not we are currently in streak camera mode. */
-
-	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
-				MXLV_AVIEX_PCCD_16080_DH_NOE,
-				&old_streak_count );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 #if MXD_AVIEX_PCCD_16080_DEBUG
-	MX_DEBUG(-2,("%s: old_streak_count = %lu", fname, old_streak_count));
+	MX_DEBUG(-2,("%s invoked for '%s'", fname, ad->record->name));
 #endif
+
+	sp = &(ad->sequence_parameters);
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_MULTIFRAME:
 
-		if ( old_streak_count > 0 ) {
-			/* We must turn off streak camera mode. */
+#if 0
+		if ( in_subimage_mode ) {
+			/* We must turn off subimage mode. */
 
 			mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd, MXLV_AVIEX_PCCD_16080_DH_NOE, 0 );
@@ -862,6 +845,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+#endif
 
 		/* Configure the detector head for the requested 
 		 * number of frames, exposure time, and gap time.
@@ -906,88 +890,127 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			return mx_status;
 
 		break;
-	case MXT_SQ_STREAK_CAMERA:
-		/* See if the user has requested too few streak
-		 * camera lines.
-		 */
 
-		num_streak_mode_lines
-			= mx_round_down( sp->parameter_array[0] );
+	case MXT_SQ_SUBIMAGE:
+		total_num_subimage_lines =
+				mx_round( sp->parameter_array[0]
+					* sp->parameter_array[1] );
 
-		/* Get the current framesize. */
-
-		mx_status = mx_video_input_get_framesize(
-				aviex_pccd->video_input_record,
-				&vinput_horiz_framesize,
-				&vinput_vert_framesize );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( old_streak_count == 0 ) {
-			/* Before switching to streak camera mode,
-			 * save the video board's current framesize
-			 * for later restoration.
-			 */
-
-			aviex_pccd->vinput_normal_framesize[0]
-				= vinput_horiz_framesize;
-
-			aviex_pccd->vinput_normal_framesize[1]
-				= vinput_vert_framesize;
-
-			aviex_pccd->normal_binsize[0] = ad->binsize[0];
-
-			aviex_pccd->normal_binsize[1] = ad->binsize[1];
+		if ( total_num_subimage_lines >
+				MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number of lines per subimage (%g) "
+		"and the requested number of subimages (%g) results "
+		"in a total number of image lines (%ld) that is "
+		"larger than the maximum number of subimage lines (%d) "
+		"allowed by area detector '%s'.",
+				sp->parameter_array[0],
+				sp->parameter_array[1],
+				total_num_subimage_lines,
+				MXD_MAXIMUM_TOTAL_SUBIMAGE_LINES,
+				ad->record->name );
 		}
 
-		/* Set the number of frames in the sequence to 1. */
+		/* Set the number of lines per subimage.
+		 * The number of subimage lines is twice
+		 * the value of the "subframe size".
+		 */
 
-		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-				MXLV_AVIEX_PCCD_16080_DH_NOF, 1 );
+		roilines = mx_round_down( sp->parameter_array[0] / 2.0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Set the number of streak camera mode lines.*/
-
-		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-					MXLV_AVIEX_PCCD_16080_DH_NOE,
-					num_streak_mode_lines );
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_16080_DH_ROILINES,
+				roilines );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set the exposure time per line. */
+		/* Set the number of subimages per frame. */
 
-		exposure_time = sp->parameter_array[1];
+		noe = mx_round_down( sp->parameter_array[1] );
+
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_16080_DH_NOE,
+				noe );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* We must set ROIOFFS to match the specified values
+		 * of ROILINES, NOE, and VREAD.
+		 */
+
+		mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_16080_DH_VREAD,
+				&vread );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		roioffs = vread - noe * roilines;
+
+		mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
+				MXLV_AVIEX_PCCD_16080_DH_ROIOFFS,
+				roioffs );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the exposure time. */
+
+		exposure_time = sp->parameter_array[2];
 
 		exposure_steps = mx_round_down( exposure_time
 			/ aviex_pccd->exposure_and_gap_step_size );
 
-		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
-			MXLV_AVIEX_PCCD_16080_DH_SHUTTER, exposure_steps );
+		mx_status = mxd_aviex_pccd_write_register(
+			aviex_pccd,
+			MXLV_AVIEX_PCCD_16080_DH_SHUTTER,	/* FIXME ? */
+			exposure_steps );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set the streak-mode framesize. */
+#if 0
+		/* Compute the gap time from the subimage time. */
 
-		mx_status = mx_video_input_set_framesize(
-			aviex_pccd->video_input_record,
-			vinput_horiz_framesize,
-			num_streak_mode_lines / 2L );
+		subimage_time = sp->parameter_array[3];
+
+		gap_time = subimage_time - exposure_time;
+
+		gap_steps = mx_round_down( gap_time
+			/ aviex_pccd->exposure_and_gap_step_size );
+
+		if ( gap_steps < 1 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The computed gap time (%g seconds) is "
+			"less than the minimum allowed gap time "
+			"(%g seconds) for detector '%s'.",
+				gap_time,
+				aviex_pccd->exposure_and_gap_step_size,
+				ad->record->name );
+		}
+
+		/* Set the gap time. */
+
+		mx_status = mxd_aviex_pccd_write_register(
+			aviex_pccd,
+			MXLV_AVIEX_PCCD_16080_DH_GAP_TIME,
+			gap_steps );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#endif
 
-		/* Get the detector readout time. */
+		/* The PCCD-16080 detector does not have exposure
+		 * or gap multipliers.  Overwrite their values
+		 * in the parameter array.
+		 */
 
-		mx_status = mx_area_detector_get_detector_readout_time(
-						ad->record, NULL );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
+		sp->parameter_array[4] = 1.0;
+		sp->parameter_array[5] = 1.0;
+				
 		break;
 
 	default:

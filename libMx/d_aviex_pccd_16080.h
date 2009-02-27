@@ -99,12 +99,6 @@ MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_descramble( uint16_t *, uint16_t ***, long, long );
 
 MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_16080_streak_camera_descramble( MX_AREA_DETECTOR *,
-						struct mx_aviex_pccd *,
-						MX_IMAGE_FRAME *,
-						MX_IMAGE_FRAME * );
-
-MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_set_sequence_start_delay( struct mx_aviex_pccd *,
                                                         unsigned long );
 
