@@ -1371,6 +1371,8 @@ mx_debugger_is_present( void )
  *   http://www.wodeveloper.com/omniLists/macosx-dev/2004/June/msg00166.html
  */
 
+#include <sys/sysctl.h>
+
 MX_EXPORT int
 mx_debugger_is_present( void )
 {
@@ -1393,10 +1395,12 @@ mx_debugger_is_present( void )
 	if ( os_status == -1 ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to get the kinfo_proc structure for this process.  "
 		"Errno = %d, error message = '%s'",
 			saved_errno, strerror(saved_errno) );
+
+		return FALSE;
 	}
 
 	/* Look for the P_TRACED flag. */
