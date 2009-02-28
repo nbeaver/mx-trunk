@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,6 +47,7 @@
 #include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_signal.h"
+#include "mx_atomic.h"
 
 /*-------------------------------------------------------------------------*/
 
@@ -149,6 +150,10 @@ mx_initialize_runtime( void )
 	/* Initialize the MX time keeping functions. */
 
 	mx_initialize_clock_ticks();
+
+	/* Initialize atomic operations (if they need it). */
+
+	mx_atomic_initialize();
 
 	/* We are done, so return to the caller. */
 
