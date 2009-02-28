@@ -36,7 +36,115 @@
 
 #if defined(OS_WIN32)
 
-#error Not done yet.
+#include <windows.h>
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	return;
+}
+
+/*---*/
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	volatile long *long_ptr;
+	long long_result;
+
+	long_ptr = value_ptr;
+
+#if defined(_M_IA64)	/* Only on Itanium */
+	long_result = InterlockedAdd( long_ptr, (long) increment );
+#else
+	/* FIXME - According to people on the net, 32-bit reads on x86 Windows
+	 * are atomic, but I have not seen proof of this.
+	 */
+
+	long_result = *long_ptr;
+#endif
+
+	return long_result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	LONG *long_ptr;
+	LONG long_result;
+
+	long_ptr = value_ptr;
+
+	long_result = InterlockedDecrement( long_ptr );
+
+	return long_result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	LONG *long_ptr;
+	LONG long_result;
+
+	long_ptr = value_ptr;
+
+	long_result = InterlockedIncrement( long_ptr );
+
+	return long_result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	LONG *long_ptr;
+	LONG long_result;
+
+	long_ptr = value_ptr;
+
+	/* Visual C++ 6 defined InterlockedCompareExchange() with
+	 * a different prototype than later versions of Visual C++.
+	 *
+	 * The VC6 definition looked like this:
+	 *
+	 * PVOID WINAPI
+	 * InterlockedCompareExchange( PVOID *, PVOID, PVOID );
+	 *
+	 * Subsequent versions of Visual C++ defined it this way:
+	 *
+	 * LONG WINAPI
+	 * InterlockedCompareExchange( LONG *, LONG, LONG );
+	 *
+	 * Apparently, VC6 thought that a PVOID was equivalent to
+	 * a LONG.  (Bad VC6, bad boy, ...)
+	 */
+
+#if ( _MSC_VER >= 1300 )
+	long_result = InterlockedCompareExchange( long_ptr, 0, 0 );
+#else
+	{
+		void **pvoid_ptr;
+
+		pvoid_ptr = (void **) long_ptr;
+
+		long_result =
+			(LONG) InterlockedCompareExchange( pvoid_ptr, 0, 0 );
+	}
+#endif
+
+	return long_result;
+}
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+	LONG *long_ptr;
+
+	long_ptr = value_ptr;
+
+	(void) InterlockedExchange( long_ptr, new_value );
+
+	return;
+}
 
 /*------------------------------------------------------------------------*/
 

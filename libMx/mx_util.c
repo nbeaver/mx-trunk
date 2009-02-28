@@ -1347,11 +1347,7 @@ mx_start_debugger( char *command )
  * to detect a debugger that is trying to hide itself.
  */
 
-#if defined(OS_WIN32)
-
-/* #define USE_MX_DEBUGGER_IS_PRESENT */
-
-/* For Win32, we use IsDebuggerPresent() which works on Windows 98 or later. */
+#if defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400)
 
 MX_EXPORT int
 mx_debugger_is_present( void )
@@ -1364,8 +1360,6 @@ mx_debugger_is_present( void )
 }
 
 #elif defined(OS_MACOSX)
-
-/* #define USE_MX_DEBUGGER_IS_PRESENT */
 
 /* Based on
  *   http://www.wodeveloper.com/omniLists/macosx-dev/2004/June/msg00166.html
