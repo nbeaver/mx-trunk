@@ -18,6 +18,7 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_mutex.h"
 #include "mx_atomic.h"
 
 /*---*/
@@ -40,6 +41,8 @@
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_MACOSX) && defined(MX_HAVE_OSATOMIC)
+
+/* For MacOS X 10.4 and above. */
 
 #include <libkern/OSAtomic.h>
 
@@ -120,6 +123,8 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 #elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L)
 
+/* For GCC 4.1 and above. */
+
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
@@ -195,7 +200,101 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 /*------------------------------------------------------------------------*/
 
+/* This is an implementation using a mutex that is intended for build targets
+ * not handled above.  The mutex is used to serialize all access to atomic
+ * operations.  The relevant targets are:
+ *
+ *    MacOS X 10.3 and before
+ */
+
+#elif defined(OS_MACOSX)
+
+static MX_MUTEX *mxp_atomic_mutex = NULL;
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	(void) mx_mutex_create( &mxp_atomic_mutex );
+}
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	int32_t result;
+
+	mx_mutex_lock( mxp_atomic_mutex );
+
+	*value_ptr += increment;
+	result = *value_ptr;
+
+	mx_mutex_unlock( mxp_atomic_mutex );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	mx_mutex_lock( mxp_atomic_mutex );
+
+	(*value_ptr)--;
+	result = *value_ptr;
+
+	mx_mutex_unlock( mxp_atomic_mutex );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	mx_mutex_lock( mxp_atomic_mutex );
+
+	(*value_ptr)++;
+	result = *value_ptr;
+
+	mx_mutex_unlock( mxp_atomic_mutex );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	mx_mutex_lock( mxp_atomic_mutex );
+
+	result = *value_ptr;
+
+	mx_mutex_unlock( mxp_atomic_mutex );
+
+	return result;
+}
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+	mx_mutex_lock( mxp_atomic_mutex );
+
+	*value_ptr = new_value;
+
+	mx_mutex_unlock( mxp_atomic_mutex );
+
+	return;
+}
+
+/*---*/
+
+/*------------------------------------------------------------------------*/
+
 #else
+
+#error MX atomic operations have not been defined for this platform.
 
 #endif
 
