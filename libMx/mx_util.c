@@ -1093,8 +1093,6 @@ mx_breakpoint_helper( void )
 
 #if defined(OS_WIN32)
 
-#define MXP_HAS_REAL_BREAKPOINT		TRUE
-
 MX_EXPORT void
 mx_breakpoint( void )
 {
@@ -1102,8 +1100,6 @@ mx_breakpoint( void )
 }
 
 #elif ( defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)) )
-
-#define MXP_HAS_REAL_BREAKPOINT		TRUE
 
 MX_EXPORT void
 mx_breakpoint( void )
@@ -1116,8 +1112,6 @@ mx_breakpoint( void )
 /* For unsupported platforms, we just "implement" it as
  * a call to mx_breakpoint_helper() above.
  */
-
-#define MXP_HAS_REAL_BREAKPOINT		FALSE
 
 MX_EXPORT void
 mx_breakpoint( void )
@@ -1343,76 +1337,174 @@ mx_start_debugger( char *command )
 
 /*-------------------------------------------------------------------------*/
 
-#if 0
+/* Note: mx_debugger_is_present() is not designed to be used for 
+ * copy protection purposes, so it does not make extreme attempts
+ * to detect a debugger that is trying to hide itself.
+ */
 
-/* FIXME - This does not work. */
+#if defined(OS_WIN32)
 
-static void
-mxp_sigtrap_handler( int signum )
+/* #define USE_MX_DEBUGGER_IS_PRESENT */
+
+/* For Win32, we use IsDebuggerPresent() which works on Windows 98 or later. */
+
+MX_EXPORT int
+mx_debugger_is_present( void )
 {
-	write( 2, "SIGTRAP!\n\n", 10 );
+	int result;
+
+	result = (int) IsDebuggerPresent();
+
+	return result;
 }
+
+#elif defined(OS_MACOSX)
+
+/* #define USE_MX_DEBUGGER_IS_PRESENT */
+
+/* Based on
+ *   http://www.wodeveloper.com/omniLists/macosx-dev/2004/June/msg00166.html
+ */
+
+MX_EXPORT int
+mx_debugger_is_present( void )
+{
+	static const char fname[] = "mx_debugger_is_present()";
+
+	int mib[4];
+	int p_flag, os_status, saved_errno;
+	struct kinfo_proc pinfo;
+	size_t pinfo_size = sizeof(pinfo);
+
+	/* Get process info. */
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = KERN_PROC_PID;
+	mib[3] = getpid();
+
+	os_status = sysctl( mib, 4, &pinfo, &pinfo_size, NULL, 0 );
+
+	if ( os_status == -1 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get the kinfo_proc structure for this process.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Look for the P_TRACED flag. */
+
+	p_flag = pinfo.kp_proc.p_flag;
+
+	if ( p_flag & P_TRACED ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+#else
+
+/* Generate a fatal error on unsupported platforms. */
+
+MX_EXPORT int
+mx_debugger_is_present( void )
+{
+	fprintf(stderr,
+  "mx_debugger_is_present() is not supported on this platform.  Aborting...\n");
+
+	abort();
+
+	return FALSE;
+}
+
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(USE_MX_DEBUGGER_IS_PRESENT)
 
 MX_EXPORT void
 mx_wait_for_debugger( void )
 {
-	static const char fname[] = "mx_wait_for_debugger()";
+	unsigned long pid;
+	int present;
 
-	struct sigaction sa;
-	int os_status, saved_errno;
+	pid = mx_process_id();
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	fprintf( stderr,
+	"\nProcess %lu is now waiting to be attached to by a debugger...\n\n",
+		pid );
 
-	sa.sa_flags = 0;	/* Not SA_RESTART */
+	while (1) {
+		mx_msleep(10);
 
-	sa.sa_handler = mxp_sigtrap_handler;
+		present = mx_debugger_is_present();
 
-	os_status = sigaction( SIGTRAP, &sa, NULL );
-
-	if ( os_status < 0 ) {
-		saved_errno = errno;
-
-		MX_DEBUG(-2,("%s: sigaction() errno = %d", fname, saved_errno));
-	}
-
-#if 0
-	{
-		/* nanosleep() version. */
-
-		struct timespec sleep_time;
-
-		sleep_time.tv_sec = LONG_MAX;
-		sleep_time.tv_nsec = 0;
-
-		MX_DEBUG(-2,("%s: Calling nanosleep()", fname));
-
-		os_status = nanosleep( &sleep_time, NULL );
-	}
-#else
-	{
-		/* select() version. */
-
-		struct timeval sleep_time;
-
-		sleep_time.tv_sec = LONG_MAX;
-		sleep_time.tv_usec = 0;
-
-		MX_DEBUG(-2,("%s: Calling select()", fname));
-
-		os_status = select( 0, NULL, NULL, NULL, &sleep_time );
-	}
-#endif
-
-	if ( os_status < 0 ) {
-		saved_errno = errno;
-
-		MX_DEBUG(-2,("%s: Wait errno = %d", fname, saved_errno));
+		if ( present ) {
+			break;
+		}
 	}
 
 	return;
 }
 
+/*------*/
+
+#elif 0
+
+/* This version attempts to detect attachment by the debugger by looking
+ * for unexpected delays in the loop below.
+ *
+ * This method is not 1000% bulletproof.  Also, on Linux in GDB, the
+ * 'finish' command does not correctly find the right stack frame to
+ * return to.  Instead, it acts like a 'continue' command, which is
+ * not what we want.  In order to get this to work, you typically end up
+ * having to type a bunch of 'stepi' commands to step back into the 
+ * mx_msleep() stack frame.
+ */
+
+MX_EXPORT void
+mx_wait_for_debugger( void )
+{
+	unsigned long pid;
+	double current_time, old_time;
+
+	pid = mx_process_id();
+
+	fprintf( stderr,
+	"\nProcess %lu is now waiting to be attached to by a debugger.\n\n",
+		pid );
+	fprintf( stderr,
+	"The appropriate attach command for GDB is 'gdb -p %lu'\n", pid );
+	fprintf( stderr,
+	"The appropriate attach command for DBX is 'dbx - %lu'\n", pid );
+	fprintf( stderr, "\nWaiting...\n" );
+
+	old_time = mx_high_resolution_time_as_double();
+
+	while (1) {
+		mx_msleep(10);
+
+		current_time = mx_high_resolution_time_as_double();
+
+		if ( (current_time - old_time) > 1.0 ) {
+			break;
+		}
+
+		old_time = current_time;
+	}
+
+	return;
+}
+
+/*------*/
+
 #else
+
+/* This version always work, but is inelegant. */
 
 MX_EXPORT void
 mx_wait_for_debugger( void )

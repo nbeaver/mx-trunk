@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -190,6 +190,19 @@ mx_convert_seconds_to_high_resolution_time( double seconds )
 	seconds -= (double) result.tv_sec;
 
 	result.tv_nsec = (long) ( 1.0e9 * seconds );
+
+	return result;
+}
+
+MX_EXPORT double
+mx_high_resolution_time_as_double( void )
+{
+	struct timespec hrt;
+	double result;
+
+	hrt = mx_high_resolution_time();
+
+	result = mx_convert_high_resolution_time_to_seconds( hrt );
 
 	return result;
 }

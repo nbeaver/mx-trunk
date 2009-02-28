@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2005, 2007 Illinois Institute of Technology
+ * Copyright 2003-2005, 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,12 @@ MX_API struct timespec mx_convert_seconds_to_high_resolution_time(
 
 #define mx_convert_high_resolution_time_to_seconds( value ) \
 	( (double) (value).tv_sec + 1.0e-9 * (double) (value).tv_nsec )
+
+/* mx_high_resolution_time_as_double() returns the current time as
+ * a double in units of seconds.
+ */
+
+MX_API double mx_high_resolution_time_as_double( void );
 
 /* mx_udelay() attempts to wait for the specified number of microseconds
  * _without_ explicitly giving control back to the operating systems like
