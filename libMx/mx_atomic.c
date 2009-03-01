@@ -185,9 +185,6 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
-#if 0
-	*value_ptr = new_value;		/* This can't be right. */
-#else
 	/* FIXME - This sucks massively.  There is no guarantee that
 	 * the loop will ever succeed.
 	 */
@@ -219,13 +216,13 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
 #endif
 	}
-
-#endif
 }
 
 /*------------------------------------------------------------------------*/
 
-#elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L)
+#elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
+	( defined(__i486__) || defined(__i586__) || \
+	  defined(__i686__) || defined(__MMX__) )
 
 /* For GCC 4.1 and above. */
 
@@ -264,9 +261,6 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
-#if 0
-	*value_ptr = new_value;		/* This can't be right. */
-#else
 	/* FIXME - This sucks massively.  There is no guarantee that
 	 * the loop will ever succeed.
 	 */
@@ -298,8 +292,6 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
 #endif
 	}
-
-#endif
 }
 
 /*------------------------------------------------------------------------*/
