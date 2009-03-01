@@ -57,11 +57,7 @@ mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 #if defined(_M_IA64)	/* Only on Itanium */
 	long_result = InterlockedAdd( long_ptr, (long) increment );
 #else
-	/* FIXME - According to people on the net, 32-bit reads on x86 Windows
-	 * are atomic, but I have not seen proof of this.
-	 */
-
-	long_result = *long_ptr;
+	long_result = (*long_ptr)++;		/* FIXME */
 #endif
 
 	return long_result;
@@ -312,10 +308,11 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  * not handled above.  The mutex is used to serialize all access to atomic
  * operations.  The relevant targets are:
  *
- *    MacOS X 10.3 and before
+ *    MacOS X 10.3.x and before
+ *    GCC 4.0.x and before
  */
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(__GNUC__)
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 
