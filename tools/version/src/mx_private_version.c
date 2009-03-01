@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -198,7 +198,58 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(__GNUC__)
+#if defined(OS_SOLARIS)
+
+#include <sys/utsname.h>
+
+static void
+mxp_generate_macros( FILE *version_file )
+{
+#if defined(OS_SOLARIS)
+	static char os_name[] = "MX_SOLARIS_VERSION";
+#endif
+	struct utsname uname_struct;
+	int os_status, saved_errno;
+	int num_items, os_major, os_minor, os_update;
+
+	os_status = uname( &uname_struct );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		fprintf( stderr,
+		"uname() failed.  Errno = %d, error message = '%s'\n",
+			saved_errno, strerror( saved_errno ) );
+		exit(1);
+	}
+
+	num_items = sscanf( uname_struct.release, "%d.%d.%d",
+			&os_major, &os_minor, &os_update );
+
+	if ( num_items < 2 ) {
+		fprintf( stderr, "OS version not found in string '%s'\n",
+			uname_struct.release );
+		exit(1);
+	}
+
+	if ( num_items == 2 ) {
+		os_update = 0;
+	}
+
+	fprintf( version_file, "#define %s    %luL\n",
+		os_name, 
+		os_major * 1000000L
+		+ os_minor * 1000L
+		+ os_update );
+
+	fprintf( version_file, "\n" );
+
+	return;
+}
+
+/*---*/
+
+#elif defined(__GNUC__)
 
 static void
 mxp_generate_macros( FILE *version_file )
@@ -213,8 +264,7 @@ mxp_generate_macros( FILE *version_file )
 
 /*---*/
 
-#elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_WIN32) \
-	|| defined(OS_VMS)
+#elif defined(OS_IRIX) || defined(OS_WIN32) || defined(OS_VMS)
 
 static void
 mxp_generate_macros( FILE *version_file )

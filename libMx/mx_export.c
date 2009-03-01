@@ -35,8 +35,8 @@ typedef struct {
 
 static mx_status_type
 mx_export_list_traverse_fn( MX_LIST_ENTRY *list_entry,
-				void *export_type_name_ptr,
-				void **callback_fn_ptr )
+			void *export_type_name_ptr,
+			void **callback_fn_ptr )
 {
 	MX_EXPORT_LIST_ENTRY *export_list_entry;
 	char *export_type_name;
@@ -46,7 +46,7 @@ mx_export_list_traverse_fn( MX_LIST_ENTRY *list_entry,
 	export_type_name = export_type_name_ptr;
 
 	if ( strcmp( export_type_name, export_list_entry->name ) == 0 ) {
-		*callback_fn_ptr = export_list_entry->callback_fn;
+		*callback_fn_ptr = (void *) export_list_entry->callback_fn;
 
 		return mx_error( MXE_EARLY_EXIT | MXE_QUIET, "", " " );
 	}
@@ -146,7 +146,8 @@ mx_invoke_export_callback( MX_RECORD *record_list, char *buffer )
 		case MXE_EARLY_EXIT:
 			/* Invoke the export callback that we have found. */
 
-			callback_fn = callback_fn_ptr;
+			callback_fn =
+		    (mx_status_type (*)(MX_RECORD *, char *))callback_fn_ptr;
 
 			mx_status = (*callback_fn)( record_list, buffer );
 			break;

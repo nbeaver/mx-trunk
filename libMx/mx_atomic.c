@@ -21,6 +21,10 @@
 #include "mx_mutex.h"
 #include "mx_atomic.h"
 
+/* WARNING: This program cannot use any MX functions, since it runs
+ * before MX has been compiled.
+ */
+
 /*---*/
 
 #if defined(OS_MACOSX)
@@ -220,6 +224,103 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 /*------------------------------------------------------------------------*/
 
+#elif defined(OS_SOLARIS) && ( MX_SOLARIS_VERSION >= 5010000L )
+
+/* For Solaris 10 and above. */
+
+#include <atomic.h>
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	return;
+}
+
+/*---*/
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	int32_t result;
+
+	result = (int32_t) atomic_add_32_nv( (uint32_t *)value_ptr, increment );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) atomic_add_32_nv( (uint32_t *)value_ptr, -1 );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) atomic_add_32_nv( (uint32_t *)value_ptr, 1 );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) atomic_add_32_nv( (uint32_t *)value_ptr, 0 );
+
+	return result;
+}
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+	/* FIXME - This sucks massively.  There is no guarantee that
+	 * the loop will ever succeed.
+	 */
+
+	uint32_t new_value_2;
+	unsigned long i, loop_max;
+
+	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
+
+	for( i = 0; i < loop_max; i++ ) {
+
+		atomic_and_32( (uint32_t *) value_ptr, 0 );
+
+		/* Somebody else may have changed the value after our
+		 * atomic "and", so we must check the value returned
+		 * by the atomic "add" to see that we got the expected
+		 * value.
+		 */
+
+		new_value_2 =
+			atomic_add_32_nv( (uint32_t *) value_ptr, new_value );
+
+		/* If the swap succeeded, then we are done. */
+
+		if ( new_value_2 == new_value ) {
+			break;
+		}
+	}
+
+	if ( i >= loop_max ) {
+		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
+	} else {
+#if 1
+		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
+#endif
+	}
+}
+
+/*------------------------------------------------------------------------*/
+
 #elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
 	( defined(__i486__) || defined(__i586__) || \
 	  defined(__i686__) || defined(__MMX__) )
@@ -305,9 +406,10 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  *
  *    MacOS X 10.3.x and before
  *    GCC 4.0.x and before
+ *    Solaris 9.x and before
  */
 
-#elif defined(OS_MACOSX) || defined(__GNUC__)
+#elif defined(OS_MACOSX) || defined(__GNUC__) || defined(OS_SOLARIS)
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 
