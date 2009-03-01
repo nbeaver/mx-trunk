@@ -224,7 +224,10 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 	( defined(__i486__) || defined(__i586__) || \
 	  defined(__i686__) || defined(__MMX__) )
 
-/* For GCC 4.1 and above. */
+/* For GCC 4.1 and above.
+ *
+ * On x86, the atomic builtins are not available if we use march=i386.
+ */
 
 MX_EXPORT void
 mx_atomic_initialize( void )
