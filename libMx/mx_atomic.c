@@ -460,12 +460,13 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  * not handled above.  The mutex is used to serialize all access to atomic
  * operations.  The relevant targets are:
  *
- *    MacOS X 10.3.x and before
  *    GCC 4.0.x and before
+ *    MacOS X 10.3.x and before
  *    Solaris 9.x and before
+ *    GCC on any platform not explicitly handled above.
  */
 
-#elif defined(OS_MACOSX) || defined(__GNUC__) || defined(OS_SOLARIS)
+#elif defined(__GNUC__) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 

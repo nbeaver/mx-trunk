@@ -1030,6 +1030,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	case ENOTCONN:			/* The server didn't wait for us. */
 	case EINVAL:
+	case ECONNRESET:
 
 		/* Nothing to do. */
 

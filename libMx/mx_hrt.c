@@ -816,11 +816,13 @@ mx_high_resolution_time_init( void )
 {
 	static const char fname[] = "mx_high_resolution_time_init()";
 
-	unsigned long tsc_freq;
+	uint64_t tsc_freq;
 	size_t length;
 	int status, saved_errno;
 
 	mx_high_resolution_time_init_invoked = TRUE;
+
+	tsc_freq = 0;
 
 	length = sizeof(tsc_freq);
 
@@ -836,7 +838,7 @@ mx_high_resolution_time_init( void )
 		return;
 	}
 
-	MX_DEBUG( 2,("%s: tsc_freq = %lu", fname, tsc_freq));
+	MX_DEBUG( 2,("%s: tsc_freq = %llu", fname, tsc_freq));
 
 	mx_hrt_counter_ticks_per_microsecond = tsc_freq / 1000000LU;
 
