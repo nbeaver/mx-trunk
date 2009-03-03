@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -636,7 +636,7 @@ mxv_file_variable_receive_variable( MX_VARIABLE *variable )
 			strlcat( field_buffer, column_ptr,
 					sizeof(field_buffer) );
 
-			field_buffer_length = strlen(field_buffer);
+			field_buffer_length = (long) strlen(field_buffer);
 
 			if ( field_buffer[field_buffer_length - 1] == '\n' ) {
 				field_buffer[field_buffer_length - 1] = '\0';

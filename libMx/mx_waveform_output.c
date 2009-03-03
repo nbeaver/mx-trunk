@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -511,7 +511,7 @@ mx_waveform_output_write_all( MX_RECORD *wvout_record,
 		}
 	}
 
-	wvout->current_num_steps = num_steps;
+	wvout->current_num_steps = (long) num_steps;
 
 	/* Now write the data. */
 
@@ -664,7 +664,7 @@ mx_waveform_output_write_channel( MX_RECORD *wvout_record,
 		}
 	}
 
-	wvout->current_num_steps = num_steps;
+	wvout->current_num_steps = (long) num_steps;
 
 	/* Now invoke the method function. */
 

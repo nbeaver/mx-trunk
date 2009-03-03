@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -241,7 +241,7 @@ mxd_ilm_sample_rate_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	channel_usage = mx_hex_char_to_unsigned_long(
+	channel_usage = (int) mx_hex_char_to_unsigned_long(
 				response[ilm_sample_rate->channel] );
 	switch( channel_usage ) {
 	case 1:

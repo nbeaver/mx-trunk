@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -415,12 +415,15 @@ mxi_bkprecision_912x_command( MX_BKPRECISION_912X *bkprecision_912x,
 
 	char status[80];
 	mx_bool_type debug_flag, do_error_checking;
-	unsigned long low_level_flags;
-	int error_code;
+	int low_level_flags, error_code;
 	char *error_info;
 	mx_status_type mx_status;
 
-	debug_flag = transaction_flags & MXT_BKPRECISION_912X_DEBUG;
+	if ( transaction_flags & MXT_BKPRECISION_912X_DEBUG ) {
+		debug_flag = TRUE;
+	} else {
+		debug_flag = FALSE;
+	}
 
 	if ( transaction_flags & MXT_BKPRECISION_912X_NO_ERROR_CHECKING ) {
 		do_error_checking = FALSE;

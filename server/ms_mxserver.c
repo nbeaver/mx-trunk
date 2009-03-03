@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2137,7 +2137,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		receive_datatype = record_field->datatype;
 		receive_buffer_message_id = 0;
 	} else {
-		receive_datatype = 
+		receive_datatype = (long)
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_DATA_TYPE ]);
 
 		receive_buffer_message_id =
@@ -2249,10 +2249,11 @@ mxsrv_send_field_value_to_client(
 
 	/* Construct the response header. */
 
-	send_buffer_header_length = mx_remote_header_length(socket_handler);
+	send_buffer_header_length =
+		(long) mx_remote_header_length(socket_handler);
 
-	send_buffer_message_length = network_message->buffer_length
-					- send_buffer_header_length;
+	send_buffer_message_length = (long)
+		( network_message->buffer_length - send_buffer_header_length );
 
 	send_buffer_message_actual_length = 0;
 
@@ -2672,7 +2673,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			receive_datatype = record_field->datatype;
 			receive_buffer_message_id = 0;
 		} else {
-			receive_datatype = 
+			receive_datatype = (long)
 		      mx_ntohl(receive_buffer_header[ MX_NETWORK_DATA_TYPE ]);
 
 			receive_buffer_message_id =
@@ -3092,7 +3093,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_header_length = mx_remote_header_length(socket_handler);
+	send_buffer_header_length =
+		(long) mx_remote_header_length(socket_handler);
 
 	send_buffer_message = send_buffer_header
 			+ ( send_buffer_header_length / sizeof(uint32_t) );
@@ -3647,7 +3649,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	long header_length;
 	mx_status_type mx_status;
 
-	header_length = mx_remote_header_length(socket_handler);
+	header_length = (long) mx_remote_header_length(socket_handler);
 
 	message_string  = network_message->u.char_buffer;
 	message_string += header_length;
@@ -4331,7 +4333,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 					message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug,
-					mx_server_response( message_type ),
+				(long) mx_server_response( message_type ),
 					mx_status );
 
 		return mx_status;
@@ -4531,7 +4533,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 					message_id,
 					socket_handler->remote_header_length,
 					socket_handler->network_debug,
-					mx_server_response( message_type ),
+				(long) mx_server_response( message_type ),
 					mx_status );
 	}
 
@@ -4658,8 +4660,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 		 * callback handle table.
 		 */
 
-		callback_handle =
-			callback->callback_id & MX_NETWORK_MESSAGE_ID_MASK;
+		callback_handle = (signed long)
+			( callback->callback_id & MX_NETWORK_MESSAGE_ID_MASK );
 
 		mx_status = mx_delete_handle( callback_handle,
 						callback_handle_table );

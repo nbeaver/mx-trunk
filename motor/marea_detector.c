@@ -1560,7 +1560,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			x_binsize = strtoul( argv[5], &endptr, 0 );
+			x_binsize = strtol( argv[5], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1570,7 +1570,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			y_binsize = strtoul( argv[6], &endptr, 0 );
+			y_binsize = strtol( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1600,7 +1600,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			x_framesize = strtoul( argv[5], &endptr, 0 );
+			x_framesize = strtol( argv[5], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1610,7 +1610,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			y_framesize = strtoul( argv[6], &endptr, 0 );
+			y_framesize = strtol( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1661,7 +1661,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			{
 				trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 			} else {
-				trigger_mode = strtoul( argv[5], &endptr, 0 );
+				trigger_mode = strtol( argv[5], &endptr, 0 );
 
 				if ( *endptr != '\0' ) {
 					fprintf( output,

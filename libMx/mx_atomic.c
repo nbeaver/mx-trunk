@@ -189,9 +189,7 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
-	/* FIXME - This sucks massively.  There is no guarantee that
-	 * the loop will ever succeed.
-	 */
+	/* FIXME - There is no guarantee that the loop will ever succeed. */
 
 	int32_t old_value;
 	int status;
@@ -281,9 +279,7 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
-	/* FIXME - This sucks massively.  There is no guarantee that
-	 * the loop will ever succeed.
-	 */
+	/* FIXME - There is no guarantee that the loop will ever succeed. */
 
 	uint32_t new_value_2;
 	unsigned long i, loop_max;
@@ -317,6 +313,68 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
 #endif
 	}
+}
+
+/*------------------------------------------------------------------------*/
+
+#elif defined(OS_IRIX)
+
+#include <sgidefs.h>
+#include <mutex.h>
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	return;
+}
+
+/*---*/
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	int32_t result;
+
+	result =
+	    (int32_t) add_then_test32( (__uint32_t *) value_ptr, increment );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) add_then_test32( (__uint32_t *) value_ptr, -1L );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) add_then_test32( (__uint32_t *) value_ptr, 1L );
+
+	return result;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	int32_t result;
+
+	result = (int32_t) add_then_test32( (__uint32_t *) value_ptr, 0L );
+
+	return result;
+}
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+	(void) test_and_set32( (__uint32_t *) value_ptr, new_value );
 }
 
 /*------------------------------------------------------------------------*/
@@ -365,9 +423,7 @@ mx_atomic_read32( int32_t *value_ptr )
 MX_EXPORT void
 mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
-	/* FIXME - This sucks massively.  There is no guarantee that
-	 * the loop will ever succeed.
-	 */
+	/* FIXME - There is no guarantee that the loop will ever succeed. */
 
 	int32_t old_value;
 	int status;

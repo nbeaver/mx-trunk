@@ -289,9 +289,10 @@ mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 		num_sectors * sector_height * sizeof(uint16_t *) ));
 #endif
 
-	row_byte_offset = sector_height * sizeof(sector_array_row_ptr);
+	row_byte_offset =
+		(long) ( sector_height * sizeof(sector_array_row_ptr) );
 
-	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
+	row_ptr_offset = (long) ( row_byte_offset / sizeof(uint16_t *) );
 
 #if MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,
@@ -334,7 +335,7 @@ mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 	 *        = sector_height * num_sector_columns * sizeof_sector_row
 	 */
 
-	sizeof_sector_row = sector_width * sizeof(uint16_t);
+	sizeof_sector_row = (long) ( sector_width * sizeof(uint16_t) );
 
 	sizeof_full_row = num_sector_columns * sizeof_sector_row;
 
@@ -374,7 +375,7 @@ mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 				+ row * sizeof_full_row
 				+ sector_column * sizeof_sector_row;
 
-		    ptr_offset = byte_offset / sizeof(uint16_t);
+		    ptr_offset = (long) ( byte_offset / sizeof(uint16_t) );
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
@@ -647,13 +648,13 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 #endif
 
 		mx_status = mx_image_alloc( &(aviex_pccd->temp_frame),
-					MXIF_ROW_FRAMESIZE(image_frame),
-					MXIF_COLUMN_FRAMESIZE(image_frame),
-					MXIF_IMAGE_FORMAT(image_frame),
-					MXIF_BYTE_ORDER(image_frame),
-					MXIF_BYTES_PER_PIXEL(image_frame),
-					image_frame->header_length,
-					image_frame->image_length );
+				(long) MXIF_ROW_FRAMESIZE(image_frame),
+				(long) MXIF_COLUMN_FRAMESIZE(image_frame),
+				(long) MXIF_IMAGE_FORMAT(image_frame),
+				(long) MXIF_BYTE_ORDER(image_frame),
+				MXIF_BYTES_PER_PIXEL(image_frame),
+				image_frame->header_length,
+				image_frame->image_length );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -691,8 +692,8 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* Initially descramble the full image. */
 
-	column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
-	row_framesize = MXIF_ROW_FRAMESIZE(image_frame);
+	column_framesize = (long) MXIF_COLUMN_FRAMESIZE(image_frame);
+	row_framesize    = (long) MXIF_ROW_FRAMESIZE(image_frame);
 
 	switch( ad->record->mx_type ) {
 	case MXT_AD_PCCD_170170:
@@ -774,20 +775,21 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		char *top_src_ptr, *top_dest_ptr;
 		char *bottom_src_ptr, *bottom_dest_ptr;
 
-		num_lines_per_subimage = sp->parameter_array[0];
-		num_subimages          = sp->parameter_array[1];
-		frame_width            = MXIF_ROW_FRAMESIZE(image_frame);
+		num_lines_per_subimage = mx_round( sp->parameter_array[0] );
+		num_subimages          = mx_round( sp->parameter_array[1] );
+		frame_width            = (long) MXIF_ROW_FRAMESIZE(image_frame);
 
 		temp_ptr  = aviex_pccd->temp_frame->image_data;
 		image_ptr = image_frame->image_data;
 
-		bytes_per_half_subimage =
-			frame_width * num_lines_per_subimage
-			* ( sizeof(uint16_t) / 2L );
+		bytes_per_half_subimage = (long)
+			( frame_width * num_lines_per_subimage
+				* ( sizeof(uint16_t) / 2L ) );
 
-		bytes_per_half_image = MXIF_ROW_FRAMESIZE(image_frame)
+		bytes_per_half_image = (long)
+			( MXIF_ROW_FRAMESIZE(image_frame)
 				* MXIF_COLUMN_FRAMESIZE(image_frame)
-				* ( sizeof(uint16_t) / 2L );
+				* ( sizeof(uint16_t) / 2L ) );
 
 #if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,("%s: num_lines_per_subimage = %ld",
@@ -1540,7 +1542,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-				aviex_pccd->initial_trigger_mode );
+				(long) aviex_pccd->initial_trigger_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1549,8 +1551,11 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	 * in charge of generating the trigger pulse for sequences.
 	 */
 
-	camera_is_master =
-	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
+	if ( aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER ) {
+		camera_is_master = TRUE;
+	} else {
+		camera_is_master = FALSE;
+	}
 
 	if ( camera_is_master ) {
 		master_clock = MXF_VIN_MASTER_CAMERA;
@@ -1565,7 +1570,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	/* Initialize area detector parameters. */
 
-	ad->byte_order = mx_native_byteorder();
+	ad->byte_order = (long) mx_native_byteorder();
 	ad->header_length = 0;
 
 	mx_status = mx_area_detector_get_image_format( record, NULL );
@@ -1776,8 +1781,11 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 #endif
 	sp = &(ad->sequence_parameters);
 
-	camera_is_master =
-	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
+	if ( aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER ) {
+		camera_is_master = TRUE;
+	} else {
+		camera_is_master = FALSE;
+	}
 
 	external_trigger = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
 
@@ -2006,8 +2014,11 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			sp->sequence_type, ad->record->name );
 	}
 
-	camera_is_master =
-	   (aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
+	if ( aviex_pccd->aviex_pccd_flags & MXF_AVIEX_PCCD_CAMERA_IS_MASTER ) {
+		camera_is_master = TRUE;
+	} else {
+		camera_is_master = FALSE;
+	}
 
 	internal_trigger = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
 
@@ -2429,7 +2440,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	maximum_num_frames = ad->maximum_frame_number + 1;
+	maximum_num_frames = (long) (ad->maximum_frame_number + 1);
 
 	frame_number = ad->readout_frame % maximum_num_frames;
 
@@ -2539,10 +2550,10 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Make sure that the image frame is the correct size. */
 
-	row_framesize = MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame)
+	row_framesize = (long) MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame)
 				/ aviex_pccd->horiz_descramble_factor;
 
-	column_framesize = MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame)
+	column_framesize = (long) MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame)
 				* aviex_pccd->vert_descramble_factor;
 
 #if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
@@ -2554,8 +2565,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_image_alloc( &(ad->image_frame),
 				row_framesize,
 				column_framesize,
-				MXIF_IMAGE_FORMAT(aviex_pccd->raw_frame),
-				MXIF_BYTE_ORDER(aviex_pccd->raw_frame),
+				(long) MXIF_IMAGE_FORMAT(aviex_pccd->raw_frame),
+				(long) MXIF_BYTE_ORDER(aviex_pccd->raw_frame),
 				MXIF_BYTES_PER_PIXEL(aviex_pccd->raw_frame),
 				aviex_pccd->raw_frame->header_length,
 				aviex_pccd->raw_frame->image_length );
@@ -2723,8 +2734,8 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 
 	image_data_array = ad->image_frame->image_data;
 
-	image_row_framesize    = MXIF_ROW_FRAMESIZE(ad->image_frame);
-	image_column_framesize = MXIF_COLUMN_FRAMESIZE(ad->image_frame);
+	image_row_framesize    = (long) MXIF_ROW_FRAMESIZE(ad->image_frame);
+	image_column_framesize = (long) MXIF_COLUMN_FRAMESIZE(ad->image_frame);
 
 #if MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
@@ -2770,8 +2781,8 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	corr_row_framesize    = MXIF_ROW_FRAMESIZE(mask_frame);
-	corr_column_framesize = MXIF_COLUMN_FRAMESIZE(mask_frame);
+	corr_row_framesize    = (long) MXIF_ROW_FRAMESIZE(mask_frame);
+	corr_column_framesize = (long) MXIF_COLUMN_FRAMESIZE(mask_frame);
 
 	if ( image_column_framesize != corr_column_framesize ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
@@ -2941,7 +2952,7 @@ mxd_aviex_pccd_correct_frame( MX_AREA_DETECTOR *ad )
 			if ( big_image_pixel > 65535 ) {
 			    *image_pixel_ptr = 65535;
 			} else {
-			    *image_pixel_ptr = big_image_pixel;
+			    *image_pixel_ptr = (unsigned short) big_image_pixel;
 			}
 		    }
 		}
@@ -3831,8 +3842,8 @@ mxp_aviex_pccd_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 			ad->record->name );
 	}
 
-	mask_row_binsize    = MXIF_ROW_BINSIZE(mask_frame);
-	mask_column_binsize = MXIF_COLUMN_BINSIZE(mask_frame);
+	mask_row_binsize    = (long) MXIF_ROW_BINSIZE(mask_frame);
+	mask_column_binsize = (long) MXIF_COLUMN_BINSIZE(mask_frame);
 
 	/* If either the mask row binsize or the mask column binsize
 	 * is not 1, then we assume that the bin sizes for the mask
@@ -3862,8 +3873,8 @@ mxp_aviex_pccd_geometrical_mask_kludge( MX_AREA_DETECTOR *ad,
 	unbinned_row_framesize = ad->maximum_framesize[0];
 	unbinned_column_framesize = unbinned_row_framesize;
 
-	mask_row_framesize    = MXIF_ROW_FRAMESIZE(mask_frame);
-	mask_column_framesize = MXIF_COLUMN_FRAMESIZE(mask_frame);
+	mask_row_framesize    = (long) MXIF_ROW_FRAMESIZE(mask_frame);
+	mask_column_framesize = (long) MXIF_COLUMN_FRAMESIZE(mask_frame);
 
 #if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,
@@ -3937,8 +3948,8 @@ mxd_aviex_pccd_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	mx_bool_type create_rebinned_mask_frame;
 	mx_status_type mx_status;
 
-	image_row_binsize    = MXIF_ROW_BINSIZE(image_frame);
-	image_column_binsize = MXIF_COLUMN_BINSIZE(image_frame);
+	image_row_binsize    = (long) MXIF_ROW_BINSIZE(image_frame);
+	image_column_binsize = (long) MXIF_COLUMN_BINSIZE(image_frame);
 
 #if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s: image_row_binsize = %ld, image_column_binsize = %ld",
@@ -3978,10 +3989,10 @@ mxd_aviex_pccd_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 	}
 
 	mask_row_binsize =
-		MXIF_ROW_BINSIZE(aviex_pccd->geometrical_mask_frame);
+		(long) MXIF_ROW_BINSIZE(aviex_pccd->geometrical_mask_frame);
 
 	mask_column_binsize =
-		MXIF_COLUMN_BINSIZE(aviex_pccd->geometrical_mask_frame);
+		(long) MXIF_COLUMN_BINSIZE(aviex_pccd->geometrical_mask_frame);
 
 #if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 	MX_DEBUG(-2,("%s: mask_row_binsize = %ld, mask_column_binsize = %ld",
@@ -4038,10 +4049,10 @@ mxd_aviex_pccd_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 			 */
 
 			rebinned_row_binsize =
-	    MXIF_ROW_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
+    (long) MXIF_ROW_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
 		
 			rebinned_column_binsize =
-	    MXIF_COLUMN_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
+    (long) MXIF_COLUMN_BINSIZE(aviex_pccd->rebinned_geometrical_mask_frame);
 
 #if MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK
 			MX_DEBUG(-2,
@@ -4876,7 +4887,7 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 
 			mx_status = mx_area_detector_set_register(
 					record, record_field->name,
-					*register_value_ptr );
+					(long) *register_value_ptr );
 		} else {
 			switch( record_field->label_value ) {
 			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:

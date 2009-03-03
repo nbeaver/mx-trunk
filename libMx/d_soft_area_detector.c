@@ -273,7 +273,7 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-				soft_area_detector->initial_trigger_mode );
+			(long) soft_area_detector->initial_trigger_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -543,7 +543,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		break;
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		num_frames    = parameter_array[0];
+		num_frames    = mx_round( parameter_array[0] );
 		exposure_time = parameter_array[1];
 		frame_time    = parameter_array[2];
 		break;

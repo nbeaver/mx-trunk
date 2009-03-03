@@ -240,7 +240,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_frames_are_unbinned = FALSE;
 
-	ad->byte_order = mx_native_byteorder();
+	ad->byte_order = (long) mx_native_byteorder();
 
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
@@ -1059,7 +1059,7 @@ mx_area_detector_set_subframe_size( MX_RECORD *record,
 
 	ad->parameter_type = MXLV_AD_SUBFRAME_SIZE;
 
-	ad->subframe_size = num_columns;
+	ad->subframe_size = (long) num_columns;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -3778,7 +3778,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	mx_status_type ( *get_roi_frame_fn ) ( MX_AREA_DETECTOR * );
 	long roi_row_width, roi_column_height, image_format, byte_order;
 	long row_width, column_height;
-	long roi_row, roi_column, row_offset, column_offset;
+	long roi_row, roi_column;
+	unsigned long row_offset, column_offset;
 	long dimension[2];
 	size_t element_size[2];
 	uint16_t **image_array_u16, **roi_array_u16;
@@ -3865,16 +3866,16 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* Fill in some parameters. */
 
-	roi_row_width     = ad->roi[1] - ad->roi[0] + 1;
-	roi_column_height = ad->roi[3] - ad->roi[2] + 1;
+	roi_row_width     = (long) ( ad->roi[1] - ad->roi[0] + 1 );
+	roi_column_height = (long) ( ad->roi[3] - ad->roi[2] + 1 );
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		image_format    = ad->image_format;
 		byte_order      = ad->byte_order;
 		bytes_per_pixel = ad->bytes_per_pixel;
 	} else {
-		image_format    = MXIF_IMAGE_FORMAT(image_frame);
-		byte_order      = MXIF_BYTE_ORDER(image_frame);
+		image_format    = (long) MXIF_IMAGE_FORMAT(image_frame);
+		byte_order      = (long) MXIF_BYTE_ORDER(image_frame);
 		bytes_per_pixel = MXIF_BYTES_PER_PIXEL(image_frame);
 	}
 
@@ -3923,7 +3924,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	    MXIF_TIMESTAMP_NSEC(*roi_frame) = MXIF_TIMESTAMP_NSEC(image_frame);
 	}
 
-	ad->roi_bytes_per_frame = (*roi_frame)->image_length;
+	ad->roi_bytes_per_frame = (long) (*roi_frame)->image_length;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
@@ -3958,8 +3959,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 					record->name );
 		}
 
-		row_width     = MXIF_ROW_FRAMESIZE(image_frame);
-		column_height = MXIF_COLUMN_FRAMESIZE(image_frame);
+		row_width     = (long) MXIF_ROW_FRAMESIZE(image_frame);
+		column_height = (long) MXIF_COLUMN_FRAMESIZE(image_frame);
 
 		switch( ad->image_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
@@ -4840,13 +4841,13 @@ mx_area_detector_default_get_register( MX_AREA_DETECTOR *ad )
 		break;
 	case MXFT_ULONG:
 	case MXFT_HEX:
-		ad->register_value = *((unsigned long *) value_ptr);
+		ad->register_value = (long) *((unsigned long *) value_ptr);
 		break;
 	case MXFT_INT64:
-		ad->register_value = *((int64_t *) value_ptr);
+		ad->register_value = (long) *((int64_t *) value_ptr);
 		break;
 	case MXFT_UINT64:
-		ad->register_value = *((uint64_t *) value_ptr);
+		ad->register_value = (long) *((uint64_t *) value_ptr);
 		break;
 	case MXFT_FLOAT:
 		ad->register_value = mx_round( *((float *) value_ptr) );
@@ -5073,7 +5074,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 			break;
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
-			num_frames = seq.parameter_array[0];
+			num_frames = mx_round( seq.parameter_array[0] );
 			exposure_time = seq.parameter_array[1];
 			frame_time = seq.parameter_array[2];
 
@@ -5099,7 +5100,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 						+ ad->total_acquisition_time;
 			break;
 		case MXT_SQ_STROBE:
-			num_frames = seq.parameter_array[0];
+			num_frames = mx_round( seq.parameter_array[0] );
 			exposure_time = seq.parameter_array[1];
 
 			ad->total_acquisition_time =
@@ -5110,7 +5111,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 						+ ad->total_acquisition_time;
 			break;
 		case MXT_SQ_BULB:
-			num_frames = seq.parameter_array[0];
+			num_frames = mx_round( seq.parameter_array[0] );
 
 			ad->total_acquisition_time = ad->detector_readout_time
 							* (double) num_frames;
@@ -6148,7 +6149,7 @@ mxp_area_detector_u16_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_highmem_dark_correction()";
 
-	long i, num_pixels;
+	unsigned long i, num_pixels;
 	double image_pixel, image_exposure_time;
 	float *dark_current_offset_array;
 	uint16_t *image_data_array, *mask_data_array;
@@ -6343,7 +6344,7 @@ mxp_area_detector_u16_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_lowmem_dark_correction()";
 
-	long i, num_pixels;
+	unsigned long i, num_pixels;
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *dark_current_data_array;
 	double image_exposure_time, dark_current_exposure_time;
@@ -6593,7 +6594,7 @@ mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_highmem_flood_field()";
 
-	long i, num_pixels;
+	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
 	float *flood_field_scale_array;
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
@@ -6707,7 +6708,7 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mxp_area_detector_u16_lowmem_flood_field()";
 
-	long i, num_pixels;
+	unsigned long i, num_pixels;
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *flood_field_data_array;
 	unsigned long raw_flood_field, bias_offset;
@@ -6923,8 +6924,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	correction_measurement_in_progress =
 		ad->correction_measurement_in_progress;
 
-	geometrical_correction_requested =
-		ad->correction_flags & MXFT_AD_GEOMETRICAL_CORRECTION;
+	if ( ad->correction_flags & MXFT_AD_GEOMETRICAL_CORRECTION ) {
+		geometrical_correction_requested = TRUE;
+	} else {
+		geometrical_correction_requested = FALSE;
+	}
 
 	if ( correction_measurement_in_progress ) {
 		/* We are measuring a correction_frame. */
@@ -8177,7 +8181,7 @@ mx_area_detector_compute_binsize( double original_binsize,
 				i, allowed_binsize[i]));
 
 			if ( original_binsize == (double) allowed_binsize[i] ) {
-				new_binsize = original_binsize;
+				new_binsize = mx_round( original_binsize );
 
 				MX_DEBUG( 2,("binsize match = %ld",
 					new_binsize));
@@ -8263,8 +8267,8 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 	y_framesize = mx_divide_safely( ad->maximum_framesize[1],
 						ad->binsize[1] );
 
-	ad->framesize[0] = x_framesize;
-	ad->framesize[1] = y_framesize;
+	ad->framesize[0] = mx_round( x_framesize );
+	ad->framesize[1] = mx_round( y_framesize );
 
 	return MX_SUCCESSFUL_RESULT;
 }

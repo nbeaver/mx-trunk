@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ mx_spawn( char *command_line, unsigned long flags )
 	MX_DEBUG(-2,("%s: command_line = '%s'", fname, command_line));
 #endif
 
-	parent_pid = mx_process_id();
+	parent_pid = (pid_t) mx_process_id();
 
 	/* Create the child process. */
 
@@ -69,7 +69,7 @@ mx_spawn( char *command_line, unsigned long flags )
 
 		/********** Child process. **********/
 
-		child_pid = mx_process_id();
+		child_pid = (pid_t) mx_process_id();
 
 #if MX_SPAWN_DEBUG
 		MX_DEBUG(-2,("%s: This is child process %lu.",

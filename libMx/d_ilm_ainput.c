@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -246,18 +246,21 @@ mxd_ilm_ainput_open( MX_RECORD *record )
 	case 6:
 	case 11:
 		channel = 1;
-		channel_usage = mx_hex_char_to_unsigned_long( response[1] );
+		channel_usage = (int)
+			mx_hex_char_to_unsigned_long( response[1] );
 		break;
 	case 2:
 	case 7:
 	case 12:
 		channel = 2;
-		channel_usage = mx_hex_char_to_unsigned_long( response[2] );
+		channel_usage = (int)
+			mx_hex_char_to_unsigned_long( response[2] );
 		break;
 	case 3:
 	case 13:
 		channel = 3;
-		channel_usage = mx_hex_char_to_unsigned_long( response[2] );
+		channel_usage = (int)
+			mx_hex_char_to_unsigned_long( response[2] );
 		break;
 	default:
 		channel = -1;

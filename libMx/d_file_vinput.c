@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -251,7 +251,7 @@ mxd_file_vinput_open( MX_RECORD *record )
 	vinput->get_frame      = -100;
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
-	vinput->byte_order     = mx_native_byteorder();
+	vinput->byte_order     = (long) mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
 	vinput->total_num_frames = 0;
@@ -587,7 +587,8 @@ mxd_file_vinput_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_MULTIFRAME:
 		file_vinput->seconds_per_frame = seq->parameter_array[2];
-		file_vinput->num_frames_in_sequence = seq->parameter_array[0];
+		file_vinput->num_frames_in_sequence =
+					mx_round( seq->parameter_array[0] );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

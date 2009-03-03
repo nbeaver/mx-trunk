@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -922,7 +922,7 @@ mx_network_wait_for_messages( MX_RECORD *record,
 	MX_NETWORK_SERVER *network_server;
 	MX_CLOCK_TICK start_tick, end_tick, timeout_in_ticks, current_tick;
 	int comparison;
-	long cs;
+	unsigned long cs;
 	mx_bool_type timeout_enabled;
 	mx_status_type mx_status;
 
@@ -1225,7 +1225,8 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	MX_NETWORK_FIELD *nf;
 	uint32_t *header, *uint32_message;
 	char *char_message;
-	unsigned long header_length, message_length, message_type, status_code;
+	unsigned long header_length, message_length, message_type;
+	long status_code;
 	unsigned long data_type, message_id;
 	mx_bool_type new_handle_needed;
 	mx_status_type mx_status;
@@ -1327,7 +1328,7 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	header_length  = mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
 	message_length = mx_ntohl( header[MX_NETWORK_MESSAGE_LENGTH] );
 	message_type   = mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] );
-	status_code    = mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
+	status_code = (long) mx_ntohl( header[MX_NETWORK_STATUS_CODE] );
 
 	if ( message_type != mx_server_response(MX_NETMSG_ADD_CALLBACK) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1504,7 +1505,8 @@ mx_network_buffer_show_value( void *buffer,
 		}
 	}
 
-	scalar_element_size = mx_get_scalar_element_size(data_type, FALSE);
+	scalar_element_size =
+		mx_get_scalar_element_size( (long) data_type, FALSE);
 
 	if ( scalar_element_size == 0 ) {
 		fprintf( stderr, "*** Unknown type %lu ***\n",
@@ -1516,14 +1518,15 @@ mx_network_buffer_show_value( void *buffer,
 	/* Figure out how many values will be displayed. */
 
 	if ( data_format != MX_NETWORK_DATAFMT_XDR ) {
-		raw_display_values = message_length / scalar_element_size;
+		raw_display_values =
+			(long) (message_length / scalar_element_size);
 	} else {
 		/* For XDR, figuring out the number of values to display
 		 * takes a little bit of work.
 		 */
 
 		xdr_scalar_element_size =
-			mx_xdr_get_scalar_element_size(data_type);
+			mx_xdr_get_scalar_element_size( (long) data_type );
 
 		if ( message_length < xdr_scalar_element_size ) {
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1545,8 +1548,8 @@ mx_network_buffer_show_value( void *buffer,
 			 * array length, so we must skip over them.
 			 */
 
-			raw_display_values =
-			    (message_length - 4) / xdr_scalar_element_size;
+			raw_display_values = (long)
+			    ((message_length - 4) / xdr_scalar_element_size);
 		}
 	}
 
@@ -1677,7 +1680,7 @@ mx_network_buffer_show_value( void *buffer,
 
 			mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
 					raw_buffer, FALSE,
-					data_type, num_dimensions,
+					(long) data_type, num_dimensions,
 					dimension, data_element_size,
 					buffer, xdr_transfer_length, NULL );
 
@@ -1846,7 +1849,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		data_type  = 0;
 		message_id = 0;
 	} else {
-		data_type  = mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
+		data_type  = (long) mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
 		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 	}
 
@@ -1989,15 +1992,15 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 		break;
 
 	case mx_server_response(MX_NETMSG_GET_FIELD_TYPE):
-		field_type     = mx_ntohl( uint32_message[0] );
-		num_dimensions = mx_ntohl( uint32_message[1] );
+		field_type     = (long) mx_ntohl( uint32_message[0] );
+		num_dimensions = (long) mx_ntohl( uint32_message[1] );
 
 		fprintf( stderr,
 	"  GET_FIELD_TYPE response: field type = %ld, num dimensions = %ld",
 			field_type, num_dimensions );
 
 		for ( i = 0; i < num_dimensions; i++ ) {
-			dimension_size = mx_ntohl( uint32_message[i+2] );
+			dimension_size = (long) mx_ntohl( uint32_message[i+2] );
 
 			fprintf( stderr, ", %ld", dimension_size );
 		}
@@ -4188,8 +4191,8 @@ mx_network_get_option( MX_RECORD *server_record,
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
-	uint32_t header_length, message_length;
-	uint32_t message_type, status_code;
+	uint32_t header_length, message_length, message_type;
+	long status_code;
 	uint32_t header_length_in_32bit_words;
 	mx_status_type mx_status;
 
@@ -4290,7 +4293,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_GET_OPTION ) ) {
 
@@ -4366,8 +4369,8 @@ mx_network_set_option( MX_RECORD *server_record,
 	MX_LIST_HEAD *list_head;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
-	uint32_t header_length, message_length;
-	uint32_t message_type, status_code;
+	uint32_t header_length, message_length, message_type;
+	long status_code;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4465,7 +4468,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_SET_OPTION ) ) {
 
@@ -4532,8 +4535,8 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		uint32_t uint32_value[2];
 	} u;
 
-	uint32_t header_length, message_length;
-	uint32_t message_type, status_code;
+	uint32_t header_length, message_length, message_type;
+	long status_code;
 	XDR xdrs;
 	int xdr_status;
 	mx_bool_type new_handle_needed;
@@ -4653,7 +4656,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_GET_ATTRIBUTE ) ) {
 
@@ -4668,8 +4671,8 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 				return mx_error(
 				( status_code | MXE_QUIET ), fname,
-					"The MX 'get attribute' message type is "
-					"not implemented by server '%s'.",
+				"The MX 'get attribute' message type is "
+				"not implemented by server '%s'.",
 						nf->server_record->name );
 			} else {
 				/* Some other error occurred. */
@@ -4768,8 +4771,8 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		uint32_t uint32_value[2];
 	} u;
 
-	uint32_t header_length, message_length;
-	uint32_t message_type, status_code;
+	uint32_t header_length, message_length, message_type;
+	long status_code;
 	XDR xdrs;
 	int xdr_status;
 	uint32_t *uint32_value_ptr;
@@ -4928,7 +4931,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	status_code = (long) mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_SET_ATTRIBUTE ) ) {
 
@@ -5805,7 +5808,8 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 
 	MX_NETWORK_SERVER *source_server;
 	MX_NETWORK_MESSAGE_BUFFER *source_message_buffer;
-	unsigned long header_length, message_length, status_code;
+	unsigned long header_length, message_length;
+	long status_code;
 	uint32_t *source_header;
 	char *char_header, *char_message;
 	void *value_ptr;
@@ -5859,7 +5863,7 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 
 	message_length = mx_ntohl( source_header[MX_NETWORK_MESSAGE_LENGTH] );
 
-	status_code = mx_ntohl( source_header[MX_NETWORK_STATUS_CODE] );
+	status_code = (long) mx_ntohl( source_header[MX_NETWORK_STATUS_CODE] );
 
 	char_header = source_message_buffer->u.char_buffer;
 

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -358,7 +358,7 @@ mxd_gated_backlash_set_gate_value( MX_GATED_BACKLASH *gated_backlash,
 		break;
 	case MXC_RELAY:
 		mx_status = mx_relay_command( gated_backlash->gate_record,
-							gate_value );
+							(long) gate_value );
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -209,7 +209,7 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	vinput->get_frame      = -100;
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
-	vinput->byte_order     = mx_native_byteorder();
+	vinput->byte_order     = (long) mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
 	vinput->total_num_frames = 0;
@@ -319,7 +319,8 @@ mxd_soft_vinput_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_MULTIFRAME:
 		soft_vinput->seconds_per_frame = seq->parameter_array[2];
-		soft_vinput->num_frames_in_sequence = seq->parameter_array[0];
+		soft_vinput->num_frames_in_sequence =
+					mx_round( seq->parameter_array[0] );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -795,7 +796,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 				}
 
-				*ptr16 = mx_round(raw_value) % 65536;
+				*ptr16 = (unsigned short)
+					( mx_round(raw_value) % 65536 );
 
 				ptr16++;
 			    }
@@ -939,7 +941,7 @@ mxd_soft_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTE_ORDER:
-		vinput->byte_order = mx_native_byteorder();
+		vinput->byte_order = (long) mx_native_byteorder();
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:

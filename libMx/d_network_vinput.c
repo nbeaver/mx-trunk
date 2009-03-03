@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -749,7 +749,7 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-	dimension[0] = frame->image_length;
+	dimension[0] = (long) frame->image_length;
 
 	mx_status = mx_get_array( &(network_vinput->frame_buffer_nf),
 			MXFT_CHAR, 1, dimension, frame->image_data );

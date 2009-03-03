@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -580,7 +580,8 @@ motor_wvout_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			trigger_mode = mx_hex_string_to_unsigned_long(argv[5]);
+			trigger_mode = (long)
+				mx_hex_string_to_unsigned_long(argv[5]);
 
 			mx_status = mx_waveform_output_set_trigger_mode(
 						wvout_record, trigger_mode );

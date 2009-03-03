@@ -1135,7 +1135,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/* Now transfer the header. */
 
-	dimension[0] = remote_frame_header_length;
+	dimension[0] = (long) remote_frame_header_length;
 
 	mx_status = mx_get_array(
 		&(network_area_detector->image_frame_header_nf),
@@ -1162,14 +1162,14 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/* Copy the header values to the MX_AREA_DETECTOR structure. */
 
-	ad->framesize[0]    = MXIF_ROW_FRAMESIZE(destination_frame);
-	ad->framesize[1]    = MXIF_COLUMN_FRAMESIZE(destination_frame);
-	ad->binsize[0]      = MXIF_ROW_BINSIZE(destination_frame);
-  	ad->binsize[1]      = MXIF_COLUMN_BINSIZE(destination_frame);
-	ad->image_format    = MXIF_IMAGE_FORMAT(destination_frame);
-	ad->byte_order      = MXIF_BYTE_ORDER(destination_frame);
+	ad->framesize[0]    = (long) MXIF_ROW_FRAMESIZE(destination_frame);
+	ad->framesize[1]    = (long) MXIF_COLUMN_FRAMESIZE(destination_frame);
+	ad->binsize[0]      = (long) MXIF_ROW_BINSIZE(destination_frame);
+  	ad->binsize[1]      = (long) MXIF_COLUMN_BINSIZE(destination_frame);
+	ad->image_format    = (long) MXIF_IMAGE_FORMAT(destination_frame);
+	ad->byte_order      = (long) MXIF_BYTE_ORDER(destination_frame);
 	ad->bytes_per_pixel = MXIF_BYTES_PER_PIXEL(destination_frame);
-	ad->header_length   = local_frame_header_length;
+	ad->header_length   = (long) local_frame_header_length;
 
 	ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
 		* (double) MXIF_ROW_FRAMESIZE(destination_frame)
@@ -1213,7 +1213,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	dimension[0] = destination_frame->image_length;
+	dimension[0] = (long) destination_frame->image_length;
 
 	mx_status = mx_get_array(
 			&(network_area_detector->image_frame_data_nf),
@@ -1435,7 +1435,7 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	dimension[0] = roi_frame->image_length;
+	dimension[0] = (long) roi_frame->image_length;
 
 	mx_status = mx_get_array( &(network_area_detector->roi_frame_buffer_nf),
 			MXFT_CHAR, 1, dimension, roi_frame->image_data );

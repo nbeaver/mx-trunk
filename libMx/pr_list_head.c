@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -465,8 +465,8 @@ mx_list_head_record_show_handle( MX_LIST_HEAD *list_head )
 	long record_handle, field_handle;
 	mx_status_type mx_status;
 
-	record_handle = list_head->show_handle[0];
-	field_handle  = list_head->show_handle[1];
+	record_handle = (long) list_head->show_handle[0];
+	field_handle  = (long) list_head->show_handle[1];
 
 	/* Get the record pointer. */
 

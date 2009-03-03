@@ -976,8 +976,8 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		ad->framesize[1] = 4096;
 	}
 
-	ad->image_format = ad->datafile_format;
-	ad->byte_order = mx_native_byteorder();
+	ad->image_format = (long) ad->datafile_format;
+	ad->byte_order = (long) mx_native_byteorder();
 	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
 
 	ad->bytes_per_pixel = 2;
@@ -1569,18 +1569,18 @@ mxd_bluice_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/* Update the area detector parameters. */
 
-	ad->header_length   = MXIF_HEADER_BYTES(ad->image_frame);
+	ad->header_length   = (long) MXIF_HEADER_BYTES(ad->image_frame);
 
-	ad->framesize[0]    = MXIF_ROW_FRAMESIZE(ad->image_frame);
-	ad->framesize[1]    = MXIF_COLUMN_FRAMESIZE(ad->image_frame);
+	ad->framesize[0]    = (long) MXIF_ROW_FRAMESIZE(ad->image_frame);
+	ad->framesize[1]    = (long) MXIF_COLUMN_FRAMESIZE(ad->image_frame);
 
-	ad->binsize[0]      = MXIF_ROW_BINSIZE(ad->image_frame);
-	ad->binsize[1]      = MXIF_COLUMN_BINSIZE(ad->image_frame);
+	ad->binsize[0]      = (long) MXIF_ROW_BINSIZE(ad->image_frame);
+	ad->binsize[1]      = (long) MXIF_COLUMN_BINSIZE(ad->image_frame);
 
-	ad->image_format    = MXIF_IMAGE_FORMAT(ad->image_frame);
-	ad->byte_order      = MXIF_BYTE_ORDER(ad->image_frame);
+	ad->image_format    = (long) MXIF_IMAGE_FORMAT(ad->image_frame);
+	ad->byte_order      = (long) MXIF_BYTE_ORDER(ad->image_frame);
 	ad->bytes_per_pixel = MXIF_BYTES_PER_PIXEL(ad->image_frame);
-	ad->bits_per_pixel  = MXIF_BITS_PER_PIXEL(ad->image_frame);
+	ad->bits_per_pixel  = (long) MXIF_BITS_PER_PIXEL(ad->image_frame);
 
 	ad->bytes_per_frame = mx_round( ad->framesize[0] * ad->framesize[1]
 						* ad->bytes_per_pixel );

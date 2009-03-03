@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -174,10 +174,10 @@ mxi_spellman_df3_open( MX_RECORD *record )
 	/* Copy in the default power and filament current limits. */
 
 	spellman_df3->analog_control[MXF_SPELLMAN_DF3_POWER_LIMIT]
-		= spellman_df3->default_power_limit;
+		= (int) spellman_df3->default_power_limit;
 
 	spellman_df3->analog_control[MXF_SPELLMAN_DF3_FILAMENT_CURRENT_LIMIT]
-		= spellman_df3->default_filament_current_limit;
+		= (int) spellman_df3->default_filament_current_limit;
 
 	/* Set all of the digital control fields to 0. */
 
@@ -502,21 +502,23 @@ mxi_spellman_df3_query_command( MX_SPELLMAN_DF3 *spellman_df3 )
 			response, spellman_df3->record->name );
 	}
 
-	spellman_df3->analog_monitor[MXF_SPELLMAN_DF3_VOLTAGE_MONITOR] =
+	spellman_df3->analog_monitor[MXF_SPELLMAN_DF3_VOLTAGE_MONITOR]
+	= (int)(
 		 256 * mx_hex_char_to_unsigned_long( response[1] )
 		+ 16 * mx_hex_char_to_unsigned_long( response[2] )
-		+      mx_hex_char_to_unsigned_long( response[3] );
+		+      mx_hex_char_to_unsigned_long( response[3] ) );
 
-	spellman_df3->analog_monitor[MXF_SPELLMAN_DF3_CURRENT_MONITOR] =
+	spellman_df3->analog_monitor[MXF_SPELLMAN_DF3_CURRENT_MONITOR]
+	= (int)(
 		 256 * mx_hex_char_to_unsigned_long( response[4] )
 		+ 16 * mx_hex_char_to_unsigned_long( response[5] )
-		+      mx_hex_char_to_unsigned_long( response[6] );
+		+      mx_hex_char_to_unsigned_long( response[6] ) );
 
-	spellman_df3->analog_monitor[
-				MXF_SPELLMAN_DF3_FILAMENT_CURRENT_MONITOR] =
+	spellman_df3->analog_monitor[MXF_SPELLMAN_DF3_FILAMENT_CURRENT_MONITOR]
+	= (int)(
 		 256 * mx_hex_char_to_unsigned_long( response[7] )
 		+ 16 * mx_hex_char_to_unsigned_long( response[8] )
-		+      mx_hex_char_to_unsigned_long( response[9] );
+		+      mx_hex_char_to_unsigned_long( response[9] ) );
 
 	monitor_byte = mx_hex_char_to_unsigned_long( response[10] );
 

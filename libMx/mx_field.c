@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -613,7 +613,7 @@ mx_set_1d_field_array_length( MX_RECORD_FIELD *field, unsigned long new_length )
 	MX_DEBUG( 2,("%s: Field '%s', old length = %ld, new length = %ld",
 		fname, field->name, field->dimension[0], new_length ));
 
-	field->dimension[0] = new_length;
+	field->dimension[0] = (long) new_length;
 
 	return MX_SUCCESSFUL_RESULT;
 }

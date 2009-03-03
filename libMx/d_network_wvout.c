@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -361,7 +361,7 @@ mxd_network_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	/* Repoint 'channel_data' to the correct row in 'data_array'. */
 
-	ch = wvout->channel_index;
+	ch = (long) wvout->channel_index;
 
 	wvout->channel_data = (wvout->data_array)[ch];
 
@@ -413,7 +413,7 @@ mxd_network_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 
 	/* Repoint 'channel_data' to the correct row in 'data_array'. */
 
-	ch = wvout->channel_index;
+	ch = (long) wvout->channel_index;
 
 	wvout->channel_data = (wvout->data_array)[ch];
 

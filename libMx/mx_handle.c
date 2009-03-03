@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -361,8 +361,8 @@ mx_get_pointer_from_handle( void **pointer,
 		"which is not allowed.", handle );
 	}
 
-	maximum_handle_number =
-			handle_table->block_size * handle_table->num_blocks;
+	maximum_handle_number = (signed long)
+			( handle_table->block_size * handle_table->num_blocks );
 
 	if ( handle >= maximum_handle_number ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,

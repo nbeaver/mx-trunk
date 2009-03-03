@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -674,7 +674,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( status_code, fname, char_message );
+		return mx_error( (long) status_code, fname, char_message );
 	}
 
 	/* If the header is not at least 28 bytes long, then the server
@@ -903,7 +903,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( status_code, fname, char_message );
+		return mx_error( (long) status_code, fname, char_message );
 	}
 
 	/* If we get here, then we have successfully deleted the callback
@@ -963,7 +963,7 @@ mxp_local_field_traverse_function( MX_LIST_ENTRY *list_entry,
 
 	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
 	MX_SOCKET_HANDLER *socket_handler;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	if ( list_entry == (MX_LIST_ENTRY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

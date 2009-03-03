@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2455,27 +2455,27 @@ mx_convert_and_copy_array(
 		case MXFT_CHAR:
 			char_dest_ptr = (char *) destination_array_pointer;
 
-			*char_dest_ptr = long_source_value;
+			*char_dest_ptr = (char) long_source_value;
 			break;
 
 		case MXFT_UCHAR:
 			uchar_dest_ptr = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = long_source_value;
+			*uchar_dest_ptr = (unsigned char) long_source_value;
 			break;
 
 		case MXFT_SHORT:
 			short_dest_ptr = (short *) destination_array_pointer;
 
-			*short_dest_ptr = long_source_value;
+			*short_dest_ptr = (short) long_source_value;
 			break;
 
 		case MXFT_USHORT:
 			ushort_dest_ptr = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = long_source_value;
+			*ushort_dest_ptr = (unsigned short) long_source_value;
 			break;
 
 		case MXFT_BOOL:
@@ -2527,40 +2527,40 @@ mx_convert_and_copy_array(
 		case MXFT_CHAR:
 			char_dest_ptr = (char *) destination_array_pointer;
 
-			*char_dest_ptr = ulong_source_value;
+			*char_dest_ptr = (char) ulong_source_value;
 			break;
 
 		case MXFT_UCHAR:
 			uchar_dest_ptr = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = ulong_source_value;
+			*uchar_dest_ptr = (unsigned char) ulong_source_value;
 			break;
 
 		case MXFT_SHORT:
 			short_dest_ptr = (short *) destination_array_pointer;
 
-			*short_dest_ptr = ulong_source_value;
+			*short_dest_ptr = (short) ulong_source_value;
 			break;
 
 		case MXFT_USHORT:
 			ushort_dest_ptr = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = ulong_source_value;
+			*ushort_dest_ptr = (unsigned short) ulong_source_value;
 			break;
 
 		case MXFT_BOOL:
 			bool_dest_ptr = (mx_bool_type *)
 						destination_array_pointer;
 
-			*bool_dest_ptr = ulong_source_value;
+			*bool_dest_ptr = (mx_bool_type) ulong_source_value;
 			break;
 
 		case MXFT_LONG:
 			long_dest_ptr = (long *) destination_array_pointer;
 
-			*long_dest_ptr = ulong_source_value;
+			*long_dest_ptr = (long) ulong_source_value;
 			break;
 
 		case MXFT_ULONG:
@@ -2598,27 +2598,30 @@ mx_convert_and_copy_array(
 		case MXFT_CHAR:
 			char_dest_ptr = (char *) destination_array_pointer;
 
-			*char_dest_ptr = mx_round( float_source_value );
+			*char_dest_ptr = (char) mx_round( float_source_value );
 			break;
 
 		case MXFT_UCHAR:
 			uchar_dest_ptr = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = mx_round( float_source_value );
+			*uchar_dest_ptr = (unsigned char)
+						mx_round( float_source_value );
 			break;
 
 		case MXFT_SHORT:
 			short_dest_ptr = (short *) destination_array_pointer;
 
-			*short_dest_ptr = mx_round( float_source_value );
+			*short_dest_ptr = (short)
+						mx_round( float_source_value );
 			break;
 
 		case MXFT_USHORT:
 			ushort_dest_ptr = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = mx_round( float_source_value );
+			*ushort_dest_ptr = (unsigned short)
+						mx_round( float_source_value );
 			break;
 
 		case MXFT_BOOL:
@@ -2669,27 +2672,30 @@ mx_convert_and_copy_array(
 		case MXFT_CHAR:
 			char_dest_ptr = (char *) destination_array_pointer;
 
-			*char_dest_ptr = mx_round( double_source_value );
+			*char_dest_ptr = (char) mx_round( double_source_value );
 			break;
 
 		case MXFT_UCHAR:
 			uchar_dest_ptr = (unsigned char *)
 						destination_array_pointer;
 
-			*uchar_dest_ptr = mx_round( double_source_value );
+			*uchar_dest_ptr = (unsigned char)
+						mx_round( double_source_value );
 			break;
 
 		case MXFT_SHORT:
 			short_dest_ptr = (short *) destination_array_pointer;
 
-			*short_dest_ptr = mx_round( double_source_value );
+			*short_dest_ptr = (short)
+						mx_round( double_source_value );
 			break;
 
 		case MXFT_USHORT:
 			ushort_dest_ptr = (unsigned short *)
 						destination_array_pointer;
 
-			*ushort_dest_ptr = mx_round( double_source_value );
+			*ushort_dest_ptr = (unsigned short)
+						mx_round( double_source_value );
 			break;
 
 		case MXFT_BOOL:

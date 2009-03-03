@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -625,7 +625,7 @@ mxd_bkprecision_912x_wvout_read_channel( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ch = wvout->channel_index;
+	ch = (int) wvout->channel_index;
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', channel %d.",
@@ -721,7 +721,7 @@ mxd_bkprecision_912x_wvout_write_channel( MX_WAVEFORM_OUTPUT *wvout )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ch = wvout->channel_index;
+	ch = (int) wvout->channel_index;
 
 #if MXD_BKPRECISION_912X_WVOUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', channel %d.",

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 2001, 2003-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -543,7 +543,7 @@ show_field_list( MX_DRIVER **list_of_types,
 		  || ( field_defaults->flags & MXFF_IN_DESCRIPTION ) )
 		{
 			status = show_field( driver, field_defaults,
-						i, show_handles, debug );
+						(int) i, show_handles, debug );
 
 		}
 	}

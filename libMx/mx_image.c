@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,20 +69,23 @@ mxp_rgb565_converter_fn( unsigned char *src, unsigned char *dest )
 static pixel_converter_t
 mxp_rgb565_converter = { 2, 3, mxp_rgb565_converter_fn };
 
-static long
+static unsigned char
 clamp( double x )
 {
-	long r;
+	long r_long;
+	unsigned r_uchar;
 
-	r = mx_round(x);
+	r_long = mx_round(x);
 
-	if (r < 0) {
-		return 0;
-	} else if (r > 255) {
-		return 255;
-	} else {
-		return r;
+	if (r_long < 0) {
+		r_long = 0;
+	} else if (r_long > 255) {
+		r_long = 255;
 	}
+
+	r_uchar = (unsigned char) r_long;
+
+	return r_uchar;
 }
 
 static void
@@ -911,7 +914,7 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 
 		pixel_sd = ( ( pixel - mean ) / standard_deviation );
 
-		pixel_bin = 0.5 + pixel_sd + MX_IMAGE_STATISTICS_MAX_SD;
+		pixel_bin = mx_round( pixel_sd + MX_IMAGE_STATISTICS_MAX_SD );
 
 		if ( pixel_bin >= MX_IMAGE_STATISTICS_BINS ) {
 			(sd_histogram[MX_IMAGE_STATISTICS_BINS - 1])++;
@@ -1031,10 +1034,10 @@ mx_image_copy_frame( MX_IMAGE_FRAME *old_frame,
 	}
 
 	mx_status = mx_image_alloc( new_frame_ptr,
-				MXIF_ROW_FRAMESIZE(old_frame),
-				MXIF_COLUMN_FRAMESIZE(old_frame),
-				MXIF_IMAGE_FORMAT(old_frame),
-				MXIF_BYTE_ORDER(old_frame),
+				(long) MXIF_ROW_FRAMESIZE(old_frame),
+				(long) MXIF_COLUMN_FRAMESIZE(old_frame),
+				(long) MXIF_IMAGE_FORMAT(old_frame),
+				(long) MXIF_BYTE_ORDER(old_frame),
 				MXIF_BYTES_PER_PIXEL(old_frame),
 				old_frame->header_length,
 				old_frame->image_length );
@@ -1288,13 +1291,13 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			* mx_round( MXIF_BYTES_PER_PIXEL(original_frame) );
 
 	mx_status = mx_image_alloc( rebinned_frame,
-					rebinned_width,
-					rebinned_height,
-					MXIF_IMAGE_FORMAT(original_frame),
-					MXIF_BYTE_ORDER(original_frame),
-					bytes_per_pixel,
-					original_frame->header_length,
-					rebinned_size );
+				(long) rebinned_width,
+				(long) rebinned_height,
+				(long) MXIF_IMAGE_FORMAT(original_frame),
+				(long) MXIF_BYTE_ORDER(original_frame),
+				bytes_per_pixel,
+				original_frame->header_length,
+				rebinned_size );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1344,11 +1347,11 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	element_size[0] = bytes_per_pixel;
 	element_size[1] = sizeof(void *);
 
-	original_dimensions[0] = original_height;
-	original_dimensions[1] = original_width;
+	original_dimensions[0] = (long) original_height;
+	original_dimensions[1] = (long) original_width;
 
-	rebinned_dimensions[0] = rebinned_height;
-	rebinned_dimensions[1] = rebinned_width;
+	rebinned_dimensions[0] = (long) rebinned_height;
+	rebinned_dimensions[1] = (long) rebinned_width;
 
 	mx_status = mx_array_add_overlay( original_frame->image_data, 2,
 					original_dimensions, element_size,
@@ -2055,7 +2058,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	/* Read in the binary part of the image file. */
 
-	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+	bytes_read = (long) fread( (*frame)->image_data, sizeof(unsigned char),
 				bytes_per_frame, file );
 
 	if ( bytes_read < bytes_per_frame ) {
@@ -2496,7 +2499,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 			ptr++;	/* Step over the '=' character. */
 
-			num_whitespace_chars = strspn( ptr, " \t" );
+			num_whitespace_chars = (long) strspn( ptr, " \t" );
 
 			ptr += num_whitespace_chars;
 
@@ -2585,7 +2588,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	/* Read in the binary part of the image file. */
 
-	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+	bytes_read = (long) fread( (*frame)->image_data, sizeof(unsigned char),
 				bytes_per_frame, file );
 
 	if ( bytes_read < bytes_per_frame ) {
@@ -2797,8 +2800,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 				(unsigned long) MXIF_ROW_BINSIZE(frame),
 				(unsigned long) MXIF_COLUMN_BINSIZE(frame) );
 
-	exposure_timespec.tv_sec  = MXIF_EXPOSURE_TIME_SEC(frame);
-	exposure_timespec.tv_nsec = MXIF_EXPOSURE_TIME_NSEC(frame);
+	exposure_timespec.tv_sec  = (long) MXIF_EXPOSURE_TIME_SEC(frame);
+	exposure_timespec.tv_nsec = (long) MXIF_EXPOSURE_TIME_NSEC(frame);
 
 	exposure_time =
 		mx_convert_high_resolution_time_to_seconds( exposure_timespec );
@@ -2807,8 +2810,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	/* Write the time of frame acquisition to the header. */
 
-	timestamp_timespec.tv_sec  = MXIF_TIMESTAMP_SEC(frame);
-	timestamp_timespec.tv_nsec = MXIF_TIMESTAMP_NSEC(frame);
+	timestamp_timespec.tv_sec  = (long) MXIF_TIMESTAMP_SEC(frame);
+	timestamp_timespec.tv_nsec = (long) MXIF_TIMESTAMP_NSEC(frame);
 
 	mx_os_time_string( timestamp_timespec, timestamp, sizeof(timestamp) );
 
@@ -2875,7 +2878,8 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 	struct stat marccd_stat;
 	int marccd_fd, os_status, saved_errno;
 	unsigned long file_size_in_bytes, image_size_in_bytes;
-	unsigned long image_size_in_pixels, image_width, image_height;
+	unsigned long image_size_in_pixels;
+	long image_width, image_height;
 	unsigned long items_read;
 	double sqrt_image_size;
 	mx_status_type mx_status;
@@ -2923,7 +2927,7 @@ mx_image_read_marccd_file( MX_IMAGE_FRAME **frame, char *marccd_filename )
 			marccd_filename, saved_errno, strerror(saved_errno) );
 	}
 
-	file_size_in_bytes = marccd_stat.st_size;
+	file_size_in_bytes = (unsigned long) marccd_stat.st_size;
 
 	/* Subtract 4096 bytes for the MarCCD header. */
 
@@ -3366,7 +3370,7 @@ mx_image_read_edf_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	/* Read in the binary part of the image file. */
 
-	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+	bytes_read = (long) fread( (*frame)->image_data, sizeof(unsigned char),
 				bytes_per_frame, file );
 
 	if ( bytes_read < bytes_per_frame ) {

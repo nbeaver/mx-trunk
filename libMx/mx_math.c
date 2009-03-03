@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,14 +37,14 @@
 
 MX_EXPORT void
 mx_solve_tridiagonal_matrix( double *a,		/* Below the diagonal. */
-				double *b,	/* The diagonal. */
-				double *c,	/* Above the diagonal. */
-				double *y,	/* Column vector. */
-				double *x,	/* Solution column vector. */
-				int n )		/* Dimension. */
+			double *b,		/* The diagonal. */
+			double *c,		/* Above the diagonal. */
+			double *y,		/* Column vector. */
+			double *x,		/* Solution column vector. */
+			unsigned long n )	/* Dimension. */
 {
 	double multiplier;
-	int i;
+	unsigned long i;
 
 	c[0] = mx_divide_safely( c[0], b[0] );
 	y[0] = mx_divide_safely( y[0], b[0] );

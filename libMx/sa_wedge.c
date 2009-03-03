@@ -261,7 +261,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		fname, num_wedges, num_energies));
 
 	for ( w = 0; w < num_wedges; w++ ) {
-		wedge_scan->current_wedge_number = w;
+		wedge_scan->current_wedge_number = (long) w;
 
 		wedge_start = motor_start + w * wedge_size;
 		wedge_end   = motor_start + (w+1) * wedge_size;
@@ -293,12 +293,12 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		}
 
 		for ( n = 0; n < num_energies; n++ ) {
-			ad_scan->current_energy_number = n;
+			ad_scan->current_energy_number = (long) n;
 
 			energy = ad_scan->energy_array[n];
 
 			for ( i = start_step; i < end_step; i++ ) {
-				ad_scan->current_frame_number = i;
+				ad_scan->current_frame_number = (long) i;
 
 				position = motor_start + i * motor_step_size;
 
@@ -345,7 +345,8 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 			/* Yes, we do use inverse beam. */
 
 			for ( i = start_step; i < end_step; i++ ) {
-				ad_scan->current_frame_number = i + 180;
+				ad_scan->current_frame_number
+					= (long) (i + 180);
 
 				position = motor_start + inverse_distance
 						+ i * motor_step_size;

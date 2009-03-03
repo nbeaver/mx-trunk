@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -583,7 +583,7 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	camera_link->baud_rate = baud_rate;
+	camera_link->baud_rate = (long) baud_rate;
 
 	cl_status = (*set_baud_rate_fn)( camera_link->serial_ref, baud_rate );
 

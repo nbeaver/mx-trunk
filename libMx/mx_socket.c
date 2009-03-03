@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,8 +125,8 @@ mx_socket_wait_for_event( MX_SOCKET *mx_socket, double timeout_in_seconds )
 		FD_ZERO( &read_fds );
 		FD_SET( socket_fd, &read_fds );
 
-		timeout.tv_sec = tv_seconds;
-		timeout.tv_usec = tv_microseconds;
+		timeout.tv_sec = (long) tv_seconds;
+		timeout.tv_usec = (long) tv_microseconds;
 
 #if defined(OS_WIN32)
 		fd_count = -1;
