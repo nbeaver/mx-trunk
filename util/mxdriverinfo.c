@@ -712,6 +712,7 @@ show_latex_field( MX_DRIVER *driver,
 {
 	char buffer[500];
 	char *name_ptr;
+	int c;
 	const char *type_ptr;
 	unsigned long i, j, length;
 	long dimension, num_dimensions;
@@ -750,7 +751,9 @@ show_latex_field( MX_DRIVER *driver,
 			buffer[j] = '\\';
 			j++;
 		}
-		buffer[j] = tolower(type_ptr[i]);
+		c = type_ptr[i];
+
+		buffer[j] = tolower(c);
 	}
 	buffer[j] = '\0';
 
