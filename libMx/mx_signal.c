@@ -25,7 +25,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if !defined(OS_VXWORKS)
 #include <pthread.h>
+#endif
+
 #include <signal.h>
 #include <errno.h>
 

@@ -17,7 +17,7 @@
  *
  */
 
-#if defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_VXWORKS)
+#if defined(OS_ECOS) || defined(OS_RTEMS)
 #  include "../../version_temp.h"
 #endif
 
@@ -73,9 +73,99 @@ main( int argc, char **argv )
 
 #if defined(OS_VXWORKS)
 
+/* FIXME - This is very fragile code. */
+
+#define VERSION_TEMP_FILENAME	"version_temp.txt"
+
 static void
 mxp_generate_gnuc_macros( FILE *version_file )
 {
+	FILE *file;
+	char buffer[500];
+	int num_items;
+	unsigned long major, minor, patchlevel;
+	unsigned long version_ptr_offset, skip_length;
+	char *version_ptr, *version_number_ptr;
+
+	file = fopen( "version_temp.txt","r" );
+
+	if ( file == NULL ) {
+	    fprintf( stderr,
+		"mx_private_version: Did not find '%s'.\n",
+		VERSION_TEMP_FILENAME );
+
+	    exit(1);
+	}
+
+	fgets( buffer, sizeof(buffer), file );
+
+	while ( !feof(file) && !ferror(file) ) {
+#if 0
+	    fprintf(stderr, "buffer = '%s'\n", buffer );
+#endif
+
+	    /* Look for a line with the string 'gcc version' in it. */
+
+	    version_ptr = strstr( buffer, "gcc version" );
+
+	    if ( version_ptr != NULL ) {
+		/* If 'gcc version' was found, then get a pointer to the
+		 * first numerical character found after that string.
+		 */
+
+		version_ptr_offset = version_ptr - buffer;
+
+		skip_length = strcspn( version_ptr, "0123456789" );
+
+		if ( (version_ptr_offset + skip_length) >= strlen(buffer) ) {
+			/* If version_ptr_offset + skip_length puts us past
+			 * the end of the string, then there is no version
+			 * number there.
+			 */
+			continue;
+		}
+
+		version_number_ptr = version_ptr + skip_length;
+
+#if 0
+		fprintf( stderr, "version_number_ptr = '%s'\n",
+			version_number_ptr );
+#endif
+
+		num_items = sscanf( version_number_ptr, "%lu.%lu.%lu",
+			&major, &minor, &patchlevel );
+
+		if ( num_items < 2 ) {
+			fprintf( stderr,
+			"The selected GCC version number '%s' does not "
+			"have a decimal point in it.\n",
+				version_number_ptr );
+			continue;
+		} else
+		if ( num_items == 2 ) {
+			patchlevel = 0;
+		}
+
+		
+		fprintf( version_file, "#define MX_GNUC_VERSION    %luL\n",
+			major * 1000000L + minor * 1000L + patchlevel );
+
+		fprintf( version_file, "\n" );
+
+		fclose(file);
+
+		return;
+	    }
+
+	    fgets( buffer, sizeof(buffer), file );
+	}
+
+	fprintf( stderr,
+	"Did not find the target GCC version number in '%s'.\n",
+		VERSION_TEMP_FILENAME );
+
+	fclose(file);
+
 	return;
 }
 

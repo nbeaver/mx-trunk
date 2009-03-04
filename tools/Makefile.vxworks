@@ -8,17 +8,15 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.vxworks
 
+XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
+
 mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
-	# $(TARGET_CPP) -dM < /dev/null | grep __VERSION__ \
-	#	| sed 's/__VERSION__/MX_GNUC_TARGET_VERSION/' > version_temp.h
-	touch version_temp.h
-	$(HOST_CC) $(CFLAGS_MX_VERS) -o mx_private_version \
-		version/src/mx_private_version.c
+	$(XCC) -v > version_temp.txt 2>&1
+	( unset GCC_EXEC_PREFIX ; $(HOST_CC) $(CFLAGS_MX_VERS) \
+		-o mx_private_version version/src/mx_private_version.c )
 
 ../libMx/mx_private_version.h: mx_private_version
 	./mx_private_version > ../libMx/mx_private_version.h
-
-XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
 
 getopt.o:
 	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/getopt.c
@@ -30,5 +28,5 @@ strlcat.o: generic/src/strlcat.c
 	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcat.c
 
 mx_clean:
-	-rm *.o mx_private_version version_temp.h
+	-rm *.o mx_private_version version_temp.txt
 
