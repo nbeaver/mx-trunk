@@ -572,13 +572,14 @@ mx_change_filename_prefix( char *old_filename,
 	/* Now create the new filename. */
 
 	if ( new_filename_prefix == NULL ) {
-		strlcpy( new_filename, old_filename_ptr, sizeof(new_filename) );
+		strlcpy( new_filename, old_filename_ptr,
+				max_new_filename_length );
 	} else {
 		new_prefix_length = strlen(new_filename_prefix);
 
 		if ( new_prefix_length == 0 ) {
 			strlcpy( new_filename, old_filename_ptr,
-					sizeof(new_filename) );
+					max_new_filename_length );
 		} else {
 			/* Does the new prefix have a path separator '/'
 			 * at the end of the filename?

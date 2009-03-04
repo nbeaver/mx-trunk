@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -94,7 +94,7 @@ typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
 #elif defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_HPUX) \
-	|| defined(OS_VMS) || defined(OS_TRU64) || defined(__OpenBSD__)
+	|| defined(OS_VMS) || defined(OS_TRU64)
 
    /* Some build targets do not have <stdint.h>, but have the same
     * information available in <inttypes.h>.
