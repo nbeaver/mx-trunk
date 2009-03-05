@@ -26,6 +26,8 @@
 
 #define MX_EPICS_DEBUG_PERFORMANCE	FALSE
 
+/* MX_EPICS_EXPORT_KLUDGE should be left on. */
+
 #define MX_EPICS_EXPORT_KLUDGE		TRUE
 
 #include "mxconfig.h"

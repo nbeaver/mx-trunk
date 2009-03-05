@@ -6,7 +6,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,17 +24,25 @@ typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	double clock_frequency;
 	double epics_record_version;
+	int driver_type;
 
 	MX_EPICS_PV cnt_pv;
 	MX_EPICS_PV freq_pv;
 	MX_EPICS_PV mode_pv;
+	MX_EPICS_PV nch_pv;
 	MX_EPICS_PV t_pv;
 	MX_EPICS_PV tp_pv;
 	MX_EPICS_PV vers_pv;
 
-	long num_epics_counters;
+	short num_epics_counters;
 	MX_EPICS_PV *gate_control_pv_array;
 } MX_EPICS_TIMER;
+
+/* Values for the 'driver_type' field. */
+
+#define MXT_EPICS_SCALER_UNKNOWN	0
+#define MXT_EPICS_SCALER_BCDA		1
+#define MXT_EPICS_SCALER_MX		2
 
 #define MXD_EPICS_TIMER_STANDARD_FIELDS \
   {-1, -1, "epics_record_name", MXFT_STRING, \

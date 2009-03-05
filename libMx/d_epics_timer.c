@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ mxd_epics_timer_get_pointers( MX_TIMER *timer,
 			MX_EPICS_TIMER **epics_timer,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_timer_get_pointers()";
+	static const char fname[] = "mxd_epics_timer_get_pointers()";
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -111,7 +111,7 @@ mxd_epics_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_epics_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_timer_create_record_structures()";
+	static const char fname[] = "mxd_epics_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_EPICS_TIMER *epics_timer;
@@ -154,12 +154,14 @@ mxd_epics_timer_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_timer_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_timer_open()";
+	static const char fname[] = "mxd_epics_timer_open()";
 
 	MX_TIMER *timer;
 	MX_EPICS_TIMER *epics_timer = NULL;
 	double version_number;
 	long i;
+	char pvname[80];
+	char driver_name[80];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -184,6 +186,8 @@ mxd_epics_timer_open( MX_RECORD *record )
 				"%s.FREQ", epics_timer->epics_record_name);
 	mx_epics_pvname_init( &(epics_timer->mode_pv),
 				"%s_mode.VAL", epics_timer->epics_record_name);
+	mx_epics_pvname_init( &(epics_timer->nch_pv),
+				"%s.NCH", epics_timer->epics_record_name);
 	mx_epics_pvname_init( &(epics_timer->t_pv),
 				"%s.T", epics_timer->epics_record_name);
 	mx_epics_pvname_init( &(epics_timer->tp_pv),
@@ -191,14 +195,42 @@ mxd_epics_timer_open( MX_RECORD *record )
 	mx_epics_pvname_init( &(epics_timer->vers_pv),
 				"%s.VERS", epics_timer->epics_record_name);
 
-	epics_timer->num_epics_counters = 16;
+	/* Find out what type of EPICS scaler record this is. */
+
+	snprintf( pvname, sizeof(pvname),
+		"%s.DTYP", epics_timer->epics_record_name );
+
+	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, driver_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: record '%s' driver_name = '%s'",
+		fname, record->name, driver_name));
+
+	if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
+		epics_timer->driver_type = MXT_EPICS_SCALER_MX;
+	} else {
+		epics_timer->driver_type = MXT_EPICS_SCALER_BCDA;
+	}
+
+	/* Find out how many counter channels the EPICS scaler record has. */
+
+	mx_status = mx_caget( &(epics_timer->nch_pv),
+			MX_CA_SHORT, 1, &(epics_timer->num_epics_counters) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: Record '%s' num_epics_counters = %hd",
+		fname, record->name, epics_timer->num_epics_counters));
 
 	epics_timer->gate_control_pv_array = (MX_EPICS_PV *)
 		malloc( epics_timer->num_epics_counters * sizeof(MX_EPICS_PV) );
 
 	if ( epics_timer->gate_control_pv_array == (MX_EPICS_PV *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory allocating %ld elements for gate_control_pv_array "
+	"Ran out of memory allocating %hd elements for gate_control_pv_array "
 	"used by timer record '%s'.",
 			epics_timer->num_epics_counters, record->name );
 	}
@@ -237,7 +269,7 @@ mxd_epics_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_is_busy()";
+	static const char fname[] = "mxd_epics_timer_is_busy()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	long count_field;
@@ -276,7 +308,7 @@ mxd_epics_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_start()";
+	static const char fname[] = "mxd_epics_timer_start()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	double seconds;
@@ -341,7 +373,7 @@ mxd_epics_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_stop()";
+	static const char fname[] = "mxd_epics_timer_stop()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	long count_field;
@@ -392,7 +424,7 @@ mxd_epics_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_read()";
+	static const char fname[] = "mxd_epics_timer_read()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	double seconds;
@@ -417,7 +449,7 @@ mxd_epics_timer_read( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_get_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_get_mode()";
+	static const char fname[] = "mxd_epics_timer_get_mode()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	long gate_control;
@@ -461,7 +493,7 @@ mxd_epics_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_epics_timer_set_mode()";
+	static const char fname[] = "mxd_epics_timer_set_mode()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	long gate_control, counter_mode;
@@ -521,7 +553,7 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_epics_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_epics_timer_set_modes_of_associated_counters()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
@@ -534,6 +566,14 @@ mxd_epics_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* FIXME - If the EPICS scaler is of DTYP 'MxScaler', then
+	 * skip this part, since 'mxca_server' does not yet support
+	 * synchronous groups.
+	 */
+
+	if ( epics_timer->driver_type == MXT_EPICS_SCALER_MX )
+		return MX_SUCCESSFUL_RESULT;
 
 	/* Start an EPICS synchronous group. */
 

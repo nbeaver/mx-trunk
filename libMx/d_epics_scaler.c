@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,7 @@
 #include "mx_epics.h"
 #include "mx_measurement.h"
 #include "mx_scaler.h"
+#include "d_epics_timer.h"
 #include "d_epics_scaler.h"
 
 /* Initialize the scaler driver jump table. */
@@ -82,7 +83,7 @@ mxd_epics_scaler_get_pointers( MX_SCALER *scaler,
 			MX_EPICS_SCALER **epics_scaler,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_scaler_get_pointers()";
+	static const char fname[] = "mxd_epics_scaler_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -118,7 +119,7 @@ mxd_epics_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_epics_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_scaler_create_record_structures()";
+	static const char fname[] = "mxd_epics_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_EPICS_SCALER *epics_scaler = NULL;
@@ -161,7 +162,7 @@ mxd_epics_scaler_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_scaler_print_structure()";
+	static const char fname[] = "mxd_epics_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_EPICS_SCALER *epics_scaler = NULL;
@@ -216,12 +217,14 @@ mxd_epics_scaler_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_scaler_open()";
+	static const char fname[] = "mxd_epics_scaler_open()";
 
 	MX_SCALER *scaler;
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	double version_number;
 	long i, scaler_number;
+	char pvname[80];
+	char driver_name[80];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -250,6 +253,9 @@ mxd_epics_scaler_open( MX_RECORD *record )
 				"%s_mode.VAL",
 					epics_scaler->epics_record_name );
 
+	mx_epics_pvname_init( &(epics_scaler->nch_pv),
+				"%s.NCH", epics_scaler->epics_record_name );
+
 	mx_epics_pvname_init( &(epics_scaler->pr_pv),
 				"%s.PR%d", epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
@@ -265,14 +271,42 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	mx_epics_pvname_init( &(epics_scaler->vers_pv),
 				"%s.VERS", epics_scaler->epics_record_name );
 
-	epics_scaler->num_epics_counters = 16;
+	/* Find out what type of EPICS scaler record this is. */
+
+	snprintf( pvname, sizeof(pvname),
+		"%s.DTYP", epics_scaler->epics_record_name );
+
+	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, driver_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: record '%s' driver_name = '%s'",
+		fname, record->name, driver_name));
+
+	if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
+		epics_scaler->driver_type = MXT_EPICS_SCALER_MX;
+	} else {
+		epics_scaler->driver_type = MXT_EPICS_SCALER_BCDA;
+	}
+
+	/* Find out how many counter channels the EPICS scaler record has. */
+
+	mx_status = mx_caget( &(epics_scaler->nch_pv),
+			MX_CA_SHORT, 1, &(epics_scaler->num_epics_counters) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: Record '%s' num_epics_counters = %hd",
+		fname, record->name, epics_scaler->num_epics_counters));
 
 	epics_scaler->gate_control_pv_array = (MX_EPICS_PV *)
 		malloc( epics_scaler->num_epics_counters * sizeof(MX_EPICS_PV));
 
 	if ( epics_scaler->gate_control_pv_array == (MX_EPICS_PV *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory allocating %ld elements for gate_control_pv_array "
+	"Ran out of memory allocating %hd elements for gate_control_pv_array "
 	"used by scaler record '%s'.",
 			epics_scaler->num_epics_counters, record->name );
 	}
@@ -289,14 +323,14 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	if ( ( scaler_number < 1 )
 	  || ( scaler_number > epics_scaler->num_epics_counters ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"EPICS scaler channel number %ld is out of allowed range 2-%ld",
+		"EPICS scaler channel number %ld is out of allowed range 2-%hd",
 			scaler_number, epics_scaler->num_epics_counters );
 	}
 
 	if ( scaler_number == 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"EPICS scaler channel 1 is reserved for timer use "
-		"and cannot be used as a normal scaler.  Use channels 2-%ld",
+		"and cannot be used as a normal scaler.  Use channels 2-%hd",
 			epics_scaler->num_epics_counters );
 	}
 
@@ -324,7 +358,7 @@ mxd_epics_scaler_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_read()";
+	static const char fname[] = "mxd_epics_scaler_read()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value;
@@ -355,7 +389,7 @@ mxd_epics_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_read_raw( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_read_raw()";
+	static const char fname[] = "mxd_epics_scaler_read_raw()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value;
@@ -379,7 +413,7 @@ mxd_epics_scaler_read_raw( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_is_busy()";
+	static const char fname[] = "mxd_epics_scaler_is_busy()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long count_field;
@@ -418,7 +452,7 @@ mxd_epics_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_start()";
+	static const char fname[] = "mxd_epics_scaler_start()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long value, count_field;
@@ -456,7 +490,7 @@ mxd_epics_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_stop()";
+	static const char fname[] = "mxd_epics_scaler_stop()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long count_field;
@@ -569,7 +603,7 @@ mxd_epics_scaler_set_parameter( MX_SCALER *scaler )
 static mx_status_type
 mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_get_mode()";
+	static const char fname[] = "mxd_epics_scaler_get_mode()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long gate_control, offset;
@@ -614,7 +648,7 @@ mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 static mx_status_type
 mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_epics_scaler_set_mode()";
+	static const char fname[] = "mxd_epics_scaler_set_mode()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	long gate_control, counter_mode, offset;
@@ -676,7 +710,7 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_epics_scaler_set_modes_of_associated_counters()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
@@ -700,6 +734,14 @@ mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 			scaler->mode );
 		break;
 	}
+
+	/* FIXME - If the EPICS scaler is of DTYP 'MxScaler', then
+	 * skip this part, since 'mxca_server' does not yet support
+	 * synchronous groups.
+	 */
+
+	if ( epics_scaler->driver_type == MXT_EPICS_SCALER_MX )
+		return MX_SUCCESSFUL_RESULT;
 
 	/* Start an EPICS synchronous group. */
 

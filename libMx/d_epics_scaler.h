@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,18 +23,22 @@ typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	long scaler_number;
 	double epics_record_version;
+	int driver_type;
 
 	MX_EPICS_PV cnt_pv;
 	MX_EPICS_PV dark_pv;
 	MX_EPICS_PV mode_pv;
+	MX_EPICS_PV nch_pv;
 	MX_EPICS_PV pr_pv;
 	MX_EPICS_PV s_pv;
 	MX_EPICS_PV sd_pv;
 	MX_EPICS_PV vers_pv;
 
-	long num_epics_counters;
+	short num_epics_counters;
 	MX_EPICS_PV *gate_control_pv_array;
 } MX_EPICS_SCALER;
+
+/* FIXME - Get values for 'driver_type' from the 'd_epics_timer.h' header. */
 
 #define MXD_EPICS_SCALER_STANDARD_FIELDS \
   {-1, -1, "epics_record_name", MXFT_STRING, \

@@ -1,0 +1,10 @@
+energy device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:energy
+gonio_phi device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:gonio_phi
+scaler2   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 2
+scaler3   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 3
+scaler4   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 4
+scaler5   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 5
+scaler6   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 6
+scaler7   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 7
+scaler8   device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 8
+timer1    device timer epics_timer "" "" wml:scaler1
