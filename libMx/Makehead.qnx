@@ -45,10 +45,12 @@ READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
 GCCFLAGS = -Wall -Werror \
 -Wpointer-arith \
 -Wcast-align \
--Wcast-qual \
 -Wmissing-prototypes \
 -Wnested-externs \
 -Winline
+
+# Cannot use -Wcast-qual since the QNX version of <stdarg.h> defines
+# va_start() without 'const'.
 
 #
 # Intel x86 with GCC version 2.95.3 under QNX Neutrino 6.2
