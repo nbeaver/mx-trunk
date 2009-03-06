@@ -24,15 +24,16 @@ typedef struct {
 } MX_CONNECTION_ACL;
 
 extern mx_status_type mx_setup_connection_acl( MX_RECORD *record_list,
-					char *connection_acl_filename );
+					const char *connection_acl_filename );
 
 extern mx_status_type mx_check_socket_connection_acl_permissions(
 					MX_RECORD *record_list,
-					char *client_address_string,
+					const char *client_address_string,
 					int *connection_allowed );
 
-extern mx_status_type mx_get_client_hostname( char *client_address_string,
-					char *client_hostname );
+extern mx_status_type mx_get_client_hostname( const char *client_address_string,
+					char *client_hostname,
+					size_t max_hostname_length );
 
 #endif /* __MS_SECURITY_H__ */
 

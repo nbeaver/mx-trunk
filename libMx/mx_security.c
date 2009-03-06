@@ -33,7 +33,7 @@
 
 mx_status_type
 mx_setup_connection_acl( MX_RECORD *record_list,
-				char *connection_acl_filename )
+			const char *connection_acl_filename )
 {
 	static const char fname[] = "mx_setup_connection_acl()";
 
@@ -219,7 +219,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 
 mx_status_type
 mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
-		char *client_address_string, int *connection_allowed )
+		const char *client_address_string, int *connection_allowed )
 {
 	static const char fname[]
 		= "mx_check_socket_connection_acl_permissions()";
@@ -271,7 +271,8 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 			if ( reverse_dns_lookup_done == FALSE ) {
 				status = mx_get_client_hostname(
 						client_address_string,
-						client_hostname );
+						client_hostname,
+						sizeof(client_hostname) );
 
 				if ( status.code != MXE_SUCCESS )
 					return status;
@@ -292,8 +293,9 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 }
 
 mx_status_type
-mx_get_client_hostname( char *client_address_string,
-				char *client_hostname )
+mx_get_client_hostname( const char *client_address_string,
+			char *client_hostname,
+			size_t max_hostname_length )
 {
 	static const char fname[] = "mx_get_client_hostname()";
 
@@ -319,7 +321,7 @@ mx_get_client_hostname( char *client_address_string,
 	if ( client_in_addr.ul == (unsigned long) (-1) ) {
 #endif
 
-		sprintf( client_hostname,
+		snprintf( client_hostname, max_hostname_length,
 			"Address '%s' is not a valid address",
 			client_address_string );
 
@@ -335,11 +337,11 @@ mx_get_client_hostname( char *client_address_string,
 #endif
 
 	if ( host_entry == NULL ) {
-		sprintf( client_hostname, "Address '%s' not found.",
-					client_address_string );
+		snprintf( client_hostname, max_hostname_length,
+			"Address '%s' not found.", client_address_string );
 	} else {
 		strlcpy( client_hostname, host_entry->h_name,
-					MXU_ADDRESS_STRING_LENGTH );
+					max_hostname_length );
 	}
 
 	MX_DEBUG( 2,("%s: client_hostname = '%s'", fname, client_hostname));

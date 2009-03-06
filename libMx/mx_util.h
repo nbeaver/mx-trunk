@@ -416,7 +416,7 @@ MX_API double mx_difference( double value1, double value2 );
 
 /* mx_match() does simple wildcard matching. */
 
-MX_API int mx_match( char *pattern, char *string );
+MX_API int mx_match( const char *pattern, const char *string );
 
 /* mx_parse_command_line() takes a string and creates argv[] and envp[]
  * style arrays from it.  Spaces and tabs are taken to be whitespace, while
