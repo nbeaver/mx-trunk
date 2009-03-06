@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,10 +48,10 @@
 #include "mx_syslog.h"
 #include "mx_thread.h"
 #include "mx_virtual_timer.h"
-
 #include "mx_process.h"
+#include "mx_security.h"
+
 #include "ms_mxserver.h"
-#include "ms_security.h"
 
 MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	{ MXF_SRV_TCP_SERVER_TYPE,
@@ -937,7 +937,7 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( strlen( mx_connection_acl_filename ) > 0 ) {
 
-		mx_status = mxsrv_setup_connection_acl( mx_record_list,
+		mx_status = mx_setup_connection_acl( mx_record_list,
 						mx_connection_acl_filename );
 
 		if ( mx_status.code != MXE_SUCCESS )

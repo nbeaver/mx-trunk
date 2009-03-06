@@ -1,13 +1,13 @@
 /*
- * Name:    ms_security.c
+ * Name:    mx_security.c
  *
- * Purpose: Access security functions for the MX server.
+ * Purpose: Access security functions for MX-based servers.
  *
  * Author:  William Lavender
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,17 +27,17 @@
 #include "mx_variable.h"
 
 #include "mx_process.h"
-#include "ms_security.h"
+#include "mx_security.h"
 
 #define NUMERICAL_ADDRESS_CHARACTERS	"0123456789.*?"
 
 mx_status_type
-mxsrv_setup_connection_acl( MX_RECORD *record_list,
+mx_setup_connection_acl( MX_RECORD *record_list,
 				char *connection_acl_filename )
 {
-	static const char fname[] = "mxsrv_setup_connection_acl()";
+	static const char fname[] = "mx_setup_connection_acl()";
 
-	MXSRV_CONNECTION_ACL *connection_acl;
+	MX_CONNECTION_ACL *connection_acl;
 	FILE *connection_acl_file;
 	MX_LIST_HEAD *list_head;
 	long dimension_array[2];
@@ -96,14 +96,14 @@ mxsrv_setup_connection_acl( MX_RECORD *record_list,
 
 	/* Allocate memory for the connection ACL structures. */
 
-	connection_acl = (MXSRV_CONNECTION_ACL *)
-				malloc( sizeof(MXSRV_CONNECTION_ACL) );
+	connection_acl = (MX_CONNECTION_ACL *)
+				malloc( sizeof(MX_CONNECTION_ACL) );
 
-	if ( connection_acl == (MXSRV_CONNECTION_ACL *) NULL ) {
+	if ( connection_acl == (MX_CONNECTION_ACL *) NULL ) {
 		fclose(connection_acl_file);
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-"Ran out of memory trying to allocate an MXSRV_CONNECTION_ACL structure." );
+"Ran out of memory trying to allocate an MX_CONNECTION_ACL structure." );
 	}
 
 	connection_acl->num_addresses = num_addresses;
@@ -133,7 +133,7 @@ mxsrv_setup_connection_acl( MX_RECORD *record_list,
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory allocating %ld integers for the is_numerical_address array "
-"of an MXSRV_CONNECTION_ACL structure.", num_addresses );
+"of an MX_CONNECTION_ACL structure.", num_addresses );
 	}
 
 	dimension_array[0] = num_addresses;
@@ -150,7 +150,7 @@ mxsrv_setup_connection_acl( MX_RECORD *record_list,
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory allocating %ld strings for the address_string_array "
-"of an MXSRV_CONNECTION_ACL structure.", num_addresses );
+"of an MX_CONNECTION_ACL structure.", num_addresses );
 	}
 
 	/* Now go back to the beginning of the file and read the address
@@ -218,14 +218,14 @@ mxsrv_setup_connection_acl( MX_RECORD *record_list,
 }
 
 mx_status_type
-mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
+mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 		char *client_address_string, int *connection_allowed )
 {
 	static const char fname[]
-		= "mxsrv_check_socket_connection_acl_permissions()";
+		= "mx_check_socket_connection_acl_permissions()";
 
 	MX_LIST_HEAD *list_head;
-	MXSRV_CONNECTION_ACL *connection_acl;
+	MX_CONNECTION_ACL *connection_acl;
 	char client_hostname[MXU_ADDRESS_STRING_LENGTH+1];
 	char *address_string;
 	long i;
@@ -246,11 +246,11 @@ mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 		"MX_LIST_HEAD pointer in list head record is NULL." );
 	}
 
-	connection_acl = (MXSRV_CONNECTION_ACL *) list_head->connection_acl;
+	connection_acl = (MX_CONNECTION_ACL *) list_head->connection_acl;
 
-	if ( connection_acl == (MXSRV_CONNECTION_ACL *) NULL ) {
+	if ( connection_acl == (MX_CONNECTION_ACL *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MXSRV_CONNECTION_ACL pointer in list head is NULL." );
+		"MX_CONNECTION_ACL pointer in list head is NULL." );
 	}
 
 	*connection_allowed = FALSE;
@@ -269,7 +269,7 @@ mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 			}
 		} else {
 			if ( reverse_dns_lookup_done == FALSE ) {
-				status = mxsrv_get_client_hostname(
+				status = mx_get_client_hostname(
 						client_address_string,
 						client_hostname );
 
@@ -292,10 +292,10 @@ mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 }
 
 mx_status_type
-mxsrv_get_client_hostname( char *client_address_string,
+mx_get_client_hostname( char *client_address_string,
 				char *client_hostname )
 {
-	static const char fname[] = "mxsrv_get_client_hostname()";
+	static const char fname[] = "mx_get_client_hostname()";
 
 	struct hostent *host_entry;
 

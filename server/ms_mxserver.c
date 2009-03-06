@@ -58,11 +58,11 @@
 #include "mx_array.h"
 #include "mx_list.h"
 #include "mx_bit.h"
-
 #include "mx_process.h"
 #include "mx_callback.h"
+#include "mx_security.h"
+
 #include "ms_mxserver.h"
-#include "ms_security.h"
 
 #if HAVE_XDR
 #  include "mx_xdr.h"
@@ -1125,7 +1125,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 			connection_allowed = TRUE;
 		} else {
 			mx_status =
-		mxsrv_check_socket_connection_acl_permissions( record_list,
+		mx_check_socket_connection_acl_permissions( record_list,
 				new_socket_handler->client_address_string,
 				&connection_allowed );
 
