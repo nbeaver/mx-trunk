@@ -239,7 +239,7 @@ MX_API int  mx_socket_check_error_status( void *value_to_check,
 						int type_of_check,
 						char **error_string );
 
-MX_API mx_status_type mx_socket_get_inet_address( char *hostname,
+MX_API mx_status_type mx_socket_get_inet_address( const char *hostname,
 						unsigned long *inet_address );
 
 MX_API mx_status_type mx_socket_send( MX_SOCKET *mx_socket,

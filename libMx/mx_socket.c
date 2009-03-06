@@ -1374,7 +1374,7 @@ mx_socket_check_error_status( void *value_to_check,
 }
 
 MX_EXPORT mx_status_type
-mx_socket_get_inet_address( char *hostname, unsigned long *inet_address )
+mx_socket_get_inet_address( const char *hostname, unsigned long *inet_address )
 {
 	static const char fname[] = "mx_socket_get_inet_address()";
 

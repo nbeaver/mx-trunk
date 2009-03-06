@@ -45,7 +45,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	size_t result, length;
 	long i, num_addresses;
 	char *address_string;
-	char buffer[MXU_ADDRESS_STRING_LENGTH+1];
+	char buffer[MXU_HOSTNAME_LENGTH+1];
 
 	if ( record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -137,7 +137,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	}
 
 	dimension_array[0] = num_addresses;
-	dimension_array[1] = MXU_ADDRESS_STRING_LENGTH + 1;
+	dimension_array[1] = MXU_HOSTNAME_LENGTH + 1;
 
 	data_element_size_array[0] = sizeof(char);
 	data_element_size_array[1] = sizeof(char *);
@@ -176,7 +176,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	for ( i = 0; i < num_addresses; i++ ) {
 		address_string = connection_acl->address_string_array[i];
 
-		fgets( address_string, MXU_ADDRESS_STRING_LENGTH,
+		fgets( address_string, MXU_HOSTNAME_LENGTH,
 					connection_acl_file );
 
 		if ( ferror( connection_acl_file )
@@ -226,7 +226,7 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 
 	MX_LIST_HEAD *list_head;
 	MX_CONNECTION_ACL *connection_acl;
-	char client_hostname[MXU_ADDRESS_STRING_LENGTH+1];
+	char client_hostname[MXU_HOSTNAME_LENGTH+1];
 	char *address_string;
 	long i;
 	int reverse_dns_lookup_done;
@@ -300,6 +300,8 @@ mx_get_client_hostname( const char *client_address_string,
 	static const char fname[] = "mx_get_client_hostname()";
 
 	struct hostent *host_entry;
+	unsigned long inet_address;
+	mx_status_type mx_status;
 
 	/* The following declaration is probably being overly picky, but
 	 * is for the benefit of inet_addr().
@@ -313,6 +315,7 @@ mx_get_client_hostname( const char *client_address_string,
 	MX_DEBUG( 2,("%s invoked for client_address_string = '%s'",
 		fname, client_address_string ));
 
+#if 0
 	client_in_addr.ul = inet_addr( client_address_string );
 
 #if defined(OS_VMS)
@@ -327,6 +330,15 @@ mx_get_client_hostname( const char *client_address_string,
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+#else
+	mx_status = mx_socket_get_inet_address( client_address_string,
+						&inet_address );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	client_in_addr.ul = inet_address;
+#endif
 
 #if defined(OS_VXWORKS)
 	host_entry = NULL;
