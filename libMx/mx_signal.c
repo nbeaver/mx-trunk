@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !defined(OS_VXWORKS)
+#if !defined(OS_VXWORKS) && !defined(OS_VMS)
 #include <pthread.h>
 #endif
 

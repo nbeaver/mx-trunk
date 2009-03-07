@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,6 +42,13 @@
  */
 
 #define mx_area_detector_get_maximum_frame_number mx_ad_get_maximum_frame_number
+
+/* mxd_network_area_detector_trigger_exposure() collides with
+ * mxd_network_area_detector_trigger().
+ */
+
+#define mxd_network_area_detector_trigger_exposure \
+						mxd_network_ad_trigger_exposure
 
 /* mx_network_field_get_attribute_number() collides with
  * mx_network_field_get_attribute_by_name().

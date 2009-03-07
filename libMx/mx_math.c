@@ -57,8 +57,12 @@ mx_solve_tridiagonal_matrix( double *a,		/* Below the diagonal. */
 
 	x[n-1] = y[n-1];
 
-	for ( i = n-2; i > -1; i-- ) {
+	for ( i = n-2; ; i-- ) {
 		x[i] = y[i] - c[i] * x[i+1];
+
+		if ( i == 0 ) {
+			break;
+		}
 	}
 
 	return;
