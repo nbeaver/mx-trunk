@@ -21,7 +21,7 @@
 #include "mx_hash_table.h"
 
 static long
-mx_default_hash_table_function( MX_HASH_TABLE *hash_table, char *key )
+mx_default_hash_table_function( MX_HASH_TABLE *hash_table, const char *key )
 {
 	static const char fname[] = "mx_default_hash_table_function()";
 
@@ -36,7 +36,7 @@ mx_default_hash_table_function( MX_HASH_TABLE *hash_table, char *key )
 		return -1;
 	}
 
-	if ( key == (char *) NULL ) {
+	if ( key == (const char *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 		"The key pointer passed was NULL." );
 
@@ -72,7 +72,7 @@ MX_EXPORT mx_status_type
 mx_hash_table_create( MX_HASH_TABLE **hash_table,
 			long key_length,
 			long table_size,
-			long (*hash_function)(MX_HASH_TABLE *, char *) )
+			long (*hash_function)(MX_HASH_TABLE *, const char *) )
 {
 	static const char fname[] = "mx_hash_table_create()";
 
@@ -160,7 +160,7 @@ mx_hash_table_destroy( MX_HASH_TABLE *hash_table )
 
 MX_EXPORT mx_status_type
 mx_hash_table_insert_key( MX_HASH_TABLE *hash_table,
-			char *key,
+			const char *key,
 			void *value )
 {
 	static const char fname[] = "mx_hash_table_insert_key()";
@@ -255,7 +255,7 @@ mx_hash_table_insert_key( MX_HASH_TABLE *hash_table,
 
 MX_EXPORT mx_status_type
 mx_hash_table_delete_key( MX_HASH_TABLE *hash_table,
-			char *key )
+			const char *key )
 {
 	static const char fname[] = "mx_hash_table_delete_key()";
 
@@ -348,7 +348,7 @@ mx_hash_table_delete_key( MX_HASH_TABLE *hash_table,
 
 MX_EXPORT mx_status_type
 mx_hash_table_lookup_key( MX_HASH_TABLE *hash_table,
-			char *key,
+			const char *key,
 			void **value )
 {
 	static const char fname[] = "mx_hash_table_lookup_key()";
