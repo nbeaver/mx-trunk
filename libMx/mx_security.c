@@ -314,7 +314,9 @@ mx_get_client_hostname( const char *client_address_string,
 			char *client_hostname,
 			size_t max_hostname_length )
 {
+#if MX_SECURITY_DEBUG
 	static const char fname[] = "mx_get_client_hostname()";
+#endif
 
 	struct hostent *host_entry;
 	unsigned long inet_address;
