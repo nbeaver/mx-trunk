@@ -29,7 +29,8 @@ MX_API mx_status_type mx_setup_connection_acl( MX_RECORD *record_list,
 MX_API mx_status_type mx_check_socket_connection_acl_permissions(
 					MX_RECORD *record_list,
 					const char *client_address_string,
-					int *connection_allowed );
+					mx_bool_type perform_dns_lookup,
+					mx_bool_type *connection_allowed );
 
 MX_API mx_status_type mx_get_client_hostname( const char *client_address_string,
 					char *client_hostname,

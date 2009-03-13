@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_SECURITY_DEBUG	FALSE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -219,7 +221,9 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 
 MX_EXPORT mx_status_type
 mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
-		const char *client_address_string, int *connection_allowed )
+				const char *client_address_string,
+				mx_bool_type perform_dns_lookup,
+				mx_bool_type *connection_allowed )
 {
 	static const char fname[]
 		= "mx_check_socket_connection_acl_permissions()";
@@ -229,11 +233,13 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 	char client_hostname[MXU_HOSTNAME_LENGTH+1];
 	char *address_string;
 	long i;
-	int reverse_dns_lookup_done;
+	mx_bool_type reverse_dns_lookup_done;
 	mx_status_type status;
 
-	MX_DEBUG( 2,("%s invoked for client '%s'",
+#if MX_SECURITY_DEBUG
+	MX_DEBUG(-2,("%s invoked for client '%s'",
 				fname, client_address_string));
+#endif
 
 	/* Make sure this is the list_head. */
 
@@ -254,7 +260,15 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 	}
 
 	*connection_allowed = FALSE;
-	reverse_dns_lookup_done = FALSE;
+
+	if ( perform_dns_lookup ) {
+		reverse_dns_lookup_done = FALSE;
+	} else {
+		reverse_dns_lookup_done = TRUE;
+
+		strlcpy( client_hostname, client_address_string,
+				sizeof(client_hostname) );
+	}
 
 	for ( i = 0; i < connection_acl->num_addresses; i++ ) {
 
@@ -286,8 +300,11 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 			}
 		}
 	}
-	MX_DEBUG( 2,("%s: *connection_allowed = %d",
-				fname, *connection_allowed));
+
+#if MX_SECURITY_DEBUG
+	MX_DEBUG(-2,("%s: *connection_allowed = %d",
+				fname, (int) *connection_allowed));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -312,8 +329,10 @@ mx_get_client_hostname( const char *client_address_string,
 		unsigned long ul;
 	} client_in_addr;
 
-	MX_DEBUG( 2,("%s invoked for client_address_string = '%s'",
+#if MX_SECURITY_DEBUG
+	MX_DEBUG(-2,("%s invoked for client_address_string = '%s'",
 		fname, client_address_string ));
+#endif
 
 #if 0
 	client_in_addr.ul = inet_addr( client_address_string );
@@ -356,7 +375,9 @@ mx_get_client_hostname( const char *client_address_string,
 					max_hostname_length );
 	}
 
-	MX_DEBUG( 2,("%s: client_hostname = '%s'", fname, client_hostname));
+#if MX_SECURITY_DEBUG
+	MX_DEBUG(-2,("%s: client_hostname = '%s'", fname, client_hostname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

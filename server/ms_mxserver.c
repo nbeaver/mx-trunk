@@ -1127,7 +1127,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 			mx_status =
 		mx_check_socket_connection_acl_permissions( record_list,
 				new_socket_handler->client_address_string,
-				&connection_allowed );
+				TRUE, &connection_allowed );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mxsrv_free_client_socket_handler(
