@@ -158,13 +158,15 @@ mx_get_os_version_string( char *version_string,
 	case 4:
 		switch( osvi.dwMinorVersion ) {
 		case 0:
-			strlcpy( version_string, "Windows 95",
-				max_version_string_length );
-			break;
 		case 1:
 		case 3:
-			strlcpy( version_string, "Windows NT 4.0",
-				max_version_string_length );
+			if ( osvi.dwPlatformId == VER_PLATFORM_WIN32_NT ) {
+				strlcpy( version_string, "Windows NT 4.0",
+					max_version_string_length );
+			} else {
+				strlcpy( version_string, "Windows 95",
+					max_version_string_length );
+			}
 			break;
 		case 10:
 			strlcpy( version_string, "Windows 98",
@@ -206,10 +208,40 @@ mx_get_os_version_string( char *version_string,
 		break;
 	case 6:
 		switch( osvi.dwMinorVersion ) {
+
+#if defined(VER_NT_WORKSTATION)
+		case 0:
+			if ( osvi.wProductType == VER_NT_WORKSTATION ) {
+				strlcpy( version_string, "Windows Vista",
+					max_version_string_length );
+			} else {
+				strlcpy( version_string, "Windows Server 2008",
+					max_version_string_length );
+			}
+			break;
+		case 1:
+			if ( osvi.wProductType == VER_NT_WORKSTATION ) {
+				strlcpy( version_string, "Windows 7",
+					max_version_string_length );
+			} else {
+				strlcpy( version_string,
+					"Windows Server 2008 R2",
+					max_version_string_length );
+			}
+			break;
+
+#else /* !defined(VER_NT_WORKSTATION) */
 		case 0:
 			strlcpy( version_string, "Windows Vista",
-				max_version_string_length );
+					max_version_string_length );
 			break;
+		case 1:
+			strlcpy( version_string, "Windows 7",
+					max_version_string_length );
+			break;
+
+#endif /* !defined(VER_NT_WORKSTATION) */
+
 		default:
 			snprintf( version_string, max_version_string_length,
 				"Windows ??? (major = %lu, minor = %lu)",

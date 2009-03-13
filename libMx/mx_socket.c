@@ -1007,6 +1007,14 @@ mx_socket_close( MX_SOCKET *mx_socket )
 				/* Nothing more to read, so we're done. */
 
 				break;	/* exit the for() loop. */
+			} else
+			if ( saved_errno == ECONNRESET ) {
+
+				/* The remote process reset the connection,
+				 * so we're done.
+				 */
+
+				break;	/* exit the for() loop. */
 			} else {
 				mx_closesocket( socket_fd );
 
