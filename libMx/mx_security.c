@@ -31,7 +31,7 @@
 
 #define NUMERICAL_ADDRESS_CHARACTERS	"0123456789.*?"
 
-mx_status_type
+MX_EXPORT mx_status_type
 mx_setup_connection_acl( MX_RECORD *record_list,
 			const char *connection_acl_filename )
 {
@@ -217,7 +217,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-mx_status_type
+MX_EXPORT mx_status_type
 mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 		const char *client_address_string, int *connection_allowed )
 {
@@ -292,7 +292,7 @@ mx_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-mx_status_type
+MX_EXPORT mx_status_type
 mx_get_client_hostname( const char *client_address_string,
 			char *client_hostname,
 			size_t max_hostname_length )
