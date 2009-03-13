@@ -14,6 +14,16 @@
  *
  */
 
+#define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
+
+#define NETWORK_DEBUG_TIMING			FALSE
+
+#define NETWORK_DEBUG_HEADER_LENGTH		FALSE
+
+#define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
+
+#define NETWORK_DEBUG_MESSAGE_IDS		TRUE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -45,14 +55,6 @@
 #if HAVE_XDR
 #  include "mx_xdr.h"
 #endif
-
-#define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
-
-#define NETWORK_DEBUG_TIMING			FALSE
-
-#define NETWORK_DEBUG_HEADER_LENGTH		FALSE
-
-#define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
 
 #if NETWORK_DEBUG_TIMING
 #include "mx_hrt_debug.h"
@@ -567,7 +569,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		debug_enabled = FALSE;
 	}
 
-#if 0 && NETWORK_DEBUG
+#if NETWORK_DEBUG_MESSAGE_IDS
 	if ( debug_enabled ) {
 		fprintf( stderr,
 		"\nMX NET: Waiting for message ID %#lx, timeout = %g sec\n",
@@ -659,7 +661,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		}
 
 		if ( received_message_id == message_id ) {
-#if 0 && NETWORK_DEBUG
+#if NETWORK_DEBUG_MESSAGE_IDS
 			if ( debug_enabled ) {
 				fprintf( stderr,
 	"\nMX NET: Message ID %#lx has finally arrived from server '%s'.\n",
@@ -682,9 +684,11 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * must invoke the callback.
 			 */
 
-			MX_DEBUG( 2,
+#if NETWORK_DEBUG_MESSAGE_IDS
+			MX_DEBUG(-2,
 			("%s: Handling callback for message ID %#lx here!",
 				fname, (unsigned long) received_message_id ));
+#endif
 
 			if ( server->callback_list == NULL ) {
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -762,6 +766,21 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		/* If we get here, then we have received an RPC message that
 		 * does not match the message ID that we were looking for.
 		 */
+
+#if NETWORK_DEBUG_MESSAGE_IDS
+		MX_DEBUG(-2,
+		("%s: Received %#lx when expecting %#lx from '%s'.",
+			(unsigned long) received_message_id,
+			(unsigned long) message_id,
+			server_record->name ));
+#if defined(OS_WIN32)
+		MX_DEBUG(-2,
+		("%s: Thread ID = %lu", fname, GetCurrentThreadId() ));
+#else
+		mx_stack_traceback();
+#endif
+
+#endif
 
 		/* Check for illegal message IDs. */
 
