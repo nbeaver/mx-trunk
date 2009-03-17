@@ -552,6 +552,7 @@ mx_stack_traceback( void )
 {
 	static const char fname[] = "mx_stack_traceback()";
 
+	EXCEPTION_POINTERS *einfo;
 	CONTEXT context;
 
 	mx_info( "\nStack Traceback:\n" );
@@ -571,7 +572,30 @@ mx_stack_traceback( void )
 			GetProcAddress( kernel32_handle, "RtlCaptureContext" );
 	}
 
-	_RtlCaptureContext( &context );
+	if ( _RtlCaptureContext != NULL ) {
+		_RtlCaptureContext( &context );
+
+	} else {
+		/* If RtlCaptureContext() is not supported here, then we can
+		 * get the context by intentionally generating an exception
+		 * and then copying the CONTEXT information from the
+		 * EXCEPTION_POINTERS structure returned by the macro
+		 * GetExceptionInformation().
+		 */
+
+		__try {
+			int bad = 0;
+			bad = 1/bad;
+		}
+		__except( (einfo = GetExceptionInformation())
+		    ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_EXECUTE_HANDLER )
+		{
+			if ( einfo != NULL ) {
+				memcpy( &context, einfo->ContextRecord,
+						sizeof(context) );
+			}
+		}
+	}
 
 	mx_win32_stack_walk( &context );
 }
