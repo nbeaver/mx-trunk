@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,6 +93,7 @@ COMMAND command_list[] = {
 	{ motor_stop_fn,    3, "stop"          },
 	{ motor_system_fn,  2, "system"        },
 	{ motor_take_fn,    1, "take"          },
+	{ motor_test_fn,    2, "test"          },
 	{ motor_vinput_fn,  3, "vinput"        },
 	{ motor_vinput_fn,  3, "video_input"   },
 	{ motor_writep_fn, 11, "writeparams"   },

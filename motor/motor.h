@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -98,6 +98,7 @@ extern int motor_main( int argc, char *argv[] );
 
 extern int motor_area_detector_fn( int argc, char *argv[] );
 extern int motor_cd_fn( int argc, char *argv[] );
+extern int motor_close_fn( int argc, char *argv[] );
 extern int motor_copy_fn( int argc, char *argv[] );
 extern int motor_count_fn( int argc, char *argv[] );
 extern int motor_debug_fn( int argc, char *argv[] );
@@ -108,6 +109,7 @@ extern int motor_exit_fn( int argc, char *argv[] );
 extern int motor_gpib_fn( int argc, char *argv[] );
 extern int motor_help_fn( int argc, char *argv[] );
 extern int motor_home_fn( int argc, char *argv[] );
+extern int motor_kill_fn( int argc, char *argv[] );
 extern int motor_load_fn( int argc, char *argv[] );
 extern int motor_mabs_fn( int argc, char *argv[] );
 extern int motor_mca_fn( int argc, char *argv[] );
@@ -116,6 +118,7 @@ extern int motor_measure_fn( int argc, char *argv[] );
 extern int motor_mjog_fn( int argc, char *argv[] );
 extern int motor_modify_fn( int argc, char *argv[] );
 extern int motor_mrel_fn( int argc, char *argv[] );
+extern int motor_open_fn( int argc, char *argv[] );
 extern int motor_ptz_fn( int argc, char *argv[] );
 extern int motor_readp_fn( int argc, char *argv[] );
 extern int motor_resync_fn( int argc, char *argv[] );
@@ -130,14 +133,12 @@ extern int motor_show_fn( int argc, char *argv[] );
 extern int motor_showall_fn( int argc, char *argv[] );
 extern int motor_start_fn( int argc, char *argv[] );
 extern int motor_stop_fn( int argc, char *argv[] );
-extern int motor_kill_fn( int argc, char *argv[] );
 extern int motor_system_fn( int argc, char *argv[] );
 extern int motor_take_fn( int argc, char *argv[] );
+extern int motor_test_fn( int argc, char *argv[] );
 extern int motor_vinput_fn( int argc, char *argv[] );
 extern int motor_writep_fn( int argc, char *argv[] );
 extern int motor_wvout_fn( int argc, char *argv[] );
-extern int motor_open_fn( int argc, char *argv[] );
-extern int motor_close_fn( int argc, char *argv[] );
 
 extern int motor_init( char *motor_savefile_name, int num_savefiles,
 			char scan_savefile_array[][MXU_FILENAME_LENGTH+1],

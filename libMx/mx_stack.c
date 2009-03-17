@@ -46,6 +46,27 @@
 #include "mx_stdint.h"
 #include "mx_unistd.h"
 
+#if (_MSC_VER < 1300)
+#  define MX_USE_OLD_IMAGEHLP	TRUE
+#else
+#  define MX_USE_OLD_IMAGEHLP	FALSE
+#endif
+
+#if MX_USE_OLD_IMAGEHLP
+# define DWORD64				DWORD
+# define IMAGEHLP_LINE64			IMAGEHLP_LINE
+# define IMAGEHLP_SYMBOL64			IMAGEHLP_SYMBOL
+# define LPSTACKFRAME64				LPSTACKFRAME
+# define PDWORD64				PDWORD
+# define PFUNCTION_TABLE_ACCESS_ROUTINE64	PFUNCTION_TABLE_ACCESS_ROUTINE
+# define PGET_MODULE_BASE_ROUTINE64		PGET_MODULE_BASE_ROUTINE
+# define PIMAGEHLP_LINE64			PIMAGEHLP_LINE
+# define PIMAGEHLP_SYMBOL64			PIMAGEHLP_SYMBOL
+# define PREAD_PROCESS_MEMORY_ROUTINE64		PREAD_PROCESS_MEMORY_ROUTINE
+# define PTRANSLATE_ADDRESS_ROUTINE64		PTRANSLATE_ADDRESS_ROUTINE
+# define STACKFRAME64				STACKFRAME
+#endif
+
 typedef BOOL( __stdcall* MX_STACKWALK_PROC )( DWORD, HANDLE, HANDLE,
 					LPSTACKFRAME64, PVOID,
 					PREAD_PROCESS_MEMORY_ROUTINE64,
@@ -164,6 +185,51 @@ mx_win32_get_logical_address( void *address,
 
 /*--------*/
 
+#define MXP_STACK_WALK			0
+#define MXP_SYM_CLEANUP			1
+#define MXP_SYM_FUNCTION_TABLE_ACCESS	2
+#define MXP_SYM_GET_LINE_FROM_ADDR	3
+#define MXP_SYM_GET_MODULE_BASE		4
+#define MXP_SYM_GET_SYM_FROM_ADDR	5
+#define MXP_SYM_INITIALIZE		6
+
+#if MX_USE_OLD_IMAGEHLP
+
+static char mxp_name[][30] = {
+	"StackWalk",
+	"SymCleanup",
+	"SymFunctionTableAccess",
+	"SymGetLineFromAddr",
+	"SymGetModuleBase",
+	"SymGetSymFromAddr",
+	"SymInitialize"
+};
+
+#else /* not MX_USE_OLD_IMAGEHLP */
+
+static char mxp_name[][30] = {
+	"StackWalk64",
+	"SymCleanup",
+	"SymFunctionTableAccess64",
+	"SymGetLineFromAddr64",
+	"SymGetModuleBase64",
+	"SymGetSymFromAddr64",
+	"SymInitialize"
+};
+
+#endif /* not MX_USE_OLD_IMAGEHLP */
+
+#define MXP_INIT( s, t, n ) \
+        do { \
+		(s) = (t) GetProcAddress( ih_handle, mxp_name[(n)] );  \
+                                                                       \
+                if ( (s) == NULL ) {                                   \
+                        (void) mx_error( MXE_NOT_FOUND, fname,         \
+                        "Could not find function %s", mxp_name[(n)] ); \
+                        return FALSE;                                  \
+		}                                                      \
+        } while (0)
+
 static mx_bool_type
 mx_win32_initialize_imagehlp( void )
 {
@@ -178,67 +244,35 @@ mx_win32_initialize_imagehlp( void )
 		return FALSE;
 	}
 
-	_SymInitialize = (MX_SYM_INITIALIZE_PROC) GetProcAddress( ih_handle,
-							"SymInitialize" );
+	MXP_INIT( _SymInitialize, MX_SYM_INITIALIZE_PROC, MXP_SYM_INITIALIZE );
 
-	if ( _SymInitialize == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function SymInitialize64()." );
-		return FALSE;
-	}
+	MXP_INIT( _SymCleanup, MX_SYM_CLEANUP_PROC, MXP_SYM_CLEANUP ); 
 
-	_SymCleanup = (MX_SYM_CLEANUP_PROC) GetProcAddress( ih_handle,
-							"SymCleanup" );
+	MXP_INIT( _StackWalk, MX_STACKWALK_PROC, MXP_STACK_WALK ); 
 
-	if ( _SymCleanup == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function SymCleanup64()." );
-		return FALSE;
-	}
+	MXP_INIT( _SymFunctionTableAccess, PFUNCTION_TABLE_ACCESS_ROUTINE64,
+					MXP_SYM_FUNCTION_TABLE_ACCESS ); 
 
-	_StackWalk = (MX_STACKWALK_PROC) GetProcAddress( ih_handle,
-							"StackWalk64" );
 
-	if ( _StackWalk == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function StackWalk64()." );
-		return FALSE;
-	}
+	MXP_INIT( _SymGetModuleBase, PGET_MODULE_BASE_ROUTINE64,
+					MXP_SYM_GET_MODULE_BASE ); 
 
-	_SymFunctionTableAccess =
-		(PFUNCTION_TABLE_ACCESS_ROUTINE64) GetProcAddress(
-			ih_handle, "SymFunctionTableAccess64" );
 
-	if ( _SymFunctionTableAccess == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function SymFunctionTableAccess64()." );
-		return FALSE;
-	}
+	MXP_INIT( _SymGetSymFromAddr, MX_SYM_GET_SYM_FROM_ADDR_PROC,
+					MXP_SYM_GET_SYM_FROM_ADDR ); 
 
-	_SymGetModuleBase = (PGET_MODULE_BASE_ROUTINE64) GetProcAddress(
-					ih_handle, "SymGetModuleBase64" );
-
-	if ( _SymGetModuleBase == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function SymGetModuleBase64()." );
-		return FALSE;
-	}
-
-	_SymGetSymFromAddr = (MX_SYM_GET_SYM_FROM_ADDR_PROC) GetProcAddress(
-					ih_handle, "SymGetSymFromAddr64" );
-
-	if ( _SymGetSymFromAddr == NULL ) {
-		(void) mx_error( MXE_NOT_FOUND, fname,
-			"Could not find function SymGetSymFromAddr64()." );
-		return FALSE;
-	}
-
-	/* Some additional functions were added to later versions
-	 * of IMAGEHLP.DLL.  Do not abort if these are not found.
+	/* SymGetLineFromAddr() was added to later versions of IMAGEHLP.DLL.
+	 * Do not abort if it is not found.
 	 */
 
 	_SymGetLineFromAddr = (MX_SYM_GET_LINE_FROM_ADDR_PROC) GetProcAddress(
 					ih_handle, "SymGetLineFromAddr64" );
+
+	if ( _SymGetLineFromAddr == NULL ) {
+		mx_warning(
+		"Stack traceback cannot report the source file name "
+		"and line number on this computer." );
+	}
 
 	/* Initialize the symbol support. */
 
@@ -262,11 +296,12 @@ mx_win32_initialize_imagehlp( void )
 
 /*--------*/
 
-/* FIXME - The code in mx_win32_imagehlp_stack_walk() is fragile.
- *         Seemingly minor changes to output formatting statements
- *         can cause the output to stop working correctly.  The
- *         bugs seem to appear when varargs-style function like
- *         fprintf() and snprintf() are used.
+/* WARNING - The code in mx_win32_imagehlp_stack_walk() is fragile.
+ *           Given that it examines details of the stack layout and
+ #           contents, seemingly minor changes to output formatting
+ #           statements can cause the output to stop working correctly.
+ #           The use of varargs-style functions like fprintf() and
+ #           snprintf() is especially problematic.
  */
 
 #define MX_IMAGEHLP_MAX_NAME_LENGTH	512
@@ -432,10 +467,18 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 					module_name, sizeof(module_name),
 					&section, &offset );
 
-			mx_info( "%08X  %08X  %04:%08X %s",
+#if 0
+			fprintf( stderr, "%08X  %04:%08X %s\n",
 				stack_frame.AddrPC.Offset,
-				stack_frame.AddrFrame.Offset,
 				section, offset, module_name );
+#else
+			fprintf( stderr, "%08X  ",
+				stack_frame.AddrPC.Offset );
+
+			fprintf( stderr, "%04:", section );
+			fprintf( stderr, "%08X ", offset );
+			fprintf( stderr, "%s\n", module_name );
+#endif
 		}
 	}
 }
