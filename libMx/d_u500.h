@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,7 @@ typedef struct {
 	double default_speed;
 
 	int motor_number;
+	double last_start_time;		/* in seconds */
 } MX_U500_MOTOR;
 
 MX_API mx_status_type mxd_u500_create_record_structures( MX_RECORD *record );

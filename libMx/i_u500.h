@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -155,6 +155,7 @@ MX_API mx_status_type mxi_u500_initialize_type( long record_type );
 MX_API mx_status_type mxi_u500_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_open( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_close( MX_RECORD *record );
+MX_API mx_status_type mxi_u500_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_special_processing_setup( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list;

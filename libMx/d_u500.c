@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define U500_DEBUG	FALSE
+#define U500_DEBUG	TRUE
 
 #include <stdio.h>
 
@@ -30,6 +30,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_hrt.h"
 #include "mx_motor.h"
 #include "i_u500.h"
 #include "d_u500.h"
@@ -224,6 +225,8 @@ mxd_u500_finish_record_initialization( MX_RECORD *record )
 		break;
 	}
 
+	u500_motor->last_start_time = 0.0;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -297,9 +300,19 @@ mxd_u500_print_structure( FILE *file, MX_RECORD *record )
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.analog;
 
-	fprintf(file, "  move deadband   = %g steps (%g %s)\n\n",
+	fprintf(file, "  move deadband   = %g steps (%g %s)\n",
 			motor->raw_move_deadband.analog,
 			move_deadband, motor->units );
+
+	mx_status = mx_motor_get_status( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unable to get motion status for motor '%s'",
+				record->name );
+	}
+
+	fprintf(file, "  MX motor status = %#lx\n\n", motor->status);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -371,6 +384,13 @@ mxd_u500_open( MX_RECORD *record )
 			"Unable to open parameter file '%s' for motor '%s'.",
 			u500->parameter_filename[board_number-1] );	
 	}
+
+	/* Get the current position. */
+
+	mx_status = mxd_u500_get_position( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the motor speed. */
 
@@ -491,7 +511,7 @@ mxd_u500_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_u500_resynchronize()";
 
 	MX_MOTOR *motor;
-	MX_U500_MOTOR *u500_motor = NULL;
+	MX_U500 *u500 = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -501,13 +521,12 @@ mxd_u500_resynchronize( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_u500_get_pointers( motor, &u500_motor, NULL, fname );
+	mx_status = mxd_u500_get_pointers( motor, NULL, &u500, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_send_control_command( record,
-						MXLV_MTR_FAULT_RESET, TRUE );
+	mx_status = mx_resynchronize_record( u500->record );
 
 	return mx_status;
 }
@@ -535,6 +554,8 @@ mxd_u500_move_absolute( MX_MOTOR *motor )
 	sprintf( command, "IN %c %ld %cF %ld",
 		u500_motor->axis_name, motor_steps,
 		u500_motor->axis_name, mx_round( motor->raw_speed ) );
+
+	u500_motor->last_start_time = mx_high_resolution_time_as_double();
 
 	mx_status = mxi_u500_command( u500, u500_motor->board_number, command );
 
@@ -791,6 +812,12 @@ mxd_u500_set_parameter( MX_MOTOR *motor )
 		 * respond to the abort?
 		 */
 
+		mx_msleep(1000);
+
+#if U500_DEBUG
+		MX_DEBUG(-2,("%s: Invoking WAPIAerFaultAck()", fname));
+#endif
+
 		wapi_status = WAPIAerFaultAck();
 
 		if ( wapi_status != 0 ) {
@@ -852,6 +879,7 @@ mxd_u500_get_status( MX_MOTOR *motor )
 	ULONG status_word_1, status_word_2;
 	ULONG enable_bitmask, busy_bitmask;
 	AERERR_CODE wapi_status;
+	double current_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_u500_get_pointers( motor, &u500_motor, &u500, fname );
@@ -973,6 +1001,17 @@ mxd_u500_get_status( MX_MOTOR *motor )
 	busy_bitmask = ( 1 << (u500_motor->motor_number + 3) );
 
 	if ( status_word_2 & busy_bitmask ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+
+	/* If a move command was sent "recently", then we unconditionally
+	 * turn on the busy bit.  The units of time are expressed in
+	 * seconds here.
+	 */
+
+	current_time = mx_high_resolution_time_as_double();
+
+	if ( ( current_time - u500_motor->last_start_time ) < 0.5 ) {
 		motor->status |= MXSF_MTR_IS_BUSY;
 	}
 

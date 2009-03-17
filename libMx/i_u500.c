@@ -7,14 +7,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_U500_DEBUG			FALSE
+#define MXI_U500_DEBUG			TRUE
 
 #define MXI_U500_DEBUG_TIMING		FALSE
 
@@ -53,8 +53,8 @@ MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list = {
 	NULL,
 	mxi_u500_open,
 	mxi_u500_close,
-	NULL,
-	NULL,
+	mxi_u500_resynchronize,
+	mxi_u500_resynchronize,
 	mxi_u500_special_processing_setup
 };
 
@@ -477,6 +477,52 @@ mxi_u500_close( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_u500_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_u500_resynchronize()";
+
+	MX_U500 *u500 = NULL;
+	int board_number;
+	AERERR_CODE wapi_status;
+	mx_status_type mx_status;
+
+	mx_status = mxi_u500_get_pointers( record, &u500, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Send aborts to stop any moves in progress. */
+
+	for ( board_number = 1;
+		board_number <= u500->num_boards;
+		board_number++ )
+	{
+		mx_status = mxi_u500_command( u500, board_number, "AB" );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep(100);
+	}
+
+	/* Wait a second for the aborts to finish. */
+
+	mx_msleep(1000);
+
+	/* Send a fault acknowlege to the U500. */
+
+	wapi_status = WAPIAerFaultAck();
+
+	if ( wapi_status != 0 ) {
+		return mxi_u500_error( wapi_status, fname,
+	    "The attempt to perform a fault acknowledge for U500 '%s' failed.",
+			record->name );
+	}
+
+	return mx_status;
 }
 
 /* === Functions specific to this driver. === */
