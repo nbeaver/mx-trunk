@@ -55,6 +55,9 @@ typedef BOOL( __stdcall* MX_STACKWALK_PROC )( DWORD, HANDLE, HANDLE,
 
 typedef BOOL ( __stdcall *MX_SYM_CLEANUP_PROC )( HANDLE );
 
+typedef BOOL ( __stdcall *MX_SYM_GET_LINE_FROM_ADDR_PROC )( HANDLE,
+					DWORD64, PDWORD, PIMAGEHLP_LINE64 );
+
 typedef BOOL ( __stdcall *MX_SYM_GET_SYM_FROM_ADDR_PROC )( HANDLE,
 					DWORD64, PDWORD64, PIMAGEHLP_SYMBOL64 );
 
@@ -62,6 +65,7 @@ typedef BOOL ( __stdcall *MX_SYM_INITIALIZE_PROC )( HANDLE, PSTR, BOOL );
 
 MX_STACKWALK_PROC                _StackWalk = NULL;
 MX_SYM_CLEANUP_PROC              _SymCleanup = NULL;
+MX_SYM_GET_LINE_FROM_ADDR_PROC   _SymGetLineFromAddr = NULL;
 MX_SYM_GET_SYM_FROM_ADDR_PROC    _SymGetSymFromAddr = NULL;
 MX_SYM_INITIALIZE_PROC           _SymInitialize = NULL;
 
@@ -119,7 +123,9 @@ mx_win32_get_logical_address( void *address,
 
 	section_pointer = IMAGE_FIRST_SECTION( nt_header );
 
-	/* RVA is the offset from the module load address. */
+	/* RVA is the offset from the module load address.  MSDN calls
+	 * it a 'relative virtual address'.
+	 */
 
 	rva = (DWORD) address - module_handle;
 
@@ -227,6 +233,15 @@ mx_win32_initialize_imagehlp( void )
 		return FALSE;
 	}
 
+	/* Some additional functions were added to later versions
+	 * of IMAGEHLP.DLL.  Do not abort if these are not found.
+	 */
+
+	_SymGetLineFromAddr = (MX_SYM_GET_LINE_FROM_ADDR_PROC) GetProcAddress(
+					ih_handle, "SymGetLineFromAddr64" );
+
+	/* Initialize the symbol support. */
+
 	win32_status = _SymInitialize( GetCurrentProcess(), 0, TRUE );
 
 	if ( win32_status == FALSE ) {
@@ -246,6 +261,13 @@ mx_win32_initialize_imagehlp( void )
 }
 
 /*--------*/
+
+/* FIXME - The code in mx_win32_imagehlp_stack_walk() is fragile.
+ *         Seemingly minor changes to output formatting statements
+ *         can cause the output to stop working correctly.  The
+ *         bugs seem to appear when varargs-style function like
+ *         fprintf() and snprintf() are used.
+ */
 
 #define MX_IMAGEHLP_MAX_NAME_LENGTH	512
 
@@ -268,6 +290,9 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 
 	char module_name[MAX_PATH];
 	DWORD section, offset;
+
+	IMAGEHLP_LINE64 imagehlp_line64;
+	DWORD line_displacement;
 
 	memset( &stack_frame, 0, sizeof(stack_frame) );
 
@@ -343,6 +368,8 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 		 * relative to the start of the symbol.
 		 */
 
+		fprintf( stderr, "%08X  ", stack_frame.AddrPC.Offset );
+
 		sym_displacement = 0;
 
 		imagehlp_status = _SymGetSymFromAddr( GetCurrentProcess(),
@@ -351,9 +378,51 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 						imagehlp_symbol_ptr );
 
 		if ( imagehlp_status ) {
-			mx_info( "%hs+%X",
+
+			fprintf( stderr, "%hs+%X",
 				imagehlp_symbol_ptr->Name,
 				sym_displacement );
+
+			if ( _SymGetLineFromAddr != NULL ) {
+				imagehlp_line64.SizeOfStruct =
+						sizeof(IMAGEHLP_LINE64);
+
+				imagehlp_status = _SymGetLineFromAddr(
+						GetCurrentProcess(),
+						stack_frame.AddrPC.Offset,
+						&line_displacement,
+						&imagehlp_line64 );
+
+				if ( imagehlp_status != 0 ) {
+					char *ptr, *fn;
+
+					/* Keep only the part of the filename
+					 * after the last path separator.
+					 */
+
+					fn = imagehlp_line64.FileName;
+
+					ptr = strrchr( fn, '\\' );
+
+					if ( ptr != NULL ) {
+						ptr++;
+					} else {
+						ptr = strrchr( fn, '/' );
+
+						if ( ptr != NULL ) {
+							ptr++;
+						} else {
+							ptr = fn;
+						}
+					}
+
+					fprintf( stderr, "   (%s, line %ld)",
+					    ptr, imagehlp_line64.LineNumber );
+				}
+			}
+
+			fprintf( stderr, "\n" );
+
 		} else {
 			module_name[0] = '\0';
 			section = 0; offset = 0;
@@ -363,6 +432,10 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 					module_name, sizeof(module_name),
 					&section, &offset );
 
+			mx_info( "%08X  %08X  %04:%08X %s",
+				stack_frame.AddrPC.Offset,
+				stack_frame.AddrFrame.Offset,
+				section, offset, module_name );
 		}
 	}
 }

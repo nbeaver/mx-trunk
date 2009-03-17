@@ -1462,10 +1462,6 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
-#if 1
-	mx_stack_traceback();
-#endif
-
 	if ( db_source->is_array ) {
 
 		/* Is an array */
