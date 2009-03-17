@@ -770,7 +770,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 #if NETWORK_DEBUG_MESSAGE_IDS
 		MX_DEBUG(-2,
 		("%s: Received %#lx when expecting %#lx from '%s'.",
-			(unsigned long) received_message_id,
+			fname, (unsigned long) received_message_id,
 			(unsigned long) message_id,
 			server_record->name ));
 #if defined(OS_WIN32)
