@@ -773,13 +773,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			fname, (unsigned long) received_message_id,
 			(unsigned long) message_id,
 			server_record->name ));
-#if defined(OS_WIN32)
-		MX_DEBUG(-2,
-		("%s: Thread ID = %lu", fname, GetCurrentThreadId() ));
-#else
-		mx_stack_traceback();
-#endif
-
 #endif
 
 		/* Check for illegal message IDs. */
