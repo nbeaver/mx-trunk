@@ -540,8 +540,8 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 	if ( i >= loop_max ) {
 		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
+#if 0
 	} else {
-#if 1
 		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
 #endif
 	}
