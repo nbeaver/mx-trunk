@@ -110,9 +110,17 @@ mx_win32_get_logical_address( void *address,
 	size_t num_bytes_returned;
 	unsigned int i;
 
+	module_name[0] = '\0';
+	*section = 0;
+	*offset = 0;
+
 	/* Get some information about this memory address. */
 
 	num_bytes_returned = VirtualQuery( address, &mbi, sizeof(mbi) );
+
+	if ( num_bytes_returned == 0 ) {
+		return FALSE;
+	}
 
 	/* mbi.AllocationBase may be a handle to the module for this address. */
 
@@ -129,6 +137,10 @@ mx_win32_get_logical_address( void *address,
 	 */
 
 	if ( num_bytes_returned == 0 ) {
+		return FALSE;
+	}
+
+	if ( module_handle == 0 ) {
 		return FALSE;
 	}
 
@@ -329,6 +341,11 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 	IMAGEHLP_LINE64 imagehlp_line64;
 	DWORD line_displacement;
 
+#if 1
+	DWORD last_error_code;
+	TCHAR message_buffer[20];
+#endif
+
 	memset( &stack_frame, 0, sizeof(stack_frame) );
 
 	/* Initialize the STACKFRAME structure for the first call. */
@@ -459,6 +476,15 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 			fprintf( stderr, "\n" );
 
 		} else {
+			last_error_code = GetLastError();
+
+			if ( last_error_code == ERROR_INVALID_ADDRESS )
+			{
+				fprintf( stderr, "- Invalid address\n" );
+
+				continue;
+			}
+
 			module_name[0] = '\0';
 			section = 0; offset = 0;
 
@@ -468,13 +494,9 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 					&section, &offset );
 
 #if 0
-			fprintf( stderr, "%08X  %04:%08X %s\n",
-				stack_frame.AddrPC.Offset,
+			fprintf( stderr, "%04:%08X %s\n",
 				section, offset, module_name );
 #else
-			fprintf( stderr, "%08X  ",
-				stack_frame.AddrPC.Offset );
-
 			fprintf( stderr, "%04:", section );
 			fprintf( stderr, "%08X ", offset );
 			fprintf( stderr, "%s\n", module_name );
@@ -499,13 +521,18 @@ mx_win32_x86_stack_walk( CONTEXT *context )
 	do {
 		module_name[0] = '\0';
 
-		mx_win32_get_logical_address( (void *) program_counter,
+		ptr_status = mx_win32_get_logical_address(
+					(void *) program_counter,
 					module_name, sizeof(module_name),
 					&section, &offset );
 
 		mx_info( "%08X  %08X  %04X:%08X %s",
 			program_counter, frame_pointer, section, offset,
 			module_name );
+
+		if ( ptr_status == FALSE ) {
+			return;
+		}
 
 		program_counter = frame_pointer[1];
 
