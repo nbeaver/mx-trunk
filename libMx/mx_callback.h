@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,6 +109,11 @@ typedef struct mx_callback_message_type{
 } MX_CALLBACK_MESSAGE;
 
 /*--- Standard callbacks ---*/
+
+MX_API void mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
+						void *callback_args );
+
+/*---*/
 
 MX_API mx_status_type mx_initialize_callback_support( MX_RECORD *record_list );
 

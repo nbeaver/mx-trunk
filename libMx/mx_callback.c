@@ -209,7 +209,7 @@ mxp_stop_master_timer( MX_INTERVAL_TIMER *itimer )
  *       function.
  */
 
-static void
+MX_EXPORT void
 mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 				void *callback_args )
 {
