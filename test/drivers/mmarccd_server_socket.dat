@@ -1,2 +1,3 @@
 ###mar device area_detector marccd_server_socket "" "" 4 0x4000 0x0 "" "" "" "" mar165 3000 "/d1/lavender" "/mnt/mar165/d1/lavender"
 mar device area_detector marccd_server_socket "" "" 4 0x4000 0x0 "" "" "" "" mar165 3000 "/" "/mnt/mar165"
+shutter device relay marccd_shutter "" "" mar

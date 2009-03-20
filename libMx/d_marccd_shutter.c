@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2008 Illinois Institute of Technology
+ * Copyright 2003-2004, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_MARCCD_SHUTTER_DEBUG 	FALSE
+#define MXD_MARCCD_SHUTTER_DEBUG 	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +27,7 @@
 #include "mx_relay.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
+#include "d_marccd_server_socket.h"
 #include "d_marccd.h"
 #include "d_marccd_shutter.h"
 
@@ -56,54 +57,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_marccd_shutter_rfield_def_ptr
 			= &mxd_marccd_shutter_rf_defaults[0];
 
 /* ===== */
-
-static mx_status_type
-mxd_marccd_shutter_get_pointers( MX_RELAY *relay,
-			      MX_MARCCD_SHUTTER **marccd_shutter,
-			      MX_MARCCD **marccd,
-			      const char *fname )
-{
-	MX_RECORD *marccd_record;
-	MX_MARCCD_SHUTTER *marccd_shutter_ptr;
-
-	if ( relay == (MX_RELAY *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RELAY pointer passed is NULL." );
-	}
-
-	marccd_shutter_ptr = (MX_MARCCD_SHUTTER *)
-				relay->record->record_type_struct;
-
-	if ( marccd_shutter_ptr == (MX_MARCCD_SHUTTER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_MARCCD_SHUTTER pointer for record '%s' is NULL.",
-			relay->record->name );
-	}
-
-	if ( marccd_shutter != (MX_MARCCD_SHUTTER **) NULL ) {
-		*marccd_shutter = marccd_shutter_ptr;
-	}
-
-	if ( marccd != (MX_MARCCD **) NULL ) {
-		marccd_record = marccd_shutter_ptr->marccd_record;
-
-		if ( marccd_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"'marccd_record' pointer for record '%s' is NULL.",
-				relay->record->name );
-		}
-
-		*marccd = (MX_MARCCD *) relay->record->record_type_struct;
-
-		if ( *marccd == (MX_MARCCD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_MARCCD pointer for record '%s' is NULL.",
-				relay->record->name );
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_marccd_shutter_create_record_structures( MX_RECORD *record )
@@ -150,15 +103,37 @@ mxd_marccd_shutter_relay_command( MX_RELAY *relay )
 
 	MX_MARCCD_SHUTTER *marccd_shutter;
 	MX_MARCCD *marccd = NULL;
+	MX_MARCCD_SERVER_SOCKET *mss = NULL;
+	MX_RECORD *marccd_record;
 	int marccd_flag;
 	char command[40];
 	mx_status_type mx_status;
 
-	mx_status = mxd_marccd_shutter_get_pointers( relay,
-					&marccd_shutter, &marccd, fname );
+	if ( relay == (MX_RELAY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RELAY pointer passed was NULL." );
+	}
+	if ( relay->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_RELAY %p is NULL.", relay );
+	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	marccd_shutter =
+		(MX_MARCCD_SHUTTER *) relay->record->record_type_struct;
+
+	if ( marccd_shutter == (MX_MARCCD_SHUTTER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MARCCD_SHUTTER pointer for record '%s' is NULL.",
+			relay->record->name );
+	}
+
+	marccd_record = marccd_shutter->marccd_record;
+
+	if ( marccd_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The marccd_record pointer for MarCCD shutter '%s' is NULL.",
+			relay->record->name );
+	}
 
 	if ( relay->relay_command == MXF_OPEN_RELAY ) {
 		marccd_flag = 1;
@@ -168,8 +143,27 @@ mxd_marccd_shutter_relay_command( MX_RELAY *relay )
 
 	snprintf( command, sizeof(command), "shutter,%d", marccd_flag );
 
-	mx_status = mxd_marccd_command( marccd, command,
-					MXD_MARCCD_SHUTTER_DEBUG );
+	switch( marccd_record->mx_type ) {
+	case MXT_AD_MARCCD:
+		marccd = marccd_record->record_type_struct;
+
+		mx_status = mxd_marccd_command( marccd, command,
+						MXD_MARCCD_SHUTTER_DEBUG );
+		break;
+	case MXT_AD_MARCCD_SERVER_SOCKET:
+		mss = marccd_record->record_type_struct;
+
+		mx_status = mxd_marccd_server_socket_command( mss, command,
+					NULL, 0, MXD_MARCCD_SHUTTER_DEBUG );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"marccd_record '%s' for MarCCD shutter '%s' is not of type "
+		"'marccd' or 'marccd_server_socket'.  Instead, it is of "
+		"type '%s'.", marccd_record->name, relay->record->name,
+			mx_get_driver_name( marccd_record ) );
+		break;
+	}
 
 	return mx_status;
 }

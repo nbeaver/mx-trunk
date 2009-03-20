@@ -996,6 +996,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DATAFILE_PATTERN:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 		case MXLV_AD_EXPOSURE_MOTOR_NAME:
+		case MXLV_AD_EXPOSURE_TRIGGER_NAME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_GET_ROI_FRAME:
@@ -1326,6 +1327,52 @@ mx_area_detector_process_function( void *record_ptr,
 			    }
 			}
 			break;
+		case MXLV_AD_EXPOSURE_TRIGGER_NAME:
+			/* If the exposure trigger name has changed, then
+			 * we need to do a lookup of the corresponding
+			 * trigger record.
+			 */
+
+			if ( strcmp( ad->exposure_trigger_name,
+			    ad->last_exposure_trigger_name ) != 0 )
+			{
+			    ad->exposure_trigger_record
+				  = mx_get_record( record,
+				  	ad->exposure_trigger_name );
+
+			    if ( ad->exposure_trigger_record == NULL ) {
+				ad->last_exposure_trigger_name[0] = '\0';
+
+				return mx_error( MXE_NOT_FOUND, fname,
+				"exposure trigger '%s' was not found "
+				"in the MX database.",
+					ad->exposure_trigger_name );
+			    } else {
+				/* Is this record a trigger record? */
+
+				switch(ad->exposure_trigger_record->mx_class) {
+				case MXC_RELAY:
+					break;
+				default:
+					mx_status = mx_error(
+					MXE_ILLEGAL_ARGUMENT, fname,
+					"The record '%s' specified as the "
+					"exposure trigger record is not "
+					"a valid exposure trigger.  "
+					"The exposure trigger must be a "
+					"relay record.",
+						ad->exposure_trigger_name );
+
+					ad->exposure_trigger_record = NULL;
+					ad->exposure_trigger_name[0] = '\0';
+				}
+
+			    	strlcpy( ad->last_exposure_trigger_name,
+					ad->exposure_trigger_name,
+				    sizeof(ad->last_exposure_trigger_name) );
+			    }
+			}
+			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,
 						ad->framesize[0],
@@ -1400,6 +1447,7 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_setup_exposure( record,
 						ad->exposure_motor_record,
 						ad->shutter_record,
+						ad->exposure_trigger_record,
 						ad->exposure_distance,
 						ad->shutter_time );
 			break;

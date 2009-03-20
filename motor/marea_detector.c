@@ -48,7 +48,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
-	MX_RECORD *record_list, *motor_record, *shutter_record;
+	MX_RECORD *record_list, *motor_record, *shutter_record, *trigger_record;
 	double oscillation_distance, shutter_time;
 	MX_SEQUENCE_PARAMETERS sp;
 	char *filename, *endptr;
@@ -125,7 +125,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' write roiframe 'file_format' 'filename'\n"
 "  area_detector 'name' sequence 'file_format' 'filename'\n"
 "\n"
-"  area_detector 'name' expose 'motor_name' 'shutter_name' \n"
+"  area_detector 'name' expose 'motor_name' 'shutter_name' 'trigger_name' \n"
 "                             'oscillation_distance' 'exposure_time'\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -649,7 +649,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	} else
 	if ( strncmp( "expose", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		if ( argc != 8 ) {
+		if ( argc != 9 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'expose' command\n",
 				cname );
@@ -663,42 +663,64 @@ motor_area_detector_fn( int argc, char *argv[] )
 		motor_record = mx_get_record( record_list, argv[4] );
 
 		if ( motor_record == NULL ) {
-			fprintf( output, "Motor '%s' does not exist.\n", 
-				argv[4] );
-			return FAILURE;
-		}
-
-		if ( motor_record->mx_class != MXC_MOTOR ) {
-			fprintf( output, "Record '%s' is not a motor.\n",
-				argv[4] );
+			if ( strlen(argv[4]) > 0 ) {
+				fprintf( output,
+				"Motor '%s' does not exist.\n", argv[4] );
+				return FAILURE;
+			}
+		} else {
+			if ( motor_record->mx_class != MXC_MOTOR ) {
+				fprintf( output,
+				"Record '%s' is not a motor.\n", argv[4] );
+				return FAILURE;
+			}
 		}
 
 		shutter_record = mx_get_record( record_list, argv[5] );
 
 		if ( shutter_record == NULL ) {
-			fprintf( output, "Shutter '%s' does not exist.\n", 
-				argv[5] );
-			return FAILURE;
+			if ( strlen(argv[5]) > 0 ) {
+				fprintf( output,
+				"Shutter '%s' does not exist.\n", argv[5] );
+				return FAILURE;
+			}
+		} else {
+			switch( shutter_record->mx_class ) {
+			case MXC_DIGITAL_OUTPUT:
+			case MXC_RELAY:
+				break;
+			default:
+				fprintf( output,
+			    "Record '%s' is not a digital output or a relay.\n",
+					argv[5] );
+				return FAILURE;
+			}
 		}
 
-		switch( shutter_record->mx_class ) {
-		case MXC_DIGITAL_OUTPUT:
-		case MXC_RELAY:
-			break;
-		default:
-			fprintf( output,
-			"Record '%s' is not a digital output or a relay.\n",
-				argv[5] );
-			return FAILURE;
+		trigger_record = mx_get_record( record_list, argv[6] );
+
+		if ( trigger_record == NULL ) {
+			if ( strlen(argv[6]) > 0 ) {
+				fprintf( output,
+				"Motor '%s' does not exist.\n", argv[6] );
+				return FAILURE;
+			}
+		} else {
+			if ( trigger_record->mx_class != MXC_RELAY ) {
+				fprintf( output,
+				"Record '%s' is not a relay.\n", argv[6] );
+				return FAILURE;
+			}
 		}
 
-		oscillation_distance = atof( argv[6] );
+		oscillation_distance = atof( argv[7] );
 
-		shutter_time = atof( argv[7] );
+		shutter_time = atof( argv[8] );
 
 		mx_status = mx_area_detector_setup_exposure( ad_record,
 							motor_record,
 							shutter_record,
+							trigger_record,
 							oscillation_distance,
 							shutter_time );
 

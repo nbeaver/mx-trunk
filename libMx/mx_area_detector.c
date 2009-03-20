@@ -2655,6 +2655,7 @@ MX_EXPORT mx_status_type
 mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 				MX_RECORD *motor_record,
 				MX_RECORD *shutter_record,
+				MX_RECORD *trigger_record,
 				double exposure_distance,
 				double shutter_time )
 {
@@ -2673,13 +2674,30 @@ mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 
 	ad->exposure_motor_record = motor_record;
 
-	strlcpy( ad->exposure_motor_name, motor_record->name,
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		ad->exposure_motor_name[0] = '\0';
+	} else {
+		strlcpy( ad->exposure_motor_name, motor_record->name,
 			sizeof(ad->exposure_motor_name) );
+	}
 
 	ad->shutter_record = shutter_record;
 
-	strlcpy( ad->shutter_name, shutter_record->name,
+	if ( shutter_record == (MX_RECORD *) NULL ) {
+		ad->shutter_name[0] = '\0';
+	} else {
+		strlcpy( ad->shutter_name, shutter_record->name,
 			sizeof(ad->shutter_name) );
+	}
+
+	ad->exposure_trigger_record = trigger_record;
+
+	if ( trigger_record == (MX_RECORD *) NULL ) {
+		ad->exposure_trigger_name[0] = '\0';
+	} else {
+		strlcpy( ad->exposure_trigger_name, trigger_record->name,
+			sizeof(ad->exposure_trigger_name) );
+	}
 
 	ad->exposure_distance = exposure_distance;
 
@@ -2717,8 +2735,13 @@ mx_area_detector_trigger_exposure( MX_RECORD *ad_record )
 		trigger_exposure = mx_area_detector_trigger_unsafe_exposure;
 	} else {
 		trigger_exposure = flist->trigger_exposure;
+	}
 
-		if ( trigger_exposure == NULL ) {
+	if ( trigger_exposure == NULL ) {
+		if ( ad->exposure_trigger_record != (MX_RECORD *) NULL ) {
+			trigger_exposure =
+				mx_area_detector_send_exposure_trigger_pulse;
+		} else {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector '%s' does not support "
 			"exposures coordinated with a shutter and a motor.",
@@ -2975,6 +2998,51 @@ mx_area_detector_trigger_unsafe_exposure( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_area_detector_start( ad->record );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_send_exposure_trigger_pulse( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_send_exposure_trigger_pulse()";
+
+	mx_status_type mx_status;
+
+#if 1 || MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	if ( ad->exposure_trigger_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+	    "No exposure trigger has been specified for area detector '%s'.",
+			ad->record->name );
+	}
+
+	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
+						ad->shutter_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_arm( ad->record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( ad->exposure_trigger_record->mx_class ) {
+	case MXC_RELAY:
+		mx_status = mx_relay_command( ad->exposure_trigger_record,
+						MXF_CLOSE_RELAY );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The exposure trigger record '%s' for area detector '%s' "
+		"is not a relay record.", ad->exposure_trigger_record->name,
+			ad->record->name );
+		break;
+	}
 
 	return mx_status;
 }

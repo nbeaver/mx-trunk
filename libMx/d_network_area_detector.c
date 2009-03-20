@@ -303,15 +303,21 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
+		&(network_area_detector->exposure_distance_nf),
+		network_area_detector->server_record,
+			"%s.exposure_distance",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
 		&(network_area_detector->exposure_motor_name_nf),
 		network_area_detector->server_record,
 			"%s.exposure_motor_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
-		&(network_area_detector->exposure_distance_nf),
+		&(network_area_detector->exposure_trigger_name_nf),
 		network_area_detector->server_record,
-			"%s.exposure_distance",
+			"%s.exposure_trigger_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->extended_status_nf),
@@ -2011,8 +2017,10 @@ mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s', motor '%s', "
+	"shutter '%s', trigger '%s', "
 	"exposure distance = %f, exposure time = %f",
 		fname, ad->record->name, ad->exposure_motor_name,
+		ad->shutter_name, ad->exposure_trigger_name,
 		ad->exposure_distance, ad->exposure_time ));
 #endif
 
@@ -2027,6 +2035,13 @@ mxd_network_area_detector_setup_exposure( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_put_array( &(network_area_detector->shutter_name_nf),
 				MXFT_STRING, 1, dimension, ad->shutter_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put_array(
+		&(network_area_detector->exposure_trigger_name_nf),
+		MXFT_STRING, 1, dimension, ad->exposure_trigger_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

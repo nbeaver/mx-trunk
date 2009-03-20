@@ -439,6 +439,7 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	mx_status = mx_area_detector_setup_exposure( ad_record,
 						motor_record,
 						shutter_record,
+						NULL,
 						delta,
 						exposure_time );
 	if ( mx_status.code != MXE_SUCCESS )

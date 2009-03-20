@@ -43,8 +43,9 @@ typedef struct {
 	MX_NETWORK_FIELD datafile_name_nf;
 	MX_NETWORK_FIELD datafile_pattern_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
-	MX_NETWORK_FIELD exposure_motor_name_nf;
 	MX_NETWORK_FIELD exposure_distance_nf;
+	MX_NETWORK_FIELD exposure_motor_name_nf;
+	MX_NETWORK_FIELD exposure_trigger_name_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;

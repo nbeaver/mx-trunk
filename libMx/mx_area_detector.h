@@ -417,6 +417,11 @@ typedef struct mx_area_detector_type {
 	MX_RECORD *shutter_record;
 	char last_shutter_name[MXU_RECORD_NAME_LENGTH+1];
 
+	char exposure_trigger_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *exposure_trigger_record;
+	char last_exposure_trigger_name[MXU_RECORD_NAME_LENGTH+1];
+
 	double exposure_distance;
 	double shutter_time;
 	mx_bool_type setup_exposure;
@@ -503,10 +508,11 @@ typedef struct mx_area_detector_type {
 
 #define MXLV_AD_EXPOSURE_MOTOR_NAME		12600
 #define MXLV_AD_SHUTTER_NAME			12601
-#define MXLV_AD_EXPOSURE_DISTANCE		12602
-#define MXLV_AD_SHUTTER_TIME			12603
-#define MXLV_AD_SETUP_EXPOSURE			12604
-#define MXLV_AD_TRIGGER_EXPOSURE		12605
+#define MXLV_AD_EXPOSURE_TRIGGER_NAME		12602
+#define MXLV_AD_EXPOSURE_DISTANCE		12603
+#define MXLV_AD_SHUTTER_TIME			12604
+#define MXLV_AD_SETUP_EXPOSURE			12605
+#define MXLV_AD_TRIGGER_EXPOSURE		12606
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -905,6 +911,12 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, shutter_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
+  {MXLV_AD_EXPOSURE_TRIGGER_NAME, -1, "exposure_trigger_name", MXFT_STRING, \
+  					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, exposure_trigger_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
   {MXLV_AD_EXPOSURE_DISTANCE, -1, "exposure_distance", MXFT_DOUBLE, \
 					NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, exposure_distance),\
@@ -1190,6 +1202,7 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 MX_API mx_status_type mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 						MX_RECORD *motor_record,
 						MX_RECORD *shutter_record,
+						MX_RECORD *trigger_record,
 						double exposure_distance,
 						double shutter_time );
 
@@ -1199,6 +1212,9 @@ MX_API mx_status_type mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
 							double timeout );
 
 MX_API mx_status_type mx_area_detector_trigger_unsafe_exposure(
+						MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_send_exposure_trigger_pulse(
 						MX_AREA_DETECTOR *ad );
 
 /*---*/
