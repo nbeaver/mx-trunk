@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2008 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -295,6 +295,7 @@ typedef struct {
 #define MX_NETWORK_OPTION_DATAFMT		1
 #define MX_NETWORK_OPTION_NATIVE_DATAFMT	2
 #define MX_NETWORK_OPTION_64BIT_LONG		3
+#define MX_NETWORK_OPTION_WORDSIZE		4
 
 /*---*/
 

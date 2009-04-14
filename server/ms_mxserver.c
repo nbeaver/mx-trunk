@@ -3871,6 +3871,9 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 #endif /* MX_WORDSIZE == 64 */
 
 		break;
+	case MX_NETWORK_OPTION_WORDSIZE:
+		option_value = MX_WORDSIZE;
+		break;
 	default:
 		option_value = 0;
 		illegal_option_number = TRUE;

@@ -4206,6 +4206,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	uint32_t header_length, message_length, message_type;
 	long status_code;
 	uint32_t header_length_in_32bit_words;
+	mx_bool_type quiet;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4222,6 +4223,14 @@ mx_network_get_option( MX_RECORD *server_record,
 	if ( option_value == (unsigned long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"option_value pointer passed was NULL." );
+	}
+
+	if ( option_number & MXE_QUIET ) {
+		quiet = TRUE;
+
+		option_number &= (~MXE_QUIET);
+	} else {
+		quiet = FALSE;
 	}
 
 	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
@@ -4345,6 +4354,10 @@ mx_network_get_option( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
+		if ( quiet ) {
+			status_code |= MXE_QUIET;
+		}
+
 		return mx_error( (long)status_code, fname, message );
 	}
 
@@ -5139,6 +5152,7 @@ mx_network_request_data_format( MX_RECORD *server_record,
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long local_native_data_format, remote_native_data_format;
+	unsigned long remote_wordsize;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -5239,12 +5253,40 @@ mx_network_request_data_format( MX_RECORD *server_record,
     ("%s: local_native_data_format = %#lx, remote_native_data_format = %#lx",
      		fname, local_native_data_format, remote_native_data_format));
 
+	/* Find out the native wordsize of the remote server. */
+
+	mx_status = mx_network_get_option( server_record,
+			MX_NETWORK_OPTION_WORDSIZE | MXE_QUIET,
+			&remote_wordsize );
+
+	MX_DEBUG( 2,("%s: mx_status.code = %lu, remote_wordsize = %lu",
+		fname, mx_status.code, remote_wordsize));
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_ILLEGAL_ARGUMENT:
+		/* MX 1.5.0 and before do not support the option
+		 * MX_NETWORK_OPTION_WORDSIZE, so we make the
+		 * _assumption_ that the remote wordsize is 32,
+		 * since almost all old MX installations are 
+		 * running on 32-bit machines.
+		 */
+
+		remote_wordsize = 32;
+		break;
+	default:
+		return mx_status;
+		break;
+	}
+
 	/* Try to select a binary data format. */
 
-	if ( local_native_data_format == remote_native_data_format ) {
-
-		/* The local and remote data formats are the same, so
-		 * we should try raw format.
+	if ( ( local_native_data_format == remote_native_data_format )
+	  && ( MX_WORDSIZE == remote_wordsize ) )
+	{
+		/* The local and remote data formats are the same and the
+		 * wordsizes are the same, so we should try raw format.
 		 */
 
 		requested_format = MX_NETWORK_DATAFMT_RAW;
@@ -5253,6 +5295,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 
 		requested_format = MX_NETWORK_DATAFMT_XDR;
 	}
+
+	MX_DEBUG( 2,("%s: requested_format = %lu", fname, requested_format));
 
 	mx_status = mx_network_set_option( server_record,
 			MX_NETWORK_OPTION_DATAFMT, requested_format );
