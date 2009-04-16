@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,6 +81,14 @@ mx_split_version_number_string( char *version_number_string,
 
 #if defined( OS_WIN32 )
 
+#if ( defined(_MSC_VER) && (_MSC_VER >= 1100) )
+# define HAVE_OSVERSIONINFOEX	TRUE
+#elif ( defined(__BORLANDC__) || defined(__GNUC__) )
+# define HAVE_OSVERSIONINFOEX	TRUE
+#else
+# define HAVE_OSVERSIONINFOEX	FALSE
+#endif
+
 #include <windows.h>
 
 MX_EXPORT mx_status_type
@@ -89,7 +97,11 @@ mx_get_os_version_string( char *version_string,
 {
 	static const char fname[] = "mx_get_os_version_string()";
 
+#if HAVE_OSVERSIONINFOEX
 	OSVERSIONINFOEX osvi;
+#else
+	OSVERSIONINFO osvi;
+#endif
 	BOOL status;
 	int use_extended_struct;
 
@@ -100,11 +112,15 @@ mx_get_os_version_string( char *version_string,
 
 	/* Try using OSVERSIONINFOEX first. */
 
+#if HAVE_OSVERSIONINFOEX
 	memset( &osvi, 0, sizeof(OSVERSIONINFOEX) );
 
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
 	status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+#else
+	status = 0;
+#endif
 
 	if ( status != 0 ) {
 		use_extended_struct = TRUE;

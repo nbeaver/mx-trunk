@@ -120,7 +120,10 @@ mx_atomic_read32( int32_t *value_ptr )
 
 #if ( _MSC_VER >= 1300 )
 	long_result = InterlockedCompareExchange( long_ptr, 0, 0 );
-#else
+
+#elif ( _MSC_VER >= 1200 )
+	/* Visual C++ 6 */
+
 	{
 		void **pvoid_ptr;
 
@@ -128,6 +131,13 @@ mx_atomic_read32( int32_t *value_ptr )
 
 		long_result =
 			(LONG) InterlockedCompareExchange( pvoid_ptr, 0, 0 );
+	}
+
+#else
+	/* Visual C++ 4 doesn't have InterlockedCompareExchange() at all. */
+
+	{
+		long_result = *long_ptr;	/* _not_ necessarily atomic! */
 	}
 #endif
 

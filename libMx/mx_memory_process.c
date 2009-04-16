@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -244,6 +244,10 @@ mx_get_process_meminfo( unsigned long process_id,
 /* Psapi.h is not available, so we must make
  * the necessary definitions ourself.
  */
+
+#if ( defined(_MSC_VER) && ( _MSC_VER <= 1000 ) )
+typedef unsigned long SIZE_T;
+#endif
 
 typedef struct _PROCESS_MEMORY_COUNTERS {
 	DWORD cb;

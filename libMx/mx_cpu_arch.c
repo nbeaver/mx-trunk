@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,10 +54,12 @@ mx_get_cpu_architecture( char *architecture_type,
 			break;
 #endif
 
+#if defined( PROCESSOR_ARCHITECTURE_IA64 )
 		case PROCESSOR_ARCHITECTURE_IA64:
 			strlcpy( architecture_type, "ia64",
 				max_architecture_type_length );
 			break;
+#endif
 
 		case PROCESSOR_ARCHITECTURE_UNKNOWN:
 			strlcpy( architecture_type, "unknown",

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@
 
 /*------------------------------ Win32 ------------------------------*/
 
-#if defined(OS_WIN32)
+#if ( defined(OS_WIN32) && (_MSC_VER >= 1100) )
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -749,7 +749,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN) || defined(OS_ECOS) \
 	|| defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
-	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP)
+	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP) \
+	|| defined(OS_WIN32)
 
 /* FIXME for OS_MACOSX:
  *        If you have the CHUD package installed on MacOS X, CHUD apparently
