@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,7 +134,7 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 	dimension[0] = MXU_DRIVER_NAME_LENGTH;
 
 	mx_status = mx_get_array( &(network_motor->mx_type_nf),
-				MXFT_STRING, 1, dimension,
+				MXFT_RECORDTYPE, 1, dimension,
 				network_motor->remote_driver_name );
 
 	if ( mx_status.code != MXE_SUCCESS )

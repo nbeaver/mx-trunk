@@ -2499,7 +2499,7 @@ mx_print_field_value( FILE *file,
 				fprintf(file, "NULL");
 			}
 		} else {
-			if ( strcmp( field->name, "type" ) == 0 ) {
+			if ( strcmp( field->name, "mx_type" ) == 0 ) {
 
 				mx_typename = driver->name;
 

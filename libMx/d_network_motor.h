@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -160,6 +160,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_network_motor_rfield_def_ptr;
   {-1, -1, "remote_record_name", MXFT_STRING, \
 	NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MOTOR, remote_record_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "remote_driver_type", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MOTOR, remote_driver_type), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "remote_driver_name", MXFT_STRING, \
+	NULL, 1, {MXU_DRIVER_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_MOTOR, remote_driver_name), \
+	{sizeof(char)}, NULL, 0}
 
 #endif /* __D_NETWORK_MOTOR_H__ */

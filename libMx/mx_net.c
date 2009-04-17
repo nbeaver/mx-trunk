@@ -2241,6 +2241,8 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_DOUBLE:
 	case MXFT_HEX:
 	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -3018,6 +3020,13 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/************ Parse the data that was returned. ***************/
 
+	switch( datatype ) {
+	case MXFT_RECORD:
+	case MXFT_RECORDTYPE:
+	case MXFT_INTERFACE:
+		datatype = MXFT_STRING;
+	}
+
 	switch( server->data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
 
@@ -3091,6 +3100,52 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	case MX_NETWORK_DATAFMT_XDR:
 #if HAVE_XDR
+
+#if 0
+		MX_DEBUG(-2,("%s: local_field->datatype = %lu",
+			fname, local_field->datatype));
+
+		if ( num_dimensions == 1 ) {
+			MX_DEBUG(-2,
+("Before mx_xdr_data_transfer: dimension_array[0] = %lu, message_length = %lu",
+			dimension_array[0], (unsigned long) message_length));
+		}
+#endif
+
+		/* For the "special" field types MXFT_RECORD, MXFT_RECORDTYPE,
+		 * and MXFT_INTERFACE, the server does not actually use XDR
+		 * format.  Instead, it just copies a string into the message
+		 * buffer for all data formats, so we must handle those cases
+		 * specially.
+		 */
+
+		switch( local_field->datatype ) {
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+			if ( num_dimensions != 1 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The receiving array for the MXFT_RECORD, "
+				"MXFT_RECORDTYPE, or MXFT_INTERFACE field "
+				"'%s' from server '%s' _must_ be a "
+				"1-dimensional string.  Instead, it is "
+				"a %lu-dimensional array of datatype %lu.",
+					remote_record_field_name,
+					server_record->name,
+					num_dimensions, local_field->datatype);
+			}
+
+			/* We just copy the string here. */
+
+			strlcpy( value_ptr, message, dimension_array[0] );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* If we get here, then we _should_ have an XDR formatted
+		 * buffer to convert.
+		 */
+
 		mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
 				value_ptr, array_is_dynamically_allocated,
 				datatype, num_dimensions,
