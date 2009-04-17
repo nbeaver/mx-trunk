@@ -30,17 +30,6 @@
 #  include "mx_xdr.h"
 #endif
 
-/*
- * Re: definition of ADD_STRING_BYTE
- *
- * You should _not_ add an extra byte to string fields since it makes all
- * of the length calculations more difficult.  In particular, it makes
- * calculation of the string length in Python more awkward.  If you want
- * an extra byte, make the original string buffer longer.
- */
-
-#define ADD_STRING_BYTE    FALSE
-
 MX_EXPORT void *
 mx_allocate_array_old( long num_dimensions,
 		long *dimension_array,
@@ -1021,13 +1010,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		bytes_to_copy = dimension_array[0] * data_element_size_array[0];
 
-#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
-
-		if ( mx_datatype == MXFT_STRING ) {
-			bytes_to_copy++;
-		}
-#endif
-
 		if ( bytes_to_copy > destination_buffer_length ) {
 			if ( num_bytes_copied != NULL ) {
 				*num_bytes_copied =
@@ -1303,13 +1285,6 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		array_size = dimension_array[0] * data_element_size_array[0];
 
 		bytes_to_copy = source_buffer_length;
-
-#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
-
-		if ( mx_datatype == MXFT_STRING ) {
-			bytes_to_copy++;
-		}
-#endif
 
 		if ( bytes_to_copy > array_size ) {
 			bytes_to_copy = array_size;
@@ -1749,23 +1724,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		xdr_array_size = dimension_array[0] 
 				* mx_xdr_get_scalar_element_size(mx_datatype);
 
-#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
-
-		if ( mx_datatype == MXFT_STRING ) {
-			/* Add one byte for the string terminator. */
-
-			native_array_size++;
-
-			num_array_elements = (u_int) (dimension_array[0] + 1);
-		} else {
-			num_array_elements = (u_int) (dimension_array[0]);
-		}
-
-#else /* not ADD_STRING_BYTE */
-
 		num_array_elements = (u_int) (dimension_array[0]);
-
-#endif /* not ADD_STRING_BYTE */
 
 		xdr_array_size += 4;   /* Add space for the length field. */
 
@@ -1801,7 +1760,47 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					(long) xdr_buffer_length );
 #endif
 			}
+		} else
+		if ( direction == MX_XDR_DECODE ) {
+
+			/* In MX, it is permitted to ask for fewer bytes
+			 * than are actually sent by the server. However,
+			 * the native XDR routines get very upset if the
+			 * local buffer is not big enough to hold _all_
+			 * of the bytes sent by the server.
+			 *
+			 * At present, MX deals with this by testing for
+			 * this situation and overwriting XDR's array
+			 * length count if it is longer than the array
+			 * length of the local array.  This might be
+			 * thought of as a kludge, but it is necessary
+			 * to get compatibility with the behavior of
+			 * MX when using RAW data format.
+			 */
+
+			long net_long_value;
+
+			net_long_value = *( (long *) xdr_buffer );
+
+			xdr_array_size = mx_ntohl( net_long_value );
+
+#if 0
+			MX_DEBUG( 2,
+			("%s: dimension_array[0] = %lu, xdr_array_size = %lu",
+				fname, dimension_array[0], xdr_array_size));
+#endif
+
+			if ( xdr_array_size > dimension_array[0] ) {
+
+				/* Overwrite the XDR array length. */
+
+				net_long_value = mx_htonl( dimension_array[0] );
+
+				*( (long *) xdr_buffer) = net_long_value;
+			}
 		}
+
+		/* Create the XDR stream object. */
 
 		xdrmem_create( &xdrs,
 				xdr_buffer,

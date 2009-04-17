@@ -3100,18 +3100,6 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	case MX_NETWORK_DATAFMT_XDR:
 #if HAVE_XDR
-
-#if 0
-		MX_DEBUG(-2,("%s: local_field->datatype = %lu",
-			fname, local_field->datatype));
-
-		if ( num_dimensions == 1 ) {
-			MX_DEBUG(-2,
-("Before mx_xdr_data_transfer: dimension_array[0] = %lu, message_length = %lu",
-			dimension_array[0], (unsigned long) message_length));
-		}
-#endif
-
 		/* For the "special" field types MXFT_RECORD, MXFT_RECORDTYPE,
 		 * and MXFT_INTERFACE, the server does not actually use XDR
 		 * format.  Instead, it just copies a string into the message
