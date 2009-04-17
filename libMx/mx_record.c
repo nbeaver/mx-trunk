@@ -2432,8 +2432,6 @@ mx_print_field_value( FILE *file,
 	MX_INTERFACE *interface;
 	MX_DRIVER *driver;
 	long field_type;
-	int c, i, length;
-	char *mx_typename;
 
 	field_type = field->datatype;
 
@@ -2499,7 +2497,10 @@ mx_print_field_value( FILE *file,
 				fprintf(file, "NULL");
 			}
 		} else {
+#if 0
 			if ( strcmp( field->name, "mx_type" ) == 0 ) {
+				int c, i, length;
+				char *mx_typename;
 
 				mx_typename = driver->name;
 
@@ -2516,6 +2517,9 @@ mx_print_field_value( FILE *file,
 			} else {
 				fprintf(file, "%s", driver->name);
 			}
+#else
+			fprintf(file, "%s", driver->name);
+#endif
 		}
 		break;
 	case MXFT_INTERFACE:
