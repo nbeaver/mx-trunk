@@ -29,7 +29,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_SERIAL			TRUE
+#define MXD_AVIEX_PCCD_DEBUG_SERIAL			FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
 
@@ -2109,9 +2109,9 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			case MXT_AD_PCCD_4824:
 				/* Send a 0.1 second pulse. */
 
-				mx_status = mx_digital_output_pulse(
+				mx_status = mx_digital_output_pulse_wait(
 					aviex_pccd->internal_trigger_record,
-					1, 0, 0.1 );
+					1, 0, 0.1, TRUE );
 				break;
 			case MXT_AD_PCCD_16080:
 #if 1
