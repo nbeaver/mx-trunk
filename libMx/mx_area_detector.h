@@ -1307,6 +1307,16 @@ MX_API mx_status_type mx_area_detector_default_geometrical_correction(
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_process_correction_frame(
+					MX_AREA_DETECTOR *ad,
+					long frame_number,
+					unsigned long desired_correction_flags,
+					mx_bool_type dezinger,
+					MX_IMAGE_FRAME **dezinger_frame_ptr,
+					double *sum_array );
+
+/*---*/
+
 MX_API mx_status_type mx_area_detector_default_get_register(
 						MX_AREA_DETECTOR *ad );
 

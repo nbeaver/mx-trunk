@@ -5289,7 +5289,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*-----------------------------------------------------------------------*/
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
 #  define MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION \
@@ -5321,27 +5321,31 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
 							MX_IMAGE_FRAME * );
-	unsigned long saved_correction_flags, desired_correction_flags;
+	unsigned long desired_correction_flags;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	long i, n, num_exposures, pixels_per_frame;
 	time_t time_buffer;
 	unsigned long ad_status;
-	mx_status_type mx_status, mx_status2;
+	mx_status_type mx_status;
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
 	MX_IMAGE_FRAME **dezinger_frame_array;
+	MX_IMAGE_FRAME **dezinger_frame_ptr;
+	double *sum_array;
+
+#if ( MX_AREA_DETECTOR_USE_DEZINGER == FALSE )
+	void *void_image_data_pointer;
+	uint16_t *dest_array;
+	double temp_double;
+	size_t image_length;
+#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
 #  if MX_AREA_DETECTOR_DEBUG_DEZINGER
 	MX_HRT_TIMING measurement;
 #  endif
-#else
-	void *void_image_data_pointer;
-	uint16_t *src_array, *dest_array;
-	double *sum_array;
-	double temp_double;
-	size_t image_length;
-#endif
+
+	dezinger_frame_array = NULL;
+	sum_array = NULL;
 
 	mx_status = mx_area_detector_get_pointers( ad->record,
 						NULL, &flist, fname );
@@ -5579,98 +5583,22 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			mx_msleep(10);
 		}
 
-		/* Readout the frame into ad->image_frame. */
-
-		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-			return mx_status;
-		}
-
-#if 0
-		{
-			char filename[MXU_FILENAME_LENGTH+1];
-
-			snprintf( filename, sizeof(filename),
-				"rawdark%d.smv", n );
-
-			MX_DEBUG(-10,("%s: Saving raw dark frame '%s'",
-				fname, filename));
-
-			(void) mx_image_write_smv_file( ad->image_frame,
-							filename );
-		}
-#endif
-
-		/* Perform any necessary image corrections. */
-
-		if ( desired_correction_flags != 0 ) {
-
-			mx_status = mx_area_detector_get_correction_flags(
-					ad->record, &saved_correction_flags );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-				return mx_status;
-			}
-
-			mx_status = mx_area_detector_set_correction_flags(
-					ad->record, desired_correction_flags );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-				return mx_status;
-			}
-
-			mx_status = mx_area_detector_correct_frame(ad->record);
-
-			mx_status2 = mx_area_detector_set_correction_flags(
-					ad->record, saved_correction_flags );
-
-			if ( mx_status2.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-				return mx_status2;
-			}
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-				return mx_status;
-			}
-		}
+		/* Readout the frame, process it, and copy it to the
+		 * dezinger array.
+		 */
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
-		/* Copy the image frame to the dezinger frame array. */
+		dezinger_frame_ptr = &(dezinger_frame_array[n]);
+#else
+		dezinger_frame_ptr = NULL;
+#endif
 
-		mx_status = mx_image_copy_frame( ad->image_frame,
-					&(dezinger_frame_array[n]) );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-			return mx_status;
-		}
-
-#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
-
-		/* Get the image data pointer. */
-
-		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
-						&image_length,
-						&void_image_data_pointer );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION;
-			return mx_status;
-		}
-
-		src_array = void_image_data_pointer;
-
-		/* Add the pixels in this image to the sum array. */
-
-		for ( i = 0; i < pixels_per_frame; i++ ) {
-			sum_array[i] += (double) src_array[i];
-		}
-#endif /* not MX_AREA_DETECTOR_USE_DEZINGER */
+		mx_status = mx_area_detector_process_correction_frame(
+						ad, 0,
+						desired_correction_flags,
+						MX_AREA_DETECTOR_USE_DEZINGER,
+						dezinger_frame_ptr,
+						sum_array );
 
 		mx_msleep(10);
 	}
@@ -5763,7 +5691,100 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*-----------------------------------------------------------------------*/
+
+MX_API mx_status_type
+mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
+					long frame_number,
+					unsigned long desired_correction_flags,
+					mx_bool_type dezinger,
+					MX_IMAGE_FRAME **dezinger_frame_ptr,
+					double *sum_array )
+{
+	static const char fname[] =
+		"mx_area_detector_process_correction_frame()";
+
+	long i, pixels_per_frame;
+	void *void_image_data_pointer;
+	uint16_t *src_array;
+	size_t image_length;
+
+	unsigned long saved_correction_flags;
+	mx_status_type mx_status, mx_status2;
+
+	/* Readout the frame into ad->image_frame. */
+
+	mx_status = mx_area_detector_readout_frame( ad->record, frame_number );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Perform any necessary image corrections. */
+
+	if ( desired_correction_flags != 0 ) {
+
+		mx_status = mx_area_detector_get_correction_flags(
+				ad->record, &saved_correction_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_set_correction_flags(
+				ad->record, desired_correction_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_correct_frame(ad->record);
+
+		mx_status2 = mx_area_detector_set_correction_flags(
+				ad->record, saved_correction_flags );
+
+		if ( mx_status2.code != MXE_SUCCESS )
+			return mx_status2;
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( dezinger ) {
+		/* Copy the image frame to the dezinger frame array. */
+
+		mx_status = mx_image_copy_frame( ad->image_frame,
+						dezinger_frame_ptr );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		if ( sum_array == (double *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"sum_array pointer was NULL when dezinger was FALSE." );
+		}
+
+		/* Get the image data pointer. */
+
+		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
+					&image_length,
+					&void_image_data_pointer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		src_array = void_image_data_pointer;
+
+		/* Add the pixels in this image to the sum array. */
+
+		pixels_per_frame = ad->framesize[0] * ad->framesize[1];
+
+		for ( i = 0; i < pixels_per_frame; i++ ) {
+			sum_array[i] += (double) src_array[i];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
 
 #define FREE_DEZINGER_ARRAYS \
 	do {								\
