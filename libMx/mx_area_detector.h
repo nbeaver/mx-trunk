@@ -138,8 +138,6 @@ typedef struct {
 typedef struct mx_area_detector_type {
 	MX_RECORD *record;
 
-	mx_bool_type use_dezinger;
-
 	long ad_state;
 
 	long parameter_type;
@@ -293,6 +291,10 @@ typedef struct mx_area_detector_type {
 	long correction_measurement_type;
 	double correction_measurement_time;
 	long num_correction_measurements;
+
+	/* If use_dezinger is TRUE, then correction images are dezingered. */
+
+	mx_bool_type use_dezinger;
 
 	/* dezinger_threshold is use to determine which pixels are to be
 	 * thrown away during dezingering.
@@ -482,11 +484,12 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12049
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12050
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12051
-#define MXLV_AD_DEZINGER_THRESHOLD		12052
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12053
-#define MXLV_AD_REGISTER_NAME			12054
-#define MXLV_AD_REGISTER_VALUE			12055
-#define MXLV_AD_SHUTTER_ENABLE			12056
+#define MXLV_AD_USE_DEZINGER			12052
+#define MXLV_AD_DEZINGER_THRESHOLD		12053
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12054
+#define MXLV_AD_REGISTER_NAME			12055
+#define MXLV_AD_REGISTER_VALUE			12056
+#define MXLV_AD_SHUTTER_ENABLE			12057
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -783,6 +786,10 @@ typedef struct mx_area_detector_type {
   {-1, -1, "bias_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_AD_USE_DEZINGER, -1, "use_dezinger", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, use_dezinger), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_DEZINGER_THRESHOLD, -1, "dezinger_threshold", \
   						MXFT_DOUBLE, NULL, 0, {0}, \
