@@ -5317,27 +5317,18 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_measure_correction()";
 
-	MX_IMAGE_FRAME *dest_frame;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
-							MX_IMAGE_FRAME * );
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
-	struct timespec exposure_timespec;
-	long i, n, pixels_per_frame;
-	time_t time_buffer;
+	long n;
 	unsigned long ad_status;
 	mx_status_type mx_status;
-
 	MX_IMAGE_FRAME **dezinger_frame_ptr;
 
-	double temp_double;
-
-#  if MX_AREA_DETECTOR_DEBUG_DEZINGER
+#if MX_AREA_DETECTOR_DEBUG_DEZINGER
 	MX_HRT_TIMING measurement;
-#  endif
+#endif
 
 	mx_status = mx_area_detector_get_pointers( ad->record,
-						NULL, &flist, fname );
+						NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5352,21 +5343,12 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		ad->num_correction_measurements ));
 #endif
 
-	geometrical_correction_fn = flist->geometrical_correction;
-
-	if ( geometrical_correction_fn == NULL ) {
-		geometrical_correction_fn =
-			mx_area_detector_default_geometrical_correction;
-	}
-
 	if ( ad->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The area detector is currently using an image format of %ld.  "
 		"At present, only GREY16 image format is supported.",
 			ad->image_format );
 	}
-
-	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
 
 	/* Setup a correction measurement structure to contain the
 	 * correction information.
@@ -5432,19 +5414,6 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 				return mx_status;
 			}
 
-#if 0
-			if ( mx_kbhit() ) {
-				(void) mx_getch();
-
-				MX_DEBUG(-2,("%s: INTERRUPTED", fname));
-
-				mx_area_detector_cleanup_after_correction(
-								NULL, corr );
-
-				return mx_area_detector_stop( ad->record );
-			}
-#endif
-
 			if ((ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0)
 			{
 
@@ -5481,83 +5450,13 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: Calculating normalized pixels.", fname));
 #endif
 
-	if ( ad->use_dezinger ) {
-
-#if MX_AREA_DETECTOR_DEBUG_DEZINGER
-		MX_HRT_START( measurement );
-#endif
-
-		mx_status = mx_image_dezinger( &dest_frame,
-					corr->num_exposures,
-					corr->dezinger_frame_array,
-					fabs(ad->dezinger_threshold) );
-
-#if MX_AREA_DETECTOR_DEBUG_DEZINGER
-		MX_HRT_END( measurement );
-
-		MX_HRT_RESULTS( measurement,
-			fname, "Total image dezingering time." );
-#endif
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_area_detector_cleanup_after_correction( NULL, corr );
-			return mx_status;
-		}
-	} else {
-		/* not dezinger */
-
-		/* Copy normalized pixels to the destination array. */
-
-		for ( i = 0; i < pixels_per_frame; i++ ) {
-			temp_double = corr->sum_array[i] / corr->num_exposures;
-
-			corr->destination_array[i] = mx_round( temp_double );
-		}
-
-	}
-
-	/* If requested, perform a delayed geometrical correction on a
-	 * flood field frame after averaging or dezingering the source
-	 * frames.
-	 */
-
-	if ( ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME )
-	  && ( ad->correction_frame_geom_corr_last == TRUE )
-	  && ( ad->correction_frame_no_geom_corr == FALSE ) )
-	{
-		MX_DEBUG(-2,("%s: Invoking delayed geometrical correction "
-				"on measured flood field frame", fname ));
-
-		mx_status = (*geometrical_correction_fn)( ad, dest_frame );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_area_detector_cleanup_after_correction( NULL, corr );
-			return mx_status;
-		}
-	}
-
-	/* Set the image frame exposure time. */
-
-	exposure_timespec =
-	    mx_convert_seconds_to_high_resolution_time( corr->exposure_time );
-
-	MXIF_EXPOSURE_TIME_SEC(dest_frame)  = exposure_timespec.tv_sec;
-	MXIF_EXPOSURE_TIME_NSEC(dest_frame) = exposure_timespec.tv_nsec;
-
-	/* Set the image frame timestamp to the current time. */
-
-	MXIF_TIMESTAMP_SEC(dest_frame) = time( &time_buffer );
-	MXIF_TIMESTAMP_NSEC(dest_frame) = 0;
-
-	/* Return with the satisfaction of a job well done. */
-
-	mx_area_detector_cleanup_after_correction( NULL, corr );
+	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: correction measurement complete.", fname));
 #endif
 	
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -5597,24 +5496,18 @@ mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 
 	/* Free correction measurement data structures. */
 
-	if ( ad->use_dezinger ) {
-		if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
-		{
-			long n;
+	if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL ) {
+		long n;
 
-			for ( n = 0; n < corr->num_exposures; n++ ) {
-				mx_image_free( corr->dezinger_frame_array[n] );
-			}
-
-			mx_free( corr->dezinger_frame_array );
-		}
-	} else {
-		/* not dezinger */
-
-		if ( corr->sum_array != NULL ) {
-			mx_free( corr->sum_array );
+		for ( n = 0; n < corr->num_exposures; n++ ) {
+			mx_image_free( corr->dezinger_frame_array[n] );
 		}
 
+		mx_free( corr->dezinger_frame_array );
+	}
+
+	if ( corr->sum_array != NULL ) {
+		mx_free( corr->sum_array );
 	}
 
 	if ( ad == NULL ) {
@@ -5910,7 +5803,128 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr )
+{
+	static const char fname[] =
+		"mx_area_detector_finish_correction_calculation()";
+
+	MX_IMAGE_FRAME *dest_frame;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
+							MX_IMAGE_FRAME * );
+	uint16_t *dest_array;
+	struct timespec exposure_timespec;
+	time_t time_buffer;
+	long i, pixels_per_frame;
+	double temp_double;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_DEZINGER
+	MX_HRT_TIMING measurement;
+#endif
+
+	mx_status = mx_area_detector_get_pointers( ad->record,
+						NULL, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	geometrical_correction_fn = flist->geometrical_correction;
+
+	if ( geometrical_correction_fn == NULL ) {
+		geometrical_correction_fn =
+			mx_area_detector_default_geometrical_correction;
+	}
+
+	dest_frame = corr->destination_frame;
+
+	if ( ad->use_dezinger ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DEZINGER
+		MX_HRT_START( measurement );
+#endif
+
+		mx_status = mx_image_dezinger( &dest_frame,
+					corr->num_exposures,
+					corr->dezinger_frame_array,
+					fabs(ad->dezinger_threshold) );
+
+#if MX_AREA_DETECTOR_DEBUG_DEZINGER
+		MX_HRT_END( measurement );
+
+		MX_HRT_RESULTS( measurement,
+			fname, "Total image dezingering time." );
+#endif
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( NULL, corr );
+			return mx_status;
+		}
+	} else {
+		/* not dezinger */
+
+		/* Copy normalized pixels to the destination array. */
+
+		pixels_per_frame = ad->framesize[0] * ad->framesize[1];
+
+		dest_array = corr->destination_array;
+
+		for ( i = 0; i < pixels_per_frame; i++ ) {
+			temp_double = corr->sum_array[i] / corr->num_exposures;
+
+			dest_array[i] = mx_round( temp_double );
+		}
+	}
+
+	/* If requested, perform a delayed geometrical correction on a
+	 * flood field frame after averaging or dezingering the source
+	 * frames.
+	 */
+
+	if ( ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME )
+	  && ( ad->correction_frame_geom_corr_last == TRUE )
+	  && ( ad->correction_frame_no_geom_corr == FALSE ) )
+	{
+		MX_DEBUG(-2,("%s: Invoking delayed geometrical correction "
+				"on measured flood field frame", fname ));
+
+		mx_status = (*geometrical_correction_fn)( ad, dest_frame );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( NULL, corr );
+			return mx_status;
+		}
+	}
+
+	/* Set the image frame exposure time. */
+
+	exposure_timespec =
+	    mx_convert_seconds_to_high_resolution_time( corr->exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC(dest_frame)  = exposure_timespec.tv_sec;
+	MXIF_EXPOSURE_TIME_NSEC(dest_frame) = exposure_timespec.tv_nsec;
+
+	/* Set the image frame timestamp to the current time. */
+
+	MXIF_TIMESTAMP_SEC(dest_frame) = time( &time_buffer );
+	MXIF_TIMESTAMP_NSEC(dest_frame) = 0;
+
+	/* Return with the satisfaction of a job well done. */
+
+	mx_area_detector_cleanup_after_correction( NULL, corr );
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: correction measurement complete.", fname));
+#endif
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
 
 #define FREE_DEZINGER_ARRAYS \
 	do {								\
