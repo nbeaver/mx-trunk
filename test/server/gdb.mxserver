@@ -1,7 +1,6 @@
-break main
+set loop=0
+set sched step
 handle SIGUSR1 nostop
-run -p 9827 -f mfilevar_server.dat -C msoftsrv.acl -t -c -A
-break mxsrv_handle_add_callback
-break mxsrv_handle_delete_callback
-break mxsrv_record_field_callback
+break mxp_area_detector_measure_correction_callback_function
+break mxp_area_detector_measure_correction_frame_handler
 continue

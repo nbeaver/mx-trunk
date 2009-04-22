@@ -23,8 +23,6 @@
 extern "C" {
 #endif
 
-#define MX_AREA_DETECTOR_USE_DEZINGER	TRUE
-
 #include "mx_callback.h"
 #include "mx_namefix.h"
 
@@ -124,12 +122,11 @@ typedef struct {
 	long num_exposures;
 	long num_frames_read;
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
 	MX_IMAGE_FRAME **dezinger_frame_array;
-#else
+
 	double *sum_array;
 	uint16_t *destination_array;
-#endif
+
 	long num_unread_frames;
 	long old_last_frame_number;
 	long old_total_num_frames;
@@ -140,6 +137,8 @@ typedef struct {
 
 typedef struct mx_area_detector_type {
 	MX_RECORD *record;
+
+	mx_bool_type use_dezinger;
 
 	long ad_state;
 
@@ -1307,11 +1306,13 @@ MX_API mx_status_type mx_area_detector_default_geometrical_correction(
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_prepare_for_correction(
+					MX_AREA_DETECTOR *ad );
+
 MX_API mx_status_type mx_area_detector_process_correction_frame(
 					MX_AREA_DETECTOR *ad,
 					long frame_number,
 					unsigned long desired_correction_flags,
-					mx_bool_type dezinger,
 					MX_IMAGE_FRAME **dezinger_frame_ptr,
 					double *sum_array );
 

@@ -14,7 +14,7 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	FALSE
+#define PR_AREA_DETECTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,24 +71,25 @@ mxp_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
 
 	/* Free correction measurement data structures. */
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
-	if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
-	{
-		long n;
+	if ( ad->use_dezinger ) {
+		if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
+		{
+			long n;
 
-		for ( n = 0; n < corr->num_exposures; n++ ) {
-			mx_image_free( corr->dezinger_frame_array[n] );
+			for ( n = 0; n < corr->num_exposures; n++ ) {
+				mx_image_free( corr->dezinger_frame_array[n] );
+			}
+
+			mx_free( corr->dezinger_frame_array );
+		}
+	} else {
+		/* not dezinger */
+
+		if ( corr->sum_array != NULL ) {
+			mx_free( corr->sum_array );
 		}
 
-		free( corr->dezinger_frame_array );
 	}
-#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
-
-	if ( corr->sum_array != NULL ) {
-		free( corr->sum_array );
-	}
-
-#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
 	if ( ad == NULL ) {
 		if ( corr->area_detector != NULL ) {
@@ -117,26 +118,25 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_AREA_DETECTOR *ad;
 	MX_IMAGE_FRAME *dest_frame;
+	MX_IMAGE_FRAME **dezinger_frame_ptr;
 	long pixels_per_frame;
 	long last_frame_number, total_num_frames, num_frames_difference;
-	unsigned long ad_status, saved_correction_flags;
+	unsigned long ad_status;
 	time_t time_buffer;
 	struct timespec exposure_timespec;
 	mx_bool_type sequence_complete;
-	mx_status_type mx_status, mx_status2;
+	mx_status_type mx_status;
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
-#   if PR_AREA_DETECTOR_DEBUG
+#if PR_AREA_DETECTOR_DEBUG
 	MX_HRT_TIMING measurement;
-#   endif
-#else
+#endif
+
 	void *void_image_data_pointer;
 	double *sum_array;
-	uint16_t *src_array, *dest_array;
+	uint16_t *dest_array;
 	double num_exposures_as_double, temp_double;
 	long i;
 	size_t image_length;
-#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
@@ -183,7 +183,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	/* Readout the frames and add them to either sum_array
 	 * or dezinger_frame_array (depending on the value of
-	 * the MX_AREA_DETECTOR_USE_DEZINGER macro).
+	 * ad->use_dezinger).
 	 */
 
 	sequence_complete = FALSE;
@@ -196,99 +196,23 @@ mxp_area_detector_measure_correction_callback_function(
 		MX_DEBUG(-2,("%s: Reading frame %ld",
 				fname, corr->num_frames_read));
 #endif
+		if ( ad->use_dezinger ) {
+		    dezinger_frame_ptr = 
+			&(corr->dezinger_frame_array[ corr->num_frames_read ]);
+		} else {
+		    dezinger_frame_ptr = NULL;
+		}
 
-		mx_status = mx_area_detector_readout_frame(
-				ad->record, corr->num_frames_read );
+		mx_status = mx_area_detector_process_correction_frame(
+					ad, corr->num_frames_read,
+					corr->desired_correction_flags,
+					dezinger_frame_ptr,
+					corr->sum_array );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mxp_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
-
-		/* Perform any necessary image corrections. */
-
-		if ( corr->desired_correction_flags != 0 ) {
-			mx_status = mx_area_detector_get_correction_flags(
-					ad->record, &saved_correction_flags );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_cleanup_after_correction(
-								ad, corr );
-				return mx_status;
-			}
-
-			mx_status = mx_area_detector_set_correction_flags(
-				ad->record, corr->desired_correction_flags );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_cleanup_after_correction(
-								ad, corr );
-				return mx_status;
-			}
-
-#if PR_AREA_DETECTOR_DEBUG
-			MX_DEBUG(-2,("%s: Correcting frame %ld",
-					fname, corr->num_frames_read));
-#endif
-
-			mx_status = mx_area_detector_correct_frame(ad->record);
-
-			mx_status2 = mx_area_detector_set_correction_flags(
-					ad->record, saved_correction_flags );
-
-			if ( mx_status2.code != MXE_SUCCESS ) {
-				mxp_area_detector_cleanup_after_correction(
-								ad, corr );
-				return mx_status2;
-			}
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mxp_area_detector_cleanup_after_correction(
-								ad, corr );
-				return mx_status;
-			}
-		}
-
-#if MX_AREA_DETECTOR_USE_DEZINGER
-		/* Copy the image frame to the dezinger frame array. */
-
-		mx_status = mx_image_copy_frame( ad->image_frame,
-		      &(corr->dezinger_frame_array[ corr->num_frames_read ]) );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
-			return mx_status;
-		}
-
-#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
-
-		/* Get the image data pointer for this image. */
-
-		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
-						&image_length,
-						&void_image_data_pointer );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
-			return mx_status;
-		}
-
-		src_array = void_image_data_pointer;
-
-		/* Add the pixels in this image to the sum array. */
-
-#if PR_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Adding frame %ld pixels to sum array.",
-			fname, corr->num_frames_read));
-#endif
-
-		sum_array = corr->sum_array;
-
-		for ( i = 0; i < pixels_per_frame; i++ ) {
-			sum_array[i] += (double) src_array[i];
-		}
-
-#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
 		corr->num_frames_read++;
 		corr->num_unread_frames--;
@@ -354,54 +278,57 @@ mxp_area_detector_measure_correction_callback_function(
 			ad->record->name );
 	}
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
+	if ( ad->use_dezinger ) {
 
 #if PR_AREA_DETECTOR_DEBUG
-	MX_HRT_START( measurement );
+		MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_image_dezinger( &(corr->destination_frame),
+		mx_status = mx_image_dezinger( &(corr->destination_frame),
 					corr->num_exposures,
 					corr->dezinger_frame_array,
 					fabs( ad->dezinger_threshold ) );
 
 #if PR_AREA_DETECTOR_DEBUG
-	MX_HRT_END( measurement );
+		MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, "Total image dezingering time." );
+		MX_HRT_RESULTS( measurement,
+			fname, "Total image dezingering time." );
 #endif
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( ad, corr );
-		return mx_status;
-	}
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_cleanup_after_correction( ad, corr );
+			return mx_status;
+		}
 
-#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+	} else {
+		/* not dezinger */
 
-	/* Get a pointer to the destination array. */
+		/* Get a pointer to the destination array. */
 
-	mx_status = mx_image_get_image_data_pointer( dest_frame,
+		mx_status = mx_image_get_image_data_pointer( dest_frame,
 						&image_length,
 						&void_image_data_pointer );
 		
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( ad, corr );
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_cleanup_after_correction( ad, corr );
+			return mx_status;
+		}
+
+		dest_array = void_image_data_pointer;
+
+		/* Copy normalized pixels to the destination array. */
+
+		num_exposures_as_double = (double) corr->num_exposures;
+
+		sum_array = corr->sum_array;
+
+		for ( i = 0; i < pixels_per_frame; i++ ) {
+			temp_double = sum_array[i] / num_exposures_as_double;
+
+			dest_array[i] = mx_round( temp_double );
+		}
 	}
-
-	dest_array = void_image_data_pointer;
-
-	/* Copy normalized pixels to the destination array. */
-
-	num_exposures_as_double = (double) corr->num_exposures;
-
-	for ( i = 0; i < pixels_per_frame; i++ ) {
-		temp_double = sum_array[i] / num_exposures_as_double;
-
-		dest_array[i] = mx_round( temp_double );
-	}
-
-#endif /* not MX_AREA_DETECTOR_USE_DEZINGER */
 
 	/* If requested, perform a delayed geometrical correction on a
 	 * flood field frame after averaging or dezingering the source
@@ -490,10 +417,8 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	long pixels_per_frame;
 	mx_status_type mx_status;
 
-#if (MX_AREA_DETECTOR_USE_DEZINGER == FALSE )
 	void *void_image_data_pointer;
 	size_t image_length;
-#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -640,48 +565,53 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-#if MX_AREA_DETECTOR_USE_DEZINGER
+	corr->dezinger_frame_array = NULL;
+	corr->sum_array = NULL;
 
-	corr->dezinger_frame_array =
-		calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
+	if ( ad->use_dezinger ) {
 
-	if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		corr->dezinger_frame_array =
+			calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
 
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate "
-		"a %ld element array of MX_IMAGE_FRAME pointers.", 
-			corr->num_exposures );
-	}
+		if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
+			mxp_area_detector_cleanup_after_correction(NULL, corr);
 
-#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a %ld element array of MX_IMAGE_FRAME pointers.", 
+				corr->num_exposures );
+		}
+	} else {
+		/* not dezinger */
 
-	/* Get a pointer to the destination array. */
+		/* Get a pointer to the destination array. */
 
-	mx_status = mx_image_get_image_data_pointer( corr->destination_frame,
+		mx_status = mx_image_get_image_data_pointer(
+						corr->destination_frame,
 						&image_length,
 						&void_image_data_pointer );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_cleanup_after_correction(NULL, corr);
+			return mx_status;
+		}
+
+		corr->destination_array = void_image_data_pointer;
+
+		/* Allocate a double precision array to store
+		 * intermediate sums.
+		 */
+
+		corr->sum_array = calloc( pixels_per_frame, sizeof(double) );
+
+		if ( corr->sum_array == (double *) NULL ) {
+			mxp_area_detector_cleanup_after_correction(NULL, corr);
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a %ld element array of doubles.", pixels_per_frame );
+		}
 	}
-
-	corr->destination_array = void_image_data_pointer;
-
-	/* Allocate a double precision array to store intermediate sums. */
-
-	corr->sum_array = calloc( pixels_per_frame, sizeof(double) );
-
-	if ( corr->sum_array == (double *) NULL ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
-
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate "
-		"a %ld element array of doubles.", pixels_per_frame );
-	}
-
-#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
 	/* Get the detector readout time for the current sequence. */
 
