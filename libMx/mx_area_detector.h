@@ -1313,8 +1313,12 @@ MX_API mx_status_type mx_area_detector_default_geometrical_correction(
 
 /*---*/
 
+MX_API void mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr);
+
 MX_API mx_status_type mx_area_detector_prepare_for_correction(
-					MX_AREA_DETECTOR *ad );
+			MX_AREA_DETECTOR *ad,
+			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT **corr_ptr);
 
 MX_API mx_status_type mx_area_detector_process_correction_frame(
 					MX_AREA_DETECTOR *ad,

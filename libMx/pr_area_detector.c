@@ -14,7 +14,7 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	TRUE
+#define PR_AREA_DETECTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,78 +33,6 @@
 
 #include "mx_process.h"
 #include "pr_handlers.h"
-
-/*---------------------------------------------------------------------------*/
-
-static void
-mxp_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
-			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr_ptr )
-{
-	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
-
-	if ( corr_ptr != NULL ) {
-		corr = corr_ptr;
-	} else
-	if ( ad != NULL ) {
-		corr = ad->correction_measurement;
-	} else {
-		ad->correction_measurement_in_progress = FALSE;
-		return;
-	}
-
-	if ( corr == NULL ) {
-		ad->correction_measurement_in_progress = FALSE;
-		return;
-	}
-
-	if ( ad == NULL ) {
-		ad = corr->area_detector;
-	}
-
-	/* Enable the area detector shutter. */
-
-	if ( ( ad != NULL )
-	  && ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) )
-	{
-		(void) mx_area_detector_set_shutter_enable( ad->record, TRUE );
-	}
-
-	/* Free correction measurement data structures. */
-
-	if ( ad->use_dezinger ) {
-		if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
-		{
-			long n;
-
-			for ( n = 0; n < corr->num_exposures; n++ ) {
-				mx_image_free( corr->dezinger_frame_array[n] );
-			}
-
-			mx_free( corr->dezinger_frame_array );
-		}
-	} else {
-		/* not dezinger */
-
-		if ( corr->sum_array != NULL ) {
-			mx_free( corr->sum_array );
-		}
-
-	}
-
-	if ( ad == NULL ) {
-		if ( corr->area_detector != NULL ) {
-			corr->area_detector->correction_measurement = NULL;
-		}
-	} else {
-		ad->correction_measurement = NULL;
-	}
-
-	free( corr );
-
-	ad->correction_measurement_in_progress = FALSE;
-
-	return;
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -157,7 +85,7 @@ mxp_area_detector_measure_correction_callback_function(
 							&total_num_frames,
 							&ad_status );
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( ad, corr );
+		mx_area_detector_cleanup_after_correction( ad, corr );
 		return mx_status;
 	}
 
@@ -210,7 +138,7 @@ mxp_area_detector_measure_correction_callback_function(
 					corr->sum_array );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -244,7 +172,7 @@ mxp_area_detector_measure_correction_callback_function(
 			callback_message->u.function.callback_interval );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 		}
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -269,7 +197,7 @@ mxp_area_detector_measure_correction_callback_function(
 		break;
 
 	default:
-		mxp_area_detector_cleanup_after_correction( ad, corr );
+		mx_area_detector_cleanup_after_correction( ad, corr );
 			
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Correction measurement type %ld is not supported "
@@ -297,7 +225,7 @@ mxp_area_detector_measure_correction_callback_function(
 #endif
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -311,7 +239,7 @@ mxp_area_detector_measure_correction_callback_function(
 						&void_image_data_pointer );
 		
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -347,7 +275,7 @@ mxp_area_detector_measure_correction_callback_function(
 							NULL, &flist, fname );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 
@@ -365,7 +293,7 @@ mxp_area_detector_measure_correction_callback_function(
 						corr->destination_frame );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction( ad, corr );
+			mx_area_detector_cleanup_after_correction( ad, corr );
 			return mx_status;
 		}
 	}
@@ -389,7 +317,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	/* Return with the satisfaction of a job well done. */
 
-	mxp_area_detector_cleanup_after_correction( ad, corr );
+	mx_area_detector_cleanup_after_correction( ad, corr );
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
@@ -414,11 +342,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	MX_VIRTUAL_TIMER *oneshot_timer;
 	double frame_time, modified_frame_time;
 	double detector_readout_time;
-	long pixels_per_frame;
 	mx_status_type mx_status;
-
-	void *void_image_data_pointer;
-	size_t image_length;
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -462,155 +386,13 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 * by a callback.
 	 */
 
-	/* Allocate a structure to contain the current state of
-	 * the correction measurement process.
-	 */
+	/* Set up all the data structures for the correction process. */
 
-	corr = malloc( sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
-
-	if ( corr == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an "
-		"MX_AREA_DETECTOR_CORRECTION_MEASUREMENT structure "
-		"for record '%s'.", record->name );
-	}
-
-	memset( corr, 0, sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
-
-	corr->area_detector = ad;
-
-	corr->exposure_time = ad->correction_measurement_time;
-
-	corr->num_exposures = ad->num_correction_measurements;
-
-	if ( corr->num_exposures <= 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of exposures (%ld) requested for "
-		"area detector '%s'.  The minimum number of exposures "
-		"allowed is 1.",  corr->num_exposures, record->name );
-	}
-
-	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
-
-	/* Set a flag that says a correction frame measurement is in progress.*/
-
-	ad->correction_measurement_in_progress = TRUE;
-
-	/* The correction frames will originally be read into the image frame.
-	 * We must make sure that the image frame is big enough to hold
-	 * the image data.
-	 */
-
-	mx_status = mx_area_detector_setup_frame( record,
-						&(ad->image_frame) );
+	mx_status = mx_area_detector_prepare_for_correction( ad, &corr );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
-	}
-
-	/* Make sure that the destination image frame is already big enough
-	 * to hold the image frame that we are going to put in it.
-	 */
-
-	switch( ad->correction_measurement_type ) {
-	case MXFT_AD_DARK_CURRENT_FRAME:
-		mx_status = mx_area_detector_setup_frame( record,
-						&(ad->dark_current_frame) );
-
-		corr->destination_frame = ad->dark_current_frame;
-
-		corr->desired_correction_flags = MXFT_AD_MASK_FRAME;
-
-		if ( ad->bias_frame != NULL ) {
-			corr->desired_correction_flags |= MXFT_AD_BIAS_FRAME;
-		}
-		break;
-	
-	case MXFT_AD_FLOOD_FIELD_FRAME:
-		mx_status = mx_area_detector_setup_frame( record,
-						&(ad->flood_field_frame) );
-
-		corr->destination_frame = ad->flood_field_frame;
-
-		corr->desired_correction_flags = 
-			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
-
-		if ( ad->bias_frame != NULL ) {
-			corr->desired_correction_flags |= MXFT_AD_BIAS_FRAME;
-		}
-
-	  	if ( ( ad->geom_corr_after_flood == FALSE )
-		  && ( ad->correction_frame_geom_corr_last == FALSE )
-		  && ( ad->correction_frame_no_geom_corr == FALSE ) )
-		{
-			corr->desired_correction_flags
-				|= MXFT_AD_GEOMETRICAL_CORRECTION;
-		}
-		break;
-
-	default:
-		corr->destination_frame = NULL;
-
-		corr->desired_correction_flags = 0;
-
-		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Correction measurement type %ld is not supported "
-		"for area detector '%s'.",
-			ad->correction_measurement_type, record->name );
-	}
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
-		return mx_status;
-	}
-
-	corr->dezinger_frame_array = NULL;
-	corr->sum_array = NULL;
-
-	if ( ad->use_dezinger ) {
-
-		corr->dezinger_frame_array =
-			calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
-
-		if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
-			mxp_area_detector_cleanup_after_correction(NULL, corr);
-
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate "
-			"a %ld element array of MX_IMAGE_FRAME pointers.", 
-				corr->num_exposures );
-		}
-	} else {
-		/* not dezinger */
-
-		/* Get a pointer to the destination array. */
-
-		mx_status = mx_image_get_image_data_pointer(
-						corr->destination_frame,
-						&image_length,
-						&void_image_data_pointer );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction(NULL, corr);
-			return mx_status;
-		}
-
-		corr->destination_array = void_image_data_pointer;
-
-		/* Allocate a double precision array to store
-		 * intermediate sums.
-		 */
-
-		corr->sum_array = calloc( pixels_per_frame, sizeof(double) );
-
-		if ( corr->sum_array == (double *) NULL ) {
-			mxp_area_detector_cleanup_after_correction(NULL, corr);
-
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate "
-			"a %ld element array of doubles.", pixels_per_frame );
-		}
 	}
 
 	/* Get the detector readout time for the current sequence. */
@@ -619,7 +401,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 							&detector_readout_time);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -643,7 +425,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 							corr->exposure_time,
 							modified_frame_time );
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -653,7 +435,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -662,7 +444,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	corr->callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
 
 	if ( corr->callback_message == NULL ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for an MX_CALLBACK_MESSAGE "
@@ -693,7 +475,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 				corr->callback_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
 
@@ -709,7 +491,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 						&(corr->old_status) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
@@ -731,7 +513,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		mx_status = mx_area_detector_set_shutter_enable(record, FALSE);
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			mxp_area_detector_cleanup_after_correction(NULL, corr);
+			mx_area_detector_cleanup_after_correction(NULL, corr);
 
 			return mx_status;
 		}
@@ -744,7 +526,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_abort( record );
 
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
@@ -757,7 +539,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_abort( record );
 
-		mxp_area_detector_cleanup_after_correction( NULL, corr );
+		mx_area_detector_cleanup_after_correction( NULL, corr );
 
 		return mx_status;
 	}
