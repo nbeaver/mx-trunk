@@ -1327,6 +1327,12 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	"an Aviex detector head simulator instead of a real detector head.",
 				record->name );
 	}
+	if ( pccd_flags & MXF_AVIEX_PCCD_SKIP_FIRST_CORRECTION_FRAME ) {
+		ad->correction_frames_to_skip = 1;
+
+		mx_warning( "Area detector '%s' will skip the first frame "
+		"of all correction measurement sequences.", record->name );
+	}
 
 	video_input_record = aviex_pccd->video_input_record;
 
