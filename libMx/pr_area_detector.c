@@ -92,6 +92,24 @@ mxp_area_detector_measure_correction_callback_function(
 
 	num_frames_difference = total_num_frames - corr->old_total_num_frames;
 
+	/* Some sites (SOLEIL) want to skip over the first few frames.  This
+	 * is most easily done by adding corr->raw_num_exposures_to_skip to
+	 * the value of corr->old_total_num_frames in the function 
+	 * mxp_area_detector_measure_correction_frame_handler().
+	 *
+	 * If corr->raw_num_exposures_to_skip is greater than zero, then
+	 * the first few frames returned by the detector will have a
+	 * computed value of num_frames_difference that is negative. If
+	 * this happens, we set num_frames_difference to 0, which causes
+	 * the processing of these early frames to be skipped.
+	 */
+
+	if ( num_frames_difference < 0 ) {
+		num_frames_difference = 0;
+	}
+
+	/*---*/
+
 	corr->num_unread_frames += num_frames_difference;
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -283,7 +301,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 */
 
 	mx_status = mx_area_detector_set_multiframe_mode( record,
-							corr->num_exposures,
+							corr->raw_num_exposures,
 							corr->exposure_time,
 							modified_frame_time );
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -357,6 +375,18 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 		return mx_status;
 	}
+
+	/* Some sites (SOLEIL) want to skip over the first few frames.  This
+	 * is most easily done by adding corr->raw_num_exposures_to_skip to
+	 * the value of corr->old_total_num_frames.  Then, the measurement
+	 * callback mxp_area_detector_measure_correction_callback_function()
+	 * ignores incoming frames until the reported total number of frames
+	 * exceeds the _modified_ value of corr->old_total_num_frames.
+	 */
+
+	corr->old_total_num_frames += corr->raw_num_exposures_to_skip;
+
+	/*---*/
 
 	corr->num_frames_read = 0;
 	corr->num_unread_frames = 0;

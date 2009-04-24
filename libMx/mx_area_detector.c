@@ -240,6 +240,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_frames_are_unbinned = FALSE;
 
+	ad->correction_frames_to_skip = 0;
+
 	ad->byte_order = (long) mx_native_byteorder();
 
 	ad->maximum_frame_number = 0;
@@ -5588,6 +5590,16 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	}
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
+
+	/* If ad->correction_frames_to_skip is non-zero, then we have to 
+	 * add additional frames to the measurement sequence and then skip
+	 * the matching number of frames at the start of the exposure.
+	 */
+
+	corr->raw_num_exposures_to_skip = ad->correction_frames_to_skip;
+
+	corr->raw_num_exposures =
+		corr->num_exposures + corr->raw_num_exposures_to_skip;
 
 	/* Set a flag that says a correction frame measurement is in progress.*/
 

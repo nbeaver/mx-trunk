@@ -123,6 +123,9 @@ typedef struct {
 	long num_exposures;
 	long num_frames_read;
 
+	long raw_num_exposures;
+	long raw_num_exposures_to_skip;
+
 	MX_IMAGE_FRAME **dezinger_frame_array;
 
 	double *sum_array;
