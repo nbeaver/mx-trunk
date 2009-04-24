@@ -103,7 +103,7 @@ mxp_area_detector_measure_correction_callback_function(
 
 	/* Readout the frames and add them to either sum_array
 	 * or dezinger_frame_array (depending on the value of
-	 * ad->use_dezinger).
+	 * ad->dezinger_correction_frame).
 	 */
 
 	sequence_complete = FALSE;
@@ -116,7 +116,7 @@ mxp_area_detector_measure_correction_callback_function(
 		MX_DEBUG(-2,("%s: Reading frame %ld",
 				fname, corr->num_frames_read));
 #endif
-		if ( ad->use_dezinger ) {
+		if ( ad->dezinger_correction_frame ) {
 		    dezinger_frame_ptr = 
 			&(corr->dezinger_frame_array[ corr->num_frames_read ]);
 		} else {

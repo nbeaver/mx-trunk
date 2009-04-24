@@ -234,8 +234,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->use_dezinger = FALSE;
-
 	ad->correction_flags = ad->initial_correction_flags & MXFT_AD_ALL;
 
 	ad->correction_measurement = NULL;
@@ -425,6 +423,12 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		ad->correction_frame_no_geom_corr = TRUE;
 	} else {
 		ad->correction_frame_no_geom_corr = FALSE;
+	}
+
+	if ( ad->area_detector_flags & MXF_AD_DEZINGER_CORRECTION_FRAME ) {
+		ad->dezinger_correction_frame = TRUE;
+	} else {
+		ad->dezinger_correction_frame = FALSE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5295,7 +5299,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 
 #define MXP_AREA_DETECTOR_CLEANUP_AFTER_CORRECTION \
 do {                                                                          \
-	if ( ad->use_dezinger ) {                                             \
+	if ( ad->dezinger_correction_frame ) {                                             \
 		for ( i = 0; i < num_exposures; i++ ) {			      \
 			if ( dezinger_frame_array[i] != NULL ) {	      \
 				mx_image_free( dezinger_frame_array[i] );     \
@@ -5426,7 +5430,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		 * dezinger array.
 		 */
 
-		if ( ad->use_dezinger ) {
+		if ( ad->dezinger_correction_frame ) {
 			dezinger_frame_ptr = &(corr->dezinger_frame_array[n]);
 		} else {
 			dezinger_frame_ptr = NULL;
@@ -5661,7 +5665,7 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	corr->dezinger_frame_array = NULL;
 	corr->sum_array = NULL;
 
-	if ( ad->use_dezinger ) {
+	if ( ad->dezinger_correction_frame ) {
 
 		corr->dezinger_frame_array =
 		    calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
@@ -5766,7 +5770,7 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 			return mx_status;
 	}
 
-	if ( ad->use_dezinger ) {
+	if ( ad->dezinger_correction_frame ) {
 		/* Copy the image frame to the dezinger frame array. */
 
 		mx_status = mx_image_copy_frame( ad->image_frame,
@@ -5842,7 +5846,7 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 
 	dest_frame = corr->destination_frame;
 
-	if ( ad->use_dezinger ) {
+	if ( ad->dezinger_correction_frame ) {
 
 #if MX_AREA_DETECTOR_DEBUG_DEZINGER
 		MX_HRT_START( measurement );

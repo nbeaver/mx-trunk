@@ -58,6 +58,7 @@ extern "C" {
 #define MXF_AD_GEOM_CORR_AFTER_FLOOD		   0x1
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   0x4
+#define MXF_AD_DEZINGER_CORRECTION_FRAME           0x8
 
 #define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   0x1000
 #define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   0x2000
@@ -292,9 +293,19 @@ typedef struct mx_area_detector_type {
 	double correction_measurement_time;
 	long num_correction_measurements;
 
-	/* If use_dezinger is TRUE, then correction images are dezingered. */
+	/* If correction_frames_to_skip is 0, then an MX server configured
+	 * for callbacks will take an additional number of frames equal
+	 * to the value of 'correction_frames_to_skip' and then throw away
+	 * those initial frames when computing the measured correction frame.
+	 */
 
-	mx_bool_type use_dezinger;
+	unsigned long correction_frames_to_skip;
+
+	/* If dezinger_correction_frame is TRUE, then correction images
+	 * are dezingered.
+	 */
+
+	mx_bool_type dezinger_correction_frame;
 
 	/* dezinger_threshold is use to determine which pixels are to be
 	 * thrown away during dezingering.
@@ -484,12 +495,13 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12049
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12050
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12051
-#define MXLV_AD_USE_DEZINGER			12052
-#define MXLV_AD_DEZINGER_THRESHOLD		12053
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12054
-#define MXLV_AD_REGISTER_NAME			12055
-#define MXLV_AD_REGISTER_VALUE			12056
-#define MXLV_AD_SHUTTER_ENABLE			12057
+#define MXLV_AD_CORRECTION_FRAMES_TO_SKIP	12052
+#define MXLV_AD_DEZINGER_CORRECTION_FRAME	12053
+#define MXLV_AD_DEZINGER_THRESHOLD		12054
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12055
+#define MXLV_AD_REGISTER_NAME			12056
+#define MXLV_AD_REGISTER_VALUE			12057
+#define MXLV_AD_SHUTTER_ENABLE			12058
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -773,6 +785,12 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, num_correction_measurements), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_CORRECTION_FRAMES_TO_SKIP, -1, \
+  		"correction_frames_to_skip", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_frames_to_skip), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_AD_CORRECTION_MEASUREMENT_TYPE, -1, \
   		"correction_measurement_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
@@ -787,8 +805,10 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
-  {MXLV_AD_USE_DEZINGER, -1, "use_dezinger", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, use_dezinger), \
+  {MXLV_AD_DEZINGER_CORRECTION_FRAME, -1, \
+  		"dezinger_correction_frame", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, dezinger_correction_frame), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_DEZINGER_THRESHOLD, -1, "dezinger_threshold", \
