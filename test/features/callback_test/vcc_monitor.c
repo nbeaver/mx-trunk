@@ -53,8 +53,55 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	mx_info( "callback: '%s:%s' = '%s'",
+	mx_info( "callback %#lx: '%s:%s' = '%s'",
+		(unsigned long) callback->callback_id,
 		server_id, nf->nfname, value_string );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+list_callbacks_function( MX_RECORD *record )
+{
+	static const char fname[] = "list_callbacks_function()";
+
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_HANDLE_STRUCT *array;
+	unsigned long i, num_handles_allocated;
+	signed long handle;
+
+	mx_info( "==== Current Callbacks ====" );
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer is NULL!" );
+	}
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	MX_DEBUG(-2,("%s: callback_handle_table = %p",
+		fname, callback_handle_table));
+
+	if ( callback_handle_table == NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+	num_handles_allocated = callback_handle_table->num_blocks
+				* callback_handle_table->block_size;
+
+	array = callback_handle_table->handle_struct_array;
+
+	MX_DEBUG(-2,("num_handles_allocated = %lu", num_handles_allocated));
+
+	for ( i = 0; i < num_handles_allocated; i++ ) {
+		handle = array[i].handle;
+		
+		if ( handle >= 0 ) {
+			mx_info( "%lu - %p", handle, array[i].pointer );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -75,7 +122,7 @@ main( int argc, char *argv[] )
 	MX_RECORD *server_record;
 	MX_NETWORK_FIELD *nf;
 	int c, server_port, num_items;
-	mx_bool_type network_debug, start_debugger;
+	mx_bool_type network_debug, start_debugger, list_callbacks;
 	unsigned long i, server_flags;
 	MX_RECORD_FIELD *local_field;
 	void *value_ptr;
@@ -91,8 +138,9 @@ main( int argc, char *argv[] )
 
 	network_debug = FALSE;
 	start_debugger = FALSE;
+	list_callbacks = FALSE;
 
-	while ( (c = getopt(argc, argv, "AD")) != -1 )
+	while ( (c = getopt(argc, argv, "ADl")) != -1 )
 	{
 		switch (c) {
 		case 'A':
@@ -100,6 +148,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'D':
 			start_debugger = TRUE;
+			break;
+		case 'l':
+			list_callbacks = TRUE;
 			break;
 		}
 	}
@@ -204,6 +255,13 @@ main( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );
+
+		MX_DEBUG(-2,("%s: Created new callback %#lx",
+			fname, (unsigned long) callback->callback_id ));
+	}
+
+	if ( list_callbacks ) {
+		list_callbacks_function( record_list );
 	}
 
 	/* Wait indefinitely for callbacks. */

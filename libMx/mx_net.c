@@ -22,7 +22,7 @@
 
 #define NETWORK_DEBUG_BUFFER_ALLOCATION		FALSE
 
-#define NETWORK_DEBUG_MESSAGE_IDS		TRUE
+#define NETWORK_DEBUG_MESSAGE_IDS		FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -686,7 +686,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 #if NETWORK_DEBUG_MESSAGE_IDS
 			MX_DEBUG(-2,
-			("%s: Handling callback for message ID %#lx here!",
+			("%s: Handling callback for message ID %#lx",
 				fname, (unsigned long) received_message_id ));
 #endif
 
