@@ -5557,8 +5557,7 @@ mx_parse_network_field_id( char *network_field_id,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The period '.' character that is supposed to separate "
 		"the field name from the record name was not found in the "
-		"line containing '%s' in the MX update configuration file.",
-			network_field_id );
+		"line containing '%s'.", network_field_id );
 	}
 
 	field_name_ptr = period_ptr + 1;
