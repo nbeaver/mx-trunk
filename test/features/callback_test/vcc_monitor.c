@@ -9,6 +9,7 @@
 #include "mx_net.h"
 #include "mx_callback.h"
 #include "n_tcpip.h"
+#include "n_unix.h"
 
 MX_API char *optarg;
 MX_API int optind;
@@ -66,42 +67,79 @@ list_callbacks_function( MX_RECORD *record )
 	static const char fname[] = "list_callbacks_function()";
 
 	MX_LIST_HEAD *list_head;
-	MX_HANDLE_TABLE *callback_handle_table;
-	MX_HANDLE_STRUCT *array;
-	unsigned long i, num_handles_allocated;
-	signed long handle;
+	MX_RECORD *record_list, *current_record;
+	MX_NETWORK_SERVER *server;
+	MX_TCPIP_SERVER *tcpip_server;
+	MX_UNIX_SERVER *unix_server;
+	MX_LIST *cb_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK *callback;
+	MX_NETWORK_FIELD *nf;
 
 	mx_info( "==== Current Callbacks ====" );
 
-	list_head = mx_get_record_list_head_struct( record );
+	record_list = record->list_head;
+
+	list_head = mx_get_record_list_head_struct( record_list );
 
 	if ( list_head == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_LIST_HEAD pointer is NULL!" );
 	}
 
-	callback_handle_table = list_head->server_callback_handle_table;
+	current_record = record_list->next_record;
 
-	MX_DEBUG(-2,("%s: callback_handle_table = %p",
-		fname, callback_handle_table));
+	while ( current_record != record_list ) {
+		if ( current_record->mx_class == MXN_NETWORK_SERVER ) {
+			switch( current_record->mx_type ) {
+			case MXN_NET_TCPIP:
+				tcpip_server =
+					current_record->record_type_struct;
 
-	if ( callback_handle_table == NULL )
-		return MX_SUCCESSFUL_RESULT;
+				mx_info( "Server '%s' at host '%s' port %lu:",
+					current_record->name,
+					tcpip_server->hostname,
+					tcpip_server->port );
+				break;
+			case MXN_NET_UNIX:
+				unix_server =
+					current_record->record_type_struct;
 
-	num_handles_allocated = callback_handle_table->num_blocks
-				* callback_handle_table->block_size;
+				mx_info( "Server '%s' at path '%s':",
+					current_record->name,
+					unix_server->pathname );
+				break;
+			}
 
-	array = callback_handle_table->handle_struct_array;
+			server = current_record->record_class_struct;
 
-	MX_DEBUG(-2,("num_handles_allocated = %lu", num_handles_allocated));
+			cb_list = server->callback_list;
 
-	for ( i = 0; i < num_handles_allocated; i++ ) {
-		handle = array[i].handle;
-		
-		if ( handle >= 0 ) {
-			mx_info( "%lu - %p", handle, array[i].pointer );
+			list_start = cb_list->list_start;
+
+			list_entry = list_start;
+
+			do {
+				callback = list_entry->list_entry_data;
+
+				switch( callback->callback_class ) {
+				case MXCBC_NETWORK:
+					nf = callback->u.network_field;
+
+					mx_info( "  Callback %#lx for nf '%s'",
+					  (unsigned long) callback->callback_id,
+						nf->nfname );
+					break;
+				}
+				list_entry = list_entry->next_list_entry;
+
+			} while ( list_entry != list_start );
 		}
+
+		current_record = current_record->next_record;
 	}
+
+	mx_info( "===========================" );
 
 	return MX_SUCCESSFUL_RESULT;
 }
