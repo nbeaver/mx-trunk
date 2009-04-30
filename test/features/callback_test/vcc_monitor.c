@@ -513,7 +513,7 @@ main( int argc, char *argv[] )
 
 	network_debug = FALSE;
 	start_debugger = FALSE;
-	interactive = FALSE;
+	interactive = TRUE;
 
 	while ( (c = getopt(argc, argv, "ADi")) != -1 )
 	{
@@ -525,7 +525,7 @@ main( int argc, char *argv[] )
 			start_debugger = TRUE;
 			break;
 		case 'i':
-			interactive = TRUE;
+			interactive = FALSE;
 			break;
 		}
 	}
@@ -574,6 +574,8 @@ main( int argc, char *argv[] )
 		if ( interactive ) {
 			check_for_interactive_command( record_list );
 		}
+
+		mx_usleep(1);
 	}
 
 	return 0;

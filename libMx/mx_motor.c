@@ -1728,6 +1728,8 @@ mx_motor_get_status( MX_RECORD *motor_record,
 	return mx_status;
 }
 
+#define MXP_MOTOR_EXTENDED_STATUS_FORMAT   "%.*e %lx"
+
 MX_EXPORT mx_status_type
 mx_motor_get_extended_status( MX_RECORD *motor_record,
 			double *motor_position,
@@ -1845,8 +1847,10 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 		motor_record->precision = 0;
 	}
 
+
 	snprintf( motor->extended_status, sizeof(motor->extended_status),
-		"%.*e %lx", motor_record->precision,
+		MXP_MOTOR_EXTENDED_STATUS_FORMAT,
+		motor_record->precision,
 		motor->position, motor->status );
 
 	/* Return status values to the caller if desired. */
@@ -5242,6 +5246,17 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 				return mx_status;
 		}
 
+		/* Any value changed callbacks required for this field
+		 * ('position' or 'status') will have been sent during
+		 * the call to mx_motor_vctest_extended_status() for 
+		 * 'extended_status' that was made a few lines above
+		 * here.  Thus, to avoid getting _two_ value changed
+		 * callbacks for the current field, we must set the
+		 * (*value_changed_ptr) variable to FALSE here.
+		 */
+
+		*value_changed_ptr = FALSE;
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -5286,6 +5301,14 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	if ( *value_changed_ptr == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	/* Update the extended status field contents to match the current
+	 * values of 'position' and 'status'.
+	 */
+
+	snprintf( motor->extended_status, sizeof(motor->extended_status),
+		MXP_MOTOR_EXTENDED_STATUS_FORMAT, record->precision,
+		motor->position, motor->status );
 
 	/* If we get here, then one or both of the fields 'position' and
 	 * 'status' changed its value.  For each field, see if its value
