@@ -192,7 +192,7 @@ callback_list_traverse( MX_RECORD *record_list,
 			mx_bool_type show_server_label,
 			void *argument,
 			mx_status_type (*traverse_fn)
-				(MX_CALLBACK *, unsigned long, void *) )
+				(MX_LIST *, unsigned long *, void *) )
 {
 	static const char fname[] = "callback_list_traverse()";
 
@@ -202,8 +202,6 @@ callback_list_traverse( MX_RECORD *record_list,
 	MX_TCPIP_SERVER *tcpip_server;
 	MX_UNIX_SERVER *unix_server;
 	MX_LIST *cb_list;
-	MX_LIST_ENTRY *list_start, *list_entry;
-	MX_CALLBACK *callback;
 	unsigned long callback_number;
 	mx_status_type mx_status;
 
@@ -247,30 +245,10 @@ callback_list_traverse( MX_RECORD *record_list,
 
 			cb_list = server->callback_list;
 
-			list_start = cb_list->list_start;
-
-			if ( list_start != (MX_LIST_ENTRY *) NULL ) {
-
-				list_entry = list_start;
-
-				do {
-					callback = list_entry->list_entry_data;
-
-					if ( callback->callback_class
-						== MXCBC_NETWORK)
-					{
-						mx_status = traverse_fn(
-								callback,
-								callback_number,
-								argument );
-
-						callback_number++;
-					}
-
-					list_entry =
-						list_entry->next_list_entry;
-
-				} while ( list_entry != list_start );
+			if ( cb_list->num_list_entries > 0 ) {
+				mx_status = traverse_fn( cb_list,
+							&callback_number,
+							argument );
 			}
 		}
 
@@ -304,42 +282,100 @@ add_new_callback( MX_RECORD *record_list )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-scod_traverse_fn( MX_CALLBACK *callback,
-		unsigned long callback_number,
+scod_traverse_fn( MX_LIST *callback_list,
+		unsigned long *callback_number,
 		void *argument )
 {
+	static const char fname[] = "scod_traverse_fn()";
+
+	MX_LIST_ENTRY *list_entry, *next_list_entry;
+	MX_CALLBACK *callback;
 	unsigned long callback_identifier;
+	mx_bool_type delete_callback, deleted_last_entry;
 	mx_status_type mx_status;
 
 	callback_identifier = *((unsigned long *) argument );
 
-	/* See if the callback identifier matches. */
-
-	/* If callback_identifier >= 0x80000000, then the callback identifier
-	 * is a callback id.  Otherwise, it is a callback number from this
-	 * program's 'l' or list command.
-	 */
-
-	if ( callback_identifier >= 0x80000000 ) {
-		if ( callback_identifier != callback->callback_id ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		mx_info( "Deleting callback ID %#lx", callback_identifier );
-	} else {
-		if ( callback_identifier != callback_number ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		mx_info( "Deleting callback number %lu (callback ID %#lx)",
-		   callback_identifier, (unsigned long) callback->callback_id );
+	if ( callback_list->list_start == (MX_LIST_ENTRY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"callback_list %p has a NULL list_start member.",
+			callback_list );
 	}
 
-	/* If we get here, then we must delete the current callback. */
+	list_entry = callback_list->list_start;
 
-	mx_status = mx_remote_field_delete_callback( callback );
+	do {
+		callback = list_entry->list_entry_data;
 
-	return mx_status;
+		if ( callback->callback_class == MXCBC_NETWORK ) {
+
+			delete_callback = FALSE;
+
+			deleted_last_entry = FALSE;
+
+			/* See if the callback identifier matches. */
+
+			/* If callback_identifier >= 0x80000000, then the
+			 * callback identifier is a callback id.  Otherwise,
+			 * it is a callback number from this program's 'l'
+			 * or list command.
+			 */
+
+			if ( callback_identifier
+					>= MX_NETWORK_MESSAGE_IS_CALLBACK )
+			{
+				if ( callback_identifier
+						== callback->callback_id )
+				{
+					delete_callback = TRUE;
+
+					mx_info( "Deleting callback ID %#lx",
+						callback_identifier );
+				}
+			} else {
+				if ( callback_identifier == (*callback_number) )				{
+					delete_callback = TRUE;
+
+					mx_info( "Deleting callback number %lu "
+					"(callback ID %#lx)",
+						callback_identifier,
+					(unsigned long) callback->callback_id );
+				}
+
+			}
+
+			(*callback_number)++;
+
+			next_list_entry = list_entry->next_list_entry;
+
+			if ( delete_callback ) {
+				/* We are going to delete this callback.
+				 * This will also remove this list entry
+				 * from the callback list, so we must 
+				 * handle the finding of the next list
+				 * entry with care.
+				 */
+
+				if ( list_entry == next_list_entry ) {
+					deleted_last_entry = TRUE;
+				}
+
+				mx_status = mx_remote_field_delete_callback(
+								callback );
+			}
+
+			if ( deleted_last_entry ) {
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			list_entry = next_list_entry;
+		} else {
+			list_entry = list_entry->next_list_entry;
+		}
+
+	} while ( list_entry != callback_list->list_start );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static void
@@ -367,16 +403,43 @@ select_callback_to_delete( MX_RECORD *record_list )
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-lc_traverse_fn( MX_CALLBACK *callback,
-		unsigned long callback_number,
+lc_traverse_fn( MX_LIST *callback_list,
+		unsigned long *callback_number,
 		void *argument )
 {
+	static const char fname[] = "lc_traverse_fn()";
+
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK *callback;
 	MX_NETWORK_FIELD *nf;
 
-	nf = callback->u.network_field;
+	list_start = callback_list->list_start;
 
-	mx_info( "%3lu - Callback %#lx for nf '%s'", callback_number,
-		(unsigned long) callback->callback_id, nf->nfname );
+	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"callback_list %p has a NULL list_start member.",
+			callback_list );
+	}
+
+	list_entry = list_start;
+
+	do {
+		callback = list_entry->list_entry_data;
+
+		if ( callback->callback_class == MXCBC_NETWORK ) {
+			nf = callback->u.network_field;
+
+			mx_info( "%3lu - Callback %#lx for nf '%s'",
+					*callback_number,
+					(unsigned long) callback->callback_id,
+					nf->nfname );
+
+			(*callback_number)++;
+		}
+
+		list_entry = list_entry->next_list_entry;
+
+	} while ( list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
 }
