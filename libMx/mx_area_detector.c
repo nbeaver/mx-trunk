@@ -8255,6 +8255,18 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 				return mx_status;
 		}
 
+		/* Any value changed callbacks required for this field
+		 * ('last_frame_number', 'total_num_frames', or 'status')
+		 * will have been sent during the call to the function
+		 * mx_area_detector_vctest_extended_status() for
+		 * 'extended_status' that was made a few lines above
+		 * here.  Thus, to avoid getting _two_ value changed
+		 * callbacks for the current field, we must set the
+		 * (*value_changed_ptr) variable to FALSE here.
+		 */
+
+		*value_changed_ptr = FALSE;
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
