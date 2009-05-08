@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,13 +21,15 @@
 #  include "mx_epics.h"
 #endif
 
-#define MX_PMAC_MAX_MOTORS		32
+#define MX_PMAC_MAX_MOTORS			32
 
-#define MXU_PMAC_VARIABLE_NAME_LENGTH	8
+#define MXU_PMAC_VARIABLE_NAME_LENGTH		8
 
-#define MX_PMAC_NUM_STATUS_CHARACTERS	12
+#define MX_PMAC_NUM_STATUS_CHARACTERS		12
 
-#define MX_PMAC_CS_NUM_STATUS_CHARACTERS 18
+#define MX_PMAC_CS_NUM_STATUS_CHARACTERS	18
+
+#define MX_POWER_PMAC_NUM_STATUS_CHARACTERS	16
 
 /* Define the data structures used by a PMAC controller. */
 
@@ -41,9 +43,12 @@
 #define MX_PMAC_TYPE_TURBO2		( 2 | MX_PMAC_TYPE_TURBO )
 #define MX_PMAC_TYPE_TURBOU		( 3 | MX_PMAC_TYPE_TURBO )
 
+#define MX_PMAC_TYPE_POWERPMAC		2048
+
 /*---*/
 
 #define MX_PMAC_PORT_TYPE_RS232		1
+#define MX_PMAC_PORT_TYPE_POWER_PMAC	2
 #define MX_PMAC_PORT_TYPE_EPICS_TC	11
 
 #define MX_PMAC_PORT_TYPE_LENGTH	32

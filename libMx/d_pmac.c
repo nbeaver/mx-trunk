@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+
+#include "mxconfig.h"
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -1024,21 +1026,151 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 	return mx_status;
 }
 
-MX_EXPORT mx_status_type
-mxd_pmac_get_status( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_pmac_get_status()";
+#if HAVE_POWER_PMAC
 
-	MX_PMAC_MOTOR *pmac_motor = NULL;
+static mx_status_type
+mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
+{
+	static const char fname[] = "mxd_pmac_get_power_pmac_status()";
+
+	char response[50];
+	unsigned long status[ MX_POWER_PMAC_NUM_STATUS_CHARACTERS ];
+	int i, length;
+	mx_status_type mx_status;
+
+	/* Request the motor status. */
+
+	mx_status = mxd_pmac_jog_command( pmac_motor, "?",
+				response, sizeof response, PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	length = (int) strlen( response );
+
+	if ( length < MX_POWER_PMAC_NUM_STATUS_CHARACTERS ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"Too few characters seen in response to motor status command.  "
+	"Only saw %d characters.", length );
+	}
+
+	/* Change the reported motor status from ASCII characters
+	 * to unsigned long integers.
+	 */
+
+	for ( i = 0; i < MX_POWER_PMAC_NUM_STATUS_CHARACTERS; i++ ) {
+		status[i] = mx_hex_char_to_unsigned_long( response[i] );
+
+		MX_DEBUG( 2,("%s: status[%d] = %#lx",
+			fname, i, status[i]));
+	}
+	
+	/* Check for all the status bits that we are interested in. */
+
+	motor->status = 0;
+
+	/* ============ First word returned. ============== */
+
+	/* ---------- First character returned. ----------- */
+
+	/* Bits 30 and 31: (ignored) */
+
+	/* Bit 29: Hardware negative limit set */
+
+	if ( status[0] & 0x2 ) {
+		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+	}
+
+	/* Bit 28: Hardware positive limit set */
+
+	if ( status[0] & 0x1 ) {
+		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+	}
+
+	/* ---------- Second character returned. ----------- */
+
+	/* Bit 27: (ignored) */
+
+	/* Bit 26: Fatal following error */
+
+	if ( status[1] & 0x4 ) {
+		motor->status |= MXSF_MTR_FOLLOWING_ERROR;
+	}
+
+	/* Bit 25: (ignored) */
+
+	/* Bit 24: Amplifier fault */
+
+	if ( status[1] & 0x1 ) {
+		motor->status |= MXSF_MTR_DRIVE_FAULT;
+	}
+
+	/* ---------- Third character returned. ----------- */
+
+	/* Bit 23: Software negative limit set */
+
+	if ( status[2] & 0x8 ) {
+		motor->status |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
+	}
+
+	/* Bit 22: Software positive limit set */
+
+	if ( status[2] & 0x4 ) {
+		motor->status |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
+	}
+
+	/* Bits 20 and 21: (ignored) */
+
+	/* ---------- Fourth character returned. ----------- */
+
+	/* Bits 16 to 19: (ignored) */
+
+	/* ---------- Fifth character returned. ----------- */
+
+	/* Bit 15: Home complete */
+
+	if ( status[4] & 0x8 ) {
+		motor->status |= MXSF_MTR_HOME_SEARCH_SUCCEEDED;
+	}
+
+	/* Bit 14: (ignored) */
+
+	/* Bit 13: Closed-loop mode */
+
+	if ( (status[4] & 0x2) == 0 ) {
+		motor->status |= MXSF_MTR_OPEN_LOOP;
+	}
+
+	/* Bit 12: Amplifier enabled */
+
+	if ( (status[4] & 0x1) == 0 ) {
+		motor->status |= MXSF_MTR_AXIS_DISABLED;
+	}
+
+	/* ---------- Sixth character returned. ----------- */
+
+	/* Bit 11: In position */
+
+	if ( (status[5] & 0x8) == 0 ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+
+	/* Note: all remaining bits in the response are ignored. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif /* HAVE_POWER_PMAC */
+
+static mx_status_type
+mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
+{
+	static const char fname[] = "mxd_pmac_get_turbo_pmac_status()";
+
 	char response[50];
 	unsigned long status[ MX_PMAC_NUM_STATUS_CHARACTERS ];
 	int i, length;
 	mx_status_type mx_status;
-
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Request the motor status. */
 
@@ -1292,6 +1424,41 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_get_status( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_pmac_get_status()";
+
+	MX_PMAC_MOTOR *pmac_motor;
+	MX_PMAC *pmac;
+	mx_status_type mx_status;
+
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( pmac->pmac_type ) {
+
+#if HAVE_POWER_PMAC
+	case MX_PMAC_TYPE_POWERPMAC:
+		mx_status = mxd_pmac_get_power_pmac_status( motor, pmac_motor );
+		break;
+#endif /* HAVE_POWER_PMAC */
+
+	default:
+		mx_status = mxd_pmac_get_turbo_pmac_status( motor, pmac_motor );
+		break;
+	}
+
+	return mx_status;
 }
 
 /*-----------*/

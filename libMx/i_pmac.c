@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,12 @@
 #include "mx_rs232.h"
 
 #if HAVE_EPICS
-#include "mx_epics.h"
-#endif /* HAVE_EPICS */
+#  include "mx_epics.h"
+#endif
+
+#if HAVE_POWER_PMAC
+#  include "gplib.h"
+#endif
 
 #include "i_pmac.h"
 
@@ -128,6 +132,9 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	if ( strcmp( port_type_name, "rs232" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_RS232;
 
+	} else if ( strcmp( port_type_name, "power_pmac" ) == 0 ) {
+		pmac->port_type = MX_PMAC_PORT_TYPE_POWER_PMAC;
+
 	} else if ( strcmp( port_type_name, "epics_ect" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_EPICS_TC;
 
@@ -178,6 +185,33 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 		"RS-232 port both be set to <CR> (0x0d).",
 				pmac->port_record->name, record->name );
 		}
+		break;
+
+	case MX_PMAC_PORT_TYPE_POWER_PMAC:
+		pmac->port_record = NULL;
+
+#if HAVE_POWER_PMAC
+		{
+			int powerpmac_status;
+
+#if 1
+			/* Only enable this if you are using the
+			 * fake_power_pmac library.
+			 */
+
+			power_pmac_mx_record_list = pmac->record->list_head;
+#endif
+
+			powerpmac_status = InitLibrary();
+
+			if ( powerpmac_status != 0 ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Initialization of the Power PMAC library "
+				"failed with error code = %d.",
+					powerpmac_status );
+			}
+		}
+#endif
 		break;
 
 	case MX_PMAC_PORT_TYPE_EPICS_TC:
@@ -246,7 +280,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"The device attached to this interface does not "
-			"seem to be a PMAC controller."
+			"seem to be a PMAC controller.  "
 			"Response to PMAC TYPE command = '%s'",
 				response );
 	}
@@ -274,13 +308,18 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 	if ( strncmp( pmac_type_name, "TURBOU",6 ) == 0 ) {
 		pmac->pmac_type = MX_PMAC_TYPE_TURBOU;
 
+	} else
+	if ( strncmp( pmac_type_name, "POWERPMAC", 9 ) == 0 ) {
+		pmac->pmac_type = MX_PMAC_TYPE_POWERPMAC;
+
 	} else {
 		if ( ( strncmp( pmac_type_name, "PMAC", 4 ) != 0 )
-		  && ( strncmp( pmac_type_name, "TURBO", 5 ) != 0 ) )
+		  && ( strncmp( pmac_type_name, "TURBO", 5 ) != 0 )
+		  && ( strncmp( pmac_type_name, "POWERPMAC", 9 ) != 0 ) )
 		{
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				"The device attached to this interface does "
-				"not seem to be a PMAC controller."
+				"not seem to be a PMAC controller.  "
 				"Response to PMAC TYPE command = '%s'",
 					response );
 		} else {
@@ -379,6 +418,11 @@ mxi_pmac_rs232_send_command( MX_PMAC *, char *, int );
 
 static mx_status_type
 mxi_pmac_rs232_receive_response( MX_PMAC *, char *, int, int );
+
+#if HAVE_POWER_PMAC
+static mx_status_type
+mxi_pmac_power_pmac_command( MX_PMAC *, char *, char *, int, int );
+#endif
 				
 
 #if HAVE_EPICS
@@ -461,6 +505,16 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_PMAC pointer passed was NULL." );
 	}
+
+#if HAVE_POWER_PMAC
+	/* The Delta Tau Power PMAC is handled separately. */
+
+	if ( pmac->port_type == MX_PMAC_PORT_TYPE_POWER_PMAC ) {
+		return mxi_pmac_power_pmac_command( pmac, command,
+					response, response_buffer_length,
+					debug_flag );
+	}
+#endif
 
 #if HAVE_EPICS
 	/* Tom Coleman's EPICS driver is handled separately. */
@@ -1018,6 +1072,48 @@ mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#if HAVE_POWER_PMAC
+
+static mx_status_type
+mxi_pmac_power_pmac_command( MX_PMAC *pmac, char *command,
+			char *response, int response_buffer_length,
+			int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_power_pmac_command()";
+
+	int powerpmac_status;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+	if ( command == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"command buffer pointer passed was NULL." );
+	}
+
+	if ( (response == NULL) || (response_buffer_length == 0) ) {
+		powerpmac_status = Command( command );
+	} else {
+		powerpmac_status = GetResponse( command,
+					response, response_buffer_length, 0 );
+	}
+
+	if ( powerpmac_status == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Power PMAC command '%s' returned with error code = %d.",
+			command, powerpmac_status );
+	}
+}
+
+#endif /* HAVE_POWER_PMAC */
+
+/*-------------------------------------------------------------------------*/
 
 #if HAVE_EPICS
 

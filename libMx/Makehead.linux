@@ -25,8 +25,8 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
@@ -42,6 +42,9 @@ LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
+
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
+#LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -75,6 +78,10 @@ LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(EPICS_LIBRARIES) $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(POWER_PMAC_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) $(POWER_PMAC_LIBRARIES) \
+						-lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS) $(EPICS_LIB_DIRS) \
 #					$(XIA_HANDEL_LIB_DIRS)
@@ -161,6 +168,13 @@ LINUX_GPIB_LIBRARIES = -lgpib
 LIBUSB_INCLUDES   =
 LIBUSB_LIB_DIRS   =
 LIBUSB_LIBRARIES  = -lusb
+
+#
+# Warning: Not yet tested with a real Power PMAC system.
+#
+POWER_PMAC_INCLUDES   = -I/home/lavender/mxdev/fake_power_pmac
+POWER_PMAC_LIB_DIRS   = -L/home/lavender/mxdev/fake_power_pmac
+POWER_PMAC_LIBRARIES  = -lfake_power_pmac
 
 #
 NI_VISA_DIR       = /usr/local/vxipnp/linux
@@ -315,7 +329,7 @@ MAKEDEPEND	= gcc -MM $(CFLAGS) \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
 	$(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
-	$(XIA_HANDEL_INCLUDES) *.c > Makefile.depend
+	$(XIA_HANDEL_INCLUDES) $(POWER_PMAC_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

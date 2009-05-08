@@ -126,6 +126,18 @@
 #define HAVE_VIDEO_4_LINUX_2		0
 
 /*****************************************************************************
+ * The Delta Tau Power PMAC is a PowerPC-based motion controller that uses a
+ * Linux-based realtime operating system.  This define enables support for
+ * MX drivers running on the Power PMAC itself that communicate with the
+ * Delta Tau motion control software there.
+ *
+ * WARNING: This driver is a prototype and has not yet been tested with a
+ * real Power PMAC system.
+ */
+
+#define HAVE_POWER_PMAC			1
+
+/*****************************************************************************
  *
  * Linux driver for performing hardware port I/O from user mode to
  * a restricted range of ports without requiring that the user mode

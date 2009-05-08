@@ -342,6 +342,9 @@ i_linux_portio.$(OBJ): i_linux_portio.c
 i_ni488.$(OBJ): i_ni488.c
 	$(COMPILE) $(CFLAGS) $(NI488_INCLUDES) i_ni488.c
 
+i_pmac.$(OBJ): i_pmac.c i_pmac.h
+	$(COMPILE) $(CFLAGS) $(POWER_PMAC_INCLUDES) i_pmac.c
+
 i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) i_pmc_mcapi.c
 
