@@ -1865,6 +1865,162 @@ mx_epics_get_num_elements( MX_EPICS_PV *pv,
 
 /*--------------------------------------------------------------------------*/
 
+static void
+mx_epics_subscription_callback_function( struct event_handler_args args )
+{
+	MX_EPICS_CALLBACK *callback;
+	mx_status_type (*callback_function)( MX_EPICS_CALLBACK *, void * );
+	mx_status_type mx_status;
+
+	callback = args.usr;
+
+	callback->epics_type = args.type;
+	callback->epics_count = args.count;
+	callback->value_ptr = args.dbr;
+	callback->epics_status = args.status;
+
+	callback_function = callback->callback_function;
+
+	if ( callback_function != NULL ) {
+		mx_status = (*callback_function)( callback,
+						callback->callback_argument );
+	}
+
+	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_epics_add_callback( MX_EPICS_PV *pv,
+		unsigned long requested_callback_mask,
+		mx_status_type ( *callback_function )
+				( MX_EPICS_CALLBACK *, void * ),
+		void *callback_argument,
+		MX_EPICS_CALLBACK **callback_object )
+{
+	static const char fname[] = "mx_epics_add_callback()";
+
+	chid channel_id;
+	evid event_id;
+	int epics_status;
+	mx_status_type mx_status;
+
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EPICS_PV pointer passed was NULL." );
+	}
+
+	channel_id = pv->channel_id;
+
+	*callback_object = (MX_EPICS_CALLBACK *)
+				malloc( sizeof(MX_EPICS_CALLBACK) );
+
+	if ( (*callback_object) == (MX_EPICS_CALLBACK *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate "
+		"an MX_EPICS_CALLBACK structure." );
+	}
+
+	(*callback_object)->pv = pv;
+	(*callback_object)->callback_function = callback_function;
+	(*callback_object)->callback_argument = callback_argument;
+
+	epics_status = ca_create_subscription(
+					ca_field_type(channel_id),
+					ca_element_count(channel_id),
+					channel_id,
+					requested_callback_mask,
+					mx_epics_subscription_callback_function,
+					*callback_object,
+					&event_id );
+
+	switch( epics_status ) {
+	case ECA_NORMAL:
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	case ECA_BADCHID:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The channel id %p for EPICS PV '%s' "
+				"is invalid.", channel_id, pv->pvname );
+		break;
+	case ECA_BADTYPE:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The requested EPICS type %d for "
+				"EPICS PV '%s' is invalid.",
+					ca_field_type(channel_id),
+					pv->pvname );
+		break;
+	case ECA_ALLOCMEM:
+		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to set up "
+				"an event subscription for EPICS PV '%s'.",
+					pv->pvname );
+		break;
+	case ECA_ADDFAIL:
+		mx_status = mx_error( MXE_FUNCTION_FAILED, fname,
+				"A local database event add failed "
+				"for EPICS PV '%s'.", pv->pvname );
+		break;
+	default:
+		mx_status = mx_error( MXE_FUNCTION_FAILED, fname,
+				"The attempt to create a callback for "
+				"EPICS PV '%s' failed.  "
+				"EPICS status = %d, EPICS error = '%s'.",
+				pv->pvname,
+				epics_status, ca_message( epics_status ) );
+		break;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( *callback_object );
+		return mx_status;
+	}
+
+	(*callback_object)->event_id = event_id;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_epics_delete_callback( MX_EPICS_CALLBACK *callback )
+{
+	static const char fname[] = "mx_epics_delete_callback()";
+
+	int epics_status;
+	mx_status_type mx_status;
+
+	epics_status = ca_clear_subscription( callback->event_id );
+
+	switch( epics_status ) {
+	case ECA_NORMAL:
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	case ECA_BADCHID:
+		mx_status =  mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The EPICS event id %p for EPICS callback %p "
+				"is not a currently valid EPICS event id.",
+				callback->event_id, callback );
+		break;
+	default:
+		mx_status = mx_error( MXE_FUNCTION_FAILED, fname,
+				"The deletion of EPICS callback %p with "
+				"EPICS event id %p failed.  "
+				"EPICS status = %d, EPICS error = '%s'.",
+				callback, callback->event_id,
+				epics_status, ca_message( epics_status ) );
+		break;
+	}
+
+	mx_free( callback );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_epics_start_group( MX_EPICS_GROUP *epics_group )
 {

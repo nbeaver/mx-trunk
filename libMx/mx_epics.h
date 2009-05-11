@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2005, 2007 Illinois Institute of Technology
+ * Copyright 1999-2005, 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,6 +38,12 @@ extern "C" {
 #define MX_CA_FLOAT	2		/* DBR_FLOAT  */
 #define MX_CA_DOUBLE	6		/* DBR_DOUBLE */
 
+/* EPICS event trigger masks. */
+
+#define MX_CA_EVENT_VALUE	0x1	/* DBE_VALUE */
+#define MX_CA_EVENT_LOG		0x2	/* DBE_LOG */
+#define MX_CA_EVENT_ALARM	0x4	/* DBE_ALARM */
+
 #define MXU_EPICS_PVNAME_LENGTH		100
 
 /* Define values for EPICS callback handlers in the MX_EPICS_PV structure. */
@@ -53,7 +59,6 @@ extern "C" {
  */
 
 typedef struct {
-
 	char pvname[ MXU_EPICS_PVNAME_LENGTH + 1 ];
 	void *channel_id;	/* In EPICS this is a 'chid'. */
 
@@ -70,6 +75,20 @@ typedef struct {
 typedef struct {
 	unsigned int group_id;	/* In EPICS this is a 'CA_SYNC_GID'. */
 } MX_EPICS_GROUP;
+
+typedef struct mx_epics_callback_type {
+	MX_EPICS_PV *pv;
+	void *event_id;		/* In EPICS this is an 'evid' */
+
+	mx_status_type ( *callback_function )
+			( struct mx_epics_callback_type *, void * );
+	void *callback_argument;
+
+	long epics_type;
+	long epics_count;
+	const void *value_ptr;
+	int epics_status;
+} MX_EPICS_CALLBACK;
 
 /* MX EPICS functions for persistent connections. */
 
@@ -112,6 +131,17 @@ MX_API mx_status_type mx_caput_with_timeout( MX_EPICS_PV *pv,
 
 MX_API mx_status_type mx_epics_get_num_elements( MX_EPICS_PV *pv,
 					unsigned long *num_elements );
+
+/* MX EPICS asynchronous callback functions. */
+
+MX_API mx_status_type mx_epics_add_callback( MX_EPICS_PV *pv,
+				unsigned long requested_callback_mask,
+				mx_status_type ( *callback_function )
+					( MX_EPICS_CALLBACK *, void * ),
+				void *callback_argument,
+				MX_EPICS_CALLBACK **callback_object );
+
+MX_API mx_status_type mx_epics_delete_callback( MX_EPICS_CALLBACK *callback );
 
 /* MX EPICS functions for one time only connections. */
 
