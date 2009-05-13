@@ -541,6 +541,8 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	pv->put_callback_status = MXF_EPVH_IDLE;
 
+	pv->application_ptr = NULL;
+
 	return;
 }
 
@@ -894,6 +896,7 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 					(char *) data_buffer));
 				break;
 			case MX_CA_SHORT:
+			case MX_CA_ENUM:
 				short_value = *((short *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: '%s' value read = %hd.",
@@ -1140,6 +1143,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 					pv->pvname ));
 				break;
 			case MX_CA_SHORT:
+			case MX_CA_ENUM:
 				short_value = *((short *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %hd to '%s'.",
@@ -1490,6 +1494,7 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 					pv->pvname ));
 				break;
 			case MX_CA_SHORT:
+			case MX_CA_ENUM:
 				short_value = *((short *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %hd to '%s'.",
@@ -1834,33 +1839,91 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 /*--------------------------------------------------------------------------*/
 
-MX_EXPORT mx_status_type
-mx_epics_get_num_elements( MX_EPICS_PV *pv,
-			unsigned long *num_elements )
+MX_EXPORT long
+mx_epics_pv_get_field_type( MX_EPICS_PV *pv )
 {
-	static const char fname[] = "mx_epics_get_num_elements()";
+	static const char fname[] = "mx_epics_pv_get_field_type()";
 
+	long field_type;
 	mx_status_type mx_status;
 
 	if ( pv == (MX_EPICS_PV *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EPICS_PV pointer passed was NULL." );
-	}
-	if ( num_elements == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The num_elements pointer passed was NULL." );
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_EPICS_PV pointer passed was NULL." );
+		return -1;
 	}
 
 	if ( pv->channel_id == NULL ) {
 		mx_status = mx_epics_pv_connect( pv );
 
 		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			return -1;
 	}
 
-	*num_elements = ca_element_count( pv->channel_id );
+	field_type = ca_field_type( pv->channel_id );
 
-	return MX_SUCCESSFUL_RESULT;
+	return field_type;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT unsigned long
+mx_epics_pv_get_element_count( MX_EPICS_PV *pv )
+{
+	static const char fname[] = "mx_epics_pv_get_element_count()";
+
+	unsigned long element_count;
+	mx_status_type mx_status;
+
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_EPICS_PV pointer passed was NULL." );
+		return 0;
+	}
+
+	if ( pv->channel_id == NULL ) {
+		mx_status = mx_epics_pv_connect( pv );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return 0;
+	}
+
+	element_count = ca_element_count( pv->channel_id );
+
+	return element_count;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT size_t
+mx_epics_get_element_size( long field_type )
+{
+	size_t element_size;
+
+	switch( field_type ) {
+	case MX_CA_CHAR:
+	case MX_CA_STRING:
+		element_size = sizeof(char);
+		break;
+	case MX_CA_SHORT:
+	case MX_CA_ENUM:
+		element_size = sizeof(short);
+		break;
+	case MX_CA_LONG:
+		element_size = sizeof(long);
+		break;
+	case MX_CA_FLOAT:
+		element_size = sizeof(float);
+		break;
+	case MX_CA_DOUBLE:
+		element_size = sizeof(double);
+		break;
+	default:
+		element_size = 0;
+		break;
+	}
+
+	return element_size;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -2433,6 +2496,7 @@ mx_epics_internal_group_caput( CA_SYNC_GID group_id,
 					pv->pvname ));
 				break;
 			case MX_CA_SHORT:
+			case MX_CA_ENUM:
 				short_value = *((short *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %hd to '%s'.",

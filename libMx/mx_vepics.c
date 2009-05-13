@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -235,8 +235,11 @@ mxv_epics_variable_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 {
+	static const char fname[] = "mxv_epics_variable_send_variable()";
+
 	MX_EPICS_VARIABLE *epics_variable;
 	MX_RECORD_FIELD *value_field;
+	MX_EPICS_PV *pv;
 	void *value_ptr;
 	unsigned long num_elements;
 	mx_status_type mx_status;
@@ -248,12 +251,16 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 	 * EPICS process variable.
 	 */
 
-	if ( epics_variable->num_elements < 0 ) {
-		mx_status = mx_epics_get_num_elements( &(epics_variable->pv),
-							&num_elements );
+	pv = &(epics_variable->pv);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( epics_variable->num_elements < 0 ) {
+		num_elements = mx_epics_pv_get_element_count( pv );
+
+		if ( num_elements == 0 ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unable to get the element count for EPICS PV '%s'.",
+				pv->pvname );
+		}
 
 		epics_variable->num_elements = (long) num_elements;
 	}
@@ -278,18 +285,22 @@ mxv_epics_variable_send_variable( MX_VARIABLE *variable )
 
 	/* Send the data. */
 
-	mx_status = mx_caput( &(epics_variable->pv),
-				epics_variable->epics_type,
-				num_elements,
-				value_ptr );
+	mx_status = mx_caput( pv,
+			epics_variable->epics_type,
+			num_elements,
+			value_ptr );
+
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 {
+	static const char fname[] = "mxv_epics_variable_receive_variable()";
+
 	MX_EPICS_VARIABLE *epics_variable;
 	MX_RECORD_FIELD *value_field;
+	MX_EPICS_PV *pv;
 	void *value_ptr;
 	unsigned long num_elements;
 	mx_status_type mx_status;
@@ -301,12 +312,16 @@ mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 	 * EPICS process variable.
 	 */
 
-	if ( epics_variable->num_elements < 0 ) {
-		mx_status = mx_epics_get_num_elements( &(epics_variable->pv),
-							&num_elements );
+	pv = &(epics_variable->pv);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( epics_variable->num_elements < 0 ) {
+		num_elements = mx_epics_pv_get_element_count( pv );
+
+		if ( num_elements == 0 ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unable to get the element count for EPICS PV '%s'.",
+				pv->pvname );
+		}
 
 		epics_variable->num_elements = (long) num_elements;
 	}
@@ -331,10 +346,10 @@ mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 
 	/* Receive the data. */
 
-	mx_status = mx_caget( &(epics_variable->pv),
-				epics_variable->epics_type,
-				num_elements,
-				value_ptr );
+	mx_status = mx_caget( pv,
+			epics_variable->epics_type,
+			num_elements,
+			value_ptr );
 
 	return mx_status;
 }

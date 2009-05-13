@@ -21,10 +21,6 @@
 #include "mx_mutex.h"
 #include "mx_atomic.h"
 
-/* WARNING: This program cannot use any MX functions, since it runs
- * before MX has been compiled.
- */
-
 /*---*/
 
 #if defined(OS_MACOSX)

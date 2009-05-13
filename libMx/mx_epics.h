@@ -37,6 +37,7 @@ extern "C" {
 #define MX_CA_LONG	5		/* DBR_LONG   */
 #define MX_CA_FLOAT	2		/* DBR_FLOAT  */
 #define MX_CA_DOUBLE	6		/* DBR_DOUBLE */
+#define MX_CA_ENUM	3		/* DBR_ENUM   */
 
 /* EPICS event trigger masks. */
 
@@ -70,6 +71,8 @@ typedef struct {
 	struct timespec io_timeout_interval;
 
 	int put_callback_status;
+
+	void *application_ptr;
 } MX_EPICS_PV;
 
 typedef struct {
@@ -129,8 +132,11 @@ MX_API mx_status_type mx_caput_with_timeout( MX_EPICS_PV *pv,
 				void *data_buffer,
 				double timeout );
 
-MX_API mx_status_type mx_epics_get_num_elements( MX_EPICS_PV *pv,
-					unsigned long *num_elements );
+MX_API long mx_epics_pv_get_field_type( MX_EPICS_PV *pv );
+
+MX_API unsigned long mx_epics_pv_get_element_count( MX_EPICS_PV *pv );
+
+MX_API size_t mx_epics_get_element_size( long field_type );
 
 /* MX EPICS asynchronous callback functions. */
 

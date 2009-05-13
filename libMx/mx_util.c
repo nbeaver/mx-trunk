@@ -1110,7 +1110,14 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	__asm__("int3");
+	static mx_bool_type first_time = TRUE;
+
+	if ( first_time ) {
+		first_time = FALSE;
+		mx_start_debugger(NULL);
+	} else {
+		__asm__("int3");
+	}
 }
 
 #else
@@ -1122,10 +1129,17 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	mx_warning(
-	"mx_breakpoint() was invoked on a platform that does not support it." );
+	static mx_bool_type first_time = TRUE;
 
-	mx_breakpoint_helper();
+	if ( first_time ) {
+		first_time = FALSE;
+		mx_start_debugger(NULL);
+	} else {
+		mx_warning( "mx_breakpoint() was invoked on a platform "
+				"that does not support it." );
+
+		mx_breakpoint_helper();
+	}
 }
 
 #endif

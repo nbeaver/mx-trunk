@@ -30,7 +30,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -914,12 +914,11 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 			 * find out why.
 			 */
 
-			mx_status = mx_epics_get_num_elements(
-				&(apsid_quick_scan_extension->message1_pv),
-				&num_elements );
+			num_elements = mx_epics_pv_get_element_count(
+				&(apsid_quick_scan_extension->message1_pv) );
 
-			if ( mx_status.code == MXE_SUCCESS ) {
-			    /* Only proceed if mx_epics_get_num_elements()
+			if ( num_elements > 0 ) {
+			    /* Only proceed if mx_epics_pv_get_num_elements()
 			     * succeeded.
 			     */
 
