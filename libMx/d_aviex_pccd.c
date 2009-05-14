@@ -2184,7 +2184,7 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
 		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 2,
-					-1, 1000 );
+					1, 1000 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2284,7 +2284,7 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
 		mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 3,
-					-1, 1000 );
+					1, 1000 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
