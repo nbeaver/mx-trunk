@@ -562,7 +562,10 @@ mxd_aviex_pccd_16080_get_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 		*pseudo_reg_value = (control_register >> 2) & 0x1;
 		break;
 	case MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE:
-		*pseudo_reg_value = (control_register >> 3) & 0x3;
+		*pseudo_reg_value = (control_register >> 3) & 0x1;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_EDGE_TRIGGERED:
+		*pseudo_reg_value = (control_register >> 4) & 0x1;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -618,9 +621,16 @@ mxd_aviex_pccd_16080_set_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 		control_register |= pseudo_reg_value;
 		break;
 	case MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE:
-		pseudo_reg_value = ( register_value & 0x3 ) << 3;
+		pseudo_reg_value = ( register_value & 0x1 ) << 3;
 
-		control_register &= ~0x18;
+		control_register &= ~0x8;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_AVIEX_PCCD_16080_DH_EDGE_TRIGGERED:
+		pseudo_reg_value = ( register_value & 0x1 ) << 4;
+
+		control_register &= ~0x10;
 
 		control_register |= pseudo_reg_value;
 		break;

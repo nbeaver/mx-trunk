@@ -227,6 +227,7 @@ mxd_aviex_pccd_16080_compute_sequence_times( MX_AREA_DETECTOR *,
 #define MXLV_AVIEX_PCCD_16080_DH_READOUT_SPEED		200001
 #define MXLV_AVIEX_PCCD_16080_DH_OFFSET_CORRECTION	200002
 #define MXLV_AVIEX_PCCD_16080_DH_EXPOSURE_MODE		200003
+#define MXLV_AVIEX_PCCD_16080_DH_EDGE_TRIGGERED		200004
 
 
 /*-------------------------------------------------------------*/
@@ -384,6 +385,12 @@ mxd_aviex_pccd_16080_compute_sequence_times( MX_AREA_DETECTOR *,
   		-1, "dh_exposure_mode", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_AVIEX_PCCD, u.dh_16080.exposure_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_16080_DH_EDGE_TRIGGERED, \
+  		-1, "dh_edge_triggered", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_16080.edge_triggered), \
 	{0}, NULL, 0}
 
 #endif /* __D_AVIEX_PCCD_16080_H__ */
