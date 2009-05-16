@@ -465,7 +465,8 @@ mxd_aviex_pccd_load_linearity_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
 #endif
 
 	/* The linearity lookup file is a binary file in 'native' byte order
-	 * that contains 65536 16-bit integers.  No byte swapping is required.
+	 * that contains 65536 16-bit integers for each of the CCD taps.  No
+	 * byte swapping is required.
 	 */
 
 	file = fopen( aviex_pccd->linearity_lookup_table_filename, "rb" );
