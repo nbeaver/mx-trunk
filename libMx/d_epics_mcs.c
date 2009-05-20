@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -82,7 +82,7 @@ mxd_epics_mcs_get_pointers( MX_MCS *mcs,
 			MX_EPICS_MCS **epics_mcs,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_mcs_get_pointers()";
+	static const char fname[] = "mxd_epics_mcs_get_pointers()";
 
 	if ( mcs == (MX_MCS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -136,7 +136,7 @@ mxd_epics_mcs_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mcs_create_record_structures()";
+	static const char fname[] = "mxd_epics_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
 	MX_EPICS_MCS *epics_mcs = NULL;
@@ -183,7 +183,7 @@ mxd_epics_mcs_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mcs_open()";
+	static const char fname[] = "mxd_epics_mcs_open()";
 
 	MX_MCS *mcs;
 	MX_EPICS_MCS *epics_mcs = NULL;
@@ -429,7 +429,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_start( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_start()";
+	static const char fname[] = "mxd_epics_mcs_start()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	long start;
@@ -457,7 +457,7 @@ mxd_epics_mcs_start( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_stop( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_stop()";
+	static const char fname[] = "mxd_epics_mcs_stop()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	long stop;
@@ -482,7 +482,7 @@ mxd_epics_mcs_stop( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_clear( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_clear()";
+	static const char fname[] = "mxd_epics_mcs_clear()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	long erase;
@@ -503,7 +503,7 @@ mxd_epics_mcs_clear( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_busy( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_busy()";
+	static const char fname[] = "mxd_epics_mcs_busy()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	long busy;
@@ -529,7 +529,7 @@ mxd_epics_mcs_busy( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_read_all( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_read_all()";
+	static const char fname[] = "mxd_epics_mcs_read_all()";
 
 	long i;
 	mx_status_type mx_status;
@@ -554,7 +554,7 @@ mxd_epics_mcs_read_all( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_read_scaler()";
+	static const char fname[] = "mxd_epics_mcs_read_scaler()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	unsigned long do_not_skip, num_measurements_from_epics;
@@ -633,7 +633,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_read_measurement()";
+	static const char fname[] = "mxd_epics_mcs_read_measurement()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"This function is not supported for EPICS multichannel scalers." );
@@ -642,7 +642,7 @@ mxd_epics_mcs_read_measurement( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_get_parameter()";
+	static const char fname[] = "mxd_epics_mcs_get_parameter()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double dark_current;
@@ -680,7 +680,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_epics_mcs_set_parameter()";
+	static const char fname[] = "mxd_epics_mcs_set_parameter()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	MX_EPICS_GROUP epics_group;
