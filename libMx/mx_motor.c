@@ -578,7 +578,7 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 
 #if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
 	MX_HRT_END( check_limits_measurement );
-	MX_HRT_START( check_for_backlash_measurement );
+	MX_HRT_RESULTS( check_limits_measurement, fname, "check limits" );
 #endif
 
 	/* Move to the backlash_position. */
@@ -587,6 +587,10 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 
 	if ( (flags & MXF_MTR_IGNORE_BACKLASH) == 0 ) {
 
+
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+		MX_HRT_START( check_for_backlash_measurement );
+#endif
 		MX_DEBUG( 2,("%s: Backlash will be done if needed.", fname));
 
 		/* We must also check to see if the backlash correction
@@ -642,6 +646,9 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 
 #if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
 		MX_HRT_END( check_for_backlash_measurement );
+		MX_HRT_RESULTS( check_for_backlash_measurement, fname,
+							"check for backlash" );
+
 		MX_HRT_START( do_backlash_measurement );
 #endif
 
@@ -674,10 +681,14 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 			if ( status.code != MXE_SUCCESS )
 				return status;
 		}
+
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+		MX_HRT_END( do_backlash_measurement );
+		MX_HRT_RESULTS( do_backlash_measurement, fname, "do backlash" );
+#endif
 	}
 
 #if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
-	MX_HRT_END( do_backlash_measurement );
 	MX_HRT_START( main_move_measurement );
 #endif
 
@@ -697,10 +708,6 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 	MX_HRT_END( main_move_measurement );
 	MX_HRT_END( total_move_measurement );
 
-	MX_HRT_RESULTS( check_limits_measurement, fname, "check limits" );
-	MX_HRT_RESULTS( check_for_backlash_measurement, fname,
-							"check for backlash" );
-	MX_HRT_RESULTS( do_backlash_measurement, fname, "do backlash" );
 	MX_HRT_RESULTS( main_move_measurement, fname, "main move" );
 	MX_HRT_RESULTS( total_move_measurement, fname, "TOTAL move" );
 #endif
@@ -880,6 +887,8 @@ mx_motor_array_internal_move_with_report( long num_motors,
 
 #if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
 	MX_HRT_END( display_move_measurement );
+	MX_HRT_RESULTS( display_move_measurement, fname, "display move" );
+
 	MX_HRT_START( wait_measurement );
 #endif
 
@@ -901,7 +910,6 @@ mx_motor_array_internal_move_with_report( long num_motors,
 	MX_HRT_END( wait_measurement );
 	MX_HRT_END( total_internal_move_measurement );
 
-	MX_HRT_RESULTS( display_move_measurement, fname, "display move" );
 	MX_HRT_RESULTS( wait_measurement, fname, "wait" );
 	MX_HRT_RESULTS( total_internal_move_measurement, fname,
 						"TOTAL internal move" );
@@ -1175,6 +1183,9 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 
 #if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
 			MX_HRT_END( get_status_measurement );
+			MX_HRT_RESULTS( get_status_measurement, fname,
+							"get move status" );
+
 			MX_HRT_START( check_keyboard_measurement );
 #endif
 			if ( ignore_keyboard == FALSE ) {
@@ -1226,9 +1237,6 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 
 #if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
 			MX_HRT_END( check_keyboard_measurement );
-
-			MX_HRT_RESULTS( get_status_measurement, fname,
-							"get move status" );
 			MX_HRT_RESULTS( check_keyboard_measurement, fname,
 							"check keyboard" );
 #endif
@@ -1254,14 +1262,12 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 
 #if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
 		MX_HRT_END( msleep_measurement );
-
 		MX_HRT_RESULTS( msleep_measurement, fname, "mx_msleep(10)" );
 #endif
 	}
 
 #if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
 	MX_HRT_END( total_wait_measurement );
-
 	MX_HRT_RESULTS( total_wait_measurement, fname, "TOTAL wait" );
 #endif
 
@@ -4751,7 +4757,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 		MX_HRT_END( total_measurement );
 		MX_HRT_RESULTS( total_measurement, fname,
-				"return due to deadband" );
+				"return '%s' due to deadband",
+				motor_record->name );
 #endif
 
 		return MX_SUCCESSFUL_RESULT;
@@ -4791,6 +4798,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 	MX_HRT_END( setup_measurement );
+	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
+
 	MX_HRT_START( backlash_measurement );
 #endif
 
@@ -4887,7 +4896,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 				MX_HRT_END( total_measurement );
 				MX_HRT_RESULTS( total_measurement, fname,
-					"return due to NOWAIT backlash" );
+					"return '%s' due to NOWAIT backlash",
+					motor_record->name );
 #endif
 
 				return MX_SUCCESSFUL_RESULT;
@@ -4931,6 +4941,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 	MX_HRT_END( backlash_measurement );
+	MX_HRT_RESULTS( backlash_measurement, fname, "backlash" );
+
 	MX_HRT_START( limits_measurement );
 #endif
 
@@ -4941,7 +4953,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 		MX_HRT_END( total_measurement );
 		MX_HRT_RESULTS( total_measurement, fname,
-				"return due to backlash only" );
+				"return '%s' due to backlash only",
+				motor_record->name );
 #endif
 
 		return MX_SUCCESSFUL_RESULT;
@@ -4994,13 +5007,16 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 		MX_HRT_END( total_measurement );
 		MX_HRT_RESULTS( total_measurement, fname,
-				"return due to only checking limits" );
+				"return '%s' due to only checking limits",
+				motor_record->name );
 #endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 	MX_HRT_END( limits_measurement );
+	MX_HRT_RESULTS( limits_measurement, fname, "limits" );
+
 	MX_HRT_START( move_measurement );
 #endif
 
@@ -5020,6 +5036,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 	MX_HRT_END( move_measurement );
+	MX_HRT_RESULTS( move_measurement, fname, "move" );
+
 	MX_HRT_START( move_report_measurement );
 #endif
 
@@ -5032,6 +5050,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 #if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
 	MX_HRT_END( move_report_measurement );
+	MX_HRT_RESULTS( move_report_measurement, fname, "move report" );
+
 	MX_HRT_START( update_measurement );
 #endif
 
@@ -5050,11 +5070,6 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	MX_HRT_END( update_measurement );
 	MX_HRT_END( total_measurement );
 
-	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
-	MX_HRT_RESULTS( backlash_measurement, fname, "backlash" );
-	MX_HRT_RESULTS( limits_measurement, fname, "limits" );
-	MX_HRT_RESULTS( move_measurement, fname, "move" );
-	MX_HRT_RESULTS( move_report_measurement, fname, "move report" );
 	MX_HRT_RESULTS( update_measurement, fname, "update" );
 	MX_HRT_RESULTS( total_measurement, fname, "TOTAL" );
 #endif

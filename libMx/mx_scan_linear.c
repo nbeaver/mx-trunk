@@ -933,6 +933,8 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( compute_measurement );
+		MX_HRT_RESULTS( compute_measurement, fname, "compute" );
+
 		MX_HRT_START( move_absolute_measurement );
 #endif
 
@@ -984,6 +986,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( move_absolute_measurement );
+		MX_HRT_RESULTS( move_absolute_measurement, fname,
+							"move absolute" );
+
 		MX_HRT_START( wait_for_stop_measurement );
 #endif
 
@@ -1036,6 +1041,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( wait_for_stop_measurement );
+		MX_HRT_RESULTS( wait_for_stop_measurement, fname,
+							"wait for stop" );
+
 		MX_HRT_START( acquire_and_readout_measurement );
 #endif
 
@@ -1086,6 +1094,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( acquire_and_readout_measurement );
+		MX_HRT_RESULTS( acquire_and_readout_measurement, fname,
+							"acq and read");
+
 		MX_HRT_START( alternate_x_measurement );
 #endif
 
@@ -1101,6 +1112,8 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( alternate_x_measurement );
+		MX_HRT_RESULTS( alternate_x_measurement, fname, "alt x" );
+
 		MX_HRT_START( datafile_measurement );
 #endif
 
@@ -1114,6 +1127,8 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( datafile_measurement );
+		MX_HRT_RESULTS( datafile_measurement, fname, "datafile" );
+
 		MX_HRT_START( scan_progress_measurement );
 #endif
 
@@ -1126,6 +1141,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( scan_progress_measurement );
+		MX_HRT_RESULTS( scan_progress_measurement, fname,
+							"scan progress" );
+
 		MX_HRT_START( add_to_plot_measurement );
 #endif
 
@@ -1161,6 +1179,8 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 #if DEBUG_TIMING
 		MX_HRT_END( add_to_plot_measurement );
+		MX_HRT_RESULTS( add_to_plot_measurement, fname, "add to plot" );
+
 		MX_HRT_START( end_of_point_measurement );
 #endif
 
@@ -1185,18 +1205,6 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		MX_HRT_END( end_of_point_measurement );
 		MX_HRT_END( total_point_measurement );
 
-		MX_HRT_RESULTS( compute_measurement, fname, "compute" );
-		MX_HRT_RESULTS( move_absolute_measurement, fname,
-							"move absolute" );
-		MX_HRT_RESULTS( wait_for_stop_measurement, fname,
-							"wait for stop" );
-		MX_HRT_RESULTS( acquire_and_readout_measurement, fname,
-							"acq and read");
-		MX_HRT_RESULTS( alternate_x_measurement, fname, "alt x" );
-		MX_HRT_RESULTS( datafile_measurement, fname, "datafile" );
-		MX_HRT_RESULTS( scan_progress_measurement, fname,
-							"scan progress" );
-		MX_HRT_RESULTS( add_to_plot_measurement, fname, "add to plot" );
 		MX_HRT_RESULTS( end_of_point_measurement, fname,
 							"end of point" );
 		MX_HRT_RESULTS( total_point_measurement, fname, "TOTAL" );
