@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,8 @@
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
+#define DEBUG_TIMING		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -23,6 +25,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_hrt_debug.h"
 #include "mx_array.h"
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -839,6 +842,10 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		MX_DEBUG( 2,
 		("%s: At bottom level of independent variables.", fname ));
 
+#if DEBUG_TIMING
+		MX_DEBUG(-2,("%s: early_move_flag = %d",
+			fname, early_move_flag));
+#endif
 		if ( early_move_flag == FALSE ) {
 			mx_status = mxs_linear_scan_do_normal_scan(
 						scan,
@@ -883,12 +890,20 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 					unsigned long ),
 				mx_bool_type start_fast_mode )
 {
-#if DEBUG_PAUSE_REQUEST
+#if DEBUG_PAUSE_REQUEST || DEBUG_TIMING
 	static const char fname[] = "mxs_linear_scan_do_normal_scan()";
 #endif
 	long i;
 	mx_bool_type exit_loop = FALSE;
 	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING total_point_measurement, compute_measurement;
+	MX_HRT_TIMING move_absolute_measurement, wait_for_stop_measurement;
+	MX_HRT_TIMING acquire_and_readout_measurement, alternate_x_measurement;
+	MX_HRT_TIMING datafile_measurement, scan_progress_measurement;
+	MX_HRT_TIMING add_to_plot_measurement, end_of_point_measurement;
+#endif
 
 #if DEBUG_PAUSE_REQUEST
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -902,6 +917,10 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 	for ( i = 0; i < num_dimension_steps; i++ ) {
 
+#if DEBUG_TIMING
+		MX_HRT_START( total_point_measurement );
+		MX_HRT_START( compute_measurement );
+#endif
 		/* Compute the next set of motor positions. */
 
 		linear_scan->step_number[ array_index ] = i;
@@ -911,6 +930,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if DEBUG_TIMING
+		MX_HRT_END( compute_measurement );
+		MX_HRT_START( move_absolute_measurement );
+#endif
 
 		/** Start of pause/abort retry loop - move to position. **/
 
@@ -957,6 +981,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		}
 
 		/** End of pause/abort retry loop - move to position. **/
+
+#if DEBUG_TIMING
+		MX_HRT_END( move_absolute_measurement );
+		MX_HRT_START( wait_for_stop_measurement );
+#endif
 
 		/** Start of pause/abort retry loop - wait for motors. **/
 
@@ -1005,6 +1034,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		/** End of pause/abort retry loop - wait for motors. **/
 
+#if DEBUG_TIMING
+		MX_HRT_END( wait_for_stop_measurement );
+		MX_HRT_START( acquire_and_readout_measurement );
+#endif
+
 		/** Start of pause/abort retry loop - acquire and rdout data.**/
 
 		exit_loop = FALSE;
@@ -1050,6 +1084,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 		/** End of pause/abort retry loop - acquire and rdout data. **/
 
+#if DEBUG_TIMING
+		MX_HRT_END( acquire_and_readout_measurement );
+		MX_HRT_START( alternate_x_measurement );
+#endif
+
 		/* If alternate X axis motors have been specified,
 		 * get and save their current positions for use
 		 * by the datafile handling code.
@@ -1060,6 +1099,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if DEBUG_TIMING
+		MX_HRT_END( alternate_x_measurement );
+		MX_HRT_START( datafile_measurement );
+#endif
+
 		/**** Write the result out to the datafile. ****/
 
 		mx_status = mx_add_measurement_to_datafile(
@@ -1068,12 +1112,22 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if DEBUG_TIMING
+		MX_HRT_END( datafile_measurement );
+		MX_HRT_START( scan_progress_measurement );
+#endif
+
 		/* Report the progress of the scan back to the user. */
 
 		mx_status = mx_scan_display_scan_progress( scan );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if DEBUG_TIMING
+		MX_HRT_END( scan_progress_measurement );
+		MX_HRT_START( add_to_plot_measurement );
+#endif
 
 		/* Finally, if enabled, add the measurement to the
 		 * running scan plot.
@@ -1105,6 +1159,11 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 				return mx_status;
 		}
 
+#if DEBUG_TIMING
+		MX_HRT_END( add_to_plot_measurement );
+		MX_HRT_START( end_of_point_measurement );
+#endif
+
 		mx_status = mx_scan_increment_measurement_number(scan);
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1121,6 +1180,27 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 
 			start_fast_mode = FALSE;
 		}
+
+#if DEBUG_TIMING
+		MX_HRT_END( end_of_point_measurement );
+		MX_HRT_END( total_point_measurement );
+
+		MX_HRT_RESULTS( compute_measurement, fname, "compute" );
+		MX_HRT_RESULTS( move_absolute_measurement, fname,
+							"move absolute" );
+		MX_HRT_RESULTS( wait_for_stop_measurement, fname,
+							"wait for stop" );
+		MX_HRT_RESULTS( acquire_and_readout_measurement, fname,
+							"acq and read");
+		MX_HRT_RESULTS( alternate_x_measurement, fname, "alt x" );
+		MX_HRT_RESULTS( datafile_measurement, fname, "datafile" );
+		MX_HRT_RESULTS( scan_progress_measurement, fname,
+							"scan progress" );
+		MX_HRT_RESULTS( add_to_plot_measurement, fname, "add to plot" );
+		MX_HRT_RESULTS( end_of_point_measurement, fname,
+							"end of point" );
+		MX_HRT_RESULTS( total_point_measurement, fname, "TOTAL" );
+#endif
 	}
 
 	return mx_status;

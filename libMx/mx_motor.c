@@ -7,14 +7,22 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_MOTOR_DEBUG_VCTEST	FALSE
+#define MX_MOTOR_DEBUG_VCTEST				FALSE
+
+#define MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING		TRUE
+
+#define MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING	TRUE
+
+#define MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING	TRUE
+
+#define MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +33,7 @@
 #include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_key.h"
+#include "mx_hrt_debug.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_socket.h"
@@ -541,6 +550,17 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 	double present_position, relative_motion;
 	mx_status_type status;
 
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+	MX_HRT_TIMING total_move_measurement;
+	MX_HRT_TIMING check_limits_measurement;
+	MX_HRT_TIMING check_for_backlash_measurement;
+	MX_HRT_TIMING do_backlash_measurement;
+	MX_HRT_TIMING main_move_measurement;
+
+	MX_HRT_START( total_move_measurement );
+	MX_HRT_START( check_limits_measurement );
+#endif
+
 	MX_DEBUG( 2,("%s: *** flags = %#lx ***", fname, flags));
 
 	/* See if any of the requested moves will exceed a software limit. */
@@ -555,6 +575,11 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 		if ( status.code != MXE_SUCCESS )
 			return status;
 	}
+
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+	MX_HRT_END( check_limits_measurement );
+	MX_HRT_START( check_for_backlash_measurement );
+#endif
 
 	/* Move to the backlash_position. */
 
@@ -615,6 +640,11 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 			}
 		}
 
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+		MX_HRT_END( check_for_backlash_measurement );
+		MX_HRT_START( do_backlash_measurement );
+#endif
+
 		MX_DEBUG( 2,("%s: do_backlash = %d", fname, do_backlash));
 
 		/* Do the backlash correction. */
@@ -646,6 +676,11 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 		}
 	}
 
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+	MX_HRT_END( do_backlash_measurement );
+	MX_HRT_START( main_move_measurement );
+#endif
+
 	/* Now move to the final position. */
 
 	modified_flags = flags | MXF_MTR_IGNORE_BACKLASH;
@@ -658,6 +693,17 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 					motor_position,
 					move_report_fn,
 					modified_flags );
+#if MX_MOTOR_DEBUG_MOVE_ARRAY_TIMING
+	MX_HRT_END( main_move_measurement );
+	MX_HRT_END( total_move_measurement );
+
+	MX_HRT_RESULTS( check_limits_measurement, fname, "check limits" );
+	MX_HRT_RESULTS( check_for_backlash_measurement, fname,
+							"check for backlash" );
+	MX_HRT_RESULTS( do_backlash_measurement, fname, "do backlash" );
+	MX_HRT_RESULTS( main_move_measurement, fname, "main move" );
+	MX_HRT_RESULTS( total_move_measurement, fname, "TOTAL move" );
+#endif
 	return status;
 }
 
@@ -681,6 +727,14 @@ mx_motor_array_internal_move_with_report( long num_motors,
 	unsigned long move_report_flag, modified_flags, wait_flag;
 	int i, j;
 
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+	MX_HRT_TIMING total_internal_move_measurement, wait_measurement;
+	MX_HRT_TIMING simultaneous_start_measurement, start_move_measurement;
+	MX_HRT_TIMING display_move_measurement;
+
+	MX_HRT_START( total_internal_move_measurement );
+#endif
+
 	MX_DEBUG( 2,
 		("%s invoked.  flags = %#lx, move_report_fn = %p",
 		fname, flags, move_report_fn));
@@ -692,6 +746,10 @@ mx_motor_array_internal_move_with_report( long num_motors,
 	modified_flags |= MXF_MTR_NOWAIT;
 
 	if ( flags & MXF_MTR_SIMULTANEOUS_START ) {
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+		MX_HRT_START( simultaneous_start_measurement );
+#endif
 
 		if ( num_motors <= 0 ) {
 			/* If there are no motors, then return without
@@ -763,12 +821,25 @@ mx_motor_array_internal_move_with_report( long num_motors,
 
 		if ( status.code != MXE_SUCCESS )
 			return status;
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+		MX_HRT_END( simultaneous_start_measurement );
+
+		MX_HRT_RESULTS( simultaneous_start_measurement, fname,
+				"simultaineous start" );
+#endif
+
 	} else {
 		/* We were not asked for a simultaneous start, so start
 		 * the motors in sequence.
 		 */
 
 		for ( i = 0; i < num_motors; i++ ) {
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+			MX_HRT_START( start_move_measurement );
+#endif
+
 			MX_DEBUG( 2,("%s: moving %s to %g",
 				fname, motor_record_array[i]->name,
 				motor_position[i]));
@@ -784,8 +855,19 @@ mx_motor_array_internal_move_with_report( long num_motors,
 				}
 				return status;
 			}
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+			MX_HRT_END( start_move_measurement );
+
+			MX_HRT_RESULTS( start_move_measurement, fname,
+							"start move" );
+#endif
 		}
 	}
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+	MX_HRT_START( display_move_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s: About to display motor moves.", fname));
 
@@ -795,6 +877,11 @@ mx_motor_array_internal_move_with_report( long num_motors,
 		status = ( *move_report_fn ) ( flags,
 					num_motors, motor_record_array );
 	}
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+	MX_HRT_END( display_move_measurement );
+	MX_HRT_START( wait_measurement );
+#endif
 
 	/* Wait for the motor move to complete if requested. */
 
@@ -809,6 +896,16 @@ mx_motor_array_internal_move_with_report( long num_motors,
 		if ( status.code != MXE_SUCCESS )
 			return status;
 	}
+
+#if MX_MOTOR_DEBUG_INTERNAL_MOVE_ARRAY_TIMING
+	MX_HRT_END( wait_measurement );
+	MX_HRT_END( total_internal_move_measurement );
+
+	MX_HRT_RESULTS( display_move_measurement, fname, "display move" );
+	MX_HRT_RESULTS( wait_measurement, fname, "wait" );
+	MX_HRT_RESULTS( total_internal_move_measurement, fname,
+						"TOTAL internal move" );
+#endif
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -980,6 +1077,13 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 	unsigned long ignore_pause;
 	mx_status_type mx_status;
 
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+	MX_HRT_TIMING total_wait_measurement, get_status_measurement;
+	MX_HRT_TIMING check_keyboard_measurement, msleep_measurement;
+
+	MX_HRT_START( total_wait_measurement );
+#endif
+
 	MX_DEBUG( 2,("%s invoked.", fname));
 
 	ignore_keyboard = flags & MXF_MTR_IGNORE_KEYBOARD;
@@ -1011,6 +1115,10 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 		motor_is_moving = FALSE;
 
 		for ( i = 0; i < num_motor_records; i++ ) {
+
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+			MX_HRT_START( get_status_measurement );
+#endif
 
 			/* What is the status of this motor? */
 
@@ -1065,6 +1173,10 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 					motor_record_array[i]->name );
 			}
 
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+			MX_HRT_END( get_status_measurement );
+			MX_HRT_START( check_keyboard_measurement );
+#endif
 			if ( ignore_keyboard == FALSE ) {
 				/* Did someone hit a key? */
 
@@ -1111,7 +1223,20 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 						interrupt );
 				}
 			}
+
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+			MX_HRT_END( check_keyboard_measurement );
+
+			MX_HRT_RESULTS( get_status_measurement, fname,
+							"get move status" );
+			MX_HRT_RESULTS( check_keyboard_measurement, fname,
+							"check keyboard" );
+#endif
 		}
+
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+		MX_HRT_START( msleep_measurement );
+#endif
 
 		if ( any_error_occurred ) {
 			for ( j = 0; j < num_motor_records; j++ ) {
@@ -1126,7 +1251,19 @@ mx_wait_for_motor_array_stop( long num_motor_records,
 			break;			/* Exit the for loop. */
 
 		mx_msleep(10);
+
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+		MX_HRT_END( msleep_measurement );
+
+		MX_HRT_RESULTS( msleep_measurement, fname, "mx_msleep(10)" );
+#endif
 	}
+
+#if MX_MOTOR_DEBUG_WAIT_ARRAY_TIMING
+	MX_HRT_END( total_wait_measurement );
+
+	MX_HRT_RESULTS( total_wait_measurement, fname, "TOTAL wait" );
+#endif
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -4566,6 +4703,18 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	char units[80];
 	mx_status_type status, move_report_status;
 
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_TIMING total_measurement, setup_measurement;
+	MX_HRT_TIMING backlash_measurement, limits_measurement;
+	MX_HRT_TIMING move_measurement, move_report_measurement;
+	MX_HRT_TIMING update_measurement;
+
+	MX_DEBUG(-2,("%s invoked for '%s'", fname, motor_record->name ));
+
+	MX_HRT_START( total_measurement );
+	MX_HRT_START( setup_measurement );
+#endif
+
 	status = mx_motor_get_pointers( motor_record,
 					&motor, &fl_ptr, fname );
 
@@ -4598,6 +4747,13 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	/* Do not do the move if it would be less than the deadband size. */
 
 	if ( fabs( relative_motion ) < motor->raw_move_deadband.analog ) {
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+		MX_HRT_END( total_measurement );
+		MX_HRT_RESULTS( total_measurement, fname,
+				"return due to deadband" );
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -4632,6 +4788,11 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			do_backlash = TRUE;
 		}
 	}
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( setup_measurement );
+	MX_HRT_START( backlash_measurement );
+#endif
 
 	/* Do the backlash correction, if necessary. */
 
@@ -4722,6 +4883,13 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			mask = MXF_MTR_NOWAIT | MXF_MTR_GO_TO_BACKLASH_POSITION;
 
 			if ( (flags & mask) == mask ) {
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+				MX_HRT_END( total_measurement );
+				MX_HRT_RESULTS( total_measurement, fname,
+					"return due to NOWAIT backlash" );
+#endif
+
 				return MX_SUCCESSFUL_RESULT;
 			}
 
@@ -4761,9 +4929,21 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		}
 	}
 
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( backlash_measurement );
+	MX_HRT_START( limits_measurement );
+#endif
+
 	/* Were we asked to only go to the backlash position? */
 
 	if ( flags & MXF_MTR_GO_TO_BACKLASH_POSITION ) {
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+		MX_HRT_END( total_measurement );
+		MX_HRT_RESULTS( total_measurement, fname,
+				"return due to backlash only" );
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -4810,8 +4990,19 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	/* Return now if we are only checking limits. */
 
 	if ( flags & MXF_MTR_ONLY_CHECK_LIMITS ) {
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+		MX_HRT_END( total_measurement );
+		MX_HRT_RESULTS( total_measurement, fname,
+				"return due to only checking limits" );
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( limits_measurement );
+	MX_HRT_START( move_measurement );
+#endif
 
 	/* Update the destination. */
 
@@ -4827,12 +5018,22 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( move_measurement );
+	MX_HRT_START( move_report_measurement );
+#endif
+
 	if ( move_report_fn != NULL ) {
 		move_report_status = move_report_fn(
 						flags, 1, &motor_record);
 	} else {
 		move_report_status = MX_SUCCESSFUL_RESULT;
 	}
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( move_report_measurement );
+	MX_HRT_START( update_measurement );
+#endif
 
 	/* Update copy of motor position in MX_MOTOR structure, unless
 	 * MXF_MTR_NOWAIT is set in 'flags'.
@@ -4844,6 +5045,23 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		if ( status.code != MXE_SUCCESS )
 			return status;
 	}
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_HRT_END( update_measurement );
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( setup_measurement, fname, "setup" );
+	MX_HRT_RESULTS( backlash_measurement, fname, "backlash" );
+	MX_HRT_RESULTS( limits_measurement, fname, "limits" );
+	MX_HRT_RESULTS( move_measurement, fname, "move" );
+	MX_HRT_RESULTS( move_report_measurement, fname, "move report" );
+	MX_HRT_RESULTS( update_measurement, fname, "update" );
+	MX_HRT_RESULTS( total_measurement, fname, "TOTAL" );
+#endif
+
+#if MX_MOTOR_DEBUG_MOVE_ABSOLUTE_ANALOG_TIMING
+	MX_DEBUG(-2,("%s complete for '%s'", fname, motor_record->name ));
+#endif
 
 	return move_report_status;
 }

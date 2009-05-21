@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_NETWORK_MOTOR_DEBUG_TIMING	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_hrt_debug.h"
 #include "mx_motor.h"
 #include "d_network_motor.h"
 
@@ -553,6 +556,10 @@ mxd_network_motor_motor_is_busy( MX_MOTOR *motor )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_TIMING busy_measurement;
+#endif
+
 	mx_status = mxd_network_motor_get_pointers( motor,
 						&network_motor, fname );
 
@@ -561,6 +568,10 @@ mxd_network_motor_motor_is_busy( MX_MOTOR *motor )
 
 		return mx_status;
 	}
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_START( busy_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
@@ -581,6 +592,12 @@ mxd_network_motor_motor_is_busy( MX_MOTOR *motor )
 		motor->busy = FALSE;
 	}
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_END( busy_measurement );
+
+	MX_HRT_RESULTS( busy_measurement, fname, "busy" );
+#endif
+
 	return mx_status;
 }
 
@@ -593,11 +610,19 @@ mxd_network_motor_move_absolute( MX_MOTOR *motor )
 	double new_destination;
 	mx_status_type mx_status;
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_TIMING move_measurement;
+#endif
+
 	mx_status = mxd_network_motor_get_pointers( motor,
 						&network_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_START( move_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
@@ -615,6 +640,12 @@ mxd_network_motor_move_absolute( MX_MOTOR *motor )
 	mx_status = mx_put( &(network_motor->destination_nf),
 				MXFT_DOUBLE, &new_destination );
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_END( move_measurement );
+
+	MX_HRT_RESULTS( move_measurement, fname, "move" );
+#endif
+
 	return mx_status;
 }
 
@@ -627,11 +658,19 @@ mxd_network_motor_get_position( MX_MOTOR *motor )
 	double position;
 	mx_status_type mx_status;
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_TIMING get_position_measurement;
+#endif
+
 	mx_status = mxd_network_motor_get_pointers( motor,
 						&network_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_START( get_position_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
@@ -648,6 +687,12 @@ mxd_network_motor_get_position( MX_MOTOR *motor )
 				MXFT_DOUBLE, &position );
 
 	motor->raw_position.analog = position;
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_END( get_position_measurement );
+
+	MX_HRT_RESULTS( get_position_measurement, fname, "get position" );
+#endif
 
 	return mx_status;
 }
@@ -1276,6 +1321,10 @@ mxd_network_motor_get_status( MX_MOTOR *motor )
 	unsigned long remote_mx_version;
 	mx_status_type mx_status;
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_TIMING get_status_measurement;
+#endif
+
 	mx_status = mxd_network_motor_get_pointers( motor,
 						&network_motor, fname );
 
@@ -1284,6 +1333,10 @@ mxd_network_motor_get_status( MX_MOTOR *motor )
 
 		return mx_status;
 	}
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_START( get_status_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
@@ -1319,6 +1372,12 @@ mxd_network_motor_get_status( MX_MOTOR *motor )
 					MXFT_HEX, &( motor->status ) );
 	}
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_END( get_status_measurement );
+
+	MX_HRT_RESULTS( get_status_measurement, fname, "get status" );
+#endif
+
 	return mx_status;
 }
 
@@ -1334,6 +1393,10 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 	unsigned long remote_mx_version;
 	mx_status_type mx_status;
 
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_TIMING get_extended_status_measurement;
+#endif
+
 	mx_status = mxd_network_motor_get_pointers( motor,
 						&network_motor, fname );
 
@@ -1342,6 +1405,10 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 
 		return mx_status;
 	}
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_START( get_extended_status_measurement );
+#endif
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
@@ -1400,6 +1467,13 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 				"extended_status", motor->extended_status );
 		}
 	}
+
+#if MXD_NETWORK_MOTOR_DEBUG_TIMING
+	MX_HRT_END( get_extended_status_measurement );
+
+	MX_HRT_RESULTS( get_extended_status_measurement, fname,
+				"get extended status" );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
