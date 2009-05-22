@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_MOTOR_DEBUG_TIMING	TRUE
+#define MXD_NETWORK_MOTOR_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
