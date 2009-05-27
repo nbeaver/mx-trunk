@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2007, 2009
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1050,11 +1051,19 @@ mxd_pm304_get_status( MX_MOTOR *motor )
 		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
 	}
 
+#if 0   /* FIXME - The PM304 at the 10-ID beamline of the APS has the
+         * 'Not error' bit clear as of May 27, 2009.  I don't see the
+	 * reason for why the bit is not set, so for now I am ignoring
+	 * the state of this bit.  (W. Lavender)
+	 */
+
 	/* 2: Not error. */
 
 	if ( response[2] == '0' ) {
 		motor->status |= MXSF_MTR_ERROR;
 	}
+
+#endif  /* FIXME */
 
 	/* 3: Controller idle. */
 
