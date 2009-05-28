@@ -188,8 +188,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	MX_MCS *mcs;
 	MX_EPICS_MCS *epics_mcs = NULL;
 	double version_number;
-	long i, nmax, allowed_maximum;
-	unsigned long do_not_skip;
+	long i, allowed_maximum;
+	int32_t nmax;
+	mx_bool_type  do_not_skip, long_is_32bits;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -296,8 +297,18 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 * the first measurement or not.
 	 */
 
-	do_not_skip = epics_mcs->epics_mcs_flags
-			& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT;
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
+	{
+		do_not_skip = TRUE;
+	} else {
+		do_not_skip = FALSE;
+	}
+
+	if ( sizeof(int32_t) == sizeof(long) ) {
+		long_is_32bits = TRUE;
+	} else {
+		long_is_32bits = TRUE;
+	}
 
 	if ( do_not_skip ) {
 		allowed_maximum = nmax;
@@ -321,17 +332,19 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 * convenient way of skipping the first measurement.
 	 */
 
-	if ( do_not_skip == 0 ) {
+	if ( (do_not_skip == FALSE) || (long_is_32bits == FALSE) ) {
 
 		epics_mcs->scaler_value_buffer
-				= (long *) malloc( nmax * sizeof(long) );
+				= (int32_t *) malloc( nmax * sizeof(int32_t) );
 
-		if ( epics_mcs->scaler_value_buffer == (long *) NULL ) {
+		if ( epics_mcs->scaler_value_buffer == (int32_t *) NULL ) {
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate a %ld element scaler value buffer.",
-				nmax );
+				(long) nmax );
 		}
+	} else {
+		epics_mcs->scaler_value_buffer = NULL;
 	}
 
 	/* Initialize MX EPICS data structures whose PV names _do_ depend
@@ -414,7 +427,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 */
 
 	{
-		long acquiring_value;
+		int32_t acquiring_value;
 
 		mx_status = mx_caget( &(epics_mcs->acquiring_pv),
 				MX_CA_LONG, 1, &acquiring_value );
@@ -432,7 +445,7 @@ mxd_epics_mcs_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_start()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long start;
+	int32_t start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -460,7 +473,7 @@ mxd_epics_mcs_stop( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_stop()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long stop;
+	int32_t stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -485,7 +498,7 @@ mxd_epics_mcs_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_clear()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long erase;
+	int32_t erase;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -506,7 +519,7 @@ mxd_epics_mcs_busy( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_busy()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	long busy;
+	int32_t busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -557,10 +570,12 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	static const char fname[] = "mxd_epics_mcs_read_scaler()";
 
 	MX_EPICS_MCS *epics_mcs = NULL;
-	unsigned long do_not_skip, num_measurements_from_epics;
+	unsigned long num_measurements_from_epics;
 	long read_cmd;
-	long *data_ptr, *source_ptr, *destination_ptr;
+	long *destination_ptr;
+	int32_t *data_ptr, *source_ptr;
 	size_t num_bytes_to_copy;
+	mx_bool_type do_not_skip, long_is_32bits, copy_needed;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -576,22 +591,41 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( epics_mcs->epics_mcs_flags & MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT )
+	{
+		do_not_skip = TRUE;
+	} else {
+		do_not_skip = FALSE;
+	}
+
+	if ( sizeof(int32_t) == sizeof(long) ) {
+		long_is_32bits = TRUE;
+	} else {
+		long_is_32bits = FALSE;
+	}
+
+	if ( do_not_skip && long_is_32bits ) {
+		copy_needed = FALSE;
+	} else {
+		copy_needed = TRUE;
+	}
+
 	/* If we plan to skip the first measurement, then we need to copy
 	 * the data first to a special buffer.
 	 */
 
-	do_not_skip = epics_mcs->epics_mcs_flags
-			& MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT;
-
-	if ( do_not_skip ) {
-		data_ptr = mcs->data_array[ mcs->scaler_index ];
+	if ( copy_needed == FALSE ) {
+		data_ptr = (int32_t *) mcs->data_array[ mcs->scaler_index ];
 
 		num_measurements_from_epics = mcs->current_num_measurements;
 	} else {
 		data_ptr = epics_mcs->scaler_value_buffer;
 
-		num_measurements_from_epics
-				= mcs->current_num_measurements + 1L;
+		if ( do_not_skip ) {
+			num_measurements_from_epics = mcs->current_num_measurements;
+		} else {
+			num_measurements_from_epics = mcs->current_num_measurements + 1L;
+		}
 	}
 
 	mx_status = mx_caget( &(epics_mcs->val_pv_array[ mcs->scaler_index ]),
@@ -615,9 +649,13 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	 * the data from the temporary buffer to the final destination.
 	 */
 
-	if ( do_not_skip == 0 ) {
+	if ( copy_needed ) {
 
-		source_ptr = epics_mcs->scaler_value_buffer + 1;
+		if ( do_not_skip ) {
+			source_ptr = epics_mcs->scaler_value_buffer;
+		} else {
+			source_ptr = epics_mcs->scaler_value_buffer + 1;
+		}
 
 		destination_ptr = mcs->data_array[ mcs->scaler_index ];
 
@@ -686,7 +724,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	MX_EPICS_GROUP epics_group;
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
-	long stop, current_num_epics_measurements;
+	int32_t stop, current_num_epics_measurements;
 	float preset_real_time;
 	mx_status_type mx_status;
 

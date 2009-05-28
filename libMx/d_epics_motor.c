@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -848,7 +848,7 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 	char driver_name[60];
 	float version_number;
 	double raw_position;
-	unsigned long epics_motor_status;
+	uint32_t epics_motor_status;
 	short done_moving_status, miss_pv_value;
 	short positive_limit_hit, negative_limit_hit;
 	short user_direction, lvio_pv_value;

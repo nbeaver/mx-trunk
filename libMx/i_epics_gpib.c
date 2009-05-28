@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -275,7 +275,7 @@ mxi_epics_gpib_open( MX_RECORD *record )
 	MX_GPIB *gpib;
 	MX_EPICS_GPIB *epics_gpib = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
-	long format, command;
+	int32_t format, command;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -424,7 +424,7 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 	static const char fname[] = "mxi_epics_gpib_read()";
 
 	MX_EPICS_GPIB *epics_gpib = NULL;
-	long long_address, timeout, num_chars_read;
+	int32_t int32_address, int32_eos, timeout, num_chars_read;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -440,7 +440,7 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 	"Requested number of characters (%ld) for GPIB port '%s' is longer "
 	"than the maximum input buffer length of %ld.",
 			(long) max_bytes_to_read, gpib->record->name,
-			epics_gpib->max_input_length );
+			(long) epics_gpib->max_input_length );
 	}
 
 	/* Change the transaction mode if needed. */
@@ -477,8 +477,9 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 
 	if ( epics_gpib->current_eos_char != gpib->read_terminator[ address ] )
 	{
-		mx_status = mx_caput( &(epics_gpib->eos_pv),
-			MX_CA_LONG, 1, &(gpib->read_terminator[address]) );
+		int32_eos = gpib->read_terminator[address];
+
+		mx_status = mx_caput( &(epics_gpib->eos_pv), MX_CA_LONG, 1, &int32_eos );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -504,10 +505,10 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 
 	if ( epics_gpib->current_address != address ) {
 
-		long_address = (long) address;
+		int32_address = (int32_t) address;
 
 		mx_status = mx_caput( &(epics_gpib->addr_pv),
-					MX_CA_LONG, 1, &long_address );
+					MX_CA_LONG, 1, &int32_address );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -552,7 +553,7 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 	static const char fname[] = "mxi_epics_gpib_write()";
 
 	MX_EPICS_GPIB *epics_gpib = NULL;
-	long timeout;
+	int32_t timeout, int32_bytes_to_write;
 	mx_status_type mx_status;
 
 	mx_status = mxi_epics_gpib_get_pointers( gpib, &epics_gpib, fname );
@@ -568,7 +569,7 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 	"Requested number of characters (%ld) for GPIB port '%s' is longer "
 	"than the maximum output buffer length of %ld.",
 			(long) bytes_to_write, gpib->record->name,
-			epics_gpib->max_output_length );
+			(long) epics_gpib->max_output_length );
 	}
 
 	/* Change the transaction mode if needed. */
@@ -618,8 +619,10 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 
 	if ( epics_gpib->num_chars_to_write != bytes_to_write ) {
 
+		int32_bytes_to_write = bytes_to_write;
+
 		mx_status = mx_caput( &(epics_gpib->nowt_pv),
-					MX_CA_LONG, 1, &bytes_to_write );
+					MX_CA_LONG, 1, &int32_bytes_to_write );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -830,13 +833,12 @@ static mx_status_type
 mxi_epics_gpib_set_address( MX_EPICS_GPIB *epics_gpib,
 				MX_GPIB *gpib, int address )
 {
-	long long_address;
+	int32_t int32_address;
 	mx_status_type mx_status;
 
-	long_address = (long) address;
+	int32_address = (int32_t) address;
 
-	mx_status = mx_caput( &(epics_gpib->addr_pv),
-				MX_CA_LONG, 1, &long_address );
+	mx_status = mx_caput( &(epics_gpib->addr_pv), MX_CA_LONG, 1, &int32_address );
 
 	return mx_status;
 }
@@ -846,9 +848,12 @@ mxi_epics_gpib_set_transaction_mode( MX_EPICS_GPIB *epics_gpib,
 					MX_GPIB *gpib,
 					long mode )
 {
+	int32_t int32_mode;
 	mx_status_type mx_status;
 
-	mx_status = mx_caput( &(epics_gpib->tmod_pv), MX_CA_LONG, 1, &mode );
+	int32_mode = mode;
+
+	mx_status = mx_caput( &(epics_gpib->tmod_pv), MX_CA_LONG, 1, &int32_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

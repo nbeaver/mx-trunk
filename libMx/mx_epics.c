@@ -878,7 +878,7 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 		} else {
 			char byte_value;
 			short short_value;
-			long long_value;
+			int32_t int32_value;
 			float float_value;
 			double double_value;
 
@@ -904,11 +904,11 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 					short_value));
 				break;
 			case MX_CA_LONG:
-				long_value = *((long *) data_buffer);
+				int32_value = *((int32_t *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: '%s' value read = %ld.",
 					fname, pv->pvname,
-					long_value));
+					(long) int32_value));
 				break;
 			case MX_CA_FLOAT:
 				float_value = *((float *) data_buffer);
@@ -1125,7 +1125,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		} else {
 			char byte_value;
 			short short_value;
-			long long_value;
+			int32_t int32_value;
 			float float_value;
 			double double_value;
 	
@@ -1151,10 +1151,10 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 					pv->pvname ));
 				break;
 			case MX_CA_LONG:
-				long_value = *((long *) data_buffer);
+				int32_value = *((int32_t *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %ld to '%s'.",
-					fname, long_value,
+					fname, (long) int32_value,
 					pv->pvname ));
 				break;
 			case MX_CA_FLOAT:
@@ -1476,7 +1476,7 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 		} else {
 			char byte_value;
 			short short_value;
-			long long_value;
+			int32_t int32_value;
 			float float_value;
 			double double_value;
 	
@@ -1502,10 +1502,10 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 					pv->pvname ));
 				break;
 			case MX_CA_LONG:
-				long_value = *((long *) data_buffer);
+				int32_value = *((int32_t *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %ld to '%s'.",
-					fname, long_value,
+					fname, (long) int32_value,
 					pv->pvname ));
 				break;
 			case MX_CA_FLOAT:
@@ -1910,7 +1910,7 @@ mx_epics_get_element_size( long field_type )
 		element_size = sizeof(short);
 		break;
 	case MX_CA_LONG:
-		element_size = sizeof(long);
+		element_size = sizeof(int32_t);
 		break;
 	case MX_CA_FLOAT:
 		element_size = sizeof(float);
@@ -2478,7 +2478,7 @@ mx_epics_internal_group_caput( CA_SYNC_GID group_id,
 		} else {
 			char byte_value;
 			short short_value;
-			long long_value;
+			int32_t int32_value;
 			float float_value;
 			double double_value;
 	
@@ -2504,10 +2504,10 @@ mx_epics_internal_group_caput( CA_SYNC_GID group_id,
 					pv->pvname ));
 				break;
 			case MX_CA_LONG:
-				long_value = *((long *) data_buffer);
+				int32_value = *((int32_t *) data_buffer);
 	
 				MX_DEBUG(-2,("%s: sending %ld to '%s'.",
-					fname, long_value,
+					fname, (long) int32_value,
 					pv->pvname ));
 				break;
 			case MX_CA_FLOAT:

@@ -361,7 +361,7 @@ mxd_epics_scaler_read( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_read()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long value;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -392,7 +392,7 @@ mxd_epics_scaler_read_raw( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_read_raw()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long value;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -416,7 +416,7 @@ mxd_epics_scaler_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_is_busy()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long count_field;
+	int32_t count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -442,7 +442,7 @@ mxd_epics_scaler_is_busy( MX_SCALER *scaler )
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "Count field (.CNT) for scaler '%s' had an unexpected value of %ld",
-			epics_scaler->epics_record_name, count_field );
+			epics_scaler->epics_record_name, (long) count_field );
 		break;
 	}
 
@@ -455,7 +455,7 @@ mxd_epics_scaler_start( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_start()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long value, count_field;
+	int32_t value, count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -493,7 +493,7 @@ mxd_epics_scaler_stop( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_stop()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long count_field;
+	int32_t count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -606,7 +606,8 @@ mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_get_mode()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long gate_control, offset;
+	long offset;
+	int32_t gate_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -639,7 +640,7 @@ mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 		"has the unexpected value %ld.",
 			scaler->record->name,
 			epics_scaler->epics_record_name,
-			gate_control );
+			(long) gate_control );
 		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -651,7 +652,8 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 	static const char fname[] = "mxd_epics_scaler_set_mode()";
 
 	MX_EPICS_SCALER *epics_scaler = NULL;
-	long gate_control, counter_mode, offset;
+	long offset;
+	int32_t gate_control, counter_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,
@@ -716,7 +718,7 @@ mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 	MX_EPICS_SCALER *epics_scaler = NULL;
 	MX_EPICS_GROUP epics_group;
 	int i;
-	long gate_control;
+	int32_t gate_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_scaler_get_pointers( scaler,

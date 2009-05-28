@@ -272,7 +272,7 @@ mxd_epics_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_epics_timer_is_busy()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
-	long count_field;
+	int32_t count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );
@@ -298,7 +298,7 @@ mxd_epics_timer_is_busy( MX_TIMER *timer )
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"Count field (.CNT) for scaler '%s' had an unexpected value of %ld",
-			epics_timer->epics_record_name, count_field );
+			epics_timer->epics_record_name, (long) count_field );
 		break;
 	}
 
@@ -312,7 +312,7 @@ mxd_epics_timer_start( MX_TIMER *timer )
 
 	MX_EPICS_TIMER *epics_timer = NULL;
 	double seconds;
-	long count_field;
+	int32_t count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );
@@ -376,7 +376,7 @@ mxd_epics_timer_stop( MX_TIMER *timer )
 	static const char fname[] = "mxd_epics_timer_stop()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
-	long count_field;
+	int32_t count_field;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );
@@ -452,7 +452,7 @@ mxd_epics_timer_get_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_epics_timer_get_mode()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
-	long gate_control;
+	int32_t gate_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );
@@ -483,7 +483,7 @@ mxd_epics_timer_get_mode( MX_TIMER *timer )
 		"has the unexpected value %ld.",
 			timer->record->name,
 			epics_timer->epics_record_name,
-			gate_control );
+			(long) gate_control );
 		break;
 	}
 
@@ -496,7 +496,7 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_epics_timer_set_mode()";
 
 	MX_EPICS_TIMER *epics_timer = NULL;
-	long gate_control, counter_mode;
+	int32_t gate_control, counter_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );
@@ -559,7 +559,7 @@ mxd_epics_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 	MX_EPICS_TIMER *epics_timer = NULL;
 	MX_EPICS_GROUP epics_group;
 	int i;
-	long gate_control;
+	int32_t gate_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_timer_get_pointers( timer, &epics_timer, fname );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -752,7 +752,7 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 
 	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
 	double double_value;
-	long long_value;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_tc_motor_get_pointers( motor,
@@ -779,10 +779,10 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 		 * in its database.
 		 */
 
-		long_value = 1;
+		int32_value = 1;
 
 		mx_status = mx_caput( &(pmac_tc_motor->i20fan_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -811,10 +811,10 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 		 * time in its database.
 		 */
 
-		long_value = 1;
+		int32_value = 1;
 
 		mx_status = mx_caput( &(pmac_tc_motor->i20fan_pv),
-					MX_CA_LONG, 1, &long_value );
+					MX_CA_LONG, 1, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ typedef struct {
 	unsigned long epics_mcs_flags;
 
 	double epics_record_version;
-	long *scaler_value_buffer;
+	int32_t *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV dwell_pv;

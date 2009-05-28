@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2003 Illinois Institute of Technology
+ * Copyright 2001-2003, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,8 +35,8 @@ typedef struct {
 
 	int old_direction;
 
-	long max_epics_values;
-	long *temp_buffer;
+	int32_t max_epics_values;
+	int32_t *temp_buffer;
 	unsigned char *status_array;
 
 	MX_EPICS_PV addr_pv;

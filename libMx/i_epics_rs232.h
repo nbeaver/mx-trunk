@@ -58,12 +58,12 @@
 typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
-	int max_input_length;
+	int32_t max_input_length;
 	char *input_buffer;
 	char *next_unread_char_ptr;
 	int last_read_length;
 
-	int max_output_length;
+	int32_t max_output_length;
 	char *output_buffer;
 
 	int input_delimiter_on;

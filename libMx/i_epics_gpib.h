@@ -51,15 +51,15 @@
 typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
-	long max_input_length;
-	long max_output_length;
+	int32_t max_input_length;
+	int32_t max_output_length;
+	int32_t current_eos_char;
 
 	long transaction_mode;
 	long timeout;
 	long default_timeout;
 
 	long current_address;
-	long current_eos_char;
 	long num_chars_to_read;
 	long num_chars_to_write;
 

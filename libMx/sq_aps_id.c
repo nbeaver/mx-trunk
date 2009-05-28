@@ -406,7 +406,7 @@ mxs_apsid_quick_scan_compute_gap(
 
 		double lambda_1, lambda_ratio;
 		double B, K, K_squared;
-		long harmonic;
+		uint32_t harmonic;
 
 		/* Get the current undulator harmonic setting. */
 
@@ -745,7 +745,8 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 	unsigned long num_elements;
 	char message1[100];
 	double starting_gap, ending_gap, gap_scan_time;
-	long i, busy, stop, start;
+	long i;
+	int32_t busy, stop, start;
 	char status_byte;
 	mx_status_type mx_status;
 
@@ -1006,7 +1007,7 @@ mxs_apsid_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_APSID_QUICK_SCAN_EXTENSION *apsid_quick_scan_extension;
-	long stop;
+	int32_t stop;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));

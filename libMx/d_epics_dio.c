@@ -98,7 +98,7 @@ mxd_epics_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_EPICS_DINPUT **epics_dinput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_din_get_pointers()";
+	static const char fname[] = "mxd_epics_din_get_pointers()";
 
 	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -132,7 +132,7 @@ mxd_epics_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_EPICS_DOUTPUT **epics_doutput,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_dout_get_pointers()";
+	static const char fname[] = "mxd_epics_dout_get_pointers()";
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -167,7 +167,7 @@ mxd_epics_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_epics_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_epics_din_create_record_structures()";
+        static const char fname[] = "mxd_epics_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_EPICS_DINPUT *epics_dinput = NULL;
@@ -204,7 +204,7 @@ mxd_epics_din_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_din_open()";
+	static const char fname[] = "mxd_epics_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_EPICS_DINPUT *epics_dinput = NULL;
@@ -231,9 +231,10 @@ mxd_epics_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_epics_din_read()";
+	static const char fname[] = "mxd_epics_din_read()";
 
 	MX_EPICS_DINPUT *epics_dinput = NULL;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_din_get_pointers( dinput, &epics_dinput, fname );
@@ -241,10 +242,14 @@ mxd_epics_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_dinput->epics_pv),
-			MX_CA_LONG, 1, &(dinput->value) );
+	mx_status = mx_caget( &(epics_dinput->epics_pv), MX_CA_LONG, 1, &int32_value );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dinput->value = int32_value;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ===== Output functions. ===== */
@@ -252,7 +257,7 @@ mxd_epics_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_epics_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_epics_dout_create_record_structures()";
+        static const char fname[] = "mxd_epics_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_EPICS_DOUTPUT *epics_doutput = NULL;
@@ -290,7 +295,7 @@ mxd_epics_dout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_dout_open()";
+	static const char fname[] = "mxd_epics_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_EPICS_DOUTPUT *epics_doutput = NULL;
@@ -317,9 +322,10 @@ mxd_epics_dout_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_epics_dout_read()";
+	static const char fname[] = "mxd_epics_dout_read()";
 
 	MX_EPICS_DOUTPUT *epics_doutput = NULL;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_dout_get_pointers(doutput, &epics_doutput, fname);
@@ -327,18 +333,23 @@ mxd_epics_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_doutput->epics_pv),
-			MX_CA_LONG, 1, &(doutput->value) );
+	mx_status = mx_caget( &(epics_doutput->epics_pv), MX_CA_LONG, 1, &int32_value );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	doutput->value = int32_value;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_epics_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_epics_dout_write()";
+	static const char fname[] = "mxd_epics_dout_write()";
 
 	MX_EPICS_DOUTPUT *epics_doutput = NULL;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_dout_get_pointers(doutput, &epics_doutput, fname);
@@ -346,8 +357,9 @@ mxd_epics_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caput( &(epics_doutput->epics_pv),
-			MX_CA_LONG, 1, &(doutput->value) );
+	int32_value = doutput->value;
+
+	mx_status = mx_caput( &(epics_doutput->epics_pv), MX_CA_LONG, 1, &int32_value );
 
 	return mx_status;
 }

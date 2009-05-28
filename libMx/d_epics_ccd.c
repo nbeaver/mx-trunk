@@ -212,6 +212,7 @@ mxd_epics_ccd_open( MX_RECORD *record )
 	MX_EPICS_CCD *epics_ccd;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_string[41];
+	int32_t bits_per_pixel;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -274,11 +275,12 @@ mxd_epics_ccd_open( MX_RECORD *record )
 	snprintf( pvname, sizeof(pvname),
 		"%sBitDepth", epics_ccd->epics_record_name );
 
-	mx_status = mx_caget_by_name( pvname,
-				MX_CA_LONG, 1, &(ad->bits_per_pixel) );
+	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &bits_per_pixel );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->bits_per_pixel = bits_per_pixel;
 
 #if MXD_EPICS_CCD_DEBUG
 	MX_DEBUG(-2,("%s: bits per pixel = %ld", fname, ad->bits_per_pixel))
@@ -337,7 +339,7 @@ mxd_epics_ccd_trigger( MX_AREA_DETECTOR *ad )
 
 	MX_EPICS_CCD *epics_ccd;
 	MX_SEQUENCE_PARAMETERS *sp;
-	long acquire;
+	int32_t acquire;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ccd_get_pointers( ad, &epics_ccd, fname );
@@ -354,8 +356,7 @@ mxd_epics_ccd_trigger( MX_AREA_DETECTOR *ad )
 
 	acquire = 1;
 
-	mx_status = mx_caput( &(epics_ccd->acquire_poll_pv),
-				MX_CA_LONG, 1, &acquire );
+	mx_status = mx_caput( &(epics_ccd->acquire_poll_pv), MX_CA_LONG, 1, &acquire );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -376,7 +377,7 @@ mxd_epics_ccd_abort( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ccd_abort()";
 
 	MX_EPICS_CCD *epics_ccd;
-	long abort_value;
+	int32_t abort_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ccd_get_pointers( ad, &epics_ccd, fname );
@@ -390,8 +391,7 @@ mxd_epics_ccd_abort( MX_AREA_DETECTOR *ad )
 #endif
 	abort_value = 1;
 
-	mx_status = mx_caput( &(epics_ccd->abort_pv),
-				MX_CA_LONG, 1, &abort_value );
+	mx_status = mx_caput( &(epics_ccd->abort_pv), MX_CA_LONG, 1, &abort_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -407,7 +407,7 @@ mxd_epics_ccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ccd_get_extended_status()";
 
 	MX_EPICS_CCD *epics_ccd;
-	long busy;
+	int32_t busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ccd_get_pointers( ad, &epics_ccd, fname );
@@ -419,8 +419,7 @@ mxd_epics_ccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_caget( &(epics_ccd->acquire_poll_pv),
-				MX_CA_LONG, 1, &busy );
+	mx_status = mx_caget( &(epics_ccd->acquire_poll_pv), MX_CA_LONG, 1, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -496,6 +495,7 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_EPICS_CCD *epics_ccd;
 	MX_SEQUENCE_PARAMETERS seq;
+	int32_t x_binsize, y_binsize;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ccd_get_pointers( ad, &epics_ccd, fname );
@@ -521,25 +521,24 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
-		mx_status = mx_caget( &(epics_ccd->binx_pv),
-				MX_CA_LONG, 1, &(ad->binsize[0]) );
+		mx_status = mx_caget( &(epics_ccd->binx_pv), MX_CA_LONG, 1, &x_binsize );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_caget( &(epics_ccd->biny_pv),
-				MX_CA_LONG, 1, &(ad->binsize[1]) );
+		mx_status = mx_caget( &(epics_ccd->biny_pv), MX_CA_LONG, 1, &y_binsize );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		ad->binsize[0] = x_binsize;
+		ad->binsize[1] = y_binsize;
 
 		if ( ad->binsize[0] > 0 ) {
-			ad->framesize[0] = 
-				ad->maximum_framesize[0] / ad->binsize[0];
+			ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
 		}
 		if ( ad->binsize[1] > 0 ) {
-			ad->framesize[1] = 
-				ad->maximum_framesize[1] / ad->binsize[1];
+			ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
 		}
 		break;
 

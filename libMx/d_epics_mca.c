@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +72,7 @@ mxd_epics_mca_get_pointers( MX_MCA *mca,
 			MX_EPICS_MCA **epics_mca,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_epics_mca_get_pointers()";
+	static const char fname[] = "mxd_epics_mca_get_pointers()";
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -136,7 +136,7 @@ mxd_epics_mca_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_epics_mca_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mca_create_record_structures()";
+	static const char fname[] = "mxd_epics_mca_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
@@ -172,7 +172,7 @@ mxd_epics_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mca_finish_record_initialization()";
+	static const char fname[] = "mxd_epics_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
 	mx_status_type mx_status;
@@ -226,7 +226,7 @@ mxd_epics_mca_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mca_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mca_print_structure()";
+	static const char fname[] = "mxd_epics_mca_print_structure()";
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
@@ -264,7 +264,7 @@ mxd_epics_mca_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mca_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_epics_mca_open()";
+	static const char fname[] = "mxd_epics_mca_open()";
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
@@ -411,11 +411,11 @@ mx_status_type mx_status;
 MX_EXPORT mx_status_type
 mxd_epics_mca_start( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_start()";
+	static const char fname[] = "mxd_epics_mca_start()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
-	long start, preset_counts;
+	int32_t start, preset_counts;
 	double preset_real_time, preset_live_time;
 	mx_status_type mx_status;
 
@@ -516,10 +516,10 @@ mxd_epics_mca_start( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_epics_mca_stop( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_stop()";
+	static const char fname[] = "mxd_epics_mca_stop()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	long stop;
+	int32_t stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -537,10 +537,11 @@ mxd_epics_mca_stop( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_epics_mca_read( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_read()";
+	static const char fname[] = "mxd_epics_mca_read()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long num_channels;
+	mx_bool_type use_malloc = TRUE;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -553,19 +554,77 @@ mxd_epics_mca_read( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caget( &(epics_mca->val_pv),
+	if ( sizeof(int32_t) == sizeof(long) ) {
+		mx_status = mx_caget( &(epics_mca->val_pv),
 			MX_CA_LONG, (int) num_channels, mca->channel_array );
 
-	return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else
+	if ( use_malloc == TRUE ) {
+		int32_t *int32_channel_array;
+		unsigned long i;
+
+		int32_channel_array = malloc( num_channels * sizeof(int32_t) );
+
+		if ( int32_channel_array == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %lu element of "
+			"32-bit integers for an EPICS channel array.", num_channels );
+		}
+
+		mx_status = mx_caget( &(epics_mca->val_pv),
+			MX_CA_LONG, (int) num_channels, int32_channel_array );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_free( int32_channel_array );
+			return mx_status;
+		}
+
+		for ( i = 0; i < num_channels; i++ ) {
+			mca->channel_array[i] = int32_channel_array[i];
+		}
+
+		mx_free( int32_channel_array );
+	} else {
+		/* 64-bit longs without using malloc(). */
+
+		int32_t *int32_channel_array;
+		unsigned long i;
+
+		mx_status = mx_caget( &(epics_mca->val_pv),
+			MX_CA_LONG, (int) num_channels, mca->channel_array );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Since an EPICS 'long' is only 32-bits, then only the first half
+		 * of the array mca->channel_array has been used.  We must now
+		 * transfer the int32_t channel array values to their proper
+		 * 64-bit long location.  We must work our way from the end of
+		 * the array to the beginning to avoid overwriting values.
+		 * 
+		 * FIXME?  This is a hack and may not work on all machine
+		 * architectures.
+		 */
+
+		int32_channel_array = (int32_t *) mca->channel_array;
+
+		for ( i = num_channels-1; i >= 0; i-- ) {
+			mca->channel_array[i] = int32_channel_array[i];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_epics_mca_clear( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_clear()";
+	static const char fname[] = "mxd_epics_mca_clear()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	long erase;
+	int32_t erase;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -583,10 +642,10 @@ mxd_epics_mca_clear( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_epics_mca_busy( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_busy()";
+	static const char fname[] = "mxd_epics_mca_busy()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	long busy, proc;
+	int32_t busy, proc;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -623,12 +682,14 @@ mxd_epics_mca_busy( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_epics_mca_get_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_get_parameter()";
+	static const char fname[] = "mxd_epics_mca_get_parameter()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
 	double preset_live_time, preset_real_time;
-	unsigned long preset_counts;
+	int32_t current_num_channels, preset_counts;
+	int32_t preset_count_region_low, preset_count_region_high;
+	int32_t roi_array_low, roi_array_high, roi_integral, roi_low, roi_high;
 	long i;
 	mx_status_type mx_status;
 
@@ -640,7 +701,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
 		mx_status = mx_caget( &(epics_mca->nuse_pv),
-				MX_CA_LONG, 1, &(mca->current_num_channels) );
+				MX_CA_LONG, 1, &current_num_channels );
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -652,6 +713,8 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 				mca->record->name,
 				mca->maximum_num_channels );
 		}
+
+		mca->current_num_channels = current_num_channels;
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
@@ -717,14 +780,20 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT_REGION ) {
 
 		mx_status = mx_caget( &(epics_mca->pctl_pv),
-			MX_CA_LONG, 1, &(mca->preset_count_region[0]) );
+			MX_CA_LONG, 1, &preset_count_region_low );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_caget( &(epics_mca->pcth_pv),
-			MX_CA_LONG, 1, &(mca->preset_count_region[1]) );
+		mca->preset_count_region[0] = preset_count_region_low;
 
+		mx_status = mx_caget( &(epics_mca->pcth_pv),
+			MX_CA_LONG, 1, &preset_count_region_high );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mca->preset_count_region[1] = preset_count_region_high;
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
@@ -737,7 +806,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 			mx_status = mx_group_caget( &epics_group,
 				&(epics_mca->roi_low_pv_array[i]),
-				MX_CA_LONG, 1, &(mca->roi_array[i][0]) );
+				MX_CA_LONG, 1, &roi_array_low );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_epics_delete_group( &epics_group );
@@ -747,13 +816,16 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 			mx_status = mx_group_caget( &epics_group,
 				&(epics_mca->roi_high_pv_array[i]),
-				MX_CA_LONG, 1, &(mca->roi_array[i][1]) );
+				MX_CA_LONG, 1, &roi_array_high );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_epics_delete_group( &epics_group );
 
 				return mx_status;
 			}
+
+			mca->roi_array[i][0] = roi_array_low;
+			mca->roi_array[i][1] = roi_array_high;
 		}
 
 		mx_status = mx_epics_end_group( &epics_group );
@@ -770,13 +842,15 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 			mx_status = mx_group_caget( &epics_group,
 				&(epics_mca->roi_integral_pv_array[i]),
-				MX_CA_LONG, 1, &(mca->roi_integral_array[i]) );
+				MX_CA_LONG, 1, &roi_integral );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_epics_delete_group( &epics_group );
 
 				return mx_status;
 			}
+
+			mca->roi_integral_array[i] = roi_integral;
 		}
 
 		mx_status = mx_epics_end_group( &epics_group );
@@ -792,7 +866,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_group_caget( &epics_group,
 			&(epics_mca->roi_low_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &(mca->roi[0]) );
+				MX_CA_LONG, 1, &roi_low );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -802,7 +876,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_group_caget( &epics_group,
 			&(epics_mca->roi_high_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &(mca->roi[1]) );
+				MX_CA_LONG, 1, &roi_high );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -812,13 +886,17 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_epics_end_group( &epics_group );
 
+		mca->roi[0] = roi_low;
+		mca->roi[1] = roi_high;
+
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
 
 		mx_status = mx_caget( 
 			&(epics_mca->roi_integral_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &(mca->roi_integral) );
+				MX_CA_LONG, 1, &roi_integral );
 
+		mca->roi_integral = roi_integral;
 	} else
 	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
 
@@ -849,10 +927,13 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_epics_mca_set_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxd_epics_mca_set_parameter()";
+	static const char fname[] = "mxd_epics_mca_set_parameter()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
+	int32_t preset_count_region_low, preset_count_region_high;
+	int32_t roi_array_low, roi_array_high, roi_low, roi_high;
+	int32_t current_num_channels;
 	long i;
 	short no_background;
 	mx_status_type mx_status;
@@ -864,8 +945,10 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
+		current_num_channels = mca->current_num_channels;
+
 		mx_status = mx_caput( &(epics_mca->nuse_pv),
-				MX_CA_LONG, 1, &(mca->current_num_channels) );
+				MX_CA_LONG, 1, &current_num_channels );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -884,14 +967,17 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT_REGION ) {
 
+		preset_count_region_low  = mca->preset_count_region[0];
+		preset_count_region_high = mca->preset_count_region[1];
+
 		mx_status = mx_caput( &(epics_mca->pctl_pv),
-			MX_CA_LONG, 1, &(mca->preset_count_region[0]) );
+			MX_CA_LONG, 1, &preset_count_region_low );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_caput( &(epics_mca->pcth_pv),
-			MX_CA_LONG, 1, &(mca->preset_count_region[1]) );
+			MX_CA_LONG, 1, &preset_count_region_high );
 
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
@@ -905,9 +991,12 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 			/* Set the region boundaries for region i. */
 
+			roi_array_low  = mca->roi_array[i][0];
+			roi_array_high = mca->roi_array[i][1];
+
 			mx_status = mx_group_caput( &epics_group,
 				&(epics_mca->roi_low_pv_array[i]),
-					MX_CA_LONG, 1, &(mca->roi_array[i][0]));
+					MX_CA_LONG, 1, &roi_array_low );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_epics_delete_group( &epics_group );
@@ -917,7 +1006,7 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 			mx_status = mx_group_caput( &epics_group,
 				&(epics_mca->roi_high_pv_array[i]),
-					MX_CA_LONG, 1, &(mca->roi_array[i][1]));
+					MX_CA_LONG, 1, &roi_array_high );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_epics_delete_group( &epics_group );
@@ -954,9 +1043,12 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 		/* Set the region boundaries. */
 
+		roi_low  = mca->roi[0];
+		roi_high = mca->roi[1];
+
 		mx_status = mx_group_caput( &epics_group,
 			&(epics_mca->roi_low_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &(mca->roi[0]) );
+				MX_CA_LONG, 1, &roi_low );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -966,7 +1058,7 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 		mx_status = mx_group_caput( &epics_group,
 			&(epics_mca->roi_high_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &(mca->roi[1]) );
+				MX_CA_LONG, 1, &roi_high );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );

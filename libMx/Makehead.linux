@@ -235,21 +235,21 @@ EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
 
 # For most EPICS installations, use the following definitions.
 
-#EPICS_TOP	= /opt/epics
+EPICS_TOP	= /opt/epics
 #EPICS_TOP	= /usr/local/epics
 #EPICS_TOP	= /home/lavender/epics
 
-#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-#			-I$(EPICS_TOP)/base/include/os/Linux
-#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+			-I$(EPICS_TOP)/base/include/os/Linux
+EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+EPICS_LIBRARIES = -lca -lCom
 
 # If you are using the EPICS Debian package, use the following definitions.
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-			-I/usr/include/epics/os/Linux
-EPICS_LIB_DIRS  = 
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+#			-I/usr/include/epics/os/Linux
+#EPICS_LIB_DIRS  = 
+#EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have

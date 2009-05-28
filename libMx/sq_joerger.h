@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@ typedef struct {
 				[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	double *motor_position_array[ MXS_JQ_MAX_MOTORS ];
-	unsigned long *data_array[ MXS_JQ_MAX_JOERGER_SCALERS ];
+	uint32_t *data_array[ MXS_JQ_MAX_JOERGER_SCALERS ];
 
 	double acceleration_time;
 	double real_start_position[ MXS_JQ_MAX_MOTORS ];

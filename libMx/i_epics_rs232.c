@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -272,8 +272,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	MX_EPICS_RS232 *epics_rs232 = NULL;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	char output_delimiter;
-	long format;
-	long speed, wordsize, parity, stop_bits, flow_control;
+	int32_t format;
+	int32_t speed, wordsize, parity, stop_bits, flow_control;
 	int buffer_length;
 	mx_status_type mx_status;
 
@@ -763,9 +763,12 @@ mxi_epics_rs232_set_transaction_mode( MX_EPICS_RS232 *epics_rs232,
 					MX_RS232 *rs232,
 					long mode )
 {
+	int32_t int32_mode;
 	mx_status_type mx_status;
 
-	mx_status = mx_caput( &(epics_rs232->tmod_pv), MX_CA_LONG, 1, &mode );
+	int32_mode = mode;
+
+	mx_status = mx_caput( &(epics_rs232->tmod_pv), MX_CA_LONG, 1, &int32_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -784,9 +787,10 @@ mxi_epics_rs232_read_buffer( MX_EPICS_RS232 *epics_rs232,
 {
 	static const char fname[] = "mxi_epics_rs232_read_buffer()";
 
-	int first_time;
-	long i, timeout, input_delimiter, num_chars_read;
+	long i;
+	int32_t input_delimiter, timeout, num_chars_read;
 	char *ptr;
+	mx_bool_type first_time;
 	mx_status_type mx_status;
 
 	if ( *num_chars < 0 ) {
@@ -868,7 +872,7 @@ mxi_epics_rs232_read_buffer( MX_EPICS_RS232 *epics_rs232,
 
 	if ( epics_rs232->num_chars_to_read != *num_chars ) {
 
-		long temp;
+		int32_t temp;
 
 #if 0
 		temp = 0;
@@ -963,7 +967,8 @@ mxi_epics_rs232_write_buffer( MX_EPICS_RS232 *epics_rs232,
 {
 	static const char fname[] = "mxi_epics_rs232_write_buffer()";
 
-	long i, timeout, real_num_chars_to_write;
+	long i;
+	int32_t timeout, real_num_chars_to_write;
 	char *ptr, *buffer_ptr;
 	mx_status_type mx_status;
 

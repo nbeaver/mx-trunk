@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -142,11 +142,14 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	static const char fname[] = "mxi_epics_vme_transfer_data()";
 
 	MX_EPICS_GROUP epics_group;
-	long i, epics_address_mode, epics_data_size, epics_num_values;
-	long address_increment, epics_direction, epics_address, proc_value;
-	long *long_data_pointer;
+	int32_t epics_address_mode, epics_data_size, epics_num_values;
+	int32_t address_increment, epics_direction, epics_address, proc_value;
+	int32_t *int32_data_pointer;
+	long i;
 	uint8_t *uint8_ptr;
 	uint16_t *uint16_ptr;
+	uint32_t *uint32_ptr;
+	mx_bool_type longs_are_32bits;
 	mx_status_type mx_status;
 
 	uint8_ptr = NULL;
@@ -162,7 +165,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	"  EPICS record '%s' only allows up to %ld values to be transferred.",
 			vme->num_values, vme->record->name,
 			epics_vme->epics_record_name,
-			epics_vme->max_epics_values );
+			(long) epics_vme->max_epics_values );
 	}
 
 	/***************** Start the synchronous group. *****************/
@@ -193,8 +196,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			break;
 		}
 					
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, epics_address_mode,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) epics_address_mode,
 					epics_vme->amod_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->amod_pv),
@@ -233,8 +236,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			break;
 		}
 					
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, epics_data_size,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) epics_data_size,
 					epics_vme->dsiz_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->dsiz_pv),
@@ -255,8 +258,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 
 		epics_num_values = (long) vme->num_values;
 
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, epics_num_values,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) epics_num_values,
 					epics_vme->nuse_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->nuse_pv),
@@ -297,11 +300,11 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal address increment %ld for EPICS VME record '%s'.  "
 		"The allowed values are in the range (0-4).",
-			address_increment, vme->record->name );
+			(long) address_increment, vme->record->name );
 		}
 
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, address_increment,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) address_increment,
 					epics_vme->ainc_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->ainc_pv),
@@ -322,8 +325,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 
 		epics_direction = direction;
 
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, epics_direction,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) epics_direction,
 					epics_vme->rdwt_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->rdwt_pv),
@@ -345,7 +348,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		epics_address = (long) vme->address;
 
 		MX_DEBUG( 2,("%s: sending %#lx to '%s'",
-					fname, epics_address,
+					fname, (long) epics_address,
 					epics_vme->addr_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->addr_pv),
@@ -360,16 +363,22 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		epics_vme->old_address = vme->address;
 	}
 
-	/* If the data are D32 values, then we can transfer them directly
-	 * via vme->data_pointer since the remote EPICS server is using
-	 * 32 bit integers as well.  Otherwise, we must use the temporary
-	 * transfer buffer.
+	/* If the data are D32 values and longs are 32-bit integers, then
+	 * we can transfer them directly via vme->data_pointer since the
+	 * remote EPICS server is using 32 bit integers as well.  Otherwise,
+	 * we must use the temporary transfer buffer.
 	 */
 
-	if ( vme->data_size == MXF_VME_D32 ) {
-		long_data_pointer = (long *) vme->data_pointer;
+	if ( sizeof(int32_t) == sizeof(long) ) {
+		longs_are_32bits = TRUE;
 	} else {
-		long_data_pointer = epics_vme->temp_buffer;
+		longs_are_32bits = FALSE;
+	}
+
+	if ( (vme->data_size == MXF_VME_D32) && longs_are_32bits ) {
+		int32_data_pointer = (int32_t *) vme->data_pointer;
+	} else {
+		int32_data_pointer = epics_vme->temp_buffer;
 	}
 
 	/* If we are sending data to the VME crate, copy any 8 or 16 bit
@@ -382,21 +391,25 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			uint8_ptr = (uint8_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
-				epics_vme->temp_buffer[i]
-					= (long) uint8_ptr[i];
+				epics_vme->temp_buffer[i] = (int32_t) uint8_ptr[i];
 			}
 			break;
 		case MXF_VME_D16:
 			uint16_ptr = (uint16_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
-				epics_vme->temp_buffer[i]
-					= (long) uint16_ptr[i];
+				epics_vme->temp_buffer[i] = (int32_t) uint16_ptr[i];
 			}
 			break;
 		case MXF_VME_D32:
-			/* No copying is necessary for D32 data. */
+			if ( longs_are_32bits == FALSE ) {
+				uint32_ptr = (uint32_t *) vme->data_pointer;
 
+				for ( i = 0; i < vme->num_values; i++ ) {
+					epics_vme->temp_buffer[i] =
+						(int32_t) uint32_ptr[i];
+				}
+			}
 			break;
 		}
 	}
@@ -410,7 +423,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		if ( vme->num_values == 1 ) {
 
 			MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, *long_data_pointer,
+					fname, (unsigned long) *int32_data_pointer,
 					epics_vme->val_pv.pvname ));
 		} else {
 			MX_DEBUG( 2,("%s: sending data to '%s'",
@@ -418,7 +431,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		}
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->val_pv),
-				MX_CA_LONG, vme->num_values, long_data_pointer);
+				MX_CA_LONG, vme->num_values, int32_data_pointer);
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -430,8 +443,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 
 		proc_value = 1;
 
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, proc_value,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) proc_value,
 					epics_vme->proc_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->proc_pv),
@@ -447,8 +460,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 
 		proc_value = 1;
 
-		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-					fname, proc_value,
+		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+					fname, (long) proc_value,
 					epics_vme->proc_pv.pvname ));
 
 		mx_status = mx_group_caput( &epics_group, &(epics_vme->proc_pv),
@@ -466,7 +479,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 						epics_vme->val_pv.pvname ));
 
 		mx_status = mx_group_caget( &epics_group, &(epics_vme->val_pv),
-				MX_CA_LONG, vme->num_values, long_data_pointer);
+				MX_CA_LONG, vme->num_values, int32_data_pointer);
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_epics_delete_group( &epics_group );
@@ -477,7 +490,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		if ( vme->num_values == 1 ) {
 
 			MX_DEBUG( 2,("%s: read %ld from '%s'",
-					fname, *long_data_pointer,
+					fname, (long) *int32_data_pointer,
 					epics_vme->val_pv.pvname ));
 		} else {
 			MX_DEBUG( 2,("%s: data received for '%s'.",
@@ -561,8 +574,15 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			}
 			break;
 		case MXF_VME_D32:
-			/* No copying is necessary for D32 data. */
+			if ( longs_are_32bits == FALSE ) {
 
+				uint32_ptr = (uint32_t *) vme->data_pointer;
+
+				for ( i = 0; i < vme->num_values; i++ ) {
+					uint32_ptr[i] = (uint32_t)
+							epics_vme->temp_buffer[i];
+				}
+			}
 			break;
 		}
 	}
@@ -784,7 +804,7 @@ mxi_epics_vme_open( MX_RECORD *record )
 					&(epics_vme->max_epics_values) );
 
 	MX_DEBUG( 2,("%s: read %ld from '%s'", fname,
-				epics_vme->max_epics_values, pvname));
+				(long) epics_vme->max_epics_values, pvname));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -795,14 +815,14 @@ mxi_epics_vme_open( MX_RECORD *record )
 		free( epics_vme->temp_buffer );
 	}
 
-	epics_vme->temp_buffer = (long *)
-		malloc(epics_vme->max_epics_values * sizeof( long ));
+	epics_vme->temp_buffer = (int32_t *)
+		malloc(epics_vme->max_epics_values * sizeof( int32_t ));
 
 	if ( epics_vme->temp_buffer == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory allocating a %ld element "
 			"data transfer buffer for EPICS VME record '%s'.",
-				epics_vme->max_epics_values, record->name );
+				(long) epics_vme->max_epics_values, record->name );
 	}
 
 	/* Allocate memory for the EPICS VME status array. */
@@ -816,9 +836,9 @@ mxi_epics_vme_open( MX_RECORD *record )
 
 	if ( epics_vme->status_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory allocating a %lu element "
+			"Ran out of memory allocating a %ld element "
 			"status array for EPICS VME record '%s'.",
-				epics_vme->max_epics_values, record->name );
+				(long) epics_vme->max_epics_values, record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

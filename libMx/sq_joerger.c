@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -425,7 +425,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_EPICS_TIMER *epics_timer;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	mx_bool_type joerger_quick_scan_enabled;
-	long i, j, timer_preset, allowed_device;
+	long i, j, allowed_device;
+	int32_t timer_preset;
 	double scan_duration_seconds, scan_duration_ticks;
 	double epics_update_rate, measurement_time_per_point;
 	double update_intervals_per_measurement;
@@ -666,9 +667,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 
-		joerger_quick_scan->data_array[i] = (unsigned long *)
-			malloc( quick_scan->actual_num_measurements
-					* sizeof(unsigned long) );
+		joerger_quick_scan->data_array[i] = (uint32_t *)
+			malloc( quick_scan->actual_num_measurements * sizeof(uint32_t) );
 
 		if ( joerger_quick_scan->data_array[i] == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -965,8 +965,9 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 	int direction;
 #endif
 	int limit_hit;
-	long i, j, count;
+	long i, j;
 	unsigned long sleep_time;
+	int32_t count;
 	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type mx_status;
 
@@ -1145,7 +1146,7 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 		for ( j = 0; j < scan->num_input_devices; j++ ) {
 			fprintf(stderr, "%lu  ",
-				joerger_quick_scan->data_array[j][i]);
+				(unsigned long) joerger_quick_scan->data_array[j][i]);
 		}
 		fprintf(stderr, "\n" );
 #endif

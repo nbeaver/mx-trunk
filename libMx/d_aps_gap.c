@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -355,7 +355,7 @@ mxd_aps_gap_move_absolute( MX_MOTOR *motor )
 	MX_APS_GAP *aps_gap = NULL;
 	double new_destination;
 	int sector;
-	long access_mode, move_command;
+	int32_t access_mode, move_command;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aps_gap_get_pointers( motor, &aps_gap, fname );
