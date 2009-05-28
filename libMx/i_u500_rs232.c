@@ -8,12 +8,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define U500_RS232_DEBUG	TRUE
 
 #include <stdio.h>
 
@@ -165,7 +167,8 @@ mxi_u500_rs232_create_record_structures( MX_RECORD *record )
 	rs232->record = record;
 	u500_rs232->record = record;
 
-	u500_rs232->pipe_handle = INVALID_HANDLE_VALUE;
+	u500_rs232->server_pipe_handle = INVALID_HANDLE_VALUE;
+	u500_rs232->client_pipe_handle = INVALID_HANDLE_VALUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -216,7 +219,7 @@ mxi_u500_rs232_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	u500_rs232->pipe_handle = INVALID_HANDLE_VALUE;
+	u500_rs232->server_pipe_handle = INVALID_HANDLE_VALUE;
 
 	/* The 'u500_rs232' driver provides the option of reading text strings
 	 * produced using the U500's MESSAGE FILE command by providing a named
@@ -240,14 +243,20 @@ mxi_u500_rs232_open( MX_RECORD *record )
 	 * Note: CreateNamedPipe() will fail on Windows 95/98/ME.
 	 */
 
-	open_mode = PIPE_ACCESS_INBOUND;
+	open_mode = PIPE_ACCESS_OUTBOUND;
 	pipe_mode = PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT;
 	max_instances = 1;
-	out_buffer_size = 0;
+	out_buffer_size = 1000;
 	in_buffer_size = 1000;
 	default_timeout = 1000;    /* in milliseconds */
 
-	u500_rs232->pipe_handle = CreateNamedPipe( u500_rs232->pipe_name,
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s: opening server pipe handle for'%s'.",
+		fname, u500_rs232->pipe_name));
+#endif
+
+	u500_rs232->server_pipe_handle = CreateNamedPipe(
+							u500_rs232->pipe_name,
 							open_mode,
 							pipe_mode,
 							max_instances,
@@ -256,7 +265,7 @@ mxi_u500_rs232_open( MX_RECORD *record )
 							default_timeout,
 							NULL );
 
-	if ( u500_rs232->pipe_handle == INVALID_HANDLE_VALUE ) {
+	if ( u500_rs232->server_pipe_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -268,6 +277,41 @@ mxi_u500_rs232_open( MX_RECORD *record )
 			u500_rs232->pipe_name, record->name,
 			last_error_code, message_buffer );
 	}
+
+	/* In order to read messages sent by the U500 to the pipe, we must
+	 * open a client pipe handle.
+	 */
+
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s: opening client pipe handle for '%s'.",
+		fname, u500_rs232->pipe_name));
+#endif
+
+	u500_rs232->client_pipe_handle = CreateFile( u500_rs232->pipe_name,
+							GENERIC_READ,
+							FILE_SHARE_READ,
+							NULL,
+							OPEN_EXISTING,
+							0,
+							NULL );
+
+	if ( u500_rs232->client_pipe_handle == INVALID_HANDLE_VALUE ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to make a client connection to the named pipe '%s' "
+		"for record '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			u500_rs232->pipe_name, record->name,
+			last_error_code, message_buffer );
+	}
+
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s complete for record '%s'", fname, record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -297,24 +341,45 @@ mxi_u500_rs232_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( u500_rs232->pipe_handle == INVALID_HANDLE_VALUE )
-		return MX_SUCCESSFUL_RESULT;
+	if ( u500_rs232->client_pipe_handle != INVALID_HANDLE_VALUE ) {
 
-	close_status = CloseHandle( u500_rs232->pipe_handle );
+		close_status = CloseHandle( u500_rs232->client_pipe_handle );
 
-	u500_rs232->pipe_handle = INVALID_HANDLE_VALUE;
+		u500_rs232->client_pipe_handle = INVALID_HANDLE_VALUE;
 
-	if ( close_status == 0 ) {
-		last_error_code = GetLastError();
+		if ( close_status == 0 ) {
+			last_error_code = GetLastError();
 
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
 
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-		"Unable to close named pipe '%s' for record '%s'.  "
-		"Win32 error code = %ld, error message = '%s'.",
-			u500_rs232->pipe_name, record->name,
-			last_error_code, message_buffer );
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Unable to close the client connection to "
+			"named pipe '%s' for record '%s'.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				u500_rs232->pipe_name, record->name,
+				last_error_code, message_buffer );
+		}
+	}
+
+	if ( u500_rs232->server_pipe_handle != INVALID_HANDLE_VALUE ) {
+
+		close_status = CloseHandle( u500_rs232->server_pipe_handle );
+
+		u500_rs232->server_pipe_handle = INVALID_HANDLE_VALUE;
+
+		if ( close_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Unable to close named pipe '%s' for record '%s'.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				u500_rs232->pipe_name, record->name,
+				last_error_code, message_buffer );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -338,13 +403,13 @@ mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( u500_rs232->pipe_handle == INVALID_HANDLE_VALUE ) {
+	if ( u500_rs232->client_pipe_handle == INVALID_HANDLE_VALUE ) {
 		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-		"The named pipe '%s' is not open for record '%s'.",
+		"The client named pipe '%s' is not open for record '%s'.",
 			u500_rs232->pipe_name, rs232->record->name );
 	}
 
-	read_status = ReadFile( u500_rs232->pipe_handle, c,
+	read_status = ReadFile( u500_rs232->client_pipe_handle, c,
 				1, &win32_bytes_read, NULL );
 
 	if ( read_status == 0 ) {
@@ -358,6 +423,11 @@ mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 		"failed.  Win32 error code = %ld, error message = '%s'.",
 			last_error_code, message_buffer );
 	}
+
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s: received %x '%c' from U500 RS-232 record '%s'.",
+		fname, *c, *c, rs232->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -380,6 +450,11 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s: sending '%s' to U500 RS-232 record '%s'.",
+		fname, buffer, rs232->record->name ));
+#endif
+
 	prefix_length = 3;
 
 	if ( mx_strncasecmp( "MX ", buffer, prefix_length ) != 0 ) {
@@ -400,7 +475,7 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 		 */
 
 		snprintf( local_buffer, sizeof(local_buffer),
-			"ME FI(%s,A) %s", u500_rs232->pipe_name,
+			"ME FI(%s,a) \"%s\"", u500_rs232->pipe_name,
 					buffer + prefix_length );
 
 		mx_status = mxi_u500_command( u500,
@@ -420,32 +495,30 @@ mxi_u500_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	mx_status_type mx_status;
 
 	BOOL pipe_status;
-	DWORD bytes_read, total_bytes_available;
+	DWORD total_bytes_available;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
-	TCHAR peek_buffer[1000];
 
 	mx_status = mxi_u500_rs232_get_pointers( rs232,
 						&u500_rs232, NULL, fname );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If the named pipe is not open, then we merely state that
+	/* If the client named pipe is not open, then we merely state that
 	 * zero bytes are available.
 	 */
 
-	if ( u500_rs232->pipe_handle == INVALID_HANDLE_VALUE ) {
+	if ( u500_rs232->client_pipe_handle == INVALID_HANDLE_VALUE ) {
 		rs232->num_input_bytes_available = 0;
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	pipe_status = PeekNamedPipe( u500_rs232->pipe_handle,
-			peek_buffer, sizeof(peek_buffer),
-			&bytes_read, &total_bytes_available, NULL );
+	pipe_status = PeekNamedPipe( u500_rs232->client_pipe_handle,
+			NULL, 0, NULL, &total_bytes_available, NULL );
 
-#if 1
-	MX_DEBUG(-2,("%s: bytes_read = %ld, total_bytes_available = %ld",
-		fname, (long) bytes_read, (long) total_bytes_available));
+#if U500_RS232_DEBUG
+	MX_DEBUG(-2,("%s: total_bytes_available = %ld",
+		fname, (long) total_bytes_available));
 #endif
 
 	if ( pipe_status == 0 ) {

@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -30,8 +30,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
+INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
@@ -80,13 +80,13 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # below specified the progra~1\micros~1 directory.
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
-#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
-MSDEV_DIR	= c:\\msdevstd
+#MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\progra~1\\micros~3
 #MSDEV_DIR	= c:\\progra~1\\micros~4
 

@@ -596,7 +596,7 @@ mxd_u500_get_position( MX_MOTOR *motor )
 
 #if U500_DEBUG
 	MX_DEBUG(-2,
-	("%s: motor'%s', WAPIAerReadPosition(%d) = %g",
+	("%s: motor '%s', WAPIAerReadPosition(%d) = %g",
 		fname, motor->record->name,
 		(int)(u500_motor->motor_number + 7),
 		motor->raw_position.analog));

@@ -26,7 +26,8 @@ typedef struct {
 	char pipe_name[MXU_FILENAME_LENGTH+1];
 
 #if defined(OS_WIN32)
-	HANDLE pipe_handle;
+	HANDLE server_pipe_handle;
+	HANDLE client_pipe_handle;
 #endif
 } MX_U500_RS232;
 
