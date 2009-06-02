@@ -226,6 +226,12 @@ MX_API_PRIVATE mx_status_type mxd_aviex_pccd_init_register(
 					unsigned long minimum,
 					unsigned long maximum );
 
+MX_API_PRIVATE mx_status_type mxd_aviex_pccd_check_value(
+					MX_AVIEX_PCCD *aviex_pccd,
+					unsigned long register_address,
+					unsigned long register_value,
+					MX_AVIEX_PCCD_REGISTER **register_ptr );
+
 /* The following functions are exported for the testing of the
  * descrambling algorithm and should not be used in normal programs.
  */

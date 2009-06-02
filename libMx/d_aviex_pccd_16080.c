@@ -298,7 +298,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 				1,  1, FALSE, FALSE, FALSE, 1,  8 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
-				1,  1, FALSE, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, TRUE, 1,  128 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROILINES,
 				1,  1, FALSE, FALSE, FALSE, 1,  8 );
@@ -331,7 +331,7 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 				1,  6, FALSE, FALSE, FALSE, 0,  7 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_HBIN,
-				1,  1, FALSE, FALSE, FALSE, 1,  8 );
+				1,  1, FALSE, FALSE, TRUE, 1,  128 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_16080_DH_ROIOFFS,
 				2,  0, FALSE, FALSE, FALSE, 0,  2047 );
@@ -675,6 +675,107 @@ mxd_aviex_pccd_16080_set_external_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
 
 /*-------------------------------------------------------------------------*/
 
+static mx_status_type
+mxd_aviex_pccd_16080_write_binning_register( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd,
+					unsigned long register_address,
+					unsigned long binsize_value )
+{
+	static const char fname[] =
+		"mxd_aviex_pccd_16080_write_binning_register()";
+
+	MX_AVIEX_PCCD_REGISTER *reg;
+	char command[20], response[20];
+	unsigned long binsize_value_read, binsize_code;
+	mx_status_type mx_status;
+
+	if ( register_address >= MXLV_AVIEX_PCCD_DH_BASE ) {
+		register_address -= MXLV_AVIEX_PCCD_DH_BASE;
+	}
+
+	reg = &(aviex_pccd->register_array[register_address]);
+
+	/* Is this a valid value for this binsize register. */
+
+	mx_status = mxd_aviex_pccd_check_value( aviex_pccd,
+					register_address, binsize_value, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the binsize code for this binsize value. */
+
+	switch( binsize_value ) {
+	case 1:
+		binsize_code = 1;
+		break;
+	case 2:
+		binsize_code = 2;
+		break;
+	case 4:
+		binsize_code = 3;
+		break;
+	case 8:
+		binsize_code = 4;
+		break;
+	case 16:
+		binsize_code = 5;
+		break;
+	case 32:
+		binsize_code = 6;
+		break;
+	case 64:
+		binsize_code = 7;
+		break;
+	case 128:
+		binsize_code = 8;
+		break;
+	default:
+		binsize_code = 0;
+		break;
+	}
+
+	/* Send the new binsize code to the detector head. */
+
+	snprintf( command, sizeof(command),
+		"W%02lu%03lu", register_address, binsize_code );
+
+	mx_status = mxd_aviex_pccd_camera_link_command( aviex_pccd,
+					command, response, sizeof(response),
+					MXD_AVIEX_PCCD_16080_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read back the binsize value from the register.
+	 *
+	 * WARNING: The value we read back from the register will
+	 * be the binsize_value that was passed to this routine and
+	 * _NOT_ the binsize_code that we just sent to the detector head.
+	 */
+
+	mx_status = mxd_aviex_pccd_read_register( aviex_pccd,
+					register_address, &binsize_value_read );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Verify that the value read back matches the value that
+	 * was passed to this routine.
+	 */
+
+	if ( binsize_value_read != binsize_value ) {
+		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
+		"The attempt to set the binsize for '%s' to %lu appears to "
+		"have failed since the value read back from register %lu "
+		"is now %lu.",
+			aviex_pccd->record->name, binsize_value,
+			register_address, binsize_value_read );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 				MX_AVIEX_PCCD *aviex_pccd )
@@ -695,7 +796,8 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+	mx_status = mxd_aviex_pccd_16080_write_binning_register(
+					ad, aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_HBIN,
 					ad->binsize[0] );
 
@@ -704,7 +806,8 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 
 	/*=== Set the registers for the vertical binsize. ===*/
 
-	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+	mx_status = mxd_aviex_pccd_16080_write_binning_register(
+					ad, aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_VSHBIN,
 					ad->binsize[1] );
 

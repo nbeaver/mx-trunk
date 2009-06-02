@@ -874,7 +874,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxd_aviex_pccd_check_value( MX_AVIEX_PCCD *aviex_pccd,
 				unsigned long register_address,
 				unsigned long register_value,
