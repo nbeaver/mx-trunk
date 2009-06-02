@@ -5711,7 +5711,8 @@ MX_EXPORT mx_status_type
 mx_get_mx_server_record( MX_RECORD *record_list,
 			char *server_name,
 			char *server_arguments,
-			MX_RECORD **server_record )
+			MX_RECORD **server_record,
+			double timeout )
 {
 	static const char fname[] = "mx_get_mx_server_record()";
 
@@ -5725,6 +5726,10 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	size_t arguments_length, strspn_length;
 	char description[200];
 	char format[100];
+	MX_CLOCK_TICK timeout_ticks, current_tick, finish_tick;
+	unsigned long sleep_ms;
+	int comparison;
+	mx_bool_type wait_forever;
 	mx_status_type mx_status;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
@@ -5886,10 +5891,57 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_open_hardware( new_record );
+	/* The timeout and retry loop are here mainly for the use of
+	 * the 'mxupdate' program.  'mxupdate' starts at approximately
+	 * the same time as the 'mxserver' program, so we need to be
+	 * able to wait for 'mxserver'.
+	 *
+	 * Note: A timeout that is < 0 is considered a request to 
+	 * wait forever until the connection succeeds.
+	 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( timeout < 0.0 ) {
+		wait_forever = TRUE;
+	} else
+	if ( timeout >= 0.0 ) {
+		wait_forever = FALSE;
+
+		timeout_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+
+		current_tick = mx_current_clock_tick();
+
+		finish_tick = mx_add_clock_ticks( current_tick, timeout_ticks );
+	}
+
+	sleep_ms = 1000;
+
+	while (1) {
+		mx_status = mx_open_hardware( new_record );
+
+		if ( mx_status.code == MXE_SUCCESS )
+			break;			/* Exit the while() loop. */
+
+		if ( mx_status.code != MXE_NETWORK_IO_ERROR )
+			return mx_status;
+
+		if ( wait_forever ) {
+			mx_msleep(sleep_ms);
+			continue;
+		}
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
+
+		if ( comparison > 0 ) {
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after waiting %f seconds to connect "
+			"to the MX server at '%s' on port %d.",
+				timeout, server_name, port_number );
+		}
+
+		mx_msleep(sleep_ms);
+	}
 
 	*server_record = new_record;
 

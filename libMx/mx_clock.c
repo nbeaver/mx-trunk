@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -543,18 +543,16 @@ mx_compare_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 	L2 = clock_tick_2.low_order;
 
 	if ( H1 < H2 ) {
-		return (-1);
-
-	} else if ( H1 > H2 ) {
-		return 1;
-
+		result = -1;
+	} else
+	if ( H1 > H2 ) {
+		result = 1;
 	} else {
 		if ( L1 < L2 ) {
 			result = -1;
-
-		} else if ( L1 > L2 ) {
+		} else
+		if ( L1 > L2 ) {
 			result = 1;
-
 		} else {
 			result = 0;
 		}

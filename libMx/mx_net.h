@@ -529,7 +529,8 @@ MX_API mx_status_type mx_parse_network_field_id( char *network_field_id,
 
 MX_API mx_status_type mx_get_mx_server_record( MX_RECORD *record_list,
 			char *server_name, char *server_arguments,
-			MX_RECORD **server_record );
+			MX_RECORD **server_record,
+			double timeout );
 
 MX_API mx_status_type mx_network_copy_message_to_field(
 				MX_RECORD *source_server_record,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -168,11 +168,11 @@ main( int argc, char *argv[] )
 	char *autosave_filename;
 	char hostname[80];
 	char ident_string[100];
-	int network_debug;
 	int i, debug_level, num_non_option_arguments;
-	int install_syslog_handler, syslog_number, syslog_options;
+	int syslog_number, syslog_options;
 	int default_display_precision;
-	int no_restore, restore_only, save_only;
+	mx_bool_type network_debug, start_debugger, install_syslog_handler;
+	mx_bool_type no_restore, restore_only, save_only;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -211,6 +211,8 @@ main( int argc, char *argv[] )
 #endif
 	network_debug = FALSE;
 
+	start_debugger = FALSE;
+
 	debug_level = 0;
 
 	default_display_precision = 8;
@@ -229,13 +231,16 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "Ad:l:L:P:Rrsu:")) != -1 ) {
+	while ((c = getopt(argc, argv, "Ad:Dl:L:P:Rrsu:")) != -1 ) {
 		switch(c) {
 		case 'A':
 			network_debug = TRUE;
 			break;
 		case 'd':
 			debug_level = atoi( optarg );
+			break;
+		case 'D':
+			start_debugger = TRUE;
 			break;
 		case 'l':
 			install_syslog_handler = TRUE;
@@ -287,6 +292,10 @@ main( int argc, char *argv[] )
 	num_non_option_arguments = argc - 1;
 
 #endif /* HAVE_GETOPT */
+
+	if ( start_debugger ) {
+		mx_start_debugger(NULL);
+	}
 
 	if ( save_only && restore_only ) {
 		fprintf(stderr,
@@ -703,12 +712,13 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	}
 
 	/* Find the requested server record in the database, or
-	 * create a new one.
+	 * create a new one.  Wait up to a maximum of 5 seconds
+	 * to connect to this MX server.
 	 */
 
 	mx_status = mx_get_mx_server_record( record_list,
 			server_name, server_arguments,
-			&server_record );
+			&server_record, 5.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
