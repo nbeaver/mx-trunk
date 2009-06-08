@@ -18,7 +18,7 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO		FALSE
+#define MX_EPICS_DEBUG_IO		TRUE
 
 #define MX_EPICS_DEBUG_HANDLERS		FALSE
 
@@ -73,15 +73,12 @@
 
 #include "epicsVersion.h"
 
-#if ((EPICS_VERSION < 3) || (EPICS_REVISION <= 12))
+#define MX_EPICS_VERSION  \
+    ( EPICS_VERSION * 1000000L + EPICS_REVISION * 1000L + EPICS_MODIFICATION )
+
+#if ( MX_EPICS_VERSION < 3013000L )
 #error You are attempting to build MX support for EPICS with EPICS version 3.12 or before.  This is not supported.  Please upgrade to EPICS 3.13 or later.
 #endif
-
-#define EPICS_IS_VERSION_313_OR_BEFORE \
-		((EPICS_VERSION < 3) || (EPICS_REVISION <= 13))
-
-#define EPICS_IS_VERSION_314_OR_LATER \
-		((EPICS_VERSION > 3) || (EPICS_REVISION >= 14))
 
 #include "tsDefs.h"
 #include "cadef.h"
@@ -141,11 +138,11 @@ static int mx_epics_is_initialized = FALSE;
 static int mx_epics_put_callback_num_null_channel_ids = 0;
 static int mx_epics_put_callback_num_null_puser_ptrs = 0;
 
-#if EPICS_IS_VERSION_314_OR_LATER
+#if ( MX_EPICS_VERSION >= 3014000L )
 static MX_MUTEX *mx_epics_mutex;
 #endif
 
-#if 1 && EPICS_IS_VERSION_314_OR_LATER
+#if ( MX_EPICS_VERSION >= 3014000L )
 #  define LOCK_EPICS_MUTEX	(void) mx_mutex_lock( mx_epics_mutex )
 #  define UNLOCK_EPICS_MUTEX	(void) mx_mutex_unlock( mx_epics_mutex )
 #else
@@ -213,7 +210,7 @@ mx_epics_atexit_handler( void )
 	MX_DEBUG(-2,("%s: About to shutdown Channel Access.", fname));
 #endif
 
-#if EPICS_IS_VERSION_313_OR_BEFORE
+#if ( MX_EPICS_VERSION < 3014000L )
 	(void) ca_task_exit();
 #else
 	ca_context_destroy();
@@ -332,7 +329,7 @@ mx_epics_initialize( void )
 		fname, EPICS_VERSION_STRING))
 #endif
 
-#if EPICS_IS_VERSION_314_OR_LATER
+#if ( MX_EPICS_VERSION >= 3014000L )
 	/* Make sure the EPICS error log buffer is set up. */
 
 	errlogInit( 1280 );	/* EPICS expects this to be at least 1280. */
@@ -347,7 +344,7 @@ mx_epics_initialize( void )
 		return mx_status;
 #endif
 
-#if EPICS_IS_VERSION_313_OR_BEFORE
+#if ( MX_EPICS_VERSION < 3014000L )
 	epics_status = ca_task_initialize();
 
 #else		/* EPICS 3.14 */
@@ -596,7 +593,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 
 	/* Start the connection process. */
 
-#if EPICS_IS_VERSION_313_OR_BEFORE
+#if ( MX_EPICS_VERSION < 3014000L )
 	epics_status = ca_search_and_connect( pv->pvname, &new_channel_id,
 				mx_epics_connection_state_change_handler, pv );
 #else

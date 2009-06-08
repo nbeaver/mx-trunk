@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mepics_mca.dat -s ./sepics_mca.dat $*
+
