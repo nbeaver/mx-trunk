@@ -35,7 +35,6 @@ typedef struct {
 	MX_EPICS_PV pct_pv;
 	MX_EPICS_PV pcth_pv;
 	MX_EPICS_PV pctl_pv;
-	MX_EPICS_PV proc_pv;
 	MX_EPICS_PV val_pv;
 
 	long num_roi_pvs;

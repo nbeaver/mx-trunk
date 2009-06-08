@@ -404,10 +404,6 @@ mxd_epics_mca_open( MX_RECORD *record )
 			"%s%s.PCTL", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
-	mx_epics_pvname_init( &(epics_mca->proc_pv),
-			"%s%s.PROC", epics_mca->epics_detector_name,
-					epics_mca->epics_mca_name );
-
 	mx_epics_pvname_init( &(epics_mca->val_pv),
 			"%s%s.VAL", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
@@ -556,22 +552,16 @@ mxd_epics_mca_start( MX_MCA *mca )
 		return mx_status;
 	}
 
+	/* Send all of the commands in the group. */
+
+	mx_status = mx_epics_end_group( &epics_group );
+
 	/* Tell the counting to start. */
 
 	start = 1;
 
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->start_pv),
-				MX_CA_LONG, 1, &start );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_epics_delete_group( &epics_group );
-
-		return mx_status;
-	}
-
-	/* Send all of the commands in the group. */
-
-	mx_status = mx_epics_end_group( &epics_group );
+	mx_status = mx_caput_nowait( &(epics_mca->start_pv),
+					MX_CA_LONG, 1, &start );
 
 	return mx_status;
 }
@@ -708,7 +698,7 @@ mxd_epics_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_epics_mca_busy()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	int32_t busy, proc;
+	int32_t busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -716,20 +706,7 @@ mxd_epics_mca_busy( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The value of the ACQG only reflects the status of the record
-	 * the last time that EPICS processed it.  In order to get a
-	 * current status, we must force the EPICS record to process
-	 * ourselves.
-	 */
-
-	proc = 1;
-
-	mx_status = mx_caput( &(epics_mca->proc_pv), MX_CA_LONG, 1, &proc );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now get the updated acquisition status. */
+	/* Get the current acquisition status. */
 
 	mx_status = mx_caget( &(epics_mca->acquiring_pv),
 				MX_CA_LONG, 1, &busy );

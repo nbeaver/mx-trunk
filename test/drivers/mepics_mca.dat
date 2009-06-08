@@ -1,1 +1,2 @@
 vortex device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca1 0x1
+timer1 device timer mca_timer "" "" vortex 1
