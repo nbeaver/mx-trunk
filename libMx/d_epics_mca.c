@@ -172,7 +172,8 @@ mxd_epics_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_epics_mca_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_epics_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
 	mx_status_type mx_status;
@@ -253,8 +254,10 @@ mxd_epics_mca_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "MCA parameters for record '%s':\n", record->name);
 
 	fprintf(file, "  MCA type              = EPICS_MCA.\n\n");
-	fprintf(file, "  EPICS record name     = %s\n",
-					epics_mca->epics_record_name);
+	fprintf(file, "  EPICS detector name   = %s\n",
+					epics_mca->epics_detector_name);
+	fprintf(file, "  EPICS mca name        = %s\n",
+					epics_mca->epics_mca_name);
 	fprintf(file, "  maximum # of channels = %lu\n",
 					mca->maximum_num_channels);
 
@@ -269,7 +272,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
 	unsigned long i;
-mx_status_type mx_status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -322,36 +325,92 @@ mx_status_type mx_status;
 	 * names for later use.
 	 */
 
-	mx_epics_pvname_init( &(epics_mca->acqg_pv),
-				"%s.ACQG", epics_mca->epics_record_name );
+	if ( epics_mca->epics_mca_flags & MXF_EPICS_MCA_MULTIELEMENT_DETECTOR )
+	{
+		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
+			"%sAcquiring.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->elapsed_live_pv),
+			"%sElapsedLive.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->elapsed_real_pv),
+			"%sElapsedReal.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->erase_pv),
+			"%sEraseAll.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->preset_live_pv),
+			"%sPresetLive.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->preset_real_pv),
+			"%sPresetReal.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->stop_pv),
+			"%sStopAll.VAL", epics_mca->epics_detector_name );
+
+		mx_epics_pvname_init( &(epics_mca->start_pv),
+			"%sStartAll.VAL", epics_mca->epics_detector_name );
+	} else {
+		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
+			"%s%s.ACQG", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->elapsed_live_pv),
+			"%s%s.ELTM", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->elapsed_real_pv),
+			"%s%s.ERTM", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->erase_pv),
+			"%s%s.ERAS", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->preset_live_pv),
+			"%s%s.PLTM", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->preset_real_pv),
+			"%s%s.PRTM", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->stop_pv),
+			"%s%s.STOP", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->start_pv),
+			"%s%s.STRT", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+	}
+
 	mx_epics_pvname_init( &(epics_mca->act_pv),
-				"%s.ACT", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->eltm_pv),
-				"%s.ELTM", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->eras_pv),
-				"%s.ERAS", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->ertm_pv),
-				"%s.ERTM", epics_mca->epics_record_name );
+			"%s%s.ACT", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->nuse_pv),
-				"%s.NUSE", epics_mca->epics_record_name );
+			"%s%s.NUSE", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->pct_pv),
-				"%s.PCT", epics_mca->epics_record_name );
+			"%s%s.PCT", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->pcth_pv),
-				"%s.PCTH", epics_mca->epics_record_name );
+			"%s%s.PCTH", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->pctl_pv),
-				"%s.PCTL", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->pltm_pv),
-				"%s.PLTM", epics_mca->epics_record_name );
+			"%s%s.PCTL", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->proc_pv),
-				"%s.PROC", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->prtm_pv),
-				"%s.PRTM", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->stop_pv),
-				"%s.STOP", epics_mca->epics_record_name );
-	mx_epics_pvname_init( &(epics_mca->strt_pv),
-				"%s.STRT", epics_mca->epics_record_name );
+			"%s%s.PROC", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
 	mx_epics_pvname_init( &(epics_mca->val_pv),
-				"%s.VAL", epics_mca->epics_record_name );
+			"%s%s.VAL", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
 
 	epics_mca->num_roi_pvs = mca->maximum_num_rois;
 
@@ -393,16 +452,20 @@ mx_status_type mx_status;
 
 	for ( i = 0; i < epics_mca->num_roi_pvs; i++ ) {
 		mx_epics_pvname_init( &(epics_mca->roi_low_pv_array[i]),
-			"%s.R%ldLO", epics_mca->epics_record_name, i );
+			"%s%s.R%ldLO", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name, i );
 
 		mx_epics_pvname_init( &(epics_mca->roi_high_pv_array[i]),
-			"%s.R%ldHI", epics_mca->epics_record_name, i );
+			"%s%s.R%ldHI", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name, i );
 
 		mx_epics_pvname_init( &(epics_mca->roi_integral_pv_array[i]),
-			"%s.R%ld", epics_mca->epics_record_name, i );
+			"%s%s.R%ld", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name, i );
 
 		mx_epics_pvname_init( &(epics_mca->roi_background_pv_array[i]),
-			"%s.R%ldBG", epics_mca->epics_record_name, i );
+			"%s%s.R%ldBG", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name, i );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -466,7 +529,7 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	/* Do the actual preset changes. */
 
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->pltm_pv),
+	mx_status = mx_group_caput( &epics_group, &(epics_mca->preset_live_pv),
 				MX_CA_DOUBLE, 1, &preset_live_time );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -475,7 +538,7 @@ mxd_epics_mca_start( MX_MCA *mca )
 		return mx_status;
 	}
 
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->prtm_pv),
+	mx_status = mx_group_caput( &epics_group, &(epics_mca->preset_real_pv),
 				MX_CA_DOUBLE, 1, &preset_real_time );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -497,7 +560,7 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	start = 1;
 
-	mx_status = mx_group_caput( &epics_group, &(epics_mca->strt_pv),
+	mx_status = mx_group_caput( &epics_group, &(epics_mca->start_pv),
 				MX_CA_LONG, 1, &start );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -634,7 +697,7 @@ mxd_epics_mca_clear( MX_MCA *mca )
 
 	erase = 1;
 
-	mx_status = mx_caput( &(epics_mca->eras_pv), MX_CA_LONG, 1, &erase );
+	mx_status = mx_caput( &(epics_mca->erase_pv), MX_CA_LONG, 1, &erase );
 
 	return mx_status;
 }
@@ -668,7 +731,8 @@ mxd_epics_mca_busy( MX_MCA *mca )
 
 	/* Now get the updated acquisition status. */
 
-	mx_status = mx_caget( &(epics_mca->acqg_pv), MX_CA_LONG, 1, &busy );
+	mx_status = mx_caget( &(epics_mca->acquiring_pv),
+				MX_CA_LONG, 1, &busy );
 
 	if ( busy ) {
 		mca->busy = TRUE;
@@ -705,10 +769,11 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The EPICS MCA '%s' is reported to have %lu channels, "
-			"but the record '%s' is only configured to support "
-			"up to %lu channels.",
-				epics_mca->epics_record_name,
+			"The EPICS MCA '%s%s' is reported to have %lu "
+			"channels, but the record '%s' is only configured "
+			"to support up to %lu channels.",
+				epics_mca->epics_detector_name,
+				epics_mca->epics_mca_name,
 				mca->current_num_channels,
 				mca->record->name,
 				mca->maximum_num_channels );
@@ -730,7 +795,8 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 			return mx_status;
 		}
 
-		mx_status = mx_group_caget( &epics_group, &(epics_mca->pltm_pv),
+		mx_status = mx_group_caget( &epics_group,
+					&(epics_mca->preset_live_pv),
 					MX_CA_DOUBLE, 1, &preset_live_time );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -739,7 +805,8 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 			return mx_status;
 		}
 
-		mx_status = mx_group_caget( &epics_group, &(epics_mca->prtm_pv),
+		mx_status = mx_group_caget( &epics_group,
+					&(epics_mca->preset_real_pv),
 					MX_CA_DOUBLE, 1, &preset_real_time );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -900,13 +967,13 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
 
-		mx_status = mx_caget( &(epics_mca->ertm_pv),
+		mx_status = mx_caget( &(epics_mca->elapsed_real_pv),
 					MX_CA_DOUBLE, 1, &(mca->real_time) );
 
 	} else
 	if ( mca->parameter_type == MXLV_MCA_LIVE_TIME ) {
 
-		mx_status = mx_caget( &(epics_mca->eltm_pv),
+		mx_status = mx_caget( &(epics_mca->elapsed_live_pv),
 					MX_CA_DOUBLE, 1, &(mca->live_time) );
 
 	} else
@@ -955,10 +1022,11 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The EPICS MCA '%s' is reported to have %lu channels, "
-			"but the record '%s' is only configured to support "
-			"up to %lu channels.",
-				epics_mca->epics_record_name,
+			"The EPICS MCA '%s%s' is reported to have %lu "
+			"channels, but the record '%s' is only configured "
+			"to support up to %lu channels.",
+				epics_mca->epics_detector_name,
+				epics_mca->epics_mca_name,
 				mca->current_num_channels,
 				mca->record->name,
 				mca->maximum_num_channels );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,6 +145,11 @@ motor_mca_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		mx_status = mx_mca_clear( mca_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 		if ( use_real_time ) {
 			mx_status = mx_mca_start_for_preset_real_time(
 				mca_record, counting_time );
@@ -241,6 +246,11 @@ motor_mca_fn( int argc, char *argv[] )
 			fprintf( output, "%s\n", usage );
 			return FAILURE;
 		}
+
+		mx_status = mx_mca_clear( mca_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 
 		if ( use_real_time ) {
 			mx_status = mx_mca_start_for_preset_real_time(

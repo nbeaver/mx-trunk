@@ -2088,6 +2088,7 @@ mx_epics_start_group( MX_EPICS_GROUP *epics_group )
 
 	CA_SYNC_GID group_id;
 	int epics_status;
+	mx_status_type mx_status;
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_TIMING measurement;
@@ -2096,6 +2097,13 @@ mx_epics_start_group( MX_EPICS_GROUP *epics_group )
 	if ( epics_group == (MX_EPICS_GROUP *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_EPICS_GROUP pointer passed was NULL." );
+	}
+
+	if ( mx_epics_is_initialized == FALSE ) {
+		mx_status = mx_epics_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 #if MX_EPICS_DEBUG_PERFORMANCE
