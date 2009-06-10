@@ -330,12 +330,6 @@ mxd_epics_mca_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
 			"%sAcquiring.VAL", epics_mca->epics_detector_name );
 
-		mx_epics_pvname_init( &(epics_mca->elapsed_live_pv),
-			"%sElapsedLive.VAL", epics_mca->epics_detector_name );
-
-		mx_epics_pvname_init( &(epics_mca->elapsed_real_pv),
-			"%sElapsedReal.VAL", epics_mca->epics_detector_name );
-
 		mx_epics_pvname_init( &(epics_mca->erase_pv),
 			"%sEraseAll.VAL", epics_mca->epics_detector_name );
 
@@ -353,14 +347,6 @@ mxd_epics_mca_open( MX_RECORD *record )
 	} else {
 		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
 			"%s%s.ACQG", epics_mca->epics_detector_name,
-					epics_mca->epics_mca_name );
-
-		mx_epics_pvname_init( &(epics_mca->elapsed_live_pv),
-			"%s%s.ELTM", epics_mca->epics_detector_name,
-					epics_mca->epics_mca_name );
-
-		mx_epics_pvname_init( &(epics_mca->elapsed_real_pv),
-			"%s%s.ERTM", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
 		mx_epics_pvname_init( &(epics_mca->erase_pv),
@@ -386,6 +372,14 @@ mxd_epics_mca_open( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(epics_mca->act_pv),
 			"%s%s.ACT", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+	mx_epics_pvname_init( &(epics_mca->eltm_pv),
+			"%s%s.ELTM", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+	mx_epics_pvname_init( &(epics_mca->ertm_pv),
+			"%s%s.ERTM", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
 	mx_epics_pvname_init( &(epics_mca->nuse_pv),
@@ -944,13 +938,13 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
 
-		mx_status = mx_caget( &(epics_mca->elapsed_real_pv),
+		mx_status = mx_caget( &(epics_mca->ertm_pv),
 					MX_CA_DOUBLE, 1, &(mca->real_time) );
 
 	} else
 	if ( mca->parameter_type == MXLV_MCA_LIVE_TIME ) {
 
-		mx_status = mx_caget( &(epics_mca->elapsed_live_pv),
+		mx_status = mx_caget( &(epics_mca->eltm_pv),
 					MX_CA_DOUBLE, 1, &(mca->live_time) );
 
 	} else

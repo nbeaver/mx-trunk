@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -311,6 +311,8 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 		if ( input_device->mx_class == MXC_MULTICHANNEL_ANALYZER ) {
 			num_mcas++;
+
+			buffer[0] = '\0';
 		} else {
 			mx_status =
 			    mx_convert_normalized_device_value_to_string(

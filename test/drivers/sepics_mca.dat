@@ -1,1 +1,2 @@
-testscan                         scan linear_scan input_scan "" "" 1 1 0  1  vortex  0 0 preset_time "2.5 timer1" text testscan.003 none $f[0]  0  1  10
+testscan                         scan linear_scan input_scan "" "" 1 1 0  1  mca1  0 0 preset_time "2.5 timer1" text testscan.003 none $f[0]  0  1  10
+4chanscan                        scan linear_scan input_scan "" "" 1 1 0  4  mca1 mca2 mca3 mca4  0 0 preset_time "2.5 timer1" text 4chanscan.002 none $f[0]  0  1  10

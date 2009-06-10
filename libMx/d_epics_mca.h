@@ -22,8 +22,6 @@ typedef struct {
 	char epics_mca_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	MX_EPICS_PV acquiring_pv;
-	MX_EPICS_PV elapsed_live_pv;
-	MX_EPICS_PV elapsed_real_pv;
 	MX_EPICS_PV erase_pv;
 	MX_EPICS_PV preset_live_pv;
 	MX_EPICS_PV preset_real_pv;
@@ -31,6 +29,8 @@ typedef struct {
 	MX_EPICS_PV start_pv;
 
 	MX_EPICS_PV act_pv;
+	MX_EPICS_PV eltm_pv;
+	MX_EPICS_PV ertm_pv;
 	MX_EPICS_PV nuse_pv;
 	MX_EPICS_PV pct_pv;
 	MX_EPICS_PV pcth_pv;
