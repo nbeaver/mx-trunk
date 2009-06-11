@@ -227,6 +227,7 @@
 #include "d_mclennan_aio.h"
 #include "d_mclennan_dio.h"
 #include "d_mca_value.h"
+#include "d_mca_weighted_sum.h"
 #include "d_mardtb_status.h"
 #include "d_mdrive_aio.h"
 #include "d_mdrive_dio.h"
@@ -1476,6 +1477,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_mca_value_analog_input_function_list,
 				&mxd_mca_value_num_record_fields,
 				&mxd_mca_value_rfield_def_ptr},
+
+{"mca_weighted_sum", MXT_AIN_MCA_WEIGHTED_SUM, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_mca_weighted_sum_record_function_list,
+				NULL,
+			&mxd_mca_weighted_sum_analog_input_function_list,
+				&mxd_mca_weighted_sum_num_record_fields,
+				&mxd_mca_weighted_sum_rfield_def_ptr},
 
 {"mardtb_status",  MXT_AIN_MARDTB_STATUS, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_mardtb_status_record_function_list,

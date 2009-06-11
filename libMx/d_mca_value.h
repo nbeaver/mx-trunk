@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +34,7 @@ typedef struct {
 	long value_type;
 	char value_name[ MXU_MCA_VALUE_NAME_LENGTH + 1 ];
 	char value_parameters[ MXU_MCA_VALUE_PARAMETER_LENGTH + 1 ];
+	long roi_number;
 } MX_MCA_VALUE;
 
 #define MX_MCA_VALUE_STANDARD_FIELDS \
@@ -59,6 +60,8 @@ MX_API_PRIVATE mx_status_type mxd_mca_value_create_record_structures(
 
 MX_API_PRIVATE mx_status_type mxd_mca_value_finish_record_initialization(
 							MX_RECORD *record );
+
+MX_API_PRIVATE mx_status_type mxd_mca_value_open( MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxd_mca_value_read( MX_ANALOG_INPUT *ainput );
 

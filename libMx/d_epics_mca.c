@@ -458,6 +458,22 @@ mxd_epics_mca_open( MX_RECORD *record )
 					epics_mca->epics_mca_name, i );
 	}
 
+	/* See if this MCA is an XIA DXP MCA. */
+
+	if ( strlen( epics_mca->epics_dxp_name ) == 0 ) {
+		epics_mca->is_dxp = FALSE;
+	} else {
+		epics_mca->is_dxp = TRUE;
+
+		mx_epics_pvname_init( &(epics_mca->icr_pv),
+			"%s%s.ICR", epics_mca->epics_detector_name,
+					epics_mca->epics_dxp_name );
+
+		mx_epics_pvname_init( &(epics_mca->ocr_pv),
+			"%s%s.OCR", epics_mca->epics_detector_name,
+					epics_mca->epics_dxp_name );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -953,13 +969,41 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 		mx_status = mx_caget( &(epics_mca->act_pv),
 					MX_CA_DOUBLE, 1, &(mca->counts) );
 
+	} else
+	if ( mca->parameter_type == MXLV_MCA_INPUT_COUNT_RATE ) {
+
+		if ( epics_mca->is_dxp ) {
+			mx_status = mx_caget( &(epics_mca->icr_pv),
+				MX_CA_DOUBLE, 1, &(mca->input_count_rate) );
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Input count rates are not supported for "
+			"EPICS MCA '%s' since it is not configured "
+			"to use an EPICS DXP record.",
+				mca->record->name );
+		}
+
+	} else
+	if ( mca->parameter_type == MXLV_MCA_OUTPUT_COUNT_RATE ) {
+
+		if ( epics_mca->is_dxp ) {
+			mx_status = mx_caget( &(epics_mca->ocr_pv),
+				MX_CA_DOUBLE, 1, &(mca->output_count_rate) );
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Output count rates are not supported for "
+			"EPICS MCA '%s' since it is not configured "
+			"to use an EPICS DXP record.",
+				mca->record->name );
+		}
+
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

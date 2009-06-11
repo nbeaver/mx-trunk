@@ -311,6 +311,7 @@ extern "C" {
 #define MXT_AIN_BKPRECISION_912X	10039
 #define MXT_AIN_ILM			10040
 #define MXT_AIN_CRYOJET			10041
+#define MXT_AIN_MCA_WEIGHTED_SUM	10042
 
 /* --- Analog input subclasses -- */
 

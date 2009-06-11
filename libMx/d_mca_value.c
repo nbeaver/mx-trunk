@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,12 @@
 MX_RECORD_FUNCTION_LIST mxd_mca_value_record_function_list = {
 	NULL,
 	mxd_mca_value_create_record_structures,
-	mxd_mca_value_finish_record_initialization
+	mxd_mca_value_finish_record_initialization,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_mca_value_open
 };
 
 MX_ANALOG_INPUT_FUNCTION_LIST mxd_mca_value_analog_input_function_list = {
@@ -48,8 +53,6 @@ long mxd_mca_value_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_mca_value_rfield_def_ptr
 		= &mxd_mca_value_record_field_defaults[0];
 
-#define MXD_MCA_VALUE_DEBUG	FALSE
-
 /* === */
 
 static mx_status_type
@@ -57,7 +60,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 				MX_MCA_VALUE **mca_value,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_mca_value_get_pointers()";
+	static const char fname[] = "mxd_mca_value_get_pointers()";
 
 	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -98,7 +101,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 MX_EXPORT mx_status_type
 mxd_mca_value_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_value_create_record_structures()";
+	static const char fname[] = "mxd_mca_value_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -142,7 +145,8 @@ mxd_mca_value_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_value_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_mca_value_finish_record_initialization()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -199,17 +203,64 @@ mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_mca_value_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_mca_value_open()";
+
+	MX_ANALOG_INPUT *analog_input;
+	MX_MCA_VALUE *mca_value;
+	int num_items;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	analog_input = (MX_ANALOG_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_mca_value_get_pointers( analog_input,
+						&mca_value, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mca_value->roi_number = -1;
+
+	switch( mca_value->value_type ) {
+	case MXT_MCA_VALUE_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_SOFT_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
+		num_items = sscanf( mca_value->value_parameters,
+					"%ld", &(mca_value->roi_number) );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Cannot find a '%s' in 'value_parameters' "
+			"string '%s' for record '%s'.",
+				mca_value->value_name,
+				mca_value->value_parameters,
+				record->name );
+		}
+		break;
+	default:
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 {
-	const char fname[] = "mxd_mca_value_read()";
+	static const char fname[] = "mxd_mca_value_read()";
 
 	MX_MCA_VALUE *mca_value;
 
-	unsigned long roi_number, soft_roi_number;
 	unsigned long roi_integral, soft_roi_integral;
 	double corrected_integral, real_time, live_time, multiplier;
 	double input_count_rate, output_count_rate;
-	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_value_get_pointers( analog_input,
@@ -228,37 +279,17 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 	switch( mca_value->value_type ) {
 
 	case MXT_MCA_VALUE_ROI_INTEGRAL:
-		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &roi_number );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Cannot find an ROI number in 'value_parameters' "
-			"string '%s' for record '%s'.",
-				mca_value->value_parameters,
-				analog_input->record->name );
-		}
-
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
-						roi_number, &roi_integral );
+							mca_value->roi_number,
+							&roi_integral );
 
 		analog_input->raw_value.double_value = (double) roi_integral;
 		break;
 
 	case MXT_MCA_VALUE_SOFT_ROI_INTEGRAL:
-		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &soft_roi_number );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Cannot find an ROI number in 'value_parameters' "
-			"string '%s' for record '%s'.",
-				mca_value->value_parameters,
-				analog_input->record->name );
-		}
-
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
-					soft_roi_number, &soft_roi_integral );
+							mca_value->roi_number,
+							&soft_roi_integral );
 
 		analog_input->raw_value.double_value
 					= (double) soft_roi_integral;
@@ -285,19 +316,9 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
-		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &roi_number );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Cannot find an ROI number in 'value_parameters' "
-			"string '%s' for record '%s'.",
-				mca_value->value_parameters,
-				analog_input->record->name );
-		}
-
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
-						roi_number, &roi_integral );
+							mca_value->roi_number,
+							&roi_integral );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -323,19 +344,9 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
-		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &soft_roi_number );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Cannot find an ROI number in 'value_parameters' "
-			"string '%s' for record '%s'.",
-				mca_value->value_parameters,
-				analog_input->record->name );
-		}
-
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
-					soft_roi_number, &soft_roi_integral );
+							mca_value->roi_number,
+							&soft_roi_integral );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

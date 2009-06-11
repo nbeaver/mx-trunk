@@ -20,6 +20,7 @@
 typedef struct {
 	char epics_detector_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_mca_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char epics_dxp_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV erase_pv;
@@ -43,6 +44,10 @@ typedef struct {
 	MX_EPICS_PV *roi_integral_pv_array;
 	MX_EPICS_PV *roi_background_pv_array;
 
+	mx_bool_type is_dxp;
+	MX_EPICS_PV icr_pv;
+	MX_EPICS_PV ocr_pv;
+
 	unsigned long epics_mca_flags;
 } MX_EPICS_MCA;
 
@@ -61,6 +66,11 @@ typedef struct {
   {-1, -1, "epics_mca_name", MXFT_STRING, \
 		NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_mca_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "epics_dxp_name", MXFT_STRING, \
+		NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_dxp_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "epics_mca_flags", MXFT_HEX, NULL, 0, {0}, \
