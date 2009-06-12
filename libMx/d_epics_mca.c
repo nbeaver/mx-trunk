@@ -271,7 +271,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
-	unsigned long i;
+	unsigned long i, flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -325,8 +325,10 @@ mxd_epics_mca_open( MX_RECORD *record )
 	 * names for later use.
 	 */
 
-	if ( epics_mca->epics_mca_flags & MXF_EPICS_MCA_MULTIELEMENT_DETECTOR )
-	{
+	flags = epics_mca->epics_mca_flags;
+
+	if ( flags & MXF_EPICS_MCA_MULTIELEMENT_DETECTOR ) {
+
 		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
 			"%sAcquiring.VAL", epics_mca->epics_detector_name );
 
@@ -342,8 +344,13 @@ mxd_epics_mca_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mca->stop_pv),
 			"%sStopAll.VAL", epics_mca->epics_detector_name );
 
-		mx_epics_pvname_init( &(epics_mca->start_pv),
-			"%sStartAll.VAL", epics_mca->epics_detector_name );
+		if ( flags & MXF_EPICS_MCA_USE_ERASE_START ) {
+			mx_epics_pvname_init( &(epics_mca->start_pv),
+			    "%sEraseStart.VAL", epics_mca->epics_detector_name);
+		} else {
+			mx_epics_pvname_init( &(epics_mca->start_pv),
+			    "%sStartAll.VAL", epics_mca->epics_detector_name );
+		}
 	} else {
 		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
 			"%s%s.ACQG", epics_mca->epics_detector_name,
@@ -365,9 +372,15 @@ mxd_epics_mca_open( MX_RECORD *record )
 			"%s%s.STOP", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
-		mx_epics_pvname_init( &(epics_mca->start_pv),
-			"%s%s.STRT", epics_mca->epics_detector_name,
-					epics_mca->epics_mca_name );
+		if ( flags & MXF_EPICS_MCA_USE_ERASE_START ) {
+			mx_epics_pvname_init( &(epics_mca->start_pv),
+				"%s%s.ERST", epics_mca->epics_detector_name,
+						epics_mca->epics_mca_name );
+		} else {
+			mx_epics_pvname_init( &(epics_mca->start_pv),
+				"%s%s.STRT", epics_mca->epics_detector_name,
+						epics_mca->epics_mca_name );
+		}
 	}
 
 	mx_epics_pvname_init( &(epics_mca->act_pv),

@@ -54,6 +54,7 @@ typedef struct {
 /* Values for the 'epics_mca_flags' field. */
 
 #define MXF_EPICS_MCA_MULTIELEMENT_DETECTOR	0x1
+#define MXF_EPICS_MCA_USE_ERASE_START		0x2
 
 /*---*/
 
