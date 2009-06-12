@@ -105,10 +105,20 @@ MX_API mx_status_type mx_epics_poll_for_events( const char *calling_fname );
 
 MX_API mx_status_type mx_epics_flush_io( void );
 
+/*---*/
+
 MX_API mx_status_type mx_caget( MX_EPICS_PV *pv,
 				long epics_type,
 				unsigned long num_elements,
 				void *data_buffer );
+
+MX_API mx_status_type mx_caget_with_timeout( MX_EPICS_PV *pv,
+				long epics_type,
+				unsigned long num_elements,
+				void *data_buffer,
+				double timeout );
+
+/*---*/
 
 MX_API mx_status_type mx_caput( MX_EPICS_PV *pv,
 				long epics_type,
@@ -120,17 +130,21 @@ MX_API mx_status_type mx_caput_nowait( MX_EPICS_PV *pv,
 				unsigned long num_elements,
 				void *data_buffer );
 
-MX_API mx_status_type mx_caget_with_timeout( MX_EPICS_PV *pv,
+MX_API mx_status_type mx_caput_with_callback( MX_EPICS_PV *pv,
 				long epics_type,
 				unsigned long num_elements,
 				void *data_buffer,
-				double timeout );
+				mx_status_type (*callback_function)
+					( MX_EPICS_CALLBACK *, void * ),
+				void *callback_argument );
 
 MX_API mx_status_type mx_caput_with_timeout( MX_EPICS_PV *pv,
 				long epics_type,
 				unsigned long num_elements,
 				void *data_buffer,
 				double timeout );
+
+/*---*/
 
 MX_API long mx_epics_pv_get_field_type( MX_EPICS_PV *pv );
 

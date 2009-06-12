@@ -24,6 +24,7 @@ typedef struct {
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV erase_pv;
+	MX_EPICS_PV erase_start_pv;
 	MX_EPICS_PV preset_live_pv;
 	MX_EPICS_PV preset_real_pv;
 	MX_EPICS_PV stop_pv;
@@ -54,7 +55,7 @@ typedef struct {
 /* Values for the 'epics_mca_flags' field. */
 
 #define MXF_EPICS_MCA_MULTIELEMENT_DETECTOR	0x1
-#define MXF_EPICS_MCA_USE_ERASE_START		0x2
+#define MXF_EPICS_MCA_NO_ERASE_ON_START		0x2
 
 /*---*/
 

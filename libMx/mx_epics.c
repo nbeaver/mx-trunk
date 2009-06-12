@@ -18,17 +18,19 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO		FALSE
+#define MX_EPICS_DEBUG_IO			TRUE
 
-#define MX_EPICS_DEBUG_HANDLERS		FALSE
+#define MX_EPICS_DEBUG_HANDLERS			FALSE
 
-#define MX_EPICS_DEBUG_CA_POLL		FALSE
+#define MX_EPICS_DEBUG_CA_POLL			FALSE
 
-#define MX_EPICS_DEBUG_PERFORMANCE	FALSE
+#define MX_EPICS_DEBUG_PERFORMANCE		FALSE
+
+#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
-#define MX_EPICS_EXPORT_KLUDGE		TRUE
+#define MX_EPICS_EXPORT_KLUDGE			TRUE
 
 #include "mxconfig.h"
 
@@ -538,6 +540,11 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	pv->put_callback_status = MXF_EPVH_IDLE;
 
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: Initializing PV '%s' put callback status to %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+
 	pv->application_ptr = NULL;
 
 	return;
@@ -1039,8 +1046,14 @@ mx_caget_by_name( char *pvname,
 /*--------------------------------------------------------------------------*/
 
 static void
-mx_epics_ca_array_put_callback_handler( struct event_handler_args args )
+mx_epics_ca_array_put_synchronous_callback_handler(
+			struct event_handler_args args )
 {
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	static const char fname[] =
+		"mx_epics_ca_array_put_synchronous_callback_handler()";
+#endif
+
 	MX_EPICS_PV *pv;
 
 	LOCK_EPICS_MUTEX;
@@ -1059,6 +1072,11 @@ mx_epics_ca_array_put_callback_handler( struct event_handler_args args )
 		return;
 	}
 
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: PV '%s' put callback status = %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+
 	if ( pv->put_callback_status != MXF_EPVH_CALLBACK_IN_PROGRESS ) {
 		pv->put_callback_status = MXF_EPVH_UNEXPECTED_HANDLER_CALL;
 		UNLOCK_EPICS_MUTEX;
@@ -1068,6 +1086,90 @@ mx_epics_ca_array_put_callback_handler( struct event_handler_args args )
 	/* Record that the callback has now occurred. */
 
 	pv->put_callback_status = MXF_EPVH_IDLE;
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: Setting PV '%s' put callback status to %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+
+	UNLOCK_EPICS_MUTEX;
+
+	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static void
+mx_epics_ca_array_put_asynchronous_callback_handler(
+			struct event_handler_args args )
+{
+	static const char fname[] =
+		"mx_epics_ca_array_put_asynchronous_callback_handler()";
+
+	MX_EPICS_CALLBACK *callback;
+	MX_EPICS_PV *pv;
+	mx_status_type (*callback_function)( MX_EPICS_CALLBACK *, void * );
+	mx_status_type mx_status;
+
+	LOCK_EPICS_MUTEX;
+
+	callback = (MX_EPICS_CALLBACK *) args.usr;
+
+	if ( callback == (MX_EPICS_CALLBACK *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EPICS_CALLBACK pointer returned by EPICS was NULL." );
+
+		UNLOCK_EPICS_MUTEX;
+		return;
+	}
+
+	pv = callback->pv;
+
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		mx_epics_put_callback_num_null_puser_ptrs++;
+		mx_free( callback);
+		UNLOCK_EPICS_MUTEX;
+		return;
+	}
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: PV '%s' put callback status = %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+	if ( pv->put_callback_status != MXF_EPVH_CALLBACK_IN_PROGRESS ) {
+		pv->put_callback_status = MXF_EPVH_UNEXPECTED_HANDLER_CALL;
+		mx_free( callback);
+		UNLOCK_EPICS_MUTEX;
+		return;
+	}
+
+	/* Invoke the MX callback function. */
+
+	callback_function = callback->callback_function;
+
+	if ( callback_function == NULL ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The callback function pointer is NULL." );
+
+		mx_free( callback);
+		UNLOCK_EPICS_MUTEX;
+		return;
+	}
+
+	mx_status = (*callback_function)( callback,
+					callback->callback_argument );
+
+	/* Record that the callback has now occurred and free the memory
+	 * allocated for the MX_EPICS_CALLBACK object.
+	 */
+
+	pv->put_callback_status = MXF_EPVH_IDLE;
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: Setting PV '%s' put callback status to %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+	mx_free( callback );
 
 	UNLOCK_EPICS_MUTEX;
 
@@ -1082,10 +1184,17 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 			unsigned long num_elements,
 			void *data_buffer,
 			double timeout,
-			int max_retries )
+			int max_retries,
+			mx_bool_type use_callback,
+			mx_status_type( *callback_function )
+					( MX_EPICS_CALLBACK *, void * ),
+			void *callback_argument )
 {
 	static const char fname[] = "mx_epics_internal_caput()";
 
+	MX_EPICS_CALLBACK *callback_object;
+	void (*internal_epics_callback_function)( struct event_handler_args );
+	void *internal_epics_callback_argument;
 	int epics_status;
 	unsigned long i, milliseconds_to_wait, milliseconds_between_polls;
 	mx_status_type mx_status;
@@ -1106,6 +1215,37 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The channel_id passed for EPICS PV '%s' was NULL.",
 			pv->pvname );
+	}
+
+	if ( use_callback == FALSE ) {
+		internal_epics_callback_function = NULL;
+		internal_epics_callback_argument = NULL;
+	} else {
+		if ( callback_function == NULL ) {
+			internal_epics_callback_function =
+			    mx_epics_ca_array_put_synchronous_callback_handler;
+
+			internal_epics_callback_argument = NULL;
+		} else {
+			internal_epics_callback_function =
+			    mx_epics_ca_array_put_asynchronous_callback_handler;
+
+			callback_object = (MX_EPICS_CALLBACK *)
+				malloc( sizeof(MX_EPICS_CALLBACK) );
+
+			if ( callback_object == (MX_EPICS_CALLBACK *) NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate "
+				"an MX_EPICS_CALLBACK structure for PV '%s'.",
+					pv->pvname );
+			}
+
+			callback_object->pv = pv;
+			callback_object->callback_function = callback_function;
+			callback_object->callback_argument = callback_argument;
+
+			internal_epics_callback_argument = callback_object;
+		}
 	}
 
 	if ( mx_epics_debug_flag ) {
@@ -1189,6 +1329,11 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	LOCK_EPICS_MUTEX;
 
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: PV '%s' put callback status = %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+
 	if ( pv->put_callback_status != MXF_EPVH_IDLE ) {
 		mx_warning( "EPICS PV '%s' put callback status has the "
 			"unexpected value of %d just before invoking "
@@ -1198,16 +1343,32 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	/* Mark this channel ID as having a put callback in progress. */
 
-	pv->put_callback_status = MXF_EPVH_CALLBACK_IN_PROGRESS;
+	if ( use_callback ) {
+		pv->put_callback_status = MXF_EPVH_CALLBACK_IN_PROGRESS;
+	} else {
+		pv->put_callback_status = MXF_EPVH_IDLE;
+	}
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: Setting PV '%s' put callback status to %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
 
 	UNLOCK_EPICS_MUTEX;
 
 	/* Send the request to Channel Access. */
 
-	epics_status = ca_array_put_callback( epics_type, num_elements,
+	if ( use_callback ) {
+		epics_status = ca_array_put_callback(
+					epics_type, num_elements,
 					pv->channel_id, data_buffer,
-					mx_epics_ca_array_put_callback_handler,
-					NULL );
+					internal_epics_callback_function,
+					internal_epics_callback_argument );
+	} else {
+		epics_status = ca_array_put(
+					epics_type, num_elements,
+					pv->channel_id, data_buffer );
+	}
 
 	MX_DEBUG( 2,("%s: PV '%s', epics_status = %d",
 		fname, pv->pvname, epics_status ));
@@ -1266,6 +1427,22 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		break;
 	}
 
+	/* If we are not waiting for a synchronous callback, then exit. */
+
+	if ( ( use_callback == FALSE ) || ( callback_function == NULL ) ) {
+
+		/* Allow background events to execute. */
+
+		mx_status = mx_epics_poll_for_events( fname );
+
+#if MX_EPICS_DEBUG_PERFORMANCE
+		MX_HRT_END( measurement );
+
+		MX_HRT_RESULTS( measurement, fname, "%s (async)", pv->pvname );
+#endif
+		return mx_status;
+	}
+
 	/* Wait for the put to complete. */
 
 	milliseconds_to_wait = mx_round( 1000.0 * timeout );
@@ -1287,6 +1464,11 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 			return mx_status;
 
 		LOCK_EPICS_MUTEX;
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+		MX_DEBUG(-2,("%s: PV '%s' put callback status = %d",
+			fname, pv->pvname, pv->put_callback_status));
+#endif
 
 		if ( pv->put_callback_status == MXF_EPVH_IDLE ) {
 			MX_DEBUG( 2,(
@@ -1315,7 +1497,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, pv->pvname );
+	MX_HRT_RESULTS( measurement, fname, "%s (sync)", pv->pvname );
 #endif
 
 	if ( i >= milliseconds_to_wait ) {
@@ -1353,7 +1535,42 @@ mx_caput( MX_EPICS_PV *pv,
 
 	mx_status = mx_epics_internal_caput( pv, epics_type,
 					num_elements, data_buffer,
-					mx_epics_io_timeout_interval, 1 );
+					mx_epics_io_timeout_interval, 1,
+					FALSE, NULL, NULL );
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_caput_with_callback( MX_EPICS_PV *pv,
+		long epics_type,
+		unsigned long num_elements,
+		void *data_buffer,
+		mx_status_type (*callback_function)
+				( MX_EPICS_CALLBACK *, void * ),
+		void *callback_argument )
+{
+	static const char fname[] = "mx_caput_with_callback()";
+
+	mx_status_type mx_status;
+
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EPICS_PV pointer passed was NULL." );
+	}
+
+	if ( pv->channel_id == NULL ) {
+		mx_status = mx_epics_pv_connect( pv );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_epics_internal_caput( pv, epics_type,
+					num_elements, data_buffer,
+					0.0, 0, TRUE,
+					callback_function, callback_argument );
 	return mx_status;
 }
 
@@ -1384,7 +1601,8 @@ mx_caput_with_timeout( MX_EPICS_PV *pv,
 
 	mx_status = mx_epics_internal_caput( pv, epics_type,
 					num_elements, data_buffer,
-					timeout, 1 );
+					timeout, 1,
+					FALSE, NULL, NULL );
 	return mx_status;
 }
 
@@ -1415,7 +1633,8 @@ mx_caput_by_name( char *pvname,
 
 	mx_status = mx_epics_internal_caput( NULL, epics_type,
 					num_elements, data_buffer,
-					mx_epics_io_timeout_interval, 0 );
+					mx_epics_io_timeout_interval, 0,
+					FALSE, NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1528,6 +1747,18 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 			}
 		}
 	}
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: PV '%s' put callback status = %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
+
+	pv->put_callback_status = MXF_EPVH_IDLE;
+
+#if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
+	MX_DEBUG(-2,("%s: Setting PV '%s' put callback status to %d",
+		fname, pv->pvname, pv->put_callback_status));
+#endif
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_START( measurement );
@@ -1811,7 +2042,8 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 						num_elements,
 						data_buffer,
 						timeout,
-						max_retries - 1 );
+						max_retries - 1,
+						FALSE, NULL, NULL );
 		break;
 	case MXF_EPICS_INTERNAL_CAPUT_NOWAIT:
 		mx_status = mx_epics_internal_caput_nowait( pv,

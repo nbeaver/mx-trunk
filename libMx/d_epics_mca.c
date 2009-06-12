@@ -335,6 +335,9 @@ mxd_epics_mca_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mca->erase_pv),
 			"%sEraseAll.VAL", epics_mca->epics_detector_name );
 
+		mx_epics_pvname_init( &(epics_mca->erase_start_pv),
+			"%sEraseStart.VAL", epics_mca->epics_detector_name);
+
 		mx_epics_pvname_init( &(epics_mca->preset_live_pv),
 			"%sPresetLive.VAL", epics_mca->epics_detector_name );
 
@@ -344,13 +347,8 @@ mxd_epics_mca_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_mca->stop_pv),
 			"%sStopAll.VAL", epics_mca->epics_detector_name );
 
-		if ( flags & MXF_EPICS_MCA_USE_ERASE_START ) {
-			mx_epics_pvname_init( &(epics_mca->start_pv),
-			    "%sEraseStart.VAL", epics_mca->epics_detector_name);
-		} else {
-			mx_epics_pvname_init( &(epics_mca->start_pv),
-			    "%sStartAll.VAL", epics_mca->epics_detector_name );
-		}
+		mx_epics_pvname_init( &(epics_mca->start_pv),
+			"%sStartAll.VAL", epics_mca->epics_detector_name );
 	} else {
 		mx_epics_pvname_init( &(epics_mca->acquiring_pv),
 			"%s%s.ACQG", epics_mca->epics_detector_name,
@@ -358,6 +356,10 @@ mxd_epics_mca_open( MX_RECORD *record )
 
 		mx_epics_pvname_init( &(epics_mca->erase_pv),
 			"%s%s.ERAS", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
+
+		mx_epics_pvname_init( &(epics_mca->erase_start_pv),
+			"%s%s.ERST", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
 		mx_epics_pvname_init( &(epics_mca->preset_live_pv),
@@ -372,15 +374,9 @@ mxd_epics_mca_open( MX_RECORD *record )
 			"%s%s.STOP", epics_mca->epics_detector_name,
 					epics_mca->epics_mca_name );
 
-		if ( flags & MXF_EPICS_MCA_USE_ERASE_START ) {
-			mx_epics_pvname_init( &(epics_mca->start_pv),
-				"%s%s.ERST", epics_mca->epics_detector_name,
-						epics_mca->epics_mca_name );
-		} else {
-			mx_epics_pvname_init( &(epics_mca->start_pv),
-				"%s%s.STRT", epics_mca->epics_detector_name,
-						epics_mca->epics_mca_name );
-		}
+		mx_epics_pvname_init( &(epics_mca->start_pv),
+			"%s%s.STRT", epics_mca->epics_detector_name,
+					epics_mca->epics_mca_name );
 	}
 
 	mx_epics_pvname_init( &(epics_mca->act_pv),
@@ -499,6 +495,7 @@ mxd_epics_mca_start( MX_MCA *mca )
 	MX_EPICS_GROUP epics_group;
 	int32_t start, preset_counts;
 	double preset_real_time, preset_live_time;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -581,10 +578,18 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	/* Tell the counting to start. */
 
+	flags = epics_mca->epics_mca_flags;
+
 	start = 1;
 
-	mx_status = mx_caput_nowait( &(epics_mca->start_pv),
-					MX_CA_LONG, 1, &start );
+	if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
+
+		mx_status = mx_caput_nowait( &(epics_mca->start_pv),
+						MX_CA_LONG, 1, &start );
+	} else {
+		mx_status = mx_caput_nowait( &(epics_mca->erase_start_pv),
+						MX_CA_LONG, 1, &start );
+	}
 
 	return mx_status;
 }
