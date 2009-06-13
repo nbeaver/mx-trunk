@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2007-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2007-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,8 +80,8 @@ mx_digital_output_read( MX_RECORD *record, unsigned long *value )
 {
 	static const char fname[] = "mx_digital_output_read()";
 
-	MX_DIGITAL_OUTPUT *doutput;
-	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist;
+	MX_DIGITAL_OUTPUT *doutput = NULL;
+	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *read_fn ) ( MX_DIGITAL_OUTPUT * );
 	mx_status_type mx_status;
 
@@ -109,8 +109,8 @@ mx_digital_output_write( MX_RECORD *record, unsigned long value )
 {
 	static const char fname[] = "mx_digital_output_write()";
 
-	MX_DIGITAL_OUTPUT *doutput;
-	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist;
+	MX_DIGITAL_OUTPUT *doutput = NULL;
+	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *write_fn ) ( MX_DIGITAL_OUTPUT * );
 	mx_status_type mx_status;
 
@@ -143,8 +143,8 @@ mx_digital_output_pulse( MX_RECORD *record,
 {
 	static const char fname[] = "mx_digital_output_pulse()";
 
-	MX_DIGITAL_OUTPUT *doutput;
-	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist;
+	MX_DIGITAL_OUTPUT *doutput = NULL;
+	MX_DIGITAL_OUTPUT_FUNCTION_LIST *flist = NULL;
 	mx_status_type ( *pulse_fn ) ( MX_DIGITAL_OUTPUT * );
 	mx_status_type mx_status;
 

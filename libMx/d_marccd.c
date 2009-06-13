@@ -983,7 +983,7 @@ mxd_marccd_set_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_marccd_set_parameter()";
 
-	MX_MARCCD *marccd;
+	MX_MARCCD *marccd = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	char command[40];
 	mx_status_type mx_status;

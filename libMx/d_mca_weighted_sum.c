@@ -214,7 +214,7 @@ mxd_mca_weighted_sum_read( MX_ANALOG_INPUT *analog_input )
 {
 	static const char fname[] = "mxd_mca_weighted_sum_read()";
 
-	MX_MCA_WEIGHTED_SUM *mca_weighted_sum;
+	MX_MCA_WEIGHTED_SUM *mca_weighted_sum = NULL;
 
 	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;

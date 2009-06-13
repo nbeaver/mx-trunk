@@ -168,7 +168,7 @@ mxd_epics_ccd_finish_record_initialization( MX_RECORD *record )
 			"mxd_epics_ccd_finish_record_initialization()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_finish_record_initialization( record );
@@ -209,7 +209,7 @@ mxd_epics_ccd_open( MX_RECORD *record )
 	static const char fname[] = "mxd_epics_ccd_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_string[41];
 	int32_t bits_per_pixel;
@@ -337,7 +337,7 @@ mxd_epics_ccd_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ccd_trigger()";
 
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t acquire;
 	mx_status_type mx_status;
@@ -376,7 +376,7 @@ mxd_epics_ccd_abort( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ccd_abort()";
 
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	int32_t abort_value;
 	mx_status_type mx_status;
 
@@ -406,7 +406,7 @@ mxd_epics_ccd_get_extended_status( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ccd_get_extended_status()";
 
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	int32_t busy;
 	mx_status_type mx_status;
 
@@ -493,7 +493,7 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ccd_get_parameter()";
 
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	MX_SEQUENCE_PARAMETERS seq;
 	int32_t x_binsize, y_binsize;
 	mx_status_type mx_status;
@@ -614,7 +614,7 @@ mxd_epics_ccd_set_parameter( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_epics_ccd_set_parameter()";
 
-	MX_EPICS_CCD *epics_ccd;
+	MX_EPICS_CCD *epics_ccd = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	unsigned long saved_value;
 	double seconds;

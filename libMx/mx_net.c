@@ -5729,7 +5729,7 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	MX_CLOCK_TICK timeout_ticks, current_tick, finish_tick;
 	unsigned long sleep_ms;
 	int comparison;
-	mx_bool_type wait_forever;
+	mx_bool_type wait_forever = FALSE;
 	mx_status_type mx_status;
 
 	if ( record_list == (MX_RECORD *) NULL ) {

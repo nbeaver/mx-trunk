@@ -3786,7 +3786,7 @@ mxd_aviex_pccd_measure_correction( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_aviex_pccd_measure_correction()";
 
-	MX_AVIEX_PCCD *aviex_pccd;
+	MX_AVIEX_PCCD *aviex_pccd = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
