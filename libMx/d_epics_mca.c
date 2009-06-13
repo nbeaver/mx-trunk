@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_EPICS_MCA_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -584,11 +586,13 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
 
-		mx_status = mx_caput_nowait( &(epics_mca->start_pv),
-						MX_CA_LONG, 1, &start );
+		mx_status = mx_caput_with_callback( &(epics_mca->start_pv),
+						MX_CA_LONG, 1, &start,
+						NULL, NULL );
 	} else {
-		mx_status = mx_caput_nowait( &(epics_mca->erase_start_pv),
-						MX_CA_LONG, 1, &start );
+		mx_status = mx_caput_with_callback(&(epics_mca->erase_start_pv),
+						MX_CA_LONG, 1, &start,
+						NULL, NULL );
 	}
 
 	return mx_status;
@@ -726,13 +730,38 @@ mxd_epics_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_epics_mca_busy()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
+	MX_EPICS_PV *pv;
 	int32_t busy;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* See if the start operation is still waiting for its callback
+	 * to complete.
+	 */
+
+	flags = epics_mca->epics_mca_flags;
+
+	if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
+		pv = &(epics_mca->start_pv);
+	} else {
+		pv = &(epics_mca->erase_start_pv);
+	}
+
+	if ( pv->put_callback_status == MXF_EPVH_CALLBACK_IN_PROGRESS ) {
+		mca->busy = TRUE;
+
+#if MXD_EPICS_MCA_DEBUG
+		MX_DEBUG(-2,("%s: MCA '%s' start callback in progress.",
+			fname, mca->record->name));
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Get the current acquisition status. */
 

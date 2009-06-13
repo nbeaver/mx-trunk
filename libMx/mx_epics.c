@@ -18,7 +18,7 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO			TRUE
+#define MX_EPICS_DEBUG_IO			FALSE
 
 #define MX_EPICS_DEBUG_HANDLERS			FALSE
 
@@ -26,7 +26,7 @@
 
 #define MX_EPICS_DEBUG_PERFORMANCE		FALSE
 
-#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
+#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -1147,17 +1147,10 @@ mx_epics_ca_array_put_asynchronous_callback_handler(
 
 	callback_function = callback->callback_function;
 
-	if ( callback_function == NULL ) {
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The callback function pointer is NULL." );
-
-		mx_free( callback);
-		UNLOCK_EPICS_MUTEX;
-		return;
-	}
-
-	mx_status = (*callback_function)( callback,
+	if ( callback_function != NULL ) {
+		mx_status = (*callback_function)( callback,
 					callback->callback_argument );
+	}
 
 	/* Record that the callback has now occurred and free the memory
 	 * allocated for the MX_EPICS_CALLBACK object.
@@ -1178,6 +1171,11 @@ mx_epics_ca_array_put_asynchronous_callback_handler(
 
 /*--------------------------------------------------------------------------*/
 
+#define MXI_EPICS_CAPUT			1
+#define MXI_EPICS_CAPUT_NOWAIT		2
+#define MXI_EPICS_CAPUT_WITH_CALLBACK	3
+#define MXI_EPICS_CAPUT_WITH_TIMEOUT	4
+
 static mx_status_type
 mx_epics_internal_caput( MX_EPICS_PV *pv,
 			long epics_type,
@@ -1185,7 +1183,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 			void *data_buffer,
 			double timeout,
 			int max_retries,
-			mx_bool_type use_callback,
+			int caput_type,
 			mx_status_type( *callback_function )
 					( MX_EPICS_CALLBACK *, void * ),
 			void *callback_argument )
@@ -1217,35 +1215,42 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 			pv->pvname );
 	}
 
-	if ( use_callback == FALSE ) {
+	switch( caput_type ) {
+	case MXI_EPICS_CAPUT_NOWAIT:
 		internal_epics_callback_function = NULL;
 		internal_epics_callback_argument = NULL;
-	} else {
-		if ( callback_function == NULL ) {
-			internal_epics_callback_function =
+		break;
+	case MXI_EPICS_CAPUT:
+	case MXI_EPICS_CAPUT_WITH_TIMEOUT:
+		internal_epics_callback_function =
 			    mx_epics_ca_array_put_synchronous_callback_handler;
 
-			internal_epics_callback_argument = NULL;
-		} else {
-			internal_epics_callback_function =
+		internal_epics_callback_argument = NULL;
+		break;
+	case MXI_EPICS_CAPUT_WITH_CALLBACK:
+		internal_epics_callback_function =
 			    mx_epics_ca_array_put_asynchronous_callback_handler;
 
-			callback_object = (MX_EPICS_CALLBACK *)
+		callback_object = (MX_EPICS_CALLBACK *)
 				malloc( sizeof(MX_EPICS_CALLBACK) );
 
-			if ( callback_object == (MX_EPICS_CALLBACK *) NULL ) {
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Ran out of memory trying to allocate "
-				"an MX_EPICS_CALLBACK structure for PV '%s'.",
-					pv->pvname );
-			}
-
-			callback_object->pv = pv;
-			callback_object->callback_function = callback_function;
-			callback_object->callback_argument = callback_argument;
-
-			internal_epics_callback_argument = callback_object;
+		if ( callback_object == (MX_EPICS_CALLBACK *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_EPICS_CALLBACK structure for PV '%s'.",
+				pv->pvname );
 		}
+
+		callback_object->pv = pv;
+		callback_object->callback_function = callback_function;
+		callback_object->callback_argument = callback_argument;
+
+		internal_epics_callback_argument = callback_object;
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"Invoked with illegal caput type %d", caput_type );
+		break;
 	}
 
 	if ( mx_epics_debug_flag ) {
@@ -1343,10 +1348,13 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	/* Mark this channel ID as having a put callback in progress. */
 
-	if ( use_callback ) {
-		pv->put_callback_status = MXF_EPVH_CALLBACK_IN_PROGRESS;
-	} else {
+	switch( caput_type ) {
+	case MXI_EPICS_CAPUT_NOWAIT:
 		pv->put_callback_status = MXF_EPVH_IDLE;
+		break;
+	default:
+		pv->put_callback_status = MXF_EPVH_CALLBACK_IN_PROGRESS;
+		break;
 	}
 
 #if MX_EPICS_DEBUG_PUT_CALLBACK_STATUS
@@ -1358,16 +1366,19 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	/* Send the request to Channel Access. */
 
-	if ( use_callback ) {
+	switch( caput_type ) {
+	case MXI_EPICS_CAPUT_NOWAIT:
+		epics_status = ca_array_put(
+					epics_type, num_elements,
+					pv->channel_id, data_buffer );
+		break;
+	default:
 		epics_status = ca_array_put_callback(
 					epics_type, num_elements,
 					pv->channel_id, data_buffer,
 					internal_epics_callback_function,
 					internal_epics_callback_argument );
-	} else {
-		epics_status = ca_array_put(
-					epics_type, num_elements,
-					pv->channel_id, data_buffer );
+		break;
 	}
 
 	MX_DEBUG( 2,("%s: PV '%s', epics_status = %d",
@@ -1429,7 +1440,9 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	/* If we are not waiting for a synchronous callback, then exit. */
 
-	if ( ( use_callback == FALSE ) || ( callback_function == NULL ) ) {
+	switch( caput_type ) {
+	case MXI_EPICS_CAPUT_NOWAIT:
+	case MXI_EPICS_CAPUT_WITH_CALLBACK:
 
 		/* Allow background events to execute. */
 
@@ -1441,6 +1454,8 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		MX_HRT_RESULTS( measurement, fname, "%s (async)", pv->pvname );
 #endif
 		return mx_status;
+
+		break;
 	}
 
 	/* Wait for the put to complete. */
@@ -1536,7 +1551,8 @@ mx_caput( MX_EPICS_PV *pv,
 	mx_status = mx_epics_internal_caput( pv, epics_type,
 					num_elements, data_buffer,
 					mx_epics_io_timeout_interval, 1,
-					FALSE, NULL, NULL );
+					MXI_EPICS_CAPUT,
+					NULL, NULL );
 	return mx_status;
 }
 
@@ -1569,7 +1585,8 @@ mx_caput_with_callback( MX_EPICS_PV *pv,
 
 	mx_status = mx_epics_internal_caput( pv, epics_type,
 					num_elements, data_buffer,
-					0.0, 0, TRUE,
+					0.0, 0,
+					MXI_EPICS_CAPUT_WITH_CALLBACK,
 					callback_function, callback_argument );
 	return mx_status;
 }
@@ -1602,7 +1619,8 @@ mx_caput_with_timeout( MX_EPICS_PV *pv,
 	mx_status = mx_epics_internal_caput( pv, epics_type,
 					num_elements, data_buffer,
 					timeout, 1,
-					FALSE, NULL, NULL );
+					MXI_EPICS_CAPUT_WITH_TIMEOUT,
+					NULL, NULL );
 	return mx_status;
 }
 
@@ -1634,7 +1652,8 @@ mx_caput_by_name( char *pvname,
 	mx_status = mx_epics_internal_caput( NULL, epics_type,
 					num_elements, data_buffer,
 					mx_epics_io_timeout_interval, 0,
-					FALSE, NULL, NULL );
+					MXI_EPICS_CAPUT,
+					NULL, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2043,7 +2062,8 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 						data_buffer,
 						timeout,
 						max_retries - 1,
-						FALSE, NULL, NULL );
+						MXI_EPICS_CAPUT_NOWAIT,
+						NULL, NULL );
 		break;
 	case MXF_EPICS_INTERNAL_CAPUT_NOWAIT:
 		mx_status = mx_epics_internal_caput_nowait( pv,
