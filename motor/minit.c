@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,7 @@
 #include "motor.h"
 #include "mx_log.h"
 #include "mx_signal.h"
+#include "mx_multi.h"
 
 int
 motor_init( char *motor_savefile_name,
@@ -128,11 +129,15 @@ motor_init( char *motor_savefile_name,
 	strlcpy( list_head_struct->program_name,
 			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH );
 
+#if 0
 	if ( network_debug ) {
 		list_head_struct->network_debug = TRUE;
 	} else {
 		list_head_struct->network_debug = FALSE;
 	}
+#else
+	mx_multi_set_debug_flag( motor_record_list, network_debug );
+#endif
 
 	/* Read 'motor.dat' and add the records therein to the record list. */
 
