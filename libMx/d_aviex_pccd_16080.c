@@ -17,6 +17,7 @@
 
 #define MXD_AVIEX_PCCD_16080_DEBUG        		FALSE
 #define MXD_AVIEX_PCCD_16080_DEBUG_DESCRAMBLING		FALSE
+#define MXD_AVIEX_PCCD_16080_DEBUG_SEQUENCE_TIMES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

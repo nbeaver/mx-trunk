@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -47,7 +47,7 @@
  *
  */
 
-#define HAVE_EPIX_XCLIB			0
+#define HAVE_EPIX_XCLIB			1
 
 /*****************************************************************************
  *
@@ -127,8 +127,8 @@
 
 /*****************************************************************************
  * The Delta Tau Power PMAC is a PowerPC-based motion controller that uses a
- * Linux-based realtime operating system.  This define enables support for
- * MX drivers running on the Power PMAC itself that communicate with the
+ * Linux-based realtime operating system.  This definition enables support
+ * for MX drivers running on the Power PMAC itself that communicate with the
  * Delta Tau motion control software there.
  *
  * WARNING: This driver is a prototype and has not yet been tested with a
