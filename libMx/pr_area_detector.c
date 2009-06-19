@@ -40,7 +40,7 @@ static mx_status_type
 mxp_area_detector_measure_correction_callback_function(
 				MX_CALLBACK_MESSAGE *callback_message )
 {
-#if 0
+#if PR_AREA_DETECTOR_DEBUG
 	static const char fname[] =
 		"mxp_area_detector_measure_correction_callback_function()";
 #endif
@@ -50,6 +50,7 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_IMAGE_FRAME **dezinger_frame_ptr;
 	long pixels_per_frame;
 	long last_frame_number, total_num_frames, num_frames_difference;
+	long frame_number_to_read;
 	unsigned long ad_status;
 	mx_bool_type sequence_complete;
 	mx_status_type mx_status;
@@ -141,8 +142,14 @@ mxp_area_detector_measure_correction_callback_function(
 		    dezinger_frame_ptr = NULL;
 		}
 
+		if ( ad->use_multiframe_correction ) {
+			frame_number_to_read = corr->num_frames_read;
+		} else {
+			frame_number_to_read = 0;
+		}
+
 		mx_status = mx_area_detector_process_correction_frame(
-					ad, corr->num_frames_read,
+					ad, frame_number_to_read,
 					corr->desired_correction_flags,
 					dezinger_frame_ptr,
 					corr->sum_array );
@@ -190,6 +197,22 @@ mxp_area_detector_measure_correction_callback_function(
 		MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
 #endif
+		/* If the correction is done as a sequence of one-shot
+		 * frames, then start the detector again.
+		 */
+
+		if ( ad->use_multiframe_correction == FALSE ) {
+			mx_status = mx_area_detector_start( ad->record );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_area_detector_abort( ad->record );
+
+				mx_area_detector_cleanup_after_correction(
+								ad, corr );
+				return mx_status;
+			}
+		}
+
 		/* Return, knowing that we will be called again soon. */
 
 		return mx_status;
@@ -300,10 +323,16 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 * the frames needed to compute the correction frame.
 	 */
 
-	mx_status = mx_area_detector_set_multiframe_mode( record,
+	if ( ad->use_multiframe_correction ) {
+		mx_status = mx_area_detector_set_multiframe_mode( record,
 							corr->raw_num_exposures,
 							corr->exposure_time,
 							modified_frame_time );
+	} else {
+		mx_status = mx_area_detector_set_one_shot_mode( record,
+							corr->exposure_time );
+	}
+
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;

@@ -412,6 +412,8 @@ mxd_aviex_pccd_16080_initialize_detector( MX_RECORD *record,
 		ad->maximum_framesize[0] = 4168;
 		ad->maximum_framesize[1] = 2084;
 
+		ad->use_multiframe_correction = FALSE;
+
 		aviex_pccd->horiz_descramble_factor = 2;
 		aviex_pccd->vert_descramble_factor  = 2;
 

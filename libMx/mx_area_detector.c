@@ -242,6 +242,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_frames_to_skip = 0;
 
+	ad->use_multiframe_correction = FALSE;
+
 	ad->byte_order = (long) mx_native_byteorder();
 
 	ad->maximum_frame_number = 0;

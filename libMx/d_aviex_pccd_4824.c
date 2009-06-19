@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -233,6 +233,8 @@ mxd_aviex_pccd_4824_initialize_detector( MX_RECORD *record,
 
 		ad->maximum_framesize[0] = 3584;
 		ad->maximum_framesize[1] = 2048;
+
+		ad->use_multiframe_correction = TRUE;
 
 		aviex_pccd->horiz_descramble_factor = 2;
 		aviex_pccd->vert_descramble_factor  = 2;
