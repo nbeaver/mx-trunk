@@ -1831,9 +1831,9 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 			return mx_status;
 	}
 
-	/* Wait for up to 5 seconds for the video input to stop. */
+	/* Wait for up to 10 seconds for the video input to stop. */
 
-	timeout_in_seconds = 5.0;
+	timeout_in_seconds = 10.0;
 
 	num_ticks_to_wait =
 		mx_convert_seconds_to_clock_ticks( timeout_in_seconds );

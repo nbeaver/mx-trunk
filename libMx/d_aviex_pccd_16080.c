@@ -17,7 +17,7 @@
 
 #define MXD_AVIEX_PCCD_16080_DEBUG        		FALSE
 #define MXD_AVIEX_PCCD_16080_DEBUG_DESCRAMBLING		FALSE
-#define MXD_AVIEX_PCCD_16080_DEBUG_SEQUENCE_TIMES	TRUE
+#define MXD_AVIEX_PCCD_16080_DEBUG_SEQUENCE_TIMES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -866,11 +866,15 @@ mxd_aviex_pccd_16080_descramble( uint16_t *raw_frame_data,
 					long i_framesize,
 					long j_framesize )
 {
+#if MXD_AVIEX_PCCD_16080_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_aviex_pccd_16080_descramble()";
+#endif
 
 	long i, j;
 
+#if MXD_AVIEX_PCCD_16080_DEBUG_DESCRAMBLING
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
@@ -896,6 +900,10 @@ mxd_aviex_pccd_16080_descramble( uint16_t *raw_frame_data,
 		raw_frame_data += 8;
 	    }
 	}
+
+#if MXD_AVIEX_PCCD_16080_DEBUG_DESCRAMBLING
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

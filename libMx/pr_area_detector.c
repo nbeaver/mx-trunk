@@ -55,7 +55,7 @@ mxp_area_detector_measure_correction_callback_function(
 	mx_bool_type sequence_complete;
 	mx_status_type mx_status;
 
-#if PR_AREA_DETECTOR_DEBUG
+#if 0 && PR_AREA_DETECTOR_DEBUG
 	MX_HRT_TIMING measurement;
 #endif
 
@@ -162,6 +162,11 @@ mxp_area_detector_measure_correction_callback_function(
 		corr->num_frames_read++;
 		corr->num_unread_frames--;
 
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: corr->num_frame_read = %ld.",
+			fname, corr->num_frames_read));
+#endif
+
 		if (corr->num_frames_read >= ad->num_correction_measurements)
 		{
 			sequence_complete = TRUE;
@@ -182,6 +187,31 @@ mxp_area_detector_measure_correction_callback_function(
 		corr->old_total_num_frames = total_num_frames;
 		corr->old_status = ad_status;
 
+		/* If the correction is done as a sequence of one-shot
+		 * frames, then start the detector again.
+		 */
+
+		if ( ad->use_multiframe_correction == FALSE ) {
+
+#if PR_AREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,
+			("%s: Before mx_area_detector_start()", fname));
+#endif
+			mx_status = mx_area_detector_start( ad->record );
+
+#if PR_AREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,
+			("%s: After mx_area_detector_start()", fname));
+#endif
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_area_detector_abort( ad->record );
+
+				mx_area_detector_cleanup_after_correction(
+								ad, corr );
+				return mx_status;
+			}
+		}
+
 		/* Restart the callback virtual timer. */
 
 		mx_status = mx_virtual_timer_start(
@@ -197,22 +227,6 @@ mxp_area_detector_measure_correction_callback_function(
 		MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
 #endif
-		/* If the correction is done as a sequence of one-shot
-		 * frames, then start the detector again.
-		 */
-
-		if ( ad->use_multiframe_correction == FALSE ) {
-			mx_status = mx_area_detector_start( ad->record );
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_area_detector_abort( ad->record );
-
-				mx_area_detector_cleanup_after_correction(
-								ad, corr );
-				return mx_status;
-			}
-		}
-
 		/* Return, knowing that we will be called again soon. */
 
 		return mx_status;
