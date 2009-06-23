@@ -188,10 +188,13 @@ mxp_area_detector_measure_correction_callback_function(
 		corr->old_status = ad_status;
 
 		/* If the correction is done as a sequence of one-shot
-		 * frames, then start the detector again.
+		 * frames and a new frame was received since the last
+		 * pass through this handler, then start the detector again.
 		 */
 
-		if ( ad->use_multiframe_correction == FALSE ) {
+		if ( ( ad->use_multiframe_correction == FALSE )
+		  && ( num_frames_difference > 0 ) )
+		{
 
 #if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,
@@ -305,6 +308,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Set up all the data structures for the correction process. */
 
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Before mx_area_detector_prepare_for_correction()",
+		fname ));
+#endif
+
 	mx_status = mx_area_detector_prepare_for_correction( ad, &corr );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -314,6 +322,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Get the detector readout time for the current sequence. */
 
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Before mx_area_detector_get_detector_readout_time()",
+		fname ));
+#endif
+
 	mx_status = mx_area_detector_get_detector_readout_time( record,
 							&detector_readout_time);
 
@@ -321,6 +334,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
+
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: detector_readout_time = %f",
+		fname, detector_readout_time ));
+#endif
 
 	/* Compute the time between the start of successive frames. */
 
@@ -338,11 +356,23 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 */
 
 	if ( ad->use_multiframe_correction ) {
+
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Setting multiframe mode: raw_num_exposures = %ld, "
+		"exposure_time = %f, modified_frame_time = %f",
+			fname, corr->raw_num_exposures, corr->exposure_time,
+			modified_frame_time ));
+#endif
 		mx_status = mx_area_detector_set_multiframe_mode( record,
 							corr->raw_num_exposures,
 							corr->exposure_time,
 							modified_frame_time );
 	} else {
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Setting one-shot mode: exposure_time = %f",
+			fname, corr->exposure_time));
+#endif
 		mx_status = mx_area_detector_set_one_shot_mode( record,
 							corr->exposure_time );
 	}
@@ -354,6 +384,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Put the detector into internal trigger mode. */
 
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Switching to internal trigger mode.", fname));
+#endif
+
 	mx_status = mx_area_detector_set_trigger_mode( record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 
@@ -361,6 +395,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		mx_area_detector_cleanup_after_correction( NULL, corr );
 		return mx_status;
 	}
+
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Creating callback message.", fname));
+#endif
 
 	/* Create a callback message struct. */
 
@@ -389,6 +427,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	/* Create a one-shot interval timer that will arrange for the
 	 * correction measurement callback function to be called later.
 	 */
+
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Creating callback timer.", fname));
+#endif
 
 	mx_status = mx_virtual_timer_create(
 				&oneshot_timer,
@@ -419,6 +461,13 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: old_last_frame_number = %ld, "
+	"old_total_num_frames = %ld, old_status = %#lx",
+		fname, corr->old_last_frame_number,
+		corr->old_total_num_frames, corr->old_status));
+#endif
+
 	/* Some sites (SOLEIL) want to skip over the first few frames.  This
 	 * is most easily done by adding corr->raw_num_exposures_to_skip to
 	 * the value of corr->old_total_num_frames.  Then, the measurement
@@ -445,6 +494,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	if ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) {
 
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Disabling the shutter.", fname));
+#endif
+
 		mx_status = mx_area_detector_set_shutter_enable(record, FALSE);
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -456,7 +509,15 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 
 	/* Start the measurement sequence. */
 
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Before mx_area_detector_start()", fname));
+#endif
+
 	mx_status = mx_area_detector_start( record );
+
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: After mx_area_detector_start()", fname));
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_area_detector_abort( record );
@@ -467,6 +528,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	}
 
 	/* Start the callback virtual timer. */
+
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Starting the callback timer.", fname));
+#endif
 
 	mx_status = mx_virtual_timer_start( oneshot_timer,
 		corr->callback_message->u.function.callback_interval );

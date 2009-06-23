@@ -55,8 +55,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	char *filename_stem;
 	char filename_ext[20];
 	char frame_filename[MXU_FILENAME_LENGTH+1];
-	unsigned long datafile_type, correction_flags;
-	long frame_number;
+	unsigned long datafile_type, correction_flags, ad_status_mask;
+	long frame_number, measurement_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, bits_per_pixel, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
@@ -1161,7 +1161,23 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		mx_status = mx_area_detector_get_extended_status( ad_record,
+							&last_frame_number,
+							&total_num_frames,
+							&ad_status );
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		old_total_num_frames = total_num_frames;
+
 		/* Now start the measurement. */
+
+#if MAREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Calling mx_area_detector_measure_correction_frame()  "
+		"with measurement_time = %f, num_measurements = %ld",
+			cname, measurement_time, num_measurements));
+#endif
 
 		mx_status = mx_area_detector_measure_correction_frame(
 			ad_record, correction_type,
@@ -1170,13 +1186,48 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+#if MAREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Waiting for the correction measurement to complete.",
+			cname));
+#endif
+
+		ad_status_mask = MXSF_AD_ACQUISITION_IN_PROGRESS
+				| MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
+
+		measurement_number = 0;
+
 		/* Wait for the correction measurement to complete. */
 
 		for(;;) {
-			mx_status = mx_area_detector_is_busy(ad_record, &busy);
+			mx_status = mx_area_detector_get_extended_status(
+							ad_record,
+							&last_frame_number,
+							&total_num_frames,
+							&ad_status );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS )  {
+				fprintf( output,
+				"%s: mx_area_detector_get_extended_status() "
+				"returned MX error code %ld\n", 
+					cname, mx_status.code );
+
 				return FAILURE;
+			}
+
+#if MAREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+				"total_num_frames = %ld, status = %ld.",
+				cname, last_frame_number,
+				total_num_frames, ad_status ));
+#endif
+			if ( total_num_frames != old_total_num_frames ) {
+				fprintf( output,
+				"Frame %ld acquired.\n", measurement_number );
+
+				old_total_num_frames = total_num_frames;
+				measurement_number++;
+			}
 
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
@@ -1191,7 +1242,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			if ( busy == FALSE ) {
+			if ( (ad_status & ad_status_mask) == 0 ) {
 				break;		/* Exit the for(;;) loop. */
 			}
 			mx_msleep(10);
