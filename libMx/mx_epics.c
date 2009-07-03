@@ -2223,6 +2223,13 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 		"The MX_EPICS_PV pointer passed was NULL." );
 	}
 
+	if ( pv->channel_id == NULL ) {
+		mx_status = mx_epics_pv_connect( pv );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	channel_id = pv->channel_id;
 
 	*callback_object = (MX_EPICS_CALLBACK *)

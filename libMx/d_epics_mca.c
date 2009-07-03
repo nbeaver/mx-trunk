@@ -14,7 +14,9 @@
  *
  */
 
-#define MXD_EPICS_MCA_DEBUG	FALSE
+#define MXD_EPICS_MCA_DEBUG				FALSE
+
+#define MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +69,7 @@ long mxd_epics_mca_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_epics_mca_rfield_def_ptr
 			= &mxd_epics_mca_record_field_defaults[0];
 
-/* A private function for the use of the driver. */
+/* Private functions for the use of the driver. */
 
 static mx_status_type
 mxd_epics_mca_get_pointers( MX_MCA *mca,
@@ -112,6 +114,41 @@ mxd_epics_mca_get_pointers( MX_MCA *mca,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#if MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK
+
+static mx_status_type
+mxd_epics_mca_acquiring_pv_callback( MX_EPICS_CALLBACK *cb, void *args )
+{
+	static const char fname[] = "mxd_epics_mca_acquiring_pv_callback()";
+
+	MX_RECORD *record;
+	MX_MCA *mca;
+	MX_EPICS_MCA *epics_mca;
+	const long *value_ptr;
+	long value;
+
+	record = (MX_RECORD *) args;
+
+	value_ptr = cb->value_ptr;
+
+	value = *value_ptr;
+
+	MX_DEBUG(-2,("%s invoked for MCA '%s', value = %ld",
+		fname, record->name, value ));
+
+	mca = (MX_MCA *) record->record_class_struct;
+
+	epics_mca = (MX_EPICS_MCA *) record->record_type_struct;
+
+	if ( value != 0 ) {
+		mca->new_data_available = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif   /* MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK */
 
 /* === */
 
@@ -594,7 +631,21 @@ mxd_epics_mca_open( MX_RECORD *record )
 					epics_mca->epics_dxp_name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+#if MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK
+	{
+		MX_EPICS_CALLBACK *callback;
+
+		/* Establish an EPICS callback for the Acquiring PV. */
+
+		mx_status = mx_epics_add_callback( &(epics_mca->acquiring_pv),
+					MX_CA_EVENT_VALUE,
+					mxd_epics_mca_acquiring_pv_callback,
+					record,
+					&callback );
+	}
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
