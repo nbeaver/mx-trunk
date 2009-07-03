@@ -178,6 +178,11 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 		"mxd_epics_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
+	MX_RECORD *list_head_record, *current_record;
+	MX_EPICS_MCA *epics_mca, *current_epics_mca;
+	MX_RECORD_FIELD *field;
+	long i, num_mcas;
+	char *detector_name, *current_detector_name;
 	mx_status_type mx_status;
 
 	mca = (MX_MCA *) record->record_class_struct;
@@ -193,7 +198,107 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now we must find all of the MCA records that are part of the
+	 * same multi-element MCA system.
+	 */
+
+	epics_mca = record->record_type_struct;
+
+	detector_name = epics_mca->epics_detector_name;
+
+	list_head_record = record->list_head;
+
+	/* On our first pass, we find out how many matching MCAs are present. */
+
+	num_mcas = 0;
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+		if ( current_record->mx_type == MXT_MCA_EPICS ) {
+			current_epics_mca = current_record->record_type_struct;
+
+			current_detector_name =
+				current_epics_mca->epics_detector_name;
+
+			if ( strcmp(detector_name, current_detector_name) == 0 )
+			{
+				num_mcas++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
+
+	epics_mca->num_associated_mcas = num_mcas;
+
+	/* Setup the associated_mca_record_array field. */
+
+	epics_mca->associated_mca_record_array = (MX_RECORD **)
+				malloc( num_mcas * sizeof(MX_RECORD *) );
+
+	if ( epics_mca->associated_mca_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"array of MX_RECORD pointers.", num_mcas );
+	}
+
+	mx_status = mx_find_record_field( record,
+			"associated_mca_record_array", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field->dimension[0] = num_mcas;
+
+	/* On our second pass, we add the matching MCAs to our array. */
+
+	i = 0;
+
+	current_record = list_head_record->next_record;
+
+	while ( current_record != list_head_record ) {
+		if ( current_record->mx_type == MXT_MCA_EPICS ) {
+			current_epics_mca = current_record->record_type_struct;
+
+			current_detector_name =
+				current_epics_mca->epics_detector_name;
+
+			if ( strcmp(detector_name, current_detector_name) == 0 )
+			{
+				if ( i >= num_mcas ) {
+					return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"On our second pass through the "
+					"record list we found more matching "
+					"MCAs for MCA '%s' than we did during "
+					"our first pass.  This should never "
+					"happen.", record->name );
+				}
+
+				epics_mca->associated_mca_record_array[i]
+					= current_record;
+
+				i++;
+			}
+		}
+
+		current_record = current_record->next_record;
+	}
+
+#if MXD_EPICS_MCA_DEBUG
+	MX_DEBUG(-2,("%s: num_mcas = %ld", fname, num_mcas));
+
+	for ( i = 0; i < num_mcas; i++ ) {
+		MX_DEBUG(-2,("%s:   MCA[%ld] = '%s'", fname, i, 
+			epics_mca->associated_mca_record_array[i]->name));
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -328,6 +433,10 @@ mxd_epics_mca_open( MX_RECORD *record )
 	 */
 
 	flags = epics_mca->epics_mca_flags;
+
+	if ( flags & MXF_EPICS_MCA_DISABLE_READ_OPTIMIZATION ) {
+		mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
+	}
 
 	if ( flags & MXF_EPICS_MCA_MULTIELEMENT_DETECTOR ) {
 
@@ -495,8 +604,11 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	MX_EPICS_MCA *epics_mca = NULL;
 	MX_EPICS_GROUP epics_group;
+	MX_RECORD *current_record;
+	MX_MCA *current_mca;
 	int32_t start, preset_counts;
 	double preset_real_time, preset_live_time;
+	long i;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -504,6 +616,31 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set the 'new_data_available' flag for all of the associated MCAs. */
+
+	for ( i = 0; i < epics_mca->num_associated_mcas; i++ ) {
+		current_record = epics_mca->associated_mca_record_array[i];
+
+		if ( current_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer for associated MCA %ld was "
+			"NULL for MCA '%s'.",
+				i, mca->record->name );
+		}
+
+		current_mca = (MX_MCA *) current_record->record_class_struct;
+
+		if ( current_mca == (MX_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCA pointer for associated MCA '%s' was "
+			"NULL for MCA '%s'.",
+				current_record->name,
+				mca->record->name );
+		}
+
+		current_mca->new_data_available = TRUE;
+	}
 
 	/* Set the preset interval appropriately depending on the
 	 * preset type.

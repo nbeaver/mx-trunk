@@ -1,5 +1,5 @@
-mca1 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca1 0x1
-mca2 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca2 0x1
-mca3 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca3 0x1
-mca4 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca4 0x1
+mca1 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca1 dxp1 0x1
+mca2 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca2 dxp2 0x1
+mca3 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca3 dxp3 0x1
+mca4 device mca epics_mca "" "" 2048 32 0 dxpXmapDP1: mca4 dxp4 0x1
 mca_timer device timer mca_timer "" "" mca1 1

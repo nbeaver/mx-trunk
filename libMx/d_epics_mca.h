@@ -50,12 +50,16 @@ typedef struct {
 	MX_EPICS_PV ocr_pv;
 
 	unsigned long epics_mca_flags;
+
+	long num_associated_mcas;
+	MX_RECORD **associated_mca_record_array;
 } MX_EPICS_MCA;
 
 /* Values for the 'epics_mca_flags' field. */
 
-#define MXF_EPICS_MCA_MULTIELEMENT_DETECTOR	0x1
-#define MXF_EPICS_MCA_NO_ERASE_ON_START		0x2
+#define MXF_EPICS_MCA_MULTIELEMENT_DETECTOR		0x1
+#define MXF_EPICS_MCA_NO_ERASE_ON_START			0x2
+#define MXF_EPICS_MCA_DISABLE_READ_OPTIMIZATION		0x4
 
 /*---*/
 
@@ -77,7 +81,17 @@ typedef struct {
   \
   {-1, -1, "epics_mca_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, epics_mca_flags), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "num_associated_mcas", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, num_associated_mcas), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "associated_mca_record_array", \
+		MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH},\
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPICS_MCA, associated_mca_record_array), \
+	{sizeof(MX_RECORD *)}, NULL, MXFF_VARARGS }
 
 MX_API mx_status_type mxd_epics_mca_initialize_type( long type );
 MX_API mx_status_type mxd_epics_mca_create_record_structures(
