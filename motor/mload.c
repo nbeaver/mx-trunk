@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MOTOR_DEBUG_LOAD_SCAN	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +27,9 @@ motor_load_fn( int argc, char *argv[] )
 	static const char cname[] = "load";
 
 	MX_RECORD *old_record, *new_record;
+	MX_RECORD *list_head_record, *last_old_record, *current_record;
 	static char record_description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
+	char buffer[MXU_FILENAME_LENGTH + 12];
 	int i;
 	unsigned long flags;
 	long length;
@@ -54,6 +58,47 @@ motor_load_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		/* Running mx_finish_database_initialization() multiple
+		 * times on the same records is not permitted, so we must
+		 * execute mx_finish_record_initialization() on just the
+		 * records that we are loading now.  We work around this
+		 * by using a feature of the implementation of the MX
+		 * record list.
+		 *
+		 * The MX database is a circular doubly-linked list of
+		 * MX_RECORD objects, with a list head record named
+		 * 'mx_database'.  Since records are added to the database
+		 * in the order that they were found in the database file,
+		 * the "first" record can be found via the pointer
+		 * 'list_head_record->next_record', while the "last" record
+		 * can be found via 'list_head_record->previous_record'.
+		 *
+		 * The new scan records will be added after the "last"
+		 * record, so we need to get a pointer to that record now,
+		 * so that we can walk the new part of the record list
+		 * resulting from the upcoming call to the function
+		 * mx_read_database_file().
+		 *
+		 * Note: There is an abundance of code that depends on
+		 * the MX database being a circular doubly-linked list,
+		 * so it is exceedingly unlikely that this implementation
+		 * detail will ever change.  (WML)
+		 */
+
+		list_head_record = motor_record_list;
+
+		/* Make sure this is _really_ the list head record. */
+
+		list_head_record = list_head_record->list_head;
+
+		last_old_record = list_head_record->previous_record;
+
+#if MOTOR_DEBUG_LOAD_SCAN
+		MX_DEBUG(-2,("%s: last_old_record = '%s'",
+			cname, last_old_record->name));
+#endif
+		/* Now we can load the new scans. */
+
 		flags =
 		    MXFC_ALLOW_SCAN_REPLACEMENT | MXFC_DELETE_BROKEN_RECORDS;
 
@@ -62,6 +107,38 @@ motor_load_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		/* Walk through the newly loaded scan records and run
+		 * mx_finish_record_initialization() on them.
+		 */
+
+		current_record = last_old_record->next_record;
+
+		while ( current_record != list_head_record ) {
+
+#if MOTOR_DEBUG_LOAD_SCAN
+			MX_DEBUG(-2,("%s: current_record = '%s'",
+				cname, current_record->name ));
+#endif
+			mx_status = mx_finish_record_initialization(
+						current_record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_status = mx_open_hardware( current_record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_status = mx_finish_delayed_initialization(
+						current_record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			current_record = current_record->next_record;
+		}
 
 	/* LOAD RECORD function. */
 
@@ -138,11 +215,47 @@ motor_load_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		mx_status = mx_open_hardware( current_record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fprintf( output,
+"%s: Attempt to open hardware for new record '%s' failed.\n",
+				cname, argv[3] );
+
+			(void) mx_delete_record( new_record );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_finish_delayed_initialization( current_record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fprintf( output,
+"%s: Attempt to finish delayed initialization for new record '%s' failed.\n",
+				cname, argv[3] );
+
+			(void) mx_delete_record( new_record );
+
+			return FAILURE;
+		}
+
 	} else {
 		fprintf(output,"%s: unrecognized argument '%s'\n\n",
 						cname, argv[2]);
 		fprintf(output,"%s\n", usage);
 		return FAILURE;
+	}
+
+	if ( motor_autosave_on ) {
+		snprintf( buffer, sizeof(buffer),
+			"save scan \"%s\"", scan_savefile );
+
+		cmd_execute_command_line( command_list_length,
+						command_list, buffer );
+
+		motor_has_unsaved_scans = FALSE;
+	} else {
+		motor_has_unsaved_scans = TRUE;
 	}
 
 	return SUCCESS;
