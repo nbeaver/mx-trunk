@@ -1097,11 +1097,15 @@ mx_breakpoint_helper( void )
  * It is not possible to implement this for all platforms.
  */
 
+static mx_bool_type mx_debugger_started = FALSE;
+
 #if defined(OS_WIN32)
 
 MX_EXPORT void
 mx_breakpoint( void )
 {
+	mx_debugger_started = TRUE;
+
 	DebugBreak();
 }
 
@@ -1110,13 +1114,10 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	static mx_bool_type first_time = TRUE;
-
-	if ( first_time ) {
-		first_time = FALSE;
-		mx_start_debugger(NULL);
-	} else {
+	if ( mx_debugger_started ) {
 		__asm__("int3");
+	} else {
+		mx_start_debugger(NULL);
 	}
 }
 
@@ -1129,16 +1130,13 @@ mx_breakpoint( void )
 MX_EXPORT void
 mx_breakpoint( void )
 {
-	static mx_bool_type first_time = TRUE;
-
-	if ( first_time ) {
-		first_time = FALSE;
-		mx_start_debugger(NULL);
-	} else {
+	if ( mx_debugger_started ) {
 		mx_warning( "mx_breakpoint() was invoked on a platform "
 				"that does not support it." );
 
 		mx_breakpoint_helper();
+	} else {
+		mx_start_debugger(NULL);
 	}
 }
 
@@ -1154,6 +1152,8 @@ mx_start_debugger( char *command )
 	fprintf(stderr,
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
+
+	mx_debugger_started = TRUE;
 
 	DebugBreak();
 
@@ -1176,6 +1176,8 @@ mx_start_debugger( char *command )
 
 	static char unsafe_fmt[] =
     "Unsafe command line '%s' requested for %s.  The command will be ignored.";
+
+	mx_debugger_started = TRUE;
 
 	pid = mx_process_id();
 
@@ -1425,17 +1427,14 @@ mx_debugger_is_present( void )
 
 #else
 
-/* Generate a fatal error on unsupported platforms. */
-
 MX_EXPORT int
 mx_debugger_is_present( void )
 {
-	fprintf(stderr,
-  "mx_debugger_is_present() is not supported on this platform.  Aborting...\n");
-
-	abort();
-
-	return FALSE;
+	if ( mx_debugger_started ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 #endif

@@ -39,6 +39,8 @@ extern "C" {
 #define MX_CA_DOUBLE	6		/* DBR_DOUBLE */
 #define MX_CA_ENUM	3		/* DBR_ENUM   */
 
+#define MXU_EPICS_STRING_LENGTH		40
+
 /* EPICS event trigger masks. */
 
 #define MX_CA_EVENT_VALUE	0x1	/* DBE_VALUE */

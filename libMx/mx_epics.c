@@ -2150,8 +2150,10 @@ mx_epics_get_element_size( long field_type )
 	size_t element_size;
 
 	switch( field_type ) {
-	case MX_CA_CHAR:
 	case MX_CA_STRING:
+		element_size = MXU_EPICS_STRING_LENGTH + 1;
+		break;
+	case MX_CA_CHAR:
 		element_size = sizeof(char);
 		break;
 	case MX_CA_SHORT:
