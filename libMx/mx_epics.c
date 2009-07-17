@@ -409,9 +409,49 @@ mx_epics_initialize( void )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_epics_poll_for_events( const char *calling_fname )
+mx_epics_pend_io( double timeout )
 {
-	static const char fname[] = "mx_epics_poll_for_events()";
+	static const char fname[] = "mx_epics_pend_io()";
+
+	int epics_status;
+
+	epics_status = ca_pend_io( timeout );
+
+#if MX_EPICS_DEBUG_CA_POLL
+	if ( mx_get_debug_level() >= -2 ) {
+		fprintf(stderr, "}%d{", epics_status);
+	}
+#endif
+
+	switch( epics_status ) {
+	case ECA_NORMAL:
+		break;
+	case ECA_TIMEOUT:
+		return mx_error( MXE_TIMED_OUT, fname,
+			"The selected I/O requests did not complete before "
+			"the specified timeout of %g seconds.", timeout );
+		break;
+	case ECA_EVDISALLOW:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	  "Cannot execute ca_pend_io() from within an EPICS event handler.");
+		break;
+	default:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"EPICS background event processing via ca_pend_io() "
+		"failed.  EPICS status = %d, EPICS error = '%s'",
+			epics_status, ca_message( epics_status ) );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_epics_pend_event( double timeout )
+{
+	static const char fname[] = "mx_epics_pend_event()";
 
 	int epics_status;
 
@@ -443,7 +483,7 @@ mx_epics_poll_for_events( const char *calling_fname )
 
 	/* Poll EPICS for outstanding events. */
 
-	epics_status = ca_poll();
+	epics_status = ca_pend_event( timeout );
 
 #if MX_EPICS_DEBUG_CA_POLL
 	if ( mx_get_debug_level() >= -2 ) {
@@ -457,14 +497,13 @@ mx_epics_poll_for_events( const char *calling_fname )
 		break;		/* no error */
 	case ECA_EVDISALLOW:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	    "Cannot execute ca_poll() from within an EPICS event handler.");
+	  "Cannot execute ca_pend_event() from within an EPICS event handler.");
 		break;
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"EPICS background event processing via ca_poll() "
-		"for '%s' failed.  EPICS status = %d, EPICS error = '%s'",
-			calling_fname, epics_status,
-			ca_message( epics_status ) );
+		"EPICS background event processing via ca_pend_event() "
+		"failed.  EPICS status = %d, EPICS error = '%s'",
+			epics_status, ca_message( epics_status ) );
 		break;
 	}
 
@@ -618,7 +657,8 @@ mx_epics_pv_show_state( MX_EPICS_PV *pv )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_epics_pv_connect( MX_EPICS_PV *pv )
+mx_epics_pv_connect( MX_EPICS_PV *pv,
+		mx_bool_type wait_for_connection )
 {
 	static const char fname[] = "mx_epics_pv_connect()";
 
@@ -702,6 +742,20 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 #if MX_EPICS_DEBUG_CONNECTION
 	mx_epics_pv_show_state( pv );
 #endif
+	/* Return now if we are not waiting for the connection to complete. */
+
+	if ( wait_for_connection == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we are waiting for the connection to complete, then
+	 * flush outstanding I/O requests to the server.
+	 */
+
+	mx_status = mx_epics_flush_io();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* When will the connection timeout interval expire? */
 
@@ -714,7 +768,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 	while (1) {
 		/* Has the connection request completed? */
 
-		mx_status = mx_epics_poll_for_events( fname );
+		mx_status = mx_epics_poll();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -814,7 +868,7 @@ mx_epics_pv_disconnect( MX_EPICS_PV *pv )
 
 	/* Allow background events to execute. */
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 		
 	return mx_status;
 }
@@ -856,7 +910,7 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1024,7 +1078,7 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 
 	/* Allow background events to execute. */
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 		
 	return mx_status;
 }
@@ -1047,7 +1101,7 @@ mx_caget( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1078,7 +1132,7 @@ mx_caget_with_timeout( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1110,7 +1164,7 @@ mx_caget_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv );
+	mx_status = mx_epics_pv_connect( &pv, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1411,7 +1465,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1530,7 +1584,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 		/* Allow background events to execute. */
 
-		mx_status = mx_epics_poll_for_events( fname );
+		mx_status = mx_epics_poll();
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 		MX_HRT_END( measurement );
@@ -1557,7 +1611,7 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		 * background events to execute too.
 		 */
 
-		mx_status = mx_epics_poll_for_events( fname );
+		mx_status = mx_epics_poll();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1626,7 +1680,7 @@ mx_caput( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1661,7 +1715,7 @@ mx_caput_with_callback( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1694,7 +1748,7 @@ mx_caput_with_timeout( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1728,7 +1782,7 @@ mx_caput_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv );
+	mx_status = mx_epics_pv_connect( &pv, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1867,7 +1921,7 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1942,7 +1996,7 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 
 	/* Allow background events to execute. */
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 		
 	return mx_status;
 }
@@ -1965,7 +2019,7 @@ mx_caput_nowait( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1997,7 +2051,7 @@ mx_caput_nowait_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv );
+	mx_status = mx_epics_pv_connect( &pv, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2063,7 +2117,7 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 		/* Has the EPICS process variable reconnected? */
 
-		mx_status = mx_epics_poll_for_events( fname );
+		mx_status = mx_epics_poll();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2125,7 +2179,7 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 		/* Try to reconnect to the PV. */
 
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			return mx_error( MXE_NETWORK_CONNECTION_LOST,
@@ -2202,7 +2256,7 @@ mx_epics_pv_get_field_type( MX_EPICS_PV *pv )
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return -1;
@@ -2230,7 +2284,7 @@ mx_epics_pv_get_element_count( MX_EPICS_PV *pv )
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return 0;
@@ -2337,7 +2391,7 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 #endif
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2537,7 +2591,7 @@ mx_epics_end_group( MX_EPICS_GROUP *epics_group )
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2761,7 +2815,7 @@ mx_epics_internal_group_caget( CA_SYNC_GID group_id,
 
 	/* Allow background events to execute. */
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 		
 	return mx_status;
 }
@@ -2790,7 +2844,7 @@ mx_group_caget( MX_EPICS_GROUP *epics_group,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2987,7 +3041,7 @@ mx_epics_internal_group_caput( CA_SYNC_GID group_id,
 
 	/* Allow background events to execute. */
 
-	mx_status = mx_epics_poll_for_events( fname );
+	mx_status = mx_epics_poll();
 		
 	return mx_status;
 }
@@ -3011,7 +3065,7 @@ mx_group_caput( MX_EPICS_GROUP *epics_group,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv );
+		mx_status = mx_epics_pv_connect( pv, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3060,7 +3114,7 @@ mx_epics_get_pv_type( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv );
+	mx_status = mx_epics_pv_connect( &pv, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

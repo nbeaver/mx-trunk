@@ -99,11 +99,16 @@ typedef struct mx_epics_callback_type {
 
 MX_API void mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... );
 
-MX_API mx_status_type mx_epics_pv_connect( MX_EPICS_PV *pv );
+MX_API mx_status_type mx_epics_pv_connect( MX_EPICS_PV *pv,
+				mx_bool_type wait_for_connection );
 
 MX_API mx_status_type mx_epics_pv_disconnect( MX_EPICS_PV *pv );
 
-MX_API mx_status_type mx_epics_poll_for_events( const char *calling_fname );
+MX_API mx_status_type mx_epics_pend_io( double timeout );
+
+MX_API mx_status_type mx_epics_pend_event( double timeout );
+
+#define mx_epics_poll(x)  mx_epics_pend_event( 1.0e-12 )
 
 MX_API mx_status_type mx_epics_flush_io( void );
 
