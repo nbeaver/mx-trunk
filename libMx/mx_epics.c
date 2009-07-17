@@ -18,15 +18,17 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO			FALSE
+#define MX_EPICS_DEBUG_IO			TRUE
 
-#define MX_EPICS_DEBUG_HANDLERS			FALSE
+#define MX_EPICS_DEBUG_HANDLERS			TRUE
 
-#define MX_EPICS_DEBUG_CA_POLL			FALSE
+#define MX_EPICS_DEBUG_CA_POLL			TRUE
 
-#define MX_EPICS_DEBUG_PERFORMANCE		FALSE
+#define MX_EPICS_DEBUG_PERFORMANCE		TRUE
 
-#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
+#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
+
+#define MX_EPICS_DEBUG_CONNECTION		TRUE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -480,6 +482,10 @@ mx_epics_flush_io( void )
 
 	epics_status = ca_flush_io();
 
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s: ca_flush_io() status = %d", fname, epics_status));
+#endif
+
 	if ( epics_status != ECA_NORMAL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 	"An attempt to force execution of EPICS Channel Access I/O failed.  "
@@ -527,9 +533,14 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	pv->channel_id = NULL;
 
+#if MX_EPICS_DEBUG_CONNECTION
+	pv->connect_timeout_interval =
+		mx_convert_seconds_to_high_resolution_time( 10.0 );
+#else
 	pv->connect_timeout_interval =
 		mx_convert_seconds_to_high_resolution_time(
 					mx_epics_connect_timeout_interval );
+#endif
 
 	pv->reconnect_timeout_interval =
 		mx_convert_seconds_to_high_resolution_time(
@@ -549,6 +560,60 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	return;
 }
+
+/*--------------------------------------------------------------------------*/
+
+#if MX_EPICS_DEBUG_CONNECTION
+static void
+mx_epics_pv_show_state( MX_EPICS_PV *pv )
+{
+	static const char fname[] = "mx_epics_pv_show_state()";
+
+	enum channel_state pv_state;
+
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		MX_DEBUG(-2,("%s: PV is NULL.", fname));
+		return;
+	}
+	if ( pv->channel_id == NULL ) {
+		MX_DEBUG(-2,("%s: PV '%s' - Channel ID is NULL.",
+			fname, pv->pvname));
+		return;
+	}
+
+	pv_state = ca_state( pv->channel_id );
+
+	switch( pv_state ) {
+	case cs_never_conn:
+		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_never_conn - "
+			"Valid chid, server not found or unavailable",
+			fname, pv->pvname, pv->channel_id));
+		break;
+	case cs_prev_conn:
+		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_prev_conn - "
+			"Valid chid, previously connected to server",
+			fname, pv->pvname, pv->channel_id));
+		break;
+	case cs_conn:
+		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_conn - "
+			"Valid chid, connected to server",
+			fname, pv->pvname, pv->channel_id));
+		break;
+	case cs_closed:
+		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_closed - "
+			"Channel deleted by user",
+			fname, pv->pvname, pv->channel_id));
+		break;
+	default:
+		MX_DEBUG(-2,("%s: PV '%s' channel %p - illegal enum %d",
+			fname, pv->pvname, pv->channel_id,
+			(int) pv_state ));
+		break;
+	}
+
+	return;
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -581,6 +646,10 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 		"Cannot connect to a zero-length EPICS PV name." );
 	}
 
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s invoked for PV '%s'", fname, pv->pvname));
+#endif
+
 	if ( mx_epics_is_initialized == FALSE ) {
 		mx_status = mx_epics_initialize();
 
@@ -600,6 +669,11 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 
 	/* Start the connection process. */
 
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s: About to start connection for PV '%s'",
+		fname, pv->pvname));
+#endif
+
 #if ( MX_EPICS_VERSION < 3014000L )
 	epics_status = ca_search_and_connect( pv->pvname, &new_channel_id,
 				mx_epics_connection_state_change_handler, pv );
@@ -618,10 +692,16 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 
 	pv->channel_id = new_channel_id;
 
-	MX_DEBUG( 2,(
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,(
   "%s: pvname = '%s', channel_id = %p, connect_timeout_interval = %g",
 		fname, pv->pvname, pv->channel_id,
   mx_convert_high_resolution_time_to_seconds(pv->connect_timeout_interval) ));
+#endif
+
+#if MX_EPICS_DEBUG_CONNECTION
+	mx_epics_pv_show_state( pv );
+#endif
 
 	/* When will the connection timeout interval expire? */
 
@@ -638,6 +718,10 @@ mx_epics_pv_connect( MX_EPICS_PV *pv )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MX_EPICS_DEBUG_CONNECTION
+		mx_epics_pv_show_state( pv );
+#endif
 
 		/* If so, then break out of this while loop. */
 
@@ -1955,9 +2039,11 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 		"The MX_EPICS_PV pointer passed was NULL." );
 	}
 
-	MX_DEBUG( 2,
+#if MX_EPICS_DEBUG_HANDLERS
+	MX_DEBUG(-2,
     ("%s invoked for EPICS PV '%s', function type %d, connection_state = %ld",
 		fname, pv->pvname, function_type, pv->connection_state ));
+#endif
 
 	/* Wait to see if the channel reconnects.  We timeout if the
 	 * reconnection takes too long.
@@ -1969,7 +2055,9 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 	timed_out = FALSE;
 
-	MX_DEBUG( 2,("%s: checking for automatic reconnection.", fname));
+#if MX_EPICS_DEBUG_HANDLERS
+	MX_DEBUG(-2,("%s: checking for automatic reconnection.", fname));
+#endif
 						
 	for ( i = 0; ; i++ ) {
 
@@ -1983,9 +2071,12 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 		/* If so, then break out of this while loop. */
 
 		if ( pv->connection_state == CA_OP_CONN_UP ) {
-			MX_DEBUG( 2,
+
+#if MX_EPICS_DEBUG_HANDLERS
+			MX_DEBUG(-2,
 			("%s: successfully reconnected to PV '%s', i = %lu.",
 				fname, pv->pvname, i ));
+#endif
 
 			break;			/* Exit the while() loop. */
 		}
@@ -2000,11 +2091,13 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 		if ( time_comparison >= 0 ) {
 			timed_out = TRUE;
 
-			MX_DEBUG( 2,("%s: PV '%s' reconnection timeout "
+#if MX_EPICS_DEBUG_HANDLERS
+			MX_DEBUG(-2,("%s: PV '%s' reconnection timeout "
 				"of %g seconds has expired, i = %lu.",
 				fname, pv->pvname,
 				mx_convert_high_resolution_time_to_seconds(
 					pv->reconnect_timeout_interval ), i ));
+#endif
 
 			break;			/* Exit the while() loop. */
 		}
@@ -2014,7 +2107,9 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 	if ( timed_out ) {
 
-		MX_DEBUG( 2,("%s: attempting manual reconnection.", fname));
+#if MX_EPICS_DEBUG_HANDLERS
+		MX_DEBUG(-2,("%s: attempting manual reconnection.", fname));
+#endif
 
 		/* Discard the old channel id. */
 
@@ -2043,8 +2138,10 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 	/* Try the EPICS command again. */
 
-	MX_DEBUG( 2,("%s: invoking the EPICS command again, max_retries = %d",
+#if MX_EPICS_DEBUG_HANDLERS
+	MX_DEBUG(-2,("%s: invoking the EPICS command again, max_retries = %d",
 		fname, max_retries));
+#endif
 
 	switch( function_type ) {
 	case MXF_EPICS_INTERNAL_CAGET:
@@ -2079,9 +2176,11 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 		break;
 	}
 
-	MX_DEBUG( 2,
+#if MX_EPICS_DEBUG_HANDLERS
+	MX_DEBUG(-2,
 	("%s: returned from invoking the EPICS command again, max_retries = %d",
 		fname, max_retries));
+#endif
 
 	return mx_status;
 }
@@ -2182,11 +2281,19 @@ mx_epics_get_element_size( long field_type )
 static void
 mx_epics_subscription_callback_function( struct event_handler_args args )
 {
+#if MX_EPICS_DEBUG_HANDLERS
+	static const char fname[] = "mx_epics_subscription_callback_function()";
+#endif
+
 	MX_EPICS_CALLBACK *callback;
 	mx_status_type (*callback_function)( MX_EPICS_CALLBACK *, void * );
 	mx_status_type mx_status;
 
 	callback = args.usr;
+
+#if MX_EPICS_DEBUG_HANDLERS
+	MX_DEBUG(-2,("%s invoked for PV '%s'", fname, callback->pv->pvname));
+#endif
 
 	callback->epics_type = args.type;
 	callback->epics_count = args.count;
@@ -2224,6 +2331,10 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_EPICS_PV pointer passed was NULL." );
 	}
+
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s invoked for PV '%s'", fname, pv->pvname));
+#endif
 
 	if ( pv->channel_id == NULL ) {
 		mx_status = mx_epics_pv_connect( pv );
