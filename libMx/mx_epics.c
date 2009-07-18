@@ -28,7 +28,7 @@
 
 #define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
 
-#define MX_EPICS_DEBUG_CONNECTION		TRUE
+#define MX_EPICS_DEBUG_CONNECTION		FALSE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -392,6 +392,10 @@ mx_epics_initialize( void )
 			epics_status, ca_message( epics_status ) );
 	}
 
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s: ca_add_exception_event() succeeded.", fname));
+#endif
+
 	/* Setup an atexit() handler to deal with normal EPICS shutdown. */
 
 	status = atexit( mx_epics_atexit_handler );
@@ -419,7 +423,7 @@ mx_epics_pend_io( double timeout )
 
 #if MX_EPICS_DEBUG_CA_POLL
 	if ( mx_get_debug_level() >= -2 ) {
-		fprintf(stderr, "}%d{", epics_status);
+		fprintf(stderr, ")%d(", epics_status);
 	}
 #endif
 
@@ -710,7 +714,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
 	/* Start the connection process. */
 
 #if MX_EPICS_DEBUG_IO
-	MX_DEBUG(-2,("%s: About to start connection for PV '%s'",
+	MX_DEBUG(-2,("%s: About to create a channel for PV '%s'",
 		fname, pv->pvname));
 #endif
 
@@ -742,20 +746,20 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
 #if MX_EPICS_DEBUG_CONNECTION
 	mx_epics_pv_show_state( pv );
 #endif
+	/* If we are waiting for the connection to complete, then
+	 * flush outstanding I/O requests to the server.
+	 */
+
+	mx_status = mx_epics_pend_io(0.1);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Return now if we are not waiting for the connection to complete. */
 
 	if ( wait_for_connection == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
-
-	/* If we are waiting for the connection to complete, then
-	 * flush outstanding I/O requests to the server.
-	 */
-
-	mx_status = mx_epics_flush_io();
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* When will the connection timeout interval expire? */
 
@@ -2412,6 +2416,15 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 	(*callback_object)->callback_function = callback_function;
 	(*callback_object)->callback_argument = callback_argument;
 
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s: About to call ca_create_subscription( "
+		"%d, %lu, %p, %#lx, %p, %p, &event_id)", fname,
+		ca_field_type(channel_id), ca_element_count(channel_id),
+		channel_id, requested_callback_mask,
+		mx_epics_subscription_callback_function,
+		*callback_object));
+#endif
+
 	epics_status = ca_create_subscription(
 					ca_field_type(channel_id),
 					ca_element_count(channel_id),
@@ -2457,6 +2470,11 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 				epics_status, ca_message( epics_status ) );
 		break;
 	}
+
+#if MX_EPICS_DEBUG_IO
+	MX_DEBUG(-2,("%s: ca_create_subscription(), status = %d",
+		fname, epics_status));
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( *callback_object );
