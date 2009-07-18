@@ -1099,6 +1099,23 @@ mx_breakpoint_helper( void )
 
 static mx_bool_type mx_debugger_started = FALSE;
 
+/* Note: The argument to mx_set_debugger_started_flag() is an int, rather
+ * than an mx_bool_type, so that we will not need to define mx_bool_type
+ * in mx_util.h at that point.
+ */
+
+MX_EXPORT void
+mx_set_debugger_started_flag( int flag )
+{
+	if ( flag ) {
+		mx_debugger_started = TRUE;
+	} else {
+		mx_debugger_started = FALSE;
+	}
+}
+
+/*----------------*/
+
 #if defined(OS_WIN32)
 
 MX_EXPORT void

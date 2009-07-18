@@ -18,17 +18,15 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO			TRUE
+#define MX_EPICS_DEBUG_IO			FALSE
 
-#define MX_EPICS_DEBUG_HANDLERS			TRUE
+#define MX_EPICS_DEBUG_HANDLERS			FALSE
 
-#define MX_EPICS_DEBUG_CA_POLL			TRUE
+#define MX_EPICS_DEBUG_CA_POLL			FALSE
 
-#define MX_EPICS_DEBUG_PERFORMANCE		TRUE
+#define MX_EPICS_DEBUG_PERFORMANCE		FALSE
 
-#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
-
-#define MX_EPICS_DEBUG_CONNECTION		FALSE
+#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -576,14 +574,9 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	pv->channel_id = NULL;
 
-#if MX_EPICS_DEBUG_CONNECTION
-	pv->connect_timeout_interval =
-		mx_convert_seconds_to_high_resolution_time( 10.0 );
-#else
 	pv->connect_timeout_interval =
 		mx_convert_seconds_to_high_resolution_time(
 					mx_epics_connect_timeout_interval );
-#endif
 
 	pv->reconnect_timeout_interval =
 		mx_convert_seconds_to_high_resolution_time(
@@ -603,60 +596,6 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	return;
 }
-
-/*--------------------------------------------------------------------------*/
-
-#if MX_EPICS_DEBUG_CONNECTION
-static void
-mx_epics_pv_show_state( MX_EPICS_PV *pv )
-{
-	static const char fname[] = "mx_epics_pv_show_state()";
-
-	enum channel_state pv_state;
-
-	if ( pv == (MX_EPICS_PV *) NULL ) {
-		MX_DEBUG(-2,("%s: PV is NULL.", fname));
-		return;
-	}
-	if ( pv->channel_id == NULL ) {
-		MX_DEBUG(-2,("%s: PV '%s' - Channel ID is NULL.",
-			fname, pv->pvname));
-		return;
-	}
-
-	pv_state = ca_state( pv->channel_id );
-
-	switch( pv_state ) {
-	case cs_never_conn:
-		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_never_conn - "
-			"Valid chid, server not found or unavailable",
-			fname, pv->pvname, pv->channel_id));
-		break;
-	case cs_prev_conn:
-		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_prev_conn - "
-			"Valid chid, previously connected to server",
-			fname, pv->pvname, pv->channel_id));
-		break;
-	case cs_conn:
-		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_conn - "
-			"Valid chid, connected to server",
-			fname, pv->pvname, pv->channel_id));
-		break;
-	case cs_closed:
-		MX_DEBUG(-2,("%s: PV '%s' channel %p - cs_closed - "
-			"Channel deleted by user",
-			fname, pv->pvname, pv->channel_id));
-		break;
-	default:
-		MX_DEBUG(-2,("%s: PV '%s' channel %p - illegal enum %d",
-			fname, pv->pvname, pv->channel_id,
-			(int) pv_state ));
-		break;
-	}
-
-	return;
-}
-#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -743,9 +682,6 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
   mx_convert_high_resolution_time_to_seconds(pv->connect_timeout_interval) ));
 #endif
 
-#if MX_EPICS_DEBUG_CONNECTION
-	mx_epics_pv_show_state( pv );
-#endif
 	/* If we are waiting for the connection to complete, then
 	 * flush outstanding I/O requests to the server.
 	 */
@@ -776,10 +712,6 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-#if MX_EPICS_DEBUG_CONNECTION
-		mx_epics_pv_show_state( pv );
-#endif
 
 		/* If so, then break out of this while loop. */
 

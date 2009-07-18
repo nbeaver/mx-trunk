@@ -359,6 +359,14 @@ MX_API int mx_breakpoint_helper( void );
 MX_API void mx_breakpoint( void );
 
 /*
+ * mx_set_debugger_started_flag() provides a way to directly set the internal
+ * 'mx_debugger_started' flag.  This can be useful if an MX program is started
+ * manually from a debugger.
+ */
+
+MX_API void mx_set_debugger_started_flag( int started_flag );
+
+/*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same
  * thing for a string.
