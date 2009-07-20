@@ -178,19 +178,42 @@ mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 		mca_value->value_type = MXT_MCA_VALUE_LIVE_TIME;
 	} else
 	if ( strcmp( mca_value->value_name, "corrected_roi_integral" ) == 0 ) {
-		mca_value->value_type = MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL;
+		mca_value->value_type
+			= MXT_MCA_VALUE_LIVE_TIME_CORRECTED_ROI_INTEGRAL;
 	} else
 	if ( strcmp( mca_value->value_name,
 			"corrected_soft_roi_integral" ) == 0 )
 	{
 		mca_value->value_type
-			= MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL;
+			= MXT_MCA_VALUE_LIVE_TIME_CORRECTED_SOFT_ROI_INTEGRAL;
+	} else
+	if ( strcmp( mca_value->value_name,
+			"live_time_corrected_roi_integral" ) == 0 ) {
+		mca_value->value_type
+			= MXT_MCA_VALUE_LIVE_TIME_CORRECTED_ROI_INTEGRAL;
+	} else
+	if ( strcmp( mca_value->value_name,
+			"live_time_corrected_soft_roi_integral" ) == 0 )
+	{
+		mca_value->value_type
+			= MXT_MCA_VALUE_LIVE_TIME_CORRECTED_SOFT_ROI_INTEGRAL;
 	} else
 	if ( strcmp( mca_value->value_name, "input_count_rate" ) == 0 ) {
 		mca_value->value_type = MXT_MCA_VALUE_INPUT_COUNT_RATE;
 	} else
 	if ( strcmp( mca_value->value_name, "output_count_rate" ) == 0 ) {
 		mca_value->value_type = MXT_MCA_VALUE_OUTPUT_COUNT_RATE;
+	} else
+	if ( strcmp( mca_value->value_name,
+			"rate_corrected_roi_integral" ) == 0 ) {
+		mca_value->value_type
+			= MXT_MCA_VALUE_RATE_CORRECTED_ROI_INTEGRAL;
+	} else
+	if ( strcmp( mca_value->value_name,
+			"rate_corrected_soft_roi_integral" ) == 0 )
+	{
+		mca_value->value_type
+			= MXT_MCA_VALUE_RATE_CORRECTED_SOFT_ROI_INTEGRAL;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The MCA value type '%s' for record '%s' is not recognized.",
@@ -230,8 +253,10 @@ mxd_mca_value_open( MX_RECORD *record )
 	switch( mca_value->value_type ) {
 	case MXT_MCA_VALUE_ROI_INTEGRAL:
 	case MXT_MCA_VALUE_SOFT_ROI_INTEGRAL:
-	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
-	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_LIVE_TIME_CORRECTED_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_LIVE_TIME_CORRECTED_SOFT_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_RATE_CORRECTED_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_RATE_CORRECTED_SOFT_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
 					"%ld", &(mca_value->roi_number) );
 
@@ -315,7 +340,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 		analog_input->raw_value.double_value = live_time;
 		break;
 
-	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_LIVE_TIME_CORRECTED_ROI_INTEGRAL:
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
 							mca_value->roi_number,
 							&roi_integral );
@@ -343,7 +368,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 		analog_input->raw_value.double_value = corrected_integral;
 		break;
 
-	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
+	case MXT_MCA_VALUE_LIVE_TIME_CORRECTED_SOFT_ROI_INTEGRAL:
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
 							mca_value->roi_number,
 							&soft_roi_integral );
@@ -391,6 +416,66 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 			return mx_status;
 
 		analog_input->raw_value.double_value = output_count_rate;
+		break;
+
+	case MXT_MCA_VALUE_RATE_CORRECTED_ROI_INTEGRAL:
+		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
+							mca_value->roi_number,
+							&roi_integral );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_mca_get_input_count_rate( mca_value->mca_record,
+							&input_count_rate );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_mca_get_output_count_rate( mca_value->mca_record,
+							&output_count_rate );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		multiplier = mx_divide_safely( input_count_rate,
+						output_count_rate );
+
+		corrected_integral = mx_multiply_safely( multiplier,
+						 (double) roi_integral );
+
+		analog_input->raw_value.double_value = corrected_integral;
+		break;
+
+	case MXT_MCA_VALUE_RATE_CORRECTED_SOFT_ROI_INTEGRAL:
+		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
+							mca_value->roi_number,
+							&soft_roi_integral );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_mca_get_input_count_rate( mca_value->mca_record,
+							&input_count_rate );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_mca_get_output_count_rate( mca_value->mca_record,
+							&output_count_rate );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		corrected_integral = (double) soft_roi_integral;
+
+		multiplier = mx_divide_safely( input_count_rate,
+						output_count_rate );
+
+		corrected_integral = mx_multiply_safely( corrected_integral,
+							multiplier );
+
+		analog_input->raw_value.double_value = corrected_integral;
 		break;
 
 	default:
