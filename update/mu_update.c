@@ -777,6 +777,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 		strlcat( description, "net_long ", sizeof(description) );
 		break;
 	case MXFT_ULONG:
+	case MXFT_HEX:
 		strlcat( description, "net_ulong ", sizeof(description) );
 		break;
 	case MXFT_INT64:
