@@ -366,6 +366,8 @@ MX_API void mx_breakpoint( void );
 
 MX_API void mx_set_debugger_started_flag( int started_flag );
 
+MX_API int mx_get_debugger_started_flag( void );
+
 /*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,6 +140,8 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->fast_mode = FALSE;
 	list_head_struct->allow_fast_mode = TRUE;
 	list_head_struct->network_debug = FALSE;
+	list_head_struct->breakpoint = FALSE;
+	list_head_struct->debugger_started = FALSE;
 
 	list_head_struct->is_server = FALSE;
 	list_head_struct->connection_acl = NULL;

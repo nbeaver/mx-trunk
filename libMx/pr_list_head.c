@@ -54,6 +54,8 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_HANDLE:
 		case MXLV_LHD_SHOW_CALLBACKS:
 		case MXLV_LHD_SHOW_CALLBACK_ID:
+		case MXLV_LHD_BREAKPOINT:
+		case MXLV_LHD_DEBUGGER_STARTED:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -86,6 +88,10 @@ mx_list_head_process_function( void *record_ptr,
 		switch( record_field->label_value ) {
 		case MXLV_LHD_DEBUG_LEVEL:
 			list_head->debug_level = mx_get_debug_level();
+			break;
+		case MXLV_LHD_DEBUGGER_STARTED:
+			list_head->debugger_started =
+					mx_get_debugger_started_flag();
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -155,6 +161,21 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 			mx_status =
 			    mx_list_head_record_show_clbk_id( list_head );
+			break;
+		case MXLV_LHD_BREAKPOINT:
+			if ( list_head->remote_breakpoint_enabled ) {
+				mx_breakpoint();
+			} else {
+				mx_warning(
+				"Request for remote breakpoint ignored." );
+			}
+			break;
+		case MXLV_LHD_DEBUGGER_STARTED:
+			if ( list_head->debugger_started ) {
+				mx_set_debugger_started_flag( 1 );
+			} else {
+				mx_set_debugger_started_flag( 0 );
+			}
 			break;
 		default:
 			MX_DEBUG( 1,(

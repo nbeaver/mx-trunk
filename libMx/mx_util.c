@@ -1114,6 +1114,12 @@ mx_set_debugger_started_flag( int flag )
 	}
 }
 
+MX_EXPORT int
+mx_get_debugger_started_flag( void )
+{
+	return mx_debugger_started;
+}
+
 /*----------------*/
 
 #if defined(OS_WIN32)

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,8 @@ extern "C" {
 #define MXLV_LHD_SHOW_HANDLE		1008
 #define MXLV_LHD_SHOW_CALLBACKS		1009
 #define MXLV_LHD_SHOW_CALLBACK_ID	1010
+#define MXLV_LHD_BREAKPOINT		1011
+#define MXLV_LHD_DEBUGGER_STARTED	1012
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -85,7 +87,7 @@ extern "C" {
   \
   {MXLV_LHD_SHOW_RECORD_LIST, -1, "show_record_list", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_record_list), \
-	{sizeof(char)}, NULL, 0}, \
+	{0}, NULL, 0}, \
   \
   {MXLV_LHD_FIELDDEF, -1, "fielddef", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
@@ -98,12 +100,20 @@ extern "C" {
   \
   {MXLV_LHD_SHOW_CALLBACKS, -1, "show_callbacks", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_callbacks), \
-	{sizeof(unsigned long)}, NULL, 0}, \
+	{0}, NULL, 0}, \
   \
   {MXLV_LHD_SHOW_CALLBACK_ID, -1, "show_callback_id", \
   					MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_callback_id), \
 	{sizeof(unsigned long)}, NULL, 0}, \
+  \
+  {MXLV_LHD_BREAKPOINT, -1, "breakpoint", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, breakpoint), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_DEBUGGER_STARTED, -1, "debugger_started", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, debugger_started), \
+	{0}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

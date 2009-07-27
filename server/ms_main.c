@@ -392,6 +392,7 @@ mxserver_main( int argc, char *argv[] )
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, network_debug, poll_all;
+	mx_bool_type enable_remote_breakpoint;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -472,6 +473,8 @@ mxserver_main( int argc, char *argv[] )
 
 	network_debug = FALSE;
 
+	enable_remote_breakpoint = FALSE;
+
 	poll_all = FALSE;
 
 #if HAVE_GETOPT
@@ -480,7 +483,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:kl:L:n:p:P:sStu:Z")) != -1)
+		"Aab:cC:d:De:E:f:kl:L:n:p:P:rsStu:Z")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -557,6 +560,9 @@ mxserver_main( int argc, char *argv[] )
                         break;
 		case 'P':
 			default_display_precision = atoi( optarg );
+			break;
+		case 'r':
+			enable_remote_breakpoint = TRUE;
 			break;
 		case 's':
 			display_stack_traceback = TRUE;
@@ -750,6 +756,14 @@ mxserver_main( int argc, char *argv[] )
 	/* Set the default floating point display precision. */
 
 	list_head_struct->default_precision = default_display_precision;
+
+	/* Save the 'enable_remote_breakpoint' flag in the list head. */
+
+	if ( enable_remote_breakpoint ) {
+		list_head_struct->remote_breakpoint_enabled = TRUE;
+	} else {
+		list_head_struct->remote_breakpoint_enabled = FALSE;
+	}
 
 	/* Set server_protocols_active to reflect the protocols that will
 	 * be used.
