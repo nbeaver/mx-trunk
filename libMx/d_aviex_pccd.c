@@ -39,7 +39,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
@@ -2300,6 +2300,10 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+#if 0
+#include <execinfo.h>
+#endif
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 {
@@ -2336,6 +2340,59 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 ("%s: last_frame_number = %ld, total_num_frames = %ld, status_flags = %#lx",
 		fname, last_frame_number, total_num_frames, status_flags));
 #endif
+
+#if 0
+	/* The following is debugging code used to figure out the
+	 * differences in behavior between being called by the function 
+	 * mx_area_detector_get_extended_status() and other possibilities.
+	 */
+
+#define MAXDEPTH 100
+#define MAXSAVED 10
+
+	if ( status_flags != 0 ) {
+		static void *addresses[ MAXDEPTH ];
+		void *return_address;
+		int i, num_addresses;
+		static void *saved_addresses[ MAXSAVED ];
+		static int num_saved = 0;
+
+		mx_stack_traceback();
+
+		num_addresses = backtrace( addresses, MAXDEPTH );
+
+		return_address = addresses[1];
+
+		MX_DEBUG(-2,("%s: return_address = %p", fname, return_address));
+
+		for ( i = 0; i < num_saved; i++ ) {
+			if ( return_address == saved_addresses[i] ) {
+				break;
+			}
+		}
+
+		if ( i >= num_saved ) {
+			if ( i < (MAXSAVED-1) ) {
+				saved_addresses[i] = return_address;
+				num_saved++;
+			}
+		}
+		
+		for ( i = 0; i < num_saved; i++ ) {
+			MX_DEBUG(-2,("%s: saved_addresses[%d] = %p",
+			fname, i, saved_addresses[i] ));
+		}
+
+#if 0
+		if ( ad->correction_measurement_in_progress ) {
+			if ( return_address == saved_addresses[1] ) {
+				mx_breakpoint();
+			}
+		}
+#endif
+	}
+#endif
+
 
 	ad->last_frame_number = last_frame_number;
 

@@ -63,7 +63,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
 	long old_last_frame_number, old_total_num_frames, num_unread_frames;
-	long num_frames_difference;
+	long num_frames_difference, num_new_frames;
 	long num_lines, num_lines_per_subimage, num_subimages, testvar;
 	int num_digits_in_filename;
 	char digits_format[40];
@@ -1222,11 +1222,18 @@ motor_area_detector_fn( int argc, char *argv[] )
 				total_num_frames, ad_status ));
 #endif
 			if ( total_num_frames != old_total_num_frames ) {
-				fprintf( output,
-				"Frame %ld acquired.\n", measurement_number );
+				num_new_frames = total_num_frames
+							- old_total_num_frames;
+
+				for ( i = 0; i < num_new_frames; i++ ) {
+					fprintf( output,
+						"Frame %ld acquired.\n",
+						measurement_number );
+
+					measurement_number++;
+				}
 
 				old_total_num_frames = total_num_frames;
-				measurement_number++;
 			}
 
 			if ( mx_kbhit() ) {

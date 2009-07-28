@@ -36,9 +36,9 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_STATUS			TRUE
+#define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION	FALSE
 
@@ -2423,6 +2423,12 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
+	if ( ad->correction_measurement_in_progress
+	   || ( ad->correction_measurement != NULL ) )
+	{
+		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
+	}
+
 #if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,("%s: last_frame_number = %ld",
 		fname, ad->last_frame_number));
@@ -2464,6 +2470,12 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Getting the total number of frames for area detector '%s' "
 		"is unsupported.", record->name );
+	}
+
+	if ( ad->correction_measurement_in_progress
+	   || ( ad->correction_measurement != NULL ) )
+	{
+		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
