@@ -16,6 +16,8 @@
 
 #define MX_CALLBACK_DEBUG				FALSE
 
+#define MX_CALLBACK_DEBUG_INVOKE_CALLBACK		TRUE
+
 #define MX_CALLBACK_DEBUG_CALLBACK_POINTERS		FALSE
 
 #define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
@@ -1643,15 +1645,17 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *record_field,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
-#if MX_CALLBACK_DEBUG
-	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
-		fname, record_field->name, callback_type));
-#endif
 	if ( callback_type == MXCBT_POLL ) {
 		get_new_value = TRUE;
 	} else {
 		get_new_value = FALSE;
 	}
+
+#if MX_CALLBACK_DEBUG_INVOKE_CALLBACK
+	MX_DEBUG(-2,
+	("%s invoked for field '%s', callback_type = %lu, get_new_value = %d",
+		fname, record_field->name, callback_type, get_new_value));
+#endif
 
 	record_field_callback_list = record_field->callback_list;
 

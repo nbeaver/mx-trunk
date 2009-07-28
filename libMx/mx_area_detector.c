@@ -36,7 +36,9 @@
 
 #define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
+#define MX_AREA_DETECTOR_DEBUG_STATUS			TRUE
+
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION	FALSE
 
@@ -2421,7 +2423,7 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-#if MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,("%s: last_frame_number = %ld",
 		fname, ad->last_frame_number));
 #endif
@@ -2464,7 +2466,7 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-#if MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,("%s: total_num_frames = %ld",
 		fname, ad->total_num_frames));
 #endif
@@ -2539,8 +2541,10 @@ mx_area_detector_get_status( MX_RECORD *record,
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: status = %#lx", fname, ad->status));
+#if MX_AREA_DETECTOR_DEBUG_STATUS
+	MX_DEBUG(-2,
+	("%s: status = %#lx, correction_measurement_in_progress = %d",
+		fname, ad->status, ad->correction_measurement_in_progress));
 #endif
 
 	if ( status_flags != NULL ) {
@@ -2616,10 +2620,12 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
-#if MX_AREA_DETECTOR_DEBUG
+#if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
-	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
+	"correction_measurement_in_progress = %d",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
+		ad->correction_measurement_in_progress));
 #endif
 
 	if ( last_frame_number != NULL ) {
@@ -8215,8 +8221,46 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_VCTEST
-	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
-			fname, record->name, record_field->name));
+	{
+		void *value_ptr;
+
+		value_ptr = mx_get_field_value_pointer( record_field );
+
+		if ( value_ptr == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The value pointer for field '%s.%s' is NULL.  "
+			"(From MX_AREA_DETECTOR_DEBUG_VCTEST)",
+				record_field->record->name,
+				record_field->name );
+		}
+
+		switch( record_field->label_value ) {
+		case MXLV_AD_LAST_FRAME_NUMBER:
+		case MXLV_AD_TOTAL_NUM_FRAMES:
+			MX_DEBUG(-2,
+			("%s invoked for record field '%s.%s', value = %ld",
+				fname, record->name, record_field->name,
+				*((long *) value_ptr) ));
+			break;
+		case MXLV_AD_STATUS:
+			MX_DEBUG(-2,
+			("%s invoked for record field '%s.%s', value = %#lx",
+				fname, record->name, record_field->name,
+				*((unsigned long *) value_ptr) ));
+			break;
+		case MXLV_AD_EXTENDED_STATUS:
+			MX_DEBUG(-2,
+			("%s invoked for record field '%s.%s', value = '%s'",
+				fname, record->name, record_field->name,
+				(char *) value_ptr ));
+			break;
+		default:
+			MX_DEBUG(-2,
+			("%s invoked for _unexpected_ record field '%s.%s'",
+				fname, record->name, record_field->name ));
+			break;
+		}
+	}
 #endif
 	/* What we do here depends on whether or not this is the
 	 * area detector's 'extended_status' field.
@@ -8396,7 +8440,7 @@ mx_area_detector_update_extended_status_string( MX_AREA_DETECTOR *ad )
 			ad->total_num_frames,
 			ad->status );
 
-#if 0
+#if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,("area detector '%s', extended_status = '%s'",
 		ad->record->name, ad->extended_status));
 #endif

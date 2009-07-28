@@ -491,6 +491,25 @@ check_for_interactive_command( MX_RECORD *record_list )
 
 /*-------------------------------------------------------------------------*/
 
+static void
+timestamp_output_function( char *string )
+{
+	time_t time_struct;
+	struct tm *current_time;
+	char time_buffer[80];
+
+	time( &time_struct );
+
+	current_time = localtime( &time_struct );
+
+	strftime( time_buffer, sizeof(time_buffer),
+			"%b %d %H:%M:%S ", current_time );
+
+	fprintf( stderr, "%s%s\n", time_buffer, string );
+}
+
+/*-------------------------------------------------------------------------*/
+
 int
 main( int argc, char *argv[] )
 {
@@ -499,7 +518,7 @@ main( int argc, char *argv[] )
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
 	int c;
-	mx_bool_type network_debug, start_debugger, interactive;
+	mx_bool_type network_debug, start_debugger, interactive, show_timestamp;
 	unsigned long i;
 	double timeout;
 	mx_status_type mx_status;
@@ -514,8 +533,9 @@ main( int argc, char *argv[] )
 	network_debug = FALSE;
 	start_debugger = FALSE;
 	interactive = TRUE;
+	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "ADi")) != -1 )
+	while ( (c = getopt(argc, argv, "ADit")) != -1 )
 	{
 		switch (c) {
 		case 'A':
@@ -527,6 +547,9 @@ main( int argc, char *argv[] )
 		case 'i':
 			interactive = FALSE;
 			break;
+		case 't':
+			show_timestamp = TRUE;
+			break;
 		}
 	}
 
@@ -535,6 +558,13 @@ main( int argc, char *argv[] )
 	}
 
 	mx_set_debug_level(0);
+
+	if ( show_timestamp ) {
+		mx_set_info_output_function( timestamp_output_function );
+		mx_set_warning_output_function( timestamp_output_function );
+		mx_set_error_output_function( timestamp_output_function );
+		mx_set_debug_output_function( timestamp_output_function );
+	}
 
 	server_record = NULL;
 
