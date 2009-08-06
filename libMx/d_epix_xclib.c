@@ -769,15 +769,20 @@ mxd_epix_xclib_set_ready_status( MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
 }
 
 static mx_status_type
-mxd_epix_xclib_write_test_image_to_device( MX_VIDEO_INPUT *vinput,
+mxd_epix_xclib_send_test_image_to_device( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
 {
 	static const char fname[] =
-		"mxd_epix_xclib_write_test_image_to_device()";
+		"mxd_epix_xclib_send_test_image_to_device()";
 
 	char error_message[80];
 	int epix_status;
 	unsigned long flags, old_array_bytes, new_array_bytes;
+	long i;
+	uint8_t *uint8_array;
+	uint16_t *uint16_array;
+
+	flags = epix_xclib_vinput->epix_xclib_vinput_flags;
 
 	old_array_bytes = epix_xclib_vinput->num_write_test_array_bytes;
 
@@ -816,9 +821,26 @@ mxd_epix_xclib_write_test_image_to_device( MX_VIDEO_INPUT *vinput,
 			vinput->record->name );
 	}
 
-	memset( epix_xclib_vinput->write_test_array,
-		epix_xclib_vinput->write_test_value,
-		epix_xclib_vinput->num_write_test_array_bytes );
+	if ( flags & MXF_EPIX_WRITE_TEST ) {
+		memset( epix_xclib_vinput->write_test_array,
+			epix_xclib_vinput->write_test_value,
+			epix_xclib_vinput->num_write_test_array_bytes );
+	}
+
+	if ( flags & MXF_EPIX_RAMP_TEST ) {
+		if ( vinput->bits_per_pixel <= 16 ) {
+			uint16_array = epix_xclib_vinput->write_test_array;
+
+			for ( i = 0; i < 65536; i++ ) {
+				uint16_array[i] = i;
+			}
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The bits_per_pixel (%lu) for video input '%s' "
+			"is greater than the maximum supported value of 16.",
+				vinput->bits_per_pixel, vinput->record->name );
+		}
+	}
 
 #if 0
 	MX_DEBUG(-2,("%s: Writing a %lu byte array set to "
@@ -1220,8 +1242,9 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: epix_xclib_vinput_flags = %#lx", fname, flags));
 #endif
 
-	if ( flags & MXF_EPIX_WRITE_TEST) {
-		mx_status = mxd_epix_xclib_write_test_image_to_device(
+	if ( flags & ( MXF_EPIX_WRITE_TEST | MXF_EPIX_RAMP_TEST ) )
+	{
+		mx_status = mxd_epix_xclib_send_test_image_to_device(
 						vinput, epix_xclib_vinput );
 
 		if ( mx_status.code != MXE_SUCCESS )

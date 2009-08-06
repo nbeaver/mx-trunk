@@ -22,6 +22,7 @@
 #define MXF_EPIX_SHOW_CONFIG		0x1
 
 #define MXF_EPIX_WRITE_TEST		0x1000
+#define MXF_EPIX_RAMP_TEST		0x2000
 
 typedef struct {
 	MX_RECORD *record;
