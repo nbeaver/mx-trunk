@@ -2475,6 +2475,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	long frame_difference, num_times_looped;
 	long number_of_frame_that_overwrote_the_frame_we_want;
 	long row_framesize, column_framesize;
+	long raw_row_framesize, raw_column_framesize;
 	size_t bytes_to_copy, raw_frame_length, image_length;
 	struct timespec exposure_timespec;
 	double exposure_time;
@@ -2614,11 +2615,14 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Make sure that the image frame is the correct size. */
 
-	row_framesize = (long) MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame)
-				/ aviex_pccd->horiz_descramble_factor;
+	raw_row_framesize    = MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame);
+	raw_column_framesize = MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame);
 
-	column_framesize = (long) MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame)
-				* aviex_pccd->vert_descramble_factor;
+	row_framesize = 
+		raw_row_framesize / aviex_pccd->horiz_descramble_factor;
+
+	column_framesize = 
+		raw_column_framesize * aviex_pccd->vert_descramble_factor;
 
 #if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
