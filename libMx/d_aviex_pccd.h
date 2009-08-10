@@ -90,6 +90,8 @@ typedef struct mx_aviex_pccd {
 	double pixel_clock_frequency;
 	unsigned long num_ccd_taps;
 
+	long num_sector_rows;
+	long num_sector_columns;
 	uint16_t ***sector_array;
 
 	long num_registers;

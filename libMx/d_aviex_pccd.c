@@ -539,7 +539,6 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	MX_SEQUENCE_PARAMETERS *sp;
 	long i, i_framesize, j_framesize;
 	long row_framesize, column_framesize;
-	long num_sector_rows, num_sector_columns;
 	uint16_t *frame_data;
 	unsigned long pccd_flags;
 	mx_bool_type use_linearity_lookup_table;
@@ -583,27 +582,6 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 	/*---*/
 
 	sp = &(ad->sequence_parameters);
-
-	switch( ad->record->mx_type ) {
-	case MXT_AD_PCCD_170170:
-		num_sector_rows = 4;
-		num_sector_columns = 4;
-		break;
-	case MXT_AD_PCCD_4824:
-		num_sector_rows = 2;
-		num_sector_columns = 2;
-		break;
-	case MXT_AD_PCCD_16080:
-		num_sector_rows = 2;
-		num_sector_columns = 4;
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal MX driver type '%s' passed for record '%s'.",
-			mx_get_driver_name( ad->record ),
-			ad->record->name );
-		break;
-	}
 
 	/* We handle streak camera descrambling in a special function
 	 * just for it.
@@ -716,7 +694,8 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_aviex_pccd_alloc_sector_array(
 				&(aviex_pccd->sector_array),
 				j_framesize, i_framesize,
-				num_sector_rows, num_sector_columns,
+				aviex_pccd->num_sector_rows,
+				aviex_pccd->num_sector_columns,
 				frame_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1380,6 +1359,31 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
+
+	/* Specify the number of sector rows and columns for each
+	 * detector type.
+	 */
+
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		aviex_pccd->num_sector_rows = 4;
+		aviex_pccd->num_sector_columns = 4;
+		break;
+	case MXT_AD_PCCD_4824:
+		aviex_pccd->num_sector_rows = 2;
+		aviex_pccd->num_sector_columns = 2;
+		break;
+	case MXT_AD_PCCD_16080:
+		aviex_pccd->num_sector_rows = 2;
+		aviex_pccd->num_sector_columns = 4;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal MX driver type '%s' passed for record '%s'.",
+			mx_get_driver_name( ad->record ),
+			ad->record->name );
+		break;
 	}
 
 	/* Initialize the geometrical mask frames. */
@@ -2471,6 +2475,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_AVIEX_PCCD *aviex_pccd;
 	unsigned long flags;
+	long num_sector_rows, num_sector_columns;
 	long frame_number, maximum_num_frames, total_num_frames;
 	long frame_difference, num_times_looped;
 	long number_of_frame_that_overwrote_the_frame_we_want;
@@ -2623,6 +2628,20 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	column_framesize = 
 		raw_column_framesize * aviex_pccd->vert_descramble_factor;
+
+	/* The dimensions of an image sector must be integer numbers, so
+	 * we must make sure that the image framesizes will be integer
+	 * multiples of the sector dimensions.
+	 */
+
+	num_sector_rows    = aviex_pccd->num_sector_rows;
+	num_sector_columns = aviex_pccd->num_sector_columns;
+
+	row_framesize = 
+		num_sector_columns * ( row_framesize / num_sector_columns );
+
+	column_framesize =
+		num_sector_rows * ( column_framesize / num_sector_rows );
 
 #if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,
