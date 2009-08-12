@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,6 +91,9 @@ mxp_setup_home_variable( void )
 
 	length = strlen( os_version_string );
 
+	if ( strncmp( os_version_string, "Windows 7", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
 	if ( strncmp( os_version_string, "Windows Vista", length ) == 0 ) {
 		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
 	} else

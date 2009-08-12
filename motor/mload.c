@@ -215,7 +215,7 @@ motor_load_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_open_hardware( current_record );
+		mx_status = mx_open_hardware( new_record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fprintf( output,
@@ -227,7 +227,7 @@ motor_load_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_finish_delayed_initialization( current_record );
+		mx_status = mx_finish_delayed_initialization( new_record );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fprintf( output,
