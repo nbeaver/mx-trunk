@@ -343,7 +343,11 @@ mx_hash_table_delete_key( MX_HASH_TABLE *hash_table,
 		}
 	}
 
+#if defined(OS_SOLARIS)
+	/* Do nothing */
+#else
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -414,6 +418,10 @@ mx_hash_table_lookup_key( MX_HASH_TABLE *hash_table,
 		}
 	}
 
+#if defined(OS_SOLARIS)
+	/* Do nothing */
+#else
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
