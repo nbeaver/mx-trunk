@@ -2620,8 +2620,10 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 
 	/* Make sure that the image frame is the correct size. */
 
-	raw_row_framesize    = MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame);
-	raw_column_framesize = MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame);
+	raw_row_framesize =
+		(long) MXIF_ROW_FRAMESIZE(aviex_pccd->raw_frame);
+	raw_column_framesize = 
+		(long) MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame);
 
 	row_framesize = 
 		raw_row_framesize / aviex_pccd->horiz_descramble_factor;

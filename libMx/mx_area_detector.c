@@ -5616,7 +5616,7 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	 * the matching number of frames at the start of the exposure.
 	 */
 
-	corr->raw_num_exposures_to_skip = ad->correction_frames_to_skip;
+	corr->raw_num_exposures_to_skip = (long) ad->correction_frames_to_skip;
 
 	corr->raw_num_exposures =
 		corr->num_exposures + corr->raw_num_exposures_to_skip;
@@ -5912,7 +5912,7 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 		for ( i = 0; i < pixels_per_frame; i++ ) {
 			temp_double = corr->sum_array[i] / corr->num_exposures;
 
-			dest_array[i] = mx_round( temp_double );
+			dest_array[i] = (uint16_t) mx_round( temp_double );
 		}
 	}
 

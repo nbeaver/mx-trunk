@@ -1,5 +1,5 @@
 /*
- * Name:    mx_handle.c
+ * Name:    mx_hash_table.c
  *
  * Purpose: Support for MX hash tables.
  *
@@ -63,7 +63,7 @@ mx_default_hash_table_function( MX_HASH_TABLE *hash_table, const char *key )
 		sum = sum + c;
 	}
 
-	hash = sum % (hash_table->table_size);
+	hash = (long) ( sum % (hash_table->table_size) );
 
 	return hash;
 }
