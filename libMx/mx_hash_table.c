@@ -166,7 +166,7 @@ mx_hash_table_insert_key( MX_HASH_TABLE *hash_table,
 	static const char fname[] = "mx_hash_table_insert_key()";
 
 	MX_KEY_VALUE_PAIR *list_entry, *new_list_entry;
-	MX_KEY_VALUE_PAIR **new_list_entry_ptr;
+	MX_KEY_VALUE_PAIR **new_list_entry_ptr = NULL;
 	long hash;
 
 	if ( hash_table == (MX_HASH_TABLE *) NULL ) {
