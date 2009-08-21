@@ -478,6 +478,93 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 /*------------------------------------------------------------------------*/
 
+#elif defined(OS_VMS) && !defined(__VAX)
+
+#include <builtins.h>
+
+MX_EXPORT void
+mx_atomic_initialize( void )
+{
+	return;
+}
+
+/*---*/
+
+MX_EXPORT int32_t
+mx_atomic_add32( int32_t *value_ptr, int32_t increment )
+{
+	__ADD_ATOMIC_LONG( value_ptr, increment );
+
+	return *value_ptr;
+}
+
+MX_EXPORT int32_t
+mx_atomic_decrement32( int32_t *value_ptr )
+{
+	__ADD_ATOMIC_LONG( value_ptr, -1 );
+
+	return *value_ptr;
+}
+
+MX_EXPORT int32_t
+mx_atomic_increment32( int32_t *value_ptr )
+{
+	__ADD_ATOMIC_LONG( value_ptr, 1 );
+
+	return *value_ptr;
+}
+
+MX_EXPORT int32_t
+mx_atomic_read32( int32_t *value_ptr )
+{
+	__ADD_ATOMIC_LONG( value_ptr, 0 );
+
+	return *value_ptr;
+}
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+#if 0
+	/* FIXME - There is no guarantee that the loop will ever succeed. */
+
+	uint32_t new_value_2;
+	unsigned long i, loop_max;
+
+	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
+
+	for( i = 0; i < loop_max; i++ ) {
+
+		atomic_clr( (uint32_t *) value_ptr, ~0 );
+
+		/* Somebody else may have changed the value after our
+		 * atomic "clr", so we must check the value returned
+		 * by the atomic "add" to see that we got the expected
+		 * value.
+		 */
+
+		new_value_2 =
+			atomic_add_value( (uint32_t *) value_ptr, new_value );
+
+		/* If the swap succeeded, then we are done. */
+
+		if ( new_value_2 == new_value ) {
+			break;
+		}
+	}
+
+	if ( i >= loop_max ) {
+		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
+	} else {
+#if 1
+		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
+#endif
+	}
+#endif
+}
+
+/*------------------------------------------------------------------------*/
+
 #elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
 	( defined(__i486__) || defined(__i586__) || \
 	  defined(__i686__) || defined(__MMX__) )
@@ -562,10 +649,12 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  *    GCC 4.0.x and before
  *    MacOS X 10.3.x and before
  *    Solaris 9.x and before
+ *    Vax VMS
  *    GCC on any platform not explicitly handled above.
  */
 
-#elif defined(__GNUC__) || defined(OS_MACOSX) || defined(OS_SOLARIS)
+#elif defined(__GNUC__) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_VMS)
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 
