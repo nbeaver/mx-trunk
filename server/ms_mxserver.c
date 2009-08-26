@@ -911,7 +911,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	MX_SOCKET_HANDLER *new_socket_handler;
 	MX_SOCKET *client_socket;
 	int i, socket_type, max_sockets, handler_array_size;
-	int saved_errno, connection_allowed;
+	int saved_errno;
+	mx_bool_type connection_allowed;
 	char *error_string;
 	mx_status_type mx_status;
 
