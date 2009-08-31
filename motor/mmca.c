@@ -776,6 +776,7 @@ motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 {
 	unsigned long i, num_channels;
 	unsigned long *channel_array;
+	int key;
 	mx_status_type mx_status;
 
 	/* Read out the acquired data. */
@@ -792,10 +793,8 @@ motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 	fprintf( output, "MCA data successfully read.\n" );
 	fprintf( output, "\n" );
 
-#if 1
 	fprintf( output, "Hit any key to continue...\n" );
 	(void) mx_getch();
-#endif
 
 	for ( i = 0; i < num_channels; i++ ) {
 		if ( (i % VALUES_PER_ROW) == 0 ) {
@@ -804,12 +803,15 @@ motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 
 		fprintf( output, "%6lu ", channel_array[i] );
 
-#if 1
 		if ( ((i+1) % VALUES_PER_PAGE) == 0 ) {
-			fprintf( output, "\nHit any key to continue...\n" );
-			(void) mx_getch();
+			fprintf( output,
+		    "\nHit 'q' to abort or any other key to continue...\n" );
+			key = mx_getch();
+
+			if ( (key == 'q') || (key == 'Q') ) {
+				break;		/* Exit the for loop. */
+			}
 		}
-#endif
 	}
 
 	fprintf( output, "\n" );
