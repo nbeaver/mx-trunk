@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,46 +24,67 @@ static int
 motor_copy_scan_record( MX_RECORD *old_scan_record,
 		MX_RECORD **new_scan_record, char *new_scan_name );
 
+#define MXP_COPY	1
+#define MXP_RENAME	2
 
 int
-motor_copy_fn( int argc, char *argv[] )
+motor_copy_or_rename_fn( int argc, char *argv[] )
 {
-	static const char cname[] = "copy";
-
 	MX_RECORD *old_scan_record, *new_scan_record;
 	MX_SCAN *old_scan;
 	char *old_scan_name, *new_scan_name;
 	char buffer[MXU_FILENAME_LENGTH + 12];
-	size_t length;
-	int status;
+	char cname[80];
+	size_t argv1_length, argv2_length;
+	int cmd_type, status;
 	mx_status_type mx_status;
 
-	static char usage[]
-		= "Usage:  copy scan 'scan_name' 'new_scan_name'\n";
+	static char usage_fmt[]
+		= "Usage:  %s scan 'scan_name' 'new_scan_name'\n";
 
-	if ( argc <= 2 ) {
-		fprintf( output, "%s\n", usage );
+	if ( argc < 2 ) {
+		fprintf( output, "motor_copy_or_rename_fn(): argc = %d\n",
+			argc );
 		return FAILURE;
 	}
 
-	length = strlen( argv[2] );
+	argv1_length = strlen( argv[1] );
 
-	if ( length == 0 )
-		length = 1;
+	if ( argv1_length == 0 )
+		argv1_length = 1;
 
-	if ( strncmp( argv[2], "scan", length ) == 0 )
+	if ( strncmp( argv[1], "copy", argv1_length ) == 0 ) {
+		strlcpy( cname, "copy", sizeof(cname) );
+		cmd_type = MXP_COPY;
+	} else
+	if ( strncmp( argv[1], "rename", argv1_length ) == 0 ) {
+		strlcpy( cname, "rename", sizeof(cname) );
+		cmd_type = MXP_RENAME;
+	} else {
+		fprintf( output,
+	"motor_copy_or_rename_fn(): Unexpected command type '%s' passed.\n",
+			argv[1] );
+		return FAILURE;
+	}
+
+	argv2_length = strlen( argv[2] );
+
+	if ( argv2_length == 0 )
+		argv2_length = 1;
+
+	if ( strncmp( argv[2], "scan", argv2_length ) == 0 )
 	{
 		switch( argc ) {
 		case 3:
 			fprintf( output,
 			    "%s: No source or destination scan name given\n",
 				cname );
-			fprintf( output, "%s\n", usage );
+			fprintf( output, usage_fmt, cname );
 			return FAILURE;
 		case 4:
 			fprintf( output,"%s: No destination scan name given\n",
 				cname );
-			fprintf( output, "%s\n", usage );
+			fprintf( output, usage_fmt, cname );
 			return FAILURE;
 		case 5:
 			old_scan_name = argv[3];
@@ -72,7 +93,7 @@ motor_copy_fn( int argc, char *argv[] )
 		default:
 			fprintf( output,
 			"%s: Too many arguments on command line.\n", cname );
-			fprintf( output, "%s\n", usage );
+			fprintf( output, usage_fmt, cname );
 			return FAILURE;
 		}
 
@@ -136,10 +157,31 @@ motor_copy_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		mx_status = mx_open_hardware( new_scan_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_finish_delayed_initialization( new_scan_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		if ( cmd_type == MXP_RENAME ) {
+			/* If we are renaming the scan, then we must
+			 * delete the old scan.
+			 */
+
+			mx_status = mx_delete_record( old_scan_record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		}
 	} else {
-		fprintf( output,
-		"%s: unrecognized argument '%s'\n\n", cname, argv[2]);
-		fprintf( output, "%s\n", usage );
+		fprintf( output, "%s: unrecognized argument '%s'\n\n",
+							cname, argv[2]);
+		fprintf( output, usage_fmt, cname );
 		return FAILURE;
 	}
 

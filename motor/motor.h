@@ -99,7 +99,7 @@ extern int motor_main( int argc, char *argv[] );
 extern int motor_area_detector_fn( int argc, char *argv[] );
 extern int motor_cd_fn( int argc, char *argv[] );
 extern int motor_close_fn( int argc, char *argv[] );
-extern int motor_copy_fn( int argc, char *argv[] );
+extern int motor_copy_or_rename_fn( int argc, char *argv[] );
 extern int motor_count_fn( int argc, char *argv[] );
 extern int motor_debug_fn( int argc, char *argv[] );
 extern int motor_delete_fn( int argc, char *argv[] );

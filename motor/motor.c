@@ -51,7 +51,7 @@ COMMAND command_list[] = {
 	{ motor_sample_changer_fn,
 		            2, "changer"       },
 	{ motor_close_fn,   2, "close"         },
-	{ motor_copy_fn,    3, "copy"          },
+	{ motor_copy_or_rename_fn, 3, "copy"   },
 	{ motor_count_fn,   3, "count"         },
 	{ motor_debug_fn,   5, "debug"         },
 	{ motor_delete_fn,  1, "delete"        },
@@ -77,6 +77,7 @@ COMMAND command_list[] = {
 	{ motor_exit_fn,    1, "quit"          },     /* alias for 'exit' */
 	{ motor_readp_fn,  10, "readparams"    },
 	{ motor_open_fn,    3, "remove"        },     /* alias for 'open' */
+	{ motor_copy_or_rename_fn, 3, "rename" },
 	{ motor_resync_fn,  3, "resynchronize" },
 	{ motor_rs232_fn,   2, "rs232",        },
 	{ motor_exec_fn,    2, "run"           },     /* alias for 'exec' */
