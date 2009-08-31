@@ -348,6 +348,14 @@ motor_show_fn( int argc, char *argv[] )
 		strlcpy( record_type_phrase, "a relay",
 					sizeof(record_type_phrase) );
 
+	} else if ( strncmp( "scas", argv[2], max(4,length) ) == 0 ) {
+		record_superclass = MXR_DEVICE;
+		record_class = MXC_SINGLE_CHANNEL_ANALYZER;
+		record_type = MXT_ANY;
+
+		strlcpy( record_type_phrase, "an SCA",
+					sizeof(record_type_phrase) );
+
 	} else if ( strncmp( "scalers", argv[2], max(4,length) ) == 0 ) {
 		record_superclass = MXR_DEVICE;
 		record_class = MXC_SCALER;
@@ -364,7 +372,7 @@ motor_show_fn( int argc, char *argv[] )
 		strlcpy( record_type_phrase, "a timer",
 					sizeof(record_type_phrase) );
 
-	} else if ( strncmp( "scans", argv[2], max(4,length) ) == 0 ) {
+	} else if ( strncmp( "scans", argv[2], max(3,length) ) == 0 ) {
 		record_superclass = MXR_SCAN;
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
