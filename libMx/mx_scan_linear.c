@@ -528,8 +528,12 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 
 	if ( scan->num_motors == 0 ) {
 		if ( scan->num_independent_variables > 0 ) {
-			fprintf( file, "    %ld measurements\n",
-				linear_scan->num_measurements[j] );
+			if ( linear_scan->num_measurements[j] == 1 ) {
+				fprintf( file, "    1 measurement\n" );
+			} else {
+				fprintf( file, "    %ld measurements\n",
+					linear_scan->num_measurements[j] );
+			}
 		}
 	} else {
 		for ( i = 0; i < scan->num_motors; i++ ) {
