@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -445,7 +445,10 @@ motor_prompt_for_input_devices(
 
 			    record = mx_get_record( motor_record_list, buffer );
 
-			    if ( record != (MX_RECORD *) NULL ) {
+			    if ( record == (MX_RECORD *) NULL ) {
+				fprintf(output,
+				"Input device '%s' does not exist.\n", buffer );
+			    } else {
 				if ( (scan_type == MXS_QUI_MCS)
 				  || (scan_type == MXS_QUI_APS_ID) )
 				{
@@ -484,11 +487,11 @@ motor_prompt_for_input_devices(
 					break;
 				    }
 				}
-			    }
-			    if ( ! valid_input_device_name ) {
-				fprintf(output,
+			        if ( ! valid_input_device_name ) {
+				    fprintf(output,
 			"'%s' is not the name of a valid input device.\n",
 					buffer);
+			        }
 			    }
 			}
 		}
