@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,9 +20,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "motor.h"
+#include "mx_cfn.h"
 #include "command.h"
 
 int
@@ -87,6 +89,8 @@ motor_exec_script( char *script_name, int verbose_flag )
 	return status;
 }
 
+#define MTR_EXTENSION	".mtr"
+
 int
 motor_exec_common( char *script_name, int verbose_flag )
 {
@@ -97,18 +101,41 @@ motor_exec_common( char *script_name, int verbose_flag )
 	char buffer[256];
 	int buffer_length, whitespace_length;
 	int status, end_of_file;
+	char *name_of_found_script;
+	unsigned long flags;
 
-	script_file = fopen( script_name, "r" );
+	flags = MXF_FPATH_TRY_WITHOUT_EXTENSION \
+		| MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY;
 
-	if ( script_file == NULL ) {
+	name_of_found_script = mx_find_file_in_path( script_name,
+						MTR_EXTENSION,
+						"MX_MOTOR_PATH",
+						flags );
+
+	if ( name_of_found_script == NULL ) {
 		fprintf( output,
-	"exec: The command script '%s' does not exist or is read protected.\n",
+	"exec: The command script '%s' was not found in the MX_MOTOR_PATH "
+	"or in the current directory.\n",
 			script_name );
 		return FAILURE;
 	}
 
+	script_file = fopen( name_of_found_script, "r" );
+
+	if ( script_file == NULL ) {
+		fprintf( output,
+		"exec: The command script '%s' is read protected.\n",
+			name_of_found_script );
+
+		mx_free( name_of_found_script );
+		return FAILURE;
+	}
+
 	if ( verbose_flag )
-		fprintf( output, "*** Script '%s' invoked.\n", script_name );
+		fprintf( output, "*** Script '%s' invoked.\n",
+			name_of_found_script );
+
+	mx_free( name_of_found_script );
 
 	/* Execute the commands in the script one line at a time. */
 
@@ -171,8 +198,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 		cmd_argv = cmd_parse_command_line( &cmd_argc, buffer );
 
 		if ( cmd_argc < 1 ) {
-			fprintf( output,
-		"%s: Invalid command line '%s'.\n", script_name, buffer );
+			fprintf( output, "%s: Invalid command line '%s'.\n",
+				name_of_found_script, buffer );
 
 			status = FAILURE;
 			continue;	/* cycle the while() loop. */
@@ -189,7 +216,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 			if ( command == (COMMAND *) NULL ) {
 				fprintf( output,
 				"%s: Unrecognized motor command '%s'.\n",
-					script_name, cmd_argv[1] );
+					name_of_found_script, cmd_argv[1] );
 
 				status = FAILURE;
 				continue;  /* cycle the while() loop. */

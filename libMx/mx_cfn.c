@@ -20,9 +20,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_cfn.h"
 #include "mx_cfn_defaults.h"
 
@@ -181,6 +183,8 @@ mxp_setup_home_variable( void )
 
 #endif /* SETUP_HOME_VARIABLE */
 
+/*--------------------------------------------------------------------------*/
+
 /**** Platform dependent versions of mx_is_absolute_filename() ****/
 
 #if defined(OS_WIN32)
@@ -270,6 +274,8 @@ mx_is_absolute_filename( char *filename )
 }
 
 #endif
+
+/*--------------------------------------------------------------------------*/
 
 /**** Platform dependent versions of mx_normalize_filename() ****/
 
@@ -395,6 +401,321 @@ mx_normalize_filename( char *original_filename,
 }
 
 #endif
+
+/*--------------------------------------------------------------------------*/
+
+static char *
+mxp_search_path( char *original_filename,
+		char *extension,
+		int argc, char **argv )
+{
+	char temp_filename[ MXU_FILENAME_LENGTH+1 ];
+	long i;
+
+	mx_warning( "WARNING: mxp_search_path() is not yet implemented!" );
+
+	temp_filename[0] = '\0';
+
+	for ( i = 0; i < argc; i++ ) {
+	}
+
+	return NULL;
+}
+
+/*-------*/
+
+MX_EXPORT char *
+mx_find_file_in_path( char *original_filename,
+			char *extension,
+			char *path_variable_name,
+			unsigned long flags )
+{
+	static const char fname[] = "mx_find_file_in_path()";
+
+	size_t original_length, extension_length;
+	char *extension_ptr = NULL;
+	int status, path_argc;
+	char **path_argv = NULL;
+	mx_bool_type already_has_extension, have_path_variable_array;
+	mx_bool_type try_without_extension, look_in_current_directory;
+	mx_bool_type contains_path_separator;
+	char *modified_filename = NULL;
+	char *found_filename = NULL;
+	int os_status;
+
+	if ( original_filename == NULL )
+		return NULL;
+
+	/*---*/
+
+	if ( flags & MXF_FPATH_TRY_WITHOUT_EXTENSION ) {
+		try_without_extension = TRUE;
+	} else {
+		try_without_extension = FALSE;
+	}
+
+	if ( flags & MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY ) {
+		look_in_current_directory = TRUE;
+	} else {
+		look_in_current_directory = FALSE;
+	}
+
+	/* Does the filename already have the extension attached? */
+
+	original_length = strlen( original_filename );
+
+	already_has_extension = FALSE;
+
+	if ( extension == NULL ) {
+		already_has_extension = TRUE;
+	} else {
+		extension_length = strlen( extension );
+
+		if ( extension_length > original_length ) {
+			already_has_extension = FALSE;
+		} else {
+			extension_ptr = original_filename
+				+ (original_length - extension_length);
+
+#if defined(OS_WIN32)
+			if ( mx_strcasecmp( extension_ptr, extension ) == 0 ) {
+#else
+			if ( strcmp( extension_ptr, extension ) == 0 ) {
+#endif
+				already_has_extension = TRUE;
+			}
+		}
+	}
+
+	/* Does the original filename contain a path separator character? */
+
+	contains_path_separator = FALSE;
+
+	if ( strchr( original_filename, '/' ) != NULL ) {
+		contains_path_separator = TRUE;
+	}
+
+#if defined( OS_WIN32 )
+	if ( strchr( original_filename, '\\' ) != NULL ) {
+		contains_path_separator = TRUE;
+	}
+#endif
+
+	if ( contains_path_separator ) {
+		/* If the original filename contains a path separator, then
+		 * this filename is either an absolute pathname or a relative
+		 * pathname.  In either case, we ignore the path_variable_name
+		 * variable passed to us and try looking for the original
+		 * filename as is.
+		 */
+
+		if ( already_has_extension == FALSE ) {
+
+			modified_filename = malloc( MXU_FILENAME_LENGTH + 1 );
+
+			if ( modified_filename == NULL ) {
+				mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate memory for a "
+			"temporary filename buffer." );
+
+				return NULL;
+			}
+
+			snprintf( modified_filename, MXU_FILENAME_LENGTH,
+				"%s%s", original_filename, extension );
+
+			os_status = access( modified_filename, R_OK );
+
+			if ( os_status == 0 ) {
+				return modified_filename;
+			}
+
+			mx_free( modified_filename );
+		}
+
+		os_status = access( original_filename, R_OK );
+
+		if ( os_status == 0 ) {
+			/* The file _does_ exist.  We strdup() a copy of the
+			 * original filename, since the caller assumes that
+			 * it will be returned a malloc-ed buffer that needs
+			 * to be freed.
+			 */
+
+			found_filename = strdup( original_filename );
+
+			return found_filename;
+		} else {
+			return NULL;
+		}
+	}
+
+	/*-----------------------------------------------------------------*/
+
+	/* If we get here, then we need to search the path, if available,
+	 * and/or look in the current directory.
+	 */
+
+	/* If possible, construct the path variable array. */
+
+	have_path_variable_array = FALSE;
+
+	if ( path_variable_name != NULL ) {
+		status = mx_path_variable_split( path_variable_name,
+						&path_argc, &path_argv );
+
+		if ( status == 0 ) {
+			have_path_variable_array = TRUE;
+		}
+	}
+
+	if ( have_path_variable_array ) {
+		if ( already_has_extension ) {
+			/* Search the path using the already built-in
+			 * extension.
+			 */
+
+			found_filename = mxp_search_path( original_filename,
+							NULL,
+							path_argc, path_argv );
+		} else {
+			/* Search the path using an extension. */
+
+			found_filename = mxp_search_path( original_filename,
+							extension,
+							path_argc, path_argv );
+
+			if ( found_filename != NULL ) {
+				mx_free( path_argv );
+				return found_filename;
+			}
+
+			/* If we get here, an attempt to search for the file
+			 * with the caller-provided extension failed.
+			 *
+			 * If requested and the caller-provided extension
+			 * was _not_ NULL, then we try again _without_ the
+			 * caller-provided extension.
+			 */
+
+			if ( ( try_without_extension )
+			  && ( extension != NULL ) )
+			{
+				found_filename = mxp_search_path(
+							original_filename,
+							NULL,
+							path_argc, path_argv );
+
+				if ( found_filename != NULL ) {
+					mx_free( path_argv );
+					return found_filename;
+				}
+			}
+		}
+		mx_free( path_argv );
+	}
+
+	/* If we get here, any attempt to search the path has failed.
+	 * If requested, we also search in the current directory.
+	 */
+
+	if ( look_in_current_directory ) {
+		if ( already_has_extension == FALSE ) {
+
+			modified_filename = malloc( MXU_FILENAME_LENGTH + 1 );
+
+			if ( modified_filename == NULL ) {
+				mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate memory for a "
+			"temporary filename buffer." );
+
+				return NULL;
+			}
+
+			snprintf( modified_filename, MXU_FILENAME_LENGTH,
+				"%s%s", original_filename, extension );
+
+			os_status = access( modified_filename, R_OK );
+
+			if ( os_status == 0 ) {
+				return modified_filename;
+			}
+
+			mx_free( modified_filename );
+		}
+
+		if ( already_has_extension || try_without_extension ) {
+
+			os_status = access( original_filename, R_OK );
+
+			if ( os_status == 0 ) {
+				/* Duplicate the original filename, since the
+				 * caller will assume that any non-NULL pointer
+				 * returned is a malloc-ed buffer that it will
+				 * need to free.
+				 */
+
+				found_filename = strdup( original_filename );
+
+				return found_filename;
+			}
+		}
+	}
+		
+	return NULL;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT int
+mx_path_variable_split( char *path_variable_name,
+			int *argc, char ***argv )
+{
+	char *path_variable;
+	int status, saved_errno;
+
+	if ( ( path_variable_name == NULL )
+	  || ( argc == NULL )
+	  || ( argv == NULL ) )
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	path_variable = getenv( path_variable_name );
+
+	if ( path_variable == NULL ) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	path_variable = strdup( path_variable );
+
+	if ( path_variable == NULL ) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	/* Windows separates path variables using a semicolon ';'
+	 * while everybody else uses a colon ':'.
+	 */
+
+#if defined(OS_WIN32)
+	status = mx_string_split( path_variable, ";", argc, argv );
+#else
+	status = mx_string_split( path_variable, ":", argc, argv );
+#endif
+
+	saved_errno = errno;
+
+	mx_free( path_variable );
+
+	errno = saved_errno;
+
+	return status;
+}
+
+/*--------------------------------------------------------------------------*/
 
 #define MS_NOT_IN_MACRO		1
 #define MS_STARTING_MACRO	2

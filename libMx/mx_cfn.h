@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,6 +55,19 @@ MX_API char *mx_expand_filename_macros( char *original_filename,
 MX_API char *mx_normalize_filename( char *original_filename,
 						char *new_filename,
 						size_t max_filename_length );
+
+/*--- Flag bits used by mx_find_file_in_path() ---*/
+
+#define MXF_FPATH_TRY_WITHOUT_EXTENSION		0x1
+#define MXF_FPATH_LOOK_IN_CURRENT_DIRECTORY	0x2
+
+MX_API char *mx_find_file_in_path( char *original_filename,
+					char *extension,
+					char *path_variable_name,
+					unsigned long flags );
+
+MX_API int mx_path_variable_split( char *path_variable_name,
+					int *argc, char ***argv );
 
 #define mx_construct_program_filename(o,n,s) \
     mx_construct_control_system_filename( MX_CFN_PROGRAM, (o), (n), (s) )
