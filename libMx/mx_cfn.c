@@ -411,12 +411,26 @@ mxp_search_path( char *original_filename,
 {
 	char temp_filename[ MXU_FILENAME_LENGTH+1 ];
 	long i;
-
-	mx_warning( "WARNING: mxp_search_path() is not yet implemented!" );
-
-	temp_filename[0] = '\0';
+	int os_status;
+	char *found_pathname = NULL;
 
 	for ( i = 0; i < argc; i++ ) {
+
+		if ( extension != NULL ) {
+			snprintf( temp_filename, sizeof(temp_filename),
+			"%s/%s%s", argv[i], original_filename, extension );
+		} else {
+			snprintf( temp_filename, sizeof(temp_filename),
+			"%s/%s", argv[i], original_filename );
+		}
+
+		os_status = access( temp_filename, R_OK );
+
+		if ( os_status == 0 ) {
+			found_pathname = strdup( temp_filename );
+
+			return found_pathname;
+		}
 	}
 
 	return NULL;
@@ -436,6 +450,7 @@ mx_find_file_in_path( char *original_filename,
 	char *extension_ptr = NULL;
 	int status, path_argc;
 	char **path_argv = NULL;
+	char *path_variable = NULL;
 	mx_bool_type already_has_extension, have_path_variable_array;
 	mx_bool_type try_without_extension, look_in_current_directory;
 	mx_bool_type contains_path_separator;
@@ -561,11 +576,34 @@ mx_find_file_in_path( char *original_filename,
 	have_path_variable_array = FALSE;
 
 	if ( path_variable_name != NULL ) {
-		status = mx_path_variable_split( path_variable_name,
+		path_variable = getenv( path_variable_name );
+
+		if ( path_variable != NULL ) {
+			/* mx_path_variable_split() will write to the
+			 * contents of the 'path_variable' passed to it.
+			 * Thus, we need to make a copy of the path
+			 * variable before calling mx_path_variable_split().
+			 */
+
+			path_variable = strdup( path_variable );
+
+			if ( path_variable == NULL ) {
+				mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to duplicate the "
+				"contents of the '%s' environment variable.",
+					path_variable_name );
+
+				return NULL;
+			}
+
+			status = mx_path_variable_split( path_variable,
 						&path_argc, &path_argv );
 
-		if ( status == 0 ) {
-			have_path_variable_array = TRUE;
+			if ( status == 0 ) {
+				have_path_variable_array = TRUE;
+			} else {
+				mx_free( path_variable );
+			}
 		}
 	}
 
@@ -587,6 +625,7 @@ mx_find_file_in_path( char *original_filename,
 
 			if ( found_filename != NULL ) {
 				mx_free( path_argv );
+				mx_free( path_variable );
 				return found_filename;
 			}
 
@@ -608,11 +647,13 @@ mx_find_file_in_path( char *original_filename,
 
 				if ( found_filename != NULL ) {
 					mx_free( path_argv );
+					mx_free( path_variable );
 					return found_filename;
 				}
 			}
 		}
 		mx_free( path_argv );
+		mx_free( path_variable );
 	}
 
 	/* If we get here, any attempt to search the path has failed.
@@ -668,31 +709,16 @@ mx_find_file_in_path( char *original_filename,
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT int
-mx_path_variable_split( char *path_variable_name,
+mx_path_variable_split( char *path_variable,
 			int *argc, char ***argv )
 {
-	char *path_variable;
-	int status, saved_errno;
+	int status;
 
-	if ( ( path_variable_name == NULL )
+	if ( ( path_variable== NULL )
 	  || ( argc == NULL )
 	  || ( argv == NULL ) )
 	{
 		errno = EINVAL;
-		return -1;
-	}
-
-	path_variable = getenv( path_variable_name );
-
-	if ( path_variable == NULL ) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	path_variable = strdup( path_variable );
-
-	if ( path_variable == NULL ) {
-		errno = ENOMEM;
 		return -1;
 	}
 
@@ -705,12 +731,6 @@ mx_path_variable_split( char *path_variable_name,
 #else
 	status = mx_string_split( path_variable, ":", argc, argv );
 #endif
-
-	saved_errno = errno;
-
-	mx_free( path_variable );
-
-	errno = saved_errno;
 
 	return status;
 }
