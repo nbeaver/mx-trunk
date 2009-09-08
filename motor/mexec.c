@@ -97,7 +97,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 	COMMAND *command;
 	FILE *script_file;
 	int cmd_argc;
-	char **cmd_argv;
+	char **cmd_argv = NULL;
+	char *split_buffer = NULL;
 	char buffer[256];
 	int buffer_length, whitespace_length;
 	int status, end_of_file;
@@ -195,19 +196,27 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 		/* Parse the supplied command line. */
 
-		cmd_argv = cmd_parse_command_line( &cmd_argc, buffer );
+		status = cmd_split_command_line( buffer,
+					&cmd_argc, &cmd_argv, &split_buffer );
+
+		if ( status == FAILURE ) {
+			cmd_free_command_line( cmd_argv, split_buffer );
+			return FAILURE;
+		}
 
 		if ( cmd_argc < 1 ) {
 			fprintf( output, "%s: Invalid command line '%s'.\n",
 				name_of_found_script, buffer );
 
 			status = FAILURE;
+			cmd_free_command_line( cmd_argv, split_buffer );
 			continue;	/* cycle the while() loop. */
 		}
 
 		if ( cmd_argc == 1 ) {
 			/* A blank line was read.  Do nothing. */
 
+			cmd_free_command_line( cmd_argv, split_buffer );
 		} else {
 			command = cmd_get_command_from_list(
 				command_list_length, command_list,
@@ -219,6 +228,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 					name_of_found_script, cmd_argv[1] );
 
 				status = FAILURE;
+				cmd_free_command_line( cmd_argv, split_buffer );
 				continue;  /* cycle the while() loop. */
 			}
 
@@ -226,6 +236,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 			status
 			= (*(command->function_ptr))( cmd_argc, cmd_argv );
+
+			cmd_free_command_line( cmd_argv, split_buffer );
 		}
 	}
 

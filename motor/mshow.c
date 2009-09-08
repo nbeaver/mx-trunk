@@ -101,22 +101,24 @@ motor_show_fn( int argc, char *argv[] )
 "        show interfaces    <or>  show interface 'name'\n"
 "        show devices       <or>  show device 'name'\n"
 "        show servers       <or>  show server 'name'\n"
+"\n"
 "        show adcs          <or>  show adc 'name'\n"
 "        show amplifiers    <or>  show amplifier 'name'\n"
 "        show dacs          <or>  show dac 'name'\n"
 "        show dinputs       <or>  show dinput 'name'\n"
 "        show doutputs      <or>  show doutput 'name'\n"
-"        show motors        <or>  show motor 'name'\n"
 "        show mcas          <or>  show mca 'name'\n"
 "        show mcses         <or>  show mcs 'name'\n"
+"        show motors        <or>  show motor 'name'\n"
 "        show pulsers       <or>  show pulser 'name'\n"
 "        show relays        <or>  show relay 'name'\n"
+"        show scas          <or>  show sca 'name'\n"
 "        show scalers       <or>  show scaler 'name'\n"
 "        show timers        <or>  show timer 'name'\n"
 "        show scans         <or>  show scan 'name'\n"
 "        show variables     <or>  show variable 'name'\n"
 "\n"
-"        show field 'name'\n";
+"        show field 'recordname.fieldname'\n";
 
 	int status;
 
@@ -157,6 +159,10 @@ motor_show_fn( int argc, char *argv[] )
 	if ( strncmp( "version", argv[2], max(2,length) ) == 0 ) {
 		fprintf( output, "MX version %s\n", mx_get_version_string() );
 		return SUCCESS;
+
+	} else if ( strncmp( "help", argv[2], length ) == 0 ) {
+		fprintf( output, "%s\n", usage );
+		return FAILURE;
 
 	} else if ( strncmp( "memory", argv[2], length ) == 0 ) {
 
@@ -398,7 +404,6 @@ motor_show_fn( int argc, char *argv[] )
 
 	} else {
 		fprintf(output,"show: Unrecognized option '%s'\n\n", argv[2]);
-		fprintf(output,"%s\n", usage);
 		return FAILURE;
 	}
 

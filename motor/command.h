@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,18 @@ extern COMMAND *cmd_get_command_from_list( int num_commands,
 				COMMAND *command_list, char *string );
 
 extern char **cmd_parse_command_line( int *argc, char *command_line );
+
+extern int cmd_split_command_line( char *command_line,
+				int *cmd_argc, char ***cmd_argv,
+				char **split_buffer );
+
+#define cmd_free_command_line(av,sb) \
+	do {			\
+		mx_free( av );	\
+		mx_free( sb );	\
+	} while (0)
+
+extern int cmd_run_command( char *command_line );
 
 extern char *cmd_read_next_command_line( char *prompt );
 

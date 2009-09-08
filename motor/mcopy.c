@@ -67,6 +67,11 @@ motor_copy_or_rename_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
+	if ( argc == 2 ) {
+		fprintf( output, usage_fmt, cname );
+		return FAILURE;
+	}
+
 	argv2_length = strlen( argv[2] );
 
 	if ( argv2_length == 0 )

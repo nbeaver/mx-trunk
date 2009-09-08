@@ -34,11 +34,11 @@ motor_mabs_fn( int argc, char *argv[] )
 
 	if ( argc <= 2 ) {
 		fprintf(output,
-"Usage:  mabs 'motorname' 'position'    - Move 'motorname' to the absolute\n"
+"Usage:  move 'motorname' 'position'    - Move 'motorname' to the absolute\n"
 "                                         position 'position' expressed\n"
 "                                         in engineering units.\n"
 "\n"
-"        mabs 'motorname' steps 'steps' - Move 'motorname' to the absolute\n"
+"        move 'motorname' steps 'steps' - Move 'motorname' to the absolute\n"
 "                                         position 'steps' expressed\n"
 "                                         in low level units.\n"
 		);

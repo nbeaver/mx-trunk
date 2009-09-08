@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_COMMAND_PARSING	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -25,29 +27,42 @@
 
 static char argv0[64];	/* local copy of the program name. */
 
+/*--------------------------------------------------------------------------*/
+
 int
 cmd_execute_command_line( int list_length, COMMAND *list, char *command_line )
 {
 	COMMAND *command;
 	int cmd_argc;
-	char **cmd_argv;
+	char **cmd_argv = NULL;
+	char *split_buffer = NULL;
 	int status;
 
 	/* Break up the command line into arguments. */
 
-	cmd_argv = cmd_parse_command_line( &cmd_argc, command_line );
+	status = cmd_split_command_line( command_line,
+				&cmd_argc, &cmd_argv, &split_buffer );
+
+	if ( status == FAILURE ) {
+		cmd_free_command_line( cmd_argv, split_buffer );
+		return FAILURE;
+	}
 
 	if ( cmd_argc <= 0 ) {		/* Command parsing error. */
+		cmd_free_command_line( cmd_argv, split_buffer );
 		return 0;
+
 	} else if ( cmd_argc == 1 ) {	/* Blank command line. */
+		cmd_free_command_line( cmd_argv, split_buffer );
 		return 1;
 	}
 
-	/* Get command from the command list. */
+	/* Get the command from the command list. */
 
 	command = cmd_get_command_from_list( list_length, list, cmd_argv[1] );
 
 	if ( command == (COMMAND *) NULL ) {	/* Unrecognized command. */
+		cmd_free_command_line( cmd_argv, split_buffer );
 		return 0;
 	}
 
@@ -55,8 +70,12 @@ cmd_execute_command_line( int list_length, COMMAND *list, char *command_line )
 
 	status = (*(command->function_ptr))( cmd_argc, cmd_argv );
 
+	cmd_free_command_line( cmd_argv, split_buffer );
+
 	return status;
 }
+
+/*--------------------------------------------------------------------------*/
 
 COMMAND *
 cmd_get_command_from_list( int num_commands, COMMAND *list, char *string )
@@ -84,71 +103,144 @@ cmd_get_command_from_list( int num_commands, COMMAND *list, char *string )
 	return command;
 }
 
-/* cmd_parse_command_line() takes a string 'command_line' and parses it 
- * into an 'argc' and 'argv' combination just like the one passed to 
- * the main() routine.
- *
- * cmd_parse_command_line() returns a pointer to a static buffer.  This means
- * that the next call to cmd_parse_command_line() will overwrite the results
- * from the last call.  If you wish to save the command line, you
- * need to copy it to storage local to the calling routine.
- *
- * At the moment there is a limit of POINTER_ARRAY_LENGTH elements in 
- * the argv array.  This limit could be removed by modifying the routine 
- * to malloc() the necessary storage.  However, this would also require 
- * that the calling routines remember to free() the memory allocated if 
- * not needed anymore.
- */
+/*--------------------------------------------------------------------------*/
 
-#define MAX_COMMAND_LENGTH	500
-#define POINTER_ARRAY_LENGTH    100
+/* Command line parser for 'motor'. */
 
-#define DEBUG_COMMAND_PARSING	FALSE
-
-#define ADD_TO_ARGV \
-		do { \
-			if ( in_token == TRUE && old_in_token == FALSE ) { \
-				argv[ *argc ] = dest_ptr; \
-				(*argc)++; \
-			} \
-		} while(0)
-
-char **
-cmd_parse_command_line( int *argc, char *command_line )
+int
+cmd_split_command_line( char *command_line,
+			int *cmd_argc,
+			char ***cmd_argv,
+			char **split_buffer )
 {
-	static char buffer[MAX_COMMAND_LENGTH + 1];
-	static char *argv[POINTER_ARRAY_LENGTH];
+	static char fname[] = "cmd_split_command_line():";
+
+	size_t split_buffer_length, chars_to_skip, src_length;
+	char argv1_token = '\0';
+	char *command_ptr;
+	char *temp_string;
+	int temp_argc;
+	char **temp_argv;
+	unsigned long i, max_tokens;
 	char *src_ptr, *dest_ptr;
-	int ptr_diff;
-	size_t src_length;
-	int in_token, old_in_token, first_token, in_quoted_string;
-	int i;
+	mx_bool_type in_token, old_in_token, in_quoted_string;
 
-	/* Initialize things. */
-
-	*argc = 0;
-
-	for ( i = 0; i < POINTER_ARRAY_LENGTH; i++ ) {
-		argv[i] = NULL;
-	}
-	for ( i = 0; i <= MAX_COMMAND_LENGTH; i++ ) {
-		buffer[i] = '\0';
+	if ( split_buffer == NULL ) {
+		fprintf( output, "%s: split_buffer pointer is NULL.\n", fname );
+		return FAILURE;
 	}
 
-	/* argv[0] is always the name of the main program. */
+	/* Skip any leading spaces or tabs. */
 
-	argv[0] = argv0;	/* argv0 saved by cmd_set_program_name(). */
+	chars_to_skip = strspn( command_line, " \t" );
 
-	*argc = 1;
+	command_ptr = command_line + chars_to_skip;
 
-	src_ptr = command_line;
-	dest_ptr = buffer;
+	/* Is the first character one of the special command characters? */
 
-	src_length = strlen( command_line );
+	switch( *command_ptr ) {
+	case '!':
+	case '$':
+	case '@':
+	case '&':
+	case '#':
+		argv1_token = *command_ptr;
+		command_ptr++;
+
+		chars_to_skip = strspn( command_ptr, " \t" );
+		command_ptr += chars_to_skip;
+		break;
+	}
+
+	/* In the rest of the command line, tokens are separated by
+	 * space and/or tab characters.  However, blocks of characters
+	 * inside pairs of double quotes are treated as a single token.
+	 */
+
+	/* Compute an upper limit to the maximum number of tokens in
+	 * the command line by performing a string split using spaces
+	 * and tabs as the delimiters.
+	 */
+
+	temp_string = strdup( command_ptr );
+
+	mx_string_split( temp_string, " \t", &temp_argc, &temp_argv );
+
+	mx_free( temp_argv );
+	mx_free( temp_string );
+
+	max_tokens = temp_argc + 1;	/* Add 1 for the argv0 token. */
+
+	/* If present, add 1 for the argv1 token. */
+
+	if ( argv1_token != '\0' ) {
+		max_tokens += 1;
+	}
+
+	/* Compute an upper limit to the split buffer length. */
+
+	split_buffer_length = 
+		strlen( command_ptr ) + strlen( argv0 ) + max_tokens + 2;
+
+	if ( argv1_token != '\0' ) {
+		split_buffer_length += 2;
+	}
+
+	/* Allocate space for the split buffer. */
+
+	*split_buffer = malloc( split_buffer_length );
+
+	if ( *split_buffer == NULL ) {
+		fprintf( output,
+	    "%s: Ran out of memory allocating a split buffer of %ld bytes.\n",
+			fname, (long) split_buffer_length );
+		return FAILURE;
+	}
+
+#if DEBUG_COMMAND_PARSING
+	fprintf( output, "max_tokens = %ld\n", max_tokens );
+	fprintf( output, "split_buffer_length = %ld\n",
+					(long) split_buffer_length );
+#endif
+
+	/* Allocate space for the cmd_argv array. */
+
+	*cmd_argv = (char **) malloc( max_tokens * sizeof(char *) );
+
+	if ( *cmd_argv == (char **) NULL ) {
+		fprintf( output,
+	    "%s: Ran out of memory allocating a %ld element cmd_argv array.\n",
+			fname, (long) max_tokens );
+	}
+
+	src_ptr = command_ptr;
+	dest_ptr = *split_buffer;
+
+	/* Copy in argv0. */
+
+	strlcpy( dest_ptr, argv0, split_buffer_length );
+
+	*cmd_argc = 0;
+	(*cmd_argv)[*cmd_argc] = dest_ptr;
+	(*cmd_argc)++;
+	dest_ptr += strlen( argv0 ) + 1;
+
+	/* If present, copy in the argv1_token. */
+
+	if ( argv1_token != '\0' ) {
+		dest_ptr[0] = argv1_token;
+		dest_ptr[1] = '\0';
+		(*cmd_argv)[*cmd_argc] = dest_ptr;
+		(*cmd_argc)++;
+		dest_ptr += 2;
+	}
+
+	/* Now copy in the rest of the tokens. */
+
+	src_length = strlen( src_ptr );
 
 	in_token = FALSE;
 	old_in_token = FALSE;
-	first_token = TRUE;
 	in_quoted_string = FALSE;
 
 	for ( i = 0; i < src_length; i++, src_ptr++ ) {
@@ -169,7 +261,6 @@ cmd_parse_command_line( int *argc, char *command_line )
 				dest_ptr++;
 			}
 			break;
-
 		case '"':
 			if ( in_token ) {
 				in_token = FALSE;
@@ -182,96 +273,90 @@ cmd_parse_command_line( int *argc, char *command_line )
 				in_token = TRUE;
 				in_quoted_string = TRUE;
 
-				ADD_TO_ARGV;
+				(*cmd_argv)[*cmd_argc] = dest_ptr;
+				(*cmd_argc)++;
 			}
 			break;
-
-		case '!':
-		case '$':
-		case '@':
-		case '&':
-			if ( first_token ) {
-
-				first_token = FALSE;
-				in_token = TRUE;
-
-				*dest_ptr = *src_ptr;
-
-				ADD_TO_ARGV;
-
-				dest_ptr++;
-				*dest_ptr = '\0';
-				dest_ptr++;
-
-				in_token = FALSE;
-
-				break;	/* Exit the switch() statement. */
-			}
-
-			/* If this is not the first token on the command
-			 * line, we intentionally fall through here to the
-			 * 'default' case.
-			 */
 		default:
-			if ( ! in_token ) {
+			if ( in_token == FALSE ) {
 				in_token = TRUE;
 
-				ADD_TO_ARGV;
+				(*cmd_argv)[*cmd_argc] = dest_ptr;
+				(*cmd_argc)++;
 			}
 
 			*dest_ptr = *src_ptr;
 
 			dest_ptr++;
 		}
-
-		if ( first_token == TRUE && in_token == TRUE ) {
-			first_token = FALSE;
-		}
-
-		/* Check for buffer overruns. */
-
-		/* For the purposes of the "take" command,
-		 * argv[POINTER_ARRAY_LENGTH - 1] _must_ be
-		 * equal to NULL which is why the following
-		 * test is set up the way it is.
-		 */
-
-		if ( *argc >= (POINTER_ARRAY_LENGTH - 1) ) {
-			if ( ! in_token ) {
-				break;		/* Exit the for() loop. */
-			}
-		}
-
-		ptr_diff = (int) (dest_ptr - buffer);
-
-		if ( ptr_diff >= MAX_COMMAND_LENGTH ) {
-			if ( ptr_diff == MAX_COMMAND_LENGTH ) {
-				*dest_ptr = '\0';
-			}
-			break;			/* Exit the for() loop. */
-		}
 	}
 
-	/* If argv[1] starts with the character '#', then this is
-	 * a comment line and should be discarded.
-	 */
-
-	if ( *argc > 1 ) {
-		if ( argv[1][0] == '#' ) {
-			*argc = 1;
-			return NULL;
-		}
-	}
+	*dest_ptr = '\0';
 
 #if DEBUG_COMMAND_PARSING
-	fprintf( output, "argc = %d\n", *argc );
+	fprintf( output, "argc = %d\n", *cmd_argc );
 
-	for ( i = 0; i < *argc; i++ ) {
-		fprintf( output, "argv[%d] = '%s'\n", i, argv[i] );
+	for ( i = 0; i < *cmd_argc; i++ ) {
+		fprintf( output, "argv[%lu] = '%s'\n", i, (*cmd_argv)[i] );
 	}
 #endif
-	return argv;
+
+	return SUCCESS;
 }
+
+/*--------------------------------------------------------------------------*/
+
+int
+cmd_run_command( char *command_buffer )
+{
+	COMMAND *command;
+	int cmd_argc;
+	char **cmd_argv = NULL;
+	char *split_buffer = NULL;
+	int cmd_status;
+
+	cmd_status = cmd_split_command_line( command_buffer,
+				&cmd_argc, &cmd_argv, &split_buffer );
+
+	if ( cmd_status == FAILURE ) {
+		cmd_free_command_line( cmd_argv, split_buffer );
+		return FAILURE;
+	}
+
+	if ( cmd_argc < 1 ) {
+		fprintf( output,
+			"Invalid command line '%s'.\n", command_buffer );
+		cmd_free_command_line( cmd_argv, split_buffer );
+		return FAILURE;
+	}
+
+	if ( cmd_argc == 0 ) {
+		/* The line is blank, so we do nothing. */
+
+		cmd_free_command_line( cmd_argv, split_buffer );
+		return SUCCESS;
+	} else {
+		command = cmd_get_command_from_list(
+			command_list_length, command_list,
+			cmd_argv[1] );
+
+		if ( command == (COMMAND *) NULL ) {
+			fprintf( output,
+				"Unrecognized command '%s'.\n", cmd_argv[1] );
+			cmd_free_command_line( cmd_argv, split_buffer );
+			return FAILURE;
+		}
+
+		/* Invoke the function. */
+
+		cmd_status = (*(command->function_ptr))( cmd_argc, cmd_argv );
+
+		cmd_free_command_line( cmd_argv, split_buffer );
+		return cmd_status;
+	}
+}
+
+/*--------------------------------------------------------------------------*/
 
 #if ( MX_CMDLINE_PROCESSOR == MX_CMDLINE_FGETS )
 

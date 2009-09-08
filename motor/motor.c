@@ -144,8 +144,9 @@ motor_main( int argc, char *argv[] )
 {
 	COMMAND *command;
 	int cmd_argc;
-	char **cmd_argv;
-	char *command_line;
+	char **cmd_argv = NULL;
+	char *command_line = NULL;
+	char *split_buffer = NULL;
 	char *name;
 	int status, debug_level, unbuffered_io;
 	int init_hw_flags, start_debugger;
@@ -523,9 +524,15 @@ motor_main( int argc, char *argv[] )
 		if ( command_line == NULL ) {
 			cmd_argc = 0;
 			cmd_argv = NULL;
+			split_buffer = NULL;
 		} else {
-			cmd_argv = cmd_parse_command_line(
-					&cmd_argc, command_line );
+			status = cmd_split_command_line( command_line,
+					&cmd_argc, &cmd_argv, &split_buffer );
+
+			if ( status == FAILURE ) {
+				cmd_free_command_line( cmd_argv, split_buffer );
+				return FAILURE;
+			}
 		}
 
 		if ( cmd_argc < 1 ) {
@@ -584,6 +591,8 @@ motor_main( int argc, char *argv[] )
 				}
 			}
 		}
+
+		cmd_free_command_line( cmd_argv, split_buffer );
 	}
 
 #if defined(__SUNPRO_C) || ( defined(OS_HPUX) && defined(__ia64) )
@@ -813,86 +822,6 @@ motor_exit_save_dialog( void )
 	fprintf( output, "Scans successfully saved.\n" );
 
 	return SUCCESS;
-}
-
-int
-motor_help_fn( int argc, char *argv[] )
-{
-	int c, num_lines;
-	char *ptr;
-	static char help_text[] =
-"A more complete command summary may be found at:\n"
-"\n"
-"    http://mx.iit.edu/motor/\n"
-"\n"
-"Single word commands are:\n"
-"    exit                           - Exits the motor program, saving the\n"
-"                                       motor parameters in 'motor.dat' and\n"
-"                                       the scan parameters in 'scan.dat'\n"
-"    help                           - Displays this message.\n"
-"\n"
-"Below, type the first word of the command to display a usage message.\n"
-"\n"
-"    cd 'directory name'            - Change directory to 'directory name'.\n"
-"    copy scan 'scan1' 'scan2'      - Make 'scan2' an exact copy of 'scan1'.\n"
-"    count 'seconds' 'scaler1' 'scaler2' ...\n"
-"                                   - Count scaler channels.\n"
-"    delete scan 'scan_name'        - Delete scan parameters for scan.\n"
-"    gpib ...                       - Communicate with a GPIB device.\n"
-"    load ...                       - Load motor or scan params from a file.\n"
-"    mabs 'motorname' 'distance'    - Move absolute 'motorname'\n"
-"    mabs 'motorname' steps 'steps' - Move absolute 'motorname' in steps.\n"
-"    measure dark_currents          - Measure dark currents for all scalers\n"
-"                                       and selected analog inputs.\n"
-"    mjog 'motorname' [step_size]   - Move motor using single keystrokes.\n"
-"    modify scan 'scan_name'        - Modify scan params for 'scan_name'.\n"
-"    mrel 'motorname' 'distance'    - Move relative 'motorname'\n"
-"    mrel 'motorname' steps 'steps' - Move relative 'motorname' in steps.\n"
-"    resynchronize 'record_name'    - Resynchronizes the MX database with the\n"
-"                                       controller for record 'record_name'\n"
-"    rs232 ...                      - Communicate with an RS-232 device.\n"
-"    save ...                       - Save motor or scan params to a file.\n"
-"    scan 'scan_name'               - Perform the scan called 'scan_name'.\n"
-"    set ...                        - Set motor, device, plot, etc. params.\n"
-"    setup scan 'scan_name'         - Prompts for setup of scan parameters.\n"
-"    show ...                       - Show motor, device, plot, etc. params.\n"
-"                                       Wildcards '*' and '?' may be used to\n"
-"                                       list only a subset of records.\n"
-"    ! 'command_name'               - Executes an external command.\n"
-"      or\n"
-"    $ 'command_name'\n"
-"    @ 'script_name'                - Executes a script of motor commands.\n"
-"    & 'program_name'               - Executes an external program that\n"
-"                                       can directly invoke 'motor' program\n"
-"                                       commands.\n";
-
-	ptr = help_text;
-
-	for (;;) {
-		for ( num_lines = 0; num_lines < 23; num_lines++ ) {
-			while ( (c = (int) *ptr) != '\n' ) {
-				if ( c == '\0' ) {
-					return SUCCESS;
-				}
-				fputc( c, output );
-				ptr++;
-			}
-			fputc( '\n', output );
-			ptr++;
-		}
-		fprintf( output,
-		"Press q to quit or any other key to continue." );
-
-		fflush( output );
-
-		c = mx_getch();
-
-		fputc( '\n', output );
-
-		if ( c == 'q' || c == 'Q' ) {
-			return SUCCESS;
-		}
-	}
 }
 
 int
