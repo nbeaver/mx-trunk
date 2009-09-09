@@ -20,6 +20,7 @@
 #include <math.h>
 
 #include "mx_inttypes.h"
+#include "mx_amplifier.h"
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
 #include "mx_digital_input.h"
@@ -518,8 +519,38 @@ motor_show_records( long record_superclass, long record_class,
 			    	value_ptr =
 					mx_get_field_value_pointer( &field[i] );
 
-			    	(void) mx_print_field_value( output,
+				if ( (record->mx_class == MXC_AMPLIFIER)
+				  && (field[i].label_value == MXLV_AMP_GAIN) )
+				{
+					/* Amplifier gains are treated 
+					 * specially.
+					 */
+
+					double gain, diff;
+					long rounded_gain;
+
+					gain = *((double *) value_ptr);
+
+					if ( gain > 9999.99999999 ) {
+						fprintf( output, "%.3e", gain );
+					} else {
+						rounded_gain = mx_round(gain);
+
+						diff = mx_difference( gain,
+						  (double) rounded_gain );
+
+						if ( diff < 1.0e-12 ) {
+							fprintf( output,
+							"%ld", rounded_gain );
+						} else {
+							fprintf( output,
+							"%.3f", gain );
+						}
+					}
+				} else {
+				    	(void) mx_print_field_value( output,
 					record, &field[i], value_ptr, FALSE );
+				}
 			    }
 			    fprintf( output, " " );
 			}
