@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -525,7 +525,7 @@ mxd_ls330_motor_move_absolute( MX_MOTOR *motor )
 	static const char fname[] = "mxd_ls330_motor_move_absolute()";
 
 	MX_LS330_MOTOR *ls330_motor;
-	char command[20];
+	char command[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_ls330_motor_get_pointers( motor,
@@ -536,7 +536,8 @@ mxd_ls330_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Format the move command and send it. */
 
-	sprintf( command, "SETP %g", motor->raw_destination.analog );
+	snprintf( command, sizeof(command),
+		"SETP %g", motor->raw_destination.analog );
 
 	mx_status = mxd_ls330_motor_command( ls330_motor,
 			command, NULL, 0, LS330_MOTOR_DEBUG );
@@ -551,7 +552,7 @@ mxd_ls330_motor_get_position( MX_MOTOR *motor )
 
 	MX_LS330_MOTOR *ls330_motor;
 	MX_INTERFACE *port_interface;
-	char response[30];
+	char response[40];
 	int num_items;
 	double position;
 	mx_status_type mx_status;
@@ -598,6 +599,7 @@ mxd_ls330_motor_soft_abort( MX_MOTOR *motor )
 
 	MX_LS330_MOTOR *ls330_motor;
 	double position;
+	char command[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_ls330_motor_get_pointers( motor,
@@ -615,8 +617,14 @@ mxd_ls330_motor_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_move_absolute( motor->record,
-						position, MXF_MTR_NOWAIT );
+	/* Change the setpoint to the current temperature. */
+
+	snprintf( command, sizeof(command),
+		"SETP %g", motor->raw_position.analog );
+
+	mx_status = mxd_ls330_motor_command( ls330_motor,
+			command, NULL, 0, LS330_MOTOR_DEBUG );
+
 	return mx_status;
 }
 
