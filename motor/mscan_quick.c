@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,6 +62,7 @@ motor_setup_quick_scan_parameters(
 	MX_RECORD **motor_record_array;
 	MX_RECORD *first_input_device_record;
 	MX_RECORD *joerger_quick_scan_enable_record;
+	MX_RECORD *old_scan_record;
 	MX_QUICK_SCAN *quick_scan;
 	MX_LIST_HEAD *list_head_struct;
 	MX_MCS *mcs;
@@ -843,6 +844,26 @@ motor_setup_quick_scan_parameters(
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+	} else {
+		old_scan_record = mx_get_record( motor_record_list, scan_name );
+
+		if ( old_scan_record != (MX_RECORD *) NULL ) {
+
+			if ( old_scan_record->mx_superclass == MXR_SCAN ) {
+				mx_status = mx_delete_record( old_scan_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+			} else {
+				fprintf( output,
+				"The requested scan name '%s' conflicts with "
+				"an existing MX record which is not a scan.  "
+				"Pick a different name for your scan.\n",
+					scan_name );
+
+				return FAILURE;
+			}
+		}
 	}
 
 	/* Add the scan to the record list. */
@@ -854,6 +875,16 @@ motor_setup_quick_scan_parameters(
 		return FAILURE;
 
 	mx_status = mx_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	mx_status = mx_open_hardware( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	mx_status = mx_finish_delayed_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;

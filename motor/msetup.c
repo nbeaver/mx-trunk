@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,6 @@ motor_setup_fn( int argc, char *argv[] )
 	long scan_class;
 	size_t length;
 	int status;
-	mx_status_type mx_status;
 	static char usage[] = "Usage:  setup scan 'scan_name'\n";
 
 
@@ -68,24 +67,13 @@ motor_setup_fn( int argc, char *argv[] )
 		record = mx_get_record( motor_record_list, scan_name );
 
 		if ( record != NULL ) {
-			/* If the old record is a scan record, delete it. */
 
-			if ( record->mx_superclass == MXR_SCAN ) {
+			if ( record->mx_superclass != MXR_SCAN ) {
 
-				mx_status = mx_delete_record( record );
+				/* If the old record is not a scan record,
+				 * print an error message and abort.
+				 */
 
-				if ( mx_status.code != MXE_SUCCESS ) {
-					fprintf(output,
-		"An error occurred while trying to delete the old scan '%s'\n",
-						scan_name);
-					return FAILURE;
-				}
-
-			/* If the old record is not a scan record, print
-			 * an error message and abort.
-			 */
-
-			} else {
 				switch( record->mx_superclass ) {
 				case MXR_LIST_HEAD:
 					fprintf(output, "A record list head ");

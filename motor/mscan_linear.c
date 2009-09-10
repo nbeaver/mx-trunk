@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@ motor_setup_linear_scan_parameters(
 	MX_RECORD *record;
 	MX_MOTOR *motor;
 	MX_RECORD **motor_record_array;
+	MX_RECORD *old_scan_record;
 	MX_LINEAR_SCAN *linear_scan;
 	MX_LIST_HEAD *list_head_struct;
 	mx_status_type mx_status;
@@ -734,6 +735,26 @@ motor_setup_linear_scan_parameters(
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+	} else {
+		old_scan_record = mx_get_record( motor_record_list, scan_name );
+
+		if ( old_scan_record != (MX_RECORD *) NULL ) {
+
+			if ( old_scan_record->mx_superclass == MXR_SCAN ) {
+				mx_status = mx_delete_record( old_scan_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+			} else {
+				fprintf( output,
+				"The requested scan name '%s' conflicts with "
+				"an existing MX record which is not a scan.  "
+				"Pick a different name for your scan.\n",
+					scan_name );
+
+				return FAILURE;
+			}
+		}
 	}
 
 	/* Add the scan to the record list. */
@@ -745,6 +766,16 @@ motor_setup_linear_scan_parameters(
 		return FAILURE;
 
 	mx_status = mx_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	mx_status = mx_open_hardware( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	mx_status = mx_finish_delayed_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
