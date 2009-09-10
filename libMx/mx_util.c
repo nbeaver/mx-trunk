@@ -1154,11 +1154,16 @@ MX_EXPORT void
 mx_breakpoint( void )
 {
 	if ( mx_debugger_started ) {
-		mx_warning( "mx_breakpoint() was invoked on a platform "
-				"that does not support it." );
+		mx_warning( "Calling mx_breakpoint_helper()." );
 
 		mx_breakpoint_helper();
 	} else {
+		mx_warning(
+		"This platform does not directly support mx_breakpoint() "
+		"and will use mx_breakpoint_helper() instead.  You should "
+		"set a breakpoint for mx_breakpoint_helper() now "
+		"for proper debugging." );
+
 		mx_start_debugger(NULL);
 	}
 }

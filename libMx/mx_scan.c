@@ -23,6 +23,7 @@
 #include <errno.h>
 
 #include "mxconfig.h"
+#include "mx_unistd.h"
 #include "mx_util.h"
 #include "mx_key.h"
 #include "mx_driver.h"
@@ -2875,6 +2876,109 @@ mx_scan_get_pointer_to_datafile_filename( MX_SCAN *scan, char **ptr )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---*/
+
+static mx_status_type
+mxp_scan_verify_mca_subdirectory( const char *mca_directory_name )
+{
+	static const char fname[] = "mxp_scan_verify_mca_subdirectory()";
+
+	struct stat stat_buf;
+	int os_status, saved_errno;
+
+	if ( mca_directory_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The directory name pointer passed was NULL." );
+	}
+
+	/* Does a filesystem object with this name already exist? */
+
+	os_status = access( mca_directory_name, F_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno != ENOENT ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while testing for the presence of "
+			"MCA directory '%s'.  "
+			"Errno = %d, error message = '%s'",
+				mca_directory_name,
+				saved_errno, strerror( saved_errno ) );
+		}
+
+		/* The directory does not already exist, so create it. */
+
+		os_status = mkdir( mca_directory_name, 0777 );
+
+		if ( os_status == 0 ) {
+			/* Creating the directory succeeded, so we are done! */
+
+			return MX_SUCCESSFUL_RESULT;
+		} else {
+			/* Creating the directory failed, so report the error.*/
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Creating MCA subdirectory '%s' failed.  "
+			"Errno = %d, error message = '%s'",
+				mca_directory_name,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
+
+	/*------------*/
+
+	/* A filesystem object with this name already exists, so 
+	 * we must find out more about it.
+	 */
+
+	os_status = stat( mca_directory_name, &stat_buf );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"stat() failed for file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			mca_directory_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Is the object a directory? */
+
+	if ( S_ISDIR(stat_buf.st_mode) == 0 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Existing file '%s' is not a directory.",
+			mca_directory_name );
+	}
+
+	/* Although we just did stat(), determining the access permissions
+	 * is more portably done with access().
+	 */
+
+	os_status = access( mca_directory_name, R_OK | W_OK | X_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno == EACCES ) {
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"We do not have read, write, and execute permission "
+			"for MCA directory '%s'.", mca_directory_name );
+		}
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Checking the access permissions for MCA directory '%s' "
+		"failed.  Errno = %d, error message = '%s'",
+			mca_directory_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* If we get here, the MCA directory already exists and is useable. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #define NUMBER_STRING_LENGTH	40
 
 MX_EXPORT mx_status_type
@@ -2890,19 +2994,20 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	long *number_ptr = NULL;
 	long i, j, measurement_number, mca_number;
 	unsigned long mca_data_value, max_current_num_channels;
-	char *datafile_filename, *extension_ptr;
+	char *datafile_filename = NULL;
+	char *extension_ptr = NULL;
 	char number_string[NUMBER_STRING_LENGTH + 1];
 	char mca_filename[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
+	char mca_directory_name[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
+	mx_bool_type use_subdirectory;
 	ptrdiff_t basename_length;
 	mx_status_type mx_status;
-
-	/* Suppress bogus GCC 4 uninitialized variable warning. */
-
-	datafile_filename = NULL;
 
 	if ( num_mcas <= 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	use_subdirectory = TRUE;
 
 	mx_status = mx_scan_get_pointer_to_measurement_number(
 						scan, &number_ptr );
@@ -2971,6 +3076,11 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		 * append the measurement number.
 		 */
 
+		if ( use_subdirectory ) {
+			snprintf(mca_directory_name, sizeof(mca_directory_name),
+			"%s_mca", datafile_filename );
+		}
+
 		strlcpy( mca_filename,
 			datafile_filename, sizeof(mca_filename) );
 
@@ -3000,6 +3110,11 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 		strlcat( mca_filename, extension_ptr, sizeof(mca_filename) );
 
+		if ( use_subdirectory ) {
+			strlcpy( mca_directory_name, mca_filename,
+				sizeof(mca_directory_name) );
+		}
+
 		strlcat( mca_filename, ".", sizeof(mca_filename) );
 
 		strlcat( mca_filename, number_string, sizeof(mca_filename) );
@@ -3007,7 +3122,22 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 	/* Open the MCA datafile. */
 
-	savefile = fopen( mca_filename, "w" );
+	if ( use_subdirectory ) {
+		char pathname[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
+
+		mx_status = mxp_scan_verify_mca_subdirectory(
+						mca_directory_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		snprintf( pathname, sizeof(pathname),
+			"%s/%s", mca_directory_name, mca_filename );
+
+		savefile = fopen( pathname, "w" );
+	} else {
+		savefile = fopen( mca_filename, "w" );
+	}
 
 	if ( savefile == NULL ) {
 		saved_errno = errno;

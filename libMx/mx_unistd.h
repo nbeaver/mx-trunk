@@ -2,13 +2,14 @@
  * Name:    mx_unistd.h
  *
  * Purpose: Not every platform has <unistd.h>, so we use this header file
- *          instead of including <unistd.h> directly.
+ *          instead of including <unistd.h> directly.  This header can also
+ *          be used to find functions like mkdir() and stat().
  *
  * Author:  William Lavender
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +35,8 @@
 #  endif
 
 #else
+#  include <sys/stat.h>
+#  include <sys/types.h>
 #  include <unistd.h>
 #endif
 
