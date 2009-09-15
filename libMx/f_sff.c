@@ -41,15 +41,10 @@ MX_DATAFILE_FUNCTION_LIST mxdf_sff_datafile_function_list = {
 #define MX_SFF_LINE_TERMINATOR  '|'
 #define MX_SFF_TOKEN_SEPARATORS " \t"
 
-static mx_status_type mxdf_sff_write_header(MX_DATAFILE *, int);
 static mx_status_type mxdf_sff_write_token_value(
 				MX_DATAFILE *, FILE *, char *, MX_RECORD *);
 static mx_status_type mxdf_sff_handle_special_token(
 				MX_DATAFILE *, FILE *, char *, MX_RECORD *);
-
-#define MX_SFF_MAIN_HEADER	1
-#define MX_SFF_SEGMENT_HEADER	2
-#define MX_SFF_TRAILER		3
 
 #define FAILURE			0
 
@@ -160,19 +155,19 @@ mxdf_sff_close( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_sff_write_main_header( MX_DATAFILE *datafile )
 {
-	return mxdf_sff_write_header( datafile, MX_SFF_MAIN_HEADER );
+	return mxdf_sff_write_header( datafile, NULL, MX_SFF_MAIN_HEADER );
 }
 
 MX_EXPORT mx_status_type
 mxdf_sff_write_segment_header( MX_DATAFILE *datafile )
 {
-	return mxdf_sff_write_header( datafile, MX_SFF_SEGMENT_HEADER );
+	return mxdf_sff_write_header( datafile, NULL, MX_SFF_SEGMENT_HEADER );
 }
 
 MX_EXPORT mx_status_type
 mxdf_sff_write_trailer( MX_DATAFILE *datafile )
 {
-	return mxdf_sff_write_header( datafile, MX_SFF_TRAILER );
+	return mxdf_sff_write_header( datafile, NULL, MX_SFF_TRAILER );
 }
 
 MX_EXPORT mx_status_type
@@ -487,8 +482,8 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static mx_status_type
-mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
+MX_EXPORT mx_status_type
+mxdf_sff_write_header( MX_DATAFILE *datafile, FILE *file, int header_type )
 {
 	static const char fname[] = "mxdf_sff_write_header()";
 
@@ -510,21 +505,30 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 			"MX_DATAFILE pointer passed was NULL.");
 	}
 
-	sff_file_struct
-		= (MX_DATAFILE_SFF *)(datafile->datafile_type_struct);
+	if ( header_type == MX_SFF_MCA_HEADER ) {
+		if ( file == (FILE *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The file pointer for an SFF MCA file was NULL." );
+		}
 
-	if ( sff_file_struct == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_DATAFILE_SFF pointer for datafile '%s' is NULL.",
-			datafile->filename );
-	}
+		output_file = file;
+	} else {
+		sff_file_struct
+			= (MX_DATAFILE_SFF *)(datafile->datafile_type_struct);
 
-	output_file = sff_file_struct->file;
+		if ( sff_file_struct == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_DATAFILE_SFF pointer for datafile '%s' is NULL.",
+				datafile->filename );
+		}
 
-	if ( output_file == NULL ) {
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Datafile '%s' is not currently open.",
-			datafile->filename );
+		output_file = sff_file_struct->file;
+
+		if ( output_file == NULL ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Datafile '%s' is not currently open.",
+				datafile->filename );
+		}
 	}
 
 	scan = (MX_SCAN *) (datafile->scan);
@@ -544,6 +548,9 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 		break;
 	case MX_SFF_TRAILER:
 		strcpy( header_fmt_name, "sff_trailer_fmt" );
+		break;
+	case MX_SFF_MCA_HEADER:
+		strcpy( header_fmt_name, "sff_mca_fmt" );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -611,6 +618,10 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 		status = fprintf( output_file,
 				"# SFF trailer %ld\n", num_lines );
 		break;
+	case MX_SFF_MCA_HEADER:
+		status = fprintf( output_file,
+				"# SFF mca_header %ld\n", num_lines );
+		break;
 	default:
 		status = FAILURE;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -619,6 +630,14 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 	CHECK_FPRINTF_STATUS;
 
 	MX_DEBUG( 2,("%s: num_lines = %ld", fname, num_lines));
+
+	if ( num_lines == 0 ) {
+		/* If the number of lines remaining to be written is zero,
+		 * then we are done.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Now write out the main part of the header. */
 

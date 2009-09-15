@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +204,13 @@ MX_API mx_status_type mx_convert_normalized_device_value_to_string(
 MX_API mx_status_type mx_scan_find_parent_scan( MX_SCAN *child_scan,
 						MX_SCAN **parent_scan );
 
+MX_API mx_status_type mx_scan_get_pointer_to_measurement_number( MX_SCAN *scan,
+								long **ptr );
+
 MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_get_pointer_to_datafile_filename( MX_SCAN *scan,
+								char **ptr );
 
 MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
