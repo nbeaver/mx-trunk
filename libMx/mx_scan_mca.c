@@ -27,19 +27,7 @@
 #include "mx_mca.h"
 
 #include "f_sff.h"
-
-/* --------------- */
-
-static mx_status_type
-mxp_scan_mca_write_sff_header( MX_SCAN *scan, FILE *mca_savefile )
-{
-	mx_status_type mx_status;
-
-	mx_status = mxdf_sff_write_header( &(scan->datafile),
-					mca_savefile, MX_SFF_MCA_HEADER );
-
-	return mx_status;
-}
+#include "f_xafs.h"
 
 /* --------------- */
 
@@ -319,7 +307,14 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 	switch( scan->datafile.type ) {
 	case MXDF_SFF:
-		mx_status = mxp_scan_mca_write_sff_header( scan, savefile );
+		mx_status = mxdf_sff_write_header( &(scan->datafile),
+					savefile, MX_SFF_MCA_HEADER );
+
+		break;
+	case MXDF_XAFS:
+		mx_status = mxdf_xafs_write_header( &(scan->datafile),
+					savefile, TRUE );
+
 		break;
 	case MXDF_CHILD:
 		mx_status = mx_scan_find_parent_scan( scan, &parent_scan );
@@ -329,8 +324,14 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 
 		switch( parent_scan->datafile.type ) {
 		case MXDF_SFF:
-			mx_status = mxp_scan_mca_write_sff_header( scan,
-								savefile );
+			mx_status = mxdf_sff_write_header( &(scan->datafile),
+					savefile, MX_SFF_MCA_HEADER );
+
+			break;
+		case MXDF_XAFS:
+			mx_status = mxdf_xafs_write_header( &(scan->datafile),
+					savefile, TRUE );
+
 			break;
 		}
 		break;

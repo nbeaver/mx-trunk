@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -187,9 +187,11 @@ mxdf_xafs_close( MX_DATAFILE *datafile )
 }
 
 MX_EXPORT mx_status_type
-mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
+mxdf_xafs_write_header( MX_DATAFILE *datafile,
+			FILE *file,
+			mx_bool_type is_mca_file )
 {
-	static const char fname[] = "mxdf_xafs_write_main_header()";
+	static const char fname[] = "mxdf_xafs_write_header()";
 
 	MX_DATAFILE_XAFS *xafs_file_struct;
 	MX_SCAN *scan;
@@ -236,21 +238,30 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			"MX_DATAFILE pointer passed was NULL.");
 	}
 
-	xafs_file_struct
-		= (MX_DATAFILE_XAFS *)(datafile->datafile_type_struct);
+	if ( is_mca_file ) {
+		if ( file == (FILE *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The file pointer for an XAFS MCA file was NULL." );
+		}
 
-	if ( xafs_file_struct == (MX_DATAFILE_XAFS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_DATAFILE_XAFS pointer for datafile '%s' is NULL.",
-			datafile->filename );
-	}
+		output_file = file;
+	} else {
+		xafs_file_struct
+			= (MX_DATAFILE_XAFS *)(datafile->datafile_type_struct);
 
-	output_file = xafs_file_struct->file;
+		if ( xafs_file_struct == (MX_DATAFILE_XAFS *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_DATAFILE_XAFS pointer for datafile '%s' is NULL.",
+				datafile->filename );
+		}
 
-	if ( output_file == NULL ) {
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Datafile '%s' is not currently open.",
-			datafile->filename );
+		output_file = xafs_file_struct->file;
+
+		if ( output_file == NULL ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Datafile '%s' is not currently open.",
+				datafile->filename );
+		}
 	}
 
 	scan = (MX_SCAN *) (datafile->scan);
@@ -719,25 +730,43 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 		"------------------------------------------------\n" );
 	CHECK_FPRINTF_STATUS;
 
-	/* Print out the line of headers that identifies each column in
-	 * the data file.
-	 */
+	if ( is_mca_file ) {
+		for ( i = 0; i < num_input_devices; i++ ) {
+			if ( input_device_array[i]->mx_class
+					== MXC_MULTICHANNEL_ANALYZER ) 
+			{
+				label = input_device_array[i]->label;
 
-	status = fprintf( output_file, " %8s ", "energy" );
-
-	CHECK_FPRINTF_STATUS;
-
-	for ( i = 0; i < num_input_devices; i++ ) {
-		label = input_device_array[i]->label;
-
-		if ( strlen(label) > 0 ) {
-			status = fprintf( output_file,
-				"%8s ", label );
-		} else {
-			status = fprintf( output_file,
-				"%8s ", input_device_array[i]->name );
+				if ( strlen(label) > 0 ) {
+					status = fprintf( output_file,
+						"%10s ", label );
+				} else {
+					status = fprintf( output_file,
+					 "%10s ", input_device_array[i]->name );
+				}
+			}
 		}
+	} else {
+		/* Print out the line of headers that identifies each column
+		 * in the data file.
+		 */
+
+		status = fprintf( output_file, " %8s ", "energy" );
+
 		CHECK_FPRINTF_STATUS;
+
+		for ( i = 0; i < num_input_devices; i++ ) {
+			label = input_device_array[i]->label;
+
+			if ( strlen(label) > 0 ) {
+				status = fprintf( output_file,
+					"%8s ", label );
+			} else {
+				status = fprintf( output_file,
+					"%8s ", input_device_array[i]->name );
+			}
+			CHECK_FPRINTF_STATUS;
+		}
 	}
 
 	status = fprintf( output_file,
@@ -759,6 +788,12 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
+{
+	return mxdf_xafs_write_header( datafile, NULL, FALSE );
 }
 
 MX_EXPORT mx_status_type
