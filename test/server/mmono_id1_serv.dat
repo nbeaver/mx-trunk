@@ -1,0 +1,24 @@
+d_spacing   variable inline double "" "" 1 1 3.13555
+beam_offset variable inline double "" "" 1 1 35000
+edge_energy variable inline double "" "" 1 1 8980
+#
+theta_real device motor soft_motor "" "" 0 0 -10000 150000 0 -1 -1 0.001 0 deg 500 0 1000
+#
+rawmomega device motor soft_motor "" "" 0 0 -10000000000 10000000000 0 -1 -1 0.001 0 mm 1000 0 1000
+rawmchi   device motor soft_motor "" "" 0 0 -10000000000 10000000000 0 -1 -1 0.001 0 mm 1000 0 1000
+mpivot    device motor soft_motor "" "" 0 0 -10000000000 10000000000 0 -1 -1 0.001 0 mm 1000 0 1000
+#
+normal    device motor translation_mtr "" "" 0 0 -10000000000 10000000000 0 -1 -1 1 0 mm 0x0 3 rawmomega rawmchi mpivot
+#
+id_ev     device motor soft_motor "" "" 0 0 0 30000000 0 -1 -1 0.001 0 eV 1000000 0 1000000
+hdelta2   device motor soft_motor "" "" 0 0 -180000 180000 0 -1 -1 0.001 0 deg 1000 0 1000
+#
+#
+momega_enabled variable inline bool "" "" 1 1 1
+id_ev_enabled  variable inline bool "" "" 1 1 1
+conIo_enabled  variable inline bool "" "" 1 1 0
+normal_enabled variable inline bool "" "" 1 1 0
+#
+momega_params variable inline double "" "" 1 4 0 0 0 0
+id_ev_params  variable inline double "" "" 1 2 1 100
+conIo_params  variable inline double "" "" 1 5 100 0 0 0 0

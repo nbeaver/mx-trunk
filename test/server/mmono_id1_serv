@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../server/mxserver -p 9827 -f mmono_id1_serv.dat -C msoftsrv.acl -S $*
+

@@ -1,0 +1,96 @@
+#
+# Server
+#
+10id_ida       server network tcpip_server "" "" 0x0 127.0.0.1 9827
+#
+#------------------------------ motors ------------------------------
+#
+# Mclennan controller
+#
+theta_real     device motor network_motor "" "" 0 0 -10 270 0 -1 -1 1 0 deg 10id_ida theta_real
+#
+# Compumotor 6K controller
+#
+rawmomega      device motor network_motor "" "" 0 0 -1e08 1e08 0 -1 -1 1 0 um 10id_ida rawmomega
+rawmchi        device motor network_motor "" "" 0 -20 -1e08 1e08 0 -1 -1 1 0 um 10id_ida rawmchi
+#
+# Pseudomotors
+#
+mpivot         device motor network_motor "" "" 0 -20 -1e08 1e08 0 -1 -1 1 0 um 10id_ida mpivot
+momega         device motor delta_motor "" "" 0 0 -1e+08 1e+08 1 -1 -1 1 0 um rawmomega mpivot
+mchi           device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawmchi mpivot
+normal         device motor network_motor "" "" 0 0 -1e08 1e08 0 -1 -1 1 0 um 10id_ida normal
+#
+# Insertion device (fake)
+#
+id_ev          device motor network_motor "" "" 0 0 3.191 30000 -1 -1 0 1 0 eV 10id_ida id_ev
+#
+# Diffractometer motor
+#
+hdelta2        device motor network_motor "" "" 0 0 -100000 100000 0 -1 -1 0.5 0 deg 10id_ida hdelta2
+#
+#------------------------------ Monochromator ------------------------------
+#
+# Theta dependency
+#
+theta_list     variable inline record "" "" 1  4  theta_enabled theta_type dummy_params theta_records
+theta_type     variable inline long "" "" 1  1  0
+theta_records  variable inline record "" "" 1  1  theta_real
+theta_enabled  variable inline bool "" "" 1  1  1
+#
+# Momega dependency
+#
+momega_list    variable inline record "" "" 1  4  momega_enabled momega_type momega_params momega_records
+momega_type    variable inline long "" "" 1  1  2
+momega_records variable inline record "" "" 1  1  momega
+momega_enabled variable net_variable net_bool "" "" 10id_ida momega_enabled.value 1  1  0
+momega_params  variable net_variable net_double "" "" 10id_ida momega_params.value 1  4  0 0 0 0
+#
+# Id_ev dependency
+#
+id_ev_list     variable inline record "" "" 1  4  id_ev_enabled id_ev_type id_ev_params id_ev_records
+id_ev_type     variable inline long "" "" 1  1  3
+id_ev_records  variable inline record "" "" 1  2  id_ev d_spacing
+id_ev_enabled  variable net_variable net_bool "" "" 10id_ida id_ev_enabled.value 1  1  1
+id_ev_params   variable net_variable net_double "" "" 10id_ida id_ev_params.value 1  2  1 100
+#
+# conIo dependency
+#
+conIo_list     variable inline record "" "" 1  4  conIo_enabled conIo_type conIo_params conIo_records
+conIo_type     variable inline long "" "" 1  1  8
+conIo_records  variable inline record "" "" 1  2  id_ev d_spacing
+conIo_enabled  variable net_variable net_bool "" "" 10id_ida conIo_enabled.value 1  1  0
+conIo_params   variable net_variable net_double "" "" 10id_ida conIo_params.value 1  5  100 0 0 0 0
+#
+# Normal dependency
+#
+normal_list    variable inline record "" "" 1  4  normal_enabled normal_type dummy_params normal_records
+normal_type    variable inline long "" "" 1  1  4
+normal_records variable inline record "" "" 1  2  normal beam_offset
+normal_enabled variable net_variable net_bool "" "" 10id_ida normal_enabled.value 1  1  0
+#
+#
+dummy_params   variable inline double "" "" 1  1  0
+dummy_int      variable inline long "" "" 1  1  0
+#
+# Beamline parameters
+#
+d_spacing      variable net_variable net_double "" "" 10id_ida d_spacing.value 1  1  3.13555
+beam_offset    variable net_variable net_double "" "" 10id_ida beam_offset.value 1  1  35000
+edge_energy    variable net_variable net_double "" "" 10id_ida edge_energy.value 1  1  8980
+#
+#--------------------- Monochromator record ------------------
+#
+theta          device motor monochromator "" "" 0 0.2 -10 270 0 -1 -1 1 0 deg 5  theta_list momega_list id_ev_list normal_list conIo_list
+#
+#--------------------- Monochromator dependent records ------------------
+#
+#
+energy         device motor energy_motor "" "" 0 0 4800 35000 0 -1 -1 1 0 eV theta d_spacing 0.0174533
+lambda         device motor wavelength_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 A theta d_spacing 0.0174533
+k              device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
+e_minus_e0     device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 eV energy edge_energy
+q              device motor q_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 A-1 hdelta2 lambda 0.0174533
+#
+#
+timer1 device timer soft_timer "" ""

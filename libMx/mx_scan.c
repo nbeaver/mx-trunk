@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_CLEAR_TIMING	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +42,8 @@
 #include "mx_mca.h"
 #include "mx_variable.h"
 #include "mx_array.h"
+#include "mx_hrt.h"
+#include "mx_hrt_debug.h"
 
 #include "f_custom.h"
 #include "p_custom.h"
@@ -2091,9 +2095,13 @@ mx_clear_scan_input_devices( MX_SCAN *scan )
 	long i;
 	mx_status_type mx_status;
 
-	/* ===== Clear all the input devices that need it. ===== */
+#if DEBUG_CLEAR_TIMING
+	MX_HRT_TIMING timing;
 
-	/* At present, only scalers need to be cleared. */
+	MX_HRT_START( timing );
+#endif
+
+	/* ===== Clear all the input devices that need it. ===== */
 
 	if ( scan->num_input_devices > 0 ) {
 		if ( scan->input_device_array == (MX_RECORD **) NULL ) {
@@ -2163,6 +2171,12 @@ mx_clear_scan_input_devices( MX_SCAN *scan )
 			break;
 		}
 	}
+
+#if DEBUG_CLEAR_TIMING
+	MX_HRT_END( timing );
+
+	MX_HRT_RESULTS( timing, fname, " " );
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
