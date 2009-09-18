@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,6 +61,7 @@ mx_setup_mcs_process_functions( MX_RECORD *record )
 		case MXLV_MCS_SCALER_DATA:
 		case MXLV_MCS_MEASUREMENT_DATA:
 		case MXLV_MCS_TIMER_DATA:
+		case MXLV_MCS_CLEAR_DEADBAND:
 			record_field->process_function
 					    = mx_mcs_process_function;
 			break;
@@ -180,6 +181,10 @@ mx_mcs_process_function( void *record_ptr,
 			status = mx_mcs_set_dark_current( record,
 						mcs->scaler_index,
 						mcs->dark_current );
+			break;
+		case MXLV_MCS_CLEAR_DEADBAND:
+			status = mx_mcs_set_parameter( record,
+						MXLV_MCS_CLEAR_DEADBAND );
 			break;
 		default:
 			MX_DEBUG( 1,(

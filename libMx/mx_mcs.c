@@ -7,12 +7,16 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define ENABLE_CLEAR_DEADBAND	TRUE
+
+#define DEBUG_CLEAR_DEADBAND	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -350,7 +354,15 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/*----*/
+
+	mcs->new_data_available = TRUE;
+
+	mcs->clear_deadband = 0.1;		/* in seconds */
+
+	status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DEADBAND );
+
+	return status;
 }
 
 /*=======================================================================*/
@@ -381,7 +393,12 @@ mx_mcs_start( MX_RECORD *mcs_record )
 
 	status = (*start_fn)( mcs );
 
-	return status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	mcs->new_data_available = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -437,9 +454,65 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
+#if ( ENABLE_CLEAR_DEADBAND == FALSE )
 	status = (*clear_fn)( mcs );
 
 	return status;
+#else
+	{
+		MX_CLOCK_TICK current_tick;
+		mx_bool_type do_clear;
+		int comparison;
+
+		current_tick = mx_current_clock_tick();
+
+		if ( mcs->new_data_available ) {
+			do_clear = TRUE;
+		} else {
+			comparison = mx_compare_clock_ticks( current_tick,
+							mcs->next_clear_tick );
+
+#if DEBUG_CLEAR_DEADBAND
+			MX_DEBUG(-2,
+	("%s: current tick = (%lu,%lu), next tick = (%lu,%lu), comparison = %d",
+				fname, current_tick.high_order,
+				current_tick.low_order,
+				mcs->next_clear_tick.high_order,
+				mcs->next_clear_tick.low_order,
+				comparison ));
+#endif
+
+			if ( comparison >= 0 ) {
+				do_clear = TRUE;
+			} else {
+				do_clear = FALSE;
+			}
+		}
+
+#if DEBUG_CLEAR_DEADBAND
+		MX_DEBUG(-2,("%s: do_clear = %d", fname, (int) do_clear));
+#endif
+
+		if ( do_clear ) {
+			status = (*clear_fn)( mcs );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			mcs->new_data_available = FALSE;
+
+			mcs->next_clear_tick =
+				mx_add_clock_ticks( current_tick,
+					mcs->clear_deadband_ticks );
+#if DEBUG_CLEAR_DEADBAND
+			MX_DEBUG(-2,("%s: next_clear_tick = (%lu,%lu)",
+			fname, mcs->next_clear_tick.high_order,
+			mcs->next_clear_tick.low_order));
+#endif
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
@@ -468,11 +541,18 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 
 	status = (*busy_fn)( mcs );
 
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
 	if ( busy != NULL ) {
 		*busy = mcs->busy;
 	}
 
-	return status;
+	if ( mcs->busy ) {
+		mcs->new_data_available = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1264,6 +1344,72 @@ mx_mcs_set_dark_current( MX_RECORD *mcs_record,
 	return mx_status;
 }
 
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_mcs_get_parameter( MX_RECORD *mcs_record, long parameter_type )
+{
+	static const char fname[] = "mx_mcs_get_parameter()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *fptr ) ( MX_MCS * );
+	mx_status_type status;
+
+	status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &fl_ptr, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	fptr = fl_ptr->get_parameter;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+"The get_parameter function is not supported by the driver for record '%s'.",
+			mcs_record->name );
+	}
+
+	mcs->parameter_type = parameter_type;
+
+	status = ( *fptr ) ( mcs );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mx_mcs_set_parameter( MX_RECORD *mcs_record, long parameter_type )
+{
+	static const char fname[] = "mx_mcs_set_parameter()";
+
+	MX_MCS *mcs;
+	MX_MCS_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *fptr ) ( MX_MCS * );
+	mx_status_type status;
+
+	status = mx_mcs_get_pointers( mcs_record,
+					&mcs, &fl_ptr, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	fptr = fl_ptr->set_parameter;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+"The set_parameter function is not supported by the driver for record '%s'.",
+			mcs_record->name );
+	}
+
+	mcs->parameter_type = parameter_type;
+
+	status = ( *fptr ) ( mcs );
+
+	return status;
+}
+
+/*-----------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 {
@@ -1277,6 +1423,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 	case MXLV_MCS_MEASUREMENT_COUNTS:
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
 	case MXLV_MCS_DARK_CURRENT:
+	case MXLV_MCS_CLEAR_DEADBAND:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -1313,6 +1460,29 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_MCS_CLEAR_DEADBAND:
+
+#if DEBUG_CLEAR_DEADBAND
+		MX_DEBUG(-2,("%s invoked for clear_deadband = %g seconds.",
+			fname, mcs->clear_deadband));
+#endif
+
+		mcs->clear_deadband_ticks =
+		      mx_convert_seconds_to_clock_ticks( mcs->clear_deadband );
+
+		mcs->next_clear_tick = mx_current_clock_tick();
+
+#if DEBUG_CLEAR_DEADBAND
+		MX_DEBUG(-2,
+	("%s: clear_deadband_ticks = (%lu,%lu), next_clear_tick = (%lu,%lu)",
+			fname, mcs->clear_deadband_ticks.high_order,
+			mcs->clear_deadband_ticks.low_order,
+			mcs->next_clear_tick.high_order,
+			mcs->next_clear_tick.low_order));
+#endif
+		mcs->new_data_available = TRUE;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,6 +71,11 @@ typedef struct {
 	long *scaler_data;
 	long *measurement_data;
 	double *timer_data;
+
+	mx_bool_type new_data_available;
+	double clear_deadband;				/* in seconds */
+	MX_CLOCK_TICK clear_deadband_ticks;
+	MX_CLOCK_TICK next_clear_tick;
 } MX_MCS;
 
 #define MXF_MCS_PREFER_READ_SCALER	1
@@ -99,6 +104,7 @@ typedef struct {
 #define MXLV_MCS_SCALER_DATA			1020
 #define MXLV_MCS_MEASUREMENT_DATA		1021
 #define MXLV_MCS_TIMER_DATA			1022
+#define MXLV_MCS_CLEAR_DEADBAND			1023
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
@@ -210,7 +216,11 @@ typedef struct {
   {MXLV_MCS_TIMER_DATA, -1, "timer_data", \
 		MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_data), \
-	{sizeof(double)}, NULL, MXFF_VARARGS}
+	{sizeof(double)}, NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_MCS_CLEAR_DEADBAND, -1, "clear_deadband", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear_deadband), \
+	{0}, NULL, 0}
 
 /* Note that the 'scaler_data' field is special, since it has the MXFF_VARARGS
  * flag set, but the length of the first dimension is 0.  This means that
@@ -321,6 +331,12 @@ MX_API mx_status_type mx_mcs_get_dark_current( MX_RECORD *mcs_record,
 MX_API mx_status_type mx_mcs_set_dark_current( MX_RECORD *mcs_record,
 					unsigned long scaler_index,
 					double dark_current );
+
+MX_API mx_status_type mx_mcs_get_parameter( MX_RECORD *mcs_record,
+						long parameter_type );
+
+MX_API mx_status_type mx_mcs_set_parameter( MX_RECORD *mcs_record,
+						long parameter_type );
 
 MX_API mx_status_type mx_mcs_default_get_parameter_handler( MX_MCS *mcs );
 

@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -286,10 +286,17 @@ mxd_mcs_scaler_clear( MX_SCALER *scaler )
 	MX_DEBUG( 2,("%s invoked for scaler '%s'",
 			fname, scaler->record->name));
 
+#if 0
+	/* NOTE: The 'start' routines for MCS scalers and timers all set
+	 * the number of measurements to 1, so it should be unnecessary
+	 * to set it to 1 here as well.
+	 */
+
 	mx_status = mx_mcs_set_num_measurements( mcs_scaler->mcs_record, 1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	mx_status = mx_mcs_clear( mcs_scaler->mcs_record );
 

@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_MONOCHROMATOR_DEBUG_TIMING	TRUE
+#define MXD_MONOCHROMATOR_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
