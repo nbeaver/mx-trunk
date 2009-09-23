@@ -25,8 +25,8 @@
 #include <errno.h>
 
 #include "mxconfig.h"
-#include "mx_unistd.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_key.h"
 #include "mx_driver.h"
 #include "mx_record.h"

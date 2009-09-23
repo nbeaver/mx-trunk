@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -99,7 +101,11 @@ mxp_scan_verify_mca_subdirectory( const char *mca_directory_name )
 
 	/* Is the object a directory? */
 
+#if defined(OS_WIN32)
+	if ( (stat_buf.st_mode & _S_IFDIR) == 0 ) {
+#else
 	if ( S_ISDIR(stat_buf.st_mode) == 0 ) {
+#endif
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Existing file '%s' is not a directory.",
 			mca_directory_name );
