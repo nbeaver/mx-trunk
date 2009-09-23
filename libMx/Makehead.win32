@@ -161,12 +161,13 @@ UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 # Directory tree containing compiled versions of the XIA Handel libraries
 # and include files.
 #
-# Tested with Handel 0.5.4 (January 2005)
+# Tested with Handel 1.0.3 (September 2009)
 #
-# WARNING: For current versions of Handel you must set the makefile variable
-#          RUN_TIME_LIBRARY_FLAGS to -MTd above.
+# WARNING: For old versions of Handel before 1.0 you must set the makefile
+#          variable RUN_TIME_LIBRARY_FLAGS to -MTd above.
 #
-XIA_HANDEL_DIR       = c:\\progra~1\\xia\\xmanag~1.0\\sdk
+XIA_HANDEL_DIR       = c:\\opt\\handel-1.0.3-wml\\sdk
+#XIA_HANDEL_DIR       = c:\\progra~1\\xia\\xmanag~1.0\\sdk
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\kepler-dev-tools-1_1_7\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0.6-1216\\handel
 #XIA_HANDEL_DIR      = c:\\opt\\handel-0.5.4\\handel
