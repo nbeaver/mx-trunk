@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -553,10 +553,13 @@
 
 #if HAVE_TCPIP
 #include "i_xia_network.h"
+#include "i_handel_network.h"
 #endif
 #if HAVE_XIA_HANDEL
 #include "i_xia_handel.h"
 #include "d_xia_handel_timer.h"
+
+#include "i_handel.h"
 #endif
 
 #if HAVE_XIA_XERXES
@@ -568,6 +571,8 @@
 #include "d_xia_dxp_var.h"
 #include "d_xia_dxp_sum.h"
 #include "d_xia_dxp_timer.h"
+
+#include "d_handel_mca.h"
 #endif
 
   /********************** Record Types **********************/
@@ -1139,6 +1144,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_xia_network_num_record_fields,
 				&mxi_xia_network_rfield_def_ptr},
+
+{"handel_network", MXI_GEN_HANDEL_NETWORK, MXI_GENERIC,   MXR_INTERFACE,
+				&mxi_handel_network_record_function_list,
+				NULL,
+				NULL,
+				&mxi_handel_network_num_record_fields,
+				&mxi_handel_network_rfield_def_ptr},
 #endif /* HAVE_TCPIP */
 
 #if HAVE_XIA_HANDEL
@@ -1148,6 +1160,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_xia_handel_num_record_fields,
 				&mxi_xia_handel_rfield_def_ptr},
+
+{"handel",         MXI_GEN_HANDEL,     MXI_GENERIC,       MXR_INTERFACE,
+				&mxi_handel_record_function_list,
+				NULL,
+				NULL,
+				&mxi_handel_num_record_fields,
+				&mxi_handel_rfield_def_ptr},
 #endif /* HAVE_XIA_HANDEL */
 
 #if HAVE_XIA_XERXES
@@ -3176,11 +3195,19 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_xia_dxp_timer_num_record_fields,
 				&mxd_xia_dxp_timer_rfield_def_ptr},
 
+
+{"handel_mca",     MXT_MCA_HANDEL,    MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
+				&mxd_handel_mca_record_function_list,
+				NULL,
+				&mxd_handel_mca_mca_function_list,
+				&mxd_handel_mca_num_record_fields,
+				&mxd_handel_mca_rfield_def_ptr},
+
 #endif /* HAVE_TCPIP || HAVE_XIA_HANDEL */
 
 #if HAVE_XIA_HANDEL
 
-{"xia_handel_timer", MXT_TIM_HANDEL,      MXC_TIMER,          MXR_DEVICE,
+{"xia_handel_timer", MXT_TIM_XIA_HANDEL,  MXC_TIMER,          MXR_DEVICE,
 				&mxd_xia_handel_timer_record_function_list,
 				NULL,
 				&mxd_xia_handel_timer_timer_function_list,

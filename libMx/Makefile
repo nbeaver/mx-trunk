@@ -85,7 +85,9 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_epix_xclib.c d_epix_xclib_dio.c d_fg_scaler.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
-	d_gm10_scaler.c d_gm10_timer.c d_hitachi_kp_d20.c d_hsc1.c \
+	d_gm10_scaler.c d_gm10_timer.c \
+	d_handel_mca.c \
+	d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_ilm_ainput.c d_ilm_sample_rate.c d_ilm_status.c \
 	d_interval_timer.c d_iseries_aio.c d_iseries_dio.c \
@@ -155,7 +157,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_edt.c i_edt_rs232.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_rs232.c i_epix_xclib.c \
-	i_esone_camac.c i_fossil.c i_hsc1.c \
+	i_esone_camac.c i_fossil.c i_handel.c i_handel_network.c i_hsc1.c \
 	i_ilm.c i_iseries.c i_isobus.c i_itc503.c i_k500serial.c i_ks3344.c \
 	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
@@ -267,6 +269,9 @@ d_epix_xclib.$(OBJ): d_epix_xclib.c
 d_epix_xclib_dio.$(OBJ): d_epix_xclib_dio.c
 	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) d_epix_xclib_dio.c
 
+d_handel_mca.$(OBJ): d_handel_mca.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_mca.c
+
 d_pcmotion32.$(OBJ): d_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c
 
@@ -329,6 +334,9 @@ i_epix_xclib.$(OBJ): i_epix_xclib.c
 
 i_esone_camac.$(OBJ): i_esone_camac.c
 	$(COMPILE) $(CFLAGS) $(ESONE_CAMAC_INCLUDES) i_esone_camac.c
+
+i_handel.$(OBJ): i_handel.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) i_handel.c
 
 i_libusb.$(OBJ): i_libusb.c
 	$(COMPILE) $(CFLAGS) $(LIBUSB_FLAGS) i_libusb.c

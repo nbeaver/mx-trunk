@@ -242,6 +242,8 @@ extern "C" {
 #define MXI_GEN_ILM			454
 #define MXI_GEN_ITC503			455
 #define MXI_GEN_CRYOJET			456
+#define MXI_GEN_HANDEL			457
+#define MXI_GEN_HANDEL_NETWORK		458
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -312,6 +314,8 @@ extern "C" {
 #define MXT_AIN_ILM			10040
 #define MXT_AIN_CRYOJET			10041
 #define MXT_AIN_MCA_WEIGHTED_SUM	10042
+#define MXT_AIN_HANDEL			10043
+#define MXT_AIN_HANDEL_SUM		10044
 
 /* --- Analog input subclasses -- */
 
@@ -572,8 +576,9 @@ extern "C" {
 #define MXT_TIM_INTERVAL		80016
 #define MXT_TIM_BLUICE_DCSS		80017
 #define MXT_TIM_BLUICE_DHS		80018
-#define MXT_TIM_HANDEL			80019
+#define MXT_TIM_XIA_HANDEL		80019
 #define MXT_TIM_XIA_DXP			80020
+#define MXT_TIM_HANDEL			80021
 
 /* --- Amplifier types --- */
 
@@ -613,6 +618,7 @@ extern "C" {
 #define MXT_MCA_TRUMP			110003
 #define MXT_MCA_XIA_DXP			110004
 #define MXT_MCA_ROENTEC_RCL		110005
+#define MXT_MCA_HANDEL			110006
 
 /* --- Multichannel encoder types --- */
 

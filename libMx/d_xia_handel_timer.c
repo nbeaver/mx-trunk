@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,7 +110,7 @@ mxd_xia_handel_timer_get_pointers( MX_TIMER *timer,
 			calling_fname );
 	}
 
-	if ( timer->record->mx_type != MXT_TIM_HANDEL ) {
+	if ( timer->record->mx_type != MXT_TIM_XIA_HANDEL ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"The timer '%s' passed by '%s' is not an XIA Handel timer.  "
 	"(superclass = %ld, class = %ld, type = %ld)",
