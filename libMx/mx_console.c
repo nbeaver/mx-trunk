@@ -97,8 +97,8 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 {
 	static const char fname[] = "mx_get_console_size()";
 
-	HANDLE console_screen_buffer_handle;
-	CONSOLE_SCREEN_BUFFER_INFO console_screen_buffer_info;
+	HANDLE csb_handle;
+	CONSOLE_SCREEN_BUFFER_INFO csb_info;
 	BOOL return_value;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -108,11 +108,11 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 		"One of the argument pointers passed was NULL." );
 	}
 
-	console_screen_buffer_handle = CreateFile(
+	csb_handle = CreateFile(
 			"CONOUT$", GENERIC_READ | GENERIC_WRITE,
 			FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0 );
 
-	if ( console_screen_buffer_handle == INVALID_HANDLE_VALUE ) {
+	if ( csb_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -124,13 +124,12 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 			last_error_code, message_buffer );
 	}
 
-	return_value = GetConsoleScreenBufferInfo( console_screen_buffer_handle,
-						&console_screen_buffer_info );
+	return_value = GetConsoleScreenBufferInfo( csb_handle, &csb_info );
 
 	if ( return_value == 0 ) {
 		last_error_code = GetLastError();
 
-		CloseHandle( console_screen_buffer_handle );
+		CloseHandle( csb_handle );
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
@@ -141,10 +140,35 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 			last_error_code, message_buffer );
 	}
 
-	*num_rows    = console_screen_buffer_info.dwSize.X;
-	*num_columns = console_screen_buffer_info.dwSize.Y;
+#if 1
+	MX_DEBUG(-2,("%s: dwSize.X = %d", fname, (int) csb_info.dwSize.X));
+	MX_DEBUG(-2,("%s: dwSize.Y = %d", fname, (int) csb_info.dwSize.Y));
+	MX_DEBUG(-2,("%s: dwCursorPosition.X = %d",
+				fname, (int) csb_info.dwCursorPosition.X));
+	MX_DEBUG(-2,("%s: dwCursorPosition.Y = %d",
+				fname, (int) csb_info.dwCursorPosition.Y));
+	MX_DEBUG(-2,("%s: wAttributes = %#x",
+				fname, (int) csb_info.wAttributes));
+	MX_DEBUG(-2,("%s: srWindow.Left   = %d",
+				fname, (int) csb_info.srWindow.Left));
+	MX_DEBUG(-2,("%s: srWindow.Top    = %d",
+				fname, (int) csb_info.srWindow.Top));
+	MX_DEBUG(-2,("%s: srWindow.Right  = %d",
+				fname, (int) csb_info.srWindow.Right));
+	MX_DEBUG(-2,("%s: srWindow.Bottom = %d",
+				fname, (int) csb_info.srWindow.Bottom));
+	MX_DEBUG(-2,("%s: dwMaximumWindowSize.X = %d",
+				fname, (int) csb_info.dwMaximumWindowSize.X));
+	MX_DEBUG(-2,("%s: dwMaximumWindowSize.Y = %d",
+				fname, (int) csb_info.dwMaximumWindowSize.Y));
 
-	CloseHandle( console_screen_buffer_handle );
+	mx_getch();
+#endif
+
+	*num_rows    = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
+	*num_columns = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
+
+	CloseHandle( csb_handle );
 
 	return MX_SUCCESSFUL_RESULT;
 }
