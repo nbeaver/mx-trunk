@@ -36,10 +36,8 @@
 #define MX_HANDEL_MCA_LIVE_TIME		1
 #define MX_HANDEL_MCA_INPUT_COUNT_RATE	2
 #define MX_HANDEL_MCA_OUTPUT_COUNT_RATE	3
-#define MX_HANDEL_MCA_NUM_FAST_PEAKS	4
+#define MX_HANDEL_MCA_NUM_TRIGGERS	4
 #define MX_HANDEL_MCA_NUM_EVENTS	5
-#define MX_HANDEL_MCA_NUM_UNDERFLOWS	6
-#define MX_HANDEL_MCA_NUM_OVERFLOWS	7
 
 /* The following flags are used by the "PRESET" MCA parameter. */
 
@@ -97,71 +95,66 @@ typedef struct {
 	double input_count_rate;
 	double output_count_rate;
 
-	unsigned long num_fast_peaks;
+	unsigned long num_triggers;
 	unsigned long num_events;
-	unsigned long num_underflows;
-	unsigned long num_overflows;
 
 	unsigned long old_preset_type;
 	double old_preset_time;
 
-	mx_status_type (*is_busy)( MX_MCA *mca,
-					mx_bool_type *busy_flag,
-					mx_bool_type debug_flag );
+	mx_bool_type debug_flag;
+
+	mx_status_type (*is_busy)( MX_MCA *mca, mx_bool_type *busy_flag );
 
 	mx_status_type (*get_run_data)( MX_MCA *mca,
 					char *run_data_name,
-					void *value_ptr,
-					mx_bool_type debug_flag );
+					void *value_ptr );
+
+	mx_status_type (*get_acquisition_values)( MX_MCA *mca,
+					char *value_name,
+					double *value_ptr );
+
+	mx_status_type (*set_acquisition_values)( MX_MCA *mca,
+					char *value_name,
+					double *value_ptr,
+					mx_bool_type apply_flag );
+
+	mx_status_type (*set_acquisition_values_for_all_channels)(
+					MX_MCA *mca,
+					char *value_name,
+					double *value_ptr,
+					mx_bool_type apply_flag );
+
+	mx_status_type (*apply)( MX_MCA *mca, long module_number );
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					unsigned long *value_ptr,
-					mx_bool_type debug_flag );
+					unsigned long *value_ptr );
 
 	mx_status_type (*write_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					unsigned long value,
-					mx_bool_type debug_flag );
+					unsigned long value );
 
 	mx_status_type (*write_parameter_to_all_channels)( MX_MCA *mca,
 					char *parameter_name,
-					unsigned long value,
-					mx_bool_type debug_flag );
+					unsigned long value );
 
-	mx_status_type (*start_run)( MX_MCA *mca,
-					mx_bool_type clear_flag,
-					mx_bool_type debug_flag );
+	mx_status_type (*start_run)( MX_MCA *mca, mx_bool_type clear_flag );
 
-	mx_status_type (*stop_run)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*stop_run)( MX_MCA *mca );
 
-	mx_status_type (*read_spectrum)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*read_spectrum)( MX_MCA *mca );
 
-	mx_status_type (*read_statistics)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*read_statistics)( MX_MCA *mca );
 
-	mx_status_type (*get_baseline_array)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*get_baseline_array)( MX_MCA *mca );
 
-	mx_status_type (*set_gain_change)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*set_gain_change)( MX_MCA *mca );
 
-	mx_status_type (*set_gain_calibration)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*set_gain_calibration)( MX_MCA *mca );
 
-	mx_status_type (*get_acquisition_value)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*get_adc_trace_array)( MX_MCA *mca );
 
-	mx_status_type (*set_acquisition_value)( MX_MCA *mca,
-					mx_bool_type debug_flag );
-
-	mx_status_type (*get_adc_trace_array)( MX_MCA *mca,
-					mx_bool_type debug_flag );
-
-	mx_status_type (*get_baseline_history_array)( MX_MCA *mca,
-					mx_bool_type debug_flag );
+	mx_status_type (*get_baseline_history_array)( MX_MCA *mca );
 
 	mx_status_type (*get_mx_parameter)( MX_MCA *mca );
 
@@ -373,28 +366,22 @@ MX_API mx_status_type mxd_handel_mca_get_livetime_corrected_roi_integral(
 					double *corrected_roi_value );
 
 MX_API mx_status_type mxd_handel_mca_read_statistics( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 MX_API mx_status_type mxd_handel_mca_set_gain_change( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 MX_API mx_status_type mxd_handel_mca_set_gain_calibration( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 MX_API mx_status_type mxd_handel_mca_get_acquisition_value( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 MX_API mx_status_type mxd_handel_mca_set_acquisition_value( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 MX_API mx_status_type mxd_handel_mca_get_adc_trace( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca,
-						mx_bool_type debug_flag );
+						MX_HANDEL_MCA *handel_mca );
 
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list;

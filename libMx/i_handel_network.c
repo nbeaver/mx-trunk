@@ -440,9 +440,7 @@ mxi_handel_network_resynchronize( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_handel_network_is_busy( MX_MCA *mca,
-			mx_bool_type *busy_flag,
-			mx_bool_type debug_flag )
+mxi_handel_network_is_busy( MX_MCA *mca, mx_bool_type *busy_flag )
 {
 	static const char fname[] = "mxi_handel_network_is_busy()";
 
@@ -477,8 +475,7 @@ mxi_handel_network_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_handel_network_get_run_data( MX_MCA *mca,
 			char *run_data_name,
-			void *value_ptr,
-			mx_bool_type debug_flag )
+			void *value_ptr )
 {
 	static const char fname[] = "mxi_handel_network_get_run_data()";
 
@@ -487,10 +484,56 @@ mxi_handel_network_get_run_data( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
+mxi_handel_network_get_acquisition_values( MX_MCA *mca,
+				char *value_name,
+				double *value_ptr )
+{
+	static const char fname[] =
+		"mxi_handel_network_get_acquisition_values()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented." );
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_network_set_acquisition_values( MX_MCA *mca,
+				char *value_name,
+				double *value_ptr,
+				mx_bool_type apply_flag )
+{
+	static const char fname[] =
+		"mxi_handel_network_set_acquisition_values()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented." );
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_network_set_acq_for_all_channels( MX_MCA *mca,
+				char *value_name,
+				double *value_ptr,
+				mx_bool_type apply_flag )
+{
+	static const char fname[] =
+		"mxi_handel_network_set_acq_for_all_channels()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented." );
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_network_apply( MX_MCA *mca, long module_number )
+{
+	static const char fname[] = "mxi_handel_network_apply()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented." );
+}
+
+MX_EXPORT mx_status_type
 mxi_handel_network_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			unsigned long *value_ptr,
-			mx_bool_type debug_flag )
+			unsigned long *value_ptr )
 {
 	static const char fname[] = "mxi_handel_network_read_parameter()";
 
@@ -508,7 +551,7 @@ mxi_handel_network_read_parameter( MX_MCA *mca,
 
 	i = handel_mca->detector_channel;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
 		("%s: Record '%s', channel %ld, parameter '%s'.",
 			fname, mca->record->name,
@@ -532,7 +575,7 @@ mxi_handel_network_read_parameter( MX_MCA *mca,
 
 	*value_ptr = (uint32_t) parameter_value;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,("%s: value = %lu",
 			fname, (unsigned long) *value_ptr));
 	}
@@ -543,8 +586,7 @@ mxi_handel_network_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_handel_network_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			unsigned long value,
-			mx_bool_type debug_flag )
+			unsigned long value )
 {
 	static const char fname[] = "mxi_handel_network_write_parameter()";
 
@@ -564,7 +606,7 @@ mxi_handel_network_write_parameter( MX_MCA *mca,
 
 	parameter_value = (unsigned long) value;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
 		("%s: Record '%s', channel %ld, parameter '%s', value = %lu.",
 			fname, mca->record->name, handel_mca->detector_channel,
@@ -586,7 +628,7 @@ mxi_handel_network_write_parameter( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
 		("%s: Write to parameter '%s' succeeded.",
 			fname, parameter_name));
@@ -598,8 +640,7 @@ mxi_handel_network_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_handel_network_write_param_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			unsigned long value,
-			mx_bool_type debug_flag )
+			unsigned long value )
 {
 	static const char fname[] =
 			"mxi_handel_network_write_param_to_all_channels()";
@@ -620,7 +661,7 @@ mxi_handel_network_write_param_to_all_channels( MX_MCA *mca,
 
 	parameter_value = (unsigned long) value;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
 		("%s: Record '%s', channel %ld, parameter '%s', value = %lu.",
 			fname, mca->record->name, handel_mca->detector_channel,
@@ -642,7 +683,7 @@ mxi_handel_network_write_param_to_all_channels( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
 		("%s: Write to parameter '%s' succeeded.",
 			fname, parameter_name));
@@ -652,9 +693,7 @@ mxi_handel_network_write_param_to_all_channels( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_network_start_run( MX_MCA *mca,
-			mx_bool_type clear_flag,
-			mx_bool_type debug_flag )
+mxi_handel_network_start_run( MX_MCA *mca, mx_bool_type clear_flag )
 {
 	static const char fname[] = "mxi_handel_network_start_run()";
 
@@ -672,7 +711,7 @@ mxi_handel_network_start_run( MX_MCA *mca,
 
 	i = handel_mca->detector_channel;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,("%s: Record '%s', clear_flag = %d.",
 				fname, mca->record->name, (int) clear_flag));
 	}
@@ -710,8 +749,7 @@ mxi_handel_network_start_run( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_network_stop_run( MX_MCA *mca,
-			mx_bool_type debug_flag )
+mxi_handel_network_stop_run( MX_MCA *mca )
 {
 	static const char fname[] = "mxi_handel_network_stop_run()";
 
@@ -729,7 +767,7 @@ mxi_handel_network_stop_run( MX_MCA *mca,
 
 	i = handel_mca->detector_channel;
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,("%s: Record '%s'.", fname, mca->record->name));
 	}
 
@@ -741,8 +779,7 @@ mxi_handel_network_stop_run( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_network_read_spectrum( MX_MCA *mca,
-			mx_bool_type debug_flag )
+mxi_handel_network_read_spectrum( MX_MCA *mca )
 {
 	static const char fname[] = "mxi_handel_network_read_spectrum()";
 
@@ -770,13 +807,13 @@ mxi_handel_network_read_spectrum( MX_MCA *mca,
 	}
 
 	if ( mca->new_data_available ) {
-		if ( debug_flag ) {
+		if ( handel_mca->debug_flag ) {
 			MX_DEBUG(-2,
 			("%s: reading out %ld channels from MCA '%s'.",
 			  fname, mca->current_num_channels, mca->record->name));
 		}
 	} else {
-		if ( debug_flag ) {
+		if ( handel_mca->debug_flag ) {
 			MX_DEBUG(-2,
 			("%s: no new spectrum available for MCA '%s'.",
 				fname, mca->record->name));
@@ -791,7 +828,7 @@ mxi_handel_network_read_spectrum( MX_MCA *mca,
 					MXFT_ULONG, 1, dimension_array,
 					mca->channel_array );
 
-	if ( debug_flag ) {
+	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,(
 		"%s: readout from MCA '%s' complete.  mx_status = %ld",
 			fname, mca->record->name, mx_status.code));
@@ -803,8 +840,7 @@ mxi_handel_network_read_spectrum( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_network_read_statistics( MX_MCA *mca,
-			mx_bool_type debug_flag )
+mxi_handel_network_read_statistics( MX_MCA *mca )
 {
 	static const char fname[] = "mxi_handel_network_read_statistics()";
 
@@ -834,12 +870,12 @@ mxi_handel_network_read_statistics( MX_MCA *mca,
 	}
 
 	if ( handel_mca->new_statistics_available ) {
-		if ( debug_flag ) {
+		if ( handel_mca->debug_flag ) {
 			MX_DEBUG(-2,("%s: reading new statistics for MCA '%s'.",
 				fname, mca->record->name));
 		}
 	} else {
-		if ( debug_flag ) {
+		if ( handel_mca->debug_flag ) {
 			MX_DEBUG(-2,
 			("%s: no new statistics available for MCA '%s'.",
 			 	fname, mca->record->name));
@@ -863,14 +899,10 @@ mxi_handel_network_read_statistics( MX_MCA *mca,
 		handel_mca->statistics[ MX_HANDEL_MCA_INPUT_COUNT_RATE ];
 	handel_mca->output_count_rate =
 		handel_mca->statistics[ MX_HANDEL_MCA_OUTPUT_COUNT_RATE ];
-	handel_mca->num_fast_peaks = mx_round(
-		handel_mca->statistics[ MX_HANDEL_MCA_NUM_FAST_PEAKS ] );
+	handel_mca->num_triggers = mx_round(
+		handel_mca->statistics[ MX_HANDEL_MCA_NUM_TRIGGERS ] );
 	handel_mca->num_events = mx_round(
 		handel_mca->statistics[ MX_HANDEL_MCA_NUM_EVENTS ] );
-	handel_mca->num_underflows = mx_round(
-		handel_mca->statistics[ MX_HANDEL_MCA_NUM_UNDERFLOWS ] );
-	handel_mca->num_overflows = mx_round(
-		handel_mca->statistics[ MX_HANDEL_MCA_NUM_OVERFLOWS ] );
 
 	return mx_status;
 }
