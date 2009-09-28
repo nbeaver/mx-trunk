@@ -604,6 +604,8 @@ mxi_handel_open( MX_RECORD *record )
 	unsigned int i, num_detectors, num_modules;
 	unsigned int num_mcas, total_num_mcas;
 	void *void_ptr;
+	long dimension_array[2];
+	size_t size_array[2];
 	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
@@ -792,6 +794,27 @@ mxi_handel_open( MX_RECORD *record )
 
 	handel->num_modules = num_modules;
 
+	/* Allocate a two-dimensional module pointer array. */
+
+	handel->mcas_per_module = 4;	/* FIXME: For the DXP-XMAP. */
+
+	dimension_array[0] = handel->num_modules;
+	dimension_array[1] = handel->mcas_per_module;
+
+	size_array[0] = sizeof(MX_RECORD *);
+	size_array[1] = sizeof(MX_RECORD **);
+
+	handel->module_array = mx_allocate_array( 2,
+				dimension_array, size_array );
+
+	if ( handel->module_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a ( %ld x %ld ) "
+		"module array for Handel interface '%s'.",
+			handel->num_modules, handel->mcas_per_module,
+			record->name );
+	}
+
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -923,8 +946,56 @@ mxi_handel_get_run_data( MX_MCA *mca,
 {
 	static const char fname[] = "mxi_handel_get_run_data()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	MX_HANDEL_MCA *handel_mca;
+	MX_HANDEL *handel;
+	unsigned long run_active, mask;
+	int xia_status;
+	mx_status_type mx_status;
+
+#if MXI_HANDEL_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+	mx_status = mxi_handel_get_pointers( mca,
+					&handel_mca, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'name' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+	if ( value_ptr == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_ptr' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+
+#if MXI_HANDEL_DEBUG_TIMING
+	MX_HRT_START( measurement );
+#endif
+
+	xia_status = xiaGetRunData( handel_mca->detector_channel,
+					name, value_ptr );
+
+#if MXI_HANDEL_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname,
+		"for record '%s', name '%s'",
+		mca->record->name, name );
+#endif
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Cannot get DXP run data for '%s' of MCA '%s'.  "
+		"Error code = %d, '%s'", name,
+			mca->record->name, xia_status,
+			mxi_handel_strerror( xia_status ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* NOTE: According to Patrick Franz, Handel acquisition values are always
@@ -949,13 +1020,32 @@ mxi_handel_get_acquisition_values( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( value_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_name' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+	if ( value_ptr == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_ptr' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+
 	MX_DEBUG(-2,("%s: getting acquisition value '%s' for MCA '%s'.",
 		fname, value_name, mca->record->name ));
 
 	xia_status = xiaGetAcquisitionValues( handel_mca->detector_channel,
 					value_name, (void *) value_ptr );
 
-	if ( xia_status != XIA_SUCCESS ) {
+	switch( xia_status ) {
+	case XIA_SUCCESS:
+		break;		/* Everything is OK. */
+	case XIA_UNKNOWN_VALUE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested acquisition value '%s' for MCA '%s' "
+			"does not exist.", value_name, mca->record->name );
+		break;
+	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"Cannot get acquisition value '%s' for MCA '%s'.  "
 			"Error code = %d, '%s'", 
@@ -990,13 +1080,32 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( value_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_name' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+	if ( value_ptr == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_ptr' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+
 	MX_DEBUG(-2,("%s: setting acquisition value '%s' for MCA '%s' to %g.",
-		fname, *value_ptr, mca->record->name, value_name ));
+		fname, value_name, mca->record->name, *value_ptr ));
 
 	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
 					value_name, (void *) value_ptr );
 
-	if ( xia_status != XIA_SUCCESS ) {
+	switch( xia_status ) {
+	case XIA_SUCCESS:
+		break;		/* Everything is OK. */
+	case XIA_UNKNOWN_VALUE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested acquisition value '%s' for MCA '%s' "
+			"does not exist.", value_name, mca->record->name );
+		break;
+	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"Cannot set acquisition value '%s' for MCA '%s' to %g.  "
 		"Error code = %d, '%s'", 
@@ -1029,13 +1138,32 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( value_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_name' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+	if ( value_ptr == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'value_ptr' argument passed for MCA '%s' was NULL.",
+			mca->record->name );
+	}
+
 	MX_DEBUG(-2,("%s: setting acquisition value '%s' for MCA '%s' to %g.",
-		fname, *value_ptr, mca->record->name, value_name ));
+		fname, value_name, mca->record->name, *value_ptr ));
 
 	xia_status = xiaSetAcquisitionValues( -1,
 					value_name, (void *) value_ptr );
 
-	if ( xia_status != XIA_SUCCESS ) {
+	switch( xia_status ) {
+	case XIA_SUCCESS:
+		break;		/* Everything is OK. */
+	case XIA_UNKNOWN_VALUE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested acquisition value '%s' for MCA '%s' "
+			"does not exist.", value_name, mca->record->name );
+		break;
+	default:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"Cannot set acquisition value '%s' for MCA '%s' to %g.  "
 		"Error code = %d, '%s'", 

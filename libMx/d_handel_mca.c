@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_HANDEL_MCA_DEBUG		FALSE
+#define MXD_HANDEL_MCA_DEBUG		TRUE
 
 #define MXD_HANDEL_MCA_DEBUG_STATISTICS	FALSE
 
@@ -244,6 +244,12 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 	for ( i = 0; i < MX_HANDEL_MCA_MAX_SCAS; i++ ) {
 		handel_mca->sca_has_been_initialized[i] = FALSE;
 	}
+
+#if MXD_HANDEL_MCA_DEBUG
+	handel_mca->debug_flag = TRUE;
+#else
+	handel_mca->debug_flag = FALSE;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -535,7 +541,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	char item_name[40];
 	unsigned long ulong_value;
 	int xia_status, num_items, display_config;
-	unsigned long i;
+	unsigned long i, n;
 
 #if MX_IGNORE_XIA_NULL_STRING
 	char *ignore_this_pointer;
@@ -782,6 +788,39 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			i+1 );
 	}
 
+	/* Search for an empty slot in the modules array. */
+
+	MX_DEBUG(-2,("%s: MCA '%s', module_channel = %d",
+		fname, mca->record->name, handel_mca->module_channel ));
+
+	if ( ( handel_mca->module_channel < 0 )
+	  || ( handel_mca->module_channel >= handel->num_modules ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Module number %d for Handel MCA '%s' is outside "
+		"the allowed range of 0 to %d",
+			handel_mca->module_channel,
+			mca->record->name,
+			handel->num_modules - 1 );
+	}
+
+	n = handel_mca->module_channel;
+
+	for ( i = 0; i < handel->mcas_per_module; i++ ) {
+		if ( handel->module_array[n][i] == NULL ) {
+			handel->module_array[n][i] = mca->record;
+		}
+	}
+
+	if ( i >= handel->mcas_per_module ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"There are too many MCA records for Handel record '%s', "
+		"module number %ld (i = %d).  The maximum allowed is %ld.",
+			handel->record->name,
+			handel_mca->module_channel, i,
+			handel->mcas_per_module );
+	}
+
 	/* See how many bins are in the spectrum. */
 
 	xia_status = xiaGetRunData( handel_mca->detector_channel,
@@ -899,8 +938,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_HRT_TIMING measurement;
 #endif
 
-	mx_breakpoint();
-
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -933,8 +970,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 		mx_status = mxd_handel_mca_handel_open( mca,
 					handel_mca, handel_record );
 
-		handel = (MX_HANDEL *)
-					handel_record->record_type_struct;
+		handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 		display_config = handel->handel_flags &
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
@@ -1265,8 +1301,8 @@ mxd_handel_mca_start( MX_MCA *mca )
 	}
 
 #if MXD_HANDEL_MCA_DEBUG
-	MX_DEBUG(-2,("%s: xia_preset_type = %lu", fname,
-					(unsigned long) xia_preset_type));
+	MX_DEBUG(-2,("%s: preset_type = %lu", fname,
+				(unsigned long) preset_type));
 #endif
 	/* Save the preset value. */
 
@@ -1348,7 +1384,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 	/******* Set the timer preset. *******/
 
 	mx_status = (handel_mca->set_acquisition_values_for_all_channels)( mca,
-			"preset_time", &preset_time, TRUE );
+			"preset_value", &preset_time, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

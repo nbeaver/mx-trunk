@@ -63,6 +63,9 @@ typedef struct {
 
 	unsigned long num_detectors;
 	unsigned long num_modules;
+	unsigned long mcas_per_module;
+
+	MX_RECORD ***module_array;
 
 	double last_measurement_interval;
 } MX_HANDEL;
