@@ -893,7 +893,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 	unsigned long i, mca_number;
 	int display_config;
 	unsigned long codevar, coderev;
-	unsigned long sysmicrosec;
 	mx_status_type mx_status;
 
 #if ( HAVE_XIA_HANDEL && MXD_HANDEL_MCA_DEBUG_TIMING )
@@ -1058,6 +1057,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	 * unless we are connected via a 'handel_network' record.
 	 */
 
+#if HAVE_XIA_HANDEL
 	if ( handel_record->mx_type != MXI_GEN_HANDEL_NETWORK ) {
 
 		int xia_status;
@@ -1077,6 +1077,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 			xia_status, mxi_handel_strerror( xia_status ) );
 		}
 	}
+#endif /* HAVE_XIA_HANDEL */
 
 	mca->current_num_channels = mca->maximum_num_channels;
 	mca->current_num_rois     = mca->maximum_num_rois;
@@ -1230,7 +1231,10 @@ mxd_handel_mca_start( MX_MCA *mca )
 
 	MX_RECORD *handel_record;
 	MX_HANDEL_NETWORK *handel_network;
+
+#if HAVE_XIA_HANDEL
 	MX_HANDEL *handel;
+#endif
 
 	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
 
@@ -1584,8 +1588,7 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_handel_mca_default_get_mx_parameter()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
-	unsigned long low_limit, high_limit;
-	unsigned long i, j, roi_boundary;
+	unsigned long i, j;
 	unsigned long roi[2];
 	char name[20];
 	double double_value;
@@ -1717,7 +1720,7 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_handel_mca_default_set_mx_parameter()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
-	unsigned long i, low_limit, high_limit;
+	unsigned long i;
 	char name[20];
 	double double_value;
 	mx_status_type mx_status;
