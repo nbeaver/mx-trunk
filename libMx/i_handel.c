@@ -601,7 +601,7 @@ mxi_handel_open( MX_RECORD *record )
 	char detector_alias[MAXALIAS_LEN+1];
 	char version_string[80];
 	int xia_status, display_config;
-	unsigned int i, num_detectors, num_modules;
+	unsigned int i, j, num_detectors, num_modules;
 	unsigned int num_mcas, total_num_mcas;
 	void *void_ptr;
 	long dimension_array[2];
@@ -813,6 +813,12 @@ mxi_handel_open( MX_RECORD *record )
 		"module array for Handel interface '%s'.",
 			handel->num_modules, handel->mcas_per_module,
 			record->name );
+	}
+
+	for ( i = 0; i < handel->num_modules; i++ ) {
+		for ( j = 0; j < handel->mcas_per_module; j++ ) {
+			handel->module_array[i][j] = NULL;
+		}
 	}
 
 #if MXI_HANDEL_DEBUG_TIMING
@@ -1071,7 +1077,7 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	int xia_status;
+	int xia_status, ignored;
 	mx_status_type mx_status;
 
 	mx_status = mxi_handel_get_pointers( mca,
@@ -1116,6 +1122,26 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 					mxi_handel_strerror( xia_status ) );
 	}
 
+	if ( apply_flag ) {
+		ignored = 0;
+
+		xia_status = xiaBoardOperation( handel_mca->detector_channel,
+					"apply", (void *) &ignored );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot apply acquisition value '%s' for MCA '%s'.  "
+			"Error code = %d, '%s'", 
+					value_name,
+					mca->record->name,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+
+		MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
+			fname, mca->record->name ));
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1129,7 +1155,7 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	int xia_status;
+	int xia_status, ignored;
 	mx_status_type mx_status;
 
 	mx_status = mxi_handel_get_pointers( mca,
@@ -1174,16 +1200,63 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 					mxi_handel_strerror( xia_status ) );
 	}
 
+	if ( apply_flag ) {
+		ignored = 0;
+
+		xia_status = xiaBoardOperation( handel_mca->detector_channel,
+					"apply", (void *) &ignored );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot apply acquisition value '%s' for MCA '%s'.  "
+			"Error code = %d, '%s'", 
+					value_name,
+					mca->record->name,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+
+		MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
+			fname, mca->record->name ));
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_apply( MX_MCA *mca, long module_number )
+mxi_handel_apply( MX_MCA *mca, unsigned long detector_channel )
 {
 	static const char fname[] = "mxi_handel_apply()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	MX_HANDEL_MCA *handel_mca;
+	MX_HANDEL *handel;
+	int xia_status, ignored;
+	mx_status_type mx_status;
+
+	mx_status = mxi_handel_get_pointers( mca,
+					&handel_mca, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ignored = 0;
+
+	xia_status = xiaBoardOperation( handel_mca->detector_channel,
+					"apply", (void *) &ignored );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Cannot apply acquisition values for MCA '%s'.  "
+		"Error code = %d, '%s'", 
+				mca->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+	}
+
+	MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
+		fname, mca->record->name ));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

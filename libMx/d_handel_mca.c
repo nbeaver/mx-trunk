@@ -538,10 +538,13 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	MX_HANDEL *handel;
 	char mca_label_format[40];
+	char *mca_label_copy, *ptr;
 	char item_name[40];
 	unsigned long ulong_value;
 	int xia_status, num_items, display_config;
-	unsigned long i, n;
+	unsigned long i, j;
+	long module_channel, detector_channel_alt;
+	mx_status_type mx_status;
 
 #if MX_IGNORE_XIA_NULL_STRING
 	char *ignore_this_pointer;
@@ -607,33 +610,88 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			MAXALIAS_LEN+1 );
 	}
 
-	/* Get the detector alias, module alias and channel number. */
+	/*-------------------------------------------------------------------*/
 
-	sprintf( mca_label_format, "%%%d %%%d %%d",
-				MAXALIAS_LEN, MAXALIAS_LEN );
+	/* Split up the mca_label into the module alias, detector alias
+	 * and detector channel number.
+	 */
 
-	num_items = sscanf( handel_mca->mca_label, "%s %s %d",
-				handel_mca->detector_alias,
+	/* The detector channel number should be at the end of the string
+	 * preceded by a ':' character.
+	 */
+
+	mca_label_copy = strdup( handel_mca->mca_label );
+
+	if ( mca_label_copy == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to duplicate the MCA label "
+		"for MCA '%s'.", handel_mca->record->name );
+	}
+
+	ptr = strrchr( mca_label_copy, ':' );
+
+	if ( ptr == NULL ) {
+		mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Did not find the detector channel number at the end "
+		"of the MCA label '%s' for MCA '%s'.  It should be "
+		"preceded by a colon ':' character.",
+			mca_label_copy, mca->record->name );
+
+		mx_free( mca_label_copy );
+
+		return mx_status;
+	}
+
+	/* Split the string at the ':' character and interpret the
+	 * bytes after that as the detector channel number.
+	 */
+
+	*ptr = '\0';
+
+	ptr++;
+
+	handel_mca->detector_channel = mx_string_to_long( ptr );
+
+	snprintf( mca_label_format, sizeof(mca_label_format),
+		"%%%ds %%%ds", MAXALIAS_LEN, MAXALIAS_LEN );
+
+	num_items = sscanf( mca_label_copy,
+				mca_label_format,
 				handel_mca->module_alias,
-				&handel_mca->module_channel );
+				handel_mca->detector_alias );
 
-	if ( num_items != 3 ) {
+	mx_free( mca_label_copy );
+
+	if ( num_items != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Could not get the module alias and detector number from "
 		"the 'mca_label' field '%s' for MCA '%s'.  For Handel, a "
 		"valid 'mca_label' field should look something like "
-		"\"detector1 module1 0\".",
+		"\"module1 detector1:0\".",
 			handel_mca->mca_label, mca->record->name );
+	}
+
+	num_items = sscanf( handel_mca->module_alias,
+				"module%lu", &(handel_mca->module_number) );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Could not get the module number from the module alias '%s' "
+		"for MCA '%s'.",  handel_mca->module_alias,
+				handel_mca->module_number );
 	}
 			
 	if ( display_config ) {
-		mx_info(
-"MCA '%s': detector alias = '%s', module alias = '%s', module channel = %d",
+		mx_info( "MCA '%s': module alias = '%s', module_number = %ld, "
+		"detector alias = '%s', detector channel = %d",
 			handel_mca->record->name,
-			handel_mca->detector_alias,
 			handel_mca->module_alias,
-			handel_mca->module_channel );
+			handel_mca->module_number,
+			handel_mca->detector_alias,
+			handel_mca->detector_channel );
 	}
+
+	/*-------------------------------------------------------------------*/
 
 	/* Get the module type. */
 
@@ -644,9 +702,11 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Cannot get the module type for module '%s', "
-		"channel %d used by MCA '%s'.  Error code = %d, '%s'",
+		"detector '%s' channel %d used by MCA '%s'.  "
+		"Error code = %d, '%s'",
 			handel_mca->module_alias,
-			handel_mca->module_channel,
+			handel_mca->detector_alias,
+			handel_mca->detector_channel,
 			mca->record->name, xia_status,
 			mxi_handel_strerror( xia_status ) );
 	}
@@ -657,51 +717,34 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			handel_mca->module_type );
 	}
 
-#if 0
-	/* Get the detector alias from the module and channel number. */
+	/* Verify that the detector channel matches the channel alias. */
 
-	sprintf( item_name, "channel%d_detector", module_channel_number );
+	module_channel = handel_mca->detector_channel % handel->mcas_per_module;
 
-	xia_status = xiaGetModuleItem( handel_mca->module_alias,
-					item_name,
-					detector_alias );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot get the detector alias for module '%s', "
-		"channel %d used by MCA '%s'.  Error code = %d, '%s'",
-			handel_mca->module_alias, module_channel_number,
-			mca->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
-
-	if ( strcmp( detector_alias, handel->detector_alias ) != 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The detector alias '%s' for MCA '%s' does not match "
-		"the detector alias '%s' for XIA interface record '%s'.",
-			detector_alias, handel_mca->record->name,
-			handel->detector_alias, handel_record->name );
-	}
-
-	handel_mca->detector_alias = handel->detector_alias;
-#endif
-
-	/* Get the detector channel from the module and channel number. */
-
-	sprintf( item_name, "channel%d_alias", handel_mca->module_channel );
+	sprintf( item_name, "channel%d_alias", module_channel );
 
 	xia_status = xiaGetModuleItem( handel_mca->module_alias,
 					item_name,
-					&(handel_mca->detector_channel) );
+					&detector_channel_alt );
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Cannot get the detector channel id for module '%s', "
-		"channel %d used by MCA '%s'.  Error code = %d, '%s'",
+		"detector channel %d used by MCA '%s'.  Error code = %d, '%s'",
 			handel_mca->module_alias,
-			handel_mca->module_channel,
+			handel_mca->detector_channel,
 			mca->record->name, xia_status,
 			mxi_handel_strerror( xia_status ) );
+	}
+
+	if ( detector_channel_alt != handel_mca->detector_channel ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The detector channel number %ld from xiaGetModuleItem() "
+		"does not match the detector channel number %ld from "
+		"the MX database file for MCA '%s'.",
+			detector_channel_alt,
+			handel_mca->detector_channel,
+			mca->record->name );
 	}
 
 	if ( display_config ) {
@@ -790,34 +833,38 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	/* Search for an empty slot in the modules array. */
 
-	MX_DEBUG(-2,("%s: MCA '%s', module_channel = %d",
-		fname, mca->record->name, handel_mca->module_channel ));
-
-	if ( ( handel_mca->module_channel < 0 )
-	  || ( handel_mca->module_channel >= handel->num_modules ) )
+	if ( ( handel_mca->module_number < 1 )
+	  || ( handel_mca->module_number > handel->num_modules ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Module number %d for Handel MCA '%s' is outside "
-		"the allowed range of 0 to %d",
-			handel_mca->module_channel,
+		"the allowed range of 1 to %d",
+			handel_mca->module_number,
 			mca->record->name,
-			handel->num_modules - 1 );
+			handel->num_modules );
 	}
 
-	n = handel_mca->module_channel;
+	if ( handel->module_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The module_array pointer for Handel interface '%s' "
+		"has not been initialized.", handel->record->name );
+	}
 
-	for ( i = 0; i < handel->mcas_per_module; i++ ) {
-		if ( handel->module_array[n][i] == NULL ) {
-			handel->module_array[n][i] = mca->record;
+	i = handel_mca->module_number - 1;
+
+	for ( j = 0; j < handel->mcas_per_module; j++ ) {
+		if ( handel->module_array[i][j] == NULL ) {
+			handel->module_array[i][j] = mca->record;
+			break;
 		}
 	}
 
-	if ( i >= handel->mcas_per_module ) {
+	if ( j >= handel->mcas_per_module ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"There are too many MCA records for Handel record '%s', "
-		"module number %ld (i = %d).  The maximum allowed is %ld.",
+		"Handel record '%s', module number %ld has too many "
+		"records (%d).  The maximum allowed is %ld.",
 			handel->record->name,
-			handel_mca->module_channel, i,
+			handel_mca->module_number, j,
 			handel->mcas_per_module );
 	}
 
@@ -993,6 +1040,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	/* Find out what firmware variant and revision is used by this MCA. */
 
 	mx_status = (handel_mca->read_parameter)( mca, "CODEVAR", &codevar );
@@ -1008,6 +1056,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 		return mx_status;
 
 	handel_mca->firmware_code_revision = (int) coderev;
+#endif
 
 	/* Verify that the firmware version in use supports hardware SCAs. */
 
@@ -1080,6 +1129,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	}
 #endif /* HAVE_XIA_HANDEL */
 
+#if 0
 	if ( display_config ) {
 		mx_info(
 	"MCA '%s': codevar = %#lx, coderev = %#lx, hardware SCAs = %d",
@@ -1088,6 +1138,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 			handel_mca->firmware_code_revision,
 			(int) handel_mca->hardware_scas_are_enabled );
 	}
+#endif
 
 	/* Initialize the range of bin numbers used by the MCA
 	 * unless we are connected via a 'handel_network' record.

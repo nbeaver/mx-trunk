@@ -180,7 +180,8 @@ MX_API mx_status_type mxi_handel_set_acq_for_all_channels(
 					double *value_ptr,
 					mx_bool_type apply_flag );
 
-MX_API mx_status_type mxi_handel_apply( MX_MCA *mca, long module_number );
+MX_API mx_status_type mxi_handel_apply( MX_MCA *mca,
+					unsigned long detector_channel );
 
 MX_API mx_status_type mxi_handel_read_parameter( MX_MCA *mca,
 					char *parameter_name,
