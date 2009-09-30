@@ -86,7 +86,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_epix_xclib.c d_epix_xclib_dio.c d_fg_scaler.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c \
-	d_handel_mca.c \
+	d_handel_input.c d_handel_mca.c d_handel_sum.c d_handel_timer.c \
 	d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_ilm_ainput.c d_ilm_sample_rate.c d_ilm_status.c \
@@ -271,6 +271,15 @@ d_epix_xclib_dio.$(OBJ): d_epix_xclib_dio.c
 
 d_handel_mca.$(OBJ): d_handel_mca.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_mca.c
+
+d_handel_input.$(OBJ): d_handel_input.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_input.c
+
+d_handel_sum.$(OBJ): d_handel_sum.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_sum.c
+
+d_handel_timer.$(OBJ): d_handel_timer.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_timer.c
 
 d_pcmotion32.$(OBJ): d_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c

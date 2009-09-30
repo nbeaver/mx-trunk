@@ -747,6 +747,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			mca->record->name );
 	}
 
+#if 0
 	if ( display_config ) {
 		mx_info(
 		"MCA '%s': det. alias = '%s', det. channel = %d",
@@ -754,6 +755,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			handel_mca->detector_alias,
 			handel_mca->detector_channel );
 	}
+#endif
 
 	/* Since we do not know what state the MCA is in, we send
 	 * a stop run command.
@@ -1648,15 +1650,15 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_HANDEL_MCA_STATISTICS:
-		case MXLV_HANDEL_MCA_PARAMETER_VALUE:
-		case MXLV_HANDEL_MCA_PARAM_VALUE_TO_ALL_CHANNELS:
-		case MXLV_HANDEL_MCA_BASELINE_ARRAY:
-		case MXLV_HANDEL_MCA_GAIN_CHANGE:
-		case MXLV_HANDEL_MCA_GAIN_CALIBRATION:
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
 		case MXLV_HANDEL_MCA_ADC_TRACE_ARRAY:
+		case MXLV_HANDEL_MCA_BASELINE_ARRAY:
 		case MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY:
+		case MXLV_HANDEL_MCA_GAIN_CHANGE:
+		case MXLV_HANDEL_MCA_GAIN_CALIBRATION:
+		case MXLV_HANDEL_MCA_PARAMETER_VALUE:
+		case MXLV_HANDEL_MCA_PARAM_VALUE_TO_ALL_CHANNELS:
+		case MXLV_HANDEL_MCA_STATISTICS:
 			record_field->process_function
 					    = mxd_handel_mca_process_function;
 			break;

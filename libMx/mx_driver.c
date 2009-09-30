@@ -558,8 +558,6 @@
 #if HAVE_XIA_HANDEL
 #include "i_xia_handel.h"
 #include "d_xia_handel_timer.h"
-
-#include "i_handel.h"
 #endif
 
 #if HAVE_XIA_XERXES
@@ -572,7 +570,11 @@
 #include "d_xia_dxp_sum.h"
 #include "d_xia_dxp_timer.h"
 
+#include "i_handel.h"
 #include "d_handel_mca.h"
+#include "d_handel_input.h"
+#include "d_handel_sum.h"
+#include "d_handel_timer.h"
 #endif
 
   /********************** Record Types **********************/
@@ -3203,6 +3205,20 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_handel_mca_num_record_fields,
 				&mxd_handel_mca_rfield_def_ptr},
 
+{"handel_input",   MXT_AIN_HANDEL,   MXC_ANALOG_INPUT,        MXR_DEVICE,
+				&mxd_handel_input_record_function_list,
+				NULL,
+				&mxd_handel_input_analog_input_function_list,
+				&mxd_handel_input_num_record_fields,
+				&mxd_handel_input_rfield_def_ptr},
+
+{"handel_sum",     MXT_AIN_HANDEL_SUM, MXC_ANALOG_INPUT,      MXR_DEVICE,
+				&mxd_handel_sum_record_function_list,
+				NULL,
+				&mxd_handel_sum_analog_input_function_list,
+				&mxd_handel_sum_num_record_fields,
+				&mxd_handel_sum_rfield_def_ptr},
+
 #endif /* HAVE_TCPIP || HAVE_XIA_HANDEL */
 
 #if HAVE_XIA_HANDEL
@@ -3213,6 +3229,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_xia_handel_timer_timer_function_list,
 				&mxd_xia_handel_timer_num_record_fields,
 				&mxd_xia_handel_timer_rfield_def_ptr},
+
+{"handel_timer",     MXT_TIM_HANDEL,  MXC_TIMER,          MXR_DEVICE,
+				&mxd_handel_timer_record_function_list,
+				NULL,
+				&mxd_handel_timer_timer_function_list,
+				&mxd_handel_timer_num_record_fields,
+				&mxd_handel_timer_rfield_def_ptr},
 
 #endif /* HAVE_XIA_HANDEL */
 
