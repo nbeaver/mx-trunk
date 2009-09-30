@@ -63,9 +63,18 @@ typedef struct {
 
 	double gain_change;
 	double gain_calibration;
+
 	char acquisition_value_name
 		[ MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
+	char old_acquisition_value_name
+		[ MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
+
 	double acquisition_value;
+	double acquisition_value_to_all;
+
+	mx_bool_type apply_flag;
+	mx_bool_type apply_to_all;
+
 	double adc_trace_step_size;		/* in nanoseconds */
 	unsigned long adc_trace_length;
 	unsigned long *adc_trace_array;
@@ -184,11 +193,14 @@ typedef struct {
 #define MXLV_HANDEL_MCA_GAIN_CALIBRATION		2008
 #define MXLV_HANDEL_MCA_ACQUISITION_VALUE_NAME		2009
 #define MXLV_HANDEL_MCA_ACQUISITION_VALUE		2010
-#define MXLV_HANDEL_MCA_ADC_TRACE_STEP_SIZE		2011
-#define MXLV_HANDEL_MCA_ADC_TRACE_LENGTH		2012
-#define MXLV_HANDEL_MCA_ADC_TRACE_ARRAY			2013
-#define MXLV_HANDEL_MCA_BASELINE_HISTORY_LENGTH		2014
-#define MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY		2015
+#define MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL	2011
+#define MXLV_HANDEL_MCA_APPLY				2012
+#define MXLV_HANDEL_MCA_APPLY_TO_ALL			2013
+#define MXLV_HANDEL_MCA_ADC_TRACE_STEP_SIZE		2014
+#define MXLV_HANDEL_MCA_ADC_TRACE_LENGTH		2015
+#define MXLV_HANDEL_MCA_ADC_TRACE_ARRAY			2016
+#define MXLV_HANDEL_MCA_BASELINE_HISTORY_LENGTH		2017
+#define MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY		2018
 
 #define MXD_HANDEL_MCA_STANDARD_FIELDS \
   {-1, -1, "handel_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -251,6 +263,20 @@ typedef struct {
 			MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof( MX_HANDEL_MCA, acquisition_value ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL, -1, "acquisition_value_to_all", \
+			MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof( MX_HANDEL_MCA, acquisition_value_to_all ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_MCA_APPLY, -1, "apply", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, apply_flag ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_MCA_APPLY_TO_ALL, -1, "apply_to_all", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, apply_to_all ), \
 	{0}, NULL, 0}, \
   \
   {MXLV_HANDEL_MCA_ADC_TRACE_STEP_SIZE, -1, "adc_trace_step_size", \

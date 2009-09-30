@@ -35,6 +35,11 @@ typedef struct {
 	MX_NETWORK_FIELD num_mcas_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 
+	MX_NETWORK_FIELD *acquisition_value_name_nf;
+	MX_NETWORK_FIELD *acquisition_value_nf;
+	MX_NETWORK_FIELD *acquisition_value_to_all_nf;
+	MX_NETWORK_FIELD *apply_nf;
+	MX_NETWORK_FIELD *apply_to_all_nf;
 	MX_NETWORK_FIELD *busy_nf;
 	MX_NETWORK_FIELD *channel_array_nf;
 	MX_NETWORK_FIELD *channel_number_nf;
@@ -87,6 +92,8 @@ MX_API mx_status_type mxi_handel_network_create_record_structures(
 MX_API mx_status_type mxi_handel_network_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_handel_network_open( MX_RECORD *record );
+MX_API mx_status_type mxi_handel_network_finish_delayed_initialization(
+							MX_RECORD *record );
 MX_API mx_status_type mxi_handel_network_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_handel_network_record_function_list;

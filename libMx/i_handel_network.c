@@ -39,7 +39,11 @@ MX_RECORD_FUNCTION_LIST mxi_handel_network_record_function_list = {
 	NULL,
 	mxi_handel_network_open,
 	NULL,
+#if 0
+	mxi_handel_network_finish_delayed_initialization,
+#else
 	NULL,
+#endif
 	mxi_handel_network_resynchronize
 };
 
@@ -121,13 +125,16 @@ mxi_handel_network_create_record_structures( MX_RECORD *record )
 
 	MX_HANDEL_NETWORK *handel_network;
 
-	/* Allocate memory for the necessary structures. */
+	/* Allocate memory for the MX_HANDEL_NETWORK structure and
+	 * initialize it to all zeros.
+	 */
 
-	handel_network = (MX_HANDEL_NETWORK *) malloc( sizeof(MX_HANDEL_NETWORK) );
+	handel_network = (MX_HANDEL_NETWORK *)
+		calloc( 1, sizeof(MX_HANDEL_NETWORK) );
 
 	if ( handel_network == (MX_HANDEL_NETWORK *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Can't allocate memory for MX_HANDEL_NETWORK structure." );
+		"Cannot allocate memory for MX_HANDEL_NETWORK structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -169,41 +176,6 @@ mxi_handel_network_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(handel_network->resynchronize_nf),
 		handel_network->server_record,
 		"%s.resynchronize", handel_network->remote_record_name );
-
-	/* We cannot allocate the following structures until
-	 * mxi_handel_network_open() is invoked, so for now we
-	 * initialize them to NULL pointers.
-	 */
-
-	handel_network->mca_record_array = NULL;
-	handel_network->busy_nf = NULL;
-	handel_network->channel_array_nf = NULL;
-	handel_network->current_num_channels_nf = NULL;
-	handel_network->current_num_rois_nf = NULL;
-	handel_network->hardware_scas_are_enabled_nf = NULL;
-	handel_network->live_time_nf = NULL;
-	handel_network->new_data_available_nf = NULL;
-	handel_network->new_statistics_available_nf = NULL;
-	handel_network->param_value_to_all_channels_nf = NULL;
-	handel_network->parameter_name_nf = NULL;
-	handel_network->parameter_value_nf = NULL;
-	handel_network->preset_clock_tick_nf = NULL;
-	handel_network->preset_type_nf = NULL;
-	handel_network->real_time_nf = NULL;
-	handel_network->roi_nf = NULL;
-	handel_network->roi_array_nf = NULL;
-	handel_network->roi_integral_nf = NULL;
-	handel_network->roi_integral_array_nf = NULL;
-	handel_network->roi_number_nf = NULL;
-	handel_network->runtime_clock_tick_nf = NULL;
-	handel_network->soft_roi_nf = NULL;
-	handel_network->soft_roi_array_nf = NULL;
-	handel_network->soft_roi_integral_nf = NULL;
-	handel_network->soft_roi_integral_array_nf = NULL;
-	handel_network->soft_roi_number_nf = NULL;
-	handel_network->start_with_preset_nf = NULL;
-	handel_network->statistics_nf = NULL;
-	handel_network->stop_nf = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -271,22 +243,17 @@ mxi_handel_network_set_data_available_flags( MX_HANDEL_NETWORK *handel_network,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#define MXI_HANDEL_NETWORK_NF_NULL( x, s ) \
+#define HN_NF_ALLOC( n ) \
 	do { 								\
-		(x) = ( MX_NETWORK_FIELD * ) 				\
-		    malloc( num_mcas * sizeof(MX_NETWORK_FIELD) );	\
+		(n) = ( MX_NETWORK_FIELD * ) malloc( 			\
+		    handel_network->num_mcas * sizeof(MX_NETWORK_FIELD) ); \
 									\
-		if ( (x) == (MX_NETWORK_FIELD *) NULL) {		\
+		if ( (n) == (MX_NETWORK_FIELD *) NULL) {		\
 			return mx_error( MXE_OUT_OF_MEMORY, fname,	\
-			"Ran out of memory trying to allocate a %d "	\
+			"Ran out of memory trying to allocate a %lu "	\
 			"element array of MX_NETWORK_FIELD pointers "	\
-			"for the %s data structure of record '%s'.", 	\
-				num_mcas, (s), record->name );		\
-		}							\
-									\
-		for ( i = 0; i < num_mcas; i++ ) {			\
-			mx_network_field_init(				\
-				&( (x) [i]), NULL, "" );		\
+			"for record '%s'.", 				\
+			handel_network->num_mcas, record->name );	\
 		}							\
 	} while(0)
 
@@ -299,7 +266,7 @@ mxi_handel_network_open( MX_RECORD *record )
 	int i, num_mcas;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -316,7 +283,8 @@ mxi_handel_network_open( MX_RECORD *record )
 
 	/* Find out how many detector channels (MCAs) there are. */
 
-	mx_status = mx_get(&(handel_network->num_mcas_nf), MXFT_ULONG, &num_mcas );
+	mx_status = mx_get( &(handel_network->num_mcas_nf),
+				MXFT_ULONG, &num_mcas );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -341,66 +309,41 @@ mxi_handel_network_open( MX_RECORD *record )
 		handel_network->mca_record_array[i] = NULL;
 	}
 
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->busy_nf,
-					"busy_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->channel_array_nf,
-					"channel_array_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->channel_number_nf,
-					"channel_number_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->channel_value_nf,
-					"channel_value_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->current_num_channels_nf,
-					"current_num_channels_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->current_num_rois_nf,
-					"current_num_rois_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->hardware_scas_are_enabled_nf,
-					"hardware_scas_are_enabled_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->live_time_nf,
-					"live_time_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->new_data_available_nf,
-					"new_data_available_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->new_statistics_available_nf,
-					"new_statistics_available_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->param_value_to_all_channels_nf,
-					"param_value_to_all_channels_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->parameter_name_nf,
-					"parameter_name_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->parameter_value_nf,
-					"parameter_value_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->preset_clock_tick_nf,
-					"preset_clock_tick_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->preset_type_nf,
-					"preset_type_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->real_time_nf,
-					"real_time_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->roi_nf,
-					"roi_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->roi_array_nf,
-					"roi_array_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->roi_integral_nf,
-					"roi_integral_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->roi_integral_array_nf,
-					"roi_integral_array_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->roi_number_nf,
-					"roi_number_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->soft_roi_nf,
-					"soft_roi_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->soft_roi_array_nf,
-					"soft_roi_array_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->soft_roi_integral_nf,
-					"soft_roi_integral_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->soft_roi_integral_array_nf,
-					"soft_roi_integral_array_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->soft_roi_number_nf,
-					"soft_roi_number_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->runtime_clock_tick_nf,
-					"runtime_clock_tick_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->start_with_preset_nf,
-					"start_with_preset_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->statistics_nf,
-					"statistics_nf" );
-	MXI_HANDEL_NETWORK_NF_NULL( handel_network->stop_nf,
-					"stop_nf" );
+	HN_NF_ALLOC( handel_network->acquisition_value_name_nf );
+	HN_NF_ALLOC( handel_network->acquisition_value_nf );
+	HN_NF_ALLOC( handel_network->acquisition_value_to_all_nf );
+	HN_NF_ALLOC( handel_network->apply_nf );
+	HN_NF_ALLOC( handel_network->apply_to_all_nf );
+	HN_NF_ALLOC( handel_network->busy_nf );
+	HN_NF_ALLOC( handel_network->channel_array_nf );
+	HN_NF_ALLOC( handel_network->channel_number_nf );
+	HN_NF_ALLOC( handel_network->channel_value_nf );
+	HN_NF_ALLOC( handel_network->current_num_channels_nf );
+	HN_NF_ALLOC( handel_network->current_num_rois_nf );
+	HN_NF_ALLOC( handel_network->hardware_scas_are_enabled_nf );
+	HN_NF_ALLOC( handel_network->live_time_nf );
+	HN_NF_ALLOC( handel_network->new_data_available_nf );
+	HN_NF_ALLOC( handel_network->new_statistics_available_nf );
+	HN_NF_ALLOC( handel_network->param_value_to_all_channels_nf );
+	HN_NF_ALLOC( handel_network->parameter_name_nf );
+	HN_NF_ALLOC( handel_network->parameter_value_nf );
+	HN_NF_ALLOC( handel_network->preset_clock_tick_nf );
+	HN_NF_ALLOC( handel_network->preset_type_nf );
+	HN_NF_ALLOC( handel_network->real_time_nf );
+	HN_NF_ALLOC( handel_network->roi_nf );
+	HN_NF_ALLOC( handel_network->roi_array_nf );
+	HN_NF_ALLOC( handel_network->roi_integral_nf );
+	HN_NF_ALLOC( handel_network->roi_integral_array_nf );
+	HN_NF_ALLOC( handel_network->roi_number_nf );
+	HN_NF_ALLOC( handel_network->soft_roi_nf );
+	HN_NF_ALLOC( handel_network->soft_roi_array_nf );
+	HN_NF_ALLOC( handel_network->soft_roi_integral_nf );
+	HN_NF_ALLOC( handel_network->soft_roi_integral_array_nf );
+	HN_NF_ALLOC( handel_network->soft_roi_number_nf );
+	HN_NF_ALLOC( handel_network->runtime_clock_tick_nf );
+	HN_NF_ALLOC( handel_network->start_with_preset_nf );
+	HN_NF_ALLOC( handel_network->statistics_nf );
+	HN_NF_ALLOC( handel_network->stop_nf );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -491,8 +434,42 @@ mxi_handel_network_get_acquisition_values( MX_MCA *mca,
 	static const char fname[] =
 		"mxi_handel_network_get_acquisition_values()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	MX_HANDEL_MCA *handel_mca;
+	MX_HANDEL_NETWORK *handel_network;
+	char *old_name, *new_name;
+	long i, dimension_array[1];
+	mx_status_type mx_status;
+
+	mx_status = mxi_handel_network_get_pointers( mca,
+					&handel_mca, &handel_network, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	i = handel_mca->detector_channel;
+
+	old_name = handel_mca->old_acquisition_value_name;
+	new_name = handel_mca->acquisition_value_name;
+
+	if ( strcmp( old_name, new_name ) != 0 ) {
+		dimension_array[0] =
+			sizeof(handel_mca->acquisition_value_name) - 1;
+
+		mx_status = mx_put_array(
+				&(handel_network->acquisition_value_name_nf[i]),
+				MXFT_STRING, 1, dimension_array, new_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		strlcpy( old_name, new_name,
+			sizeof(handel_mca->acquisition_value_name) );
+	}
+
+	mx_status = mx_get( &(handel_network->acquisition_value_nf[i]),
+					MXFT_DOUBLE, value_ptr );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -504,8 +481,52 @@ mxi_handel_network_set_acquisition_values( MX_MCA *mca,
 	static const char fname[] =
 		"mxi_handel_network_set_acquisition_values()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	MX_HANDEL_MCA *handel_mca;
+	MX_HANDEL_NETWORK *handel_network;
+	char *old_value_name;
+	long i, dimension_array[1];
+	mx_status_type mx_status;
+
+	mx_status = mxi_handel_network_get_pointers( mca,
+					&handel_mca, &handel_network, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	i = handel_mca->detector_channel;
+
+	old_value_name = handel_mca->acquisition_value_name;
+
+	if ( strcmp( old_value_name, value_name ) != 0 ) {
+		dimension_array[0] =
+			sizeof(handel_mca->acquisition_value_name) - 1;
+
+		mx_status = mx_put_array(
+				&(handel_network->acquisition_value_name_nf[i]),
+				MXFT_STRING, 1, dimension_array, value_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		strlcpy( handel_mca->acquisition_value_name,
+		    value_name, sizeof(handel_mca->acquisition_value_name) );
+	}
+
+	mx_status = mx_put( &(handel_network->acquisition_value_nf[i]),
+					MXFT_DOUBLE, value_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( apply_flag ) {
+		mx_status = mx_put( &(handel_network->apply_nf[i]),
+					MXFT_BOOL, &apply_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -517,8 +538,52 @@ mxi_handel_network_set_acq_for_all_channels( MX_MCA *mca,
 	static const char fname[] =
 		"mxi_handel_network_set_acq_for_all_channels()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"Not yet implemented." );
+	MX_HANDEL_MCA *handel_mca;
+	MX_HANDEL_NETWORK *handel_network;
+	char *old_value_name;
+	long i, dimension_array[1];
+	mx_status_type mx_status;
+
+	mx_status = mxi_handel_network_get_pointers( mca,
+					&handel_mca, &handel_network, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	i = handel_mca->detector_channel;
+
+	old_value_name = handel_mca->acquisition_value_name;
+
+	if ( strcmp( old_value_name, value_name ) != 0 ) {
+		dimension_array[0] =
+			sizeof(handel_mca->acquisition_value_name) - 1;
+
+		mx_status = mx_put_array(
+				&(handel_network->acquisition_value_name_nf[i]),
+				MXFT_STRING, 1, dimension_array, value_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		strlcpy( handel_mca->acquisition_value_name,
+		    value_name, sizeof(handel_mca->acquisition_value_name) );
+	}
+
+	mx_status = mx_put( &(handel_network->acquisition_value_to_all_nf[i]),
+					MXFT_DOUBLE, value_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( apply_flag ) {
+		mx_status = mx_put( &(handel_network->apply_to_all_nf[i]),
+					MXFT_BOOL, &apply_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

@@ -245,6 +245,12 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 		handel_mca->sca_has_been_initialized[i] = FALSE;
 	}
 
+	handel_mca->acquisition_value_name[0] = '\0';
+	handel_mca->acquisition_value = 0;
+	handel_mca->acquisition_value_to_all = 0;
+	handel_mca->apply_flag = FALSE;
+	handel_mca->apply_to_all = FALSE;
+
 #if MXD_HANDEL_MCA_DEBUG
 	handel_mca->debug_flag = TRUE;
 #else
@@ -425,6 +431,20 @@ mxd_handel_mca_network_open( MX_MCA *mca,
 
 			handel_mca->detector_channel = (int) i;
 
+			MXD_HANDEL_NETWORK_NF_INIT( i,
+				handel_network->acquisition_value_name_nf,
+				"acquisition_value_name" );
+			MXD_HANDEL_NETWORK_NF_INIT( i,
+				handel_network->acquisition_value_nf,
+				"acquisition_value" );
+			MXD_HANDEL_NETWORK_NF_INIT( i,
+				handel_network->acquisition_value_to_all_nf,
+				"acquisition_value_to_all" );
+			MXD_HANDEL_NETWORK_NF_INIT( i,
+				handel_network->apply_nf, "apply" );
+			MXD_HANDEL_NETWORK_NF_INIT( i,
+				handel_network->apply_to_all_nf,
+				"apply_to_all" );
 			MXD_HANDEL_NETWORK_NF_INIT( i,
 				handel_network->busy_nf, "busy" );
 			MXD_HANDEL_NETWORK_NF_INIT( i,
@@ -980,7 +1000,9 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_HANDEL_NETWORK *handel_network;
 	unsigned long i, mca_number;
 	int display_config;
+#if 0
 	unsigned long codevar, coderev;
+#endif
 	mx_status_type mx_status;
 
 #if ( HAVE_XIA_HANDEL && MXD_HANDEL_MCA_DEBUG_TIMING )
@@ -1651,6 +1673,9 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
+		case MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL:
+		case MXLV_HANDEL_MCA_APPLY:
+		case MXLV_HANDEL_MCA_APPLY_TO_ALL:
 		case MXLV_HANDEL_MCA_ADC_TRACE_ARRAY:
 		case MXLV_HANDEL_MCA_BASELINE_ARRAY:
 		case MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY:
@@ -2365,7 +2390,49 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->set_acquisition_values)( mca,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value),
-					TRUE );
+					FALSE );
+			break;
+		case MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL:
+			MX_DEBUG(-2,
+			("%s: set acquisition value '%s' for all mcas to %g",
+				fname, handel_mca->acquisition_value_name,
+				handel_mca->acquisition_value ));
+
+			if ( handel_mca->set_acquisition_values == NULL ) {
+				return mx_error( MXE_UNSUPPORTED, fname,
+		"Setting acquisition values is not supported for MCA '%s'.",
+					mca->record->name );
+			}
+
+			mx_status = 
+			  (handel_mca->set_acquisition_values_for_all_channels)(
+					mca,
+					handel_mca->acquisition_value_name,
+					&(handel_mca->acquisition_value),
+					FALSE );
+			break;
+		case MXLV_HANDEL_MCA_APPLY:
+			MX_DEBUG(-2,("%s: apply for mca '%s'",
+				fname, mca->record->name ));
+
+			if ( handel_mca->apply == NULL ) {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Apply is not supported for MCA '%s'.",
+					mca->record->name );
+			}
+
+			mx_status = (handel_mca->apply)( mca, FALSE );
+			break;
+		case MXLV_HANDEL_MCA_APPLY_TO_ALL:
+			MX_DEBUG(-2,("%s: apply to all MCAs.", fname));
+
+			if ( handel_mca->apply == NULL ) {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Apply is not supported for MCA '%s'.",
+					mca->record->name );
+			}
+
+			mx_status = (handel_mca->apply)( mca, TRUE );
 			break;
 		default:
 			MX_DEBUG( 1,(
