@@ -123,7 +123,7 @@ MX_API mx_status_type mxi_handel_network_set_acq_for_all_channels( MX_MCA *mca,
 					mx_bool_type apply_flag );
 
 MX_API mx_status_type mxi_handel_network_apply( MX_MCA *mca,
-					unsigned long detector_channel );
+					mx_bool_type apply_to_all );
 
 MX_API mx_status_type mxi_handel_network_read_parameter( MX_MCA *mca,
 					char *parameter_name,

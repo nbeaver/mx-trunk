@@ -124,7 +124,7 @@ typedef struct {
 					double *value_ptr,
 					mx_bool_type apply_flag );
 
-	mx_status_type (*apply)( MX_MCA *mca, unsigned long detector_channel );
+	mx_status_type (*apply)( MX_MCA *mca, mx_bool_type apply_to_all );
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
 					char *parameter_name,

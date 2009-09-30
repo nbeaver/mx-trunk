@@ -1123,23 +1123,10 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 	}
 
 	if ( apply_flag ) {
-		ignored = 0;
+		mx_status = mxi_handel_apply( mca, TRUE );
 
-		xia_status = xiaBoardOperation( handel_mca->detector_channel,
-					"apply", (void *) &ignored );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot apply acquisition value '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", 
-					value_name,
-					mca->record->name,
-					xia_status,
-					mxi_handel_strerror( xia_status ) );
-		}
-
-		MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
-			fname, mca->record->name ));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1155,7 +1142,7 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	int xia_status, ignored;
+	int xia_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_handel_get_pointers( mca,
@@ -1201,36 +1188,25 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 	}
 
 	if ( apply_flag ) {
-		ignored = 0;
+		mx_status = mxi_handel_apply( mca, TRUE );
 
-		xia_status = xiaBoardOperation( handel_mca->detector_channel,
-					"apply", (void *) &ignored );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot apply acquisition value '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", 
-					value_name,
-					mca->record->name,
-					xia_status,
-					mxi_handel_strerror( xia_status ) );
-		}
-
-		MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
-			fname, mca->record->name ));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_apply( MX_MCA *mca, unsigned long detector_channel )
+mxi_handel_apply( MX_MCA *mca, mx_bool_type apply_to_all )
 {
 	static const char fname[] = "mxi_handel_apply()";
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	int xia_status, ignored;
+	int m, xia_status, ignored;
+	MX_RECORD *first_mca_record;
+	MX_HANDEL_MCA *first_handel_mca;
 	mx_status_type mx_status;
 
 	mx_status = mxi_handel_get_pointers( mca,
@@ -1239,22 +1215,69 @@ mxi_handel_apply( MX_MCA *mca, unsigned long detector_channel )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ignored = 0;
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s for MCA '%s', apply_to_all = %d",
+			fname, mca->record->name, (int) apply_to_all ));
+	}
 
-	xia_status = xiaBoardOperation( handel_mca->detector_channel,
-					"apply", (void *) &ignored );
+	if ( apply_to_all == FALSE ) {
+		ignored = 0;
 
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Cannot apply acquisition values for MCA '%s'.  "
-		"Error code = %d, '%s'", 
+		xia_status = xiaBoardOperation( handel_mca->detector_channel,
+						"apply", (void *) &ignored );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot apply acquisition values for MCA '%s'.  "
+			"Error code = %d, '%s'", 
 				mca->record->name,
 				xia_status,
 				mxi_handel_strerror( xia_status ) );
-	}
+		}
+	} else {
+		for ( m = 0; m < handel->num_modules; m++ ) {
+			/* Find the first MCA for each module and then
+			 * do an apply to it.
+			 */
 
-	MX_DEBUG(-2,("%s: xiaBoardOperation() invoked for MCA '%s'",
-		fname, mca->record->name ));
+			first_mca_record = handel->module_array[m][0];
+
+			if ( first_mca_record == NULL ) {
+				continue;  /* Go back to the top of the loop. */
+			}
+
+			first_handel_mca = first_mca_record->record_type_struct;
+
+			if ( first_handel_mca == NULL ) {
+				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+				fname, "The MX_HANDEL_MCA pointer for Handel "
+				"MCA '%s' is NULL.",
+					first_mca_record->name );
+			}
+
+			if ( handel_mca->debug_flag ) {
+				MX_DEBUG(-2,("%s: applying to MCA '%s'",
+					fname, first_mca_record->name ));
+			}
+
+			ignored = 0;
+
+			xia_status = xiaBoardOperation(
+					first_handel_mca->detector_channel,
+					"apply", (void *) &ignored );
+
+			if ( xia_status != XIA_SUCCESS ) {
+				return mx_error( MXE_INTERFACE_ACTION_FAILED,
+				fname, "Cannot apply acquisition values for "
+				"MCA '%s' on behalf of MCA '%s'.  "
+				"Error code = %d, '%s'",
+					first_mca_record->name,
+					mca->record->name,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+			}
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2267,13 +2290,13 @@ mxi_handel_get_baseline_history_array( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxi_handel_get_mx_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxi_handel_get_mx_parameter()";
+	static const char fname[] = "mxi_handel_get_mx_parameter()";
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
 	char acquisition_value_name[MAXALIAS_LEN+1];
 	double acquisition_value;
-	long i;
+	long i, handel_preset_type;
 	int xia_status;
 	mx_status_type mx_status;
 
@@ -2299,14 +2322,109 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 #endif
 
 	switch( mca->parameter_type ) {
-	case MXLV_MCA_CURRENT_NUM_CHANNELS:
-	case MXLV_MCA_PRESET_TYPE:
 	case MXLV_MCA_CHANNEL_NUMBER:
 
 		/* These items are stored in memory and are not retrieved
 		 * from the hardware.
 		 */
 
+		break;
+
+	case MXLV_MCA_CURRENT_NUM_CHANNELS:
+		mx_status = mxi_handel_get_acquisition_values( mca,
+				"number_mca_channels", &acquisition_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mca->current_num_channels = mx_round( acquisition_value );
+		break;
+
+	case MXLV_MCA_PRESET_TYPE:
+		mx_status = mxi_handel_get_acquisition_values( mca,
+				"preset_type", &acquisition_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		handel_preset_type = mx_round( acquisition_value );
+
+		switch( handel_preset_type ) {
+		case MXF_HANDEL_MCA_PRESET_NONE:
+			mca->preset_type = MXF_MCA_PRESET_NONE;
+			break;
+		case MXF_HANDEL_MCA_PRESET_REAL_TIME:
+			mca->preset_type = MXF_MCA_PRESET_REAL_TIME;
+			break;
+		case MXF_HANDEL_MCA_PRESET_LIVE_TIME:
+			mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
+			break;
+		case MXF_HANDEL_MCA_PRESET_OUTPUT_EVENTS:
+		case MXF_HANDEL_MCA_PRESET_INPUT_COUNTS:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Handel preset type %ld is not currently "
+				"supported for MCA '%s'.", 
+					handel_preset_type,
+					mca->record->name );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Unrecognized Handel preset type %ld "
+				"returned by MCA '%s'.",
+					handel_preset_type,
+					mca->record->name );
+			break;
+		}
+		break;
+
+	case MXLV_MCA_PRESET_REAL_TIME:
+		if ( mca->preset_type != MXLV_MCA_PRESET_REAL_TIME ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_REAL_TIME;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mxi_handel_get_acquisition_values( mca,
+				"preset_value", &(mca->preset_real_time) );
+		break;
+
+	case MXLV_MCA_PRESET_LIVE_TIME:
+		if ( mca->preset_type != MXLV_MCA_PRESET_LIVE_TIME ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_LIVE_TIME;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mxi_handel_get_acquisition_values( mca,
+				"preset_value", &(mca->preset_live_time) );
+		break;
+
+	case MXLV_MCA_PRESET_COUNT:
+		if ( mca->preset_type != MXLV_MCA_PRESET_COUNT ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_COUNT;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mxi_handel_get_acquisition_values( mca,
+				"preset_value", &acquisition_value );
+
+		mca->preset_count = mx_round( acquisition_value );
 		break;
 
 	case MXLV_MCA_CHANNEL_VALUE:
@@ -2506,8 +2624,7 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_REAL_TIME:
-		xia_status = xiaGetAcquisitionValues(
-			handel_mca->detector_channel,
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
 			"runtime", (void *) &(mca->real_time) );
 
 		if ( xia_status != XIA_SUCCESS ) {
@@ -2520,9 +2637,21 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_LIVE_TIME:
-		xia_status = xiaGetAcquisitionValues(
-			handel_mca->detector_channel,
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
 			"trigger_livetime", (void *) &(mca->live_time) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot read the value '%s' from MCA '%s'.  "
+			"Error code = %d, '%s'", acquisition_value_name,
+					mca->record->name, xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+		break;
+
+	case MXLV_MCA_COUNTS:
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
+			"events_in_run", (void *) &(mca->live_time) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2552,13 +2681,13 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxi_handel_set_mx_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxi_handel_set_mx_parameter()";
+	static const char fname[] = "mxi_handel_set_mx_parameter()";
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
 	char acquisition_value_name[MAXALIAS_LEN+1];
 	double acquisition_value;
-	long i;
+	long i, handel_preset_type;
 	int xia_status;
 	mx_status_type mx_status;
 
@@ -2585,106 +2714,142 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
-	case MXLV_MCA_PRESET_TYPE:
+		acquisition_value = (double) mca->current_num_channels;
 
-		/* These items are stored in memory and are not retrieved
-		 * from the hardware.
-		 */
-
+		mx_status = mxi_handel_set_acquisition_values( mca,
+				"number_mca_channels", &acquisition_value,
+				TRUE );
 		break;
+
+	case MXLV_MCA_PRESET_TYPE:
+		switch( mca->preset_type ) {
+		case MXF_MCA_PRESET_NONE:
+			handel_preset_type = MXF_HANDEL_MCA_PRESET_NONE;
+			break;
+		case MXF_MCA_PRESET_REAL_TIME:
+			handel_preset_type = MXF_HANDEL_MCA_PRESET_REAL_TIME;
+			break;
+		case MXF_MCA_PRESET_LIVE_TIME:
+			handel_preset_type = MXF_HANDEL_MCA_PRESET_LIVE_TIME;
+			break;
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"MX preset type %ld is not yet implemented "
+				"for MCA '%s'.",
+				mca->preset_type, mca->record->name );
+			break;
+		}
+		acquisition_value = (double) handel_preset_type;
+
+		mx_status = mxi_handel_set_acquisition_values( mca,
+				"preset_type", &acquisition_value, TRUE );
+		break;
+
+	case MXLV_MCA_PRESET_REAL_TIME:
+		if ( mca->preset_type != MXLV_MCA_PRESET_REAL_TIME ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_REAL_TIME;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mxi_handel_set_acquisition_values( mca,
+			"preset_value", &(mca->preset_real_time), TRUE );
+		break;
+
+	case MXLV_MCA_PRESET_LIVE_TIME:
+		if ( mca->preset_type != MXLV_MCA_PRESET_LIVE_TIME ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_LIVE_TIME;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mxi_handel_set_acquisition_values( mca,
+			"preset_value", &(mca->preset_live_time), TRUE );
+		break;
+
+	case MXLV_MCA_PRESET_COUNT:
+		if ( mca->preset_type != MXLV_MCA_PRESET_COUNT ) {
+
+			mca->preset_type    = MXF_MCA_PRESET_COUNT;
+			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+			mx_status = mxi_handel_set_mx_parameter( mca );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		acquisition_value = (double) mca->preset_count;
+
+		mx_status = mxi_handel_set_acquisition_values( mca,
+			"preset_value", &acquisition_value, TRUE );
+		break;
+
 
 	case MXLV_MCA_ROI_ARRAY:
 		for ( i = 0; i < mca->current_num_rois; i++ ) {
-			if ( handel_mca->hardware_scas_are_enabled ) {
-				sprintf( acquisition_value_name,
-						"sca%ld_lo", i );
-			} else {
-				sprintf( acquisition_value_name,
-						"SCA%ldLO", i );
-			}
+			sprintf( acquisition_value_name, "sca%ld_lo", i );
 
 			acquisition_value = (double) mca->roi_array[i][0];
 			
-			xia_status = xiaSetAcquisitionValues(
-				handel_mca->detector_channel,
-				acquisition_value_name,
-				(void *) &acquisition_value );
-
-			if ( xia_status != XIA_SUCCESS ) {
-				return mx_error(
-				    MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot write the value %ld to '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", mca->roi_array[i][0],
+			mx_status = mxi_handel_set_acquisition_values( mca,
 					acquisition_value_name,
-					mca->record->name, xia_status,
-					mxi_handel_strerror( xia_status ) );
-			}
+					&acquisition_value, FALSE );
 
-			if ( handel_mca->hardware_scas_are_enabled ) {
-				sprintf( acquisition_value_name,
-						"sca%ld_hi", i );
-			} else {
-				sprintf( acquisition_value_name,
-						"SCA%ldHI", i );
-			}
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			sprintf( acquisition_value_name, "sca%ld_hi", i );
 			
 			acquisition_value = (double) mca->roi_array[i][1];
 			
-			xia_status = xiaSetAcquisitionValues(
-				handel_mca->detector_channel,
-				acquisition_value_name,
-				(void *) &acquisition_value );
-
-			if ( xia_status != XIA_SUCCESS ) {
-				return mx_error(
-				    MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot write the value %ld to '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", mca->roi_array[i][0],
+			mx_status = mxi_handel_set_acquisition_values( mca,
 					acquisition_value_name,
-					mca->record->name, xia_status,
-					mxi_handel_strerror( xia_status ) );
-			}
+					&acquisition_value, FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			handel_mca->sca_has_been_initialized[i] = TRUE;
 		}
+
+		mx_status = mxi_handel_apply( mca, -1 );
+
 		break;
 
 	case MXLV_MCA_ROI:
 		i = mca->roi_number;
 
-		if ( handel_mca->hardware_scas_are_enabled ) {
-			sprintf( acquisition_value_name, "sca%ld_lo", i );
-		} else {
-			sprintf( acquisition_value_name, "SCA%ldLO", i );
-		}
+		sprintf( acquisition_value_name, "sca%ld_lo", i );
 
 		acquisition_value = (double) mca->roi[0];
 
 		MX_DEBUG( 2,
 		("%s: acquisition_value_name = '%s', acquisition_value = %g",
 			fname, acquisition_value_name, acquisition_value));
+
+		mx_status = mxi_handel_set_acquisition_values( mca,
+					acquisition_value_name,
+					&acquisition_value, FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 			
-		xia_status = xiaSetAcquisitionValues(
-				handel_mca->detector_channel,
-				acquisition_value_name,
-				(void *) &acquisition_value );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot write the value %ld to '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", mca->roi_array[i][0],
-				acquisition_value_name,
-				mca->record->name, xia_status,
-				mxi_handel_strerror( xia_status ) );
-		}
-
 		mca->roi_array[i][0] = mca->roi[0];
 
-		if ( handel_mca->hardware_scas_are_enabled ) {
-			sprintf( acquisition_value_name, "sca%ld_hi", i );
-		} else {
-			sprintf( acquisition_value_name, "SCA%ldHI", i );
-		}
+		/*---*/
+
+		sprintf( acquisition_value_name, "sca%ld_hi", i );
 
 		acquisition_value = (double) mca->roi[1];
 			
@@ -2692,23 +2857,19 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 		("%s: acquisition_value_name = '%s', acquisition_value = %g",
 			fname, acquisition_value_name, acquisition_value));
 			
-		xia_status = xiaSetAcquisitionValues(
-				handel_mca->detector_channel,
-				acquisition_value_name,
-				(void *) &acquisition_value );
+		mx_status = mxi_handel_set_acquisition_values( mca,
+					acquisition_value_name,
+					&acquisition_value, FALSE );
 
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot write the value %ld to '%s' for MCA '%s'.  "
-			"Error code = %d, '%s'", mca->roi_array[i][0],
-				acquisition_value_name,
-				mca->record->name, xia_status,
-				mxi_handel_strerror( xia_status ) );
-		}
-
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+			
 		mca->roi_array[i][1] = mca->roi[1];
 
 		handel_mca->sca_has_been_initialized[i] = TRUE;
+
+		mx_status = mxi_handel_apply( mca, -1 );
+
 		break;
 
 	default:

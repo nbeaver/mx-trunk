@@ -522,7 +522,7 @@ mxi_handel_network_set_acq_for_all_channels( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_network_apply( MX_MCA *mca, unsigned long detector_channel )
+mxi_handel_network_apply( MX_MCA *mca, mx_bool_type apply_to_all )
 {
 	static const char fname[] = "mxi_handel_network_apply()";
 
