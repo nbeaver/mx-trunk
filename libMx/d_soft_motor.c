@@ -14,7 +14,7 @@
  *
  */
 
-#define SOFT_MOTOR_DEBUG	FALSE
+#define SOFT_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

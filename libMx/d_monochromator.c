@@ -11,14 +11,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_MONOCHROMATOR_DEBUG_TIMING	FALSE
+#define MXD_MONOCHROMATOR_DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
