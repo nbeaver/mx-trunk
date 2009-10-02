@@ -180,7 +180,7 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 
 /*---------------------------------------------------------------------------*/
 
-#elif defined(OS_VXWORKS)
+#elif defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
