@@ -140,7 +140,7 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 			last_error_code, message_buffer );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: dwSize.X = %d", fname, (int) csb_info.dwSize.X));
 	MX_DEBUG(-2,("%s: dwSize.Y = %d", fname, (int) csb_info.dwSize.Y));
 	MX_DEBUG(-2,("%s: dwCursorPosition.X = %d",
@@ -175,7 +175,7 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 
 /*---------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_VXWORKS)
 
 MX_EXPORT mx_status_type
 mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
