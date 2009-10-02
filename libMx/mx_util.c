@@ -2755,3 +2755,35 @@ access( char *pathname, int mode )
 }
 
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_VXWORKS) || (defined(OS_WIN32) && defined(__BORLANDC__))
+
+/* Some platforms define mkdir() differently or not at all, so we provide
+ * our own front end here.
+ */
+
+#ifdef mkdir
+#undef mkdir
+#endif
+
+#if defined(__BORLANDC__)
+#include <dir.h>
+#endif
+
+MX_EXPORT int
+mx_mkdir( const char *pathname, mode_t mode )
+{
+	int os_status;
+
+#if defined(__BORLANDC__)
+	os_status = _mkdir( pathname );
+#else
+	os_status = mkdir( pathname );
+#endif
+
+	return os_status;
+}
+
+#endif

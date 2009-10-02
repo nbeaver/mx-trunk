@@ -52,7 +52,7 @@ mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 	volatile long *long_ptr;
 	long long_result;
 
-	long_ptr = value_ptr;
+	long_ptr = (volatile long *) value_ptr;
 
 #if defined(_M_IA64)	/* Only on Itanium */
 	long_result = InterlockedAdd( long_ptr, (long) increment );
@@ -69,7 +69,7 @@ mx_atomic_decrement32( int32_t *value_ptr )
 	LONG *long_ptr;
 	LONG long_result;
 
-	long_ptr = value_ptr;
+	long_ptr = (LONG *) value_ptr;
 
 	long_result = InterlockedDecrement( long_ptr );
 
@@ -82,7 +82,7 @@ mx_atomic_increment32( int32_t *value_ptr )
 	LONG *long_ptr;
 	LONG long_result;
 
-	long_ptr = value_ptr;
+	long_ptr = (LONG *) value_ptr;
 
 	long_result = InterlockedIncrement( long_ptr );
 
@@ -95,7 +95,7 @@ mx_atomic_read32( int32_t *value_ptr )
 	LONG *long_ptr;
 	LONG long_result;
 
-	long_ptr = value_ptr;
+	long_ptr = (LONG *) value_ptr;
 
 	/* Visual C++ 6 defined InterlockedCompareExchange() with
 	 * a different prototype than later versions of Visual C++.
@@ -145,7 +145,7 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 {
 	LONG *long_ptr;
 
-	long_ptr = value_ptr;
+	long_ptr = (LONG *) value_ptr;
 
 	(void) InterlockedExchange( long_ptr, new_value );
 

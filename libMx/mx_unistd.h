@@ -51,6 +51,30 @@ extern int access( char *pathname, int mode );
 #  define F_OK  0
 #endif
 
+/* Some platforms define mkdir() differently or not at all, so we provide
+ * our own front end here.
+ */
+
+#if defined(OS_VXWORKS) || (defined(OS_WIN32) && defined(__BORLANDC__))
+#  include <sys/types.h>
+
+#  define mkdir(p,m)	mx_mkdir((p),(m))
+
+   /* Make the definition of mx_mkdir() C++ safe. */
+
+#  ifdef __cplusplus
+   extern "C" {
+#  endif
+
+   MX_API int mx_mkdir( const char *pathname, mode_t mode );
+
+#  ifdef __cplusplus
+   }
+#  endif
+#endif
+
+/*----*/
+
 #if defined(OS_CYGWIN)
 #  include <getopt.h>
 #else
