@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if 0
+#if defined(OS_BSD)
 #include <pthread.h>
 #endif
 

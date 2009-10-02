@@ -16,11 +16,11 @@ LIB_DIRS	= -L$(MX_LIB_DIR)
 
 # FreeBSD and NetBSD
 #
-#LIBRARIES	= -pthread -lpthread -lrt -lm
+LIBRARIES	= -pthread -lpthread -lrt -lm
 
 # OpenBSD
 #
-LIBRARIES	= -pthread -lpthread -lm
+#LIBRARIES	= -pthread -lpthread -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
