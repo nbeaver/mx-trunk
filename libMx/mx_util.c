@@ -2758,7 +2758,8 @@ access( char *pathname, int mode )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_VXWORKS) || (defined(OS_WIN32) && defined(__BORLANDC__))
+#if defined(OS_VXWORKS) \
+        || ( defined(OS_WIN32) && (defined(__BORLANDC__) | defined(__GNUC__)) )
 
 /* Some platforms define mkdir() differently or not at all, so we provide
  * our own front end here.

@@ -55,7 +55,8 @@ extern int access( char *pathname, int mode );
  * our own front end here.
  */
 
-#if defined(OS_VXWORKS) || (defined(OS_WIN32) && defined(__BORLANDC__))
+#if defined(OS_VXWORKS) \
+        || ( defined(OS_WIN32) && (defined(__BORLANDC__) | defined(__GNUC__)) )
 #  include <sys/types.h>
 
 #  define mkdir(p,m)	mx_mkdir((p),(m))
