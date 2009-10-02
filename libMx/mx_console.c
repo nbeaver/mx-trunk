@@ -23,7 +23,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_RTEMS)
 
 #include <stdio.h>
 #include <errno.h>
