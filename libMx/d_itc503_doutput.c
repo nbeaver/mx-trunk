@@ -390,9 +390,7 @@ mxd_itc503_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	case 'C':	/* Local/remote/lock command */
 
-		if ( ( doutput->value < 0 )
-		  || ( doutput->value > 3 ) )
-		{
+		if ( doutput->value > 3 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'C' local/remote/lock control value passed (%ld) for record '%s' "
 	"is not in the allowed range of values from 0 to 3.",
