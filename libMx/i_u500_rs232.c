@@ -15,7 +15,7 @@
  *
  */
 
-#define U500_RS232_DEBUG	TRUE
+#define U500_RS232_DEBUG	FALSE
 
 #include <stdio.h>
 

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_ISOBUS_DEBUG	TRUE
+#define MXI_ISOBUS_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_U500_DEBUG			TRUE
+#define MXI_U500_DEBUG			FALSE
 
 #define MXI_U500_DEBUG_TIMING		FALSE
 

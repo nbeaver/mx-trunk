@@ -14,7 +14,7 @@
  *
  */
 
-#define U500_DEBUG	TRUE
+#define U500_DEBUG	FALSE
 
 #include <stdio.h>
 

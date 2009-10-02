@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_CLEAR_TIMING	TRUE
+#define DEBUG_CLEAR_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
