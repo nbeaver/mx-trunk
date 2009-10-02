@@ -18,6 +18,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_key.h"
 #include "mx_console.h"
 
@@ -259,6 +260,8 @@ mx_paged_console_output( FILE *console,
 		}
 	}
 
+#if !defined(OS_SOLARIS)
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
