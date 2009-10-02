@@ -29,7 +29,10 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+
+#if !defined(OS_QNX)
 #include <sys/termios.h>
+#endif
 
 MX_EXPORT mx_status_type
 mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
