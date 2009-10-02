@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ typedef struct {
   	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503, isobus_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "itc503_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "itc503_flags", MXFT_HEX, NULL, 0, {0}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503, itc503_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

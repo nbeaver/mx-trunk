@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,9 +146,9 @@ mxi_ilm_open( MX_RECORD *record )
 
 	if ( strncmp( response, "ILM", 3 ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The record '%s' does not appear to be an ILM controller "
-		"since its response to the V (version) command does not "
-		"start with the string ILM.  The actual response was '%s'",
+		"ILM controller '%s' did not return the expected "
+		"version string in its response to the V command.  "
+		"Response = '%s'",
 			record->name, response );
 	}
 

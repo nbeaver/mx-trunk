@@ -1,14 +1,19 @@
 /*
  * Name:    d_itc503_aoutput.c
  *
- * Purpose: MX analog output driver for Oxford Instruments ITC503 and
- *          Cryojet temperature controllers.
+ * Purpose: MX analog output driver for the Oxford Instruments ITC503
+ *          temperature controller and the Cryojet cryocooler.
  *
- * Author:  William Lavender
+ *          ITC503: Please note that this driver only writes status values.
+ *          It does not attempt to change the temperature settings.
+ *
+ *	    Cryojet: Can control gas flow rates, temperature settings etc.
+ *
+ * Author:  William Lavender and Henry Bellamy
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,7 +21,7 @@
  */
 
 #define ITC503_AOUTPUT_DEBUG	FALSE
-
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -532,7 +537,8 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	MX_ISOBUS *isobus = NULL;
 	char command[80];
 	char response[80];
-	long parameter_value;
+	long long_parameter_value;
+	double double_parameter_value;
 	char parameter_type;
 	mx_status_type mx_status;
 
@@ -551,33 +557,56 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	switch( parameter_type ) {
 	case 'A':	/* Auto/manual command */
 
-		parameter_value = mx_round( aoutput->raw_value.double_value );
+		/* For the Cryojet it is necessary to follow the A0 with
+		 * a O0 to set the heater voltage to zero. To enable  
+		 * automatic temperature control an A1 will suffice
+		 */
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 3 ) )
+		long_parameter_value = 
+			mx_round( aoutput->raw_value.double_value );
+
+		if ( ( long_parameter_value != 0 )
+		  && ( long_parameter_value != 1 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'A' auto/manual control value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0 to 3.",
+	"is not one of the allowed values, 0 or 1.",
 				aoutput->raw_value.double_value,
 				aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "A%ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"A%1ld", long_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
 					command, response, sizeof(response),
 					itc503->maximum_retries,
 					ITC503_AOUTPUT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ( itc503->record->mx_type == MXI_GEN_CRYOJET ) 
+		  && ( long_parameter_value == 0 ) )
+		{
+			snprintf( command, sizeof(command), "O0" );
+			
+			mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					"00", response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_AOUTPUT_DEBUG );
+		}
 		break;
 
 	case 'C':	/* Local/remote/lock command */
 
-		parameter_value = mx_round( aoutput->raw_value.double_value );
+		long_parameter_value = 
+			mx_round( aoutput->raw_value.double_value );
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 3 ) )
+		if ( ( long_parameter_value < 0 )
+		  || ( long_parameter_value > 3 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'C' local/remote/lock control value passed (%g) for record '%s' "
@@ -586,7 +615,8 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "C%ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"C%1ld", long_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -597,20 +627,19 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'D':	/* Derivative action time */
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 9999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 273.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'D' derivative action time passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 999.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 273.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "D%04ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"D%.1f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -630,11 +659,11 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 				itc503->record->name );
 		}
 
-		parameter_value =
+		long_parameter_value =
 			mx_round( 10.0 * aoutput->raw_value.double_value );
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 999 ) )
+		if ( ( long_parameter_value < 0 )
+		  || ( long_parameter_value > 999 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'G' gas flow control value passed (%g) for record '%s' "
@@ -643,7 +672,9 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 				aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "G%03ld", parameter_value );
+	
+		snprintf( command, sizeof(command),
+				"G%03ld", long_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -654,20 +685,19 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'I':	/* Integral action time */
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 9999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 140.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'I' integral action time passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 999.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 140.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "I%04ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"I%.1f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -681,26 +711,25 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
-			"supported for the 'K' command.  Only the Cryojet "
+			"supported for the 'J' command.  Only the Cryojet "
 			"is supported for that command.",
 				itc503->label,
 				itc503->record->name );
 		}
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 10.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'J' shield flow control value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 99.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 10.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "J%03ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"J%.1f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -720,20 +749,19 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 				itc503->record->name );
 		}
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 10.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'K' sample flow control value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 99.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 10.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "K%03ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"K%.1f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -744,20 +772,20 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'O':	/* Heater output command */
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 48.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'O' heater output control value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 99.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 48.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "O%03ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"O%.1f", double_parameter_value );
+
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -768,20 +796,19 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'P':	/* Proportional band */
 
-		parameter_value =
-			mx_round( 10.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 9999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 100.0 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'P' proportional band control value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 999.9.",
-				aoutput->raw_value.double_value,
-				aoutput->record->name );
+	"is not in the allowed range of values from 0.0 to 100.0.",
+			double_parameter_value, aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "P%04ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"P%.2f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,
@@ -792,20 +819,20 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'T':	/* Temperature setpoint */
 		
-		parameter_value =
-			mx_round( 100.0 * aoutput->raw_value.double_value );
+		double_parameter_value = aoutput->raw_value.double_value;
 
-		if ( ( parameter_value < 0 )
-		  || ( parameter_value > 99999 ) )
+		if ( ( double_parameter_value < 0 )
+		  || ( double_parameter_value > 320.00 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'T' temperature setpoint value passed (%g) for record '%s' "
-	"is not in the allowed range of values from 0.0 to 999.99.",
+	"is not in the allowed range of values from 0.0 to 320.00.",
 				aoutput->raw_value.double_value,
 				aoutput->record->name );
 		}
 
-		snprintf( command, sizeof(command), "T%05ld", parameter_value );
+		snprintf( command, sizeof(command),
+				"T%.2f", double_parameter_value );
 
 		mx_status = mxi_isobus_command( isobus,
 					itc503->isobus_address,

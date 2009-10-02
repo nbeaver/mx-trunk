@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -162,12 +162,19 @@ mxi_itc503_open( MX_RECORD *record )
 		fname, record->name, response));
 #endif
 
-	if ( strncmp( response, "JET", 3 ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The record '%s' does not appear to be a %s controller "
-		"since its response to the V (version) command does not "
-		"start with the string JET.  The actual response was '%s'",
-			record->name, itc503->label, response );
+	switch( itc503->record->mx_type ) {
+	case MXI_GEN_CRYOJET:
+		if ( strncmp( response, "JET", 3 ) != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"%s controller '%s' did not return the expected "
+			"version string in its response to the V command.  "
+			"Response = '%s'",
+				itc503->label, record->name, response );
+		}
+		break;
+
+	case MXI_GEN_ITC503:
+		break;
 	}
 
 	/* Send a 'Cn' control command.  See the header file

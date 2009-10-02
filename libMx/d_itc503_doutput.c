@@ -1,14 +1,17 @@
 /*
  * Name:    d_itc503_doutput.c
  *
- * Purpose: MX digital output driver for Oxford Instruments ITC503 and
- *          Cryojet temperature controllers.
+ * Purpose: MX digital output driver for the Oxford Instruments ITC503
+ *          temperature controller.
  *
- * Author:  William Lavender
+ *          Please note that this driver only writes status values.  It does
+ *          not attempt to change the temperature settings.
+ *
+ * Author:  William Lavender and Henry Bellamy
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -349,11 +352,17 @@ mxd_itc503_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( parameter_type ) {
 	case 'A':	/* Auto/manual command */
+		/* For the Cryojet it is necessary to follow the A0 with
+		 * a O0 to set the heater voltage to zero. To enable  
+		 * automatic temperature control an A1 will suffice.
+		 */
 
-		if ( doutput->value > 3 ) {
+		if ( ( doutput->value != 0 )
+		  && ( doutput->value != 1 ) )
+		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'A' auto/manual control value passed (%ld) for record '%s' "
-	"is not in the allowed range of values from 0 to 3.",
+	"is not one of the allowed values, 0 or 1.",
 				doutput->value,
 				doutput->record->name );
 		}
@@ -365,11 +374,25 @@ mxd_itc503_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 					command, response, sizeof(response),
 					itc503->maximum_retries,
 					ITC503_DOUTPUT_DEBUG );
+
+		if ( ( itc503->record->mx_type == MXI_GEN_CRYOJET ) 
+		  && (doutput->value == 0 ) )
+		{
+			snprintf( command, sizeof(command), "O0" );
+			
+			mx_status = mxi_isobus_command( isobus,
+					itc503->isobus_address,
+					command, response, sizeof(response),
+					itc503->maximum_retries,
+					ITC503_DOUTPUT_DEBUG );
+		}
 		break;
 
 	case 'C':	/* Local/remote/lock command */
 
-		if ( doutput->value > 3 ) {
+		if ( ( doutput->value < 0 )
+		  || ( doutput->value > 3 ) )
+		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The 'C' local/remote/lock control value passed (%ld) for record '%s' "
 	"is not in the allowed range of values from 0 to 3.",
