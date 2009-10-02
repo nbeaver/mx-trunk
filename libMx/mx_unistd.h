@@ -67,7 +67,7 @@ extern int access( char *pathname, int mode );
    extern "C" {
 #  endif
 
-   MX_API int mx_mkdir( const char *pathname, mode_t mode );
+   MX_API int mx_mkdir( char *pathname, mode_t mode );
 
 #  ifdef __cplusplus
    }

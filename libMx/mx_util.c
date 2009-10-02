@@ -2774,7 +2774,7 @@ access( char *pathname, int mode )
 #endif
 
 MX_EXPORT int
-mx_mkdir( const char *pathname, mode_t mode )
+mx_mkdir( char *pathname, mode_t mode )
 {
 	int os_status;
 

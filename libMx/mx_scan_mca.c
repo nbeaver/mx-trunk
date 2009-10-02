@@ -64,11 +64,7 @@ mxp_scan_verify_mca_subdirectory( char *mca_directory_name )
 
 		/* The directory does not already exist, so create it. */
 
-#if defined(OS_VXWORKS)
-		os_status = mkdir( mca_directory_name );
-#else
 		os_status = mkdir( mca_directory_name, 0777 );
-#endif
 
 		if ( os_status == 0 ) {
 			/* Creating the directory succeeded, so we are done! */
