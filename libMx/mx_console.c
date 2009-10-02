@@ -23,11 +23,12 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_RTEMS)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
 
 #include <stdio.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <sys/termios.h>
 
 MX_EXPORT mx_status_type
 mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
