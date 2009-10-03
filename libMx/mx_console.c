@@ -180,7 +180,68 @@ mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
 
 /*---------------------------------------------------------------------------*/
 
-#elif defined(OS_VXWORKS) || defined(OS_DJGPP)
+#elif ( 0 && defined(OS_VMS) )
+
+#include "mx_stdint.h"
+
+#include <errno.h>
+#include <ssdef.h>
+#include <starlet.h>
+#include <descrip.h>
+#include <dvidef.h>
+
+typedef struct {
+	uint16_t buffer_length;
+	uint16_t item_code;
+	uint32_t *buffer_address;
+	uint32_t *return_length_address;
+} ILE;
+
+MX_EXPORT mx_status_type
+mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
+{
+	static const char fname[] = "mx_get_console_size()";
+
+	uint32_t terminal_width;
+
+	int vms_status;
+	$DESCRIPTOR(tt_descriptor, "TT:");
+
+	short iosb[4];
+
+	ILE item_list[] =
+		{ {4, DVI$_DEVBUFSIZ, &terminal_width, NULL},
+		  {0, 0, NULL, NULL} };
+
+	if ( ( num_rows == NULL ) || ( num_columns == NULL ) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"One of the argument pointers passed was NULL." );
+	}
+
+	vms_status = sys$getdviw( 0, 0, &tt_descriptor, &item_list, &iosb );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the width of the terminal failed.  "
+		"VMS error number %d, error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	*num_rows = 25;		/* FIXME - Where do you get rows from? */
+
+	*num_columns = terminal_width;
+
+#if 1
+	MX_DEBUG(-2,("%s: num_rows = %lu, num_columns = %lu",
+		fname, *num_rows, *num_columns));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+#elif defined(OS_VXWORKS) || defined(OS_DJGPP) || defined(OS_VMS)
 
 MX_EXPORT mx_status_type
 mx_get_console_size( unsigned long *num_rows, unsigned long *num_columns )
