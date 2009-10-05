@@ -22,6 +22,11 @@ Version 1.5.1 (10/04/09):
 	    spellman_df3_din, spellman_df3_dout:
 	        A group of drivers for the Spellman DF3/FF3 series of
 		high voltage power supplies for X-ray generators.
+
+	    systron_donner_m107 - Driver for the Systron-Donner M107
+	        DC voltage source.
+
+	    epics_ccd - MX area detector driver for the EPICS CCD record.
 	    
 	    mca_weighted_sum - This is an analog input driver that
 	        reports weighted sums of MCA regions of interest.
