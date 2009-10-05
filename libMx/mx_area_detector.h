@@ -327,6 +327,8 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type shutter_enable;
 
+	mx_bool_type transfer_image_during_scan;
+
 	/* 'area_detector_flags' is used to initialize various features
 	 * of the area detector.
 	 */
@@ -507,6 +509,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_REGISTER_NAME			12056
 #define MXLV_AD_REGISTER_VALUE			12057
 #define MXLV_AD_SHUTTER_ENABLE			12058
+#define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12059
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -855,6 +858,12 @@ typedef struct mx_area_detector_type {
   {MXLV_AD_SHUTTER_ENABLE, -1, "shutter_enable", \
   					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, shutter_enable ),\
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_TRANSFER_IMAGE_DURING_SCAN, -1, "transfer_image_during_scan", \
+  					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof( MX_AREA_DETECTOR, transfer_image_during_scan ),\
 	{sizeof(char)}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \

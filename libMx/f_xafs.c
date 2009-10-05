@@ -925,6 +925,14 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			num_mcas++;
 			break;
 
+		case MXC_AREA_DETECTOR:
+			mx_status = mx_scan_save_area_detector_image(
+						scan, input_device );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+
 		case MXC_SCALER:
 			/* Scaler readings are proportional to the
 			 * integration time, so we must normalize

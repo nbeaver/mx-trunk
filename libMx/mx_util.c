@@ -2788,3 +2788,117 @@ mx_mkdir( char *pathname, mode_t mode )
 }
 
 #endif
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_verify_directory( char *directory_name, int create_flag )
+{
+	static const char fname[] = "mx_verify_directory()";
+
+	struct stat stat_buf;
+	int os_status, saved_errno;
+
+	if ( directory_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The directory name pointer passed was NULL." );
+	}
+
+	/* Does a filesystem object with this name already exist? */
+
+	os_status = access( directory_name, F_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno != ENOENT ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while testing for the presence of "
+			"directory '%s'.  "
+			"Errno = %d, error message = '%s'",
+				directory_name,
+				saved_errno, strerror( saved_errno ) );
+		}
+
+		if ( create_flag == FALSE ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The directory named '%s' does not exist.",
+				directory_name );
+		}
+
+		/* The directory does not already exist, so create it. */
+
+		os_status = mkdir( directory_name, 0777 );
+
+		if ( os_status == 0 ) {
+			/* Creating the directory succeeded, so we are done! */
+
+			return MX_SUCCESSFUL_RESULT;
+		} else {
+			/* Creating the directory failed, so report the error.*/
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Creating subdirectory '%s' failed.  "
+			"Errno = %d, error message = '%s'",
+				directory_name,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
+
+	/*------------*/
+
+	/* A filesystem object with this name already exists, so 
+	 * we must find out more about it.
+	 */
+
+	os_status = stat( directory_name, &stat_buf );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"stat() failed for file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			directory_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Is the object a directory? */
+
+#if defined(OS_WIN32)
+	if ( (stat_buf.st_mode & _S_IFDIR) == 0 ) {
+#else
+	if ( S_ISDIR(stat_buf.st_mode) == 0 ) {
+#endif
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Existing file '%s' is not a directory.",
+			directory_name );
+	}
+
+	/* Although we just did stat(), determining the access permissions
+	 * is more portably done with access().
+	 */
+
+	os_status = access( directory_name, R_OK | W_OK | X_OK );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno == EACCES ) {
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"We do not have read, write, and execute permission "
+			"for directory '%s'.", directory_name );
+		}
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Checking the access permissions for directory '%s' "
+		"failed.  Errno = %d, error message = '%s'",
+			directory_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* If we get here, the directory already exists and is useable. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+

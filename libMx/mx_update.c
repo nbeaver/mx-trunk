@@ -49,7 +49,6 @@ mx_update_record_values( MX_RECORD *record )
 {
 	static const char fname[] = "mx_update_record_values()";
 
-	MX_AREA_DETECTOR *ad;
 	long long_value;
 	unsigned long ulong_value;
 	double double_value;
@@ -226,17 +225,12 @@ mx_update_record_values( MX_RECORD *record )
 			}
 			status = mx_ptz_get_focus( record, NULL );
 			break;
-		case MXC_AREA_DETECTOR:
-			ad = record->record_class_struct;
-
-			status = mx_area_detector_get_frame(
-					record, 0, &(ad->image_frame) );
-			break;
 		case MXC_TIMER:
 		case MXC_MULTICHANNEL_ANALYZER:
 		case MXC_MULTICHANNEL_ENCODER:
 		case MXC_MULTICHANNEL_SCALER:
 		case MXC_TABLE:
+		case MXC_AREA_DETECTOR:
 		case MXC_VIDEO_INPUT:
 		case MXC_WAVEFORM_OUTPUT:
 			status = MX_SUCCESSFUL_RESULT;

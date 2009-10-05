@@ -212,8 +212,19 @@ MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
 MX_API mx_status_type mx_scan_get_pointer_to_datafile_filename( MX_SCAN *scan,
 								char **ptr );
 
+MX_API mx_status_type mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
+					MX_RECORD *input_device,
+					long input_device_class,
+					char *subdirectory_name,
+					size_t max_dirname_length,
+					char *filename,
+					size_t max_filename_length );
+
 MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
+
+MX_API mx_status_type mx_scan_save_area_detector_image( MX_SCAN *scan,
+							MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_scan_handle_alternate_x_motors( MX_SCAN *scan );
 

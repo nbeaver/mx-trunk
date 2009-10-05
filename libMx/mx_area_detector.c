@@ -344,6 +344,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->shutter_record = NULL;
 	ad->last_shutter_name[0] = '\0';
 
+	ad->transfer_image_during_scan = FALSE;
+
 	/*-------*/
 
 	mx_status = mx_find_record_field( record, "extended_status",

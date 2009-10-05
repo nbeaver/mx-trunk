@@ -309,11 +309,22 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 		input_device = input_device_array[i];
 
-		if ( input_device->mx_class == MXC_MULTICHANNEL_ANALYZER ) {
+		switch( input_device->mx_class ) {
+		case MXC_MULTICHANNEL_ANALYZER:
 			num_mcas++;
 
 			buffer[0] = '\0';
-		} else {
+			break;
+
+		case MXC_AREA_DETECTOR:
+			mx_status = mx_scan_save_area_detector_image(
+						scan, input_device );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+
+		default:
 			mx_status =
 			    mx_convert_normalized_device_value_to_string(
 				input_device, normalization,

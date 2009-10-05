@@ -706,6 +706,13 @@ MX_API mx_status_type mx_copy_file( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
 
+/* mx_verify_directory() verifies the existence of the specified directory
+ * and optionally creates it if it does not already exist.
+ */
+
+MX_API mx_status_type mx_verify_directory( char *directory_name,
+					int create_flag );
+
 MX_API mx_status_type mx_get_os_version_string( char *version_string,
 					size_t max_version_string_length );
 

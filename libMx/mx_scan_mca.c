@@ -26,119 +26,152 @@
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_scan.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_mca.h"
 
 #include "f_sff.h"
 #include "f_xafs.h"
 
-/* --------------- */
+#define NUMBER_STRING_LENGTH	40
 
-static mx_status_type
-mxp_scan_verify_mca_subdirectory( char *mca_directory_name )
+MX_EXPORT mx_status_type
+mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
+				MX_RECORD *input_device,
+				long input_device_class,
+				char *subdirectory_name,
+				size_t max_dirname_length,
+				char *filename,
+				size_t max_filename_length )
 {
-	static const char fname[] = "mxp_scan_verify_mca_subdirectory()";
+	static const char fname[] = "mx_scan_get_subdirectory_and_filename()";
 
-	struct stat stat_buf;
-	int os_status, saved_errno;
+	MX_AREA_DETECTOR *ad;
+	char format_name[ MXU_IMAGE_FORMAT_NAME_LENGTH + 1 ];
+	char *datafile_filename = NULL;
+	char *extension_ptr = NULL;
+	long *number_ptr = NULL;
+	long measurement_number;
+	mx_bool_type use_subdirectory;
+	char number_string[NUMBER_STRING_LENGTH+1];
+	ptrdiff_t basename_length;
+	mx_status_type mx_status;
 
-	if ( mca_directory_name == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The directory name pointer passed was NULL." );
+	use_subdirectory = TRUE;
+
+	if ( input_device != NULL ) {
+		input_device_class = input_device->mx_class;
 	}
 
-	/* Does a filesystem object with this name already exist? */
+	mx_status = mx_scan_get_pointer_to_measurement_number(
+						scan, &number_ptr );
 
-	os_status = access( mca_directory_name, F_OK );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( os_status != 0 ) {
-		saved_errno = errno;
+	measurement_number = *number_ptr;
 
-		if ( saved_errno != ENOENT ) {
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An error occurred while testing for the presence of "
-			"MCA directory '%s'.  "
-			"Errno = %d, error message = '%s'",
-				mca_directory_name,
-				saved_errno, strerror( saved_errno ) );
-		}
+	sprintf( number_string, "%03ld", measurement_number );
 
-		/* The directory does not already exist, so create it. */
-
-		os_status = mkdir( mca_directory_name, 0777 );
-
-		if ( os_status == 0 ) {
-			/* Creating the directory succeeded, so we are done! */
-
-			return MX_SUCCESSFUL_RESULT;
-		} else {
-			/* Creating the directory failed, so report the error.*/
-
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Creating MCA subdirectory '%s' failed.  "
-			"Errno = %d, error message = '%s'",
-				mca_directory_name,
-				saved_errno, strerror(saved_errno) );
-		}
-	}
-
-	/*------------*/
-
-	/* A filesystem object with this name already exists, so 
-	 * we must find out more about it.
+	/* Construct the name of the scan subdirectory based on the scan
+	 * datafile name.
 	 */
 
-	os_status = stat( mca_directory_name, &stat_buf );
+	mx_status = mx_scan_get_pointer_to_datafile_filename(
+						scan, &datafile_filename );
 
-	if ( os_status < 0 ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"stat() failed for file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			mca_directory_name,
-			saved_errno, strerror(saved_errno) );
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_status;
 	}
 
-	/* Is the object a directory? */
+	extension_ptr = strrchr( datafile_filename, '.' );
 
-#if defined(OS_WIN32)
-	if ( (stat_buf.st_mode & _S_IFDIR) == 0 ) {
-#else
-	if ( S_ISDIR(stat_buf.st_mode) == 0 ) {
-#endif
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Existing file '%s' is not a directory.",
-			mca_directory_name );
-	}
+	if ( extension_ptr == NULL ) {
 
-	/* Although we just did stat(), determining the access permissions
-	 * is more portably done with access().
-	 */
+		/* The scan datafile name has no extension so we just
+		 * append the measurement number.
+		 */
 
-	os_status = access( mca_directory_name, R_OK | W_OK | X_OK );
-
-	if ( os_status != 0 ) {
-		saved_errno = errno;
-
-		if ( saved_errno == EACCES ) {
-			return mx_error( MXE_PERMISSION_DENIED, fname,
-			"We do not have read, write, and execute permission "
-			"for MCA directory '%s'.", mca_directory_name );
+		if ( use_subdirectory ) {
+			switch( input_device->mx_class ) {
+			case MXC_MULTICHANNEL_ANALYZER:
+				snprintf( subdirectory_name, max_dirname_length,
+					"%s_mca", datafile_filename );
+				break;
+			case MXC_AREA_DETECTOR:
+				snprintf( subdirectory_name, max_dirname_length,
+					"%s_ad", datafile_filename );
+				break;
+			default:
+				snprintf( subdirectory_name, max_dirname_length,
+					"%s_dev", datafile_filename );
+				break;
+			}
 		}
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Checking the access permissions for MCA directory '%s' "
-		"failed.  Errno = %d, error message = '%s'",
-			mca_directory_name,
-			saved_errno, strerror( saved_errno ) );
+		strlcpy( filename, datafile_filename, max_filename_length );
+	} else {
+		basename_length = extension_ptr - datafile_filename + 1;
+
+		if ( basename_length > max_filename_length ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+"basename_length '%ld' is greater than the maximum length '%ld'.  "
+"This shouldn't be possible, so this is a bug if you see this message.",
+				(long) basename_length,
+				(long) max_filename_length );
+		}
+
+		strlcpy( filename, datafile_filename, basename_length );
+
+		strlcat( filename, "_", max_filename_length );
+
+		extension_ptr++;
+
+		strlcat( filename, extension_ptr, max_filename_length );
+
+		if ( use_subdirectory ) {
+			strlcpy( subdirectory_name, filename,
+					max_dirname_length );
+		}
 	}
 
-	/* If we get here, the MCA directory already exists and is useable. */
+	if ( input_device->mx_class != MXC_AREA_DETECTOR ) {
+		strlcat( filename, ".", max_filename_length );
+
+		strlcat( filename, number_string, max_filename_length );
+	} else {
+		if ( input_device == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"For area detector measurements, a pointer to "
+			"the area detector record must be passed as "
+			"the input device pointer." );
+		}
+
+		strlcat( filename, "_", max_filename_length );
+
+		strlcat( filename, input_device->name, max_filename_length );
+
+		strlcat( filename, "_", max_filename_length );
+
+		strlcat( filename, number_string, max_filename_length );
+
+		strlcat( filename, ".", max_filename_length );
+
+		mx_status = mx_image_get_format_name_from_type(
+						ad->datafile_format,
+						format_name,
+						sizeof(format_name) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		strlcat( filename, format_name, max_filename_length );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#define NUMBER_STRING_LENGTH	40
+/*--------*/
 
 MX_EXPORT mx_status_type
 mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
@@ -151,16 +184,11 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	MX_RECORD *input_device;
 	MX_SCAN *parent_scan;
 	int os_status, saved_errno, exit_i_loop;
-	long *number_ptr = NULL;
-	long i, j, measurement_number, mca_number;
+	long i, j, mca_number;
 	unsigned long mca_data_value, max_current_num_channels;
-	char *datafile_filename = NULL;
-	char *extension_ptr = NULL;
-	char number_string[NUMBER_STRING_LENGTH + 1];
 	char mca_filename[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 	char mca_directory_name[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 	mx_bool_type use_subdirectory;
-	ptrdiff_t basename_length;
 	mx_status_type mx_status;
 
 	if ( num_mcas <= 0 ) {
@@ -168,16 +196,6 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	}
 
 	use_subdirectory = TRUE;
-
-	mx_status = mx_scan_get_pointer_to_measurement_number(
-						scan, &number_ptr );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	measurement_number = *number_ptr;
-
-	sprintf( number_string, "%03ld", measurement_number );
 
 	/* mx_mca_read() will already have been invoked during the
 	 * measurement process for each MCA, so all we have to do
@@ -220,64 +238,17 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	 * datafile name.
 	 */
 
-	mx_status = mx_scan_get_pointer_to_datafile_filename(
-						scan, &datafile_filename );
+	mx_status = mx_scan_get_subdirectory_and_filename( scan,
+						NULL,
+						MXC_MULTICHANNEL_ANALYZER,
+						mca_directory_name,
+						sizeof(mca_directory_name),
+						mca_filename,
+						sizeof(mca_filename) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( mca_array );
 		return mx_status;
-	}
-
-	extension_ptr = strrchr( datafile_filename, '.' );
-
-	if ( extension_ptr == NULL ) {
-
-		/* The scan datafile name has no extension so we just
-		 * append the measurement number.
-		 */
-
-		if ( use_subdirectory ) {
-			snprintf(mca_directory_name, sizeof(mca_directory_name),
-			"%s_mca", datafile_filename );
-		}
-
-		strlcpy( mca_filename,
-			datafile_filename, sizeof(mca_filename) );
-
-		strlcat( mca_filename, ".", sizeof(mca_filename) );
-
-		strlcat( mca_filename,
-			number_string, sizeof(mca_filename) );
-	} else {
-		basename_length = extension_ptr - datafile_filename + 1;
-
-		if ( basename_length > sizeof(mca_filename) ) {
-			mx_free( mca_array );
-
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-"basename_length '%ld' is greater than sizeof(mca_filename) '%ld'.  "
-"This shouldn't be possible, so this is a bug if you see this message.",
-				(long) basename_length,
-				(long) sizeof(mca_filename) );
-		}
-
-		strlcpy( mca_filename,
-			datafile_filename, basename_length );
-
-		strlcat( mca_filename, "_", sizeof(mca_filename) );
-
-		extension_ptr++;
-
-		strlcat( mca_filename, extension_ptr, sizeof(mca_filename) );
-
-		if ( use_subdirectory ) {
-			strlcpy( mca_directory_name, mca_filename,
-				sizeof(mca_directory_name) );
-		}
-
-		strlcat( mca_filename, ".", sizeof(mca_filename) );
-
-		strlcat( mca_filename, number_string, sizeof(mca_filename) );
 	}
 
 	/* Open the MCA datafile. */
@@ -285,8 +256,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	if ( use_subdirectory ) {
 		char pathname[MXU_FILENAME_LENGTH + NUMBER_STRING_LENGTH + 1];
 
-		mx_status = mxp_scan_verify_mca_subdirectory(
-						mca_directory_name );
+		mx_status = mx_verify_directory( mca_directory_name, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -428,5 +398,70 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------*/
+
+MX_EXPORT mx_status_type
+mx_scan_save_area_detector_image( MX_SCAN *scan,
+				MX_RECORD *ad_record )
+{
+	static const char fname[] = "mx_scan_save_area_detector_image()";
+
+	MX_AREA_DETECTOR *ad;
+	char image_directory_name[ MXU_FILENAME_LENGTH + 1 ];
+	char image_filename[ MXU_FILENAME_LENGTH + 1 ];
+	char image_pathname[MXU_FILENAME_LENGTH + 1];
+	mx_bool_type use_subdirectory = TRUE;
+	mx_status_type mx_status;
+
+	ad = (MX_AREA_DETECTOR *) ad_record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for area detector '%s' is NULL.",
+			ad_record->name );
+	}
+
+	if ( ad->transfer_image_during_scan == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Construct the name of the area detector image file based on
+	 * the scan datafile name.
+	 */
+
+	mx_status = mx_scan_get_subdirectory_and_filename( scan,
+						ad_record,
+						MXC_AREA_DETECTOR,
+						image_directory_name,
+						sizeof(image_directory_name),
+						image_filename,
+						sizeof(image_filename) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( use_subdirectory ) {
+		snprintf( image_pathname, sizeof(image_pathname),
+			"%s/%s", image_directory_name, image_filename );
+	} else {
+		strlcpy( image_pathname,
+			image_filename, sizeof(image_pathname) );
+	}
+
+	/* Retrieve the image from the server. */
+
+	mx_status = mx_area_detector_get_frame( ad_record,
+						0, &(ad->image_frame) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Write the image to a file. */
+
+	mx_status = mx_image_write_file( ad->image_frame,
+					ad->datafile_format,
+					image_pathname );
+
+	return mx_status;
 }
 
