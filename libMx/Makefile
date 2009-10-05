@@ -64,7 +64,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_aframe_detector_motor.c d_als_dewar_positioner.c \
 	d_am9513_motor.c d_am9513_scaler.c d_am9513_timer.c d_aps_18id.c \
 	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c d_aps_gap.c \
-	d_aps_quadem_amplifier.c d_auto_amplifier.c d_auto_filter.c \
+	d_aps_quadem_amplifier.c d_area_detector_timer.c \
+	d_auto_amplifier.c d_auto_filter.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c \
 	d_aviex_pccd.c d_aviex_pccd_170170.c d_aviex_pccd_16080.c \
 	d_aviex_pccd_4824.c \

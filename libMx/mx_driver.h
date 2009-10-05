@@ -579,6 +579,7 @@ extern "C" {
 #define MXT_TIM_XIA_HANDEL		80019
 #define MXT_TIM_XIA_DXP			80020
 #define MXT_TIM_HANDEL			80021
+#define MXT_TIM_AREA_DETECTOR		80022
 
 /* --- Amplifier types --- */
 
