@@ -1,3 +1,198 @@
+Version 1.5.1 (10/04/09):
+	MX now supports Windows 7 and Visual Studio 2008.
+	
+	New Device Drivers:
+
+	    handel, handel_network, handel_mca, handel_input, handel_sum,
+	    and handel_timer:
+	        New preliminary MCA drivers for the DXP-XMAP from Xray
+		Instrumentation Associates that exclusively use Handel
+		-specific APIs.  The previous generation of 'xia_...'
+		drivers still used Xerxes style parameter names, even
+		when making calls to Handel.  Although the drivers seem
+		to work (except for handel_timer), they have not been
+		used for real experiments yet.
+
+	    prologix - This new GPIB driver has been tested with Prologix
+	        GPIB-USB controller from www.prologix.biz.  The driver
+		should work with the GPIB-ETHERNET controller as well
+		but this has not been tested.
+
+	    spellman_df3, spellman_df3_ain, spellman_df3_aout,
+	    spellman_df3_din, spellman_df3_dout:
+	        A group of drivers for the Spellman DF3/FF3 series of
+		high voltage power supplies for X-ray generators.
+	    
+	    mca_weighted_sum - This is an analog input driver that
+	        reports weighted sums of MCA regions of interest.
+
+	    function_generator_scaler - MX scaler driver for a software
+	        emulated scaler that acts like a function generator.
+
+	Updates to the 'ilm' and 'cryojet' drivers from Henry Bellamy
+	of CAMD at Louisiana State University.
+
+	The 'marccd_shutter' record can now talk to a 'marccd_server_socket'
+	record.
+
+	The MX 'epics_mca' driver now supports the DXP-XMAP based
+	Vortex detectors available in the Advanced Photon Source
+	detector pool.
+
+	MX scans now put all of the MCA output spectra for the scan
+	into a subdirectory which has a name derived from the scan
+	output file name.
+
+	If a scan uses 'SFF' format headers, then any MCA files written
+	by that scan also have 'SFF' headers.  Similarly, 'XAFS' headers
+	are added to MCA files written by scans using 'XAFS' format
+	headers.
+
+	Added support for a multichannel scaler (MCS) 'clear_deadband'.
+	If an MCS clear is commanded and the time since the last clear 
+	is less than the clear deadband _and_ no new start has been
+	commanded, then the clear is skipped.  This was done for
+	performance reasons.
+
+	When running a 'motor' script, 'motor' now first looks for the
+	script name with the string '.mtr' appended.  If not found,
+	it then looks again for the script _without_ the string '.mtr'
+	appended.  In addition, 'motor' now supports a new environment
+	variable MX_MOTOR_PATH.  If MX_MOTOR_PATH is defined, 'motor'
+	now searches this path to look up motor scripts specified for
+	the '@' command.
+
+	The 'setup scan' command in 'motor' has been changed so that
+	aborting a new scan setup preserves any existing scan with
+	the same name.
+
+	Brought up to date the text for the top level 'help' command
+	of the 'motor' program.
+
+	In 'motor', a command like 'help set', 'help ad', etc.  now
+	redirects the individual help messages for each of the commands.
+
+	'setup scan' and 'modify scan' in 'motor' now inform the user
+	during the scan setup if they have selected an input device name
+	that does not exist, rather than waiting until the scan is
+	executed.
+
+	The 'mca rawread' and 'mca rawcount' commands in 'motor' now
+	allow you to abort the display of output by typing 'q'.
+
+	Added a 'show scas' command to 'motor' and rearranged the precedence
+	so that a 'show sca' command now returns a list of scans.
+
+	Added a 'rename scan' command to 'motor'.
+
+	The 'ls330_motor' driver for Lakeshore 330 temperature controllers
+	now handles soft aborts by directly sending a raw LS300 command
+	instead of using mx_motor_move_absolute().  The previous procedure
+	of using mx_motor_move_absolute() could mistakenly 'abort' the
+	abort if the current temperature was outside the soft limits of
+	the motor record.
+
+	Modified 'motor' so that amplifier gains that are >= 10000 are
+	shown in exponential notation.
+
+	Improved the behavior of pause/retry logic in MX scans.
+
+	Input scans now work correctly if 'scan_early_move' is set.
+
+	The 'vcc_monitor' program for monitoring changes to MX network
+	fields now supports some interactive commands:
+	    a - Add new callback
+	    d - Delete existing callback
+	    l - List existing callbacks
+	    q - Quit
+
+	Added a new MX_NETWORK_OPTION_WORDSIZE option to allow MX network
+	clients to find out the wordsize of the server.  If the wordsize
+	of the client and the server are different, it is necessary for
+	them to communicate using XDR format even if the data formats
+	are the same.
+
+	Added a new mx_breakpoint() function.  If a debugger is not
+	currently running, then this will start the debugger.  If a 
+	debugger _is_ running, then this will generate a breakpoint trap
+	back into the debugger.  Not currently implemented for all
+	platforms.
+
+	Added a new mx_analog_input_clear() function.  This is intended
+	for use with analog input devices that can latch a value.
+
+	Added new 'mxserver' debugging infrastructure:
+	    Implemented mxserver "enable remote breakpoint" option '-r'.
+
+	    Added a new 'mx_database.breakpoint' network field.  This is
+	    only active if remote breakpoints have been enabled by the
+	    '-r' option listed above.
+
+	    Added a new 'mx_database.debugger_started' network field.
+	    Writing 0 to this resets the internal mx_debugger_started flag,
+	    so that calling mx_breakpoint() again will spawn a new debugger
+	    session.
+
+	EPICS changes:
+	    MX code that communicates with EPICS has been changed to be
+	    64-bit safe by using 'int32_t' for all MX_CA_LONG variables.
+
+	    Replaced mx_epics_poll_for_events() with mx_epics_pend_event().
+
+	    Added new mx_epics_pend_io() function.
+
+	    Added new wait_for_connection parameter to mx_epics_pv_connect().
+
+	    Replaced the existing mx_epics_get_num_elements() function with
+	    mx_epics_pv_get_element_count().
+
+	    Added mx_epics_pv_get_field_type() and mx_epics_get_element_size().
+
+	    Replaced the old EPICS_IS_VERSION_... macros with a new
+	    MX_EPICS_VERSION macro to be used in conditional compilation
+	    macros for dealing with multiple versions of EPICS Base.
+
+	Area detector changes:
+	    Lots of internal changes for the Aviex PCCD-16080 driver.
+
+	    Added a new 'use_dezinger' record field to provide a way of
+	    remotely turning on or off correction image dezingering.
+
+	    MX area detector drivers can now select at run time whether or
+	    not they implement dark current and flood field correction
+	    measurements using a multiframe sequence or a series of one-shot
+	    measurements.  Currently, the Aviex PCCD-170170 and PCCD-4824
+	    detector default to using multiframe sequences, while all others
+	    (including the PCCD-16080) default to using a series of one-shot
+	    measurements.
+
+	The 'pmac_motor' driver now sets the direction of home searches
+	using the Ixx23 variable.
+
+	The Mclennan 'pm304' driver no longer looks at the state of the
+	'Not error' bit returned for the 'os' command.
+
+	Updated the U500 drivers to send aborts followed by a fault
+	acknowledge when starting up.  The U500 motor driver now reports
+	the motor as busy for up to 0.5 seconds after a move, even if the
+	U500 hardware says that it is not busy.  This is done because the
+	U500 hardware may report the motor as in position for a short time
+	after a move is commanded.
+
+	For the 'mca_value' driver, the existing 'corrected_roi_integral'
+	and 'corrected_soft_roi_integral' MX fields have been renamed
+	to 'live_time_corrected_roi_integral' and 
+	'live_time_corrected_soft_roi_integral'.  The original names
+	also exist as aliases.  Also added the new 
+	'rate_corrected_roi_integral' and 'rate_corrected_soft_roi_integral'
+	fields.
+
+	Added new mx_get_console_size() function that is intended to
+	be used to match the number of lines displayed in paged text
+	output to the actual size of the text console.
+
+	Added 'mxupdate' support for MXFT_HEX fields.
+
 Version 1.5.0 (11/15/08):
 
         A major feature of this release is full functionality for the
