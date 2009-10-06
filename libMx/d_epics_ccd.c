@@ -300,7 +300,8 @@ mxd_epics_ccd_open( MX_RECORD *record )
 		"or less are supported.", record->name, ad->bits_per_pixel );
 	}
 
-	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
 						ad->image_format_name,
 						MXU_IMAGE_FORMAT_NAME_LENGTH );
 
@@ -544,7 +545,7 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-		mx_status = mx_image_get_format_name_from_type(
+		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 		break;

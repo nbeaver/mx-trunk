@@ -325,6 +325,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->last_datafile_name[0] = '\0';
 	ad->datafile_format = 0;
+	ad->frame_file_format = 0;
 
 	ad->datafile_total_num_frames = 0;
 	ad->datafile_last_frame_number = 0;
@@ -344,7 +345,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->shutter_record = NULL;
 	ad->last_shutter_name[0] = '\0';
 
-	ad->transfer_image_during_scan = FALSE;
+	ad->transfer_image_during_scan = TRUE;
 
 	/*-------*/
 
@@ -407,7 +408,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
 
-	mx_status = mx_image_get_format_type_from_name(
+	mx_status = mx_image_get_image_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
 
 	if ( mx_status.code != MXE_SUCCESS )

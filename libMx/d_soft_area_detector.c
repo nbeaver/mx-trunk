@@ -211,6 +211,8 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	ad->header_length = 0;
 
+	ad->datafile_format = MXT_IMAGE_FILE_PNM;
+
 	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
 	ad->sequence_parameters.num_parameters = 1;
 	ad->sequence_parameters.parameter_array[0] = 1.0;
@@ -242,7 +244,8 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
 						ad->image_format_name,
 						sizeof(ad->image_format_name) );
 	if ( mx_status.code != MXE_SUCCESS )
@@ -779,7 +782,7 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_image_get_format_name_from_type(
+		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 		break;

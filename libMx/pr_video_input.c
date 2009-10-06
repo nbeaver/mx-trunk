@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -228,7 +228,7 @@ mx_video_input_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_image_get_format_name_from_type(
+			mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 			break;
@@ -296,7 +296,7 @@ mx_video_input_process_function( void *record_ptr,
 				vinput->external_trigger_polarity );
 			break;
 		case MXLV_VIN_FORMAT_NAME:
-			mx_status = mx_image_get_format_type_from_name(
+			mx_status = mx_image_get_image_format_type_from_name(
 					vinput->image_format_name,
 					&(vinput->image_format) );
 

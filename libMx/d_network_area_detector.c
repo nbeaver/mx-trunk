@@ -629,7 +629,7 @@ mxd_network_area_detector_open( MX_RECORD *record )
 
 	/* Update the image format type. */
 
-	mx_status = mx_image_get_format_type_from_name(
+	mx_status = mx_image_get_image_format_type_from_name(
 					ad->image_format_name,
 					&(ad->image_format) );
 
@@ -1538,7 +1538,7 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_image_get_format_name_from_type(
+		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG

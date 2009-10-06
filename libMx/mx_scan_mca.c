@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -51,8 +52,9 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 	char *datafile_filename = NULL;
 	char *extension_ptr = NULL;
 	long *number_ptr = NULL;
-	long measurement_number;
+	long measurement_number, format;
 	mx_bool_type use_subdirectory;
+	int i, c;
 	char number_string[NUMBER_STRING_LENGTH+1];
 	ptrdiff_t basename_length;
 	mx_status_type mx_status;
@@ -147,6 +149,14 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 			"the input device pointer." );
 		}
 
+		ad = input_device->record_class_struct;
+
+		if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_AREA_DETECTOR pointer for area detetor '%s' "
+			"is NULL.", input_device->name );
+		}
+
 		strlcat( filename, "_", max_filename_length );
 
 		strlcat( filename, input_device->name, max_filename_length );
@@ -157,13 +167,34 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 
 		strlcat( filename, ".", max_filename_length );
 
-		mx_status = mx_image_get_format_name_from_type(
-						ad->datafile_format,
-						format_name,
+		if ( ad->datafile_format != 0 ) {
+			format = ad->datafile_format;
+		} else
+		if ( ad->frame_file_format != 0 ) {
+			format = ad->frame_file_format;
+		} else {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"Neither the datafile format nor the frame file "
+			"format have been set for area detector '%s'.",
+				ad->record->name );
+		}
+
+		mx_status = mx_image_get_file_format_name_from_type(
+						format, format_name,
 						sizeof(format_name) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Convert the format string to lower case. */
+
+		for ( i = 0; i < strlen(format_name); i++ ) {
+			c = format_name[i];
+
+			if ( isupper(c) ) {
+				format_name[i] = tolower(c);
+			}
+		}
 
 		strlcat( filename, format_name, max_filename_length );
 	}
@@ -442,19 +473,17 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 		return mx_status;
 
 	if ( use_subdirectory ) {
+		mx_status = mx_verify_directory( image_directory_name, TRUE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		snprintf( image_pathname, sizeof(image_pathname),
 			"%s/%s", image_directory_name, image_filename );
 	} else {
 		strlcpy( image_pathname,
 			image_filename, sizeof(image_pathname) );
 	}
-
-	/* Retrieve the image from the server. */
-
-	mx_status = mx_area_detector_get_frame( ad_record,
-						0, &(ad->image_frame) );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/* Write the image to a file. */
 

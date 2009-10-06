@@ -1585,7 +1585,8 @@ mxd_bluice_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	ad->bytes_per_frame = mx_round( ad->framesize[0] * ad->framesize[1]
 						* ad->bytes_per_pixel );
 
-	mx_status = mx_image_get_format_name_from_type( ad->image_format,
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
 						ad->image_format_name,
 						sizeof(ad->image_format_name) );
 	return mx_status;

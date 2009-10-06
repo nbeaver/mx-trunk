@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -105,7 +105,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
 
-	mx_status = mx_image_get_format_type_from_name(
+	mx_status = mx_image_get_image_format_type_from_name(
 			vinput->image_format_name, &(vinput->image_format) );
 
 	return mx_status;

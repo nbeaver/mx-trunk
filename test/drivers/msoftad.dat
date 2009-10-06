@@ -22,4 +22,6 @@ gonio_phi device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001
 #
 shutter   device digital_output soft_doutput "" "" 0
 #
-timer1    device timer soft_timer "" ""
+soft_timer device timer soft_timer "" ""
+ad_timer   device timer area_detector_timer "" "" ad
+timer1     device timer timer_fanout "" "" 2 soft_timer ad_timer

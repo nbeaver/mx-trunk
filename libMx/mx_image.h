@@ -194,6 +194,12 @@ typedef struct {
  * In the long run, I would guess that solution 2 is probably
  * the easier and most general solution, but I have not tried
  * it yet, so I could be wrong.
+ *
+ * NOTE (2009-10-06): Subversion revision 1445 changed XDR format
+ * support so that the server can send a longer array than the
+ * client is expecting without XDR in the client complaining about
+ * it.  This may fix the problem mentioned above, but this will
+ * need to be checked.
  */
 
 #define MXU_MAX_SEQUENCE_PARAMETERS	250	/* See above! */
@@ -221,11 +227,25 @@ typedef struct {
 
 /*----*/
 
-MX_API mx_status_type mx_image_get_format_type_from_name( char *name,
-							long *type );
+MX_API mx_status_type mx_image_get_image_format_type_from_name( char *name,
+								long *type );
 
-MX_API mx_status_type mx_image_get_format_name_from_type( long type,
-							char *name,
+MX_API mx_status_type mx_image_get_image_format_name_from_type( long type,
+								char *name,
+							size_t max_name_length);
+
+MX_API mx_status_type mx_image_get_file_format_type_from_name( char *name,
+								long *type );
+
+MX_API mx_status_type mx_image_get_file_format_name_from_type( long type,
+								char *name,
+							size_t max_name_length);
+
+MX_API mx_status_type mx_image_get_image_format_type_from_name( char *name,
+								long *type );
+
+MX_API mx_status_type mx_image_get_image_format_name_from_type( long type,
+								char *name,
 							size_t max_name_length);
 
 MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,

@@ -2707,6 +2707,9 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			sprintf(buffer, "%10s", input_device->name );
 			break;
+		case MXC_AREA_DETECTOR:
+			sprintf(buffer, "%10s", input_device->name );
+			break;
 		default:
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Record class %ld not yet implemented.",

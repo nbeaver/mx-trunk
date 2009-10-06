@@ -428,6 +428,7 @@ motor_prompt_for_input_devices(
 					case MXC_TIMER:
 					case MXC_AMPLIFIER:
 					case MXC_MULTICHANNEL_ANALYZER:
+					case MXC_AREA_DETECTOR:
 					    fprintf( output, "%s ",
 						current_record->name );
 					    break;
@@ -478,6 +479,7 @@ motor_prompt_for_input_devices(
 					case MXC_RELAY:
 					case MXC_AMPLIFIER:
 					case MXC_MULTICHANNEL_ANALYZER:
+					case MXC_AREA_DETECTOR:
 					    strlcpy( input_name_array[i],
 					      buffer, MXU_RECORD_NAME_LENGTH );
 

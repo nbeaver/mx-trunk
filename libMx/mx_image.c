@@ -208,9 +208,10 @@ static size_t mxp_image_format_table_length
 	= sizeof(mxp_image_format_table) / sizeof(mxp_image_format_table[0]);
 
 MX_EXPORT mx_status_type
-mx_image_get_format_type_from_name( char *name, long *type )
+mx_image_get_image_format_type_from_name( char *name, long *type )
 {
-	static const char fname[] = "mx_image_get_format_type_from_name()";
+	static const char fname[] =
+		"mx_image_get_image_format_type_from_name()";
 
 	MX_IMAGE_FORMAT_ENTRY *entry;
 	long i;
@@ -245,10 +246,11 @@ mx_image_get_format_type_from_name( char *name, long *type )
 }
 
 MX_EXPORT mx_status_type
-mx_image_get_format_name_from_type( long type,
+mx_image_get_image_format_name_from_type( long type,
 				char *name, size_t max_name_length )
 {
-	static const char fname[] = "mx_image_get_format_name_from_type()";
+	static const char fname[] =
+		"mx_image_get_image_format_name_from_type()";
 
 	MX_IMAGE_FORMAT_ENTRY *entry;
 	long i;
@@ -270,6 +272,87 @@ mx_image_get_format_name_from_type( long type,
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Image format type %ld is not currently supported by MX.", type );
+}
+
+/*--------*/
+
+static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
+{
+	{"PNM",    MXT_IMAGE_FILE_PNM},
+
+	{"SMV",    MXT_IMAGE_FILE_SMV},
+	{"MARCCD", MXT_IMAGE_FILE_MARCCD},
+	{"EDF",    MXT_IMAGE_FILE_EDF}
+};
+
+static size_t mxp_file_format_table_length
+	= sizeof(mxp_file_format_table) / sizeof(mxp_file_format_table[0]);
+
+MX_EXPORT mx_status_type
+mx_image_get_file_format_type_from_name( char *name, long *type )
+{
+	static const char fname[] =
+		"mx_image_get_file_format_type_from_name()";
+
+	MX_IMAGE_FORMAT_ENTRY *entry;
+	long i;
+
+	if ( name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The file format name pointer passed was NULL." );
+	}
+	if ( type == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The file format type pointer passed was NULL." );
+	}
+
+	if ( strlen(name) == 0 ) {
+		*type = MXT_IMAGE_FILE_PNM;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	for ( i = 0; i < mxp_file_format_table_length; i++ ) {
+		entry = &mxp_file_format_table[i];
+
+		if ( mx_strcasecmp( entry->name, name ) == 0 ) {
+			*type = entry->type;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"File format type '%s' is not currently supported by MX.", name );
+}
+
+MX_EXPORT mx_status_type
+mx_image_get_file_format_name_from_type( long type,
+				char *name, size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_image_get_file_format_name_from_type()";
+
+	MX_IMAGE_FORMAT_ENTRY *entry;
+	long i;
+
+	if ( name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The file format name pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < mxp_file_format_table_length; i++ ) {
+		entry = &mxp_file_format_table[i];
+
+		if ( entry->type == type ) {
+			strlcpy( name, entry->name, max_name_length );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"File format type %ld is not currently supported by MX.", type );
 }
 
 /*--------------------------------------------------------------------------*/

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,6 +32,8 @@
 #include "mx_amplifier.h"
 #include "mx_relay.h"
 #include "mx_mca.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_variable.h"
 #include "mx_scan.h"
 
@@ -423,6 +425,7 @@ mx_readout_data( MX_MEASUREMENT *measurement )
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device;
 	MX_SCALER *scaler;
+	MX_AREA_DETECTOR *ad;
 	double double_value;
 	long long_value;
 	unsigned long ulong_value;
@@ -524,17 +527,43 @@ mx_readout_data( MX_MEASUREMENT *measurement )
 				}
 				break;
 			case MXC_RELAY:
-				mx_status = mx_get_relay_status(input_device,NULL);
+				mx_status = mx_get_relay_status(
+						input_device, NULL );
 
 				if ( mx_status.code != MXE_SUCCESS ) {
 					return mx_status;
 				}
 				break;
 			case MXC_MULTICHANNEL_ANALYZER:
-				mx_status = mx_mca_read(input_device, NULL, NULL);
+				mx_status = mx_mca_read( input_device,
+								NULL, NULL);
 
 				if ( mx_status.code != MXE_SUCCESS ) {
 					return mx_status;
+				}
+				break;
+			case MXC_AREA_DETECTOR:
+				ad = input_device->record_class_struct;
+
+				if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+					return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"The MX_AREA_DETECTOR pointer for "
+					"input device '%s' is NULL.",
+						input_device->name );
+				}
+
+				if ( ad->transfer_image_during_scan == FALSE ) {
+					return MX_SUCCESSFUL_RESULT;
+				}
+
+				/* Retrieve the most recently acquired image. */
+
+				mx_status = mx_area_detector_get_frame(
+					input_device, -1, &(ad->image_frame) );
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return MX_SUCCESSFUL_RESULT;
 				}
 				break;
 			default:
