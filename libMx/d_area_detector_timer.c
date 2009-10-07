@@ -211,7 +211,7 @@ mxd_area_detector_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_area_detector_timer_is_busy()";
 
 	MX_AREA_DETECTOR_TIMER *ad_timer;
-	MX_RECORD *ad_record;
+	MX_RECORD *ad_record = NULL;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -243,7 +243,7 @@ mxd_area_detector_timer_start( MX_TIMER *timer )
 	static const char fname[] = "mxd_area_detector_timer_start()";
 
 	MX_AREA_DETECTOR_TIMER *ad_timer;
-	MX_RECORD *ad_record;
+	MX_RECORD *ad_record = NULL;
 	mx_status_type mx_status;
 
 	ad_timer = NULL;
@@ -271,7 +271,7 @@ mxd_area_detector_timer_stop( MX_TIMER *timer )
 	static const char fname[] = "mxd_area_detector_timer_stop()";
 
 	MX_AREA_DETECTOR_TIMER *ad_timer;
-	MX_RECORD *ad_record;
+	MX_RECORD *ad_record = NULL;
 	mx_status_type mx_status;
 
 	ad_timer = NULL;
