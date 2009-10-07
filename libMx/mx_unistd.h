@@ -51,13 +51,19 @@ extern int access( char *pathname, int mode );
 #  define F_OK  0
 #endif
 
+/*----*/
+
 /* Some platforms define mkdir() differently or not at all, so we provide
  * our own front end here.
  */
 
-#if defined(OS_VXWORKS) \
-        || ( defined(OS_WIN32) && (defined(__BORLANDC__) | defined(__GNUC__)) )
+#if defined(OS_VXWORKS) || defined(OS_WIN32)
+
 #  include <sys/types.h>
+
+#  if defined(_MSC_VER)
+      typedef unsigned int mode_t;
+#  endif
 
 #  define mkdir(p,m)	mx_mkdir((p),(m))
 

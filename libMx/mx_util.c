@@ -2683,112 +2683,6 @@ mx_string_split( char *original_string,
 	}
 }
 
-/*-------------------------------------------------------------------------*/
-
-#if defined(OS_VXWORKS)
-
-/* If the current platform does not have an access() function, then we
- * implement one using stat().
- */
-
-int
-access( char *pathname, int mode )
-{
-	struct stat status_struct;
-	mode_t file_mode;
-	int status;
-
-	status = stat( pathname, &status_struct );
-
-	if ( status != 0 )
-		return status;
-
-	/* If we are just checking to see if the file exists and
-	 * stat() succeeded, then the file must exist and we can
-	 * return now.
-	 */
-
-	if ( mode == F_OK )
-		return 0;
-
-	/* Select out the bits from the st_mode field that we need
-	 * to compare with the 'mode' argument to this function.
-	 */
-
-#if defined(OS_VXWORKS)
-	/* Only look at the world permissions. */
-
-	file_mode = 0x7 & status_struct.st_mode;
-#else
-	if ( getuid() == status_struct.st_uid ) {
-
-		/* We need to check the owner permissions. */
-
-		file_mode = 0x7 & ( status_struct.st_mode >> 8 );
-
-	} else if ( getgid() == status_struct.st_gid ) {
-
-		/* We need to check the group permissions. */
-
-		file_mode = 0x7 & ( status_struct.st_mode >> 4 );
-
-	} else {
-
-		/* We need to check the world permissions. */
-
-		file_mode = 0x7 & status_struct.st_mode;
-	}
-#endif
-
-	if ( file_mode == mode ) {
-
-		/* Success: the modes match. */
-
-		return 0;
-	} else {
-		/* The modes do _not_ match. */
-
-		errno = EACCES;
-
-		return -1;
-	}
-}
-
-#endif
-
-/*-------------------------------------------------------------------------*/
-
-#if defined(OS_VXWORKS) \
-        || ( defined(OS_WIN32) && (defined(__BORLANDC__) | defined(__GNUC__)) )
-
-/* Some platforms define mkdir() differently or not at all, so we provide
- * our own front end here.
- */
-
-#ifdef mkdir
-#undef mkdir
-#endif
-
-#if defined(__BORLANDC__)
-#include <dir.h>
-#endif
-
-MX_EXPORT int
-mx_mkdir( char *pathname, mode_t mode )
-{
-	int os_status;
-
-#if defined(__BORLANDC__)
-	os_status = _mkdir( pathname );
-#else
-	os_status = mkdir( pathname );
-#endif
-
-	return os_status;
-}
-
-#endif
-
 /* --------------- */
 
 MX_EXPORT mx_status_type
@@ -2901,4 +2795,113 @@ mx_verify_directory( char *directory_name, int create_flag )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_VXWORKS)
+
+/* If the current platform does not have an access() function, then we
+ * implement one using stat().
+ */
+
+int
+access( char *pathname, int mode )
+{
+	struct stat status_struct;
+	mode_t file_mode;
+	int status;
+
+	status = stat( pathname, &status_struct );
+
+	if ( status != 0 )
+		return status;
+
+	/* If we are just checking to see if the file exists and
+	 * stat() succeeded, then the file must exist and we can
+	 * return now.
+	 */
+
+	if ( mode == F_OK )
+		return 0;
+
+	/* Select out the bits from the st_mode field that we need
+	 * to compare with the 'mode' argument to this function.
+	 */
+
+#if defined(OS_VXWORKS)
+	/* Only look at the world permissions. */
+
+	file_mode = 0x7 & status_struct.st_mode;
+#else
+	if ( getuid() == status_struct.st_uid ) {
+
+		/* We need to check the owner permissions. */
+
+		file_mode = 0x7 & ( status_struct.st_mode >> 8 );
+
+	} else if ( getgid() == status_struct.st_gid ) {
+
+		/* We need to check the group permissions. */
+
+		file_mode = 0x7 & ( status_struct.st_mode >> 4 );
+
+	} else {
+
+		/* We need to check the world permissions. */
+
+		file_mode = 0x7 & status_struct.st_mode;
+	}
+#endif
+
+	if ( file_mode == mode ) {
+
+		/* Success: the modes match. */
+
+		return 0;
+	} else {
+		/* The modes do _not_ match. */
+
+		errno = EACCES;
+
+		return -1;
+	}
+}
+
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_VXWORKS) || defined(OS_WIN32)
+
+/* Some platforms define mkdir() differently or not at all, so we provide
+ * our own front end here.
+ */
+
+/* WARNING: This code must be after any calls to mkdir() in this file
+ * due to the #undef that follows.
+ */
+
+#ifdef mkdir
+#undef mkdir
+#endif
+
+#if defined(__BORLANDC__)
+#include <dir.h>
+#endif
+
+MX_EXPORT int
+mx_mkdir( char *pathname, mode_t mode )
+{
+	int os_status;
+
+#if defined(OS_WIN32)
+	os_status = _mkdir( pathname );
+#else
+	os_status = mkdir( pathname );
+#endif
+
+	return os_status;
+}
+
+#endif
 
