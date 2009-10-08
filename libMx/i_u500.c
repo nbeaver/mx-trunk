@@ -631,25 +631,18 @@ MX_EXPORT mx_status_type
 mxi_u500_error( long wapi_status, const char *fname, char *format, ... )
 {
 	char buffer[2000];
-	LPSTR wapi_error_message;
+	TCHAR wapi_error_message[2000];
 	va_list args;
 
 	va_start(args, format);
 	vsprintf(buffer, format, args);
 	va_end(args);
 
-#if 0
-	wapi_error_message = NULL;
-
 	WAPIErrorToAscii( wapi_status, wapi_error_message );
 
 	return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"%s.  WAPI status = %ld, WAPI error = '%s'",
 		buffer, wapi_status, wapi_error_message );
-#else
-	return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"%s.  WAPI status = %ld", buffer, wapi_status );
-#endif
 }
 
 MX_EXPORT mx_status_type
