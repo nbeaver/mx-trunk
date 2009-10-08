@@ -519,7 +519,7 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 	MX_DEBUG( 2,
 		("%s: motor '%s' final motion_state = %ld, motor->busy = %d",
 		fname, motor->record->name, pmac_tc_motor->motion_state,
-		motor->busy ));
+		(int) motor->busy ));
 
 	return MX_SUCCESSFUL_RESULT;
 }

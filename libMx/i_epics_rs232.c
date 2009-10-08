@@ -374,7 +374,7 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	if ( epics_rs232->output_buffer == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Unable to allocate %d byte output buffer for EPICS RS-232 record '%s'.",
-			epics_rs232->max_output_length + 1, record->name );
+		    (int) epics_rs232->max_output_length + 1, record->name );
 	}
 
 	/* Set num_chars_to_read to -1.  This lets other routines know
@@ -803,7 +803,7 @@ mxi_epics_rs232_read_buffer( MX_EPICS_RS232 *epics_rs232,
 	"Requested number of characters (%ld) for RS-232 port '%s' is longer "
 	"than the maximum input buffer length of %d.",
 			*num_chars, rs232->record->name,
-			epics_rs232->max_input_length );
+			(int) epics_rs232->max_input_length );
 	}
 
 	/* Check to see if this is the first time we have tried to read
@@ -989,7 +989,7 @@ mxi_epics_rs232_write_buffer( MX_EPICS_RS232 *epics_rs232,
 	"Requested number of characters (%ld) for RS-232 port '%s' is longer "
 	"than the maximum output buffer length of %d.",
 			*num_chars, rs232->record->name,
-			epics_rs232->max_output_length );
+			(int) epics_rs232->max_output_length );
 	}
 
 	/* Change the transaction mode if needed. */
@@ -1039,7 +1039,7 @@ mxi_epics_rs232_write_buffer( MX_EPICS_RS232 *epics_rs232,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The output string would require %ld characters which exceeds "
 		"the maximum allowed value of %d characters.",
-			*num_chars, epics_rs232->max_output_length );
+			*num_chars, (int) epics_rs232->max_output_length );
 		}
 
 		/* We do not know how long the caller's buffer is, so we

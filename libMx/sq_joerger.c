@@ -964,7 +964,7 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 #if 1
 	int direction;
 #endif
-	int limit_hit;
+	mx_bool_type limit_hit;
 	long i, j;
 	unsigned long sleep_time;
 	int32_t count;

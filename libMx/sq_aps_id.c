@@ -207,7 +207,7 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 
 	apsid_quick_scan_extension->id_ev_enabled = id_ev_enabled;
 
-	MX_DEBUG( 2,("%s: id_ev_enabled = %d", fname, id_ev_enabled));
+	MX_DEBUG( 2,("%s: id_ev_enabled = %d", fname, (int) id_ev_enabled));
 
 	/* Get the insertion device harmonic number and energy offset. */
 
@@ -551,7 +551,8 @@ mxs_apsid_quick_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 {
-	static const char fname[] = "mxs_apsid_quick_scan_prepare_for_scan_start()";
+	static const char fname[] =
+		"mxs_apsid_quick_scan_prepare_for_scan_start()";
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
@@ -560,7 +561,7 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_MOTOR *id_ev_motor;
 	double id_ev_start_position, energy_start_position;
 	double id_ev_harmonic, id_ev_offset;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
