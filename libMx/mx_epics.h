@@ -108,7 +108,7 @@ MX_API mx_status_type mx_epics_pend_io( double timeout );
 
 MX_API mx_status_type mx_epics_pend_event( double timeout );
 
-#define mx_epics_poll(x)  mx_epics_pend_event( 1.0e-12 )
+#define mx_epics_poll()  mx_epics_pend_event( 1.0e-12 )
 
 MX_API mx_status_type mx_epics_flush_io( void );
 
