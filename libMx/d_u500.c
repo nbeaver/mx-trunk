@@ -790,13 +790,20 @@ mxd_u500_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mxi_u500_command( u500, board_number, command );
 		break;
-#if 0
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
 			motor->axis_enable = 1;
+
+			snprintf( command, sizeof(command),
+				"EN %c", u500_motor->axis_name );
+		} else {
+			snprintf( command, sizeof(command),
+				"DI %c", u500_motor->axis_name );
 		}
 
+		mx_status = mxi_u500_command( u500, board_number, command );
 		break;
+#if 0
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
 		} else {
