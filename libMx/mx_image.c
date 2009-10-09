@@ -202,6 +202,9 @@ static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
 
 	{"GRAY8",   MXT_IMAGE_FORMAT_GREY8},
 	{"GRAY16",  MXT_IMAGE_FORMAT_GREY16},
+
+	{"INT32",   MXT_IMAGE_FORMAT_INT32},
+	{"DOUBLE",  MXT_IMAGE_FORMAT_DOUBLE},
 };
 
 static size_t mxp_image_format_table_length
@@ -353,6 +356,55 @@ mx_image_get_file_format_name_from_type( long type,
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"File format type %ld is not currently supported by MX.", type );
+}
+
+MX_EXPORT mx_status_type
+mx_image_format_get_bytes_per_pixel( long image_format,
+				double *bytes_per_pixel )
+{
+	static const char fname[] = "mx_image_format_get_bytes_per_pixel()";
+
+	if ( bytes_per_pixel == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The bytes_per_pixel pointer passed was NULL." );
+	}
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_RGB:
+		*bytes_per_pixel = 3.0;
+		break;
+	case MXT_IMAGE_FORMAT_GREY8:
+		*bytes_per_pixel = 1.0;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		*bytes_per_pixel = 2.0;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		*bytes_per_pixel = 4.0;
+		break;
+
+	case MXT_IMAGE_FORMAT_RGB565:
+		*bytes_per_pixel = 1.5;
+		break;
+	case MXT_IMAGE_FORMAT_YUYV:
+		*bytes_per_pixel = 2.0;
+		break;
+
+	case MXT_IMAGE_FORMAT_INT32:
+		*bytes_per_pixel = 4.0;
+		break;
+
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		*bytes_per_pixel = 8.0;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image format %ld was requested.",
+			image_format );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*--------------------------------------------------------------------------*/

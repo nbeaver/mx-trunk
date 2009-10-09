@@ -59,6 +59,7 @@ extern "C" {
 #define MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST	   0x2
 #define MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR	   0x4
 #define MXF_AD_DEZINGER_CORRECTION_FRAME           0x8
+#define MXF_AD_BIAS_CORR_AFTER_FLOOD		   0x10
 
 #define MXF_AD_SAVE_FRAME_AFTER_ACQUISITION	   0x1000
 #define MXF_AD_LOAD_FRAME_AFTER_ACQUISITION	   0x2000
@@ -206,6 +207,8 @@ typedef struct mx_area_detector_type {
 	mx_bool_type use_multiframe_correction;
 
 	mx_bool_type correction_measurement_in_progress;
+
+	mx_bool_type bias_corr_after_flood;
 
 	mx_bool_type geom_corr_after_flood;
 	mx_bool_type correction_frame_geom_corr_last;
@@ -402,6 +405,16 @@ typedef struct mx_area_detector_type {
 	 */
 
 	float *flood_field_scale_array;
+
+	/* If correction calculations are performed in a format
+	 * other than the native format of the image frame, then
+	 * correction_calc_frame is where the intermediate
+	 * correction frame values are stored.
+	 */
+
+	long correction_calc_format;
+
+	MX_IMAGE_FRAME *correction_calc_frame;
 
 	/* The datafile_... fields are used for the implementation
 	 * of automatic saving or loading of image frames.
@@ -1372,6 +1385,12 @@ MX_API mx_status_type mx_area_detector_default_get_register(
 
 MX_API mx_status_type mx_area_detector_default_set_register(
 						MX_AREA_DETECTOR *ad );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
+					MX_IMAGE_FRAME *source_frame,
+					MX_IMAGE_FRAME *destination_frame );
 
 /*---*/
 

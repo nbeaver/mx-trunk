@@ -617,7 +617,7 @@ motor_debug_fn( int argc, char *argv[] )
 	int i;
 
 	if ( argc <= 2 ) {
-		mx_start_debugger(NULL);
+		mx_breakpoint();
 	} else {
 		command[0] = '\0';
 

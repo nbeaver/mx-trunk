@@ -38,6 +38,11 @@ extern "C" {
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
 
+    /* The following are for internal MX calculations. */
+
+#define MXT_IMAGE_FORMAT_INT32			10001	/* signed integer */
+#define MXT_IMAGE_FORMAT_DOUBLE			10002
+
 /*---- Datafile format definitions ----*/
 
 #define MXT_IMAGE_FILE_PNM			1
@@ -233,6 +238,9 @@ MX_API mx_status_type mx_image_get_image_format_type_from_name( char *name,
 MX_API mx_status_type mx_image_get_image_format_name_from_type( long type,
 								char *name,
 							size_t max_name_length);
+
+MX_API mx_status_type mx_image_format_get_bytes_per_pixel( long type,
+						double *bytes_per_pixel );
 
 MX_API mx_status_type mx_image_get_file_format_type_from_name( char *name,
 								long *type );

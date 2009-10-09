@@ -1314,6 +1314,15 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		"of all correction measurement sequences.", record->name );
 	}
 
+	if ( pccd_flags & MXF_AVIEX_PCCD_USE_INT32_CORRECTION ) {
+		ad->correction_calc_format = MXT_IMAGE_FORMAT_INT32;
+	} else
+	if ( pccd_flags & MXF_AVIEX_PCCD_USE_DOUBLE_CORRECTION ) {
+		ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
+	} else {
+		ad->correction_calc_format = MXT_IMAGE_FORMAT_GREY16;
+	}
+
 	video_input_record = aviex_pccd->video_input_record;
 
 	if ( video_input_record == (MX_RECORD *) NULL ) {

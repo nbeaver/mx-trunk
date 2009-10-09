@@ -318,6 +318,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->flood_field_scale_array = NULL;
 	ad->old_exposure_time = -1.0;
 
+	ad->correction_calc_frame = NULL;
+
 	ad->datafile_directory[0] = '\0';
 	ad->datafile_pattern[0] = '\0';
 	ad->datafile_name[0] = '\0';
@@ -414,6 +416,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->correction_calc_format = ad->image_format;
+
 	if ( ad->area_detector_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
 		ad->geom_corr_after_flood = TRUE;
 	} else {
@@ -432,6 +436,12 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		ad->correction_frame_no_geom_corr = TRUE;
 	} else {
 		ad->correction_frame_no_geom_corr = FALSE;
+	}
+
+	if ( ad->area_detector_flags & MXF_AD_BIAS_CORR_AFTER_FLOOD ) {
+		ad->bias_corr_after_flood = TRUE;
+	} else {
+		ad->bias_corr_after_flood = FALSE;
 	}
 
 	if ( ad->area_detector_flags & MXF_AD_DEZINGER_CORRECTION_FRAME ) {
@@ -7124,6 +7134,173 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
+						MX_IMAGE_FRAME *dest_frame )
+{
+	static const char fname[] =
+		"mx_area_detector_copy_and_convert_image_data()";
+
+	uint16_t *uint16_src, *uint16_dest;
+	int32_t *int32_src, *int32_dest;
+	double *double_src, *double_dest;
+	long i;
+	long src_format, dest_format;
+	long src_pixels, dest_pixels;
+	double src_bytes_per_pixel, dest_bytes_per_pixel;
+	size_t src_size, dest_size;
+	mx_status_type mx_status;
+	
+	src_pixels = MXIF_ROW_FRAMESIZE(src_frame)
+			* MXIF_COLUMN_FRAMESIZE(src_frame );
+
+	src_format = MXIF_IMAGE_FORMAT(src_frame);
+
+	mx_status = mx_image_format_get_bytes_per_pixel( src_format,
+							&src_bytes_per_pixel );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	src_size = mx_round( src_pixels * src_bytes_per_pixel );
+
+	dest_pixels = MXIF_ROW_FRAMESIZE(dest_frame)
+			* MXIF_COLUMN_FRAMESIZE(dest_frame );
+
+	if ( dest_pixels != src_pixels ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The source frame has a different number of pixels (%lu) "
+		"than the destination frame (%lu).",
+			(unsigned long) src_size, (unsigned long) dest_size );
+	}
+
+	dest_format = MXIF_IMAGE_FORMAT(dest_frame);
+
+	mx_status = mx_image_format_get_bytes_per_pixel( dest_format,
+							&dest_bytes_per_pixel );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dest_size = mx_round( dest_pixels * dest_bytes_per_pixel );
+
+	switch( src_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		uint16_src = src_frame->image_data;
+
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			uint16_dest = dest_frame->image_data;
+
+			memcpy( uint16_dest, uint16_src, dest_size );
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			int32_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				int32_dest[i] = uint16_src[i];
+			}
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			double_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				double_dest[i] = uint16_src[i];
+			}
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Destination image frame format %ld is not "
+				"supported by this function.", dest_format );
+			break;
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_INT32:
+		int32_src = src_frame->image_data;
+
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			uint16_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				uint16_dest[i] = int32_src[i];
+			}
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			int32_dest = dest_frame->image_data;
+
+			memcpy( int32_dest, int32_src, dest_size );
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			double_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				double_dest[i] = int32_src[i];
+			}
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Destination image frame format %ld is not "
+				"supported by this function.", dest_format );
+			break;
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		double_src = src_frame->image_data;
+
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			uint16_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				uint16_dest[i] = double_src[i];
+			}
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			int32_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				int32_dest[i] = double_src[i];
+			}
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			double_dest = dest_frame->image_data;
+
+			memcpy( double_dest, double_src, dest_size );
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Destination image frame format %ld is not "
+				"supported by this function.", dest_format );
+			break;
+		}
+		break;
+
+	default:
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+		case MXT_IMAGE_FORMAT_INT32:
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Source image frame format %ld is not "
+				"supported by this function.", src_format );
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Neither source image frame format %ldu, nor "
+				"destination image frame format %ld is "
+				"supported by this function.",
+					src_format, dest_format );
+			break;
+		}
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
 /* mx_area_detector_frame_correction() requires that all of the frames have
  * the same framesize.
  */
@@ -7143,6 +7320,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
 							MX_IMAGE_FRAME * );
 	unsigned long flags;
+	unsigned long image_format;
 	mx_bool_type use_low_memory_methods = FALSE;
 	mx_bool_type geom_corr_before_flood;
 	mx_bool_type geom_corr_after_flood;
@@ -7275,9 +7453,57 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
 	 */
 
-	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
+	image_format = MXIF_IMAGE_FORMAT(image_frame);
+
+	if ( image_format != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The primary image frame is not a 16-bit greyscale image." );
+	}
+
+	if ( ad->correction_calc_format == MXT_IMAGE_FORMAT_DEFAULT ) {
+		ad->correction_calc_format = image_format;
+	}
+
+	/* If the correction calculation format is not the same as the
+	 * native image format, then we must create an image frame to
+	 * contain the intermediate results of the correction calculation.
+	 */
+
+	if ( image_format != ad->correction_calc_format ) {
+		double corr_bytes_per_pixel;
+		size_t corr_image_length;
+		long row_framesize, column_framesize;
+
+		row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
+		column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
+
+		mx_status = mx_image_format_get_bytes_per_pixel(
+					ad->correction_calc_format,
+					&corr_bytes_per_pixel );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		corr_image_length = mx_round( corr_bytes_per_pixel
+			* (double)( row_framesize * column_framesize ) );
+
+		mx_status = mx_image_alloc( &(ad->correction_calc_frame),
+					row_framesize,
+					column_framesize,
+					ad->correction_calc_format,
+					MXIF_BYTE_ORDER(image_frame),
+					corr_bytes_per_pixel,
+					MXIF_HEADER_BYTES(image_frame),
+					corr_image_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_copy_and_convert_image_data(
+					image_frame, ad->correction_calc_frame);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/*---*/
