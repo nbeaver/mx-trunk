@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,7 +88,11 @@ static long num_error_messages = sizeof(error_message_list)
 static void (*mx_error_output_function)( char * )
 					= mx_error_default_output_function;
 
-#if ( ! USE_STACK_BASED_MX_ERROR )
+#if ( USE_STACK_BASED_MX_ERROR )
+
+#error Stack based MX error is not finished.
+
+#else
 
 static char mx_error_message_buffer[MXU_ERROR_MESSAGE_LENGTH + 1];
 

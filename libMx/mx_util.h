@@ -634,7 +634,7 @@ MX_API void mx_warning_default_output_function( char *string );
 
 /* === Error messages. === */
 
-#define MXU_ERROR_MESSAGE_LENGTH	200
+#define MXU_ERROR_MESSAGE_LENGTH	2000
 
 #if USE_STACK_BASED_MX_ERROR
 
