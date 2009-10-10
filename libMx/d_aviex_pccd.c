@@ -1199,10 +1199,6 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 	aviex_pccd->horiz_descramble_factor = -1;
 	aviex_pccd->vert_descramble_factor = -1;
 
-	/* Set the default file format. */
-
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1282,6 +1278,10 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Set the default file format. */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+
 	/* Set the datafile format to the frame file format. */
 
 	/* FIXME: Are both of these necessary? */
