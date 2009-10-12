@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,11 +86,6 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 	if ( energy_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NOT_FOUND, fname,
 		"There is no record named 'energy' in this database." );
-	}
-
-	if ( energy_motor_record->mx_type != MXT_MTR_ENERGY ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record named 'energy' is not of type 'energy_motor'." );
 	}
 
 	/* Set up an MX_PLOT_GNUXAFS structure to save plot type specific
