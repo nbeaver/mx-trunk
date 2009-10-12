@@ -3,4 +3,4 @@ video0 device video_input soft_vinput "" "" 16384 1024 grey16 -1 2 1024
 inttrigger device digital_output soft_doutput "" "" 0
 ###ad         device area_detector pccd_170170 "" "" 0 0x0 0x0 /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv video0 port inttrigger 0x1 0x1b /home/lavender/epix/soleil_swing.uca /home/lavender/epix/modmask_new.smv ""
 ###ad         device area_detector pccd_170170 "" "" 0 0x1 0xf /home/lavender/correction/pixel_mask.smv /home/lavender/correction/bias_200.smv "" "" video0 port inttrigger 0x1 0x101b "" "" ""
-ad         device area_detector pccd_170170 "" "" 0 0x1 0xf /home/lavender/correction/pixel_mask.smv /home/lavender/correction/bias_200.smv "" "" video0 port inttrigger 0x1 0x001b "" "" ""
+ad         device area_detector pccd_170170 "" "" 0 0x1 0xf /home/lavender/correction/pixel_mask.smv /home/lavender/correction/bias_200.smv "" "" video0 port inttrigger 0x1 0x201b "" "" ""
