@@ -24,7 +24,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		FALSE
 
@@ -6864,10 +6864,13 @@ mxp_area_detector_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get the bias offset for this pixel. */
 
-		if ( bias_data_array != NULL ) {
-			bias_offset = bias_data_array[i];
-		} else {
+		if ( ad->bias_corr_after_flood ) {
 			bias_offset = 0;
+		} else
+		if ( bias_data_array == NULL ) {
+			bias_offset = 0;
+		} else {
+			bias_offset = bias_data_array[i];
 		}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
@@ -7383,6 +7386,159 @@ mxp_area_detector_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
+static mx_status_type
+mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *bias_frame )
+{
+	static const char fname[] = "mxp_area_detector_delayed_bias_offset()";
+
+	unsigned long i, num_pixels;
+	uint16_t *u16_image_data_array;
+	int32_t *s32_image_data_array;
+	double *dbl_image_data_array;
+	uint16_t *bias_data_array;
+	long image_format;
+	double image_pixel;
+	unsigned long bias_offset;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	image_format = MXIF_IMAGE_FORMAT(image_frame);
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		u16_image_data_array = image_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		s32_image_data_array = image_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		dbl_image_data_array = image_frame->image_data;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image correction calculation format %ld is not supported.",
+			image_format );
+		break;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
+		fname, image_frame->image_data));
+#endif
+
+	/* Get a pointer to the bias image data. */
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
+#endif
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	/* Do the bias offset corrections. */
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf(stderr, "i = %lu, ", i);
+		}
+#endif
+		/* Get the bias offset for this pixel. */
+
+		bias_offset = bias_data_array[i];
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "bias_offset = %d, ",
+					(int) bias_offset );
+		}
+#endif
+		/* Get the raw image pixel. */
+
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			image_pixel = (double) u16_image_data_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			image_pixel = (double) s32_image_data_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			image_pixel = dbl_image_data_array[i];
+			break;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "BEFORE image_pixel = %g, ",
+				image_pixel );
+		}
+#endif
+
+		image_pixel = image_pixel + bias_offset;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr,
+			"AFTER adding bias, image_pixel = %g, ", image_pixel );
+		}
+#endif
+		/* Round to the nearest integer by adding 0.5 and
+		 * then truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function
+		 * calls have too high of an overhead to be used
+		 * in this loop.
+		 */
+
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			if ( image_pixel < 0.0 ) {
+				u16_image_data_array[i] = 0;
+			} else {
+				u16_image_data_array[i] = image_pixel + 0.5;
+			}
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			if ( image_pixel < 0.0 ) {
+				s32_image_data_array[i] = image_pixel - 0.5;
+			} else {
+				s32_image_data_array[i] = image_pixel + 0.5;
+			}
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			dbl_image_data_array[i] = image_pixel;
+			break;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "image_data_array[%lu] = %ld\n",
+				i, (long) s32_image_data_array[i] );
+		}
+#endif
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 						MX_IMAGE_FRAME *dest_frame )
@@ -7582,6 +7738,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_HRT_TIMING initial_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING geometrical_timing = MX_HRT_ZERO;
 	MX_HRT_TIMING flood_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING initial_convert_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING final_convert_timing = MX_HRT_ZERO;
+	MX_HRT_TIMING delayed_bias_timing = MX_HRT_ZERO;
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
@@ -7759,6 +7918,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		size_t corr_image_length;
 		long row_framesize, column_framesize;
 
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( initial_convert_timing );
+#endif
+
 		row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
 		column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
 
@@ -7791,6 +7954,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			return mx_status;
 
 		correction_calc_frame = ad->correction_calc_frame;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( initial_convert_timing );
+#endif
 	}
 
 	/*---*/
@@ -7900,8 +8067,37 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 							flood_field_frame );
 	}
 
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( flood_timing );
+#endif
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/******* Delayed bias offset (if requested) *******/
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( delayed_bias_timing );
+#endif
+
+	if ( ad->bias_corr_after_flood && ( bias_frame != NULL ) ) {
+
+		mx_status = mxp_area_detector_delayed_bias_offset(
+					correction_calc_frame, bias_frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_END( delayed_bias_timing );
+#endif
+
+	/******* If needed, convert the data back to the native format *******/
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
+	MX_HRT_START( final_convert_timing );
+#endif
 
 	if ( correction_calc_frame != image_frame ) {
 		mx_status = mx_area_detector_copy_and_convert_image_data(
@@ -7912,7 +8108,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
-	MX_HRT_END( flood_timing );
+	MX_HRT_END( final_convert_timing );
 #endif
 
 	/******* Delayed geometrical correction (if requested) *******/
@@ -7943,18 +8139,40 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_DEBUG(-2,(" "));	/* Print an empty line. */
 
+	if ( correction_calc_frame != image_frame ) {
+		MX_HRT_RESULTS( initial_convert_timing,
+			fname, "Initial type conversion time." );
+	}
+
 	MX_HRT_RESULTS( initial_timing, fname,
 				"Mask, bias, and dark correction time." );
 
-	if ( ad->do_geometrical_correction_last ) {
+	if ( geom_corr_after_flood ) {
 		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+
+		if ( ad->bias_corr_after_flood ) {
+			MX_HRT_RESULTS( delayed_bias_timing, fname,
+				"Delayed bias offset time." );
+		}
+
 		MX_HRT_RESULTS( geometrical_timing, fname,
 				"Geometrical correction time." );
 	} else {
 		MX_HRT_RESULTS( geometrical_timing, fname,
 				"Geometrical correction time." );
 		MX_HRT_RESULTS( flood_timing, fname, "Flood correction time." );
+
+		if ( ad->bias_corr_after_flood ) {
+			MX_HRT_RESULTS( delayed_bias_timing, fname,
+				"Delayed bias offset time." );
+		}
 	}
+
+	if ( correction_calc_frame != image_frame ) {
+		MX_HRT_RESULTS( final_convert_timing,
+			fname, "Final type conversion time." );
+	}
+
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
@@ -9263,6 +9481,9 @@ mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
 			break;
 		}
 
+		if ( ad->bias_corr_after_flood ) {
+			bias_offset = 0;
+		} else
 		if ( bias_frame == NULL ) {
 			bias_offset = 0;
 		} else {
