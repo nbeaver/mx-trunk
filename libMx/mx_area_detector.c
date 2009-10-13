@@ -9854,13 +9854,6 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 	dest_pixels = MXIF_ROW_FRAMESIZE(dest_frame)
 			* MXIF_COLUMN_FRAMESIZE(dest_frame );
 
-	if ( dest_pixels != src_pixels ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The source frame has a different number of pixels (%lu) "
-		"than the destination frame (%lu).",
-			(unsigned long) src_size, (unsigned long) dest_size );
-	}
-
 	dest_format = MXIF_IMAGE_FORMAT(dest_frame);
 
 	mx_status = mx_image_format_get_bytes_per_pixel( dest_format,
@@ -9869,6 +9862,13 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 		return mx_status;
 
 	dest_size = mx_round( dest_pixels * dest_bytes_per_pixel );
+
+	if ( dest_pixels != src_pixels ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The source frame has a different number of pixels (%lu) "
+		"than the destination frame (%lu).",
+			(unsigned long) src_size, (unsigned long) dest_size );
+	}
 
 	switch( src_format ) {
 	case MXT_IMAGE_FORMAT_GREY16:
