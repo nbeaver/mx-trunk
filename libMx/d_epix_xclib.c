@@ -2680,7 +2680,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 					components_per_pixel );
 		}
 
-		mx_status = mx_image_get_format_name_from_type(
+		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 

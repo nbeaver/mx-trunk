@@ -20,7 +20,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
 
@@ -6413,261 +6413,6 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 
 /*=======================================================================*/
 
-/* mxp_area_detector_highmem_dark_correction() is for use when enough
- * free memory is available that page swapping will not be required.
- */
-
-static mx_status_type
-mxp_area_detector_highmem_dark_correction( MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *image_frame,
-					MX_IMAGE_FRAME *mask_frame,
-					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *dark_current_frame )
-{
-	static const char fname[] =
-		"mxp_area_detector_highmem_dark_correction()";
-
-	unsigned long i, num_pixels;
-	double image_pixel, image_exposure_time;
-	float *dark_current_offset_array;
-	uint16_t *mask_data_array;
-	uint16_t *u16_image_data_array;
-	int32_t *s32_image_data_array;
-	double *dbl_image_data_array;
-	long image_format;
-	mx_status_type mx_status;
-
-	if ( image_frame == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_frame pointer passed was NULL." );
-	}
-
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY16:
-		u16_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_INT32:
-		s32_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_DOUBLE:
-		dbl_image_data_array = image_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image correction calculation format %ld is not supported "
-		"by area detector '%s'.",
-			image_format, ad->record->name );
-		break;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
-		fname, image_frame->image_data));
-#endif
-
-	/* Discard the old dark current offset array if the exposure time
-	 * has changed significantly.
-	 */
-
-	mx_status = mx_image_get_exposure_time( image_frame,
-						&image_exposure_time );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,
-	("%s: image_exposure_time = %g", fname, image_exposure_time));
-#endif
-
-	if ( mx_difference( image_exposure_time,
-				ad->old_exposure_time ) > 0.001 )
-	{
-		mx_free( ad->dark_current_offset_array );
-	}
-
-	ad->old_exposure_time = image_exposure_time;
-
-	/*---*/
-
-	if ( mask_frame == NULL ) {
-		mask_data_array = NULL;
-	} else {
-		mask_data_array = mask_frame->image_data;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: mask_data_array = %p", fname, mask_data_array));
-#endif
-
-	/*---*/
-
-	/* Get the dark current offset array, creating a new one if necessary.*/
-
-	if ( dark_current_frame == NULL ) {
-		dark_current_offset_array = NULL;
-	} else {
-		if ( ad->dark_current_offset_array == NULL ) {
-		    mx_status = mx_area_detector_compute_dark_current_offset(
-					ad, bias_frame, dark_current_frame );
-
-		    if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		}
-
-		dark_current_offset_array = ad->dark_current_offset_array;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
-	MX_DEBUG(-2,("%s: dark_current_offset_array = %p",
-			fname, dark_current_offset_array));
-#endif
-	/* This loop _must_ _not_ invoke any functions.  Function calls
-	 * have too high an overhead to be used in a loop that may loop
-	 * 32 million times or more.
-	 */
-
-	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
-			* MXIF_COLUMN_FRAMESIZE(image_frame);
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf(stderr, "i = %lu, ", i);
-		}
-#endif
-		/* See if the pixel is masked off. */
-
-		if ( mask_data_array != NULL ) {
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf(stderr, "mask_data_array[%lu] = %d, ",
-				    i, (int) mask_data_array[i] );
-			}
-#endif
-			if ( mask_data_array[i] == 0 ) {
-
-				/* If the pixel is masked off, skip this
-				 * pixel and return to the top of the loop
-				 * for the next pixel.
-				 */
-
-				switch( image_format ) {
-				case MXT_IMAGE_FORMAT_GREY16:
-					u16_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_INT32:
-					s32_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_DOUBLE:
-					dbl_image_data_array[i] = 0.0;
-					break;
-				}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-				if ( i < 10 ) {
-					fprintf(stderr,
-					"s32_image_data_array[%lu] = %ld\n",
-					i, (long) s32_image_data_array[i]);
-				}
-#endif
-				continue;
-			}
-		}
-
-		/* If requested, apply the dark current correction. */
-
-		if ( dark_current_offset_array != NULL ) {
-
-			/* Get the raw image pixel. */
-
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				image_pixel = (double) u16_image_data_array[i];
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				image_pixel = (double) s32_image_data_array[i];
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				image_pixel = dbl_image_data_array[i];
-				break;
-			}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr, "BEFORE image_pixel = %g, ",
-						image_pixel );
-				fprintf( stderr,
-				"dark_current_offset_array[%lu] = %g, ",
-					i, dark_current_offset_array[i] );
-			}
-#endif
-			image_pixel = image_pixel
-					+ dark_current_offset_array[i];
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr, "AFTER image_pixel = %g, ",
-						image_pixel );
-			}
-#endif
-
-			/* Round to the nearest integer by adding 0.5 and
-			 * then truncating.
-			 *
-			 * We _must_ _not_ use mx_round() here since function
-			 * calls have too high of an overhead to be used
-			 * in this loop.
-			 */
-
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				if ( image_pixel < 0.0 ) {
-					u16_image_data_array[i] = 0;
-				} else {
-					u16_image_data_array[i]
-						= image_pixel + 0.5;
-				}
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				if ( image_pixel < 0.0 ) {
-					s32_image_data_array[i] =
-						image_pixel - 0.5;
-				} else {
-					s32_image_data_array[i] =
-						image_pixel + 0.5;
-				}
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				dbl_image_data_array[i] = image_pixel;
-				break;
-			}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr,
-				"Final image_data_array[%lu] = %ld, ",
-					i, (long) s32_image_data_array[i]);
-			}
-#endif
-		}
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf( stderr, "\n" );
-		}
-#endif
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-----------------------------------------------------------------------*/
-
 /* mxp_area_detector_u16_highmem_dark_correction() is for use when enough
  * free memory is available that page swapping will not be required.
  */
@@ -7284,319 +7029,6 @@ mxp_area_detector_dbl_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 }
 
 /*=======================================================================*/
-
-/* mxp_area_detector_lowmem_dark_correction() is for use to avoid
- * swapping when the amount of free memory available is small.
- */
-
-static mx_status_type
-mxp_area_detector_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *image_frame,
-					MX_IMAGE_FRAME *mask_frame,
-					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *dark_current_frame )
-{
-	static const char fname[] =
-		"mxp_area_detector_lowmem_dark_correction()";
-
-	unsigned long i, num_pixels;
-	uint16_t *mask_data_array, *bias_data_array, *dark_current_data_array;
-	uint16_t *u16_image_data_array;
-	int32_t *s32_image_data_array;
-	double *dbl_image_data_array;
-	long image_format;
-	double image_exposure_time, dark_current_exposure_time;
-	double exposure_time_ratio;
-	double image_pixel, raw_dark_current, scaled_dark_current;
-	unsigned long bias_offset;
-	mx_bool_type use_scaled_dark_current;
-	mx_status_type mx_status;
-
-	if ( image_frame == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_frame pointer passed was NULL." );
-	}
-
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY16:
-		u16_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_INT32:
-		s32_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_DOUBLE:
-		dbl_image_data_array = image_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image correction calculation format %ld is not supported "
-		"by area detector '%s'.",
-			image_format, ad->record->name );
-		break;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
-		fname, image_frame->image_data));
-#endif
-
-	/* Discard the dark current offset array if it is in memory,
-	 * since we will not use it.
-	 */
-
-	mx_free( ad->dark_current_offset_array );
-
-	/* Get pointers to the mask, bias, and dark current image data. */
-
-	if ( mask_frame == NULL ) {
-		mask_data_array = NULL;
-	} else {
-		mask_data_array = mask_frame->image_data;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: mask_data_array = %p", fname, mask_data_array));
-#endif
-
-	if ( bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array = bias_frame->image_data;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
-#endif
-
-	if ( dark_current_frame == NULL ) {
-		dark_current_data_array = NULL;
-	} else {
-		dark_current_data_array = dark_current_frame->image_data;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: dark_current_frame = %p",
-			fname, dark_current_frame));
-	MX_DEBUG(-2,("%s: dark_current_data_array = %p",
-			fname, dark_current_data_array));
-#endif
-
-	/* Compute the exposure time ratio. */
-
-	if ( ad->use_scaled_dark_current == FALSE ) {
-		use_scaled_dark_current = FALSE;
-	} else
-	if ( dark_current_frame == NULL ) {
-		use_scaled_dark_current = FALSE;
-	} else {
-		use_scaled_dark_current = TRUE;
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: use_scaled_dark_current = %d",
-		fname, (int) use_scaled_dark_current));
-#endif
-
-	if ( use_scaled_dark_current == FALSE ) {
-		exposure_time_ratio = 1.0;
-	} else {
-		mx_status = mx_image_get_exposure_time( image_frame,
-							&image_exposure_time );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_image_get_exposure_time( dark_current_frame,
-						&dark_current_exposure_time );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		exposure_time_ratio = mx_divide_safely( image_exposure_time,
-						dark_current_exposure_time );
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: exposure_time_ratio = %g",
-		fname, exposure_time_ratio));
-#endif
-
-	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
-			* MXIF_COLUMN_FRAMESIZE(image_frame);
-
-	/* Do the mask, bias, and dark current corrections. */
-
-	/* This loop _must_ _not_ invoke any functions.  Function calls
-	 * have too high an overhead to be used in a loop that may loop
-	 * 32 million times or more.
-	 */
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf(stderr, "i = %lu, ", i);
-		}
-#endif
-		/* See if the pixel is masked off. */
-
-		if ( mask_data_array != NULL ) {
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf(stderr, "mask_data_array[%lu] = %d, ",
-				    i, (int) mask_data_array[i] );
-			}
-#endif
-			if ( mask_data_array[i] == 0 ) {
-
-				/* If the pixel is masked off, skip this
-				 * pixel and return to the top of the loop
-				 * for the next pixel.
-				 */
-
-				switch( image_format ) {
-				case MXT_IMAGE_FORMAT_GREY16:
-					u16_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_INT32:
-					s32_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_DOUBLE:
-					dbl_image_data_array[i] = 0.0;
-					break;
-				}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-				if ( i < 10 ) {
-					fprintf(stderr,
-					"s32_image_data_array[%lu] = %d\n",
-					i, (int) s32_image_data_array[i]);
-				}
-#endif
-				continue;
-			}
-		}
-
-		/* Get the bias offset for this pixel. */
-
-		if ( ad->bias_corr_after_flood ) {
-			bias_offset = 0;
-		} else
-		if ( bias_data_array == NULL ) {
-			bias_offset = 0;
-		} else {
-			bias_offset = bias_data_array[i];
-		}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf( stderr, "bias_offset = %d, ",
-					(int) bias_offset );
-		}
-#endif
-		/* Get the raw image pixel. */
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			image_pixel = (double) u16_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			image_pixel = (double) s32_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			image_pixel = dbl_image_data_array[i];
-			break;
-		}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf( stderr, "BEFORE image_pixel = %g, ",
-				image_pixel );
-		}
-#endif
-
-		/* If requested, apply the dark current correction. */
-
-		if ( dark_current_data_array != NULL ) {
-			raw_dark_current = (double) dark_current_data_array[i];
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr, "raw_dark_current = %g, ",
-					raw_dark_current );
-			}
-#endif
-			scaled_dark_current = exposure_time_ratio
-			    * (raw_dark_current - bias_offset) + bias_offset;
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr, "scaled_dark_current = %g, ",
-					scaled_dark_current );
-			}
-#endif
-			image_pixel = image_pixel + bias_offset;
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr,
-				"AFTER adding bias, image_pixel = %g, ",
-					image_pixel );
-			}
-#endif
-			image_pixel = image_pixel - scaled_dark_current;
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-			if ( i < 10 ) {
-				fprintf( stderr,
-			"AFTER subtracting dark current, image_pixel = %g, ",
-					image_pixel );
-			}
-#endif
-		}
-
-		/* Round to the nearest integer by adding 0.5 and
-		 * then truncating.
-		 *
-		 * We _must_ _not_ use mx_round() here since function
-		 * calls have too high of an overhead to be used
-		 * in this loop.
-		 */
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			if ( image_pixel < 0.0 ) {
-				u16_image_data_array[i] = 0;
-			} else {
-				u16_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			if ( image_pixel < 0.0 ) {
-				s32_image_data_array[i] = image_pixel - 0.5;
-			} else {
-				s32_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			dbl_image_data_array[i] = image_pixel;
-			break;
-		}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf( stderr, "image_data_array[%lu] = %ld\n",
-				i, (long) s32_image_data_array[i] );
-		}
-#endif
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-----------------------------------------------------------------------*/
 
 /* mxp_area_detector_lowmem_dark_correction() is for use to avoid
  * swapping when the amount of free memory available is small.
@@ -8399,176 +7831,6 @@ mxp_area_detector_dbl_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 /*=======================================================================*/
 
 static mx_status_type
-mxp_area_detector_highmem_flood_field( MX_AREA_DETECTOR *ad,
-				MX_IMAGE_FRAME *image_frame,
-				MX_IMAGE_FRAME *mask_frame,
-				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
-{
-	static const char fname[] = "mxp_area_detector_highmem_flood_field()";
-
-	unsigned long i, num_pixels;
-	double image_pixel, bias_offset;
-	float *flood_field_scale_array;
-	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *u16_image_data_array;
-	int32_t *s32_image_data_array;
-	double *dbl_image_data_array;
-	long image_format;
-	mx_status_type mx_status;
-
-	if ( image_frame == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_frame pointer passed was NULL." );
-	}
-
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY16:
-		u16_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_INT32:
-		s32_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_DOUBLE:
-		dbl_image_data_array = image_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image correction calculation format %ld is not supported "
-		"by area detector '%s'.",
-			image_format, ad->record->name );
-		break;
-	}
-
-	/*---*/
-
-	if ( mask_frame == NULL ) {
-		mask_data_array = NULL;
-	} else {
-		mask_data_array = mask_frame->image_data;
-	}
-
-	/*---*/
-
-	if ( bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array = bias_frame->image_data;
-	}
-
-	/*---*/
-
-	/* Get the flood field scale array, creating a new one if necessary. */
-
-	if ( flood_field_frame == NULL ) {
-		flood_field_scale_array = NULL;
-	} else {
-		if ( ad->flood_field_scale_array == NULL ) {
-		    mx_status = mx_area_detector_compute_flood_field_scale(
-					ad, bias_frame, flood_field_frame );
-
-		    if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		}
-
-		flood_field_scale_array = ad->flood_field_scale_array;
-	}
-
-	/* If requested, do the flood field correction. */
-
-	/* This loop _must_ _not_ invoke any functions.  Function calls
-	 * have too high an overhead to be used in a loop that may loop
-	 * 32 million times or more.
-	 */
-
-	if ( flood_field_scale_array != NULL ) {
-
-		num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
-				* MXIF_COLUMN_FRAMESIZE(image_frame);
-
-		for ( i = 0; i < num_pixels; i++ ) {
-
-			if ( mask_data_array != NULL ) {
-				if ( mask_data_array[i] == 0 ) {
-
-					/* If the pixel is masked off, skip
-					 * this pixel and return to the top
-					 * of the loop for the next pixel.
-					 */
-
-					continue;
-				}
-			}
-
-			if ( ad->bias_corr_after_flood ) {
-				bias_offset = 0;
-			} else
-			if ( bias_data_array == NULL ) {
-				bias_offset = 0;
-			} else {
-				bias_offset = bias_data_array[i];
-			}
-
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				image_pixel = (double) u16_image_data_array[i];
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				image_pixel = (double) s32_image_data_array[i];
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				image_pixel = dbl_image_data_array[i];
-				break;
-			}
-
-			image_pixel = image_pixel - bias_offset;
-
-			image_pixel = image_pixel * flood_field_scale_array[i];
-
-			image_pixel = image_pixel + bias_offset;
-
-			/* Round to the nearest integer by adding 0.5 and
-			 * then truncating.
-			 *
-			 * We _must_ _not_ use mx_round() here since function
-			 * calls have too high of an overhead to be used
-			 * in this loop.
-			 */
-
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				if ( image_pixel < 0.0 ) {
-					u16_image_data_array[i] = 0;
-				} else {
-					u16_image_data_array[i]
-						= image_pixel + 0.5;
-				}
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				if ( image_pixel < 0.0 ) {
-					s32_image_data_array[i] =
-						image_pixel - 0.5;
-				} else {
-					s32_image_data_array[i] =
-						image_pixel + 0.5;
-				}
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				dbl_image_data_array[i] = image_pixel;
-				break;
-			}
-
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-----------------------------------------------------------------------*/
-
-static mx_status_type
 mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
@@ -8959,247 +8221,6 @@ mxp_area_detector_dbl_highmem_flood_field( MX_AREA_DETECTOR *ad,
 }
 
 /*=======================================================================*/
-
-static mx_status_type
-mxp_area_detector_lowmem_flood_field( MX_AREA_DETECTOR *ad,
-				MX_IMAGE_FRAME *image_frame,
-				MX_IMAGE_FRAME *mask_frame,
-				MX_IMAGE_FRAME *bias_frame,
-				MX_IMAGE_FRAME *flood_field_frame )
-{
-	static const char fname[] = "mxp_area_detector_lowmem_flood_field()";
-
-	unsigned long i, num_pixels;
-	uint16_t *mask_data_array, *bias_data_array;
-	uint16_t *flood_field_data_array;
-	uint16_t *u16_image_data_array;
-	int32_t *s32_image_data_array;
-	double *dbl_image_data_array;
-	long image_format;
-	unsigned long raw_flood_field, bias_offset;
-	double image_pixel, flood_field_scale_factor;
-	double ffs_numerator, ffs_denominator;
-	double flood_field_scale_max, flood_field_scale_min;
-	mx_bool_type all_pixels_underflowed;
-
-	/* Return now if we have not been provided with a flood field frame. */
-
-	if ( flood_field_frame == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	flood_field_data_array = flood_field_frame->image_data;
-
-	if ( image_frame == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_frame pointer passed was NULL." );
-	}
-
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY16:
-		u16_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_INT32:
-		s32_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_DOUBLE:
-		dbl_image_data_array = image_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image correction calculation format %ld is not supported "
-		"by area detector '%s'.",
-			image_format, ad->record->name );
-		break;
-	}
-
-	/* Discard the flood field scale array if it is in memory,
-	 * since we will not use it.
-	 */
-
-	mx_free( ad->flood_field_scale_array );
-
-	/* Get pointers to the mask and bias image data. */
-
-	if ( mask_frame == NULL ) {
-		mask_data_array = NULL;
-	} else {
-		mask_data_array = mask_frame->image_data;
-	}
-
-	if ( bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array = bias_frame->image_data;
-	}
-
-	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
-			* MXIF_COLUMN_FRAMESIZE(image_frame);
-
-	if ( bias_data_array == NULL ) {
-		all_pixels_underflowed = FALSE;
-	} else {
-		all_pixels_underflowed = TRUE;
-	}
-
-	flood_field_scale_max = ad->flood_field_scale_max;
-	flood_field_scale_min = ad->flood_field_scale_min;
-
-	/* Now do the flood field correction. */
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-		/* See if the pixel is masked off. */
-
-		if ( mask_data_array != NULL ) {
-			if ( mask_data_array[i] == 0 ) {
-
-				/* If the pixel is masked off, skip this
-				 * pixel and return to the top of the loop
-				 * for the next pixel.
-				 */
-
-				switch( image_format ) {
-				case MXT_IMAGE_FORMAT_GREY16:
-					u16_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_INT32:
-					s32_image_data_array[i] = 0;
-					break;
-				case MXT_IMAGE_FORMAT_DOUBLE:
-					dbl_image_data_array[i] = 0.0;
-					break;
-				}
-
-				continue;
-			}
-		}
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			image_pixel = (double) u16_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			image_pixel = (double) s32_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			image_pixel = dbl_image_data_array[i];
-			break;
-		}
-
-		raw_flood_field = flood_field_data_array[i];
-
-		if ( ad->bias_corr_after_flood ) {
-			bias_offset = 0;
-		} else
-		if ( bias_data_array == NULL ) {
-			bias_offset = 0;
-		} else {
-			bias_offset = bias_data_array[i];
-		}
-
-		/* We _must_ _not_ use mx_divide_safely() here since function
-		 * calls have too high of an overhead to be used in this loop.
-		 */
-
-		if( image_format == MXT_IMAGE_FORMAT_GREY16 ) {
-			if ( raw_flood_field <= bias_offset ) {
-				u16_image_data_array[i] = 0;
-				continue;	/* Skip to the next pixel. */
-			} else {
-				all_pixels_underflowed = FALSE;
-			}
-		} else {
-			all_pixels_underflowed = FALSE;
-		}
-
-		ffs_denominator = raw_flood_field - bias_offset;
-
-		ffs_numerator = ad->flood_field_average_intensity
-					- ad->bias_average_intensity;
-
-		flood_field_scale_factor = ffs_numerator / ffs_denominator;
-
-		if ( flood_field_scale_factor > flood_field_scale_max ) {
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				u16_image_data_array[i] = 0;
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				s32_image_data_array[i] = 0;
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				dbl_image_data_array[i] = 0.0;
-				break;
-			}
-			continue;		/* Skip to the next pixel. */
-		}
-		if ( flood_field_scale_factor < flood_field_scale_min ) {
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY16:
-				u16_image_data_array[i] = 0;
-				break;
-			case MXT_IMAGE_FORMAT_INT32:
-				s32_image_data_array[i] = 0;
-				break;
-			case MXT_IMAGE_FORMAT_DOUBLE:
-				dbl_image_data_array[i] = 0.0;
-				break;
-			}
-			continue;		/* Skip to the next pixel. */
-		}
-
-		image_pixel = image_pixel - bias_offset;
-
-		image_pixel = image_pixel * flood_field_scale_factor;
-
-		image_pixel = image_pixel + bias_offset;
-
-		/* Round to the nearest integer by adding 0.5 and then
-		 * truncating.
-		 *
-		 * We _must_ _not_ use mx_round() here since function calls
-		 * have too high of an overhead to be used in this loop.
-		 */
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			if ( image_pixel < 0.0 ) {
-				u16_image_data_array[i] = 0;
-			} else {
-				u16_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			if ( image_pixel < 0.0 ) {
-				s32_image_data_array[i] = image_pixel - 0.5;
-			} else {
-				s32_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			dbl_image_data_array[i] = image_pixel;
-			break;
-		}
-	}
-
-	if ( all_pixels_underflowed ) {
-		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"The entire contents of the corrected image frame for "
-		"area detector '%s' have been set to 0 since each pixel in "
-		"the flood field frame '%s' is less than or equal to the "
-		"value of the corresponding pixel in the bias frame '%s'.",
-			ad->record->name,
-			ad->flood_field_filename,
-			ad->bias_filename );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-----------------------------------------------------------------------*/
 
 static mx_status_type
 mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
@@ -9670,17 +8691,15 @@ mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 /*=======================================================================*/
 
 static mx_status_type
-mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
+mxp_area_detector_u16_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *bias_frame )
 {
-	static const char fname[] = "mxp_area_detector_delayed_bias_offset()";
+	static const char fname[] =
+		"mxp_area_detector_u16_delayed_bias_offset()";
 
 	unsigned long i, num_pixels;
 	uint16_t *u16_image_data_array;
-	int32_t *s32_image_data_array;
-	double *dbl_image_data_array;
 	uint16_t *bias_data_array;
-	long image_format;
 	double image_pixel;
 	unsigned long bias_offset;
 
@@ -9689,24 +8708,7 @@ mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 		"The image_frame pointer passed was NULL." );
 	}
 
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY16:
-		u16_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_INT32:
-		s32_image_data_array = image_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_DOUBLE:
-		dbl_image_data_array = image_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Image correction calculation format %ld is not supported.",
-			image_format );
-		break;
-	}
+	u16_image_data_array = image_frame->image_data;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
@@ -9754,17 +8756,7 @@ mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 #endif
 		/* Get the raw image pixel. */
 
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			image_pixel = (double) u16_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			image_pixel = (double) s32_image_data_array[i];
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			image_pixel = dbl_image_data_array[i];
-			break;
-		}
+		image_pixel = (double) u16_image_data_array[i];
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 		if ( i < 10 ) {
@@ -9789,30 +8781,16 @@ mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 		 * in this loop.
 		 */
 
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY16:
-			if ( image_pixel < 0.0 ) {
-				u16_image_data_array[i] = 0;
-			} else {
-				u16_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_INT32:
-			if ( image_pixel < 0.0 ) {
-				s32_image_data_array[i] = image_pixel - 0.5;
-			} else {
-				s32_image_data_array[i] = image_pixel + 0.5;
-			}
-			break;
-		case MXT_IMAGE_FORMAT_DOUBLE:
-			dbl_image_data_array[i] = image_pixel;
-			break;
+		if ( image_pixel < 0.0 ) {
+			u16_image_data_array[i] = 0;
+		} else {
+			u16_image_data_array[i] = image_pixel + 0.5;
 		}
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 		if ( i < 10 ) {
 			fprintf( stderr, "image_data_array[%lu] = %ld\n",
-				i, (long) s32_image_data_array[i] );
+				i, (long) u16_image_data_array[i] );
 		}
 #endif
 	}
@@ -9821,6 +8799,263 @@ mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 }
 
 /*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_s32_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *bias_frame )
+{
+	static const char fname[] =
+		"mxp_area_detector_s32_delayed_bias_offset()";
+
+	unsigned long i, num_pixels;
+	int32_t *s32_image_data_array;
+	uint16_t *bias_data_array;
+	double image_pixel;
+	unsigned long bias_offset;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	s32_image_data_array = image_frame->image_data;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
+		fname, image_frame->image_data));
+#endif
+
+	/* Get a pointer to the bias image data. */
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
+#endif
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	/* Do the bias offset corrections. */
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf(stderr, "i = %lu, ", i);
+		}
+#endif
+		/* Get the bias offset for this pixel. */
+
+		bias_offset = bias_data_array[i];
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "bias_offset = %d, ",
+					(int) bias_offset );
+		}
+#endif
+		/* Get the raw image pixel. */
+
+		image_pixel = (double) s32_image_data_array[i];
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "BEFORE image_pixel = %g, ",
+				image_pixel );
+		}
+#endif
+
+		image_pixel = image_pixel + bias_offset;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr,
+			"AFTER adding bias, image_pixel = %g, ", image_pixel );
+		}
+#endif
+		/* Round to the nearest integer by adding 0.5 and
+		 * then truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function
+		 * calls have too high of an overhead to be used
+		 * in this loop.
+		 */
+
+		if ( image_pixel < 0.0 ) {
+			s32_image_data_array[i] = image_pixel - 0.5;
+		} else {
+			s32_image_data_array[i] = image_pixel + 0.5;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "image_data_array[%lu] = %ld\n",
+				i, (long) u16_image_data_array[i] );
+		}
+#endif
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_dbl_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *bias_frame )
+{
+	static const char fname[] =
+		"mxp_area_detector_dbl_delayed_bias_offset()";
+
+	unsigned long i, num_pixels;
+	double *dbl_image_data_array;
+	uint16_t *bias_data_array;
+	double image_pixel;
+	unsigned long bias_offset;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	dbl_image_data_array = image_frame->image_data;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: image_frame->image_data = %p",
+		fname, image_frame->image_data));
+#endif
+
+	/* Get a pointer to the bias image data. */
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
+#endif
+
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	/* Do the bias offset corrections. */
+
+	/* This loop _must_ _not_ invoke any functions.  Function calls
+	 * have too high an overhead to be used in a loop that may loop
+	 * 32 million times or more.
+	 */
+
+	for ( i = 0; i < num_pixels; i++ ) {
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf(stderr, "i = %lu, ", i);
+		}
+#endif
+		/* Get the bias offset for this pixel. */
+
+		bias_offset = bias_data_array[i];
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "bias_offset = %d, ",
+					(int) bias_offset );
+		}
+#endif
+		/* Get the raw image pixel. */
+
+		image_pixel = dbl_image_data_array[i];
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "BEFORE image_pixel = %g, ",
+				image_pixel );
+		}
+#endif
+
+		image_pixel = image_pixel + bias_offset;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr,
+			"AFTER adding bias, image_pixel = %g, ", image_pixel );
+		}
+#endif
+		/* Round to the nearest integer by adding 0.5 and
+		 * then truncating.
+		 *
+		 * We _must_ _not_ use mx_round() here since function
+		 * calls have too high of an overhead to be used
+		 * in this loop.
+		 */
+
+		dbl_image_data_array[i] = image_pixel;
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION
+		if ( i < 10 ) {
+			fprintf( stderr, "image_data_array[%lu] = %ld\n",
+				i, (long) dbl_image_data_array[i] );
+		}
+#endif
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *bias_frame )
+{
+	static const char fname[] = "mxp_area_detector_delayed_bias_offset()";
+
+	long image_format;
+	mx_status_type mx_status;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+
+	image_format = MXIF_IMAGE_FORMAT(image_frame);
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		mx_status = mxp_area_detector_u16_delayed_bias_offset(
+						image_frame, bias_frame );
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		mx_status = mxp_area_detector_s32_delayed_bias_offset(
+						image_frame, bias_frame );
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		mx_status = mxp_area_detector_dbl_delayed_bias_offset(
+						image_frame, bias_frame );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Image correction calculation format %ld is not supported.",
+			image_format );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*=======================================================================*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
@@ -10315,12 +9550,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 							dark_current_frame );
 			break;
 		default:
-			mx_status = mxp_area_detector_lowmem_dark_correction(
-							ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Dark current correction requested for illegal "
+			"correction calculation frame format %ld "
+			"for area detector '%s'.",
+				correction_format, ad->record->name );
 			break;
 		}
 	} else {
@@ -10350,12 +9584,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 							dark_current_frame );
 			break;
 		default:
-			mx_status = mxp_area_detector_highmem_dark_correction(
-							ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Dark current correction requested for illegal "
+			"correction calculation frame format %ld "
+			"for area detector '%s'.",
+				correction_format, ad->record->name );
 			break;
 		}
 	}
@@ -10423,11 +9656,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 							flood_field_frame );
 			break;
 		default:
-			mx_status = mxp_area_detector_lowmem_flood_field( ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							flood_field_frame );
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Flood field correction requested for illegal "
+			"correction calculation frame format %ld "
+			"for area detector '%s'.",
+				correction_format, ad->record->name );
 			break;
 		}
 	} else {
@@ -10457,12 +9690,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 							flood_field_frame );
 			break;
 		default:
-			mx_status = mxp_area_detector_highmem_flood_field(
-							ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							flood_field_frame );
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Flood field correction requested for illegal "
+			"correction calculation frame format %ld "
+			"for area detector '%s'.",
+				correction_format, ad->record->name );
 			break;
 		}
 	}
