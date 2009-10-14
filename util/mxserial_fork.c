@@ -146,6 +146,7 @@ main( int argc, char *argv[] )
 	int i, debug_level, num_non_option_arguments;
 	int default_display_precision;
 	int max_receive_speed;
+	mx_bool_type start_debugger;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -201,15 +202,20 @@ main( int argc, char *argv[] )
 
 	file = NULL;
 
+	start_debugger = FALSE;
+
 #if USE_GETOPT
 	/* Process command line arguments via getopt, if any. */
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:f:n:s:")) != -1 ) {
+	while ((c = getopt(argc, argv, "d:Df:n:s:")) != -1 ) {
 		switch(c) {
 		case 'd':
 			debug_level = atoi( optarg );
+			break;
+		case 'D':
+			start_debugger = TRUE;
 			break;
 		case 'f':
 			file = fopen( optarg, "r" );
@@ -243,6 +249,10 @@ main( int argc, char *argv[] )
 	num_non_option_arguments = argc - 1;
 
 #endif /* USE_GETOPT */
+
+	if ( start_debugger ) {
+		mx_breakpoint();
+	}
 
 	newline_chars[0] = (char) (( newline >> 24 ) & 0xff);
 	newline_chars[1] = (char) (( newline >> 16 ) & 0xff);
