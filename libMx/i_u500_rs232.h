@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,12 +23,14 @@ typedef struct {
 
 	MX_RECORD *u500_record;
 	long board_number;
-	char pipe_name[MXU_FILENAME_LENGTH+1];
 
-#if defined(OS_WIN32)
-	HANDLE server_pipe_handle;
-	HANDLE client_pipe_handle;
-#endif
+	char com_port_name[MXU_FILENAME_LENGTH+1];
+	char loopback_port_name[MXU_FILENAME_LENGTH+1];
+	MX_RECORD *loopback_port_record;
+
+	char putchar_buffer[500];
+	unsigned long num_putchars_received;
+	unsigned long num_write_terminators_seen;
 } MX_U500_RS232;
 
 MX_API mx_status_type mxi_u500_rs232_create_record_structures(
@@ -39,6 +41,7 @@ MX_API mx_status_type mxi_u500_rs232_open( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_rs232_close( MX_RECORD *record );
 
 MX_API mx_status_type mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c );
+MX_API mx_status_type mxi_u500_rs232_putchar( MX_RS232 *rs232, char c );
 MX_API mx_status_type mxi_u500_rs232_putline( MX_RS232 *rs232,
 						char *buffer,
 						size_t *bytes_written );
@@ -60,8 +63,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_u500_rs232_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "pipe_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, pipe_name), \
+  {-1, -1, "com_port_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, com_port_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "loopback_port_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, loopback_port_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __I_U500_RS232_H__ */
