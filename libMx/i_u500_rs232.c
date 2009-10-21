@@ -36,6 +36,13 @@
 #include "i_u500.h"
 #include "i_u500_rs232.h"
 
+/* Aerotech includes */
+
+#include "Aerotype.h"
+#include "Build.h"
+#include "Quick.h"
+#include "Wapi.h"
+
 MX_RECORD_FUNCTION_LIST mxi_u500_rs232_record_function_list = {
 	NULL,
 	mxi_u500_rs232_create_record_structures,
@@ -131,6 +138,19 @@ mxi_u500_rs232_get_pointers( MX_RS232 *rs232,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static long
+mxi_u500_rs232_read_variable( short variable_number )
+{
+	double double_value;
+	long long_value;
+
+	double_value = WAPIAerReadVariable( variable_number );
+
+	long_value = mx_round( double_value );
+
+	return long_value;
+}
+
 /*==========================*/
 
 MX_EXPORT mx_status_type
@@ -168,7 +188,7 @@ mxi_u500_rs232_create_record_structures( MX_RECORD *record )
 	rs232->record = record;
 	u500_rs232->record = record;
 
-	u500_rs232->loopback_port_record = NULL;
+	u500_rs232->getchar_offset = 0;
 
 	u500_rs232->num_putchars_received = 0;
 	u500_rs232->num_write_terminators_seen = 0;
@@ -213,6 +233,7 @@ mxi_u500_rs232_open( MX_RECORD *record )
 	char command[80];
 	char response[80];
 	size_t bytes_read;
+	mx_bool_type use_getchar_buffer;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -231,96 +252,40 @@ mxi_u500_rs232_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-	/* Check to see if both port names have been specified. */
+	/* See if we have been requested to enable reading from the U500.
+	 * The minimum value of 2 for num_variables provides space for
+	 * a single character followed by a null terminator.
+	 */
 
-	if ( ( strlen(u500_rs232->com_port_name) == 0 )
-	  || ( strlen(u500_rs232->loopback_port_name) == 0 ) )
+	if ( (u500_rs232->base_variable >= 0)
+	  && (u500_rs232->num_variables >= 2) )
 	{
-		mx_info( "No com port and loopback port names for record '%s' "
-		"have been specified, so reading from this record will not "
-		"be possible.", record->name );
+		use_getchar_buffer = TRUE;
+	} else {
+		use_getchar_buffer = FALSE;
+	}
+
+	/* If so, then allocate memory for the getchar buffer. */
+
+	if ( use_getchar_buffer ) {
+		u500_rs232->getchar_buffer = 
+			malloc( u500_rs232->num_variables * sizeof(char) );
+
+		if ( u500_rs232->getchar_buffer == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld byte "
+			"getchar buffer for U500 RS-232 record '%s'.",
+				u500_rs232->num_variables,
+				record->name );
+		}
+	} else {
+		u500_rs232->getchar_buffer = NULL;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Try finding the loopback port record first. */
-
-	loopback_port_record = mx_get_record( record,
-					u500_rs232->loopback_port_name );
-
-	if ( loopback_port_record == NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Record '%s' mentioned by U500 RS-232 record '%s' "
-		"does not exist.", u500_rs232->loopback_port_name,
-			record->name );
-	}
-
-	/* Is the loopback port an RS-232 port? */
-
-	if ( loopback_port_record->mx_class != MXI_RS232 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Loopback port record '%s' used by U500 RS-232 record '%s' "
-		"is not an RS-232 record.",
-			u500_rs232->loopback_port_name,
-			record->name );
-	}
-
-	u500_rs232->loopback_port_record = loopback_port_record;
-
-#if U500_RS232_DEBUG
-	MX_DEBUG(-2,("%s: Found loopback port '%s' for record '%s'.",
-		fname, u500_rs232->loopback_port_record->name, record->name ));
-#endif
-	/* Get the COM port number for the U500. */
-
-	if ( mx_strncasecmp( u500_rs232->com_port_name, "COM", 3 ) != 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The com port name '%s' specified by U500 RS-232 record '%s' "
-		"is not a legal Windows com port name.",
-			u500_rs232->com_port_name, record->name );
-	}
-
-	ptr = u500_rs232->com_port_name + 3;
-
-	num_items = sscanf( ptr, "%d", &com_port_number );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Did not find a com port number in the name of Windows "
-		"com port '%s' used by U500 RS-232 record '%s'.",
-			u500_rs232->com_port_name, record->name );
-	}
-
-	/* Tell the U500 to try to connect to the COM port on its side. */
-
-	loopback_port_rs232 = (MX_RS232 *)
-				loopback_port_record->record_class_struct;
-
-	if ( loopback_port_rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RS232 pointer for record '%s' is NULL.",
-			loopback_port_record->name );
-	}
-
-	snprintf( command, sizeof(command),
-		"COM INIT %d, %ld, %ld, %c, %ld",
-		com_port_number,
-		loopback_port_rs232->word_size,
-		loopback_port_rs232->stop_bits,
-		loopback_port_rs232->parity,
-		loopback_port_rs232->speed );
-
-	mx_status = mxi_u500_command( u500, u500_rs232->board_number, command );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if U500_RS232_DEBUG
-	MX_DEBUG(-2,("%s: Connected to U500 com port '%s'",
-		fname, u500_rs232->com_port_name));
-#endif
-
-	/* Verify that the loopback connection works by trying to send
+	/* If we have been requested to enable reading from the U500, then
+	 * verify that the loopback connection works by trying to send
 	 * a message through it.
 	 */
 
@@ -394,6 +359,10 @@ mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_u500_rs232_getchar()";
 
 	MX_U500_RS232 *u500_rs232 = NULL;
+	mx_bool_type read_a_byte;
+	unsigned char byte_read;
+	long handshake_value;
+	short read_address;
 	mx_status_type mx_status;
 
 	mx_status = mxi_u500_rs232_get_pointers( rs232,
@@ -401,15 +370,55 @@ mxi_u500_rs232_getchar( MX_RS232 *rs232, char *c )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( u500_rs232->loopback_port_record == NULL ) {
+	if ( u500_rs232->getchar_buffer == NULL ) {
 		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-		"The loopback port record '%s' is not open for record '%s'.",
-			u500_rs232->loopback_port_name, rs232->record->name );
+		"Reading from U500 RS-232 record '%s' has not been configured.",
+			rs232->record->name );
 	}
 
-	mx_status = mx_rs232_getchar_with_timeout(
-				u500_rs232->loopback_port_record,
-				c, U500_RS232_DEBUG, 5.0 );
+	if ( u500_rs232->handshake_variable < 0 ) {
+		read_a_byte = TRUE;
+	} else {
+		handshake_value = 
+		  mxi_u500_rs232_read_variable(u500_rs232->handshake_variable);
+
+		if ( handshake_value != 0 ) {
+			read_a_byte = TRUE;
+		} else {
+			read_a_byte = FALSE;
+		}
+	}
+
+	if ( read_a_byte == FALSE ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No bytes are available from U500 RS-232 record '%s'.",
+			rs232->record->name );
+	}
+
+	if ( u500_rs232->getchar_offset >= u500_rs232->num_variables ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The getchar_offset (%ld) is not less than the num_variables "
+		"(%ld) for record '%s'.",
+			u500_rs232->getchar_offset,
+			u500_rs232->num_variables,
+			rs232->record->name );
+	}
+
+	read_address = u500_rs232->base_variable + u500_rs232->getchar_offset;
+
+	byte_read = mxi_u500_rs232_read_variable( read_address );
+
+	*c = byte_read;
+
+	if ( byte_read == '\0' ) {
+		u500_rs232->getchar_offset = 0;
+	} else {
+		u500_rs232->getchar_offset++;
+
+		if ( u500_rs232->getchar_offset >= u500_rs232->num_variables ) {
+			u500_rs232->getchar_offset = 0;
+		}
+	}
 
 #if U500_RS232_DEBUG
 	MX_DEBUG(-2,("%s: received %x '%c' from U500 RS-232 record '%s'.",
@@ -533,6 +542,7 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 	MX_U500 *u500 = NULL;
 	char local_buffer[500];
 	size_t prefix_length;
+	long i, base, addr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_u500_rs232_get_pointers( rs232,
@@ -554,9 +564,9 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 		/* The U500 does not have a programming command that starts
 		 * with the string 'MX '.  If the calling routine sends us
 		 * a buffer that starts with 'MX ', then we interpret this
-		 * as a request to replace the supplied command with the
-		 * string 'COM SEND "%s"' where %s is the text following
-		 * the 'MX ' string in the original command.
+		 * as a request to replace the supplied command with a
+		 * series of writes to U500 variables that are used
+		 * to contain ASCII characters.
 		 * 
 		 * This is just a convenience that allows the user to write
 		 * a U500 script without knowing the name of the U500 pipe.
@@ -564,20 +574,51 @@ mxi_u500_rs232_putline( MX_RS232 *rs232,
 		 * want to.
 		 */
 
-		snprintf( local_buffer, sizeof(local_buffer),
-			"COM SEND \"%s\"", buffer + prefix_length );
+		base = u500_rs232->base_variable;
+
+		if ( base < 0 ) {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"Attempted to write MX command '%s' to record '%s' "
+			"when the record is not configured to read from "
+			"the U500.", buffer, rs232->record->name );
+		}
+
+		addr = base;
+
+		for ( i = 0; i < u500_rs232->num_variables; i++ ) {
+			snprintf( local_buffer, sizeof(local_buffer),
+				"V%ld = %d", addr, (int) buffer[i] );
 
 #if U500_RS232_DEBUG
-		MX_DEBUG(-2,
-		("%s: MX command translated to '%s' for record '%s'",
+			MX_DEBUG(-2,
+			("%s: Sending '%s' to record '%s'",
 			fname, local_buffer, rs232->record->name ));
 #endif
 
-		mx_status = mxi_u500_command( u500,
+			mx_status = mxi_u500_command( u500,
 				u500_rs232->board_number, local_buffer );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			addr++;
+		}
+
+		if ( i < u500_rs232->num_variables ) {
+			snprintf( local_buffer, sizeof(local_buffer),
+				"V%ld = 0", addr );
+#if U500_RS232_DEBUG
+			MX_DEBUG(-2,
+			("%s: Sending '%s' to record '%s'",
+			fname, local_buffer, rs232->record->name ));
+#endif
+
+			mx_status = mxi_u500_command( u500,
+				u500_rs232->board_number, local_buffer );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 #if U500_RS232_DEBUG
 		MX_DEBUG(-2,
@@ -596,7 +637,6 @@ mxi_u500_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 		"mxi_u500_rs232_num_input_bytes_available()";
 
 	MX_U500_RS232 *u500_rs232 = NULL;
-	unsigned long total_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxi_u500_rs232_get_pointers( rs232,
@@ -604,28 +644,23 @@ mxi_u500_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If the client named pipe is not open, then we merely state that
-	 * zero bytes are available.
+	/* We read the handshake variable to find out how many bytes
+	 * are available.
 	 */
 
-	if ( u500_rs232->loopback_port_record == NULL ) {
+	if ( u500_rs232->handshake_variable < 0 ) {
 		rs232->num_input_bytes_available = 0;
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_status = mx_rs232_num_input_bytes_available(
-				u500_rs232->loopback_port_record,
-				&total_bytes_available );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	rs232->num_input_bytes_available =
+		mxi_u500_rs232_read_variable( u500_rs232->handshake_variable );
 
 #if U500_RS232_DEBUG
-	MX_DEBUG(-2,("%s: total_bytes_available = %ld",
-		fname, (long) total_bytes_available));
+	MX_DEBUG(-2,("%s: num_bytes_available = %ld",
+		fname, (long) rs232->num_bytes_available));
 #endif
-
-	rs232->num_input_bytes_available = total_bytes_available;
 
 	return MX_SUCCESSFUL_RESULT;
 }

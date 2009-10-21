@@ -375,6 +375,9 @@ i_sis3100.$(OBJ): i_sis3100.c
 i_u500.$(OBJ): i_u500.c
 	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) i_u500.c
 
+i_u500_rs232.$(OBJ): i_u500_rs232.c
+	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) i_u500_rs232.c
+
 i_umcbi.$(OBJ): i_umcbi.c
 	$(COMPILE) $(CFLAGS) $(UMCBI_INCLUDES) i_umcbi.c
 

@@ -24,9 +24,12 @@ typedef struct {
 	MX_RECORD *u500_record;
 	long board_number;
 
-	char com_port_name[MXU_FILENAME_LENGTH+1];
-	char loopback_port_name[MXU_FILENAME_LENGTH+1];
-	MX_RECORD *loopback_port_record;
+	long handshake_variable;
+	long base_variable;
+	long num_variables;
+
+	char *getchar_buffer;
+	unsigned long getchar_offset;
 
 	char putchar_buffer[500];
 	unsigned long num_putchars_received;
@@ -63,13 +66,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_u500_rs232_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "com_port_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, com_port_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  {-1, -1, "handshake_variable", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, handshake_variable), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "loopback_port_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, loopback_port_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+  {-1, -1, "base_variable", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, base_variable), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "num_variables", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_RS232, num_variables), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+  \
 
 #endif /* __I_U500_RS232_H__ */
 
