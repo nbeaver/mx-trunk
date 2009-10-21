@@ -515,6 +515,7 @@
 #include "v_bluice_string.h"
 #include "v_bluice_operation.h"
 #include "v_bluice_self_operation.h"
+#include "v_u500.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -4256,6 +4257,15 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxv_file_double_variable_num_record_fields,
 				&mxv_file_double_variable_dptr},
+
+/*----*/
+
+{"u500_variable",  MXV_U500_VARIABLE, MXV_U500,   MXR_VARIABLE,
+				&mxv_u500_variable_record_function_list,
+				&mxv_u500_variable_variable_function_list,
+				NULL,
+				&mxv_u500_variable_num_record_fields,
+				&mxv_u500_variable_rfield_def_ptr},
 
   /* =================== Server types ================== */
 

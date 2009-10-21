@@ -136,6 +136,7 @@ extern "C" {
 #define MXV_SPEC			66
 #define MXV_BLUICE			67
 #define MXV_FILE			68
+#define MXV_U500			69
 
 /* --- Server classes --- */
 
@@ -818,6 +819,8 @@ extern "C" {
 #define MXV_FILE_LONG			507008
 #define MXV_FILE_ULONG			507009
 #define MXV_FILE_DOUBLE			507011
+
+#define MXV_U500_VARIABLE		508011
 
 /* --- Server types --- */
 
