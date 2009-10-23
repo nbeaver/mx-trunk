@@ -1,0 +1,12 @@
+ad     device area_detector mlfsom "" "" 8 /home/lavender/james_holton_ccd/wml_work 1H87.pdb ano_sfall.com mlfsom.com
+#
+# Test motors for area detector scans.
+#
+energy    device motor soft_motor "" "" 8908000 0 -1000000000 1000000000 0 -1 -1 0.001 0 eV 1000000 0 1000000
+gonio_phi device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 deg 10000000 0 5000000
+#
+shutter   device digital_output soft_doutput "" "" 0
+#
+soft_timer device timer soft_timer "" ""
+ad_timer   device timer area_detector_timer "" "" ad
+timer1     device timer timer_fanout "" "" 2 soft_timer ad_timer

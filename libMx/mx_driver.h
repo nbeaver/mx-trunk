@@ -718,6 +718,7 @@ extern "C" {
 #define MXT_AD_BLUICE_DHS		240010
 #define MXT_AD_MARCCD_SERVER_SOCKET	240011
 #define MXT_AD_EPICS_CCD		240012
+#define MXT_AD_MLFSOM			240013
 
 /* --- Waveform output types --- */
 

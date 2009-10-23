@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mmlfsom.dat -s ./smlfsom.dat -i $*
+
