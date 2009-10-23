@@ -38,7 +38,6 @@
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN )
 #include <sys/time.h>
-#include <sys/wait.h>
 #include <pwd.h>
 #endif
 
@@ -620,127 +619,6 @@ mx_change_filename_prefix( char *old_filename,
 
 /*-------------------------------------------------------------------------*/
 
-#if defined( OS_UNIX )
-
-MX_EXPORT int
-mx_process_exists( unsigned long process_id )
-{
-	static const char fname[] = "mx_process_exists()";
-
-	int kill_status, saved_errno;
-
-	/* Clean up any zombie child processes. */
-
-	(void) waitpid( (pid_t) -1, NULL, WNOHANG | WUNTRACED );
-
-	/* See if the process exists. */
-
-	kill_status = kill( (pid_t) process_id, 0 );
-
-	saved_errno = errno;
-
-	MX_DEBUG( 2,("mx_process_exists(): kill_status = %d, saved_errno = %d",
-				kill_status, saved_errno));
-
-	if ( kill_status == 0 ) {
-		return TRUE;
-	} else {
-		switch( saved_errno ) {
-		case ESRCH:
-			return FALSE;
-		case EPERM:
-			return TRUE;
-		default:
-			(void) mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected errno value %d from kill(%lu,0).  Error = '%s'",
-				saved_errno, process_id,
-				mx_strerror( saved_errno, NULL, 0 ) );
-			return FALSE;
-		}
-	}
-
-#if defined( __BORLANDC__ )
-	/* Suppress 'Function should return a value ...' error. */
-
-	return FALSE;
-#endif
-}
-
-MX_EXPORT mx_status_type
-mx_kill_process( unsigned long process_id )
-{
-	static const char fname[] = "mx_kill_process()";
-
-	int kill_status, saved_errno;
-
-	kill_status = kill( (pid_t) process_id, SIGTERM );
-
-	saved_errno = errno;
-
-	if ( kill_status == 0 ) {
-
-		/* Attempt to wait for zombie processes, but do not block. */
-
-		mx_msleep(100);
-
-		(void) waitpid( (pid_t) -1, NULL, WNOHANG | WUNTRACED );
-
-		return MX_SUCCESSFUL_RESULT;
-	} else {
-		switch( saved_errno ) {
-		case ESRCH:
-			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
-				"Process %lu does not exist.", process_id);
-
-		case EPERM:
-			return mx_error(
-				(MXE_PERMISSION_DENIED | MXE_QUIET), fname,
-				"Cannot send the signal to process %lu.",
-					process_id );
-
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected errno value %d from kill(%lu,0).  Error = '%s'",
-				saved_errno, process_id,
-				mx_strerror( saved_errno, NULL, 0 ) );
-		}
-	}
-
-#if defined( __BORLANDC__ )
-	/* Suppress 'Function should return a value ...' error. */
-
-	return MX_SUCCESSFUL_RESULT;
-#endif
-}
-
-#else  /* Not OS_UNIX */
-
-MX_EXPORT int
-mx_process_exists( unsigned long process_id )
-{
-	static const char fname[] = "mx_process_exists()";
-
-	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"%s is not yet implemented for this operating system.",
-			fname );
-
-	return FALSE;
-}
-
-MX_EXPORT mx_status_type
-mx_kill_process( unsigned long process_id )
-{
-	static const char fname[] = "mx_kill_process()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"%s is not yet implemented for this operating system.",
-			fname );
-}
-
-#endif /* OS_UNIX */
-
-/*-------------------------------------------------------------------------*/
-
 MX_EXPORT char *
 mx_username( char *buffer, size_t max_buffer_length )
 {
@@ -932,25 +810,6 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #endif
 	return ptr;
-}
-
-/*-------------------------------------------------------------------------*/
-
-MX_EXPORT unsigned long
-mx_process_id( void )
-{
-	unsigned long process_id;
-
-#if defined(OS_WIN32)
-	process_id = (unsigned long) GetCurrentProcessId();
-
-#elif defined(OS_VXWORKS)
-	process_id = 0;
-#else
-	process_id = (unsigned long) getpid();
-#endif
-
-	return process_id;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1341,7 +1200,7 @@ mx_start_debugger( char *command )
 			spawn_flags = 0;
 		}
 
-		mx_status = mx_spawn( command_line, spawn_flags );
+		mx_status = mx_spawn( command_line, spawn_flags, NULL );
 
 		/* See if starting the debugger succeeded. */
 
@@ -2683,7 +2542,152 @@ mx_string_split( char *original_string,
 	}
 }
 
-/* --------------- */
+/*------------------------------------------------------------------------*/
+
+#if defined(OS_UNIX) || defined(OS_WIN32)
+
+MX_EXPORT int
+mx_command_found( char *command_name )
+{
+	static const char fname[] = "mx_command_found()";
+
+	char pathname[MXU_FILENAME_LENGTH+1];
+	char *path, *start_ptr, *end_ptr;
+	int os_status;
+	size_t length;
+	mx_bool_type try_pathname;
+
+#if defined(OS_WIN32)
+	char path_separator = ';';
+#else
+	char path_separator = ':';
+#endif
+
+	if ( command_name == NULL )
+		return FALSE;
+
+	/* See first if the file can be treated as an absolute
+	 * or relative pathname.
+	 */
+
+	try_pathname = FALSE;
+
+	if ( strchr( command_name, '/' ) != NULL ) {
+		try_pathname = TRUE;
+	}
+
+#if defined(OS_WIN32)
+	if ( strchr( command_name, '\\' ) != NULL ) {
+		try_pathname = TRUE;
+	}
+#endif
+
+	/* If the supplied command name appears to be a relative or absolute
+	 * pathname, try using access() to see if the file exists and is
+	 * executable.
+	 */
+
+	if ( try_pathname ) {
+		os_status = access( command_name, X_OK );
+
+		if ( os_status == 0 ) {
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	}
+
+	/* If we get here, look for the command in the directories listed
+	 * by the PATH variable.
+	 */
+
+	path = getenv( "PATH" );
+
+	MX_DEBUG( 2,("%s: path = '%s'", fname, path));
+
+	/* Loop through the path components. */
+
+	start_ptr = path;
+
+	for(;;) {
+		/* Look for the end of the next path component. */
+
+		end_ptr = strchr( start_ptr, path_separator );
+
+		if ( end_ptr == NULL ) {
+			length = strlen( start_ptr );
+		} else {
+			length = end_ptr - start_ptr;
+		}
+
+		/* If the next path component is longer than the
+		 * maximum filename length, skip it.
+		 */
+
+		if ( length > MXU_FILENAME_LENGTH ) {
+			start_ptr = end_ptr + 1;
+
+			continue;  /* Go back to the top of the for(;;) loop. */
+		}
+
+		/* Copy the path directory to the pathname buffer
+		 * and then null terminate it.
+		 */
+
+		memset( pathname, '\0', sizeof(pathname) );
+
+		memcpy( pathname, start_ptr, length );
+
+		pathname[length] = '\0';
+
+		/* Append a directory separator to the filename.  Forward
+		 * slashes work here just as well on Windows as backslashes.
+		 */
+
+		strlcat( pathname, "/", sizeof(pathname) );
+
+		/* Append the command name. */
+
+		strlcat( pathname, command_name, sizeof(pathname) );
+
+		/* See if this pathname exists and is executable. */
+
+		os_status = access( pathname, X_OK );
+
+		MX_DEBUG( 2,("%s: pathname = '%s', os_status = %d",
+				fname, pathname, os_status));
+
+		if ( os_status == 0 ) {
+
+			/* If the returned status is 0, we have found the
+			 * command and know that it is executable, so we
+			 * can return now with a success status code.
+			 */
+
+			return TRUE;
+		}
+
+		if ( end_ptr == NULL ) {
+			break;		/* Exit the for(;;) loop. */
+		} else {
+			start_ptr = end_ptr + 1;
+		}
+	}
+
+	return FALSE;
+}
+
+#else
+
+MX_EXPORT int
+mx_command_found( char *command_name )
+{
+	return FALSE;
+}
+
+#endif
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_verify_directory( char *directory_name, int create_flag )

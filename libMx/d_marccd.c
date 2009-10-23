@@ -1258,7 +1258,7 @@ mxd_marccd_handle_state_value( MX_AREA_DETECTOR *ad,
 
 		/* Stop the MX server nicely. */
 
-		(void) mx_kill_process( mx_process_id() );
+		(void) mx_kill_process_id( mx_process_id() );
 	}
 
 	/* The interpretation of the state flag depends on the command that

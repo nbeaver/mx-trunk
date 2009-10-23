@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1564,7 +1564,7 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 			 * that process id is still running.
 			 */
 
-			process_exists = mx_process_exists( process_id );
+			process_exists = mx_process_id_exists( process_id );
 			break;
 		case MXE_NOT_FOUND:
 			/* If the server process id could not be found in

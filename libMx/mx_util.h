@@ -706,6 +706,8 @@ MX_API mx_status_type mx_copy_file( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
 
+MX_API int mx_command_found( char *command_name );
+
 /* mx_verify_directory() verifies the existence of the specified directory
  * and optionally creates it if it does not already exist.
  */
@@ -739,13 +741,29 @@ MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
 						char *new_filename,
 						size_t max_new_filename_length);
 
-MX_API int mx_process_exists( unsigned long process_id );
+/*------------------------------------------------------------------------*/
 
-MX_API mx_status_type mx_kill_process( unsigned long process_id );
+/* Flags for mx_spawn() */
 
-MX_API char *mx_username( char *buffer, size_t buffer_length );
+#define MXF_SPAWN_SUSPEND_CHILD		0x1
+#define MXF_SPAWN_SUSPEND_PARENT	0x2
+
+MX_API mx_status_type mx_spawn( char *command_line,
+				unsigned long flags,
+				unsigned long *process_id );
+
+MX_API int mx_process_id_exists( unsigned long process_id );
+
+MX_API mx_status_type mx_kill_process_id( unsigned long process_id );
 
 MX_API unsigned long mx_process_id( void );
+
+MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
+					unsigned long *process_status );
+
+/*------------------------------------------------------------------------*/
+
+MX_API char *mx_username( char *buffer, size_t buffer_length );
 
 MX_API int mx_get_max_file_descriptors( void );
 
@@ -789,17 +807,6 @@ MX_API char *mx_string_token( char **string_ptr, const char *delim );
 
 MX_API int mx_string_split( char *original_string, const char *delim,
 					int *argc, char ***argv );
-
-/*------------------------------------------------------------------------*/
-
-/* Flags for mx_spawn() */
-
-#define MXF_SPAWN_SUSPEND_CHILD		0x1
-#define MXF_SPAWN_SUSPEND_PARENT	0x2
-
-MX_API mx_status_type mx_spawn( char *command_line, unsigned long flags );
-
-MX_API int mx_command_found( char *command_name );
 
 /*------------------------------------------------------------------------*/
 
