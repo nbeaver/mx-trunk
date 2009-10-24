@@ -277,6 +277,64 @@ mx_spawn( char *command_line,
 
 /*-------------------------------------------------------------------------*/
 
+#elif defined(OS_WIN32)
+
+#include <windows.h>
+
+MX_EXPORT mx_status_type
+mx_spawn( char *command_line,
+	unsigned long flags,
+	unsigned long *child_process_id )
+{
+	static const char fname[] = "mx_spawn()";
+
+	BOOL status;
+	STARTUPINFO startup_info;
+	PROCESS_INFORMATION process_info;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	memset( &startup_info, 0, sizeof(startup_info) );
+
+	startup_info.cb = sizeof(startup_info);
+
+	memset( &process_info, 0, sizeof(process_info) );
+
+	status = CreateProcess( NULL,
+				command_line,
+				NULL,
+				NULL,
+				FALSE,
+				CREATE_DEFAULT_ERROR_MODE,
+				NULL,
+				NULL,
+				&startup_info,
+				&process_info );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to create a process using the command line '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			command_line, last_error_code, message_buffer );
+	}
+
+	if ( child_process_id != NULL ) {
+		*child_process_id = process_info.dwProcessId;
+	}
+
+	CloseHandle( process_info.hProcess );
+	CloseHandle( process_info.hThread );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #elif 0
 
 MX_EXPORT mx_status_type
@@ -342,6 +400,41 @@ mx_process_id_exists( unsigned long process_id )
 
 	return FALSE;
 #endif
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_WIN32)
+
+MX_EXPORT int
+mx_process_id_exists( unsigned long process_id )
+{
+	static const char fname[] = "mx_process_id_exists()";
+
+	HANDLE process_handle;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	process_handle = OpenProcess( PROCESS_QUERY_INFORMATION,
+					FALSE, process_id );
+
+	if ( process_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get a process handle for process ID %lu.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			process_id, last_error_code, message_buffer );
+
+		return FALSE;
+	}
+
+	CloseHandle( process_handle );
+
+	return TRUE;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -419,6 +512,58 @@ mx_kill_process_id( unsigned long process_id )
 
 /*-------------------------------------------------------------------------*/
 
+#elif defined(OS_WIN32)
+
+MX_EXPORT mx_status_type
+mx_kill_process_id( unsigned long process_id )
+{
+	static const char fname[] = "mx_kill_process_id()";
+
+	HANDLE process_handle;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	BOOL status;
+	mx_status_type mx_status;
+
+	process_handle = OpenProcess( PROCESS_ALL_ACCESS,
+					FALSE, process_id );
+
+	if ( process_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get a process handle for process ID %lu.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			process_id, last_error_code, message_buffer );
+	}
+
+	status = TerminateProcess( process_handle, 127 );
+
+	if ( status != 0 ) {
+		mx_status = MX_SUCCESSFUL_RESULT;
+	} else {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to terminate process handle %p, process ID %lu.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			process_handle, process_id,
+			last_error_code, message_buffer );
+	}
+
+	CloseHandle( process_handle );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #elif 0
 
 MX_EXPORT mx_status_type
@@ -489,8 +634,91 @@ mx_wait_for_process_id( unsigned long process_id,
 
 /*-------------------------------------------------------------------------*/
 
+#elif defined(OS_WIN32)
+
+MX_EXPORT mx_status_type
+mx_wait_for_process_id( unsigned long process_id,
+			long *process_status )
+{
+	static const char fname[] = "mx_wait_for_process_id()";
+
+	HANDLE process_handle;
+	DWORD return_code;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	process_handle = OpenProcess( PROCESS_QUERY_INFORMATION,
+					FALSE, process_id );
+
+	if ( process_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get a process handle for process ID %lu.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			process_id, last_error_code, message_buffer );
+	}
+
+	return_code = WaitForSingleObject( process_handle, INFINITE );
+
+	switch( return_code ) {
+	case WAIT_OBJECT_0:	/* The process has ended. */
+
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+
+	case WAIT_FAILED:
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"WaitForSingleObject() failed for process handle %p, "
+			"process ID %lu.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				process_handle, process_id,
+				last_error_code, message_buffer );
+		break;
+
+	case WAIT_ABANDONED:
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Received mutex WAIT_ABANDONED code from "
+			"WaitForSingleObject() for handle %p, which "
+			"is supposed to be the process handle for "
+			"process ID %lu.  This should never happen.",
+				process_handle, process_id );
+		break;
+
+	case WAIT_TIMEOUT:
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Received WAIT_TIMEOUT code from "
+			"WaitForSingleObject() for process handle %p, "
+			"process ID %lu, even though the timeout interval "
+			"was set to INFINITE.  This should never happen.",
+				process_handle, process_id );
+		break;
+
+	default:
+		mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Received unexpected return code %lu from "
+			"WaitForSingleObject() for process handle %p, "
+			"process ID %lu.  This should never happen.",
+				return_code, process_handle, process_id );
+		break;
+	}
+
+	CloseHandle( process_handle );
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #else
-
-#error Waiting for a process ID is not yet implemented for this platform.
-
+#error mx_wait_for_process_id() is not yet implemented for this platform.
 #endif
