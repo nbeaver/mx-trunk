@@ -6405,7 +6405,7 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	MX_DEBUG(-2,("%s: *use_low_memory_methods = %d",
-		fname, *use_low_memory_methods));
+		fname, (int) *use_low_memory_methods));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

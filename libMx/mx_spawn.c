@@ -24,7 +24,7 @@
 #include "mx_stdint.h"
 #include "mx_unistd.h"
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 #include <stdlib.h>
 #include <signal.h>
@@ -356,7 +356,7 @@ mx_spawn( char *command_line,
 
 /*=========================================================================*/
 
-#if defined( OS_UNIX )
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 MX_EXPORT int
 mx_process_id_exists( unsigned long process_id )
@@ -461,7 +461,7 @@ mx_process_id_exists( unsigned long process_id )
 
 /*=========================================================================*/
 
-#if defined( OS_UNIX )
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
@@ -603,7 +603,7 @@ mx_process_id( void )
 
 /*=========================================================================*/
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_wait_for_process_id( unsigned long process_id,
