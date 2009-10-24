@@ -851,7 +851,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	kreturn = task_for_pid( current_task(), process_id, &task );
 
 	if ( ( kreturn == KERN_FAILURE )
-	  && ( mx_process_exists( process_id ) == FALSE ) )
+	  && ( mx_process_id_exists( process_id ) == FALSE ) )
 	{
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Process %lu does not exist.", process_id );

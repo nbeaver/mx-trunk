@@ -759,7 +759,7 @@ MX_API mx_status_type mx_kill_process_id( unsigned long process_id );
 MX_API unsigned long mx_process_id( void );
 
 MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
-					unsigned long *process_status );
+						long *process_status );
 
 /*------------------------------------------------------------------------*/
 

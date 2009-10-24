@@ -36,7 +36,7 @@
 MX_EXPORT mx_status_type
 mx_spawn( char *command_line,
 		unsigned long flags,
-		unsigned long *process_id )
+		unsigned long *child_process_id )
 {
 	static const char fname[] = "mx_spawn()";
 
@@ -197,9 +197,10 @@ mx_spawn( char *command_line,
 
 		saved_errno = errno;
 
-		fprintf( stderr,
-	"Can't execute command '%s'.  Errno = %d, error message = '%s'\n",
-			argv[0], saved_errno, strerror( saved_errno ) );
+		fprintf( stderr, "Child process %lu could not execute "
+		"command '%s'.  Errno = %d, error message = '%s'\n",
+			(unsigned long) child_pid, argv[0],
+			saved_errno, strerror( saved_errno ) );
 
 		/* The only safe thing we can do now is exit. */
 
@@ -262,28 +263,40 @@ mx_spawn( char *command_line,
 			}
 		}
 
+		/* Send the child PID to the caller if requested. */
+
+		if ( child_process_id != NULL ) {
+			*child_process_id = (unsigned long) child_pid;
+		}
+
 		/* Nothing else to do at this point. */
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else
+/*-------------------------------------------------------------------------*/
+
+#elif 0
 
 MX_EXPORT mx_status_type
 mx_spawn( char *command_line,
 	unsigned long flags,
-	unsigned long *process_id )
+	unsigned long *child_process_id )
 {
 	static const char fname[] = "mx_spawn()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"%s has not yet been implemented for this platform.", fname );
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"%s is not supported for this platform.", fname );
 }
 
+/*-------------------------------------------------------------------------*/
+
+#else
+#error mx_spawn() has not yet been implemented for this platform.
 #endif
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
 
 #if defined( OS_UNIX )
 
@@ -304,8 +317,8 @@ mx_process_id_exists( unsigned long process_id )
 
 	saved_errno = errno;
 
-	MX_DEBUG( 2,("mx_process_exists(): kill_status = %d, saved_errno = %d",
-				kill_status, saved_errno));
+	MX_DEBUG( 2,("%s: kill_status = %d, saved_errno = %d",
+				fname, kill_status, saved_errno));
 
 	if ( kill_status == 0 ) {
 		return TRUE;
@@ -330,6 +343,32 @@ mx_process_id_exists( unsigned long process_id )
 	return FALSE;
 #endif
 }
+
+/*-------------------------------------------------------------------------*/
+
+#elif 0
+
+MX_EXPORT int
+mx_process_id_exists( unsigned long process_id )
+{
+	static const char fname[] = "mx_process_id_exists()";
+
+	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"%s is not yet implemented for this operating system.",
+			fname );
+
+	return FALSE;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#else
+#error mx_process_id_exists() has not yet been implemented for this platform.
+#endif
+
+/*=========================================================================*/
+
+#if defined( OS_UNIX )
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
@@ -378,21 +417,9 @@ mx_kill_process_id( unsigned long process_id )
 #endif
 }
 
-/*.........................................................................*/
+/*-------------------------------------------------------------------------*/
 
-#else  /* Not OS_UNIX */
-
-MX_EXPORT int
-mx_process_id_exists( unsigned long process_id )
-{
-	static const char fname[] = "mx_process_id_exists()";
-
-	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"%s is not yet implemented for this operating system.",
-			fname );
-
-	return FALSE;
-}
+#elif 0
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
@@ -404,9 +431,13 @@ mx_kill_process_id( unsigned long process_id )
 			fname );
 }
 
-#endif /* OS_UNIX */
-
 /*-------------------------------------------------------------------------*/
+
+#else
+#error mx_kill_process_id() has not yet been implemented for this platform.
+#endif
+
+/*=========================================================================*/
 
 MX_EXPORT unsigned long
 mx_process_id( void )
@@ -425,5 +456,41 @@ mx_process_id( void )
 	return process_id;
 }
 
+/*=========================================================================*/
+
+#if defined(OS_UNIX)
+
+MX_EXPORT mx_status_type
+mx_wait_for_process_id( unsigned long process_id,
+			long *process_status )
+{
+	static const char fname[] = "mx_wait_for_process_id()";
+
+	pid_t result;
+	int pid_status, saved_errno;
+
+	result = waitpid( process_id, &pid_status, 0 );
+
+	if ( result < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to wait for process ID %lu failed.  "
+		"Errno = %d, error message = '%s'",
+			process_id, saved_errno, strerror( saved_errno ) );
+	}
+
+	if ( process_status != NULL ) {
+		*process_status = pid_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*-------------------------------------------------------------------------*/
 
+#else
+
+#error Waiting for a process ID is not yet implemented for this platform.
+
+#endif

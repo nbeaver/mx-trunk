@@ -114,6 +114,9 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 	static const char fname[] = "mxd_mlfsom_mlfsom_monitor_thread()";
 
 	MX_MLFSOM_THREAD_INFO *tinfo;
+	unsigned long child_process_id;
+	long child_process_status;
+	mx_status_type mx_status;
 
 	if ( args == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -130,10 +133,30 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 #if MXD_MLFSOM_DEBUG
 	MX_DEBUG(-2,("%s: command = '%s'", fname, tinfo->command));
 #endif
+	mx_status = mx_spawn( tinfo->command, 0, &child_process_id );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Thread is exiting due to an error in mx_spawn()." );
+	}
 
 #if MXD_MLFSOM_DEBUG
-	MX_DEBUG(-2,("%s: falling off the end for record '%s'.",
-		fname, tinfo->record->name));
+	MX_DEBUG(-2,("%s: About to wait for process ID %lu",
+		fname, child_process_id ));
+#endif
+
+	mx_status = mx_wait_for_process_id( child_process_id,
+					&child_process_status );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+	    "Thread is exiting due to an error in mx_wait_for_process_id()." );
+	}
+
+#if MXD_MLFSOM_DEBUG
+	MX_DEBUG(-2,
+	("%s is complete for record '%s', child_process_status = %lu.",
+		fname, tinfo->record->name, child_process_status));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
