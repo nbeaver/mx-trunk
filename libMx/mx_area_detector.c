@@ -20,11 +20,11 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		FALSE
 
@@ -34,7 +34,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	TRUE
+#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
 
@@ -5664,7 +5664,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 		corr->desired_correction_flags = MXFT_AD_MASK_FRAME;
 
-		if ( ad->bias_frame != NULL ) {
+		if ( ( ad->bias_corr_after_flood == FALSE )
+		  && ( ad->bias_frame != NULL ) ) {
 		    corr->desired_correction_flags |= MXFT_AD_BIAS_FRAME;
 		}
 		break;
@@ -5678,7 +5679,8 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 		corr->desired_correction_flags = 
 			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
 
-		if ( ad->bias_frame != NULL ) {
+		if ( ( ad->bias_corr_after_flood == FALSE )
+		  && ( ad->bias_frame != NULL ) ) {
 		    corr->desired_correction_flags |= MXFT_AD_BIAS_FRAME;
 		}
 
@@ -5778,6 +5780,7 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 	size_t image_length;
 
 	unsigned long saved_correction_flags;
+	mx_bool_type saved_bias_corr_after_flood;
 	mx_status_type mx_status, mx_status2;
 
 	/* Readout the frame into ad->image_frame. */
@@ -5803,7 +5806,12 @@ mx_area_detector_process_correction_frame( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		saved_bias_corr_after_flood = ad->bias_corr_after_flood;
+		ad->bias_corr_after_flood = FALSE;
+
 		mx_status = mx_area_detector_correct_frame(ad->record);
+
+		ad->bias_corr_after_flood = saved_bias_corr_after_flood;
 
 		mx_status2 = mx_area_detector_set_correction_flags(
 				ad->record, saved_correction_flags );

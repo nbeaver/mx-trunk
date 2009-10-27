@@ -25,6 +25,7 @@
 #include "mx_memory.h"
 #include "mx_bit.h"
 #include "mx_list_head.h"
+#include "mx_dynamic_library.h"
 
 #include "mx_callback.h"
 #include "mx_process.h"
@@ -609,6 +610,8 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 	MX_SOCKET_HANDLER *socket_handler;
 	unsigned long i, num_table_entries;
 	uint32_t callback_id;
+	char function_name[100];
+	mx_status_type mx_status;
 
 	callback_id = list_head->show_callback_id;
 
@@ -649,9 +652,43 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	fprintf( stderr, "Callback ID = %#lx, address = %p, class = %ld\n",
+	if ( callback->callback_function == NULL ) {
+		strlcpy( function_name, "<null>", sizeof(function_name) );
+	} else {
+		mx_status = mx_dynamic_library_get_function_name_from_address(
+				callback->callback_function,
+				function_name, sizeof(function_name) );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
+		case MXE_NOT_FOUND:
+			snprintf( function_name, sizeof(function_name),
+			"<not found, addr = %p>", callback->callback_function );
+			break;
+		case MXE_NOT_YET_IMPLEMENTED:
+			snprintf( function_name, sizeof(function_name),
+			"<not yet implemented, addr = %p>",
+				callback->callback_function );
+			break;
+		case MXE_UNSUPPORTED:
+			snprintf( function_name, sizeof(function_name),
+			"<unsupported, addr = %p>",
+				callback->callback_function );
+			break;
+		default:
+			snprintf( function_name, sizeof(function_name),
+			"<MX error %lu, addr = %p>",
+				mx_status.code, callback->callback_function );
+			break;
+		}
+	}
+
+	fprintf( stderr, "Callback ID = %#lx, callback = %p, class = %ld, "
+			"type = %ld, function = '%s'\n",
 		(unsigned long) callback->callback_id, callback,
-		callback->callback_class );
+		callback->callback_class, callback->callback_type,
+		function_name );
 
 	/* Find the list of socket handlers for this callback.*/
 

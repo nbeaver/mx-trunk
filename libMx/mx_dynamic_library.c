@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,6 +196,18 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_function_name_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_function_name_from_address()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented for this platform." );
+}
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)
@@ -370,11 +382,27 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_function_name_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_function_name_from_address()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented for this platform." );
+}
+
 /************************ dlopen() ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_BSD) || defined(OS_IRIX) || defined(OS_CYGWIN) \
 	|| defined(OS_QNX) || defined(OS_VMS)
+
+#if defined(__GLIBC__)
+#  define __USE_GNU
+#endif
 
 #include <errno.h>
 #include <dlfcn.h>
@@ -515,6 +543,54 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if defined(__GLIBC__)
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_function_name_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_function_name_from_address()";
+
+	Dl_info info;
+	int status;
+
+	status = dladdr( address, &info );
+
+	if ( status == 0 ) {
+		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+		"No function name was found for address %p.", address );
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: address = %p, dli_fname = '%s', dli_fbase = %p, "
+		"dli_sname = '%s', dli_saddr = %p",
+		fname, address, info.dli_fname, info.dli_fbase,
+		info.dli_sname, info.dli_saddr));
+#endif
+
+	strlcpy( function_name, info.dli_fname, max_name_length );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else  /* Not __GLIBC__ */
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_function_name_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_function_name_from_address()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Not yet implemented for this platform." );
+}
+
+#endif  /* __GLIBC__ */
+
 /************************ Not available ***********************/
 
 #elif defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_DJGPP)
@@ -548,6 +624,19 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Dynamic loading of libraries is not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_function_name_from_address( void *address,
+						char *function_name,
+						size_t max_name_length )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_function_name_from_address()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Finding a function name from an address is not supported "
+		"on this platform." );
 }
 
 /************************ unknown ***********************/
