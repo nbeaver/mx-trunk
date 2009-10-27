@@ -20,11 +20,11 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		FALSE
 
@@ -9075,6 +9075,8 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 	uint16_t *uint16_src, *uint16_dest;
 	int32_t *int32_src, *int32_dest;
 	double *double_src, *double_dest;
+	int32_t s32_pixel;
+	double dbl_pixel;
 	long i;
 	long src_format, dest_format;
 	long src_pixels, dest_pixels;
@@ -9153,7 +9155,16 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 			uint16_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
-				uint16_dest[i] = int32_src[i];
+				s32_pixel = int32_src[i];
+
+				if ( s32_pixel < 0 ) {
+					uint16_dest[i] = 0;
+				} else
+				if ( s32_pixel > 65535 ) {
+					uint16_dest[i] = 65535;
+				} else {
+					uint16_dest[i] = int32_src[i];
+				}
 			}
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
@@ -9184,7 +9195,16 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 			uint16_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
-				uint16_dest[i] = double_src[i];
+				dbl_pixel = double_src[i];
+
+				if ( dbl_pixel < 0.0 ) {
+					uint16_dest[i] = 0;
+				} else
+				if ( dbl_pixel > 65535.0 ) {
+					uint16_dest[i] = 65535;
+				} else {
+					uint16_dest[i] = double_src[i];
+				}
 			}
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
