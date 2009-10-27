@@ -137,7 +137,7 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 		}
 	}
 
-	if ( input_device->mx_class != MXC_AREA_DETECTOR ) {
+	if ( input_device_class != MXC_AREA_DETECTOR ) {
 		strlcat( filename, ".", max_filename_length );
 
 		strlcat( filename, number_string, max_filename_length );
