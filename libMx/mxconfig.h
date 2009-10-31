@@ -202,7 +202,7 @@
  * Win32 driver for the Aerotech Unidex 500 series of motor controllers.
  */
 
-#define HAVE_U500			0
+#define HAVE_U500			1
 
 /*****************************************************************************
  *

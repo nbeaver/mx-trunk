@@ -42,6 +42,7 @@
 #include "Build.h"
 #include "Quick.h"
 #include "Wapi.h"
+#include "Aerqcode.h"
 
 MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list = {
 	mxi_u500_initialize_type,
@@ -628,7 +629,9 @@ mxi_u500_set_program_number( MX_U500 *u500, int program_number )
 }
 
 MX_EXPORT mx_status_type
-mxi_u500_error( long wapi_status, const char *fname, char *format, ... )
+mxi_u500_error( unsigned long wapi_status,
+		const char *fname,
+		char *format, ... )
 {
 	char buffer[2000];
 	TCHAR wapi_error_message[2000];
@@ -638,15 +641,27 @@ mxi_u500_error( long wapi_status, const char *fname, char *format, ... )
 	vsprintf(buffer, format, args);
 	va_end(args);
 
-	WAPIErrorToAscii( wapi_status, wapi_error_message );
+	switch( wapi_status ) {
+	case U500_E_DRV_PREVGRP_NOT_DONE:
+		strlcpy( wapi_error_message,
+			"The U500 command queue is full.  Perhaps you "
+			"are sending commands to the U500 faster than "
+			"it can execute them?",
+			sizeof(wapi_error_message) );
+		break;
+	default:
+		WAPIErrorToAscii( wapi_status, wapi_error_message );
+	}
 
 	return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"%s.  WAPI status = %ld, WAPI error = '%s'",
+		"%s.  WAPI status = %lx, WAPI error = '%s'",
 		buffer, wapi_status, wapi_error_message );
 }
 
 MX_EXPORT mx_status_type
-mxi_u500_program_error( long wapi_status, const char *fname, char *format, ... )
+mxi_u500_program_error( unsigned long wapi_status,
+			const char *fname,
+			char *format, ... )
 {
 	char error_message[80];
 	char buffer[2000];
@@ -659,7 +674,7 @@ mxi_u500_program_error( long wapi_status, const char *fname, char *format, ... )
 	(void) WAPIAerGetProgErrMsg( buffer );
 
 	return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"%s.  WAPI status = %ld, program error = '%s'",
+		"%s.  WAPI status = %lx, program error = '%s'",
 		buffer, wapi_status, error_message );
 };
 

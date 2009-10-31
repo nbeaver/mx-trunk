@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,6 +157,8 @@ MX_DRIVER mx_class_list[] = {
 {"bluice_variable",0, MXV_BLUICE,         MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 {"file",           0, MXV_FILE,           MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
+{"u500",           0, MXV_U500,           MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */

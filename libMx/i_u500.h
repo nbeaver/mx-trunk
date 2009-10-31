@@ -175,11 +175,12 @@ MX_API mx_status_type mxi_u500_select_board( MX_U500 *u500,
 MX_API mx_status_type mxi_u500_set_program_number( MX_U500 *u500,
 					int program_number );
 
-MX_API mx_status_type mxi_u500_error( long wapi_status,
+MX_API mx_status_type mxi_u500_error( unsigned long wapi_status,
 					const char *fname,
 					char *format, ... );
 
-MX_API mx_status_type mxi_u500_program_error( long wapi_status,
+MX_API mx_status_type mxi_u500_program_error(
+					unsigned long wapi_status,
 					const char *fname,
 					char *format, ... );
 
