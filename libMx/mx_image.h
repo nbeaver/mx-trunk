@@ -256,6 +256,8 @@ MX_API mx_status_type mx_image_get_image_format_name_from_type( long type,
 								char *name,
 							size_t max_name_length);
 
+/*----*/
+
 MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					long row_framesize,
 					long column_framesize,
@@ -266,7 +268,18 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					size_t image_length );
 
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
+
+/*----*/
+
+MX_API mx_status_type mx_image_alloc_sector_array( MX_IMAGE_FRAME *frame,
+					long num_sector_rows,
+					long num_sector_columns,
+					void ****sector_array_pointer );
+
+MX_API void mx_image_free_sector_array( void ***sector_array );
 					
+/*----*/
+
 MX_API mx_status_type mx_image_get_frame_from_sequence(
 					MX_IMAGE_SEQUENCE *sequence,
 					long frame_number,

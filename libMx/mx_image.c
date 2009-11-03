@@ -724,6 +724,167 @@ mx_image_free( MX_IMAGE_FRAME *frame )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_image_alloc_sector_array( MX_IMAGE_FRAME *image_frame,
+				long num_sector_rows,
+				long num_sector_columns,
+				void ****sector_array_ptr )
+{
+	static const char fname[] = "mx_image_alloc_sector_array()";
+
+	char *image_data;
+	long image_width, image_height, sector_width, sector_height, pixel_size;
+	double dbl_pixel_size;
+	long n, sector_row, row, sector_column, num_sectors;
+	long sizeof_row_of_sectors, sizeof_full_row, sizeof_sector_row;
+	long row_byte_offset, row_ptr_offset;
+	long byte_offset;
+	void ***sector_array;
+	void **sector_array_row_ptr;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( sector_array_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The sector array pointer passed was NULL." );
+	}
+
+	image_data = image_frame->image_data;
+
+	image_width  = MXIF_ROW_FRAMESIZE(image_frame);
+	image_height = MXIF_COLUMN_FRAMESIZE(image_frame);
+
+	sector_width  = image_width  / num_sector_columns;
+	sector_height = image_height / num_sector_rows;
+
+	dbl_pixel_size = MXIF_BYTES_PER_PIXEL(image_frame);
+
+	pixel_size = mx_round( dbl_pixel_size );
+
+	if ( mx_difference( pixel_size, dbl_pixel_size ) > 0.01 ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The pixel size %f in bytes of the specified image frame %p "
+		"is not an integer.", dbl_pixel_size, image_frame );
+	}
+
+	/*---*/
+
+	num_sectors = num_sector_rows * num_sector_columns;
+
+	*sector_array_ptr = NULL;
+
+	sector_array = malloc( num_sectors * sizeof(void **) );
+
+	if ( sector_array == (void ***) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"sector array pointer.", num_sectors );
+	}
+
+	memset( sector_array, 0, num_sectors * sizeof(void **) );
+
+	/*---*/
+
+	sector_array_row_ptr =
+		malloc( num_sectors * sector_height * sizeof(void *) );
+
+	if ( sector_array_row_ptr == (void **) NULL ) {
+		free( sector_array );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of row pointers.", num_sectors * sector_height );
+	}
+
+	/*---*/
+
+	row_byte_offset =
+		(long) ( sector_height * sizeof(sector_array_row_ptr) );
+
+	row_ptr_offset = (long) ( row_byte_offset / sizeof(void *) );
+
+	for ( n = 0; n < num_sectors; n++ ) {
+		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
+	}
+
+	/* The 'sizeof_full_row' is the number of bytes in a single horizontal
+	 * line of the image.  The 'sizeof_row_of_sectors' is the number of
+	 * bytes in a horizontal row of sectors.  In unbinned mode,
+	 * sizeof_row_of_sectors = sector_height * sizeof_full_row.
+	 */
+
+	/* sizeof_sector_row     = number of bytes in a single horizontal
+	 *                         row of a sector.
+	 *
+	 * sizeof_full_row       = number of bytes in a single horizontal
+	 *                         row of the full image.
+	 *
+	 * sizeof_row_of_sectors = number of bytes in all the rows of a
+	 *                         single row of sectors.
+	 *
+	 * For an unbinned image:
+	 *
+	 *   sizeof_row_of_sectors = sector_height * sizeof_full_row
+	 *        = sector_height * num_sector_columns * sizeof_sector_row
+	 */
+
+	sizeof_sector_row = (long) ( sector_width * pixel_size );
+
+	sizeof_full_row = num_sector_columns * sizeof_sector_row;
+
+	sizeof_row_of_sectors = sizeof_full_row * sector_height;
+
+	/*---*/
+
+	for ( sector_row = 0; sector_row < num_sector_rows; sector_row++ ) {
+	    for ( row = 0; row < sector_height; row++ ) {
+		for ( sector_column = 0; sector_column < num_sector_columns;
+							sector_column++ )
+		{
+		    n = sector_column + num_sector_columns * sector_row;
+
+		    byte_offset = sector_row * sizeof_row_of_sectors
+				+ row * sizeof_full_row
+				+ sector_column * sizeof_sector_row;
+
+		    /* image_data is a 'char' array here, so we use
+		     * the byte offset directly.
+		     */
+
+		    sector_array[n][row] = ( image_data + byte_offset );
+		}
+	    }
+	}
+
+	*sector_array_ptr = sector_array;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT void
+mx_image_free_sector_array( void ***sector_array )
+{
+	void **sector_array_row_ptr;
+
+	if ( sector_array == NULL )
+		return;
+
+	sector_array_row_ptr =
+		mx_read_void_pointer_from_memory_location( sector_array );
+
+	if ( sector_array_row_ptr != NULL ) {
+		free( sector_array_row_ptr );
+	}
+
+	free( sector_array );
+
+	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_image_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
 				long frame_number,
 				MX_IMAGE_FRAME **image_frame )

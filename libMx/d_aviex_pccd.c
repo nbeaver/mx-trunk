@@ -220,6 +220,10 @@ mxd_aviex_pccd_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 }
 #endif
 
+/* FIXME: mx_image.c now has the function mx_image_alloc_sector_array().
+ *        At some point, this Aviex specific version should be deleted.
+ */
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
