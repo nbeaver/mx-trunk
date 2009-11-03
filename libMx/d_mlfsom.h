@@ -29,6 +29,10 @@ typedef struct {
 typedef struct mx_mlfsom_type {
 	MX_RECORD *record;
 
+	MX_RECORD *energy_record;		/* must be in eV */
+	MX_RECORD *phi_record;			/* must be in deg */
+	MX_RECORD *detector_distance_record;	/* must be in mm */
+
 	char work_directory[MXU_FILENAME_LENGTH+1];
 	char pdb_filename[MXU_FILENAME_LENGTH+1];
 	char ano_sfall_filename[MXU_FILENAME_LENGTH+1];
@@ -43,6 +47,18 @@ typedef struct mx_mlfsom_type {
 
 
 #define MXD_MLFSOM_STANDARD_FIELDS \
+  {-1, -1, "energy_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MLFSOM, energy_record), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "phi_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MLFSOM, phi_record), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "detector_distance_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MLFSOM, detector_distance_record), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
   {-1, -1, "work_directory", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MLFSOM, work_directory), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
@@ -69,7 +85,6 @@ MX_API mx_status_type mxd_mlfsom_close( MX_RECORD *record );
 MX_API mx_status_type mxd_mlfsom_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mlfsom_stop( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_mlfsom_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mlfsom_get_extended_status( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mlfsom_get_parameter( MX_AREA_DETECTOR *ad );

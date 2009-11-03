@@ -35,6 +35,7 @@
 #  endif
 
 #else
+#  include <stdlib.h>
 #  include <sys/stat.h>
 #  include <sys/types.h>
 #  include <unistd.h>
@@ -78,6 +79,14 @@ extern int access( char *pathname, int mode );
 #  ifdef __cplusplus
    }
 #  endif
+#endif
+
+/*----*/
+
+/* Temporary file creation. */
+
+#if defined(OS_WIN32)
+   MX_API int mkstemp( char *template );
 #endif
 
 /*----*/

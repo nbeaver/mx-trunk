@@ -17,14 +17,24 @@
 
 #define MXD_MLFSOM_DEBUG		TRUE
 
+#define MXD_MLFSOM_WORK_SCRIPT		"mx_mlfsom.sh"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+
+#include "mx_osdef.h"
+
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
+#include <sys/stat.h>
+#endif
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_thread.h"
 #include "mx_bit.h"
 #include "mx_image.h"
+#include "mx_motor.h"
 #include "mx_area_detector.h"
 #include "d_mlfsom.h"
 
@@ -47,7 +57,7 @@ mxd_mlfsom_ad_function_list = {
 	mxd_mlfsom_arm,
 	mxd_mlfsom_trigger,
 	mxd_mlfsom_stop,
-	mxd_mlfsom_abort,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -126,6 +136,8 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 	tinfo = (MX_MLFSOM_THREAD_INFO *) args;
 
 #if MXD_MLFSOM_DEBUG
+	MX_DEBUG(-2,
+	  ("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 		fname, tinfo->record->name));
 #endif
@@ -136,6 +148,8 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 	mx_status = mx_spawn( tinfo->command, 0, &child_process_id );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
+		tinfo->mlfsom->mlfsom_thread = NULL;
+
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Thread is exiting due to an error in mx_spawn()." );
 	}
@@ -149,6 +163,8 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 					&child_process_status );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
+		tinfo->mlfsom->mlfsom_thread = NULL;
+
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 	    "Thread is exiting due to an error in mx_wait_for_process_id()." );
 	}
@@ -157,7 +173,10 @@ mxd_mlfsom_mlfsom_monitor_thread( MX_THREAD *thread, void *args )
 	MX_DEBUG(-2,
 	("%s is complete for record '%s', child_process_status = %lu.",
 		fname, tinfo->record->name, child_process_status));
+	MX_DEBUG(-2,
+	  ("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
 #endif
+	tinfo->mlfsom->mlfsom_thread = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -287,9 +306,17 @@ mxd_mlfsom_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_MLFSOM *mlfsom = NULL;
+	char *ccp4_master;
 	long i;
 	unsigned long mask;
+	mx_bool_type all_commands_found, cmd_found;
 	mx_status_type mx_status;
+
+	static char cmdlist[][20] = {
+		"fit2d", "ano_sfall.com", "hkl2XYphi.awk",
+		"mlfsom.com", "msdate.com" };
+
+	static int num_cmds = sizeof(cmdlist) / sizeof(cmdlist[0]);
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -308,6 +335,10 @@ mxd_mlfsom_open( MX_RECORD *record )
 #endif
 
 	ad->header_length = 0;
+
+	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
+	ad->status = 0;
 
 	ad->datafile_format = MXT_IMAGE_FILE_SMV;
 
@@ -376,6 +407,38 @@ mxd_mlfsom_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+	/* Check to see if the CCP4 runtime environment is set up. */
+
+	ccp4_master = getenv( "CCP4_MASTER" );
+
+	if ( ccp4_master == NULL ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The environment variable CCP4_MASTER does not exist.  "
+		"Perhaps the script '$CCP4_MASTER/setup-scripts/sh/ccp4.setup' "
+		"has not yet been run?" );
+	}
+
+	/* See if the commands we need are found in the PATH variable. */
+
+	all_commands_found = TRUE;
+
+	for ( i = 0; i < num_cmds; i++ ) {
+		cmd_found = mx_command_found( cmdlist[i] );
+
+		if ( cmd_found == FALSE ) {
+			mx_warning( "Required command '%s' was not found "
+			"in the PATH.", cmdlist[i] );
+
+			all_commands_found = FALSE;
+		}
+	}
+
+	if ( all_commands_found == FALSE ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"One or more of the 'fit2d' and 'mlfsom' commands required "
+		"by this driver were not found in the path." );
+	}
+
 #if MXD_MLFSOM_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -397,9 +460,9 @@ mxd_mlfsom_arm( MX_AREA_DETECTOR *ad )
 	MX_MLFSOM *mlfsom = NULL;
 	MX_MLFSOM_THREAD_INFO *tinfo = NULL;
 	MX_SEQUENCE_PARAMETERS *sp = NULL;
-	double exposure_time, detector_distance, energy;
-	long cmd_length, buffer_left;
-	char *ptr;
+	double exposure_time, detector_distance, energy, phi;
+	int saved_errno, os_status;
+	FILE *work_script_file;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mlfsom_get_pointers( ad, &mlfsom, fname );
@@ -411,43 +474,143 @@ mxd_mlfsom_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* Get the current energy, phi, and detector distance. */
+
+	mx_status = mx_motor_get_position( mlfsom->energy_record, &energy );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_get_position( mlfsom->phi_record, &phi );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_motor_get_position( mlfsom->detector_distance_record,
+						&detector_distance );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct the filename of the temporary MX work script for 'mlfsom'.
+	 *
+	 * This temporary script is necessary so that it can change the
+	 * current directory of the script to the 'mlfsom' work directory
+	 * without changing the current directory of the main MX program.
+	 */
 
 	tinfo = mlfsom->mlfsom_tinfo;
+
+	snprintf( tinfo->command, sizeof(tinfo->command),
+		"%s/%s", mlfsom->work_directory, MXD_MLFSOM_WORK_SCRIPT );
+
+	/* Create the temporary MX work script. */
+
+#if MXD_MLFSOM_DEBUG
+	MX_DEBUG(-2,("%s: Creating MX 'mlfsom' work script '%s'.",
+		fname, tinfo->command ));
+#endif
+
+	work_script_file = fopen( tinfo->command, "w" );
+
+	if ( work_script_file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot open the temporary MX work script '%s' used by the "
+		"'mlfsom' driver for area detector '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			tinfo->command, ad->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Write a Unix-style script header. */
+
+	fprintf( work_script_file, "#! /bin/sh\n" );
+	fprintf( work_script_file, "set -x\n" );
+	fprintf( work_script_file, "#\n" );
+	fprintf( work_script_file, "# This file is a temporary script header "
+				"file created by the MX 'mlfsom' driver.\n" );
+	fprintf( work_script_file, "# It is safe to delete this file.\n" );
+	fprintf( work_script_file, "#\n" );
+	fprintf( work_script_file, "\n" );
+
+	/* Tell the script to change to the work directory. */
+
+	fprintf( work_script_file, "cd %s\n", mlfsom->work_directory );
+	fprintf( work_script_file, "\n" );
+
+	/* Tell the script to symbolically link the 'ideal_ano.mtz' file
+	 * generated by ano_sfall.com to 'pristine.mtz'.
+	 */
+
+	fprintf( work_script_file, "ln -sf ideal_ano.mtz pristine.mtz\n" );
+	fprintf( work_script_file, "\n" );
 
 	/* Construct the command line for the external 'mlfsom' program. */
 
 	if ( mlfsom->mlfsom_filename[0] == '/' ) {
-		snprintf( tinfo->command, sizeof(tinfo->command),
-				"%s ", mlfsom->mlfsom_filename );
+		fprintf( work_script_file, "%s ", mlfsom->mlfsom_filename );
 	} else {
-		snprintf( tinfo->command, sizeof(tinfo->command),
-				"%s/%s ", mlfsom->work_directory,
-				mlfsom->mlfsom_filename);
+		fprintf( work_script_file, "%s/%s ", mlfsom->work_directory,
+						mlfsom->mlfsom_filename);
 	}
+
+	/* Add the filename of the output SMV file. */
+
+	fprintf( work_script_file, "mx_mlfsom.smv " );
+
+	/* Add the 'mlfsom' parameters. */
 
 	sp = &(ad->sequence_parameters);
 
 	exposure_time = sp->parameter_array[0];
 
-	detector_distance = 200;
+	fprintf( work_script_file, "%.1fs %.1fmm %.1feV phi=%.1f ",
+		exposure_time, detector_distance, energy, phi );
 
-	energy = 12398.42;
+	/* Add the prefix for the output files. */
 
-	cmd_length = strlen( tinfo->command );
+	fprintf( work_script_file, "outprefix=./\n" );
 
-	buffer_left = sizeof(tinfo->command) - cmd_length - 1;
+	/* Tell the script file to return the status of 'mlfsom.com' as
+	 * the script's return status.
+	 */
 
-	if ( buffer_left < 10 ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The thread command buffer for record '%s' is too short "
-		"for the command name '%s'.",
-			ad->record->name, tinfo->command );
+	fprintf( work_script_file, "exit $?\n" );
+
+	/* Close the script file. */
+
+	os_status = fclose( work_script_file );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot close the temporary MX work script '%s' used by the "
+		"'mlfsom' driver for area detector '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			tinfo->command, ad->record->name,
+			saved_errno, strerror( saved_errno ) );
 	}
 
-	ptr = tinfo->command + cmd_length;
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
-	snprintf( ptr, buffer_left, "%.1fs %.1fmm %.1feV",
-		exposure_time, detector_distance, energy );
+	/* Make the script executable. */
+
+	os_status = chmod( tinfo->command, 0755 );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot make executable the temporary MX work script '%s' "
+		"used by the 'mlfsom' driver for area detector '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			tinfo->command, ad->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+#endif
 
 #if MXD_MLFSOM_DEBUG
 	MX_DEBUG(-2,("%s: command = '%s'", fname, tinfo->command));
@@ -472,6 +635,7 @@ mxd_mlfsom_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	ad->trigger = TRUE;
 
 	/* Create a thread to run the 'mlfsom' program from. */
 
@@ -500,28 +664,19 @@ mxd_mlfsom_stop( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	return mx_status;
-}
+	/* If present, tell the 'mlfsom' thread to stop. */
 
-MX_EXPORT mx_status_type
-mxd_mlfsom_abort( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_mlfsom_abort()";
+	if ( mlfsom->mlfsom_thread == NULL )
+		return MX_SUCCESSFUL_RESULT;
 
-	MX_MLFSOM *mlfsom = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_mlfsom_get_pointers( ad, &mlfsom, fname );
+	mx_status = mx_thread_kill( mlfsom->mlfsom_thread );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MLFSOM_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
+	mlfsom->mlfsom_thread = NULL;
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -538,12 +693,39 @@ mxd_mlfsom_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MLFSOM_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+#if 0 && MXD_MLFSOM_DEBUG
+	MX_DEBUG(-2,("%s: ad->trigger = %d, mlfsom->mlfsom_thread = %p",
+		fname, (int) ad->trigger, mlfsom->mlfsom_thread));
 #endif
 
+	if ( ad->trigger == FALSE ) {
+		/* If we have not been triggered, then report that nothing
+		 * is happening.
+		 */
+
+		ad->status = 0;
+	} else {
+		/* We have been triggered. */
+
+		if ( mlfsom->mlfsom_thread == NULL ) {
+			/* The monitor thread has exited. */
+
+			ad->status = 0;
+			ad->last_frame_number = 0;
+			ad->total_num_frames++;
+			ad->trigger = FALSE;
+
 #if MXD_MLFSOM_DEBUG
+			MX_DEBUG(-2,("%s: Exposure has completed.", fname));
+#endif
+		} else {
+			ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
+	}
+
+	mx_area_detector_update_extended_status_string( ad );
+
+#if 0 && MXD_MLFSOM_DEBUG
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
@@ -557,6 +739,7 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mlfsom_readout_frame()";
 
 	MX_MLFSOM *mlfsom = NULL;
+	char smv_filename[MXU_FILENAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mlfsom_get_pointers( ad, &mlfsom, fname );
@@ -568,6 +751,17 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
 		fname, ad->record->name, ad->readout_frame ));
 #endif
+
+	snprintf( smv_filename, sizeof(smv_filename),
+		"%s/mx_mlfsom.smv", mlfsom->work_directory );
+
+#if MXD_MLFSOM_DEBUG
+	MX_DEBUG(-2,("%s: Reading SMV file '%s'.", fname, smv_filename));
+#endif
+
+	mx_status = mx_image_read_file( &(ad->image_frame),
+					ad->datafile_format,
+					smv_filename );
 
 	return mx_status;
 }
