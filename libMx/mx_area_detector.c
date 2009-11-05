@@ -44,7 +44,7 @@
 
 /*---*/
 
-#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE
+#define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
@@ -57,6 +57,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_dirent.h"
 #include "mx_bit.h"
@@ -324,6 +325,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_pattern[0] = '\0';
 	ad->datafile_name[0] = '\0';
 	ad->datafile_number = -1;
+
+	ad->datafile_allow_overwrite = FALSE;
+	ad->datafile_autoselect_number = TRUE;
 
 	ad->last_datafile_name[0] = '\0';
 	ad->datafile_format = 0;
@@ -9844,7 +9848,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 /*-----------------------------------------------------------------------*/
 
-/* In mx_area_detector_initialize_next_datafile_name(), we look at all of
+/* In mx_area_detector_initialize_datafile_number(), we look at all of
  * the files that match the pattern, see which one has the highest datafile
  * number, and then set the current datafile number to one after the
  * existing highest number.
@@ -9877,6 +9881,13 @@ mx_area_detector_initialize_datafile_number( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 #endif
+	/* If autoselecting datafile numbers is turned off, then we just
+	 * return without changing ad->datafile_number.
+	 */
+
+	if ( ad->datafile_autoselect_number == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* If the datafile pattern is empty, then set the datafile number
 	 * to zero, since it will not be used.
@@ -10420,6 +10431,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	char filename[MXU_FILENAME_LENGTH+1];
 	unsigned long flags;
+	int os_status, saved_errno;
+	mx_bool_type save_frame_after_acquisition;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
@@ -10473,6 +10486,25 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	flags = ad->area_detector_flags;
 
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+		if ( ad->correction_measurement_in_progress ) {
+			save_frame_after_acquisition = FALSE;
+		} else {
+			save_frame_after_acquisition = TRUE;
+		}
+	} else {
+			save_frame_after_acquisition = FALSE;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+	MX_DEBUG(-2,("%s: flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION = %lu",
+		fname, flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ));
+	MX_DEBUG(-2,("%s: ad->correction_measurement_in_progress = %d",
+		fname, (int) ad->correction_measurement_in_progress));
+	MX_DEBUG(-2,("%s: save_frame_after_acquisition = %d",
+		fname, (int) save_frame_after_acquisition));
+#endif
+
+	if ( save_frame_after_acquisition ) {
 		/* If a datafile pattern has been specified, then construct
 		 * the next filename that fits the pattern.
 		 */
@@ -10502,6 +10534,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: datafile_pattern = '%s'",
 		fname, ad->datafile_pattern));
 	MX_DEBUG(-2,("%s: datafile_name = '%s'", fname, ad->datafile_name));
+	MX_DEBUG(-2,("%s: datafile_number = %lu", fname, ad->datafile_number));
 #endif
 
 	if ( strlen(ad->datafile_directory) == 0 ) {
@@ -10541,7 +10574,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 						filename );
 	}
 
-	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+	if ( save_frame_after_acquisition ) {
 		if ( ad->image_frame == NULL ) {
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
@@ -10575,10 +10608,38 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( ad->datafile_allow_overwrite == FALSE ) {
+			/* If datafile overwriting is not allowed, then
+			 * we must check first to see if a file with
+			 * this filename already exists.
+			 */
+
+			os_status = access( filename, F_OK );
+
+			saved_errno = errno;
+
+			if ( os_status == 0 ) {
+				return mx_error( MXE_ALREADY_EXISTS, fname,
+				"Cannot write to image file '%s', since a file "
+				"with that name already exists and the "
+				"'%s.datafile_allow_overwrite' flag is set "
+				"to FALSE.", filename, ad->record->name );
+			} else
+			if ( saved_errno != ENOENT ) {
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error occurred while testing for the "
+				"presence of the file '%s'.  "
+				"Errno = %d, error message = '%s'",
+					filename,
+					saved_errno, strerror(saved_errno) );
+			}
+		}
+
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
 		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
 			fname, record->name, filename));
 #endif
+		/* Write out the image file. */
 
 		mx_status = mx_image_write_file( ad->image_frame,
 						ad->datafile_format,
