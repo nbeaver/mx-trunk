@@ -2296,6 +2296,7 @@ mx_area_detector_stop( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *stop_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *abort_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -2307,7 +2308,13 @@ mx_area_detector_stop( MX_RECORD *record )
 
 	stop_fn = flist->stop;
 
-	if ( stop_fn != NULL ) {
+	if ( stop_fn == NULL ) {
+		abort_fn = flist->abort;
+
+		if ( abort_fn != NULL ) {
+			mx_status = (*abort_fn)( ad );
+		}
+	} else {
 		mx_status = (*stop_fn)( ad );
 	}
 
@@ -2322,6 +2329,7 @@ mx_area_detector_abort( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *abort_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *stop_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -2333,7 +2341,13 @@ mx_area_detector_abort( MX_RECORD *record )
 
 	abort_fn = flist->abort;
 
-	if ( abort_fn != NULL ) {
+	if ( abort_fn == NULL ) {
+		stop_fn = flist->stop;
+
+		if ( stop_fn != NULL ) {
+			mx_status = (*stop_fn)( ad );
+		}
+	} else {
 		mx_status = (*abort_fn)( ad );
 	}
 
@@ -10619,19 +10633,27 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			saved_errno = errno;
 
 			if ( os_status == 0 ) {
-				return mx_error( MXE_ALREADY_EXISTS, fname,
+				mx_status = mx_error( MXE_ALREADY_EXISTS, fname,
 				"Cannot write to image file '%s', since a file "
 				"with that name already exists and the "
 				"'%s.datafile_allow_overwrite' flag is set "
 				"to FALSE.", filename, ad->record->name );
+
+				(void) mx_area_detector_abort( record );
+
+				return mx_status;
 			} else
 			if ( saved_errno != ENOENT ) {
-				return mx_error( MXE_FILE_IO_ERROR, fname,
+				mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 				"An error occurred while testing for the "
 				"presence of the file '%s'.  "
 				"Errno = %d, error message = '%s'",
 					filename,
 					saved_errno, strerror(saved_errno) );
+
+				(void) mx_area_detector_abort( record );
+
+				return mx_status;
 			}
 		}
 
