@@ -70,7 +70,7 @@ mx_multi_set_debug_flag( MX_RECORD *record_list,
 MX_EXPORT mx_status_type
 mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 		char *network_variable_description,
-		void *network_object )
+		void **network_object )
 {
 	static const char fname[] = "mx_multi_create()";
 
@@ -83,7 +83,7 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 	long port;
 	mx_status_type mx_status;
 
-	MX_RECORD *mx_record_list, *mx_server_record;
+	MX_RECORD *mx_record;
 	MX_NETWORK_FIELD *mx_nf;
 
 #if HAVE_EPICS
@@ -295,16 +295,6 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 			fname, hostname, port, variable_name));
 #endif
 
-		mx_record_list = (MX_RECORD *) network_object;
-
-		if ( mx_record_list == (MX_RECORD *) NULL ) {
-			mx_free(dup_string);
-			return mx_error( MXE_NULL_ARGUMENT, fname,
-				"The MX record list pointer passed for "
-				"MX variable '%s' is NULL.",
-					network_variable_description );
-		}
-
 		mx_nf = (MX_NETWORK_FIELD *) malloc( sizeof(MX_NETWORK_FIELD) );
 
 		if ( mx_nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -314,7 +304,24 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 			"MX_NETWORK_FIELD object." );
 		}
 
-		mx_status = mx_connect_to_mx_server( &mx_server_record,
+		if ( network_object == NULL ) {
+			mx_record = NULL;
+		} else {
+			mx_record = (MX_RECORD *) (*network_object);
+		}
+
+		/* 'mx_record' can be any record in an MX database.
+		 * It does not need to be a list head record or an
+		 * MX server record, since mx_connect_to_mx_server()
+		 * will do everything needed to find the real
+		 * MX server record.
+		 *
+		 * However, after the call returns, then 'mx_record'
+		 * will then point to the MX server record corresponding
+		 * to the requested hostname and port number.
+		 */
+
+		mx_status = mx_connect_to_mx_server( &mx_record,
 						hostname, port, 0x0 );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -323,7 +330,7 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 		}
 
 		mx_status = mx_network_field_init( mx_nf,
-					mx_server_record, variable_name );
+						mx_record, variable_name );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_free(dup_string);
@@ -333,6 +340,9 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 		(*mnv)->network_type = MXT_MNV_MX;
 		(*mnv)->private_ptr = mx_nf;
 
+		if ( network_object != NULL ) {
+			(*network_object) = mx_record;
+		}
 		break;
 
 	case MXT_MNV_EPICS:

@@ -8375,7 +8375,7 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-						- bias_average;
+					- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 
@@ -8540,7 +8540,7 @@ mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-						- bias_average;
+					- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 
@@ -8694,7 +8694,7 @@ mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-						- bias_average;
+					- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 

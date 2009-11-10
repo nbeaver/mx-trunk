@@ -45,7 +45,7 @@ MX_API void mx_multi_set_debug_flag( MX_RECORD *record_list,
 
 MX_API mx_status_type mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 					char *network_variable_description,
-					void *network_object );
+					void **network_object );
 
 MX_API mx_status_type mx_multi_close( MX_MULTI_NETWORK_VARIABLE *mnv );
 
