@@ -4530,6 +4530,9 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 				image_frame, mask_frame, bias_frame,
 				dark_current_frame, flood_field_frame );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MX_AREA_DETECTOR_DEBUG
 	{
 		uint16_t *image_data_array;
@@ -4543,6 +4546,14 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 #endif
+	/* Write the bias offset to the header. */
+
+	if ( bias_frame == NULL ) {
+		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) = 0;
+	} else {
+		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) =
+			mx_round( 1000.0 * ad->bias_average_intensity );
+	}
 
 	return mx_status;
 }

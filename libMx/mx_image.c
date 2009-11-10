@@ -2955,6 +2955,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	struct timespec exposure_timespec;
 	char timestamp[80];
 	struct timespec timestamp_timespec;
+	unsigned long bias_offset_milli_adus;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3112,6 +3113,22 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	mx_os_time_string( timestamp_timespec, timestamp, sizeof(timestamp) );
 
 	fprintf( file, "DATE=%s;\n", timestamp );
+
+	/* If present, write the bias offset to the file. */
+
+	bias_offset_milli_adus = MXIF_BIAS_OFFSET_MILLI_ADUS(frame);
+
+	if ( (bias_offset_milli_adus % 1000) == 0 ) {
+		/* If the bias is an integer number of ADUs, then write
+		 * it to the header as an integer.
+		 */
+
+		fprintf( file, "ZEROOFFSET=%lu\n",
+			bias_offset_milli_adus / 1000 );
+	} else {
+		fprintf( file, "ZEROOFFSET=%f\n",
+			((double) bias_offset_milli_adus) / 1000.0 );
+	}
 
 	/* Terminate the part of the header block that we are using. */
 
