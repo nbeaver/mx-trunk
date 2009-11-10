@@ -8264,6 +8264,7 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 	uint16_t *u16_image_data_array;
 	long image_format;
 	unsigned long raw_flood_field, bias_offset;
+	double bias_average;
 	double image_pixel, flood_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
 	double flood_field_scale_max, flood_field_scale_min;
@@ -8350,11 +8351,14 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 		if ( ad->bias_corr_after_flood ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else
 		if ( bias_data_array == NULL ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else {
 			bias_offset = bias_data_array[i];
+			bias_average = ad->bias_average_intensity;
 		}
 
 		/* We _must_ _not_ use mx_divide_safely() here since function
@@ -8371,7 +8375,7 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-					- ad->bias_average_intensity;
+						- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 
@@ -8436,6 +8440,7 @@ mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 	int32_t *s32_image_data_array;
 	long image_format;
 	unsigned long raw_flood_field, bias_offset;
+	double bias_average;
 	double image_pixel, flood_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
 	double flood_field_scale_max, flood_field_scale_min;
@@ -8515,11 +8520,14 @@ mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 		if ( ad->bias_corr_after_flood ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else
 		if ( bias_data_array == NULL ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else {
 			bias_offset = bias_data_array[i];
+			bias_average = ad->bias_average_intensity;
 		}
 
 		/* Skip pixels for which the denominator would be zero. */
@@ -8532,7 +8540,7 @@ mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-					- ad->bias_average_intensity;
+						- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 
@@ -8586,6 +8594,7 @@ mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 	double *dbl_image_data_array;
 	long image_format;
 	unsigned long raw_flood_field, bias_offset;
+	double bias_average;
 	double image_pixel, flood_field_scale_factor;
 	double ffs_numerator, ffs_denominator;
 	double flood_field_scale_max, flood_field_scale_min;
@@ -8665,11 +8674,14 @@ mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 		if ( ad->bias_corr_after_flood ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else
 		if ( bias_data_array == NULL ) {
 			bias_offset = 0;
+			bias_average = 0;
 		} else {
 			bias_offset = bias_data_array[i];
+			bias_average = ad->bias_average_intensity;
 		}
 
 		/* Skip pixels for which the denominator would be zero. */
@@ -8682,7 +8694,7 @@ mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 		ffs_denominator = raw_flood_field - bias_offset;
 
 		ffs_numerator = ad->flood_field_average_intensity
-					- ad->bias_average_intensity;
+						- bias_average;
 
 		flood_field_scale_factor = ffs_numerator / ffs_denominator;
 
