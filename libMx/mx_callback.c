@@ -483,7 +483,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long data_type, message_id, callback_id;
 	char nf_label[80];
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -555,12 +555,12 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 	/* Make sure the network field is connected. */
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -1240,7 +1240,7 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	unsigned long header_length, message_length, message_type;
 	long status_code;
 	unsigned long data_type, message_id;
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 	network_server = server_record->record_class_struct;
@@ -1254,12 +1254,12 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 
 	/* Make sure that the network field is connected. */
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -2264,10 +2264,10 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
-				mx_bool_type *new_handle_needed )
+mx_network_field_is_connected( MX_NETWORK_FIELD *nf,
+				mx_bool_type *connected )
 {
-	static const char fname[] = "mx_need_to_get_network_handle()";
+	static const char fname[] = "mx_network_field_is_connected()";
 
 	MX_NETWORK_SERVER *network_server;
 
@@ -2275,9 +2275,9 @@ mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
-	if ( new_handle_needed == (mx_bool_type *) NULL ) {
+	if ( connected == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The new_handle_needed pointer passed was NULL." );
+		"The connected pointer passed was NULL." );
 	}
 	if ( nf->server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -2295,7 +2295,7 @@ mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
 	}
 
 	if ( network_server->server_supports_network_handles == FALSE ) {
-		*new_handle_needed = FALSE;
+		*connected = TRUE;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -2303,9 +2303,9 @@ mx_need_to_get_network_handle( MX_NETWORK_FIELD *nf,
 	if ( ( nf->record_handle == MX_ILLEGAL_HANDLE )
 	  || ( nf->field_handle == MX_ILLEGAL_HANDLE ) )
 	{
-		*new_handle_needed = TRUE;
+		*connected = FALSE;
 	} else {
-		*new_handle_needed = FALSE;
+		*connected = TRUE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2449,7 +2449,7 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 {
 	static const char fname[] = "mx_get_array()";
 
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -2457,12 +2457,12 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -2487,7 +2487,7 @@ mx_put_array( MX_NETWORK_FIELD *nf,
 {
 	static const char fname[] = "mx_put_array()";
 
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -2495,12 +2495,12 @@ mx_put_array( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -4607,7 +4607,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	long status_code;
 	XDR xdrs;
 	int xdr_status;
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4626,12 +4626,12 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		"attribute_value pointer passed was NULL." );
 	}
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -4844,7 +4844,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	XDR xdrs;
 	int xdr_status;
 	uint32_t *uint32_value_ptr;
-	mx_bool_type new_handle_needed;
+	mx_bool_type connected;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4860,12 +4860,12 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+	mx_status = mx_network_field_is_connected( nf, &connected );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( new_handle_needed ) {
+	if ( connected == FALSE ) {
 		mx_status = mx_network_field_connect( nf );
 
 		if ( mx_status.code != MXE_SUCCESS )
