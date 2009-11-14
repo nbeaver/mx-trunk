@@ -28,9 +28,13 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
-#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#if defined(__GNUC__)
+#  define __USE_XOPEN		/* For strptime() */
+#endif
+#include <time.h>
 
 #include "mx_util.h"
 #include "mx_hrt.h"
@@ -2593,9 +2597,57 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 /*
  *
- * FIXME: Describe SMV format here.
+ * These routines read and write the SMV format used by ADSC detectors
+ * and Aviex detectors.
  *
  */
+
+static mx_status_type
+mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
+{
+	static const char fname[] = "mxp_image_parse_smv_date()";
+
+	struct tm tm;
+	char *ptr;
+
+	if ( buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer pointer passed was NULL." );
+	}
+	if ( timestamp == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	/* This is the format used by mx_os_time_string(). */
+
+	ptr = strptime( buffer, "%a %b %d %Y %H:%M:%S", &tm );
+
+	if ( ptr != NULL ) {
+		/* The format matched. */
+
+		MX_DEBUG(-2,("%s: ptr = '%s'", fname, ptr));
+
+		timestamp->tv_sec = mktime( &tm );
+
+		if ( *ptr == '.' ) {
+			ptr++;
+
+			timestamp->tv_nsec = mx_string_to_unsigned_long( ptr );
+		} else {
+			timestamp->tv_nsec = 0;
+		}
+
+		MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)",
+			fname, timestamp->tv_sec, timestamp->tv_nsec));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The timestamp '%s' is not in a format recognized by this function.",
+		buffer );
+}
 
 MX_EXPORT mx_status_type
 mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
@@ -2612,6 +2664,9 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	long header_length, datafile_byteorder, num_whitespace_chars;
 	double exposure_time;
 	struct timespec exposure_timespec;
+	struct timespec timestamp_timespec;
+	double bias_offset_in_adus;
+	unsigned long bias_offset_in_milli_adus;
 	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
@@ -2700,6 +2755,10 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	binsize[0] = 1;
 	binsize[1] = 1;
 	exposure_time = 1.0;
+	memset( &exposure_timespec, 0, sizeof(exposure_timespec) );
+	memset( &timestamp_timespec, 0, sizeof(timestamp_timespec) );
+	bias_offset_in_adus = 0.0;
+	bias_offset_in_milli_adus = 0;
 
 	for (;;)  {
 		ptr = fgets( buffer, sizeof(buffer), file );
@@ -2726,7 +2785,42 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 			break;
 		} else
-		if ( strncmp( buffer, "SIZE1=", 5 ) == 0 ) {
+		if ( strncmp( buffer, "BYTE_ORDER=", 11 ) == 0 ) {
+
+			/* Look for the first non-whitespace character 
+			 * after the equals sign.
+			 */
+
+			ptr = strchr( buffer, '=' );
+
+			if ( ptr == NULL ) {
+				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+				fname, "Apparently the buffer '%s' does not "
+				"contain a '=' character.  However a previous "
+				"statement said that it _did_ contain a '=' "
+				"character.  This is inconsistent.", buffer );
+			}
+
+			ptr++;	/* Step over the '=' character. */
+
+			num_whitespace_chars = (long) strspn( ptr, " \t" );
+
+			ptr += num_whitespace_chars;
+
+			if ( strncmp(ptr, "little_endian", 13 ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_LITTLE_ENDIAN;
+			} else
+			if ( strncmp(ptr, "big_endian", 10 ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_BIG_ENDIAN;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"The BYTE_ORDER statement in the header of "
+				"data file '%s' says that the data file "
+				"byte order has the unrecognized value '%s'.",
+					datafile_name, byte_order_buffer );
+			}
+		} else
+		if ( strncmp( buffer, "SIZE1=", 6 ) == 0 ) {
 			num_items = sscanf(buffer, "SIZE1=%lu", &framesize[0]);
 
 			if ( num_items != 1 ) {
@@ -2737,7 +2831,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					buffer, datafile_name );
 			}
 		} else
-		if ( strncmp( buffer, "SIZE2=", 5 ) == 0 ) {
+		if ( strncmp( buffer, "SIZE2=", 6 ) == 0 ) {
 			num_items = sscanf(buffer, "SIZE2=%lu", &framesize[1]);
 
 			if ( num_items != 1 ) {
@@ -2777,40 +2871,27 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					buffer, datafile_name );
 			}
 		} else
-		if ( strncmp( buffer, "BYTE_ORDER=", 11 ) == 0 ) {
+		if ( strncmp( buffer, "DATE=", 5 ) == 0 ) {
+			mx_status = mxp_image_parse_smv_date( buffer,
+							&timestamp_timespec );
 
-			/* Look for the first non-whitespace character 
-			 * after the equals sign.
-			 */
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else
+		if ( strncmp( buffer, "ZEROOFFSET=", 11 ) == 0 ) {
+			num_items = sscanf(buffer, "ZEROOFFSET=%lg",
+						&bias_offset_in_adus );
 
-			ptr = strchr( buffer, '=' );
-
-			if ( ptr == NULL ) {
-				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-				fname, "Apparently the buffer '%s' does not "
-				"contain a '=' character.  However a previous "
-				"statement said that it _did_ contain a '=' "
-				"character.  This is inconsistent.", buffer );
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"ZEROOFFSET statement.",
+					buffer, datafile_name );
 			}
 
-			ptr++;	/* Step over the '=' character. */
-
-			num_whitespace_chars = (long) strspn( ptr, " \t" );
-
-			ptr += num_whitespace_chars;
-
-			if ( strncmp(ptr, "little_endian", 13 ) == 0 ) {
-				datafile_byteorder = MX_DATAFMT_LITTLE_ENDIAN;
-			} else
-			if ( strncmp(ptr, "big_endian", 10 ) == 0 ) {
-				datafile_byteorder = MX_DATAFMT_BIG_ENDIAN;
-			} else {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"The BYTE_ORDER statement in the header of "
-				"data file '%s' says that the data file "
-				"byte order has the unrecognized value '%s'.",
-					datafile_name, byte_order_buffer );
-			}
+			bias_offset_in_milli_adus = 
+				mx_round( 1000.0 * bias_offset_in_adus );
 		}
 	}
 
@@ -2867,6 +2948,11 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	MXIF_EXPOSURE_TIME_SEC(*frame)  = exposure_timespec.tv_sec;
 	MXIF_EXPOSURE_TIME_NSEC(*frame) = exposure_timespec.tv_nsec;
+
+	MXIF_TIMESTAMP_SEC(*frame)  = timestamp_timespec.tv_sec;
+	MXIF_TIMESTAMP_NSEC(*frame) = timestamp_timespec.tv_nsec;
+
+	MXIF_BIAS_OFFSET_MILLI_ADUS(*frame) = bias_offset_in_milli_adus;
 
 	/* Move to the first byte after the header. */
 
