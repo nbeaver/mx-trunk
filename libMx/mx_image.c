@@ -2609,6 +2609,8 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 
 	struct tm tm;
 	char *ptr;
+	int num_items;
+	unsigned long nanoseconds;
 
 	if ( buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2619,34 +2621,55 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 		"The struct timespec pointer passed was NULL." );
 	}
 
+	/* Skip over the variable name, if present. */
+
+	ptr = strchr( buffer, '=' );
+
+	if ( ptr == NULL ) {
+		ptr = buffer;
+	} else {
+		ptr++;
+	}
+
 	/* This is the format used by mx_os_time_string(). */
 
-	ptr = strptime( buffer, "%a %b %d %Y %H:%M:%S", &tm );
+	ptr = strptime( ptr, "%a %b %d %Y %H:%M:%S", &tm );
 
 	if ( ptr != NULL ) {
 		/* The format matched. */
-
-		MX_DEBUG(-2,("%s: ptr = '%s'", fname, ptr));
 
 		timestamp->tv_sec = mktime( &tm );
 
 		if ( *ptr == '.' ) {
 			ptr++;
 
-			timestamp->tv_nsec = mx_string_to_unsigned_long( ptr );
+			num_items = sscanf( ptr, "%lu", &nanoseconds );
+
+			if ( num_items == 0 ) {
+				timestamp->tv_nsec = 0;
+			} else {
+				timestamp->tv_nsec = nanoseconds;
+			}
 		} else {
 			timestamp->tv_nsec = 0;
 		}
 
+#if 0
 		MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)",
 			fname, timestamp->tv_sec, timestamp->tv_nsec));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The timestamp '%s' is not in a format recognized by this function.",
-		buffer );
+	mx_warning( "The timestamp '%s' is not in a format recognized by "
+			"this function.  The timestamp will be set to 0.",
+			buffer );
+
+	timestamp->tv_sec = 0;
+	timestamp->tv_nsec = 0;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
