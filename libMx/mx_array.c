@@ -905,6 +905,48 @@ mx_copy_array_to_buffer( void *array_pointer,
 	MX_DEBUG(-2,("%s: destination_buffer = %p", fname, destination_buffer));
 #endif
 
+	if ( structure_name_length > 0 ) {
+		/* Handle structure names specially. */
+
+		if ( structure_name_length > destination_buffer_length ) {
+			structure_name_length = destination_buffer_length;
+		}
+
+		destination_pointer = (char *) destination_buffer;
+
+		switch( mx_datatype ) {
+		case MXFT_RECORD:
+			mx_record = (MX_RECORD *) array_pointer;
+
+			strlcpy( destination_pointer, mx_record->name,
+					structure_name_length );
+			break;
+		case MXFT_RECORDTYPE:
+			mx_driver = (MX_DRIVER *) array_pointer;
+
+			strlcpy( destination_pointer, mx_driver->name,
+					structure_name_length );
+			break;
+		case MXFT_INTERFACE:
+			mx_interface = (MX_INTERFACE *) array_pointer;
+
+			strlcpy( destination_pointer,
+					mx_interface->address_name,
+					structure_name_length );
+			break;
+
+		default:
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Data type %ld is not a structure datatype.",
+				mx_datatype );
+		}
+
+		if ( num_bytes_copied != NULL ) {
+			*num_bytes_copied = bytes_to_copy;
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	} else
 	if ( num_dimensions == 0 ) {
 
 		/* Handling scalars takes a bit more effort. */
@@ -958,32 +1000,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 				memcpy( destination_buffer,
 					array_pointer, bytes_to_copy );
 			}
-			break;
-
-		case MXFT_RECORD:
-			mx_record = (MX_RECORD *) array_pointer;
-
-			destination_pointer = (char *) destination_buffer;
-
-			strlcpy( destination_pointer, mx_record->name,
-					MXU_RECORD_NAME_LENGTH );
-			break;
-		case MXFT_RECORDTYPE:
-			mx_driver = (MX_DRIVER *) array_pointer;
-
-			destination_pointer = (char *) destination_buffer;
-
-			strlcpy( destination_pointer, mx_driver->name,
-					MXU_DRIVER_NAME_LENGTH );
-			break;
-		case MXFT_INTERFACE:
-			mx_interface = (MX_INTERFACE *) array_pointer;
-
-			destination_pointer = (char *) destination_buffer;
-
-			strlcpy( destination_pointer,
-					mx_interface->address_name,
-					MXU_INTERFACE_ADDRESS_NAME_LENGTH );
 			break;
 
 		default:
