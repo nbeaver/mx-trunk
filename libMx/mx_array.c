@@ -1778,13 +1778,13 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			 * MX when using RAW data format.
 			 */
 
-			long net_long_value;
+			uint32_t net_long_value;
 
-			net_long_value = *( (long *) xdr_buffer );
+			net_long_value = *( (uint32_t *) xdr_buffer );
 
 			xdr_array_size = mx_ntohl( net_long_value );
 
-#if 0
+#if 1
 			MX_DEBUG( 2,
 			("%s: dimension_array[0] = %lu, xdr_array_size = %lu",
 				fname, dimension_array[0], xdr_array_size));
@@ -1796,7 +1796,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 				net_long_value = mx_htonl( dimension_array[0] );
 
-				*( (long *) xdr_buffer) = net_long_value;
+				*( (uint32_t *) xdr_buffer) = net_long_value;
 			}
 		}
 
