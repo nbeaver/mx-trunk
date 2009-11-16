@@ -26,8 +26,7 @@ INCLUDES	= $(MX_INCLUDES)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
 LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
-LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm -lefence 
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
