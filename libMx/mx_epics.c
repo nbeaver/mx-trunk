@@ -336,6 +336,17 @@ mx_epics_initialize( void )
 
 	errlogInit( 1280 );	/* EPICS expects this to be at least 1280. */
 
+	/* Give the errlog thread a while to initialize itself.  Otherwise,
+	 * EPICS errors that happen early on can cause segmentation faults
+	 * in the errlog thread.
+	 */
+
+	/* FIXME: It would be nice to have a somewhat more deterministic
+	 * way of knowing when the errlog thread is ready.
+	 */
+
+	mx_msleep(100);
+
 	/* Set up a mutex used to protect variables used by the MX
 	 * put callback handler.
 	 */
