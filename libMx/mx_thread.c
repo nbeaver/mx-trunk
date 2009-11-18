@@ -958,11 +958,11 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 	mx_info( "  thread pointer             = %p", thread );
 	mx_info( "  thread_private pointer     = %p", thread_private );
-	mx_info( "  Win32 thread id            = %lu",
+	mx_info( "  Win32 thread id            = %08lx",
 				(unsigned long) thread_private->thread_id );
-	mx_info( "  Win32 thread handle        = %lu",
+	mx_info( "  Win32 thread handle        = %08lx",
 				(unsigned long) thread_private->thread_handle );
-	mx_info( "  Win32 stop event handle    = %lu",
+	mx_info( "  Win32 stop event handle    = %08lx",
 			(unsigned long) thread_private->stop_event_handle );
 
 	return;
@@ -984,8 +984,8 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 	thread = TlsGetValue( mx_current_thread_index );
 
-	snprintf( buffer, buffer_length, "(MX thread = %p, Win32 ID = %ld) ",
-		thread, (long) GetCurrentThreadId() );
+	snprintf( buffer, buffer_length, "(MX thread = %p, Win32 ID = %08lx) ",
+		thread, (unsigned long) GetCurrentThreadId() );
 
 	return buffer;
 }
@@ -1949,7 +1949,7 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 	mx_info( "  thread pointer         = %p", thread );
 	mx_info( "  thread_private pointer = %p", thread_private );
-	mx_info( "  Posix thread id        = %lu",
+	mx_info( "  Posix thread id        = %lx",
 				(unsigned long) thread_private->thread_id );
 
 	return;
@@ -1971,8 +1971,8 @@ mx_thread_id_string( char *buffer, size_t buffer_length )
 
 	thread = pthread_getspecific( mx_current_thread_key );
 
-	snprintf( buffer, buffer_length, "(MX thread = %p, pthread ID = %ld) ",
-		thread, (long) pthread_self() );
+	snprintf( buffer, buffer_length, "(MX thread = %p, pthread ID = %lx) ",
+		thread, (unsigned long) pthread_self() );
 
 	return buffer;
 }

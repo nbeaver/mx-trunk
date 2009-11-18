@@ -942,7 +942,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		}
 
 		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = bytes_to_copy;
+			*num_bytes_copied = structure_name_length;
 		}
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1800,10 +1800,11 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 			xdr_array_size = mx_ntohl( net_long_value );
 
-#if 1
+#if 0
 			MX_DEBUG( 2,
 			("%s: dimension_array[0] = %lu, xdr_array_size = %lu",
-				fname, dimension_array[0], xdr_array_size));
+				fname, dimension_array[0],
+				(unsigned long) xdr_array_size));
 #endif
 
 			if ( xdr_array_size > dimension_array[0] ) {
