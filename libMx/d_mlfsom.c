@@ -368,7 +368,7 @@ mxd_mlfsom_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->frame_file_format = ad->image_format;  /* FIXME: Is this needed? */
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
 
 	ad->byte_order = mx_native_byteorder();
 
@@ -558,7 +558,7 @@ mxd_mlfsom_arm( MX_AREA_DETECTOR *ad )
 
 	/* Add the filename of the output SMV file. */
 
-	fprintf( work_script_file, "mx_mlfsom.smv " );
+	fprintf( work_script_file, "mx_mlfsom.img " );
 
 	/* Add the 'mlfsom' parameters. */
 
@@ -753,7 +753,7 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	snprintf( smv_filename, sizeof(smv_filename),
-		"%s/mx_mlfsom.smv", mlfsom->work_directory );
+		"%s/mx_000.img", mlfsom->work_directory );
 
 #if MXD_MLFSOM_DEBUG
 	MX_DEBUG(-2,("%s: Reading SMV file '%s'.", fname, smv_filename));

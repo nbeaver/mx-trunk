@@ -15,13 +15,15 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		FALSE
+#define MX_IMAGE_DEBUG			FALSE
 
-#define MX_IMAGE_DEBUG_REBIN	FALSE
+#define MX_IMAGE_DEBUG_REBIN		FALSE
 
-#define MX_IMAGE_DEBUG_MARCCD	FALSE
+#define MX_IMAGE_DEBUG_MARCCD		FALSE
 
-#define MX_IMAGE_TEST_DEZINGER	FALSE
+#define MX_IMAGE_DEBUG_TIMESTAMP	TRUE
+
+#define MX_IMAGE_TEST_DEZINGER		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2608,7 +2610,7 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 	static const char fname[] = "mxp_image_parse_smv_date()";
 
 	struct tm tm;
-	char *ptr;
+	char *ptr, *value_start;
 	int num_items;
 	unsigned long nanoseconds;
 
@@ -2626,14 +2628,16 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 	ptr = strchr( buffer, '=' );
 
 	if ( ptr == NULL ) {
-		ptr = buffer;
+		value_start = buffer;
 	} else {
-		ptr++;
+		value_start = ptr + 1;
 	}
+
+	/*--------------------------------------------------------------*/
 
 	/* This is the format used by mx_os_time_string(). */
 
-	ptr = strptime( ptr, "%a %b %d %Y %H:%M:%S", &tm );
+	ptr = strptime( value_start, "%a %b %d %Y %H:%M:%S", &tm );
 
 	if ( ptr != NULL ) {
 		/* The format matched. */
@@ -2654,7 +2658,7 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 			timestamp->tv_nsec = 0;
 		}
 
-#if 0
+#if MX_IMAGE_DEBUG_TIMESTAMP
 		MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)",
 			fname, timestamp->tv_sec, timestamp->tv_nsec));
 #endif
@@ -2662,9 +2666,91 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/*--------------------------------------------------------------*/
+
+	/* James Holton's mlfsom.com supports timestamps like this
+	 *
+	 *   DATE=Mon Nov 23 17:08:47 CST 2009;
+	 */
+
+	ptr = strptime( value_start, "%a %b %d %H:%M:%S %Z %Y", &tm );
+
+	if ( ptr != NULL ) {
+		timestamp->tv_sec = mktime( &tm );
+		timestamp->tv_nsec = 0;
+
+#if MX_IMAGE_DEBUG_TIMESTAMP
+		MX_DEBUG(-2,("%s: timestamp = (%lu,%lu)  (Timezone OK)",
+			fname, timestamp->tv_sec, timestamp->tv_nsec));
+#endif
+
+		return MX_SUCCESSFUL_RESULT;
+
+	}	
+
+	/* Unfortunately, some versions of strptime(), such as the Linux
+	 * one, do not correctly support timestamps with timezones embedded
+	 * in the middle of the string, even if the man page says they do.
+	 * The only obvious way around this is to rewrite the timestamp
+	 * without the timezone string in it.
+	 */
+
+	/* Does this match the part of the pattern before the timezone? */
+
+	ptr = strptime( value_start, "%a %b %d %H:%M:%S", &tm );
+
+	if ( ptr != NULL ) {
+		int argc; char **argv;
+		char *value_dup;
+
+		/* It _does_ match, so split the string into tokens. */
+
+		value_dup = strdup( value_start );
+
+		mx_string_split( value_dup, " \t", &argc, &argv );
+
+		if ( argc >= 6 ) {
+			char time_string[80];
+
+			/* Paste the string back together,
+			 * skipping the timezone.
+			 */
+
+			snprintf( time_string, sizeof(time_string),
+				"%s %s %s %s %s",
+				argv[0], argv[1], argv[2], argv[3], argv[5] );
+
+			ptr = strptime( time_string,
+					"%a %b %d %H:%M:%S %Y", &tm );
+
+			if ( ptr != NULL ) {
+				/* OK, we have succeeded at parsing the time. */
+
+				timestamp->tv_sec = mktime( &tm );
+				timestamp->tv_nsec = 0;
+
+#if MX_IMAGE_DEBUG_TIMESTAMP
+				MX_DEBUG(-2,
+				("%s: timestamp = (%lu,%lu) (Timezone NOT OK)",
+					fname,
+					timestamp->tv_sec, timestamp->tv_nsec));
+#endif
+				mx_free( argv );
+				mx_free( value_dup );
+
+				return MX_SUCCESSFUL_RESULT;
+			}
+		}
+
+		mx_free( argv );
+		mx_free( value_dup );
+	}
+
+	/*--------------------------------------------------------------*/
+
 	mx_warning( "The timestamp '%s' is not in a format recognized by "
-			"this function.  The timestamp will be set to 0.",
-			buffer );
+			"%s.  The timestamp will be set to 0.",
+			buffer, fname );
 
 	timestamp->tv_sec = 0;
 	timestamp->tv_nsec = 0;
