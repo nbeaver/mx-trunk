@@ -2668,7 +2668,7 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 
 	/*--------------------------------------------------------------*/
 
-	/* James Holton's mlfsom.com supports timestamps like this
+	/* This is the format used by the Unix 'date' command:
 	 *
 	 *   DATE=Mon Nov 23 17:08:47 CST 2009;
 	 */

@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-#INCLUDES  = $(MX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS)
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -30,8 +30,8 @@
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
@@ -80,8 +80,11 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # below specified the progra~1\micros~1 directory.
 #
 # Visual Studio.NET 2008
-MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
-#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
+#
+# Visual Studio.NET 2003
+MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
@@ -311,6 +314,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 MX_LIB_OBJS += mx_util_win32.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
+MX_LIB_OBJS += ..\\tools\\strptime.obj
 MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\xdr_hyper.obj
 MX_LIB_OBJS += ..\\tools\\getopt.obj
 MX_LIB_OBJS += ..\\tools\\smvspatial.obj

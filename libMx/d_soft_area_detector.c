@@ -251,7 +251,7 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->frame_file_format = ad->image_format;  /* Is this used? */
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;  /* Is this used? */
 
 	mx_status = mx_video_input_get_byte_order( video_input_record,
 							&(ad->byte_order) );

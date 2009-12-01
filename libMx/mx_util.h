@@ -486,15 +486,27 @@ MX_API int mx_vsnprintf( char *dest, size_t maxlen, const char *format,
 	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_RTEMS) \
 	|| defined(OS_DJGPP) || defined(OS_ECOS)
 
-/* These provide definitions of strlcpy() and strlcat() for systems that
- * do not come with them.  For systems that do not come with them, the
- * OpenBSD source code for strlcpy() and strlcat() is bundled with the
- * base MX distribution in the directory mx/tools/generic/src.
+/* These prototypes provide definitions of strlcpy() and strlcat() for
+ * systems that do not come with them.  For systems that do not come with
+ * them, the OpenBSD source code for strlcpy() and strlcat() is bundled
+ * with the base MX distribution in the directory mx/tools/generic/src.
  */
 
 MX_API size_t strlcpy( char *dest, const char *src, size_t maxlen );
 
 MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
+
+#endif
+
+/* This prototype provides a definition of strptime() for systems that
+ * do not come with it.  For such systems, the NetBSD source code for
+ * strptime() is bundled with the base MX distribution in the directory
+ * mx/tools/generic/strptime.
+ */
+
+#if defined(OS_WIN32) && defined(_MSC_VER)
+
+MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
 #endif
 

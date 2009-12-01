@@ -1,6 +1,6 @@
 
 all: ../libMx/mx_private_version.h xdr.obj xdr_hyper.obj getopt.obj \
-	strlcpy.obj strlcat.obj smvspatial.obj mxgnuplt.exe
+	strlcpy.obj strlcat.obj strptime.obj smvspatial.obj mxgnuplt.exe
 
 include ../libMx/Makefile.version
 
@@ -39,6 +39,11 @@ strlcat.obj: generic/src/strlcat.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/strlcat.c -Fostrlcat.obj
+
+strptime.obj: generic/src/strptime.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-WX -Z7 -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		generic/src/strptime.c -Fostrptime.obj
 
 smvspatial.obj: xgen/smvspatial.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
