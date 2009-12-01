@@ -78,9 +78,9 @@ mx_multi_create( MX_MULTI_NETWORK_VARIABLE **mnv,
 	char *dup_string, *strstr_ptr;
 	char *body_ptr, *colon_ptr, *at_ptr;
 	char *variable_name;
-	char *host_port_name;
+	char *host_port_name = NULL;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	long port;
+	long port = -1;
 	mx_status_type mx_status;
 
 	MX_RECORD *mx_record;
