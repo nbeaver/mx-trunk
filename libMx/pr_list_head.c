@@ -656,7 +656,7 @@ mx_list_head_record_show_clbk_id( MX_LIST_HEAD *list_head )
 		strlcpy( function_name, "<null>", sizeof(function_name) );
 	} else {
 		mx_status = mx_dynamic_library_get_function_name_from_address(
-				callback->callback_function,
+				(void *) callback->callback_function,
 				function_name, sizeof(function_name) );
 
 		switch( mx_status.code ) {
