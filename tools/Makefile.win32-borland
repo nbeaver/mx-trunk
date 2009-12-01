@@ -1,6 +1,6 @@
 
 all: ../libMx/mx_private_version.h xdr.obj xdr_hyper.obj getopt.obj \
-		strlcpy.obj strlcat.obj mxgnuplt.exe
+		strlcpy.obj strlcat.obj strptime.obj mxgnuplt.exe
 
 include ../libMx/Makefile.version
 
@@ -35,6 +35,10 @@ strlcpy.obj: generic/src/strlcpy.c
 strlcat.obj: generic/src/strlcat.c
 	$(CC) $(CFLAGS) -c -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/strlcat.c -o strlcat.obj
+
+strptime.obj: generic/src/strptime.c
+	$(CC) $(CFLAGS) -c -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		generic/src/strptime.c -o strptime.obj
 
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	$(CC) $(CFLAGS) -tWM -c win32/src/mxgnuplt.c -o mxgnuplt.obj

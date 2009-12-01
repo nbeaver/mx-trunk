@@ -504,7 +504,7 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
  * mx/tools/generic/strptime.
  */
 
-#if defined(OS_WIN32) && defined(_MSC_VER)
+#if defined(OS_WIN32) && ( defined(_MSC_VER) | defined(__BORLANDC__) )
 
 MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 

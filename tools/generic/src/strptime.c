@@ -90,6 +90,11 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
    typedef unsigned char	u_char;
    typedef unsigned int		uint;
 
+#  if defined(__BORLANDC__)
+#     define TIME_MAX	LONG_MAX
+#     define tzname	_tzname
+#  endif
+
    /* The NetBSD __UNCONST(s) macro takes a const pointer and makes it
     * into a non-const pointer.  strptime() only uses it on const char
     * pointers, so the simplest solution is to wrap a union in a 
@@ -674,7 +679,11 @@ literal:
 		}
 	}
 
+#if MX_NETBSD_ORIG_SRC
 	return __UNCONST(bp);
+#else
+	return __UNCONST( (const char *) bp );
+#endif
 }
 
 
