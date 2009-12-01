@@ -86,7 +86,16 @@ extern int access( char *pathname, int mode );
 /* Temporary file creation. */
 
 #if defined(OS_WIN32)
-   MX_API int mkstemp( char *template );
+
+#  ifdef __cplusplus
+   extern "C" {
+#  endif
+
+   MX_API int mkstemp( char *template_string );
+
+#  ifdef __cplusplus
+   }
+#  endif
 #endif
 
 /*----*/
