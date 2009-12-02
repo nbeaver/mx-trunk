@@ -335,7 +335,7 @@ mx_spawn( char *command_line,
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_RTEMS)
 
 MX_EXPORT mx_status_type
 mx_spawn( char *command_line,
@@ -345,7 +345,7 @@ mx_spawn( char *command_line,
 	static const char fname[] = "mx_spawn()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-	"%s is not supported for this platform.", fname );
+	"Spawning processes is not supported on this platform." );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -439,16 +439,15 @@ mx_process_id_exists( unsigned long process_id )
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_RTEMS)
 
 MX_EXPORT int
 mx_process_id_exists( unsigned long process_id )
 {
 	static const char fname[] = "mx_process_id_exists()";
 
-	(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"%s is not yet implemented for this operating system.",
-			fname );
+	(void) mx_error( MXE_UNSUPPORTED, fname,
+	"Multiple processes are not supported on this platform." );
 
 	return FALSE;
 }
@@ -564,16 +563,15 @@ mx_kill_process_id( unsigned long process_id )
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_RTEMS)
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
 {
 	static const char fname[] = "mx_kill_process_id()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"%s is not yet implemented for this operating system.",
-			fname );
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Multiple processes are not supported on this platform." );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -715,6 +713,20 @@ mx_wait_for_process_id( unsigned long process_id,
 	CloseHandle( process_handle );
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_RTEMS)
+
+MX_EXPORT mx_status_type
+mx_wait_for_process_id( unsigned long process_id,
+			long *process_status )
+{
+	static const char fname[] = "mx_wait_for_process_id()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Multiple processes are not supported on this platform." );
 }
 
 /*-------------------------------------------------------------------------*/
