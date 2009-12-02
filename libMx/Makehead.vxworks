@@ -155,6 +155,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 #----
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/strptime.o
 
 #
 #---------------------------------------------------

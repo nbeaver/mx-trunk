@@ -2,7 +2,7 @@
 # tools/Makefile.vxworks
 #
 
-all: ../libMx/mx_private_version.h getopt.o strlcpy.o strlcat.o
+all: ../libMx/mx_private_version.h getopt.o strlcpy.o strlcat.o strptime.o
 
 include ../libMx/Makefile.version
 
@@ -26,6 +26,10 @@ strlcpy.o: generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
 	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcat.c
+
+strptime.o: generic/src/strptime.c
+	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ \
+		generic/src/strptime.c
 
 mx_clean:
 	-rm *.o mx_private_version version_temp.txt

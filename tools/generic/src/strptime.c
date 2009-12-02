@@ -87,12 +87,19 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
 #  include "mx_util.h"
 #  include "mx_stdint.h"
 
-   typedef unsigned char	u_char;
    typedef unsigned int		uint;
+
+#  if !defined(OS_VXWORKS)
+      typedef unsigned char	u_char;
+#  endif
 
 #  if defined(__BORLANDC__)
 #     define TIME_MAX	LONG_MAX
 #     define tzname	_tzname
+#  endif
+
+#  if defined(OS_VXWORKS)
+      static char *tzname[2] = { "UTC", "" };
 #  endif
 
    /* The NetBSD __UNCONST(s) macro takes a const pointer and makes it
