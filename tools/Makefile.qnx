@@ -12,7 +12,7 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all: ../libMx/mx_private_version.h xdr_hyper.o strlcpy.o strlcat.o
+all: ../libMx/mx_private_version.h xdr_hyper.o strlcpy.o strlcat.o strptime.o
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 include ../libMx/Makefile.version
@@ -35,6 +35,9 @@ strlcpy.o: generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
 	$(CC) -c -I../libMx -DOS_QNX -D__MX_LIBRARY__ generic/src/strlcat.c
+
+strptime.o: generic/src/strptime.c
+	$(CC) -c -I../libMx -DOS_QNX -D__MX_LIBRARY__ generic/src/strptime.c
 
 mx_clean:
 	-rm *.o mx_private_version

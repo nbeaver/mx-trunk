@@ -45,13 +45,13 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = vxworks
+MX_ARCH = qnx
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.2-v1
+#MX_INSTALL_DIR = c:/opt/mx-1.5.2-v1
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
