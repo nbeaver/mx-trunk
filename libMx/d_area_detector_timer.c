@@ -49,18 +49,18 @@ MX_TIMER_FUNCTION_LIST mxd_area_detector_timer_timer_function_list = {
 
 /* MX area detector timer data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_area_detector_timer_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_area_detector_timer_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_TIMER_STANDARD_FIELDS,
 	MXD_AREA_DETECTOR_TIMER_STANDARD_FIELDS
 };
 
 long mxd_area_detector_timer_num_record_fields
-		= sizeof( mxd_area_detector_timer_record_field_defaults )
-		  / sizeof( mxd_area_detector_timer_record_field_defaults[0] );
+		= sizeof( mxd_area_detector_timer_rf_defaults )
+		  / sizeof( mxd_area_detector_timer_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_area_detector_timer_rfield_def_ptr
-			= &mxd_area_detector_timer_record_field_defaults[0];
+			= &mxd_area_detector_timer_rf_defaults[0];
 
 /*=======================================================================*/
 

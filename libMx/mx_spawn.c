@@ -335,6 +335,47 @@ mx_spawn( char *command_line,
 
 /*-------------------------------------------------------------------------*/
 
+#elif defined(OS_VMS)
+
+#include <errno.h>
+#include <ssdef.h>
+#include <descrip.h>
+#include <starlet.h>
+#include <lib$routines.h>
+
+MX_EXPORT mx_status_type
+mx_spawn( char *command_line,
+	unsigned long flags,
+	unsigned long *child_process_id )
+{
+	static const char fname[] = "mx_spawn()";
+
+	int vms_status;
+	int32_t vms_flags;
+	unsigned int vms_pid;
+	$DESCRIPTOR( command_descriptor, command_line );
+
+	vms_flags = 1;	/* NOWAIT */
+
+	vms_status = lib$spawn( &command_descriptor,
+				0, 0, &vms_flags, 0, &vms_pid );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to create a process using the command line '%s'.  "
+		"VMS error number = %d, error message = '%s'",
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	if ( child_process_id != NULL ) {
+		*child_process_id = vms_pid;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #elif defined(OS_RTEMS) || defined(OS_VXWORKS)
 
 MX_EXPORT mx_status_type
@@ -433,6 +474,32 @@ mx_process_id_exists( unsigned long process_id )
 	}
 
 	CloseHandle( process_handle );
+
+	return TRUE;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+MX_EXPORT int
+mx_process_id_exists( unsigned long process_id )
+{
+	static const char fname[] = "mx_process_id_exists()";
+
+	int vms_status;
+	unsigned int vms_pid;
+
+	vms_status = sys$getjpiw( 0, &vms_pid );
+
+	if ( vms_status != SS$_NORMAL ) {
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Cannot get job/process information for process id %d.  "
+		"VMS error number %d, error message = '%s'",
+			vms_pid, vms_status, strerror( EVMSERR, vms_status ) );
+
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -559,6 +626,32 @@ mx_kill_process_id( unsigned long process_id )
 	CloseHandle( process_handle );
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+MX_EXPORT mx_status_type
+mx_kill_process_id( unsigned long process_id )
+{
+	static const char fname[] = "mx_kill_process_id()";
+
+	int vms_status;
+	unsigned int vms_pid;
+
+	vms_pid = process_id;
+
+	vms_status = sys$forcex( &vms_pid, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to terminate process ID %u.  "
+		"VMS error code = %d, error message = '%s'",
+			vms_pid, vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -713,6 +806,32 @@ mx_wait_for_process_id( unsigned long process_id,
 	CloseHandle( process_handle );
 
 	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+/* FIXME: The following is a poor solution. */
+
+MX_EXPORT mx_status_type
+mx_wait_for_process_id( unsigned long process_id,
+			long *process_status )
+{
+	static const char fname[] = "mx_wait_for_process_id()";
+
+	mx_bool_type process_exists;
+
+	while (1) {
+		process_exists = mx_process_id_exists( process_id );
+
+		if ( process_exists == FALSE )
+			break;
+
+		mx_msleep(100);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-------------------------------------------------------------------------*/
