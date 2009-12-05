@@ -2215,7 +2215,11 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 	 * of the current sequence before acknowledging the stop command.
 	 */
 
+#if 0
 	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
+#else
+	if ( 1 ) {
+#endif
 		if ( aviex_pccd->video_input_record->mx_type
 				== MXT_VIN_EPIX_XCLIB )
 		{
@@ -2306,7 +2310,9 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
 
+	if ( 1 ) {
 		/* Tell the imaging board to immediately stop acquiring frames.
 		 */
 
@@ -2316,10 +2322,6 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 
 	return mx_status;
 }
-
-#if 0
-#include <execinfo.h>
-#endif
 
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )

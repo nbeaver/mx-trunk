@@ -237,6 +237,12 @@ mxp_area_detector_measure_correction_callback_function(
 
 	/* The correction sequence is complete. */
 
+	/* FIXME - Are we leaking memory by not destroying the timer here? */
+#if 0
+	(void) mx_virtual_timer_destroy(
+		callback_message->u.function.oneshot_timer, NULL );
+#endif
+
 	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
 
 #if PR_AREA_DETECTOR_DEBUG
@@ -244,6 +250,44 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
 #endif
+
+	return mx_status;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_area_detector_stop_correction_callback( MX_RECORD *record,
+					MX_AREA_DETECTOR *ad )
+{
+#if 0
+	static const char fname[] =
+		"mxp_area_detector_stop_correction_callback()";
+#endif
+
+	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type mx_status;
+
+	corr = ad->correction_measurement;
+
+	if ( corr == NULL ) {
+		ad->correction_measurement_in_progress = FALSE;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Stop the callback timer. */
+
+	oneshot_timer = corr->callback_message->u.function.oneshot_timer;
+
+	/* FIXME - Are we leaking memory by not destroying the timer here? */
+#if 0
+	mx_status = mx_virtual_timer_destroy( oneshot_timer, NULL );
+#else
+	mx_status = mx_virtual_timer_stop( oneshot_timer, NULL );
+#endif
+
+	mx_area_detector_cleanup_after_correction( ad, NULL );
 
 	return mx_status;
 }
@@ -949,6 +993,9 @@ mx_area_detector_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_AD_ABORT:
+			(void) mxp_area_detector_stop_correction_callback(
+								record, ad );
+
 			mx_status = mx_area_detector_abort( record );
 			break;
 		case MXLV_AD_ARM:
@@ -1211,6 +1258,9 @@ mx_area_detector_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_AD_STOP:
+			(void) mxp_area_detector_stop_correction_callback(
+								record, ad );
+
 			mx_status = mx_area_detector_stop( record );
 			break;
 		case MXLV_AD_TRANSFER_FRAME:

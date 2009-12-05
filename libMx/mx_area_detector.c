@@ -2318,6 +2318,10 @@ mx_area_detector_stop( MX_RECORD *record )
 		mx_status = (*stop_fn)( ad );
 	}
 
+	if ( ad->correction_measurement != NULL ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
+	}
+
 	return mx_status;
 }
 
@@ -2349,6 +2353,10 @@ mx_area_detector_abort( MX_RECORD *record )
 		}
 	} else {
 		mx_status = (*abort_fn)( ad );
+	}
+
+	if ( ad->correction_measurement != NULL ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
 	}
 
 	return mx_status;
