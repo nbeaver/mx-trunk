@@ -93,6 +93,10 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
       typedef unsigned char	u_char;
 #  endif
 
+#  if defined(_MSC_VER) && (_MSC_VER < 1300)
+#     define TIME_MAX	LONG_MAX
+#  endif
+
 #  if defined(__BORLANDC__)
 #     define TIME_MAX	LONG_MAX
 #     define tzname	_tzname
