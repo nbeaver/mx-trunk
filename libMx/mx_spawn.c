@@ -376,7 +376,7 @@ mx_spawn( char *command_line,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_spawn( char *command_line,
@@ -506,7 +506,7 @@ mx_process_id_exists( unsigned long process_id )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT int
 mx_process_id_exists( unsigned long process_id )
@@ -656,7 +656,7 @@ mx_kill_process_id( unsigned long process_id )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_kill_process_id( unsigned long process_id )
@@ -836,7 +836,7 @@ mx_wait_for_process_id( unsigned long process_id,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_wait_for_process_id( unsigned long process_id,

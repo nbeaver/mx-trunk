@@ -89,13 +89,17 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
 
    typedef unsigned int		uint;
 
-#  if !defined(OS_VXWORKS)
+#  if !defined(OS_VXWORKS) && !defined(OS_DJGPP)
       typedef unsigned char	u_char;
 #  endif
 
 #  if defined(__BORLANDC__)
 #     define TIME_MAX	LONG_MAX
 #     define tzname	_tzname
+#  endif
+
+#  if defined(OS_DJGPP)
+#     define TIME_MAX	LONG_MAX
 #  endif
 
 #  if defined(OS_VXWORKS)
@@ -150,7 +154,7 @@ __RCSID("$NetBSD: strptime.c,v 1.33 2009/05/24 02:25:43 ginsbach Exp $");
 		return result_ptr;
 	}
 
-#  elif defined(OS_WIN32)
+#  elif defined(OS_WIN32) || defined(OS_DJGPP)
 
 	static struct tm*
 	localtime_r( const time_t *time_ptr, struct tm *tm_ptr )
@@ -226,7 +230,11 @@ __weak_alias(strptime,_strptime)
 #define	LEGAL_ALT(x)		{ if (alt_format & ~(x)) return NULL; }
 
 static char gmt[] = { "GMT" };
+
+#ifdef TM_ZONE
 static char utc[] = { "UTC" };
+#endif
+
 /* RFC-822/RFC-2822 */
 static const char * const nast[5] = {
        "EST",    "CST",    "MST",    "PST",    "\0\0\0"

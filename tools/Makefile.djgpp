@@ -1,4 +1,5 @@
-all: ../libMx/mx_private_version.h xdr.o xdr_hyper.o strlcpy.o strlcat.o
+all: ../libMx/mx_private_version.h xdr.o xdr_hyper.o strlcpy.o strlcat.o \
+	strptime.o
 
 include ../libMx/Makefile.version
 
@@ -25,6 +26,10 @@ strlcpy.o: generic/src/strlcpy.c
 strlcat.o: generic/src/strlcat.c
 	gcc -c $(CFLAGS) -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ \
 		generic/src/strlcat.c
+
+strptime.o: generic/src/strptime.c
+	gcc -c $(CFLAGS) -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ \
+		generic/src/strptime.c
 
 mx_clean:
 	-rm *.o *.exe
