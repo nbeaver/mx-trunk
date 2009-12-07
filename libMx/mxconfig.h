@@ -160,7 +160,7 @@
  * just use the 'dos_portio' driver.
  */
 
-#define HAVE_DRIVERLINX_PORTIO		1
+#define HAVE_DRIVERLINX_PORTIO		0
 
 /*****************************************************************************
  *
@@ -195,14 +195,14 @@
  * purchase.
  */
 
-#define HAVE_PCMOTION32			1
+#define HAVE_PCMOTION32			0
 
 /*****************************************************************************
  *
  * Win32 driver for the Aerotech Unidex 500 series of motor controllers.
  */
 
-#define HAVE_U500			1
+#define HAVE_U500			0
 
 /*****************************************************************************
  *
@@ -210,7 +210,7 @@
  * for their series of motor controllers.
  */
 
-#define HAVE_PMC_MCAPI			1
+#define HAVE_PMC_MCAPI			0
 
 /*****************************************************************************
  *
@@ -220,7 +220,7 @@
  * interface software.
  */
 
-#define HAVE_ORTEC_UMCBI		1
+#define HAVE_ORTEC_UMCBI		0
 
 /*****************************************************************************
  *
