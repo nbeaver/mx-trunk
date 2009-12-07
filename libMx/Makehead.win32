@@ -75,9 +75,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 
 #
 # You must specify the directory that Microsoft Visual C++ was installed in.
-# Usually this is c:\progra~1\micros~1.net\vc7\PlatformSDK. The name specified
-# for Gnu Make MUST NOT contain any spaces in it.  That is why the example
-# below specified the progra~1\micros~1 directory.
+# The name specified for Gnu Make MUST NOT contain any spaces in it.  That
+# is why the examples below use short directory names like progra~1\micros~1 .
 #
 # Visual C++ 2008 Express   (_MSC_VER == 1500)
 #
@@ -90,12 +89,12 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
-#MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #
 # Visual C++ 4.0            (_MSC_VER == 1000)
 #
-MSDEV_DIR	= c:\\msdevstd
+#MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
