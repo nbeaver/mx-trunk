@@ -275,6 +275,16 @@ mx_signal_initialize( void )
 		("%s: Installing dummy signal handler for realtime signal %d.",
 			fname, i));
 #endif
+		status = sigemptyset( &(sa.sa_mask) );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"A call to sigemptyset() failed with errno = %d, "
+			"error message = '%s'.",
+				saved_errno, strerror(saved_errno) );
+		}
 
 		sa.sa_flags = SA_SIGINFO;
 		sa.sa_sigaction = mx_signal_dummy_handler;
