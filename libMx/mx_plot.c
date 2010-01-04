@@ -7,12 +7,15 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005, 2007-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005, 2007-2008, 2010
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +24,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_hrt_debug.h"
 #include "mx_scan.h"
 #include "mx_plot.h"
 #include "mx_driver.h"
@@ -46,7 +50,7 @@ MX_EXPORT mx_status_type mx_get_plot_type_by_name(
 	char *name,
 	MX_PLOT_TYPE_ENTRY **plot_type_entry )
 {
-	const char fname[] = "mx_get_plot_type_by_name()";
+	static const char fname[] = "mx_get_plot_type_by_name()";
 
 	char *list_name;
 	int i;
@@ -102,7 +106,7 @@ MX_EXPORT mx_status_type mx_get_plot_type_by_value(
 	long plot_type,
 	MX_PLOT_TYPE_ENTRY **plot_type_entry )
 {
-	const char fname[] = "mx_get_plot_type_by_value()";
+	static const char fname[] = "mx_get_plot_type_by_value()";
 
 	int i;
 
@@ -145,23 +149,29 @@ MX_EXPORT mx_status_type mx_get_plot_type_by_value(
 MX_EXPORT mx_status_type
 mx_plot_open( MX_PLOT *plot )
 {
-	const char fname[] = "mx_plot_open()";
+	static const char fname[] = "mx_plot_open()";
 
 	MX_PLOT_TYPE_ENTRY *plot_type_entry;
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	if ( plot == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_PLOT pointer passed was NULL.");
 	}
 
-	status = mx_get_plot_type_by_value(
+	mx_status = mx_get_plot_type_by_value(
 			mx_plot_type_list, plot->type, &plot_type_entry );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( plot_type_entry == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -192,19 +202,30 @@ mx_plot_open( MX_PLOT *plot )
 			plot_type_entry->name );
 	}
 
-	status = (*fptr) ( plot );
+	mx_status = (*fptr) ( plot );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_plot_close( MX_PLOT *plot )
 {
-	const char fname[] = "mx_plot_close()";
+	static const char fname[] = "mx_plot_close()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	if ( plot == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -228,19 +249,30 @@ mx_plot_close( MX_PLOT *plot )
 			plot->mx_typename );
 	}
 
-	status = (*fptr) ( plot );
+	mx_status = (*fptr) ( plot );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	const char fname[] = "mx_add_measurement_to_plot_buffer()";
+	static const char fname[] = "mx_add_measurement_to_plot_buffer()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	MX_DEBUG(8,("%s invoked.", fname));
 
@@ -265,9 +297,14 @@ mx_add_measurement_to_plot_buffer( MX_PLOT *plot )
 	"add_measurement_to_plot_buffer function pointer for plot is NULL." );
 	}
 
-	status = (*fptr) ( plot );
+	mx_status = (*fptr) ( plot );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -275,12 +312,18 @@ mx_add_array_to_plot_buffer( MX_PLOT *plot,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mx_add_array_to_plot_buffer()";
+	static const char fname[] = "mx_add_array_to_plot_buffer()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT *, long, long, void *,
 						long, long, void * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	MX_DEBUG(8,("%s invoked.", fname));
 
@@ -305,20 +348,32 @@ mx_add_array_to_plot_buffer( MX_PLOT *plot,
 		"add_array_to_plot_buffer function pointer for plot is NULL." );
 	}
 
-	status = (*fptr) ( plot, position_type, num_positions, position_array,
+	mx_status = (*fptr) ( plot,
+				position_type, num_positions, position_array,
 				data_type, num_data_points, data_array );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_display_plot( MX_PLOT *plot )
 {
-	const char fname[] = "mx_display_plot()";
+	static const char fname[] = "mx_display_plot()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	MX_DEBUG(8,("%s invoked.", fname));
 
@@ -343,19 +398,30 @@ mx_display_plot( MX_PLOT *plot )
 		"display_plot function pointer for plot is NULL." );
 	}
 
-	status = (*fptr) ( plot );
+	mx_status = (*fptr) ( plot );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_plot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	const char fname[] = "mx_plot_set_x_range()";
+	static const char fname[] = "mx_plot_set_x_range()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT *, double, double );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	if ( plot == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -378,19 +444,30 @@ mx_plot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 		"set_x_range function pointer for plot is NULL." );
 	}
 
-	status = (*fptr) ( plot, x_min, x_max );
+	mx_status = (*fptr) ( plot, x_min, x_max );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_plot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	const char fname[] = "mx_plot_set_y_range()";
+	static const char fname[] = "mx_plot_set_y_range()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT *, double, double );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	if ( plot == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -413,19 +490,30 @@ mx_plot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 		"set_y_range function pointer for plot is NULL." );
 	}
 
-	status = (*fptr) ( plot, y_min, y_max );
+	mx_status = (*fptr) ( plot, y_min, y_max );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_plot_start_plot_section( MX_PLOT *plot )
 {
-	const char fname[] = "mx_plot_start_plot_section()";
+	static const char fname[] = "mx_plot_start_plot_section()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_PLOT * );
-	mx_status_type status;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING plot_measurement;
+
+	MX_HRT_START( plot_measurement );
+#endif
 
 	MX_DEBUG( 8,("%s invoked.",fname));
 
@@ -450,9 +538,14 @@ mx_plot_start_plot_section( MX_PLOT *plot )
 		"start_plot_section function pointer for plot is NULL" );
 	}
 
-	status = (*fptr) ( plot );
+	mx_status = (*fptr) ( plot );
 
-	return status;
+#if DEBUG_TIMING
+	MX_HRT_END( plot_measurement );
+	MX_HRT_RESULTS( plot_measurement, fname, " " );
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT int

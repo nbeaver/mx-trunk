@@ -16,7 +16,7 @@
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
-#define DEBUG_TIMING		FALSE
+#define DEBUG_TIMING		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

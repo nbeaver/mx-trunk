@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_hrt_debug.h"
 #include "mx_variable.h"
 #include "mx_driver.h"
 #include "mx_scan.h"
@@ -495,6 +498,12 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 
 	for ( i = 0; i < xafs_scan->num_regions; i++ ) {
 
+#if DEBUG_TIMING
+		MX_HRT_TIMING total_region_measurement;
+
+		MX_HRT_START( total_region_measurement );
+#endif
+
 		snprintf( record_description, sizeof(record_description),
 	"mx_xafstmp%ld scan linear_scan motor_scan \"\" \"\" 1 1 1 ", i );
 
@@ -628,6 +637,12 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 
 		if ( status.code != MXE_SUCCESS )
 			return status;
+
+#if DEBUG_TIMING
+		MX_HRT_END( total_region_measurement );
+		MX_HRT_RESULTS( total_region_measurement, fname,
+			"XAFS region %ld", i );
+#endif
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
