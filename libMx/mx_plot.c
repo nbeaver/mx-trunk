@@ -159,6 +159,8 @@ mx_plot_open( MX_PLOT *plot )
 #if DEBUG_TIMING
 	MX_HRT_TIMING plot_measurement;
 
+	MX_DEBUG(-2,("%s invoked.", fname));
+
 	MX_HRT_START( plot_measurement );
 #endif
 
@@ -223,6 +225,8 @@ mx_plot_close( MX_PLOT *plot )
 
 #if DEBUG_TIMING
 	MX_HRT_TIMING plot_measurement;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	MX_HRT_START( plot_measurement );
 #endif
