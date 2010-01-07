@@ -1,4 +1,5 @@
-box1 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a -1 0x0 idc25 1000 0x3
+#box1 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a -1 0x0 idc25 1000 0x3
+box1 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0d0a -1 0x0 /dev/ttyS1
 #
 iseries1      interface generic iseries "" "" box1 *01
 iseries1_volt device analog_input iseries_ainput "" "" 0 1 0 volts 0x0 0 "" iseries1 V01 0 3

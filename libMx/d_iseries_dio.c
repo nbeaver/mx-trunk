@@ -86,7 +86,7 @@ mxd_iseries_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_ISERIES **iseries,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_iseries_din_get_pointers()";
+	static const char fname[] = "mxd_iseries_din_get_pointers()";
 
 	MX_RECORD *iseries_record;
 
@@ -157,7 +157,7 @@ mxd_iseries_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_ISERIES **iseries,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_iseries_dout_get_pointers()";
+	static const char fname[] = "mxd_iseries_dout_get_pointers()";
 
 	MX_RECORD *iseries_record;
 
@@ -227,7 +227,8 @@ mxd_iseries_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_iseries_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_iseries_din_create_record_structures()";
+        static const char fname[] =
+		"mxd_iseries_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *dinput;
         MX_ISERIES_DINPUT *iseries_dinput;
@@ -282,7 +283,7 @@ mxd_iseries_din_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_iseries_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_iseries_din_read()";
+	static const char fname[] = "mxd_iseries_din_read()";
 
 	MX_ISERIES_DINPUT *iseries_dinput;
 	MX_ISERIES *iseries;
@@ -319,7 +320,8 @@ mxd_iseries_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_iseries_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_iseries_dout_create_record_structures()";
+        static const char fname[] =
+		"mxd_iseries_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *doutput;
         MX_ISERIES_DOUTPUT *iseries_doutput;
@@ -374,7 +376,7 @@ mxd_iseries_dout_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_iseries_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_iseries_dout_read()";
+	static const char fname[] = "mxd_iseries_dout_read()";
 
 	MX_ISERIES_DOUTPUT *iseries_doutput;
 	MX_ISERIES *iseries;
@@ -417,7 +419,7 @@ mxd_iseries_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_iseries_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_iseries_dout_write()";
+	static const char fname[] = "mxd_iseries_dout_write()";
 
 	MX_ISERIES_DOUTPUT *iseries_doutput;
 	MX_ISERIES *iseries;

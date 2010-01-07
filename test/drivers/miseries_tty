@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -i -F ./miseries_tty.dat -s ./siseries_tty.dat $*
+

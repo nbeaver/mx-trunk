@@ -9,14 +9,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_ISERIES_DEBUG		FALSE
+#define MXI_ISERIES_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,13 +101,18 @@ mxi_iseries_finish_record_initialization( MX_RECORD *record )
 
 	ptr = &(iseries->bus_address_name[1]);
 
-	iseries->bus_address = (long) mx_hex_string_to_unsigned_long( ptr );
+	if ( *ptr == '\0' ) {
+		iseries->bus_address = -1;
+	} else {
+		iseries->bus_address =
+			(long) mx_hex_string_to_unsigned_long( ptr );
 
-	MX_DEBUG( 2,("%s: '%s' recognition_character = '%c'",
-		fname, record->name, iseries->recognition_character));
+		MX_DEBUG( 2,("%s: '%s' recognition_character = '%c'",
+			fname, record->name, iseries->recognition_character));
 
-	MX_DEBUG( 2,("%s: '%s' bus_address = %02lX",
-		fname, record->name, iseries->bus_address));
+		MX_DEBUG( 2,("%s: '%s' bus_address = %02lX",
+			fname, record->name, iseries->bus_address));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
