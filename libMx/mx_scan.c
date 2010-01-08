@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_CONFIGURE_TIMING		TRUE
 
 #define DEBUG_CLEAR_TIMING	FALSE
 
@@ -455,6 +457,11 @@ mx_perform_scan( MX_RECORD *scan_record )
 	long i;
 	mx_status_type mx_status;
 
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_TIMING configure_measurement;
+	MX_HRT_TIMING deconfigure_measurement;
+#endif
+
 	MX_DEBUG( 2, ( "%s invoked.", fname ) );
 
 	if ( mx_get_debug_level() >= 1 ) {
@@ -587,7 +594,18 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	/*** Configure the measurement type. ***/
 
+#if DEBUG_CONFIGURE_TIMING
+	MX_DEBUG(-2,("%s: Invoking mx_configure_measurement_type()", fname));
+	MX_HRT_START( configure_measurement );
+#endif
+
 	mx_status = mx_configure_measurement_type( &(scan->measurement) );
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( configure_measurement );
+	MX_HRT_RESULTS( configure_measurement, fname,
+			"mx_configure_measurement_type() complete." );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_handle_abnormal_scan_termination(
@@ -715,7 +733,18 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	/* Deconfigure the measurement type. */
 
+#if DEBUG_CONFIGURE_TIMING
+	MX_DEBUG(-2,("%s: Invoking mx_deconfigure_measurement_type()", fname));
+	MX_HRT_START( deconfigure_measurement );
+#endif
+
 	(void) mx_deconfigure_measurement_type( &(scan->measurement) );
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( deconfigure_measurement );
+	MX_HRT_RESULTS( deconfigure_measurement, fname,
+			"mx_deconfigure_measurement_type() complete." );
+#endif
 
 	/* Record that the scan has ended. */
 

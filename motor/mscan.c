@@ -7,17 +7,20 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define DEBUG_TIMING	TRUE
+
 #include <stdio.h>
 
 #include "motor.h"
 #include "mdialog.h"
+#include "mx_hrt_debug.h"
 
 int
 motor_scan_fn( int argc, char *argv[] )
@@ -30,6 +33,11 @@ motor_scan_fn( int argc, char *argv[] )
 	char buffer[ MXU_FILENAME_LENGTH + 12 ];
 	int status;
 	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING scan_measurement;
+	MX_HRT_TIMING update_measurement;
+#endif
 
 	if ( argc != 3 ) {
 		fprintf(output, "Usage: scan 'scan_name'.\n");
@@ -109,7 +117,20 @@ motor_scan_fn( int argc, char *argv[] )
 	fprintf( output,
 	"Press 'p' to pause the scan or any other key to abort the scan.\n" );
 
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s: Invoking mx_perform_scan()", cname));
+	MX_HRT_START( scan_measurement );
+#endif
+
 	mx_status = mx_perform_scan( record );
+
+#if DEBUG_TIMING
+	MX_HRT_END( scan_measurement );
+	MX_HRT_RESULTS( scan_measurement, cname, "End of mx_perform_scan()" );
+
+	MX_DEBUG(-2,("%s: Updating scan database.", cname));
+	MX_HRT_START( update_measurement );
+#endif
 
 	/* Check to see if the datafile name for the scan has changed.
 	 * If it has, then we will need to update the scan database
@@ -134,6 +155,12 @@ motor_scan_fn( int argc, char *argv[] )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( update_measurement );
+	MX_HRT_RESULTS( update_measurement, cname,
+		"Finished updating scan database." );
+#endif
+
 	if ( mx_status.code != MXE_SUCCESS ) {
 		return FAILURE;
 	} else {
@@ -144,7 +171,7 @@ motor_scan_fn( int argc, char *argv[] )
 mx_status_type
 motor_scan_pause_request_handler( MX_SCAN *scan )
 {
-	const char fname[] = "motor_scan_pause_request_handler()";
+	static const char fname[] = "motor_scan_pause_request_handler()";
 
 	char buffer[80];
 	int status, string_length;

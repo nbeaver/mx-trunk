@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_CONFIGURE_TIMING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_hrt_debug.h"
 #include "mx_scan.h"
 #include "mx_timer.h"
 
@@ -51,6 +54,12 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 	char format_buffer[20];
 	int i, num_items;
 	mx_status_type mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_TIMING set_mode_measurement;
+	MX_HRT_TIMING associated_measurement;
+	MX_HRT_TIMING input_device_measurement;
+#endif
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,16 +122,37 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 
 	/* Set the timer to preset mode. */
 
+#if DEBUG_CONFIGURE_TIMING
+	MX_DEBUG(-2,("%s: Invoking mx_timer_set_mode()", fname));
+	MX_HRT_START( set_mode_measurement );
+#endif
+
 	mx_status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( set_mode_measurement );
+	MX_HRT_RESULTS( set_mode_measurement, fname,
+			"mx_timer_set_mode() complete." );
+
+	MX_DEBUG(-2,
+	("%s: Invoking mx_timer_set_modes_of_associated_counters()", fname));
+	MX_HRT_START( associated_measurement );
+#endif
 
 	/* Make sure all other devices that can affect the gate signal
 	 * are set to counter mode.
 	 */
 
 	mx_status = mx_timer_set_modes_of_associated_counters( timer_record );
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( associated_measurement );
+	MX_HRT_RESULTS( associated_measurement, fname,
+		"mx_timer_set_modes_of_associated_counters() complete." );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -131,6 +161,9 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 
+#if DEBUG_CONFIGURE_TIMING
+		MX_HRT_START( input_device_measurement );
+#endif
 		input_device_record = ( scan->input_device_array )[i];
 
 		if ( input_device_record->mx_superclass != MXR_DEVICE ) {
@@ -147,7 +180,8 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 		case MXC_TIMER:
 			if ( input_device_record != timer_record ) {
 
-				mx_status = mx_timer_set_mode(input_device_record,
+				mx_status = mx_timer_set_mode(
+							input_device_record,
 							MXCM_COUNTER_MODE );
 			}
 			break;
@@ -155,6 +189,12 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+		MX_HRT_END( input_device_measurement );
+		MX_HRT_RESULTS( input_device_measurement, fname,
+			"Input device %d", i );
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -171,6 +211,12 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 	MX_RECORD *input_device_record;
 	int i;
 	mx_status_type mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_TIMING set_mode_measurement;
+	MX_HRT_TIMING associated_measurement;
+	MX_HRT_TIMING input_device_measurement;
+#endif
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -197,16 +243,37 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 
 	/* Restore the timer back to preset mode. */
 
+#if DEBUG_CONFIGURE_TIMING
+	MX_DEBUG(-2,("%s: Invoking mx_timer_set_mode()", fname));
+	MX_HRT_START( set_mode_measurement );
+#endif
+
 	mx_status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( set_mode_measurement );
+	MX_HRT_RESULTS( set_mode_measurement, fname,
+			"mx_timer_set_mode() complete." );
+
+	MX_DEBUG(-2,
+	("%s: Invoking mx_timer_set_modes_of_associated_counters()", fname));
+	MX_HRT_START( associated_measurement );
+#endif
 
 	/* Set the modes of any assocated timers to preset mode and the modes
 	 * of any associated scalers to count mode.
 	 */
 
 	mx_status = mx_timer_set_modes_of_associated_counters( timer_record );
+
+#if DEBUG_CONFIGURE_TIMING
+	MX_HRT_END( associated_measurement );
+	MX_HRT_RESULTS( associated_measurement, fname,
+		"mx_timer_set_modes_of_associated_counters() complete." );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -217,6 +284,9 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 
+#if DEBUG_CONFIGURE_TIMING
+		MX_HRT_START( input_device_measurement );
+#endif
 		input_device_record = ( scan->input_device_array )[i];
 
 		if ( input_device_record->mx_superclass != MXR_DEVICE ) {
@@ -232,7 +302,8 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 			break;
 		case MXC_TIMER:
 			if ( input_device_record != timer_record ) {
-				mx_status = mx_timer_set_mode(input_device_record,
+				mx_status = mx_timer_set_mode(
+							input_device_record,
 							MXCM_PRESET_MODE );
 			}
 			break;
@@ -240,6 +311,12 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if DEBUG_CONFIGURE_TIMING
+		MX_HRT_END( input_device_measurement );
+		MX_HRT_RESULTS( input_device_measurement, fname,
+			"Input device %d", i );
+#endif
 	}
 
 	if ( preset_time_struct != NULL ) {
