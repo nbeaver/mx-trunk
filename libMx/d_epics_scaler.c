@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -119,7 +119,8 @@ mxd_epics_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_epics_scaler_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_epics_scaler_create_record_structures()";
+	static const char fname[] =
+		"mxd_epics_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_EPICS_SCALER *epics_scaler = NULL;
@@ -239,19 +240,41 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Find out if this EPICS record really exists in an IOC's database
+	 * by asking for the record's version number.
+	 */
+
+	snprintf( pvname, sizeof(pvname),
+		"%s.VERS", epics_scaler->epics_record_name );
+
+	mx_status = mx_caget_by_name(pvname, MX_CA_DOUBLE, 1, &version_number);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epics_scaler->epics_record_version = version_number;
+
+	MX_DEBUG( 2, ("%s: EPICS scaler '%s' version number = %g",
+		fname, epics_scaler->epics_record_name,
+		epics_scaler->epics_record_version));
+
 	/* Initialize MX EPICS data structures. */
 
 	mx_epics_pvname_init( &(epics_scaler->cnt_pv),
 				"%s.CNT", epics_scaler->epics_record_name );
 
+	if ( epics_scaler->epics_record_version < 3.0 ) {
+		mx_epics_pvname_init( &(epics_scaler->cont_pv),
+			"%s_mode.VAL", epics_scaler->epics_record_name );
+	} else {
+		mx_epics_pvname_init( &(epics_scaler->cont_pv),
+			"%s.CONT", epics_scaler->epics_record_name );
+	}
+
 	mx_epics_pvname_init( &(epics_scaler->dark_pv),
 				"%s_Dark%d.VAL",
 					epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
-
-	mx_epics_pvname_init( &(epics_scaler->mode_pv),
-				"%s_mode.VAL",
-					epics_scaler->epics_record_name );
 
 	mx_epics_pvname_init( &(epics_scaler->nch_pv),
 				"%s.NCH", epics_scaler->epics_record_name );
@@ -267,9 +290,6 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	mx_epics_pvname_init( &(epics_scaler->sd_pv),
 				"%s_SD%d.VAL", epics_scaler->epics_record_name,
 					epics_scaler->scaler_number );
-
-	mx_epics_pvname_init( &(epics_scaler->vers_pv),
-				"%s.VERS", epics_scaler->epics_record_name );
 
 	/* Find out what type of EPICS scaler record this is. */
 
@@ -333,22 +353,6 @@ mxd_epics_scaler_open( MX_RECORD *record )
 		"and cannot be used as a normal scaler.  Use channels 2-%hd",
 			epics_scaler->num_epics_counters );
 	}
-
-	/* Here we find out if this EPICS record really exists in an
-	 * IOC's database by asking for the record's version number.
-	 */
-
-	mx_status = mx_caget( &(epics_scaler->vers_pv),
-				MX_CA_DOUBLE, 1, &version_number );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	epics_scaler->epics_record_version = version_number;
-
-	MX_DEBUG( 2, ("%s: EPICS scaler '%s' version number = %g",
-		fname, epics_scaler->epics_record_name,
-		epics_scaler->epics_record_version));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -679,18 +683,15 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 		break;
 	}
 
-	/* Make sure the counter is _not_ in continuous count mode. */
+	/* Make sure the counter is _not_ in autocount mode. */
 
-	if ( epics_scaler->epics_record_version < 3.0 ) {
+	counter_mode = 0;	/* One-shot mode. */
 
-		counter_mode = 0;	/* One-shot mode. */
+	mx_status = mx_caput( &(epics_scaler->cont_pv),
+				MX_CA_LONG, 1, &counter_mode );
 
-		mx_status = mx_caput( &(epics_scaler->mode_pv),
-					MX_CA_LONG, 1, &counter_mode );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Tell the scaler to stop counting. */
 

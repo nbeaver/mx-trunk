@@ -14,7 +14,7 @@
  *
  */
 
-#define DEBUG_CONFIGURE_TIMING	TRUE
+#define DEBUG_CONFIGURE_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

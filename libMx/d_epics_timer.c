@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -178,22 +178,47 @@ mxd_epics_timer_open( MX_RECORD *record )
 
 	timer->mode = MXCM_COUNTER_MODE;
 
+	/* Find out if this EPICS record really exists in an IOC's database
+	 * by asking for the record's version number.
+	 */
+
+	snprintf( pvname, sizeof(pvname),
+		"%s.VERS", epics_timer->epics_record_name );
+
+	mx_status = mx_caget_by_name(pvname, MX_CA_DOUBLE, 1, &version_number);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epics_timer->epics_record_version = version_number;
+
+	MX_DEBUG( 2,("%s: epics_timer->epics_record_version = %g",
+			fname, epics_timer->epics_record_version));
+
 	/* Initialize MX EPICS variables. */
 
 	mx_epics_pvname_init( &(epics_timer->cnt_pv),
 				"%s.CNT", epics_timer->epics_record_name);
+
+	if ( epics_timer->epics_record_version < 3.0 ) {
+		mx_epics_pvname_init( &(epics_timer->cont_pv),
+			"%s_mode.VAL", epics_timer->epics_record_name);
+	} else {
+		mx_epics_pvname_init( &(epics_timer->cont_pv),
+			"%s.CONT", epics_timer->epics_record_name);
+	}
+
 	mx_epics_pvname_init( &(epics_timer->freq_pv),
 				"%s.FREQ", epics_timer->epics_record_name);
-	mx_epics_pvname_init( &(epics_timer->mode_pv),
-				"%s_mode.VAL", epics_timer->epics_record_name);
+
 	mx_epics_pvname_init( &(epics_timer->nch_pv),
 				"%s.NCH", epics_timer->epics_record_name);
+
 	mx_epics_pvname_init( &(epics_timer->t_pv),
 				"%s.T", epics_timer->epics_record_name);
+
 	mx_epics_pvname_init( &(epics_timer->tp_pv),
 				"%s.TP", epics_timer->epics_record_name);
-	mx_epics_pvname_init( &(epics_timer->vers_pv),
-				"%s.VERS", epics_timer->epics_record_name);
 
 	/* Find out what type of EPICS scaler record this is. */
 
@@ -239,21 +264,6 @@ mxd_epics_timer_open( MX_RECORD *record )
 		mx_epics_pvname_init( &(epics_timer->gate_control_pv_array[i]),
 			"%s.G%ld", epics_timer->epics_record_name, i+1 );
 	}
-
-	/* Here we find out if this EPICS record really exists in an
-	 * IOC's database by asking for the record's version number.
-	 */
-
-	mx_status = mx_caget( &(epics_timer->vers_pv),
-				MX_CA_DOUBLE, 1, &version_number );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	epics_timer->epics_record_version = version_number;
-
-	MX_DEBUG( 2,("%s: epics_timer->epics_record_version = %g",
-			fname, epics_timer->epics_record_version));
 
 	/* Get the clock frequency for the timer. */
 
@@ -522,18 +532,15 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 		break;
 	}
 
-	/* Make sure the counter is _not_ in continuous count mode. */
+	/* Make sure the counter is _not_ in autocount mode. */
 
-	if ( epics_timer->epics_record_version < 3.0 ) {
+	counter_mode = 0;	/* One-shot mode. */
 
-		counter_mode = 0;	/* One-shot mode. */
+	mx_status = mx_caput( &(epics_timer->cont_pv),
+				MX_CA_LONG, 1, &counter_mode );
 
-		mx_status = mx_caput( &(epics_timer->mode_pv),
-					MX_CA_LONG, 1, &counter_mode );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Tell the timer to stop counting. */
 
