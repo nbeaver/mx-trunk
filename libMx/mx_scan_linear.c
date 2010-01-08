@@ -898,6 +898,7 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 	static const char fname[] = "mxs_linear_scan_do_normal_scan()";
 #endif
 	long i;
+	int enable_status;
 	mx_bool_type exit_loop = FALSE;
 	mx_status_type mx_status;
 
@@ -1155,7 +1156,9 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		 * running scan plot.
 		 */
 
-		if ( mx_plotting_is_enabled( scan->record ) ) {
+		enable_status = mx_plotting_is_enabled( scan->record );
+
+		if ( enable_status != MXPF_PLOT_OFF ) {
 
 			if ( i == 0 ) {
 				/* Tell the plotting package that
@@ -1175,10 +1178,12 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_display_plot( &(scan->plot) );
+			if ( enable_status != MXPF_PLOT_END ) {
+				mx_status = mx_display_plot( &(scan->plot) );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		}
 
 #if DEBUG_TIMING
@@ -1239,6 +1244,7 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 #endif
 
 	long i;
+	int enable_status;
 	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
@@ -1508,7 +1514,9 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 		 * running scan plot.
 		 */
 
-		if ( mx_plotting_is_enabled( scan->record ) ) {
+		enable_status = mx_plotting_is_enabled( scan->record );
+
+		if ( enable_status != MXPF_PLOT_OFF ) {
 
 			if ( i == 0 ) {
 				/* Tell the plotting package that
@@ -1528,10 +1536,12 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_display_plot( &(scan->plot) );
+			if ( enable_status != MXPF_PLOT_END ) {
+				mx_status = mx_display_plot( &(scan->plot) );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 		}
 
 		mx_status = mx_scan_increment_measurement_number(scan);

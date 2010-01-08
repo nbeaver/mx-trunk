@@ -1032,9 +1032,17 @@ mx_standard_cleanup_after_scan_end( MX_SCAN *scan )
 
 	mx_scan_free_measurement_permit_and_fault_handlers( scan );
 
-	/* Handle the user's final interactions with the plot. */
+	/* If the plot is only supposed to be displayed at the end
+	 * of the scan, then display the plot now.
+	 */
 
 	enable_flag = mx_plotting_is_enabled( scan->record );
+
+	if ( enable_flag == MXPF_PLOT_END ) {
+		(void) mx_display_plot( &(scan->plot) );
+	}
+
+	/* Handle the user's final interactions with the plot. */
 
 	prompt_for_plot_close = TRUE;
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -528,6 +528,7 @@ mxs_list_scan_do_normal_scan( MX_SCAN *scan,
 	static const char fname[] = "mxs_list_scan_do_normal_scan()";
 #endif
 
+	int enable_status;
 	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
@@ -677,7 +678,9 @@ mxs_list_scan_do_normal_scan( MX_SCAN *scan,
 		 * running scan plot.
 		 */
 
-		if ( mx_plotting_is_enabled( scan->record ) ) {
+		enable_status = mx_plotting_is_enabled( scan->record );
+
+		if ( enable_status != MXPF_PLOT_OFF ) {
 
 			mx_status = mx_add_measurement_to_plot_buffer(
 						&(scan->plot) );
@@ -687,11 +690,13 @@ mxs_list_scan_do_normal_scan( MX_SCAN *scan,
 				return mx_status;
 			}
 
-			mx_status = mx_display_plot( &(scan->plot) );
+			if ( enable_status != MXPF_PLOT_END ) {
+				mx_status = mx_display_plot( &(scan->plot) );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				CLOSE_POSITION_LIST;
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					CLOSE_POSITION_LIST;
+					return mx_status;
+				}
 			}
 		}
 
@@ -733,6 +738,7 @@ mxs_list_scan_do_early_move_scan( MX_SCAN *scan,
 {
 	static const char fname[] = "mxs_list_scan_do_early_move_scan()";
 
+	int enable_status;
 	mx_bool_type exit_loop;
 	mx_status_type mx_status;
 
@@ -999,7 +1005,9 @@ mxs_list_scan_do_early_move_scan( MX_SCAN *scan,
 		 * running scan plot.
 		 */
 
-		if ( mx_plotting_is_enabled( scan->record ) ) {
+		enable_status = mx_plotting_is_enabled( scan->record );
+
+		if ( enable_status != MXPF_PLOT_OFF ) {
 
 			mx_status = mx_add_measurement_to_plot_buffer(
 						&(scan->plot) );
@@ -1009,11 +1017,13 @@ mxs_list_scan_do_early_move_scan( MX_SCAN *scan,
 				return mx_status;
 			}
 
-			mx_status = mx_display_plot( &(scan->plot) );
+			if ( enable_status != MXPF_PLOT_END ) {
+				mx_status = mx_display_plot( &(scan->plot) );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				CLOSE_POSITION_LIST;
-				return mx_status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					CLOSE_POSITION_LIST;
+					return mx_status;
+				}
 			}
 		}
 

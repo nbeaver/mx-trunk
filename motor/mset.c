@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,7 +86,7 @@ motor_set_fn( int argc, char *argv[] )
 "        set bypass_limit_switch { on | off }\n"
 "        set header_prompt { on | off }\n"
 "        set overwrite { on | off }\n"
-"        set plot { on | off | nowait }\n"
+"        set plot { on | off | nowait | end }\n"
 "        set scanlog { on | off }\n"
 "        set debug 'debug-value'";
 
@@ -693,7 +693,7 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( argc <= 3 ) {
 			fprintf(output,
-	"Usage: 'set plot on', 'set plot off', or 'set plot nowait'\n");
+"Usage: 'set plot on', 'set plot off', 'set plot nowait', or 'set plot end'\n");
 
 			return FAILURE;
 		}
@@ -705,22 +705,27 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( strncmp( argv[3], "off", length3 ) == 0 ) {
 
-			mx_set_plot_enable( motor_record_list, 0 );
+			mx_set_plot_enable( motor_record_list, MXPF_PLOT_OFF );
 
 		} else if ( strncmp( argv[3], "on", length3 ) == 0 ) {
 
-			mx_set_plot_enable( motor_record_list, 1 );
+			mx_set_plot_enable( motor_record_list, MXPF_PLOT_ON );
 
 		} else if ( strncmp( argv[3], "nowait", length3 ) == 0 ) {
 
-			mx_set_plot_enable( motor_record_list, 2 );
+			mx_set_plot_enable( motor_record_list,
+							MXPF_PLOT_NOWAIT );
+
+		} else if ( strncmp( argv[3], "end", length3 ) == 0 ) {
+
+			mx_set_plot_enable( motor_record_list, MXPF_PLOT_END );
 
 		} else {
 			fprintf( output,
 			"%s: Illegal argument '%s'\n", cname, argv[3]);
 
 			fprintf( output,
-	"Usage: 'set plot on', 'set plot off', or 'set plot nowait'\n");
+"Usage: 'set plot on', 'set plot off', 'set plot nowait', or 'set plot end'\n");
 
 			return FAILURE;
 		}

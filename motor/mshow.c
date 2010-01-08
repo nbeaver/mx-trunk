@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -187,14 +187,17 @@ motor_show_fn( int argc, char *argv[] )
 		enable_flag = mx_plotting_is_enabled( motor_record_list );
 
 		switch( enable_flag ) {
-		case 0:
+		case MXPF_PLOT_OFF:
 			fprintf( output, "  plotting is off.\n");
 			break;
-		case 1:
+		case MXPF_PLOT_ON:
 			fprintf( output, "  plotting is on.\n");
 			break;
-		case 2:
+		case MXPF_PLOT_NOWAIT:
 			fprintf( output, "  plotting is on. (nowait)\n");
+			break;
+		case MXPF_PLOT_END:
+			fprintf( output, "  plotting is on. (at end)\n");
 			break;
 		default:
 			fprintf( output,

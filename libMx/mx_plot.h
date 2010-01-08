@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,6 +54,7 @@ extern "C" {
 #define MXPF_PLOT_OFF		0
 #define MXPF_PLOT_ON		1
 #define MXPF_PLOT_NOWAIT	2
+#define MXPF_PLOT_END		3
 
 typedef struct {
 	/* Reference to the MX_SCAN that invokes this plot. */
