@@ -9,12 +9,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_COPROCESS		TRUE
 
 #include <stdio.h>
 
@@ -31,12 +33,14 @@
 #include <signal.h>
 
 #include "mx_util.h"
+#include "mx_stdint.h"
+#include "mx_clock.h"
 #include "mx_coprocess.h"
 
 MX_EXPORT mx_status_type
-mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
+mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 {
-	const char fname[] = "mx_create_coprocess()";
+	static const char fname[] = "mx_coprocess_open()";
 
 	pid_t fork_pid;
 	int fd1[2], fd2[2];
@@ -44,7 +48,7 @@ mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
 	int i, argc, envc;
 	char **argv, **envp;
 
-	if ( coprocess == (MX_COPROCESS *) NULL ) {
+	if ( coprocess == (MX_COPROCESS **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"Null coprocess pointer passed." );
 	}
@@ -53,9 +57,18 @@ mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
 		"Null command_line pointer passed." );
 	}
 
-	coprocess->from_coprocess = NULL;
-	coprocess->to_coprocess = NULL;
-	coprocess->coprocess_pid = 0;
+	/* Allocate an MX_COPROCESS structure for the caller. */
+
+	(*coprocess) = malloc( sizeof(MX_COPROCESS) );
+
+	if ( (*coprocess) == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate an MX_COPROCESS structure." );
+	}
+
+	(*coprocess)->from_coprocess = NULL;
+	(*coprocess)->to_coprocess = NULL;
+	(*coprocess)->coprocess_pid = 0;
 
 	/* Create a pair of pipes. */
 
@@ -206,15 +219,15 @@ mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
 		close( fd1[0] );
 		close( fd2[1] );
 
-		coprocess->coprocess_pid = fork_pid;
+		(*coprocess)->coprocess_pid = fork_pid;
 
 		/* Connect the file handles to FILE pointers and
 		 * change stdio buffering to line buffered.
 		 */
 
-		coprocess->from_coprocess = fdopen( fd2[0], "r" );
+		(*coprocess)->from_coprocess = fdopen( fd2[0], "r" );
 
-		if ( coprocess->from_coprocess == NULL ) {
+		if ( (*coprocess)->from_coprocess == NULL ) {
 			saved_errno = errno;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
@@ -222,9 +235,9 @@ mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
 "Errno = %d, error message = '%s'",  saved_errno, strerror( saved_errno ) );
 		}
 
-		coprocess->to_coprocess = fdopen( fd1[1], "w" );
+		(*coprocess)->to_coprocess = fdopen( fd1[1], "w" );
 
-		if ( coprocess->to_coprocess == NULL ) {
+		if ( (*coprocess)->to_coprocess == NULL ) {
 			saved_errno = errno;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
@@ -239,11 +252,14 @@ mx_create_coprocess( MX_COPROCESS *coprocess, char *command_line )
 }
 
 MX_EXPORT mx_status_type
-mx_kill_coprocess( MX_COPROCESS *coprocess )
+mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 {
-	const char fname[] = "mx_kill_coprocess()";
+	static const char fname[] = "mx_coprocess_close()";
 
-	int status, saved_errno;
+	MX_CLOCK_TICK current_tick, finish_tick, timeout_in_ticks;
+	pid_t coprocess_pid;
+	int wait_status, os_status, saved_errno, comparison;
+	mx_bool_type timed_out;
 
 	if ( coprocess == (MX_COPROCESS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -260,27 +276,79 @@ mx_kill_coprocess( MX_COPROCESS *coprocess )
 	}
 	coprocess->to_coprocess = NULL;
 
-	/* Send the coprocess a SIGKILL. */
+	coprocess_pid = coprocess->coprocess_pid;
 
-	if ( coprocess->coprocess_pid > 0 ) {
-		status = kill( coprocess->coprocess_pid, SIGKILL );
+	mx_free( coprocess );
 
-		if ( status == (-1) ) {
-			saved_errno = errno;
+	/* If the timeout is negative, then we wait forever for the
+	 * child to exit.
+	 */
 
-			return mx_error( MXE_IPC_IO_ERROR, fname,
-			"Sending SIGKILL to process %ld caused an error.  "
-			"Errno = %d, error message = '%s'",
-				(long) coprocess->coprocess_pid,
-				errno, strerror( errno ) );
-		}
-		MX_DEBUG( 2,("%s: about to wait for process %ld.",
-				fname, (long) coprocess->coprocess_pid));
+	if ( timeout_in_seconds < 0.0 ) {
+		(void) waitpid( coprocess_pid, NULL, 0 );
 
-		/* Wait for the child to exit. */
-
-		(void) waitpid( coprocess->coprocess_pid, NULL, 0 );
+		return MX_SUCCESSFUL_RESULT;
 	}
+
+	/* Otherwise, we loop waiting for the child to exit until the
+	 * timeout expires.
+	 *
+	 * Note: In principle, on some platforms we could use a Posix
+	 * real time signal handler and wait in waitpid() for the timeout
+	 * signal to arrive.  However, not all Unix-based MX build
+	 * platforms support Posix real time signals.  In addition, we
+	 * cannot depend on using SIGALRM, since third party software
+	 * we are linked to may be using SIGALRM for its own purposes.
+	 * Thus, the only safe thing to do is to loop.
+	 */
+
+	timeout_in_ticks =
+		mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
+
+	current_tick = mx_current_clock_tick();
+
+	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+
+	timed_out = TRUE;
+
+	do {
+		(void) waitpid( coprocess_pid, &wait_status, WNOHANG );
+
+		if ( WIFEXITED( wait_status ) || WIFSIGNALED( wait_status ) ) {
+			timed_out = FALSE;
+			break;
+		}
+
+		mx_msleep( 100 );
+
+		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
+	} while ( comparison < 0 );
+
+	/* If the process has exited by now, then we are done. */
+
+	if ( timed_out == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the coprocess has _not_ exited by now, then we kill it. */
+
+	os_status = kill ( coprocess_pid, SIGKILL );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Sending SIGKILL to process %ld caused an error.  "
+		"Errno = %d, error message = '%s'",
+			(long) coprocess_pid, errno, strerror( errno ) );
+	}
+
+	MX_DEBUG(-2,("%s: waiting for killed process %ld.",
+			fname, (long) coprocess_pid));
+
+	/* Wait for the killed child to exit. */
+
+	(void) waitpid( coprocess_pid, NULL, 0 );
 
 	return MX_SUCCESSFUL_RESULT;
 }
