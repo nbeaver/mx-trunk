@@ -433,10 +433,17 @@ MX_API int mx_match( const char *pattern, const char *string );
  * text enclosed by double quotes are assumed to be a single token.  Tokens
  * with an embedded '=' character are assumed to be environment variables.
  * The argv and envp arrays are terminated by NULL entries.
+ *
+ * The argv and envp arrays returned by mx_parse_command_line() must be
+ * freed by mx_free_command_line().  It is not sufficient to just directly
+ * free the argv and envp arrays, since mx_free_command_line() must also
+ * free an internal buffer created by strdup().
  */
 
-MX_API int mx_parse_command_line( char *command_line,
+MX_API int mx_parse_command_line( const char *command_line,
 		int *argc, char ***argv, int *envc, char ***envp );
+
+MX_API void mx_free_command_line( char **argv, char **envp );
 
 /* mx_free_pointer() is a wrapper for free() that attempts to verify
  * that the pointer is valid to be freed before trying to free() it.

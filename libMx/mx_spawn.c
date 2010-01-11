@@ -195,6 +195,11 @@ mx_spawn( char *command_line,
 
 		(void) execvp( argv[0], argv );
 
+		/* If execvp() succeeds, then we should not be able
+		 * to get here, since this process image will have
+		 * been replaced by the new process image.
+		 */
+
 		saved_errno = errno;
 
 		fprintf( stderr, "Child process %lu could not execute "

@@ -1855,13 +1855,16 @@ mxp_add_token_to_array( char *token_ptr,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT int
-mx_parse_command_line( char *command_line,
+mx_parse_command_line( const char *command_line,
 			int *argc, char ***argv,
 			int *envc, char ***envp )
 {
+	char *command_buffer;
 	char *ptr, *token_ptr;
 	int in_quoted_string;
 	int status;
+
+	errno = 0;
 
 	if ( ( command_line == NULL )
 	  || ( argc == NULL )
@@ -1874,6 +1877,19 @@ mx_parse_command_line( char *command_line,
 		return (-1);
 	}
 
+	command_buffer = strdup( command_line );
+
+	if ( command_buffer == NULL ) {
+		errno = ENOMEM;
+
+		return (-1);
+	}
+
+#if 0
+	MX_DEBUG(-2,("mx_parse_command_line('%s'), command_buffer = %p",
+		command_line, command_buffer));
+#endif
+
 	*argc = 0;
 	*envc = 0;
 	*argv = NULL;
@@ -1884,7 +1900,7 @@ mx_parse_command_line( char *command_line,
 	token_ptr = NULL;
 	in_quoted_string = FALSE;
 
-	for ( ptr = command_line; ; ptr++ ) {
+	for ( ptr = command_buffer; ; ptr++ ) {
 
 		switch( *ptr ) {
 		case '\0':
@@ -1906,20 +1922,12 @@ mx_parse_command_line( char *command_line,
 			 */
 
 			if ( *argc == 0 ) {
-				mx_warning(
-				"An empty command line was specified.");
-
 				*argv = (char **) malloc( sizeof(char *) );
 			}
 
-#if 0
 			if ( *envc == 0 ) {
-				mx_warning(
-				"No environment variables were specified.");
-
 				*envp = (char **) malloc( sizeof(char *) );
 			}
-#endif
 
 			if ( *argv != NULL ) {
 				(*argv)[*argc] = NULL;
@@ -1927,6 +1935,15 @@ mx_parse_command_line( char *command_line,
 
 			if ( *envp != NULL ) {
 				(*envp)[*envc] = NULL;
+			}
+
+			/* If both argc and envc are zero, then we
+			 * will not need 'command_buffer' later, so
+			 * we free it now.
+			 */
+
+			if ( ( *argc == 0 ) && ( *envc == 0 ) ) {
+				mx_free( command_buffer );
 			}
 
 			return 0;
@@ -2003,6 +2020,69 @@ mx_parse_command_line( char *command_line,
 	errno = ERANGE;
 	return (-1);
 #endif
+}
+
+MX_EXPORT void
+mx_free_command_line( char **argv, char **envp )
+{
+	char *command_buffer, *argv0, *envp0;
+
+	MX_DEBUG(-2,("mx_free_command_line( %p, %p ) invoked.", argv, envp));
+
+	/* First find a pointer to the internal 'command_buffer'.  The
+	 * correct pointer will be either argv[0] or envp[0].  We must
+	 * compare these two pointers to see which one has the lower
+	 * memory address.  The one with the lower memory address is
+	 * the address of 'command_buffer'.
+	 */
+
+	command_buffer = NULL;   argv0 = NULL;  envp0 = NULL;
+
+	if ( argv == NULL ) {
+		if ( envp == NULL ) {
+			/* Nothing to do, so return. */
+			return;
+		} else {
+			command_buffer = envp[0];
+		}
+	} else {
+		argv0 = argv[0];
+
+		if ( envp == NULL ) {
+			command_buffer = argv0;
+		} else {
+			envp0 = envp[0];
+
+			if ( envp0 == NULL ) {
+				command_buffer = argv0;
+			} else {
+				if ( argv0 == NULL ) {
+					command_buffer = envp0;
+				} else {
+					if ( envp0 < argv0 ) {
+						command_buffer = envp0;
+					} else {
+						command_buffer = argv0;
+					}
+				}
+			}
+		}
+	}
+
+	MX_DEBUG(-2,("  command_buffer = %p, argv0 = %p, envp0 = %p",
+		command_buffer, argv0, envp0 ));
+
+	if ( argv != NULL ) {
+		free( argv );
+	}
+	if ( envp != NULL ) {
+		free( envp );
+	}
+	if ( command_buffer != NULL ) {
+		free( command_buffer );
+	}
+
+	return;
 }
 
 /*-------------------------------------------------------------------------*/

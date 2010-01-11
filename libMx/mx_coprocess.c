@@ -159,8 +159,6 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: command_line = '%s'",
 			fname, command_line));
-
-		/* mx_breakpoint(); */
 #endif
 
 		result = mx_parse_command_line( command_line,
@@ -289,6 +287,12 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		"Null coprocess pointer passed." );
 	}
 
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for PID %lu with a timeout of %g seconds.",
+		fname, (unsigned long) coprocess->coprocess_pid,
+		timeout_in_seconds));
+#endif
+
 	if ( coprocess->from_coprocess != NULL ) {
 		fclose( coprocess->from_coprocess );
 	}
@@ -303,11 +307,20 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	mx_free( coprocess );
 
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: coprocess FILE pointers are now closed.", fname));
+#endif
+
 	/* If the timeout is negative, then we wait forever for the
 	 * child to exit.
 	 */
 
 	if ( timeout_in_seconds < 0.0 ) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: waiting forever for PID %lu",
+			fname, (unsigned long) coprocess_pid));
+#endif
+
 		(void) waitpid( coprocess_pid, NULL, 0 );
 
 		return MX_SUCCESSFUL_RESULT;
@@ -335,6 +348,11 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	timed_out = TRUE;
 
 	while (1) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: waitpid( %lu, ..., WNOHANG )",
+			fname, (unsigned long) coprocess_pid));
+#endif
+
 		(void) waitpid( coprocess_pid, &wait_status, WNOHANG );
 
 		if ( WIFEXITED( wait_status ) || WIFSIGNALED( wait_status ) ) {
@@ -350,13 +368,27 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		mx_msleep( 100 );
 	}
 
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: timed_out = %d", fname, timed_out));
+#endif
+
 	/* If the process has exited by now, then we are done. */
 
 	if ( timed_out == FALSE ) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: process %lu has exited.",
+			fname, (unsigned long) coprocess_pid));
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* If the coprocess has _not_ exited by now, then we kill it. */
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: we must kill PID %lu.",
+		fname, (unsigned long) coprocess_pid));
+#endif
 
 	os_status = kill ( coprocess_pid, SIGKILL );
 
@@ -369,12 +401,19 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 			(long) coprocess_pid, errno, strerror( errno ) );
 	}
 
-	MX_DEBUG(-2,("%s: waiting for killed process %ld.",
-			fname, (long) coprocess_pid));
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: waiting for killed PID %lu.",
+			fname, (unsigned long) coprocess_pid));
+#endif
 
 	/* Wait for the killed child to exit. */
 
 	(void) waitpid( coprocess_pid, NULL, 0 );
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: killed PID %lu has exited.",
+			fname, (unsigned long) coprocess_pid));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
