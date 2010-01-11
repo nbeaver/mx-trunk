@@ -57,6 +57,10 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 		"Null command_line pointer passed." );
 	}
 
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for command '%s'", fname, command_line));
+#endif
+
 	/* Allocate an MX_COPROCESS structure for the caller. */
 
 	(*coprocess) = malloc( sizeof(MX_COPROCESS) );
@@ -107,8 +111,10 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	if ( fork_pid == 0 ) {
 		/********** Child process. **********/
 
+#if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: This is child process %lu.",
 			fname, mx_process_id()));
+#endif
 
 		/* Try to redirect standard input for the external command. */
 
@@ -150,8 +156,12 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 		/* Parse the command line. */
 
+#if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: command_line = '%s'",
 			fname, command_line));
+
+		/* mx_breakpoint(); */
+#endif
 
 		result = mx_parse_command_line( command_line,
 					&argc, &argv, &envc, &envp );
@@ -167,7 +177,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 			exit(1);
 		}
 
-#if 1
+#if DEBUG_COPROCESS
 		for ( i = 0; i < argc; i++ ) {
 			MX_DEBUG(-2,("%s: argv[%d] = '%s'",
 				fname, i, argv[i]));
@@ -179,8 +189,11 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 		/* Add the environment variables found to the environment. */
 
 		for ( i = 0; i < envc; i++ ) {
+
+#if DEBUG_COPROCESS
 			MX_DEBUG(-2,("%s: envp[%d] = '%s'",
 				fname, i, envp[i]));
+#endif
 
 			result = putenv( envp[i] );
 
@@ -195,14 +208,24 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 				exit(1);
 			}
 		}
+
+#if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: envp[%d] = '%s'", fname, i, envp[i]));
+#endif
 
 		/* Now execute the external command. */
 
+#if DEBUG_COPROCESS
 		MX_DEBUG(-2,
 		("%s: About to execute the external command.", fname));
+#endif
 
 		(void) execvp( argv[0], argv );
+
+		/* If execvp() succeeds, then we should not be able
+		 * to get here, since this process image will have
+		 * been replaced by the new process image.
+		 */
 
 		saved_errno = errno;
 
@@ -311,7 +334,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	timed_out = TRUE;
 
-	do {
+	while (1) {
 		(void) waitpid( coprocess_pid, &wait_status, WNOHANG );
 
 		if ( WIFEXITED( wait_status ) || WIFSIGNALED( wait_status ) ) {
@@ -319,10 +342,13 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 			break;
 		}
 
-		mx_msleep( 100 );
-
 		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
-	} while ( comparison < 0 );
+
+		if ( comparison >= 0 )
+			break;
+
+		mx_msleep( 100 );
+	}
 
 	/* If the process has exited by now, then we are done. */
 

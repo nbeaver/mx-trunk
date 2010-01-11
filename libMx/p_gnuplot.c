@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,15 +22,13 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_coprocess.h"
 #include "mx_plot.h"
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
 #include "p_gnuplot.h"
 
-#ifdef OS_WIN32
-#define popen _popen
-#define pclose _pclose
-#endif
+#define MXP_GNUPLOT_TIMEOUT	(5.0)		/* in seconds */
 
 MX_PLOT_FUNCTION_LIST mxp_gnuplot_function_list = {
 		mxp_gnuplot_open,
@@ -58,6 +56,7 @@ mxp_gnuplot_open( MX_PLOT *plot )
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -90,18 +89,19 @@ mxp_gnuplot_open( MX_PLOT *plot )
 #if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	return mx_error( MXE_UNSUPPORTED, fname,
 	  "Plotting with Gnuplot is not supported for this operating system." );
-#else
-	gnuplot_data->pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 #endif
 
-	if ( gnuplot_data->pipe == NULL ) {
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-		"Unable to start the 'plotgnu' program." );
-	}
+	mx_status = mx_coprocess_open( &(gnuplot_data->coprocess),
+					MXP_PLOTGNU_COMMAND );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*** Set stream buffering to line buffered. ***/
 
-	setvbuf( gnuplot_data->pipe, (char *)NULL, _IOLBF, BUFSIZ);
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
+
+	setvbuf( gnuplot_pipe, (char *)NULL, _IOLBF, BUFSIZ);
 
 	/* Suppose this plot is to be used by a parent scan that has
 	 * multiple child scans such as an XAFS scan which has a separate
@@ -131,7 +131,8 @@ mxp_gnuplot_close( MX_PLOT *plot )
 	static const char fname[] = "mxp_gnuplot_close()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
-	int status;
+	FILE *gnuplot_pipe;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -142,28 +143,29 @@ mxp_gnuplot_close( MX_PLOT *plot )
 		"A connection to 'plotgnu' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
 
-	if ( fprintf( gnuplot_data->pipe, "exit\n" ) < 0 ) {
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
+
+	if ( fprintf( gnuplot_pipe, "exit\n" ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to send the 'exit' command to 'plotgnu' failed." );
 	}
 
 #if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
-	status = EOF;
+	mx_status = MX_SUCCESSFUL_RESULT;
 #else
-	status = pclose( gnuplot_data->pipe );
+	mx_status = mx_coprocess_close( gnuplot_data->coprocess,
+					MXP_GNUPLOT_TIMEOUT );
 #endif
 
-	if ( status == EOF ) {
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-"An error occurred while trying to close the connection to 'plotgnu'");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	gnuplot_data->pipe = NULL;
+	gnuplot_data->coprocess = NULL;
 
 	free( gnuplot_data );
 
@@ -175,10 +177,12 @@ mxp_gnuplot_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_add_measurement_to_plot_buffer()";
+	static const char fname[] =
+			"mxp_gnuplot_add_measurement_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
 	MX_RECORD **input_device_array;
@@ -239,14 +243,16 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		"A connection to 'plotgnu' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
 
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
+
 	/* ---- Write the most recent measurement out to plotgnu. ---- */
 
-	status = fprintf( gnuplot_data->pipe, "data" );
+	status = fprintf( gnuplot_pipe, "data" );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -257,7 +263,7 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		/* By default, we use the axes being scanned. */
 
 		if ( scan->num_motors == 0 ) {
-			status = fprintf( gnuplot_data->pipe,
+			status = fprintf( gnuplot_pipe,
 				" %3ld", gnuplot_data->plotfile_step_count );
 
 			CHECK_PLOTGNU_STATUS;
@@ -274,10 +280,10 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 					motor = (MX_MOTOR *)
 					    motor_record->record_class_struct;
 
-					status = fprintf( gnuplot_data->pipe,
+					status = fprintf( gnuplot_pipe,
 						" %g", motor->old_destination );
 				    } else {
-					status = fprintf( gnuplot_data->pipe,
+					status = fprintf( gnuplot_pipe,
 						" %g", motor_position[i] );
 				    }
 				    CHECK_PLOTGNU_STATUS;
@@ -298,7 +304,7 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		for ( i = 0; i < scan->plot.num_x_motors; i++ ) {
 			x_motor_record = scan->plot.x_motor_array[i];
 
-			status = fprintf( gnuplot_data->pipe,
+			status = fprintf( gnuplot_pipe,
 				" %g", scan->plot.x_position_array[i][0] );
 
 			CHECK_PLOTGNU_STATUS;
@@ -326,12 +332,12 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		status = fprintf( gnuplot_data->pipe, " %s", buffer );
+		status = fprintf( gnuplot_pipe, " %s", buffer );
 
 		CHECK_PLOTGNU_STATUS;
 	}
 
-	status = fprintf( gnuplot_data->pipe , "\n" );
+	status = fprintf( gnuplot_pipe , "\n" );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -347,6 +353,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	long *long_position_array, *long_data_array;
 	double *double_position_array, *double_data_array;
 	long i;
@@ -376,10 +383,12 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		"A connection to 'plotgnu' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
+
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
 
 	long_position_array = long_data_array = NULL;
 	double_position_array = double_data_array = NULL;
@@ -412,14 +421,14 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	
 	/* ---- Write the arrays out to plotgnu. ---- */
 
-	status = fprintf( gnuplot_data->pipe, "data" );
+	status = fprintf( gnuplot_pipe, "data" );
 
 	/* Plot the current motor positions (if any). */
 
 	CHECK_PLOTGNU_STATUS;
 
 	if ( scan->num_motors == 0 ) {
-		status = fprintf( gnuplot_data->pipe,
+		status = fprintf( gnuplot_pipe,
 				" %3ld", gnuplot_data->plotfile_step_count );
 
 		CHECK_PLOTGNU_STATUS;
@@ -429,7 +438,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		switch( position_type ) {
 		case MXFT_LONG:
 			for ( i = 0; i < num_positions; i++ ) {
-				status = fprintf( gnuplot_data->pipe,
+				status = fprintf( gnuplot_pipe,
 					    " %ld", long_position_array[i] );
 
 				CHECK_PLOTGNU_STATUS;
@@ -437,7 +446,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 			break;
 		case MXFT_DOUBLE:
 			for ( i = 0; i < num_positions; i++ ) {
-				status = fprintf( gnuplot_data->pipe,
+				status = fprintf( gnuplot_pipe,
 					    " %g", double_position_array[i] );
 
 				CHECK_PLOTGNU_STATUS;
@@ -451,7 +460,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	switch( data_type ) {
 	case MXFT_LONG:
 		for ( i = 0; i < num_data_points; i++ ) {
-			status = fprintf( gnuplot_data->pipe, " %ld",
+			status = fprintf( gnuplot_pipe, " %ld",
 					long_data_array[i] );
 
 			CHECK_PLOTGNU_STATUS;
@@ -459,7 +468,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		break;
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_data_points; i++ ) {
-			status = fprintf( gnuplot_data->pipe, " %g",
+			status = fprintf( gnuplot_pipe, " %g",
 					double_data_array[i] );
 
 			CHECK_PLOTGNU_STATUS;
@@ -467,7 +476,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		break;
 	}
 
-	status = fprintf( gnuplot_data->pipe , "\n" );
+	status = fprintf( gnuplot_pipe , "\n" );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -480,6 +489,7 @@ mxp_gnuplot_display_plot( MX_PLOT *plot )
 	static const char fname[] = "mxp_gnuplot_display_plot()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -496,18 +506,20 @@ mxp_gnuplot_display_plot( MX_PLOT *plot )
 		"A connection to 'plotgnu' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
 
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
+
 	/* ---- Tell plotgnu to replot the graph. ---- */
 
-	status = fprintf( gnuplot_data->pipe, "plot\n" );
+	status = fprintf( gnuplot_pipe, "plot\n" );
 
 	CHECK_PLOTGNU_STATUS;
 
-	status = fflush( gnuplot_data->pipe );
+	status = fflush( gnuplot_pipe );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -520,6 +532,7 @@ mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 	static const char fname[] = "mxp_gnuplot_set_x_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	MX_SCAN *scan;
 	char buffer[100];
 
@@ -532,10 +545,12 @@ mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
+
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
 
 	scan = (MX_SCAN *) (plot->scan);
 
@@ -546,7 +561,7 @@ mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 
 	sprintf( buffer, "set xrange [%g:%g]", x_min, x_max );
 
-	if ( fprintf( gnuplot_data->pipe, "%s\n", buffer ) < 0 ) {
+	if ( fprintf( gnuplot_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to set the x range for 'gnuplot' failed.");
 	}
@@ -560,6 +575,7 @@ mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 	static const char fname[] = "mxp_gnuplot_set_y_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	MX_SCAN *scan;
 	char buffer[100];
 
@@ -572,10 +588,12 @@ mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuplot_data->pipe == NULL ) {
+	if ( gnuplot_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
+
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
 
 	scan = (MX_SCAN *) (plot->scan);
 
@@ -586,7 +604,7 @@ mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 
 	sprintf( buffer, "set yrange [%g:%g]", y_min, y_max );
 
-	if ( fprintf( gnuplot_data->pipe, "%s\n", buffer ) < 0 ) {
+	if ( fprintf( gnuplot_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to set the x range for 'gnuplot' failed.");
 	}
@@ -601,6 +619,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
+	FILE *gnuplot_pipe;
 	MX_RECORD **motor_record_array;
 	MX_MOTOR *motor;
 	MX_RECORD *energy_record;
@@ -622,6 +641,13 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"A connection to 'gnuplot' is not currently active.");
 	}
+
+	if ( gnuplot_data->coprocess == NULL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The most recent attempt to connect to 'gnuplot' failed." );
+	}
+
+	gnuplot_pipe = gnuplot_data->coprocess->to_coprocess;
 
 	/*** Find the motor record corresponding to the innermost loop.
 	 *** In other words, this is the motor whose position value
@@ -661,7 +687,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 		num_independent_variables = scan->plot.num_x_motors;
 	}
 
-	status = fprintf( gnuplot_data->pipe,
+	status = fprintf( gnuplot_pipe,
 			"start_plot;%ld;%ld;%s\n",
 			num_independent_variables,
 			innermost_index,
@@ -676,11 +702,11 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 
 	/* Set the plot title. */
 
-	status = fprintf( gnuplot_data->pipe,
+	status = fprintf( gnuplot_pipe,
 			"set title 'Scan = %s  Datafile = ",
 				scan->record->name );
 
-	status = fprintf( gnuplot_data->pipe, "%s", scan->datafile.filename );
+	status = fprintf( gnuplot_pipe, "%s", scan->datafile.filename );
 
 	if ( status == EOF ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -707,7 +733,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			status = fprintf( gnuplot_data->pipe,
+			status = fprintf( gnuplot_pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
 					motor_record_array[i]->precision,
@@ -721,7 +747,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 					motor_record_array[i]->name );
 			}
 		}
-		status = fprintf( gnuplot_data->pipe, "'\n" );
+		status = fprintf( gnuplot_pipe, "'\n" );
 
 		if ( status == EOF ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -732,7 +758,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 
 		motor_record_array = NULL;
 
-		status = fprintf(gnuplot_data->pipe, "   Scaler scan'\n");
+		status = fprintf(gnuplot_pipe, "   Scaler scan'\n");
 
 		if ( status == EOF ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -760,7 +786,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			    motor = (MX_MOTOR *)
 				motor_record_array[i]->record_class_struct;
 
-			    status = fprintf( gnuplot_data->pipe,
+			    status = fprintf( gnuplot_pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
 					motor_record_array[i]->precision,
@@ -776,7 +802,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			}
 		    }
 		}
-		status = fprintf( gnuplot_data->pipe, "'\n" );
+		status = fprintf( gnuplot_pipe, "'\n" );
 
 		if ( status == EOF ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -804,7 +830,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 		energy_motor = (MX_MOTOR *)
 				energy_record->record_class_struct;
 
-		status = fprintf( gnuplot_data->pipe,
+		status = fprintf( gnuplot_pipe,
 				"set xlabel '%s (%s)'\n",
 				energy_record->name,
 				energy_motor->units );
@@ -814,7 +840,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			motor = (MX_MOTOR *)
 		(motor_record_array[innermost_index]->record_class_struct);
 
-			status = fprintf( gnuplot_data->pipe,
+			status = fprintf( gnuplot_pipe,
 				"set xlabel '%s (%s)'\n",
 				motor_record_array[innermost_index]->name,
 				motor->units );

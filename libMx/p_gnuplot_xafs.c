@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_coprocess.h"
 #include "mx_plot.h"
 #include "mx_measurement.h"
 #include "mx_analog_input.h"
@@ -30,10 +31,7 @@
 #include "mx_scan_linear.h"
 #include "p_gnuplot_xafs.h"
 
-#ifdef OS_WIN32
-#define popen _popen
-#define pclose _pclose
-#endif
+#define MXP_GNUXAFS_TIMEOUT	(5.0)		/* in seconds */
 
 MX_PLOT_FUNCTION_LIST mxp_gnuxafs_function_list = {
 		mxp_gnuxafs_open,
@@ -61,9 +59,11 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	MX_RECORD *energy_motor_record;
 	MX_MOTOR *motor;
 	int status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -108,22 +108,23 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 #if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	return mx_error( MXE_UNSUPPORTED, fname,
 	  "Plotting with Gnuplot is not supported for this operating system." );
-#else
-	gnuxafs_data->pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 #endif
 
-	if ( gnuxafs_data->pipe == NULL ) {
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-			"Unable to start the 'plotgnu' program." );
-	}
+	mx_status = mx_coprocess_open( &(gnuxafs_data->coprocess),
+					MXP_PLOTGNU_COMMAND );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*** Set stream buffering to line buffered. ***/
 
-	setvbuf( gnuxafs_data->pipe, (char *)NULL, _IOLBF, BUFSIZ);
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
+
+	setvbuf( gnuxafs_pipe, (char *)NULL, _IOLBF, BUFSIZ);
 
 	/* Set parameters for plotgnu. */
 
-	status = fprintf( gnuxafs_data->pipe,
+	status = fprintf( gnuxafs_pipe,
 			"start_plot;%ld;%ld;%s\n",
 			1L, 0L, plot->plot_arguments );
 
@@ -134,7 +135,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 
 	/* Set the plot title and xlabel. */
 
-	status = fprintf( gnuxafs_data->pipe,
+	status = fprintf( gnuxafs_pipe,
 			"set title 'Scan = %s  Datafile = %s'\n",
 			scan->record->name, scan->datafile.filename );
 
@@ -148,7 +149,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 	motor = (MX_MOTOR *)
 		(gnuxafs_data->energy_motor_record->record_class_struct);
 
-	status = fprintf( gnuxafs_data->pipe,
+	status = fprintf( gnuxafs_pipe,
 			"set xlabel '%s (%s)'\n",
 			gnuxafs_data->energy_motor_record->name,
 			motor->units );
@@ -167,7 +168,8 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 	static const char fname[] = "mxp_gnuxafs_close()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
-	int status;
+	FILE *gnuxafs_pipe;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -178,28 +180,26 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
 
-	if ( fprintf( gnuxafs_data->pipe, "exit\n" ) < 0 ) {
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
+
+	if ( fprintf( gnuxafs_pipe, "exit\n" ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to send the 'exit' command to 'gnuplot' failed." );
 	}
 
 #if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
-	status = EOF;
+	mx_status = MX_SUCCESSFUL_RESULT;
 #else
-	status = pclose( gnuxafs_data->pipe );
+	mx_status = mx_coprocess_close( gnuxafs_data->coprocess,
+					MXP_GNUXAFS_TIMEOUT );
 #endif
 
-	if ( status == EOF ) {
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-"An error occurred while trying to close the connection to 'gnuplot'");
-	}
-
-	gnuxafs_data->pipe = NULL;
+	gnuxafs_data->coprocess = NULL;
 	gnuxafs_data->energy_motor_record = NULL;
 
 	free( gnuxafs_data );
@@ -217,6 +217,7 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	MX_RECORD *energy_motor_record;
 	MX_MOTOR *motor;
 	MX_RECORD **input_device_array;
@@ -285,10 +286,12 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
+
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
 
 	/* ---- Write the most recent measurement out to the gnuplot ---- */
 	/* ---- temporary data file. ------------------------------------ */
@@ -309,7 +312,7 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 			return mx_status;
 	}
 
-	status = fprintf(gnuxafs_data->pipe, "data %g",monochromator_energy);
+	status = fprintf( gnuxafs_pipe, "data %g",monochromator_energy);
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -329,8 +332,8 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 					(double) scaler->value,
 					measurement_time );
 
-			status = fprintf(gnuxafs_data->pipe,
-					" %g", scaler_counts_per_second);
+			status = fprintf( gnuxafs_pipe,
+					" %g", scaler_counts_per_second );
 			break;
 
 		case MXC_ANALOG_INPUT:
@@ -339,8 +342,8 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 			analog_input_value = analog_input->value;
 
-			status = fprintf(gnuxafs_data->pipe,
-					" %g", analog_input_value);
+			status = fprintf( gnuxafs_pipe,
+					" %g", analog_input_value );
 
 			break;
 
@@ -352,13 +355,13 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			status = fprintf(gnuxafs_data->pipe, " %s", buffer);
+			status = fprintf( gnuxafs_pipe, " %s", buffer );
 
 			break;
 		}
 		CHECK_PLOTGNU_STATUS;
 	}
-	status = fprintf(gnuxafs_data->pipe, "\n");
+	status = fprintf( gnuxafs_pipe, "\n" );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -374,6 +377,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	long *long_data_array;
 	double *double_position_array;
 	double scaler_counts_per_second;
@@ -412,10 +416,12 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
+
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
 
 	long_data_array = NULL;
 	double_position_array = NULL;
@@ -445,7 +451,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 
 	/* For XAFS scans, the position variable should be energy. */
 
-	status = fprintf( gnuxafs_data->pipe, "data %g",
+	status = fprintf( gnuxafs_pipe, "data %g",
 					double_position_array[0] );
 
 	CHECK_PLOTGNU_STATUS;
@@ -455,12 +461,12 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 		scaler_counts_per_second = ( (double) long_data_array[i] )
 					/ measurement_time;
 
-		status = fprintf(gnuxafs_data->pipe, " %g",
+		status = fprintf(gnuxafs_pipe, " %g",
 					scaler_counts_per_second);
 
 		CHECK_PLOTGNU_STATUS;
 	}
-	status = fprintf(gnuxafs_data->pipe, "\n");
+	status = fprintf(gnuxafs_pipe, "\n");
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -473,6 +479,7 @@ mxp_gnuxafs_display_plot( MX_PLOT *plot )
 	static const char fname[] = "mxp_gnuxafs_display_plot()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -489,18 +496,20 @@ mxp_gnuxafs_display_plot( MX_PLOT *plot )
 		"A connection to 'plotgnu' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
 
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
+
 	/* ---- Tell plotgnu to replot the graph. ---- */
 
-	status = fprintf( gnuxafs_data->pipe, "plot\n" );
+	status = fprintf( gnuxafs_pipe, "plot\n" );
 
 	CHECK_PLOTGNU_STATUS;
 
-	status = fflush( gnuxafs_data->pipe );
+	status = fflush( gnuxafs_pipe );
 
 	CHECK_PLOTGNU_STATUS;
 
@@ -513,6 +522,7 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 	static const char fname[] = "mxp_gnuxafs_set_x_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	MX_SCAN *scan;
 	char buffer[100];
 
@@ -525,10 +535,12 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
+
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
 
 	scan = (MX_SCAN *) (plot->scan);
 
@@ -539,7 +551,7 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 
 	sprintf( buffer, "set xrange [%g:%g]", x_min, x_max );
 
-	if ( fprintf( gnuxafs_data->pipe, "%s\n", buffer ) < 0 ) {
+	if ( fprintf( gnuxafs_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to set the x range for 'gnuplot' failed.");
 	}
@@ -553,6 +565,7 @@ mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 	static const char fname[] = "mxp_gnuxafs_set_y_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	FILE *gnuxafs_pipe;
 	MX_SCAN *scan;
 	char buffer[100];
 
@@ -565,7 +578,7 @@ mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 		"A connection to 'gnuplot' is not currently active.");
 	}
 
-	if ( gnuxafs_data->pipe == NULL ) {
+	if ( gnuxafs_data->coprocess == NULL ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
@@ -579,7 +592,7 @@ mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 
 	sprintf( buffer, "set yrange [%g:%g]", y_min, y_max );
 
-	if ( fprintf( gnuxafs_data->pipe, "%s\n", buffer ) < 0 ) {
+	if ( fprintf( gnuxafs_pipe, "%s\n", buffer ) < 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"An attempt to set the x range for 'gnuplot' failed.");
 	}
