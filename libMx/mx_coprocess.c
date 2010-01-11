@@ -355,6 +355,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 		(void) waitpid( coprocess_pid, &wait_status, WNOHANG );
 
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: wait_status = %#x", fname, wait_status));
+#endif
+
 		if ( WIFEXITED( wait_status ) || WIFSIGNALED( wait_status ) ) {
 			timed_out = FALSE;
 			break;
