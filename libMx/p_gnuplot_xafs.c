@@ -583,6 +583,8 @@ mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
 
+	gnuxafs_pipe = gnuxafs_data->coprocess->to_coprocess;
+
 	scan = (MX_SCAN *) (plot->scan);
 
 	if ( scan == NULL ) {
