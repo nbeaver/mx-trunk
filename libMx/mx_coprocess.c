@@ -16,7 +16,7 @@
  *
  */
 
-#define DEBUG_COPROCESS		TRUE
+#define DEBUG_COPROCESS		FALSE
 
 #include <stdio.h>
 
@@ -44,7 +44,7 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 	pid_t fork_pid;
 	int fd1[2], fd2[2];
-	int result, saved_errno;
+	int result, os_status, saved_errno;
 	int i, argc, envc;
 	char **argv, **envp;
 
@@ -210,6 +210,30 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: envp[%d] = '%s'", fname, i, envp[i]));
 #endif
+		/* Make ourselves a process group leader.
+		 *
+		 * By doing this, we make it easy for later calls of
+		 * the mx_coprocess_close() function to kill all of
+		 * the children created by the coprocess, by sending
+		 * a SIGKILL to the process group.
+		 */
+
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: calling setpgid(0,0).", fname));
+#endif
+
+		os_status = setpgid( 0, 0 );
+
+		if ( os_status != 0 ) {
+			saved_errno = errno;
+
+			fprintf( stderr,
+"The attempt by child process %lu to become a process group leader failed.  "
+"Errno = %d, error message = '%s'", mx_process_id(),
+				saved_errno, strerror( saved_errno ) );
+
+			exit(1);
+		}
 
 		/* Now execute the external command. */
 
@@ -279,7 +303,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	MX_CLOCK_TICK current_tick, finish_tick, timeout_in_ticks;
 	pid_t coprocess_pid;
-	int wait_status, os_status, saved_errno, comparison;
+	int kill_status, wait_status, os_status, saved_errno, comparison;
 	mx_bool_type timed_out;
 
 	if ( coprocess == (MX_COPROCESS *) NULL ) {
@@ -345,27 +369,67 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
 
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: finish_tick = (%lu,%lu)", fname,
+		finish_tick.high_order, finish_tick.low_order));
+#endif
+
 	timed_out = TRUE;
 
 	while (1) {
+
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: kill( %lu, 0 )",
+			fname, (unsigned long) coprocess_pid));
+#endif
+		/* Test to see if the process is still alive. */
+
+		kill_status = kill( coprocess_pid, 0 );
+
+		saved_errno = errno;
+
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: kill_status = %d", fname, kill_status));
+#endif
+		if ( kill_status != 0 ) {
+
+#if DEBUG_COPROCESS
+			MX_DEBUG(-2,("%s: errno = %d, error message = '%s'",
+				fname, saved_errno, strerror(saved_errno) ));
+#endif
+			if ( saved_errno == ESRCH ) {
+				/* The child process has exited, so break
+				 * out of the timeout loop.
+				 */
+
+				timed_out = FALSE;
+				break;
+			}
+		}
+
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: waitpid( %lu, ..., WNOHANG )",
 			fname, (unsigned long) coprocess_pid));
 #endif
+		/* Wait for any exited processes using waitpid().  If the
+		 * process has exited, then this will cause the next call
+		 * to kill(...,0) to return -1 with errno set to ESRCH.
+		 */
 
 		(void) waitpid( coprocess_pid, &wait_status, WNOHANG );
 
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: wait_status = %#x", fname, wait_status));
 #endif
-
-		if ( WIFEXITED( wait_status ) || WIFSIGNALED( wait_status ) ) {
-			timed_out = FALSE;
-			break;
-		}
+		current_tick = mx_current_clock_tick();
 
 		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
 
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: comparison = %d, current_tick = (%lu,%lu)",
+			fname, comparison, current_tick.high_order,
+			current_tick.low_order));
+#endif
 		if ( comparison >= 0 )
 			break;
 
@@ -387,20 +451,26 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* If the coprocess has _not_ exited by now, then we kill it. */
+	/* If the coprocess has _not_ exited by now, then we kill it
+	 * and all of the members of its process group.
+	 */
 
 #if DEBUG_COPROCESS
-	MX_DEBUG(-2,("%s: we must kill PID %lu.",
+	MX_DEBUG(-2,("%s: we must kill process group %lu.",
 		fname, (unsigned long) coprocess_pid));
 #endif
 
-	os_status = kill ( coprocess_pid, SIGKILL );
+	os_status = kill ( - coprocess_pid, SIGKILL );
 
 	if ( os_status == (-1) ) {
 		saved_errno = errno;
 
+		if ( saved_errno == ESRCH ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
 		return mx_error( MXE_IPC_IO_ERROR, fname,
-		"Sending SIGKILL to process %ld caused an error.  "
+		"Sending SIGKILL to process group %ld caused an error.  "
 		"Errno = %d, error message = '%s'",
 			(long) coprocess_pid, errno, strerror( errno ) );
 	}
@@ -410,7 +480,11 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 			fname, (unsigned long) coprocess_pid));
 #endif
 
-	/* Wait for the killed child to exit. */
+	/* If the coprocess dies before the coprocess's children die,
+	 * then those children become children of the 'init' process
+	 * rather than us, so the only process we can wait for here
+	 * is the coprocess itself.
+	 */
 
 	(void) waitpid( coprocess_pid, NULL, 0 );
 
