@@ -28,7 +28,7 @@ extern "C" {
 typedef struct {
 	FILE *from_coprocess;
 	FILE *to_coprocess;
-	pid_t coprocess_pid;
+	unsigned long coprocess_pid;
 } MX_COPROCESS;
 
 MX_API mx_status_type mx_coprocess_open( MX_COPROCESS **coprocess,

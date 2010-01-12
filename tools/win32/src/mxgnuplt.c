@@ -6,12 +6,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_MXGNUPLT	TRUE
 
 #if (_MSC_VER >= 1400)
 #pragma warning( disable:4996 )
@@ -46,6 +48,10 @@ HWND  find_window_by_processid( DWORD process_id, char *window_class );
 int
 main( int argc, char *argv[] )
 {
+#if DEBUG_MXGNUPLT
+	static const char fname[] = "mxgnuplt";
+#endif
+
 	struct update_struct_t update_struct;
 	HWND hwnd_text, hwnd_top_level;
 	DWORD process_id;
@@ -56,6 +62,17 @@ main( int argc, char *argv[] )
 	char wgnuplot_name[200];
 	int i, c, length, do_exit;
 	int plotting_window_initialized;
+
+#if DEBUG_MXGNUPLT
+	FILE *con;
+
+	con = fopen( "con", "w" );
+
+	setvbuf( con, (char *)NULL, _IONBF, 0 );
+
+	fprintf( stderr, "%s invoked (stderr).\n", fname );
+	fprintf( con, "%s invoked.\n", fname );
+#endif
 
 	plotting_window_initialized = FALSE;
 	global_hwnd_graph = NULL;
@@ -70,6 +87,10 @@ main( int argc, char *argv[] )
 				sizeof(wgnuplot_name) );
 
 	sprintf( buffer, "Process ID = %ld", process_id );
+
+#if DEBUG_MXGNUPLT
+	fprintf( con, "%s: wgnuplot PID = %ld\n", fname, process_id );
+#endif
 
 	/* Get a handle to the top level Gnuplot window.
 	 * If we are lucky, it is the right one.
@@ -94,6 +115,11 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
+#if DEBUG_MXGNUPLT
+	fprintf( con, "%s: wgnuplot top level window = %p\n",
+			fname, hwnd_top_level );
+#endif
+
 	/* Find the wgnuplot text window. */
 
 	hwnd_text = FindWindowEx( hwnd_top_level, (HWND) NULL,
@@ -106,6 +132,11 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
+#if DEBUG_MXGNUPLT
+	fprintf( con, "%s: wgnuplot text window = %p\n",
+			fname, hwnd_text );
+#endif
+
 	/* Start sending commands to the wgnuplot text window. */
 
 	do_exit = FALSE;
@@ -113,6 +144,10 @@ main( int argc, char *argv[] )
 	fgets( buffer, sizeof buffer, stdin );
 
 	while ( !feof(stdin) && !ferror(stdin) ) {
+
+#if DEBUG_MXGNUPLT
+		fprintf( con, "%s: received '%s'\n", fname, buffer );
+#endif
 
 		if ( strcmp( buffer, "exit\n" ) == 0 ) {
 			do_exit = TRUE;
@@ -165,6 +200,10 @@ main( int argc, char *argv[] )
 			exit(0);
 		}
 		Sleep(10);
+
+#if DEBUG_MXGNUPLT
+		fprintf( con, "%s: waiting for next message...\n", fname );
+#endif
 
 		fgets( buffer, sizeof buffer, stdin );
 	}

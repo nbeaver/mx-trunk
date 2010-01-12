@@ -21,8 +21,14 @@
 #include <stdio.h>
 
 #include "mx_osdef.h"
+#include "mx_util.h"
+#include "mx_stdint.h"
+#include "mx_clock.h"
+#include "mx_coprocess.h"
 
-#ifdef OS_UNIX
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_UNIX)
 
 #include <string.h>
 #include <stdlib.h>
@@ -31,11 +37,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
-
-#include "mx_util.h"
-#include "mx_stdint.h"
-#include "mx_clock.h"
-#include "mx_coprocess.h"
 
 MX_EXPORT mx_status_type
 mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
@@ -496,4 +497,430 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* OS_UNIX */
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_WIN32)
+
+#define MXCP_CLOSE_HANDLES \
+	do {							\
+		CloseHandle(from_coprocess_read_handle);	\
+		CloseHandle(from_coprocess_write_handle);	\
+		CloseHandle(to_coprocess_read_handle);		\
+		CloseHandle(to_coprocess_write_handle);		\
+	} while (0)
+
+#include <windows.h>
+#include <fcntl.h>
+
+MX_EXPORT mx_status_type
+mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
+{
+	static const char fname[] = "mx_coprocess_open()";
+
+	BOOL os_status;
+	STARTUPINFO startup_info;
+	PROCESS_INFORMATION process_info;
+	DWORD creation_flags;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	HANDLE from_coprocess_read_handle;
+	HANDLE from_coprocess_write_handle;
+	HANDLE to_coprocess_read_handle;
+	HANDLE to_coprocess_write_handle;
+	HANDLE process_pseudo_handle;
+	HANDLE stderr_real_handle;
+	SECURITY_ATTRIBUTES from_pipe_attributes;
+	SECURITY_ATTRIBUTES to_pipe_attributes;
+	int from_file_descriptor;
+	int to_file_descriptor;
+	FILE *from_pipe, *to_pipe;
+	int saved_errno;
+
+	if ( coprocess == (MX_COPROCESS **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null coprocess pointer passed." );
+	}
+	if ( command_line == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null command_line pointer passed." );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for command '%s'", fname, command_line));
+#endif
+
+	/* Allocate an MX_COPROCESS structure for the caller. */
+
+	(*coprocess) = malloc( sizeof(MX_COPROCESS) );
+
+	if ( (*coprocess) == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate an MX_COPROCESS structure." );
+	}
+
+	(*coprocess)->from_coprocess = NULL;
+	(*coprocess)->to_coprocess = NULL;
+	(*coprocess)->coprocess_pid = 0;
+
+	/* Make sure the pipe handles can be inherited by a new process. */
+
+	from_pipe_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+	from_pipe_attributes.lpSecurityDescriptor = NULL;
+	from_pipe_attributes.bInheritHandle = TRUE;
+
+	to_pipe_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+	to_pipe_attributes.lpSecurityDescriptor = NULL;
+	to_pipe_attributes.bInheritHandle = TRUE;
+
+	/* Create an anonymous pipe used to read from the coprocess. */
+
+	os_status = CreatePipe( &from_coprocess_read_handle,
+				&from_coprocess_write_handle,
+				&from_pipe_attributes, 0 );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to create a pipe to read from the coprocess "
+		"failed.  Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+	/* Create an anonymous pipe used to write to the coprocess. */
+
+	os_status = CreatePipe( &to_coprocess_read_handle,
+				&to_coprocess_write_handle,
+				&to_pipe_attributes, 0 );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		CloseHandle( from_coprocess_read_handle );
+		CloseHandle( from_coprocess_write_handle );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to create a pipe to write to the coprocess "
+		"failed.  Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: pipes created.", fname));
+#endif
+	/* Get an inheritable handle for the coprocess's standard error. */
+
+	process_pseudo_handle = GetCurrentProcess();
+
+	os_status = DuplicateHandle( process_pseudo_handle,
+					GetStdHandle( STD_ERROR_HANDLE ),
+					process_pseudo_handle,
+					&stderr_real_handle,
+					0,
+					TRUE,
+					DUPLICATE_SAME_ACCESS );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		MXCP_CLOSE_HANDLES;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"An attempt to create an inheritable handle for standard "
+		"error failed.  Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: duplicate stderr handle = %p", fname));
+#endif
+	/* Setup the STARTUPINFO for the coprocess to redirect standard input
+	 * and standard output to the pipes that we have just created.
+	 */
+
+	memset( &startup_info, 0, sizeof(startup_info) );
+
+	startup_info.cb = sizeof(startup_info);
+
+	startup_info.dwFlags = STARTF_USESTDHANDLES;
+
+	startup_info.hStdInput = to_coprocess_read_handle;
+
+	startup_info.hStdOutput = from_coprocess_write_handle;
+
+	startup_info.hStdError = stderr_real_handle;
+
+	/* Setup stdio-style FILE pointers for the new pipes
+	 * for the parent process to use.
+	 */
+
+	from_file_descriptor = _open_osfhandle( from_coprocess_read_handle,
+						_O_RDONLY );
+
+	if ( from_file_descriptor == (-1) ) {
+		saved_errno = errno;
+
+		MXCP_CLOSE_HANDLES;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while trying to convert the Win32 "
+		"'from coprocess' handle into a file descriptor.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	from_pipe = _fdopen( from_file_descriptor, "r" );
+
+	if ( from_pipe == NULL ) {
+		saved_errno = errno;
+
+		MXCP_CLOSE_HANDLES;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while trying to convert the Win32 "
+		"'from coprocess' handle into a FILE pointer.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/*--------*/
+
+	to_file_descriptor = _open_osfhandle( to_coprocess_read_handle,
+						_O_RDONLY );
+
+	if ( to_file_descriptor == (-1) ) {
+		saved_errno = errno;
+
+		MXCP_CLOSE_HANDLES;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while trying to convert the Win32 "
+		"'to coprocess' handle into a file descriptor.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	to_pipe = _fdopen( to_file_descriptor, "w" );
+
+	if ( to_pipe == NULL ) {
+		saved_errno = errno;
+
+		MXCP_CLOSE_HANDLES;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An error occurred while trying to convert the Win32 "
+		"'to coprocess' handle into a FILE pointer.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/*--------*/
+
+	(*coprocess)->from_coprocess = from_pipe;
+	(*coprocess)->to_coprocess   = to_pipe;
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: FILE * from_coprocess = %p, to_coprocess = %p",
+		fname, from_pipe, to_pipe));
+#endif
+
+	/*------------------------------------*/
+	/* Prepare to create the new process. */
+	/*------------------------------------*/
+
+	memset( &process_info, 0, sizeof(process_info) );
+
+#if 1
+	creation_flags = 0;
+#else
+	creation_flags = CREATE_NEW_PROCESS_GROUP; /* FIXME: Do we want this? */
+#endif
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: creating the coprocess.", fname));
+#endif
+
+	os_status = CreateProcess( NULL,
+					command_line,
+					NULL,
+					NULL,
+					TRUE,
+					creation_flags,
+					NULL,
+					NULL,
+					&startup_info,
+					&process_info );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		MXCP_CLOSE_HANDLES;
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to create a process using the command line '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			command_line, last_error_code, message_buffer );
+	}
+
+	(*coprocess)->coprocess_pid = process_info.dwProcessId;
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: coprocess PID = %lu",
+		fname, (*coprocess)->coprocess_pid));
+#endif
+
+	/* Close some handles we do not need to prevent a memory leak. */
+
+	CloseHandle( process_info.hProcess );
+	CloseHandle( process_info.hThread );
+
+	CloseHandle( to_coprocess_read_handle );
+	CloseHandle( from_coprocess_write_handle );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_coprocess_close()";
+
+	unsigned long coprocess_pid;
+	HANDLE coprocess_handle;
+	DWORD timeout_ms;
+	DWORD wait_status;
+	BOOL terminate_status;
+
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for PID %lu with a timeout of %g seconds.",
+		fname, coprocess->coprocess_pid, timeout_in_seconds ));
+#endif
+	/* Close the coprocess FILE objects. */
+
+	if ( coprocess->from_coprocess != NULL ) {
+		fclose( coprocess->from_coprocess );
+	}
+
+	if ( coprocess->to_coprocess != NULL ) {
+		fclose( coprocess->to_coprocess );
+	}
+
+	coprocess_pid = coprocess->coprocess_pid;
+
+	mx_free( coprocess );
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: coprocess FILE pointers are now closed.", fname));
+#endif
+	/* Get a Win32 handle for the process from the process ID. */
+
+	coprocess_handle = OpenProcess( PROCESS_ALL_ACCESS,
+					FALSE, coprocess_pid );
+
+	if ( coprocess_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get a process handle for process id %lu.",
+			coprocess_pid );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: coprocess PID %lu, handle = %p",
+		fname, coprocess_pid, coprocess_handle));
+#endif
+
+	/* If the timeout is negative, then we wait forever for the
+	 * child to exit.
+	 */
+
+	if ( timeout_in_seconds < 0.0 ) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: waiting forever for PID %lu to exit.",
+			fname, coprocess_pid));
+#endif
+		(void) WaitForSingleObject( coprocess_handle, INFINITE );
+
+		CloseHandle( coprocess_handle );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: waiting %g seconds for PID %lu to exit.",
+			fname, timeout_in_seconds, coprocess_pid));
+#endif
+
+	/* Wait for the requested timeout interval for the process to exit. */
+
+	timeout_ms = mx_round( 1000.0 * timeout_in_seconds );
+
+	wait_status = WaitForSingleObject( coprocess_handle, timeout_ms );
+
+	/* If the process has exited by now, then we are done. */
+
+	if ( wait_status == WAIT_OBJECT_0 ) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: process %lu has exited.",
+			fname, (unsigned long) coprocess_pid));
+#endif
+		CloseHandle( coprocess_handle );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the coprocess has _not_ exited by now, then we kill it. */
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: we must kill PID %lu", fname, coprocess_pid));
+#endif
+
+	terminate_status = TerminateProcess( coprocess_handle, 127 );
+
+	if ( terminate_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		CloseHandle( coprocess_handle );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to terminate process id %lu.  "
+		"Win32 error code = %d, error message = '%s'.",
+			coprocess_pid, last_error_code, message_buffer );
+	}
+
+	CloseHandle( coprocess_handle );
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: we have killed PID %lu", fname, coprocess_pid));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#else
+#error Coprocess support has not yet been implemented for this platform.
+#endif
+
