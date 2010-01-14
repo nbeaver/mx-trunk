@@ -28,7 +28,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 #include <string.h>
 #include <stdlib.h>
@@ -438,7 +438,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	}
 
 #if DEBUG_COPROCESS
-	MX_DEBUG(-2,("%s: timed_out = %d", fname, timed_out));
+	MX_DEBUG(-2,("%s: timed_out = %d", fname, (int) timed_out));
 #endif
 
 	/* If the process has exited by now, then we are done. */
@@ -496,6 +496,8 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*----*/
 
 /*-------------------------------------------------------------------------*/
 
