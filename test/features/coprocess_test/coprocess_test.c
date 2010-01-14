@@ -26,7 +26,9 @@ char_available( FILE *file )
 int
 main( int argc, char *argv[] )
 {
+#if 0
 	static const char fname[] = "main()";
+#endif
 
 	MX_COPROCESS *coprocess;
 	FILE *from_cp, *to_cp;
