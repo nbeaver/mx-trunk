@@ -1002,7 +1002,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to terminate process id %lu.  "
 		"Win32 error code = %d, error message = '%s'.",
-			coprocess_pid, last_error_code, message_buffer );
+			coprocess_pid, (int) last_error_code, message_buffer );
 	}
 
 	/* Wait a short time for the process to die. */
@@ -1033,11 +1033,12 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	if ( wait_ms == 1000 ) {
 		mx_warning("%s: Coprocess %lu was terminated "
-			"1 second ago, but has not died.", coprocess_pid );
+			"1 second ago, but has not died.",
+			fname, coprocess_pid );
 	} else {
 		mx_warning("%s: Coprocess %lu was terminated "
 			"%g seconds ago, but has not died.",
-			coprocess_pid, wait_time );
+			fname, coprocess_pid, wait_time );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1055,7 +1056,6 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 	DWORD last_error_code, bytes_read, total_bytes_avail;
 	TCHAR message_buffer[100];
 	TCHAR peek_buffer[1000];
-	mx_status_type mx_status;
 
 	if ( num_bytes_available == (size_t) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
