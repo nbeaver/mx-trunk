@@ -1,6 +1,6 @@
 # Note that the ifeq directive below assumes that we are using GNU make.
 
-MX_ARCH = solaris
+MX_ARCH = linux
 
 #------------------------------------------------------------
 
