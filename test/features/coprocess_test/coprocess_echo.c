@@ -10,10 +10,12 @@ main( int argc, char *argv[] )
 	setvbuf( stdin, NULL, _IONBF, 0 );
 	setvbuf( stdout, NULL, _IONBF, 0 );
 
+	fprintf(stderr,"\ncoprocess_echo starting.\n");
+
 	while (1) {
 		c = fgetc( stdin );
 
-		if ( c == EOF ) {
+		if ( feof(stdin) || ferror(stdin) ) {
 			fprintf(stderr,"\ncoprocess_echo exiting.\n");
 			exit(0);
 		}

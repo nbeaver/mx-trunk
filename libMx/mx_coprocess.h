@@ -37,6 +37,10 @@ MX_API mx_status_type mx_coprocess_open( MX_COPROCESS **coprocess,
 MX_API mx_status_type mx_coprocess_close( MX_COPROCESS *coprocess,
 						double timeout );
 
+MX_API mx_status_type mx_coprocess_num_bytes_available(
+						MX_COPROCESS *coprocess,
+						size_t *num_bytes_available );
+
 #ifdef __cplusplus
 }
 #endif

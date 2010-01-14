@@ -1,6 +1,16 @@
-MX_ARCH = linux
+# Test architectures:
+#   linux, win32
+#
 
-MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
+MX_ARCH = win32
+
+#------------------------------------------------------------
+
+ifeq ($(MX_ARCH),win32)
+	MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) CXX="cl -DOS_WIN32" CXXFLAGS=-I../../../libMx
+else
+	MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
+endif
 
 all:
 	( cd attribute_test ; $(MAKECMD) )

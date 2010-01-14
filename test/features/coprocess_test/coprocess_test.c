@@ -7,22 +7,6 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
-static int
-char_available( FILE *file )
-{
-	return 1;
-}
-#else
-static int
-char_available( FILE *file )
-{
-	return 1;
-}
-#endif
-
-/*-------------------------------------------------------------------------*/
-
 int
 main( int argc, char *argv[] )
 {
@@ -35,9 +19,8 @@ main( int argc, char *argv[] )
 	char command_line[100];
 	char msg[200];
 	int i, c, status, saved_errno;
+	size_t num_bytes_available;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	if ( argc < 2 ) {
 		fprintf( stderr,
@@ -64,20 +47,38 @@ main( int argc, char *argv[] )
 	from_cp = coprocess->from_coprocess;
 	to_cp   = coprocess->to_coprocess;
 
+	setvbuf( from_cp, (char *) NULL, _IONBF, 0 );
+	setvbuf( to_cp, (char *) NULL, _IONBF, 0 );
+
 	fprintf(stderr, "from_cp = %p, to_cp = %p\n", from_cp, to_cp);
 
 	while (1) {
-		if ( char_available(from_cp) ) {
-			c = fgetc(from_cp);
+		mx_msleep(500);
 
-			if ( c == EOF ) {
-				fprintf( stderr,
+		while (1) {
+			mx_status = mx_coprocess_num_bytes_available( coprocess,
+							&num_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				exit(mx_status.code);
+
+			if ( num_bytes_available == 0 )
+				break;
+
+			for ( i = 0; i < num_bytes_available; i++ ) {
+				c = fgetc(from_cp);
+
+				if ( c == EOF ) {
+					fprintf( stderr,
 				"coprocess has closed its transmit pipe.\n" );
-				exit(1);
+					exit(1);
+				}
+
+				fputc( c, stdout );
+				fflush( stdout );
 			}
 
-			fputc( c, stdout );
-			fflush( stdout );
+			mx_msleep(100);
 		}
 
 		printf( "msg> " );
@@ -101,7 +102,10 @@ main( int argc, char *argv[] )
 		}
 	}
 
-	fprintf(stderr, "coprocess_test is exiting.\n");
+	fprintf(stderr, "coprocess_test complete.\n");
+
+	(void) mx_coprocess_close( coprocess, 5.0 );
+
 	exit(0);
 }
 

@@ -510,6 +510,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	} while (0)
 
 #include <windows.h>
+#include <stddef.h>
 #include <fcntl.h>
 
 MX_EXPORT mx_status_type
@@ -864,8 +865,8 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	CloseHandle( process_info.hProcess );
 	CloseHandle( process_info.hThread );
 
-	CloseHandle( to_coprocess_read_handle );
-	CloseHandle( from_coprocess_write_handle );
+	CloseHandle( to_coprocess_read_dup_handle );
+	CloseHandle( from_coprocess_write_dup_handle );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -877,9 +878,13 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	unsigned long coprocess_pid;
 	HANDLE coprocess_handle;
+	HANDLE read_handle, write_handle;
 	DWORD timeout_ms;
 	DWORD wait_status;
 	BOOL terminate_status;
+
+	double wait_time;
+	DWORD wait_ms;
 
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -891,10 +896,20 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	/* Close the coprocess FILE objects. */
 
 	if ( coprocess->from_coprocess != NULL ) {
+		read_handle = (HANDLE) (intptr_t)
+			_get_osfhandle( _fileno( coprocess->from_coprocess ) );
+
+		CloseHandle( read_handle );
+
 		fclose( coprocess->from_coprocess );
 	}
 
 	if ( coprocess->to_coprocess != NULL ) {
+		write_handle = (HANDLE) (intptr_t)
+			_get_osfhandle( _fileno( coprocess->to_coprocess ) );
+
+		CloseHandle( write_handle );
+
 		fclose( coprocess->to_coprocess );
 	}
 
@@ -958,7 +973,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	if ( wait_status == WAIT_OBJECT_0 ) {
 #if DEBUG_COPROCESS
 		MX_DEBUG(-2,("%s: process %lu has exited.",
-			fname, (unsigned long) coprocess_pid));
+			fname, coprocess_pid));
 #endif
 		CloseHandle( coprocess_handle );
 
@@ -987,14 +1002,113 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 			coprocess_pid, last_error_code, message_buffer );
 	}
 
-	CloseHandle( coprocess_handle );
+	/* Wait a short time for the process to die. */
 
 #if DEBUG_COPROCESS
-	MX_DEBUG(-2,("%s: we have killed PID %lu", fname, coprocess_pid));
+	MX_DEBUG(-2,("%s: waiting for killed PID %lu to exit",
+			fname, coprocess_pid));
 #endif
+	wait_time = 1.0;	/* in seconds */
+
+	wait_ms = mx_round( 1000.0 * wait_time );
+
+	wait_status = WaitForSingleObject( coprocess_handle, 1000 );
+
+	/* See if the process has finally exited. */
+
+	if ( wait_status == WAIT_OBJECT_0 ) {
+#if DEBUG_COPROCESS
+		MX_DEBUG(-2,("%s: process %lu has finally exited.",
+			fname, coprocess_pid));
+#endif
+		CloseHandle( coprocess_handle );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	CloseHandle( coprocess_handle );
+
+	if ( wait_ms == 1000 ) {
+		mx_warning("%s: Coprocess %lu was terminated "
+			"1 second ago, but has not died.", coprocess_pid );
+	} else {
+		mx_warning("%s: Coprocess %lu was terminated "
+			"%g seconds ago, but has not died.",
+			coprocess_pid, wait_time );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+MX_EXPORT mx_status_type
+mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_coprocess_num_bytes_available()";
+
+	int read_fd;
+	HANDLE read_handle;
+	BOOL pipe_status;
+	DWORD last_error_code, bytes_read, total_bytes_avail;
+	TCHAR message_buffer[100];
+	TCHAR peek_buffer[1000];
+	mx_status_type mx_status;
+
+	if ( num_bytes_available == (size_t) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_bytes_available_pointer passed was NULL." );
+	}
+
+	if ( coprocess->from_coprocess == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"Coprocess %p is not open for reading.", coprocess );
+	}
+
+	read_fd = _fileno( coprocess->from_coprocess );
+
+	/* When calling _get_osfhandle(), we cast first to (intptr_t)
+	 * so that on 64-bit windows the numerical handle value will
+	 * be converted to an integer type compatible with a pointer
+	 * before being cast to a HANDLE (really void *).
+	 */
+
+	read_handle = (HANDLE) (intptr_t) _get_osfhandle( read_fd );
+
+	if ( read_handle == INVALID_HANDLE_VALUE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The read handle for MX coprocess %p is not valid.",
+			coprocess );
+	}
+
+	pipe_status = PeekNamedPipe( read_handle,
+			peek_buffer, sizeof(peek_buffer),
+			&bytes_read, &total_bytes_avail, NULL );
+
+#if DEBUG_COPROCESS
+	if ( total_bytes_avail != 0 ) {
+		MX_DEBUG(-2,("Peek: bytes_read = %ld, total_bytes_avail = %ld",
+				(long) bytes_read, (long) total_bytes_avail ));
+	}
+#endif
+
+	if ( pipe_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to determine the number of bytes available "
+		"from MX coprocess %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			coprocess, last_error_code, message_buffer );
+	}
+
+	*num_bytes_available = total_bytes_avail;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 
 /*-------------------------------------------------------------------------*/
 
