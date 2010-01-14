@@ -608,6 +608,8 @@ main( int argc, char *argv[] )
 		mx_usleep(1);
 	}
 
+#if !defined(OS_SOLARIS)
 	return 0;
+#endif
 }
 

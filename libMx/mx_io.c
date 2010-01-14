@@ -18,6 +18,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_select.h"
 #include "mx_io.h"
 
@@ -27,7 +28,12 @@
 	|| defined(OS_DJGPP)
 
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/ioctl.h>
+
+#if defined(OS_SOLARIS)
+#  include <sys/filio.h>
+#endif
 
 /*---*/
 

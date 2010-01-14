@@ -10,9 +10,7 @@
 int
 main( int argc, char *argv[] )
 {
-#if 0
-	static const char fname[] = "main()";
-#endif
+	static const char fname[] = "coprocess_test";
 
 	MX_COPROCESS *coprocess;
 	FILE *from_cp, *to_cp;
@@ -24,7 +22,7 @@ main( int argc, char *argv[] )
 
 	if ( argc < 2 ) {
 		fprintf( stderr,
-	    "\nUsage: coprocess_test 'test_command' [ 'test_arguments ...]\n" );
+		"\nUsage: %s 'test_command' [ 'test_arguments ...]\n", fname );
 		exit(1);
 	}
 
@@ -35,14 +33,15 @@ main( int argc, char *argv[] )
 		strlcat( command_line, argv[i], sizeof(command_line) );
 	}
 
-	fprintf(stderr, "command_line = '%s'\n", command_line);
+	fprintf(stderr, "%s: command_line = '%s'\n", fname, command_line);
 
 	mx_status = mx_coprocess_open( &coprocess, command_line );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit(mx_status.code);
 
-	fprintf(stderr, "coprocess PID = %lu\n", coprocess->coprocess_pid);
+	fprintf(stderr, "%s: coprocess PID = %lu\n",
+				fname, coprocess->coprocess_pid);
 
 	from_cp = coprocess->from_coprocess;
 	to_cp   = coprocess->to_coprocess;
@@ -50,7 +49,10 @@ main( int argc, char *argv[] )
 	setvbuf( from_cp, (char *) NULL, _IONBF, 0 );
 	setvbuf( to_cp, (char *) NULL, _IONBF, 0 );
 
-	fprintf(stderr, "from_cp = %p, to_cp = %p\n", from_cp, to_cp);
+#if 0
+	fprintf(stderr, "%s: from_cp = %p, to_cp = %p\n",
+		fname, from_cp, to_cp);
+#endif
 
 	while (1) {
 		mx_msleep(500);
@@ -102,7 +104,7 @@ main( int argc, char *argv[] )
 		}
 	}
 
-	fprintf(stderr, "coprocess_test complete.\n");
+	fprintf(stderr, "%s complete.\n", fname);
 
 	(void) mx_coprocess_close( coprocess, 5.0 );
 
