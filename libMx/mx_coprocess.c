@@ -16,7 +16,7 @@
  *
  */
 
-#define DEBUG_COPROCESS		FALSE
+#define DEBUG_COPROCESS		TRUE
 
 #include <stdio.h>
 

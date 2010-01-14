@@ -3,9 +3,9 @@
 $os = $^O;
 
 if ( $os eq "MSWin32" ) {
-	$tempfile = "c:/temp/plotgnu.tmp$$";
+	$tempfile = $ENV{'TMP'} . "/plotgnu.tmp$$";
 } elsif ( $os eq "cygwin" ) {
-	$tempfile = "c:/temp/plotgnu.tmp$$";
+	$tempfile = "/tmp/plotgnu.tmp$$";
 } else {
 	$tempfile = "/tmp/plotgnu.tmp$$";
 }

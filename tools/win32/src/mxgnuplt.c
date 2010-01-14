@@ -64,13 +64,17 @@ main( int argc, char *argv[] )
 	int plotting_window_initialized;
 
 #if DEBUG_MXGNUPLT
+	/* plotgnu.pl redirects stderr to /dev/null in order to discard
+	 * messages from wgnuplot, so we must open our own FILE to send
+	 * debugging messages.
+	 */
+
 	FILE *con;
 
 	con = fopen( "con", "w" );
 
 	setvbuf( con, (char *)NULL, _IONBF, 0 );
 
-	fprintf( stderr, "%s invoked (stderr).\n", fname );
 	fprintf( con, "%s invoked.\n", fname );
 #endif
 
@@ -207,8 +211,13 @@ main( int argc, char *argv[] )
 
 		fgets( buffer, sizeof buffer, stdin );
 	}
+
+#if 0
 	MessageBox( NULL, (LPTSTR) "mxgnuplt exiting abnormally.",
 			NULL, MB_OK );
+#else
+	fprintf( stderr, "mxgnuplt exiting abnormally.\n" );
+#endif
 
 	exit(1);
 
