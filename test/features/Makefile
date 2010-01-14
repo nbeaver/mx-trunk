@@ -1,12 +1,12 @@
 
-MX_ARCH = linux
+MX_ARCH = macosx
 
 #------------------------------------------------------------
 
 ifeq ($(MX_ARCH),win32)
 	MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) CXX="cl -DOS_WIN32" CXXFLAGS=-I../../../libMx
 else
-	MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
+	MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) 
 endif
 
 all:
@@ -14,7 +14,6 @@ all:
 	( cd boot_test ; $(MAKECMD) )
 	( cd callback_test ; $(MAKECMD) )
 	( cd coprocess_test ; $(MAKECMD) )
-	( cd cxx_test ; $(MAKECMD) )
 	( cd itimer_test ; $(MAKECMD) )
 	( cd math_test ; $(MAKECMD) )
 	( cd multi_test ; $(MAKECMD) )
@@ -40,4 +39,7 @@ clean:
 	( cd vtimer_test ; $(MAKECMD) clean )
 
 distclean: clean
+
+cxx_test:
+	( cd cxx_test ; $(MAKECMD) )
 
