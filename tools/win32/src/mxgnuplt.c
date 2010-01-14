@@ -13,7 +13,7 @@
  *
  */
 
-#define DEBUG_MXGNUPLT	TRUE
+#define DEBUG_MXGNUPLT	FALSE
 
 #if (_MSC_VER >= 1400)
 #pragma warning( disable:4996 )

@@ -504,8 +504,8 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 #define MXCP_CLOSE_HANDLES \
 	do {							\
 		CloseHandle(from_coprocess_read_handle);	\
-		CloseHandle(from_coprocess_write_handle);	\
-		CloseHandle(to_coprocess_read_handle);		\
+		CloseHandle(from_coprocess_write_dup_handle);	\
+		CloseHandle(to_coprocess_read_dup_handle);	\
 		CloseHandle(to_coprocess_write_handle);		\
 	} while (0)
 
@@ -523,12 +523,17 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	DWORD creation_flags;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+
 	HANDLE from_coprocess_read_handle;
 	HANDLE from_coprocess_write_handle;
 	HANDLE to_coprocess_read_handle;
 	HANDLE to_coprocess_write_handle;
+
 	HANDLE process_pseudo_handle;
-	HANDLE stderr_real_handle;
+	HANDLE from_coprocess_write_dup_handle;
+	HANDLE to_coprocess_read_dup_handle;
+	HANDLE stderr_dup_handle;
+
 	SECURITY_ATTRIBUTES from_pipe_attributes;
 	SECURITY_ATTRIBUTES to_pipe_attributes;
 	int from_file_descriptor;
@@ -562,7 +567,9 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	(*coprocess)->to_coprocess = NULL;
 	(*coprocess)->coprocess_pid = 0;
 
-	/* Make sure the pipe handles can be inherited by a new process. */
+	/* Create security descriptors for the new pipes that we
+	 * are about to create.
+	 */
 
 	from_pipe_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
 	from_pipe_attributes.lpSecurityDescriptor = NULL;
@@ -614,14 +621,84 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 #if DEBUG_COPROCESS
 	MX_DEBUG(-2,("%s: pipes created.", fname));
 #endif
-	/* Get an inheritable handle for the coprocess's standard error. */
-
 	process_pseudo_handle = GetCurrentProcess();
+
+	/* Create an inheritable handle for the coprocess's standard output. */
+
+	os_status = DuplicateHandle( process_pseudo_handle,
+					from_coprocess_write_handle,
+					process_pseudo_handle,
+					&from_coprocess_write_dup_handle,
+					0,
+					TRUE,
+					DUPLICATE_SAME_ACCESS );
+
+	last_error_code = GetLastError();
+
+	CloseHandle( from_coprocess_write_handle );
+
+	if ( os_status == 0 ) {
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		CloseHandle( from_coprocess_read_handle );
+		CloseHandle( to_coprocess_read_handle );
+		CloseHandle( to_coprocess_write_handle );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"An attempt to create an inheritable handle for the "
+		"coprocess's standard output failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: from_coprocess_write_dup_handle = %p",
+		fname, from_coprocess_write_dup_handle));
+#endif
+	/* Create an inheritable handle for the coprocess's standard input. */
+
+	os_status = DuplicateHandle( process_pseudo_handle,
+					to_coprocess_read_handle,
+					process_pseudo_handle,
+					&to_coprocess_read_dup_handle,
+					0,
+					TRUE,
+					DUPLICATE_SAME_ACCESS );
+
+	last_error_code = GetLastError();
+
+	CloseHandle( to_coprocess_read_handle );
+
+	if ( os_status == 0 ) {
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		CloseHandle( from_coprocess_read_handle );
+		CloseHandle( from_coprocess_write_dup_handle );
+		CloseHandle( to_coprocess_write_handle );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"An attempt to create an inheritable handle for the "
+		"coprocess's standard input failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: to_coprocess_read_dup_handle = %p",
+		fname, to_coprocess_read_dup_handle));
+#endif
+	/* Get an inheritable handle for the coprocess's standard error.
+	 *
+	 * The coprocess will, at least initially, have the same standard
+	 * error as the parent process.
+	 */
 
 	os_status = DuplicateHandle( process_pseudo_handle,
 					GetStdHandle( STD_ERROR_HANDLE ),
 					process_pseudo_handle,
-					&stderr_real_handle,
+					&stderr_dup_handle,
 					0,
 					TRUE,
 					DUPLICATE_SAME_ACCESS );
@@ -641,8 +718,9 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	}
 
 #if DEBUG_COPROCESS
-	MX_DEBUG(-2,("%s: duplicate stderr handle = %p", fname));
+	MX_DEBUG(-2,("%s: stderr_dup_handle = %p", fname, stderr_dup_handle));
 #endif
+
 	/* Setup the STARTUPINFO for the coprocess to redirect standard input
 	 * and standard output to the pipes that we have just created.
 	 */
@@ -653,11 +731,11 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 	startup_info.dwFlags = STARTF_USESTDHANDLES;
 
-	startup_info.hStdInput = to_coprocess_read_handle;
+	startup_info.hStdInput = to_coprocess_read_dup_handle;
 
-	startup_info.hStdOutput = from_coprocess_write_handle;
+	startup_info.hStdOutput = from_coprocess_write_dup_handle;
 
-	startup_info.hStdError = stderr_real_handle;
+	startup_info.hStdError = stderr_dup_handle;
 
 	/* Setup stdio-style FILE pointers for the new pipes
 	 * for the parent process to use.
@@ -694,8 +772,8 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 	/*--------*/
 
-	to_file_descriptor = _open_osfhandle( to_coprocess_read_handle,
-						_O_RDONLY );
+	to_file_descriptor = _open_osfhandle( to_coprocess_write_handle,
+						_O_WRONLY );
 
 	if ( to_file_descriptor == (-1) ) {
 		saved_errno = errno;
