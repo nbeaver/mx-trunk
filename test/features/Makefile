@@ -1,8 +1,5 @@
-# Test architectures:
-#   linux, win32
-#
 
-MX_ARCH = win32
+MX_ARCH = linux
 
 #------------------------------------------------------------
 
@@ -41,4 +38,6 @@ clean:
 	( cd thread_test ; $(MAKECMD) clean )
 	( cd types_test ; $(MAKECMD) clean )
 	( cd vtimer_test ; $(MAKECMD) clean )
+
+distclean: clean
 

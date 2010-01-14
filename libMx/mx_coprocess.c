@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_clock.h"
+#include "mx_io.h"
 #include "mx_coprocess.h"
 
 /*-------------------------------------------------------------------------*/
@@ -497,7 +498,35 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----*/
+MX_EXPORT mx_status_type
+mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_coprocess_num_bytes_available()";
+
+	int read_fd;
+	mx_status_type mx_status;
+
+	if ( num_bytes_available == (size_t) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_bytes_available_pointer passed was NULL." );
+	}
+	if ( coprocess == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_COPROCESS pointer passed was NULL." );
+	}
+	if ( coprocess->from_coprocess == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"Coprocess %p is not open for reading.", coprocess );
+	}
+
+	read_fd = fileno( coprocess->from_coprocess );
+
+	mx_status = mx_fd_num_input_bytes_available( read_fd,
+						num_bytes_available );
+
+	return mx_status;
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -1063,7 +1092,10 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_bytes_available_pointer passed was NULL." );
 	}
-
+	if ( coprocess == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_COPROCESS pointer passed was NULL." );
+	}
 	if ( coprocess->from_coprocess == NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"Coprocess %p is not open for reading.", coprocess );
