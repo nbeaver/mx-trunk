@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,13 @@ typedef unsigned __int64	uint64_t;
 
 typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
+
+#include <stddef.h>	/* For ptrdiff_t, intptr_t, and friends. */
+
+#  if defined(__BORLANDC__)
+     typedef __int32		intptr_t;
+     typedef unsigned __int32	uintptr_t;
+#  endif
 
 /*=======================================================================*/
 #elif defined(OS_VXWORKS)

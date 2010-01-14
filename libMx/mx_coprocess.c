@@ -510,6 +510,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	} while (0)
 
 #include <windows.h>
+#include <io.h>
 #include <stddef.h>
 #include <fcntl.h>
 
@@ -742,8 +743,9 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	 * for the parent process to use.
 	 */
 
-	from_file_descriptor = _open_osfhandle( from_coprocess_read_handle,
-						_O_RDONLY );
+	from_file_descriptor = _open_osfhandle(
+					(intptr_t) from_coprocess_read_handle,
+					_O_RDONLY );
 
 	if ( from_file_descriptor == (-1) ) {
 		saved_errno = errno;
@@ -773,8 +775,9 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 	/*--------*/
 
-	to_file_descriptor = _open_osfhandle( to_coprocess_write_handle,
-						_O_WRONLY );
+	to_file_descriptor = _open_osfhandle(
+					(intptr_t) to_coprocess_write_handle,
+					_O_WRONLY );
 
 	if ( to_file_descriptor == (-1) ) {
 		saved_errno = errno;
