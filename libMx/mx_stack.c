@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006, 2008-2009
+ * Copyright 2000-2001, 2003-2004, 2006, 2008-2010
  *      Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -507,6 +507,8 @@ mx_win32_imagehlp_stack_walk( CONTEXT *context )
 
 /*--------*/
 
+#if defined(_M_IX86)
+
 static void
 mx_win32_x86_stack_walk( CONTEXT *context )
 {
@@ -564,6 +566,8 @@ mx_win32_x86_stack_walk( CONTEXT *context )
 		}
 	} while (1);
 }
+
+#endif /* defined(_M_IX86) */
 
 /*--------*/
 

@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -419,9 +419,9 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	 */
 
 	win32_mmtimer_private->timer_id = timeSetEvent( event_delay_ms, 0,
-					mx_interval_timer_thread_handler,
-					(DWORD) itimer,
-					timer_flags );
+			(TIMECALLBACK *) mx_interval_timer_thread_handler,
+			(DWORD) itimer,
+			timer_flags );
 
 	if ( win32_mmtimer_private->timer_id == 0 ) {
 		last_error_code = GetLastError();

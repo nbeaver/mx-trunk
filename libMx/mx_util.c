@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2164,10 +2164,13 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
-#if 0
+/* For some reason, the 64-bit version of Windows 7 crashes when I try
+ * to free() memory allocated with the strdup() provided by Microsoft.
+ * However, the following replacement works just fine.
+ */
 
 MX_EXPORT char *
-strdup( const char *original )
+mx_strdup( const char *original )
 {
 	char *duplicate;
 	size_t original_length;
@@ -2192,8 +2195,6 @@ strdup( const char *original )
 
 	return duplicate;
 }
-
-#endif
 
 /*-------------------------------------------------------------------------*/
 

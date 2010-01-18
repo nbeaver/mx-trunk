@@ -517,7 +517,17 @@ MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
 #endif
 
-#if defined(OS_ECOS) || defined(OS_VXWORKS)
+/* For some versions of Microsoft Windows, the Microsoft-provided strdup()
+ * can create strings that cause crashes when free()-ed, so we use our own
+ * implementation mx_strdup().
+ */
+
+MX_API char *mx_strdup( const char *s );
+
+#if defined(OS_WIN32) && defined(_MSC_VER)
+#  define strdup(s) mx_strdup(s)
+
+#elif defined(OS_ECOS) || defined(OS_VXWORKS)
 
 /* This provides a definition of strdup() for systems that do not
  * have a definition.

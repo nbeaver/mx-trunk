@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2009 Illinois Institute of Technology
+ * Copyright 2007-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,8 +41,12 @@ mx_get_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_get_process_affinity_mask()";
 
-	HANDLE process_handle;
+#if defined(_M_AMD64)
+	DWORD_PTR process_affinity_mask, system_affinity_mask;
+#else
 	DWORD process_affinity_mask, system_affinity_mask;
+#endif
+	HANDLE process_handle;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 	BOOL os_status;

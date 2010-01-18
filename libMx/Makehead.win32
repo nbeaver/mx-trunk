@@ -79,6 +79,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # is why the examples below use short directory names like progra~1\micros~1 .
 #
 # Visual C++ 2008 Express   (_MSC_VER == 1500)
+#   (32-bit mode only)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
 #
@@ -87,7 +88,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual Studio.NET 2003    (_MSC_VER == 1310)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
@@ -106,6 +107,70 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 # Visual Studio.NET 2002    (_MSC_VER == 1300)  (Not tested)
 # Visual C++ 5.0            (_MSC_VER == 1100)  (Not recently tested)
 
+#---------------------------------------------------------------------------
+#
+# If you are using a separately downloaded copy of the Win32 Platform SDK,
+# the following is an example of how to have your compiler use that rather
+# than the version bundled with the compiler.
+
+# Visual C++ 2008 Express (64-bit mode)
+#
+# WARNING: You must use a customized version of WIN32_LIBS for 64-bit mode
+# which can be found below the normal definition of WIN32_LIBS.
+
+PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
+
+# Visual C++ 2005 Express
+#
+#PLATFORM_SDK = c:\\progra~1\\mifd68~1
+#PLATFORM_SDK = c:\\progra~1\\micros~3
+#PLATFORM_SDK = c:\\progra~1\\micros~4
+#
+RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+MSDEV_DIR               = $(PLATFORM_SDK)
+
+#---------------------------------------------------------------------------
+#
+# The following definition of WIN32_LIBS can probably be left alone if you
+# are creative enough in how you define MSDEV_DIR.
+#
+#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
+#        $(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
+#	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
+
+#---------------------------------------------------------------------------
+#
+# Visual C++ 2008 Express in 64-bit mode requires that you use the following
+# definitions.  These assume that you have installed the "Windows SDK" package
+# which includes the 64-bit compiler.
+# 
+#
+WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
+        $(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
+
+#---------------------------------------------------------------------------
+#
+# Visual C++ 2005 and above use "manifest" files to find C runtime library DLLs.
+# It is possible to use a "manifest tool" program to embed the contents of
+# the manifest file back into the binary file.
+#
+# Since Cygwin comes with a completely unrelated program that is _also_ called
+# 'mt', we must specify the full pathname of the manifest tool to ensure that
+# we find the correct one.
+#
+# The following forest of backticks, backslashes, and double quotes should be
+# sufficient to ensure that the final pathname for 'mt' uses forward slashes
+# when handed to 'bash' by the Cygwin make program.
+#
+
+MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
+
 #
 # If you are using the Win32 version of DUMA (duma.sourceforge.net)
 # uncomment the following lines.  DUMA is a fork of Electric Fence
@@ -122,47 +187,6 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
 #DUMA_OPTS = /force $(DUMA_LIB)
-
-#
-# If you are using a separately downloaded copy of the Win32 Platform SDK,
-# the following is an example of how to have your compiler use that rather
-# than the version bundled with the compiler.  Generally, you should only
-# have to do this if you are using Visual C++ 2005 Express, since that 
-# version of the compiler does not include a copy of the Platform SDK.
-#
-
-#PLATFORM_SDK = c:\\progra~1\\mifd68~1
-#PLATFORM_SDK = c:\\progra~1\\micros~3
-#PLATFORM_SDK = c:\\progra~1\\micros~4
-#
-#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#MSDEV_DIR               = $(PLATFORM_SDK)
-
-#
-# The following definition of WIN32_LIBS can probably be left alone if you
-# are creative enough in how you define MSDEV_DIR.
-#
-WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
-        $(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
-	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
-
-#
-# Visual C++ 2005 and above use "manifest" files to find C runtime library DLLs.
-# It is possible to use a "manifest tool" program to embed the contents of
-# the manifest file back into the binary file.
-#
-# Since Cygwin comes with a completely unrelated program that is _also_ called
-# 'mt', we must specify the full pathname of the manifest tool to ensure that
-# we find the correct one.
-#
-# The following forest of backticks, backslashes, and double quotes should be
-# sufficient to ensure that the final pathname for 'mt' uses forward slashes
-# when handed to 'bash' by the Cygwin make program.
-#
-
-MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #
 # Directory containing the EG&G Ortec UMCBI library and include file.
