@@ -98,7 +98,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual C++ 4.0            (_MSC_VER == 1000)
 #
-#MSDEV_DIR	= c:\\msdevstd
+MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
@@ -118,27 +118,27 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # WARNING: You must use a customized version of WIN32_LIBS for 64-bit mode
 # which can be found below the normal definition of WIN32_LIBS.
 
-PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
+#PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
 
 # Visual C++ 2005 Express
 #
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
 #PLATFORM_SDK = c:\\progra~1\\micros~4
-#
-RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-MSDEV_DIR               = $(PLATFORM_SDK)
+
+#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#MSDEV_DIR               = $(PLATFORM_SDK)
 
 #---------------------------------------------------------------------------
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
 # are creative enough in how you define MSDEV_DIR.
 #
-#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
-#        $(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
-#	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
+WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
+        $(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
+	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
 
 #---------------------------------------------------------------------------
 #
@@ -146,13 +146,12 @@ MSDEV_DIR               = $(PLATFORM_SDK)
 # definitions.  These assume that you have installed the "Windows SDK" package
 # which includes the 64-bit compiler.
 # 
-#
-WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
-	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
-        $(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
-	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
-	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
-	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
+#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
+#	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
+#        $(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
+#	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
+#	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
+#	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
 
 #---------------------------------------------------------------------------
 #
