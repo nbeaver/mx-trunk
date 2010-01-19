@@ -393,6 +393,7 @@ mxserver_main( int argc, char *argv[] )
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, network_debug, poll_all;
 	mx_bool_type enable_remote_breakpoint;
+	mx_bool_type wait_for_debugger;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -475,6 +476,8 @@ mxserver_main( int argc, char *argv[] )
 
 	enable_remote_breakpoint = FALSE;
 
+	wait_for_debugger = FALSE;
+
 	poll_all = FALSE;
 
 #if HAVE_GETOPT
@@ -483,7 +486,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:kl:L:n:p:P:rsStu:Z")) != -1)
+		"Aab:cC:d:De:E:f:kl:L:n:p:P:rsStu:wZ")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -584,6 +587,9 @@ mxserver_main( int argc, char *argv[] )
 			exit(1);
 #endif
 			break;
+		case 'w':
+			wait_for_debugger = TRUE;
+			break;
 		case 'Z':
 			bypass_signal_handlers = TRUE;
 			break;
@@ -603,6 +609,9 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( start_debugger ) {
 		mx_start_debugger( NULL );
+	}
+	if ( wait_for_debugger ) {
+		mx_wait_for_debugger();
 	}
 
 #endif /* HAVE_GETOPT */
