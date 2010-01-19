@@ -92,13 +92,13 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #
 # Visual C++ 4.0            (_MSC_VER == 1000)
 #
-MSDEV_DIR	= c:\\msdevstd
+#MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
@@ -170,6 +170,7 @@ WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
 
 MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
+#---------------------------------------------------------------------------
 #
 # If you are using the Win32 version of DUMA (duma.sourceforge.net)
 # uncomment the following lines.  DUMA is a fork of Electric Fence
@@ -187,6 +188,7 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
 #DUMA_OPTS = /force $(DUMA_LIB)
 
+#---------------------------------------------------------------------------
 #
 # Directory containing the EG&G Ortec UMCBI library and include file.
 #
@@ -195,6 +197,7 @@ UMCBI_DIR	= c:\\Ortec
 UMCBI_INCLUDES	= -I$(UMCBI_DIR)\\lib
 UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 
+#---------------------------------------------------------------------------
 #
 # Directory tree containing compiled versions of the XIA Handel libraries
 # and include files.
@@ -218,6 +221,7 @@ XIA_HANDEL_LIBS     = $(XIA_HANDEL_LIB_DIR)\\handel.lib
 XIA_XERXES_LIBS     = $(XIA_HANDEL_LIB_DIR)\\xerxes.lib \
 			$(XIA_HANDEL_LIB_DIR)\\md.lib
 
+#---------------------------------------------------------------------------
 #
 # Aerotech Unidex 500 motor controllers
 #
@@ -227,6 +231,7 @@ U500_DIR             = c:\\U500\\mmi
 U500_INCLUDES        = -I$(U500_DIR)\\include
 U500_LIBS            = $(U500_DIR)\\Win50032.lib
 
+#---------------------------------------------------------------------------
 #
 # Precision MicroControl Motion Control API (MCAPI) interface.
 #
@@ -235,6 +240,7 @@ PMC_MCAPI_INCLUDES   = -I$(PMC_MCAPI_DIR)
 PMC_MCAPI_LIBS       = $(PMC_MCAPI_DIR)\\mcapi32.lib \
 			$(PMC_MCAPI_DIR)\\mcdlg32.lib
 
+#---------------------------------------------------------------------------
 #
 # Jorway CAMAC drivers from Fermilab
 #
@@ -243,6 +249,7 @@ JORWAY_CAMAC_DIR     = c:\\camac\\jorway\\sjyWIN
 JORWAY_CAMAC_LIBS    = $(JORWAY_CAMAC_DIR)\\lib\\sjy73a.lib
 ESONE_CAMAC_INCLUDES = -I$(JORWAY_CAMAC_DIR)\\inc
 
+#---------------------------------------------------------------------------
 #
 # DriverLINX NT Port I/O driver.
 #
@@ -251,6 +258,7 @@ DRIVERLINX_DIR      = c:\\progra~1\\DLPortIO
 DRIVERLINX_INCLUDES = -I$(DRIVERLINX_DIR)\\API
 DRIVERLINX_LIBS     = $(DRIVERLINX_DIR)\\API\\DLPORTIO.lib
 
+#---------------------------------------------------------------------------
 #
 # Directory containing the National Instruments pcMotion32 DLL for the
 # ValueMotion series of motor controllers.
@@ -264,6 +272,7 @@ PCMOTION32_DIR      = c:\\ValueMotion
 PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\Include
 PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\lib\\Microsoft\\pcmotionMS.lib
 
+#---------------------------------------------------------------------------
 #
 # EPICS includes and libraries.
 #
@@ -276,6 +285,7 @@ EPICS_INCLUDES	= -I$(EPICS_BASE)\\include \
 EPICS_LIBS	= $(EPICS_BASE)\\lib\\$(EPICS_ARCH)\\ca.lib \
 			$(EPICS_BASE)\\lib\\$(EPICS_ARCH)\\Com.lib
 
+#---------------------------------------------------------------------------
 #
 # EPIX, Inc. XCLIB includes and libraries.
 #

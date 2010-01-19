@@ -73,7 +73,7 @@ typedef uint64_t		uintmax_t;
 
 #include <stddef.h>	/* For ptrdiff_t, intptr_t, and friends. */
 
-#  if defined(_MSC_VER) && (_MSC_VER < 1100)
+#  if defined(_MSC_VER) && (_MSC_VER < 1300)
      typedef __int32		intptr_t;
      typedef unsigned __int32	uintptr_t;
 
