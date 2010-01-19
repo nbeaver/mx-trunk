@@ -2191,7 +2191,7 @@ mx_strdup( const char *original )
 		return NULL;
 	}
 
-	strlcpy( duplicate, original, sizeof(duplicate) );
+	strlcpy( duplicate, original, original_length );
 
 	return duplicate;
 }
@@ -2563,8 +2563,6 @@ mx_string_split( char *original_string,
 	unsigned long block_size, num_blocks, array_size;
 	char *ptr, *token_ptr;
 
-	*argc = 0;
-
 	if ( (original_string == NULL)
 	  || (delim == NULL)
 	  || (argc == NULL)
@@ -2573,6 +2571,8 @@ mx_string_split( char *original_string,
 		errno = EINVAL;
 		return -1;
 	}
+
+	*argc = 0;
 
 	block_size = 10;
 	num_blocks = 1;

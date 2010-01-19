@@ -162,7 +162,19 @@ cmd_split_command_line( char *command_line,
 	 * and tabs as the delimiters.
 	 */
 
+#if 1
 	temp_string = strdup( command_ptr );
+#else
+	{
+		size_t len;
+
+		len = strlen(command_ptr) + 1;
+
+		temp_string = malloc( len );
+
+		strlcpy( temp_string, command_ptr, len );
+	}
+#endif
 
 	mx_string_split( temp_string, " \t", &temp_argc, &temp_argv );
 

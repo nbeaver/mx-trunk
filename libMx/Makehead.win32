@@ -88,11 +88,11 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual Studio.NET 2003    (_MSC_VER == 1310)
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #
@@ -176,16 +176,19 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 # uncomment the following lines.  DUMA is a fork of Electric Fence
 # which has been ported to Win32.
 #
-# WARNING: Make sure that DUMA has been compiled with the same flags
+# WARNING #1: Make sure that DUMA has been compiled with the same flags
 # (-MD, -MDd, -MT, or -MTd) as is being used to compile MX.  The default
 # configuration as delivered of DUMA uses -MLd.  -MLd is not supported
 # by MX, since the use of the -MLd flag breaks MX's support for threads.
 #
-
-#DUMA_DIR = c:\\opt\\duma_2_4_27-MTd
-#DUMA_DIR = c:\\docume~1\\lavender\\duma_2_4_27-MTd
+# WARNING #2: You _must_ change the definition of the macro DEBUG_USING_DUMA
+# in mx_util_win32.c to TRUE!  If it is left at the default value of FALSE,
+# then memory allocations in MX code will not be intercepted by DUMA.
 #
-#DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
+
+#DUMA_DIR = c:\\docume~1\\lavender\\archives\\duma\\duma_2_5_15
+#
+#DUMA_LIB = $(DUMA_DIR)\\win32-msvc.net\\dumalib\\Release\\dumalib.lib
 #DUMA_OPTS = /force $(DUMA_LIB)
 
 #---------------------------------------------------------------------------
