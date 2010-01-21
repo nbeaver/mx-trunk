@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@
 #include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_unistd.h"
 #include "mx_version.h"
 #include "mx_driver.h"
@@ -93,15 +94,15 @@ static void
 mxupd_print_timestamp( void )
 {
 	time_t time_struct;
-	struct tm *current_time;
+	struct tm current_time;
 	char buffer[80];
 
 	time( &time_struct );
 
-	current_time = localtime( &time_struct );
+	(void) localtime_r( &time_struct, &current_time );
 
 	strftime( buffer, sizeof(buffer),
-			"%b %d %H:%M:%S ", current_time );
+			"%b %d %H:%M:%S ", &current_time );
 
 	fputs( buffer, stderr );
 }

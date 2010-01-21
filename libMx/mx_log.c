@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,20 +252,16 @@ MX_EXPORT char *
 mx_log_timestamp( MX_LOG *log_handler, char *buffer, size_t max_buffer_length )
 {
 	time_t time_struct;
-	struct tm *current_time;
+	struct tm current_time;
 	size_t length, buffer_left;
 	char *ptr;
 
 	time( &time_struct );
 
-	current_time = localtime( &time_struct );
-
-#if !defined( OS_VMS )
+	(void) localtime_r( &time_struct, &current_time );
 
 	strftime( buffer, max_buffer_length,
-				"%a %b %d %H:%M:%S %Y  ", current_time );
-
-#endif
+				"%a %b %d %H:%M:%S %Y  ", &current_time );
 
 	length = strlen( buffer );
 

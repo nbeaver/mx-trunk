@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2009-2010
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +21,7 @@
 #include <errno.h>
 
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_driver.h"

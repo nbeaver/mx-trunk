@@ -802,17 +802,6 @@ MX_API mx_status_type mx_get_process_affinity_mask( unsigned long process_id,
 MX_API mx_status_type mx_set_process_affinity_mask( unsigned long process_id,
 							unsigned long mask );
 
-/*---- OS time reporting functions. ----*/
-
-MX_API struct timespec mx_current_os_time( void );
-
-MX_API char *mx_os_time_string( struct timespec os_time,
-				char *buffer, size_t buffer_length );
-
-MX_API char *mx_ctime_string( void );
-
-MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
-
 /*----*/
 
 MX_API char *mx_skip_string_fields( char *buffer, int num_fields );

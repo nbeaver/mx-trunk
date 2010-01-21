@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,10 +23,10 @@
 #include <string.h>
 #include <math.h>
 #include <errno.h>
-#include <time.h>
 #include <sys/types.h>
 
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_driver.h"
 #include "mx_scan.h"
 #include "mx_amplifier.h"
