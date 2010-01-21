@@ -12,7 +12,7 @@
  *
  */
 
-#define MX_VIRTUAL_TIMER_DEBUG			TRUE
+#define MX_VIRTUAL_TIMER_DEBUG			FALSE
 
 #define MX_VIRTUAL_TIMER_DEBUG_MASTER_CALLBACK	FALSE
 
@@ -1059,8 +1059,6 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 		 */
 	}
 
-	MX_DEBUG(-2,("%s: MARKER 1", fname));
-
 	/* We need to add a timer event to the timer event list managed
 	 * by the master timer that this virtual timer uses.
 	 */
@@ -1108,8 +1106,6 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 		UNLOCK_EVENT_LIST( event_list );
 		return mx_status;
 	}
-
-	MX_DEBUG(-2,("%s: MARKER 2", fname));
 
 	/* Add a list entry for the next virtual timer event. */
 
