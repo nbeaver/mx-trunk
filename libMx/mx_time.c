@@ -18,14 +18,17 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <sys/time.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_time.h"
 
+#if defined(OS_UNIX)
+  #include <sys/time.h>
+#endif
+
 #if defined(OS_WIN32)
-#include <windows.h>
+  #include <windows.h>
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -126,25 +129,85 @@ localtime_r( const time_t *time_struct, struct tm *tm_struct )
 MX_EXPORT char *
 asctime_r( const struct tm *tm_struct, char *buffer )
 {
-	return asctime( tm_struct );
+	char *ptr;
+
+	if ( tm_struct == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+	
+	ptr = asctime( tm_struct );
+
+	/* 26 is a magic number from the asctime_r man page on Linux. */
+
+	if ( buffer != NULL ) {
+		memcpy( buffer, ptr, 26 );
+	}
+
+	return ptr;
 }
 
 MX_EXPORT char *
 ctime_r( const time_t *time_struct, char *buffer )
 {
-	return ctime( time_struct );
+	char *ptr;
+
+	if ( time_struct == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+	
+	ptr = ctime( time_struct );
+
+	/* 26 is a magic number from the ctime_r man page on Linux. */
+
+	if ( buffer != NULL ) {
+		memcpy( buffer, ptr, 26 );
+	}
+
+	return ptr;
 }
 
 MX_EXPORT struct tm *
 gmtime_r( const time_t *time_struct, struct tm *tm_struct )
 {
-	return gmtime( time_struct );
+	struct tm *ptr;
+
+	if ( time_struct == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+	
+	ptr = gmtime( time_struct );
+
+	if ( tm_struct != NULL ) {
+		memcpy( tm_struct, ptr, sizeof(struct tm) );
+	}
+
+	return ptr;
 }
 
 MX_EXPORT struct tm *
 localtime_r( const time_t *time_struct, struct tm *tm_struct )
 {
-	return localtime( time_struct );
+	struct tm *ptr;
+
+	if ( time_struct == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+	
+	ptr = localtime( time_struct );
+
+	if ( tm_struct != NULL ) {
+		memcpy( tm_struct, ptr, sizeof(struct tm) );
+	}
+
+	return ptr;
 }
 
 /*-------------------------------------------------------------------------*/
