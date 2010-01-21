@@ -200,7 +200,7 @@ extern "C" {
 
 /*------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && !defined(__GNUC__)
 
    /* We need to make sure that MX DLLs and EXEs are all using the same heap,
     * so we define replacements for the malloc(), etc. functions that use
