@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 
 #include "mx_util.h"
+#include "mx_time.h"
 #include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_variable.h"

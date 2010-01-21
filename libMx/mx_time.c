@@ -20,20 +20,140 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_time.h"
 
-#if 0
+#if defined(OS_WIN32)
+#include <windows.h>
+#endif
 
-  MX_EXPORT char *asctime_r( const struct tm *, char * );
+/*-------------------------------------------------------------------------*/
 
-  MX_EXPORT char *ctime_r( const time_t *, char * );
+#if defined(OS_UNIX)
 
-  MX_EXPORT struct tm *gmtime_r( const time_t *, struct tm * );
+  /* Unix platforms already provide the thread-safe Posix time functions. */
 
-  MX_EXPORT struct tm *localtime_r( const time_t *, struct tm * );
+  #define MX_USE_NONE
 
-#endif /* 0 */
+/*- - - -*/
+
+#elif defined(OS_WIN32)
+
+  #if defined(_MSC_VER)
+
+    #if (_MSC_VER >= 1400)
+      #define MX_USE_LOCALTIME_S
+    #else
+      /* Apparently the msvcrt.dll DLLs used by Visual C++ 2003 and before
+       * use thread local storage for the internal buffers of the functions,
+       * which makes the functions thread safe on this platform.
+       */
+      #define MX_USE_LOCALTIME
+    #endif
+
+  #elif defined(__BORLANDC__)
+    #error Borland C implementation not yet defined.
+
+  #elif defined(__GNUC__)
+      /* Apparently the msvcrt.dll DLLs used by Mingw use thread local storage
+       * for the internal buffers of the functions, which makes the functions
+       * thread safe on this platform.
+       */
+    #define MX_USE_LOCALTIME
+
+  #else
+    #error Unrecognized Win32 compiler.
+  #endif
+
+/*- - - -*/
+
+#else
+#error Thread-safe time functions have not been defined for this platform.
+#endif
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(MX_USE_NONE)
+
+/* We do not need to do anything for this case, since the thread-safe
+ * functions are already defined.
+ */
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(MX_USE_LOCALTIME_S)
+
+MX_EXPORT char *
+asctime_r( const struct tm *, char * )
+{
+#error Fix asctime_r
+}
+
+MX_EXPORT char *
+ctime_r( const time_t *, char * )
+{
+#error Fix ctime_r
+}
+
+MX_EXPORT struct tm *
+gmtime_r( const time_t *, struct tm * )
+{
+#error Fix gmtime_r
+}
+
+MX_EXPORT struct tm *
+localtime_r( const time_t *time_struct, struct tm *tm_struct )
+{
+	errno_t os_status;
+
+	os_status = localtime_s( tm_struct, time_struct );
+
+	if ( os_status == 0 ) {
+		return tm_struct;
+	} else {
+		/* Pass the value of errno back to our caller.*/
+
+		errno = os_status;
+		return NULL;
+	}
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(MX_USE_LOCALTIME)
+
+MX_EXPORT char *
+asctime_r( const struct tm *tm_struct, char *buffer )
+{
+	return asctime( tm_struct );
+}
+
+MX_EXPORT char *
+ctime_r( const time_t *time_struct, char *buffer )
+{
+	return ctime( time_struct );
+}
+
+MX_EXPORT struct tm *
+gmtime_r( const time_t *time_struct, struct tm *tm_struct )
+{
+	return gmtime( time_struct );
+}
+
+MX_EXPORT struct tm *
+localtime_r( const time_t *time_struct, struct tm *tm_struct )
+{
+	return localtime( time_struct );
+}
+
+/*-------------------------------------------------------------------------*/
+
+#else
+#error Thread-safe time functions have not been defined for this platform.
+#endif
+
+/*=========================================================================*/
 
 /*------------ MX OS time reporting functions. ------------*/
 

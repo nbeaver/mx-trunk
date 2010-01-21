@@ -21,7 +21,7 @@
 
 #include <time.h>
 
-#if 0
+#if defined(OS_WIN32)
 
   MX_API char *asctime_r( const struct tm *, char * );
 
@@ -31,7 +31,7 @@
 
   MX_API struct tm *localtime_r( const time_t *, struct tm * );
 
-#endif /* 0 */
+#endif
 
 /*---- MX OS time reporting functions. ----*/
 
