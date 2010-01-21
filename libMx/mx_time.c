@@ -55,13 +55,10 @@
       #define MX_USE_LOCALTIME
     #endif
 
-  #elif defined(__BORLANDC__)
-    #error Borland C implementation not yet defined.
-
-  #elif defined(__GNUC__)
-      /* Apparently the msvcrt.dll DLLs used by Mingw use thread local storage
-       * for the internal buffers of the functions, which makes the functions
-       * thread safe on this platform.
+  #elif defined(__BORLANDC__) || defined(__GNUC__)
+      /* Apparently the msvcrt.dll DLLs used by Borland and Mingw use thread
+       * local storage for the internal buffers of the functions, which makes
+       * the functions thread safe on these platforms.
        */
     #define MX_USE_LOCALTIME
 

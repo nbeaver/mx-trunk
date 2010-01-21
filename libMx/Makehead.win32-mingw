@@ -69,7 +69,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
-#MX_LIB_OBJS += mx_util_win32.o
+MX_LIB_OBJS += mx_util_win32.o
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 MX_LIB_OBJS += ../tools/strptime.o
 MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o

@@ -22,11 +22,6 @@
  */
 
 #include <stdio.h>
-#include "mx_util.h"
-
-#define DEBUG_USING_DUMA	FALSE
-
-#define DEBUG_MX_DUMA_LOGGING	FALSE
 
 #if defined(OS_WIN32)
 
@@ -35,6 +30,12 @@
 #if defined(__BORLANDC__)
 #include <alloc.h>
 #endif
+
+#include "mx_util.h"
+
+#define DEBUG_USING_DUMA	FALSE
+
+#define DEBUG_MX_DUMA_LOGGING	FALSE
 
 /*-----------------------------------------------------------------------*/
 
@@ -183,6 +184,10 @@ mx_win32_free( void *block_ptr )
 		}
 	}
 
+#if 0
+	mx_heap_check();
+#endif
+
 	status = HeapFree( process_heap, 0, block_ptr );
 
 	if ( status == 0 ) {
@@ -193,6 +198,9 @@ mx_win32_free( void *block_ptr )
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
+#if 0
+		mx_stack_traceback();
+#endif
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to free memory located at %p "
