@@ -72,6 +72,12 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 			motor_record->name );
 	}
 
+	/* Initialize motor_flags here to make sure that all bits
+	 * are set to 0.
+	 */
+
+	motor->motor_flags = 0;
+
 	/* Initialize scaled quantities from the raw quantities. */
 
 	switch( motor->subclass ) {

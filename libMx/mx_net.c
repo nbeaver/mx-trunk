@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,7 +90,9 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 			"MX_NETWORK_MESSAGE_BUFFER structure." );
 	}
 
-	(*message_buffer)->u.uint32_buffer = malloc( initial_length + 1 );
+	/* We use calloc() rather than malloc() here to make Valgrind happy. */
+
+	(*message_buffer)->u.uint32_buffer = calloc( 1, initial_length + 1 );
 
 	if ( (*message_buffer)->u.uint32_buffer == (uint32_t *) NULL ) {
 
@@ -127,6 +129,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	size_t old_length;
 	uint32_t *header;
+	char *new_ptr;
 #if NETWORK_DEBUG_BUFFER_ALLOCATION
 	int i;
 #endif
@@ -201,7 +204,6 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	MX_DEBUG(-2,
 	("%s: AFTER realloc() end of buffer test succeeded", fname));
 #endif
-
 	message_buffer->buffer_length = new_length;
 
 	header = message_buffer->u.uint32_buffer;
@@ -219,6 +221,13 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	 	fname, message_buffer, message_buffer->u.uint32_buffer,
 		(unsigned long) message_buffer->buffer_length));
 #endif
+	/* Zero out the new part of the buffer so that Valgrind does
+	 * not get upset.
+	 */
+
+	new_ptr = message_buffer->u.char_buffer + old_length;
+
+	memset( new_ptr, 0, new_length - old_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -160,8 +160,6 @@ mxd_spec_motor_create_record_structures( MX_RECORD *record )
 
 	motor->record = record;
 
-	motor->motor_flags |= MXF_MTR_IS_REMOTE_MOTOR;
-
 	/* A Spec motor is treated as an analog motor. */
 
 	motor->subclass = MXC_MTR_ANALOG;
@@ -174,7 +172,29 @@ mxd_spec_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_spec_motor_finish_record_initialization( MX_RECORD *record )
 {
-	return mx_motor_finish_record_initialization( record );
+	static const char fname[]
+		= "mxd_spec_motor_finish_record_initialization()";
+
+	MX_MOTOR *motor;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed is NULL.");
+	}
+
+	mx_status = mx_motor_finish_record_initialization( record );
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		"The MX_MOTOR pointer for record '%s' is NULL.", record->name);
+	}
+
+	motor->motor_flags |= MXF_MTR_IS_REMOTE_MOTOR;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

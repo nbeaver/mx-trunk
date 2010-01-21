@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -923,7 +923,7 @@ mx_create_record_from_description(
 		 * anything else, so that any data structures that
 		 * have to be set up before we process the record 
 		 * field list can be done.  For the example of an
-		 * "e500" record, this means malloc-ing an MX_CAMAC
+		 * "e500" record, this means malloc-ing an MX_MOTOR
 		 * structure and an MX_E500 structure and setting up
 		 * the pointers to them in the MX_RECORD.
 		 */
@@ -2063,7 +2063,7 @@ mx_parse_record_fields( MX_RECORD *record,
 	void *field_value_ptr;
 
 	void *array_ptr;
-	long i, j, token_number, expected_num_tokens;
+	long i, j, token_number;
 	long num_record_fields, field_type;
 	long dimension_size;
 	int allocate_the_array;
@@ -2102,17 +2102,6 @@ mx_parse_record_fields( MX_RECORD *record,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The record_field_array pointer for the record %s is NULL.",
 			record->name );
-	}
-
-	/* How many tokens are there supposed to be in the description? */
-
-	expected_num_tokens = MX_NUM_RECORD_ID_FIELDS;
-
-	for ( i = MX_NUM_RECORD_ID_FIELDS; i < num_record_fields; i++ ) {
-		record_field = &record_field_array[i];
-
-		if ( record_field->flags & MXFF_IN_DESCRIPTION )
-			expected_num_tokens++;
 	}
 
 	/* Loop through all of the fields in the record list. */

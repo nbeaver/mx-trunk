@@ -655,6 +655,13 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #if defined( OS_LINUX ) || defined( OS_TRU64 )
 
+		/* FIXME: Valgrind says that this call to getpwuid_r()
+		 * results in a memory leak.  However, the man page
+		 * for getpwuid_r() on Linux does not mention anything
+		 * about allocating memory that needs to be freed by
+		 * the caller.
+		 */
+
 		status = getpwuid_r( uid, &pw_buffer, scratch_buffer,
 					sizeof(scratch_buffer), &pw );
 
@@ -2561,7 +2568,7 @@ mx_string_split( char *original_string,
 			char ***argv )
 {
 	unsigned long block_size, num_blocks, array_size;
-	char *ptr, *token_ptr;
+	char *string_ptr, *token_ptr;
 
 	if ( (original_string == NULL)
 	  || (delim == NULL)
@@ -2588,10 +2595,10 @@ mx_string_split( char *original_string,
 
 	errno = 0;
 
-	ptr = original_string;
+	string_ptr = original_string;
 
 	while(TRUE) {
-		token_ptr = mx_string_token( &ptr, delim );
+		token_ptr = mx_string_token( &string_ptr, delim );
 
 		if ( (*argc) >= array_size ) {
 			num_blocks++;

@@ -20,7 +20,7 @@ sff_header_fmt variable net_variable net_string "" "" 10id sff_header_fmt.value 
 64u            variable net_variable net_uint64 "" "" 10id 64u.value 1 1 0
 dbstatus       variable net_variable net_string "" "" 10id mx_database.status 1 40 ""
 report         variable net_variable net_string "" "" 10id mx_database.report 1 40 ""
-reportall      variable net_variable net_string "" "" 10id mx_database.reportall 1 40 ""
+report_all     variable net_variable net_string "" "" 10id mx_database.report_all 1 40 ""
 summary        variable net_variable net_string "" "" 10id mx_database.summary 1 40 ""
 fielddef       variable net_variable net_string "" "" 10id mx_database.fielddef 1 40 ""
 show_handle    variable net_variable net_ulong "" "" 10id mx_database.show_handle 1 2 -1 -1

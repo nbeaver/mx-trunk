@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,8 +201,6 @@ mxd_network_motor_create_record_structures( MX_RECORD *record )
 
 	motor->record = record;
 
-	motor->motor_flags |= MXF_MTR_IS_REMOTE_MOTOR;
-
 	network_motor->need_to_get_remote_record_information = TRUE;
 
 	network_motor->remote_driver_type = -1;
@@ -240,6 +238,8 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	motor->motor_flags |= MXF_MTR_IS_REMOTE_MOTOR;
 
 	/* Initialize network fields. */
 
