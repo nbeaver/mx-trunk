@@ -34,8 +34,9 @@
 #include "mx_util.h"
 
 #define DEBUG_USING_DUMA	FALSE
-
 #define DEBUG_MX_DUMA_LOGGING	FALSE
+
+#define DEBUG_LOG		TRUE
 
 /*-----------------------------------------------------------------------*/
 
@@ -165,6 +166,11 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 
 	block_ptr = HeapAlloc( process_heap, HEAP_ZERO_MEMORY, num_bytes );
 
+#if DEBUG_LOG
+	MX_DEBUG(-2,("HeapAlloc( %p, HEAP_ZERO_MEMORY, %ld ) = %p",
+			process_heap, (long) num_bytes, block_ptr));
+#endif
+
 	return block_ptr;
 }
 
@@ -184,11 +190,16 @@ mx_win32_free( void *block_ptr )
 		}
 	}
 
-#if 0
+#if 1
 	mx_heap_check();
 #endif
 
 	status = HeapFree( process_heap, 0, block_ptr );
+
+#if DEBUG_LOG
+	MX_DEBUG(-2,("HeapFree( %p, 0, %p ) = %d",
+		process_heap, block_ptr, status));
+#endif
 
 	if ( status == 0 ) {
 		DWORD last_error_code;
@@ -198,7 +209,7 @@ mx_win32_free( void *block_ptr )
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
-#if 0
+#if 1
 		mx_stack_traceback();
 #endif
 
@@ -233,6 +244,11 @@ mx_win32_malloc( size_t num_bytes )
 
 	block_ptr = HeapAlloc( process_heap, 0, num_bytes );
 
+#if DEBUG_LOG
+	MX_DEBUG(-2,("HeapAlloc( %p, 0, %ld ) = %p",
+			process_heap, (long) num_bytes, block_ptr));
+#endif
+
 	return block_ptr;
 }
 
@@ -251,6 +267,12 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 
 	new_block_ptr = HeapReAlloc( process_heap, 0,
 					old_block_ptr, new_num_bytes );
+
+#if DEBUG_LOG
+	MX_DEBUG(-2,("HeapReAlloc( %p, 0, %p, %ld ) = %p",
+			process_heap, old_block_ptr,
+			(long) new_num_bytes, new_block_ptr));
+#endif
 
 	return new_block_ptr;
 }
