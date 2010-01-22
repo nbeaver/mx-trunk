@@ -190,7 +190,7 @@ mx_win32_free( void *block_ptr )
 		}
 	}
 
-#if 1
+#if 0
 	mx_heap_check();
 #endif
 
@@ -209,7 +209,7 @@ mx_win32_free( void *block_ptr )
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
-#if 1
+#if 0
 		mx_stack_traceback();
 #endif
 
