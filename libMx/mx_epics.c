@@ -78,8 +78,8 @@
 #define MX_EPICS_VERSION  \
     ( EPICS_VERSION * 1000000L + EPICS_REVISION * 1000L + EPICS_MODIFICATION )
 
-#if ( MX_EPICS_VERSION < 3013000L )
-#error You are attempting to build MX support for EPICS with EPICS version 3.12 or before.  This is not supported.  Please upgrade to EPICS 3.13 or later.
+#if ( MX_EPICS_VERSION < 3014000L )
+#error You are attempting to build MX support for EPICS with EPICS version 3.13 or before.  This is not supported.  Please upgrade to EPICS 3.14 or later.
 #endif
 
 #include "tsDefs.h"
