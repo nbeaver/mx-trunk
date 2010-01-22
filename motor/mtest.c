@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,14 @@
 int
 motor_test_fn( int argc, char *argv[] )
 {
-	mx_stack_traceback();
+	if ( argc >= 3 ) {
+		if ( strcmp( argv[2], "stack" ) == 0 ) {
+			mx_stack_traceback();
+			return SUCCESS;
+		}
+	}
+
+	mx_info( "Nothing happens." );
 
 	return FAILURE;
 }

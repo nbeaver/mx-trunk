@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -94,11 +94,11 @@ COMMAND command_list[] = {
 	{ motor_stop_fn,    3, "stop"          },
 	{ motor_system_fn,  2, "system"        },
 	{ motor_take_fn,    1, "take"          },
-	{ motor_test_fn,    2, "test"          },
 	{ motor_vinput_fn,  3, "vinput"        },
 	{ motor_vinput_fn,  3, "video_input"   },
 	{ motor_writep_fn, 11, "writeparams"   },
 	{ motor_wvout_fn,   5, "wvout"         },
+	{ motor_test_fn,    2, "xyzzy"         },
 	{ motor_exec_fn,    1, "@"             },     /* alias for 'exec' */
 	{ motor_system_fn,  1, "!"             },     /* alias for 'system' */
 	{ motor_system_fn,  1, "$"             },     /* alias for 'system' */
@@ -155,6 +155,7 @@ motor_main( int argc, char *argv[] )
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
+	mx_bool_type wait_for_debugger;
 
 	static char
 	    scan_savefile_array[ MAX_SCAN_SAVEFILES ][ MXU_FILENAME_LENGTH+1 ];
@@ -210,6 +211,8 @@ motor_main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 
+	wait_for_debugger = FALSE;
+
 	network_debug = FALSE;
 
 #if HAVE_GETOPT
@@ -217,7 +220,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iNnP:p:S:s:tuz")) != -1 ) {
+	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iNnP:p:S:s:tuwz")) != -1 ) {
 		switch (c) {
 		case 'A':
 			network_debug = TRUE;
@@ -279,6 +282,9 @@ motor_main( int argc, char *argv[] )
 		case 'u':
 			unbuffered_io = TRUE;
 			break;
+		case 'w':
+			wait_for_debugger = TRUE;
+			break;
 		case 'z':
 			ignore_scan_savefiles = TRUE;
 			break;
@@ -297,6 +303,9 @@ motor_main( int argc, char *argv[] )
 
 	if ( start_debugger ) {
 		mx_start_debugger( NULL );
+	}
+	if ( wait_for_debugger ) {
+		mx_wait_for_debugger();
 	}
 
 #endif /* HAVE_GETOPT */
