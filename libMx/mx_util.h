@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -517,14 +517,16 @@ MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
 #endif
 
-/* For some versions of Microsoft Windows, the Microsoft-provided strdup()
- * can create strings that cause crashes when free()-ed, so we use our own
- * implementation mx_strdup().
- */
+/*----------------------*/
 
 MX_API char *mx_strdup( const char *s );
 
-#if defined(OS_WIN32) && defined(_MSC_VER)
+/* For OS_WIN32, we must force the use of mx_strdup() from libMx to make
+ * sure that the pointers it produces are compatible with the pointers
+ * manipulated by mx_win32_malloc() and friends.
+ */
+
+#if defined(OS_WIN32)
 #  define strdup(s) mx_strdup(s)
 
 #elif defined(OS_ECOS) || defined(OS_VXWORKS)
@@ -536,6 +538,8 @@ MX_API char *mx_strdup( const char *s );
 MX_API char *strdup( const char *s );
 
 #endif
+
+/*----------------------*/
 
 /* Case insensitive string comparisons. */
 

@@ -2172,9 +2172,12 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
-/* For some reason, the 64-bit version of Windows 7 crashes when I try
- * to free() memory allocated with the strdup() provided by Microsoft.
- * However, the following replacement works just fine.
+/* We provide a version of strdup() in libMx for the sake of
+ * Microsoft Windows, so that mx_strdup() can be compatible
+ * with pointers produced by mx_win32_malloc() and friends.
+ *
+ * It is also used by build targets that do not natively
+ * define strdup().
  */
 
 MX_EXPORT char *
