@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,6 +79,8 @@ mx_spawn( char *command_line,
 			fname, (unsigned long) child_pid ));
 #endif
 
+		/*--------------------------------------------------------*/
+
 		/* If requested, suspend the parent. */
 
 		if ( flags & MXF_SPAWN_SUSPEND_PARENT ) {
@@ -104,6 +106,8 @@ mx_spawn( char *command_line,
 			}
 		}
 
+		/*--------------------------------------------------------*/
+
 		/* If requested, suspend the child itself. */
 
 		if ( flags & MXF_SPAWN_SUSPEND_CHILD ) {
@@ -126,6 +130,48 @@ mx_spawn( char *command_line,
 					saved_errno, strerror( saved_errno ) );
 			}
 		}
+
+#if defined(OS_LINUX)
+		/*--------------------------------------------------------*/
+
+		/* If requested, remove the environment variable LD_PRELOAD
+		 * from the environment passed to the child.
+		 */
+
+		if ( flags & MXF_SPAWN_NO_PRELOAD ) {
+
+			char *ptr;
+			int max_attempts = 20;
+
+			/* It is possible, but unlikely that LD_PRELOAD
+			 * may be found in the environment more than once.
+			 * Just in case it is, we loop until all copies
+			 * of LD_PRELOAD are gone.
+			 */
+
+			for ( i = 0; i < max_attempts; i++ ) {
+				ptr = getenv( "LD_PRELOAD" );
+
+#if SPAWN_DEBUG
+				MX_DEBUG(-2,("%s: i = %d, LD_PRELOAD = '%s'",
+					fname, i, ptr));
+#endif
+
+				if ( ptr == NULL )
+					break;
+
+				unsetenv( "LD_PRELOAD" );
+			}
+
+			if ( i >= max_attempts ) {
+				mx_warning(
+    "%s: %d attempt to remove LD_PRELOAD from the environment have failed.",
+					fname, max_attempts );
+			}
+		}
+#endif /* OS_LINUX */
+
+		/*--------------------------------------------------------*/
 
 		/* Parse the command line. */
 

@@ -1263,6 +1263,10 @@ mx_start_debugger( char *command )
 			spawn_flags = 0;
 		}
 
+#if defined(OS_LINUX)
+		spawn_flags |= MXF_SPAWN_NO_PRELOAD;
+#endif
+
 		mx_status = mx_spawn( command_line, spawn_flags, NULL );
 
 		/* See if starting the debugger succeeded. */

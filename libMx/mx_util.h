@@ -780,6 +780,7 @@ MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
 
 #define MXF_SPAWN_SUSPEND_CHILD		0x1
 #define MXF_SPAWN_SUSPEND_PARENT	0x2
+#define MXF_SPAWN_NO_PRELOAD		0x4
 
 MX_API mx_status_type mx_spawn( char *command_line,
 				unsigned long flags,
