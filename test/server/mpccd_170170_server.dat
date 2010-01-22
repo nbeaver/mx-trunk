@@ -1,12 +1,12 @@
 #
 # LPT records
 #
-###portio    interface generic dl_portio "" ""
-###lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
-###lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
+portio    interface generic dl_portio "" ""
+lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
+lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
 #
-lpt1      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
-lpt1_data device digital_output linux_parport_out "" "" 0 lpt1 data
+###lpt1      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
+###lpt1_data device digital_output linux_parport_out "" "" 0 lpt1 data
 #
 pin2      device digital_output bit_out "" "" 0 0 lpt1_data 0 1 lpt1_data 0 1
 pin3      device digital_output bit_out "" "" 0 0 lpt1_data 1 1 lpt1_data 1 1
@@ -21,8 +21,8 @@ ready      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
 #
 # EPIX records
 #
-###xclib  interface generic epix_xclib "" "" c:/docume~1/lavender/epix/pccd_170170_v8_large.fmt 0x0
-xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v8_large.fmt 0x0
+xclib  interface generic epix_xclib "" "" c:/docume~1/lavender/epix/pccd_170170_v8_large.fmt 0x0
+###xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v8_large.fmt 0x0
 port  interface camera_link epix_camera_link "" "" 9600 0.5 1
 rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 port
 epix       device video_input epix_xclib_video_input "" "" 16384 1024 grey16 -1 xclib 1 ready 0x1001 0x5555
@@ -30,5 +30,6 @@ inttrigger device digital_output epix_xclib_doutput "" "" 0 epix
 gpin       device digital_input epix_xclib_dinput "" "" 0 epix -1
 trig0      device digital_input epix_xclib_dinput "" "" 0 epix 0
 trig1      device digital_input epix_xclib_dinput "" "" 0 epix 1
-ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv
+ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f c:/docume~1/lavender/epix/pixel_mask.smv c:/docume~1/lavender/epix/bias_200.smv c:/docume~1/lavender/epix/dark_current.smv c:/docume~1/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 c:/docume~1/lavender/epix/pinhole.uca c:/docume~1/lavender/epix/biggap.smv
+###ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/epix/biggap.smv
 ###ad         device area_detector pccd_170170 "" "" 4 0x0 0x100f /home/lavender/epix/pixel_mask.smv /home/lavender/epix/bias_200.smv /home/lavender/epix/dark_current.smv /home/lavender/epix/flood_field.smv epix port inttrigger 0x1 0x18 /home/lavender/epix/pinhole.uca /home/lavender/ad_tests/gmask/biggap2.smvo

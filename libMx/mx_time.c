@@ -31,6 +31,10 @@
   #include <windows.h>
 #endif
 
+/* 26 is a magic number from the asctime_r and ctime_r man pages on Linux. */
+
+#define MX_TIME_BUFFER_LENGTH	26
+
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX)
@@ -77,7 +81,7 @@
 #if defined(MX_USE_NONE)
 
 /* We do not need to do anything for this case, since the thread-safe
- * functions are already defined.
+ * Posix time functions are already defined.
  */
 
 /*-------------------------------------------------------------------------*/
@@ -85,21 +89,48 @@
 #elif defined(MX_USE_LOCALTIME_S)
 
 MX_EXPORT char *
-asctime_r( const struct tm *, char * )
+asctime_r( const struct tm *tm_struct, char *buffer )
 {
-#error Fix asctime_r
+	errno_t os_status;
+
+	os_status = asctime_s( buffer, MX_TIME_BUFFER_LENGTH, tm_struct );
+
+	if ( os_status == 0 ) {
+		return buffer;
+	} else {
+		errno = os_status;
+		return NULL;
+	}
 }
 
 MX_EXPORT char *
-ctime_r( const time_t *, char * )
+ctime_r( const time_t *time_struct, char *buffer )
 {
-#error Fix ctime_r
+	errno_t os_status;
+
+	os_status = ctime_s( buffer, MX_TIME_BUFFER_LENGTH, time_struct );
+
+	if ( os_status == 0 ) {
+		return buffer;
+	} else {
+		errno = os_status;
+		return NULL;
+	}
 }
 
 MX_EXPORT struct tm *
-gmtime_r( const time_t *, struct tm * )
+gmtime_r( const time_t *time_struct, struct tm *tm_struct )
 {
-#error Fix gmtime_r
+	errno_t os_status;
+
+	os_status = gmtime_s( tm_struct, time_struct );
+
+	if ( os_status == 0 ) {
+		return tm_struct;
+	} else {
+		errno = os_status;
+		return NULL;
+	}
 }
 
 MX_EXPORT struct tm *
@@ -112,8 +143,6 @@ localtime_r( const time_t *time_struct, struct tm *tm_struct )
 	if ( os_status == 0 ) {
 		return tm_struct;
 	} else {
-		/* Pass the value of errno back to our caller.*/
-
 		errno = os_status;
 		return NULL;
 	}
@@ -136,10 +165,8 @@ asctime_r( const struct tm *tm_struct, char *buffer )
 	
 	ptr = asctime( tm_struct );
 
-	/* 26 is a magic number from the asctime_r man page on Linux. */
-
 	if ( buffer != NULL ) {
-		memcpy( buffer, ptr, 26 );
+		memcpy( buffer, ptr, MX_TIME_BUFFER_LENGTH );
 	}
 
 	return ptr;
@@ -158,10 +185,8 @@ ctime_r( const time_t *time_struct, char *buffer )
 	
 	ptr = ctime( time_struct );
 
-	/* 26 is a magic number from the ctime_r man page on Linux. */
-
 	if ( buffer != NULL ) {
-		memcpy( buffer, ptr, 26 );
+		memcpy( buffer, ptr, MX_TIME_BUFFER_LENGTH );
 	}
 
 	return ptr;

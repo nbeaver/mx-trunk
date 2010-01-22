@@ -51,6 +51,42 @@
 
 /*-------------------------------------------------------------------------*/
 
+#if defined( OS_WIN32 ) && defined( _MSC_VER ) && ( _MSC_VER >= 1400 )
+
+/* For Visual C++, we define a custom invalid parameter handler that
+ * generates a message and then attempts to continue execution.
+ */
+
+#if defined( _DEBUG )
+  #include <crtdbg.h>
+#endif
+
+static void
+mxp_msc_invalid_parameter_handler( const wchar_t* expression,
+				const wchar_t* function,
+				const wchar_t* file,
+				unsigned int line,
+				uintptr_t pReserved )
+{
+	wprintf(L"MX Visual C++ invalid parameter handler invoked.\n" );
+
+#if defined( _DEBUG )
+	wprintf(L"  Invalid parameter detected in function %s."
+		L"  File: %s Line %d\n",
+			function, file, line );
+
+	wprintf(L"  Expression: %s\n", expression );
+#endif
+
+	wprintf(L"  Warning: This program may behave strangely "
+		L"after this point.\n" );
+
+}
+
+#endif
+
+/*--------*/
+
 /* mx_initialize_runtime() sets up the parts of the MX runtime environment
  * that do not depend on the presence of an MX database.
  */
@@ -131,6 +167,25 @@ mx_initialize_runtime( void )
 #if defined( SIGPIPE )
 	signal( SIGPIPE, SIG_IGN );
 #endif
+
+#if defined( OS_WIN32 ) && defined( _MSC_VER ) && ( _MSC_VER >= 1400 )
+
+	/* Intercept the Microsoft invalid parameter handler. */
+
+	{
+		_invalid_parameter_handler old_handler, new_handler;
+
+		new_handler = mxp_msc_invalid_parameter_handler;
+
+		old_handler = _set_invalid_parameter_handler( new_handler );
+
+#if defined( _DEBUG )
+		_CrtSetReportMode( _CRT_ASSERT, 0 );
+#endif
+	}
+#endif
+
+	/* Initialize MX realtime signal management. */
 
 #if defined( _POSIX_REALTIME_SIGNALS )
 	mx_status = mx_signal_initialize();
