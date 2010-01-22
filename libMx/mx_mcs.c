@@ -358,9 +358,11 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->new_data_available = TRUE;
 
-	mcs->clear_deadband = 0.1;		/* in seconds */
+	mcs->clear_deadband = 0;		/* in seconds */
 
+#if 0
 	status = mx_mcs_set_parameter( mcs_record, MXLV_MCS_CLEAR_DEADBAND );
+#endif
 
 	return status;
 }

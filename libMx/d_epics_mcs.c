@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -173,9 +173,28 @@ mxd_epics_mcs_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epics_mcs_finish_record_initialization( MX_RECORD *record )
 {
+	static const char fname[]
+		= "mxd_epics_mcs_finish_record_initialization()";
+
+	MX_MCS *mcs;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mcs = (MX_MCS *) (record->record_class_struct);
+
+	if ( mcs == (MX_MCS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCS pointer for MCS record '%s' is NULL.",
+			record->name );
+	}
+
+	mcs->clear_deadband = 0.1;		/* in seconds */
+
+	mx_status = mx_mcs_set_parameter( record, MXLV_MCS_CLEAR_DEADBAND );
 
 	return mx_status;
 }
