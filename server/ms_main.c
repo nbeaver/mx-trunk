@@ -393,7 +393,7 @@ mxserver_main( int argc, char *argv[] )
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, network_debug, poll_all;
 	mx_bool_type enable_remote_breakpoint;
-	mx_bool_type wait_for_debugger;
+	mx_bool_type wait_for_debugger, just_in_time_debugging;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -477,6 +477,7 @@ mxserver_main( int argc, char *argv[] )
 	enable_remote_breakpoint = FALSE;
 
 	wait_for_debugger = FALSE;
+	just_in_time_debugging = FALSE;
 
 	poll_all = FALSE;
 
@@ -486,7 +487,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:kl:L:n:p:P:rsStu:wZ")) != -1)
+		"Aab:cC:d:De:E:f:Jkl:L:n:p:P:rsStu:wZ")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -539,6 +540,9 @@ mxserver_main( int argc, char *argv[] )
                 case 'f':
                         strlcpy( mx_database_filename,
 					optarg, MXU_FILENAME_LENGTH );
+                        break;
+		case 'J':
+			just_in_time_debugging = TRUE;
                         break;
 		case 'k':
 			enable_callbacks = FALSE;
@@ -608,8 +612,14 @@ mxserver_main( int argc, char *argv[] )
         }
 
 	if ( start_debugger ) {
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
+
 		mx_start_debugger( NULL );
+	} else
+	if ( just_in_time_debugging ) {
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
 	}
+
 	if ( wait_for_debugger ) {
 		mx_wait_for_debugger();
 	}

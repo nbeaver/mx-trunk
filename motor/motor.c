@@ -155,7 +155,7 @@ motor_main( int argc, char *argv[] )
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
-	mx_bool_type wait_for_debugger;
+	mx_bool_type wait_for_debugger, just_in_time_debugging;
 
 	static char
 	    scan_savefile_array[ MAX_SCAN_SAVEFILES ][ MXU_FILENAME_LENGTH+1 ];
@@ -210,8 +210,8 @@ motor_main( int argc, char *argv[] )
 	ignore_scan_savefiles = FALSE;
 
 	start_debugger = FALSE;
-
 	wait_for_debugger = FALSE;
+	just_in_time_debugging = FALSE;
 
 	network_debug = FALSE;
 
@@ -220,7 +220,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iNnP:p:S:s:tuwz")) != -1 ) {
+	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iJNnP:p:S:s:tuwz")) != -1 ) {
 		switch (c) {
 		case 'A':
 			network_debug = TRUE;
@@ -249,6 +249,9 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 'i':
 			run_startup_scripts = FALSE;
+			break;
+		case 'J':
+			just_in_time_debugging = TRUE;
 			break;
 		case 'n':
 			motor_exit_save_policy = EXIT_NO_PROMPT_ALWAYS_SAVE;
@@ -302,8 +305,14 @@ motor_main( int argc, char *argv[] )
 	}
 
 	if ( start_debugger ) {
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
+
 		mx_start_debugger( NULL );
+	} else
+	if ( just_in_time_debugging ) {
+		mx_prepare_for_debugging( NULL, just_in_time_debugging );
 	}
+
 	if ( wait_for_debugger ) {
 		mx_wait_for_debugger();
 	}

@@ -15,8 +15,11 @@
  *
  */
 
+#define DEBUG_DEBUGGER		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #if 0
  #include <string.h>
@@ -25,7 +28,6 @@
  #include <time.h>
  #include <float.h>
  #include <math.h>
- #include <signal.h>
  #include <sys/stat.h>
  #include <fcntl.h>
  #include <sys/types.h>
@@ -58,6 +60,12 @@
  #include "mx_signal.h"
  #include "mx_atomic.h"
 #endif
+
+/*-------------------------------------------------------------------------*/
+
+static mx_bool_type mx_just_in_time_debugging_enabled = FALSE;
+
+static char mx_debugger_command[MXU_FILENAME_LENGTH+1] = "";
 
 /*-------------------------------------------------------------------------*/
 
@@ -130,17 +138,22 @@ mx_standard_signal_error_handler( int signal_number )
 	mx_info( "CRASH: This program has died due to signal %s.\n",
 			signal_name );
 
-	mx_info( "Process id = %lu", mx_process_id() );
+	if ( mx_just_in_time_debugging_enabled ) {
+		mx_start_debugger(NULL);
+	} else {
+		mx_info( "Process id = %lu", mx_process_id() );
 
-	/* Print out the stack traceback. */
+		/* Print out the stack traceback. */
 
-	mx_stack_traceback();
+		mx_stack_traceback();
 
-	/* Try to force a core dump. */
+		/* Try to force a core dump. */
 
-	mx_info("Attempting to force a core dump in '%s'.", directory_name );
+		mx_info("Attempting to force a core dump in '%s'.",
+				directory_name );
 
-	mx_force_core_dump();
+		mx_force_core_dump();
+	}
 }
 
 /*-------------------------------------------------------------------------*/
@@ -281,6 +294,20 @@ mx_breakpoint( void )
 #if defined(OS_WIN32)
 
 MX_EXPORT void
+mx_prepare_for_debugging( char *command, int just_in_time_debugging )
+{
+	mx_just_in_time_debugging_enabled = FALSE;
+	mx_debugger_command[0] = '\0';
+
+	if ( just_in_time_debugging ) {
+		mx_just_in_time_debugging_enabled = TRUE;
+	} else {
+		mx_just_in_time_debugging_enabled = FALSE;
+	}
+	return;
+}
+
+MX_EXPORT void
 mx_start_debugger( char *command )
 {
 	fprintf(stderr,
@@ -297,19 +324,28 @@ mx_start_debugger( char *command )
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 
 MX_EXPORT void
-mx_start_debugger( char *command )
+mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 {
-	static const char fname[] = "mx_start_debugger()";
+	static const char fname[] = "mx_prepare_for_debugging()";
 
 	char terminal[80];
-	char command_line[80];
 	char *ptr;
-	unsigned long pid, spawn_flags;
+	unsigned long pid;
 	mx_bool_type x_windows_available;
-	mx_status_type mx_status;
 
 	static char unsafe_fmt[] =
     "Unsafe command line '%s' requested for %s.  The command will be ignored.";
+
+#if DEBUG_DEBUGGER
+	fprintf( stderr, "\n%s: command = '%s', just_in_time_debugging = %d\n",
+		fname, command, just_in_time_debugging );
+#endif
+
+	if ( just_in_time_debugging ) {
+		mx_just_in_time_debugging_enabled = TRUE;
+	} else {
+		mx_just_in_time_debugging_enabled = FALSE;
+	}
 
 	mx_debugger_started = TRUE;
 
@@ -337,7 +373,8 @@ mx_start_debugger( char *command )
 		ptr = strchr( command, '%' );
 
 		if ( ptr == NULL ) {
-			strlcpy( command_line, command, sizeof(command_line) );
+			strlcpy( mx_debugger_command, command,
+					sizeof(mx_debugger_command) );
 		} else {
 			/* If so, then we must check to see if the command
 			 * line is safe to use as a format string.
@@ -365,15 +402,16 @@ mx_start_debugger( char *command )
 			 * it to format the command to execute.
 			 */
 
-			snprintf( command_line, sizeof(command_line),
-						command, pid );
+			snprintf( mx_debugger_command,
+				sizeof(mx_debugger_command),
+					command, pid );
 		}
 	} else {
 		/* If no command line was specified, then we try several
 		 * commands in turn.
 		 */
 
-		command_line[0] = '\0';
+		mx_debugger_command[0] = '\0';
 
 		if ( getenv("DISPLAY") != NULL ) {
 			x_windows_available = TRUE;
@@ -398,42 +436,79 @@ mx_start_debugger( char *command )
 #if defined(OS_LINUX)
 			if ( mx_command_found( "ddd" ) ) {
 
-				snprintf( command_line, sizeof(command_line),
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
 					"ddd --gdb -p %lu", pid );
 			} else
 #endif
 #if defined(OS_SOLARIS)
 			if ( mx_command_found( "sunstudio" ) ) {
 
-				snprintf( command_line, sizeof(command_line),
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
 					"sunstudio -A %lu", pid );
 			} else
 #endif
 			if ( mx_command_found( "gdbtui" ) ) {
 
-				snprintf( command_line, sizeof(command_line),
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
 					"%s gdbtui -p %lu", terminal, pid );
 			} else
 			if ( mx_command_found( "gdb" ) ) {
 
-				snprintf( command_line, sizeof(command_line),
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
 					"%s gdb -p %lu", terminal, pid );
 			} else
 			if ( mx_command_found( "dbx" ) ) {
 
-				snprintf( command_line, sizeof(command_line),
+				snprintf( mx_debugger_command,
+					sizeof(mx_debugger_command),
 					"%s dbx - %lu", terminal, pid );
 			}
 		}
 	}
 
-	if ( command_line[0] != '\0' ) {
+	fprintf( stderr, "debugger command = '%s'\n",
+			mx_debugger_command );
+}
+
+MX_EXPORT void
+mx_start_debugger( char *command )
+{
+	unsigned long spawn_flags;
+	mx_status_type mx_status;
+
+	/* If we specify a new command line here, then we override any
+	 * previously specified debugger command line.
+	 */
+
+	if ( ( command != NULL ) || ( mx_debugger_command[0] == '\0' ) ) {
+
+#if DEBUG_DEBUGGER
+		fprintf( stderr,
+		"\nWarning: Replacing previous debugger command.\n" );
+#endif
+
+		mx_prepare_for_debugging( command,
+			mx_just_in_time_debugging_enabled );
+	}
+#if DEBUG_DEBUGGER
+	else {
+		fprintf( stderr,
+		"\nWarning: Keeping previous debugger command.\n" );
+	}
+#endif
+
+	if ( mx_debugger_command[0] != '\0' ) {
 
 		/* If a debugger has been found, start it. */
 
-		fprintf( stderr,
-		"\nWarning: Starting a debugger using the command '%s'.\n",
-			command_line );
+		fputs( "\nWarning: Starting a debugger using the command '",
+			stderr );
+		fputs( mx_debugger_command, stderr );
+		fputs( "'.\n", stderr );
 
 		spawn_flags = 0;
 
@@ -441,7 +516,7 @@ mx_start_debugger( char *command )
 		spawn_flags |= MXF_SPAWN_NO_PRELOAD;
 #endif
 
-		mx_status = mx_spawn( command_line, spawn_flags, NULL );
+		mx_status = mx_spawn( mx_debugger_command, spawn_flags, NULL );
 
 		/* See if starting the debugger succeeded. */
 
@@ -469,6 +544,19 @@ mx_start_debugger( char *command )
 }
 
 #else
+
+MX_EXPORT void
+mx_prepare_for_debugging( char *command, int just_in_time_debugging )
+{
+	mx_debugger_command[0] = '\0';
+	mx_just_in_time_debugging_enabled = FALSE;
+
+	fprintf(stderr, "\n"
+"Warning: Starting a debugger is not currently supported on this platform.\n"
+"         The request to start a debugger will be ignored.  Sorry...\n\n" );
+	fflush(stderr);
+	return;
+}
 
 MX_EXPORT void
 mx_start_debugger( char *command )

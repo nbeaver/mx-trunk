@@ -336,7 +336,8 @@ MX_API void mx_force_core_dump( void );
  * Warning: This feature is not implemented on all platforms.
  */
 
-MX_API int mx_prepare_for_debugging( char *command );
+MX_API void mx_prepare_for_debugging( char *command,
+				int just_in_time_debugging );
 
 MX_API void mx_start_debugger( char *command );
 
