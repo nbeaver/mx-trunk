@@ -124,12 +124,12 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
-PLATFORM_SDK = c:\\progra~1\\micros~4
+#PLATFORM_SDK = c:\\progra~1\\micros~4
 
-RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-MSDEV_DIR               = $(PLATFORM_SDK)
+#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#MSDEV_DIR               = $(PLATFORM_SDK)
 
 #---------------------------------------------------------------------------
 #

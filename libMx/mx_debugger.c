@@ -21,45 +21,15 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#if 0
- #include <string.h>
- #include <ctype.h>
- #include <errno.h>
- #include <time.h>
- #include <float.h>
- #include <math.h>
- #include <sys/stat.h>
- #include <fcntl.h>
- #include <sys/types.h>
-#endif
-
 #include "mx_osdef.h"
 
-#if 0
- #if defined( OS_WIN32 )
- #include <windows.h>
- #include <winsock.h>
- #include <winerror.h>
- #include <direct.h>
- #endif
-
- #if defined( OS_UNIX ) || defined( OS_CYGWIN )
- #include <sys/time.h>
- #include <pwd.h>
- #endif
+#if defined( OS_WIN32 )
+#include <windows.h>
 #endif
 
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
-
-#if 0
- #include "mx_time.h"
- #include "mx_hrt.h"
- #include "mx_record.h"
- #include "mx_signal.h"
- #include "mx_atomic.h"
-#endif
 
 /*-------------------------------------------------------------------------*/
 
