@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_DEBUGGER		TRUE
+#define DEBUG_DEBUGGER		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,15 +138,15 @@ mx_standard_signal_error_handler( int signal_number )
 	mx_info( "CRASH: This program has died due to signal %s.\n",
 			signal_name );
 
+	mx_info( "Process id = %lu", mx_process_id() );
+
+	/* Print out the stack traceback. */
+
+	mx_stack_traceback();
+
 	if ( mx_just_in_time_debugging_enabled ) {
 		mx_start_debugger(NULL);
 	} else {
-		mx_info( "Process id = %lu", mx_process_id() );
-
-		/* Print out the stack traceback. */
-
-		mx_stack_traceback();
-
 		/* Try to force a core dump. */
 
 		mx_info("Attempting to force a core dump in '%s'.",
@@ -470,8 +470,10 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 		}
 	}
 
+#if DEBUG_DEBUGGER
 	fprintf( stderr, "debugger command = '%s'\n",
 			mx_debugger_command );
+#endif
 }
 
 MX_EXPORT void

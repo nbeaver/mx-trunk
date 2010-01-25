@@ -1541,9 +1541,16 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 	pthread_status = pthread_setspecific( mx_current_thread_key, NULL );
 
+#if 1
+	/* FIXME - FIXME - FIXME:  Commenting out these two statements
+	 * stops the MX server from crashing under Electric Fence, but
+	 * it results in a memory leak!
+	 */
+
 	mx_free( thread_private );
 
 	mx_free( thread );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
