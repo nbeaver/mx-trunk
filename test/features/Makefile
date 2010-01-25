@@ -1,6 +1,6 @@
 # Note that the ifeq directive below assumes that we are using GNU make.
 
-MX_ARCH = linux
+MX_ARCH = macosx
 
 #------------------------------------------------------------
 
