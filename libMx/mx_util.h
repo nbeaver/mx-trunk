@@ -336,6 +336,8 @@ MX_API void mx_force_core_dump( void );
  * Warning: This feature is not implemented on all platforms.
  */
 
+MX_API int mx_prepare_for_debugging( char *command );
+
 MX_API void mx_start_debugger( char *command );
 
 MX_API int mx_debugger_is_present( void );
@@ -778,9 +780,7 @@ MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
 
 /* Flags for mx_spawn() */
 
-#define MXF_SPAWN_SUSPEND_CHILD		0x1
-#define MXF_SPAWN_SUSPEND_PARENT	0x2
-#define MXF_SPAWN_NO_PRELOAD		0x4
+#define MXF_SPAWN_NO_PRELOAD		0x1
 
 MX_API mx_status_type mx_spawn( char *command_line,
 				unsigned long flags,

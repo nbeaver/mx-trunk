@@ -41,7 +41,7 @@ mx_spawn( char *command_line,
 	static const char fname[] = "mx_spawn()";
 
 	pid_t fork_pid, parent_pid, child_pid;
-	int result, saved_errno, os_status;
+	int result, saved_errno;
 	int i, argc, envc;
 	char **argv, **envp;
 
@@ -54,7 +54,7 @@ mx_spawn( char *command_line,
 	MX_DEBUG(-2,("%s: command_line = '%s'", fname, command_line));
 #endif
 
-	parent_pid = (pid_t) mx_process_id();
+	parent_pid = getpid();
 
 	/* Create the child process. */
 
@@ -72,64 +72,12 @@ mx_spawn( char *command_line,
 
 		/********** Child process. **********/
 
-		child_pid = (pid_t) mx_process_id();
+		child_pid = getpid();
 
 #if MX_SPAWN_DEBUG
 		MX_DEBUG(-2,("%s: This is child process %lu.",
 			fname, (unsigned long) child_pid ));
 #endif
-
-		/*--------------------------------------------------------*/
-
-		/* If requested, suspend the parent. */
-
-		if ( flags & MXF_SPAWN_SUSPEND_PARENT ) {
-
-#if MX_SPAWN_DEBUG
-			MX_DEBUG(-2,("%s: Child %lu suspending parent %lu",
-				fname, (unsigned long) child_pid,
-				(unsigned long) parent_pid ));
-#endif
-
-			os_status = kill( parent_pid, SIGSTOP );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt by child process %lu to send a SIGSTOP signal to "
-		"parent process %lu failed.  Errno = %d, error message = '%s'.",
-					(unsigned long) child_pid,
-					(unsigned long) parent_pid,
-					saved_errno, strerror( saved_errno ) );
-			}
-		}
-
-		/*--------------------------------------------------------*/
-
-		/* If requested, suspend the child itself. */
-
-		if ( flags & MXF_SPAWN_SUSPEND_CHILD ) {
-
-#if MX_SPAWN_DEBUG
-			MX_DEBUG(-2,("%s: Child %lu suspending itself.",
-				fname, (unsigned long) child_pid));
-#endif
-
-			os_status = raise( SIGSTOP );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt by child process %lu to send a SIGSTOP signal to "
-		"itself failed.  Errno = %d, error message = '%s'.",
-					(unsigned long) child_pid,
-					saved_errno, strerror( saved_errno ) );
-			}
-		}
 
 #if defined(OS_LINUX)
 		/*--------------------------------------------------------*/
@@ -165,7 +113,7 @@ mx_spawn( char *command_line,
 
 			if ( i >= max_attempts ) {
 				mx_warning(
-    "%s: %d attempt to remove LD_PRELOAD from the environment have failed.",
+    "%s: %d attempts to remove LD_PRELOAD from the environment have failed.",
 					fname, max_attempts );
 			}
 		}
@@ -265,54 +213,6 @@ mx_spawn( char *command_line,
 #endif
 
 		child_pid = fork_pid;
-
-		/* If requested, suspend the child. */
-
-		if ( flags & MXF_SPAWN_SUSPEND_CHILD ) {
-
-#if MX_SPAWN_DEBUG
-			MX_DEBUG(-2,("%s: Parent %lu suspending child %lu",
-				fname, (unsigned long) parent_pid,
-				(unsigned long) child_pid ));
-#endif
-
-			os_status = kill( child_pid, SIGSTOP );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt by parent process %lu to send a SIGSTOP signal to "
-		"child process %lu failed.  Errno = %d, error message = '%s'.",
-					(unsigned long) parent_pid,
-					(unsigned long) child_pid,
-					saved_errno, strerror( saved_errno ) );
-			}
-		}
-
-		/* If requested, suspend the parent itself. */
-
-		if ( flags & MXF_SPAWN_SUSPEND_PARENT ) {
-
-#if MX_SPAWN_DEBUG
-			MX_DEBUG(-2,("%s: Parent %lu suspending itself.",
-				fname, (unsigned long) parent_pid));
-#endif
-
-			os_status = raise( SIGSTOP );
-
-			if ( os_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt by parent process %lu to send a SIGSTOP signal to "
-		"itself failed.  Errno = %d, error message = '%s'.",
-					(unsigned long) parent_pid,
-					saved_errno, strerror( saved_errno ) );
-			}
-		}
 
 		/* Send the child PID to the caller if requested. */
 

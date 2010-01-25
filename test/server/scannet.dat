@@ -2,4 +2,4 @@ test                             scan linear_scan motor_scan "" "" 1 1 1  theta 
 omegascan                        scan linear_scan motor_scan "" "" 1 1 1  omega 1  scaler2  0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  -10  1  21
 Nbxafs_test                      scan xafs_scan_class xafs_scan "" "" 1 0 0  1  scaler2  0 0.1 preset_time "0 timer1" xafs Ndunksamp7.020 gnuxafs $f[0] 6 4 2 7  -1500 -100 -20 15 30 8 12  1000 5 3 5 1 1  0.1 0.1 0.1 0.1 0.1 0.1
 timescan                         scan linear_scan motor_scan "" "" 1 1 1  time 3  theta omega time  0 0 preset_time "0.1 timer1" text timescan.out gnuplot $f[0]  0  1  1000001
-energyscan                       scan linear_scan motor_scan "" "" 1 1 1  energy 2  scaler2 time  0 0 preset_time "1 timer1" sff energyscan.out gnuplot $f[1]  8000  100  11
+energyscan                       scan linear_scan motor_scan "" "" 1 1 1  energy 2  scaler2 time  0 0 preset_time "1 timer1" sff energyscan.308 gnuplot $f[1]  8000  100  11
