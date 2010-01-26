@@ -900,4 +900,8 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 }
 #endif
 
+#if defined(DMALLOC)
+#include "dmalloc.h"
+#endif
+
 #endif /* __MX_UTIL_H__ */

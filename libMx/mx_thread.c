@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1550,6 +1550,10 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 	mx_free( thread_private );
 
 	mx_free( thread );
+#else
+	mx_free_pointer( thread_private );
+
+	mx_free_pointer( thread );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

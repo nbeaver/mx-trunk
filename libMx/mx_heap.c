@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007-2008 Illinois Institute of Technology
+ * Copyright 2004-2005, 2007-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,6 +47,42 @@ mx_heap_pointer_is_valid( void *pointer )
 		return FALSE;
 	} else {
 		return HeapValidate( GetProcessHeap(), 0, pointer );
+	}
+}
+
+#elif defined(DMALLOC)
+
+/* This uses the dmalloc malloc() debugger from http://dmalloc.com/  */
+
+MX_EXPORT int
+mx_heap_pointer_is_valid( void *pointer )
+{
+	DMALLOC_SIZE user_size;
+	DMALLOC_SIZE total_size;
+	char *filename;
+	unsigned int line_number;
+	DMALLOC_PNT return_address;
+	unsigned long user_mark;
+	unsigned long num_times_seen;
+	int status;
+
+	status = dmalloc_examine( pointer, &user_size, &total_size,
+			&filename, &line_number, &return_address,
+			&user_mark, &num_times_seen );
+
+	MX_DEBUG(-2,
+	("dmalloc_examine(): status = %d, ptr = %p, us = %lu, ts = %lu, "
+	"file = '%s', line = %d, ra = %p, um = %lu, seen = %lu",
+		status, pointer,
+		(unsigned long) user_size,
+		(unsigned long) total_size,
+		filename, line_number, return_address,
+		user_mark, num_times_seen));
+
+	if ( status == DMALLOC_NOERROR ) {
+		return TRUE;
+	} else {
+		return FALSE;
 	}
 }
 

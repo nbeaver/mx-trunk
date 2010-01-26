@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,6 +247,8 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 #if MX_POINTER_DEBUG
 	MX_DEBUG(-2,("%s: valid = %d", fname, valid));
 #endif
+
+	fclose(file);
 
 	return valid;
 }

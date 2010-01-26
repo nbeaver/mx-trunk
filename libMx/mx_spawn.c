@@ -17,6 +17,7 @@
 #define MX_SPAWN_DEBUG		FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_osdef.h"
 

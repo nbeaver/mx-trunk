@@ -143,6 +143,14 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 	d_pdi45_pulser.c v_mathop.c
 
 #--------------------------------------------------------------------------
+
+# If you want to use the dmalloc debugging package from http://dmalloc.com/,
+# uncomment the following statements.
+
+#CFLAGS += -DDMALLOC -DDMALLOC_FUNC_CHECK
+#LIBRARIES += -ldmallocth
+
+#--------------------------------------------------------------------------
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.

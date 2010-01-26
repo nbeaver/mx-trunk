@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,8 @@
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
 
