@@ -85,6 +85,6 @@ include Makefile.depend
 # List targets with non-standard rules or dependencies.
 #
 
-ms_main.$(OBJ):
+ms_main.$(OBJ): ms_main.c
 	$(COMPILE) $(CFLAGS_EPICS) $(EPICS_INCLUDES) ms_main.c
 

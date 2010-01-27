@@ -309,10 +309,8 @@ mxsrv_poll_all( void )
 
 /*------------------------------------------------------------------*/
 
-#if MS_MAIN_DEBUG_MEMORY_LEAK
-
 static void
-mxsrv_display_meminfo( int initialize_flag )
+mxsrv_display_resource_usage( int initialize_flag, double event_interval )
 {
 	static MX_CLOCK_TICK next_event_tick, event_interval_in_ticks;
 
@@ -323,7 +321,7 @@ mxsrv_display_meminfo( int initialize_flag )
 
 	if ( initialize_flag ) {
 		event_interval_in_ticks =
-			mx_convert_seconds_to_clock_ticks( 1.0 );
+			mx_convert_seconds_to_clock_ticks( event_interval );
 
 		next_event_tick = mx_current_clock_tick();
 
@@ -356,8 +354,6 @@ mxsrv_display_meminfo( int initialize_flag )
 	}
 	return;
 }
-
-#endif
 
 /*------------------------------------------------------------------*/
 
@@ -394,6 +390,8 @@ mxserver_main( int argc, char *argv[] )
 	int bypass_signal_handlers, network_debug, poll_all;
 	mx_bool_type enable_remote_breakpoint;
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
+	mx_bool_type monitor_resources;
+	double resource_monitor_interval;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -479,6 +477,9 @@ mxserver_main( int argc, char *argv[] )
 	wait_for_debugger = FALSE;
 	just_in_time_debugging = FALSE;
 
+	monitor_resources = FALSE;
+	resource_monitor_interval = -1.0;	/* in seconds */
+
 	poll_all = FALSE;
 
 #if HAVE_GETOPT
@@ -487,7 +488,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:Jkl:L:n:p:P:rsStu:wZ")) != -1)
+		"Aab:cC:d:De:E:f:Jkl:L:m:n:p:P:rsStu:wZ")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -558,6 +559,10 @@ mxserver_main( int argc, char *argv[] )
 			syslog_options = MXF_SYSLOG_USE_STDERR;
 
 			syslog_number = atoi( optarg );
+			break;
+		case 'm':
+			monitor_resources = TRUE;
+			resource_monitor_interval = atof( optarg );
 			break;
 		case 'n':
 			delay_microseconds = atoi( optarg);
@@ -1018,9 +1023,9 @@ mxserver_main( int argc, char *argv[] )
 		"per operation.", delay_microseconds );
 	}
 
-#if MS_MAIN_DEBUG_MEMORY_LEAK
-	mxsrv_display_meminfo( TRUE );
-#endif
+	if ( monitor_resources ) {
+		mxsrv_display_resource_usage( TRUE, resource_monitor_interval );
+	}
 
 	/************ Primary event loop *************/
 
@@ -1028,9 +1033,9 @@ mxserver_main( int argc, char *argv[] )
 
 	for (;;) {
 
-#if MS_MAIN_DEBUG_MEMORY_LEAK
-		mxsrv_display_meminfo( FALSE );
-#endif
+		if ( monitor_resources ) {
+			mxsrv_display_resource_usage( FALSE, -1.0 );
+		}
 
 #if 0
 		/* If compiled in, this code acts as an intentional
@@ -1045,21 +1050,6 @@ mxserver_main( int argc, char *argv[] )
 		mx_sleep(1);
 #endif
 
-#if 0
-		/* Some test code for memory leak checking. */
-
-		while(1) {
-			mxsrv_display_meminfo( FALSE );
-#if defined(OS_WIN32)
-			Sleep(1000);
-#else
-			mx_sleep(1);
-#endif
-		}
-
-		/* End of memory leak checking test code. */
-#endif
-
 		/* If for some reason we need to slow down the event loop,
 		 * specify a positive number for delay_microseconds via 
 		 * the -n command line argument for the MX server.
@@ -1072,10 +1062,6 @@ mxserver_main( int argc, char *argv[] )
 		if ( delay_microseconds > 0 ) {
 			mx_usleep( (unsigned long) delay_microseconds );
 		}
-
-#if 0
-		MX_DEBUG(-2,("%s: Top of event loop.", fname));
-#endif
 
 		/* Initialize the arguments to select(). */
 
