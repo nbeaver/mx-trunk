@@ -29,10 +29,19 @@ typedef struct {
 	FILE *from_coprocess;
 	FILE *to_coprocess;
 	unsigned long coprocess_pid;
+
+	void *private;
 } MX_COPROCESS;
 
+/* Bitmap bits for the 'flags' argument. */
+
+#define MXF_CP_CREATE_PROCESS_GROUP	0x1
+
+/*---*/
+
 MX_API mx_status_type mx_coprocess_open( MX_COPROCESS **coprocess,
-						char *command_line );
+						char *command_line,
+						unsigned long flags );
 
 MX_API mx_status_type mx_coprocess_close( MX_COPROCESS *coprocess,
 						double timeout );

@@ -92,7 +92,8 @@ mxp_gnuplot_open( MX_PLOT *plot )
 #endif
 
 	mx_status = mx_coprocess_open( &(gnuplot_data->coprocess),
-					MXP_PLOTGNU_COMMAND );
+					MXP_PLOTGNU_COMMAND,
+					MXF_CP_CREATE_PROCESS_GROUP );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

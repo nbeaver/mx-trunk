@@ -41,7 +41,9 @@
 #include <signal.h>
 
 MX_EXPORT mx_status_type
-mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
+mx_coprocess_open( MX_COPROCESS **coprocess,
+			char *command_line,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_coprocess_open()";
 
@@ -546,12 +548,194 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 #include <stddef.h>
 #include <fcntl.h>
 
+static mx_bool_type job_objects_are_available = TRUE;
+
+/*------------------------*/
+
+static HINSTANCE hinst_kernel32 = NULL;
+
+typedef BOOL (*IsProcessInJob_type)( HANDLE, HANDLE, PBOOL );
+
+static IsProcessInJob_type pIsProcessInJob = NULL;
+
+typedef HANDLE (*CreateJobObject_type)( LPSECURITY_ATTRIBUTES, LPCTSTR );
+
+static CreateJobObject_type pCreateJobObject = NULL;
+
+typedef BOOL (*AssignProcessToJobObject_type)( HANDLE, HANDLE );
+
+static AssignProcessToJobObject_type pAssignProcessToJobObject = NULL;
+
+typedef BOOL (*TerminateJobObject_type)( HANDLE, UINT );
+
+static TerminateJobObject_type pTerminateJobObject = NULL;
+
+/*------------------------*/
+
+static HANDLE
+mxp_coprocess_create_job_object( HANDLE child_process_handle )
+{
+	static const char fname[] = "mxp_coprocess_create_job_object()";
+
+	HANDLE job_object;
+	BOOL status, already_in_job;
+	static mx_bool_type already_in_job_warning_seen = FALSE;
+	char job_object_name[100];
+	DWORD last_error_code;
+	TCHAR error_message[100];
+	mx_status_type mx_status;
+
+	if ( job_objects_are_available == FALSE )
+		return NULL;
+
+	/* Job objects are only supported on Windows 2000 and above, so we
+	 * must try to dynamically find the functions that support them.
+	 */
+
+	if ( hinst_kernel32 == NULL ) {
+		hinst_kernel32 = LoadLibrary(TEXT("kernel32.dll"));
+
+		if ( hinst_kernel32 == NULL ) {
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		    "Cannot load KERNEL32.DLL.  This should _NEVER_ happen.");
+
+			job_objects_are_available = FALSE;
+			return NULL;
+		}
+	}
+
+	/*---*/
+
+	if ( pIsProcessInJob == NULL ) {
+		pIsProcessInJob = (IsProcessInJob_type) GetProcAddress(
+				hinst_kernel32, TEXT("IsProcessInJob") );
+
+		if ( pIsProcessInJob == NULL ) {
+			job_objects_are_available = FALSE;
+			return NULL;
+		}
+	}
+
+	/*---*/
+
+	if ( pCreateJobObject == NULL ) {
+		pCreateJobObject = (CreateJobObject_type) GetProcAddress(
+				hinst_kernel32, TEXT("CreateJobObjectA") );
+
+		if ( pCreateJobObject == NULL ) {
+			job_objects_are_available = FALSE;
+			return NULL;
+		}
+	}
+
+	/*---*/
+
+	if ( pAssignProcessToJobObject == NULL ) {
+		pAssignProcessToJobObject =
+			(AssignProcessToJobObject_type) GetProcAddress(
+			hinst_kernel32, TEXT("AssignProcessToJobObject") );
+
+		if ( pAssignProcessToJobObject == NULL ) {
+			job_objects_are_available = FALSE;
+			return NULL;
+		}
+	}
+
+	/*---*/
+
+	if ( pTerminateJobObject == NULL ) {
+		pTerminateJobObject = (TerminateJobObject_type) GetProcAddress(
+				hinst_kernel32, TEXT("TerminateJobObject") );
+
+		if ( pTerminateJobObject == NULL ) {
+			job_objects_are_available = FALSE;
+			return NULL;
+		}
+	}
+
+	/* We cannot assign children to a new job if we are already in a job. */
+
+	status = pIsProcessInJob( GetCurrentProcess(), NULL, &already_in_job );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			error_message, sizeof(error_message) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The call to IsProcessInJob() failed.  "
+		"error code = %lu, error message = '%s'.",
+			last_error_code, error_message );
+	}
+
+	if ( already_in_job ) {
+		if ( already_in_job_warning_seen == FALSE ) {
+			mx_warning( "The current process is already a member "
+			"of a Win32 job, so we cannot put the coprocess into "
+			"a separate job.  We will not be able to kill all "
+			"children of the coprocess." );
+
+			already_in_job_warning_seen = TRUE;
+		}
+		return NULL;
+	}
+
+	/* We must create a unique name for the job object, since 
+	 * CreateJobObject() will fail if the name is not unique.
+	 */
+
+	snprintf( job_object_name, sizeof(job_object_name),
+		"MX_Job_%lu", GetCurrentProcessId() );
+
+	job_object = pCreateJobObject( NULL, job_object_name );
+
+	if ( job_object == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			error_message, sizeof(error_message) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to create a job object failed.  "
+		"error code = %lu, error message = '%s'.",
+			last_error_code, error_message );
+	}
+
+	/* We finish by assigning the new child process to a job. */
+
+	status = pAssignProcessToJobObject( job_object, child_process_handle );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			error_message, sizeof(error_message) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to assign child process %lu to job %p failed.  "
+		"error code = %lu, error message = '%s'.",
+			GetProcessId( child_process_handle ), job_object,
+			last_error_code, error_message );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: Assigned child process %lu to job %p.",
+		fname, GetProcessId( child_process_handle), job_object ));
+#endif
+
+	return job_object;
+}
+
 MX_EXPORT mx_status_type
-mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
+mx_coprocess_open( MX_COPROCESS **coprocess,
+			char *command_line,
+			unsigned long flags )
 {
 	static const char fname[] = "mx_coprocess_open()";
 
 	BOOL os_status;
+	DWORD resume_status;
 	STARTUPINFO startup_info;
 	PROCESS_INFORMATION process_info;
 	DWORD creation_flags;
@@ -853,11 +1037,11 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 
 	memset( &process_info, 0, sizeof(process_info) );
 
-#if 1
 	creation_flags = 0;
-#else
-	creation_flags = CREATE_NEW_PROCESS_GROUP; /* FIXME: Do we want this? */
-#endif
+
+	if ( flags & MXF_CP_CREATE_PROCESS_GROUP ) {
+		creation_flags |= CREATE_SUSPENDED;
+	}
 
 #if DEBUG_COPROCESS
 	MX_DEBUG(-2,("%s: creating the coprocess.", fname));
@@ -895,6 +1079,43 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 		fname, (*coprocess)->coprocess_pid));
 #endif
 
+	/* If the MXF_CP_CREATE_PROCESS_GROUP flag was set, then we create
+	 * a Windows job object, since that is a more useful concept on
+	 * the Win32 platform.
+	 */
+
+	if ( (flags & MXF_CP_CREATE_PROCESS_GROUP) == 0 ) {
+		(*coprocess)->private = NULL;
+	} else {
+		(*coprocess)->private = mxp_coprocess_create_job_object(
+						process_info.hProcess );
+
+		/* Regardless of whether or not a job object was created,
+		 * we must now resume the process.
+		 */
+
+		resume_status = ResumeThread( process_info.hThread );
+
+		if ( resume_status == -1 ) {
+			last_error_code = GetLastError();
+
+			MXCP_CLOSE_HANDLES;
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to resume suspended coprocess %lu.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				(*coprocess)->coprocess_pid,
+				last_error_code, message_buffer );
+		}
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: job object = %p", fname, (*coprocess)->private ));
+#endif
+
 	/* Close some handles we do not need to prevent a memory leak. */
 
 	CloseHandle( process_info.hProcess );
@@ -906,6 +1127,41 @@ mx_coprocess_open( MX_COPROCESS **coprocess, char *command_line )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static void
+mxp_coprocess_kill_job( HANDLE job_object )
+{
+	static const char fname[] = "mxp_coprocess_kill_job()";
+
+	BOOL terminate_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( job_object == NULL )
+		return;
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s: deleting job object %p", fname, job_object));
+#endif
+
+	terminate_status = pTerminateJobObject( job_object, 0 );
+
+	if ( terminate_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to terminate job %p.  "
+		"Error code = %lu, error message = '%s'.",
+			job_object, last_error_code, message_buffer );
+	}
+
+	CloseHandle( job_object );
+
+	return;
+}
+
 MX_EXPORT mx_status_type
 mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 {
@@ -913,7 +1169,7 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 
 	unsigned long coprocess_pid;
 	HANDLE coprocess_handle;
-	HANDLE read_handle, write_handle;
+	HANDLE job_object;
 	DWORD timeout_ms;
 	DWORD wait_status;
 	BOOL terminate_status;
@@ -931,24 +1187,20 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 	/* Close the coprocess FILE objects. */
 
 	if ( coprocess->from_coprocess != NULL ) {
-		read_handle = (HANDLE) (intptr_t)
-			_get_osfhandle( _fileno( coprocess->from_coprocess ) );
-
-		CloseHandle( read_handle );
-
 		fclose( coprocess->from_coprocess );
 	}
 
 	if ( coprocess->to_coprocess != NULL ) {
-		write_handle = (HANDLE) (intptr_t)
-			_get_osfhandle( _fileno( coprocess->to_coprocess ) );
-
-		CloseHandle( write_handle );
-
 		fclose( coprocess->to_coprocess );
 	}
 
 	coprocess_pid = coprocess->coprocess_pid;
+
+	if ( job_objects_are_available ) {
+		job_object = coprocess->private;
+	} else {
+		job_object = NULL;
+	}
 
 	mx_free( coprocess );
 
@@ -966,9 +1218,14 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
+		if ( job_object != NULL ) {
+			mxp_coprocess_kill_job( job_object );
+		}
+
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to get a process handle for process id %lu.",
-			coprocess_pid );
+		"Unable to get a process handle for process id %lu.  "
+		"Error code = %lu, error message = '%s'.",
+			coprocess_pid, last_error_code, message_buffer );
 	}
 
 #if DEBUG_COPROCESS
@@ -988,6 +1245,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		(void) WaitForSingleObject( coprocess_handle, INFINITE );
 
 		CloseHandle( coprocess_handle );
+
+		if ( job_object != NULL ) {
+			mxp_coprocess_kill_job( job_object );
+		}
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -1012,6 +1273,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 #endif
 		CloseHandle( coprocess_handle );
 
+		if ( job_object != NULL ) {
+			mxp_coprocess_kill_job( job_object );
+		}
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -1030,6 +1295,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 			message_buffer, sizeof(message_buffer) );
 
 		CloseHandle( coprocess_handle );
+
+		if ( job_object != NULL ) {
+			mxp_coprocess_kill_job( job_object );
+		}
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to terminate process id %lu.  "
@@ -1058,6 +1327,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 #endif
 		CloseHandle( coprocess_handle );
 
+		if ( job_object != NULL ) {
+			mxp_coprocess_kill_job( job_object );
+		}
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -1071,6 +1344,10 @@ mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
 		mx_warning("%s: Coprocess %lu was terminated "
 			"%g seconds ago, but has not died.",
 			fname, coprocess_pid, wait_time );
+	}
+
+	if ( job_object != NULL ) {
+		mxp_coprocess_kill_job( job_object );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
