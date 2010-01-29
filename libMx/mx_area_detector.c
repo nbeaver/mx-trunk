@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2469,8 +2469,12 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
-	MX_DEBUG(-2,("%s: last_frame_number = %ld",
-		fname, ad->last_frame_number));
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
+	"correction_measurement_in_progress = %d, correction_measurement = %p",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
+		ad->correction_measurement_in_progress,
+		ad->correction_measurement));
 #endif
 
 	if ( last_frame_number != NULL ) {
@@ -2518,8 +2522,12 @@ mx_area_detector_get_total_num_frames( MX_RECORD *record,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
-	MX_DEBUG(-2,("%s: total_num_frames = %ld",
-		fname, ad->total_num_frames));
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
+	"correction_measurement_in_progress = %d, correction_measurement = %p",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
+		ad->correction_measurement_in_progress,
+		ad->correction_measurement));
 #endif
 
 	if ( total_num_frames != NULL ) {
@@ -2594,8 +2602,11 @@ mx_area_detector_get_status( MX_RECORD *record,
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,
-	("%s: status = %#lx, correction_measurement_in_progress = %d",
-		fname, ad->status, ad->correction_measurement_in_progress));
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
+	"correction_measurement_in_progress = %d, correction_measurement = %p",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
+		ad->correction_measurement_in_progress,
+		ad->correction_measurement));
 #endif
 
 	if ( status_flags != NULL ) {
@@ -2674,9 +2685,10 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 #if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
-	"correction_measurement_in_progress = %d",
+	"correction_measurement_in_progress = %d, correction_measurement = %p",
 	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
-		ad->correction_measurement_in_progress));
+		ad->correction_measurement_in_progress,
+		ad->correction_measurement));
 #endif
 
 	if ( last_frame_number != NULL ) {
@@ -10959,8 +10971,19 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 MX_EXPORT void
 mx_area_detector_update_extended_status_string( MX_AREA_DETECTOR *ad )
 {
+#if MX_AREA_DETECTOR_DEBUG_STATUS
+	static const char fname[] =
+		"mx_area_detector_update_extended_status_string()";
+#endif
+
 	if ( ad == (MX_AREA_DETECTOR *) NULL )
 		return;
+
+	if ( ad->correction_measurement_in_progress
+	   || ( ad->correction_measurement != NULL ) )
+	{
+		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
+	}
 
 	snprintf( ad->extended_status, sizeof(ad->extended_status),
 		"%ld %ld %#lx",
@@ -10969,8 +10992,14 @@ mx_area_detector_update_extended_status_string( MX_AREA_DETECTOR *ad )
 			ad->status );
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
-	MX_DEBUG(-2,("area detector '%s', extended_status = '%s'",
-		ad->record->name, ad->extended_status));
+	MX_DEBUG(-2,("%s: "
+	"last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
+	"correction_measurement_in_progress = %d, correction_measurement = %p",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status,
+		ad->correction_measurement_in_progress,
+		ad->correction_measurement));
+	MX_DEBUG(-2,("%s: ad->extended_status = '%s'",
+		fname, ad->extended_status));
 #endif
 	return;
 }
