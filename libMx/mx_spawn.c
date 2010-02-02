@@ -316,7 +316,7 @@ mx_spawn( char *command_line,
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to create a process using the command line '%s'.  "
 		"VMS error number = %d, error message = '%s'",
-			vms_status, strerror( EVMSERR, vms_status ) );
+		command_line, vms_status, strerror( EVMSERR, vms_status ) );
 	}
 
 	if ( child_process_id != NULL ) {

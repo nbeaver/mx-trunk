@@ -16,7 +16,7 @@
  *
  */
 
-#define DEBUG_COPROCESS		FALSE
+#define DEBUG_COPROCESS		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1424,6 +1424,351 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_VMS)
+
+#include <errno.h>
+#include <fcntl.h>
+
+#include <starlet.h>
+#include <descrip.h>
+#include <ssdef.h>
+#include <clidef.h>
+#include <dvidef.h>
+#include <lib$routines.h>
+
+typedef struct {
+	struct dsc$descriptor_s from_descriptor;
+	struct dsc$descriptor_s to_descriptor;
+	char from_name[40];
+	char to_name[40];
+	short int from_channel;
+	short int to_channel;
+} MX_VMS_COPROCESS_PRIVATE;
+
+MX_EXPORT mx_status_type
+mx_coprocess_open( MX_COPROCESS **coprocess,
+			char *command_line,
+			unsigned long flags )
+{
+	static const char fname[] = "mx_coprocess_open()";
+
+	MX_VMS_COPROCESS_PRIVATE *vms_private;
+	struct dsc$descriptor_s command_descriptor;
+	short int from_channel, to_channel;
+	int from_fd, to_fd;
+	int vms_status, saved_errno;
+	int32_t vms_flags;
+	unsigned int vms_pid;
+
+	if ( coprocess == (MX_COPROCESS **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null coprocess pointer passed." );
+	}
+	if ( command_line == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null command_line pointer passed." );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for command '%s'", fname, command_line));
+#endif
+
+	/* Allocate an MX_COPROCESS structure for the caller. */
+
+	(*coprocess) = malloc( sizeof(MX_COPROCESS) );
+
+	if ( (*coprocess) == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate an MX_COPROCESS structure." );
+	}
+
+	(*coprocess)->from_coprocess = NULL;
+	(*coprocess)->to_coprocess = NULL;
+	(*coprocess)->coprocess_pid = 0;
+
+	vms_private = malloc( sizeof(MX_VMS_COPROCESS_PRIVATE) );
+
+	if ( vms_private == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_VMS_COPROCESS_PRIVATE structure." );
+	}
+
+	(*coprocess)->private = vms_private;
+
+	/* VMS mailboxes are actually bi-directional.  However, we want
+	 * to have separate FILE pointers for 'from_coprocess' and
+	 * 'to_coprocess', so we really need two mailboxes.
+	 */
+
+	/* Create the 'from' mailbox. */
+
+	snprintf( vms_private->from_name,
+		sizeof( vms_private->from_name ),
+		"MX_FROM_COPROCESS_%lu", mx_process_id() );
+
+	vms_private->from_descriptor.dsc$w_length =
+					strlen( vms_private->from_name ) + 1;
+	vms_private->from_descriptor.dsc$a_pointer = vms_private->from_name;
+	vms_private->from_descriptor.dsc$b_class = DSC$K_CLASS_S;
+	vms_private->from_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
+
+	vms_status = sys$crembx( 0, &from_channel, 0, 0, 0, 0,
+				&(vms_private->from_descriptor), 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to create mailbox '%s' failed with a "
+		"VMS error code = %d, error message = '%s'.",
+			vms_private->from_name,
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	vms_private->from_channel = from_channel;
+
+	from_fd = open( vms_private->from_name, O_RDONLY );
+
+	if ( from_fd < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to open a Posix-style file descriptor for "
+		"VMS mailbox '%s'.  Errno = d, error message = '%s'",
+			vms_private->from_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	(*coprocess)->from_coprocess = fdopen( from_fd, "r" );
+
+	if ( (*coprocess)->from_coprocess == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to convert Posix-style file descriptor %d for "
+		"VMS mailbox '%s' failed.  Errno = %d, error message = '%s'",
+			from_fd, vms_private->from_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Create the 'to' mailbox. */
+
+	snprintf( vms_private->to_name, sizeof( vms_private->to_name ),
+		"MX_TO_COPROCESS_%lu", mx_process_id() );
+
+	vms_private->to_descriptor.dsc$w_length =
+					strlen( vms_private->to_name ) + 1;
+	vms_private->to_descriptor.dsc$a_pointer = vms_private->to_name;
+	vms_private->to_descriptor.dsc$b_class = DSC$K_CLASS_S;
+	vms_private->to_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
+
+	vms_status = sys$crembx( 0, &to_channel, 0, 0, 0, 0,
+				&(vms_private->to_descriptor), 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to create mailbox '%s' failed with a "
+		"VMS error code = %d, error message = '%s'.",
+			vms_private->to_name,
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	vms_private->to_channel = to_channel;
+
+	to_fd = open( vms_private->to_name, O_WRONLY );
+
+	if ( to_fd < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to open a Posix-style file descriptor for "
+		"VMS mailbox '%s'.  Errno = d, error message = '%s'",
+			vms_private->to_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	(*coprocess)->to_coprocess = fdopen( to_fd, "w" );
+
+	if ( (*coprocess)->to_coprocess == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to convert Posix-style file descriptor %d for "
+		"VMS mailbox '%s' failed.  Errno = %d, error message = '%s'",
+			to_fd, vms_private->to_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Now we create the coprocess as a VMS subprocess. */
+
+	command_descriptor.dsc$w_length = strlen( command_line ) + 1;
+	command_descriptor.dsc$a_pointer = command_line;
+	command_descriptor.dsc$b_class = DSC$K_CLASS_S;
+	command_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
+
+	vms_flags = CLI$M_NOWAIT;
+
+	vms_status = lib$spawn( &command_descriptor,
+				&(vms_private->to_descriptor),
+				&(vms_private->from_descriptor),
+				&vms_flags, 0, &vms_pid );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to create a process using the command line '%s'.  "
+		"VMS error number = %d, error_message = '%s'",
+		command_line, vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	(*coprocess)->coprocess_pid = vms_pid;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_coprocess_close()";
+
+	MX_VMS_COPROCESS_PRIVATE *vms_private;
+	int vms_status;
+	mx_status_type mx_status;
+
+	if ( coprocess == (MX_COPROCESS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null coprocess pointer passed." );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for coprocess %p", fname, coprocess));
+#endif
+
+	/* Kill the coprocess itself. */
+
+	mx_status = mx_kill_process_id( coprocess->coprocess_pid );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Close the file descriptors. */
+
+	fclose( coprocess->to_coprocess );
+
+	fclose( coprocess->from_coprocess );
+
+	/* Finish by releasing the mailbox channels. */
+
+	vms_private = coprocess->private;
+
+	if ( vms_private == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_VMS_COPROCESS_PRIVATE pointer for coprocess %p is NULL.",
+	    		coprocess );
+	}
+
+	vms_status = sys$dassgn( vms_private->to_channel );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to close VMS channel %d to coprocess.  "
+		"VMS error number = %d, error message = '%s'",
+			vms_private->to_channel,
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	vms_status = sys$dassgn( vms_private->from_channel );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to close VMS channel %d from coprocess.  "
+		"VMS error number = %d, error message = '%s'",
+			vms_private->from_channel,
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	mx_free( vms_private );
+	mx_free( coprocess );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* FIXME: The following routine might work on Alpha or Itanium, but does
+ * not work on Vax.
+ */
+
+MX_EXPORT mx_status_type
+mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_coprocess_num_bytes_available()";
+
+	MX_VMS_COPROCESS_PRIVATE *vms_private;
+	unsigned int mbx_size, mbx_avail;
+	int vms_status;
+
+	struct {
+		unsigned short buffer_length;
+		unsigned short item_code;
+		void *buffer_address;
+		void *return_length_address;
+	} dvi_list[] = {
+#if defined(__VAX)
+	    { sizeof(mbx_size), 0, &mbx_size, NULL },
+	    { sizeof(mbx_avail), 0, &mbx_avail, NULL },
+#else
+	    { sizeof(mbx_size), DVI$_MAILBOX_INITIAL_QUOTA, &mbx_size, NULL },
+	    { sizeof(mbx_avail), DVI$_MAILBOX_BUFFER_QUOTA, &mbx_avail, NULL },
+#endif
+	    { 0, 0, NULL, NULL }
+	};
+
+	short iosb[4];
+
+	if ( coprocess == (MX_COPROCESS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null coprocess pointer passed." );
+	}
+	if ( num_bytes_available == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"Null num_bytes_available pointer passed." );
+	}
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,("%s invoked for coprocess %p", fname, coprocess));
+#endif
+
+	vms_private = coprocess->private;
+
+	if ( vms_private == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_VMS_COPROCESS_PRIVATE pointer for coprocess %p is NULL.",
+	    		coprocess );
+	}
+
+	vms_status = sys$getdviw( 0, 0,
+				&(vms_private->from_descriptor),
+				dvi_list, iosb, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to get VMS mailbox statistics for VMS mailbox '%s'.  "
+		"VMS error number = %d, error message = '%s'",
+			vms_private->from_name,
+			vms_status, strerror( EVMSERR, vms_status ) );
+	}
+
+	*num_bytes_available = mbx_size - mbx_avail;
+
+#if DEBUG_COPROCESS
+	MX_DEBUG(-2,
+	("%s: mbx_size = %u, mbx_avail = %u, num_bytes_available = %lu",
+	 	fname, mbx_size, mbx_avail, *num_bytes_available ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*-------------------------------------------------------------------------*/
 

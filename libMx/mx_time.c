@@ -37,11 +37,11 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_VMS)
 
   /* Unix platforms already provide the thread-safe Posix time functions. */
 
-  #define MX_USE_NONE
+  #define MX_USE_LOCALTIME_R
 
 /*- - - -*/
 
@@ -78,7 +78,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(MX_USE_NONE)
+#if defined(MX_USE_LOCALTIME_R)
 
 /* We do not need to do anything for this case, since the thread-safe
  * Posix time functions are already defined.
