@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1165,6 +1165,105 @@ mx_copy_array_to_buffer( void *array_pointer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_copy_string_buffer_to_string_array( void *source_buffer,
+				size_t source_buffer_length,
+				void *array_pointer,
+				mx_bool_type array_is_dynamically_allocated,
+				long num_dimensions,
+				long *dimension_array,
+				size_t *data_element_size_array,
+				size_t *num_bytes_copied )
+{
+	static const char fname[] = "mxp_copy_string_buffer_to_string_array()";
+
+	char *array_row_pointer, *source_pointer;
+	size_t subarray_size, buffer_left;
+	long n;
+	mx_status_type mx_status;
+
+#if 0
+	MX_DEBUG(-2,("%s invoked for num_dimensions = %ld, array_pointer = %p",
+		fname, num_dimensions, array_pointer));
+#endif
+
+	if ( num_dimensions < 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Invoked with num_dimensions == %ld.  "
+		"The minimum allowed value is 2.", num_dimensions );
+	}
+
+	if ( num_dimensions == 2 ) {
+		/* num_dimensions == 2 is a special case
+		 * for varying length strings.
+		 */
+
+		int argc;
+		char **argv;
+
+		mx_string_split( source_buffer, " \t", &argc, &argv );
+
+		if ( argc != dimension_array[0] ) {
+			mx_warning( "The number of string tokens (%d) sent by "
+			"the MX server does not match the number of strings "
+			"(%lu) expected for the array.",
+				argc, dimension_array[0] );
+		}
+
+		for ( n = 0; n < dimension_array[0]; n++ ) {
+
+			array_row_pointer = (char *) array_pointer
+			    + n * data_element_size_array[num_dimensions - 1];
+
+			if ( array_is_dynamically_allocated ) {
+				array_row_pointer = (char *)
+				    mx_read_void_pointer_from_memory_location(
+					array_row_pointer );
+			}
+
+			strlcpy(array_row_pointer, argv[n], dimension_array[1]);
+		}
+
+		mx_free( argv );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* num_dimensions > 2 */
+
+	for ( n = 0; n < dimension_array[0]; n++ ) {
+
+		array_row_pointer = (char *) array_pointer
+			+ n * data_element_size_array[num_dimensions - 1];
+
+		if ( array_is_dynamically_allocated ) {
+			array_row_pointer = (char *)
+				mx_read_void_pointer_from_memory_location(
+					array_row_pointer );
+		}
+
+		source_pointer = (char *) source_buffer
+			+ n * subarray_size;
+
+		buffer_left = source_buffer_length - n * subarray_size;
+
+		mx_status = mxp_copy_string_buffer_to_string_array(
+				source_pointer,
+				buffer_left,
+				array_row_pointer,
+				array_is_dynamically_allocated,
+				num_dimensions - 1,
+				&dimension_array[1],
+				data_element_size_array,
+				NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
@@ -1350,6 +1449,19 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	}
 
 	/* num_dimensions > 1 */
+
+	if ( mx_datatype == MXFT_STRING ) {
+		/* Arrays of varying length strings are a special case. */
+
+		mx_status = mxp_copy_string_buffer_to_string_array(
+				source_buffer, source_buffer_length,
+				array_pointer, array_is_dynamically_allocated,
+				num_dimensions, dimension_array,
+				data_element_size_array,
+				num_bytes_copied );
+
+		return mx_status;
+	}
 
 	num_subarray_elements = 1;
 

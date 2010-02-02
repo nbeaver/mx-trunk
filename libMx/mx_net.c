@@ -1793,10 +1793,14 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
+#if 0
 			(void) mx_error( MXE_UNSUPPORTED, fname,
 				"Unsupported data type %lu requested.",
 				(unsigned long) data_type );
 			return;
+#else
+			fprintf( stderr, "'%s'\n", ((char *) raw_buffer) );
+#endif
 			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
