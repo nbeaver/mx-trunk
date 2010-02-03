@@ -39,7 +39,7 @@
 
 #if defined(OS_UNIX) || defined(OS_VMS)
 
-  /* Unix platforms already provide the thread-safe Posix time functions. */
+  /* These platforms already provide the thread-safe Posix time functions. */
 
   #define MX_USE_LOCALTIME_R
 
@@ -69,6 +69,12 @@
   #else
     #error Unrecognized Win32 compiler.
   #endif
+
+/*- - - -*/
+
+#elif defined(OS_DJGPP)
+
+  #define MX_USE_LOCALTIME
 
 /*- - - -*/
 
@@ -336,7 +342,7 @@ mx_os_time_string( struct timespec os_time,
 	static const char fname[] = "mx_os_time_string()";
 
 	time_t time_in_seconds;
-	struct tm *tm_struct_ptr;
+	struct tm tm_struct;
 	char *ptr;
 	char local_buffer[20];
 	double nsec_in_seconds;
@@ -350,33 +356,10 @@ mx_os_time_string( struct timespec os_time,
 
 	time_in_seconds = os_time.tv_sec;
 
-#if defined(OS_DJGPP)
-	tm_struct_ptr = localtime( &time_in_seconds );
-
-#elif defined(OS_WIN32)
-#  if defined(_MSC_VER) && (_MSC_VER >= 1400 )
-	{
-		struct tm tm_struct;
-
-		localtime_s( &tm_struct, &time_in_seconds );
-
-		tm_struct_ptr = &tm_struct;
-	}
-#  else
-	tm_struct_ptr = localtime( &time_in_seconds );
-#  endif
-#else
-	{
-		struct tm tm_struct;
-
-		localtime_r( &time_in_seconds, &tm_struct );
-
-		tm_struct_ptr = &tm_struct;
-	}
-#endif
+	localtime_r( &time_in_seconds, &tm_struct );
 
 	strftime( buffer, buffer_length,
-		"%a %b %d %Y %H:%M:%S", tm_struct_ptr );
+		"%a %b %d %Y %H:%M:%S", &tm_struct );
 
 	nsec_in_seconds = 1.0e-9 * (double) os_time.tv_nsec;
 
