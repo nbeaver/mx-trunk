@@ -1179,7 +1179,7 @@ mxp_copy_string_buffer_to_string_array( void *source_buffer,
 
 	char *array_row_pointer, *source_pointer;
 	size_t subarray_size, buffer_left;
-	long n;
+	long i, n, num_subarray_elements;
 	mx_status_type mx_status;
 
 #if 0
@@ -1231,6 +1231,14 @@ mxp_copy_string_buffer_to_string_array( void *source_buffer,
 
 	/* num_dimensions > 2 */
 
+	num_subarray_elements = 1;
+
+	for ( i = 1; i < num_dimensions; i++ ) {
+		num_subarray_elements *= ( dimension_array[i] );
+	}
+
+	subarray_size = num_subarray_elements * data_element_size_array[0];
+
 	for ( n = 0; n < dimension_array[0]; n++ ) {
 
 		array_row_pointer = (char *) array_pointer
@@ -1277,8 +1285,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 	char *array_row_pointer, *source_pointer;
 	size_t bytes_to_copy, array_size, subarray_size, buffer_left;
-	long i, n;
-	int num_subarray_elements;
+	long i, n, num_subarray_elements;
 	mx_status_type mx_status;
 
 	if ( ( array_pointer == NULL )
