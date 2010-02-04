@@ -11,12 +11,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_DARK_CURRENT_TIMING	FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +26,7 @@
 
 #include "motor.h"
 #include "mdialog.h"
+#include "mx_hrt_debug.h"
 #include "mx_analog_input.h"
 #include "mx_autoscale.h"
 #include "d_auto_scaler.h"
@@ -102,6 +105,14 @@ motor_measure_dark_currents( int argc, char *argv[] )
 
 	device_array = NULL;
 	device_sum_array = NULL;
+
+#if DEBUG_DARK_CURRENT_TIMING
+	MX_HRT_TIMING start_timing;
+	MX_HRT_TIMING offset_timing;
+	MX_HRT_TIMING save_timing;
+
+	MX_HRT_START( start_timing );
+#endif
 
 	/* Look for a record called 'dark_timer'. */
 
@@ -303,6 +314,13 @@ motor_measure_dark_currents( int argc, char *argv[] )
 		}
 	}
 
+#if DEBUG_DARK_CURRENT_TIMING
+	MX_HRT_END( start_timing );
+	MX_HRT_RESULTS( start_timing, cname, "Start Timing" );
+
+	MX_HRT_START( offset_timing );
+#endif
+
 	/***** Perform the measurements. *****/
 
 	fprintf(output,"Measuring dark currents using timer '%s'.\n",
@@ -316,6 +334,13 @@ motor_measure_dark_currents( int argc, char *argv[] )
 		FREE_DEVICE_ARRAYS;
 		return status;
 	}
+
+#if DEBUG_DARK_CURRENT_TIMING
+	MX_HRT_END( offset_timing );
+	MX_HRT_RESULTS( offset_timing, cname, "Offset Timing" );
+
+	MX_HRT_START( save_timing );
+#endif
 
 	/* Now save the new dark current values. */
 
@@ -359,6 +384,11 @@ motor_measure_dark_currents( int argc, char *argv[] )
 	}
 
 	FREE_DEVICE_ARRAYS;
+
+#if DEBUG_DARK_CURRENT_TIMING
+	MX_HRT_END( save_timing );
+	MX_HRT_RESULTS( save_timing, cname, "Save Timing" );
+#endif
 
 	return SUCCESS;
 }

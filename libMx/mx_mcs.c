@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -507,6 +507,12 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 				mx_add_clock_ticks( current_tick,
 					mcs->clear_deadband_ticks );
 #if DEBUG_CLEAR_DEADBAND
+			MX_DEBUG(-2,("%s: clear_deadband = %g sec, "
+			"clear_deadband_ticks = (%lu,%lu)",
+			fname, mcs->clear_deadband,
+			mcs->clear_deadband_ticks.high_order,
+			mcs->clear_deadband_ticks.low_order));
+
 			MX_DEBUG(-2,("%s: next_clear_tick = (%lu,%lu)",
 			fname, mcs->next_clear_tick.high_order,
 			mcs->next_clear_tick.low_order));

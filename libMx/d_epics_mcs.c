@@ -192,7 +192,15 @@ mxd_epics_mcs_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	mcs->clear_deadband = 0.1;		/* in seconds */
+	/* Testing at APS 10-ID seems to show that EraseAll can
+	 * take a length of time that varies from 16 milliseconds
+	 * to 230 milliseconds.  For now it seems to be safe to
+	 * set the clear deadband to 500 milliseconds or 0.5 seconds.
+	 * 
+	 * W. Lavender (Feb. 3, 2010)
+	 */
+
+	mcs->clear_deadband = 0.5;		/* in seconds */
 
 	mx_status = mx_mcs_set_parameter( record, MXLV_MCS_CLEAR_DEADBAND );
 
