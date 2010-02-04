@@ -135,7 +135,7 @@
  * real Power PMAC system.
  */
 
-#define HAVE_POWER_PMAC_LIBRARY		1
+#define HAVE_POWER_PMAC_LIBRARY		0
 
 /*****************************************************************************
  *
