@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -135,7 +135,7 @@
  * real Power PMAC system.
  */
 
-#define HAVE_POWER_PMAC			0
+#define HAVE_POWER_PMAC_LIBRARY		1
 
 /*****************************************************************************
  *

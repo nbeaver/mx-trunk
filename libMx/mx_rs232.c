@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -391,6 +391,14 @@ mx_rs232_getchar_with_timeout( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If the timeout is infinite, then use the normal getchar function. */
+
+	if ( timeout_in_seconds < 0.0 ) {
+		mx_status = mx_rs232_getchar( record, c, transfer_flags );
+
+		return mx_status;
+	}
 
 	/* Add MXF_232_NOWAIT to the transfer flags so that we can directly
 	 * control the timeout.

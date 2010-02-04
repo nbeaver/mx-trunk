@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,7 @@ MX_API mx_status_type mxi_tcp232_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_tcp232_open( MX_RECORD *record );
 MX_API mx_status_type mxi_tcp232_close( MX_RECORD *record );
+MX_API mx_status_type mxi_tcp232_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxi_tcp232_getchar( MX_RS232 *rs232, char *c );
 MX_API mx_status_type mxi_tcp232_putchar( MX_RS232 *rs232, char c );
@@ -63,6 +64,8 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH + 1];
 	long port_number;
 	unsigned long tcp232_flags;
+
+	unsigned long resync_delay_milliseconds;
 } MX_TCP232;
 
 extern MX_RECORD_FUNCTION_LIST mxi_tcp232_record_function_list;

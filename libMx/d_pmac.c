@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2009 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,7 @@ MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_pmac_close,
+	NULL,
 	NULL,
 	mxd_pmac_resynchronize
 };
@@ -303,12 +303,6 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 			move_deadband, motor->units );
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_close( MX_RECORD *record )
-{
-	return mx_motor_get_position( record, NULL );
 }
 
 MX_EXPORT mx_status_type
@@ -1026,8 +1020,6 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 	return mx_status;
 }
 
-#if HAVE_POWER_PMAC
-
 static mx_status_type
 mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 {
@@ -1159,8 +1151,6 @@ mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_POWER_PMAC */
 
 static mx_status_type
 mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
@@ -1446,12 +1436,9 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 		return mx_status;
 
 	switch( pmac->pmac_type ) {
-
-#if HAVE_POWER_PMAC
 	case MX_PMAC_TYPE_POWERPMAC:
 		mx_status = mxd_pmac_get_power_pmac_status( motor, pmac_motor );
 		break;
-#endif /* HAVE_POWER_PMAC */
 
 	default:
 		mx_status = mxd_pmac_get_turbo_pmac_status( motor, pmac_motor );

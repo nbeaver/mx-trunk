@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,9 @@ MX_RECORD_FUNCTION_LIST mxi_tcp232_record_function_list = {
 	NULL,
 	NULL,
 	mxi_tcp232_open,
-	mxi_tcp232_close
+	mxi_tcp232_close,
+	NULL,
+	mxi_tcp232_resynchronize
 };
 
 MX_RS232_FUNCTION_LIST mxi_tcp232_rs232_function_list = {
@@ -113,6 +115,8 @@ mxi_tcp232_create_record_structures( MX_RECORD *record )
 
 	rs232->record = record;
 	tcp232->record = record;
+
+	tcp232->resync_delay_milliseconds = 0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -286,6 +290,41 @@ mxi_tcp232_close( MX_RECORD *record )
 	tcp232 = (MX_TCP232 *) record->record_type_struct;
 
 	mx_status = mxi_tcp232_close_socket( rs232, tcp232 );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_tcp232_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_tcp232_resynchronize()";
+
+	MX_TCP232 *tcp232;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	tcp232 = (MX_TCP232 *) record->record_type_struct;
+
+	if ( tcp232 == (MX_TCP232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_TCP232 pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_status = mxi_tcp232_close( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( tcp232->resync_delay_milliseconds > 0 ) {
+		mx_msleep( tcp232->resync_delay_milliseconds );
+	}
+
+	mx_status = mxi_tcp232_open( record );
 
 	return mx_status;
 }

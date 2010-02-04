@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,8 @@
 #define MXI_PMAC_DEBUG			FALSE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
+
+#define MXI_PMAC_DEBUG_LOGIN		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +37,7 @@
 #  include "mx_epics.h"
 #endif
 
-#if HAVE_POWER_PMAC
+#if HAVE_POWER_PMAC_LIBRARY
 #  include "gplib.h"
 #endif
 
@@ -102,6 +104,12 @@ mxi_pmac_create_record_structures( MX_RECORD *record )
 
 	pmac->record = record;
 
+	pmac->gpascii_username[0] = '\0';
+	pmac->gpascii_password[0] = '\0';
+	pmac->gplib_initialized = FALSE;
+
+	pmac->port_record = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -114,6 +122,7 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	MX_RS232 *rs232;
 	char *port_type_name;
 	int i, length;
+	char port_record_name[MXU_RECORD_NAME_LENGTH+1];
 
 	pmac = (MX_PMAC *) record->record_type_struct;
 
@@ -132,8 +141,11 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	if ( strcmp( port_type_name, "rs232" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_RS232;
 
-	} else if ( strcmp( port_type_name, "power_pmac" ) == 0 ) {
-		pmac->port_type = MX_PMAC_PORT_TYPE_POWER_PMAC;
+	} else if ( strcmp( port_type_name, "gpascii" ) == 0 ) {
+		pmac->port_type = MX_PMAC_PORT_TYPE_GPASCII;
+
+	} else if ( strcmp( port_type_name, "gplib" ) == 0 ) {
+		pmac->port_type = MX_PMAC_PORT_TYPE_GPLIB;
 
 	} else if ( strcmp( port_type_name, "epics_ect" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_EPICS_TC;
@@ -148,13 +160,60 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		if ( pmac->port_type == MX_PMAC_PORT_TYPE_RS232 ) {
+			strlcpy( port_record_name, pmac->port_args,
+				sizeof(port_record_name) );
+		} else
+		if ( pmac->port_type == MX_PMAC_PORT_TYPE_GPASCII ) {
+			int argc;
+			char **argv;
+			char *port_args;
+
+			port_args = strdup( pmac->port_args );
+
+			if ( port_args == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to create a copy "
+				"of the PMAC port_args." );
+			}
+
+			mx_string_split( port_args, " ", &argc, &argv );
+
+			if ( argc != 3 ) {
+				mx_free(argv);
+				mx_free(port_args);
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Incorrect number of arguments (%d) specified "
+				"for the 'port_args' string '%s' for PMAC "
+				"controller '%s'.  The correct number of "
+				"arguments should be 3, namely, the socket "
+				"RS-232 record name, the PowerPMAC username, "
+				"and the PowerPMAC password.",
+					argc, pmac->port_args, record->name );
+			}
+
+			strlcpy( port_record_name, argv[0],
+				sizeof(port_record_name) );
+
+			strlcpy( pmac->gpascii_username, argv[1],
+				sizeof(pmac->gpascii_username) );
+
+			strlcpy( pmac->gpascii_password, argv[2],
+				sizeof(pmac->gpascii_password) );
+
+			mx_free(argv);
+			mx_free(port_args);
+		}
+
 		pmac->port_record = mx_get_record( record->list_head,
-							pmac->port_args );
+							port_record_name );
 
 		if ( pmac->port_record == NULL ) {
 			return mx_error( MXE_NOT_FOUND, fname,
 			"The RS-232 interface record '%s' does not exist.",
-				pmac->port_args );
+				port_record_name );
 		}
 		if ( pmac->port_record->mx_superclass != MXR_INTERFACE ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -174,44 +233,25 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 				pmac->port_record->name );
 		}
 
-		if ( ( rs232->read_terminators != MX_CR )
-		  || ( rs232->write_terminators != MX_CR ) )
-		{
-			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-		"RS-232 port '%s' used by PMAC interface '%s' "
-		"has incorrectly configured read "
-		"and/or write terminators.  The MX PMAC RS-232 support "
-		"requires that the read and write terminators for the "
-		"RS-232 port both be set to <CR> (0x0d).",
+		if ( pmac->port_type == MX_PMAC_PORT_TYPE_RS232 ) {
+			if ( ( rs232->read_terminators != MX_CR )
+			  || ( rs232->write_terminators != MX_CR ) )
+			{
+				return mx_error(
+				MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"RS-232 port '%s' used by PMAC interface '%s' "
+			"has incorrectly configured read "
+			"and/or write terminators.  The MX PMAC RS-232 support "
+			"requires that the read and write terminators for the "
+			"RS-232 port both be set to <CR> (0x0d).",
 				pmac->port_record->name, record->name );
+			}
 		}
 		break;
 
-	case MX_PMAC_PORT_TYPE_POWER_PMAC:
+	case MX_PMAC_PORT_TYPE_GPLIB:
 		pmac->port_record = NULL;
 
-#if HAVE_POWER_PMAC
-		{
-			int powerpmac_status;
-
-#if 1
-			/* Only enable this if you are using the
-			 * fake_power_pmac library.
-			 */
-
-			power_pmac_mx_record_list = pmac->record->list_head;
-#endif
-
-			powerpmac_status = InitLibrary();
-
-			if ( powerpmac_status != 0 ) {
-				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"Initialization of the Power PMAC library "
-				"failed with error code = %d.",
-					powerpmac_status );
-			}
-		}
-#endif
 		break;
 
 	case MX_PMAC_PORT_TYPE_EPICS_TC:
@@ -237,18 +277,15 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pmac_open( MX_RECORD *record )
 {
-	return mxi_pmac_resynchronize( record );
-}
-
-MX_EXPORT mx_status_type
-mxi_pmac_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_pmac_resynchronize()";
+	static const char fname[] = "mxi_pmac_open()";
 
 	MX_PMAC *pmac;
+	MX_RS232 *rs232;
 	char response[80];
 	char pmac_type_name[20];
 	int num_items;
+	char c;
+	unsigned long num_bytes;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -263,6 +300,234 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 	if ( pmac == (MX_PMAC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_PMAC pointer for record '%s' is NULL.", record->name);
+	}
+
+	/* Perform initial port_type-specific initialization. */
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_GPASCII:
+
+		rs232 = (MX_RS232 *) pmac->port_record->record_class_struct;
+
+		if ( rs232 == (MX_RS232 *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The MX_RS232 pointer for PMAC port "
+				"record '%s' is NULL.",
+					pmac->port_record->name );
+		}
+
+		/* We must login to the PowerPMAC. */
+
+		/* FIXME: We should do something more robust than just
+		 * discarding almost all of the responses from the
+		 * PowerPMAC.
+		 */
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
+#endif
+
+		/* Discard everything up to the login prompt. */
+
+		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+							MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: Logging in as '%s'.",
+				fname, pmac->gpascii_username));
+#endif
+
+		/* Send the user name. */
+
+		mx_status = mx_rs232_putline( pmac->port_record,
+					pmac->gpascii_username,
+					NULL, MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait until a response is available. */
+
+		while (1) {
+			mx_status = mx_rs232_num_input_bytes_available(
+						pmac->port_record,
+						&num_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_bytes > 0 )
+				break;
+
+			mx_msleep(100);
+		}
+
+		/* Discard the response. */
+
+		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+							MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: Sending the password '%s'.",
+				fname, pmac->gpascii_password));
+#endif
+
+		/* Send the password. */
+
+		mx_status = mx_rs232_putline( pmac->port_record,
+					pmac->gpascii_password,
+					NULL, MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait until a response is available. */
+
+		while (1) {
+			mx_status = mx_rs232_num_input_bytes_available(
+						pmac->port_record,
+						&num_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_bytes > 0 )
+				break;
+
+			mx_msleep(100);
+		}
+
+		/* Discard everything up to the root shell prompt character. */
+
+		while (1) {
+			mx_status = mx_rs232_getchar_with_timeout( 
+					pmac->port_record, &c,
+					MXI_PMAC_DEBUG, rs232->timeout);
+
+			if( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* If we see the prompt character, then break
+			 * out of the loop.
+			 */
+
+			if ( ( c == '#' ) || ( c == '$' ) )
+				break;
+		}
+
+		/* Discard anything after the prompt character. */
+
+		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+							MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: sending the 'gpascii' command.", fname));
+#endif
+
+		/* Send the 'gpascii' command. */
+
+		mx_status = mx_rs232_putline( pmac->port_record,
+						"gpascii",
+						NULL, MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait until a response is available. */
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,
+		("%s: waiting for the 'gpascii' startup message.", fname));
+#endif
+
+		while (1) {
+			mx_status = mx_rs232_num_input_bytes_available(
+						pmac->port_record,
+						&num_bytes );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_bytes > 0 )
+				break;
+
+			mx_msleep(100);
+		}
+
+		/* Look for the expected response. */
+
+		mx_status = mx_rs232_getline( pmac->port_record,
+						response,
+						sizeof(response),
+						NULL, MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: received response '%s'.", fname, response));
+#endif
+
+		if ( strcmp( response, "STDIN Open for ASCII input" ) != 0 ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Did not get the expected response to the 'gpascii' "
+			"command for PowerPMAC '%s'.  Instead, we got '%s'.",
+				record->name, response );
+		}
+
+		/* Discard any leftover characters. */
+
+		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+							MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If we get here, then we are done with the login and
+		 * setup process, so we can treat the connection as a
+		 * normal serial connection from now on.
+		 */
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: login complete.", fname));
+#endif
+		break;
+
+#if HAVE_POWER_PMAC_LIBRARY
+	case MX_PMAC_PORT_TYPE_GPLIB:
+		if ( pmac->gplib_initialized == FALSE ) {
+			int powerpmac_status;
+
+			pmac->gplib_initialized = TRUE;
+
+#if USE_FAKE_POWER_PMAC
+			/* The 'fake_power_pmac' library needs the following
+			 * assignment, so that it can find the MX database.
+			 */
+
+			power_pmac_mx_record_list = pmac->record->list_head;
+#endif
+
+			powerpmac_status = InitLibrary();
+
+			if ( powerpmac_status != 0 ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Initialization of the Power PMAC library "
+				"failed with error code = %d.",
+					powerpmac_status );
+			}
+		}
+		break;
+#endif
 	}
 
 	/* Verify that the PMAC controller is active by asking it for
@@ -309,13 +574,13 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 		pmac->pmac_type = MX_PMAC_TYPE_TURBOU;
 
 	} else
-	if ( strncmp( pmac_type_name, "POWERPMAC", 9 ) == 0 ) {
+	if ( strncmp( pmac_type_name, "PWR PMAC UMAC", 13 ) == 0 ) {
 		pmac->pmac_type = MX_PMAC_TYPE_POWERPMAC;
 
 	} else {
 		if ( ( strncmp( pmac_type_name, "PMAC", 4 ) != 0 )
 		  && ( strncmp( pmac_type_name, "TURBO", 5 ) != 0 )
-		  && ( strncmp( pmac_type_name, "POWERPMAC", 9 ) != 0 ) )
+		  && ( strncmp( pmac_type_name, "PWR PMAC", 8 ) != 0 ) )
 		{
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				"The device attached to this interface does "
@@ -329,21 +594,39 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 		}
 	}
 
-	/* Ask for the style of error message reporting. */
+	if ( pmac->pmac_type == MX_PMAC_TYPE_POWERPMAC ) {
 
-	mx_status = mxi_pmac_command( pmac, "I6",
+		/* For PowerPMACs, the low numbered I-variables now
+		 * actually refer to the motor parameters for motor 0.
+		 * So the I6 variable no longer is the error reporting
+		 * mode.  Instead we hard code the type of error
+		 * reporting here.
+		 */
+
+		pmac->error_reporting_mode = 3;
+	} else {
+		/* Ask for the style of error message reporting. */
+
+		mx_status = mxi_pmac_command( pmac, "I6",
 				response, sizeof response, MXI_PMAC_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	num_items = sscanf( response, "%ld", &(pmac->i6_variable) );
+		num_items = sscanf( response, "%ld",
+				&(pmac->error_reporting_mode) );
 
-	if ( num_items != 1 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Unable to parse response to I6 command.  Response = '%s'",
-			response );
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Unable to parse response to I6 command.  "
+			"Response = '%s'", response );
+		}
 	}
+
+#if MXI_PMAC_DEBUG
+	MX_DEBUG(-2,("%s: error_reporting_mode = %d",
+		fname, pmac->error_reporting_mode));
+#endif
 
 	/* Now ask for PROM firmware version. */
 
@@ -365,11 +648,50 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 #if MXI_PMAC_DEBUG
 	MX_DEBUG(-2, ("%s: PMAC version: major = %d, minor = %d",
 		fname, pmac->major_version, pmac->minor_version));
-
-	MX_DEBUG(-2,("%s: I6 = %d", fname, pmac->i6_variable));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_pmac_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_pmac_resynchronize()";
+
+	MX_PMAC *pmac;
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2, ("%s invoked.", fname));
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL.");
+	}
+
+	pmac = (MX_PMAC *) record->record_type_struct;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_PMAC pointer for record '%s' is NULL.", record->name);
+	}
+
+	/* Perform port_type-specific resynchronization. */
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		mx_status = mx_resynchronize_record( pmac->port_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	}
+
+	/* Now reopen the PMAC record. */
+
+	mx_status = mxi_pmac_open( record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -419,9 +741,9 @@ mxi_pmac_rs232_send_command( MX_PMAC *, char *, int );
 static mx_status_type
 mxi_pmac_rs232_receive_response( MX_PMAC *, char *, int, int );
 
-#if HAVE_POWER_PMAC
+#if HAVE_POWER_PMAC_LIBRARY
 static mx_status_type
-mxi_pmac_power_pmac_command( MX_PMAC *, char *, char *, int, int );
+mxi_pmac_gplib_command( MX_PMAC *, char *, char *, int, int );
 #endif
 				
 
@@ -506,11 +828,13 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		"MX_PMAC pointer passed was NULL." );
 	}
 
-#if HAVE_POWER_PMAC
-	/* The Delta Tau Power PMAC is handled separately. */
+#if HAVE_POWER_PMAC_LIBRARY
+	/* Power PMACs controlled via the 'gplib' library
+	 * are handled separately.
+	 */
 
-	if ( pmac->port_type == MX_PMAC_PORT_TYPE_POWER_PMAC ) {
-		return mxi_pmac_power_pmac_command( pmac, command,
+	if ( pmac->port_type == MX_PMAC_PORT_TYPE_GPLIB ) {
+		return mxi_pmac_gplib_command( pmac, command,
 					response, response_buffer_length,
 					debug_flag );
 	}
@@ -572,7 +896,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 
 	error_code = -1;
 
-	switch( pmac->i6_variable ) {
+	switch( pmac->error_reporting_mode ) {
 	case 0:
 	case 2:
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -622,11 +946,11 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The PMAC interface '%s' reported an error for the command '%s', "
-	"but the PMAC I6 variable has the unexpected value of %ld.  "
+	"but the PMAC error reporting mode has the unexpected value of %ld.  "
 	"This interferes with the parsing of error messages from the PMAC.  "
 	"PMAC error message = '%s'",
 			pmac->record->name, command,
-			pmac->i6_variable, receive_response );
+			pmac->error_reporting_mode, receive_response );
 	}
 
 	if ( error_code < 0 ) {
@@ -874,6 +1198,7 @@ mxi_pmac_send_command( MX_PMAC *pmac,
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
 		mx_status = mxi_pmac_rs232_send_command( pmac,
 						command, debug_flag );
 		break;
@@ -922,6 +1247,7 @@ mxi_pmac_receive_response( MX_PMAC *pmac,
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
 		mx_status = mxi_pmac_rs232_receive_response( pmac,
 					response, response_buffer_length,
 					debug_flag );
@@ -1033,7 +1359,7 @@ mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
 
 			bell_received = TRUE;
 
-			if ( pmac->i6_variable != 1 ) {
+			if ( pmac->error_reporting_mode != 1 ) {
 
 				response[i] = '\0';
 				break;		/* Exit the while() loop. */
@@ -1075,14 +1401,14 @@ mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
 
 /*-------------------------------------------------------------------------*/
 
-#if HAVE_POWER_PMAC
+#if HAVE_POWER_PMAC_LIBRARY
 
 static mx_status_type
-mxi_pmac_power_pmac_command( MX_PMAC *pmac, char *command,
+mxi_pmac_gplib_command( MX_PMAC *pmac, char *command,
 			char *response, int response_buffer_length,
 			int debug_flag )
 {
-	static const char fname[] = "mxi_pmac_power_pmac_command()";
+	static const char fname[] = "mxi_pmac_gplib_command()";
 
 	int powerpmac_status;
 
@@ -1111,7 +1437,7 @@ mxi_pmac_power_pmac_command( MX_PMAC *pmac, char *command,
 	}
 }
 
-#endif /* HAVE_POWER_PMAC */
+#endif /* HAVE_POWER_PMAC_LIBRARY */
 
 /*-------------------------------------------------------------------------*/
 

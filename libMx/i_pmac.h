@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,8 +48,10 @@
 /*---*/
 
 #define MX_PMAC_PORT_TYPE_RS232		1
-#define MX_PMAC_PORT_TYPE_POWER_PMAC	2
-#define MX_PMAC_PORT_TYPE_EPICS_TC	11
+#define MX_PMAC_PORT_TYPE_GPASCII	2
+#define MX_PMAC_PORT_TYPE_GPLIB		3
+
+#define MX_PMAC_PORT_TYPE_EPICS_TC	101
 
 #define MX_PMAC_PORT_TYPE_LENGTH	32
 #define MX_PMAC_PORT_ARGS_LENGTH	80
@@ -66,7 +68,16 @@ typedef struct {
 	long major_version;
 	long minor_version;
 
-	long i6_variable;  /* affects error reporting */
+	long error_reporting_mode;
+
+	/* Parameters used by the PowerPMAC 'gpascii' port type. */
+
+	char gpascii_username[80];
+	char gpascii_password[80];
+
+	/* Parameters used by the PowerPMAC 'gplib' port type. */
+
+	mx_bool_type gplib_initialized;
 
 	/* Parameters shared by all motor axes. */
 
