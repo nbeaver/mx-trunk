@@ -19,8 +19,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -43,8 +43,8 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
-#LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
+LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -118,7 +118,7 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 # you should definitely leave this option alone.
 #
 
-MX_LINUX_BSP = default
+#MX_LINUX_BSP = default
 
 #--------
 
@@ -141,6 +141,24 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 	d_pdi45_scaler.c d_pdi45_timer.c d_soft_timer.c d_interval_timer.c \
 	d_soft_amplifier.c d_generic_relay.c d_blind_relay.c \
 	d_pdi45_pulser.c v_mathop.c
+
+#--------
+
+#
+# MX_LINUX_BSP_POWER_PMAC has been used successfully with a Delta Tau
+# Power PMAC motion controller.
+#
+
+MX_LINUX_BSP = power_pmac
+
+POWER_PMAC_DIR = /cygdrive/c/progra~1/deltat~1/2.0/powerp~1/powerpc-460-linux-gnu/usr/local
+
+POWER_PMAC_GCC_DIR = $(POWER_PMAC_DIR)/powerpc-405-linux-gnu/lib
+
+# MX drivers to load for the Power PMAC.
+
+MX_DRIVER_POWER_PMAC_SRCS = i_tty.c \
+	d_pmac.c d_pmac_aio.c d_pmac_dio.c i_pmac.c v_pmac.c
 
 #--------------------------------------------------------------------------
 
@@ -188,9 +206,22 @@ LIBUSB_LIBRARIES  = -lusb
 #
 # Warning: Not yet tested with a real Power PMAC system.
 #
-POWER_PMAC_INCLUDES   = -I/home/lavender/mxdev/fake_power_pmac
-POWER_PMAC_LIB_DIRS   = -L/home/lavender/mxdev/fake_power_pmac
-POWER_PMAC_LIBRARIES  = -lfake_power_pmac
+POWER_PMAC_INCLUDES   = -I$(POWER_PMAC_DIR)/dtlibs/libppmac \
+			-I$(POWER_PMAC_DIR)/dtlibs/rtpmac \
+			-Wno-strict-prototypes
+
+POWER_PMAC_LIB_DIRS   = -B$(POWER_PMAC_DIR)/bin \
+			-L$(POWER_PMAC_DIR)/powerpc-405-linux-gnu/lib-copy \
+			-L$(POWER_PMAC_DIR)/dtlibs/libppmac
+
+POWER_PMAC_LIBRARIES  = -lppmac
+
+#
+# For use with the fake_power_pmac library.
+#
+#POWER_PMAC_INCLUDES   = -I/home/lavender/mxdev/fake_power_pmac
+#POWER_PMAC_LIB_DIRS   = -L/home/lavender/mxdev/fake_power_pmac
+#POWER_PMAC_LIBRARIES  = -lfake_power_pmac
 
 #
 NI_VISA_DIR       = /usr/local/vxipnp/linux
@@ -344,7 +375,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= gcc -MM $(CFLAGS) \
+MAKEDEPEND	= $(CC) -MM $(CFLAGS) \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
 	$(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
@@ -363,6 +394,13 @@ endif
 ifeq ($(MX_LINUX_BSP),mvme162)
 	MX_LIB_SRCS = mx_driver_linux_mvme162.c \
 			$(MX_CORE_SRCS) $(MX_DRIVER_MVME162_SRCS)
+endif
+
+ifeq ($(MX_LINUX_BSP),power_pmac)
+	CC = $(POWER_PMAC_DIR)/bin/powerpc-405-linux-gnu-gcc
+
+	MX_LIB_SRCS = mx_driver_linux_power_pmac.c \
+			$(MX_CORE_SRCS) $(MX_DRIVER_POWER_PMAC_SRCS)
 endif
 
 #
@@ -414,7 +452,7 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STA
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	gcc -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
+	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
 	ln -sf $(MX_LIBRARY_NAME) $(MX_SONAME)
 	ln -sf $(MX_LIBRARY_NAME) libMx.so
