@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -256,8 +256,7 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 		 * so just start the move.
 		 */
 
-		flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
-					| MXF_MTR_IGNORE_BACKLASH;
+		flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD;
 
 		mx_status = mx_motor_move_absolute( record,
 						destination, flags );
