@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2266,23 +2266,6 @@ mxsrv_send_field_value_to_client(
 	/* What data format do we use to send the response? */
 
 	data_format = socket_handler->data_format;
-
-	/* For MXFT_RECORD and MXFT_INTERFACE fields, the raw value is
-	 * a pointer to the data structure, while for MXFT_RECORDTYPE 
-	 * fields, the raw value is an MX version dependent 'long'
-	 * value that represents the driver type.  None of these are
-	 * directly useable by the client, so instead we send back
-	 * the ASCII name for the field value.  This is most easily done
-	 * by telling the code below to use MX_NETWORK_DATAFMT_ASCII
-	 * in its response.
-	 */
-
-	if ( (record_field->datatype == MXFT_RECORD)
-	  || (record_field->datatype == MXFT_RECORDTYPE)
-	  || (record_field->datatype == MXFT_INTERFACE) )
-	{
-		data_format = MX_NETWORK_DATAFMT_ASCII;
-	}
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 

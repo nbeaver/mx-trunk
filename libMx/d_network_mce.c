@@ -7,12 +7,15 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2007, 2010
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -406,7 +409,9 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#if MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY
+	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
+#endif
 
 	/* The first time this function is invoked, we ask the remote
 	 * server for the list of motors.  On the second and subsequent calls,
@@ -427,8 +432,10 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	MX_DEBUG( 2,("%s: Finding motors for MCE '%s'",
+#if MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY
+	MX_DEBUG(-2,("%s: Finding motors for MCE '%s'",
 			fname, mce->record->name ));
+#endif
 
 	mce->num_motors = 0;
 
@@ -466,7 +473,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	/* Allocate an array to contain the remote motor names. */
 
 	dimension_array[0] = num_remote_motors;
-	dimension_array[1] = MXU_RECORD_NAME_LENGTH + 1;
+	dimension_array[1] = MXU_RECORD_NAME_LENGTH;
 
 	size_array[0] = sizeof(char);
 	size_array[1] = sizeof(char *);
@@ -497,9 +504,9 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		return mx_status;
 	}
 
-#if 0
+#if MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY
 	for ( i = 0; i < num_remote_motors; i++ ) {
-		MX_DEBUG(-2,("%s: motor_name_array[%d] = '%s'",
+		MX_DEBUG(-2,("%s: motor_name_array[%ld] = '%s'",
 			fname, i, motor_name_array[i] ));
 	}
 #endif
@@ -566,16 +573,15 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if MXD_NETWORK_MCE_DEBUG_MOTOR_ARRAY
 	for ( i = 0; i < mce->num_motors; i++ ) {
-		MX_DEBUG(-2,("%s: mce->motor_record_array[%d] = '%s'",
+		MX_DEBUG(-2,("%s: mce->motor_record_array[%ld] = '%s'",
 			fname, i, mce->motor_record_array[i]->name ));
 	}
-#endif
 
-	MX_DEBUG( 2,("%s: Finished finding motors for MCE '%s'",
+	MX_DEBUG(-2,("%s: Finished finding motors for MCE '%s'",
 			fname, mce->record->name ));
-
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 

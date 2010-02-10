@@ -25,8 +25,8 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
@@ -43,8 +43,8 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
-LIBRARIES	= $(POWER_PMAC_LIBRARIES)
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
+#LIBRARIES	= $(POWER_PMAC_LIBRARIES)
 ###LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
@@ -119,7 +119,7 @@ LIBRARIES	= $(POWER_PMAC_LIBRARIES)
 # you should definitely leave this option alone.
 #
 
-#MX_LINUX_BSP = default
+MX_LINUX_BSP = default
 
 #--------
 
@@ -150,7 +150,7 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 # Power PMAC motion controller.
 #
 
-MX_LINUX_BSP = power_pmac
+#MX_LINUX_BSP = power_pmac
 
 POWER_PMAC_DIR = /cygdrive/c/progra~1/deltat~1/2.0/powerp~1/powerpc-460-linux-gnu/usr/local
 
@@ -293,22 +293,22 @@ EPICS_ARCH	= linux-x86		# For EPICS 3.14
 
 # For most EPICS installations, use the following definitions.
 
-#EPICS_TOP	= /opt/epics
-EPICS_TOP	= /opt/EPICS
+EPICS_TOP	= /opt/epics
+#EPICS_TOP	= /opt/EPICS
 #EPICS_TOP	= /usr/local/epics
 #EPICS_TOP	= /home/lavender/local/epics
 
-#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-#			-I$(EPICS_TOP)/base/include/os/Linux
-#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+			-I$(EPICS_TOP)/base/include/os/Linux
+EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+EPICS_LIBRARIES = -lca -lCom
 
 # If you are using the EPICS Debian package, use the following definitions.
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-			-I/usr/include/epics/os/Linux
-EPICS_LIB_DIRS  = 
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+#			-I/usr/include/epics/os/Linux
+#EPICS_LIB_DIRS  = 
+#EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have

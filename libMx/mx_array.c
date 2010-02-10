@@ -843,9 +843,10 @@ mx_copy_array_to_buffer( void *array_pointer,
 	MX_INTERFACE *mx_interface;
 	char *array_row_pointer, *destination_pointer;
 	size_t bytes_to_copy, array_size, subarray_size, buffer_left;
-	long i, n;
+	long i, n, mx_type;
 	int num_subarray_elements;
-	int return_structure_name, structure_name_length;
+	int structure_name_length;
+	mx_bool_type use_structure_name;
 	mx_status_type mx_status;
 
 	if ( ( array_pointer == NULL )
@@ -878,20 +879,15 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 	switch( mx_datatype ) {
 	case MXFT_RECORD:
-		structure_name_length = MXU_RECORD_NAME_LENGTH + 1;
-		return_structure_name = TRUE;
-		break;
 	case MXFT_RECORDTYPE:
-		structure_name_length = MXU_DRIVER_NAME_LENGTH + 1;
-		return_structure_name = TRUE;
-		break;
 	case MXFT_INTERFACE:
-		structure_name_length = MXU_INTERFACE_NAME_LENGTH + 1;
-		return_structure_name = TRUE;
+		structure_name_length =
+			mx_get_scalar_element_size( mx_datatype, FALSE );
+		use_structure_name = TRUE;
 		break;
 	default:
 		structure_name_length = 0;
-		return_structure_name = FALSE;
+		use_structure_name = FALSE;
 		break;
 	}
 
@@ -905,48 +901,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 	MX_DEBUG(-2,("%s: destination_buffer = %p", fname, destination_buffer));
 #endif
 
-	if ( structure_name_length > 0 ) {
-		/* Handle structure names specially. */
-
-		if ( structure_name_length > destination_buffer_length ) {
-			structure_name_length = destination_buffer_length;
-		}
-
-		destination_pointer = (char *) destination_buffer;
-
-		switch( mx_datatype ) {
-		case MXFT_RECORD:
-			mx_record = (MX_RECORD *) array_pointer;
-
-			strlcpy( destination_pointer, mx_record->name,
-					structure_name_length );
-			break;
-		case MXFT_RECORDTYPE:
-			mx_driver = (MX_DRIVER *) array_pointer;
-
-			strlcpy( destination_pointer, mx_driver->name,
-					structure_name_length );
-			break;
-		case MXFT_INTERFACE:
-			mx_interface = (MX_INTERFACE *) array_pointer;
-
-			strlcpy( destination_pointer,
-					mx_interface->address_name,
-					structure_name_length );
-			break;
-
-		default:
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"Data type %ld is not a structure datatype.",
-				mx_datatype );
-		}
-
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = structure_name_length;
-		}
-
-		return MX_SUCCESSFUL_RESULT;
-	} else
 	if ( num_dimensions == 0 ) {
 
 		/* Handling scalars takes a bit more effort. */
@@ -1002,6 +956,46 @@ mx_copy_array_to_buffer( void *array_pointer,
 			}
 			break;
 
+			/* NOTE: 1-dimensional arrays of structures are
+			 * reported as if they were 2-dimensional arrays
+			 * of strings, where the strings are the 'names'
+			 * of the structures, for example record->name.
+			 */
+
+		case MXFT_RECORD:
+			mx_record = (MX_RECORD *) array_pointer;
+
+			strlcpy( destination_buffer, mx_record->name,
+					bytes_to_copy );
+			break;
+		case MXFT_RECORDTYPE:
+			mx_type = *((unsigned long *) array_pointer);
+
+			MX_DEBUG(-2,("%s: mx_type = %lu",
+				fname, mx_type));
+
+			mx_driver = mx_get_driver_by_type( mx_type );
+
+			if ( mx_driver == (MX_DRIVER *) NULL ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"MX driver type %ld is not found in the "
+				"loaded list of MX drivers.", mx_type );
+			}
+
+			MX_DEBUG(-2,("%s: mx_driver->name = '%s'",
+				fname, mx_driver->name));
+
+			strlcpy( destination_buffer, mx_driver->name,
+					bytes_to_copy );
+			break;
+		case MXFT_INTERFACE:
+			mx_interface = (MX_INTERFACE *) array_pointer;
+
+			strlcpy( destination_buffer,
+					mx_interface->address_name,
+					bytes_to_copy );
+			break;
+
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Array copy for data type %ld is not supported.",
@@ -1015,15 +1009,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* NOTE: 1-dimensional arrays of structures are reported as if they
-	 * were 2-dimensional arrays of strings, where the strings are the
-	 * 'names' of the structures, for example record->name.  Thus, the
-	 * ( num_dimensions == 1 ) case below should never be invoked for
-	 * complex structures.
-	 */
-
-	if ( ( num_dimensions == 1 ) && ( return_structure_name == FALSE ) ) {
-
+	if ( ( num_dimensions == 1 ) && ( use_structure_name == FALSE ) )
+	{ 
 		bytes_to_copy = dimension_array[0] * data_element_size_array[0];
 
 		if ( bytes_to_copy > destination_buffer_length ) {
@@ -1093,7 +1080,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		num_subarray_elements *= ( dimension_array[i] );
 	}
 
-	if ( return_structure_name ) {
+	if ( use_structure_name ) {
 		/* This is a structure array. */
 
 		subarray_size = num_subarray_elements * structure_name_length;
@@ -1160,113 +1147,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 	if ( num_bytes_copied != NULL ) {
 		*num_bytes_copied = array_size;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxp_copy_string_buffer_to_string_array( void *source_buffer,
-				size_t source_buffer_length,
-				void *array_pointer,
-				mx_bool_type array_is_dynamically_allocated,
-				long num_dimensions,
-				long *dimension_array,
-				size_t *data_element_size_array,
-				size_t *num_bytes_copied )
-{
-	static const char fname[] = "mxp_copy_string_buffer_to_string_array()";
-
-	char *array_row_pointer, *source_pointer;
-	size_t subarray_size, buffer_left;
-	long i, n, num_subarray_elements;
-	mx_status_type mx_status;
-
-#if 0
-	MX_DEBUG(-2,("%s invoked for num_dimensions = %ld, array_pointer = %p",
-		fname, num_dimensions, array_pointer));
-#endif
-
-	if ( num_dimensions < 2 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Invoked with num_dimensions == %ld.  "
-		"The minimum allowed value is 2.", num_dimensions );
-	}
-
-	if ( num_dimensions == 2 ) {
-		/* num_dimensions == 2 is a special case
-		 * for varying length strings.
-		 */
-
-		int argc;
-		char **argv;
-
-		mx_string_split( source_buffer, " \t", &argc, &argv );
-
-		if ( argc != dimension_array[0] ) {
-			mx_warning( "The number of string tokens (%d) sent by "
-			"the MX server does not match the number of strings "
-			"(%lu) expected for the array.",
-				argc, dimension_array[0] );
-		}
-
-		for ( n = 0; n < dimension_array[0]; n++ ) {
-
-			array_row_pointer = (char *) array_pointer
-			    + n * data_element_size_array[num_dimensions - 1];
-
-			if ( array_is_dynamically_allocated ) {
-				array_row_pointer = (char *)
-				    mx_read_void_pointer_from_memory_location(
-					array_row_pointer );
-			}
-
-			strlcpy(array_row_pointer, argv[n], dimension_array[1]);
-		}
-
-		mx_free( argv );
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* num_dimensions > 2 */
-
-	num_subarray_elements = 1;
-
-	for ( i = 1; i < num_dimensions; i++ ) {
-		num_subarray_elements *= ( dimension_array[i] );
-	}
-
-	subarray_size = num_subarray_elements * data_element_size_array[0];
-
-	for ( n = 0; n < dimension_array[0]; n++ ) {
-
-		array_row_pointer = (char *) array_pointer
-			+ n * data_element_size_array[num_dimensions - 1];
-
-		if ( array_is_dynamically_allocated ) {
-			array_row_pointer = (char *)
-				mx_read_void_pointer_from_memory_location(
-					array_row_pointer );
-		}
-
-		source_pointer = (char *) source_buffer
-			+ n * subarray_size;
-
-		buffer_left = source_buffer_length - n * subarray_size;
-
-		mx_status = mxp_copy_string_buffer_to_string_array(
-				source_pointer,
-				buffer_left,
-				array_row_pointer,
-				array_is_dynamically_allocated,
-				num_dimensions - 1,
-				&dimension_array[1],
-				data_element_size_array,
-				NULL );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1427,6 +1307,9 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
 			memcpy( array_pointer, source_buffer, bytes_to_copy );
 			break;
 
@@ -1456,19 +1339,6 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	}
 
 	/* num_dimensions > 1 */
-
-	if ( mx_datatype == MXFT_STRING ) {
-		/* Arrays of varying length strings are a special case. */
-
-		mx_status = mxp_copy_string_buffer_to_string_array(
-				source_buffer, source_buffer_length,
-				array_pointer, array_is_dynamically_allocated,
-				num_dimensions, dimension_array,
-				data_element_size_array,
-				num_bytes_copied );
-
-		return mx_status;
-	}
 
 	num_subarray_elements = 1;
 
