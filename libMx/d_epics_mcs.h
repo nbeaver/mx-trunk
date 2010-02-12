@@ -21,6 +21,7 @@
 
 #define MXF_EPICS_MCS_USE_REFERENCE_PULSER		0x2 /*not implemented*/
 #define MXF_EPICS_MCS_DO_NOT_SKIP_FIRST_MEASUREMENT	0x4
+#define MXF_EPICS_MCS_IGNORE_CLEARS			0x8
 
 typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];

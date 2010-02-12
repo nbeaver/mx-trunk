@@ -526,6 +526,7 @@ mxd_epics_mcs_clear( MX_MCS *mcs )
 
 	MX_EPICS_MCS *epics_mcs = NULL;
 	int32_t erase;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -533,10 +534,16 @@ mxd_epics_mcs_clear( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	erase = 1;
+	flags = epics_mcs->epics_mcs_flags;
 
-	mx_status = mx_caput( &(epics_mcs->erase_pv),
-				MX_CA_LONG, 1, &erase );
+	if ( ( flags & MXF_EPICS_MCS_IGNORE_CLEARS ) == 0 ) {
+
+		erase = 1;
+
+		mx_status = mx_caput( &(epics_mcs->erase_pv),
+					MX_CA_LONG, 1, &erase );
+	}
+
 	return mx_status;
 }
 
