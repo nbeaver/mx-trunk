@@ -14,9 +14,11 @@
  *
  */
 
-#define DEBUG_CONFIGURE_TIMING	FALSE
+#define DEBUG_PERFORM_SCAN_TIMING	TRUE
 
-#define DEBUG_CLEAR_TIMING	FALSE
+#define DEBUG_CONFIGURE_TIMING		FALSE
+
+#define DEBUG_CLEAR_TIMING		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -452,21 +454,23 @@ mx_perform_scan( MX_RECORD *scan_record )
 	mx_status_type ( *execute_scan_body_fn ) ( MX_SCAN * );
 	mx_status_type ( *cleanup_after_scan_end_fn ) ( MX_SCAN * );
 	MX_LIST_HEAD *list_head;
-	MX_CLOCK_TICK start_tick, end_tick;
-	MX_CLOCK_TICK scan_body_start_tick, scan_body_end_tick;
 	long i;
 	mx_status_type mx_status;
 
-#if DEBUG_CONFIGURE_TIMING
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_TIMING timing_measurement;
+#endif
+
+#if DEBUG_CONFIGURE_TIMING || DEBUG_PERFORM_SCAN_TIMING
 	MX_HRT_TIMING configure_measurement;
 	MX_HRT_TIMING deconfigure_measurement;
 #endif
 
 	MX_DEBUG( 2, ( "%s invoked.", fname ) );
 
-	if ( mx_get_debug_level() >= 1 ) {
-		start_tick = mx_current_clock_tick();
-	}
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/*** Find and check a lot of pointer variables that we will need. ***/
 
@@ -524,6 +528,13 @@ mx_perform_scan( MX_RECORD *scan_record )
 			scan_record->name );
 	}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "finding pointers" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/*** If the scan uses records that do not exist, abort now. */
 
 #define MXP_SCAN_MAX_NAMES	5
@@ -577,6 +588,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 			"Scan aborted.",  name_buffer, scan->record->name );
 	}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement,
+		fname, "checking for missing scan records" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/*** If this is a quick scan, save the motor speeds ***/
 
 	if ( scan_record->mx_class == MXS_QUICK_SCAN ) {
@@ -586,22 +605,34 @@ mx_perform_scan( MX_RECORD *scan_record )
 			return mx_status;
 	}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "save motor speeds" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/*** Record that the scan has started. ***/
 
 	if ( list_head->log_handler != NULL ) {
 		mx_log_scan_start( list_head, scan );
 	}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "mx_log_scan_start()" );
+#endif
+
 	/*** Configure the measurement type. ***/
 
-#if DEBUG_CONFIGURE_TIMING
+#if DEBUG_CONFIGURE_TIMING || DEBUG_PERFORM_SCAN_TIMING
 	MX_DEBUG(-2,("%s: Invoking mx_configure_measurement_type()", fname));
 	MX_HRT_START( configure_measurement );
 #endif
 
 	mx_status = mx_configure_measurement_type( &(scan->measurement) );
 
-#if DEBUG_CONFIGURE_TIMING
+#if DEBUG_CONFIGURE_TIMING || DEBUG_PERFORM_SCAN_TIMING
 	MX_HRT_END( configure_measurement );
 	MX_HRT_RESULTS( configure_measurement, fname,
 			"mx_configure_measurement_type() complete." );
@@ -617,12 +648,24 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	for ( i = 0; i < scan->num_scans; i++ ) {
 
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_START( timing_measurement );
+#endif
+
 		scan->current_scan_number = i;
 
 		if ( scan->num_scans > 1 ) {
 			mx_info( "Starting scan %ld of %ld.",
 					i+1, scan->num_scans );
 		}
+
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "display scan start message" );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		mx_status = prepare_for_scan_start_fn( scan );
 
@@ -631,6 +674,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 					list_head, scan, mx_status );
 			return mx_status;
 		}
+
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "prepare for scan start" );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/* Perform any measurement type specific processing required
 		 * before the start of the scan.
@@ -645,6 +696,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 			return mx_status;
 		}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "prescan measurement processing" );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/*** Open the shutter if requested. ***/
 
 		if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_SCAN ) {
@@ -658,17 +717,25 @@ mx_perform_scan( MX_RECORD *scan_record )
 			}
 		}
 
-		/*** Perform the scan. ***/
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "opened the shutter" );
 
-		if ( mx_get_debug_level() >= 1 ) {
-			scan_body_start_tick = mx_current_clock_tick();
-		}
+		MX_HRT_START( timing_measurement );
+#endif
+
+		/*** Perform the scan. ***/
 
 		scan->execute_scan_body_status = execute_scan_body_fn( scan );
 
-		if ( mx_get_debug_level() >= 1 ) {
-			scan_body_end_tick = mx_current_clock_tick();
-		}
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "execute scan body" );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/*** Close the shutter now if requested. ***/
 
@@ -676,6 +743,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 			(void) mx_relay_command( scan->shutter_record,
 						MXF_CLOSE_RELAY );
 		}
+
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "closed the shutter" );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/* Perform any measurement type specific processing required
 		 * after the end of the scan.
@@ -689,6 +764,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 					list_head, scan, mx_status );
 			return mx_status;
 		}
+
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "postscan measurement processing" );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/* Check the status of the scan that just completed. */
 
@@ -709,6 +792,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 			break;
 		}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "display scan complete message" );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/*
 		 * Perform any post scan actions such as reading out MCSs, etc.
 		 */
@@ -721,6 +812,14 @@ mx_perform_scan( MX_RECORD *scan_record )
 			return mx_status;
 		}
 
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "cleanup after scan end" );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/* If this is a quick scan, restore the motor speeds. */
 
 		if ( scan_record->mx_class == MXS_QUICK_SCAN ) {
@@ -729,18 +828,25 @@ mx_perform_scan( MX_RECORD *scan_record )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+
+#if DEBUG_PERFORM_SCAN_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement,
+			fname, "restored motor speeds" );
+#endif
+
 	}
 
 	/* Deconfigure the measurement type. */
 
-#if DEBUG_CONFIGURE_TIMING
+#if DEBUG_CONFIGURE_TIMING || DEBUG_PERFORM_SCAN_TIMING
 	MX_DEBUG(-2,("%s: Invoking mx_deconfigure_measurement_type()", fname));
 	MX_HRT_START( deconfigure_measurement );
 #endif
 
 	(void) mx_deconfigure_measurement_type( &(scan->measurement) );
 
-#if DEBUG_CONFIGURE_TIMING
+#if DEBUG_CONFIGURE_TIMING || DEBUG_PERFORM_SCAN_TIMING
 	MX_HRT_END( deconfigure_measurement );
 	MX_HRT_RESULTS( deconfigure_measurement, fname,
 			"mx_deconfigure_measurement_type() complete." );
@@ -751,62 +857,6 @@ mx_perform_scan( MX_RECORD *scan_record )
 	if ( list_head->log_handler != NULL ) {
 		mx_log_scan_end( list_head, scan,
 					scan->execute_scan_body_status );
-	}
-
-	if ( mx_get_debug_level() >= 1 ) {
-
-		MX_CLOCK_TICK prepare_for_scan_start_ticks;
-		double prepare_for_scan_start_time;
-
-		MX_CLOCK_TICK scan_body_ticks;
-		double scan_body_time;
-
-		MX_CLOCK_TICK cleanup_after_scan_end_ticks;
-		double cleanup_after_scan_end_time;
-
-		MX_CLOCK_TICK total_scan_ticks;
-		double total_scan_time;
-
-		end_tick = mx_current_clock_tick();
-
-		prepare_for_scan_start_ticks = mx_subtract_clock_ticks(
-						scan_body_start_tick,
-						start_tick );
-
-		prepare_for_scan_start_time = mx_convert_clock_ticks_to_seconds(
-			prepare_for_scan_start_ticks );
-
-		MX_DEBUG(-2,("%s: preparing for scan start = %g seconds",
-			fname, prepare_for_scan_start_time));
-
-		scan_body_ticks = mx_subtract_clock_ticks(
-						scan_body_end_tick,
-						scan_body_start_tick );
-
-		scan_body_time = mx_convert_clock_ticks_to_seconds(
-			scan_body_ticks );
-
-		MX_DEBUG(-2,("%s: scan body                = %g seconds",
-			fname, scan_body_time));
-
-		cleanup_after_scan_end_ticks = mx_subtract_clock_ticks(
-						end_tick,
-						scan_body_end_tick );
-
-		cleanup_after_scan_end_time = mx_convert_clock_ticks_to_seconds(
-			cleanup_after_scan_end_ticks );
-
-		MX_DEBUG(-2,("%s: cleanup after scan end   = %g seconds",
-			fname, cleanup_after_scan_end_time));
-
-		total_scan_ticks = mx_subtract_clock_ticks(
-						end_tick, start_tick );
-
-		total_scan_time = mx_convert_clock_ticks_to_seconds(
-			total_scan_ticks );
-
-		MX_DEBUG(-2,("%s: total scan time          = %g seconds",
-			fname, total_scan_time));
 	}
 
 	return MX_SUCCESSFUL_RESULT;

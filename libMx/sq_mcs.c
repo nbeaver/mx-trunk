@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_TIMING		TRUE
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
@@ -29,6 +31,7 @@
 #include "mx_driver.h"
 #include "mx_array.h"
 #include "mx_variable.h"
+#include "mx_hrt_debug.h"
 #include "mx_mcs.h"
 #include "mx_timer.h"
 #include "mx_pulse_generator.h"
@@ -1885,6 +1888,10 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	size_t element_size[2];
 	mx_status_type status;
 
+#if DEBUG_TIMING
+	MX_HRT_TIMING timing_measurement;
+#endif
+
 	MX_DEBUG( 2,("%s invoked.", fname));
 
 	status = mxs_mcs_quick_scan_get_pointers( scan,
@@ -1896,6 +1903,10 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	/* Figure out what kind of measurement type this is and get the
 	 * clock record for it.
 	 */
+
+#if DEBUG_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	switch( scan->measurement.type ) {
 	case MXM_PRESET_TIME:
@@ -1945,6 +1956,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "get clock record" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Connect the real motor(s) to their multichannel encoders.
 	 *
@@ -2015,6 +2033,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "setup encoder readout" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Check each alternate datafile X motor to see if the real scan
 	 * motors of the scan will be generating encoder positions that
 	 * the alternate X motor can use.
@@ -2056,6 +2081,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"check for alternate datafile X motor" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Do the same for the alternative plot X axis motors. */
 
 	for ( i = 0; i < scan->plot.num_x_motors; i++ ) {
@@ -2096,6 +2129,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_free( real_motor_array );
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"check for alternate plot X motor" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/**** Send the motors to the start position for the scan. ****/
 
 	mx_info("Moving to the start of the scan region.");
@@ -2107,6 +2148,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		return status;
 
 	mx_info("Move complete.");
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "move to start position" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/**** Compute the time required for the body of the scan. ****/
 
@@ -2127,6 +2175,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"compute quick scan parameters" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/**** Move to the quick scan backlash position. ****/
 
 	mx_info("Correcting for quick scan backlash." );
@@ -2138,6 +2194,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		return status;
 
 	mx_info("Correction for quick scan backlash complete." );
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"correcting for quick scan backlash" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/**** Move to the 'real' start position. ****/
 
@@ -2151,6 +2215,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_info("All motors are at the start position.\n");
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"move to real start position" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/**** Set the motor speeds for the quick scan. ****/
 
 	status = mxs_mcs_quick_scan_set_motor_speeds( scan,
@@ -2159,9 +2231,19 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"set quick scan motor speeds" );
+#endif
+
 	/* Reprogram all of the MCSs for this scan. */
 
 	for ( i = 0; i < mcs_quick_scan->num_mcs; i++ ) {
+
+#if DEBUG_TIMING
+		MX_HRT_START( timing_measurement );
+#endif
 
 		mcs_record = mcs_quick_scan->mcs_record_array[i];
 
@@ -2174,6 +2256,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return status;
 		}
 
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"set '%s' to preset time mode.", mcs_record->name );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/**** Set the measurement time per point. ****/
 
 		status = mx_mcs_set_measurement_time( mcs_record,
@@ -2183,6 +2273,15 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			(void) mx_scan_restore_speeds( scan );
 			return status;
 		}
+
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"set '%s' measurement time to %g.",
+			mcs_record->name, measurement_time );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/**** Set the number of measurements. ****/
 
@@ -2194,6 +2293,16 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return status;
 		}
 
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"set '%s' num measurements to %ld.",
+			mcs_record->name,
+			quick_scan->actual_num_measurements );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/**** Erase the previous contents of the MCS. */
 
 		status = mx_mcs_clear( mcs_record );
@@ -2202,6 +2311,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			(void) mx_scan_restore_speeds( scan );
 			return status;
 		}
+
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"clear MCS '%s'.", mcs_record->name );
+
+		MX_HRT_START( timing_measurement );
+#endif
 
 		/**** Reprogram the channel advance for this measurement. */
 
@@ -2265,11 +2382,24 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				scan->measurement.type, scan->record->name );
 			break;
 		}
+
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"reprogramming '%s' channel advance.",
+			mcs_record->name );
+
+		MX_HRT_START( timing_measurement );
+#endif
 	}
 
 	/* If the clock record is a pulse generator, then reprogram it too. */
 
 	if ( scan->measurement.type == MXM_PRESET_PULSE_PERIOD ) {
+
+#if DEBUG_TIMING
+		MX_HRT_START( timing_measurement );
+#endif
 
 #if 1 /* WML: FIXME - This is a "temporary" kludge. */
 		{
@@ -2319,9 +2449,19 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		if ( status.code != MXE_SUCCESS )
 			return status;
+
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"reprogram pulse generator '%s'.", clock_record->name );
+#endif
 	}
 
 	/**** Allocate memory for the motor position array. ****/
+
+#if DEBUG_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
 
@@ -2340,6 +2480,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return status;
 		}
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"allocate memory for the motor position array" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* If needed allocate memory for the alternate motor position arrays. */
 
@@ -2361,6 +2509,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+		"allocate memory for the alternate datafile position arrays." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	if ( scan->plot.num_x_motors > 0 ) {
 		dimension[0] = scan->plot.num_x_motors;
 		dimension[1] = quick_scan->actual_num_measurements;
@@ -2379,6 +2535,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+		"allocate memory for the alternate plot position arrays." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Is this scan supposed to be a synchronous motion mode scan? */
 
 	synchronous_motion_mode_record = mx_get_record( scan->record,
@@ -2391,6 +2555,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				&(quick_scan->use_synchronous_motion_mode));
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"check for synchronous motion mode." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/**** Initialize the datafile and plotting support. ****/
 
 	status = mx_standard_prepare_for_scan_start( scan );
@@ -2401,6 +2573,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		return status;
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+	    "mx_standard_prepare_for_scan_start() - datafile and plotting." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	if ( mx_plotting_is_enabled( scan->record ) ) {
 		status = mx_plot_start_plot_section( &(scan->plot) );
 
@@ -2410,6 +2590,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return status;
 		}
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "start plot section" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/**** Switch to synchronous motion mode if requested. ****/
 
@@ -2424,6 +2611,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				return status;
 		}
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"set synchronous motion mode." );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/**** Display the quick scan parameters. ****/
 
@@ -2441,6 +2636,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	}
 
 	mx_info(" ");
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"display quick scan parameters" );
+#endif
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -2528,6 +2729,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 #endif
 	mx_status_type mx_status;
 
+#if DEBUG_TIMING
+	MX_HRT_TIMING timing_measurement;
+#endif
+
 	MX_DEBUG( 2,("%s invoked.", fname));
 
 	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
@@ -2535,6 +2740,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Start the multichannel scalers. */
 
@@ -2581,6 +2790,14 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"starting the multichannel scalers" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Wait several measurement times before starting the motors.
 	 *
@@ -2641,6 +2858,14 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	}
 #endif
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"waiting for the MCS to start." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Start the motors.
 	 *
 	 * We have already done backlash correction of the motors used by
@@ -2666,6 +2891,13 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		return mx_status;
 
 	mx_info("Quick scan is in progress...");
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "starting the motors" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Wait for the counting to finish. */
 
@@ -2705,9 +2937,24 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	mx_info("Quick scan complete.");
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"waiting for the scan to complete." );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* See if any of the motors used by the scan generated any errors. */
 
 	(void) mxs_mcs_quick_scan_check_for_motor_errors( scan );
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "check for motor errors" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Stop the motors in case they are still running. */
 
@@ -2715,11 +2962,26 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		(void) mx_motor_soft_abort( scan->motor_record_array[i] );
 	}
 
-	/* Stop the multichannel analyzers in case they are still counting. */
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "stop the motors" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/* Stop the multichannel scalers in case they are still counting. */
 
 	for ( i = 0; i < mcs_quick_scan->num_mcs; i++ ) {
 		(void) mx_mcs_stop( mcs_quick_scan->mcs_record_array[i] );
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"stop the multichannel scalers" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Make sure the motors have stopped so that it is safe to send
 	 * them new commands.
@@ -2730,6 +2992,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"wait for the motors to stop" );
+#endif
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -2766,11 +3034,19 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	size_t string_length, buffer_left;
 	mx_status_type mx_status;
 
+#if DEBUG_TIMING
+	MX_HRT_TIMING timing_measurement;
+#endif
+
 	MX_DEBUG( 2,("%s invoked.", fname));
 
 	/* Try to restore the old motor speeds and synchronous motion mode
 	 * flags for this quick scan, no matter what happens.
 	 */
+
+#if DEBUG_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	(void) mx_scan_restore_speeds( scan );
 
@@ -2789,6 +3065,13 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	MX_DEBUG( 2,("%s: motor speeds restored.", fname));
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "restoring motor speeds" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Calculate the positions of the motors depending on either
 	 * incremental encoder counts sent as UP counts and DOWN counts
 	 * to a pair of scaler channels or by using dead reckoning.
@@ -2802,6 +3085,14 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		return mx_status;
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"computing motor positions" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Read the scaler values for the channels used by this scan. */
 
 	if ( mcs_quick_scan->num_mcs == 1 ) {
@@ -2813,6 +3104,10 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	/* This version reads only the channels used by the scan. */
 
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
+
+#if DEBUG_TIMING
+		MX_HRT_START( timing_measurement );
+#endif
 
 		input_device_record = (scan->input_device_array)[i];
 
@@ -2843,6 +3138,14 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			fprintf(stderr,"\n");
 		}
 
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"reading scaler %ld", i );
+
+		MX_HRT_START( timing_measurement );
+#endif
+
 		/* Update the dark current value. */
 
 		mx_status = mx_mcs_get_dark_current( mcs_scaler->mcs_record,
@@ -2850,7 +3153,17 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if DEBUG_TIMING
+		MX_HRT_END( timing_measurement );
+		MX_HRT_RESULTS( timing_measurement, fname,
+			"getting dark current for scaler %ld", i );
+#endif
 	}
+
+#if DEBUG_TIMING
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Allocate an array to contain the scaler channel values for
 	 * one measurement.
@@ -3022,6 +3335,14 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		}
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"adding measurements to the datafile and plot" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	if ( mx_plotting_is_enabled( scan->record ) ) {
 		MX_DEBUG( 2,("%s: displaying the plot.", fname));
 
@@ -3030,11 +3351,27 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		(void) mx_display_plot( &(scan->plot) );
 	}
 
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"displaying the plot" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
 	/* Close the datafile and shut down the plot. */
 
 	MX_DEBUG( 2,("%s: Invoking standard cleanup function.", fname));
 
 	mx_status = mx_standard_cleanup_after_scan_end( scan );
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"mx_standard_cleanup_after_scan_end()" );
+
+	MX_HRT_START( timing_measurement );
+#endif
 
 	/* Free all of the data arrays that were allocated in the routine
 	 * mxs_mcs_quick_scan_prepare_for_scan_start().
@@ -3046,6 +3383,12 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	mx_free(data_values);
 
 	MX_DEBUG( 2,("%s complete.", fname));
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"data arrays freed" );
+#endif
 
 	return mx_status;
 }
