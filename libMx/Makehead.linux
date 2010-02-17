@@ -19,8 +19,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -53,8 +53,8 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
-#LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
+LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
 #LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
