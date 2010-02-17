@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009 Illinois Institute of Technology
+ * Copyright 2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -206,6 +206,11 @@ mx_get_cpu_architecture( char *architecture_type,
 #  elif defined(__x86_64__) || defined(__x86_64)
 
 		strlcpy( architecture_type, "amd64",
+				max_architecture_type_length );
+
+#  elif defined(__ARMEL__)
+
+		strlcpy( architecture_type, "armel",
 				max_architecture_type_length );
 
 #  elif defined(__hppa__) || defined(__hppa)
