@@ -971,8 +971,10 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_RECORDTYPE:
 			mx_type = *((unsigned long *) array_pointer);
 
+#if 0
 			MX_DEBUG(-2,("%s: mx_type = %lu",
 				fname, mx_type));
+#endif
 
 			mx_driver = mx_get_driver_by_type( mx_type );
 
@@ -982,8 +984,10 @@ mx_copy_array_to_buffer( void *array_pointer,
 				"loaded list of MX drivers.", mx_type );
 			}
 
+#if 0
 			MX_DEBUG(-2,("%s: mx_driver->name = '%s'",
 				fname, mx_driver->name));
+#endif
 
 			strlcpy( destination_buffer, mx_driver->name,
 					bytes_to_copy );
