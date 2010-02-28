@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -118,9 +118,6 @@ cmd_split_command_line( char *command_line,
 	size_t split_buffer_length, chars_to_skip, src_length;
 	char argv1_token = '\0';
 	char *command_ptr;
-	char *temp_string;
-	int temp_argc;
-	char **temp_argv;
 	unsigned long i, max_tokens;
 	char *src_ptr, *dest_ptr;
 	mx_bool_type in_token, old_in_token, in_quoted_string;
@@ -157,31 +154,70 @@ cmd_split_command_line( char *command_line,
 	 * inside pairs of double quotes are treated as a single token.
 	 */
 
-	/* Compute an upper limit to the maximum number of tokens in
-	 * the command line by performing a string split using spaces
-	 * and tabs as the delimiters.
-	 */
+#if 0
+	{
+		/* Compute an upper limit to the maximum number of tokens in
+		 * the command line by performing a string split using spaces
+		 * and tabs as the delimiters.
+		 */
 
-#if 1
-	temp_string = strdup( command_ptr );
+		char *temp_string;
+		int temp_argc;
+		char **temp_argv;
+
+		temp_string = strdup( command_ptr );
+
+		mx_string_split( temp_string, " \t", &temp_argc, &temp_argv );
+
+		mx_free( temp_argv );
+		mx_free( temp_string );
+
+		max_tokens = temp_argc + 1;	/* Add 1 for the argv0 token. */
+	}
 #else
 	{
-		size_t len;
+		/* Compute an upper limit on the maximum number of tokens in
+		 * the command line.
+		 */
 
-		len = strlen(command_ptr) + 1;
+		char *ptr;
+		mx_bool_type in_delimiter, end_of_string;
 
-		temp_string = malloc( len );
+		max_tokens = 1;		/* Must include the argv0 token. */
 
-		strlcpy( temp_string, command_ptr, len );
+		ptr = command_ptr;
+
+		in_delimiter = TRUE;
+		end_of_string = FALSE;
+
+		while (1) {
+			switch( *ptr ) {
+			case '\0':
+				end_of_string = TRUE;
+				break;
+			case ' ':
+			case '\t':
+				in_delimiter = TRUE;
+				break;
+			default:
+				if ( in_delimiter ) {
+					max_tokens++;
+				}
+				in_delimiter = FALSE;
+				break;
+			}
+
+			if ( end_of_string )
+				break;
+
+			ptr++;
+		}
+
+#if 0
+		fprintf(stderr, "Max tokens = %lu\n", max_tokens );
+#endif
 	}
 #endif
-
-	mx_string_split( temp_string, " \t", &temp_argc, &temp_argv );
-
-	mx_free( temp_argv );
-	mx_free( temp_string );
-
-	max_tokens = temp_argc + 1;	/* Add 1 for the argv0 token. */
 
 	/* If present, add 1 for the argv1 token. */
 
