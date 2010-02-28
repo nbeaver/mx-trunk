@@ -1796,7 +1796,11 @@ mx_string_split( char *original_string,
 
 	array_size = num_blocks * block_size;
 
-	*argv = malloc( array_size * sizeof(char**) );
+	/* Note: array_size has +1 added to it to make sure that there
+	 * is always enough space to NULL terminate the argv array.
+	 */
+
+	*argv = malloc( (array_size + 1) * sizeof(char**) );
 
 	if ( *argv == NULL ) {
 		errno = ENOMEM;
@@ -1814,7 +1818,8 @@ mx_string_split( char *original_string,
 			num_blocks++;
 			array_size = num_blocks * block_size;
 
-			*argv = realloc( *argv, array_size * sizeof(char**) );
+			*argv = realloc( *argv,
+				(array_size + 1) * sizeof(char**) );
 
 			if ( *argv == NULL ) {
 				errno = ENOMEM;
