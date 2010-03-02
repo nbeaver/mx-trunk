@@ -912,6 +912,28 @@ mx_get_max_file_descriptors( void )
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT int
+mx_get_number_of_open_file_descriptors( void )
+{
+	int result;
+
+#if 0
+
+#elif defined( OS_WIN32 )
+
+	result = -1;	/* Not yet implemented. */
+
+#else
+
+#error mx_get_number_of_open_file_descriptors() has not been implemented for this platform.
+
+#endif
+
+	return result;
+}
+
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT unsigned long
 mx_hex_char_to_unsigned_long( char c )
 {

@@ -92,13 +92,13 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #
 # Visual C++ 4.0            (_MSC_VER == 1000)
 #
-#MSDEV_DIR	= c:\\msdevstd
+MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
