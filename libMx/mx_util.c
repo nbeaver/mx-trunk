@@ -882,10 +882,8 @@ mx_get_max_file_descriptors( void )
 {
 	int result;
 
-#if defined( OS_LINUX ) || defined( OS_SOLARIS ) || defined( OS_IRIX ) \
-	|| defined( OS_HPUX ) || defined( OS_SUNOS4 ) || defined( OS_MACOSX ) \
-	|| defined( OS_BSD ) || defined( OS_QNX ) || defined( OS_CYGWIN ) \
-	|| defined( OS_DJGPP ) || defined( OS_VMS ) || defined( OS_TRU64 )
+#if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
+	|| defined( OS_VMS )
 
 	result = getdtablesize();
 
@@ -912,25 +910,58 @@ mx_get_max_file_descriptors( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
+	|| defined( OS_VMS ) || defined( OS_ECOS ) || defined( OS_RTEMS ) \
+	|| defined( OS_VXWORKS )
+
 MX_EXPORT int
 mx_get_number_of_open_file_descriptors( void )
 {
-	int result;
+	static const char fname[] = "mx_get_number_of_open_file_descriptors()";
+
+	int i, max_descriptors, os_status, saved_errno, num_open;
+	struct stat stat_buf;
+
+	num_open = 0;
+	max_descriptors = mx_get_max_file_descriptors();
+
+	for ( i = 0; i < max_descriptors; i++ ) {
+		os_status = fstat( i, &stat_buf );
+
+		saved_errno = errno;
 
 #if 0
+		MX_DEBUG(-2,("open fds: i = %d, os_status = %d, errno = %d",
+			i, os_status, saved_errno));
+#endif
+
+		if ( os_status == 0 ) {
+			num_open++;
+		} else {
+			if ( saved_errno != EBADF ) {
+				mx_warning(
+		"%s: fstat(%d,...) returned errno = %d, error message = '%s'",
+				fname, i, saved_errno, strerror(saved_errno) );
+			}
+		}
+	}
+
+	return num_open;
+}
 
 #elif defined( OS_WIN32 )
 
-	result = -1;	/* Not yet implemented. */
+MX_EXPORT int
+mx_get_number_of_open_file_descriptors( void )
+{
+	return( -1 );	/* Not yet implemented. */
+}
 
 #else
 
 #error mx_get_number_of_open_file_descriptors() has not been implemented for this platform.
 
 #endif
-
-	return result;
-}
 
 /*-------------------------------------------------------------------------*/
 
