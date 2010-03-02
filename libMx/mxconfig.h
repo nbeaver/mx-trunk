@@ -80,7 +80,7 @@
  * this would lead to name conflicts at link time.
  */
 
-#define HAVE_LINUX_GPIB			1
+#define HAVE_LINUX_GPIB			0
 
 /*****************************************************************************
  *

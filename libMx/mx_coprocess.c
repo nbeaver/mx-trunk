@@ -573,7 +573,8 @@ static TerminateJobObject_type pTerminateJobObject = NULL;
 /*------------------------*/
 
 static HANDLE
-mxp_coprocess_create_job_object( HANDLE child_process_handle )
+mxp_coprocess_create_job_object( HANDLE child_process_handle,
+				unsigned long child_process_pid )
 {
 	static const char fname[] = "mxp_coprocess_create_job_object()";
 
@@ -715,13 +716,13 @@ mxp_coprocess_create_job_object( HANDLE child_process_handle )
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to assign child process %lu to job %p failed.  "
 		"error code = %lu, error message = '%s'.",
-			GetProcessId( child_process_handle ), job_object,
+			child_process_pid, job_object,
 			last_error_code, error_message );
 	}
 
 #if DEBUG_COPROCESS
 	MX_DEBUG(-2,("%s: Assigned child process %lu to job %p.",
-		fname, GetProcessId( child_process_handle), job_object ));
+		fname, child_process_pid, job_object ));
 #endif
 
 	return job_object;
@@ -1088,7 +1089,8 @@ mx_coprocess_open( MX_COPROCESS **coprocess,
 		(*coprocess)->private = NULL;
 	} else {
 		(*coprocess)->private = mxp_coprocess_create_job_object(
-						process_info.hProcess );
+						process_info.hProcess,
+						(*coprocess)->coprocess_pid );
 
 		/* Regardless of whether or not a job object was created,
 		 * we must now resume the process.
