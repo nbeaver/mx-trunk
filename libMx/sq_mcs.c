@@ -1876,16 +1876,19 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_RECORD *mce_record;
 	MX_RECORD *mcs_record;
 	MX_MOTOR *motor;
+	MX_MOTOR *quick_scan_motor;
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	double measurement_time;
+	double qs_backlash, qs_ratio;
 	MX_RECORD **real_motor_array;
 	int motor_is_compatible, this_motor_is_compatible;
 	long i, j;
 	long dimension[2];
 	size_t element_size[2];
+	mx_bool_type correct_for_quick_scan_backlash;
 	mx_status_type status;
 
 #if DEBUG_TIMING
@@ -1899,6 +1902,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
+
+	correct_for_quick_scan_backlash = FALSE;
 
 	/* Figure out what kind of measurement type this is and get the
 	 * clock record for it.
@@ -1993,6 +1998,29 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		if ( status.code != MXE_SUCCESS ) {
 			mx_free( real_motor_array );
 			return status;
+		}
+
+		/* Only perform quick scan backlash correction if one or
+		 * more of the quick scan motors has a non-zero value
+		 * for the correction.
+		 */
+
+		quick_scan_motor = (MX_MOTOR *)
+			quick_scan_motor_record->record_class_struct;
+
+		if ( quick_scan_motor == (MX_MOTOR *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_MOTOR pointer for quick scan motor '%s' is NULL.",
+				quick_scan_motor_record->name );
+		}
+
+		qs_backlash = quick_scan_motor->quick_scan_backlash_correction;
+
+		qs_ratio = mx_divide_safely( qs_backlash,
+				quick_scan_motor->scale );
+
+		if ( fabs(qs_ratio) > 1.0e-6 ) {
+			correct_for_quick_scan_backlash = TRUE;
 		}
 
 		mce_record = mxs_mcs_quick_scan_find_encoder_readout(
@@ -2185,15 +2213,17 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/**** Move to the quick scan backlash position. ****/
 
-	mx_info("Correcting for quick scan backlash." );
+	if ( correct_for_quick_scan_backlash ) {
+		mx_info("Correcting for quick scan backlash." );
 
-	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+		status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
 					mcs_quick_scan->backlash_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
-	mx_info("Correction for quick scan backlash complete." );
+		mx_info("Correction for quick scan backlash complete." );
+	}
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
