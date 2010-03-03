@@ -25,5 +25,9 @@ MX_API mx_status_type
 mx_fd_num_input_bytes_available( int file_descriptor,
 				size_t *num_bytes_available );
 
+MX_API int mx_get_max_file_descriptors( void );
+
+MX_API int mx_get_number_of_open_file_descriptors( void );
+
 #endif /* _MX_IO_H_ */
 

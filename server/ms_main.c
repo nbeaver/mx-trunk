@@ -40,6 +40,7 @@
 #include "mx_select.h"
 #include "mx_net.h"
 #include "mx_pipe.h"
+#include "mx_io.h"
 #include "mx_callback.h"
 #include "mx_clock.h"
 #include "mx_hrt.h"

@@ -800,10 +800,6 @@ MX_API mx_status_type mx_wait_for_process_id( unsigned long process_id,
 
 MX_API char *mx_username( char *buffer, size_t buffer_length );
 
-MX_API int mx_get_max_file_descriptors( void );
-
-MX_API int mx_get_number_of_open_file_descriptors( void );
-
 MX_API mx_status_type mx_get_process_affinity_mask( unsigned long process_id,
 							unsigned long *mask );
 

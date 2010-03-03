@@ -18,6 +18,7 @@
 
 #include "motor.h"
 #include "command.h"
+#include "mx_io.h"
 
 int
 motor_test_fn( int argc, char *argv[] )
