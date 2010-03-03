@@ -887,6 +887,7 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 #define MXE_ALREADY_EXISTS			1049
 #define MXE_INVALID_CALLBACK			1050
 #define MXE_EARLY_EXIT				1051
+#define MXE_PROTOCOL_ERROR			1052
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.

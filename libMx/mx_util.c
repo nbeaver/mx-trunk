@@ -930,7 +930,7 @@ mx_hex_string_to_unsigned_long( char *string )
 MX_EXPORT long
 mx_string_to_long( char *string )
 {
-	static const char fname[] = "mx_hex_string_to_unsigned_long()";
+	static const char fname[] = "mx_string_to_long()";
 
 	char *endptr;
 	long result;
@@ -950,7 +950,7 @@ mx_string_to_long( char *string )
 MX_EXPORT unsigned long
 mx_string_to_unsigned_long( char *string )
 {
-	static const char fname[] = "mx_hex_string_to_unsigned_long()";
+	static const char fname[] = "mx_string_to_unsigned_long()";
 
 	char *endptr;
 	unsigned long result;

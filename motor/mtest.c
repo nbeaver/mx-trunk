@@ -37,15 +37,21 @@ motor_test_fn( int argc, char *argv[] )
 			
 			return SUCCESS;
 		} else
-		if ( strcmp( argv[2], "openfds" ) == 0 ) {
+		if ( strcmp( argv[2], "num_open_fds" ) == 0 ) {
 			int max_fds, num_open_fds;
 
 			max_fds = mx_get_max_file_descriptors();
 
 			num_open_fds = mx_get_number_of_open_file_descriptors();
 
-			mx_info( "openfds: max_fds = %d, num_open_fds = %d",
+			mx_info(
+			"num_open_fds: max_fds = %d, num_open_fds = %d",
 				max_fds, num_open_fds );
+
+			return SUCCESS;
+		} else
+		if ( strcmp( argv[2], "show_open_fds" ) == 0 ) {
+			mx_show_fd_names( mx_process_id() );
 
 			return SUCCESS;
 		}

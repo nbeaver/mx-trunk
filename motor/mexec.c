@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,6 +201,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 		if ( status == FAILURE ) {
 			cmd_free_command_line( cmd_argv, split_buffer );
+			fclose( script_file );
 			return FAILURE;
 		}
 
@@ -240,6 +241,8 @@ motor_exec_common( char *script_name, int verbose_flag )
 			cmd_free_command_line( cmd_argv, split_buffer );
 		}
 	}
+
+	fclose( script_file );
 
 	return status;
 }
