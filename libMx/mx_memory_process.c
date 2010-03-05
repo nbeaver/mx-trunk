@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -245,7 +245,7 @@ mx_get_process_meminfo( unsigned long process_id,
  * the necessary definitions ourself.
  */
 
-#if ( defined(_MSC_VER) && ( _MSC_VER <= 1000 ) )
+#if ( defined(_MSC_VER) && ( _MSC_VER <= 1100 ) )
 typedef unsigned long SIZE_T;
 #endif
 

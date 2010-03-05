@@ -29,7 +29,7 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if defined( OS_WIN32 ) && ( _MSC_VER >= 1100 )
+#if defined( OS_WIN32 ) && ( _MSC_VER >= 1200 )
 
 /* The following code is inspired by several articles in the Microsoft
  * Systems Journal by Matt Pietrek.  The articles were in the following

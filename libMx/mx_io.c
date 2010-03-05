@@ -25,6 +25,11 @@
 #include "mx_select.h"
 #include "mx_io.h"
 
+#if defined(OS_WIN32)
+#  define popen(x,p) _popen(x,p)
+#  define pclose(x)  _pclose(x)
+#endif
+
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
@@ -271,7 +276,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */
 
-		fclose(file);
+		pclose(file);
 		return;
 	}
 
@@ -332,7 +337,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 		if ( feof(file) || ferror(file) ) {
 			/* End of lsof output, so give up. */
 
-			fclose(file);
+			pclose(file);
 			return;
 		}
 	}
@@ -342,7 +347,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 	strlcpy( peer_command_name, current_command_name,
 		peer_command_name_length );
 
-	fclose(file);
+	pclose(file);
 	return;
 }
 
@@ -570,21 +575,21 @@ mxp_get_fd_name_from_lsof( unsigned long process_id, int fd,
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */
 
-		fclose(file);
+		pclose(file);
 		return NULL;
 	}
 
 	if ( response[0] != 'p' ) {
 		/* This file descriptor is not open. */
 
-		fclose(file);
+		pclose(file);
 		return NULL;
 	}
 
 	ptr = mxp_parse_lsof_output( file, process_id, fd,
 					buffer, buffer_size );
 
-	fclose(file);
+	pclose(file);
 
 	fprintf(stderr, "END: fd = %d\n", fd );
 
@@ -689,14 +694,14 @@ mx_show_fd_names( unsigned long process_id )
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */
 
-		fclose(file);
+		pclose(file);
 		return;
 	}
 
 	if ( response[0] != 'p' ) {
 		/* This file descriptor is not open. */
 
-		fclose(file);
+		pclose(file);
 		return;
 	}
 
@@ -715,7 +720,7 @@ mx_show_fd_names( unsigned long process_id )
 
 	num_open_fds = mx_get_number_of_open_file_descriptors();
 
-	fclose(file);
+	pclose(file);
 
 	mx_info( "max_fds = %d, num_open_fds = %d", max_fds, num_open_fds );
 

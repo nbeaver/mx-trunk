@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005, 2009 Illinois Institute of Technology
+ * Copyright 2005, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ mx_split_version_number_string( char *version_number_string,
 
 #if defined( OS_WIN32 )
 
-#if ( defined(_MSC_VER) && (_MSC_VER >= 1100) )
+#if ( defined(_MSC_VER) && (_MSC_VER >= 1200) )
 # define HAVE_OSVERSIONINFOEX	TRUE
 #elif ( defined(__BORLANDC__) || defined(__GNUC__) )
 # define HAVE_OSVERSIONINFOEX	TRUE

@@ -96,16 +96,17 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #
+# Visual C++ 5.0            (_MSC_VER == 1100)
+#
+MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
+#
 # Visual C++ 4.0            (_MSC_VER == 1000)
 #
-MSDEV_DIR	= c:\\msdevstd
+#MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
-#MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 
 # Visual Studio.NET 2002    (_MSC_VER == 1300)  (Not tested)
-# Visual C++ 5.0            (_MSC_VER == 1100)  (Not recently tested)
 
 #---------------------------------------------------------------------------
 #
