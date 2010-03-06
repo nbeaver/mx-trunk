@@ -37,7 +37,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
+	|| defined(OS_RTEMS)
 
   /* These platforms already provide the thread-safe Posix time functions. */
 

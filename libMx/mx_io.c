@@ -33,7 +33,7 @@
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_DJGPP)
+	|| defined(OS_DJGPP) || defined(OS_RTEMS)
 
 #include <errno.h>
 #include <fcntl.h>
@@ -50,7 +50,7 @@
 /*---*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_IRIX) || defined(OS_CYGWIN)
+	|| defined(OS_IRIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
 
 #  define USE_FIONREAD	TRUE
 #else

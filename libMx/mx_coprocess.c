@@ -1774,6 +1774,44 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 
 /*-------------------------------------------------------------------------*/
 
+#elif defined(OS_RTEMS) || defined(OS_ECOS) || defined(OS_VXWORKS)
+
+MX_EXPORT mx_status_type
+mx_coprocess_open( MX_COPROCESS **coprocess,
+			char *command_line,
+			unsigned long flags )
+{
+	static const char fname[] = "mx_coprocess_open()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"This platform does not support multiple processes." );
+}
+
+MX_EXPORT mx_status_type
+mx_coprocess_close( MX_COPROCESS *coprocess, double timeout_in_seconds )
+{
+	static const char fname[] = "mx_coprocess_close()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"This platform does not support multiple processes." );
+}
+
+MX_EXPORT mx_status_type
+mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_coprocess_num_bytes_available()";
+
+	if ( num_bytes_available != NULL ) {
+		*num_bytes_available = 0;
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"This platform does not support multiple processes." );
+}
+
+/*-------------------------------------------------------------------------*/
+
 #else
 #error Coprocess support has not yet been implemented for this platform.
 #endif
