@@ -43,6 +43,10 @@
 #  include <sys/filio.h>
 #endif
 
+#if defined(OS_CYGWIN)
+#  include <sys/socket.h>
+#endif
+
 /*---*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
@@ -370,7 +374,7 @@ mxp_parse_lsof_output( FILE *file,
 
 	int c, i, response_fd;
 	size_t length;
-	unsigned long peer_pid;
+	unsigned long peer_pid = 0;
 	char peer_command_name[MXU_FILENAME_LENGTH+1];
 
 	if ( process_id == mx_process_id() ) {

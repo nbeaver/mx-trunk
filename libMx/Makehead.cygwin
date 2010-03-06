@@ -8,6 +8,9 @@
 #          Cygwin may be found at http://sources.redhat.com/cygwin/
 #          or http://cygwin.com/
 #
+#          Note: MX will not compile under Cygwin unless the 'sunrpc'
+#          package is installed.
+#
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #

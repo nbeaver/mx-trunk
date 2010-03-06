@@ -677,9 +677,9 @@ mx_high_resolution_time( void )
 	}
 }
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_CYGWIN)
 
-/******* GCC on x86 Linux *******/
+/******* GCC on x86 Linux or Cygwin *******/
 
 MX_EXPORT void
 mx_high_resolution_time_init( void )

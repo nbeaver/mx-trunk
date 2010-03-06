@@ -3,7 +3,7 @@
 # are compiling the MX system for.  The available platforms are:
 #
 #   bsd           - Compile for FreeBSD, NetBSD, or OpenBSD
-#   cygwin        - Compile for Cygwin 1.5.x
+#   cygwin        - Compile for Cygwin 1.5 or 1.7
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3 or above
 #   ecos          - Compile for i386 under eCos
 #   hpux          - Compile for HP 9000/8xx under HP-UX 11v2
@@ -43,7 +43,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = cygwin
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

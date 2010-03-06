@@ -23,7 +23,7 @@
 #include "mx_util.h"
 #include "mx_time.h"
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
   #include <sys/time.h>
 #endif
 
@@ -37,7 +37,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_UNIX) || defined(OS_VMS)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS)
 
   /* These platforms already provide the thread-safe Posix time functions. */
 

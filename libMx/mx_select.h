@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +42,7 @@
 
     extern int select( int, fd_set *, fd_set *, fd_set *, struct timeval * );
 
-#elif defined(OS_QNX)
+#elif defined(OS_QNX) || defined(OS_CYGWIN)
 
 #   include <sys/select.h>
 
