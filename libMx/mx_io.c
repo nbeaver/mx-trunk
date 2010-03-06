@@ -33,7 +33,7 @@
 /*-------------------------------------------------------------------------*/
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_VMS) \
-	|| defined(OS_DJGPP) || defined(OS_RTEMS)
+	|| defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_VXWORKS)
 
 #include <errno.h>
 #include <fcntl.h>
@@ -229,7 +229,7 @@ mx_get_number_of_open_file_descriptors( void )
 
 /*=========================================================================*/
 
-#if 1
+#if !defined(OS_VXWORKS)
 
 #define MXP_LSOF_FILE	1
 #define MXP_LSOF_PIPE	2
@@ -602,17 +602,6 @@ mxp_get_fd_name_from_lsof( unsigned long process_id, int fd,
 
 #endif
 
-#if 0
-	int os_status;
-	struct stat stat_buf;
-
-	os_status = fstat( fd, &stat_buf );
-
-	if ( os_status != 0 ) {
-		return NULL;
-	}
-#endif
-
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT char *
@@ -647,7 +636,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 #if 0
 	ptr = mxp_get_fd_name_from_linux_proc( process_id, fd,
 						buffer, buffer_size );
-#elif 1
+#elif !defined(OS_VXWORKS)
 	ptr = mxp_get_fd_name_from_lsof( process_id, fd, buffer, buffer_size );
 #else
 	snprintf( buffer, buffer_size, "FD %d", fd );
@@ -660,7 +649,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 /*=========================================================================*/
 
-#if 1
+#if !defined(OS_VXWORKS)
 
 MX_EXPORT void
 mx_show_fd_names( unsigned long process_id )

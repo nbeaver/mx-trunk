@@ -52,6 +52,10 @@
 
 #else
 
+#   if defined(OS_VXWORKS)
+#      include <sys/times.h>
+#   endif
+
 /* Add a C++ safe custom declaration. */
 
 #ifdef __cplusplus
