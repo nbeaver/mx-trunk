@@ -1,3 +1,117 @@
+Version 1.5.2 (03/19/10):
+	New Device Drivers:
+
+	    u500_variable - This driver provides a way to read and
+		write U500 V-variables.
+
+	The 'u500_rs232' driver has now been successfully tested for
+	writing command strings to the U500 controller.  It appears
+	that reading strings sent by running U500 programs may well not
+	be possible.
+
+	The 'iseries' interface driver can now communicate correctly
+	with i-Series controllers in Point-to-point mode rather than
+	just those in Multipoint mode.
+
+	The set_mode functions of the 'epics_scaler' and 'epics_timer'
+	drivers now turn off Joerger autocount, since autocount can
+	delay the start and end of MX scans by several seconds.
+
+	Added PowerPMAC 'gpascii' support to the 'pmac' driver.  Bear
+	in mind that this code has not yet been tested with a real
+	PowerPMAC.
+
+	Added a new 'set plot end' command for 'motor', which tells MX
+	to only display the plot at the end of a scan.  For XAFS scans,
+	the effect is to only update the plot at the end of each scan
+	region.
+
+	Modified scan plotting support to use the new mx_coprocess_open()
+	and mx_coprocess_close() functions rather than popen() and pclose().
+	The coprocess functions provide a way of reliably being able to
+	kill all of the processes spawned by the call to mx_coprocess_open()
+	which is not possible with popen().   The coprocess support has
+	been tested on both Unix and Windows platforms.
+
+	MX area detectors can now be used as scan input devices.  For
+	step scans, an image will be stored for each step in the scan.
+
+	MX area detectors now support deferring the adding of a bias
+	offset until after the flood field correction.  This was done
+	to improve the linearity of the dark current and flood field
+	corrections.  For this case, the correction calculations are
+	done in double precision floating point so that temporary
+	intermediate results can be negative before the values are
+	converted to 16-bit unsigned integers at the end.
+
+	Added new area detector fields:
+	    bias_corr_after_flood
+
+	    datafile_allow_overwrite - If set, this flag allows the
+		area detector software to overwrite existing data
+		files.  If the flag is not set, an error will be 
+		returned instead.
+
+	    datafile_autoselect_number
+
+	Dark and flood images are no longer saved as part of the normal
+	area detector datafile numbering sequence.
+
+	When using SMV format, the area detector bias offset is now
+	written to the ZEROOFFSET field in the SMV header.
+
+	MCS quick scan backlash is now only performed if the following
+	value
+
+	   fabs( quick_scan_backlash_correction / quick_scan_motor_scale )
+
+	is greater than 1.0e-6.  Otherwise, the quick scan backlash step
+	is skipped, which can shorten the setup time for a quick scan
+	by 3 seconds or more.
+
+	Added a new 0x8 'epics_mcs_flags' bit (ignore clears) to the
+	'epics_mcs' record.  If this flag is set, then any commands
+	to clear the MCS will be ignored.  Instead the MCS will be
+	cleared before the start of the next measurement.
+
+	Added a just-in-time debugging option (-J) for 'motor' and
+	'mxserver' which invokes a debugger just after a crash.
+
+	Added -m option to 'mxserver'.  This tells the MX server to
+	periodically display a brief description of its resource usage
+	at a time interval in seconds specified by the argument to the
+	-m option.
+
+	Added thread-safe versions of Posix time functions such as
+	localtime_r() for non-Posix build targets.
+
+	Added EPICS support for the 'cygwin' build target.
+
+	Support has been dropped for building MX support for EPICS 3.13.
+	Please use EPICS 3.14 or above.
+
+	Added MXF_SPAWN_NO_PRELOAD flag for mx_spawn() to keep
+	spawned debuggers from being affected by things like 
+	LD_PRELOAD=/usr/lib/libefence.so.  In addition, the unused
+	suspend code for mx_spawn() has been deleted.
+
+	Fixed an ancient bug in 'motor' where script files were not being
+	closed after the script was executed.  The symptom was that after
+	approximately 1020 scripts had been run, attempts to run new
+	scripts would abort with a 'Too many open files' error.
+
+	Fixed bugs in the handling of MXFT_RECORD, MXFT_RECORDTYPE, and
+	MXFT_INTERFACE fields by mx_copy_array_to_buffer().
+
+	Fixed the handling of multidimensional string arrays in network
+	RAW mode.
+
+	Moved some file descriptor handling functions to mx_io.c.
+
+	Changed a number of long and unsigned long variables to int32_t
+	and uint32_t for 64-bit compatibility with data structures that
+	must be 32-bit.
+
 Version 1.5.1 (10/29/09):
 	MX now supports Windows 7 and Visual Studio 2008.
 	
