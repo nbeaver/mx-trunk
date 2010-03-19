@@ -669,7 +669,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	/* Free the message buffer. */
 
 	if ( socket_handler->message_buffer != NULL ) {
-		mx_free( socket_handler->message_buffer );
+		mx_free_network_buffer( socket_handler->message_buffer );
 	}
 
 	/* Invalidate the contents of the socket handler just in case

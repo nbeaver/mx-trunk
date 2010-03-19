@@ -69,6 +69,70 @@ mx_display_process_meminfo( MX_PROCESS_MEMINFO *meminfo )
 	return;
 }
 
+MX_EXPORT void
+mx_show_process_total_bytes( void )
+{
+	MX_PROCESS_MEMINFO meminfo;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_info("process total bytes = %lu", meminfo.total_bytes);
+
+	return;
+}
+
+MX_EXPORT void
+mx_show_process_stack_bytes( void )
+{
+	MX_PROCESS_MEMINFO meminfo;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_info("process stack bytes = %lu", meminfo.stack_bytes);
+
+	return;
+}
+
+MX_EXPORT void
+mx_show_process_heap_bytes( void )
+{
+	MX_PROCESS_MEMINFO meminfo;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_info("process heap bytes = %lu", meminfo.heap_bytes);
+
+	return;
+}
+
+MX_EXPORT void
+mx_show_process_allocated_bytes( void )
+{
+	MX_PROCESS_MEMINFO meminfo;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF, &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_info("process allocated bytes = %lu", meminfo.allocated_bytes);
+
+	return;
+}
+
 /***************************************************************************/
 
 #if defined( OS_LINUX )

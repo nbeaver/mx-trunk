@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2005, 2007 Illinois Institute of Technology
+ * Copyright 2005, 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,13 @@ MX_API mx_status_type mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo );
 MX_API void mx_display_process_meminfo( MX_PROCESS_MEMINFO *meminfo );
 
 MX_API void mx_display_system_meminfo( MX_SYSTEM_MEMINFO *meminfo );
+
+/*---*/
+
+MX_API void mx_show_process_total_bytes( void );
+MX_API void mx_show_process_stack_bytes( void );
+MX_API void mx_show_process_heap_bytes( void );
+MX_API void mx_show_process_allocated_bytes( void );
 						
 #ifdef __cplusplus
 }

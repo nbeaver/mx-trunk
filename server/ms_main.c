@@ -16,8 +16,6 @@
 
 #define MS_MAIN_DEBUG_SIGNALS		FALSE
 
-#define MS_MAIN_DEBUG_MEMORY_LEAK	FALSE
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -53,6 +51,10 @@
 #include "mx_security.h"
 
 #include "ms_mxserver.h"
+
+#if defined(DMALLOC)
+#include "dmalloc.h"
+#endif
 
 MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	{ MXF_SRV_TCP_SERVER_TYPE,
@@ -1152,7 +1154,9 @@ mxserver_main( int argc, char *argv[] )
 				if ( FD_ISSET(current_socket->socket_fd,
 							&readfds) )
 				{
-
+#if defined(DMALLOC)
+					unsigned long mark;
+#endif
 					event_handler =
 				socket_handler_list.array[i]->event_handler;
 
@@ -1175,11 +1179,19 @@ mxserver_main( int argc, char *argv[] )
 						continue;
 					}
 
+#if defined(DMALLOC)
+					mark = dmalloc_mark();
+					dmalloc_message(
+						"*** Mark = %lu ***\n", mark);
+#endif
 					(void) ( *process_event_fn )
 						( mx_record_list,
 						  socket_handler_list.array[i],
 						  &socket_handler_list,
 						  event_handler );
+#if defined(DMALLOC)
+					dmalloc_log_changed( mark, 1, 1, 1 );
+#endif
 				}
 			    }
 			}
