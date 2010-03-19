@@ -624,7 +624,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 		return NULL;
 	}
-	if ( buffer_size <= 0 ) {
+	if ( buffer_size < 1 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The specified buffer length of %ld is too short "
 		"for the file descriptor name to fit.",
