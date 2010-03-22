@@ -329,7 +329,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 	meminfo->swap_used_bytes =
 			meminfo->swap_bytes - meminfo->swap_free_bytes;
 
-#if 1
+#if 0
 	mx_display_system_meminfo( meminfo );
 #endif
 

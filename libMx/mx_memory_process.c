@@ -741,7 +741,7 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,
 	("Heap %lu, heap_bytes = %lu, allocated_bytes = %lu",
 			i, (unsigned long) local_heap_bytes,
@@ -832,7 +832,7 @@ mx_get_process_meminfo( unsigned long process_id,
 		mx_status = mxp_get_total_heap_size( meminfo );
 	}
 
-#if 1
+#if 0
 	mx_display_process_meminfo( meminfo );
 #endif
 
