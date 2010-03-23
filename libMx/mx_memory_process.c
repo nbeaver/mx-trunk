@@ -653,13 +653,28 @@ mxp_get_local_heap_size( HANDLE heap_handle,
 	/* We should never get here. */
 }
 
+/* mxp_get_total_heap_size() has to allocate a heap handle array for use
+ * by GetProcessHeaps().  However, constantly mallocing and freeing the
+ * array can interfere with straightforward debugging of memory leak
+ * problems.
+ *
+ * Instead, we maintain the heap handle array pointer as a static variable
+ * so that the heap handle array can be preserved between invocations of
+ * mxp_get_total_heap_size().  Since most programs do not create custom
+ * heaps, this means that if we do things this way, it is likely that
+ * malloc() will only be called once here during the total lifetime of
+ * the process.
+ */
+
+static mxp_number_of_heap_handles = 0;
+static HANDLE *mxp_heap_handle_array = NULL;
+
 static mx_status_type
 mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 {
 	static const char fname[] = "mxp_get_total_heap_size()";
 
-	DWORD number_of_heaps, new_number_of_heaps;
-	HANDLE *heap_handle_array;
+	DWORD number_of_heaps;
 	DWORD total_heap_bytes, local_heap_bytes;
 	DWORD total_allocated_bytes, local_allocated_bytes;
 
@@ -669,53 +684,48 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 
 	heap_handle_attempts = 100;
 
-	number_of_heaps = 0;
-	heap_handle_array = NULL;
-
 	for ( i = 0; i < heap_handle_attempts; i++ ) {
-		new_number_of_heaps = GetProcessHeaps( number_of_heaps,
-						heap_handle_array );
+		number_of_heaps = GetProcessHeaps(
+					mxp_number_of_heap_handles,
+					mxp_heap_handle_array );
 
-		if ( new_number_of_heaps <= number_of_heaps ) {
-			number_of_heaps = new_number_of_heaps;
+		if ( number_of_heaps <= mxp_number_of_heap_handles ) {
 
-			break;		/* Exit the for() loop. */
+			/* The existing heap handle array has enough entries
+			 * for our needs, so we exit the for() loop.
+			 */
+
+			break;
 		}
 
-		if ( heap_handle_array == NULL ) {
-			if ( new_number_of_heaps <= 0 ) {
+		if ( mxp_heap_handle_array == NULL ) {
+			if ( number_of_heaps <= 0 ) {
 				continue;	/* Loop again */
 			}
 
-			heap_handle_array = (HANDLE *) malloc(
-				new_number_of_heaps * sizeof(HANDLE));
+			mxp_heap_handle_array = (HANDLE *) malloc(
+				number_of_heaps * sizeof(HANDLE));
 		} else {
-			if ( new_number_of_heaps <= 0 ) {
-				mx_free( heap_handle_array );
-
+			if ( number_of_heaps <= 0 ) {
 				continue;	/* Loop again */
 			}
 
-			heap_handle_array = (HANDLE *) realloc(
-				heap_handle_array,
-				new_number_of_heaps * sizeof(HANDLE));
+			mxp_heap_handle_array = (HANDLE *) realloc(
+					mxp_heap_handle_array,
+					number_of_heaps * sizeof(HANDLE));
 		}
 
-		if ( heap_handle_array == NULL ) {
+		if ( mxp_heap_handle_array == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an "
 			"array of %lu heap handles.",
-				new_number_of_heaps );
+				number_of_heaps );
 		}
 
-		number_of_heaps = new_number_of_heaps;
+		mxp_number_of_heap_handles = number_of_heaps;
 	}
 
 	if ( i >= heap_handle_attempts ) {
-		if ( heap_handle_array != NULL ) {
-			mx_free( heap_handle_array );
-		}
-
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Unable to get a complete array of process heap "
 		"handles after %lu attempts.", heap_handle_attempts );
@@ -737,15 +747,13 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 #endif
 
 		mx_status = mxp_get_local_heap_size(
-					heap_handle_array[i],
+					mxp_heap_handle_array[i],
 					&local_heap_bytes,
 					&local_allocated_bytes,
 					debug_flag );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_free( heap_handle_array );
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
 
 #if 0
 		MX_DEBUG(-2,
@@ -762,8 +770,6 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 	meminfo->heap_bytes = total_heap_bytes;
 
 	meminfo->allocated_bytes = total_allocated_bytes;
-
-	mx_free( heap_handle_array );
 
 	return MX_SUCCESSFUL_RESULT;
 }
