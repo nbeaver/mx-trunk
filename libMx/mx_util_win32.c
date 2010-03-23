@@ -33,7 +33,8 @@
 
 #include "mx_util.h"
 
-#define DEBUG_LOG		FALSE
+#define DEBUG_LOG		TRUE
+#define DEBUG_SHOW_CALLER	TRUE
 
 #define DEBUG_USING_DUMA	FALSE
 #define DEBUG_MX_DUMA_LOGGING	FALSE
@@ -170,6 +171,9 @@ mx_win32_calloc( size_t num_items, size_t item_size )
 	MX_DEBUG(-2,("HeapAlloc( %p, HEAP_ZERO_MEMORY, %ld ) = %p",
 			process_heap, (long) num_bytes, block_ptr));
 #endif
+#if DEBUG_SHOW_CALLER
+	mx_stack_traceback();
+#endif
 
 	return block_ptr;
 }
@@ -220,6 +224,9 @@ mx_win32_free( void *block_ptr )
 			block_ptr, last_error_code, message_buffer );
 	}
 
+#if DEBUG_SHOW_CALLER
+	mx_stack_traceback();
+#endif
 	/* If status == 0, then an error occurred and we could get
 	 * more information with GetLastError().  However, we have
 	 * no way of communicating that back to our caller, so there
@@ -248,6 +255,9 @@ mx_win32_malloc( size_t num_bytes )
 	MX_DEBUG(-2,("HeapAlloc( %p, 0, %ld ) = %p",
 			process_heap, (long) num_bytes, block_ptr));
 #endif
+#if DEBUG_SHOW_CALLER
+	mx_stack_traceback();
+#endif
 
 	return block_ptr;
 }
@@ -272,6 +282,9 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 	MX_DEBUG(-2,("HeapReAlloc( %p, 0, %p, %ld ) = %p",
 			process_heap, old_block_ptr,
 			(long) new_num_bytes, new_block_ptr));
+#endif
+#if DEBUG_SHOW_CALLER
+	mx_stack_traceback();
 #endif
 
 	return new_block_ptr;
