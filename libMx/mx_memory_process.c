@@ -15,6 +15,10 @@
  *
  */
 
+/* DEBUG_SHOW_ALL_HEAPS is only relevant for Win32. */
+
+#define DEBUG_SHOW_ALL_HEAPS	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -755,7 +759,7 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if 0
+#if DEBUG_SHOW_ALL_HEAPS
 		MX_DEBUG(-2,
 	("Heap %lu, heap_bytes = %lu, allocated_bytes = %lu",
 			i, (unsigned long) local_heap_bytes,

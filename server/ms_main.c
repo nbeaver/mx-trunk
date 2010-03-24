@@ -395,6 +395,7 @@ mxserver_main( int argc, char *argv[] )
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
 	mx_bool_type monitor_resources;
 	double resource_monitor_interval;
+	double master_timer_period;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -483,6 +484,8 @@ mxserver_main( int argc, char *argv[] )
 	monitor_resources = FALSE;
 	resource_monitor_interval = -1.0;	/* in seconds */
 
+	master_timer_period = 0.1;		/* in seconds */
+
 	poll_all = FALSE;
 
 #if HAVE_GETOPT
@@ -491,7 +494,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:Jkl:L:m:n:p:P:rsStu:wZ")) != -1)
+		"Aab:cC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:wZ")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -566,6 +569,9 @@ mxserver_main( int argc, char *argv[] )
 		case 'm':
 			monitor_resources = TRUE;
 			resource_monitor_interval = atof( optarg );
+			break;
+		case 'M':
+			master_timer_period = atof( optarg );
 			break;
 		case 'n':
 			delay_microseconds = atoi( optarg);
@@ -878,8 +884,8 @@ mxserver_main( int argc, char *argv[] )
 		 * of 100 milliseconds.
 		 */
 
-		mx_status = mx_virtual_timer_create_master(
-						&master_timer, 0.1 );
+		mx_status = mx_virtual_timer_create_master( &master_timer,
+							master_timer_period );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );

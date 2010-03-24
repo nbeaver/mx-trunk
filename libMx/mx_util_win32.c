@@ -33,8 +33,8 @@
 
 #include "mx_util.h"
 
-#define DEBUG_LOG		TRUE
-#define DEBUG_SHOW_CALLER	TRUE
+#define DEBUG_LOG		FALSE
+#define DEBUG_SHOW_CALLER	FALSE
 
 #define DEBUG_USING_DUMA	FALSE
 #define DEBUG_MX_DUMA_LOGGING	FALSE
