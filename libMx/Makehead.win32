@@ -173,6 +173,17 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #---------------------------------------------------------------------------
 #
+# If you want to use the mpatrol debugging package from 
+# http://mpatrol.sourceforge.net, uncomment the following
+# statements.
+#
+#MPATROL_DIR = c:\\docume~1\\lavender\\mpatrol
+#
+#CFLAGS += -DDEBUG_MPATROL -I$(MPATROL_DIR)\\include
+#LIBRARIES += $(MPATROL_DIR)\\lib\\libmpatrolmt.lib
+
+#---------------------------------------------------------------------------
+#
 # If you are using the Win32 version of DUMA (duma.sourceforge.net)
 # uncomment the following lines.  DUMA is a fork of Electric Fence
 # which has been ported to Win32.
@@ -189,6 +200,7 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #DUMA_DIR = c:\\docume~1\\lavender\\archives\\duma\\duma_2_5_15
 #
+#CFLAGS += -DDEBUG_DUMA
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc.net\\dumalib\\Release\\dumalib.lib
 #DUMA_OPTS = /force $(DUMA_LIB)
 

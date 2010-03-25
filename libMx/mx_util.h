@@ -192,31 +192,18 @@ struct timespec {
 #  endif
 #endif
 
+/*------------------------------------------------------------------------*/
+
+/* Define malloc(), free(), etc. as well as memory debugging functions. */
+
+#include "mx_malloc.h"
+
+/*------------------------------------------------------------------------*/
+
 /* Make the rest of the header file C++ safe. */
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/*------------------------------------------------------------------------*/
-
-#if defined(OS_WIN32)
-
-   /* We need to make sure that MX DLLs and EXEs are all using the same heap,
-    * so we define replacements for the malloc(), etc. functions that use
-    * HeapAlloc(), etc. on the heap returned by GetProcessHeap().
-    */
-
-   MX_API void *mx_win32_calloc( size_t, size_t );
-   MX_API void  mx_win32_free( void * );
-   MX_API void *mx_win32_malloc( size_t );
-   MX_API void *mx_win32_realloc( void *, size_t );
-
-#  define calloc(x,y)  mx_win32_calloc((x),(y))
-#  define free(x)      mx_win32_free(x)
-#  define malloc(x)    mx_win32_malloc(x)
-#  define realloc(x,y) mx_win32_realloc((x),(y))
-
 #endif
 
 /*------------------------------------------------------------------------*/
@@ -897,10 +884,6 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 
 #ifdef __cplusplus
 }
-#endif
-
-#if defined(DMALLOC)
-#include "dmalloc.h"
 #endif
 
 #endif /* __MX_UTIL_H__ */

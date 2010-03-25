@@ -166,7 +166,7 @@ MX_DRIVER_POWER_PMAC_SRCS = i_tty.c \
 # If you want to use the dmalloc debugging package from http://dmalloc.com/,
 # uncomment the following statements.
 
-#CFLAGS += -DDMALLOC -DDMALLOC_FUNC_CHECK
+#CFLAGS += -DDEBUG_DMALLOC
 #LIBRARIES += -ldmallocth
 
 #--------------------------------------------------------------------------
