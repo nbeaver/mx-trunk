@@ -170,6 +170,15 @@ MX_DRIVER_POWER_PMAC_SRCS = i_tty.c \
 #LIBRARIES += -ldmallocth
 
 #--------------------------------------------------------------------------
+
+# If you want to use the mpatrol debugging package from 
+# http://mpatrol.sourceforge.net, uncomment the following
+# statements.
+
+#CFLAGS += -DDEBUG_MPATROL
+#LIBRARIES += -lmpatrol -lbfd
+
+#--------------------------------------------------------------------------
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.

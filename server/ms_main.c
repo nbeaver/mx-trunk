@@ -52,10 +52,6 @@
 
 #include "ms_mxserver.h"
 
-#if defined(DMALLOC)
-#include "dmalloc.h"
-#endif
-
 MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 	{ MXF_SRV_TCP_SERVER_TYPE,
 	  "MX server",
@@ -85,18 +81,44 @@ MX_EVENT_HANDLER mxsrv_event_handler_list[] = {
 int mxsrv_num_event_handlers = sizeof( mxsrv_event_handler_list )
 				/ sizeof( mxsrv_event_handler_list[0] );
 
+/*--------*/
+
+#if defined(DEBUG_DMALLOC)
+   unsigned long mainloop_mark;
+#endif
+
+/*--------*/
+
+#if defined(DEBUG_MPATROL)
+#  include <mpatrol/heapdiff.h>
+
+   static heapdiff mainloop_heapdiff;
+#endif
+
+/*--------*/
+
+static void
+mxsrv_exit_handler( void )
+{
+	mx_info( "*** MX server process exiting. ***" );
+
+#if defined(DEBUG_DMALLOC)
+	dmalloc_log_changed( mainloop_mark, 1, 1, 1 );
+#endif
+
+#if defined(DEBUG_MPATROL)
+	heapdiffend( mainloop_heapdiff );
+#endif
+}
+
+/*--------*/
+
 static int
 mxsrv_user_interrupt_function( void )
 {
 	/* The MX server never has direct user interrupts. */
 
 	return MXF_USER_INT_NONE;
-}
-
-static void
-mxsrv_exit_handler( void )
-{
-	mx_info( "*** MX server process exiting. ***" );
 }
 
 static void
@@ -1040,6 +1062,15 @@ mxserver_main( int argc, char *argv[] )
 
 	mx_info("mxserver: Ready to accept client connections.");
 
+#if defined(DEBUG_DMALLOC)
+	mainloop_mark = dmalloc_mark();
+#endif
+
+#if defined(DEBUG_MPATROL)
+	heapdiffstart( mainloop_heapdiff,
+		HD_FREED | HD_UNFREED | HD_FULL | HD_CONTENTS );
+#endif
+
 	for (;;) {
 
 		if ( monitor_resources ) {
@@ -1160,7 +1191,7 @@ mxserver_main( int argc, char *argv[] )
 				if ( FD_ISSET(current_socket->socket_fd,
 							&readfds) )
 				{
-#if defined(DMALLOC)
+#if 0 && defined(DMALLOC)
 					unsigned long mark;
 #endif
 					event_handler =
@@ -1185,7 +1216,7 @@ mxserver_main( int argc, char *argv[] )
 						continue;
 					}
 
-#if defined(DMALLOC)
+#if 0 && defined(DMALLOC)
 					mark = dmalloc_mark();
 					dmalloc_message(
 						"*** Mark = %lu ***\n", mark);
@@ -1195,7 +1226,7 @@ mxserver_main( int argc, char *argv[] )
 						  socket_handler_list.array[i],
 						  &socket_handler_list,
 						  event_handler );
-#if defined(DMALLOC)
+#if 0 && defined(DMALLOC)
 					dmalloc_log_changed( mark, 1, 1, 1 );
 #endif
 				}
