@@ -194,6 +194,13 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
+#ifndef TRUE
+#define TRUE	1
+#define FALSE	0
+#endif
+
+/*------------------------------------------------------------------------*/
+
 /* Define malloc(), free(), etc. as well as memory debugging functions. */
 
 #include "mx_malloc.h"
@@ -225,11 +232,6 @@ extern "C" {
 #endif
 
 /*------------------------------------------------------------------------*/
-
-#ifndef TRUE
-#define TRUE	1
-#define FALSE	0
-#endif
 
 #define MX_WHITESPACE		" \t"
 
@@ -504,28 +506,6 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 #if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_VXWORKS)
 
 MX_API char *strptime( const char *s, const char *format, struct tm *tm );
-
-#endif
-
-/*----------------------*/
-
-MX_API char *mx_strdup( const char *s );
-
-/* For OS_WIN32, we must force the use of mx_strdup() from libMx to make
- * sure that the pointers it produces are compatible with the pointers
- * manipulated by mx_win32_malloc() and friends.
- */
-
-#if defined(OS_WIN32)
-#  define strdup(s) mx_strdup(s)
-
-#elif defined(OS_ECOS) || defined(OS_VXWORKS)
-
-/* This provides a definition of strdup() for systems that do not
- * have a definition.
- */
-
-MX_API char *strdup( const char *s );
 
 #endif
 

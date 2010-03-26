@@ -180,7 +180,8 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #MPATROL_DIR = c:\\docume~1\\lavender\\mpatrol
 #
 #CFLAGS += -DDEBUG_MPATROL -I$(MPATROL_DIR)\\include
-#LIBRARIES += $(MPATROL_DIR)\\lib\\libmpatrolmt.lib
+#MPATROL_LIB = $(MPATROL_DIR)\\lib\\mpatrolmt.lib
+#DEBUG_OPTS = /force:multiple $(MPATROL_LIB) $(MSDEV_DIR)\\lib\\imagehlp.lib
 
 #---------------------------------------------------------------------------
 #
@@ -202,7 +203,7 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #
 #CFLAGS += -DDEBUG_DUMA
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc.net\\dumalib\\Release\\dumalib.lib
-#DUMA_OPTS = /force $(DUMA_LIB)
+#DEBUG_OPTS = /force $(DUMA_LIB)
 
 #---------------------------------------------------------------------------
 #
@@ -327,7 +328,7 @@ EPIX_XCLIB_LIBS     = $(EPIX_XCLIB_DIR)\\XCLIBWNT.lib
 	$(CC) -c $(CFLAGS) $<
 
 CC		= cl
-CFLAGS		= -nologo $(INCLUDES) $(RUN_TIME_LIBRARY_FLAGS) \
+CFLAGS		+= -nologo $(INCLUDES) $(RUN_TIME_LIBRARY_FLAGS) \
 			-Zi -WX -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS)
 
@@ -408,7 +409,7 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	link /dll /debug /nologo /out:libMx.dll /nodefaultlib:libc \
-			$(DUMA_OPTS) $(MX_LIB_OBJS) $(LIBRARIES)
+			$(DEBUG_OPTS) $(MX_LIB_OBJS) $(LIBRARIES)
 
 	# For VC2005 or later, embed the manifest in the DLL.
 
@@ -447,7 +448,7 @@ MOTOR_NAME	= motor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) motor.res $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) motor.res \
-		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -470,7 +471,7 @@ SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) mxserver.res $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxserver.exe *.obj mxserver.res \
-		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -497,7 +498,7 @@ UPDATE_NAME	= mxupdate.exe
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxupdate.exe *.obj \
-		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -519,7 +520,7 @@ MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxdriverinfo.exe *.obj \
-		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 

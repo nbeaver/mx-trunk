@@ -38,7 +38,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && (MX_MALLOC_REDIRECT == FALSE)
 
 static HANDLE process_heap = NULL;
 
