@@ -1067,8 +1067,7 @@ mxserver_main( int argc, char *argv[] )
 #endif
 
 #if defined(DEBUG_MPATROL)
-	heapdiffstart( mainloop_heapdiff,
-		HD_FREED | HD_UNFREED | HD_FULL | HD_CONTENTS );
+	heapdiffstart( mainloop_heapdiff, HD_UNFREED | HD_FULL );
 #endif
 
 	for (;;) {

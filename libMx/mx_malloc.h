@@ -25,12 +25,12 @@ extern "C" {
 
 #if defined(DEBUG_DMALLOC)
 
+#  define MX_MALLOC_REDIRECT	TRUE
+
 #  define DMALLOC		1
 #  define DMALLOC_FUNC_CHECK	1
 
 #  include "dmalloc.h"
-
-#  define MX_MALLOC_REDIRECT	TRUE
 
 #  if defined(DEBUG_MPATROL) || defined(DEBUG_DUMA)
 #    error You must not define more than one of DEBUG_DMALLOC, DEBUG_MPATROL, and DEBUG_DUMA at the same time!
@@ -40,6 +40,8 @@ extern "C" {
 
 #elif defined(DEBUG_MPATROL)
 
+#  define MX_MALLOC_REDIRECT	TRUE
+
    /* Defining __STDC__ allows MP_CONST in mpatrol.h to be defined as const. */
 
 #  if defined(_MSC_VER) && !defined(__STDC__)
@@ -48,7 +50,14 @@ extern "C" {
 
 #  include "mpatrol.h"
 
-#  define MX_MALLOC_REDIRECT	TRUE
+#  if ( MPATROL_VERSION <= 10501 )
+   /* We can hope that versions of Mpatrol newer than 1.5.1 will provide a
+    * native implementation of mallinfo().
+    */
+
+   MX_API struct mallinfo mallinfo( void );
+
+#  endif
 
 #  if defined(DEBUG_DMALLOC) || defined(DEBUG_DUMA)
 #    error You must not define more than one of DEBUG_DMALLOC, DEBUG_MPATROL, and DEBUG_DUMA at the same time!

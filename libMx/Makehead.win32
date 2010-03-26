@@ -189,14 +189,10 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 # uncomment the following lines.  DUMA is a fork of Electric Fence
 # which has been ported to Win32.
 #
-# WARNING #1: Make sure that DUMA has been compiled with the same flags
+# WARNING: Make sure that DUMA has been compiled with the same flags
 # (-MD, -MDd, -MT, or -MTd) as is being used to compile MX.  The default
 # configuration as delivered of DUMA uses -MLd.  -MLd is not supported
 # by MX, since the use of the -MLd flag breaks MX's support for threads.
-#
-# WARNING #2: You _must_ change the definition of the macro DEBUG_USING_DUMA
-# in mx_util_win32.c to TRUE!  If it is left at the default value of FALSE,
-# then memory allocations in MX code will not be intercepted by DUMA.
 #
 
 #DUMA_DIR = c:\\docume~1\\lavender\\archives\\duma\\duma_2_5_15
@@ -373,7 +369,6 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
-MX_LIB_OBJS += mx_util_win32.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 MX_LIB_OBJS += ..\\tools\\strptime.obj
 MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\xdr_hyper.obj

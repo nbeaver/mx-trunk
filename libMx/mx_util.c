@@ -1543,43 +1543,6 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
-/* We provide a version of strdup() in libMx for the sake of
- * Microsoft Windows, so that mx_strdup() can be compatible
- * with pointers produced by mx_win32_malloc() and friends.
- *
- * It is also used by build targets that do not natively
- * define strdup().
- */
-
-MX_EXPORT char *
-mx_strdup( const char *original )
-{
-	char *duplicate;
-	size_t original_length;
-
-	if ( original == NULL ) {
-		errno = EINVAL;
-
-		return NULL;
-	}
-
-	original_length = strlen(original) + 1;
-
-	duplicate = malloc( original_length );
-
-	if ( duplicate == NULL ) {
-		errno = ENOMEM;
-
-		return NULL;
-	}
-
-	strlcpy( duplicate, original, original_length );
-
-	return duplicate;
-}
-
-/*-------------------------------------------------------------------------*/
-
 #if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
 
 /* Visual C++ 6.0 SP 6 does not have a direct way of converting an

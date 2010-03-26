@@ -141,7 +141,11 @@ mx_show_process_allocated_bytes( void )
 
 #if defined( OS_LINUX )
 
-#include <malloc.h>
+#if defined(DEBUG_MPATROL)
+   /* mpatrol.h and malloc.h are deliberately incompatible. */
+#else
+#  include <malloc.h>
+#endif
 
 /*** Read /proc/PID/status for Linux. ***/
 

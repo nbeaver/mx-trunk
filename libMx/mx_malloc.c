@@ -1,14 +1,7 @@
 /*
- * Name:    mx_util_win32.c
+ * Name:    mx_malloc.c
  *
- * Purpose: This file defines replacement versions of malloc(), free(),
- *          and friends for Visual C++ and Borland C++ on Win32.
- *
- *          We must make sure that MX DLLs and EXEs all use the same heap,
- *          but the default C runtime creates separate heaps for each DLL
- *          and EXE.  Thus, we define replacements for the malloc(), etc.
- *          functions that use HeapAlloc(), etc. on the heap returned by
- *          GetProcessHeap().
+ * Purpose: This file provides memory allocation related functions for MX.
  *
  * Author:  William Lavender
  *
@@ -25,20 +18,67 @@
 #define DEBUG_SHOW_CALLER	FALSE
 
 #include <stdio.h>
+#include <errno.h>
 
-#if defined(OS_WIN32)
+#include "mx_util.h"
+
+
+/*-------------------------------------------------------------------------*/
+
+/* We provide a version of strdup() in libMx for the sake of
+ * Microsoft Windows, so that mx_strdup() can be compatible
+ * with pointers produced by mx_win32_malloc() and friends.
+ *
+ * It is also used by build targets that do not natively
+ * define strdup().
+ */
+
+MX_EXPORT char *
+mx_strdup( const char *original )
+{
+	char *duplicate;
+	size_t original_length;
+
+	if ( original == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+
+	original_length = strlen(original) + 1;
+
+	duplicate = malloc( original_length );
+
+	if ( duplicate == NULL ) {
+		errno = ENOMEM;
+
+		return NULL;
+	}
+
+	strlcpy( duplicate, original, original_length );
+
+	return duplicate;
+}
+
+/*-----------------------------------------------------------------------*/
+
+#if defined(OS_WIN32) && (MX_MALLOC_REDIRECT == FALSE)
+
+/*
+ * This section defines replacement versions of malloc(), free(), and friends
+ * for Visual C++ and Borland C++ on Win32.
+ *
+ * We must make sure that MX DLLs and EXEs all use the same heap, but the
+ * default C runtime creates separate heaps for each DLL and EXE.  Thus,
+ * we define replacements for the malloc(), etc. functions that use
+ * HeapAlloc(), etc. on the heap returned by GetProcessHeap().
+ */
 
 #include <windows.h>
 
 #if defined(__BORLANDC__)
 #include <alloc.h>
 #endif
-
-#include "mx_util.h"
-
-/*-----------------------------------------------------------------------*/
-
-#if defined(OS_WIN32) && (MX_MALLOC_REDIRECT == FALSE)
 
 static HANDLE process_heap = NULL;
 
@@ -204,7 +244,45 @@ mx_win32_realloc( void *old_block_ptr, size_t new_num_bytes )
 	return new_block_ptr;
 }
 
-#endif /* OS_WIN32 */
-
 #endif /* defined(OS_WIN32) */
+
+/*-----------------------------------------------------------------------*/
+
+#if defined(DEBUG_MPATROL) && ( MPATROL_VERSION <= 10501 )
+
+/* MX uses mallinfo(), but Mpatrol does not provide an implementation of
+ * mallinfo().  We define a stub version of mallinfo() here so that we do
+ * not accidentally use the system runtime library's version instead.
+ *
+ * We can hope that versions of Mpatrol newer than 1.5.1 will provide a
+ * native implementation of mallinfo().
+ */
+
+MX_EXPORT struct mallinfo
+mallinfo( void )
+{
+	struct mallinfo mallinfo_struct;
+	int mp_status;
+	__mp_heapinfo heapinfo_struct;
+
+	memset( &mallinfo_struct, 0, sizeof(struct mallinfo) );
+
+	/* Mpatrol does provide enough information to return the
+	 * total size of the allocated blocks.
+	 */
+
+	mp_status = __mp_stats( &heapinfo_struct );
+
+	if ( mp_status == 0 ) {
+		return mallinfo_struct;
+	}
+
+	mallinfo_struct.uordblks = heapinfo_struct.atotal;
+
+	return mallinfo_struct;
+}
+
+#endif
+
+/*-----------------------------------------------------------------------*/
 

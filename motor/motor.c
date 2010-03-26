@@ -32,6 +32,12 @@
 #include "mx_key.h"
 #include "mx_cfn.h"
 
+#if defined(DEBUG_MPATROL)
+#  include <mpatrol/heapdiff.h>
+
+   static heapdiff mainloop_heapdiff;
+#endif
+
 /* Global variables. */
 
 MX_RECORD *motor_record_list;
@@ -135,7 +141,7 @@ int motor_default_precision;
 int
 main( int argc, char *argv[] )
 
-#else /* HAVE_MAIN_ROUTINE */
+#else /* not HAVE_MAIN_ROUTINE */
 
 int
 motor_main( int argc, char *argv[] )
@@ -526,6 +532,10 @@ motor_main( int argc, char *argv[] )
 
 	snprintf( prompt, sizeof(prompt), "%s> ", name );
 
+#if defined(DEBUG_MPATROL)
+	heapdiffstart( mainloop_heapdiff, HD_UNFREED | HD_FULL );
+#endif
+
 	for (;;) {
 		/* Read a command line. */
 
@@ -744,6 +754,10 @@ motor_exit_fn( int argc, char *argv[] )
 		fprintf( output,
 		"motor_exit: Unable to stop the MX log system during exit.\n");
 	}
+
+#if defined(DEBUG_MPATROL)
+	heapdiffend( mainloop_heapdiff );
+#endif
 
 #if defined(OS_RTEMS)
 	motor_rtems_reboot();
