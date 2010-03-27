@@ -175,8 +175,8 @@ MX_DRIVER_POWER_PMAC_SRCS = i_tty.c \
 # http://mpatrol.sourceforge.net, uncomment the following
 # statements.
 
-CFLAGS += -DDEBUG_MPATROL
-LIBRARIES += -lmpatrol -lmptools -lbfd
+#CFLAGS += -DDEBUG_MPATROL
+#LIBRARIES += -lmpatrol -lmptools -lbfd
 
 #--------------------------------------------------------------------------
 #
