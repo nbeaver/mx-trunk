@@ -63,9 +63,9 @@ LIBRARIES = $(WIN32_LIBS)
 # Also, since MX uses threads in a number of places, -ML and -MLd are
 # not valid choices and must not be used.
 
-#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
-RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
+#RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
 #RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
@@ -173,16 +173,16 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #---------------------------------------------------------------------------
 #
-# If you want to use the mpatrol debugging package from 
+# If you want to use the Mpatrol debugging package from 
 # http://mpatrol.sourceforge.net, uncomment the following
 # statements.
 #
-MPATROL_DIR = c:\\docume~1\\lavender\\mpatrol
+#MPATROL_DIR = c:\\docume~1\\lavender\\mpatrol
 #
-CFLAGS += -DDEBUG_MPATROL -I$(MPATROL_DIR)\\include
-MPATROL_LIB = $(MPATROL_DIR)\\lib\\mpatrolmt.lib \
-		$(MPATROL_DIR)\\lib\\heapdiff.obj
-DEBUG_OPTS = /force:multiple $(MPATROL_LIB) $(MSDEV_DIR)\\lib\\imagehlp.lib
+#CFLAGS += -DDEBUG_MPATROL -I$(MPATROL_DIR)\\include
+#MPATROL_LIB = $(MPATROL_DIR)\\lib\\mpatrolmt.lib \
+#		$(MPATROL_DIR)\\lib\\heapdiff.obj
+#DEBUG_OPTS = /force:multiple $(MPATROL_LIB) $(MSDEV_DIR)\\lib\\imagehlp.lib
 
 #---------------------------------------------------------------------------
 #
