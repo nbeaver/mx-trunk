@@ -584,7 +584,6 @@ mxp_coprocess_create_job_object( HANDLE child_process_handle,
 	char job_object_name[100];
 	DWORD last_error_code;
 	TCHAR error_message[100];
-	mx_status_type mx_status;
 
 	if ( job_objects_are_available == FALSE )
 		return NULL;

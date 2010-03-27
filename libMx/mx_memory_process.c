@@ -674,7 +674,7 @@ mxp_get_local_heap_size( HANDLE heap_handle,
  * the process.
  */
 
-static mxp_number_of_heap_handles = 0;
+static DWORD   mxp_number_of_heap_handles = 0;
 static HANDLE *mxp_heap_handle_array = NULL;
 
 static mx_status_type
