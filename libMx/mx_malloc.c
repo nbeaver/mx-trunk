@@ -21,6 +21,14 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#if defined(OS_WIN32)
+#  include <windows.h>
+
+#  if defined(__BORLANDC__)
+#    include <alloc.h>
+#  endif
+#endif
+
 #include "mx_util.h"
 
 
@@ -74,12 +82,6 @@ mx_strdup( const char *original )
  * we define replacements for the malloc(), etc. functions that use
  * HeapAlloc(), etc. on the heap returned by GetProcessHeap().
  */
-
-#include <windows.h>
-
-#if defined(__BORLANDC__)
-#include <alloc.h>
-#endif
 
 static HANDLE process_heap = NULL;
 
