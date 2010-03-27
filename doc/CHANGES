@@ -1,4 +1,4 @@
-Version 1.5.2 (03/19/10):
+Version 1.5.2 (03/26/10):
 	New Device Drivers:
 
 	    u500_variable - This driver provides a way to read and
@@ -12,6 +12,11 @@ Version 1.5.2 (03/19/10):
 	The 'iseries' interface driver can now communicate correctly
 	with i-Series controllers in Point-to-point mode rather than
 	just those in Multipoint mode.
+
+	Added support for the Mpatrol and Dmalloc memory debugging 
+	packages.
+
+	Found and fixed a variety of memory leaks.
 
 	The set_mode functions of the 'epics_scaler' and 'epics_timer'
 	drivers now turn off Joerger autocount, since autocount can
