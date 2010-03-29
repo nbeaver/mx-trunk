@@ -11,6 +11,7 @@
 
 # Turn on optimization
 #
+#OPTIMIZE = -O1
 #OPTIMIZE = -O2
 #OPTIMIZE = -O3
 #CFLAGS += $(OPTIMIZE)

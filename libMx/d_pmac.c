@@ -1422,7 +1422,7 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_get_status()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
-	MX_PMAC *pmac;
+	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
