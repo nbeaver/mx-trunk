@@ -21,7 +21,7 @@
 
 #include <time.h>
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) || defined(OS_DJGPP)
 
   MX_API char *asctime_r( const struct tm *, char * );
 

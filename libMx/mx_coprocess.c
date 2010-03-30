@@ -1773,7 +1773,8 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_RTEMS) || defined(OS_ECOS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_ECOS) || defined(OS_VXWORKS) \
+	|| defined(OS_DJGPP)
 
 MX_EXPORT mx_status_type
 mx_coprocess_open( MX_COPROCESS **coprocess,
