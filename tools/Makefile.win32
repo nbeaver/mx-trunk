@@ -57,6 +57,14 @@ mxgnuplt.obj: win32/src/mxgnuplt.c
 mxgnuplt.exe: mxgnuplt.obj
 	link /nologo /debugtype:cv /out:mxgnuplt.exe mxgnuplt.obj $(WIN32_LIBS)
 
+	# For VC2005 or later, embed the manifest in the DLL.
+
+	if test -f mxgnuplt.exe.manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:mxgnuplt.exe\;1 \
+			-manifest mxgnuplt.exe.manifest $(EXTRA_MANIFESTS) ; \
+		rm -f mxgnuplt.exe.manifest; \
+	fi
+
 mx_clean:
 	-rm *.obj *.exe *.manifest
 

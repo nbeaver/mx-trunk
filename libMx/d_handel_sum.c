@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_HANDEL_SUM_DEBUG	TRUE
+#define MXD_HANDEL_SUM_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

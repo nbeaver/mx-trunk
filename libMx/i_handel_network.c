@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_HANDEL_NETWORK_DEBUG		TRUE
+#define MXI_HANDEL_NETWORK_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
