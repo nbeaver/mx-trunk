@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -521,6 +521,7 @@ extern "C" {
 #define MXT_MTR_GATED_BACKLASH		55020
 #define MXT_MTR_POLYNOMIAL		55021
 #define MXT_MTR_CUBIC_SPLINE		55022
+#define MXT_MTR_LIMITED_MOVE		55023
 
 #define MXT_MTR_APS_18ID		55102
 #define MXT_MTR_ALS_DEWAR_POSITIONER	55103

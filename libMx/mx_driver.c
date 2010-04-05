@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -329,8 +329,9 @@
 #include "d_als_dewar_positioner.h"
 #include "d_record_field_motor.h"
 #include "d_gated_backlash.h"
-#include "d_cubic_spline_motor.h"
 #include "d_polynomial_motor.h"
+#include "d_cubic_spline_motor.h"
+#include "d_limited_move.h"
 
 #include "d_aps_18id.h"
 
@@ -2539,6 +2540,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_gated_backlash_num_record_fields,
 				&mxd_gated_backlash_rfield_def_ptr},
 
+{"polynomial_motor", MXT_MTR_POLYNOMIAL, MXC_MOTOR,     MXR_DEVICE,
+				&mxd_polynomial_motor_record_function_list,
+				NULL,
+				&mxd_polynomial_motor_motor_function_list,
+				&mxd_polynomial_motor_num_record_fields,
+				&mxd_polynomial_motor_rfield_def_ptr},
+
 {"cubic_spline_motor", MXT_MTR_CUBIC_SPLINE, MXC_MOTOR,     MXR_DEVICE,
 				&mxd_cubic_spline_motor_record_function_list,
 				NULL,
@@ -2546,12 +2554,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_cubic_spline_motor_num_record_fields,
 				&mxd_cubic_spline_motor_rfield_def_ptr},
 
-{"polynomial_motor", MXT_MTR_POLYNOMIAL, MXC_MOTOR,     MXR_DEVICE,
-				&mxd_polynomial_motor_record_function_list,
+{"limited_move",       MXT_MTR_LIMITED_MOVE, MXC_MOTOR,     MXR_DEVICE,
+				&mxd_limited_move_record_function_list,
 				NULL,
-				&mxd_polynomial_motor_motor_function_list,
-				&mxd_polynomial_motor_num_record_fields,
-				&mxd_polynomial_motor_rfield_def_ptr},
+				&mxd_limited_move_motor_function_list,
+				&mxd_limited_move_num_record_fields,
+				&mxd_limited_move_rfield_def_ptr},
 
 #if HAVE_EPICS
 {"aps_18id_motor", MXT_MTR_APS_18ID,     MXC_MOTOR,       MXR_DEVICE,
