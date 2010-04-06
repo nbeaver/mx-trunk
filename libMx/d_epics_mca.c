@@ -772,15 +772,30 @@ mxd_epics_mca_start( MX_MCA *mca )
 
 	start = 1;
 
-	if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
+	if ( flags & MXF_EPICS_MCA_WAIT_ON_START ) {
 
-		mx_status = mx_caput_with_callback( &(epics_mca->start_pv),
+		if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
+
+			mx_status = mx_caput_with_callback(
+						&(epics_mca->start_pv),
 						MX_CA_LONG, 1, &start,
 						NULL, NULL );
+		} else {
+			mx_status = mx_caput_with_callback(
+						&(epics_mca->erase_start_pv),
+						MX_CA_LONG, 1, &start,
+						NULL, NULL );
+		}
 	} else {
-		mx_status = mx_caput_with_callback(&(epics_mca->erase_start_pv),
-						MX_CA_LONG, 1, &start,
-						NULL, NULL );
+		if ( flags & MXF_EPICS_MCA_NO_ERASE_ON_START ) {
+
+			mx_status = mx_caput_nowait( &(epics_mca->start_pv),
+						MX_CA_LONG, 1, &start );
+		} else {
+			mx_status = mx_caput_nowait(
+						&(epics_mca->erase_start_pv),
+						MX_CA_LONG, 1, &start );
+		}
 	}
 
 	return mx_status;
