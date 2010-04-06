@@ -1037,8 +1037,10 @@ mxi_handel_get_acquisition_values( MX_MCA *mca,
 			mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: getting acquisition value '%s' for MCA '%s'.",
-		fname, value_name, mca->record->name ));
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s: getting acquisition value '%s' for MCA '%s'.",
+			fname, value_name, mca->record->name ));
+	}
 
 	xia_status = xiaGetAcquisitionValues( handel_mca->detector_channel,
 					value_name, (void *) value_ptr );
@@ -1061,8 +1063,10 @@ mxi_handel_get_acquisition_values( MX_MCA *mca,
 					mxi_handel_strerror( xia_status ) );
 	}
 
-	MX_DEBUG(-2,("%s: acquisition value '%s' for MCA '%s' = %g.",
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s: acquisition value '%s' for MCA '%s' = %g.",
 			fname, value_name, mca->record->name, *value_ptr ));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1097,8 +1101,11 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 			mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: setting acquisition value '%s' for MCA '%s' to %g.",
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: setting acquisition value '%s' for MCA '%s' to %g.",
 		fname, value_name, mca->record->name, *value_ptr ));
+	}
 
 	xia_status = xiaSetAcquisitionValues( handel_mca->detector_channel,
 					value_name, (void *) value_ptr );
@@ -1162,8 +1169,11 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 			mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: setting acquisition value '%s' for MCA '%s' to %g.",
-		fname, value_name, mca->record->name, *value_ptr ));
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: setting acquisition value '%s' for MCA '%s' to %g.",
+			fname, value_name, mca->record->name, *value_ptr ));
+	}
 
 	xia_status = xiaSetAcquisitionValues( -1,
 					value_name, (void *) value_ptr );

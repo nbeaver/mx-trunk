@@ -341,6 +341,10 @@ typedef struct {
 		offsetof( MX_HANDEL_MCA, new_statistics_available ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
+  {-1, -1, "debug_flag", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, debug_flag ), \
+	{0}, NULL, 0}, \
+  \
   {-1, -1, "detector_alias", MXFT_STRING, NULL, 1, {200}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, detector_alias ), \
 	{sizeof(char)}, NULL, MXFF_VARARGS}, \

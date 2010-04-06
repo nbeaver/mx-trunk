@@ -2233,9 +2233,12 @@ mxd_handel_mca_process_function( void *record_ptr,
 
 			break;
 		case MXLV_HANDEL_MCA_BASELINE_ARRAY:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: getting the adc trace array for mca '%s'",
 				fname, mca->record->name ));
+#endif
 
 			if ( handel_mca->get_baseline_array == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2246,10 +2249,13 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->get_baseline_array)( mca );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: get acquisition value '%s' for mca '%s'",
 				fname, handel_mca->acquisition_value_name,
 				mca->record->name ));
+#endif
 
 			if ( handel_mca->get_acquisition_values == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2261,16 +2267,21 @@ mxd_handel_mca_process_function( void *record_ptr,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value) );
 
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: acquisition value '%s' for mca '%s' = %g",
 				fname, handel_mca->acquisition_value_name,
 				mca->record->name,
 				handel_mca->acquisition_value));
+#endif
 			break;
 		case MXLV_HANDEL_MCA_ADC_TRACE_ARRAY:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: getting the adc trace array for mca '%s'",
 				fname, mca->record->name ));
+#endif
 
 			if ( handel_mca->get_adc_trace_array == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2281,9 +2292,12 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->get_adc_trace_array)( mca );
 			break;
 		case MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: getting the adc trace array for mca '%s'",
 				fname, mca->record->name ));
+#endif
 
 			if ( handel_mca->get_baseline_history_array == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2347,10 +2361,13 @@ mxd_handel_mca_process_function( void *record_ptr,
 
 			break;
 		case MXLV_HANDEL_MCA_GAIN_CHANGE:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: gain change for mca '%s' to %g",
 				fname, mca->record->name,
 				handel_mca->gain_change ));
+#endif
 
 			if ( handel_mca->set_gain_change == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2361,10 +2378,13 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->set_gain_change)( mca );
 			break;
 		case MXLV_HANDEL_MCA_GAIN_CALIBRATION:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: set gain calibration for mca '%s' to %g",
 				fname, mca->record->name,
 				handel_mca->gain_calibration ));
+#endif
 
 			if ( handel_mca->set_gain_calibration == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2375,11 +2395,14 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->set_gain_calibration)( mca );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: set acquisition value '%s' for mca '%s' to %g",
 				fname, handel_mca->acquisition_value_name,
 				mca->record->name,
 				handel_mca->acquisition_value ));
+#endif
 
 			if ( handel_mca->set_acquisition_values == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2393,10 +2416,13 @@ mxd_handel_mca_process_function( void *record_ptr,
 					FALSE );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,
 			("%s: set acquisition value '%s' for all mcas to %g",
 				fname, handel_mca->acquisition_value_name,
 				handel_mca->acquisition_value ));
+#endif
 
 			if ( handel_mca->set_acquisition_values == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2412,8 +2438,11 @@ mxd_handel_mca_process_function( void *record_ptr,
 					FALSE );
 			break;
 		case MXLV_HANDEL_MCA_APPLY:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,("%s: apply for mca '%s'",
 				fname, mca->record->name ));
+#endif
 
 			if ( handel_mca->apply == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -2424,7 +2453,10 @@ mxd_handel_mca_process_function( void *record_ptr,
 			mx_status = (handel_mca->apply)( mca, FALSE );
 			break;
 		case MXLV_HANDEL_MCA_APPLY_TO_ALL:
+
+#if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,("%s: apply to all MCAs.", fname));
+#endif
 
 			if ( handel_mca->apply == NULL ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
