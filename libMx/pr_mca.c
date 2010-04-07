@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,6 +64,8 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 		case MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY:
 		case MXLV_MCA_ENERGY_SCALE:
 		case MXLV_MCA_ENERGY_OFFSET:
+		case MXLV_MCA_INPUT_COUNT_RATE:
+		case MXLV_MCA_OUTPUT_COUNT_RATE:
 			record_field->process_function
 					    = mx_mca_process_function;
 			break;
@@ -159,6 +161,12 @@ mx_mca_process_function( void *record_ptr,
 			break;
 		case MXLV_MCA_ENERGY_OFFSET:
 			status = mx_mca_get_energy_offset( record, NULL );
+			break;
+		case MXLV_MCA_INPUT_COUNT_RATE:
+			status = mx_mca_get_input_count_rate( record, NULL );
+			break;
+		case MXLV_MCA_OUTPUT_COUNT_RATE:
+			status = mx_mca_get_output_count_rate( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
