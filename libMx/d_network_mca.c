@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -246,6 +246,14 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 		network_mca->server_record,
 		"%s.energy_scale", network_mca->remote_record_name );
 
+	mx_network_field_init( &(network_mca->input_count_rate_nf),
+		network_mca->server_record,
+		"%s.input_count_rate", network_mca->remote_record_name );
+
+	mx_network_field_init( &(network_mca->input_count_rate_nf),
+		network_mca->server_record,
+		"%s.live_time", network_mca->remote_record_name );
+
 	mx_network_field_init( &(network_mca->live_time_nf),
 		network_mca->server_record,
 		"%s.live_time", network_mca->remote_record_name );
@@ -253,6 +261,10 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mca->num_soft_rois_nf),
 		network_mca->server_record,
 		"%s.num_soft_rois", network_mca->remote_record_name );
+
+	mx_network_field_init( &(network_mca->output_count_rate_nf),
+		network_mca->server_record,
+		"%s.output_count_rate", network_mca->remote_record_name );
 
 	mx_network_field_init( &(network_mca->preset_live_time_nf),
 		network_mca->server_record,
@@ -850,6 +862,16 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_get( &(network_mca->energy_offset_nf),
 					MXFT_DOUBLE, &(mca->energy_offset) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_INPUT_COUNT_RATE ) {
+
+		mx_status = mx_get( &(network_mca->input_count_rate_nf),
+					MXFT_DOUBLE, &(mca->input_count_rate) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_OUTPUT_COUNT_RATE ) {
+
+		mx_status = mx_get( &(network_mca->output_count_rate_nf),
+					MXFT_DOUBLE, &(mca->output_count_rate));
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",
