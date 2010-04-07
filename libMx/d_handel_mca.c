@@ -9,14 +9,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_HANDEL_MCA_DEBUG		FALSE
+#define MXD_HANDEL_MCA_DEBUG		TRUE
 
 #define MXD_HANDEL_MCA_DEBUG_STATISTICS	FALSE
 
@@ -587,6 +587,11 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	ignore_this_pointer = XIA_NULL_STRING;
 #endif
 
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s invoked for mca '%s'",
+			fname, mca->record->name ));
+	}
+
 	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 	if ( handel->num_mcas == 0 ) {
@@ -905,6 +910,11 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	handel_mca->num_spectrum_bins = (unsigned int) ulong_value;
 
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s: MCA '%s': num_spectrum_bins = %u",
+		fname, mca->record->name, handel_mca->num_spectrum_bins));
+	}
+
 	/* Do we need to allocate memory for a spectrum array or is
 	 * mca->channel_array already the right size?
 	 */
@@ -975,6 +985,11 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			handel_mca->baseline_length );
 	}
 
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s complete for MCA '%s'",
+			fname, mca->record->name));
+	}
+
 #if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -1020,6 +1035,11 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s: debugging enabled for MCA '%s'",
+			fname, record->name ));
+	}
 
 	display_config = FALSE;
 
@@ -1112,7 +1132,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	}
 
 	/* If the MCA is controlled via Handel and hardware SCAs are enabled,
-	 * try to set the number of SCAs to 16.
+	 * try to set the number of SCAs to the value of mca->maximum_num_rois.
 	 */
 
 #if HAVE_XIA_HANDEL
@@ -1123,11 +1143,17 @@ mxd_handel_mca_open( MX_RECORD *record )
 		int xia_status;
 		double num_scas;
 
-		num_scas = 16.0;
+		num_scas = mca->maximum_num_rois;
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
 		MX_HRT_START( measurement );
 #endif
+
+		if ( handel_mca->debug_flag ) {
+			MX_DEBUG(-2,
+			("%s: About to set the number of hardware SCAs to %g",
+				fname, num_scas));
+		}
 
 		xia_status = xiaSetAcquisitionValues(
 				handel_mca->detector_channel,
@@ -1203,8 +1229,9 @@ mxd_handel_mca_open( MX_RECORD *record )
 	handel_mca->old_preset_type = (unsigned long) MX_ULONG_MAX;
 	handel_mca->old_preset_time = DBL_MAX;
 
-	MX_DEBUG( 2,("%s: MCA '%s' detector channel = %ld",
-		fname, record->name, handel_mca->detector_channel));
+	if ( handel_mca->debug_flag ) {
+		MX_DEBUG(-2,("%s complete for MCA '%s'", fname, record->name ));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

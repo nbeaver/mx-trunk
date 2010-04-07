@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_HANDEL_INPUT_DEBUG		FALSE
+#define MXD_HANDEL_INPUT_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

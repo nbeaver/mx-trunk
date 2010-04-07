@@ -25,8 +25,8 @@
 
 #define MXU_HANDEL_MCA_LABEL_LENGTH			120
 
-#define MX_HANDEL_MCA_MAX_SCAS 				16
-#define MX_HANDEL_MCA_MAX_BINS				8192
+#define MX_HANDEL_MCA_MAX_SCAS 				256
+#define MX_HANDEL_MCA_MAX_BINS				65536
 
 /* The following defines are used by the 'statistics' record field. */
 
