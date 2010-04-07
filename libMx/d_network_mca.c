@@ -250,10 +250,6 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 		network_mca->server_record,
 		"%s.input_count_rate", network_mca->remote_record_name );
 
-	mx_network_field_init( &(network_mca->input_count_rate_nf),
-		network_mca->server_record,
-		"%s.live_time", network_mca->remote_record_name );
-
 	mx_network_field_init( &(network_mca->live_time_nf),
 		network_mca->server_record,
 		"%s.live_time", network_mca->remote_record_name );
