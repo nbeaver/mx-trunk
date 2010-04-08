@@ -129,7 +129,7 @@ mxi_tcp232_finish_record_initialization( MX_RECORD *record )
 
 	/* Check to see if the RS-232 parameters are valid. */
 
-	mx_status =mx_rs232_check_port_parameters( record );
+	mx_status = mx_rs232_check_port_parameters( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -138,7 +138,7 @@ mxi_tcp232_finish_record_initialization( MX_RECORD *record )
 
 	tcp232 = (MX_TCP232 *) record->record_type_struct;
 
-	mx_socket_mark_as_closed( tcp232->socket );
+	tcp232->socket = NULL;
 
 	record->record_flags |= ( ~MXF_REC_OPEN );
 
