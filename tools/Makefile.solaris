@@ -8,7 +8,7 @@ include ../libMx/Makefile.version
 
 include ../libMx/Makehead.solaris
 
-CC = /opt/SUNWspro/bin/cc $(USE_64_BITS)
+CC = $(CC_CMD) $(USE_64_BITS)
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX

@@ -38,6 +38,15 @@ READLINE_LIBRARIES = -ledit
 #READLINE_LIBRARIES = -lreadline -lcurses
 
 #
+# Recent versions of the Sun Studio compilers no longer go in the
+# directory /opt/SUNWspro/.  Instead, they may go some place like
+# /opt/sunstudio12.1/
+#
+
+CC_CMD = /opt/sunstudio12.1/bin/cc
+#CC_CMD = /opt/SUNWspro/bin/cc
+
+#
 # You may also need to modify some of the following definitions, depending
 # on the drivers you plan to use.
 #
@@ -70,7 +79,8 @@ EPICS_LIBRARIES = -lca -lCom
 #    Defining -D_POSIX_THREAD_SEMANTICS should be self explanatory.  You
 #    run the risk of getting pre-Posix behavior otherwise.
 #
-CC		= /opt/SUNWspro/bin/cc
+
+CC		= $(CC_CMD)
 
 CFLAGS		= -g -KPIC -errwarn=%all $(INCLUDES) -DOS_SOLARIS \
 				-D_POSIX_PER_PROCESS_TIMER_SOURCE \
