@@ -49,6 +49,7 @@
 #include "mx_virtual_timer.h"
 #include "mx_process.h"
 #include "mx_security.h"
+#include "mx_multi.h"
 
 #include "ms_mxserver.h"
 
@@ -412,7 +413,8 @@ mxserver_main( int argc, char *argv[] )
 	int server_port, default_display_precision, init_hw_flags;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
-	int bypass_signal_handlers, network_debug, poll_all;
+	int bypass_signal_handlers, poll_all;
+	unsigned long network_debug;
 	mx_bool_type enable_remote_breakpoint;
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
 	mx_bool_type monitor_resources;
@@ -496,7 +498,7 @@ mxserver_main( int argc, char *argv[] )
 
 	bypass_signal_handlers = FALSE;
 
-	network_debug = FALSE;
+	network_debug = 0;
 
 	enable_remote_breakpoint = FALSE;
 
@@ -516,14 +518,14 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"Aab:cC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:wZ")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:wZ")) != -1)
 	{
                 switch (c) {
-		case 'A':
-			network_debug = TRUE;
-			break;
 		case 'a':
-			poll_all = TRUE;
+			network_debug |= MXF_MN_SUMMARY;
+			break;
+		case 'A':
+			network_debug |= MXF_MN_VERBOSE;
 			break;
 		case 'b':
 			if ( strcmp( optarg, "raw" ) == 0 ) {
@@ -540,6 +542,9 @@ mxserver_main( int argc, char *argv[] )
 	"  are raw, xdr, and ascii.\n", optarg );
 				exit(1);
 			}
+			break;
+		case 'B':
+			poll_all = TRUE;
 			break;
 		case 'c':
 			enable_callbacks = TRUE;

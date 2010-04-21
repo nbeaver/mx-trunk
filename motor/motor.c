@@ -31,6 +31,7 @@
 #include "mx_version.h"
 #include "mx_key.h"
 #include "mx_cfn.h"
+#include "mx_multi.h"
 
 #if defined(DEBUG_MPATROL)
 #  include <mpatrol/heapdiff.h>
@@ -157,7 +158,7 @@ motor_main( int argc, char *argv[] )
 	int status, debug_level, unbuffered_io;
 	int init_hw_flags, start_debugger;
 	int run_startup_scripts, ignore_scan_savefiles;
-	int network_debug;
+	unsigned long network_debug;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -219,17 +220,21 @@ motor_main( int argc, char *argv[] )
 	wait_for_debugger = FALSE;
 	just_in_time_debugging = FALSE;
 
-	network_debug = FALSE;
+	network_debug = 0;
 
 #if HAVE_GETOPT
 	/* Process command line arguments, if any. */
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iJNnP:p:S:s:tuwz")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:DF:f:Hg:iJNnP:p:S:s:tuwz")) != -1 )
+	{
 		switch (c) {
+		case 'a':
+			network_debug |= MXF_MN_SUMMARY;
+			break;
 		case 'A':
-			network_debug = TRUE;
+			network_debug |= MXF_MN_VERBOSE;
 			break;
 		case 'd':
 			debug_level = atoi( optarg );

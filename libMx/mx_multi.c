@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,16 +32,16 @@
 #endif
 
 MX_EXPORT void
-mx_multi_set_debug_flag( MX_RECORD *record_list,
-			mx_bool_type flag )
+mx_multi_set_debug_flags( MX_RECORD *record_list,
+			unsigned long flags )
 {
-	static const char fname[] = "mx_multi_set_debug_flag()";
+	static const char fname[] = "mx_multi_set_debug_flags()";
 
 	MX_LIST_HEAD *list_head;
 
 	/* First handle debug settings that do not require an MX record list. */
 #if HAVE_EPICS
-	mx_epics_set_debug_flag( flag );
+	mx_epics_set_debug_flag( flags );
 #endif
 
 	if ( record_list == (MX_RECORD *) NULL )
@@ -58,11 +58,15 @@ mx_multi_set_debug_flag( MX_RECORD *record_list,
 		return;
 	}
 
+#if 0
 	if ( flag ) {
 		list_head->network_debug = TRUE;
 	} else {
 		list_head->network_debug = FALSE;
 	}
+#else
+	list_head->network_debug = flags;
+#endif
 
 	return;
 }
