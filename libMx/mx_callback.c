@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2009 Illinois Institute of Technology
+ * Copyright 2007-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -569,7 +569,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** ADD CALLBACK for '%s'",
 			mx_network_get_nf_label(
 				server_record, nf->nfname,
@@ -809,7 +809,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,
 		("\n*** DELETE CALLBACK for callback id %#lx, field '%s'.",
 			(unsigned long) callback->callback_id,

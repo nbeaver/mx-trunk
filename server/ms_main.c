@@ -49,7 +49,6 @@
 #include "mx_virtual_timer.h"
 #include "mx_process.h"
 #include "mx_security.h"
-#include "mx_multi.h"
 
 #include "ms_mxserver.h"
 
@@ -414,7 +413,7 @@ mxserver_main( int argc, char *argv[] )
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
 	int bypass_signal_handlers, poll_all;
-	unsigned long network_debug;
+	unsigned long network_debug_flags;
 	mx_bool_type enable_remote_breakpoint;
 	mx_bool_type wait_for_debugger, just_in_time_debugging;
 	mx_bool_type monitor_resources;
@@ -498,7 +497,7 @@ mxserver_main( int argc, char *argv[] )
 
 	bypass_signal_handlers = FALSE;
 
-	network_debug = 0;
+	network_debug_flags = 0;
 
 	enable_remote_breakpoint = FALSE;
 
@@ -522,10 +521,10 @@ mxserver_main( int argc, char *argv[] )
 	{
                 switch (c) {
 		case 'a':
-			network_debug |= MXF_MN_SUMMARY;
+			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug |= MXF_MN_VERBOSE;
+			network_debug_flags |= MXF_NETDBG_VERBOSE;
 			break;
 		case 'b':
 			if ( strcmp( optarg, "raw" ) == 0 ) {
@@ -841,7 +840,7 @@ mxserver_main( int argc, char *argv[] )
 
 	/* Set the default network debugging flag. */
 
-	list_head_struct->network_debug = network_debug;
+	list_head_struct->network_debug_flags = network_debug_flags;
 
 #if 0
 	fprintf(stderr, "%s: list_head_struct->network_debug = %d\n",

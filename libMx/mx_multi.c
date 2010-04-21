@@ -58,15 +58,7 @@ mx_multi_set_debug_flags( MX_RECORD *record_list,
 		return;
 	}
 
-#if 0
-	if ( flag ) {
-		list_head->network_debug = TRUE;
-	} else {
-		list_head->network_debug = FALSE;
-	}
-#else
-	list_head->network_debug = flags;
-#endif
+	list_head->network_debug_flags = flags;
 
 	return;
 }

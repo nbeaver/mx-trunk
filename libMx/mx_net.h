@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2009 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -190,6 +190,11 @@ typedef struct {
 		offsetof(MX_NETWORK_SERVER, last_data_type), \
 	{0}, NULL, MXFF_READ_ONLY }
 
+/* Network debug flag definitions. */
+
+#define MXF_NETDBG_SUMMARY	0x1
+#define MXF_NETDBG_VERBOSE	0x2
+
 /* Values for the server_flags field. */
 
 #define MXF_NETWORK_SERVER_NO_AUTO_RECONNECT	0x1
@@ -203,7 +208,11 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_QUIET_RECONNECTION	0x10000000
 #define MXF_NETWORK_SERVER_BLOCKING_IO		0x20000000
-#define MXF_NETWORK_SERVER_DEBUG		0x40000000
+#define MXF_NETWORK_SERVER_DEBUG_SUMMARY	0x40000000
+#define MXF_NETWORK_SERVER_DEBUG_VERBOSE	0x80000000
+
+#define MXF_NETWORK_SERVER_DEBUG_ANY \
+	(MXF_NETWORK_SERVER_DEBUG_SUMMARY | MXF_NETWORK_SERVER_DEBUG_VERBOSE)
 
 /* Definition of network data formats. */
 

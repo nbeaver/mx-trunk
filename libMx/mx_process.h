@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,7 @@ typedef struct {
 	unsigned long process_id;
 	unsigned long data_format;
 	mx_bool_type truncate_64bit_longs;
-	mx_bool_type network_debug;
+	unsigned long network_debug_flags;
 	unsigned long last_rpc_message_id;
 	unsigned long remote_header_length;
 

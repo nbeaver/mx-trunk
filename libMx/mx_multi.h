@@ -38,11 +38,6 @@ typedef struct {
 #define MXT_MNV_MX	1
 #define MXT_MNV_EPICS	2
 
-/* debug flag definitions. */
-
-#define MXF_MN_SUMMARY	0x1
-#define MXF_MN_VERBOSE	0x2
-
 /*----*/
 
 MX_API void mx_multi_set_debug_flags( MX_RECORD *record_list,

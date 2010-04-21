@@ -309,7 +309,7 @@ mx_network_receive_message( MX_RECORD *server_record,
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 #if NETWORK_DEBUG
-	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
@@ -370,7 +370,7 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 
 #if NETWORK_DEBUG
-	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
@@ -572,7 +572,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		end_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
 	}
 
-	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
 		debug_enabled = TRUE;
 	} else {
 		debug_enabled = FALSE;
@@ -2824,7 +2824,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** GET ARRAY from '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -3271,7 +3271,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** PUT ARRAY to '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -3713,7 +3713,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** GET NETWORK HANDLE for '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,
@@ -3921,7 +3921,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** GET FIELD TYPE for '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -4115,7 +4115,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,
     ("\n*** SET CLIENT INFO for server '%s', username '%s', program name '%s'.",
 			server_record->name, username, program_name));
@@ -4299,7 +4299,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** GET OPTION %lu for server '%s'.",
 			option_number, server_record->name ));
 	}
@@ -4477,7 +4477,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** SET OPTION %lu for server '%s'.",
 			option_number, server_record->name ));
 	}
@@ -4661,7 +4661,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** GET ATTRIBUTE from '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,
@@ -4895,7 +4895,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug ) {
+	if ( list_head->network_debug_flags ) {
 		MX_DEBUG(-2,("\n*** SET ATTRIBUTE for '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,

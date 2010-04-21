@@ -28,7 +28,7 @@ motor_init( char *motor_savefile_name,
 		int num_scan_savefiles,
 		char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
 		int init_hw_flags,
-		int network_debug )
+		unsigned long network_debug_flags )
 {
 	static const char fname[] = "motor_init()";
 
@@ -129,7 +129,7 @@ motor_init( char *motor_savefile_name,
 	strlcpy( list_head_struct->program_name,
 			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH );
 
-	mx_multi_set_debug_flags( motor_record_list, network_debug );
+	mx_multi_set_debug_flags( motor_record_list, network_debug_flags );
 
 	/* Read 'motor.dat' and add the records therein to the record list. */
 

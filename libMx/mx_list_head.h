@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2009 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,8 +49,8 @@ extern "C" {
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, allow_fast_mode), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "network_debug", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, network_debug), \
+  {-1, -1, "network_debug_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, network_debug_flags),\
 	{0}, NULL, 0}, \
   \
   {MXLV_LHD_DEBUG_LEVEL, -1, "debug_level", MXFT_LONG, NULL, 0, {0}, \

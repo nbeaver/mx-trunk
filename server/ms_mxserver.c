@@ -836,7 +836,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->list_head = list_head;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
-	socket_handler->network_debug = FALSE;
+	socket_handler->network_debug_flags = FALSE;
 
 	strcpy( socket_handler->client_address_string, "" );
 	strlcpy( socket_handler->program_name, "mxserver",
@@ -1042,7 +1042,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	new_socket_handler->list_head = list_head;
 
-	new_socket_handler->network_debug = list_head->network_debug;
+	new_socket_handler->network_debug_flags
+			= list_head->network_debug_flags;
 
 	new_socket_handler->handler_array_index = -1;
 
@@ -1500,7 +1501,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	socket_handler->last_rpc_message_id = message_id;
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
 				(int) client_socket->socket_fd );
 
@@ -1622,7 +1623,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 					client_socket,
 					message_id, 
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
 
@@ -1791,7 +1792,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 					client_socket,
 					message_id, 
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
 
@@ -1901,7 +1902,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 					client_socket,
 					message_id, 
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
 		break;
@@ -2171,7 +2172,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 					socket_handler->synchronous_socket,
 					receive_buffer_message_id,
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
 	} else {
@@ -2516,7 +2517,7 @@ mxsrv_send_field_value_to_client(
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
@@ -2928,7 +2929,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
@@ -3039,7 +3040,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 					socket_handler->synchronous_socket,
 					socket_handler->last_rpc_message_id,
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
 
@@ -3114,7 +3115,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[1] = mx_htonl( field_handle );
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -3220,7 +3221,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
@@ -3401,7 +3402,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -3590,7 +3591,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -3782,7 +3783,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	send_buffer_message[0] = '\0';
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -3921,7 +3922,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -4092,7 +4093,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -4319,7 +4320,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 					socket_handler->synchronous_socket,
 					message_id,
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 				(long) mx_server_response( message_type ),
 					mx_status );
 
@@ -4375,7 +4376,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	uint32_message[0] = mx_htonl( callback_object->callback_id );
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
@@ -4519,7 +4520,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 					socket_handler->synchronous_socket,
 					message_id,
 					socket_handler->remote_header_length,
-					socket_handler->network_debug,
+					socket_handler->network_debug_flags,
 				(long) mx_server_response( message_type ),
 					mx_status );
 	}
@@ -4745,7 +4746,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	char_message[0] = '\0';
 
 #if NETWORK_DEBUG_MESSAGES
-	if ( socket_handler->network_debug ) {
+	if ( socket_handler->network_debug_flags ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 

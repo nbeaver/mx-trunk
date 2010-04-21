@@ -172,15 +172,17 @@ main( int argc, char *argv[] )
 	int i, debug_level, num_non_option_arguments;
 	int syslog_number, syslog_options;
 	int default_display_precision;
-	mx_bool_type network_debug, start_debugger, install_syslog_handler;
+	mx_bool_type start_debugger, install_syslog_handler;
 	mx_bool_type no_restore, restore_only, save_only;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 
 	static char usage[] =
 "Usage: mxupdate [options] update_list_filename autosave_fn1 [ autosave_fn2 ]\n"
 "\n"
 "The available options are:\n"
-"       -A                   (enable network debugging)\n"
+"       -a                   (enable network debugging summary)\n"
+"       -A                   (enable verbose network debugging)\n"
 "       -d debug_level\n"
 "       -l log_number        (log to syslog)\n"
 "       -L log_number        (log to syslog and stderr)\n"
@@ -210,7 +212,7 @@ main( int argc, char *argv[] )
 #if ! defined( OS_WIN32 )
 	mxupd_install_signal_and_exit_handlers();
 #endif
-	network_debug = FALSE;
+	network_debug_flags = 0;
 
 	start_debugger = FALSE;
 
@@ -232,10 +234,13 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "Ad:Dl:L:P:Rrsu:")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:Dl:L:P:Rrsu:")) != -1 ) {
 		switch(c) {
+		case 'a':
+			network_debug_flags |= MXF_NETDBG_SUMMARY;
+			break;
 		case 'A':
-			network_debug = TRUE;
+			network_debug_flags |= MXF_NETDBG_VERBOSE;
 			break;
 		case 'd':
 			debug_level = atoi( optarg );
@@ -424,11 +429,7 @@ main( int argc, char *argv[] )
 		exit( MXE_CORRUPT_DATA_STRUCTURE );
 	}
 
-	if ( network_debug ) {
-		list_head->network_debug = TRUE;
-	} else {
-		list_head->network_debug = FALSE;
-	}
+	list_head->network_debug_flags = network_debug_flags;
 
 	/* Construct the update list data structure. */
 

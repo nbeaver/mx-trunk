@@ -31,7 +31,7 @@
 #include "mx_version.h"
 #include "mx_key.h"
 #include "mx_cfn.h"
-#include "mx_multi.h"
+#include "mx_net.h"
 
 #if defined(DEBUG_MPATROL)
 #  include <mpatrol/heapdiff.h>
@@ -158,7 +158,7 @@ motor_main( int argc, char *argv[] )
 	int status, debug_level, unbuffered_io;
 	int init_hw_flags, start_debugger;
 	int run_startup_scripts, ignore_scan_savefiles;
-	unsigned long network_debug;
+	unsigned long network_debug_flags;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -220,7 +220,7 @@ motor_main( int argc, char *argv[] )
 	wait_for_debugger = FALSE;
 	just_in_time_debugging = FALSE;
 
-	network_debug = 0;
+	network_debug_flags = 0;
 
 #if HAVE_GETOPT
 	/* Process command line arguments, if any. */
@@ -231,10 +231,10 @@ motor_main( int argc, char *argv[] )
 	{
 		switch (c) {
 		case 'a':
-			network_debug |= MXF_MN_SUMMARY;
+			network_debug_flags |= MXF_NETDBG_SUMMARY;
 			break;
 		case 'A':
-			network_debug |= MXF_MN_VERBOSE;
+			network_debug_flags |= MXF_NETDBG_VERBOSE;
 			break;
 		case 'd':
 			debug_level = atoi( optarg );
@@ -423,7 +423,7 @@ motor_main( int argc, char *argv[] )
 
 	status = motor_init( motor_savefile,
 			num_scan_savefiles, scan_savefile_array,
-			init_hw_flags, network_debug );
+			init_hw_flags, network_debug_flags );
 
 	if ( status == FAILURE ) {
 		fprintf(output,"motor: Initialization failed.  Exiting...\n");

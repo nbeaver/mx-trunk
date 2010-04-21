@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -396,8 +396,8 @@ typedef struct {
 	mx_bool_type list_is_active;
 	mx_bool_type fast_mode;
 	mx_bool_type allow_fast_mode;
-	mx_bool_type network_debug;
 	mx_bool_type remote_breakpoint_enabled;
+	unsigned long network_debug_flags;
 	long debug_level;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -218,8 +218,11 @@ mxn_tcpip_server_open( MX_RECORD *record )
 			record->name );
 	}
 
-	if ( list_head->network_debug ) {
-		network_server->server_flags |= MXF_NETWORK_SERVER_DEBUG;
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+	    network_server->server_flags |= MXF_NETWORK_SERVER_DEBUG_SUMMARY;
+	}
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
+	    network_server->server_flags |= MXF_NETWORK_SERVER_DEBUG_VERBOSE;
 	}
 
 	flags = network_server->server_flags;
