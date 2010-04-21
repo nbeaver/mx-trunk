@@ -190,11 +190,6 @@ typedef struct {
 		offsetof(MX_NETWORK_SERVER, last_data_type), \
 	{0}, NULL, MXFF_READ_ONLY }
 
-/* Network debug flag definitions. */
-
-#define MXF_NETDBG_SUMMARY	0x1
-#define MXF_NETDBG_VERBOSE	0x2
-
 /* Values for the server_flags field. */
 
 #define MXF_NETWORK_SERVER_NO_AUTO_RECONNECT	0x1
@@ -213,6 +208,11 @@ typedef struct {
 
 #define MXF_NETWORK_SERVER_DEBUG_ANY \
 	(MXF_NETWORK_SERVER_DEBUG_SUMMARY | MXF_NETWORK_SERVER_DEBUG_VERBOSE)
+
+/* Network debug flag definitions. */
+
+#define MXF_NETDBG_SUMMARY	MXF_NETWORK_SERVER_DEBUG_SUMMARY
+#define MXF_NETDBG_VERBOSE	MXF_NETWORK_SERVER_DEBUG_VERBOSE
 
 /* Definition of network data formats. */
 

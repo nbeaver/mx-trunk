@@ -24,10 +24,12 @@ main( int argc, char *argv[] )
 	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
+	MX_LIST_HEAD *list_head;
 	char server_record_name[] = "mxserver";
 	MX_NETWORK_FIELD nf;
 	int c, server_port, num_items;
-	mx_bool_type network_debug, start_debugger;
+	mx_bool_type start_debugger;
+	unsigned long network_debug_flags;
 	unsigned long server_flags;
 	char *attribute_name;
 	unsigned long attribute_number;
@@ -41,14 +43,17 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	network_debug = FALSE;
+	network_debug_flags = 0;
 	start_debugger = FALSE;
 
-	while ( (c = getopt(argc, argv, "AD")) != -1 )
+	while ( (c = getopt(argc, argv, "aAD")) != -1 )
 	{
 		switch (c) {
+		case 'a':
+			network_debug_flags |= MXF_NETWORK_SERVER_DEBUG_SUMMARY;
+			break;
 		case 'A':
-			network_debug = TRUE;
+			network_debug_flags |= MXF_NETWORK_SERVER_DEBUG_VERBOSE;
 			break;
 		case 'D':
 			start_debugger = TRUE;
@@ -85,11 +90,9 @@ main( int argc, char *argv[] )
 		server_port = 9727;
 	}
 
-	if ( network_debug ) {
-		server_flags = 0x60000000;
-	} else {
-		server_flags = 0x20000000;
-	}
+	server_flags = MXF_NETWORK_SERVER_BLOCKING_IO;
+
+	server_flags |= network_debug_flags;
 
 	/* Create the MX runtime database. */
 
@@ -104,6 +107,10 @@ main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	list_head->network_debug_flags = network_debug_flags;
 
 	mx_status = mx_set_program_name( record_list, "mxattr_get" );
 

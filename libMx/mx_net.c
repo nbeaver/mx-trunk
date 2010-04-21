@@ -4998,7 +4998,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** GET ATTRIBUTE from '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,
@@ -5165,6 +5165,14 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	MX_DEBUG( 2,("%s invoked, *attribute_value = '%g'",
 			fname, *attribute_value));
 
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_nf_label( nf->server_record, nf->nfname,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX GET_ATTRIBUTE('%s', %lu ) = %g\n",
+			nf_label, attribute_number, *attribute_value );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -5232,12 +5240,20 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** SET ATTRIBUTE for '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,
 				nf_label, sizeof(nf_label) )
 			));
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_nf_label( nf->server_record, nf->nfname,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX SET_ATTRIBUTE('%s', %lu, %g )\n",
+			nf_label, attribute_number, attribute_value );
 	}
 
 	/************ Send the 'set attribute' message. *************/
