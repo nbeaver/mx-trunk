@@ -309,7 +309,7 @@ mx_network_receive_message( MX_RECORD *server_record,
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 #if NETWORK_DEBUG
-	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
@@ -370,7 +370,7 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 
 #if NETWORK_DEBUG
-	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_ANY ) {
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG_VERBOSE ) {
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
@@ -1721,7 +1721,7 @@ mx_network_buffer_show_value( void *buffer,
 
 		switch( data_type ) {
 		case MXFT_STRING:
-			fprintf( stderr, "'%s'\n", ((char *) raw_buffer) );
+			fprintf( stderr, "'%s' ", ((char *) raw_buffer) );
 			break;
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
@@ -1799,7 +1799,7 @@ mx_network_buffer_show_value( void *buffer,
 				(unsigned long) data_type );
 			return;
 #else
-			fprintf( stderr, "'%s'\n", ((char *) raw_buffer) );
+			fprintf( stderr, "'%s' ", ((char *) raw_buffer) );
 #endif
 			break;
 		default:
@@ -1821,13 +1821,13 @@ mx_network_buffer_show_value( void *buffer,
 	}
 
 	if ( raw_display_values > max_display_values ) {
-		fprintf( stderr, "...\n" );
-	} else {
-		fprintf(stderr, "\n");
+		fprintf( stderr, "... " );
 	}
 
 	return;
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT void
 mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
@@ -1926,6 +1926,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					data_type,
 					message_type,
 					message_length );
+		fprintf( stderr, "\n" );
 		break;
 
 	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
@@ -1946,6 +1947,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					data_type,
 					message_type,
 					message_length );
+		fprintf( stderr, "\n" );
 		break;
 
 	/*-------------------------------------------------------------------*/
@@ -1960,6 +1962,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					data_type,
 					message_type,
 					message_length );
+		fprintf( stderr, "\n" );
 		break;
 
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
@@ -1975,6 +1978,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					data_type,
 					message_type,
 					message_length - 2 * sizeof(uint32_t) );
+		fprintf( stderr, "\n" );
 		break;
 
 	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
@@ -2200,6 +2204,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					data_type,
 					message_type,
 					message_length );
+		fprintf( stderr, "\n" );
 		break;
 
 	/*-------------------------------------------------------------------*/
@@ -2207,6 +2212,178 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	default:
 		mx_warning( "%s: Unrecognized message type %#lx",
 			fname, (unsigned long) message_type );
+	}
+
+	return;
+}
+
+/*------------------------------------------------------------------------*/
+
+#define NF_LABEL_LENGTH \
+	  ( MXU_HOSTNAME_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 8 )
+
+MX_EXPORT void
+mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
+				MX_NETWORK_FIELD *network_field,
+				MX_RECORD *server_record,
+				char *remote_record_field_name,
+				MX_RECORD_FIELD *record_field )
+{
+	static const char fname[] = "mx_network_display_summary()";
+
+	uint32_t *header, *uint32_message;
+	char *buffer, *char_message;
+
+	uint32_t magic_number, header_length, message_length;
+	uint32_t message_type, status_code, message_id;
+	uint32_t record_handle, field_handle;
+	long data_type;
+	char nf_label[ NF_LABEL_LENGTH ];
+
+#if 0
+	union {
+		double double_value;
+		uint32_t uint32_value[2];
+	} u;
+
+	long i, data_type, field_type, num_dimensions, dimension_size;
+	unsigned long option_number, option_value;
+	unsigned long attribute_number;
+	double attribute_value;
+	unsigned long callback_type, callback_id;
+#endif
+
+	if ( message_buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		    "MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
+		return;
+	}
+
+	mx_network_get_remote_field_label( network_field,
+					server_record,
+					remote_record_field_name,
+					record_field,
+					nf_label, sizeof(nf_label) );
+
+	buffer = message_buffer->u.char_buffer;
+	header = message_buffer->u.uint32_buffer;
+
+	magic_number   = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( header_length < 28 ) {
+		/* Handle servers and clients from MX 1.4 and before. */
+
+		data_type  = 0;
+		message_id = 0;
+	} else {
+		data_type  = (long) mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
+		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
+	}
+
+	uint32_message = header + header_length / 4;
+	char_message   = buffer + header_length;
+
+	switch( message_type ) {
+	case MX_NETMSG_GET_ARRAY_BY_NAME:
+	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+		/* Display nothing. */
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME):
+		if ( ( record_field != NULL )
+		  && ( record_field->record != NULL ) )
+		{
+			fprintf( stderr, "MX get_array_by_name('%s.%s') = ",
+				record_field->record->name,
+				record_field->name );
+		} else {
+			fprintf( stderr, "MX get_array_by_name('\?\?\?') = " );
+		}
+
+		mx_network_buffer_show_value( uint32_message,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
+		fprintf( stderr, "\n" );
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
+
+		if ( ( record_field != NULL )
+		  && ( record_field->record != NULL ) )
+		{
+			fprintf( stderr,
+			"MX get_array('%s.%s') = ",
+				record_field->record->name,
+				record_field->name );
+		} else {
+			fprintf( stderr, "MX get_array('\?\?\?') = " );
+		}
+
+		mx_network_buffer_show_value( uint32_message,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
+		fprintf( stderr, "\n" );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		fprintf( stderr, "MX put_array_by_name('%s') = ",
+				char_message );
+
+		mx_network_buffer_show_value(
+				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
+		fprintf( stderr, "\n" );
+		break;
+
+	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+		record_handle = mx_ntohl( uint32_message[0] );
+		field_handle  = mx_ntohl( uint32_message[1] );
+
+		if ( ( record_field != NULL )
+		  && ( record_field->record != NULL ) )
+		{
+			fprintf( stderr, "MX put_array('%s.%s') = ",
+				record_field->record->name,
+				record_field->name );
+		} else {
+			fprintf( stderr, "MX put_array(%lu,%lu) = ",
+				(unsigned long) record_handle,
+				(unsigned long) field_handle );
+		}
+
+		mx_network_buffer_show_value( &(uint32_message[2]),
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length - 2 * sizeof(uint32_t) );
+		fprintf( stderr, "\n" );
+		break;
+
+	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
+	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
+		/* Display nothing. */
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	default:
+		mx_warning(
+		"%s: Message type %#lx is not supported for summary.",
+			fname, (unsigned long) message_type );
+
 	}
 
 	return;
@@ -2660,14 +2837,13 @@ mx_network_get_nf_label( MX_RECORD *server_record,
 	if ( label == NULL )
 		return NULL;
 
-	if ( remote_record_field_name == NULL ) {
-		strlcpy( label, "", max_label_length );
-
-		return label;
-	}
-
 	if ( server_record == NULL ) {
-		strlcpy( label, remote_record_field_name, max_label_length );
+		if ( remote_record_field_name == NULL ) {
+			strlcpy( label, "", max_label_length );
+		} else {
+			strlcpy( label, remote_record_field_name,
+				max_label_length );
+		}
 
 		return label;
 	}
@@ -2676,29 +2852,94 @@ mx_network_get_nf_label( MX_RECORD *server_record,
 	case MXN_NET_TCPIP:
 		tcpip_server = server_record->record_type_struct;
 
-		snprintf( label, max_label_length,
-			"%s@%ld:%s",
-			tcpip_server->hostname,
-			tcpip_server->port,
-			remote_record_field_name );
+		if ( remote_record_field_name == NULL ) {
+			snprintf( label, max_label_length,
+				"%s@%ld",
+				tcpip_server->hostname,
+				tcpip_server->port );
+		} else {
+			snprintf( label, max_label_length,
+				"%s@%ld:%s",
+				tcpip_server->hostname,
+				tcpip_server->port,
+				remote_record_field_name );
+		}
 		break;
 	case MXN_NET_UNIX:
 		unix_server = server_record->record_type_struct;
 
-		snprintf( label, max_label_length,
-			"%s:%s",
-			unix_server->pathname,
-			remote_record_field_name );
+		if ( remote_record_field_name == NULL ) {
+			snprintf( label, max_label_length,
+				"%s",
+				unix_server->pathname );
+		} else {
+			snprintf( label, max_label_length,
+				"%s:%s",
+				unix_server->pathname,
+				remote_record_field_name );
+		}
 		break;
 	default:
-		snprintf( label, max_label_length,
-			"unknown server type %ld:%s",
-			server_record->mx_type,
-			remote_record_field_name );
+		if ( remote_record_field_name == NULL ) {
+			snprintf( label, max_label_length,
+				"unknown server type %ld",
+				server_record->mx_type );
+		} else {
+			snprintf( label, max_label_length,
+				"unknown server type %ld:%s",
+				server_record->mx_type,
+				remote_record_field_name );
+		}
 		break;
 	}
 
 	return label;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT char *
+mx_network_get_remote_field_label( MX_NETWORK_FIELD *nf,
+				MX_RECORD *server_record,
+				char *remote_record_field_name,
+				MX_RECORD_FIELD *record_field,
+				char *nf_label, size_t max_nf_label_length )
+{
+	if ( nf_label == NULL ) {
+		return NULL;
+	}
+
+	if ( nf != NULL ) {
+		mx_network_get_nf_label( nf->server_record, nf->nfname,
+					nf_label, max_nf_label_length );
+	} else {
+		if ( remote_record_field_name == NULL ) {
+			if ( ( record_field == NULL )
+			  || ( record_field->record == NULL ) )
+			{
+				char unknown_field_name[] = "\?\?\?";
+
+				mx_network_get_nf_label( server_record,
+							unknown_field_name,
+						nf_label, max_nf_label_length );
+			} else {
+				char rf_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+
+				snprintf( rf_name, sizeof(rf_name),
+				"%s.%s", record_field->record->name,
+					record_field->name );
+
+				mx_network_get_nf_label( server_record, rf_name,
+						nf_label, max_nf_label_length );
+			}
+		} else {
+			mx_network_get_nf_label( server_record,
+						remote_record_field_name,
+						nf_label, max_nf_label_length );
+		}
+	}
+
+	return nf_label;
 }
 
 /* ====================================================================== */
@@ -2750,7 +2991,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	MX_LIST_HEAD *list_head;
-	char nf_label[80];
+	char nf_label[NF_LABEL_LENGTH];
 	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
 	mx_status_type ( *token_parser )
 		(void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
@@ -2824,7 +3065,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** GET ARRAY from '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -3029,6 +3270,19 @@ mx_get_field_array( MX_RECORD *server_record,
 				server_record->name,
 				remote_record_field_name,
 				message );
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_remote_field_label( NULL, server_record,
+						remote_record_field_name, NULL,
+						nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX GET_ARRAY('%s') = ", nf_label );
+
+		mx_network_buffer_show_value( message, server->data_format,
+					datatype, receive_message_type,
+					message_length );
+		fprintf( stderr, "\n" );
 	}
 
 	/************ Parse the data that was returned. ***************/
@@ -3271,7 +3525,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** PUT ARRAY to '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -3555,9 +3809,27 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	message_length += header_length;
-
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		unsigned long handle_length;
+
+		mx_network_get_remote_field_label( NULL, server_record,
+						remote_record_field_name, NULL,
+						nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX PUT_ARRAY('%s', ", nf_label );
+
+		handle_length = 2 * sizeof(uint32_t);
+
+		mx_network_buffer_show_value( message + handle_length,
+					server->data_format,
+					datatype, send_message_type,
+					message_length - handle_length );
+		fprintf( stderr, ")\n" );
+	}
+
+	message_length += header_length;
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3713,7 +3985,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	list_head = mx_get_record_list_head_struct( nf->server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** GET NETWORK HANDLE for '%s'",
 			mx_network_get_nf_label(
 				nf->server_record, nf->nfname,
@@ -3871,6 +4143,15 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		nf->record_handle, nf->field_handle ));
 #endif
 
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+
+		mx_network_get_nf_label( nf->server_record, nf->nfname,
+				nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX GET_NETWORK_HANDLE('%s') = (%lu,%lu)\n",
+			nf_label, nf->record_handle, nf->field_handle );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -3921,7 +4202,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** GET FIELD TYPE for '%s'",
 			mx_network_get_nf_label(
 				server_record,
@@ -4067,6 +4348,31 @@ mx_get_field_type( MX_RECORD *server_record,
 		dimension_array[i] = (long)
 			mx_ntohl( (unsigned long) message_uint32_array[i+2] );
 	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_nf_label( server_record,
+				remote_record_field_name,
+				nf_label, sizeof(nf_label) );
+
+		fprintf( stderr,
+	"MX GET_FIELD_TYPE('%s') = ( 'datatype' = %ld, 'num_dimensions' = %ld",
+			nf_label, *datatype, *num_dimensions );
+
+		if ( *num_dimensions > 0 ) {
+			fprintf( stderr, ", 'dimension' = <%ld",
+				dimension_array[0] );
+
+			for ( i = 1; i < *num_dimensions; i++ ) {
+				fprintf( stderr, ", %ld",
+					dimension_array[i] );
+			}
+
+			fprintf( stderr, ">" );
+		}
+
+		fprintf( stderr, " )\n" );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -4115,10 +4421,21 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,
     ("\n*** SET CLIENT INFO for server '%s', username '%s', program name '%s'.",
 			server_record->name, username, program_name));
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		char nf_label[ NF_LABEL_LENGTH ];
+
+		mx_network_get_nf_label( server_record, NULL,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr,
+		"MX SET_CLIENT_INFO('%s', user = '%s', program = '%s')\n",
+			nf_label, username, program_name );
 	}
 
 	/* If the network connection is not currently up for some reason,
@@ -4299,7 +4616,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** GET OPTION %lu for server '%s'.",
 			option_number, server_record->name ));
 	}
@@ -4433,6 +4750,16 @@ mx_network_get_option( MX_RECORD *server_record,
 	MX_DEBUG( 2,("%s invoked, *option_value = '%#lx'",
 			fname, *option_value));
 
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		char nf_label[ NF_LABEL_LENGTH ];
+
+		mx_network_get_nf_label( server_record, NULL,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX GET_OPTION('%s', %lu ) = %lu\n",
+			nf_label, option_number, *option_value );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -4477,9 +4804,19 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** SET OPTION %lu for server '%s'.",
 			option_number, server_record->name ));
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		char nf_label[ NF_LABEL_LENGTH ];
+
+		mx_network_get_nf_label( server_record, NULL,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX SET_OPTION('%s') Set option %lu to %lu\n",
+			nf_label, option_number, option_value );
 	}
 
 	/************ Send the 'set option' message. *************/

@@ -387,6 +387,14 @@ MX_API mx_status_type mx_network_restore_callbacks( MX_RECORD *server_record );
 MX_API void mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *buffer,
 					MX_RECORD_FIELD *record_field );
 
+/* mx_network_display_summary() gives a terser description of the message. */
+
+MX_API void mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *buffer,
+					MX_NETWORK_FIELD *network_field,
+					MX_RECORD *server_record,
+					char *remote_record_field_name,
+					MX_RECORD_FIELD *record_field );
+
 /* mx_network_buffer_show_value() is a lower level function that only
  * shows the contents of the value array at the end of a network message.
  */
@@ -528,6 +536,13 @@ MX_API mx_status_type mx_network_request_64bit_longs(MX_RECORD *server_record);
 
 MX_API char *mx_network_get_nf_label( MX_RECORD *server_record,
 				char *remote_record_field_name,
+				char *label, size_t max_label_length );
+
+MX_API char *mx_network_get_remote_field_label(
+				MX_NETWORK_FIELD *nf,
+				MX_RECORD *server_record,
+				char *remote_record_field_name,
+				MX_RECORD_FIELD *record_field,
 				char *label, size_t max_label_length );
 
 MX_API mx_status_type mx_parse_network_field_id( char *network_field_id,
