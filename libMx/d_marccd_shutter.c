@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_MARCCD_SHUTTER_DEBUG 	FALSE
+#define MXD_MARCCD_SHUTTER_DEBUG 	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

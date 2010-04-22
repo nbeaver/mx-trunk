@@ -1504,7 +1504,7 @@ mx_network_restore_callbacks( MX_RECORD *server_record )
 
 /* ====================================================================== */
 
-#define MXP_MAX_DISPLAY_VALUES    10
+#define MXP_MAX_DISPLAY_VALUES    20
 
 MX_EXPORT void
 mx_network_buffer_show_value( void *buffer,
