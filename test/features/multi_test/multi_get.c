@@ -50,7 +50,7 @@ main( int argc, char *argv[] )
 		exit( mx_status.code );
 
 	if ( network_debug ) {
-		mx_multi_set_debug_flag( mx_record_list, TRUE );
+		mx_multi_set_debug_flags( mx_record_list, TRUE );
 	}
 
 	mx_set_debug_level(0);

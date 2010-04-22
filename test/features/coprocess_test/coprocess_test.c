@@ -35,7 +35,7 @@ main( int argc, char *argv[] )
 
 	fprintf(stderr, "%s: command_line = '%s'\n", fname, command_line);
 
-	mx_status = mx_coprocess_open( &coprocess, command_line );
+	mx_status = mx_coprocess_open( &coprocess, command_line, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit(mx_status.code);

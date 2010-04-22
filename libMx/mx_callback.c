@@ -569,7 +569,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,("\n*** ADD CALLBACK for '%s'",
 			mx_network_get_nf_label(
 				server_record, nf->nfname,
@@ -704,6 +704,14 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		callback_id ));
 #endif
 
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_nf_label( server_record, nf->nfname,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX ADD_CALLBACK('%s') = %#lx\n",
+				nf_label, callback_id );
+	}
+
 	/* Create a new client-side callback structure. */
 
 	callback_ptr = malloc( sizeof(MX_CALLBACK) );
@@ -809,7 +817,7 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
-	if ( list_head->network_debug_flags ) {
+	if ( list_head->network_debug_flags & MXF_NETDBG_VERBOSE ) {
 		MX_DEBUG(-2,
 		("\n*** DELETE CALLBACK for callback id %#lx, field '%s'.",
 			(unsigned long) callback->callback_id,
@@ -817,6 +825,14 @@ mx_remote_field_delete_callback( MX_CALLBACK *callback )
 						nf->nfname,
 						nf_label, sizeof(nf_label) )
 		));
+	}
+
+	if ( list_head->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mx_network_get_nf_label( nf->server_record, nf->nfname,
+					nf_label, sizeof(nf_label) );
+
+		fprintf( stderr, "MX DELETE_CALLBACK('%s', %#lx)\n",
+			nf_label, (unsigned long) callback->callback_id );
 	}
 
 	/* Find the message buffer for this server. */

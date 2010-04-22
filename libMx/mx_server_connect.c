@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -176,6 +176,8 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 	/* Mark the record list as ready to be used. */
 
 	if ( new_database ) {
+		unsigned long mask;
+
 		list_head_struct = mx_get_record_list_head_struct(record_list);
 
 		if ( list_head_struct == NULL ) {
@@ -185,6 +187,10 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 
 		list_head_struct->list_is_active = TRUE;
 		list_head_struct->fixup_records_in_use = FALSE;
+
+		mask = MXF_NETDBG_SUMMARY | MXF_NETDBG_VERBOSE;
+
+		list_head_struct->network_debug_flags = server_flags & mask;
 	}
 
 	/* Try to connect to the MX server. */

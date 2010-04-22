@@ -69,7 +69,7 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 static mx_status_type
 add_network_field( MX_RECORD **server_record,
 			char *network_field_id,
-			mx_bool_type network_debug )
+			unsigned long network_debug_flags )
 {
 	static const char fname[] = "add_network_field()";
 
@@ -109,11 +109,10 @@ add_network_field( MX_RECORD **server_record,
 		server_port = 9727;
 	}
 
-	if ( network_debug ) {
-		server_flags = 0x70000000;
-	} else {
-		server_flags = 0x30000000;
-	}
+	server_flags = MXF_NETWORK_SERVER_BLOCKING_IO
+			| MXF_NETWORK_SERVER_QUIET_RECONNECTION;
+
+	server_flags |= network_debug_flags;
 
 	/* Connect to the MX server. */
 
@@ -274,7 +273,7 @@ add_new_callback( MX_RECORD *record_list )
 
 	mx_status = add_network_field( &record_list,
 					network_field_id,
-					list_head->network_debug );
+					list_head->network_debug_flags );
 
 	return;
 }
@@ -518,8 +517,8 @@ main( int argc, char *argv[] )
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
 	int c;
-	mx_bool_type network_debug, start_debugger, interactive, show_timestamp;
-	unsigned long i;
+	mx_bool_type start_debugger, interactive, show_timestamp;
+	unsigned long i, network_debug_flags;
 	double timeout;
 	mx_status_type mx_status;
 
@@ -530,16 +529,19 @@ main( int argc, char *argv[] )
 
 	record_list = NULL;
 
-	network_debug = FALSE;
+	network_debug_flags = 0;
 	start_debugger = FALSE;
 	interactive = TRUE;
 	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "ADit")) != -1 )
+	while ( (c = getopt(argc, argv, "aADit")) != -1 )
 	{
 		switch (c) {
+		case 'a':
+			network_debug_flags = MXF_NETWORK_SERVER_DEBUG_SUMMARY;
+			break;
 		case 'A':
-			network_debug = TRUE;
+			network_debug_flags = MXF_NETWORK_SERVER_DEBUG_VERBOSE;
 			break;
 		case 'D':
 			start_debugger = TRUE;
@@ -571,7 +573,7 @@ main( int argc, char *argv[] )
 	for ( i = optind; i < argc; i++ ) {
 
 		mx_status = add_network_field( &server_record, argv[i],
-							network_debug );
+							network_debug_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );
