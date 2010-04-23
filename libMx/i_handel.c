@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2338,6 +2338,10 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 		 * from the hardware.
 		 */
 
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->channel_number = %lu",
+			fname, mca->channel_number));
+#endif
 		break;
 
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
@@ -2348,6 +2352,11 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 			return mx_status;
 
 		mca->current_num_channels = mx_round( acquisition_value );
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->current_num_channels = %ld",
+			fname, mca->current_num_channels));
+#endif
 		break;
 
 	case MXLV_MCA_PRESET_TYPE:
@@ -2385,6 +2394,11 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 					mca->record->name );
 			break;
 		}
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->preset_type = %ld",
+			fname, mca->preset_type));
+#endif
 		break;
 
 	case MXLV_MCA_PRESET_REAL_TIME:
@@ -2401,6 +2415,11 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 
 		mx_status = mxi_handel_get_acquisition_values( mca,
 				"preset_value", &(mca->preset_real_time) );
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->preset_real_time = %g",
+			fname, mca->preset_real_time));
+#endif
 		break;
 
 	case MXLV_MCA_PRESET_LIVE_TIME:
@@ -2417,6 +2436,11 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 
 		mx_status = mxi_handel_get_acquisition_values( mca,
 				"preset_value", &(mca->preset_live_time) );
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->preset_live_time = %g",
+			fname, mca->preset_live_time));
+#endif
 		break;
 
 	case MXLV_MCA_PRESET_COUNT:
@@ -2435,10 +2459,20 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 				"preset_value", &acquisition_value );
 
 		mca->preset_count = mx_round( acquisition_value );
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->preset_count = %lu",
+			fname, mca->preset_count));
+#endif
 		break;
 
 	case MXLV_MCA_CHANNEL_VALUE:
 		mca->channel_value = mca->channel_array[ mca->channel_number ];
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->channel_value = %lu",
+			fname, mca->channel_value));
+#endif
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:
@@ -2501,10 +2535,20 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 
 			mca->roi_array[i][1] = mx_round( acquisition_value );
 		    }
+#if MXI_HANDEL_DEBUG
+		    MX_DEBUG(-2,("%s: mca->roi_array[%lu][0] = %lu",
+				fname, i, mca->roi_array[i][0]));
+		    MX_DEBUG(-2,("%s: mca->roi_array[%lu][1] = %lu",
+				fname, i, mca->roi_array[i][1]));
+#endif
 		}
 		break;
 
 	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: reading roi_integral_array", fname));
+#endif
 		if ( handel_mca->hardware_scas_are_enabled ) {
 			/* This system supports SCA integrals computed
 			 * by the firmware.
@@ -2603,6 +2647,11 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 
 		    mca->roi_array[i][1] = mca->roi[1];
 		}
+
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->roi[0] = %lu", fname, mca->roi[0]));
+		MX_DEBUG(-2,("%s: mca->roi[1] = %lu", fname, mca->roi[1]));
+#endif
 		break;
 	
 	case MXLV_MCA_ROI_INTEGRAL:
@@ -2626,6 +2675,10 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 
 			mca->roi_integral =
 				mca->roi_integral_array[ mca->roi_number ];
+#if MXI_HANDEL_DEBUG
+			MX_DEBUG(-2,("%s: mca->roi_integral = %lu",
+					fname, mca->roi_integral));
+#endif
 		} else {
 			/* Pass this on to the default code. */
 
@@ -2644,6 +2697,10 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->real_time = %g",
+			fname, mca->real_time));
+#endif
 		break;
 
 	case MXLV_MCA_LIVE_TIME:
@@ -2657,11 +2714,15 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->live_time = %g",
+			fname, mca->live_time));
+#endif
 		break;
 
 	case MXLV_MCA_COUNTS:
 		xia_status = xiaGetRunData( handel_mca->detector_channel,
-			"events_in_run", (void *) &(mca->live_time) );
+			"events_in_run", (void *) &(mca->counts) );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -2670,6 +2731,9 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 		}
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->counts = %lu", fname, mca->counts));
+#endif
 		break;
 
 	default:

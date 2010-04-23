@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -231,7 +231,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			0
+#define HAVE_XIA_HANDEL			1
 
 /*****************************************************************************
  *

@@ -1229,6 +1229,12 @@ mxd_handel_mca_open( MX_RECORD *record )
 	handel_mca->old_preset_type = (unsigned long) MX_ULONG_MAX;
 	handel_mca->old_preset_time = DBL_MAX;
 
+#if MXD_HANDEL_MCA_DEBUG
+	MX_DEBUG(-2,("%s: MCA '%s', handel_mca->hardware_scas_are_enabled = %d",
+		fname, record->name,
+		(int) handel_mca->hardware_scas_are_enabled));
+#endif
+
 	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,("%s complete for MCA '%s'", fname, record->name ));
 	}
