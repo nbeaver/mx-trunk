@@ -71,7 +71,7 @@ static int show_latex_field_table( MX_DRIVER **list_of_types,
 					char *item_name,
 					unsigned long structures_to_show,
 					mx_bool_type show_all_fields,
-					mx_bool_type show_class_link,
+					mx_bool_type show_link,
 					mx_bool_type debug );
 
 static int show_latex_field( MX_DRIVER *driver,
@@ -93,7 +93,7 @@ main( int argc, char *argv[] ) {
 	MX_DRIVER **list_of_types;
 	int c, items_to_show, debug, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
-	mx_bool_type show_all_fields, show_handles, show_class_link;
+	mx_bool_type show_all_fields, show_handles, show_link;
 	unsigned long i, length, structures_to_show;
 
 	static char usage_format[] =
@@ -122,7 +122,7 @@ main( int argc, char *argv[] ) {
 	structures_to_show = 0xffffffff;
 	show_all_fields = FALSE;
 	show_handles = FALSE;
-	show_class_link = FALSE;
+	show_link = FALSE;
 	strcpy( item_name, "" );
 
 	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:LS:")) != -1 ) {
@@ -177,7 +177,7 @@ main( int argc, char *argv[] ) {
 			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case 'L':
-			show_class_link = TRUE;
+			show_link = TRUE;
 			break;
 		case 'S':
 			length = strlen(optarg);
@@ -242,7 +242,7 @@ main( int argc, char *argv[] ) {
 						item_name,
 						structures_to_show,
 						show_all_fields,
-						show_class_link,
+						show_link,
 						debug );
 		break;
 	default:
@@ -656,7 +656,7 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		char *driver_name,
 		unsigned long structures_to_show,
 		mx_bool_type show_all_fields,
-		mx_bool_type show_class_link,
+		mx_bool_type show_link,
 		mx_bool_type debug )
 {
 	static const char fname[] = "show_latex_field_table()";
@@ -664,11 +664,12 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 	MX_DRIVER *driver_list;
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array, *field_defaults;
-	MX_DRIVER *class_list;
+	MX_DRIVER *class_list, *superclass_list;
 	char class_name[MXU_DRIVER_NAME_LENGTH+1];
-	char class_link_name[MXU_DRIVER_NAME_LENGTH+20];
+	char superclass_name[MXU_DRIVER_NAME_LENGTH+1];
+	char link_name[MXU_DRIVER_NAME_LENGTH+20];
 	char macro_name[MXU_DRIVER_NAME_LENGTH+20];
-	long mx_driver_class;
+	long driver_class, driver_superclass;
 	unsigned long i;
 	int status;
 
@@ -715,33 +716,81 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		return SUCCESS;
 	}
 
-	if ( show_class_link ) {
-		/* Find the name of the class that this driver belongs to. */
+	if ( show_link ) {
+		/* Construct the field link for this driver. */
 
-		mx_driver_class = driver->mx_class;
+		if ( structures_to_show & MXF_REC_RECORD_STRUCT ) {
+			/* We do not need a link for this case. */
 
-		class_list = list_of_types[1];
+			show_link = FALSE;
+		} else
+		if ( structures_to_show & MXF_REC_SUPERCLASS_STRUCT ) {
+			strlcpy( link_name, "\\MxLinkRecordFields",
+						sizeof(link_name) );
+		} else
+		if ( structures_to_show & MXF_REC_CLASS_STRUCT ) {
 
-		for ( i = 0; ; i++ ) {
-			if ( class_list[i].mx_superclass == 0 ) {
-				/* End of the list. */
+			driver_superclass = driver->mx_superclass;
 
-				fprintf(stderr,
+			superclass_list = list_of_types[0];
+
+			for ( i = 0; ; i++ ) {
+				if ( superclass_list[i].mx_superclass == 0 ) {
+					/* End of the list. */
+
+					fprintf(stderr,
+		    "The driver superclass for MX driver '%s' was not found.\n",
+						driver_name );
+					exit(1);
+				}
+
+				if ( superclass_list[i].mx_superclass
+					== driver_superclass )
+				{
+					strlcpy( superclass_name,
+						superclass_list[i].name,
+						sizeof(superclass_name) );
+
+					break;	/* Exit the for() loop. */
+				}
+			}
+
+			create_latex_command( link_name, sizeof(link_name),
+				"\\MxLink%sFields",
+				capitalize_string(superclass_name) );
+		} else
+		if ( structures_to_show & MXF_REC_TYPE_STRUCT ) {
+
+			driver_class = driver->mx_class;
+
+			class_list = list_of_types[1];
+
+			for ( i = 0; ; i++ ) {
+				if ( class_list[i].mx_superclass == 0 ) {
+					/* End of the list. */
+
+					fprintf(stderr,
 			"The driver class for MX driver '%s' was not found.\n",
-					driver_name );
-				exit(1);
+						driver_name );
+					exit(1);
+				}
+
+				if ( class_list[i].mx_class == driver_class ) {
+					strlcpy( class_name, class_list[i].name,
+						sizeof(class_name) );
+
+					break;	/* Exit the for() loop. */
+				}
 			}
 
-			if ( class_list[i].mx_class == mx_driver_class ) {
-				strlcpy( class_name, class_list[i].name,
-					sizeof(class_name) );
+			create_latex_command( link_name, sizeof(link_name),
+				"\\MxLink%sFields",
+				capitalize_string(class_name) );
+		} else {
+			/* We do not need a link for this case. */
 
-				break;	/* Exit the for() loop. */
-			}
+			show_link = FALSE;
 		}
-
-		create_latex_command( class_link_name, sizeof(class_link_name),
-			"\\MxLink%sFields", capitalize_string(class_name) );
 	}
 
 	/* Print out a header for the LaTeX table. */
@@ -758,8 +807,8 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 	"            & \\MxTextSizes & \\MxTextDescription \\\\\n" );
 	printf( "    \\hline\n" );
 
-	if ( show_class_link ) {
-	    printf( "    \\multicolumn{5}{|c|}{%s} \\\\\n", class_link_name );
+	if ( show_link ) {
+	    printf( "    \\multicolumn{5}{|c|}{%s} \\\\\n", link_name );
 	    printf( "    \\hline\n" );
 	}
 
