@@ -930,32 +930,10 @@ show_latex_field( MX_DRIVER *driver,
 
 	{
 		char field_command[250];
-		const char record_text[] = "Record";
-		const char superclass_text[] = "Superclass";
-		const char class_text[] = "Class";
-		const char type_text[] = "Type";
-		const char *text_ptr;
-
-		switch( field_defaults->structure_id ) {
-		case MXF_REC_RECORD_STRUCT:
-			text_ptr = record_text;
-			break;
-		case MXF_REC_SUPERCLASS_STRUCT:
-			text_ptr = superclass_text;
-			break;
-		case MXF_REC_CLASS_STRUCT:
-			text_ptr = class_text;
-			break;
-		case MXF_REC_TYPE_STRUCT:
-			text_ptr = type_text;
-			break;
-		default:
-			text_ptr = NULL;
-			break;
-		}
 
 		create_latex_command( field_command, sizeof(field_command),
-			"\\MxField%s%s", text_ptr,
+			"\\MxField%s%s",
+			capitalize_string(driver->name),
 			capitalize_string(field_defaults->name) );
 
 		printf(
