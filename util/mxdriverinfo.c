@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2009 Illinois Institute of Technology
+ * Copyright 2001, 2003-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,36 +46,43 @@ static int find_driver( MX_DRIVER *driver_list,
 
 static char * find_varargs_field_name( MX_DRIVER *driver,
 					long varargs_value,
-					int debug );
+					mx_bool_type debug );
 
-static int show_all_drivers( MX_DRIVER **list_of_types, int debug );
+static int show_all_drivers( MX_DRIVER **list_of_types, mx_bool_type debug );
 
 static int show_drivers( MX_DRIVER **list_of_types,
 				int items_to_show,
 				char *item_name,
-				int debug );
+				mx_bool_type debug );
 
 static int show_field_list( MX_DRIVER **list_of_types,
 				char *item_name,
-				int show_all_fields,
-				int show_handles,
-				int debug );
+				mx_bool_type show_all_fields,
+				mx_bool_type show_handles,
+				mx_bool_type debug );
 
 static int show_field( MX_DRIVER *driver,
 			MX_RECORD_FIELD_DEFAULTS *field_defaults,
 			int field_number,
-			int show_handles,
-			int debug );
+			mx_bool_type show_handles,
+			mx_bool_type debug );
 
 static int show_latex_field_table( MX_DRIVER **list_of_types,
 					char *item_name,
-					int show_all_fields,
-					int debug );
+					mx_bool_type show_all_fields,
+					mx_bool_type show_class_link,
+					mx_bool_type debug );
 
 static int show_latex_field( MX_DRIVER *driver,
 				MX_RECORD_FIELD_DEFAULTS *field_defaults,
-				int debug );
+				mx_bool_type debug );
 
+static int create_latex_command( char *buffer,
+				size_t max_buffer_length,
+				char *format,
+				... );
+
+static char *capitalize_string( char *original_string );
 
 static char program_name[] = "mxdriverinfo";
 
@@ -83,8 +90,9 @@ int
 main( int argc, char *argv[] ) {
 
 	MX_DRIVER **list_of_types;
-	int c, items_to_show, debug, show_all_fields, show_handles, status;
+	int c, items_to_show, debug, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
+	mx_bool_type show_all_fields, show_handles, show_class_link;
 
 	static char usage_format[] =
 "Usage: %s [options]\n"
@@ -111,9 +119,10 @@ main( int argc, char *argv[] ) {
 	debug = FALSE;
 	show_all_fields = FALSE;
 	show_handles = FALSE;
+	show_class_link = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:L")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -164,6 +173,9 @@ main( int argc, char *argv[] ) {
 
 			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
+		case 'L':
+			show_class_link = TRUE;
+			break;
 		case '?':
 			fprintf(stderr, usage_format, program_name);
 			exit(1);
@@ -201,7 +213,8 @@ main( int argc, char *argv[] ) {
 		break;
 	case MXDI_LATEX_FIELDS:
 		status = show_latex_field_table( list_of_types, item_name,
-						show_all_fields, debug );
+						show_all_fields,
+						show_class_link, debug );
 		break;
 	default:
 		fprintf(stderr, usage_format, program_name);
@@ -212,12 +225,7 @@ main( int argc, char *argv[] ) {
 	if ( status != SUCCESS )
 		exit(1);
 
-	exit(0);
-
-#if defined(OS_IRIX) || defined(OS_HPUX) \
-		|| defined(OS_VXWORKS) || defined(__BORLANDC__)
-	return 0;   /* These think a non-void main() should return a value. */
-#endif
+	return 0;
 }
 
 static int
@@ -244,7 +252,7 @@ find_driver( MX_DRIVER *driver_list, char *name, MX_DRIVER **driver_found )
 static char *
 find_varargs_field_name( MX_DRIVER *driver,
 			long varargs_cookie,
-			int debug )
+			mx_bool_type debug )
 {
 	static char defaults_string[MXU_FIELD_NAME_LENGTH + 1];
 
@@ -279,7 +287,7 @@ find_varargs_field_name( MX_DRIVER *driver,
 }
 
 static int
-show_all_drivers( MX_DRIVER **list_of_types, int debug )
+show_all_drivers( MX_DRIVER **list_of_types, mx_bool_type debug )
 {
 	static const char fname[] = "show_all_drivers()";
 
@@ -383,7 +391,7 @@ static int
 show_drivers( MX_DRIVER **list_of_types,
 		int items_to_show,
 		char *item_name,
-		int debug )
+		mx_bool_type debug )
 {
 	static const char fname[] = "show_drivers()";
 
@@ -476,9 +484,9 @@ show_drivers( MX_DRIVER **list_of_types,
 static int
 show_field_list( MX_DRIVER **list_of_types,
 		char *driver_name,
-		int show_all_fields,
-		int show_handles,
-		int debug )
+		mx_bool_type show_all_fields,
+		mx_bool_type show_handles,
+		mx_bool_type debug )
 {
 	static const char fname[] = "show_field_list()";
 
@@ -555,8 +563,8 @@ static int
 show_field( MX_DRIVER *driver,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults,
 		int field_number,
-		int show_handles,
-		int debug )
+		mx_bool_type show_handles,
+		mx_bool_type debug )
 {
 	unsigned long i;
 	long dimension, num_dimensions;
@@ -617,14 +625,20 @@ show_field( MX_DRIVER *driver,
 static int
 show_latex_field_table( MX_DRIVER **list_of_types,
 		char *driver_name,
-		int show_all_fields,
-		int debug )
+		mx_bool_type show_all_fields,
+		mx_bool_type show_class_link,
+		mx_bool_type debug )
 {
 	static const char fname[] = "show_latex_field_table()";
 
 	MX_DRIVER *driver_list;
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array, *field_defaults;
+	MX_DRIVER *class_list;
+	char class_name[MXU_DRIVER_NAME_LENGTH+1];
+	char class_link_name[MXU_DRIVER_NAME_LENGTH+20];
+	char macro_name[MXU_DRIVER_NAME_LENGTH+20];
+	long mx_driver_class;
 	unsigned long i;
 	int status;
 
@@ -671,17 +685,53 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		return SUCCESS;
 	}
 
+	if ( show_class_link ) {
+		/* Find the name of the class that this driver belongs to. */
+
+		mx_driver_class = driver->mx_class;
+
+		class_list = list_of_types[1];
+
+		for ( i = 0; ; i++ ) {
+			if ( class_list[i].mx_superclass == 0 ) {
+				/* End of the list. */
+
+				fprintf(stderr,
+			"The driver class for MX driver '%s' was not found.\n",
+					driver_name );
+				exit(1);
+			}
+
+			if ( class_list[i].mx_class == mx_driver_class ) {
+				strlcpy( class_name, class_list[i].name,
+					sizeof(class_name) );
+
+				break;	/* Exit the for() loop. */
+			}
+		}
+
+		create_latex_command( class_link_name, sizeof(class_link_name),
+			"\\MxLink%sFields", capitalize_string(class_name) );
+	}
+
 	/* Print out a header for the LaTeX table. */
 
-	printf( "\\begin{tabular}{|c|c|c|c|p{72mm}|}\n" );
-	printf( "  \\hline\n" );
+	create_latex_command( macro_name, sizeof(macro_name),
+			"\\Mx%sDriverFields", capitalize_string(driver->name) );
+
+	printf( "  \\newcommand{%s}{\n", macro_name );
+	printf( "  \\begin{tabular}{|c|c|c|c|c|}\n" );
+	printf( "    \\hline\n" );
 	printf(
-	"  \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
+	"    \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
 	printf(
-	"          & \\MxTextSizes & \\MxTextDescription \\\\\n" );
-	printf( "  \\hline\n" );
-	printf( "  %%\\multicolumn{5}{|c|}{\\linkmotorfields} \\\\\n" );
-	printf( "  %%\\hline\n" );
+	"            & \\MxTextSizes & \\MxTextDescription \\\\\n" );
+	printf( "    \\hline\n" );
+
+	if ( show_class_link ) {
+	    printf( "    \\multicolumn{5}{|c|}{%s} \\\\\n", class_link_name );
+	    printf( "    \\hline\n" );
+	}
 
 	/* Show the field list. */
 
@@ -700,7 +750,8 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		}
 	}
 
-	printf( "\\end{tabular}\n" );
+	printf( "  \\end{tabular}\n" );
+	printf( "}\n" );
 
 	return SUCCESS;
 }
@@ -708,7 +759,7 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 static int
 show_latex_field( MX_DRIVER *driver,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults,
-		int debug )
+		mx_bool_type debug )
 {
 	char buffer[500];
 	char *name_ptr;
@@ -735,7 +786,7 @@ show_latex_field( MX_DRIVER *driver,
 	}
 	buffer[j] = '\0';
 
-	printf( "  \\textit{%s} & ", buffer );
+	printf( "    \\textit{%s} & ", buffer );
 
 	/* Print out the field datatype in lower case with the MXFT_ prefix
 	 * removed and with LaTeX escapes for underscores.
@@ -757,14 +808,14 @@ show_latex_field( MX_DRIVER *driver,
 	}
 	buffer[j] = '\0';
 
-	printf( "  \\textit{%s} & ", buffer );
+	printf( "\\textit{%s} & ", buffer );
 
 	/* Display the number of dimensions. */
 
 	if ( field_defaults->num_dimensions < 0 ) {
 		num_dimensions = MXU_FIELD_MAX_DIMENSIONS;
 
-		printf( "  \\textit{%s} & ", find_varargs_field_name( driver,
+		printf( " \\textit{%s} & ", find_varargs_field_name( driver,
 					field_defaults->num_dimensions,
 					debug ) );
 	} else {
@@ -796,10 +847,118 @@ show_latex_field( MX_DRIVER *driver,
 		}
 	}
 
-	printf( " & xxx \\\\\n" );
-	printf( "  \\hline\n" );
+	{
+		char field_command[250];
+		const char record_text[] = "Record";
+		const char superclass_text[] = "Superclass";
+		const char class_text[] = "Class";
+		const char type_text[] = "Type";
+		const char *text_ptr;
+
+		switch( field_defaults->structure_id ) {
+		case MXF_REC_RECORD_STRUCT:
+			text_ptr = record_text;
+			break;
+		case MXF_REC_SUPERCLASS_STRUCT:
+			text_ptr = superclass_text;
+			break;
+		case MXF_REC_CLASS_STRUCT:
+			text_ptr = class_text;
+			break;
+		case MXF_REC_TYPE_STRUCT:
+			text_ptr = type_text;
+			break;
+		default:
+			text_ptr = NULL;
+			break;
+		}
+
+		create_latex_command( field_command, sizeof(field_command),
+			"\\MxField%s%s", text_ptr,
+			capitalize_string(field_defaults->name) );
+
+		printf(
+		" & $\\ifthenelse{\\isundefined{%s}}{\\relax}"
+		"{\\begin{minipage}{50mm}"
+			"\\vspace*{1mm}%s\\vspace*{1mm}"
+		"\\end{minipage}}$ \\\\\n",
+			field_command, field_command );
+	}
+
+	printf( "    \\hline\n" );
 
 	return SUCCESS;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static int
+create_latex_command( char *buffer,
+			size_t max_buffer_length,
+			char *format,
+			... )
+{
+	va_list args;
+	int i, c, length, result;
+
+	va_start( args, format );
+
+	result = vsnprintf( buffer, max_buffer_length, format, args );
+
+	if ( result < 0 ) {
+		return result;
+	}
+
+	length = strlen(buffer);
+
+	if ( length <= 1 ) {
+		return -1;
+	}
+
+	/* The first letter _must_ be a backslash '\' character. */
+
+	if ( buffer[0] != '\\' ) {
+		fprintf( stderr,
+		"The first character '%c' of Latex command string '%s' "
+		"is not a backslash '\\' character.\n",
+			buffer[0], buffer );
+
+		return -1;
+	}
+
+	/* If they are longer than 1 character, Latex command names can
+	 * only contain letters, so we must convert any invalid characters
+	 * into valid characters.
+	 */
+
+	for ( i = 1; i < length; i++ ) {
+		c = buffer[i];
+
+		if ( isalpha(c) ) {
+			/* Leave alphabetic characters alone. */
+		} else
+		if ( isdigit(c) ) {
+			c = 'A' + c - '0';
+		} else {
+			c = 'Z';
+		}
+
+		buffer[i] = c;
+	}
+
+	return result;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static char *
+capitalize_string( char *buffer )
+{
+	if ( islower(buffer[0]) ) {
+		buffer[0] = toupper(buffer[0]);
+	}
+
+	return buffer;
 }
 
 /*--------------------------------------------------------------------------*/
