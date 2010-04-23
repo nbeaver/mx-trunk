@@ -71,8 +71,8 @@ extern "C" {
 
 #define MXF_REC_RECORD_STRUCT		1
 #define MXF_REC_SUPERCLASS_STRUCT	2
-#define MXF_REC_CLASS_STRUCT		3
-#define MXF_REC_TYPE_STRUCT		4
+#define MXF_REC_CLASS_STRUCT		4
+#define MXF_REC_TYPE_STRUCT		8
 
 /* The following is the list of bitmasks that can be put in the "flags"
  * field of an MX_RECORD_FIELD structure.  These are also used as mask

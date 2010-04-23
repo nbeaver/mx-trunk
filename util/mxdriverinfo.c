@@ -69,6 +69,7 @@ static int show_field( MX_DRIVER *driver,
 
 static int show_latex_field_table( MX_DRIVER **list_of_types,
 					char *item_name,
+					unsigned long structures_to_show,
 					mx_bool_type show_all_fields,
 					mx_bool_type show_class_link,
 					mx_bool_type debug );
@@ -93,6 +94,7 @@ main( int argc, char *argv[] ) {
 	int c, items_to_show, debug, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
 	mx_bool_type show_all_fields, show_handles, show_class_link;
+	unsigned long i, length, structures_to_show;
 
 	static char usage_format[] =
 "Usage: %s [options]\n"
@@ -117,12 +119,13 @@ main( int argc, char *argv[] ) {
 
 	items_to_show = 0;
 	debug = FALSE;
+	structures_to_show = 0xffffffff;
 	show_all_fields = FALSE;
 	show_handles = FALSE;
 	show_class_link = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:L")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:LS:")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -176,6 +179,29 @@ main( int argc, char *argv[] ) {
 		case 'L':
 			show_class_link = TRUE;
 			break;
+		case 'S':
+			length = strlen(optarg);
+			structures_to_show = 0;
+
+			for ( i = 0; i < length; i++ ) {
+			    c = optarg[i];
+
+			    switch(c) {
+			    case 'r':
+				structures_to_show |= MXF_REC_RECORD_STRUCT;
+				break;
+			    case 's':
+				structures_to_show |= MXF_REC_SUPERCLASS_STRUCT;
+				break;
+			    case 'c':
+				structures_to_show |= MXF_REC_CLASS_STRUCT;
+				break;
+			    case 't':
+				structures_to_show |= MXF_REC_TYPE_STRUCT;
+				break;
+			    }
+			}
+			break;
 		case '?':
 			fprintf(stderr, usage_format, program_name);
 			exit(1);
@@ -212,9 +238,12 @@ main( int argc, char *argv[] ) {
 		status = SUCCESS;
 		break;
 	case MXDI_LATEX_FIELDS:
-		status = show_latex_field_table( list_of_types, item_name,
+		status = show_latex_field_table( list_of_types,
+						item_name,
+						structures_to_show,
 						show_all_fields,
-						show_class_link, debug );
+						show_class_link,
+						debug );
 		break;
 	default:
 		fprintf(stderr, usage_format, program_name);
@@ -625,6 +654,7 @@ show_field( MX_DRIVER *driver,
 static int
 show_latex_field_table( MX_DRIVER **list_of_types,
 		char *driver_name,
+		unsigned long structures_to_show,
 		mx_bool_type show_all_fields,
 		mx_bool_type show_class_link,
 		mx_bool_type debug )
@@ -744,9 +774,11 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		if ( ( show_all_fields == TRUE )
 		  || ( field_defaults->flags & MXFF_IN_DESCRIPTION ) )
 		{
-			status = show_latex_field( driver,
-					field_defaults, debug );
-
+			if ( field_defaults->structure_id & structures_to_show )
+			{
+				status = show_latex_field( driver,
+						field_defaults, debug );
+			}
 		}
 	}
 
