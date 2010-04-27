@@ -283,7 +283,10 @@ find_varargs_field_name( MX_DRIVER *driver,
 			long varargs_cookie,
 			mx_bool_type debug )
 {
-	static char defaults_string[MXU_FIELD_NAME_LENGTH + 1];
+	static char defaults_string[MXU_FIELD_NAME_LENGTH + 20];
+	char num_string[20];
+	long i, j;
+	char c;
 
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array;
 	MX_RECORD_FIELD_DEFAULTS *referenced_field_defaults;
@@ -308,9 +311,34 @@ find_varargs_field_name( MX_DRIVER *driver,
 
 	referenced_field_defaults = &field_defaults_array[ field_index ];
 
-	sprintf( defaults_string, "%s,%ld",
-				referenced_field_defaults->name,
-				array_in_field_index );
+	memset( defaults_string, 0, sizeof(defaults_string) );
+
+	for ( i = 0, j = 0; i < sizeof(defaults_string) - 1; i++, j++ ) {
+		c = referenced_field_defaults->name[i];
+
+		if ( c == '\0' ) {
+			defaults_string[j] = '\0';
+			break;
+		} else
+		if ( c == '_' ) {
+			defaults_string[j] = '\\';
+			j++;
+			defaults_string[j] = '_';
+		} else {
+			if ( isupper(c) ) {
+				defaults_string[j] = tolower(c);
+			} else {
+				defaults_string[j] = c;
+			}
+		}
+	}
+
+	if ( array_in_field_index > 0 ) {
+		snprintf( num_string, sizeof(num_string),
+		":%ld", array_in_field_index );
+
+		strlcat( defaults_string, num_string, sizeof(defaults_string) );
+	}
 
 	return &defaults_string[0];
 }
@@ -889,7 +917,7 @@ show_latex_field( MX_DRIVER *driver,
 	}
 	buffer[j] = '\0';
 
-	printf( "\\textit{%s} & ", buffer );
+	printf( "%s & ", buffer );
 
 	/* Display the number of dimensions. */
 
@@ -909,7 +937,20 @@ show_latex_field( MX_DRIVER *driver,
 
 	if ( num_dimensions == 0 ) {
 		printf( "0" );
+	} else
+	if ( num_dimensions == 1 ) {
+		dimension = field_defaults->dimension[0];
+
+		if ( dimension < 0 ) {
+			printf( "\\textit{%s}",
+				find_varargs_field_name( driver,
+				dimension, debug ) );
+		} else {
+			printf( "%ld", dimension );
+		}
 	} else {
+		printf( "( " );
+
 		for ( i = 0; i < num_dimensions; i++ ) {
 
 			if ( i > 0 ) {
@@ -919,13 +960,14 @@ show_latex_field( MX_DRIVER *driver,
 			dimension = field_defaults->dimension[i];
 
 			if ( dimension < 0 ) {
-				printf( "\textit{%s}",
+				printf( "\\textit{%s}",
 					find_varargs_field_name( driver,
 					dimension, debug ) );
 			} else {
 				printf( "%ld", dimension );
 			}
 		}
+		printf( " )" );
 	}
 
 	{
@@ -938,9 +980,10 @@ show_latex_field( MX_DRIVER *driver,
 
 		printf(
 		" & $\\ifthenelse{\\isundefined{%s}}{\\relax}"
-		"{\\begin{minipage}{50mm}"
-			"\\vspace*{1mm}%s\\vspace*{1mm}"
-		"\\end{minipage}}$ \\\\\n",
+		"{\\begin{varwidth}{0.5\\linewidth}"
+			"\\raggedright"
+			"\\vspace*{1mm}%s\\vspace*{3mm}"
+		"\\end{varwidth}}$ \\\\\n",
 			field_command, field_command );
 	}
 
