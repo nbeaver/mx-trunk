@@ -370,6 +370,8 @@ MX_API unsigned long mx_hex_char_to_unsigned_long( char c );
 
 MX_API unsigned long mx_hex_string_to_unsigned_long( char *string );
 
+MX_API long mx_hex_string_to_long( char *string );
+
 /* mx_string_to_long() and mx_string_to_unsigned_long() can handle decimal,
  * octal, and hexadecimal representations of numbers.  If the string starts
  * with '0x' the number is taken to be hexadecimal.  If not, then if it

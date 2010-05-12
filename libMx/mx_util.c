@@ -928,6 +928,59 @@ mx_hex_string_to_unsigned_long( char *string )
 }
 
 MX_EXPORT long
+mx_hex_string_to_long( char *string )
+{
+	/* WARNING: This assumes twos complement arithmetic. */
+
+	static const char fname[] = "mx_hex_string_to_unsigned_long()";
+
+	char *endptr;
+	unsigned long ulong_result;
+	unsigned long high_order_nibble, num_bits_in_result, sign_mask;
+	long result;
+
+	/* Skip over any leading whitespace. */
+
+	string += strspn( string, MX_WHITESPACE );
+
+	/* Parse the string. */
+
+	ulong_result = strtoul( string, &endptr, 16 );
+
+	if ( *endptr != '\0' ) {
+		result = 0;
+
+		mx_warning(
+		"%s: Supplied string '%s' is not a hexadecimal number.  "
+		"Result set to zero.", fname, string );
+	} else {
+		if ( ulong_result <= LONG_MAX ) {
+
+			/* Check to see if the original hexadecimal string was
+			 * negative.  If it was, then return a negative result.
+		 	 */
+
+			high_order_nibble =
+				mx_hex_char_to_unsigned_long( string[0] );
+
+			if ( high_order_nibble >= 8 ) {
+				num_bits_in_result = 4 * strlen(string);
+
+				sign_mask = 1UL << (num_bits_in_result - 1);
+
+				ulong_result = (ulong_result ^ sign_mask)
+							- sign_mask;
+			}
+
+		}
+
+		result = (long) ulong_result;
+	}
+
+	return result;
+}
+
+MX_EXPORT long
 mx_string_to_long( char *string )
 {
 	static const char fname[] = "mx_string_to_long()";

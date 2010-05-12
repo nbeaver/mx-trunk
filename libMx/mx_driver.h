@@ -245,6 +245,7 @@ extern "C" {
 #define MXI_GEN_CRYOJET			456
 #define MXI_GEN_HANDEL			457
 #define MXI_GEN_HANDEL_NETWORK		458
+#define MXI_GEN_LINKAM_T9X		459
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -496,6 +497,9 @@ extern "C" {
 #define MXT_MTR_PTZ			50051
 #define MXT_MTR_SRC_MONO		50052
 #define MXT_MTR_CRYOJET			50053
+#define MXT_MTR_LINKAM_TEMPERATURE	50054
+#define MXT_MTR_LINKAM_MOTOR		50055
+#define MXT_MTR_LINKAM_LN_PUMP		50056
 
    /* Pseudomotors. */
 

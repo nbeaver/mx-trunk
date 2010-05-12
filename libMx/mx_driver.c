@@ -203,6 +203,7 @@
 #include "i_isobus.h"
 #include "i_itc503.h"
 #include "i_ilm.h"
+#include "i_linkam_t9x.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -1106,6 +1107,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_itc503_num_record_fields,
 				&mxi_itc503_rfield_def_ptr},
+
+{"linkam_t9x",    MXI_GEN_LINKAM_T9X,    MXI_GENERIC,    MXR_INTERFACE,
+				&mxi_linkam_t9x_record_function_list,
+				NULL,
+				NULL,
+				&mxi_linkam_t9x_num_record_fields,
+				&mxi_linkam_t9x_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,

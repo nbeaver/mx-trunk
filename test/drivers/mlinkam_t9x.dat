@@ -1,0 +1,2 @@
+t95_rs232 interface rs232 tty "" "" 19200 8 N 1 N 0x0d 0x0d 5 0x0 /dev/ttyS0
+t95       interface generic linkam_t9x "" "" t95_rs232
