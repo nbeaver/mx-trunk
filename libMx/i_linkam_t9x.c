@@ -24,6 +24,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
+#include "mx_motor.h"
 #include "i_linkam_t9x.h"
 
 MX_RECORD_FUNCTION_LIST mxi_linkam_t9x_record_function_list = {
@@ -225,6 +226,70 @@ mxi_linkam_t9x_get_status( MX_LINKAM_T9X *linkam_t9x,
 	raw_temperature = mx_hex_string_to_unsigned_long( &response[6] );
 
 	linkam_t9x->temperature = 0.1 * (double) raw_temperature;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_linkam_t9x_set_motor_status_from_error_byte( MX_LINKAM_T9X *linkam_t9x,
+						MX_RECORD *motor_record )
+{
+	static const char fname[] =
+		"mxi_linkam_t9x_set_motor_status_from_error_byte()";
+
+	MX_MOTOR *motor;
+	unsigned char eb;
+
+	if ( linkam_t9x == (MX_LINKAM_T9X *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LINKAM_T9X pointer passed was NULL." );
+	}
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor_record pointer passed was NULL." );
+	}
+
+	motor = motor_record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for motor '%s' is NULL.",
+			motor_record->name );
+	}
+
+	eb = linkam_t9x->error_byte;
+
+	/* Bit 0 - Cooling rate too fast */
+
+	if ( eb & 0x1 ) {
+		motor->status |= MXSF_MTR_CONFIGURATION_ERROR;
+
+		mx_warning(
+		"Cooling rate too fast for Linkam T9x controller '%s'.",
+			linkam_t9x->record->name );
+	}
+
+	/* Bit 1 - Open circuit */
+
+	if ( eb & 0x2 ) {
+		motor->status |= MXSF_MTR_HARDWARE_ERROR;
+
+		mx_warning(
+		"Open circuit for Linkam T9x controller '%s'.",
+			linkam_t9x->record->name );
+	}
+
+	/* Bit 2 - Power surge */
+
+	if ( eb & 0x4 ) {
+		motor->status |= MXSF_MTR_DRIVE_FAULT;
+
+		mx_warning(
+		"Power surge for Linkam T9x controller '%s'.",
+			linkam_t9x->record->name );
+	}
+
+	/* Bit 3 - No Exit 300 */
 
 	return MX_SUCCESSFUL_RESULT;
 }

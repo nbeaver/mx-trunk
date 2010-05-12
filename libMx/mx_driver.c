@@ -309,6 +309,7 @@
 #include "d_bluice_motor.h"
 #include "d_ptz_motor.h"
 #include "d_src_mono.h"
+#include "d_linkam_t9x_temp.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2404,6 +2405,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_src_mono_motor_function_list,
 				&mxd_src_mono_num_record_fields,
 				&mxd_src_mono_rfield_def_ptr},
+
+{"linkam_t9x_temp", MXT_MTR_LINKAM_T9X_TEMPERATURE,  MXC_MOTOR,  MXR_DEVICE,
+				&mxd_linkam_t9x_temp_record_function_list,
+				NULL,
+				&mxd_linkam_t9x_temp_motor_function_list,
+				&mxd_linkam_t9x_temp_num_record_fields,
+				&mxd_linkam_t9x_temp_rfield_def_ptr},
 
 #if HAVE_U500
 {"u500_motor",     MXT_MTR_U500,      MXC_MOTOR,          MXR_DEVICE,

@@ -50,6 +50,10 @@ MX_API mx_status_type mxi_linkam_t9x_command(
 MX_API mx_status_type mxi_linkam_t9x_get_status( MX_LINKAM_T9X *linkam_t9x,
 						mx_bool_type debug_flag );
 
+MX_API mx_status_type mxi_linkam_t9x_set_motor_status_from_error_byte(
+						MX_LINKAM_T9X *linkam_t9x,
+						MX_RECORD *motor_record );
+
 extern MX_RECORD_FUNCTION_LIST mxi_linkam_t9x_record_function_list;
 
 extern long mxi_linkam_t9x_num_record_fields;
