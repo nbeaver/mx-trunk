@@ -1,8 +1,8 @@
 /*
  * Name:    d_linkam_t9x_pump.c
  *
- * Purpose: MX driver for the pump control part of Linkam T9x series
- *          cooling system controllers.
+ * Purpose: MX output driver for the pump controller part of the Linkam T9x
+ *          series of cooling controllers.
  *
  * Author:  William Lavender
  *
@@ -15,51 +15,35 @@
  *
  */
 
-#define MXD_LINKAM_T9X_PUMP_DEBUG	FALSE
+#define MXD_LINKAM_T9X_PUMP_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_motor.h"
+#include "mx_analog_output.h"
 #include "i_linkam_t9x.h"
 #include "d_linkam_t9x_pump.h"
 
-/* ============ Motor channels ============ */
+/* Initialize the LINKAM_T9X_PUMP driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_pump_record_function_list = {
 	NULL,
-	mxd_linkam_t9x_pump_create_record_structures,
-	mx_motor_finish_record_initialization
+	mxd_linkam_t9x_pump_create_record_structures
 };
 
-MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_pump_motor_function_list = {
-	NULL,
-	mxd_linkam_t9x_pump_move_absolute,
-	NULL,
-	NULL,
-	mxd_linkam_t9x_pump_soft_abort,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_linkam_t9x_pump_get_parameter,
-	mxd_linkam_t9x_pump_set_parameter,
-	NULL,
-	NULL,
-	mxd_linkam_t9x_pump_get_extended_status
+MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_linkam_t9x_pump_analog_output_function_list = {
+	mxd_linkam_t9x_pump_read,
+	mxd_linkam_t9x_pump_write
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_linkam_t9x_pump_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_ANALOG_MOTOR_STANDARD_FIELDS,
-	MX_MOTOR_STANDARD_FIELDS,
+	MX_LONG_ANALOG_OUTPUT_STANDARD_FIELDS,
+	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MXD_LINKAM_T9X_PUMP_STANDARD_FIELDS
 };
 
@@ -73,296 +57,192 @@ MX_RECORD_FIELD_DEFAULTS *mxd_linkam_t9x_pump_rfield_def_ptr
 /* A private function for the use of the driver. */
 
 static mx_status_type
-mxd_linkam_t9x_pump_get_pointers( MX_MOTOR *motor,
+mxd_linkam_t9x_pump_get_pointers( MX_ANALOG_OUTPUT *dac,
 			MX_LINKAM_T9X_PUMP **linkam_t9x_pump,
 			MX_LINKAM_T9X **linkam_t9x,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_linkam_t9x_pump_get_pointers()";
 
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump_ptr;
 	MX_RECORD *linkam_t9x_record;
 
-	if ( motor == (MX_MOTOR *) NULL ) {
+	if ( dac == (MX_ANALOG_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_MOTOR pointer passed by '%s' was NULL.",
+			"The MX_ANALOG_OUTPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
+	if ( linkam_t9x_pump == (MX_LINKAM_T9X_PUMP **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LINKAM_T9X_PUMP pointer passed was NULL." );
+	}
+	if ( linkam_t9x == (MX_LINKAM_T9X **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LINKAM_T9X pointer passed was NULL." );
+	}
 
-	linkam_t9x_pump_ptr = (MX_LINKAM_T9X_PUMP *)
-					motor->record->record_type_struct;
+	if ( dac->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_RECORD pointer for MX_ANALOG_OUTPUT pointer %p is NULL.",
+			dac );
+	}
 
-	if ( linkam_t9x_pump_ptr == (MX_LINKAM_T9X_PUMP *) NULL) {
+	*linkam_t9x_pump = dac->record->record_type_struct;
+
+	if ( (*linkam_t9x_pump) == (MX_LINKAM_T9X_PUMP *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_LINKAM_T9X_PUMP pointer for record '%s' is NULL.",
-			motor->record->name );
+			dac->record->name );
 	}
 
-	if ( linkam_t9x_pump != (MX_LINKAM_T9X_PUMP **) NULL ) {
-		*linkam_t9x_pump = linkam_t9x_pump_ptr;
+	linkam_t9x_record = (*linkam_t9x_pump)->linkam_t9x_record;
+
+	if ( linkam_t9x_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The linkam_t9x_record pointer for record '%s' is NULL.",
+				dac->record->name );
 	}
 
-	if ( linkam_t9x != (MX_LINKAM_T9X **) NULL ) {
-		linkam_t9x_record = linkam_t9x_pump_ptr->linkam_t9x_record;
+	*linkam_t9x = (MX_LINKAM_T9X *) linkam_t9x_record->record_type_struct;
 
-		if ( linkam_t9x_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		  "The linkam_t9x_record pointer for record '%s' is NULL.",
-				motor->record->name );
-		}
-
-		*linkam_t9x = (MX_LINKAM_T9X *)
-				linkam_t9x_record->record_type_struct;
-
-		if ( *linkam_t9x == (MX_LINKAM_T9X *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		  "The MX_LINKAM_T9X pointer for record '%s' is NULL.",
-				motor->record->name );
-		}
+	if ( (*linkam_t9x) == (MX_LINKAM_T9X *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LINKAM_T9X pointer for record '%s' is NULL.",
+			dac->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
 mxd_linkam_t9x_pump_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
+        static const char fname[] =
 		"mxd_linkam_t9x_pump_create_record_structures()";
 
-	MX_MOTOR *motor;
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
+        MX_ANALOG_OUTPUT *analog_output;
+        MX_LINKAM_T9X_PUMP *linkam_t9x_pump;
 
-	/* Allocate memory for the necessary structures. */
+        /* Allocate memory for the necessary structures. */
 
-	motor = (MX_MOTOR *) malloc( sizeof(MX_MOTOR) );
+        analog_output = (MX_ANALOG_OUTPUT *) malloc( sizeof(MX_ANALOG_OUTPUT) );
 
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for MX_MOTOR structure." );
-	}
+        if ( analog_output == (MX_ANALOG_OUTPUT *) NULL ) {
+                return mx_error( MXE_OUT_OF_MEMORY, fname,
+                "Can't allocate memory for MX_ANALOG_OUTPUT structure." );
+        }
 
-	linkam_t9x_pump = (MX_LINKAM_T9X_PUMP *)
+        linkam_t9x_pump = (MX_LINKAM_T9X_PUMP *)
 				malloc( sizeof(MX_LINKAM_T9X_PUMP) );
 
-	if ( linkam_t9x_pump == (MX_LINKAM_T9X_PUMP *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	    "Cannot allocate memory for MX_LINKAM_T9X_PUMP structure." );
-	}
+        if ( linkam_t9x_pump == (MX_LINKAM_T9X_PUMP *) NULL ) {
+                return mx_error( MXE_OUT_OF_MEMORY, fname,
+                "Can't allocate memory for MX_LINKAM_T9X_PUMP structure." );
+        }
 
-	/* Now set up the necessary pointers. */
+        /* Now set up the necessary pointers. */
 
-	record->record_class_struct = motor;
-	record->record_type_struct = linkam_t9x_pump;
-	record->class_specific_function_list
-		= &mxd_linkam_t9x_pump_motor_function_list;
+        record->record_class_struct = analog_output;
+        record->record_type_struct = linkam_t9x_pump;
+        record->class_specific_function_list
+			= &mxd_linkam_t9x_pump_analog_output_function_list;
 
-	motor->record = record;
+        analog_output->record = record;
 	linkam_t9x_pump->record = record;
 
-	/* The pump control part of a Linkam T9x controller
-	 * is treated as an analog motor.
-	 */
+	/* Raw analog output values are stored as longs. */
 
-	motor->subclass = MXC_MTR_ANALOG;
+	analog_output->subclass = MXT_AOU_LONG;
 
-	/* We express accelerations in counts/sec**2. */
-
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
-
-	return MX_SUCCESSFUL_RESULT;
+        return MX_SUCCESSFUL_RESULT;
 }
 
-/* ============ Motor specific functions ============ */
-
 MX_EXPORT mx_status_type
-mxd_linkam_t9x_pump_move_absolute( MX_MOTOR *motor )
+mxd_linkam_t9x_pump_read( MX_ANALOG_OUTPUT *dac )
 {
-	static const char fname[] = "mxd_linkam_t9x_pump_move_absolute()";
+	static const char fname[] = "mxd_linkam_t9x_pump_read()";
 
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	char command[80];
-	long motor_steps;
+	MX_LINKAM_T9X_PUMP *linkam_t9x_pump;
+	MX_LINKAM_T9X *linkam_t9x;
 	mx_status_type mx_status;
 
-	mx_status = mxd_linkam_t9x_pump_get_pointers( motor,
-					&linkam_t9x_pump, &linkam_t9x, fname );
+	mx_status = mxd_linkam_t9x_pump_get_pointers( dac,
+			&linkam_t9x_pump, &linkam_t9x, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the destination. */
+	mx_status = mxi_linkam_t9x_get_status( linkam_t9x, 
+						MXD_LINKAM_T9X_PUMP_DEBUG );
 
-	motor_steps = mx_round( 10.0 * motor->raw_destination.analog );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	snprintf( command, sizeof(command), "L1%ld", motor_steps );
+	dac->raw_value.long_value = linkam_t9x->pump_byte - 0x80;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_linkam_t9x_pump_write( MX_ANALOG_OUTPUT *dac )
+{
+	static const char fname[] = "mxd_linkam_t9x_pump_write()";
+
+	MX_LINKAM_T9X_PUMP *linkam_t9x_pump;
+	MX_LINKAM_T9X *linkam_t9x;
+	long raw_value;
+	int speed_char;
+	char command[10];
+	mx_status_type mx_status;
+
+	mx_status = mxd_linkam_t9x_pump_get_pointers( dac,
+			&linkam_t9x_pump, &linkam_t9x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	raw_value = dac->raw_value.long_value;
+
+	if ( raw_value < 0 ) {
+
+		/* If the raw output value is less than 0, put the pump
+		 * into 'automatic' mode.
+		 */
+
+		mx_status = mxi_linkam_t9x_command( linkam_t9x, "Pa0",
+					NULL, 0, MXD_LINKAM_T9X_PUMP_DEBUG );
+
+		return mx_status;
+	}
+
+	/* Otherwise, put the pump in 'manual' mode. */
+
+	mx_status = mxi_linkam_t9x_command( linkam_t9x, "Pm0",
+					NULL, 0, MXD_LINKAM_T9X_PUMP_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the pump speed. */
+
+	if ( raw_value <= 9 ) {
+		speed_char = '0' + raw_value;
+	} else
+	if ( raw_value <= 30 ) {
+		speed_char = '0' + raw_value - 10;
+	} else {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested pump speed %ld for Linkam T9x pump '%s' "
+		"is larger than the maximum allowed value of 30.",
+			raw_value, dac->record->name );
+	}
+
+	snprintf( command, sizeof(command), "P%c", speed_char );
 
 	mx_status = mxi_linkam_t9x_command( linkam_t9x, command,
 					NULL, 0, MXD_LINKAM_T9X_PUMP_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Start the move. */
-
-	mx_status = mxi_linkam_t9x_command( linkam_t9x, "S",
-					NULL, 0, MXD_LINKAM_T9X_PUMP_DEBUG );
-
 	return mx_status;
 }
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_pump_soft_abort( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linkam_t9x_pump_soft_abort()";
-
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_linkam_t9x_pump_get_pointers( motor,
-					&linkam_t9x_pump, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_linkam_t9x_command( linkam_t9x, "O",
-					NULL, 0, MXD_LINKAM_T9X_PUMP_DEBUG );
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_pump_get_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linkam_t9x_pump_get_parameter()";
-
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_linkam_t9x_pump_get_pointers( motor,
-					&linkam_t9x_pump, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-	case MXLV_MTR_PROPORTIONAL_GAIN:
-	case MXLV_MTR_INTEGRAL_GAIN:
-	case MXLV_MTR_DERIVATIVE_GAIN:
-	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		break;
-	default:
-		return mx_motor_default_get_parameter_handler( motor );
-		break;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_pump_set_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linkam_t9x_pump_set_parameter()";
-
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	char command[80];
-	long t9x_speed;
-	mx_status_type mx_status;
-
-	mx_status = mxd_linkam_t9x_pump_get_pointers( motor,
-					&linkam_t9x_pump, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-		/* MX uses C/sec for speed.  We must convert this to the
-		 * 100 * C/min used by the controller serial commands.
-		 */
-
-		t9x_speed = mx_round( ( 100.0 / 60.0 ) * motor->raw_speed );
-
-		snprintf( command, sizeof(command), "R1%ld", t9x_speed );
-
-		mx_status = mxi_linkam_t9x_command( linkam_t9x,
-						command, NULL, 0,
-						MXD_LINKAM_T9X_PUMP_DEBUG );
-		break;
-	default:
-		mx_status = mx_motor_default_set_parameter_handler( motor );
-		break;
-	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_pump_get_extended_status( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linkam_t9x_pump_get_extended_status()";
-
-	MX_LINKAM_T9X_PUMP *linkam_t9x_pump = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_linkam_t9x_pump_get_pointers( motor,
-					&linkam_t9x_pump, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Ask the Linkam T9x controller for its current status. */
-
-	mx_status = mxi_linkam_t9x_get_status( linkam_t9x,
-						MXD_LINKAM_T9X_PUMP_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* The current pump has already been compute by the function
-	 * mxi_linkam_t9x_get_status(), so we merely fetch the value from
-	 * where it was put.
-	 */
-
-	motor->raw_position.analog = linkam_t9x->pump;
-
-	/* Get the motor status from the status byte and the error byte. */
-
-	motor->status = 0;
-
-	switch( linkam_t9x->status_byte ) {
-	case 0x01:
-		break;
-	case 0x10:
-	case 0x20:
-		motor->status |= MXSF_MTR_IS_BUSY;
-		break;
-	case 0x30:
-	case 0x40:
-	case 0x50:
-		/* The various hold conditions are treated as not busy. */
-		break;
-	default:
-		mx_warning( "Unexpected status byte value %#x seen for "
-		"Linkam T9x controller '%s'",
-			linkam_t9x->status_byte,
-			linkam_t9x_pump->record->name );
-		break;
-	}
-
-	mx_status = mxi_linkam_t9x_set_motor_status_from_error_byte(
-						linkam_t9x, motor->record );
-
-	return mx_status;
-}
-
-/*-----------*/
-
 

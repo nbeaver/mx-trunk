@@ -17,7 +17,7 @@
  *
  */
 
-#define MXD_LINKAM_T9X_MOTOR_DEBUG	FALSE
+#define MXD_LINKAM_T9X_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

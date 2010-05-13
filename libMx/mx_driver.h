@@ -352,6 +352,7 @@ extern "C" {
 #define MXT_AOU_BKPRECISION_912X	20023
 #define MXT_AOU_CRYOJET			20024
 #define MXT_AOU_SYSTRON_DONNER_M107	20025
+#define MXT_AOU_LINKAM_T9X_PUMP		20026
 
 /* --- Analog output subclasses -- */
 
@@ -499,7 +500,6 @@ extern "C" {
 #define MXT_MTR_CRYOJET			50053
 #define MXT_MTR_LINKAM_T9X_TEMPERATURE	50054
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
-#define MXT_MTR_LINKAM_T9X_PUMP		50056
 
    /* Pseudomotors. */
 

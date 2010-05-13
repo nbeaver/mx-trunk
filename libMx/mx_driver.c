@@ -271,6 +271,7 @@
 #include "d_ilm_status.h"
 #include "d_ilm_sample_rate.h"
 #include "d_sd_m107.h"
+#include "d_linkam_t9x_pump.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -310,7 +311,6 @@
 #include "d_ptz_motor.h"
 #include "d_src_mono.h"
 #include "d_linkam_t9x_motor.h"
-#include "d_linkam_t9x_pump.h"
 #include "d_linkam_t9x_temp.h"
 
 #include "d_energy.h"
@@ -2087,6 +2087,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_sd_m107_num_record_fields,
 				&mxd_sd_m107_rfield_def_ptr},
 
+{"linkam_t9x_pump", MXT_AOU_LINKAM_T9X_PUMP, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_linkam_t9x_pump_record_function_list,
+				NULL,
+			      &mxd_linkam_t9x_pump_analog_output_function_list,
+				&mxd_linkam_t9x_pump_num_record_fields,
+				&mxd_linkam_t9x_pump_rfield_def_ptr},
+
 #ifdef OS_LINUX
 
 {"linux_parport_in", MXT_DIN_LINUX_PARPORT, MXC_DIGITAL_INPUT, MXR_DEVICE,
@@ -2414,13 +2421,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_linkam_t9x_motor_motor_function_list,
 				&mxd_linkam_t9x_motor_num_record_fields,
 				&mxd_linkam_t9x_motor_rfield_def_ptr},
-
-{"linkam_t9x_pump", MXT_MTR_LINKAM_T9X_PUMP,  MXC_MOTOR,  MXR_DEVICE,
-				&mxd_linkam_t9x_pump_record_function_list,
-				NULL,
-				&mxd_linkam_t9x_pump_motor_function_list,
-				&mxd_linkam_t9x_pump_num_record_fields,
-				&mxd_linkam_t9x_pump_rfield_def_ptr},
 
 {"linkam_t9x_temp", MXT_MTR_LINKAM_T9X_TEMPERATURE,  MXC_MOTOR,  MXR_DEVICE,
 				&mxd_linkam_t9x_temp_record_function_list,

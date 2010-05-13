@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_LINKAM_T9X_DEBUG	FALSE
+#define MXI_LINKAM_T9X_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
