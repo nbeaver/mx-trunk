@@ -36,15 +36,7 @@
 MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_temp_record_function_list = {
 	NULL,
 	mxd_linkam_t9x_temp_create_record_structures,
-	mxd_linkam_t9x_temp_finish_record_initialization,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_linkam_t9x_temp_open,
-	NULL,
-	NULL,
-	mxd_linkam_t9x_temp_resynchronize
+	mx_motor_finish_record_initialization
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_temp_motor_function_list = {
@@ -180,81 +172,6 @@ mxd_linkam_t9x_temp_create_record_structures( MX_RECORD *record )
 	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_temp_finish_record_initialization( MX_RECORD *record )
-{
-#if 0
-	static const char fname[] =
-		"mxd_linkam_t9x_temp_finish_record_initialization()";
-#endif
-
-	MX_LINKAM_T9X_TEMPERATURE *linkam_t9x_temp = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mx_motor_finish_record_initialization( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	linkam_t9x_temp = (MX_LINKAM_T9X_TEMPERATURE *)
-					record->record_type_struct;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_temp_open( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_linkam_t9x_temp_open()";
-
-	MX_MOTOR *motor;
-	MX_LINKAM_T9X_TEMPERATURE *linkam_t9x_temp = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_linkam_t9x_temp_get_pointers( motor,
-					&linkam_t9x_temp, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_temp_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_linkam_t9x_temp_resynchronize()";
-
-	MX_MOTOR *motor;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_linkam_t9x_temp_get_pointers( motor,
-					NULL, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_resynchronize_record( linkam_t9x->record );
-
-	return mx_status;
 }
 
 /* ============ Motor specific functions ============ */

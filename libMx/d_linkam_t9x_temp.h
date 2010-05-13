@@ -29,10 +29,6 @@ typedef struct {
 
 MX_API mx_status_type mxd_linkam_t9x_temp_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_linkam_t9x_temp_finish_record_initialization(
-							MX_RECORD *record);
-MX_API mx_status_type mxd_linkam_t9x_temp_open( MX_RECORD *record );
-MX_API mx_status_type mxd_linkam_t9x_temp_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_linkam_t9x_temp_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_temp_soft_abort( MX_MOTOR *motor );
