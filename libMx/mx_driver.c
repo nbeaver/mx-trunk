@@ -310,6 +310,7 @@
 #include "d_ptz_motor.h"
 #include "d_src_mono.h"
 #include "d_linkam_t9x_motor.h"
+#include "d_linkam_t9x_pump.h"
 #include "d_linkam_t9x_temp.h"
 
 #include "d_energy.h"
@@ -2413,6 +2414,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_linkam_t9x_motor_motor_function_list,
 				&mxd_linkam_t9x_motor_num_record_fields,
 				&mxd_linkam_t9x_motor_rfield_def_ptr},
+
+{"linkam_t9x_pump", MXT_MTR_LINKAM_T9X_PUMP,  MXC_MOTOR,  MXR_DEVICE,
+				&mxd_linkam_t9x_pump_record_function_list,
+				NULL,
+				&mxd_linkam_t9x_pump_motor_function_list,
+				&mxd_linkam_t9x_pump_num_record_fields,
+				&mxd_linkam_t9x_pump_rfield_def_ptr},
 
 {"linkam_t9x_temp", MXT_MTR_LINKAM_T9X_TEMPERATURE,  MXC_MOTOR,  MXR_DEVICE,
 				&mxd_linkam_t9x_temp_record_function_list,

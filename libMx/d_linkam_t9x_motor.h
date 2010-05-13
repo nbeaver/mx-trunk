@@ -18,8 +18,6 @@
 #ifndef __D_LINKAM_T9X_MOTOR_H__
 #define __D_LINKAM_T9X_MOTOR_H__
 
-#include "i_linkam_t9x.h"
-
 /* ============ Motor channels ============ */
 
 typedef struct {
