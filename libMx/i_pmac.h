@@ -17,6 +17,8 @@
 #ifndef __I_PMAC_H__
 #define __I_PMAC_H__
 
+#include "mx_socket.h"
+
 #if HAVE_EPICS
 #  include "mx_epics.h"
 #endif
@@ -72,15 +74,6 @@ typedef struct {
 
 	long error_reporting_mode;
 
-	/* Parameters used by the PowerPMAC 'gpascii' port type. */
-
-	char gpascii_username[80];
-	char gpascii_password[80];
-
-	/* Parameters used by the PowerPMAC 'gplib' port type. */
-
-	mx_bool_type gplib_initialized;
-
 	/* Parameters shared by all motor axes. */
 
 	MX_RECORD *port_record;
@@ -92,7 +85,24 @@ typedef struct {
 	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
 	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
 
+	/* Parameters used by the PMAC 'ethernet' port type. */
+
+	MX_SOCKET *pmac_socket;
+	char hostname[MXU_HOSTNAME_LENGTH+1];
+	long port_number;
+
+	/* Parameters used by the PowerPMAC 'gpascii' port type. */
+
+	char gpascii_username[80];
+	char gpascii_password[80];
+
+	/* Parameters used by the PowerPMAC 'gplib' port type. */
+
+	mx_bool_type gplib_initialized;
+
 #if HAVE_EPICS
+	/* Parameters used by the PMAC 'ethernet' port type. */
+
 	MX_EPICS_PV strcmd_pv;
 	MX_EPICS_PV strrsp_pv;
 #endif
