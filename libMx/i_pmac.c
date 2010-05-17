@@ -83,6 +83,11 @@ static mx_status_type mxi_pmac_process_function( void *record_ptr,
 /*--*/
 
 static mx_status_type
+mxi_pmac_gpascii_login( MX_PMAC *pmac );
+
+/*--*/
+
+static mx_status_type
 mxi_pmac_std_command( MX_PMAC *, char *, char *, size_t, int );
 
 static mx_status_type
@@ -173,6 +178,9 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 
 	if ( strcmp( port_type_name, "rs232" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_RS232;
+
+	} else if ( strcmp( port_type_name, "ethernet" ) == 0 ) {
+		pmac->port_type = MX_PMAC_PORT_TYPE_ETHERNET;
 
 	} else if ( strcmp( port_type_name, "gpascii" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_GPASCII;
@@ -313,12 +321,9 @@ mxi_pmac_open( MX_RECORD *record )
 	static const char fname[] = "mxi_pmac_open()";
 
 	MX_PMAC *pmac;
-	MX_RS232 *rs232;
 	char response[80];
 	char pmac_type_name[20];
 	int num_items;
-	char c;
-	unsigned long num_bytes;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
@@ -339,200 +344,10 @@ mxi_pmac_open( MX_RECORD *record )
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_GPASCII:
-
-		rs232 = (MX_RS232 *) pmac->port_record->record_class_struct;
-
-		if ( rs232 == (MX_RS232 *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-				"The MX_RS232 pointer for PMAC port "
-				"record '%s' is NULL.",
-					pmac->port_record->name );
-		}
-
-		/* We must login to the PowerPMAC. */
-
-		/* FIXME: We should do something more robust than just
-		 * discarding almost all of the responses from the
-		 * PowerPMAC.
-		 */
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
-#endif
-
-		/* Discard everything up to the login prompt. */
-
-		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-							MXI_PMAC_DEBUG );
+		mx_status = mxi_pmac_gpascii_login( pmac );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: Logging in as '%s'.",
-				fname, pmac->gpascii_username));
-#endif
-
-		/* Send the user name. */
-
-		mx_status = mx_rs232_putline( pmac->port_record,
-					pmac->gpascii_username,
-					NULL, MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Wait until a response is available. */
-
-		while (1) {
-			mx_status = mx_rs232_num_input_bytes_available(
-						pmac->port_record,
-						&num_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( num_bytes > 0 )
-				break;
-
-			mx_msleep(100);
-		}
-
-		/* Discard the response. */
-
-		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-							MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: Sending the password '%s'.",
-				fname, pmac->gpascii_password));
-#endif
-
-		/* Send the password. */
-
-		mx_status = mx_rs232_putline( pmac->port_record,
-					pmac->gpascii_password,
-					NULL, MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Wait until a response is available. */
-
-		while (1) {
-			mx_status = mx_rs232_num_input_bytes_available(
-						pmac->port_record,
-						&num_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( num_bytes > 0 )
-				break;
-
-			mx_msleep(100);
-		}
-
-		/* Discard everything up to the root shell prompt character. */
-
-		while (1) {
-			mx_status = mx_rs232_getchar_with_timeout( 
-					pmac->port_record, &c,
-					MXI_PMAC_DEBUG, rs232->timeout);
-
-			if( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* If we see the prompt character, then break
-			 * out of the loop.
-			 */
-
-			if ( ( c == '#' ) || ( c == '$' ) )
-				break;
-		}
-
-		/* Discard anything after the prompt character. */
-
-		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-							MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: sending the 'gpascii' command.", fname));
-#endif
-
-		/* Send the 'gpascii' command. */
-
-		mx_status = mx_rs232_putline( pmac->port_record,
-						"gpascii",
-						NULL, MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Wait until a response is available. */
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,
-		("%s: waiting for the 'gpascii' startup message.", fname));
-#endif
-
-		while (1) {
-			mx_status = mx_rs232_num_input_bytes_available(
-						pmac->port_record,
-						&num_bytes );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( num_bytes > 0 )
-				break;
-
-			mx_msleep(100);
-		}
-
-		/* Look for the expected response. */
-
-		mx_status = mx_rs232_getline( pmac->port_record,
-						response,
-						sizeof(response),
-						NULL, MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: received response '%s'.", fname, response));
-#endif
-
-		if ( strcmp( response, "STDIN Open for ASCII input" ) != 0 ) {
-			return mx_error( MXE_IPC_IO_ERROR, fname,
-			"Did not get the expected response to the 'gpascii' "
-			"command for PowerPMAC '%s'.  Instead, we got '%s'.",
-				record->name, response );
-		}
-
-		/* Discard any leftover characters. */
-
-		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-							MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* If we get here, then we are done with the login and
-		 * setup process, so we can treat the connection as a
-		 * normal serial connection from now on.
-		 */
-
-#if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: login complete.", fname));
-#endif
 		break;
 
 #if HAVE_POWER_PMAC_LIBRARY
@@ -1435,6 +1250,217 @@ mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_gpascii_login( MX_PMAC *pmac )
+{
+	static const char fname[] = "mxi_pmac_gpascii_login()";
+
+	MX_RS232 *rs232;
+	char response[80];
+	char c;
+	unsigned long num_bytes;
+	mx_status_type mx_status;
+
+	rs232 = (MX_RS232 *) pmac->port_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RS232 pointer for PMAC port "
+			"record '%s' is NULL.",
+				pmac->port_record->name );
+	}
+
+	/* We must login to the PowerPMAC. */
+
+	/* FIXME: We should do something more robust than just
+	 * discarding almost all of the responses from the
+	 * PowerPMAC.
+	 */
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
+#endif
+
+	/* Discard everything up to the login prompt. */
+
+	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+						MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: Logging in as '%s'.",
+			fname, pmac->gpascii_username));
+#endif
+
+	/* Send the user name. */
+
+	mx_status = mx_rs232_putline( pmac->port_record,
+				pmac->gpascii_username,
+				NULL, MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait until a response is available. */
+
+	while (1) {
+		mx_status = mx_rs232_num_input_bytes_available(
+					pmac->port_record,
+					&num_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes > 0 )
+			break;
+
+		mx_msleep(100);
+	}
+
+	/* Discard the response. */
+
+	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+						MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: Sending the password '%s'.",
+			fname, pmac->gpascii_password));
+#endif
+
+	/* Send the password. */
+
+	mx_status = mx_rs232_putline( pmac->port_record,
+				pmac->gpascii_password,
+				NULL, MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait until a response is available. */
+
+	while (1) {
+		mx_status = mx_rs232_num_input_bytes_available(
+					pmac->port_record,
+					&num_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes > 0 )
+			break;
+
+		mx_msleep(100);
+	}
+
+	/* Discard everything up to the root shell prompt character. */
+
+	while (1) {
+		mx_status = mx_rs232_getchar_with_timeout( 
+				pmac->port_record, &c,
+				MXI_PMAC_DEBUG, rs232->timeout);
+
+		if( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If we see the prompt character, then break
+		 * out of the loop.
+		 */
+
+		if ( ( c == '#' ) || ( c == '$' ) )
+			break;
+	}
+
+	/* Discard anything after the prompt character. */
+
+	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+						MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: sending the 'gpascii' command.", fname));
+#endif
+
+	/* Send the 'gpascii' command. */
+
+	mx_status = mx_rs232_putline( pmac->port_record,
+					"gpascii",
+					NULL, MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait until a response is available. */
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,
+	("%s: waiting for the 'gpascii' startup message.", fname));
+#endif
+
+	while (1) {
+		mx_status = mx_rs232_num_input_bytes_available(
+					pmac->port_record,
+					&num_bytes );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes > 0 )
+			break;
+
+		mx_msleep(100);
+	}
+
+	/* Look for the expected response. */
+
+	mx_status = mx_rs232_getline( pmac->port_record,
+					response,
+					sizeof(response),
+					NULL, MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: received response '%s'.", fname, response));
+#endif
+
+	if ( strcmp( response, "STDIN Open for ASCII input" ) != 0 ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"Did not get the expected response to the 'gpascii' "
+		"command for PowerPMAC '%s'.  Instead, we got '%s'.",
+			pmac->record->name, response );
+	}
+
+	/* Discard any leftover characters. */
+
+	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+						MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we get here, then we are done with the login and
+	 * setup process, so we can treat the connection as a
+	 * normal serial connection from now on.
+	 */
+
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: login complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 
 /*-------------------------------------------------------------------------*/
 
