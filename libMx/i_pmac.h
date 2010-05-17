@@ -48,8 +48,10 @@
 /*---*/
 
 #define MX_PMAC_PORT_TYPE_RS232		1
-#define MX_PMAC_PORT_TYPE_GPASCII	2
-#define MX_PMAC_PORT_TYPE_GPLIB		3
+#define MX_PMAC_PORT_TYPE_ETHERNET	2
+
+#define MX_PMAC_PORT_TYPE_GPASCII	11
+#define MX_PMAC_PORT_TYPE_GPLIB		12
 
 #define MX_PMAC_PORT_TYPE_EPICS_TC	101
 
@@ -151,19 +153,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_pmac_rfield_def_ptr;
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_pmac_command( MX_PMAC *pmac, char *command,
-		char *response, size_t response_buffer_length, int debug_flag );
+		char *response, size_t response_buffer_length,
+		mx_bool_type debug_flag );
 
 MX_API mx_status_type mxi_pmac_card_command( MX_PMAC *pmac,
 		long card_number, char *command,
-		char *response, size_t response_buffer_length, int debug_flag );
+		char *response, size_t response_buffer_length,
+		mx_bool_type debug_flag );
 
 MX_API mx_status_type mxi_pmac_get_variable( MX_PMAC *pmac,
 		long card_number, char *variable_name, long variable_type,
-		void *variable_ptr, int debug_flag );
+		void *variable_ptr, mx_bool_type debug_flag );
 
 MX_API mx_status_type mxi_pmac_set_variable( MX_PMAC *pmac,
 		long card_number, char *variable_name, long variable_type,
-		void *variable_ptr, int debug_flag );
+		void *variable_ptr, mx_bool_type debug_flag );
 
 #endif /* __I_PMAC_H__ */
 
