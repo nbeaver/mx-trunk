@@ -201,7 +201,7 @@ mxd_linkam_t9x_temp_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the initial ramp speed in units/second. */
+	/* Set the initial ramp speed in degrees C/second. */
 
 	MX_DEBUG(-2,("%s: linkam_t9x_temp->initial_speed = %f",
 		fname, linkam_t9x_temp->initial_speed ));

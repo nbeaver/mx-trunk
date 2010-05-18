@@ -38,7 +38,12 @@
 MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_motor_record_function_list = {
 	NULL,
 	mxd_linkam_t9x_motor_create_record_structures,
-	mxd_linkam_t9x_motor_finish_record_initialization
+	mxd_linkam_t9x_motor_finish_record_initialization,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_linkam_t9x_motor_open
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_motor_motor_function_list = {
@@ -206,6 +211,40 @@ mxd_linkam_t9x_motor_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_linkam_t9x_motor_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_linkam_t9x_motor_open()";
+
+	MX_MOTOR *motor = NULL;
+	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
+	MX_LINKAM_T9X *linkam_t9x = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = record->record_class_struct;
+
+	mx_status = mxd_linkam_t9x_motor_get_pointers( motor,
+					&linkam_t9x_motor, &linkam_t9x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the initial ramp speed in micrometers/second. */
+
+	MX_DEBUG(-2,("%s: linkam_t9x_motor->initial_speed = %f",
+		fname, linkam_t9x_motor->initial_speed ));
+
+	mx_status = mx_motor_set_speed( record,
+				linkam_t9x_motor->initial_speed );
+
+	return mx_status;
+}
+
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
@@ -216,6 +255,7 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
 	MX_LINKAM_T9X *linkam_t9x = NULL;
 	char command[80];
+	double current_position, absolute_destination, relative_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linkam_t9x_motor_get_pointers( motor,
@@ -224,20 +264,33 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the current position. */
+
+	mx_status = mxd_linkam_t9x_motor_get_extended_status( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	current_position = motor->raw_position.analog;
+
 	/* Construct the move command. */
+
+	absolute_destination = motor->raw_destination.analog;
+
+	relative_destination = absolute_destination - current_position;
 
 	switch( linkam_t9x_motor->axis_name ) {
 	case 'X':
 		snprintf( command, sizeof(command),
-			"MMX%ld", mx_round(motor->raw_destination.analog) );
+			"MMX%ld", mx_round(relative_destination) );
 		break;
 	case 'Y':
 		snprintf( command, sizeof(command),
-			"MMY%ld", mx_round(motor->raw_destination.analog) );
+			"MMY%ld", mx_round(relative_destination) );
 		break;
 	case 'Z':
 		snprintf( command, sizeof(command),
-			"MMZ%ld", mx_round(motor->raw_destination.analog) );
+			"MMZ%ld", mx_round(relative_destination) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

@@ -113,12 +113,17 @@ mxi_linkam_t9x_open( MX_RECORD *record )
 
 	mx_msleep(500);
 
+#if 0
+	(void) mxi_linkam_t9x_command( linkam_t9x, "FOO",
+					NULL, 0, MXI_LINKAM_T9X_DEBUG );
+#endif
+
 	/* Verify that the Linkam T9x controller is present by asking
 	 * for its status.
 	 */
 
 	mx_status = mxi_linkam_t9x_get_status( linkam_t9x,
-						MXI_LINKAM_T9X_DEBUG	 );
+						MXI_LINKAM_T9X_DEBUG );
 
 	return mx_status;
 }
@@ -135,6 +140,7 @@ mxi_linkam_t9x_command( MX_LINKAM_T9X *linkam_t9x,
 	char local_buffer[80];
 	char *local_response;
 	size_t local_response_length;
+	size_t bytes_read;
 	mx_status_type mx_status;
 
 	if ( linkam_t9x == (MX_LINKAM_T9X *) NULL ) {
@@ -171,7 +177,7 @@ mxi_linkam_t9x_command( MX_LINKAM_T9X *linkam_t9x,
 
 	mx_status = mx_rs232_getline( linkam_t9x->rs232_record,
 					local_response, local_response_length,
-					NULL, 0 );
+					&bytes_read, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -181,7 +187,8 @@ mxi_linkam_t9x_command( MX_LINKAM_T9X *linkam_t9x,
 		{
 			char *ptr = local_response;
 
-			fprintf( stderr, "%s: response = ( ", fname );
+			fprintf( stderr,
+			"%s: response (%d bytes) = ( ", fname, (int)bytes_read);
 
 			while (1) {
 				fprintf( stderr, "%#x ", ((*ptr) & 0xff) );

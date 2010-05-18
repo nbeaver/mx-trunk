@@ -24,12 +24,14 @@ typedef struct {
 	MX_RECORD *record;
 	MX_RECORD *linkam_t9x_record;
 	char axis_name;
+	double initial_speed;		/* In micrometers per second. */
 } MX_LINKAM_T9X_MOTOR;
 
 MX_API mx_status_type mxd_linkam_t9x_motor_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_linkam_t9x_motor_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_linkam_t9x_motor_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_motor_soft_abort( MX_MOTOR *motor );
@@ -52,7 +54,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_linkam_t9x_motor_rfield_def_ptr;
   \
   {-1, -1, "axis_name", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINKAM_T9X_MOTOR, axis_name), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "initial_speed", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINKAM_T9X_MOTOR, initial_speed), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}
 
 /* === Driver specific functions === */
 
