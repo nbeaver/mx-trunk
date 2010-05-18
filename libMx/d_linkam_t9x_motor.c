@@ -44,7 +44,7 @@ MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_motor_record_function_list = {
 MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_motor_motor_function_list = {
 	NULL,
 	mxd_linkam_t9x_motor_move_absolute,
-	mxd_linkam_t9x_motor_get_position,
+	NULL,
 	NULL,
 	mxd_linkam_t9x_motor_soft_abort,
 	mxd_linkam_t9x_motor_immediate_abort,
@@ -55,7 +55,8 @@ MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_motor_motor_function_list = {
 	mxd_linkam_t9x_motor_get_parameter,
 	mxd_linkam_t9x_motor_set_parameter,
 	NULL,
-	mxd_linkam_t9x_motor_get_status
+	NULL,
+	mxd_linkam_t9x_motor_get_extended_status
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_linkam_t9x_motor_record_field_defaults[] = {
@@ -228,15 +229,15 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 	switch( linkam_t9x_motor->axis_name ) {
 	case 'X':
 		snprintf( command, sizeof(command),
-			"MMX%f", motor->raw_destination.analog );
+			"MMX%ld", mx_round(motor->raw_destination.analog) );
 		break;
 	case 'Y':
 		snprintf( command, sizeof(command),
-			"MMY%f", motor->raw_destination.analog );
+			"MMY%ld", mx_round(motor->raw_destination.analog) );
 		break;
 	case 'Z':
 		snprintf( command, sizeof(command),
-			"MMZ%f", motor->raw_destination.analog );
+			"MMZ%ld", mx_round(motor->raw_destination.analog) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -250,90 +251,6 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 
 	mx_status = mxi_linkam_t9x_command( linkam_t9x, command,
 					NULL, 0, MXD_LINKAM_T9X_MOTOR_DEBUG );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_linkam_t9x_motor_get_position( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_linkam_t9x_motor_get_position()";
-
-	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
-	MX_LINKAM_T9X *linkam_t9x = NULL;
-	char response[80];
-	char *string_ptr, *comma_ptr;
-	int num_items;
-	double controller_position;
-	mx_status_type mx_status;
-
-	mx_status = mxd_linkam_t9x_motor_get_pointers( motor,
-					&linkam_t9x_motor, &linkam_t9x, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_linkam_t9x_command( linkam_t9x, "Mp",
-					response, sizeof(response),
-					MXD_LINKAM_T9X_MOTOR_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Skip over the M? characters in the response. */
-
-	string_ptr = response + 2;
-
-	switch( linkam_t9x_motor->axis_name ) {
-	case 'X':
-		/* Do nothing. */
-		break;
-
-	case 'Z':
-		comma_ptr = strchr( string_ptr, ',' );
-
-		if ( comma_ptr == NULL ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"Unable to find the motor position in the "
-			"response '%s' to an 'Mp' command for motor '%s'.",
-				response, motor->record->name );
-		}
-
-		string_ptr = comma_ptr;
-
-		/* Do _not_ insert a 'break' statement here.  We 
-		 * _intentionally_ fall through to the following
-		 * case 'Y', since for 'Z' we want to skip over
-		 * _two_ commas.
-		 */
-	case 'Y':
-		comma_ptr = strchr( string_ptr, ',' );
-
-		if ( comma_ptr == NULL ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"Unable to find the motor position in the "
-			"response '%s' to an 'Mp' command for motor '%s'.",
-				response, motor->record->name );
-		}
-
-		string_ptr = comma_ptr;
-		break;
-	}
-
-	num_items = sscanf( string_ptr, "%lg", &controller_position );
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Could not find the motor position in the "
-		"response '%s' to an 'Mp' command for motor '%s'.",
-			response, motor->record->name );
-	}
-
-	if( linkam_t9x_motor->axis_name == 'Z' ) {
-		motor->raw_position.analog = 0.1 * controller_position;
-	} else {
-		motor->raw_position.analog = controller_position;
-	}
 
 	return mx_status;
 }
@@ -490,13 +407,17 @@ mxd_linkam_t9x_motor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_linkam_t9x_motor_get_status( MX_MOTOR *motor )
+mxd_linkam_t9x_motor_get_extended_status( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_linkam_t9x_motor_get_status()";
+	static const char fname[] =
+		"mxd_linkam_t9x_motor_get_extended_status()";
 
 	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
 	MX_LINKAM_T9X *linkam_t9x = NULL;
-	char response[5];
+	char response[80];
+	char *string_ptr, *comma_ptr;
+	int num_items;
+	double controller_position;
 	unsigned char gs;
 	mx_status_type mx_status;
 
@@ -506,36 +427,50 @@ mxd_linkam_t9x_motor_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Ask the Linkam T9x controller for its current status. */
-
-	mx_status = mxi_linkam_t9x_command( linkam_t9x, "M?",
+	mx_status = mxi_linkam_t9x_command( linkam_t9x, "Mp",
 					response, sizeof(response),
 					MXD_LINKAM_T9X_MOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Figure out whether or not this motor is moving by looking
-	 * at the general status byte returned by the 'M?' command.
+	/* Valid responses starts with the character 'M' followed
+	 * by the value of the general status byte GS1.
 	 */
 
-	gs = response[0];
+	if ( response[0] != 'M' ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"The first character in the response '%s' to an 'Mp' command "
+		"for motor '%s' is not 'M'.  Instead, it is %c (%#x).",
+				response, motor->record->name,
+				response[0], response[0] );
+	}
+
+	/* Figure out whether or not this motor is moving by looking
+	 * at the general status byte.
+	 */
+
+	gs = response[1];
+
+#if MXD_LINKAM_T9X_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: general_status = %#x", fname, gs));
+#endif
 
 	motor->status = 0;
 
 	switch( linkam_t9x_motor->axis_name ) {
 	case 'X':
-		if ( gs & 0x1 ) {
+		if ( (gs & 0x1) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;
 	case 'Y':
-		if ( gs & 0x2 ) {
+		if ( (gs & 0x2) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;
 	case 'Z':
-		if ( gs & 0x4 ) {
+		if ( (gs & 0x4) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;
@@ -547,8 +482,60 @@ mxd_linkam_t9x_motor_get_status( MX_MOTOR *motor )
 		break;
 	}
 
-	mx_status = mxi_linkam_t9x_set_motor_status_from_error_byte(
-						linkam_t9x, motor->record );
+	/* Get the motor position. */
+
+	string_ptr = response + 2;
+
+	switch( linkam_t9x_motor->axis_name ) {
+	case 'X':
+		/* Do nothing. */
+		break;
+
+	case 'Z':
+		comma_ptr = strchr( string_ptr, ',' );
+
+		if ( comma_ptr == NULL ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Unable to find the motor position in the "
+			"response '%s' to an 'Mp' command for motor '%s'.",
+				response, motor->record->name );
+		}
+
+		string_ptr = comma_ptr + 1;
+
+		/* Do _not_ insert a 'break' statement here.  We 
+		 * _intentionally_ fall through to the following
+		 * case 'Y', since for 'Z' we want to skip over
+		 * _two_ commas.
+		 */
+	case 'Y':
+		comma_ptr = strchr( string_ptr, ',' );
+
+		if ( comma_ptr == NULL ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Unable to find the motor position in the "
+			"response '%s' to an 'Mp' command for motor '%s'.",
+				response, motor->record->name );
+		}
+
+		string_ptr = comma_ptr + 1;
+		break;
+	}
+
+	num_items = sscanf( string_ptr, "%lg", &controller_position );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Could not find the motor position in the "
+		"response '%s' to an 'Mp' command for motor '%s'.",
+			response, motor->record->name );
+	}
+
+	if( linkam_t9x_motor->axis_name == 'Z' ) {
+		motor->raw_position.analog = 0.1 * controller_position;
+	} else {
+		motor->raw_position.analog = controller_position;
+	}
 
 	return mx_status;
 }

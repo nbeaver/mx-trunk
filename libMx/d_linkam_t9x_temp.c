@@ -35,7 +35,12 @@
 MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_temp_record_function_list = {
 	NULL,
 	mxd_linkam_t9x_temp_create_record_structures,
-	mx_motor_finish_record_initialization
+	mx_motor_finish_record_initialization,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_linkam_t9x_temp_open
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_temp_motor_function_list = {
@@ -173,6 +178,40 @@ mxd_linkam_t9x_temp_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_linkam_t9x_temp_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_linkam_t9x_temp_open()";
+
+	MX_MOTOR *motor = NULL;
+	MX_LINKAM_T9X_TEMPERATURE *linkam_t9x_temp = NULL;
+	MX_LINKAM_T9X *linkam_t9x = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = record->record_class_struct;
+
+	mx_status = mxd_linkam_t9x_temp_get_pointers( motor,
+					&linkam_t9x_temp, &linkam_t9x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the initial ramp speed in units/second. */
+
+	MX_DEBUG(-2,("%s: linkam_t9x_temp->initial_speed = %f",
+		fname, linkam_t9x_temp->initial_speed ));
+
+	mx_status = mx_motor_set_speed( record,
+				linkam_t9x_temp->initial_speed );
+
+	return mx_status;
+}
+
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
@@ -287,7 +326,7 @@ mxd_linkam_t9x_temp_set_parameter( MX_MOTOR *motor )
 		 * 100 * C/min used by the controller serial commands.
 		 */
 
-		t9x_speed = mx_round( ( 100.0 / 60.0 ) * motor->raw_speed );
+		t9x_speed = mx_round( 100.0 * 60.0 * motor->raw_speed );
 
 		snprintf( command, sizeof(command), "R1%ld", t9x_speed );
 

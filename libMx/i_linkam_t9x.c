@@ -177,6 +177,24 @@ mxi_linkam_t9x_command( MX_LINKAM_T9X *linkam_t9x,
 		return mx_status;
 
 	if ( debug_flag ) {
+#if 1
+		{
+			char *ptr = local_response;
+
+			fprintf( stderr, "%s: response = ( ", fname );
+
+			while (1) {
+				fprintf( stderr, "%#x ", ((*ptr) & 0xff) );
+
+				if ( (*ptr) == '\0' )
+					break;
+
+				ptr++;
+			}
+
+			fprintf( stderr, ")\n" );
+		}
+#endif
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
 		    fname, local_response, linkam_t9x->record->name ));
 	}
@@ -226,6 +244,19 @@ mxi_linkam_t9x_get_status( MX_LINKAM_T9X *linkam_t9x,
 	raw_temperature = mx_hex_string_to_unsigned_long( &response[6] );
 
 	linkam_t9x->temperature = 0.1 * (double) raw_temperature;
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,
+		("%s: status_byte    = %#x", fname,linkam_t9x->status_byte));
+		MX_DEBUG(-2,
+		("%s: error_byte     = %#x", fname,linkam_t9x->error_byte));
+		MX_DEBUG(-2,
+		("%s: pump_byte      = %#x", fname,linkam_t9x->pump_byte));
+		MX_DEBUG(-2,
+		("%s: general_status = %#x", fname,linkam_t9x->general_status));
+		MX_DEBUG(-2,
+		("%s: temperature    = %f", fname,linkam_t9x->temperature));
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -31,14 +31,13 @@ MX_API mx_status_type mxd_linkam_t9x_motor_create_record_structures(
 MX_API mx_status_type mxd_linkam_t9x_motor_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_linkam_t9x_motor_get_position( MX_MOTOR *motor);
 MX_API mx_status_type mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_motor_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_motor_find_home_position( MX_MOTOR *motor);
 MX_API mx_status_type mxd_linkam_t9x_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_motor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_linkam_t9x_motor_get_status( MX_MOTOR *motor);
+MX_API mx_status_type mxd_linkam_t9x_motor_get_extended_status(MX_MOTOR *motor);
 
 extern MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_motor_motor_function_list;
