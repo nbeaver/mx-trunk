@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_LINKAM_T9X_PUMP_DEBUG	TRUE
+#define MXD_LINKAM_T9X_PUMP_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

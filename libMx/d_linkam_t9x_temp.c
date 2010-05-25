@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_LINKAM_T9X_TEMP_DEBUG	TRUE
+#define MXD_LINKAM_T9X_TEMP_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
