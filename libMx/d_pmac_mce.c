@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_PMAC_MCE_DEBUG	TRUE
+#define MXD_PMAC_MCE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

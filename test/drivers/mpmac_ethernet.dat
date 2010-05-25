@@ -3,3 +3,27 @@
 #
 pmac5          interface generic pmac "" "" tcp 192.6.94.5 1
 omega          device motor pmac_motor "" "" -4 0 -10000000 10000000 0 -1 -1 0.0001 0 deg pmac5 0 1
+axe_x          device motor pmac_motor "" "" 3 0 -10000000 10000000 0 -1 -1 0.016496 0 um pmac5 0 2
+axe_y          device motor pmac_motor "" "" 2 0  -10000000 10000000 0 -1 -1 0.016496 0 um pmac5 0 3
+axe_z          device motor pmac_motor "" "" -1 0 -10000000 10000000 0 -1 -1 0.016496 0 um pmac5 0 4
+analyser       device motor pmac_motor "" "" -2 0 -10000000 10000000 0 -1 -1 8.7897e-05 0 deg pmac5 0 5
+zoom           device motor pmac_motor "" "" -2 0 -10000000 100000000 0 -1 -1 1.0000000 0 um pmac5 0 6
+#zoom           device motor pmac_motor "" "" -2 0 -10000000 100000000 0 -1 -1 0.008054 0 um pmac5 0 6
+y_aperture     device motor pmac_motor "" "" -2 0 -10000000 10000000 0 -1 -1 0.008248 0 um pmac5 0 7
+z_aperture     device motor pmac_motor "" "" -3 0 -10000000 10000000 0 -1 -1 0.01646 0 um pmac5 0 8
+y_beamstop     device motor pmac_motor "" "" 3 0 -10000000 10000000 0 -1 -1 0.008248 0 um pmac5 0 9
+z_beamstop     device motor pmac_motor "" "" -1 0 -10000000 10000000 0 -1 -1 0.050338 0 um pmac5 0 10
+z_diode        device motor pmac_motor "" "" 1 0   -10000000 10000000 0 -1 -1 0.050338 0 um pmac5 0 11
+x              device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.005482456 0 um pmac5 0 17
+y              device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.005482456 0 um pmac5 0 18
+ain1           device analog_input pmac_ainput "" "" 4092 1 0 uV  0 0 "" pmac5 0 m1301
+con_ctrl       device digital_output pmac_doutput "" "" 0 pmac5 0 m1101
+con_status     device digital_input  pmac_dinput  "" "" 0 pmac5 0 m1004
+magnet_ctrl    device digital_output pmac_doutput "" "" 0 pmac5 0 m1100
+magnet_cap     device digital_input  pmac_dinput  "" "" 0 pmac5 0 m1009
+magnet_status  device digital_input  pmac_dinput  "" "" 0 pmac5 0 m1024
+MD2_backlight  device analog_output pmac_aoutput  "" "" 8000 0.015 0 % 0 pmac5 0 m1201
+MD2_frontlight device analog_output pmac_aoutput  "" "" 8000 0.015 0 % 0 pmac5 0 m1200
+air_OK         device digital_input  pmac_dinput  "" "" 0 pmac5 0 m1000
+bearing_OK     device digital_input  pmac_dinput  "" "" 0 pmac5 0 m1001
+phole_size     variable inline long "" "" 1 1 50

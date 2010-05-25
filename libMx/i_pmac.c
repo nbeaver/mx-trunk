@@ -16,11 +16,15 @@
  *
  */
 
-#define MXI_PMAC_DEBUG			TRUE
+#define MXI_PMAC_DEBUG			FALSE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 
 #define MXI_PMAC_DEBUG_LOGIN		TRUE
+
+#define MXI_PMAC_DEBUG_RS232		FALSE
+
+#define MXI_PMAC_DEBUG_TCP		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,7 +88,13 @@ static mx_status_type mxi_pmac_process_function( void *record_ptr,
 /*--*/
 
 static mx_status_type
-mxi_pmac_gpascii_login( MX_PMAC *pmac );
+mxi_pmac_getchar( MX_PMAC *, char * );
+
+static mx_status_type
+mxi_pmac_receive_response_with_getchar( MX_PMAC *, char *, int, int );
+
+static mx_status_type
+mxi_pmac_check_for_errors( MX_PMAC *, char *, char *, char * );
 
 /*--*/
 
@@ -102,9 +112,6 @@ mxi_pmac_std_receive_response( MX_PMAC *, char *, int, int );
 static mx_status_type
 mxi_pmac_rs232_send_command( MX_PMAC *, char *, int );
 
-static mx_status_type
-mxi_pmac_rs232_receive_response( MX_PMAC *, char *, int, int );
-
 /*--*/
 
 static mx_status_type
@@ -118,6 +125,11 @@ mxi_pmac_tcp_receive_response( MX_SOCKET *, char *, size_t, size_t *, int );
 
 /*--*/
 
+static mx_status_type
+mxi_pmac_gpascii_login( MX_PMAC *pmac );
+
+/*--*/
+
 #if HAVE_POWER_PMAC_LIBRARY
 static mx_status_type
 mxi_pmac_gplib_command( MX_PMAC *, char *, char *, size_t, int );
@@ -125,7 +137,7 @@ mxi_pmac_gplib_command( MX_PMAC *, char *, char *, size_t, int );
 
 #if HAVE_EPICS
 static mx_status_type
-mxi_pmac_epics_tc_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_epics_ect_command( MX_PMAC *, char *, char *, size_t, int );
 #endif
 
 /*==========================*/
@@ -682,6 +694,11 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		"MX_PMAC pointer passed was NULL." );
 	}
 
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+			fname, command, pmac->record->name ));
+	}
+
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_RS232:
 	case MX_PMAC_PORT_TYPE_GPASCII:
@@ -706,7 +723,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 
 #if HAVE_EPICS
 	case MX_PMAC_PORT_TYPE_EPICS_TC:
-		return mxi_pmac_epics_tc_command( pmac, command, 
+		mx_status = mxi_pmac_epics_ect_command( pmac, command, 
 					response, response_buffer_length,
 					debug_flag );
 		break;
@@ -719,7 +736,15 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		break;
 	}
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( debug_flag && (response != NULL) ) {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+			fname, response, pmac->record->name ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
@@ -905,6 +930,723 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,
 				response, sizeof response, debug_flag );
+
+	return mx_status;
+}
+
+/*==================================================================*/
+
+static mx_status_type
+mxi_pmac_getchar( MX_PMAC *pmac, char *c )
+{
+	static const char fname[] = "mxi_pmac_getchar()";
+
+	size_t num_bytes_received;
+	mx_status_type mx_status;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC pointer passed was NULL." );
+	}
+	if ( c == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The character pointer passed was NULL." );
+	}
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		mx_status = mx_rs232_getchar( pmac->port_record,
+						c, MXF_232_WAIT );
+		break;
+
+	case MX_PMAC_PORT_TYPE_TCP:
+		mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_socket_receive( pmac->pmac_socket,
+						c, sizeof(char),
+						&num_bytes_received,
+						NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes_received != 1 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Did not receive a byte from PMAC '%s' "
+			"but mx_socket_receive() did not return "
+			"an error.",  pmac->record->name );
+		}
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Port type %ld for PMAC '%s' is not supported by "
+		"this function.", pmac->port_type, pmac->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_receive_response_with_getchar( MX_PMAC *pmac,
+			char *response,
+			int response_buffer_length,
+			int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_receive_response_with_getchar()";
+
+	int i, bell_received;
+	char c;
+	mx_status_type mx_status;
+
+	/* This function implicitly assumes I3 == 2.  This means that
+	 * all PMAC responses will be terminated by either an <ACK>
+	 * or a <BELL> character.  If I6 == 1, a <BELL> character
+	 * will be followed by an error code terminated by a <CR>.
+	 *
+	 * Note that we must leave space at the end of the response
+	 * buffer for the terminating null byte.
+	 */
+
+	bell_received = FALSE;
+
+	for ( i = 0; i < (response_buffer_length - 1); i++ ) {
+
+		response[i] = '\0';	/* Just in case we get an error. */
+
+		mx_status = mxi_pmac_getchar( pmac, &c );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		response[i] = c;
+
+		if ( c == MX_ACK ) {
+
+			response[i] = '\0';
+			break;			/* Exit the while() loop. */
+		} else
+		if ( c == MX_BELL ) {
+
+			bell_received = TRUE;
+
+			if ( pmac->error_reporting_mode != 1 ) {
+
+				response[i] = '\0';
+				break;		/* Exit the while() loop. */
+			}
+		} else
+		if ( c == MX_CR ) {
+			if ( bell_received ) {
+
+				response[i] = '\0';
+				break;		/* Exit the while() loop. */
+			}
+		}
+	}
+
+	/* Was the response too long to fit in the response buffer? */
+
+	if ( i >= (response_buffer_length - 1) ) {
+
+		/* Null terminate the response buffer. */
+
+		response[ response_buffer_length - 1 ] = '\0';
+
+		/* Clear out any remaining unread characters. */
+
+		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+								debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
+		}
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+	"The PMAC command response was longer than the buffer length of %d.",
+			response_buffer_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_check_for_errors( MX_PMAC *pmac,
+			char *command,
+			char *response_buffer,
+			char *received_response )
+{
+	static const char fname[] = "mxi_pmac_check_for_errors()";
+
+	char *error_code_ptr;
+	int length, error_code, num_items;
+
+	/* If the command completed without an error, delete the <ACK>
+	 * character at the end of the response and return the rest
+	 * of the response to the caller.
+	 */
+
+	if ( received_response[0] != MX_BELL ) {
+
+		if ( response_buffer != NULL ) {
+			length = (int) strlen( response_buffer );
+
+			if ( response_buffer[length - 1] == MX_ACK ) {
+				response_buffer[length - 1] = '\0';
+			}
+		}
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, we must handle the error. */
+
+	error_code = -1;
+
+	switch( pmac->error_reporting_mode ) {
+	case 0:
+	case 2:
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+	"The PMAC interface '%s' reported an error for the command '%s'.  "
+	"There is no information available about the reason.",
+			pmac->record->name, command );
+	case 3:
+		received_response++;	/* Skip over the <CR> character. */
+	case 1:
+		received_response++;	/* Skip over the <BEL> character. */
+
+		/* If present, delete the <CR> at the end of the
+		 * error message.
+		 */
+
+		length = (int) strlen( received_response );
+
+		if ( received_response[ length - 1 ] == MX_CR ) {
+			received_response[ length - 1 ] = '\0';
+		}
+
+		/* The first three letters in the response should be ERR. */
+
+		if ( strncmp( received_response, "ERR", 3 ) != 0 ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+	"The first three letters of the response '%s' by PMAC interface '%s' "
+	"to the command '%s' are not 'ERR', even though an error code was "
+	"supposedly returned.",
+			received_response, pmac->record->name, command );
+		}
+
+		/* Skip over the first three letters and parse the rest
+		 * as a number.
+		 */
+
+		error_code_ptr = received_response + 3;
+
+		num_items = sscanf( error_code_ptr, "%d", &error_code );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+	"The PMAC interface '%s' reported an error for the command '%s'.  "
+	"An attempt to parse the error status failed.  "
+	"PMAC error message = '%s'",
+			pmac->record->name, command, received_response );
+		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The PMAC interface '%s' reported an error for the command '%s', "
+	"but the PMAC error reporting mode has the unexpected value of %ld.  "
+	"This interferes with the parsing of error messages from the PMAC.  "
+	"PMAC error message = '%s'",
+			pmac->record->name, command,
+			pmac->error_reporting_mode, received_response );
+	}
+
+	if ( error_code < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"The error code (%d) returned for PMAC command '%s' was less than 0.  "
+	"This shouldn't be able to happen and is probably an MX driver bug."
+	"PMAC error message = '%s'",
+			error_code, command, received_response );
+	}
+
+	if ( error_code >= mxi_pmac_num_error_messages ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+	"The PMAC interface '%s' reported an error for the command '%s'.  "
+	"Error code = %d, error message = 'Unknown error code %d'",
+			pmac->record->name, command,
+			error_code, error_code );
+	}
+
+	return mx_error( mxi_pmac_error_messages[error_code].mx_error_code,
+			fname,
+	"The PMAC interface '%s' reported an error for the command '%s'.  "
+	"Error code = %d, error message = '%s'",
+			pmac->record->name, command, error_code, 
+			mxi_pmac_error_messages[error_code].error_message );
+}
+
+/*==================================================================*/
+
+static mx_status_type
+mxi_pmac_std_command( MX_PMAC *pmac, char *command,
+		char *response_buffer, size_t response_buffer_length,
+		int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_std_command()";
+
+	char alt_response_buffer[40];
+	char *received_response;
+	int received_response_length;
+	mx_status_type mx_status;
+
+	/* WARNING: Please note that this routine _assumes_ that I3 == 2. */
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+
+	/* Send the command string. */
+
+	mx_status = mxi_pmac_std_send_command( pmac, command, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the response. */
+
+	if ( response_buffer == NULL ) {
+		received_response = alt_response_buffer;
+		received_response_length = sizeof(alt_response_buffer);
+	} else {
+		received_response = response_buffer;
+		received_response_length = (int) response_buffer_length;
+	}
+
+	mx_status = mxi_pmac_std_receive_response( pmac,
+					received_response,
+					received_response_length,
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_pmac_check_for_errors( pmac, command,
+						response_buffer,
+						received_response );
+
+	return mx_status;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_std_send_command( MX_PMAC *pmac,
+			char *command,
+			int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_std_send_command()";
+
+	mx_status_type mx_status;
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_TIMING command_timing;
+#endif
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+	if ( command == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"command buffer pointer passed was NULL." );
+	}
+
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_START_COMMAND( command_timing, 1 + strlen(command) );
+#endif
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		mx_status = mxi_pmac_rs232_send_command( pmac,
+						command, debug_flag );
+		break;
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown PMAC interface port_type = %ld.",
+			pmac->port_type );
+		break;
+	}
+
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_END_COMMAND( command_timing );
+
+	MX_HRT_RS232_COMMAND_RESULTS( command_timing, command, fname );
+#endif
+
+	return mx_status;
+}
+
+static mx_status_type
+mxi_pmac_std_receive_response( MX_PMAC *pmac,
+			char *response,
+			int response_buffer_length,
+			int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_std_receive_response()";
+
+	size_t length;
+	mx_status_type mx_status;
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_TIMING response_timing;
+#endif
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+	if ( response == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"response buffer pointer passed was NULL." );
+	}
+
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_START_RESPONSE( response_timing, pmac->port_record );
+#endif
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_RS232:
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		mx_status = mxi_pmac_receive_response_with_getchar( pmac,
+					response, response_buffer_length,
+					debug_flag );
+		break;
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unknown PMAC interface port_type = %ld.",
+			pmac->port_type );
+		break;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_status;
+	}
+
+	/* Is there a trailing CR?  If so, then overwrite it with
+	 * a null character.
+	 */
+
+	length = strlen( response );
+
+	if ( length > 0 ) {
+		if ( response[length-1] == MX_CR ) {
+			response[length-1] = '\0';
+		}
+	}
+
+#if MXI_PMAC_DEBUG_TIMING
+	MX_HRT_RS232_END_RESPONSE( response_timing, length );
+
+	MX_HRT_RS232_RESPONSE_RESULTS( response_timing, response, fname );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_rs232_send_command( MX_PMAC *pmac,
+			char *command,
+			int debug_flag )
+{
+	char c;
+	mx_status_type mx_status;
+
+	/* First, send a ctrl-Z to make the serial port the active interface. */
+
+	c = MX_CTRL_Z;
+
+	mx_status = mx_rs232_putchar( pmac->port_record, c, MXF_232_WAIT );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now send the main string. */
+
+#if MXI_PMAC_DEBUG_RS232
+	mx_status = mx_rs232_putline( pmac->port_record,
+					command, NULL, debug_flag );
+#else
+	mx_status = mx_rs232_putline( pmac->port_record, command, NULL, 0 );
+#endif
+
+	return mx_status;
+}
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxi_pmac_tcp_flush( MX_PMAC *pmac,
+		mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxi_pmac_tcp_flush()";
+
+	ETHERNETCMD ethernet_cmd;
+	uint8_t ack_byte;
+	mx_status_type mx_status;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: flushing unread PMAC input.", fname));
+	}
+
+	/* Send the flush (^X) command to the PMAC. */
+
+	ethernet_cmd.RequestType = VR_DOWNLOAD;
+	ethernet_cmd.Request     = VR_PMAC_FLUSH;
+	ethernet_cmd.wValue      = 0;
+	ethernet_cmd.wIndex      = 0;
+	ethernet_cmd.wLength     = 0;
+	ethernet_cmd.bData[0]    = '\0';
+
+	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
+							ETHERNETCMDSIZE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the PMAC to send us a response to the flush. */
+
+	mx_status = mx_socket_wait_for_event( pmac->pmac_socket, 5.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if there was an error. */
+
+	mx_status = mx_socket_receive( pmac->pmac_socket,
+				&ack_byte, sizeof(ack_byte),
+				NULL, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( ack_byte != '@' ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not see the expected '@' response to a PMAC flush "
+		"command for PMAC '%s'", pmac->record->name );
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: PMAC flush complete.", fname));
+	}
+
+	/* Discard any remaining bytes in the host's input queue. */
+
+	mx_status = mx_socket_discard_unread_input( pmac->pmac_socket );
+
+	return mx_status;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_tcp_command( MX_PMAC *pmac, char *command,
+			char *response, size_t response_buffer_length,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxi_pmac_tcp_command()";
+
+	ETHERNETCMD ethernet_cmd;
+	uint8_t ack_byte;
+	size_t num_bytes_received, length;
+	mx_status_type mx_status;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+	if ( command == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"command buffer pointer passed was NULL." );
+	}
+
+	if ( response == (char *) command ) {
+		/* If no response is expected from the PMAC, then send
+		 * the command using VR_PMAC_SENDLINE.
+		 */
+
+		/* Send the command to the PMAC. */
+
+		ethernet_cmd.RequestType = VR_DOWNLOAD;
+		ethernet_cmd.Request     = VR_PMAC_SENDLINE;
+		ethernet_cmd.wValue      = 0;
+		ethernet_cmd.wIndex      = 0;
+		ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
+
+		strlcpy( (char *) &ethernet_cmd.bData[0],
+			command, sizeof(ethernet_cmd.bData) );
+
+		mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
+					ETHERNETCMDSIZE + strlen( command ) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* See if there was an error. */
+
+		mx_status = mx_socket_receive( pmac->pmac_socket,
+					&ack_byte, sizeof(ack_byte),
+					NULL, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_TCP
+		MX_DEBUG(-2,("%s: ack_byte = '%c' (%#x)",
+			fname, ack_byte, ack_byte));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, then we _do_ expect a response from the PMAC. */
+
+	ethernet_cmd.RequestType = VR_DOWNLOAD;
+	ethernet_cmd.Request     = VR_PMAC_GETRESPONSE;
+	ethernet_cmd.wValue      = 0;
+	ethernet_cmd.wIndex      = 0;
+	ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
+
+	strlcpy( (char *) &ethernet_cmd.bData[0],
+			command, sizeof(ethernet_cmd.bData) );
+
+
+	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
+					ETHERNETCMDSIZE + strlen(command) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_pmac_tcp_receive_response( pmac->pmac_socket,
+					response, response_buffer_length,
+					&num_bytes_received, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#if MXI_PMAC_DEBUG_TCP
+	MX_DEBUG(-2,("%s: num_bytes_received = %d",
+		fname, (int) num_bytes_received));
+
+	{
+		int i;
+
+		for ( i = 0; i < num_bytes_received; i++ ) {
+			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
+				fname, i, response[i], response[i]));
+		}
+	}
+#endif
+
+	mx_status = mxi_pmac_check_for_errors( pmac, command,
+						response, response );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	length = strlen(response);
+
+	if ( response[length - 1] == '\r' ) {
+		response[length - 1] = '\0';
+	} else
+	if ( response[length - 1] == '\n' ) {
+		response[length - 1] = '\0';
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
+				char *response,
+				size_t response_buffer_length,
+				size_t *num_bytes_received,
+				int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_tcp_receive_response()";
+
+	size_t local_num_bytes_received;
+	mx_status_type mx_status;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response buffer pointer passed was NULL." );
+	}
+
+	memset( response, 0, response_buffer_length );
+
+#if MXI_PMAC_DEBUG_TCP
+	MX_DEBUG(-2,("%s: Before mx_socket_wait_for_event()", fname));
+#endif
+
+	mx_status = mx_socket_wait_for_event( mx_socket, 5.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_socket_receive( mx_socket,
+					response, response_buffer_length,
+					&local_num_bytes_received, "\r\006", 2);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_PMAC_DEBUG_TCP
+	MX_DEBUG(-2,("%s: num_bytes_received = %d",
+		fname, (int) local_num_bytes_received));
+
+	{
+		int i;
+
+		for ( i = 0; i < local_num_bytes_received; i++ ) {
+			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
+				fname, i, response[i], response[i]));
+		}
+	}
+#endif
+
+	if ( response[local_num_bytes_received - 1] == '\r' ) {
+		response[local_num_bytes_received - 1] = '\0';
+	} else
+	if ( response[local_num_bytes_received - 1] == '\n' ) {
+		response[local_num_bytes_received - 1] = '\0';
+	} else
+	if ( response[local_num_bytes_received - 1] == MX_ACK ) {
+		response[local_num_bytes_received - 1] = '\0';
+	}
+
+	if ( num_bytes_received != NULL ) {
+		*num_bytes_received = local_num_bytes_received;
+	}
 
 	return mx_status;
 }
@@ -1121,635 +1863,6 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 /*==================================================================*/
 
-static mx_status_type
-mxi_pmac_std_command( MX_PMAC *pmac, char *command,
-		char *response, size_t response_buffer_length,
-		int debug_flag )
-{
-	static const char fname[] = "mxi_pmac_std_command()";
-
-	char alt_response_buffer[40];
-	char *receive_response, *error_code_ptr;
-	int receive_response_length;
-	int length, error_code, num_items;
-	mx_status_type mx_status;
-
-	/* WARNING: Please note that this routine _assumes_ that I3 == 2. */
-
-	if ( pmac == (MX_PMAC *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PMAC pointer passed was NULL." );
-	}
-
-	/* Send the command string. */
-
-	mx_status = mxi_pmac_std_send_command( pmac, command, debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Get the response. */
-
-	if ( response == NULL ) {
-		receive_response = alt_response_buffer;
-		receive_response_length = sizeof(alt_response_buffer);
-	} else {
-		receive_response = response;
-		receive_response_length = (int) response_buffer_length;
-	}
-
-	mx_status = mxi_pmac_std_receive_response( pmac,
-					receive_response,
-					receive_response_length,
-					debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* If the command completed without an error, delete the <ACK>
-	 * character at the end of the response and return the rest
-	 * of the response to the caller.
-	 */
-
-	if ( receive_response[0] != MX_BELL ) {
-
-		if ( response != NULL ) {
-			length = (int) strlen( response );
-
-			if ( response[length - 1] == MX_ACK ) {
-				response[length - 1] = '\0';
-			}
-		}
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* Otherwise, we must handle the error. */
-
-	error_code = -1;
-
-	switch( pmac->error_reporting_mode ) {
-	case 0:
-	case 2:
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-	"The PMAC interface '%s' reported an error for the command '%s'.  "
-	"There is no information available about the reason.",
-			pmac->record->name, command );
-	case 3:
-		receive_response++;	/* Skip over the <CR> character. */
-	case 1:
-		receive_response++;	/* Skip over the <BEL> character. */
-
-		/* If present, delete the <CR> at the end of the
-		 * error message.
-		 */
-
-		length = (int) strlen( receive_response );
-
-		if ( receive_response[ length - 1 ] == MX_CR ) {
-			receive_response[ length - 1 ] = '\0';
-		}
-
-		/* The first three letters in the response should be ERR. */
-
-		if ( strncmp( receive_response, "ERR", 3 ) != 0 ) {
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-	"The first three letters of the response '%s' by PMAC interface '%s' "
-	"to the command '%s' are not 'ERR', even though an error code was "
-	"supposedly returned.", receive_response, pmac->record->name, command );
-		}
-
-		/* Skip over the first three letters and parse the rest
-		 * as a number.
-		 */
-
-		error_code_ptr = receive_response + 3;
-
-		num_items = sscanf( error_code_ptr, "%d", &error_code );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-	"The PMAC interface '%s' reported an error for the command '%s'.  "
-	"An attempt to parse the error status failed.  "
-	"PMAC error message = '%s'",
-			pmac->record->name, command, receive_response );
-		}
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The PMAC interface '%s' reported an error for the command '%s', "
-	"but the PMAC error reporting mode has the unexpected value of %ld.  "
-	"This interferes with the parsing of error messages from the PMAC.  "
-	"PMAC error message = '%s'",
-			pmac->record->name, command,
-			pmac->error_reporting_mode, receive_response );
-	}
-
-	if ( error_code < 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The error code (%d) returned for PMAC command '%s' was less than 0.  "
-	"This shouldn't be able to happen and is probably an MX driver bug."
-	"PMAC error message = '%s'",
-			error_code, command, receive_response );
-	}
-
-	if ( error_code >= mxi_pmac_num_error_messages ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-	"The PMAC interface '%s' reported an error for the command '%s'.  "
-	"Error code = %d, error message = 'Unknown error code %d'",
-			pmac->record->name, command,
-			error_code, error_code );
-	}
-
-	return mx_error( mxi_pmac_error_messages[error_code].mx_error_code,
-			fname,
-	"The PMAC interface '%s' reported an error for the command '%s'.  "
-	"Error code = %d, error message = '%s'",
-			pmac->record->name, command, error_code, 
-			mxi_pmac_error_messages[error_code].error_message );
-}
-
-/*----*/
-
-static mx_status_type
-mxi_pmac_std_send_command( MX_PMAC *pmac,
-			char *command,
-			int debug_flag )
-{
-	static const char fname[] = "mxi_pmac_std_send_command()";
-
-	mx_status_type mx_status;
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_TIMING command_timing;
-#endif
-
-	if ( pmac == (MX_PMAC *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PMAC pointer passed was NULL." );
-	}
-	if ( command == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"command buffer pointer passed was NULL." );
-	}
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: sent '%s' to '%s'",
-			fname, command, pmac->record->name));
-	}
-
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_START_COMMAND( command_timing, 1 + strlen(command) );
-#endif
-
-	switch( pmac->port_type ) {
-	case MX_PMAC_PORT_TYPE_RS232:
-	case MX_PMAC_PORT_TYPE_GPASCII:
-		mx_status = mxi_pmac_rs232_send_command( pmac,
-						command, debug_flag );
-		break;
-	default:
-		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown PMAC interface port_type = %ld.",
-			pmac->port_type );
-		break;
-	}
-
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_END_COMMAND( command_timing );
-
-	MX_HRT_RS232_COMMAND_RESULTS( command_timing, command, fname );
-#endif
-
-	return mx_status;
-}
-
-static mx_status_type
-mxi_pmac_std_receive_response( MX_PMAC *pmac,
-			char *response,
-			int response_buffer_length,
-			int debug_flag )
-{
-	static const char fname[] = "mxi_pmac_receive_response()";
-
-	size_t length;
-	mx_status_type mx_status;
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_TIMING response_timing;
-#endif
-
-	if ( pmac == (MX_PMAC *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PMAC pointer passed was NULL." );
-	}
-	if ( response == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"response buffer pointer passed was NULL." );
-	}
-
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_START_RESPONSE( response_timing, pmac->port_record );
-#endif
-
-	switch( pmac->port_type ) {
-	case MX_PMAC_PORT_TYPE_RS232:
-	case MX_PMAC_PORT_TYPE_GPASCII:
-		mx_status = mxi_pmac_rs232_receive_response( pmac,
-					response, response_buffer_length,
-					debug_flag );
-		break;
-	default:
-		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown PMAC interface port_type = %ld.",
-			pmac->port_type );
-		break;
-	}
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		return mx_status;
-	}
-
-	/* Is there a trailing CR?  If so, then overwrite it with
-	 * a null character.
-	 */
-
-	length = strlen( response );
-
-	if ( length > 0 ) {
-		if ( response[length-1] == MX_CR ) {
-			response[length-1] = '\0';
-		}
-	}
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: received '%s' from '%s'",
-			fname, response, pmac->record->name));
-	}
-
-#if MXI_PMAC_DEBUG_TIMING
-	MX_HRT_RS232_END_RESPONSE( response_timing, length );
-
-	MX_HRT_RS232_RESPONSE_RESULTS( response_timing, response, fname );
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*----*/
-
-static mx_status_type
-mxi_pmac_rs232_send_command( MX_PMAC *pmac,
-			char *command,
-			int debug_flag )
-{
-	char c;
-	mx_status_type mx_status;
-
-	/* First, send a ctrl-Z to make the serial port the active interface. */
-
-	c = MX_CTRL_Z;
-
-	mx_status = mx_rs232_putchar( pmac->port_record, c, MXF_232_WAIT );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now send the main string. */
-
-	mx_status = mx_rs232_putline( pmac->port_record,
-					command, NULL, debug_flag );
-	return mx_status;
-}
-
-static mx_status_type
-mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
-			char *response,
-			int response_buffer_length,
-			int debug_flag )
-{
-	static const char fname[] = "mxi_pmac_rs232_receive_response()";
-
-	int i, bell_received;
-	char c;
-	mx_status_type mx_status;
-
-	/* This function implicitly assumes I3 == 2.  This means that
-	 * all PMAC responses will be terminated by either an <ACK>
-	 * or a <BELL> character.  If I6 == 1, a <BELL> character
-	 * will be followed by an error code terminated by a <CR>.
-	 *
-	 * Note that we must leave space at the end of the response
-	 * buffer for the terminating null byte.
-	 */
-
-	bell_received = FALSE;
-
-	for ( i = 0; i < (response_buffer_length - 1); i++ ) {
-
-		response[i] = '\0';	/* Just in case we get an error. */
-
-		mx_status = mx_rs232_getchar( pmac->port_record,
-							&c, MXF_232_WAIT );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		response[i] = c;
-
-		if ( c == MX_ACK ) {
-
-			response[i] = '\0';
-			break;			/* Exit the while() loop. */
-		} else
-		if ( c == MX_BELL ) {
-
-			bell_received = TRUE;
-
-			if ( pmac->error_reporting_mode != 1 ) {
-
-				response[i] = '\0';
-				break;		/* Exit the while() loop. */
-			}
-		} else
-		if ( c == MX_CR ) {
-			if ( bell_received ) {
-
-				response[i] = '\0';
-				break;		/* Exit the while() loop. */
-			}
-		}
-	}
-
-	/* Was the response too long to fit in the response buffer? */
-
-	if ( i >= (response_buffer_length - 1) ) {
-
-		/* Null terminate the response buffer. */
-
-		response[ response_buffer_length - 1 ] = '\0';
-
-		/* Clear out any remaining unread characters. */
-
-		mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-								debug_flag );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			return mx_status;
-		}
-
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-	"The PMAC command response was longer than the buffer length of %d.",
-			response_buffer_length );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*-------------------------------------------------------------------------*/
-
-static mx_status_type
-mxi_pmac_tcp_flush( MX_PMAC *pmac,
-		mx_bool_type debug_flag )
-{
-	static const char fname[] = "mxi_pmac_tcp_flush()";
-
-	ETHERNETCMD ethernet_cmd;
-	uint8_t ack_byte;
-	mx_status_type mx_status;
-
-	if ( pmac == (MX_PMAC *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PMAC pointer passed was NULL." );
-	}
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: flushing unread PMAC input.", fname));
-	}
-
-	/* Send the flush (^X) command to the PMAC. */
-
-	ethernet_cmd.RequestType = VR_DOWNLOAD;
-	ethernet_cmd.Request     = VR_PMAC_FLUSH;
-	ethernet_cmd.wValue      = 0;
-	ethernet_cmd.wIndex      = 0;
-	ethernet_cmd.wLength     = 0;
-	ethernet_cmd.bData[0]    = '\0';
-
-	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
-							ETHERNETCMDSIZE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* See if there was an error. */
-
-	mx_status = mx_socket_receive( pmac->pmac_socket,
-				&ack_byte, sizeof(ack_byte),
-				NULL, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 1
-	MX_DEBUG(-2,("%s: ack_byte = '%c' (%#x)", fname, ack_byte, ack_byte));
-#endif
-	/* Discard any remaining bytes in the host's input queue. */
-
-	mx_status = mx_socket_discard_unread_input( pmac->pmac_socket );
-
-	return mx_status;
-}
-
-/*----*/
-
-static mx_status_type
-mxi_pmac_tcp_command( MX_PMAC *pmac, char *command,
-			char *response, size_t response_buffer_length,
-			mx_bool_type debug_flag )
-{
-	static const char fname[] = "mxi_pmac_tcp_command()";
-
-	ETHERNETCMD ethernet_cmd;
-	uint8_t ack_byte;
-	size_t num_bytes_received;
-	mx_status_type mx_status;
-
-	if ( pmac == (MX_PMAC *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_PMAC pointer passed was NULL." );
-	}
-	if ( command == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"command buffer pointer passed was NULL." );
-	}
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
-			fname, command, pmac->record->name ));
-	}
-
-	if ( response == (char *) command ) {
-		/* If no response is expected from the PMAC, then send
-		 * the command using VR_PMAC_SENDLINE.
-		 */
-
-		/* Send the command to the PMAC. */
-
-		ethernet_cmd.RequestType = VR_DOWNLOAD;
-		ethernet_cmd.Request     = VR_PMAC_SENDLINE;
-		ethernet_cmd.wValue      = 0;
-		ethernet_cmd.wIndex      = 0;
-		ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
-
-		strlcpy( (char *) &ethernet_cmd.bData[0],
-			command, sizeof(ethernet_cmd.bData) );
-
-		mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
-					ETHERNETCMDSIZE + strlen( command ) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* See if there was an error. */
-
-		mx_status = mx_socket_receive( pmac->pmac_socket,
-					&ack_byte, sizeof(ack_byte),
-					NULL, NULL, 0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if 1
-		MX_DEBUG(-2,("%s: ack_byte = '%c' (%#x)",
-			fname, ack_byte, ack_byte));
-#endif
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, then we _do_ expect a response from the PMAC. */
-
-	ethernet_cmd.RequestType = VR_DOWNLOAD;
-	ethernet_cmd.Request     = VR_PMAC_GETRESPONSE;
-	ethernet_cmd.wValue      = 0;
-	ethernet_cmd.wIndex      = 0;
-	ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
-
-	strlcpy( (char *) &ethernet_cmd.bData[0],
-			command, sizeof(ethernet_cmd.bData) );
-
-
-	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
-					ETHERNETCMDSIZE + strlen(command) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxi_pmac_tcp_receive_response( pmac->pmac_socket,
-					response, response_buffer_length,
-					&num_bytes_received, debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#if 1
-	MX_DEBUG(-2,("%s: num_bytes_received = %d",
-		fname, (int) num_bytes_received));
-#endif
-#if 1
-	{
-		int i;
-
-		for ( i = 0; i < num_bytes_received; i++ ) {
-			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
-				fname, i, response[i], response[i]));
-		}
-	}
-#endif
-
-	if ( response[num_bytes_received - 1] == '\r' ) {
-		response[num_bytes_received - 1] = '\0';
-	} else
-	if ( response[num_bytes_received - 1] == '\n' ) {
-		response[num_bytes_received - 1] = '\0';
-	} else
-	if ( response[num_bytes_received - 1] == MX_ACK ) {
-		response[num_bytes_received - 1] = '\0';
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*----*/
-
-static mx_status_type
-mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
-				char *response,
-				size_t response_buffer_length,
-				size_t *num_bytes_received,
-				int debug_flag )
-{
-	static const char fname[] = "mxi_pmac_tcp_receive_response()";
-
-	size_t local_num_bytes_received;
-	mx_status_type mx_status;
-
-	if ( mx_socket == (MX_SOCKET *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SOCKET pointer passed was NULL." );
-	}
-
-	if ( response == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The response buffer pointer passed was NULL." );
-	}
-
-	memset( response, 0, response_buffer_length );
-
-	MX_DEBUG(-2,("%s: Before mx_socket_wait_for_event()", fname));
-
-	mx_status = mx_socket_wait_for_event( mx_socket, 5.0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_socket_receive( mx_socket,
-					response, response_buffer_length,
-					&local_num_bytes_received, "\r\006", 2);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 1
-	MX_DEBUG(-2,("%s: num_bytes_received = %d",
-		fname, (int) local_num_bytes_received));
-#endif
-#if 1
-	{
-		int i;
-
-		for ( i = 0; i < local_num_bytes_received; i++ ) {
-			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
-				fname, i, response[i], response[i]));
-		}
-	}
-#endif
-
-	if ( response[local_num_bytes_received - 1] == '\r' ) {
-		response[local_num_bytes_received - 1] = '\0';
-	} else
-	if ( response[local_num_bytes_received - 1] == '\n' ) {
-		response[local_num_bytes_received - 1] = '\0';
-	} else
-	if ( response[local_num_bytes_received - 1] == MX_ACK ) {
-		response[local_num_bytes_received - 1] = '\0';
-	}
-
-	if ( num_bytes_received != NULL ) {
-		*num_bytes_received = local_num_bytes_received;
-	}
-
-	return mx_status;
-}
-
-/*-------------------------------------------------------------------------*/
-
 #if HAVE_POWER_PMAC_LIBRARY
 
 static mx_status_type
@@ -1788,16 +1901,16 @@ mxi_pmac_gplib_command( MX_PMAC *pmac, char *command,
 
 #endif /* HAVE_POWER_PMAC_LIBRARY */
 
-/*-------------------------------------------------------------------------*/
+/*==================================================================*/
 
 #if HAVE_EPICS
 
 static mx_status_type
-mxi_pmac_epics_tc_command( MX_PMAC *pmac, char *command,
+mxi_pmac_epics_ect_command( MX_PMAC *pmac, char *command,
 			char *response, size_t response_buffer_length,
 			mx_bool_type debug_flag )
 {
-	static const char fname[] = "mxi_pmac_epics_tc_command()";
+	static const char fname[] = "mxi_pmac_epics_ect_command()";
 
 	mx_status_type mx_status;
 
@@ -1831,7 +1944,7 @@ mxi_pmac_epics_tc_command( MX_PMAC *pmac, char *command,
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+/*==================================================================*/
 
 #ifndef MX_PROCESS_GET
 

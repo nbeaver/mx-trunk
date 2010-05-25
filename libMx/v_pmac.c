@@ -14,7 +14,7 @@
  *
  */
 
-#define MXV_PMAC_DEBUG	TRUE
+#define MXV_PMAC_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
