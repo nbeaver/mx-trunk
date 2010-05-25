@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_PMAC_DEBUG			FALSE
+#define MXI_PMAC_DEBUG			TRUE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 
@@ -108,7 +108,13 @@ mxi_pmac_rs232_receive_response( MX_PMAC *, char *, int, int );
 /*--*/
 
 static mx_status_type
-mxi_pmac_ethernet_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_tcp_flush( MX_PMAC *, int );
+
+static mx_status_type
+mxi_pmac_tcp_command( MX_PMAC *, char *, char *, size_t, int );
+
+static mx_status_type
+mxi_pmac_tcp_receive_response( MX_SOCKET *, char *, size_t, size_t *, int );
 
 /*--*/
 
@@ -150,7 +156,6 @@ mxi_pmac_create_record_structures( MX_RECORD *record )
 
 	pmac->pmac_socket = NULL;
 	pmac->hostname[0] = '\0';
-	pmac->port_number = -1;
 
 	pmac->gpascii_username[0] = '\0';
 	pmac->gpascii_password[0] = '\0';
@@ -193,8 +198,8 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 	if ( strcmp( port_type_name, "rs232" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_RS232;
 
-	} else if ( strcmp( port_type_name, "ethernet" ) == 0 ) {
-		pmac->port_type = MX_PMAC_PORT_TYPE_ETHERNET;
+	} else if ( strcmp( port_type_name, "tcp" ) == 0 ) {
+		pmac->port_type = MX_PMAC_PORT_TYPE_TCP;
 
 	} else if ( strcmp( port_type_name, "gpascii" ) == 0 ) {
 		pmac->port_type = MX_PMAC_PORT_TYPE_GPASCII;
@@ -301,39 +306,11 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 		}
 		break;
 
-	case MX_PMAC_PORT_TYPE_ETHERNET:
+	case MX_PMAC_PORT_TYPE_TCP:
 		pmac->port_record = NULL;
 
-		port_args = strdup( pmac->port_args );
-
-		if ( port_args == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to create a copy "
-			"of the PMAC port_args." );
-		}
-
-		mx_string_split( port_args, " ", &argc, &argv );
-
-		if ( argc != 2 ) {
-			mx_free(argv);
-			mx_free(port_args);
-
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Incorrect number of arguments (%d) specified "
-			"for the 'port_args' string '%s' for PMAC "
-			"controller '%s'.  The correct number of "
-			"arguments should be 2, namely, "
-			"the PMAC network host name and "
-			"the PMAC network port number.",
-				argc, pmac->port_args, record->name );
-		}
-
-		strlcpy( pmac->hostname, argv[0], sizeof(pmac->hostname) );
-
-		pmac->port_number = mx_string_to_long( argv[1] );
-
-		mx_free(argv);
-		mx_free(port_args);
+		strlcpy( pmac->hostname, pmac->port_args,
+						sizeof(pmac->hostname) );
 		break;
 
 	case MX_PMAC_PORT_TYPE_GPLIB:
@@ -391,11 +368,16 @@ mxi_pmac_open( MX_RECORD *record )
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( pmac->port_type ) {
-	case MX_PMAC_PORT_TYPE_ETHERNET:
+	case MX_PMAC_PORT_TYPE_TCP:
 		mx_status = mx_tcp_socket_open_as_client( &pmac->pmac_socket,
 						pmac->hostname,
-						pmac->port_number, 0,
+						MX_PMAC_TCP_PORT_NUMBER, 0,
 						MX_SOCKET_DEFAULT_BUFFER_SIZE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_pmac_tcp_flush( pmac, MXI_PMAC_DEBUG );
 		break;
 
 	case MX_PMAC_PORT_TYPE_GPASCII:
@@ -527,7 +509,7 @@ mxi_pmac_open( MX_RECORD *record )
 	}
 
 #if MXI_PMAC_DEBUG
-	MX_DEBUG(-2,("%s: error_reporting_mode = %d",
+	MX_DEBUG(-2,("%s: error_reporting_mode = %ld",
 		fname, pmac->error_reporting_mode));
 #endif
 
@@ -549,7 +531,7 @@ mxi_pmac_open( MX_RECORD *record )
 	}
 
 #if MXI_PMAC_DEBUG
-	MX_DEBUG(-2, ("%s: PMAC version: major = %d, minor = %d",
+	MX_DEBUG(-2, ("%s: PMAC version: major = %ld, minor = %ld",
 		fname, pmac->major_version, pmac->minor_version));
 #endif
 
@@ -708,10 +690,11 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 					debug_flag );
 		break;
 
-	case MX_PMAC_PORT_TYPE_ETHERNET:
-		mx_status = mxi_pmac_ethernet_command( pmac, command,
+	case MX_PMAC_PORT_TYPE_TCP:
+		mx_status = mxi_pmac_tcp_command( pmac, command,
 					response, response_buffer_length,
 					debug_flag );
+		break;
 
 #if HAVE_POWER_PMAC_LIBRARY
 	case MX_PMAC_PORT_TYPE_GPLIB:
@@ -1523,14 +1506,70 @@ mxi_pmac_rs232_receive_response( MX_PMAC *pmac,
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type
-mxi_pmac_ethernet_command( MX_PMAC *pmac, char *command,
+mxi_pmac_tcp_flush( MX_PMAC *pmac,
+		mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxi_pmac_tcp_flush()";
+
+	ETHERNETCMD ethernet_cmd;
+	uint8_t ack_byte;
+	mx_status_type mx_status;
+
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_PMAC pointer passed was NULL." );
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: flushing unread PMAC input.", fname));
+	}
+
+	/* Send the flush (^X) command to the PMAC. */
+
+	ethernet_cmd.RequestType = VR_DOWNLOAD;
+	ethernet_cmd.Request     = VR_PMAC_FLUSH;
+	ethernet_cmd.wValue      = 0;
+	ethernet_cmd.wIndex      = 0;
+	ethernet_cmd.wLength     = 0;
+	ethernet_cmd.bData[0]    = '\0';
+
+	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
+							ETHERNETCMDSIZE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if there was an error. */
+
+	mx_status = mx_socket_receive( pmac->pmac_socket,
+				&ack_byte, sizeof(ack_byte),
+				NULL, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: ack_byte = '%c' (%#x)", fname, ack_byte, ack_byte));
+#endif
+	/* Discard any remaining bytes in the host's input queue. */
+
+	mx_status = mx_socket_discard_unread_input( pmac->pmac_socket );
+
+	return mx_status;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_tcp_command( MX_PMAC *pmac, char *command,
 			char *response, size_t response_buffer_length,
 			mx_bool_type debug_flag )
 {
-	static const char fname[] = "mxi_pmac_ethernet_command()";
+	static const char fname[] = "mxi_pmac_tcp_command()";
 
 	ETHERNETCMD ethernet_cmd;
-	uint8_t send_status;
+	uint8_t ack_byte;
+	size_t num_bytes_received;
 	mx_status_type mx_status;
 
 	if ( pmac == (MX_PMAC *) NULL ) {
@@ -1547,70 +1586,166 @@ mxi_pmac_ethernet_command( MX_PMAC *pmac, char *command,
 			fname, command, pmac->record->name ));
 	}
 
-	/* Send the command to the PMAC. */
+	if ( response == (char *) command ) {
+		/* If no response is expected from the PMAC, then send
+		 * the command using VR_PMAC_SENDLINE.
+		 */
+
+		/* Send the command to the PMAC. */
+
+		ethernet_cmd.RequestType = VR_DOWNLOAD;
+		ethernet_cmd.Request     = VR_PMAC_SENDLINE;
+		ethernet_cmd.wValue      = 0;
+		ethernet_cmd.wIndex      = 0;
+		ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
+
+		strlcpy( (char *) &ethernet_cmd.bData[0],
+			command, sizeof(ethernet_cmd.bData) );
+
+		mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
+					ETHERNETCMDSIZE + strlen( command ) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* See if there was an error. */
+
+		mx_status = mx_socket_receive( pmac->pmac_socket,
+					&ack_byte, sizeof(ack_byte),
+					NULL, NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 1
+		MX_DEBUG(-2,("%s: ack_byte = '%c' (%#x)",
+			fname, ack_byte, ack_byte));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, then we _do_ expect a response from the PMAC. */
 
 	ethernet_cmd.RequestType = VR_DOWNLOAD;
-	ethernet_cmd.Request     = VR_PMAC_SENDLINE;
+	ethernet_cmd.Request     = VR_PMAC_GETRESPONSE;
 	ethernet_cmd.wValue      = 0;
 	ethernet_cmd.wIndex      = 0;
-	ethernet_cmd.wLength     = htons( (uint16_t) strlen( command ) );
+	ethernet_cmd.wLength     = htons( (uint16_t) strlen(command) );
 
 	strlcpy( (char *) &ethernet_cmd.bData[0],
-		command, sizeof(ethernet_cmd.bData) );
+			command, sizeof(ethernet_cmd.bData) );
+
 
 	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
-				ETHERNETCMDSIZE + strlen( command ) );
+					ETHERNETCMDSIZE + strlen(command) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* See if there was an error. */
+	mx_status = mxi_pmac_tcp_receive_response( pmac->pmac_socket,
+					response, response_buffer_length,
+					&num_bytes_received, debug_flag );
 
-	mx_status = mx_socket_receive( pmac->pmac_socket,
-				&send_status, sizeof(send_status),
-				NULL, NULL, 0 );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#if 1
+	MX_DEBUG(-2,("%s: num_bytes_received = %d",
+		fname, (int) num_bytes_received));
+#endif
+#if 1
+	{
+		int i;
+
+		for ( i = 0; i < num_bytes_received; i++ ) {
+			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
+				fname, i, response[i], response[i]));
+		}
+	}
+#endif
+
+	if ( response[num_bytes_received - 1] == '\r' ) {
+		response[num_bytes_received - 1] = '\0';
+	} else
+	if ( response[num_bytes_received - 1] == '\n' ) {
+		response[num_bytes_received - 1] = '\0';
+	} else
+	if ( response[num_bytes_received - 1] == MX_ACK ) {
+		response[num_bytes_received - 1] = '\0';
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+static mx_status_type
+mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
+				char *response,
+				size_t response_buffer_length,
+				size_t *num_bytes_received,
+				int debug_flag )
+{
+	static const char fname[] = "mxi_pmac_tcp_receive_response()";
+
+	size_t local_num_bytes_received;
+	mx_status_type mx_status;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	if ( response == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The response buffer pointer passed was NULL." );
+	}
+
+	memset( response, 0, response_buffer_length );
+
+	MX_DEBUG(-2,("%s: Before mx_socket_wait_for_event()", fname));
+
+	mx_status = mx_socket_wait_for_event( mx_socket, 5.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_socket_receive( mx_socket,
+					response, response_buffer_length,
+					&local_num_bytes_received, "\r\006", 2);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if 1
-	MX_DEBUG(-2,("%s: send_status = %d", fname, (int) send_status ));
+	MX_DEBUG(-2,("%s: num_bytes_received = %d",
+		fname, (int) local_num_bytes_received));
+#endif
+#if 1
+	{
+		int i;
+
+		for ( i = 0; i < local_num_bytes_received; i++ ) {
+			MX_DEBUG(-2,("%s: response[%d] = '%c' %#x",
+				fname, i, response[i], response[i]));
+		}
+	}
 #endif
 
-	/* If expected, get the response. */
-
-	if ( response == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
+	if ( response[local_num_bytes_received - 1] == '\r' ) {
+		response[local_num_bytes_received - 1] = '\0';
+	} else
+	if ( response[local_num_bytes_received - 1] == '\n' ) {
+		response[local_num_bytes_received - 1] = '\0';
+	} else
+	if ( response[local_num_bytes_received - 1] == MX_ACK ) {
+		response[local_num_bytes_received - 1] = '\0';
 	}
 
-	/* Send a request for the response. */
-
-	ethernet_cmd.RequestType = VR_UPLOAD;
-	ethernet_cmd.Request     = VR_PMAC_GETLINE;
-	ethernet_cmd.wValue      = 0;
-	ethernet_cmd.wIndex      = 0;
-	ethernet_cmd.wLength     = 0;
-	ethernet_cmd.bData[0]    = '\0';
-
-	mx_status = mx_socket_send( pmac->pmac_socket, &ethernet_cmd,
-					ETHERNETCMDSIZE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_socket_receive( pmac->pmac_socket, 
-					response, response_buffer_length,
-					NULL, NULL, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: received '%s' from '%s'",
-			fname, response, pmac->record->name ));
+	if ( num_bytes_received != NULL ) {
+		*num_bytes_received = local_num_bytes_received;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/

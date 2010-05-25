@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SOCKET_DEBUG		FALSE
+#define MX_SOCKET_DEBUG		TRUE
 
 #include <stdio.h>
 

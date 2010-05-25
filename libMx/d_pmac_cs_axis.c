@@ -27,7 +27,7 @@
  *
  */
 
-#define PMAC_CS_AXIS_DEBUG	FALSE
+#define PMAC_CS_AXIS_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

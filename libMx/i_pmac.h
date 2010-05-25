@@ -50,7 +50,8 @@
 /*---*/
 
 #define MX_PMAC_PORT_TYPE_RS232		1
-#define MX_PMAC_PORT_TYPE_ETHERNET	2
+#define MX_PMAC_PORT_TYPE_TCP		2
+#define MX_PMAC_PORT_TYPE_UDP		3
 
 #define MX_PMAC_PORT_TYPE_GPASCII	11
 #define MX_PMAC_PORT_TYPE_GPLIB		12
@@ -59,6 +60,13 @@
 
 #define MX_PMAC_PORT_TYPE_LENGTH	32
 #define MX_PMAC_PORT_ARGS_LENGTH	80
+
+/*---*/
+
+#define MX_PMAC_TCP_PORT_NUMBER		1025
+#define MX_PMAC_UDP_PORT_NUMBER		1025
+
+/*---*/
 
 #define MX_PMAC_MAX_COMMAND_LENGTH	500
 
@@ -89,7 +97,6 @@ typedef struct {
 
 	MX_SOCKET *pmac_socket;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	long port_number;
 
 	/* Parameters used by the PowerPMAC 'gpascii' port type. */
 

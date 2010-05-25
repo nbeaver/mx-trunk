@@ -1,0 +1,5 @@
+###pmac5_rs232    interface rs232 tty "" "" 38400 8 N 1 N 0xd 0xd 1 0 /dev/ttyS0
+###pmac5          interface generic pmac "" "" rs232 pmac5_rs232 1
+#
+pmac5          interface generic pmac "" "" tcp 192.6.94.5 1
+omega          device motor pmac_motor "" "" -4 0 -10000000 10000000 0 -1 -1 0.0001 0 deg pmac5 0 1
