@@ -416,6 +416,16 @@ mxd_linkam_t9x_temp_get_extended_status( MX_MOTOR *motor )
 
 	/* Get the motor status from the status byte and the error byte. */
 
+	/* The various possible values of the status byte mean the following:
+	 *
+	 * 0x01 - stopped (the temperature servo loop is disabled)
+	 * 0x10 - heating
+	 * 0x20 - cooling
+	 * 0x30 - ramp limit reached
+	 * 0x40 - ramp limit reached, but an 'O' command was sent afterwards
+	 * 0x50 - ramp was paused by an 'O' command
+	 */
+
 	motor->status = 0;
 
 	switch( linkam_t9x->status_byte ) {
