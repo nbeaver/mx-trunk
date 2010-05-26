@@ -7,33 +7,46 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_PMC_MCAPI_DEBUG		FALSE
+#define MXI_PMC_MCAPI_DEBUG		TRUE
 
 #define MXI_PMC_MCAPI_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mxconfig.h"
 
-#if HAVE_PMC_MCAPI && defined(OS_WIN32)
+#if HAVE_PMC_MCAPI
 
-#include "windows.h"
+#if defined(OS_LINUX)
+  #include "mcapi.h"
 
-/* Vendor include files */
+  #define HAVE_MCDLG	FALSE
 
-#ifndef _WIN32
-#define _WIN32
+#elif defined(OS_WIN32)
+  #include "windows.h"
+
+  #define HAVE_MCDLG	TRUE
+
+  /* Vendor include files */
+
+  #ifndef _WIN32
+  #define _WIN32
+  #endif
+
+  #include "Mcapi.h"
+  #include "MCDlg.h"
+#else
+  #error The MX PMC MCAPI drivers have not been configured for this platform.
 #endif
 
-#include "Mcapi.h"
-#include "MCDlg.h"
 
 /* MX include files */
 
@@ -145,9 +158,12 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	static const char fname[] = "mxi_pmc_mcapi_open()";
 
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
-	short mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
+
+#if HAVE_MCDLG
+	short mcapi_status;
+#endif
 
 	mx_status = mxi_pmc_mcapi_get_pointers( record,
 					&pmc_mcapi, fname );
@@ -155,6 +171,7 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if HAVE_MCDLG
 	/* Initialize the MCDLG functions. */
 
 	mcapi_status = MCDLG_Initialize();
@@ -175,6 +192,8 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Record '%s', MCDLG_Initialize() succeeded.",
 		fname, record->name));
 #endif
+
+#endif /* HAVE_MCDLG */
 
 	/* Open a connection to the controller. */
 
@@ -211,6 +230,7 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 		fname, record->name, pmc_mcapi->savefile_name));
 #endif
 
+#if HAVE_MCDLG
 	mcapi_status = MCDLG_RestoreAxis( pmc_mcapi->controller_handle,
 						MC_ALL_AXES,
 						MCDLG_CHECKACTIVE,
@@ -232,6 +252,8 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Record '%s', configuration of all axes restored.",
 		fname, record->name));
 #endif
+
+#endif /* HAVE_MCDLG */
 
 	/* Download the startup file. */
 
@@ -257,7 +279,6 @@ mxi_pmc_mcapi_close( MX_RECORD *record )
 	static const char fname[] = "mxi_pmc_mcapi_close()";
 
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
-	HCTRLR handle;
 	short mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
@@ -447,22 +468,6 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 #include "mx_hrt_debug.h"
 #endif
 
-static mx_status_type
-mxi_pmc_mcapi_handle_errors(
-		MX_PMC_MCAPI *pmc_mcapi,
-		char *response_buffer )
-{
-	static const char fname[] = "mxi_pmc_mcapi_handle_errors()";
-
-	MX_DEBUG(-2,("%s: Warning or error response = '%s'",
-		fname, response_buffer ));
-
-	return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Warning or error in response '%s' for Picomotor "
-		"controller '%s'.", response_buffer,
-		pmc_mcapi->record->name );
-}
-
 MX_EXPORT mx_status_type
 mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 		char *command,
@@ -646,26 +651,34 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 {
 	static const char fname[] = "mxi_pmc_mcapi_download_file()";
 
-	long download_status;
-	char error_buffer[100];
-
 	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PMC_MCAPI pointer passed was NULL." );
 	}
 
-	download_status = MCDLG_DownloadFile( NULL,
+#if ( HAVE_MCDLG == FALSE )
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"File download is only supported under Windows." );
+
+#else /* HAVE_MCDLG */
+	{
+		long download_status;
+		char error_buffer[100];
+
+		download_status = MCDLG_DownloadFile( NULL,
 				pmc_mcapi->controller_handle, 0, filename );
 
-	if ( download_status != MCERR_NOERROR ) {
-		mxi_pmc_mcapi_translate_error( download_status,
+		if ( download_status != MCERR_NOERROR ) {
+			mxi_pmc_mcapi_translate_error( download_status,
 				error_buffer, sizeof(error_buffer) );
 
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"An error occurred while download file '%s' to "
-		"PMC MCAPI controller '%s'.  MCAPI error message = '%s'",
-			filename, pmc_mcapi->record->name, error_buffer );
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"An error occurred while download file '%s' to PMC "
+			"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			    filename, pmc_mcapi->record->name, error_buffer );
+		}
 	}
+#endif /* HAVE_MCDLG */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -675,8 +688,6 @@ mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 				char *buffer,
 				long buffer_length )
 {
-	static const char fname[] = "mxi_pmc_mcapi_translate_error()";
-
 	long i, translate_status;
 
 	translate_status = MCTranslateErrorEx( (short) mcapi_error_code,
@@ -685,7 +696,7 @@ mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 	if ( translate_status != MCERR_NOERROR ) {
 		if ( buffer_length >= 80 ) {
 			sprintf( buffer,
-			"Translation of MCAPI error code %hd failed.  "
+			"Translation of MCAPI error code %ld failed.  "
 			"New MCAPI error code was %ld",
 				mcapi_error_code, translate_status );
 		} else if ( buffer_length >= 40 ) {
@@ -700,3 +711,4 @@ mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 }
 
 #endif /* HAVE_PMC_MCAPI */
+

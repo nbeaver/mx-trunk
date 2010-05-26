@@ -7,30 +7,42 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_PMC_MCAPI_AIO_DEBUG  FALSE
+#define MXD_PMC_MCAPI_AIO_DEBUG  TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mxconfig.h"
 
-#if HAVE_PMC_MCAPI && defined(OS_WIN32)
+#if HAVE_PMC_MCAPI
 
-#include "windows.h"
+#if defined(OS_LINUX)
+  #include "mcapi.h"
 
-/* Vendor include file */
+  #define HAVE_MCDLG	FALSE
 
-#ifndef _WIN32
-#define _WIN32
+#elif defined(OS_WIN32)
+  #include "windows.h"
+
+  #define HAVE_MCDLG	TRUE
+
+  /* Vendor include files */
+
+  #ifndef _WIN32
+  #define _WIN32
+  #endif
+
+  #include "Mcapi.h"
+#else
+  #error The MX PMC MCAPI drivers have not been configured for this platform.
 #endif
-
-#include "Mcapi.h"
 
 #include "mx_util.h"
 #include "mx_driver.h"

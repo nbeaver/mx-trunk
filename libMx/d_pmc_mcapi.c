@@ -7,32 +7,43 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2008 Illinois Institute of Technology
+ * Copyright 2004, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_PMC_MCAPI_MOTOR_DEBUG	FALSE
+#define MXD_PMC_MCAPI_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include "mxconfig.h"
 
-#if HAVE_PMC_MCAPI && defined(OS_WIN32)
+#if HAVE_PMC_MCAPI
 
-#include <math.h>
+#if defined(OS_LINUX)
+  #include "mcapi.h"
 
-#include "windows.h"
+  #define HAVE_MCDLG	FALSE
 
-/* Vendor include file */
+#elif defined(OS_WIN32)
+  #include "windows.h"
 
-#ifndef _WIN32
-#define _WIN32
+  #define HAVE_MCDLG	TRUE
+
+  /* Vendor include files */
+
+  #ifndef _WIN32
+  #define _WIN32
+  #endif
+
+  #include "Mcapi.h"
+#else
+  #error The MX PMC MCAPI drivers have not been configured for this platform.
 #endif
-
-#include "Mcapi.h"
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -348,8 +359,10 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 
 	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
+#if 0
 	long mcapi_status;
 	char error_buffer[100];
+#endif
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmc_mcapi_get_pointers( motor, &pmc_mcapi_motor,
@@ -664,7 +677,6 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 	MCMOTIONEX motion_config;
 	MCFILTEREX filter_config;
 	MCAXISCONFIG axis_config;
-	double double_value;
 	long mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
@@ -675,7 +687,7 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -789,7 +801,8 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
 		MX_DEBUG(-2,
 		("%s: Motor '%s' update rate = %g, raw_maximum_speed = %g",
-			fname, motor->record->name, filter_config.UpdateRate,
+			fname, motor->record->name,
+			(double) filter_config.UpdateRate,
 			motor->raw_maximum_speed));
 #endif
 		break;
@@ -857,7 +870,6 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	MCMOTIONEX motion_config;
 	MCFILTEREX filter_config;
-	double double_value;
 	long mcapi_status, mode;
 	short state;
 	char error_buffer[100];
@@ -869,7 +881,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -1047,8 +1059,8 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 				state );
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
-		MX_DEBUG(-2,("%s: Motor '%s' enable state = %d",
-			fname, state));
+		MX_DEBUG(-2,("%s: Motor '%s' enable state = %ld",
+			fname, motor->record->name, (long) state));
 #endif
 		break;
 
@@ -1084,7 +1096,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 		}
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
-		MX_DEBUG(-2,("%s: Motor '%s' servo loop mode = %d",
+		MX_DEBUG(-2,("%s: Motor '%s' servo loop mode = %ld",
 			fname, motor->record->name, mode));
 #endif
 		break;
@@ -1313,9 +1325,9 @@ mxd_pmc_mcapi_get_status( MX_MOTOR *motor )
 		fname, motor->record->name, mc_stat_index_found));
 	MX_DEBUG(-2,("%s:----------------------------------", fname));
 	MX_DEBUG(-2,("%s: Motor '%s' MCIsAtTarget = %ld",
-		fname, motor->record->name, is_at_target));
+		fname, motor->record->name, (long) is_at_target));
 	MX_DEBUG(-2,("%s: Motor '%s' MCIsStopped = %ld",
-		fname, motor->record->name, is_stopped));
+		fname, motor->record->name, (long) is_stopped));
 #endif
 
 	/* Shown in the order of MX status bits. */
@@ -1354,7 +1366,7 @@ mxd_pmc_mcapi_get_status( MX_MOTOR *motor )
 	}
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: Motor '%s', MX motor->status = %#x",
+	MX_DEBUG(-2,("%s: Motor '%s', MX motor->status = %#lx",
 		fname, motor->record->name, motor->status));
 #endif
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,8 @@ typedef struct {
 	char response[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
 	char download_file[MXU_FILENAME_LENGTH+1];
 
-#ifdef _INC_MCAPI
+#if defined(__MCAPI_H__) || defined(_INC_MCAPI)
+
 	/* Mcapi.h has been included. */
 
 	HCTRLR controller_handle;

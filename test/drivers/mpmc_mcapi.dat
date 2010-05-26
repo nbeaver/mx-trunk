@@ -2,6 +2,11 @@ pmc_mcapi interface generic pmc_mcapi "" "" 0 "" ""
 m1 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 1
 m2 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 2
 m3 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 3
+m4 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 4
+m5 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 5
+m6 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 6
+m7 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 7
+m8 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 8
 #adc1 device analog_input pmc_mcapi_ainput "" "" 0 1 0 steps 0x0 0 "" pmc_mcapi 1
 #adc2 device analog_input pmc_mcapi_ainput "" "" 0 1 0 steps 0x0 0 "" pmc_mcapi 2
 #dac3 device analog_output pmc_mcapi_aoutput "" "" 0 1 0 steps 0x0 pmc_mcapi 3
