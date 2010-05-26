@@ -18,6 +18,13 @@
 #ifndef __I_LINKAM_T9X_H__
 #define __I_LINKAM_T9X_H__
 
+#define MXT_LINKAM_T9X_IS_T92		92
+#define MXT_LINKAM_T9X_IS_T93		93
+#define MXT_LINKAM_T9X_IS_T94		94
+#define MXT_LINKAM_T9X_IS_T95		95
+
+#define MXU_LINKAM_T9X_MODULE_NAME_LENGTH    20
+
 /*---*/
 
 typedef struct {
@@ -28,12 +35,22 @@ typedef struct {
 	unsigned char pump_byte;
 	unsigned char general_status;
 	double temperature;
+
+	long module_type;
+	char module_type_name[MXU_LINKAM_T9X_MODULE_NAME_LENGTH+1];
+
+	mx_bool_type moves_are_relative;
 } MX_LINKAM_T9X;
 
 #define MXI_LINKAM_T9X_STANDARD_FIELDS \
   {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINKAM_T9X, rs232_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "module_type_name", MXFT_STRING, NULL, \
+				1, {MXU_LINKAM_T9X_MODULE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_LINKAM_T9X, module_type_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxi_linkam_t9x_create_record_structures(
 							MX_RECORD *record );

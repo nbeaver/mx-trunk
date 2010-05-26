@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -79,6 +80,9 @@ mxi_linkam_t9x_create_record_structures( MX_RECORD *record )
 
 	linkam_t9x->record = record;
 
+	linkam_t9x->module_type = -1;
+	linkam_t9x->moves_are_relative = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -88,6 +92,8 @@ mxi_linkam_t9x_open( MX_RECORD *record )
 	static const char fname[] = "mxi_linkam_t9x_open()";
 
 	MX_LINKAM_T9X *linkam_t9x;
+	char *mtn;
+	size_t i, length;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -103,6 +109,35 @@ mxi_linkam_t9x_open( MX_RECORD *record )
 			record->name);
 	}
 
+	/* Figure out the module type. */
+
+	mtn = linkam_t9x->module_type_name;
+
+	length = strlen(mtn);
+
+	for ( i = 0; i < length; i++ ) {
+		if ( islower(mtn[i]) ) {
+			mtn[i] = toupper(mtn[i]);
+		}
+	}
+
+	if ( strcmp( mtn, "T95" ) == 0 ) {
+		linkam_t9x->module_type = MXT_LINKAM_T9X_IS_T92;
+		linkam_t9x->moves_are_relative = TRUE;
+	} else
+	if ( strcmp( mtn, "T94" ) == 0 ) {
+		linkam_t9x->module_type = MXT_LINKAM_T9X_IS_T94;
+		linkam_t9x->moves_are_relative = FALSE;
+	} else
+	if ( strcmp( mtn, "T93" ) == 0 ) {
+		linkam_t9x->module_type = MXT_LINKAM_T9X_IS_T93;
+		linkam_t9x->moves_are_relative = FALSE;
+	} else
+	if ( strcmp( mtn, "T92" ) == 0 ) {
+		linkam_t9x->module_type = MXT_LINKAM_T9X_IS_T92;
+		linkam_t9x->moves_are_relative = FALSE;
+	}
+
 	/* Throw away any unread characters. */
 
 	mx_status = mx_rs232_discard_unread_input( linkam_t9x->rs232_record,
@@ -112,11 +147,6 @@ mxi_linkam_t9x_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_msleep(500);
-
-#if 0
-	(void) mxi_linkam_t9x_command( linkam_t9x, "FOO",
-					NULL, 0, MXI_LINKAM_T9X_DEBUG );
-#endif
 
 	/* Verify that the Linkam T9x controller is present by asking
 	 * for its status.

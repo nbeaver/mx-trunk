@@ -1,5 +1,5 @@
 t95_rs232 interface rs232 tty "" "" 19200 8 N 1 N 0x0d 0x0d 5 0x0 /dev/ttyS0
-t95  interface generic linkam_t9x "" "" t95_rs232
+t95  interface generic linkam_t9x "" "" t95_rs232 t95
 temp device motor linkam_t9x_temp "" "" 0 0 -273.15 10000.0 0 -1 -1 1 0 C t95 0.1
 x    device motor linkam_t9x_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um t95 X 100.0
 y    device motor linkam_t9x_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um t95 Y 100.0

@@ -49,7 +49,7 @@ MX_MOTOR_FUNCTION_LIST mxd_linkam_t9x_temp_motor_function_list = {
 	NULL,
 	NULL,
 	mxd_linkam_t9x_temp_soft_abort,
-	NULL,
+	mxd_linkam_t9x_temp_immediate_abort,
 	NULL,
 	NULL,
 	NULL,
@@ -171,7 +171,7 @@ mxd_linkam_t9x_temp_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
-	/* We express accelerations in counts/sec**2. */
+	/* We express accelerations in degrees C/sec**2. */
 
 	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 
@@ -272,6 +272,26 @@ mxd_linkam_t9x_temp_soft_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
+mxd_linkam_t9x_temp_immediate_abort( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_linkam_t9x_temp_immediate_abort()";
+
+	MX_LINKAM_T9X_TEMPERATURE *linkam_t9x_temp = NULL;
+	MX_LINKAM_T9X *linkam_t9x = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_linkam_t9x_temp_get_pointers( motor,
+					&linkam_t9x_temp, &linkam_t9x, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_linkam_t9x_command( linkam_t9x, "E",
+					NULL, 0, MXD_LINKAM_T9X_TEMP_DEBUG );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_linkam_t9x_temp_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_linkam_t9x_temp_get_parameter()";
@@ -334,6 +354,28 @@ mxd_linkam_t9x_temp_set_parameter( MX_MOTOR *motor )
 						command, NULL, 0,
 						MXD_LINKAM_T9X_TEMP_DEBUG );
 		break;
+	case MXLV_MTR_CLOSED_LOOP:
+		if ( motor->closed_loop == 0 ) {
+			mx_status =
+				mxd_linkam_t9x_temp_immediate_abort( motor );
+		} else {
+			motor->closed_loop = 1;
+
+			/* For consistency with the behavior of other MX
+			 * motor drivers, we tell the controller to move to
+			 * the current temperature.
+			 */
+
+			mx_status =
+			    mxd_linkam_t9x_temp_get_extended_status( motor );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_motor_move_absolute( motor->record,
+						linkam_t9x->temperature, 0 );
+		}
+		break;
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;
@@ -378,6 +420,7 @@ mxd_linkam_t9x_temp_get_extended_status( MX_MOTOR *motor )
 
 	switch( linkam_t9x->status_byte ) {
 	case 0x01:
+		motor->status |= MXSF_MTR_OPEN_LOOP;
 		break;
 	case 0x10:
 	case 0x20:

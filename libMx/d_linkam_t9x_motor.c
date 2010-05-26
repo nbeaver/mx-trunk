@@ -255,7 +255,7 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 	MX_LINKAM_T9X_MOTOR *linkam_t9x_motor = NULL;
 	MX_LINKAM_T9X *linkam_t9x = NULL;
 	char command[80];
-	double current_position, absolute_destination, relative_destination;
+	double current_position, absolute_destination, new_destination;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linkam_t9x_motor_get_pointers( motor,
@@ -277,20 +277,24 @@ mxd_linkam_t9x_motor_move_absolute( MX_MOTOR *motor )
 
 	absolute_destination = motor->raw_destination.analog;
 
-	relative_destination = absolute_destination - current_position;
+	if ( linkam_t9x->moves_are_relative ) {
+		new_destination = absolute_destination - current_position;
+	} else {
+		new_destination = absolute_destination;
+	}
 
 	switch( linkam_t9x_motor->axis_name ) {
 	case 'X':
 		snprintf( command, sizeof(command),
-			"MMX%ld", mx_round(relative_destination) );
+			"MMX%ld", mx_round(new_destination) );
 		break;
 	case 'Y':
 		snprintf( command, sizeof(command),
-			"MMY%ld", mx_round(relative_destination) );
+			"MMY%ld", mx_round(new_destination) );
 		break;
 	case 'Z':
 		snprintf( command, sizeof(command),
-			"MMZ%ld", mx_round(relative_destination) );
+			"MMZ%ld", mx_round(new_destination) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -471,7 +475,7 @@ mxd_linkam_t9x_motor_get_extended_status( MX_MOTOR *motor )
 	char *string_ptr, *comma_ptr;
 	int num_items;
 	double controller_position;
-	unsigned char gs;
+	unsigned char ms;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linkam_t9x_motor_get_pointers( motor,
@@ -488,7 +492,7 @@ mxd_linkam_t9x_motor_get_extended_status( MX_MOTOR *motor )
 		return mx_status;
 
 	/* Valid responses starts with the character 'M' followed
-	 * by the value of the general status byte GS1.
+	 * by the value of the motor status byte.
 	 */
 
 	if ( response[0] != 'M' ) {
@@ -500,30 +504,30 @@ mxd_linkam_t9x_motor_get_extended_status( MX_MOTOR *motor )
 	}
 
 	/* Figure out whether or not this motor is moving by looking
-	 * at the general status byte.
+	 * at the motor status byte.
 	 */
 
-	gs = response[1];
+	ms = response[1];
 
 #if MXD_LINKAM_T9X_MOTOR_DEBUG
-	MX_DEBUG(-2,("%s: general_status = %#x", fname, gs));
+	MX_DEBUG(-2,("%s: motor status = %#x", fname, ms));
 #endif
 
 	motor->status = 0;
 
 	switch( linkam_t9x_motor->axis_name ) {
 	case 'X':
-		if ( (gs & 0x1) == 0 ) {
+		if ( (ms & 0x1) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;
 	case 'Y':
-		if ( (gs & 0x2) == 0 ) {
+		if ( (ms & 0x2) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;
 	case 'Z':
-		if ( (gs & 0x4) == 0 ) {
+		if ( (ms & 0x4) == 0 ) {
 			motor->status |= MXSF_MTR_IS_BUSY;
 		}
 		break;

@@ -32,6 +32,7 @@ MX_API mx_status_type mxd_linkam_t9x_temp_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_linkam_t9x_temp_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_temp_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_linkam_t9x_temp_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_temp_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_temp_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_linkam_t9x_temp_get_extended_status( MX_MOTOR *motor);
