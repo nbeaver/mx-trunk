@@ -562,11 +562,10 @@ motor_show_records( long record_superclass, long record_class,
 		    fprintf( output, "\n" );
 		    fflush( output );
 	    }
-	    record = record->next_record;
-
-	    if ( record == (MX_RECORD *) NULL ) {
+	    if ( record->next_record == (MX_RECORD *) NULL ) {
 		fprintf( output,
-	"ERROR: Next record pointer is NULL.  This should never happen!\n" );
+		"ERROR: Next record pointer for record '%s' is NULL.  "
+		"This should never happen!\n", record->name );
 
 		/* Break out of the do...while() loop, since we don't know
 		 * where the next record is anyway.
@@ -574,6 +573,8 @@ motor_show_records( long record_superclass, long record_class,
 
 		break;
 	    }
+
+	    record = record->next_record;
 
 	} while ( record != motor_record_list );
 
