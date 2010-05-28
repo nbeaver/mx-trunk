@@ -16,11 +16,13 @@
  *
  */
 
-#define MXD_HANDEL_MCA_DEBUG		TRUE
+#define MXD_HANDEL_MCA_DEBUG			TRUE
 
-#define MXD_HANDEL_MCA_DEBUG_STATISTICS	FALSE
+#define MXD_HANDEL_MCA_DEBUG_STATISTICS		TRUE
 
-#define MXD_HANDEL_MCA_DEBUG_TIMING	FALSE
+#define MXD_HANDEL_MCA_DEBUG_TIMING		FALSE
+
+#define MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -250,6 +252,9 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 	handel_mca->acquisition_value_to_all = 0;
 	handel_mca->apply_flag = FALSE;
 	handel_mca->apply_to_all = FALSE;
+
+	handel_mca->use_double_roi_integral_array = FALSE;
+	handel_mca->double_roi_integral_array = NULL;
 
 #if MXD_HANDEL_MCA_DEBUG
 	handel_mca->debug_flag = TRUE;
@@ -1176,6 +1181,40 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 			handel_mca->hardware_scas_are_enabled = FALSE;
 		}
+
+		/* Some Handel-supported XIA modules return ROI integrals
+		 * as an array of 64-bit doubles.  We must check for this.
+		 */
+
+		if ( strcmp( handel_mca->module_type, "xmap" ) == 0 ) {
+			handel_mca->use_double_roi_integral_array = TRUE;
+		}
+
+#if MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS
+		MX_DEBUG(-2,("%s: MCA '%s' use_double_roi_integral_array = %d",
+			fname, mca->record->name,
+			(int) handel_mca->use_double_roi_integral_array ));
+#endif
+
+		if( handel_mca->use_double_roi_integral_array == TRUE ) {
+			handel_mca->double_roi_integral_array =
+				(double *) malloc( mca->maximum_num_rois );
+
+			if ( handel_mca->double_roi_integral_array == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate a "
+				"%ld element array of 64-bit roi integrals "
+				"for MCA '%s'.",
+					mca->maximum_num_rois,
+					mca->record->name );
+			}
+		}
+
+#if MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS
+		MX_DEBUG(-2,("%s: MCA '%s' double_roi_integral_array = %p",
+			fname, mca->record->name,
+			handel_mca->double_roi_integral_array));
+#endif
 	}
 #endif /* HAVE_XIA_HANDEL */
 
@@ -1844,6 +1883,8 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 		break;
 	case MXLV_MCA_LIVE_TIME:
 	case MXLV_MCA_REAL_TIME:
+	case MXLV_MCA_INPUT_COUNT_RATE:
+	case MXLV_MCA_OUTPUT_COUNT_RATE:
 		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
 
 		HANDEL_MCA_DEBUG_STATISTICS( handel_mca );
@@ -2161,7 +2202,9 @@ mxd_handel_mca_read_statistics( MX_MCA *mca,
 
 	HANDEL_MCA_DEBUG_STATISTICS( handel_mca );
 
-	MX_DEBUG( 2,("%s: read_statistics = %d", fname, read_statistics));
+#if MXD_HANDEL_DEBUG_STATISTICS
+	MX_DEBUG(-2,("%s: read_statistics = %d", fname, read_statistics));
+#endif
 
 	if ( read_statistics ) {
 
@@ -2258,7 +2301,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 			handel_mca->statistics[ MX_HANDEL_MCA_INPUT_COUNT_RATE ]
 						= handel_mca->input_count_rate;
 
-			handel_mca->statistics[ MX_HANDEL_MCA_OUTPUT_COUNT_RATE ]
+			handel_mca->statistics[ MX_HANDEL_MCA_OUTPUT_COUNT_RATE]
 					= handel_mca->output_count_rate;
 
 			handel_mca->statistics[ MX_HANDEL_MCA_NUM_EVENTS ]

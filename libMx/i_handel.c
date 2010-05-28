@@ -2308,6 +2308,8 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 	double acquisition_value;
 	long i, handel_preset_type;
 	int xia_status;
+	void *integral_array;
+	double dbl_value;
 	mx_status_type mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
@@ -2554,9 +2556,16 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 			 * by the firmware.
 			 */
 
+			if ( handel_mca->use_double_roi_integral_array ) {
+				integral_array =
+					handel_mca->double_roi_integral_array;
+			} else {
+				integral_array = mca->roi_integral_array;
+			}
+
 			xia_status = xiaGetRunData(
 				handel_mca->detector_channel,
-				"sca", (void *) mca->roi_integral_array );
+				"sca", integral_array );
 
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error(
@@ -2566,6 +2575,22 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
 			}
+
+			if ( handel_mca->use_double_roi_integral_array ) {
+				for ( i = 0; i < mca->maximum_num_rois; i++ ) {
+					dbl_value =
+				    handel_mca->double_roi_integral_array[i];
+
+					if ( dbl_value >= LONG_MAX ) {
+						mca->roi_integral_array[i] =
+							LONG_MAX;
+					} else {
+						mca->roi_integral_array[i] =
+							mx_round( dbl_value );
+					}
+				}
+			}
+
 		} else {
 			/* Pass this on to the default code. */
 
@@ -2660,9 +2685,16 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 			 * by the firmware.
 			 */
 
+			if ( handel_mca->use_double_roi_integral_array ) {
+				integral_array =
+					handel_mca->double_roi_integral_array;
+			} else {
+				integral_array = mca->roi_integral_array;
+			}
+
 			xia_status = xiaGetRunData(
 				handel_mca->detector_channel,
-				"sca", (void *) mca->roi_integral_array );
+				"sca", integral_array );
 
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error(
@@ -2671,6 +2703,21 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 			"from MCA '%s'.  Error code = %d, '%s'",
 					mca->record->name, xia_status,
 					mxi_handel_strerror( xia_status ) );
+			}
+
+			if ( handel_mca->use_double_roi_integral_array ) {
+				for ( i = 0; i < mca->maximum_num_rois; i++ ) {
+					dbl_value =
+				    handel_mca->double_roi_integral_array[i];
+
+					if ( dbl_value >= LONG_MAX ) {
+						mca->roi_integral_array[i] =
+							LONG_MAX;
+					} else {
+						mca->roi_integral_array[i] =
+							mx_round( dbl_value );
+					}
+				}
 			}
 
 			mca->roi_integral =
@@ -2717,6 +2764,40 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 #if MXI_HANDEL_DEBUG
 		MX_DEBUG(-2,("%s: mca->live_time = %g",
 			fname, mca->live_time));
+#endif
+		break;
+
+	case MXLV_MCA_INPUT_COUNT_RATE:
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
+		    "input_count_rate", (void *) &(mca->input_count_rate) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot read the value '%s' from MCA '%s'.  "
+			"Error code = %d, '%s'", acquisition_value_name,
+					mca->record->name, xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->input_count_rate = %g",
+			fname, mca->input_count_rate));
+#endif
+		break;
+
+	case MXLV_MCA_OUTPUT_COUNT_RATE:
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
+		    "output_count_rate", (void *) &(mca->output_count_rate) );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot read the value '%s' from MCA '%s'.  "
+			"Error code = %d, '%s'", acquisition_value_name,
+					mca->record->name, xia_status,
+					mxi_handel_strerror( xia_status ) );
+		}
+#if MXI_HANDEL_DEBUG
+		MX_DEBUG(-2,("%s: mca->output_count_rate = %g",
+			fname, mca->output_count_rate));
 #endif
 		break;
 

@@ -210,7 +210,7 @@
  * for their series of motor controllers.
  */
 
-#define HAVE_PMC_MCAPI			1
+#define HAVE_PMC_MCAPI			0
 
 /*****************************************************************************
  *
@@ -231,7 +231,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			0
+#define HAVE_XIA_HANDEL			1
 
 /*****************************************************************************
  *

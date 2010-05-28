@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -179,6 +179,9 @@ typedef struct {
 	unsigned long module_number;
 
 	char *module_type;
+
+	mx_bool_type use_double_roi_integral_array;
+	double *double_roi_integral_array;
 
 } MX_HANDEL_MCA;
 
