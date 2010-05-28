@@ -1484,7 +1484,7 @@ mxi_pmac_tcp_command( MX_PMAC *pmac, char *command,
 		"command buffer pointer passed was NULL." );
 	}
 
-	if ( response == (char *) command ) {
+	if ( response == (char *) NULL ) {
 		/* If no response is expected from the PMAC, then send
 		 * the command using VR_PMAC_SENDLINE.
 		 */
