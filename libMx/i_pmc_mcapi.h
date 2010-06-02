@@ -101,10 +101,6 @@ MX_API mx_status_type mxi_pmc_mcapi_command(
 		char *response, size_t max_response_length,
 		int debug_flag );
 
-MX_API mx_status_type mxi_pmc_mcapi_download_file(
-		MX_PMC_MCAPI *pmc_mcapi,
-		char *filename );
-
 MX_API void mxi_pmc_mcapi_translate_error(
 		long mcapi_error_code,
 		char *buffer,

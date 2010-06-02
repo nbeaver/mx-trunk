@@ -25,28 +25,15 @@
 
 #if HAVE_PMC_MCAPI
 
-#if defined(OS_LINUX)
-  #include "mcapi.h"
-
-  #define HAVE_MCDLG	FALSE
-
-#elif defined(OS_WIN32)
+#if defined(OS_WIN32)
   #include "windows.h"
 
-  #define HAVE_MCDLG	TRUE
-
-  /* Vendor include files */
-
   #ifndef _WIN32
-  #define _WIN32
+    #define _WIN32
   #endif
-
-  #include "Mcapi.h"
-  #include "MCDlg.h"
-#else
-  #error The MX PMC MCAPI drivers have not been configured for this platform.
 #endif
 
+#include "mcapi.h"
 
 /* MX include files */
 
@@ -83,9 +70,19 @@ long mxi_pmc_mcapi_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_pmc_mcapi_rfield_def_ptr
 			= &mxi_pmc_mcapi_record_field_defaults[0];
 
-static mx_status_type mxi_pmc_mcapi_process_function( void *record_ptr,
-						void *record_field_ptr,
-						int operation );
+static mx_status_type
+mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi );
+
+static mx_status_type
+mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename );
+
+static mx_status_type
+mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename );
+
+static mx_status_type
+mxi_pmc_mcapi_process_function( void *record_ptr,
+				void *record_field_ptr,
+				int operation );
 
 /* A private function for the use of the driver. */
 
@@ -171,29 +168,12 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if HAVE_MCDLG
-	/* Initialize the MCDLG functions. */
+	/* Initialize the dialog functions. */
 
-	mcapi_status = MCDLG_Initialize();
+	mx_status = mxi_pmc_mcapi_initialize_dialog_functions( pmc_mcapi );
 
-	if ( mcapi_status != MCERR_NOERROR ) {
-		mxi_pmc_mcapi_translate_error( mcapi_status,
-				error_buffer, sizeof(error_buffer) );
-
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Error initializing the MCDLG library for "
-		"MCAPI controller %d of record '%s'.  "
-		"MCAPI error message = '%s'",
-			pmc_mcapi->controller_id,
-			record->name, error_buffer );
-	}
-
-#if MXI_PMC_MCAPI_DEBUG
-	MX_DEBUG(-2,("%s: Record '%s', MCDLG_Initialize() succeeded.",
-		fname, record->name));
-#endif
-
-#endif /* HAVE_MCDLG */
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Open a connection to the controller. */
 
@@ -230,30 +210,16 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 		fname, record->name, pmc_mcapi->savefile_name));
 #endif
 
-#if HAVE_MCDLG
-	mcapi_status = MCDLG_RestoreAxis( pmc_mcapi->controller_handle,
-						MC_ALL_AXES,
-						MCDLG_CHECKACTIVE,
+	mx_status = mxi_pmc_mcapi_restore_axes( pmc_mcapi,
 						pmc_mcapi->savefile_name );
 
-	if ( mcapi_status != MCERR_NOERROR ) {
-		mxi_pmc_mcapi_translate_error( mcapi_status,
-				error_buffer, sizeof(error_buffer) );
-
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Error restoring the motor configuration for "
-		"MCAPI controller %d of record '%s'.  "
-		"MCAPI error message = '%s'",
-			pmc_mcapi->controller_id,
-			record->name, error_buffer );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXI_PMC_MCAPI_DEBUG
 	MX_DEBUG(-2,("%s: Record '%s', configuration of all axes restored.",
 		fname, record->name));
 #endif
-
-#endif /* HAVE_MCDLG */
 
 	/* Download the startup file. */
 
@@ -646,43 +612,6 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 	}
 }
 
-MX_EXPORT mx_status_type
-mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
-{
-	static const char fname[] = "mxi_pmc_mcapi_download_file()";
-
-	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PMC_MCAPI pointer passed was NULL." );
-	}
-
-#if ( HAVE_MCDLG == FALSE )
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"File download is only supported under Windows." );
-
-#else /* HAVE_MCDLG */
-	{
-		long download_status;
-		char error_buffer[100];
-
-		download_status = MCDLG_DownloadFile( NULL,
-				pmc_mcapi->controller_handle, 0, filename );
-
-		if ( download_status != MCERR_NOERROR ) {
-			mxi_pmc_mcapi_translate_error( download_status,
-				error_buffer, sizeof(error_buffer) );
-
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"An error occurred while download file '%s' to PMC "
-			"MCAPI controller '%s'.  MCAPI error message = '%s'",
-			    filename, pmc_mcapi->record->name, error_buffer );
-		}
-	}
-#endif /* HAVE_MCDLG */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 MX_EXPORT void
 mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 				char *buffer,
@@ -709,6 +638,189 @@ mxi_pmc_mcapi_translate_error( long mcapi_error_code,
 		}
 	}
 }
+
+/****************** Windows ******************/
+
+#if defined(OS_WIN32)
+
+/* On Windows, we can use the MCDLG_ functions. */
+
+#include "MCDlg.h"
+
+static mx_status_type
+mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi )
+{
+	static const char fname[] =
+		"mxi_pmc_mcapi_initialize_dialog_functions()";
+
+	short mcdlg_status;
+	char error_buffer[100];
+	
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	/* Initialize the MCDLG functions. */
+
+	mcdlg_status = MCDLG_Initialize();
+
+	if ( mcdlg_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcdlg_status,
+				error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Error initializing the MCDLG library for "
+		"MCAPI controller %d of record '%s'.  "
+		"MCAPI error message = '%s'",
+			pmc_mcapi->controller_id,
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+#if MXI_PMC_MCAPI_DEBUG
+	MX_DEBUG(-2,("%s: Record '%s', MCDLG_Initialize() succeeded.",
+		fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_restore_axes()";
+
+	short mcdlg_status;
+	char error_buffer[100];
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	mcdlg_status = MCDLG_RestoreAxis( pmc_mcapi->controller_handle,
+						MC_ALL_AXES,
+						MCDLG_CHECKACTIVE,
+						pmc_mcapi->savefile_name );
+
+	if ( mcdlg_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcdlg_status,
+				error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Error restoring the motor configuration for "
+		"MCAPI controller %d of record '%s'.  "
+		"MCAPI error message = '%s'",
+			pmc_mcapi->controller_id,
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_download_file()";
+
+	long download_status;
+	char error_buffer[100];
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	download_status = MCDLG_DownloadFile( NULL,
+				pmc_mcapi->controller_handle, 0, filename );
+
+	if ( download_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( download_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"An error occurred while download file '%s' to PMC "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+		    filename, pmc_mcapi->record->name, error_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/****************** Linux ******************/
+
+#elif defined(OS_LINUX)
+
+/* The MCDLG functions are not available on Linux, so we implement
+ * replacements for them.  Since I do not know the format of the
+ * files read and written by the MCDLG functions, the file formats
+ * used here are not compatible with MCDLG-created files.
+ */
+
+static mx_status_type
+mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi )
+{
+	/* On Linux, we do not have anything to do here. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_restore_axes()";
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	mx_warning( "Restoring axes is not yet implemented on Linux." );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_download_file()";
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"File downloading is not yet implemented on Linux." );
+}
+
+/****************** Other platforms ******************/
+
+#else /* Not Windows or Linux */
+
+#error Support for platforms other than Windows or Linux has not yet been implemented.
+
+#endif /* MCDLG_ code. */
 
 #endif /* HAVE_PMC_MCAPI */
 
