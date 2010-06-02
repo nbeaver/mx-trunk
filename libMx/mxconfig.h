@@ -175,7 +175,7 @@
  * ftp://ftp.esrf.fr/pub/cs/ess/linux/drivers/oms/oms-2.0.tgz
  */
 
-#define HAVE_JORWAY_CAMAC		0
+#define HAVE_VME58_ESRF			0
 
 /*****************************************************************************
  *
@@ -184,7 +184,15 @@
  *
  */
 
-#define HAVE_VME58_ESRF			0
+#define HAVE_JORWAY_CAMAC		0
+
+/*****************************************************************************
+ *
+ * Linux and Win32 drivers for the Precision MicroControl Motion Control API
+ * (MCAPI) for their series of motor controllers.
+ */
+
+#define HAVE_PMC_MCAPI			1
 
 /*****************************************************************************
  *
@@ -203,14 +211,6 @@
  */
 
 #define HAVE_U500			0
-
-/*****************************************************************************
- *
- * Win32 driver for the Precision MicroControl Motion Control API (MCAPI)
- * for their series of motor controllers.
- */
-
-#define HAVE_PMC_MCAPI			0
 
 /*****************************************************************************
  *
