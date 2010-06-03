@@ -35,14 +35,15 @@ typedef struct {
 
 	/* Mcapi.h has been included. */
 
-	HCTRLR controller_handle;
+	HCTRLR binary_handle;
+	HCTRLR ascii_handle;
 #endif
 } MX_PMC_MCAPI;
 
 
-#define MXLV_PMC_MCAPI_COMMAND			7001
-#define MXLV_PMC_MCAPI_RESPONSE			7002
-#define MXLV_PMC_MCAPI_COMMAND_WITH_RESPONSE	7003
+#define MXLV_PMC_MCCL_COMMAND			7001
+#define MXLV_PMC_MCCL_RESPONSE			7002
+#define MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE	7003
 
 #define MXLV_PMC_MCAPI_DOWNLOAD_FILE		7010
 
@@ -59,17 +60,17 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, startup_file_name), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_PMC_MCAPI_COMMAND, -1, "command", MXFT_STRING,\
+  {MXLV_PMC_MCCL_COMMAND, -1, "command", MXFT_STRING,\
 				NULL, 1, {MXU_PMC_MCAPI_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, command), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_PMC_MCAPI_RESPONSE, -1, "response", MXFT_STRING, \
+  {MXLV_PMC_MCCL_RESPONSE, -1, "response", MXFT_STRING, \
 				NULL, 1, {MXU_PMC_MCAPI_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, response), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_PMC_MCAPI_COMMAND_WITH_RESPONSE, -1, \
+  {MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE, -1, \
   			"command_with_response", MXFT_STRING,\
 			NULL, 1, {MXU_PMC_MCAPI_MAX_COMMAND_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, command), \
@@ -81,6 +82,8 @@ typedef struct {
 	{sizeof(char)}, NULL, 0}
 
 MX_API mx_status_type mxi_pmc_mcapi_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxi_pmc_mcapi_print_structure( FILE *file,
 							MX_RECORD *record );
 MX_API mx_status_type mxi_pmc_mcapi_open( MX_RECORD *record );
 MX_API mx_status_type mxi_pmc_mcapi_close( MX_RECORD *record );
@@ -95,7 +98,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_pmc_mcapi_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
-MX_API mx_status_type mxi_pmc_mcapi_command(
+MX_API mx_status_type mxi_pmc_mccl_command(
 		MX_PMC_MCAPI *pmc_mcapi,
 		char *command,
 		char *response, size_t max_response_length,

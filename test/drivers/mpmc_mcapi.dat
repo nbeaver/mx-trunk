@@ -1,4 +1,4 @@
-pmc_mcapi interface generic pmc_mcapi "" "" 0 "" ""
+pmc_mcapi interface generic pmc_mcapi "" "" 0 savefile.dat ""
 m1 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 1
 m2 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 2
 m3 device motor pmc_mcapi_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.01 0 mm pmc_mcapi 3

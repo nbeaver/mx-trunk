@@ -287,7 +287,7 @@ mxd_pmc_mcapi_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcapi_status = MCGetAnalogEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCGetAnalogEx( pmc_mcapi->binary_handle,
 					pmc_mcapi_ainput->channel_number,
 					&value );
 
@@ -370,7 +370,7 @@ mxd_pmc_mcapi_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcapi_status = MCGetAnalogEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCGetAnalogEx( pmc_mcapi->binary_handle,
 					pmc_mcapi_aoutput->channel_number,
 					&value );
 
@@ -410,7 +410,7 @@ mxd_pmc_mcapi_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	value = aoutput->raw_value.long_value;
 
-	mcapi_status = MCSetAnalogEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCSetAnalogEx( pmc_mcapi->binary_handle,
 					pmc_mcapi_aoutput->channel_number,
 					value );
 

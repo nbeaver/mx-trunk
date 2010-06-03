@@ -340,7 +340,7 @@ mxd_pmc_mcapi_din_open( MX_RECORD *record )
 
 	mcapi_flags |= MC_DIO_INPUT;
 
-	configure_status = MCConfigureDigitalIO( pmc_mcapi->controller_handle,
+	configure_status = MCConfigureDigitalIO( pmc_mcapi->binary_handle,
 					pmc_mcapi_dinput->channel_number,
 					mcapi_flags );
 
@@ -368,7 +368,7 @@ mxd_pmc_mcapi_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	dinput->value = MCGetDigitalIO( pmc_mcapi->controller_handle,
+	dinput->value = MCGetDigitalIO( pmc_mcapi->binary_handle,
 					pmc_mcapi_dinput->channel_number );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -458,7 +458,7 @@ mxd_pmc_mcapi_dout_open( MX_RECORD *record )
 
 	mcapi_flags |= MC_DIO_OUTPUT;
 
-	configure_status = MCConfigureDigitalIO( pmc_mcapi->controller_handle,
+	configure_status = MCConfigureDigitalIO( pmc_mcapi->binary_handle,
 					pmc_mcapi_doutput->channel_number,
 					mcapi_flags );
 
@@ -486,7 +486,7 @@ mxd_pmc_mcapi_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	doutput->value = MCGetDigitalIO( pmc_mcapi->controller_handle,
+	doutput->value = MCGetDigitalIO( pmc_mcapi->binary_handle,
 					pmc_mcapi_doutput->channel_number );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -511,7 +511,7 @@ mxd_pmc_mcapi_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	MCEnableDigitalIO( pmc_mcapi->controller_handle,
+	MCEnableDigitalIO( pmc_mcapi->binary_handle,
 				pmc_mcapi_doutput->channel_number,
 				(short) doutput->value );
 

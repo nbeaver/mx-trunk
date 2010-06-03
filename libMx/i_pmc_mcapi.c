@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mxconfig.h"
 
@@ -43,12 +44,14 @@
 #include "mx_rs232.h"
 #include "i_pmc_mcapi.h"
 
+#define MXU_PMC_MCAPI_BUFFER_LENGTH	200
+
 MX_RECORD_FUNCTION_LIST mxi_pmc_mcapi_record_function_list = {
 	NULL,
 	mxi_pmc_mcapi_create_record_structures,
 	NULL,
 	NULL,
-	NULL,
+	mxi_pmc_mcapi_print_structure,
 	NULL,
 	NULL,
 	mxi_pmc_mcapi_open,
@@ -146,6 +149,137 @@ mxi_pmc_mcapi_create_record_structures( MX_RECORD *record )
 
 	pmc_mcapi->record = record;
 
+	pmc_mcapi->binary_handle = -1;
+	pmc_mcapi->ascii_handle  = -1;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
+  {
+	static const char fname[] = "mxi_pmc_mcapi_print_structure()";
+
+	MCPARAMEX controller;
+	short mcapi_status;
+
+	MX_PMC_MCAPI *pmc_mcapi;
+	char error_buffer[100];
+	mx_status_type mx_status;
+
+	mx_status = mxi_pmc_mcapi_get_pointers( record,
+					&pmc_mcapi, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	controller.cbSize = sizeof(MCPARAMEX);
+
+	mcapi_status = MCGetConfigurationEx( pmc_mcapi->binary_handle,
+						&controller );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( (long) mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Attempting to read the controller configuration for "
+		"PMC MCAPI controller '%s' failed.  "
+		"MCAPI error message = '%s'",
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	fprintf( file, "Parameters for PMC MCAPI controller '%s'.\n\n",
+		pmc_mcapi->record->name );
+
+	fprintf( file, " MX parameters:\n" );
+
+	if ( pmc_mcapi->controller_id == controller.ID ) {
+		fprintf( file, "  controller_id     = %d\n",
+					pmc_mcapi->controller_id );
+	} else {
+		fprintf( file,
+			"  ERROR: record controller_id %d does not equal "
+			"MCPARAMEX controller ID %d.  "
+			"This should never happen.\n",
+				pmc_mcapi->controller_id, controller.ID );
+	}
+
+	fprintf( file, "  savefile_name     = '%s'\n",
+					pmc_mcapi->savefile_name );
+	fprintf( file, "  startup_file_name = '%s'\n\n",
+					pmc_mcapi->startup_file_name );
+
+	fprintf( file, " MCAPI parameters:\n" );
+
+	fprintf( file, "  ControllerType    = %d\n",
+					controller.ControllerType );
+
+	fprintf( file, "  NumberAxes        = %d\n",
+					controller.NumberAxes );
+
+	fprintf( file, "  MaximumAxes       = %d\n",
+					controller.MaximumAxes );
+
+	fprintf( file, "  Precision         = %d\n",
+					controller.Precision );
+
+	fprintf( file, "  DigitalIO         = %d\n",
+					controller.DigitalIO );
+
+	fprintf( file, "  AnalogInput       = %d\n",
+					controller.AnalogInput );
+
+	fprintf( file, "  AnalogOutput      = %d\n",
+					controller.AnalogOutput );
+
+	fprintf( file, "  PointStorage      = %d\n",
+					controller.PointStorage );
+
+	if ( controller.CanDoScaling ) {
+		fprintf( file, "  CanDoScaling      is supported\n" );
+	} else {
+		fprintf( file, "  CanDoScaling      is not supported\n" );
+	}
+
+	if ( controller.CanDoContouring ) {
+		fprintf( file, "  CanDoContouring   is supported\n" );
+	} else {
+		fprintf( file, "  CanDoContouring   is not supported\n" );
+	}
+
+	if ( controller.CanChangeProfile ) {
+		fprintf( file, "  CanChangeProfile  is supported\n" );
+	} else {
+		fprintf( file, "  CanChangeProfile  is not supported\n" );
+	}
+
+	if ( controller.CanChangeRates ) {
+		fprintf( file, "  CanChangeRates    is supported\n" );
+	} else {
+		fprintf( file, "  CanChangeRates    is not supported\n" );
+	}
+
+	if ( controller.SoftLimits ) {
+		fprintf( file, "  SoftLimits        are supported\n" );
+	} else {
+		fprintf( file, "  SoftLimits        are not supported\n" );
+	}
+
+	if ( controller.MultiTasking ) {
+		fprintf( file, "  MultiTasking      is supported\n" );
+	} else {
+		fprintf( file, "  MultiTasking      is not supported\n" );
+	}
+
+	if ( controller.AmpFault ) {
+		fprintf( file, "  AmpFault input    is supported\n" );
+	} else {
+		fprintf( file, "  AmpFault input    is not supported\n" );
+	}
+
+	fprintf( file, "\n" );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -175,51 +309,79 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Open a connection to the controller. */
-
 #if MXI_PMC_MCAPI_DEBUG
 	MX_DEBUG(-2,("%s: Record '%s', controller_id = %d",
 		fname, record->name, pmc_mcapi->controller_id));
 #endif
 
-	pmc_mcapi->controller_handle =
+	/* Open a binary handle for the controller. */
+
+	pmc_mcapi->binary_handle =
 		MCOpen( pmc_mcapi->controller_id, MC_OPEN_BINARY, NULL );
 
 #if MXI_PMC_MCAPI_DEBUG
-	MX_DEBUG(-2,("%s: Record '%s', pmc_mcapi->controller_handle = %hd",
-		fname, record->name, pmc_mcapi->controller_handle));
+	MX_DEBUG(-2,("%s: Record '%s', pmc_mcapi->binary_handle = %hd",
+		fname, record->name, pmc_mcapi->binary_handle));
 #endif
 
-	if ( pmc_mcapi->controller_handle <= 0 ) {
+	if ( pmc_mcapi->binary_handle <= 0 ) {
 
 		mxi_pmc_mcapi_translate_error(
-				(long) -(pmc_mcapi->controller_handle),
+				(long) -(pmc_mcapi->binary_handle),
 				error_buffer, sizeof(error_buffer) );
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Error opening a connection to MCAPI controller number %d "
-		"of record '%s'.  MCAPI error message = '%s'",
+		"Error opening a binary connection to MCAPI controller "
+		"number %d of record '%s'.  MCAPI error message = '%s'",
+			pmc_mcapi->controller_id, record->name, error_buffer );
+	}
+
+	/* Open an ASCII handle for the controller.  This handle
+	 * is used for sending MCCL commands to the controller.
+	 */
+
+	pmc_mcapi->ascii_handle =
+		MCOpen( pmc_mcapi->controller_id, MC_OPEN_ASCII, NULL );
+
+#if MXI_PMC_MCAPI_DEBUG
+	MX_DEBUG(-2,("%s: Record '%s', pmc_mcapi->ascii_handle = %hd",
+		fname, record->name, pmc_mcapi->ascii_handle));
+#endif
+
+	if ( pmc_mcapi->ascii_handle <= 0 ) {
+
+		mxi_pmc_mcapi_translate_error(
+				(long) -(pmc_mcapi->ascii_handle),
+				error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error opening an ASCII connection to MCAPI controller "
+		"number %d of record '%s'.  MCAPI error message = '%s'",
 			pmc_mcapi->controller_id, record->name, error_buffer );
 	}
 
 	/* Restore the controller configuration. */
 
+	if ( strlen( pmc_mcapi->savefile_name ) > 0 ) {
+
 #if MXI_PMC_MCAPI_DEBUG
-	MX_DEBUG(-2,
-	("%s: Record '%s', restoring configuration from savefile '%s'.",
-		fname, record->name, pmc_mcapi->savefile_name));
+		MX_DEBUG(-2,
+		("%s: Record '%s', restoring configuration from savefile '%s'.",
+			fname, record->name, pmc_mcapi->savefile_name));
 #endif
 
-	mx_status = mxi_pmc_mcapi_restore_axes( pmc_mcapi,
+		mx_status = mxi_pmc_mcapi_restore_axes( pmc_mcapi,
 						pmc_mcapi->savefile_name );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MXI_PMC_MCAPI_DEBUG
-	MX_DEBUG(-2,("%s: Record '%s', configuration of all axes restored.",
-		fname, record->name));
+		MX_DEBUG(-2,
+		("%s: Record '%s', configuration of all axes restored.",
+			fname, record->name));
 #endif
+	}
 
 	/* Download the startup file. */
 
@@ -262,7 +424,7 @@ mxi_pmc_mcapi_close( MX_RECORD *record )
 		fname, record->name, pmc_mcapi->controller_id));
 #endif
 
-	mcapi_status = MCClose( pmc_mcapi->controller_handle );
+	mcapi_status = MCClose( pmc_mcapi->binary_handle );
 
 	if ( mcapi_status != MCERR_NOERROR ) {
 		mxi_pmc_mcapi_translate_error( (long) mcapi_status,
@@ -278,7 +440,7 @@ mxi_pmc_mcapi_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Record '%s' closed.", fname, record->name));
 #endif
 
-	pmc_mcapi->controller_handle = -1;
+	pmc_mcapi->binary_handle = -1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -299,13 +461,13 @@ mxi_pmc_mcapi_resynchronize( MX_RECORD *record )
 
 	/* Reset the connection to the controller. */
 
-	MCReset( pmc_mcapi->controller_handle, MC_ALL_AXES );
+	MCReset( pmc_mcapi->binary_handle, MC_ALL_AXES );
 
 #if MXI_PMC_MCAPI_DEBUG
 	MX_DEBUG(-2,
 	("%s: Record '%s', reset sent to controller id = %d, handle = %d",
 		fname, record->name, pmc_mcapi->controller_id,
-		pmc_mcapi->controller_handle));
+		pmc_mcapi->binary_handle));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -331,9 +493,9 @@ mxi_pmc_mcapi_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_PMC_MCAPI_COMMAND:
-		case MXLV_PMC_MCAPI_RESPONSE:
-		case MXLV_PMC_MCAPI_COMMAND_WITH_RESPONSE:
+		case MXLV_PMC_MCCL_COMMAND:
+		case MXLV_PMC_MCCL_RESPONSE:
+		case MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE:
 		case MXLV_PMC_MCAPI_DOWNLOAD_FILE:
 			record_field->process_function
 					    = mxi_pmc_mcapi_process_function;
@@ -375,7 +537,7 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_PMC_MCAPI_RESPONSE:
+		case MXLV_PMC_MCCL_RESPONSE:
 			/* Nothing to do since the necessary string is
 			 * already stored in the 'response' field.
 			 */
@@ -390,15 +552,15 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_PMC_MCAPI_COMMAND:
-			mx_status = mxi_pmc_mcapi_command(
+		case MXLV_PMC_MCCL_COMMAND:
+			mx_status = mxi_pmc_mccl_command(
 				pmc_mcapi,
 				pmc_mcapi->command,
 				NULL, 0, MXI_PMC_MCAPI_DEBUG );
 
 			break;
-		case MXLV_PMC_MCAPI_COMMAND_WITH_RESPONSE:
-			mx_status = mxi_pmc_mcapi_command(
+		case MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE:
+			mx_status = mxi_pmc_mccl_command(
 				pmc_mcapi,
 				pmc_mcapi->command,
 				pmc_mcapi->response,
@@ -435,25 +597,22 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 #endif
 
 MX_EXPORT mx_status_type
-mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
+mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 		char *command,
 		char *response, size_t max_response_length,
 		int debug_flag )
 {
-	static const char fname[] = "mxi_pmc_mcapi_command()";
+	static const char fname[] = "mxi_pmc_mccl_command()";
 
 	char command_buffer[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
 	char response_buffer[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
-	char error_buffer[100];
-	size_t command_length;
+	size_t command_length, response_length;
 	short num_chars_written, num_chars_read;
 	mx_status_type mx_status, mx_status2;
 
 #if MXI_PMC_MCAPI_DEBUG_TIMING	
 	MX_HRT_RS232_TIMING command_timing, response_timing;
 #endif
-
-	MX_DEBUG(-2,("%s invoked.", fname));
 
 	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -489,27 +648,13 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	do {
-		/* Switch to ASCII mode for sending the command. */
+		/* See if ASCII mode is available. */
 
-		pmc_mcapi->controller_handle =
-		    MCOpen( pmc_mcapi->controller_id, MC_OPEN_ASCII, NULL );
-
-		MX_DEBUG(-2,("%s: pmc_mcapi->controller_handle = %ld",
-			fname, (long) pmc_mcapi->controller_handle));
-
-		if ( pmc_mcapi->controller_handle <= 0 ) {
-			mxi_pmc_mcapi_translate_error(
-				(long) -(pmc_mcapi->controller_handle),
-				error_buffer, sizeof(error_buffer) );
-
-			mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"Error switching the connection to ASCII mode "
-				"for MCAPI controller number %d of record '%s'."
-				"  MCAPI error message = '%s'",
-				pmc_mcapi->controller_id,
-				pmc_mcapi->record->name, error_buffer );
-
-			break;	/* Exit the do...while(0) loop. */
+		if ( pmc_mcapi->ascii_handle < 0 ) {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"The ASCII MCCL interface is not available "
+			"for MCAPI controller '%s'.",
+				pmc_mcapi->record->name );
 		}
 
 		/* Send the command. */
@@ -524,7 +669,7 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 						2 + strlen(command) );
 #endif
 
-		num_chars_written = pmcputs( pmc_mcapi->controller_handle,
+		num_chars_written = pmcputs( pmc_mcapi->ascii_handle,
 						command_buffer );
 
 #if MXI_PMC_MCAPI_DEBUG_TIMING
@@ -552,7 +697,7 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 		MX_HRT_RS232_START_RESPONSE( response_timing, NULL );
 #endif
 
-		num_chars_read = pmcgets( pmc_mcapi->controller_handle,
+		num_chars_read = pmcgets( pmc_mcapi->ascii_handle,
 				response_buffer, sizeof(response_buffer) );
 
 #if MXI_PMC_MCAPI_DEBUG_TIMING
@@ -567,34 +712,24 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 
 	} while(0);	/* End of the do...while(0) loop. */
 
-	/* Switch back to binary mode. */
-
-	pmc_mcapi->controller_handle =
-		    MCOpen( pmc_mcapi->controller_id, MC_OPEN_BINARY, NULL );
-
-	MX_DEBUG(-2,("%s: pmc_mcapi->controller_handle = %ld",
-			fname, (long) pmc_mcapi->controller_handle));
-
-	if ( pmc_mcapi->controller_handle <= 0 ) {
-		mxi_pmc_mcapi_translate_error(
-			(long) -(pmc_mcapi->controller_handle),
-			error_buffer, sizeof(error_buffer) );
-
-		mx_status2 = mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Error switching the connection back to binary mode "
-			"for MCAPI controller number %d of record '%s'."
-			"  MCAPI error message = '%s'",
-			pmc_mcapi->controller_id,
-			pmc_mcapi->record->name, error_buffer );
-	}
-
-	/* If the caller wanted a response, extract it from the
-	 * response buffer.
-	 */
+	/* If the caller wanted a response, copy it from the response buffer. */
 
 	if ( response != (char *) NULL ) {
 
+		/* Copy the response. */
+
 		strlcpy( response, response_buffer, max_response_length );
+
+		/* Eliminate trailing CR LF characters if present. */
+
+		response_length = strlen( response );
+
+		if ( response[response_length-1] == '\n' ) {
+			response[response_length-1] = '\0';
+			if ( response[response_length-2] == '\r' ) {
+				response[response_length-2] = '\0';
+			}
+		}
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",
@@ -602,8 +737,6 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 					pmc_mcapi->record->name));
 		}
 	}
-
-	MX_DEBUG(-2,("%s complete.", fname));
 
 	if ( mx_status2.code != MXE_SUCCESS ) {
 		return mx_status2;
@@ -762,9 +895,11 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 #elif defined(OS_LINUX)
 
 /* The MCDLG functions are not available on Linux, so we implement
- * replacements for them.  Since I do not know the format of the
- * files read and written by the MCDLG functions, the file formats
- * used here are not compatible with MCDLG-created files.
+ * replacements for them.  Since I do not know the format of the files
+ * read and written by the MCDLG functions, I use a save file format
+ * that merely consists of the MCCL commands necessary to reprogram
+ * the controller state.  Thus, mxi_pmc_mcapi_restore_axes() becomes
+ * merely a call to mxi_pmc_mcapi_download_file().
  */
 
 static mx_status_type
@@ -780,6 +915,8 @@ mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 {
 	static const char fname[] = "mxi_pmc_mcapi_restore_axes()";
 
+	mx_status_type mx_status;
+
 	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PMC_MCAPI pointer passed was NULL." );
@@ -790,9 +927,17 @@ mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 		"The filename pointer passed was NULL." );
 	}
 
-	mx_warning( "Restoring axes is not yet implemented on Linux." );
+	if ( strlen(filename) == 0 ) {
+		mx_warning("The savefile name for PMC MCAPI controller '%s' "
+			"is empty, so nothing will be restored to the "
+			"controller.", pmc_mcapi->record->name );
 
-	return MX_SUCCESSFUL_RESULT;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mxi_pmc_mcapi_download_file( pmc_mcapi, filename );
+
+	return mx_status;
 }
 
 static mx_status_type
@@ -800,6 +945,13 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 {
 	static const char fname[] = "mxi_pmc_mcapi_download_file()";
 
+	FILE *download_file;
+	int saved_errno;
+	char buffer[MXU_PMC_MCAPI_BUFFER_LENGTH+1];
+	char response[80];
+	size_t length;
+	mx_status_type mx_status;
+
 	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PMC_MCAPI pointer passed was NULL." );
@@ -810,8 +962,77 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 		"The filename pointer passed was NULL." );
 	}
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"File downloading is not yet implemented on Linux." );
+	if ( strlen(filename) == 0 ) {
+		mx_warning("The requested filename for PMC MCAPI "
+			"controller '%s' is empty, so nothing will be "
+			"downloaded to the controller.",
+				pmc_mcapi->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	download_file = fopen( filename, "r" );
+
+	if ( download_file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open file '%s' for downloading to "
+		"PMC MCAPI controller '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			filename, pmc_mcapi->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	while(1) {
+		fgets( buffer, sizeof(buffer), download_file );
+
+		if ( feof(download_file) ) {
+			fclose(download_file);
+			break;		/* Exit the while() loop. */
+		}
+		if ( ferror(download_file) ) {
+			saved_errno = errno;
+			fclose(download_file);
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading from download "
+			"file '%s' for PMC MCAPI controller '%s'.  "
+			"Errno = %d, error message = '%s'",
+				filename, pmc_mcapi->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		/* Ignore empty lines read from the download file. */
+
+		length = strlen(buffer);
+
+		if ( length == 0 ) {
+			continue;	/* Go back to read the next line. */
+		}
+
+		/* If present, remove a trailing newline character. */
+
+		if ( buffer[length-1] == '\n' ) {
+			buffer[length-1] = '\0';
+		}
+
+		/* Now we just send the line to the controller as
+		 * an MCCL command.
+		 */
+
+		mx_status = mxi_pmc_mccl_command( pmc_mcapi, buffer,
+						response, sizeof(response),
+						MXI_PMC_MCAPI_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose(download_file);
+
+			return mx_status;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /****************** Other platforms ******************/

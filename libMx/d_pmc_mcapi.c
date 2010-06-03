@@ -345,7 +345,7 @@ mxd_pmc_mcapi_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MCReset( pmc_mcapi->controller_handle, pmc_mcapi_motor->axis_number );
+	MCReset( pmc_mcapi->binary_handle, pmc_mcapi_motor->axis_number );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -379,7 +379,7 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 		fname, motor->record->name));
 #endif
 
-	mcapi_status = MCBlockBegin( pmc_mcapi->controller_handle,
+	mcapi_status = MCBlockBegin( pmc_mcapi->binary_handle,
 					MC_BLOCK_COMPOUND, 0 );
 
 	if ( mcapi_status != MCERR_NOERROR ) {
@@ -401,7 +401,7 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 		fname, motor->record->name));
 #endif
 
-	MCSetOperatingMode( pmc_mcapi->controller_handle,
+	MCSetOperatingMode( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number, 0,
 				MC_MODE_POSITION );
 
@@ -412,7 +412,7 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 		fname, motor->record->name, motor->raw_destination.analog));
 #endif
 
-	MCMoveAbsolute( pmc_mcapi->controller_handle,
+	MCMoveAbsolute( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number,
 				motor->raw_destination.analog );
 
@@ -424,7 +424,7 @@ mxd_pmc_mcapi_move_absolute( MX_MOTOR *motor )
 		fname, motor->record->name));
 #endif
 
-	mcapi_status = MCBlockEnd( pmc_mcapi->controller_handle, NULL );
+	mcapi_status = MCBlockEnd( pmc_mcapi->binary_handle, NULL );
 
 	if ( mcapi_status != MCERR_NOERROR ) {
 		mxi_pmc_mcapi_translate_error( mcapi_status,
@@ -462,7 +462,7 @@ mxd_pmc_mcapi_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mcapi_status = MCGetPositionEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCGetPositionEx( pmc_mcapi->binary_handle,
 					pmc_mcapi_motor->axis_number,
 					&(motor->raw_position.analog) );
 
@@ -502,7 +502,7 @@ mxd_pmc_mcapi_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MCSetPosition( pmc_mcapi->controller_handle,
+	MCSetPosition( pmc_mcapi->binary_handle,
 			pmc_mcapi_motor->axis_number,
 			motor->raw_set_position.analog );
 
@@ -529,7 +529,7 @@ mxd_pmc_mcapi_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MCStop( pmc_mcapi->controller_handle, pmc_mcapi_motor->axis_number );
+	MCStop( pmc_mcapi->binary_handle, pmc_mcapi_motor->axis_number );
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: Stop command sent to motor '%s'",
@@ -554,7 +554,7 @@ mxd_pmc_mcapi_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MCAbort( pmc_mcapi->controller_handle, pmc_mcapi_motor->axis_number );
+	MCAbort( pmc_mcapi->binary_handle, pmc_mcapi_motor->axis_number );
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: Abort command sent to motor '%s'",
@@ -584,7 +584,7 @@ mxd_pmc_mcapi_find_home_position( MX_MOTOR *motor )
 	 * as a background task.
 	 */
 
-	mx_status = mxi_pmc_mcapi_command( pmc_mcapi, "GT1,TR0",
+	mx_status = mxi_pmc_mccl_command( pmc_mcapi, "GT1,TR0",
 						response, sizeof(response),
 						MXD_PMC_MCAPI_MOTOR_DEBUG );
 
@@ -615,7 +615,7 @@ mxd_pmc_mcapi_constant_velocity_move( MX_MOTOR *motor )
 
 	/* Switch to velocity mode. */
 
-	MCSetOperatingMode( pmc_mcapi->controller_handle,
+	MCSetOperatingMode( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number, 0,
 				MC_MODE_VELOCITY );
 
@@ -632,7 +632,7 @@ mxd_pmc_mcapi_constant_velocity_move( MX_MOTOR *motor )
 		direction = MC_DIR_NEGATIVE;
 	}
 
-	MCDirection( pmc_mcapi->controller_handle,
+	MCDirection( pmc_mcapi->binary_handle,
 			pmc_mcapi_motor->axis_number,
 			direction );
 
@@ -643,7 +643,7 @@ mxd_pmc_mcapi_constant_velocity_move( MX_MOTOR *motor )
 
 	/* Start the move. */
 
-	mcapi_status = MCGoEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCGoEx( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number, 0.0 );
 
 	if ( mcapi_status != MCERR_NOERROR ) {
@@ -699,7 +699,7 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		motion_config.cbSize = sizeof(motion_config);
 
-		mcapi_status = MCGetMotionConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCGetMotionConfigEx(pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&motion_config );
 
@@ -742,7 +742,7 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 
 		filter_config.cbSize = sizeof(filter_config);
 
-		mcapi_status = MCGetFilterConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCGetFilterConfigEx(pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&filter_config );
 
@@ -764,7 +764,7 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 		axis_config.cbSize = sizeof(axis_config);
 
 		mcapi_status = MCGetAxisConfiguration(
-						pmc_mcapi->controller_handle,
+						pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&axis_config );
 
@@ -816,7 +816,7 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		filter_config.cbSize = sizeof(filter_config);
 
-		mcapi_status = MCGetFilterConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCGetFilterConfigEx(pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&filter_config );
 
@@ -895,7 +895,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 
 		motion_config.cbSize = sizeof(motion_config);
 
-		mcapi_status = MCGetMotionConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCGetMotionConfigEx( pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&motion_config );
 
@@ -928,7 +928,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 
 		/* Finally, write back the changed settings. */
 
-		mcapi_status = MCSetMotionConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCSetMotionConfigEx( pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&motion_config );
 
@@ -972,7 +972,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 
 		filter_config.cbSize = sizeof(filter_config);
 
-		mcapi_status = MCGetFilterConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCGetFilterConfigEx( pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&filter_config );
 
@@ -1017,7 +1017,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 
 		/* Finally, write back the changed settings. */
 
-		mcapi_status = MCSetFilterConfigEx(pmc_mcapi->controller_handle,
+		mcapi_status = MCSetFilterConfigEx( pmc_mcapi->binary_handle,
 						pmc_mcapi_motor->axis_number,
 						&filter_config );
 
@@ -1054,7 +1054,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 			state = FALSE;
 		}
 
-		MCEnableAxis( pmc_mcapi->controller_handle,
+		MCEnableAxis( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number,
 				state );
 
@@ -1072,7 +1072,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 		}
 
 		mcapi_status = MCSetModuleInputMode(
-					pmc_mcapi->controller_handle,
+					pmc_mcapi->binary_handle,
 					pmc_mcapi_motor->axis_number,
 					mode );
 
@@ -1103,7 +1103,7 @@ mxd_pmc_mcapi_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_FAULT_RESET:
 		if ( motor->fault_reset ) {
-			MCReset( pmc_mcapi->controller_handle,
+			MCReset( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number );
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
@@ -1227,13 +1227,13 @@ mxd_pmc_mcapi_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	is_at_target = MCIsAtTarget( pmc_mcapi->controller_handle,
+	is_at_target = MCIsAtTarget( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number, 0.0 );
 
-	is_stopped = MCIsStopped( pmc_mcapi->controller_handle,
+	is_stopped = MCIsStopped( pmc_mcapi->binary_handle,
 				pmc_mcapi_motor->axis_number, 0.0 );
 
-	mcapi_status = MCGetStatusEx( pmc_mcapi->controller_handle,
+	mcapi_status = MCGetStatusEx( pmc_mcapi->binary_handle,
 					pmc_mcapi_motor->axis_number,
 					&status_struct );
 
@@ -1254,43 +1254,43 @@ mxd_pmc_mcapi_get_status( MX_MOTOR *motor )
 
 	/* Shown in alphabetical order. */
 
-	mc_stat_amp_fault = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_amp_fault = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_AMP_FAULT );
 
-	mc_stat_dir = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_dir = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_DIR );
 
-	mc_stat_edge_found = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_edge_found = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_EDGE_FOUND );
 
-	mc_stat_error = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_error = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_ERROR );
 
-	mc_stat_following = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_following = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_FOLLOWING );
 
-	mc_stat_homed = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_homed = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_HOMED );
 
-	mc_stat_index_found = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_index_found = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_INDEX_FOUND );
 
-	mc_stat_inp_home = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_inp_home = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_INP_HOME );
 
-	mc_stat_inp_index = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_inp_index = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_INP_INDEX );
 
-	mc_stat_mlim_trip = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_mlim_trip = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_MLIM_TRIP );
 
-	mc_stat_mtr_enable = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_mtr_enable = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_MTR_ENABLE );
 
-	mc_stat_plim_trip = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_plim_trip = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_PLIM_TRIP );
 
-	mc_stat_traj = MCDecodeStatusEx( pmc_mcapi->controller_handle,
+	mc_stat_traj = MCDecodeStatusEx( pmc_mcapi->binary_handle,
 					&status_struct, MC_STAT_TRAJ );
 
 #if MXD_PMC_MCAPI_MOTOR_DEBUG
