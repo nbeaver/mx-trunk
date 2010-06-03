@@ -31,6 +31,8 @@
 #include "mx_plot.h"
 #include "mx_array.h"
 #include "mx_memory.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_version.h"
 #include "motor.h"
 
@@ -711,6 +713,20 @@ motor_show_field( char *record_field_name )
 	} else {
 		pointer_to_value = record_field->data_pointer;
 	}
+
+#if MOTOR_PROCESS_FIELDS
+	mx_status = mx_initialize_record_processing( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+	mx_status = mx_process_record_field( record, record_field,
+						MX_PROCESS_GET, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FAILURE;
+
+#endif /* MOTOR_PROCESS_FIELDS */
 
 	mx_status = mx_get_token_constructor(
 			record_field->datatype, &token_constructor );

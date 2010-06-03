@@ -77,6 +77,9 @@ static mx_status_type
 mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi );
 
 static mx_status_type
+mxi_pmc_mcapi_save_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename );
+
+static mx_status_type
 mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename );
 
 static mx_status_type
@@ -121,6 +124,56 @@ mxi_pmc_mcapi_get_pointers( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static struct {
+	long type;
+	char name[20];
+} controller_type_table[] = {
+	{ NO_CONTROLLER,"None" },
+	{ DCXPC100,	"DCX-PC100" },
+	{ DCXAT100,	"DCX-AT100" },
+	{ DCXAT200,	"DCX-AT200" },
+	{ DC2PC100,	"DC2-PC100" },
+	{ DC2STN,	"DC2-STN" },
+	{ DCXAT300,	"DCX-AT300" },
+	{ DCXPCI300,	"DCX-PCI300" },
+	{ DCXPCI100,	"DCX-PCI100" },
+	{ MFXPCI1000,	"MFX-PCI1000" },
+	{ MFXETH1000,	"MFX-ETH1000" },
+};
+
+static int num_controller_types = sizeof(controller_type_table)
+				/ sizeof(controller_type_table[0]);
+
+static struct {
+	long type;
+	char name[20];
+} module_type_table[] = {
+	{ NO_MODULE,	"None" },
+	{ MC100,	"MC100" },
+	{ MC110,	"MC110" },
+	{ MC150,	"MC150" },
+	{ MC160,	"MC160" },
+	{ MC200,	"MC200" },
+	{ MC210,	"MC210" },
+	{ MC260,	"MC260" },
+	{ MC300,	"MC300" },
+	{ MC302,	"MC302" },
+	{ MC320,	"MC320" },
+	{ MC360,	"MC360" },
+	{ MC362,	"MC362" },
+	{ MC400,	"MC400" },
+	{ MC500,	"MC500" },
+	{ MF300,	"MF300" },
+	{ MF310,	"MF310" },
+	{ MFXSERVO,	"MFXSERVO" },
+	{ MFXSTEPPER,	"MFXSTEPPER" },
+	{ DC2SERVO,	"DC2SERVO" },
+	{ DC2STEPPER,	"DC2STEPPER" },
+};
+
+static int num_module_types = sizeof(module_type_table)
+				/ sizeof(module_type_table[0]);
+
 /*==========================*/
 
 MX_EXPORT mx_status_type
@@ -160,11 +213,14 @@ mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
   {
 	static const char fname[] = "mxi_pmc_mcapi_print_structure()";
 
-	MCPARAMEX controller;
-	short mcapi_status;
+	MCPARAMEX *cc;
+	MCAXISCONFIG axis;
+	long i, n, mcapi_status;
 
 	MX_PMC_MCAPI *pmc_mcapi;
 	char error_buffer[100];
+	char controller_name[40];
+	char module_name[40];
 	mx_status_type mx_status;
 
 	mx_status = mxi_pmc_mcapi_get_pointers( record,
@@ -173,109 +229,129 @@ mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	controller.cbSize = sizeof(MCPARAMEX);
-
-	mcapi_status = MCGetConfigurationEx( pmc_mcapi->binary_handle,
-						&controller );
-
-	if ( mcapi_status != MCERR_NOERROR ) {
-		mxi_pmc_mcapi_translate_error( (long) mcapi_status,
-			error_buffer, sizeof(error_buffer) );
-
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Attempting to read the controller configuration for "
-		"PMC MCAPI controller '%s' failed.  "
-		"MCAPI error message = '%s'",
-			pmc_mcapi->record->name, error_buffer );
-	}
+	cc = &(pmc_mcapi->configuration);
 
 	fprintf( file, "Parameters for PMC MCAPI controller '%s'.\n\n",
 		pmc_mcapi->record->name );
 
 	fprintf( file, " MX parameters:\n" );
 
-	if ( pmc_mcapi->controller_id == controller.ID ) {
-		fprintf( file, "  controller_id     = %d\n",
+	fprintf( file, "  controller_id     = %d\n",
 					pmc_mcapi->controller_id );
-	} else {
-		fprintf( file,
-			"  ERROR: record controller_id %d does not equal "
-			"MCPARAMEX controller ID %d.  "
-			"This should never happen.\n",
-				pmc_mcapi->controller_id, controller.ID );
-	}
-
-	fprintf( file, "  savefile_name     = '%s'\n",
-					pmc_mcapi->savefile_name );
+	fprintf( file, "  restore_file_name = '%s'\n",
+					pmc_mcapi->restore_file_name );
 	fprintf( file, "  startup_file_name = '%s'\n\n",
 					pmc_mcapi->startup_file_name );
 
+	for ( n = 0; n < num_controller_types; n++ ) {
+	    if ( cc->ControllerType == controller_type_table[n].type ) {
+
+		strlcpy( controller_name, controller_type_table[n].name,
+				sizeof(controller_name) );
+		break;
+	    }
+	}
+
+	if ( n >= num_controller_types ) {
+		snprintf( controller_name, sizeof(controller_name),
+			"Unknown (%d)", cc->ControllerType );
+	}
+
 	fprintf( file, " MCAPI parameters:\n" );
 
-	fprintf( file, "  ControllerType    = %d\n",
-					controller.ControllerType );
+	fprintf( file, "  ControllerType    = '%s'\n", controller_name );
 
-	fprintf( file, "  NumberAxes        = %d\n",
-					controller.NumberAxes );
+	fprintf( file, "  NumberAxes        = %d\n", cc->NumberAxes );
 
-	fprintf( file, "  MaximumAxes       = %d\n",
-					controller.MaximumAxes );
+	fprintf( file, "  MaximumAxes       = %d\n", cc->MaximumAxes );
 
-	fprintf( file, "  Precision         = %d\n",
-					controller.Precision );
+	fprintf( file, "  Precision         = %d\n", cc->Precision );
 
-	fprintf( file, "  DigitalIO         = %d\n",
-					controller.DigitalIO );
+	fprintf( file, "  DigitalIO         = %d\n", cc->DigitalIO );
 
-	fprintf( file, "  AnalogInput       = %d\n",
-					controller.AnalogInput );
+	fprintf( file, "  AnalogInput       = %d\n", cc->AnalogInput );
 
-	fprintf( file, "  AnalogOutput      = %d\n",
-					controller.AnalogOutput );
+	fprintf( file, "  AnalogOutput      = %d\n", cc->AnalogOutput );
 
-	fprintf( file, "  PointStorage      = %d\n",
-					controller.PointStorage );
+	fprintf( file, "  PointStorage      = %d\n", cc->PointStorage );
 
-	if ( controller.CanDoScaling ) {
+	if ( cc->CanDoScaling ) {
 		fprintf( file, "  CanDoScaling      is supported\n" );
 	} else {
 		fprintf( file, "  CanDoScaling      is not supported\n" );
 	}
 
-	if ( controller.CanDoContouring ) {
+	if ( cc->CanDoContouring ) {
 		fprintf( file, "  CanDoContouring   is supported\n" );
 	} else {
 		fprintf( file, "  CanDoContouring   is not supported\n" );
 	}
 
-	if ( controller.CanChangeProfile ) {
+	if ( cc->CanChangeProfile ) {
 		fprintf( file, "  CanChangeProfile  is supported\n" );
 	} else {
 		fprintf( file, "  CanChangeProfile  is not supported\n" );
 	}
 
-	if ( controller.CanChangeRates ) {
+	if ( cc->CanChangeRates ) {
 		fprintf( file, "  CanChangeRates    is supported\n" );
 	} else {
 		fprintf( file, "  CanChangeRates    is not supported\n" );
 	}
 
-	if ( controller.SoftLimits ) {
+	if ( cc->SoftLimits ) {
 		fprintf( file, "  SoftLimits        are supported\n" );
 	} else {
 		fprintf( file, "  SoftLimits        are not supported\n" );
 	}
 
-	if ( controller.MultiTasking ) {
+	if ( cc->MultiTasking ) {
 		fprintf( file, "  MultiTasking      is supported\n" );
 	} else {
 		fprintf( file, "  MultiTasking      is not supported\n" );
 	}
 
-	if ( controller.AmpFault ) {
+	if ( cc->AmpFault ) {
 		fprintf( file, "  AmpFault input    is supported\n" );
 	} else {
 		fprintf( file, "  AmpFault input    is not supported\n" );
+	}
+
+	fprintf( file, "\n" );
+	fprintf( file, " Axis    Type\n" );
+
+	for ( i = 1; i <= cc->MaximumAxes; i++ ) {
+
+		axis.cbSize = sizeof(MCAXISCONFIG);
+
+		mcapi_status = MCGetAxisConfiguration( pmc_mcapi->binary_handle,
+							i, &axis );
+
+		if ( mcapi_status != MCERR_NOERROR ) {
+			mxi_pmc_mcapi_translate_error( mcapi_status,
+				error_buffer, sizeof(error_buffer) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unable to get information about axis %ld for "
+			"MCAPI controller '%s'.  MCAPI error message = '%s'",
+				i, pmc_mcapi->record->name, error_buffer );
+		}
+
+		for ( n = 0; n < num_module_types; n++ ) {
+		    if ( axis.ModuleType == module_type_table[n].type ) {
+
+			strlcpy( module_name, module_type_table[n].name,
+					sizeof(module_name) );
+			break;
+		    }
+		}
+
+		if ( n >= num_module_types ) {
+		    snprintf( module_name, sizeof(module_name),
+			"Unknown (%d)", axis.ModuleType );
+		}
+
+		fprintf( file, "  %2ld    '%s'\n", i, module_name );
 	}
 
 	fprintf( file, "\n" );
@@ -292,19 +368,10 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	char error_buffer[100];
 	mx_status_type mx_status;
 
-#if HAVE_MCDLG
-	short mcapi_status;
-#endif
+	long mcapi_status;
 
 	mx_status = mxi_pmc_mcapi_get_pointers( record,
 					&pmc_mcapi, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Initialize the dialog functions. */
-
-	mx_status = mxi_pmc_mcapi_initialize_dialog_functions( pmc_mcapi );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -313,6 +380,13 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Record '%s', controller_id = %d",
 		fname, record->name, pmc_mcapi->controller_id));
 #endif
+
+	/* Initialize the dialog functions. */
+
+	mx_status = mxi_pmc_mcapi_initialize_dialog_functions( pmc_mcapi );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Open a binary handle for the controller. */
 
@@ -334,6 +408,42 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 		"Error opening a binary connection to MCAPI controller "
 		"number %d of record '%s'.  MCAPI error message = '%s'",
 			pmc_mcapi->controller_id, record->name, error_buffer );
+	}
+
+	/* Get and save the controller configuration for later. */
+
+	pmc_mcapi->configuration.cbSize = sizeof(MCPARAMEX);
+
+	mcapi_status = MCGetConfigurationEx( pmc_mcapi->binary_handle,
+						&(pmc_mcapi->configuration) );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Attempting to read the controller configuration for "
+		"MCAPI controller '%s' failed.  "
+		"MCAPI error message = '%s'",
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	/* Initialize an array to contain pointers to motor records
+	 * belonging to this controller.
+	 */
+
+	pmc_mcapi->num_axes = pmc_mcapi->configuration.MaximumAxes;
+
+	pmc_mcapi->axis_array = calloc( pmc_mcapi->num_axes,
+					sizeof(MX_RECORD *) );
+
+	if ( pmc_mcapi->axis_array == (MX_RECORD **) NULL ) {
+		pmc_mcapi->num_axes = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of MX_RECORD pointers for MCAPI controller '%s'.",
+			pmc_mcapi->num_axes, pmc_mcapi->record->name );
 	}
 
 	/* Open an ASCII handle for the controller.  This handle
@@ -362,16 +472,16 @@ mxi_pmc_mcapi_open( MX_RECORD *record )
 
 	/* Restore the controller configuration. */
 
-	if ( strlen( pmc_mcapi->savefile_name ) > 0 ) {
+	if ( strlen( pmc_mcapi->restore_file_name ) > 0 ) {
 
 #if MXI_PMC_MCAPI_DEBUG
 		MX_DEBUG(-2,
-		("%s: Record '%s', restoring configuration from savefile '%s'.",
-			fname, record->name, pmc_mcapi->savefile_name));
+	("%s: Record '%s', restoring configuration from restore file '%s'.",
+			fname, record->name, pmc_mcapi->restore_file_name));
 #endif
 
 		mx_status = mxi_pmc_mcapi_restore_axes( pmc_mcapi,
-						pmc_mcapi->savefile_name );
+						pmc_mcapi->restore_file_name );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -496,7 +606,8 @@ mxi_pmc_mcapi_special_processing_setup( MX_RECORD *record )
 		case MXLV_PMC_MCCL_COMMAND:
 		case MXLV_PMC_MCCL_RESPONSE:
 		case MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE:
-		case MXLV_PMC_MCAPI_DOWNLOAD_FILE:
+		case MXLV_PMC_MCAPI_SAVE_FILE_NAME:
+		case MXLV_PMC_MCAPI_DOWNLOAD_FILE_NAME:
 			record_field->process_function
 					    = mxi_pmc_mcapi_process_function;
 			break;
@@ -568,10 +679,16 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 				MXI_PMC_MCAPI_DEBUG );
 
 			break;
-		case MXLV_PMC_MCAPI_DOWNLOAD_FILE:
+		case MXLV_PMC_MCAPI_SAVE_FILE_NAME:
+			mx_status = mxi_pmc_mcapi_save_axes(
+				pmc_mcapi,
+				pmc_mcapi->save_file_name );
+
+			break;
+		case MXLV_PMC_MCAPI_DOWNLOAD_FILE_NAME:
 			mx_status = mxi_pmc_mcapi_download_file(
 				pmc_mcapi,
-				pmc_mcapi->download_file );
+				pmc_mcapi->download_file_name );
 
 			break;
 		default:
@@ -596,6 +713,65 @@ mxi_pmc_mcapi_process_function( void *record_ptr,
 #include "mx_hrt_debug.h"
 #endif
 
+static struct {
+	long code;
+	char message[40];
+} command_error_table[] = {
+	{ 0,	"No error" },
+	{ 1,	"Unrecognized command" },
+	{ 2,	"Bad command format" },
+	{ 3,	"I/O error" },
+	{ 4,	"Command string to long" },
+	{ -1,	"Command parameter error" },
+	{ -2,	"Command code invalid" },
+	{ -3,	"Negative repeat count" },
+	{ -4,	"Macro define command not first" },
+	{ -5,	"Macro number out of range" },
+	{ -6,	"Macro does not exist" },
+	{ -7,	"Command canceled by user" },
+	{ -14,	"No axis specified" },
+	{ -15,	"Axis not assigned" },
+	{ -16,	"Axis already assigned" },
+	{ -17,	"Axis duplicate assigned" },
+};
+
+static int num_command_errors = sizeof(command_error_table)
+				/ sizeof(command_error_table[0]);
+
+static mx_status_type
+mxi_pmc_mccl_command_error( MX_PMC_MCAPI *pmc_mcapi,
+				char *command,
+				char *response )
+{
+	static const char fname[] = "mxi_pmc_mccl_command_error()";
+
+	long i, error_code;
+	char *error_message;
+
+#if MXI_PMC_MCAPI_DEBUG
+	MX_DEBUG(-2,("%s: response = '%s'", fname, response));
+#endif
+
+	response++;
+
+	error_code = mx_string_to_long( response );
+
+	for ( i = 0; i < num_command_errors; i++ ) {
+		if ( error_code == command_error_table[i].code ) {
+			error_message = command_error_table[i].message;
+			break;
+		}
+	}
+
+	if ( i >= num_command_errors ) {
+		error_message = "Unknown error";
+	}
+
+	return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+	"Received error '%s' (%ld) for command '%s' to MCAPI controller '%s'.",
+		error_message, error_code, command, pmc_mcapi->record->name );
+}
+
 MX_EXPORT mx_status_type
 mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 		char *command,
@@ -608,7 +784,8 @@ mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 	char response_buffer[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
 	size_t command_length, response_length;
 	short num_chars_written, num_chars_read;
-	mx_status_type mx_status, mx_status2;
+	char *response_ptr;
+	mx_status_type mx_status;
 
 #if MXI_PMC_MCAPI_DEBUG_TIMING	
 	MX_HRT_RS232_TIMING command_timing, response_timing;
@@ -712,24 +889,41 @@ mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 
 	} while(0);	/* End of the do...while(0) loop. */
 
+	/* Sometimes we get an extraneous > character at the start
+	 * of the response.
+	 */
+
+	response_ptr = response_buffer;
+
+	if ( *response_ptr == '>' ) {
+		response_ptr++;
+	}
+
+	/* Eliminate trailing CR LF characters if present. */
+
+	response_length = strlen( response_ptr );
+
+	if ( response_ptr[response_length-1] == '\n' ) {
+		response_ptr[response_length-1] = '\0';
+		if ( response_ptr[response_length-2] == '\r' ) {
+			response_ptr[response_length-2] = '\0';
+		}
+	}
+
+	/* Check to see if we got an error code back from the controller. */
+
+	if ( *response_ptr == '?' ) {
+		return mxi_pmc_mccl_command_error( pmc_mcapi,
+						command, response_ptr );
+	}
+
 	/* If the caller wanted a response, copy it from the response buffer. */
 
 	if ( response != (char *) NULL ) {
 
 		/* Copy the response. */
 
-		strlcpy( response, response_buffer, max_response_length );
-
-		/* Eliminate trailing CR LF characters if present. */
-
-		response_length = strlen( response );
-
-		if ( response[response_length-1] == '\n' ) {
-			response[response_length-1] = '\0';
-			if ( response[response_length-2] == '\r' ) {
-				response[response_length-2] = '\0';
-			}
-		}
+		strlcpy( response, response_ptr, max_response_length );
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",
@@ -738,11 +932,7 @@ mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 		}
 	}
 
-	if ( mx_status2.code != MXE_SUCCESS ) {
-		return mx_status2;
-	} else {
-		return mx_status;
-	}
+	return mx_status;
 }
 
 MX_EXPORT void
@@ -819,6 +1009,44 @@ mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi )
 }
 
 static mx_status_type
+mxi_pmc_mcapi_save_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_save_axes()";
+
+	short mcdlg_status;
+	char error_buffer[100];
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	mcdlg_status = MCDLG_SaveAxis( pmc_mcapi->controller_handle,
+						MC_ALL_AXES,
+						MCDLG_CHECKACTIVE,
+						filename );
+
+	if ( mcdlg_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcdlg_status,
+				error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"Error restoring the motor configuration for "
+		"MCAPI controller %d of record '%s'.  "
+		"MCAPI error message = '%s'",
+			pmc_mcapi->controller_id,
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 {
 	static const char fname[] = "mxi_pmc_mcapi_restore_axes()";
@@ -838,8 +1066,8 @@ mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 
 	mcdlg_status = MCDLG_RestoreAxis( pmc_mcapi->controller_handle,
 						MC_ALL_AXES,
-						MCDLG_CHECKACTIVE,
-						pmc_mcapi->savefile_name );
+						0,
+						filename );
 
 	if ( mcdlg_status != MCERR_NOERROR ) {
 		mxi_pmc_mcapi_translate_error( mcdlg_status,
@@ -911,6 +1139,414 @@ mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi )
 }
 
 static mx_status_type
+mxi_pmc_mccl_save_parameter( FILE *savefile,
+			MX_PMC_MCAPI *pmc_mcapi,
+			long axis_id,
+			long mx_datatype,
+			char *read_format,
+			long read_offset,
+			char *write_format )
+{
+	static const char fname[] = "mxi_pmc_mccl_save_parameter()";
+
+	char command[40];
+	char response[80];
+	long long_value;
+	unsigned long ulong_value;
+	double double_value;
+	int argc;
+	char **argv;
+	char *duplicate;
+	mx_status_type mx_status;
+
+	snprintf( command, sizeof(command), read_format, axis_id );
+
+	mx_status = mxi_pmc_mccl_command( pmc_mcapi, command,
+					response, sizeof(response),
+					MXI_PMC_MCAPI_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	duplicate = strdup( response );
+
+	mx_string_split( duplicate, " ", &argc, &argv );
+
+	if ( argc <= read_offset ) {
+		free(argv); free(duplicate);
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The response '%s' to command '%s' for MCAPI controller '%s' "
+		"did not include the minimum required number of tokens.  "
+		"There should have been at least %ld tokens.",
+			response, command, pmc_mcapi->record->name,
+			read_offset + 1 );
+	}
+
+#if MXI_PMC_MCAPI_DEBUG
+	MX_DEBUG(-2,("%s: response '%s', argv[%ld] = '%s'",
+		fname, response, read_offset, argv[read_offset] ));
+#endif
+
+	switch( mx_datatype ) {
+	case MXFT_LONG:
+		long_value = mx_string_to_long( argv[read_offset] );
+
+		fprintf( savefile, write_format, axis_id, long_value );
+		break;
+	case MXFT_ULONG:
+		ulong_value = mx_string_to_unsigned_long( argv[read_offset] );
+
+		fprintf( savefile, write_format, axis_id, ulong_value );
+		break;
+	case MXFT_DOUBLE:
+		double_value = atof( argv[read_offset] );
+
+		fprintf( savefile, write_format, axis_id, double_value );
+		break;
+	default:
+		break;
+	}
+
+	free(argv); free(duplicate);
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mccl_save_common( FILE *savefile,
+			MX_PMC_MCAPI *pmc_mcapi,
+			long axis_id )
+{
+	static const char fname[] = "mxi_pmc_mccl_save_common()";
+
+	MCAXISCONFIG axis_config;
+	MCMOTIONEX motion_config;
+
+	unsigned long mcapi_status;
+	unsigned long limit_on, limit_off;
+	unsigned long hard_limit_mode, soft_limit_mode;
+	char error_buffer[100];
+	mx_status_type mx_status;
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+#if MXI_PMC_MCAPI_DEBUG
+	MX_DEBUG(-2,("%s invoked for axis %ld", fname, axis_id ));
+#endif
+
+	/* We save the motor settings in the form of an MCCL script, which
+	 * can be directly executed by the controller at restore time.
+	 * 
+	 * However, we fetch as much of the information as possible from
+	 * MCAPI calls to reduce the amount of non-portable code here.
+	 */
+
+	axis_config.cbSize = sizeof(MCAXISCONFIG);
+
+	mcapi_status = MCGetAxisConfiguration( pmc_mcapi->binary_handle,
+					axis_id, &axis_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the axis configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			axis_id, pmc_mcapi->record->name, error_buffer );
+	}
+
+	/* If this axis is not actually a motor, then skip it. */
+
+	if ( ( axis_config.MotorType != MC_TYPE_SERVO )
+	  && ( axis_config.MotorType != MC_TYPE_STEPPER ) )
+	{
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Get the motion parameters. */
+
+	motion_config.cbSize = sizeof(MCMOTIONEX);
+
+	mcapi_status = MCGetMotionConfigEx( pmc_mcapi->binary_handle,
+					axis_id, &motion_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the motion configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			axis_id, pmc_mcapi->record->name, error_buffer );
+	}
+
+
+	/*------------------------------------------------------------------*/
+
+	/* Enable servo amplifier fault. */
+
+	if ( motion_config.EnableAmpFault ) {
+		fprintf( savefile, "%luFN0\n", axis_id );
+	} else {
+		fprintf( savefile, "%luFF0\n", axis_id );
+	}
+
+	/* Hard limit mode */
+
+	if ( motion_config.HardLimitMode & MC_LIMIT_ABRUPT ) {
+		hard_limit_mode = 1;
+	} else
+	if ( motion_config.HardLimitMode & MC_LIMIT_SMOOTH ) {
+		hard_limit_mode = 2;
+	} else {
+		hard_limit_mode = 0;
+	}
+
+	if ( motion_config.HardLimitMode & MC_LIMIT_INVERT ) {
+		hard_limit_mode += 128;
+	}
+
+	/* Soft limit mode */
+
+	if ( motion_config.SoftLimitMode & MC_LIMIT_ABRUPT ) {
+		soft_limit_mode = 4;
+	} else
+	if ( motion_config.SoftLimitMode & MC_LIMIT_SMOOTH ) {
+		soft_limit_mode = 8;
+	} else {
+		soft_limit_mode = 0;
+	}
+
+	/* Set limit modes */
+
+	fprintf( savefile, "%luLM%lu\n",
+		axis_id, hard_limit_mode + soft_limit_mode );
+
+	/* Soft limits */
+
+	fprintf( savefile, "%luHL%f\n", axis_id, motion_config.SoftLimitHigh );
+
+	fprintf( savefile, "%luLL%f\n", axis_id, motion_config.SoftLimitLow );
+
+	/* Hard and Soft Limit Enable */
+
+	limit_on  = 0;
+	limit_off = 0;
+
+	if ( motion_config.HardLimitMode & MC_LIMIT_HIGH ) {
+		limit_on  += 1;
+	} else {
+		limit_off += 1;
+	}
+	if ( motion_config.HardLimitMode & MC_LIMIT_LOW ) {
+		limit_on  += 2;
+	} else {
+		limit_off += 2;
+	}
+	if ( motion_config.SoftLimitMode & MC_LIMIT_HIGH ) {
+		limit_on  += 4;
+	} else {
+		limit_off += 4;
+	}
+	if ( motion_config.SoftLimitMode & MC_LIMIT_LOW ) {
+		limit_on  += 8;
+	} else {
+		limit_off += 8;
+	}
+
+	if ( limit_on == 15 ) {
+		limit_on = 0;
+	}
+	if ( limit_off == 15 ) {
+		limit_off = 0;
+	}
+
+	fprintf( savefile, "%luLN%lu\n", axis_id, limit_on );
+
+	fprintf( savefile, "%luLF%lu\n", axis_id, limit_off );
+
+	/*------------------------------------------------------------------*/
+
+	/* Proportional gain. */
+
+	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
+						MXFT_ULONG, "%luTG",
+						1, "%luSG%lu\n" );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Integral gain. */
+
+	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
+						MXFT_ULONG, "%luTI",
+						1, "%luSI%lu\n" );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Derivative gain. */
+
+	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
+						MXFT_ULONG, "%luTD",
+						1, "%luSD%lu\n" );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Integral limit. */
+
+	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
+						MXFT_ULONG, "%luTL",
+						1, "%luIL%lu\n" );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*------------------------------------------------------------------*/
+
+	fprintf( savefile, "%luSA%f\n", axis_id, motion_config.Acceleration );
+
+	fprintf( savefile, "%luSV%f\n", axis_id, motion_config.Velocity );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mccl_save_servo( FILE *savefile,
+			MX_PMC_MCAPI *pmc_mcapi,
+			long axis_id )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxi_pmc_mccl_save_common( savefile, pmc_mcapi, axis_id );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_pmc_mcapi_save_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
+{
+	static const char fname[] = "mxi_pmc_mcapi_save_axes()";
+
+	MCPARAMEX *cc;
+	MCAXISCONFIG axis;
+	long mcapi_status;
+
+	time_t time_struct;
+	struct tm current_time;
+	char time_buffer[40];
+	char username_buffer[80];
+
+	FILE *savefile;
+	int saved_errno;
+	long i, maximum_num_axes;
+	char error_buffer[100];
+	mx_status_type mx_status;
+
+	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMC_MCAPI pointer passed was NULL." );
+	}
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+
+	savefile = fopen( filename, "w" );
+
+	if ( savefile == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open file '%s' for saving axes from "
+		"PMC MCAPI controller '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			filename, pmc_mcapi->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Create a timestamp for this save file. */
+
+	time( &time_struct );
+
+	(void) localtime_r( &time_struct, &current_time );
+
+	strftime( time_buffer, sizeof(time_buffer),
+			"%b %d %H:%M:%S", &current_time );
+
+	/* Get the user name. */
+
+	mx_username( username_buffer, sizeof(username_buffer) );
+
+	/* Write the save file header. */
+
+	fprintf( savefile, "#\n" );
+	fprintf( savefile,
+		"# MX PMC MCAPI parameter file for controller '%s'.\n",
+		pmc_mcapi->record->name );
+	fprintf( savefile, "#\n" );
+	fprintf( savefile, "# Created %s by user '%s'.\n",
+		time_buffer, username_buffer );
+	fprintf( savefile, "#\n" );
+
+	cc = &(pmc_mcapi->configuration);
+
+	maximum_num_axes = cc->MaximumAxes;
+
+	for ( i = 1; i <= maximum_num_axes; i++ ) {
+
+		axis.cbSize = sizeof(MCAXISCONFIG);
+
+		mcapi_status = MCGetAxisConfiguration( pmc_mcapi->binary_handle,
+							i, &axis );
+
+		if ( mcapi_status != MCERR_NOERROR ) {
+			fclose( savefile );
+
+			mxi_pmc_mcapi_translate_error( mcapi_status,
+				error_buffer, sizeof(error_buffer) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unable to get information about axis %ld for "
+			"MCAPI controller '%s'.  MCAPI error message = '%s'",
+				i, pmc_mcapi->record->name, error_buffer );
+		}
+
+		fprintf( savefile, "# Axis %ld\n", i );
+
+		mx_status = MX_SUCCESSFUL_RESULT;
+
+		switch( axis.MotorType ) {
+		case MC_TYPE_SERVO:
+			mx_status = mxi_pmc_mccl_save_servo( savefile,
+								pmc_mcapi, i );
+			break;
+		case MC_TYPE_STEPPER:
+			break;
+		default:
+#if MXI_PMC_MCAPI_DEBUG
+			MX_DEBUG(-2,("%s: axis %ld not saved", fname, i));
+#endif
+			break;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose( savefile );
+			return mx_status;
+		}
+	}
+
+	fclose( savefile );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mxi_pmc_mcapi_restore_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 {
 	static const char fname[] = "mxi_pmc_mcapi_restore_axes()";
@@ -948,7 +1584,6 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 	FILE *download_file;
 	int saved_errno;
 	char buffer[MXU_PMC_MCAPI_BUFFER_LENGTH+1];
-	char response[80];
 	size_t length;
 	mx_status_type mx_status;
 
@@ -1011,6 +1646,12 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 			continue;	/* Go back to read the next line. */
 		}
 
+		/* Ignore lines that start with the comment character '#'. */
+
+		if ( buffer[0] == '#' ) {
+			continue;	/* Go back to read the next line. */
+		}
+
 		/* If present, remove a trailing newline character. */
 
 		if ( buffer[length-1] == '\n' ) {
@@ -1022,8 +1663,7 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 		 */
 
 		mx_status = mxi_pmc_mccl_command( pmc_mcapi, buffer,
-						response, sizeof(response),
-						MXI_PMC_MCAPI_DEBUG );
+						NULL, 0, MXI_PMC_MCAPI_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fclose(download_file);

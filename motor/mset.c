@@ -35,6 +35,8 @@
 #include "d_auto_scaler.h"
 
 #include "mx_array.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "motor.h"
 #include "mdialog.h"
 
@@ -570,6 +572,20 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+#if MOTOR_PROCESS_FIELDS
+		mx_status = mx_initialize_record_processing( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_process_record_field( record, record_field,
+						MX_PROCESS_PUT, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+#endif /* MOTOR_PROCESS_FIELDS */
 
 	/* SET VARIABLE function. */
 

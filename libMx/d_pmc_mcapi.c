@@ -195,6 +195,7 @@ mxd_pmc_mcapi_create_record_structures( MX_RECORD *record )
 				= &mxd_pmc_mcapi_motor_function_list;
 
 	motor->record = record;
+	pmc_mcapi_motor->record = record;
 
 	/* A PMC MCAPI motor is treated as an analog motor. */
 
@@ -319,6 +320,71 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmc_mcapi_open( MX_RECORD *record )
 {
+	static const char fname[] = "mxd_pmc_mcapi_open()";
+
+	MX_MOTOR *motor;
+	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
+	MX_PMC_MCAPI *pmc_mcapi = NULL;
+	unsigned long axis_number;
+	mx_status_type mx_status;
+
+	long mcapi_status;
+	char error_buffer[100];
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_pmc_mcapi_get_pointers( motor, &pmc_mcapi_motor,
+						&pmc_mcapi, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Add this motor record to the axis_array in the controller record. */
+
+	axis_number = pmc_mcapi_motor->axis_number;
+
+	if ( axis_number > pmc_mcapi->num_axes ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The axis number %lu requested for MCAPI motor '%s' is "
+		"larger than the maximum allowed axis number (%lu) for "
+		"MCAPI controller '%s'.",
+			axis_number, record->name,
+			pmc_mcapi->num_axes, pmc_mcapi->record->name );
+	}
+
+	if ( pmc_mcapi->axis_array[ axis_number-1 ] != (MX_RECORD *) NULL ) {
+		return mx_error( MXE_ALREADY_EXISTS, fname,
+		"Axis number %lu requested for MCAPI motor '%s' is already "
+		"in use by record '%s'.",
+			axis_number, record->name,
+			pmc_mcapi->axis_array[ axis_number-1 ]->name );
+	}
+
+	pmc_mcapi->axis_array[ axis_number-1 ] = record;
+
+	/* Save the axis configuration for later use. */
+
+	pmc_mcapi_motor->configuration.cbSize = sizeof(MCAXISCONFIG);
+
+	mcapi_status = MCGetAxisConfiguration( pmc_mcapi->binary_handle,
+					pmc_mcapi_motor->axis_number,
+					&(pmc_mcapi_motor->configuration) );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the axis configuration for MCAPI motor '%s'. "
+		"MCAPI error message = '%s'",
+			pmc_mcapi_motor->record->name, error_buffer );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -674,9 +740,9 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 
 	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
+	MCAXISCONFIG *axis_config = NULL;
 	MCMOTIONEX motion_config;
 	MCFILTEREX filter_config;
-	MCAXISCONFIG axis_config;
 	long mcapi_status;
 	char error_buffer[100];
 	mx_status_type mx_status;
@@ -758,36 +824,20 @@ mxd_pmc_mcapi_get_parameter( MX_MOTOR *motor )
 		}
 
 		/* The actual maximum speed will be found in the 
-		 * MCAXISCONFIG structure.
+		 * motor's MCAXISCONFIG structure.
 		 */
 
-		axis_config.cbSize = sizeof(axis_config);
-
-		mcapi_status = MCGetAxisConfiguration(
-						pmc_mcapi->binary_handle,
-						pmc_mcapi_motor->axis_number,
-						&axis_config );
-
-		if ( mcapi_status != MCERR_NOERROR ) {
-			mxi_pmc_mcapi_translate_error( mcapi_status,
-				error_buffer, sizeof(error_buffer) );
-
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"Error getting axis configuration "
-			"for motor '%s'.  MCAPI error message = '%s'",
-				motor->record->name,
-				error_buffer );
-		}
+		axis_config = &(pmc_mcapi_motor->configuration);
 
 		switch( filter_config.UpdateRate ) {
 		case MC_RATE_LOW:
-			motor->raw_maximum_speed = axis_config.LowStepMax;
+			motor->raw_maximum_speed = axis_config->LowStepMax;
 			break;
 		case MC_RATE_MEDIUM:
-			motor->raw_maximum_speed = axis_config.MediumStepMax;
+			motor->raw_maximum_speed = axis_config->MediumStepMax;
 			break;
 		case MC_RATE_HIGH:
-			motor->raw_maximum_speed = axis_config.HighStepMax;
+			motor->raw_maximum_speed = axis_config->HighStepMax;
 			break;
 		default:
 			return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,

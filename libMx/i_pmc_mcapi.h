@@ -24,19 +24,25 @@
 typedef struct {
 	MX_RECORD *record;
 	short controller_id;
-	char savefile_name[MXU_FILENAME_LENGTH+1];
+	char restore_file_name[MXU_FILENAME_LENGTH+1];
 	char startup_file_name[MXU_FILENAME_LENGTH+1];
 
 	char command[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PMC_MCAPI_MAX_COMMAND_LENGTH+1];
-	char download_file[MXU_FILENAME_LENGTH+1];
+	char save_file_name[MXU_FILENAME_LENGTH+1];
+	char download_file_name[MXU_FILENAME_LENGTH+1];
+
+	unsigned long num_axes;
+	MX_RECORD **axis_array;
 
 #if defined(__MCAPI_H__) || defined(_INC_MCAPI)
 
-	/* Mcapi.h has been included. */
+	/* mcapi.h has been included. */
 
 	HCTRLR binary_handle;
 	HCTRLR ascii_handle;
+
+	MCPARAMEX configuration;
 #endif
 } MX_PMC_MCAPI;
 
@@ -45,15 +51,16 @@ typedef struct {
 #define MXLV_PMC_MCCL_RESPONSE			7002
 #define MXLV_PMC_MCCL_COMMAND_WITH_RESPONSE	7003
 
-#define MXLV_PMC_MCAPI_DOWNLOAD_FILE		7010
+#define MXLV_PMC_MCAPI_SAVE_FILE_NAME		7010
+#define MXLV_PMC_MCAPI_DOWNLOAD_FILE_NAME	7011
 
 #define MXI_PMC_MCAPI_STANDARD_FIELDS \
   {-1, -1, "controller_id", MXFT_SHORT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, controller_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "savefile_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, savefile_name), \
+  {-1, -1, "restore_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, restore_file_name), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "startup_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
@@ -76,9 +83,14 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, command), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_PMC_MCAPI_DOWNLOAD_FILE, -1, "download_file", MXFT_STRING, \
+  {MXLV_PMC_MCAPI_SAVE_FILE_NAME, -1, "save_file_name", MXFT_STRING, \
 			NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, download_file), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, save_file_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_PMC_MCAPI_DOWNLOAD_FILE_NAME, -1, "download_file_name", MXFT_STRING, \
+			NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, download_file_name), \
 	{sizeof(char)}, NULL, 0}
 
 MX_API mx_status_type mxi_pmc_mcapi_create_record_structures(

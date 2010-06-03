@@ -17,6 +17,8 @@
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
 
+#define MOTOR_PROCESS_FIELDS	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

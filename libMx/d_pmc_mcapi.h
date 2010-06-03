@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,8 +19,17 @@
 #define __D_PMC_MCAPI_MOTOR_H__
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *pmc_mcapi_record;
 	unsigned short axis_number;
+
+#if defined(__MCAPI_H__) || defined(_INC_MCAPI)
+
+	/* mcapi.h has been included. */
+
+	MCAXISCONFIG configuration;
+#endif
 } MX_PMC_MCAPI_MOTOR;
 
 MX_API mx_status_type mxd_pmc_mcapi_create_record_structures(
