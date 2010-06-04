@@ -21,6 +21,8 @@
 
 #define MXU_PMC_MCAPI_MAX_COMMAND_LENGTH	255
 
+#define MX_PMC_MCAPI_DCX_PCI100_SERVO_LOOP_PERIOD	(0.000341)
+
 typedef struct {
 	MX_RECORD *record;
 	short controller_id;
@@ -120,6 +122,10 @@ MX_API void mxi_pmc_mcapi_translate_error(
 		long mcapi_error_code,
 		char *buffer,
 		long buffer_length );
+
+MX_API char *mxi_pmc_mcapi_controller_type_name( long controller_type );
+
+MX_API char *mxi_pmc_mcapi_module_type_name( long module_type );
 
 #endif /* __I_PMC_MCAPI_H__ */
 

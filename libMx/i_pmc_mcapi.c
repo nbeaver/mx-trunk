@@ -124,55 +124,111 @@ mxi_pmc_mcapi_get_pointers( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static struct {
-	long type;
-	char name[20];
-} controller_type_table[] = {
-	{ NO_CONTROLLER,"None" },
-	{ DCXPC100,	"DCX-PC100" },
-	{ DCXAT100,	"DCX-AT100" },
-	{ DCXAT200,	"DCX-AT200" },
-	{ DC2PC100,	"DC2-PC100" },
-	{ DC2STN,	"DC2-STN" },
-	{ DCXAT300,	"DCX-AT300" },
-	{ DCXPCI300,	"DCX-PCI300" },
-	{ DCXPCI100,	"DCX-PCI100" },
-	{ MFXPCI1000,	"MFX-PCI1000" },
-	{ MFXETH1000,	"MFX-ETH1000" },
-};
+/*----*/
 
-static int num_controller_types = sizeof(controller_type_table)
-				/ sizeof(controller_type_table[0]);
+MX_EXPORT char *
+mxi_pmc_mcapi_controller_type_name( long controller_type )
+{
+	static struct {
+		long type;
+		char name[20];
+	} controller_type_table[] = {
+		{ NO_CONTROLLER,"None" },
+		{ DCXPC100,	"DCX-PC100" },
+		{ DCXAT100,	"DCX-AT100" },
+		{ DCXAT200,	"DCX-AT200" },
+		{ DC2PC100,	"DC2-PC100" },
+		{ DC2STN,	"DC2-STN" },
+		{ DCXAT300,	"DCX-AT300" },
+		{ DCXPCI300,	"DCX-PCI300" },
+		{ DCXPCI100,	"DCX-PCI100" },
+		{ MFXPCI1000,	"MFX-PCI1000" },
+		{ MFXETH1000,	"MFX-ETH1000" },
+	};
 
-static struct {
-	long type;
-	char name[20];
-} module_type_table[] = {
-	{ NO_MODULE,	"None" },
-	{ MC100,	"MC100" },
-	{ MC110,	"MC110" },
-	{ MC150,	"MC150" },
-	{ MC160,	"MC160" },
-	{ MC200,	"MC200" },
-	{ MC210,	"MC210" },
-	{ MC260,	"MC260" },
-	{ MC300,	"MC300" },
-	{ MC302,	"MC302" },
-	{ MC320,	"MC320" },
-	{ MC360,	"MC360" },
-	{ MC362,	"MC362" },
-	{ MC400,	"MC400" },
-	{ MC500,	"MC500" },
-	{ MF300,	"MF300" },
-	{ MF310,	"MF310" },
-	{ MFXSERVO,	"MFXSERVO" },
-	{ MFXSTEPPER,	"MFXSTEPPER" },
-	{ DC2SERVO,	"DC2SERVO" },
-	{ DC2STEPPER,	"DC2STEPPER" },
-};
+	static int num_controller_types = sizeof(controller_type_table)
+					/ sizeof(controller_type_table[0]);
 
-static int num_module_types = sizeof(module_type_table)
+	static char unknown_name[40];
+
+	char *controller_name = NULL;
+	int n;
+
+	for ( n = 0; n < num_controller_types; n++ ) {
+		if ( controller_type == controller_type_table[n].type ) {
+
+			controller_name = controller_type_table[n].name;
+			break;
+		}
+	}
+
+	if ( n >= num_controller_types ) {
+		snprintf( unknown_name, sizeof(unknown_name),
+			"Unknown (%ld)", controller_type );
+
+		controller_name = unknown_name;
+	}
+
+	return controller_name;
+}
+
+/*----*/
+
+MX_EXPORT char *
+mxi_pmc_mcapi_module_type_name( long module_type )
+{
+	static struct {
+		long type;
+		char name[20];
+	} module_type_table[] = {
+		{ NO_MODULE,	"None" },
+		{ MC100,	"MC100" },
+		{ MC110,	"MC110" },
+		{ MC150,	"MC150" },
+		{ MC160,	"MC160" },
+		{ MC200,	"MC200" },
+		{ MC210,	"MC210" },
+		{ MC260,	"MC260" },
+		{ MC300,	"MC300" },
+		{ MC302,	"MC302" },
+		{ MC320,	"MC320" },
+		{ MC360,	"MC360" },
+		{ MC362,	"MC362" },
+		{ MC400,	"MC400" },
+		{ MC500,	"MC500" },
+		{ MF300,	"MF300" },
+		{ MF310,	"MF310" },
+		{ MFXSERVO,	"MFXSERVO" },
+		{ MFXSTEPPER,	"MFXSTEPPER" },
+		{ DC2SERVO,	"DC2SERVO" },
+		{ DC2STEPPER,	"DC2STEPPER" },
+	};
+
+	static int num_module_types = sizeof(module_type_table)
 				/ sizeof(module_type_table[0]);
+
+	static char unknown_name[40];
+
+	char *module_name = NULL;
+	int n;
+
+	for ( n = 0; n < num_module_types; n++ ) {
+		if ( module_type == module_type_table[n].type ) {
+
+			module_name = module_type_table[n].name;
+			break;
+		}
+	}
+
+	if ( n >= num_module_types ) {
+		snprintf( unknown_name, sizeof(unknown_name),
+			"Unknown (%ld)", module_type );
+
+		module_name = unknown_name;
+	}
+
+	return module_name;
+}
 
 /*==========================*/
 
@@ -215,12 +271,10 @@ mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 
 	MCPARAMEX *cc;
 	MCAXISCONFIG axis;
-	long i, n, mcapi_status;
+	long i, mcapi_status;
 
 	MX_PMC_MCAPI *pmc_mcapi;
 	char error_buffer[100];
-	char controller_name[40];
-	char module_name[40];
 	mx_status_type mx_status;
 
 	mx_status = mxi_pmc_mcapi_get_pointers( record,
@@ -243,23 +297,10 @@ mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 	fprintf( file, "  startup_file_name = '%s'\n\n",
 					pmc_mcapi->startup_file_name );
 
-	for ( n = 0; n < num_controller_types; n++ ) {
-	    if ( cc->ControllerType == controller_type_table[n].type ) {
-
-		strlcpy( controller_name, controller_type_table[n].name,
-				sizeof(controller_name) );
-		break;
-	    }
-	}
-
-	if ( n >= num_controller_types ) {
-		snprintf( controller_name, sizeof(controller_name),
-			"Unknown (%d)", cc->ControllerType );
-	}
-
 	fprintf( file, " MCAPI parameters:\n" );
 
-	fprintf( file, "  ControllerType    = '%s'\n", controller_name );
+	fprintf( file, "  ControllerType    = '%s'\n", 
+		mxi_pmc_mcapi_controller_type_name( cc->ControllerType ) );
 
 	fprintf( file, "  NumberAxes        = %d\n", cc->NumberAxes );
 
@@ -337,21 +378,8 @@ mxi_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 				i, pmc_mcapi->record->name, error_buffer );
 		}
 
-		for ( n = 0; n < num_module_types; n++ ) {
-		    if ( axis.ModuleType == module_type_table[n].type ) {
-
-			strlcpy( module_name, module_type_table[n].name,
-					sizeof(module_name) );
-			break;
-		    }
-		}
-
-		if ( n >= num_module_types ) {
-		    snprintf( module_name, sizeof(module_name),
-			"Unknown (%d)", axis.ModuleType );
-		}
-
-		fprintf( file, "  %2ld    '%s'\n", i, module_name );
+		fprintf( file, "  %2ld    '%s'\n",
+			i, mxi_pmc_mcapi_module_type_name( axis.ModuleType ) );
 	}
 
 	fprintf( file, "\n" );
@@ -1138,6 +1166,7 @@ mxi_pmc_mcapi_initialize_dialog_functions( MX_PMC_MCAPI *pmc_mcapi )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 0
 static mx_status_type
 mxi_pmc_mccl_save_parameter( FILE *savefile,
 			MX_PMC_MCAPI *pmc_mcapi,
@@ -1212,6 +1241,7 @@ mxi_pmc_mccl_save_parameter( FILE *savefile,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 static mx_status_type
 mxi_pmc_mccl_save_common( FILE *savefile,
@@ -1222,12 +1252,14 @@ mxi_pmc_mccl_save_common( FILE *savefile,
 
 	MCAXISCONFIG axis_config;
 	MCMOTIONEX motion_config;
+	MCFILTEREX filter_config;
 
 	unsigned long mcapi_status;
 	unsigned long limit_on, limit_off;
 	unsigned long hard_limit_mode, soft_limit_mode;
+	unsigned long fr_value;
+	double servo_loop_period;
 	char error_buffer[100];
-	mx_status_type mx_status;
 
 	if ( pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1285,6 +1317,22 @@ mxi_pmc_mccl_save_common( FILE *savefile,
 			axis_id, pmc_mcapi->record->name, error_buffer );
 	}
 
+	/* Get the PID filter parameters. */
+
+	filter_config.cbSize = sizeof(MCFILTEREX);
+
+	mcapi_status = MCGetFilterConfigEx( pmc_mcapi->binary_handle,
+					axis_id, &filter_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the PID filter configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			axis_id, pmc_mcapi->record->name, error_buffer );
+	}
 
 	/*------------------------------------------------------------------*/
 
@@ -1293,7 +1341,7 @@ mxi_pmc_mccl_save_common( FILE *savefile,
 	if ( motion_config.EnableAmpFault ) {
 		fprintf( savefile, "%luFN0\n", axis_id );
 	} else {
-		fprintf( savefile, "%luFF0\n", axis_id );
+		fprintf( savefile, "%luFF\n", axis_id );
 	}
 
 	/* Hard limit mode */
@@ -1329,9 +1377,10 @@ mxi_pmc_mccl_save_common( FILE *savefile,
 
 	/* Soft limits */
 
-	fprintf( savefile, "%luHL%f\n", axis_id, motion_config.SoftLimitHigh );
+	fprintf( savefile, "%luHL%.6f\n",
+					axis_id, motion_config.SoftLimitHigh );
 
-	fprintf( savefile, "%luLL%f\n", axis_id, motion_config.SoftLimitLow );
+	fprintf( savefile, "%luLL%.6f\n", axis_id, motion_config.SoftLimitLow );
 
 	/* Hard and Soft Limit Enable */
 
@@ -1359,62 +1408,88 @@ mxi_pmc_mccl_save_common( FILE *savefile,
 		limit_off += 8;
 	}
 
-	if ( limit_on == 15 ) {
-		limit_on = 0;
-	}
-	if ( limit_off == 15 ) {
-		limit_off = 0;
+	if ( limit_on ) {
+		if ( limit_on == 15 ) {
+			limit_on = 0;
+		}
+		fprintf( savefile, "%luLN%lu\n", axis_id, limit_on );
 	}
 
-	fprintf( savefile, "%luLN%lu\n", axis_id, limit_on );
-
-	fprintf( savefile, "%luLF%lu\n", axis_id, limit_off );
+	if ( limit_off ) {
+		if ( limit_off == 15 ) {
+			limit_off = 0;
+		}
+		fprintf( savefile, "%luLF%lu\n", axis_id, limit_off );
+	}
 
 	/*------------------------------------------------------------------*/
+
+	servo_loop_period = MX_PMC_MCAPI_DCX_PCI100_SERVO_LOOP_PERIOD;
 
 	/* Proportional gain. */
 
-	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
-						MXFT_ULONG, "%luTG",
-						1, "%luSG%lu\n" );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	fprintf( savefile, "%luSG%lu\n", axis_id,
+				mx_round( filter_config.Gain ) );
 
 	/* Integral gain. */
 
-	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
-						MXFT_ULONG, "%luTI",
-						1, "%luSI%lu\n" );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	fprintf( savefile, "%luSI%lu\n", axis_id,
+				mx_round( filter_config.IntegralGain ) );
+
+	fprintf( savefile, "%luIL%lu\n", axis_id,
+				mx_round( filter_config.IntegrationLimit ) );
+
+#if 0
+	fprintf( savefile, "%lu??%ld\n", axis_id,
+					(long) filter_config.IntegralOption );
+#endif
 
 	/* Derivative gain. */
 
-	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
-						MXFT_ULONG, "%luTD",
-						1, "%luSD%lu\n" );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	fprintf( savefile, "%luSD%lu\n", axis_id,
+				mx_round( filter_config.DerivativeGain ) );
 
-	/* Integral limit. */
+	fr_value = mx_round( filter_config.DerSamplePeriod
+				/ servo_loop_period ) - 1;
 
-	mx_status = mxi_pmc_mccl_save_parameter( savefile, pmc_mcapi, axis_id,
-						MXFT_ULONG, "%luTL",
-						1, "%luIL%lu\n" );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	fprintf( savefile, "%luFR%lu\n", axis_id, fr_value );
+
+	/* Maximum following error. */
+
+	fprintf( savefile, "%luSE%lu\n", axis_id,
+				mx_round( filter_config.FollowingError ) );
+
+#if 0
+	/* Velocity gain. */
+
+	fprintf( savefile, "%lu??%.6f\n", axis_id, filter_config.VelocityGain );
+
+	/* Acceleration/deceleration gain. */
+
+	fprintf( savefile, "%lu??%.6f\n", axis_id, filter_config.AccelGain );
+
+	fprintf( savefile, "%lu??%.6f\n", axis_id, filter_config.DecelGain );
+
+	/* Scaling and update rate. */
+
+	fprintf( savefile, "%lu??%.6f\n",
+				axis_id, filter_config.EncoderScaling );
+
+	fprintf( savefile, "%lu??%ld\n", axis_id,
+					(long) filter_config.UpdateRate );
+#endif
 
 	/*------------------------------------------------------------------*/
 
-	fprintf( savefile, "%luSA%f\n", axis_id, motion_config.Acceleration );
+	fprintf( savefile, "%luSA%.6f\n", axis_id, motion_config.Acceleration );
 
-	fprintf( savefile, "%luSV%f\n", axis_id, motion_config.Velocity );
+	fprintf( savefile, "%luSV%.6f\n", axis_id, motion_config.Velocity );
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mxi_pmc_mccl_save_servo( FILE *savefile,
+mxi_pmc_mccl_save_dcx_pci100_servo( FILE *savefile,
 			MX_PMC_MCAPI *pmc_mcapi,
 			long axis_id )
 {
@@ -1523,10 +1598,30 @@ mxi_pmc_mcapi_save_axes( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 
 		switch( axis.MotorType ) {
 		case MC_TYPE_SERVO:
-			mx_status = mxi_pmc_mccl_save_servo( savefile,
-								pmc_mcapi, i );
+			switch( cc->ControllerType ) {
+			case DCXPCI100:
+				mx_status = mxi_pmc_mccl_save_dcx_pci100_servo(
+						savefile, pmc_mcapi, i );
+				break;
+			default:
+				return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Servo motor support for controller type %d "
+				"of MCAPI controller '%s' has not yet "
+				"been implemented.", cc->ControllerType,
+					pmc_mcapi->record->name );
+					
+			}
 			break;
 		case MC_TYPE_STEPPER:
+			switch( cc->ControllerType ) {
+			default:
+				return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Stepper motor support for controller type %d "
+				"of MCAPI controller '%s' has not yet "
+				"been implemented.", cc->ControllerType,
+					pmc_mcapi->record->name );
+					
+			}
 			break;
 		default:
 #if MXI_PMC_MCAPI_DEBUG

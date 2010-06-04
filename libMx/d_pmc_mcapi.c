@@ -240,10 +240,16 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pmc_mcapi_print_structure()";
 
+	MCAXISCONFIG axis_config;
+	MCMOTIONEX motion_config;
+	MCFILTEREX filter_config;
+
 	MX_MOTOR *motor;
 	MX_PMC_MCAPI_MOTOR *pmc_mcapi_motor = NULL;
 	MX_PMC_MCAPI *pmc_mcapi = NULL;
 	double position, move_deadband, speed;
+	long mcapi_status;
+	char error_buffer[100];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -261,12 +267,13 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
-	fprintf(file, "  Motor type        = PMC_MCAPI_MOTOR motor.\n\n");
+	fprintf(file, "  Motor type         = PMC_MCAPI_MOTOR motor.\n\n");
 
-	fprintf(file, "  name              = %s\n", record->name);
-	fprintf(file, "  controller name   = %s\n",
+	fprintf(file, " MX parameters:\n" );
+	fprintf(file, "  name               = %s\n", record->name);
+	fprintf(file, "  controller name    = %s\n",
 					pmc_mcapi->record->name);
-	fprintf(file, "  axis number       = %d\n",
+	fprintf(file, "  axis number        = %ld\n",
 					pmc_mcapi_motor->axis_number);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -277,29 +284,29 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 			record->name );
 	}
 	
-	fprintf(file, "  position          = %g %s  (%g raw units)\n",
+	fprintf(file, "  position           = %g %s  (%g raw units)\n",
 			motor->position, motor->units,
 			motor->raw_position.analog );
-	fprintf(file, "  scale             = %g %s per step.\n",
+	fprintf(file, "  scale              = %g %s per step.\n",
 			motor->scale, motor->units);
-	fprintf(file, "  offset            = %g %s.\n",
+	fprintf(file, "  offset             = %g %s.\n",
 			motor->offset, motor->units);
 	
-	fprintf(file, "  backlash          = %g %s  (%g raw units)\n",
+	fprintf(file, "  backlash           = %g %s  (%g raw units)\n",
 		motor->backlash_correction, motor->units,
 		motor->raw_backlash_correction.analog );
 	
-	fprintf(file, "  negative limit    = %g %s  (%g raw units)\n",
+	fprintf(file, "  negative limit     = %g %s  (%g raw units)\n",
 		motor->negative_limit, motor->units,
 		motor->raw_negative_limit.analog );
 
-	fprintf(file, "  positive limit    = %g %s  (%g raw units)\n",
+	fprintf(file, "  positive limit     = %g %s  (%g raw units)\n",
 		motor->positive_limit, motor->units,
 		motor->raw_positive_limit.analog );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.analog;
 
-	fprintf(file, "  move deadband     = %g %s  (%g raw units)\n",
+	fprintf(file, "  move deadband      = %g %s  (%g raw units)\n",
 		move_deadband, motor->units,
 		motor->raw_move_deadband.analog );
 
@@ -308,9 +315,249 @@ mxd_pmc_mcapi_print_structure( FILE *file, MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "  speed             = %g %s/s  (%g steps/s)\n",
+	fprintf(file, "  speed              = %g %s/s  (%g steps/s)\n",
 		speed, motor->units,
 		motor->raw_speed );
+
+	fprintf(file, "\n");
+
+	/* Display MCAPI internal parameters for the motor. */
+
+	/* Get the axis configuration parameters. */
+
+	axis_config.cbSize = sizeof(MCAXISCONFIG);
+
+	mcapi_status = MCGetAxisConfiguration( pmc_mcapi->binary_handle,
+					pmc_mcapi_motor->axis_number,
+					&axis_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the axis configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			pmc_mcapi_motor->axis_number,
+			pmc_mcapi->record->name,
+			error_buffer );
+	}
+
+	/* If this axis is not actually a motor, then something is wrong. */
+
+	if ( ( axis_config.MotorType != MC_TYPE_SERVO )
+	  && ( axis_config.MotorType != MC_TYPE_STEPPER ) )
+	{
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"MCAPI says that record '%s' is not a motor, even though "
+		"MX says that it is.\n",  record->name );
+	}
+
+	fprintf(file, " MCAXISCONFIG parameters:\n" );
+	fprintf(file, "  ModuleType         = '%s'\n",
+		mxi_pmc_mcapi_module_type_name( axis_config.ModuleType ) );
+
+	switch( axis_config.MotorType ) {
+	case MC_TYPE_SERVO:
+		fprintf(file, "  MotorType          = 'servo'\n" );
+		break;
+	case MC_TYPE_STEPPER:
+		fprintf(file, "  MotorType          = 'stepper'\n" );
+		break;
+	default:
+		fprintf(file, "  MotorType          = 'unknown (%d)'\n",
+					axis_config.MotorType );
+		break;
+	}
+
+	fprintf(file, "  CaptureModes       = %#x\n",
+					axis_config.CaptureModes );
+
+	if ( axis_config.CaptureAndCompare ) {
+		fprintf(file, "  CaptureAndCompare  is supported\n" );
+	} else {
+		fprintf(file, "  CaptureAndCompare  is not supported\n" );
+	}
+
+	fprintf(file, "  HighRate           = %f\n", axis_config.HighRate );
+	fprintf(file, "  MediumRate         = %f\n", axis_config.MediumRate );
+	fprintf(file, "  LowRate            = %f\n", axis_config.LowRate );
+	fprintf(file, "  HighStepMin        = %f\n", axis_config.HighStepMin );
+	fprintf(file, "  HighStepMax        = %f\n", axis_config.HighStepMax );
+	fprintf(file, "  MediumStepMin      = %f\n", axis_config.MediumStepMin);
+	fprintf(file, "  MediumStepMax      = %f\n", axis_config.MediumStepMax);
+	fprintf(file, "  LowStepMin         = %f\n", axis_config.LowStepMin );
+	fprintf(file, "  LowStepMax         = %f\n", axis_config.LowStepMax );
+
+	fprintf(file, "\n");
+
+	/* Get the motion parameters. */
+
+	motion_config.cbSize = sizeof(MCMOTIONEX);
+
+	mcapi_status = MCGetMotionConfigEx( pmc_mcapi->binary_handle,
+				pmc_mcapi_motor->axis_number,
+				&motion_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the motion configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			pmc_mcapi_motor->axis_number,
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	fprintf(file, " MCMOTIONEX parameters:\n" );
+	fprintf(file, "  Acceleration       = %f\n",
+					motion_config.Acceleration );
+	fprintf(file, "  Deceleration       = %f\n",
+					motion_config.Deceleration );
+	fprintf(file, "  Velocity           = %f\n",
+					motion_config.Velocity );
+	fprintf(file, "  MinVelocity        = %f\n",
+					motion_config.MinVelocity );
+
+	switch( motion_config.Direction ) {
+	case MC_DIR_POSITIVE:
+		fprintf(file, "  Direction          = positive\n" );
+		break;
+	case MC_DIR_NEGATIVE:
+		fprintf(file, "  Direction          = negative\n" );
+		break;
+	default:
+		fprintf(file, "  Direction          = %d\n",
+					motion_config.Direction );
+		break;
+	}
+
+	fprintf(file, "  Torque             = %f\n",
+					motion_config.Torque );
+	fprintf(file, "  Deadband           = %f\n",
+					motion_config.Deadband );
+	fprintf(file, "  DeadbandDelay      = %f\n",
+					motion_config.DeadbandDelay );
+
+	switch( motion_config.StepSize ) {
+	case MC_STEP_FULL:
+		fprintf(file, "  StepSize           = full step\n" );
+		break;
+	case MC_STEP_HALF:
+		fprintf(file, "  StepSize           = half step\n" );
+		break;
+	default:
+		fprintf(file, "  StepSize           = %d\n",
+					motion_config.StepSize );
+		break;
+	}
+
+	switch( motion_config.Current ) {
+	case MC_CURRENT_FULL:
+		fprintf(file, "  Current            = full current\n" );
+		break;
+	case MC_CURRENT_HALF:
+		fprintf(file, "  Current            = half current\n" );
+		break;
+	default:
+		fprintf(file, "  Current            = %d\n",
+					motion_config.Current );
+		break;
+	}
+
+	fprintf(file, "  Current            = %d\n",
+					motion_config.Current );
+	fprintf(file, "  HardLimitMode      = %#x\n",
+					motion_config.HardLimitMode );
+	fprintf(file, "  SoftLimitMode      = %#x\n",
+					motion_config.SoftLimitMode );
+	fprintf(file, "  SoftLimitLow       = %f\n",
+					motion_config.SoftLimitLow );
+	fprintf(file, "  SoftLimitHigh      = %f\n",
+					motion_config.SoftLimitHigh );
+
+	if ( motion_config.EnableAmpFault ) {
+		fprintf(file, "  EnableAmpFault     = on\n" );
+	} else {
+		fprintf(file, "  EnableAmpFault     = on\n" );
+	}
+
+	fprintf(file, "\n");
+
+	/* Get the PID filter parameters. */
+
+	filter_config.cbSize = sizeof(MCFILTEREX);
+
+	mcapi_status = MCGetFilterConfigEx( pmc_mcapi->binary_handle,
+					pmc_mcapi_motor->axis_number,
+					&filter_config );
+
+	if ( mcapi_status != MCERR_NOERROR ) {
+		mxi_pmc_mcapi_translate_error( mcapi_status,
+			error_buffer, sizeof(error_buffer) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to get the PID filter configuration for axis %lu of "
+		"MCAPI controller '%s'.  MCAPI error message = '%s'",
+			pmc_mcapi_motor->axis_number,
+			pmc_mcapi->record->name, error_buffer );
+	}
+
+	fprintf(file, " MCFILTEREX parameters:\n");
+	fprintf(file, "  Gain               = %f\n", filter_config.Gain );
+	fprintf(file, "  IntegralGain       = %f\n",
+					filter_config.IntegralGain );
+	fprintf(file, "  IntegrationLimit   = %f\n",
+					filter_config.IntegrationLimit );
+
+	switch( filter_config.IntegralOption ) {
+	case MC_INT_NORMAL:
+		fprintf(file, "  IntegralOption     = normal\n" );
+		break;
+	case MC_INT_FREEZE:
+		fprintf(file, "  IntegralOption     = freeze\n" );
+		break;
+	case MC_INT_ZERO:
+		fprintf(file, "  IntegralOption     = zero\n" );
+		break;
+	default:
+		fprintf(file, "  IntegralOption     = %d\n",
+					filter_config.IntegralOption );
+		break;
+	}
+
+	fprintf(file, "  DerivativeGain     = %f\n",
+					filter_config.DerivativeGain );
+	fprintf(file, "  DerSamplePeriod    = %f\n",
+					filter_config.DerSamplePeriod );
+	fprintf(file, "  FollowingError     = %f\n",
+					filter_config.FollowingError );
+	fprintf(file, "  VelocityGain       = %f\n",
+					filter_config.VelocityGain );
+	fprintf(file, "  AccelGain          = %f\n", filter_config.AccelGain );
+	fprintf(file, "  DecelGain          = %f\n", filter_config.DecelGain );
+	fprintf(file, "  EncoderScaling     = %f\n",
+					filter_config.EncoderScaling );
+
+	switch( filter_config.UpdateRate ) {
+	case MC_RATE_UNKNOWN:
+		fprintf(file, "  UpdateRate         = unknown\n" );
+		break;
+	case MC_RATE_LOW:
+		fprintf(file, "  UpdateRate         = low\n" );
+		break;
+	case MC_RATE_MEDIUM:
+		fprintf(file, "  UpdateRate         = medium\n" );
+		break;
+	case MC_RATE_HIGH:
+		fprintf(file, "  UpdateRate         = high\n" );
+		break;
+	default:
+		fprintf(file, "  UpdateRate         = %d\n",
+					filter_config.UpdateRate );
+		break;
+	}
 
 	fprintf(file, "\n");
 
@@ -384,6 +631,12 @@ mxd_pmc_mcapi_open( MX_RECORD *record )
 		"MCAPI error message = '%s'",
 			pmc_mcapi_motor->record->name, error_buffer );
 	}
+
+	/* Enable the motor axis. */
+
+	MCEnableAxis( pmc_mcapi->binary_handle,
+			pmc_mcapi_motor->axis_number,
+			TRUE );
 
 	return MX_SUCCESSFUL_RESULT;
 }
