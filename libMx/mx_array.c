@@ -1013,7 +1013,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+#if 0
 	if ( ( num_dimensions == 1 ) && ( use_structure_name == FALSE ) )
+#else
+	if ( num_dimensions == 1 )
+#endif
 	{ 
 		bytes_to_copy = dimension_array[0] * data_element_size_array[0];
 
@@ -1046,6 +1050,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
+#if 1
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+#endif
 			memcpy( destination_buffer,
 					array_pointer, bytes_to_copy );
 			break;
@@ -1060,7 +1069,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 					array_pointer, bytes_to_copy );
 			}
 			break;
-
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Array copy for data type %ld is not supported.",

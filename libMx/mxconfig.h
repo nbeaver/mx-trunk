@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			0
+#define HAVE_EPICS			1
 
 /*****************************************************************************
  *
@@ -47,7 +47,7 @@
  *
  */
 
-#define HAVE_EPIX_XCLIB			0
+#define HAVE_EPIX_XCLIB			1
 
 /*****************************************************************************
  *
@@ -192,7 +192,7 @@
  * (MCAPI) for their series of motor controllers.
  */
 
-#define HAVE_PMC_MCAPI			1
+#define HAVE_PMC_MCAPI			0
 
 /*****************************************************************************
  *

@@ -63,13 +63,13 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(JORWAY_CAMAC_LIB_DIRS)
 #LIBRARIES	= $(JORWAY_CAMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(PMC_MCAPI_LIB_DIRS)
-LIBRARIES	= $(PMC_MCAPI_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(PMC_MCAPI_LIB_DIRS)
+#LIBRARIES	= $(PMC_MCAPI_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
-#						-lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
+						-lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EDT_LIBRARIES) \
@@ -312,22 +312,22 @@ EPICS_ARCH	= linux-x86		# For EPICS 3.14
 
 # For most EPICS installations, use the following definitions.
 
-EPICS_TOP	= /opt/epics
-#EPICS_TOP	= /opt/EPICS
+#EPICS_TOP	= /opt/epics
+EPICS_TOP	= /opt/EPICS
 #EPICS_TOP	= /usr/local/epics
 #EPICS_TOP	= /home/lavender/local/epics
 
-#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-#			-I$(EPICS_TOP)/base/include/os/Linux
-#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+			-I$(EPICS_TOP)/base/include/os/Linux
+EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+EPICS_LIBRARIES = -lca -lCom
 
 # If you are using the EPICS Debian package, use the following definitions.
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-			-I/usr/include/epics/os/Linux
-EPICS_LIB_DIRS  = 
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+#			-I/usr/include/epics/os/Linux
+#EPICS_LIB_DIRS  = 
+#EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
