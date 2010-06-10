@@ -168,6 +168,21 @@ motor_show_fn( int argc, char *argv[] )
 		fprintf( output, "%s\n", usage );
 		return FAILURE;
 
+	} else if ( strncmp( "date", argv[2], max(2,length) ) == 0 ) {
+		time_t time_struct;
+		struct tm current_time;
+		char time_buffer[80];
+
+		time( &time_struct );
+
+		(void) localtime_r( &time_struct, &current_time );
+
+		strftime( time_buffer, sizeof(time_buffer),
+			"%G %b %d %H:%M:%S\n", &current_time );
+
+		fputs( time_buffer, output );
+		return SUCCESS;
+
 	} else if ( strncmp( "memory", argv[2], length ) == 0 ) {
 
 		mx_status = mx_get_process_meminfo( MXF_PROCESS_ID_SELF,

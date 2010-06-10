@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,6 +43,7 @@ static char msg_help[] =
 "    copy scan 'scan1' 'scan2'      - Make 'scan2' an exact copy of 'scan1'.\n"
 "    count 'seconds' 'scaler1' 'scaler2' ...\n"
 "                                   - Count scaler, ADC, or dinput channels.\n"
+"    date                           - Shows the current date and time.\n"
 "    delete scan 'scan_name'        - Delete scan parameters for scan.\n"
 "    gpib ...                       - Communicate with a GPIB device.\n"
 "    home 'motorname' 'direction'   - Perform a motor home search \n"
