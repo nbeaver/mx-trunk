@@ -236,8 +236,10 @@ mxd_linkam_t9x_motor_open( MX_RECORD *record )
 
 	/* Set the initial ramp speed in micrometers/second. */
 
+#if MXD_LINKAM_T9X_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: linkam_t9x_motor->initial_speed = %f",
 		fname, linkam_t9x_motor->initial_speed ));
+#endif
 
 	mx_status = mx_motor_set_speed( record,
 				linkam_t9x_motor->initial_speed );

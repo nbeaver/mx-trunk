@@ -203,8 +203,10 @@ mxd_linkam_t9x_temp_open( MX_RECORD *record )
 
 	/* Set the initial ramp speed in degrees C/second. */
 
+#if MXD_LINKAM_T9X_TEMP_DEBUG
 	MX_DEBUG(-2,("%s: linkam_t9x_temp->initial_speed = %f",
 		fname, linkam_t9x_temp->initial_speed ));
+#endif
 
 	mx_status = mx_motor_set_speed( record,
 				linkam_t9x_temp->initial_speed );
