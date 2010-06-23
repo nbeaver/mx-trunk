@@ -278,7 +278,7 @@ mxi_linkam_t9x_get_status( MX_LINKAM_T9X *linkam_t9x,
 	linkam_t9x->pump_byte      = response[2];
 	linkam_t9x->general_status = response[3];
 
-	raw_temperature = mx_hex_string_to_unsigned_long( &response[6] );
+	raw_temperature = mx_hex_string_to_long( &response[6] );
 
 	linkam_t9x->temperature = 0.1 * (double) raw_temperature;
 
