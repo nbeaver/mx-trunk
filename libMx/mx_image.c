@@ -3258,8 +3258,41 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	/* Write the text header. */
 
+	/* The first six headers are written in the order
+	 *
+	 *   HEADER_BYTES
+	 *   DIM
+	 *   SIZE1
+	 *   SIZE2
+	 *   BYTE_ORDER
+	 *   TYPE
+	 *
+	 * This was done for compatibility with the Fit2d program, which
+	 * seems to expect this order.
+	 *
+	 * Older versions of MX used the order
+	 *
+	 *   HEADER_BYTES
+	 *   BYTE_ORDER
+	 *   DIM
+	 *   TYPE
+	 *   SIZE1
+	 *   SIZE2
+	 *
+	 * which somehow caused Fit2d to not correctly figure out what the
+	 * image dimensions were.
+	 */
+
 	fprintf( file, "{\n" );
 	fprintf( file, "HEADER_BYTES=  512;\n" );
+
+	fprintf( file, "DIM=2;\n" );
+
+	fprintf( file, "SIZE1=%lu;\n",
+				(unsigned long) MXIF_ROW_FRAMESIZE(frame) );
+
+	fprintf( file, "SIZE2=%lu;\n",
+				(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
 
 	switch( byteorder ) {
 	case MX_DATAFMT_BIG_ENDIAN:
@@ -3273,20 +3306,12 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		"Byteorder %ld is not supported.", byteorder );
 	}
 
-	fprintf( file, "DIM=2;\n" );
-
 	if ( MXIF_IMAGE_FORMAT(frame) == MXT_IMAGE_FORMAT_GREY16 ) {
 		fprintf( file, "TYPE=unsigned_short;\n" );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"8-bit file formats are not supported by SMV format files." );
 	}
-
-	fprintf( file, "SIZE1=%lu;\n",
-				(unsigned long) MXIF_ROW_FRAMESIZE(frame) );
-
-	fprintf( file, "SIZE2=%lu;\n",
-				(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
 
 	fprintf( file, "BIN=%lux%lu;\n",
 				(unsigned long) MXIF_ROW_BINSIZE(frame),
