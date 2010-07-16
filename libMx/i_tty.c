@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1191,7 +1191,7 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 						fputc( c, stderr );
 					} else {
 						fprintf( stderr, "(0x%x)",
-							(unsigned char) c );
+								c & 0xff );
 					}
 				}
 				fprintf(stderr,"\n\n");

@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_PMAC_DEBUG			FALSE
+#define MXI_PMAC_DEBUG			TRUE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 
@@ -1659,9 +1659,9 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	static const char fname[] = "mxi_pmac_gpascii_login()";
 
 	MX_RS232 *rs232;
-	char response[80];
-	char c;
-	unsigned long num_bytes;
+	char response[1000];
+	unsigned char telnet_command[3];
+	unsigned long num_bytes_received;
 	mx_status_type mx_status;
 
 	rs232 = (MX_RS232 *) pmac->port_record->record_class_struct;
@@ -1675,14 +1675,116 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 	/* We must login to the PowerPMAC. */
 
-	/* FIXME: We should do something more robust than just
-	 * discarding almost all of the responses from the
-	 * PowerPMAC.
-	 */
-
 #if MXI_PMAC_DEBUG_LOGIN
 	MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
 #endif
+
+	/* Wait to give the server time to send Telnet negotiation commands. */
+
+	mx_msleep(1000);
+
+	/* If we are talking to the Telnet server on the Power PMAC, then
+	 * it may send us 3 byte Telnet negotiation requests.  If so, then
+	 * refuse to go along with any of the requests.
+	 */
+
+	while (1) {
+		/* Try to read a 3 byte Telnet negotiation request. */
+
+		mx_status = mx_rs232_read_with_timeout( pmac->port_record,
+					(char *) telnet_command,
+					sizeof(telnet_command),
+					NULL, MXI_PMAC_DEBUG, 1.0 );
+
+		MX_DEBUG(-2,("%s: mx_status.code = %lu",
+			fname, mx_status.code ));
+
+		if ( mx_status.code == MXE_TIMED_OUT ) {
+			/* The server has stopped sending us commands,
+			 * so break out of the loop.
+			 */
+			break;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PMAC_DEBUG_LOGIN
+		MX_DEBUG(-2,("%s: Received %#x %#x %#x", fname,
+		    telnet_command[0], telnet_command[1], telnet_command[2] ));
+#endif
+
+		/* If the first byte is 0xff and the second byte is greater
+		 * than or equal to 0xf0, then this is a Telnet command.
+		 */
+
+		if ( telnet_command[0] != 0xff ) {
+			/* Not a Telnet command, so exit the loop. */
+
+			break;
+		}
+		if ( telnet_command[1] < 0xf0 ) {
+			/* Not a Telnet command, so exit the loop. */
+
+			break;
+		}
+		if ( telnet_command[1] < 0xfb ) {
+			/* This is not a negotiation command, so we do not
+			 * know what to do with it.
+			 */
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Unexpected Telnet command %#x %#x %#x received from "
+			"Power PMAC '%s'.",
+				telnet_command[0] & 0xff,
+				telnet_command[1] & 0xff,
+				telnet_command[2] & 0xff,
+				pmac->record->name );
+		}
+		if ( telnet_command[1] == 0xff ) {
+			/* This is a request to send an ordinary 0xff byte.
+			 * We ignore it.
+			 */
+
+			break;
+		}
+
+		if ( ( telnet_command[1] == 0xfc )
+		  || ( telnet_command[1] == 0xfe ) )
+		{
+			/* Ignore WON'T and DON'T commands, but go back
+			 * check for any more negotiation commands.
+			 */
+
+			continue;
+		}
+
+		if ( telnet_command[1] == 0xfb ) {
+			/* Change WILL to DON'T. */
+
+			telnet_command[1] = 0xfe;
+		}
+		if ( telnet_command[1] == 0xfd ) {
+			/* Change DO to WON'T. */
+
+			telnet_command[1] = 0xfc;
+		}
+
+		/* Send back the response to the negotiation request. */
+
+		MX_DEBUG(-2,("%s: Sending %#x %#x %#x", fname,
+		    telnet_command[0], telnet_command[1], telnet_command[2] ));
+
+		mx_status = mx_rs232_write( pmac->port_record,
+					(char *) telnet_command,
+					sizeof(telnet_command),
+					NULL, MXI_PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_msleep(1000);
 
 	/* Discard everything up to the login prompt. */
 
@@ -1711,16 +1813,18 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	while (1) {
 		mx_status = mx_rs232_num_input_bytes_available(
 					pmac->port_record,
-					&num_bytes );
+					&num_bytes_received );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( num_bytes > 0 )
+		if ( num_bytes_received > 0 )
 			break;
 
 		mx_msleep(100);
 	}
+
+	mx_msleep(1000);
 
 	/* Discard the response. */
 
@@ -1749,42 +1853,28 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	while (1) {
 		mx_status = mx_rs232_num_input_bytes_available(
 					pmac->port_record,
-					&num_bytes );
+					&num_bytes_received );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( num_bytes > 0 )
+		if ( num_bytes_received > 0 )
 			break;
 
 		mx_msleep(100);
 	}
 
-	/* Discard everything up to the root shell prompt character. */
+	mx_msleep(1000);
 
-	while (1) {
-		mx_status = mx_rs232_getchar_with_timeout( 
-				pmac->port_record, &c,
-				MXI_PMAC_DEBUG, rs232->timeout);
-
-		if( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* If we see the prompt character, then break
-		 * out of the loop.
-		 */
-
-		if ( ( c == '#' ) || ( c == '$' ) )
-			break;
-	}
-
-	/* Discard anything after the prompt character. */
+	/* Discard all login messages. */
 
 	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
 						MXI_PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG(-2,("%s: MARKER 11", fname));
 
 #if MXI_PMAC_DEBUG_LOGIN
 	MX_DEBUG(-2,("%s: sending the 'gpascii' command.", fname));
@@ -1799,6 +1889,10 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_msleep(1000);
+
+	MX_DEBUG(-2,("%s: MARKER 12", fname));
+
 	/* Wait until a response is available. */
 
 #if MXI_PMAC_DEBUG_LOGIN
@@ -1806,19 +1900,27 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	("%s: waiting for the 'gpascii' startup message.", fname));
 #endif
 
+	mx_msleep(1000);
+
+	MX_DEBUG(-2,("%s: MARKER 13", fname));
+
 	while (1) {
 		mx_status = mx_rs232_num_input_bytes_available(
 					pmac->port_record,
-					&num_bytes );
+					&num_bytes_received );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( num_bytes > 0 )
+		if ( num_bytes_received > 0 )
 			break;
 
 		mx_msleep(100);
 	}
+
+	mx_msleep(1000);
+
+	MX_DEBUG(-2,("%s: MARKER 14", fname));
 
 	/* Look for the expected response. */
 
@@ -1840,6 +1942,10 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 		"command for PowerPMAC '%s'.  Instead, we got '%s'.",
 			pmac->record->name, response );
 	}
+
+	mx_msleep(1000);
+
+	MX_DEBUG(-2,("%s: MARKER 15", fname));
 
 	/* Discard any leftover characters. */
 

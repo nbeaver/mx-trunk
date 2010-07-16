@@ -1,13 +1,13 @@
 /*
  * Name:    mx_rs232.h
  *
- * Purpose: Header file for RS-232, RS-485 and other similar interfaces.
+ * Purpose: Header file for RS-232, TCP sockets and other similar interfaces.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -280,6 +280,13 @@ MX_API mx_status_type mx_rs232_write( MX_RECORD *rs232_record,
 					size_t bytes_to_write,
 					size_t *bytes_written,
 					unsigned long transfer_flags );
+
+MX_API mx_status_type mx_rs232_read_with_timeout( MX_RECORD *rs232_record,
+					char *buffer,
+					size_t max_bytes_to_read,
+					size_t *bytes_read,
+					unsigned long transfer_flags,
+					double timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_getline( MX_RECORD *rs232_record,
 					char *buffer, 

@@ -518,7 +518,7 @@ mx_rs232_read( MX_RECORD *record,
 
 	return mx_status;
 }
-		
+
 MX_EXPORT mx_status_type
 mx_rs232_write( MX_RECORD *record,
 		char *buffer,
@@ -577,6 +577,70 @@ mx_rs232_write( MX_RECORD *record,
 
 	if ( bytes_written != NULL ) {
 		*bytes_written = bytes_written_by_driver;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_read_with_timeout( MX_RECORD *record,
+		char *buffer,
+		size_t max_bytes_to_read,
+		size_t *bytes_read,
+		unsigned long transfer_flags,
+		double timeout_in_seconds )
+{
+	static const char fname[] = "mx_rs232_read_with_timeout()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *fl_ptr;
+	size_t i, bytes_read_by_driver;
+	char c;
+	int buffered_io;
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &fl_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) {
+		buffered_io = FALSE;
+	} else {
+		buffered_io = TRUE;
+	}
+
+	/* Loop over the requested buffer length with a timeout. */
+
+	rs232->transfer_flags = transfer_flags;
+
+	for ( i = 0; i < max_bytes_to_read; i++ ) {
+		mx_status = mx_rs232_getchar_with_timeout( record, &c,
+							MXF_232_WAIT,
+							timeout_in_seconds );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			break;		/* Exit the for() loop. */
+
+		buffer[i] = c;
+	}
+
+	if ( i >= max_bytes_to_read ) {
+		bytes_read_by_driver = max_bytes_to_read;
+	} else {
+		bytes_read_by_driver = i;
+	}
+
+	/* Null terminate the buffer so that it is a valid C string. */
+
+	buffer[bytes_read_by_driver] = '\0';
+
+	if ( transfer_flags & MXF_232_DEBUG ) {
+		MX_DEBUG(-2,("%s: received buffer = '%s'", fname, buffer));
+	}
+
+	if ( bytes_read != NULL ) {
+		*bytes_read = bytes_read_by_driver;
 	}
 
 	return mx_status;

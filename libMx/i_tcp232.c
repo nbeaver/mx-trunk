@@ -708,7 +708,7 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 	char c;
 	mx_status_type mx_status;
 
-	char buffer[100];
+	char buffer[2500];
 	unsigned long j, k;
 	unsigned long buffer_length = sizeof(buffer) / sizeof(buffer[0]);
 
@@ -768,7 +768,7 @@ mxi_tcp232_discard_unread_input( MX_RS232 *rs232 )
 				if ( isprint( (int) c ) ) {
 					fputc( c, stderr );
 				} else {
-					fprintf( stderr, "(0x%x)", c );
+					fprintf( stderr, "(0x%x)", c & 0xff );
 				}
 			}
 			fprintf(stderr,"\n\n");

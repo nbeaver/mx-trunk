@@ -17,7 +17,7 @@
  *
  */
 
-#define PMAC_DEBUG	FALSE
+#define PMAC_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
