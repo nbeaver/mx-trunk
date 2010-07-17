@@ -1048,9 +1048,12 @@ mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 
 	/* Change the reported motor status from ASCII characters
 	 * to unsigned long integers.
+	 *
+	 * Note that the first character returned is a $ character.
+	 * We must skip over that.
 	 */
 
-	for ( i = 0; i < MX_POWER_PMAC_NUM_STATUS_CHARACTERS; i++ ) {
+	for ( i = 3; i <= MX_POWER_PMAC_NUM_STATUS_CHARACTERS; i++ ) {
 		status[i] = mx_hex_char_to_unsigned_long( response[i] );
 
 		MX_DEBUG( 2,("%s: status[%d] = %#lx",

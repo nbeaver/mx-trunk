@@ -1,4 +1,4 @@
-pmac1_socket interface rs232 tcp232 "" "" 38400 8 N 1 H 0x0d0a 0x0d0a -1 0x0 powerpmac 23 0x0
+pmac1_socket interface rs232 telnet "" "" 38400 8 N 1 H 0x0d0a 0x0d0a -1 0x0 powerpmac 23 0x0
 pmac1       interface generic pmac "" "" gpascii "pmac1_socket root deltatau" 1
 #
 #pmac1       interface generic pmac "" "" gplib "" 1

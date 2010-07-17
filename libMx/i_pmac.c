@@ -48,6 +48,7 @@
 
 #include "i_pmac.h"
 #include "i_pmac_ethernet.h"
+#include "i_telnet.h"
 
 #if MXI_PMAC_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
@@ -106,11 +107,6 @@ mxi_pmac_std_send_command( MX_PMAC *, char *, int );
 
 static mx_status_type
 mxi_pmac_std_receive_response( MX_PMAC *, char *, int, int );
-
-/*--*/
-
-static mx_status_type
-mxi_pmac_rs232_send_command( MX_PMAC *, char *, int );
 
 /*--*/
 
@@ -437,6 +433,42 @@ mxi_pmac_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Original PMACs and Turbo PMACs have the name terminated by
+	 * a comma (') character.  However, PowerPMACs have the name
+	 * terminated by CR-LF.
+	 *
+	 * So, we initially search for a comma in the string and
+	 * NUL it out if found.
+	 *
+	 * If a comma was _not_ found in the string, we search for a
+	 * carriage return (0xd) and NUL it out if found.
+	 *
+	 * Otherwise, we leave the string alone.
+	 */
+
+#if 1
+	{
+		char *ptr;
+
+		ptr = strchr( response, ',' );
+
+		if ( ptr != NULL ) {
+			*ptr = '\0';
+		} else {
+			ptr = strchr( response, MX_CR );
+
+			if ( ptr != NULL ) {
+				*ptr = '\0';
+			}
+		}
+
+		strlcpy( pmac_type_name, response, sizeof(pmac_type_name) );
+	}
+#else
+	/* OBSOLETE: The old method before Power PMAC. */
+
+	/* Now scan for the string. */
+
 	num_items = sscanf( response, "%s,", pmac_type_name );
 
 	if ( num_items != 1 ) {
@@ -446,6 +478,7 @@ mxi_pmac_open( MX_RECORD *record )
 			"Response to PMAC TYPE command = '%s'",
 				response );
 	}
+#endif
 
 	if ( strncmp( pmac_type_name, "PMAC1",5 ) == 0 ) {
 		pmac->pmac_type = MX_PMAC_TYPE_PMAC1;
@@ -1275,9 +1308,23 @@ mxi_pmac_std_send_command( MX_PMAC *pmac,
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_RS232:
+		/* First, send a ctrl-Z to make the serial port
+		 * the active interface.
+		 */
+
+		mx_status = mx_rs232_putchar( pmac->port_record,
+						MX_CTRL_Z, MXF_232_WAIT );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Note: We do not 'break' here.  Instead, we fall through
+		 * to the gpascii case.
+		 */
+
 	case MX_PMAC_PORT_TYPE_GPASCII:
-		mx_status = mxi_pmac_rs232_send_command( pmac,
-						command, debug_flag );
+		mx_status = mx_rs232_putline( pmac->port_record,
+						command, NULL, debug_flag );
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1359,37 +1406,6 @@ mxi_pmac_std_receive_response( MX_PMAC *pmac,
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/*----*/
-
-static mx_status_type
-mxi_pmac_rs232_send_command( MX_PMAC *pmac,
-			char *command,
-			int debug_flag )
-{
-	char c;
-	mx_status_type mx_status;
-
-	/* First, send a ctrl-Z to make the serial port the active interface. */
-
-	c = MX_CTRL_Z;
-
-	mx_status = mx_rs232_putchar( pmac->port_record, c, MXF_232_WAIT );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Now send the main string. */
-
-#if MXI_PMAC_DEBUG_RS232
-	mx_status = mx_rs232_putline( pmac->port_record,
-					command, NULL, debug_flag );
-#else
-	mx_status = mx_rs232_putline( pmac->port_record, command, NULL, 0 );
-#endif
-
-	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1660,7 +1676,6 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 	MX_RS232 *rs232;
 	char response[1000];
-	unsigned char telnet_command[3];
 	unsigned long num_bytes_received;
 	mx_status_type mx_status;
 
@@ -1679,112 +1694,17 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
 #endif
 
-	/* Wait to give the server time to send Telnet negotiation commands. */
+	/* Give the server a chance to send Telnet negotiation commands. */
 
-	mx_msleep(1000);
+	mx_status = mxi_telnet_handle_commands( rs232, 1000, 10 );
 
-	/* If we are talking to the Telnet server on the Power PMAC, then
-	 * it may send us 3 byte Telnet negotiation requests.  If so, then
-	 * refuse to go along with any of the requests.
-	 */
-
-	while (1) {
-		/* Try to read a 3 byte Telnet negotiation request. */
-
-		mx_status = mx_rs232_read_with_timeout( pmac->port_record,
-					(char *) telnet_command,
-					sizeof(telnet_command),
-					NULL, MXI_PMAC_DEBUG, 1.0 );
-
-		MX_DEBUG(-2,("%s: mx_status.code = %lu",
-			fname, mx_status.code ));
-
-		if ( mx_status.code == MXE_TIMED_OUT ) {
-			/* The server has stopped sending us commands,
-			 * so break out of the loop.
-			 */
-			break;
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXI_PMAC_DEBUG_LOGIN
-		MX_DEBUG(-2,("%s: Received %#x %#x %#x", fname,
-		    telnet_command[0], telnet_command[1], telnet_command[2] ));
+	MX_DEBUG(-2,
+	("%s: Discarding everything up to the login prompt.", fname));
 #endif
-
-		/* If the first byte is 0xff and the second byte is greater
-		 * than or equal to 0xf0, then this is a Telnet command.
-		 */
-
-		if ( telnet_command[0] != 0xff ) {
-			/* Not a Telnet command, so exit the loop. */
-
-			break;
-		}
-		if ( telnet_command[1] < 0xf0 ) {
-			/* Not a Telnet command, so exit the loop. */
-
-			break;
-		}
-		if ( telnet_command[1] < 0xfb ) {
-			/* This is not a negotiation command, so we do not
-			 * know what to do with it.
-			 */
-
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Unexpected Telnet command %#x %#x %#x received from "
-			"Power PMAC '%s'.",
-				telnet_command[0] & 0xff,
-				telnet_command[1] & 0xff,
-				telnet_command[2] & 0xff,
-				pmac->record->name );
-		}
-		if ( telnet_command[1] == 0xff ) {
-			/* This is a request to send an ordinary 0xff byte.
-			 * We ignore it.
-			 */
-
-			break;
-		}
-
-		if ( ( telnet_command[1] == 0xfc )
-		  || ( telnet_command[1] == 0xfe ) )
-		{
-			/* Ignore WON'T and DON'T commands, but go back
-			 * check for any more negotiation commands.
-			 */
-
-			continue;
-		}
-
-		if ( telnet_command[1] == 0xfb ) {
-			/* Change WILL to DON'T. */
-
-			telnet_command[1] = 0xfe;
-		}
-		if ( telnet_command[1] == 0xfd ) {
-			/* Change DO to WON'T. */
-
-			telnet_command[1] = 0xfc;
-		}
-
-		/* Send back the response to the negotiation request. */
-
-		MX_DEBUG(-2,("%s: Sending %#x %#x %#x", fname,
-		    telnet_command[0], telnet_command[1], telnet_command[2] ));
-
-		mx_status = mx_rs232_write( pmac->port_record,
-					(char *) telnet_command,
-					sizeof(telnet_command),
-					NULL, MXI_PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	mx_msleep(1000);
 
 	/* Discard everything up to the login prompt. */
 
@@ -1874,6 +1794,29 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Turn off echoing of commands. */
+
+	MX_DEBUG(-2,("%s: MARKER 9", fname));
+
+	mx_status = mx_rs232_putline( pmac->port_record,
+					"stty -echo",
+					NULL, MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(1000);
+
+	MX_DEBUG(-2,("%s: MARKER 10", fname));
+
+	/* Discard the response to the stty -echo command. */
+
+	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
+						MXI_PMAC_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	MX_DEBUG(-2,("%s: MARKER 11", fname));
 
 #if MXI_PMAC_DEBUG_LOGIN
@@ -1936,7 +1879,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	MX_DEBUG(-2,("%s: received response '%s'.", fname, response));
 #endif
 
-	if ( strcmp( response, "STDIN Open for ASCII input" ) != 0 ) {
+	if ( strcmp( response, "STDIN Open for ASCII Input" ) != 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"Did not get the expected response to the 'gpascii' "
 		"command for PowerPMAC '%s'.  Instead, we got '%s'.",

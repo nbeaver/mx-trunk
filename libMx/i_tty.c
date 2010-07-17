@@ -177,7 +177,7 @@ mxi_tty_get_pointers( MX_RS232 *rs232,
 			MX_TTY **tty,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_tty_get_pointers()";
+	static const char fname[] = "mxi_tty_get_pointers()";
 
 	MX_RECORD *tty_record;
 

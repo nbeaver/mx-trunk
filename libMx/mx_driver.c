@@ -125,6 +125,7 @@
 #if HAVE_TCPIP
 #include "i_tcp232.h"
 #include "i_modbus_tcp.h"
+#include "i_telnet.h"
 #endif
 
 #if HAVE_LIBUSB
@@ -668,6 +669,14 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_tcp232_rs232_function_list,
 				&mxi_tcp232_num_record_fields,
 				&mxi_tcp232_rfield_def_ptr},
+
+{"telnet",         MXI_232_TELNET,   MXI_RS232,          MXR_INTERFACE,
+				&mxi_telnet_record_function_list,
+				NULL,
+				&mxi_telnet_rs232_function_list,
+				&mxi_telnet_num_record_fields,
+				&mxi_telnet_rfield_def_ptr},
+
 #endif /* HAVE_TCPIP */
 
 #if defined(OS_VMS)
