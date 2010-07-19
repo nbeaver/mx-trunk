@@ -1107,6 +1107,38 @@ mxi_pmac_receive_response_with_getchar( MX_PMAC *pmac,
 			response_buffer_length );
 	}
 
+	/* 'gpascii' appends an additional CR-LF sequence after the
+	 * ACK or BEL.
+	 */
+
+	if ( pmac->port_type == MX_PMAC_PORT_TYPE_GPASCII ) {
+		mx_status = mxi_pmac_getchar( pmac, &c );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( c != MX_CR ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Did not receive the CR of a CR-LF pair from "
+			"'gpascii' after the ACK or BEL character "
+			"for PMAC '%s'.  Instead, we received %#x.",
+				pmac->record->name, c & 0xff );
+		}
+
+		mx_status = mxi_pmac_getchar( pmac, &c );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( c != MX_LF ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Did not receive the LF of a CR-LF pair from "
+			"'gpascii' after the ACK or BEL character "
+			"for PMAC '%s'.  Instead, we received %#x.",
+				pmac->record->name, c & 0xff );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
