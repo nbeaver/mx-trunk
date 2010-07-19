@@ -438,6 +438,13 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( pmac->pmac_type == MX_PMAC_TYPE_POWERPMAC ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Redefining the current position is not yet implemented "
+		"for PowerPMAC-controlled motor '%s'.",
+			motor->record->name );
+	}
+
 	/* Check to see if the Mx64 command is defined or not. */
 
 	if ( pmac->num_cards > 1 ) {
