@@ -85,9 +85,13 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr
 static mx_status_type
 mxd_pmac_get_pointers( MX_MOTOR *motor,
 			MX_PMAC_MOTOR **pmac_motor,
+			MX_PMAC **pmac,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_pmac_get_pointers()";
+
+	MX_PMAC_MOTOR *pmac_motor_ptr;
+	MX_RECORD *pmac_record;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -95,50 +99,28 @@ mxd_pmac_get_pointers( MX_MOTOR *motor,
 			calling_fname );
 	}
 
-	if ( pmac_motor == (MX_PMAC_MOTOR **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PMAC_MOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
+	pmac_motor_ptr = (MX_PMAC_MOTOR *) motor->record->record_type_struct;
 
-	*pmac_motor = (MX_PMAC_MOTOR *) (motor->record->record_type_struct);
-
-	if ( *pmac_motor == (MX_PMAC_MOTOR *) NULL ) {
+	if ( pmac_motor_ptr == (MX_PMAC_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_PMAC_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxd_pmac_motor_get_pmac_pointer( MX_PMAC_MOTOR *pmac_motor,
-			MX_PMAC **pmac,
-			const char *calling_fname )
-{
-	static const char fname[] = "mxd_pmac_motor_get_pmac_pointer()";
-
-	MX_RECORD *pmac_record;
-
-	if ( pmac_motor == (MX_PMAC_MOTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PMAC_MOTOR pointer passed by '%s' was NULL.",
-			calling_fname );
+	if ( pmac_motor != (MX_PMAC_MOTOR **) NULL ) {
+		*pmac_motor = pmac_motor_ptr;
 	}
 
 	if ( pmac == (MX_PMAC **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PMAC pointer passed by '%s' was NULL.",
-			calling_fname );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	pmac_record = pmac_motor->pmac_record;
+	pmac_record = pmac_motor_ptr->pmac_record;
 
 	if ( pmac_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The pmac_record pointer for record '%s' is NULL.",
-			pmac_motor->record->name );
+			motor->record->name );
 	}
 
 	*pmac = (MX_PMAC *) pmac_record->record_type_struct;
@@ -146,7 +128,7 @@ mxd_pmac_motor_get_pmac_pointer( MX_PMAC_MOTOR *pmac_motor,
 	if ( *pmac == (MX_PMAC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_PMAC pointer for record '%s' is NULL.",
-			pmac_motor->record->name );
+			motor->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -244,7 +226,7 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -321,7 +303,7 @@ mxd_pmac_resynchronize( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -344,12 +326,7 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 	long motor_steps;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -358,8 +335,8 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 
 	snprintf( command, sizeof(command), "J=%ld", motor_steps );
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, command,
-						NULL, 0, PMAC_DEBUG );
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac,
+					command, NULL, 0, PMAC_DEBUG );
 
 	return mx_status;
 }
@@ -370,17 +347,18 @@ mxd_pmac_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_get_position_steps()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	char response[50];
 	int num_tokens;
 	double double_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "P",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "P",
 				response, sizeof response, PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -448,19 +426,14 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
 	MX_PMAC *pmac = NULL;
-	long motor_position_scale_factor;
+	double motor_position_scale_factor;
 	char command[40];
 	char response[40];
 	char *ptr;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -502,7 +475,8 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 
 	/* Get the motor position scale factor.  The normal value is 96. */
 
-	mx_status = mxd_pmac_get_motor_variable( pmac_motor, 8, MXFT_LONG,
+	mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac,
+						8, MXFT_LONG,
 						&motor_position_scale_factor,
 						PMAC_DEBUG );
 
@@ -553,14 +527,15 @@ mxd_pmac_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_soft_abort()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "J/",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "J/",
 						NULL, 0, PMAC_DEBUG );
 
 	return mx_status;
@@ -572,14 +547,15 @@ mxd_pmac_immediate_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_immediate_abort()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "K",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "K",
 						NULL, 0, PMAC_DEBUG );
 
 	return mx_status;
@@ -591,15 +567,16 @@ mxd_pmac_find_home_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_find_home_position()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	double raw_home_speed;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pmac_get_motor_variable( pmac_motor, 23,
+	mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac, 23,
 						MXFT_DOUBLE, &raw_home_speed,
 						PMAC_DEBUG );
 
@@ -612,14 +589,14 @@ mxd_pmac_find_home_position( MX_MOTOR *motor )
 		raw_home_speed = -raw_home_speed;
 	}
 
-	mx_status = mxd_pmac_set_motor_variable( pmac_motor, 23,
-						MXFT_DOUBLE, &raw_home_speed,
+	mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 23,
+						MXFT_DOUBLE, raw_home_speed,
 						PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "HM",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "HM",
 						NULL, 0, PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -634,19 +611,20 @@ mxd_pmac_constant_velocity_move( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_constant_velocity_move()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( motor->constant_velocity_move > 0 ) {
-		mx_status = mxd_pmac_jog_command( pmac_motor, "J+",
+		mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "J+",
 						NULL, 0, PMAC_DEBUG );
 	} else
 	if ( motor->constant_velocity_move < 0 ) {
-		mx_status = mxd_pmac_jog_command( pmac_motor, "J-",
+		mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "J-",
 						NULL, 0, PMAC_DEBUG );
 	} else {
 		mx_status = MX_SUCCESSFUL_RESULT;
@@ -661,18 +639,28 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_get_parameter()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	double double_value;
-	long long_value;
+	long gain_type;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	switch( pmac->pmac_type ) {
+	case MX_PMAC_TYPE_POWERPMAC:
+		gain_type = MXFT_DOUBLE;
+		break;
+	default:
+		gain_type = MXFT_LONG;
+		break;
+	}
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 22,
+		mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac, 22,
 						MXFT_DOUBLE, &double_value,
 						PMAC_DEBUG );
 
@@ -692,7 +680,7 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 19,
+		mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac, 19,
 						MXFT_DOUBLE, &double_value,
 						PMAC_DEBUG );
 
@@ -708,70 +696,47 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_acceleration_parameters[3] = 0.0;
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 30,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 30, gain_type,
+						&(motor->proportional_gain),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->proportional_gain = (double) long_value;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 33,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 33, gain_type,
+						&(motor->integral_gain),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->integral_gain = (double) long_value;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 31,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 31, gain_type,
+						&(motor->derivative_gain),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->derivative_gain = (double) long_value;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 32,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 32, gain_type,
+					&(motor->velocity_feedforward_gain),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->velocity_feedforward_gain = (double) long_value;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 35,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 35, gain_type,
+					&(motor->acceleration_feedforward_gain),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->acceleration_feedforward_gain = (double) long_value;
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 34,
-						MXFT_LONG, &long_value,
+		mx_status = mxd_pmac_get_motor_variable(
+						pmac_motor, pmac, 34, gain_type,
+						&(motor->integral_limit),
 						PMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->integral_limit = (double) long_value;
 		break;
 	default:
-		return mx_motor_default_get_parameter_handler( motor );
+		mx_status = mx_motor_default_get_parameter_handler( motor );
+		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -780,21 +745,32 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_pmac_set_parameter()";
 
 	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
 	double double_value;
 	long long_value;
+	long gain_type;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	switch( pmac->pmac_type ) {
+	case MX_PMAC_TYPE_POWERPMAC:
+		gain_type = MXFT_DOUBLE;
+		break;
+	default:
+		gain_type = MXFT_LONG;
+		break;
+	}
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		double_value = 0.001 * motor->raw_speed;
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 22,
-						MXFT_DOUBLE, &double_value,
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 22,
+						MXFT_DOUBLE, double_value,
 						PMAC_DEBUG );
 		break;
 	case MXLV_MTR_BASE_SPEED:
@@ -814,8 +790,8 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 
 		double_value = 1.0e-6 * double_value;
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 19,
-						MXFT_DOUBLE, &double_value,
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 19,
+						MXFT_DOUBLE, double_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -825,8 +801,8 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 
 		double_value = 1.0;
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 20,
-						MXFT_DOUBLE, &double_value,
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 20,
+						MXFT_DOUBLE, double_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -836,8 +812,8 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 
 		double_value = 0.0;
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 21,
-						MXFT_DOUBLE, &double_value,
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 21,
+						MXFT_DOUBLE, double_value,
 						PMAC_DEBUG );
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
@@ -845,52 +821,52 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 			motor->axis_enable = TRUE;
 		}
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 0,
-					MXFT_BOOL, &(motor->axis_enable),
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac, 0,
+					MXFT_BOOL, motor->axis_enable,
 					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
-			mx_status = mxd_pmac_jog_command( pmac_motor, "J/",
-						NULL, 0, PMAC_DEBUG );
+			mx_status = mxd_pmac_jog_command( pmac_motor, pmac,
+						"J/", NULL, 0, PMAC_DEBUG );
 		} else {
-			mx_status = mxd_pmac_jog_command( pmac_motor, "K",
-						NULL, 0, PMAC_DEBUG );
+			mx_status = mxd_pmac_jog_command( pmac_motor, pmac,
+						"K", NULL, 0, PMAC_DEBUG );
 		}
 		break;
 	case MXLV_MTR_FAULT_RESET:
-		mx_status = mxd_pmac_jog_command( pmac_motor, "J/",
+		mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "J/",
 						NULL, 0, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		long_value = mx_round( motor->proportional_gain );
-
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 30,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					30, gain_type,
+					motor->proportional_gain,
+					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		long_value = mx_round( motor->integral_gain );
-
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 33,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					33, gain_type,
+					motor->integral_gain,
+					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		long_value = mx_round( motor->derivative_gain );
-
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 31,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					31, gain_type,
+					motor->derivative_gain,
+					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		long_value = mx_round( motor->velocity_feedforward_gain );
-
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 32,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					32, gain_type,
+					motor->velocity_feedforward_gain,
+					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		long_value = mx_round( motor->acceleration_feedforward_gain );
-
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 35,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					35, gain_type,
+					motor->acceleration_feedforward_gain,
+					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		long_value = mx_round( motor->integral_limit );
@@ -899,8 +875,10 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 			long_value = 1;
 		}
 
-		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 34,
-					MXFT_LONG, &long_value, PMAC_DEBUG );
+		mx_status = mxd_pmac_set_motor_variable( pmac_motor, pmac,
+					34, gain_type,
+					long_value,
+					PMAC_DEBUG );
 		break;
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
@@ -1021,7 +999,9 @@ mxd_pmac_simultaneous_start( long num_motor_records,
 }
 
 static mx_status_type
-mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
+mxd_pmac_get_power_pmac_status( MX_MOTOR *motor,
+				MX_PMAC_MOTOR *pmac_motor,
+				MX_PMAC *pmac )
 {
 	static const char fname[] = "mxd_pmac_get_power_pmac_status()";
 
@@ -1032,7 +1012,7 @@ mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 
 	/* Request the motor status. */
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "?",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "?",
 				response, sizeof response, PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1053,13 +1033,15 @@ mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 	 * We must skip over that.
 	 */
 
-	for ( i = 3; i <= MX_POWER_PMAC_NUM_STATUS_CHARACTERS; i++ ) {
-		status[i] = mx_hex_char_to_unsigned_long( response[i] );
+	for ( i = 0; i < MX_POWER_PMAC_NUM_STATUS_CHARACTERS; i++ ) {
+		status[i] = mx_hex_char_to_unsigned_long( response[i+1] );
 
-		MX_DEBUG( 2,("%s: status[%d] = %#lx",
+#if 0
+		MX_DEBUG(-2,("%s: status[%d] = %#lx",
 			fname, i, status[i]));
+#endif
 	}
-	
+
 	/* Check for all the status bits that we are interested in. */
 
 	motor->status = 0;
@@ -1156,7 +1138,9 @@ mxd_pmac_get_power_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 }
 
 static mx_status_type
-mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
+mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor,
+				MX_PMAC_MOTOR *pmac_motor,
+				MX_PMAC *pmac )
 {
 	static const char fname[] = "mxd_pmac_get_turbo_pmac_status()";
 
@@ -1167,7 +1151,7 @@ mxd_pmac_get_turbo_pmac_status( MX_MOTOR *motor, MX_PMAC_MOTOR *pmac_motor )
 
 	/* Request the motor status. */
 
-	mx_status = mxd_pmac_jog_command( pmac_motor, "?",
+	mx_status = mxd_pmac_jog_command( pmac_motor, pmac, "?",
 				response, sizeof response, PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1428,23 +1412,20 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	switch( pmac->pmac_type ) {
 	case MX_PMAC_TYPE_POWERPMAC:
-		mx_status = mxd_pmac_get_power_pmac_status( motor, pmac_motor );
+		mx_status = mxd_pmac_get_power_pmac_status( motor,
+							pmac_motor, pmac );
 		break;
 
 	default:
-		mx_status = mxd_pmac_get_turbo_pmac_status( motor, pmac_motor );
+		mx_status = mxd_pmac_get_turbo_pmac_status( motor,
+							pmac_motor, pmac );
 		break;
 	}
 
@@ -1455,6 +1436,7 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 
 MX_EXPORT mx_status_type
 mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
+			MX_PMAC *pmac,
 			char *command,
 			char *response,
 			size_t response_buffer_length,
@@ -1462,16 +1444,20 @@ mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
 {
 	static const char fname[] = "mxd_pmac_jog_command()";
 
-	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char *ptr;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( pmac_motor == (MX_PMAC_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC_MOTOR pointer passed was NULL." );
+	}
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC pointer passed for motor '%s' was NULL.",
+			pmac_motor->record->name );
+	}
 
 	if ( pmac->num_cards > 1 ) {
 		snprintf( command_buffer, sizeof(command_buffer),
@@ -1495,29 +1481,32 @@ mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
 
 MX_EXPORT mx_status_type
 mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
+				MX_PMAC *pmac,
 				long variable_number,
 				long variable_type,
-				void *variable_ptr,
+				double *double_ptr,
 				int debug_flag )
 {
 	static const char fname[] = "mxd_pmac_get_motor_variable()";
 
-	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char response[100];
+	char *response_ptr;
 	char *ptr;
 	int num_items;
 	long long_value;
-	long *long_ptr;
-	double double_value;
-	double *double_ptr;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( pmac_motor == (MX_PMAC_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC_MOTOR pointer passed was NULL." );
+	}
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC pointer passed for motor '%s' was NULL.",
+			pmac_motor->record->name );
+	}
 
 	if ( pmac->num_cards > 1 ) {
 		snprintf( command_buffer, sizeof(command_buffer),
@@ -1544,30 +1533,51 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* On PowerPMAC systems, the returned I-variable is prefixed with
+	 * an Ixx= string.  For example, if you ask for I130, the response
+	 * looks like I130=40
+	 *
+	 * For non-PowerPMAC systems, the value of the variable is returned
+	 * alone, without the name of the variable as a prefix.
+	 */
+
+	switch( pmac->port_type ) {
+	case MX_PMAC_PORT_TYPE_GPASCII:
+		response_ptr = strchr( response, '=' );
+
+		if ( response_ptr == NULL ) {
+			response_ptr = response;
+		} else {
+			response_ptr++;
+		}
+		break;
+	default:
+		response_ptr = response;
+		break;
+	}
+
+	/* Parse the returned value. */
+
 	switch( variable_type ) {
 	case MXFT_LONG:
-		num_items = sscanf( response, "%ld", &long_value );
+		num_items = sscanf( response_ptr, "%ld", &long_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
 "Cannot parse response to command '%s' as a long integer.  Response = '%s'",
 				command_buffer, response );
 		}
-		long_ptr = (long *) variable_ptr;
 
-		*long_ptr = long_value;
+		*double_ptr = (double) long_value;
 		break;
 	case MXFT_DOUBLE:
-		num_items = sscanf( response, "%lg", &double_value );
+		num_items = sscanf( response_ptr, "%lg", double_ptr );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
 "Cannot parse response to command '%s' as a double.  Response = '%s'",
 				command_buffer, response );
 		}
-		double_ptr = (double *) variable_ptr;
-
-		*double_ptr = double_value;
 		break;
 
 	default:
@@ -1580,26 +1590,30 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 MX_EXPORT mx_status_type
 mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
+				MX_PMAC *pmac,
 				long variable_number,
 				long variable_type,
-				void *variable_ptr,
+				double double_value,
 				int debug_flag )
 {
 	static const char fname[] = "mxd_pmac_set_motor_variable()";
 
-	MX_PMAC *pmac = NULL;
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
-	long *long_ptr;
-	double *double_ptr;
+	long long_value;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
-	mx_status = mxd_pmac_motor_get_pmac_pointer( pmac_motor, &pmac, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( pmac_motor == (MX_PMAC_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC_MOTOR pointer passed was NULL." );
+	}
+	if ( pmac == (MX_PMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PMAC pointer passed for motor '%s' was NULL.",
+			pmac_motor->record->name );
+	}
 
 	if ( pmac->num_cards > 1 ) {
 		snprintf( command_buffer, sizeof(command_buffer),
@@ -1614,37 +1628,35 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 	switch( variable_type ) {
 	case MXFT_LONG:
-		long_ptr = (long *) variable_ptr;
+		long_value = mx_round( double_value );
 
 		if ( pmac->pmac_type & MX_PMAC_TYPE_TURBO ) {
 			snprintf( ptr, buffer_left,
 				"I%02ld%02ld=%ld",
 				pmac_motor->motor_number,
 				variable_number,
-				*long_ptr );
+				long_value );
 		} else {
 			snprintf( ptr, buffer_left,
 				"I%ld%02ld=%ld",
 				pmac_motor->motor_number,
 				variable_number,
-				*long_ptr );
+				long_value );
 		}
 		break;
 	case MXFT_DOUBLE:
-		double_ptr = (double *) variable_ptr;
-
 		if ( pmac->pmac_type & MX_PMAC_TYPE_TURBO ) {
 			snprintf( ptr, buffer_left,
 				"I%02ld%02ld=%f",
 				pmac_motor->motor_number,
 				variable_number,
-				*double_ptr );
+				double_value );
 		} else {
 			snprintf( ptr, buffer_left,
 				"I%ld%02ld=%f",
 				pmac_motor->motor_number,
 				variable_number,
-				*double_ptr );
+				double_value );
 		}
 		break;
 	default:

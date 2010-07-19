@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,21 +73,24 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
+						MX_PMAC *pmac,
 						char *command,
 						char *response,
 						size_t response_buffer_length,
 						int debug_flag );
 
 MX_API mx_status_type mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
+						MX_PMAC *pmac,
 						long variable_number,
 						long variable_type,
-						void *variable_ptr,
+						double *variable_value,
 						int debug_flag );
 
 MX_API mx_status_type mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
+						MX_PMAC *pmac,
 						long variable_number,
 						long variable_type,
-						void *variable_ptr,
+						double variable_value,
 						int debug_flag );
 
 #endif /* __D_PMAC_H__ */
