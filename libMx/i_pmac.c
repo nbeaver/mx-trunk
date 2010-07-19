@@ -736,29 +736,25 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	case MX_PMAC_PORT_TYPE_RS232:
 	case MX_PMAC_PORT_TYPE_GPASCII:
 		mx_status = mxi_pmac_std_command( pmac, command,
-					response, response_buffer_length,
-					debug_flag );
+					response, response_buffer_length, 0 );
 		break;
 
 	case MX_PMAC_PORT_TYPE_TCP:
 		mx_status = mxi_pmac_tcp_command( pmac, command,
-					response, response_buffer_length,
-					debug_flag );
+					response, response_buffer_length, 0 );
 		break;
 
 #if HAVE_POWER_PMAC_LIBRARY
 	case MX_PMAC_PORT_TYPE_GPLIB:
 		mx_status = mxi_pmac_gplib_command( pmac, command,
-					response, response_buffer_length,
-					debug_flag );
+					response, response_buffer_length, 0 );
 		break;
 #endif
 
 #if HAVE_EPICS
 	case MX_PMAC_PORT_TYPE_EPICS_TC:
 		mx_status = mxi_pmac_epics_ect_command( pmac, command, 
-					response, response_buffer_length,
-					debug_flag );
+					response, response_buffer_length, 0 );
 		break;
 #endif
 	default:
@@ -1728,20 +1724,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 	/* Give the server a chance to send Telnet negotiation commands. */
 
-	mx_status = mxi_telnet_handle_commands( rs232, 1000, 10 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXI_PMAC_DEBUG_LOGIN
-	MX_DEBUG(-2,
-	("%s: Discarding everything up to the login prompt.", fname));
-#endif
-
-	/* Discard everything up to the login prompt. */
-
-	mx_status = mx_rs232_discard_unread_input( pmac->port_record,
-						MXI_PMAC_DEBUG );
+	mx_status = mxi_telnet_handle_commands( rs232, 200, 50 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1775,8 +1758,6 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 		mx_msleep(100);
 	}
-
-	mx_msleep(1000);
 
 	/* Discard the response. */
 
@@ -1816,7 +1797,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 		mx_msleep(100);
 	}
 
-	mx_msleep(1000);
+	mx_msleep(500);
 
 	/* Discard all login messages. */
 
@@ -1828,7 +1809,9 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 	/* Turn off echoing of commands. */
 
-	MX_DEBUG(-2,("%s: MARKER 9", fname));
+#if MXI_PMAC_DEBUG_LOGIN
+	MX_DEBUG(-2,("%s: disabling echoing of input.", fname));
+#endif
 
 	mx_status = mx_rs232_putline( pmac->port_record,
 					"stty -echo",
@@ -1837,9 +1820,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_msleep(1000);
-
-	MX_DEBUG(-2,("%s: MARKER 10", fname));
+	mx_msleep(500);
 
 	/* Discard the response to the stty -echo command. */
 
@@ -1849,24 +1830,16 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: MARKER 11", fname));
-
 #if MXI_PMAC_DEBUG_LOGIN
 	MX_DEBUG(-2,("%s: sending the 'gpascii' command.", fname));
 #endif
 
 	/* Send the 'gpascii' command. */
 
-	mx_status = mx_rs232_putline( pmac->port_record,
-					"gpascii",
-					NULL, MXI_PMAC_DEBUG );
+	mx_status = mx_rs232_putline( pmac->port_record, "gpascii", NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	mx_msleep(1000);
-
-	MX_DEBUG(-2,("%s: MARKER 12", fname));
 
 	/* Wait until a response is available. */
 
@@ -1874,10 +1847,6 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 	MX_DEBUG(-2,
 	("%s: waiting for the 'gpascii' startup message.", fname));
 #endif
-
-	mx_msleep(1000);
-
-	MX_DEBUG(-2,("%s: MARKER 13", fname));
 
 	while (1) {
 		mx_status = mx_rs232_num_input_bytes_available(
@@ -1893,16 +1862,13 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 		mx_msleep(100);
 	}
 
-	mx_msleep(1000);
-
-	MX_DEBUG(-2,("%s: MARKER 14", fname));
+	mx_msleep(500);
 
 	/* Look for the expected response. */
 
 	mx_status = mx_rs232_getline( pmac->port_record,
-					response,
-					sizeof(response),
-					NULL, MXI_PMAC_DEBUG );
+					response, sizeof(response),
+					NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1918,9 +1884,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 			pmac->record->name, response );
 	}
 
-	mx_msleep(1000);
-
-	MX_DEBUG(-2,("%s: MARKER 15", fname));
+	mx_msleep(500);
 
 	/* Discard any leftover characters. */
 
