@@ -259,15 +259,15 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	long i, j, num_mcs;
 	int mcs_already_found;
 	void *ptr;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
-	status = mxs_mcs_quick_scan_get_pointers( scan,
+	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mcs_quick_scan->num_mcs = 0;
 	mcs_quick_scan->mcs_record_array = NULL;
@@ -487,7 +487,7 @@ mxs_mcs_quick_scan_set_motor_speeds( MX_SCAN *scan,
 {
 	MX_RECORD *motor_record;
 	long i, j;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
 
@@ -497,13 +497,13 @@ mxs_mcs_quick_scan_set_motor_speeds( MX_SCAN *scan,
 
 		/* Change the motor speeds. */
 
-		status = mx_motor_set_speed_between_positions(
+		mx_status = mx_motor_set_speed_between_positions(
 					motor_record,
 					(quick_scan->start_position)[i],
 					(quick_scan->end_position)[i],
 					mcs_quick_scan->scan_body_time );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 
 			/* If the speed change failed, restore the old speeds
 			 * for the other motors.
@@ -514,7 +514,7 @@ mxs_mcs_quick_scan_set_motor_speeds( MX_SCAN *scan,
 					(scan->motor_record_array)[i] );
 			}
 
-			return status;
+			return mx_status;
 		}
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -612,18 +612,18 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 	double start_position, end_position, backlash_position;
 	double real_start_position, real_end_position;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	/* Temporarily change the motor speeds so that we can correctly
 	 * compute the acceleration times and distances.  We will restore
 	 * the speeds before returning from this function.
 	 */
 
-	status = mxs_mcs_quick_scan_set_motor_speeds( scan,
+	mx_status = mxs_mcs_quick_scan_set_motor_speeds( scan,
 						quick_scan, mcs_quick_scan );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Find out what the longest acceleration time is. */
 
@@ -633,12 +633,12 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 
 		motor_record = (scan->motor_record_array)[i];
 
-		status = mx_motor_get_acceleration_time( motor_record,
+		mx_status = mx_motor_get_acceleration_time( motor_record,
 							&acceleration_time );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 		if ( acceleration_time > longest_acceleration_time ) {
@@ -741,13 +741,13 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 		start_position = (quick_scan->start_position)[i];
 		end_position   = (quick_scan->end_position)[i];
 
-		status = mx_motor_compute_extended_scan_range(
+		mx_status = mx_motor_compute_extended_scan_range(
 				motor_record, start_position, end_position,
 				&real_start_position, &real_end_position );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 		mcs_quick_scan->real_start_position[i] = real_start_position;
@@ -771,15 +771,15 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 
 		/* Also compute the quick scan backlash_position. */
 
-		status = mxs_mcs_quick_scan_compute_backlash_position(
+		mx_status = mxs_mcs_quick_scan_compute_backlash_position(
 				motor_record,
 				real_start_position,
 				real_end_position,
 				&backlash_position );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 		mcs_quick_scan->backlash_position[i] = backlash_position;
@@ -791,9 +791,9 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 
 	/* Restore the speeds to the original values. */
 
-	status = mx_scan_restore_speeds( scan );
+	mx_status = mx_scan_restore_speeds( scan );
 
-	return status;
+	return mx_status;
 }
 
 static MX_RECORD *
@@ -1873,7 +1873,7 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 	static const char fname[] =
 		"mxs_mcs_quick_scan_default_move_to_start()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
 #if DEBUG_TIMING
 	MX_HRT_TIMING timing_measurement;
@@ -1885,11 +1885,11 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 
 	mx_info("Moving to the start of the scan region.");
 
-	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+	mx_status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
 						quick_scan->start_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_info("Move complete.");
 
@@ -1907,12 +1907,12 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 	 * the quick scan backlash position.                       *
 	 ***********************************************************/
 
-	status = mxs_mcs_quick_scan_compute_scan_parameters(
+	mx_status = mxs_mcs_quick_scan_compute_scan_parameters(
 			scan, quick_scan, mcs_quick_scan,
 			measurement_time );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
@@ -1927,11 +1927,11 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 	if ( correct_for_quick_scan_backlash ) {
 		mx_info("Correcting for quick scan backlash." );
 
-		status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+		mx_status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
 					mcs_quick_scan->backlash_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_info("Correction for quick scan backlash complete." );
 	}
@@ -1948,11 +1948,11 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 
 	mx_info("Moving to the start position.");
 
-	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+	mx_status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
 					mcs_quick_scan->real_start_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_info("All motors are at the start position.\n");
 
@@ -1991,7 +1991,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	long dimension[2];
 	size_t element_size[2];
 	mx_bool_type correct_for_quick_scan_backlash;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 #if DEBUG_TIMING
 	MX_HRT_TIMING timing_measurement;
@@ -1999,11 +1999,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	status = mxs_mcs_quick_scan_get_pointers( scan,
+	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	correct_for_quick_scan_backlash = FALSE;
 
@@ -2094,12 +2094,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		motor = (MX_MOTOR *) motor_record->record_class_struct;
 
-		status = mx_motor_get_real_motor_record(
+		mx_status = mx_motor_get_real_motor_record(
 				motor_record, &quick_scan_motor_record );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_free( real_motor_array );
-			return status;
+			return mx_status;
 		}
 
 		/* Only perform quick scan backlash correction if one or
@@ -2151,12 +2151,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 			real_motor_array[i] = NULL;
 		} else {
-			status = mx_mce_connect_mce_to_motor( mce_record,
+			mx_status = mx_mce_connect_mce_to_motor( mce_record,
 						quick_scan_motor_record );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_free( real_motor_array );
-				return status;
+				return mx_status;
 			}
 
 			real_motor_array[i] = quick_scan_motor_record;
@@ -2181,14 +2181,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		for ( j = 0; j < scan->num_motors; j++ ) {
 
-			status = mx_alternate_motor_can_use_this_motors_mce(
+			mx_status = mx_alternate_motor_can_use_this_motors_mce(
 					real_motor_array[j],
 					scan->datafile.x_motor_array[i],
 					&this_motor_is_compatible );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_free( real_motor_array );
-				return status;
+				return mx_status;
 			}
 
 			if ( this_motor_is_compatible ) {
@@ -2227,14 +2227,14 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		for ( j = 0; j < scan->num_motors; j++ ) {
 
-			status = mx_alternate_motor_can_use_this_motors_mce(
+			mx_status = mx_alternate_motor_can_use_this_motors_mce(
 					real_motor_array[j],
 					scan->plot.x_motor_array[i],
 					&this_motor_is_compatible );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_free( real_motor_array );
-				return status;
+				return mx_status;
 			}
 
 			if ( this_motor_is_compatible ) {
@@ -2273,13 +2273,13 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Move to the start position. */
 
-	status = mxs_mcs_quick_scan_default_move_to_start( scan,
+	mx_status = mxs_mcs_quick_scan_default_move_to_start( scan,
 					quick_scan, mcs_quick_scan,
 					measurement_time,
 					correct_for_quick_scan_backlash );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
@@ -2291,11 +2291,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/**** Set the motor speeds for the quick scan. ****/
 
-	status = mxs_mcs_quick_scan_set_motor_speeds( scan,
+	mx_status = mxs_mcs_quick_scan_set_motor_speeds( scan,
 						quick_scan, mcs_quick_scan );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
@@ -2315,11 +2315,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/**** Put the MCS into preset time mode. ****/
 
-		status = mx_mcs_set_mode( mcs_record, MXM_PRESET_TIME );
+		mx_status = mx_mcs_set_mode( mcs_record, MXM_PRESET_TIME );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 #if DEBUG_TIMING
@@ -2332,12 +2332,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/**** Set the measurement time per point. ****/
 
-		status = mx_mcs_set_measurement_time( mcs_record,
+		mx_status = mx_mcs_set_measurement_time( mcs_record,
 							measurement_time );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 #if DEBUG_TIMING
@@ -2351,12 +2351,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/**** Set the number of measurements. ****/
 
-		status = mx_mcs_set_num_measurements( mcs_record,
+		mx_status = mx_mcs_set_num_measurements( mcs_record,
 			(unsigned long) quick_scan->actual_num_measurements );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 #if DEBUG_TIMING
@@ -2371,11 +2371,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/**** Erase the previous contents of the MCS. */
 
-		status = mx_mcs_clear( mcs_record );
+		mx_status = mx_mcs_clear( mcs_record );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return status;
+			return mx_status;
 		}
 
 #if DEBUG_TIMING
@@ -2395,12 +2395,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			 * internal clock.
 			 */
 
-			status = mx_mcs_set_external_channel_advance(
+			mx_status = mx_mcs_set_external_channel_advance(
 							mcs_record, FALSE );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mx_scan_restore_speeds( scan );
-				return status;
+				return mx_status;
 			}
 			break;
 
@@ -2409,12 +2409,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			 * that uses an external pulse generator as a clock.
 			 */
 
-			status = mx_mcs_set_external_channel_advance(
+			mx_status = mx_mcs_set_external_channel_advance(
 							mcs_record, TRUE );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mx_scan_restore_speeds( scan );
-				return status;
+				return mx_status;
 			}
 
 			/* We want each pulse generator pulse to move the MCS
@@ -2422,11 +2422,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			 * value to 1.
 			 */
 
-			status = mx_mcs_set_external_prescale( mcs_record, 1 );
+			mx_status = mx_mcs_set_external_prescale( mcs_record, 1 );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mx_scan_restore_speeds( scan );
-				return status;
+				return mx_status;
 			}
 
 			/* Give the MCS the start signal.  The MCS will not
@@ -2435,11 +2435,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			 * mx_pulse_generator_start() is invoked.
 			 */
 
-			status = mx_mcs_start( mcs_record );
+			mx_status = mx_mcs_start( mcs_record );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				(void) mx_scan_restore_speeds( scan );
-				return status;
+				return mx_status;
 			}
 			break;
 		default:
@@ -2478,43 +2478,43 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			if ( kludge_record == NULL ) {
 				pulse_mode = MXF_PGN_PULSE;
 			} else {
-				status = mx_get_long_variable( kludge_record,
+				mx_status = mx_get_long_variable( kludge_record,
 								&pulse_mode );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 			
-			status = mx_pulse_generator_set_mode( clock_record,
+			mx_status = mx_pulse_generator_set_mode( clock_record,
 								pulse_mode );
 		}
 #else /* WML */
-		status = mx_pulse_generator_set_mode( clock_record,
+		mx_status = mx_pulse_generator_set_mode( clock_record,
 							MXF_PGN_PULSE );
 #endif /* WML */
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_pulse_generator_set_pulse_period( clock_record,
+		mx_status = mx_pulse_generator_set_pulse_period( clock_record,
 							measurement_time );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_pulse_generator_set_pulse_width( clock_record,
+		mx_status = mx_pulse_generator_set_pulse_width( clock_record,
 						0.01 * measurement_time );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Add one extra pulse to start the first measurement. */
 
-		status = mx_pulse_generator_set_num_pulses( clock_record,
+		mx_status = mx_pulse_generator_set_num_pulses( clock_record,
 				quick_scan->actual_num_measurements + 1 );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if DEBUG_TIMING
 		MX_HRT_END( timing_measurement );
@@ -2535,7 +2535,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		  malloc(quick_scan->actual_num_measurements * sizeof(double));
 
 		if ( mcs_quick_scan->motor_position_array[i] == NULL ) {
-			status = mx_error( MXE_OUT_OF_MEMORY, fname,
+			mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an %ld array "
 			"of motor positions for motor %ld.",
 				quick_scan->actual_num_measurements, i );
@@ -2543,7 +2543,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			(void) mx_scan_restore_speeds( scan );
 			FREE_MOTOR_POSITION_ARRAYS;
 
-			return status;
+			return mx_status;
 		}
 	}
 
@@ -2617,7 +2617,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( synchronous_motion_mode_record == (MX_RECORD *) NULL ) {
 		quick_scan->use_synchronous_motion_mode = FALSE;
 	} else {
-		status = mx_get_bool_variable( synchronous_motion_mode_record,
+		mx_status = mx_get_bool_variable( synchronous_motion_mode_record,
 				&(quick_scan->use_synchronous_motion_mode));
 	}
 
@@ -2631,12 +2631,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/**** Initialize the datafile and plotting support. ****/
 
-	status = mx_standard_prepare_for_scan_start( scan );
+	mx_status = mx_standard_prepare_for_scan_start( scan );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_scan_restore_speeds( scan );
 		FREE_MOTOR_POSITION_ARRAYS;
-		return status;
+		return mx_status;
 	}
 
 #if DEBUG_TIMING
@@ -2648,12 +2648,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #endif
 
 	if ( mx_plotting_is_enabled( scan->record ) ) {
-		status = mx_plot_start_plot_section( &(scan->plot) );
+		mx_status = mx_plot_start_plot_section( &(scan->plot) );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
 			FREE_MOTOR_POSITION_ARRAYS;
-			return status;
+			return mx_status;
 		}
 	}
 
@@ -2670,11 +2670,11 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			motor_record = (scan->motor_record_array)[i];
 
-			status = mx_motor_set_synchronous_motion_mode(
+			mx_status = mx_motor_set_synchronous_motion_mode(
 						motor_record, TRUE );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 
