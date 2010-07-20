@@ -702,6 +702,20 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_acceleration_parameters[2] = 0.0;
 		motor->raw_acceleration_parameters[3] = 0.0;
 		break;
+	case MXLV_MTR_AXIS_ENABLE:
+		mx_status = mxd_pmac_get_motor_variable( pmac_motor, pmac, 0,
+						MXFT_BOOL, &double_value,
+						PMAC_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mx_round(double_value) != 0 ) {
+			motor->axis_enable = TRUE;
+		} else {
+			motor->axis_enable = FALSE;
+		}
+		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		mx_status = mxd_pmac_get_motor_variable(
 						pmac_motor, pmac, 30, gain_type,
@@ -1577,6 +1591,21 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 		*double_ptr = (double) long_value;
 		break;
+	case MXFT_BOOL:
+		num_items = sscanf( response_ptr, "%ld", &long_value );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+"Cannot parse response to command '%s' as a long integer.  Response = '%s'",
+				command_buffer, response );
+		}
+
+		if ( long_value != 0 ) {
+			*double_ptr = 1.0;
+		} else {
+			*double_ptr = 0.0;
+		}
+		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response_ptr, "%lg", double_ptr );
 
@@ -1635,7 +1664,14 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 	switch( variable_type ) {
 	case MXFT_LONG:
+	case MXFT_BOOL:
 		long_value = mx_round( double_value );
+
+		if ( (variable_type == MXFT_BOOL)
+		  && (long_value != 0) )
+		{
+			long_value = 1;
+		}
 
 		if ( pmac->pmac_type & MX_PMAC_TYPE_TURBO ) {
 			snprintf( ptr, buffer_left,
