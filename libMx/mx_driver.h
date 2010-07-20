@@ -750,6 +750,7 @@ extern "C" {
 
 #define MXS_QUI_JOERGER			407101
 #define MXS_QUI_APS_ID			407102
+#define MXS_QUI_ENERGY_MCS		407103
 
 #define MXS_AD_WEDGE			409001
 

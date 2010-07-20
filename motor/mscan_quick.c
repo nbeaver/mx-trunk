@@ -45,6 +45,56 @@
 		} \
 	} while(0)
 
+static int
+motor_setup_energy_scan_motor(
+	char *record_description_buffer,
+	size_t record_description_buffer_length,
+	long old_scan_num_motors,
+	long scan_num_motors,
+	MX_RECORD **motor_record_array,
+	char **motor_name_array )
+{
+	MX_RECORD *record;
+
+	if ( scan_num_motors != 1 ) {
+		fprintf(output,
+		"For some reason, the scan_num_motors variable for this scan\n"
+		"is equal to %ld.  It should be 1.\n", scan_num_motors );
+
+		return FAILURE;
+	}
+
+	record = mx_get_record( motor_record_list, "energy" );
+
+	if ( record == (MX_RECORD *) NULL ) {
+		fprintf(output,
+		"The MX database does not contain a motor called 'energy'.\n" );
+		return FAILURE;
+	}
+
+	if ( (record->mx_superclass == MXR_DEVICE)
+	  && (record->mx_class == MXC_MOTOR) )
+	{
+		strlcpy(motor_name_array[0], "energy", MXU_RECORD_NAME_LENGTH);
+	} else {
+		fprintf(output,
+	"The MX record 'energy' is not a motor record.  Instead, it is\n"
+	"of type '%s'.\n", mx_get_driver_name( record ) );
+
+		return FAILURE;
+	}
+
+	fprintf( output, "This scan will use the motor 'energy'.\n" );
+
+	strlcat( record_description_buffer, motor_name_array[0],
+					record_description_buffer_length );
+
+	strlcat( record_description_buffer, " ",
+					record_description_buffer_length );
+
+	return SUCCESS;
+}
+
 int
 motor_setup_quick_scan_parameters(
 	char *scan_name,
@@ -91,6 +141,9 @@ motor_setup_quick_scan_parameters(
 	double scan_step_size;
 	double old_measurement_time;
 
+	mx_bool_type energy_pseudomotor_exists;
+	MX_RECORD *energy_record;
+
 #if HAVE_EPICS
 	long selection;
 #endif
@@ -124,6 +177,16 @@ motor_setup_quick_scan_parameters(
 	joerger_quick_scan_enable_record = NULL;
 	joerger_quick_scan_enabled = FALSE;
 
+	energy_pseudomotor_exists = FALSE;
+
+	energy_record = mx_get_record( motor_record_list, "energy" );
+
+	if ( energy_record != (MX_RECORD *) NULL ) {
+		if ( energy_record->mx_class == MXC_MOTOR ) {
+			energy_pseudomotor_exists = TRUE;
+		}
+	}
+
 	if ( old_scan == (MX_SCAN *) NULL ) {
 
 #if HAVE_EPICS
@@ -141,22 +204,40 @@ motor_setup_quick_scan_parameters(
 			fprintf(output,
 				"Select scan type:\n"
 				"    1.  MCS quick scan.\n"
-				"    2.  APS insertion device quick scan.\n"
-				"    3.  Joerger quick scan.\n"
+				"    2.  Energy MCS quick scan.\n"
+				"    3.  APS insertion device quick scan.\n"
+				"    4.  Joerger quick scan.\n"
 				"\n");
 
 			status = motor_get_long( output, "--> ", TRUE, 1,
-						&selection, 1, 3 );
+						&selection, 1, 4 );
 		} else {
 			fprintf(output,
 				"Select scan type:\n"
 				"    1.  MCS quick scan.\n"
-				"    2.  APS insertion device quick scan.\n"
+				"    2.  Energy MCS quick scan.\n"
+				"    3.  APS insertion device quick scan.\n"
+				"\n");
+
+			status = motor_get_long( output, "--> ", TRUE, 1,
+						&selection, 1, 3 );
+		}
+#else
+		/* Not HAVE_EPICS */
+
+		if ( energy_pseudomotor_exists ) {
+			fprintf(output,
+				"Select scan type:\n"
+				"    1.  MCS quick scan.\n"
+				"    2.  Energy MCS quick scan.\n"
 				"\n");
 
 			status = motor_get_long( output, "--> ", TRUE, 1,
 						&selection, 1, 2 );
+		} else {
+			selection = 1;
 		}
+#endif
 
 		if ( status == FAILURE ) {
 			return FAILURE;
@@ -166,9 +247,12 @@ motor_setup_quick_scan_parameters(
 			scan_type = MXS_QUI_MCS;
 			break;
 		case 2:
-			scan_type = MXS_QUI_APS_ID;
+			scan_type = MXS_QUI_ENERGY_MCS;
 			break;
 		case 3:
+			scan_type = MXS_QUI_APS_ID;
+			break;
+		case 4:
 			scan_type = MXS_QUI_JOERGER;
 			break;
 		default:
@@ -179,14 +263,6 @@ motor_setup_quick_scan_parameters(
 			return FAILURE;
 			break;
 		}
-
-#else  /* HAVE_EPICS */
-
-		scan_type = MXS_QUI_MCS;
-
-		fprintf( output, "MCS quick scan selected.\n" );
-
-#endif  /* HAVE_EPICS */
 
 	} else {
 		/* 'modify scan' is not allowed to change the scan type.
@@ -216,6 +292,7 @@ motor_setup_quick_scan_parameters(
 
 	switch( scan_type ) {
 	case MXS_QUI_MCS:
+	case MXS_QUI_ENERGY_MCS:
 	case MXS_QUI_JOERGER:
 	case MXS_QUI_APS_ID:
 		scan_num_independent_variables = 1;
@@ -238,6 +315,11 @@ motor_setup_quick_scan_parameters(
 	case MXS_QUI_MCS:
 		strlcat( record_description_buffer,
 				"mcs_qscan \"\" \"\" ",
+				record_description_buffer_length );
+		break;
+	case MXS_QUI_ENERGY_MCS:
+		strlcat( record_description_buffer,
+				"energy_mcs_qscan \"\" \"\" ",
 				record_description_buffer_length );
 		break;
 	case MXS_QUI_JOERGER:
@@ -355,13 +437,23 @@ motor_setup_quick_scan_parameters(
 	 * the record description.
 	 */
 
-	status = motor_setup_scan_motor_names(
-			record_description_buffer,
-			record_description_buffer_length,
-			old_scan_num_motors,
-			scan_num_motors,
-			motor_record_array,
-			motor_name_array );
+	if( scan_type == MXS_QUI_ENERGY_MCS ) {
+		status = motor_setup_energy_scan_motor(
+				record_description_buffer,
+				record_description_buffer_length,
+				old_scan_num_motors,
+				scan_num_motors,
+				motor_record_array,
+				motor_name_array );
+	} else {
+		status = motor_setup_scan_motor_names(
+				record_description_buffer,
+				record_description_buffer_length,
+				old_scan_num_motors,
+				scan_num_motors,
+				motor_record_array,
+				motor_name_array );
+	}
 
 	if ( status != SUCCESS ) {
 		FREE_MOTOR_NAME_ARRAY;

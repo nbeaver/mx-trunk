@@ -485,6 +485,7 @@
 #include "sq_mcs.h"
 #include "sq_joerger.h"
 #include "sq_aps_id.h"
+#include "sq_energy_mcs.h"
 #include "sa_wedge.h"
 
 #include "d_auto_amplifier.h"
@@ -3898,6 +3899,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxs_mcs_quick_scan_num_record_fields,
 				&mxs_mcs_quick_scan_def_ptr},
+
+{"energy_mcs_qscan", MXS_QUI_ENERGY_MCS, MXS_QUICK_SCAN,  MXR_SCAN,
+				&mxs_energy_mcs_quick_scan_record_function_list,
+				&mxs_energy_mcs_quick_scan_scan_function_list,
+				NULL,
+				&mxs_energy_mcs_quick_scan_num_record_fields,
+				&mxs_energy_mcs_quick_scan_def_ptr},
 
 #if HAVE_EPICS
 {"joerger_qscan",  MXS_QUI_JOERGER,   MXS_QUICK_SCAN,     MXR_SCAN,

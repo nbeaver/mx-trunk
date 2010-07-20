@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -187,15 +187,37 @@ mxd_pmac_cs_axis_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_pmac_cs_axis_finish_record_initialization()";
 
+	MX_MOTOR *motor;
 	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
+	MX_PMAC *pmac;
 	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( pmac->pmac_type == MX_PMAC_TYPE_POWERPMAC ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The '%s' driver for motor '%s' cannot be used with "
+		"PowerPMAC controller '%s'.  "
+		"You must use the 'powerpmac_cs_axis' driver instead.",
+			mx_get_driver_name( record ),
+			record->name,
+			pmac->record->name );
+	}
 
 	mx_status = mx_motor_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	axis = (MX_PMAC_COORDINATE_SYSTEM_AXIS *) record->record_type_struct;
 
 	if ( ( axis->coordinate_system < 1 )
 				|| ( axis->coordinate_system > 32 ) )
