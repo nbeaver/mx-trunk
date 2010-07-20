@@ -240,6 +240,9 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 
 	mcs_quick_scan->extension_ptr = NULL;
 
+	mcs_quick_scan->move_to_start_fn =
+			mxs_mcs_quick_scan_default_move_to_start;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1960,6 +1963,22 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 	MX_HRT_END( timing_measurement );
 	MX_HRT_RESULTS( timing_measurement, fname,
 			"move to real start position" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/**** Set the motor speeds for the quick scan. ****/
+
+	mx_status = mxs_mcs_quick_scan_set_motor_speeds( scan,
+						quick_scan, mcs_quick_scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"set quick scan motor speeds" );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1992,6 +2011,12 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	size_t element_size[2];
 	mx_bool_type correct_for_quick_scan_backlash;
 	mx_status_type mx_status;
+
+	mx_status_type (*move_to_start_fn)( MX_SCAN *,
+					MX_QUICK_SCAN *,
+					struct mx_mcs_quick_scan_type *,
+					double,
+					mx_bool_type );
 
 #if DEBUG_TIMING
 	MX_HRT_TIMING timing_measurement;
@@ -2273,10 +2298,18 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Move to the start position. */
 
-	mx_status = mxs_mcs_quick_scan_default_move_to_start( scan,
-					quick_scan, mcs_quick_scan,
-					measurement_time,
-					correct_for_quick_scan_backlash );
+	move_to_start_fn = mcs_quick_scan->move_to_start_fn;
+
+	if ( move_to_start_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The move_to_start_fn pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	mx_status = ( *move_to_start_fn )( scan,
+				quick_scan, mcs_quick_scan,
+				measurement_time,
+				correct_for_quick_scan_backlash );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2285,22 +2318,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_HRT_END( timing_measurement );
 	MX_HRT_RESULTS( timing_measurement, fname,
 			"Total time for move to start position" );
-
-	MX_HRT_START( timing_measurement );
-#endif
-
-	/**** Set the motor speeds for the quick scan. ****/
-
-	mx_status = mxs_mcs_quick_scan_set_motor_speeds( scan,
-						quick_scan, mcs_quick_scan );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if DEBUG_TIMING
-	MX_HRT_END( timing_measurement );
-	MX_HRT_RESULTS( timing_measurement, fname,
-			"set quick scan motor speeds" );
 #endif
 
 	/* Reprogram all of the MCSs for this scan. */

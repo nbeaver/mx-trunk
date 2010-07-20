@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2002-2003 Illinois Institute of Technology
+ * Copyright 1999-2000, 2002-2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #define MXS_SQ_MCS_ARRAY_BLOCK_SIZE		10
 
-typedef struct {
+typedef struct mx_mcs_quick_scan_type {
 	double *motor_position_array[ MXS_SQ_MCS_MAX_MOTORS ];
 	void *extension_ptr;
 
@@ -42,6 +42,12 @@ typedef struct {
 	double real_end_position[ MXS_SQ_MCS_MAX_MOTORS ];
 
 	double backlash_position[ MXS_SQ_MCS_MAX_MOTORS ];
+
+	mx_status_type (*move_to_start_fn)( MX_SCAN *,
+					MX_QUICK_SCAN *,
+					struct mx_mcs_quick_scan_type *,
+					double,
+					mx_bool_type );
 } MX_MCS_QUICK_SCAN;
 
 MX_API mx_status_type mxs_mcs_quick_scan_initialize_type( long type );
