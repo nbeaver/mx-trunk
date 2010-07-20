@@ -64,10 +64,17 @@ extern MX_SCAN_FUNCTION_LIST mxs_mcs_quick_scan_scan_function_list;
 extern long mxs_mcs_quick_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_mcs_quick_scan_def_ptr;
 
-extern mx_status_type mxs_mcs_quick_scan_get_pointers( MX_SCAN *scan,
+MX_API mx_status_type mxs_mcs_quick_scan_get_pointers( MX_SCAN *scan,
 				MX_QUICK_SCAN **quick_scan,
 				MX_MCS_QUICK_SCAN **mcs_quick_scan,
 				const char *calling_fname );
+
+MX_API mx_status_type
+mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
+				MX_QUICK_SCAN *quick_scan,
+				MX_MCS_QUICK_SCAN *mcs_quick_scan,
+				double measurement_time,
+				mx_bool_type correct_for_quick_scan_backlash );
 
 #endif /* __SQ_MCS_H__ */
 

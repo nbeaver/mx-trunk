@@ -122,7 +122,7 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 	}
 }
 
-mx_status_type
+MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_get_pointers( MX_SCAN *scan,
 				MX_QUICK_SCAN **quick_scan,
 				MX_MCS_QUICK_SCAN **mcs_quick_scan,
@@ -1864,6 +1864,108 @@ mxs_mcs_quick_scan_move_absolute_and_wait( MX_SCAN *scan,
 }
 
 MX_EXPORT mx_status_type
+mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
+				MX_QUICK_SCAN *quick_scan,
+				MX_MCS_QUICK_SCAN *mcs_quick_scan,
+				double measurement_time,
+				mx_bool_type correct_for_quick_scan_backlash )
+{
+	static const char fname[] =
+		"mxs_mcs_quick_scan_default_move_to_start()";
+
+	mx_status_type status;
+
+#if DEBUG_TIMING
+	MX_HRT_TIMING timing_measurement;
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/**** Send the motors to the start position for the scan. ****/
+
+	mx_info("Moving to the start of the scan region.");
+
+	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+						quick_scan->start_position );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	mx_info("Move complete.");
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname, "move to start position" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/***********************************************************
+	 * Compute pre-move and post-move scan parameters to allow *
+	 * the actual number of measurements and the acceleration  *
+	 * distances to be computed.  This function also computes  *
+	 * the quick scan backlash position.                       *
+	 ***********************************************************/
+
+	status = mxs_mcs_quick_scan_compute_scan_parameters(
+			scan, quick_scan, mcs_quick_scan,
+			measurement_time );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"compute quick scan parameters" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/**** Move to the quick scan backlash position. ****/
+
+	if ( correct_for_quick_scan_backlash ) {
+		mx_info("Correcting for quick scan backlash." );
+
+		status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+					mcs_quick_scan->backlash_position );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		mx_info("Correction for quick scan backlash complete." );
+	}
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"correcting for quick scan backlash" );
+
+	MX_HRT_START( timing_measurement );
+#endif
+
+	/**** Move to the 'real' start position. ****/
+
+	mx_info("Moving to the start position.");
+
+	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
+					mcs_quick_scan->real_start_position );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	mx_info("All motors are at the start position.\n");
+
+#if DEBUG_TIMING
+	MX_HRT_END( timing_measurement );
+	MX_HRT_RESULTS( timing_measurement, fname,
+			"move to real start position" );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 {
 	static const char fname[] =
@@ -2164,41 +2266,17 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	MX_HRT_START( timing_measurement );
 #endif
-
-	/**** Send the motors to the start position for the scan. ****/
-
-	mx_info("Moving to the start of the scan region.");
-
-	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
-						quick_scan->start_position );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	mx_info("Move complete.");
-
-#if DEBUG_TIMING
-	MX_HRT_END( timing_measurement );
-	MX_HRT_RESULTS( timing_measurement, fname, "move to start position" );
-
-	MX_HRT_START( timing_measurement );
-#endif
-
 	/**** Compute the time required for the body of the scan. ****/
 
 	mcs_quick_scan->scan_body_time = measurement_time
 		* (double) ( quick_scan->requested_num_measurements - 1L );
 
-	/***********************************************************
-	 * Compute pre-move and post-move scan parameters to allow *
-	 * the actual number of measurements and the acceleration  *
-	 * distances to be computed.  This function also computes  *
-	 * the quick scan backlash position.                       *
-	 ***********************************************************/
+	/* Move to the start position. */
 
-	status = mxs_mcs_quick_scan_compute_scan_parameters(
-			scan, quick_scan, mcs_quick_scan,
-			measurement_time );
+	status = mxs_mcs_quick_scan_default_move_to_start( scan,
+					quick_scan, mcs_quick_scan,
+					measurement_time,
+					correct_for_quick_scan_backlash );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -2206,49 +2284,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
 	MX_HRT_RESULTS( timing_measurement, fname,
-			"compute quick scan parameters" );
-
-	MX_HRT_START( timing_measurement );
-#endif
-
-	/**** Move to the quick scan backlash position. ****/
-
-	if ( correct_for_quick_scan_backlash ) {
-		mx_info("Correcting for quick scan backlash." );
-
-		status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
-					mcs_quick_scan->backlash_position );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		mx_info("Correction for quick scan backlash complete." );
-	}
-
-#if DEBUG_TIMING
-	MX_HRT_END( timing_measurement );
-	MX_HRT_RESULTS( timing_measurement, fname,
-			"correcting for quick scan backlash" );
-
-	MX_HRT_START( timing_measurement );
-#endif
-
-	/**** Move to the 'real' start position. ****/
-
-	mx_info("Moving to the start position.");
-
-	status = mxs_mcs_quick_scan_move_absolute_and_wait( scan,
-					mcs_quick_scan->real_start_position );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	mx_info("All motors are at the start position.\n");
-
-#if DEBUG_TIMING
-	MX_HRT_END( timing_measurement );
-	MX_HRT_RESULTS( timing_measurement, fname,
-			"move to real start position" );
+			"Total time for move to start position" );
 
 	MX_HRT_START( timing_measurement );
 #endif
