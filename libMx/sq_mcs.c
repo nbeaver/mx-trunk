@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING		FALSE
+#define DEBUG_TIMING		TRUE
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
