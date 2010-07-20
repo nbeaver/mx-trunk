@@ -19,10 +19,14 @@
 #define __SQ_ENERGY_MCS_H__
 
 typedef struct {
+	MX_RECORD *theta_record;
+	MX_RECORD *d_spacing_record;
 	double d_spacing;
 } MX_ENERGY_MCS_QUICK_SCAN_EXTENSION;
 
 MX_API mx_status_type mxs_energy_mcs_quick_scan_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxs_energy_mcs_quick_scan_finish_record_initialization(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxs_energy_mcs_quick_scan_prepare_for_scan_start(

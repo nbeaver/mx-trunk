@@ -76,6 +76,10 @@ MX_API mx_status_type mxs_mcs_quick_scan_get_pointers( MX_SCAN *scan,
 				const char *calling_fname );
 
 MX_API mx_status_type
+mxs_mcs_quick_scan_move_absolute_and_wait( MX_SCAN *scan,
+					double *position_array );
+
+MX_API mx_status_type
 mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 				MX_QUICK_SCAN *quick_scan,
 				MX_MCS_QUICK_SCAN *mcs_quick_scan,

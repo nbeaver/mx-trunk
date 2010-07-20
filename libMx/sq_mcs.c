@@ -1808,7 +1808,7 @@ mxs_mcs_quick_scan_compute_motor_positions(
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_move_absolute_and_wait( MX_SCAN *scan,
 					double *position_array )
 {
