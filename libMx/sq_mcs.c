@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING		TRUE
+#define DEBUG_TIMING		FALSE
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
@@ -1873,8 +1873,10 @@ mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 				double measurement_time,
 				mx_bool_type correct_for_quick_scan_backlash )
 {
+#if DEBUG_TIMING
 	static const char fname[] =
 		"mxs_mcs_quick_scan_default_move_to_start()";
+#endif
 
 	mx_status_type mx_status;
 

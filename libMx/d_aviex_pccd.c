@@ -126,7 +126,7 @@ smvspatial( void *imarr,
 MX_RECORD_FUNCTION_LIST mxd_aviex_pccd_record_function_list = {
 	mxd_aviex_pccd_initialize_type,
 	mxd_aviex_pccd_create_record_structures,
-	mx_area_detector_finish_record_initialization,
+	mxd_aviex_pccd_finish_record_initialization,
 	mxd_aviex_pccd_delete_record,
 	NULL,
 	NULL,
@@ -1200,10 +1200,56 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 
 	aviex_pccd->first_dh_command = TRUE;
 
-	aviex_pccd->horiz_descramble_factor = -1;
-	aviex_pccd->vert_descramble_factor = -1;
-
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_aviex_pccd_finish_record_initialization()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AVIEX_PCCD *aviex_pccd;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_finish_record_initialization( record );
+
+	/* Need to set the following early for the sake of
+	 * the 'mx_offline' program.
+	 */
+
+	switch( record->mx_type ) {
+	case MXT_AD_PCCD_170170:
+		aviex_pccd->horiz_descramble_factor = 4;
+		aviex_pccd->vert_descramble_factor = 4;
+		break;
+	case MXT_AD_PCCD_4824:
+	case MXT_AD_PCCD_16080:
+		aviex_pccd->horiz_descramble_factor = 2;
+		aviex_pccd->vert_descramble_factor = 2;
+		break;
+	default:
+		aviex_pccd->horiz_descramble_factor = -1;
+		aviex_pccd->vert_descramble_factor = -1;
+		break;
+	}
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

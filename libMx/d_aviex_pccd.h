@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -179,6 +179,8 @@ typedef struct mx_aviex_pccd {
 
 MX_API mx_status_type mxd_aviex_pccd_initialize_type( long record_type );
 MX_API mx_status_type mxd_aviex_pccd_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxd_aviex_pccd_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_aviex_pccd_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_aviex_pccd_open( MX_RECORD *record );
