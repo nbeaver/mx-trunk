@@ -1,0 +1,30 @@
+#! /bin/sh
+#
+# This is a shell script that attempts to make a symbolic link to a file.
+# If the symbolic linking fails, then it attempts to copy the file.
+#
+# This script is designed for use on embedded Linux systems that may be
+# using filesystems like VFAT that do not support symbolic or hard links
+# rather than Ext2/3/4.
+#
+
+if [ $# != 2 ]; then
+	echo ""
+	echo "  ln_sf attempts to make a symbolic link to a file.  If the"
+	echo "  link fails, like it will on a VFAT file system, then the"
+	echo "  script falls back to making a copy."
+	echo ""
+	echo "    Usage: ln_sf original_file link_file"
+	echo ""
+	exit 1
+fi
+
+ln -sf $1 $2
+
+if [ $? != 0 ]; then
+	cp $1 $2
+	exit $?
+fi
+
+exit 0
+

@@ -20,11 +20,11 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR)
+#LIBRARIES	= -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -453,9 +453,12 @@ MX_LIB_OBJS += ../tools/smvspatial.o
 #---------------------------------------------------
 #
 
-RM		= rm -f
+LN_SF		= ../scripts/ln_sf
+##LN_SF		= ln -sf
+
 MAKE		= make
 MKDIR		= mkdir
+RM		= rm -f
 TOUCH		= touch -a
 
 OBJ		= o
@@ -484,8 +487,8 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
-	ln -sf $(MX_LIBRARY_NAME) $(MX_SONAME)
-	ln -sf $(MX_LIBRARY_NAME) libMx.so
+	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
+	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
 	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
 
@@ -502,8 +505,8 @@ library_install:
 	install -m 644 mx*.h $(MX_INSTALL_DIR)/include
 	install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
 	install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib
-	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) $(MX_SONAME) )
-	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) libMx.so )
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME) )
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) libMx.so )
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
 	touch $(MX_INSTALL_DIR)/etc/scan.dat
 	install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
