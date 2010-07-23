@@ -1,4 +1,0 @@
-#! /bin/sh
-
-../../motor/motor.static -F ./mpower_pmac.dat -s ./spower_pmac.dat $*
-

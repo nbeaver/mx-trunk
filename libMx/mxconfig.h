@@ -130,12 +130,9 @@
  * Linux-based realtime operating system.  This definition enables support
  * for MX drivers running on the Power PMAC itself that communicate with the
  * Delta Tau motion control software there.
- *
- * WARNING: This driver is a prototype and has not yet been tested with a
- * real Power PMAC system.
  */
 
-#define HAVE_POWER_PMAC_LIBRARY		0
+#define HAVE_POWER_PMAC_LIBRARY		1
 
 /*****************************************************************************
  *

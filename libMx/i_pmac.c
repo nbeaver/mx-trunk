@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_PMAC_DEBUG			FALSE
+#define MXI_PMAC_DEBUG			TRUE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 
@@ -352,6 +352,7 @@ mxi_pmac_open( MX_RECORD *record )
 	static const char fname[] = "mxi_pmac_open()";
 
 	MX_PMAC *pmac;
+	char command[80];
 	char response[80];
 	char pmac_type_name[20];
 	int num_items;
@@ -560,7 +561,13 @@ mxi_pmac_open( MX_RECORD *record )
 
 	/* Now ask for PROM firmware version. */
 
-	mx_status = mxi_pmac_command( pmac, "VERSION",
+	if ( pmac->pmac_type == MX_PMAC_TYPE_POWERPMAC ) {
+		strlcpy( command, "VERS", sizeof(command) );
+	} else {
+		strlcpy( command, "VERSION", sizeof(command) );
+	}
+
+	mx_status = mxi_pmac_command( pmac, command,
 				response, sizeof response, MXI_PMAC_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )

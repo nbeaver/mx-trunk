@@ -20,8 +20,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -44,9 +44,8 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
-#LIBRARIES	= $(POWER_PMAC_LIBRARIES)
-###LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
+LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -219,26 +218,39 @@ LIBUSB_LIB_DIRS   =
 LIBUSB_LIBRARIES  = -lusb
 
 #
-# Warning: Not yet tested with a real Power PMAC system.
+# For use when compiling on the PowerPMAC
 #
-# Doesn't actually link yet.
-#
-POWER_PMAC_INCLUDES   = -I$(POWER_PMAC_DIR)/dtlibs/libppmac \
-			-I$(POWER_PMAC_DIR)/dtlibs/rtpmac \
+
+POWER_PMAC_DIR = /opt/ppmac
+
+POWER_PMAC_INCLUDES   = -I$(POWER_PMAC_DIR)/libppmac \
+			-I$(POWER_PMAC_DIR)/rtpmac \
 			-Wno-strict-prototypes
 
-POWER_PMAC_LIB_DIRS   = -B$(POWER_PMAC_DIR)/bin \
-			-L$(POWER_PMAC_DIR)/powerpc-405-linux-gnu/lib-copy \
-			-L$(POWER_PMAC_DIR)/dtlibs/libppmac
+POWER_PMAC_LIB_DIRS   = -L$(POWER_PMAC_DIR)/libppmac
 
-POWER_PMAC_LIBRARIES  = $(POWER_PMAC_DIR)/dtlibs/libppmac/libppmac.so \
-			$(POWER_PMAC_DIR)/xenomai-2.4.7/lib/libpthread_rt.so \
-			$(POWER_PMAC_GLIBC_DIR)/libpthread.a \
-			$(POWER_PMAC_GLIBC_DIR)/libdl.a \
-			$(POWER_PMAC_GLIBC_DIR)/librt.a \
-			$(POWER_PMAC_GLIBC_DIR)/libm.a \
-			$(POWER_PMAC_GLIBC_DIR)/libc.a \
-			$(POWER_PMAC_GLIBC_DIR)/libpthread.a \
+POWER_PMAC_LIBRARIES  = -lppmac
+
+#
+# The following is for cross-compiling.
+#
+#POWER_PMAC_INCLUDES   = -I$(POWER_PMAC_DIR)/dtlibs/libppmac \
+#			-I$(POWER_PMAC_DIR)/dtlibs/rtpmac \
+#			-Wno-strict-prototypes
+#
+#POWER_PMAC_LIB_DIRS   = -B$(POWER_PMAC_DIR)/bin \
+#			-L$(POWER_PMAC_DIR)/powerpc-405-linux-gnu/lib-copy \
+#			-L$(POWER_PMAC_DIR)/dtlibs/libppmac
+#
+#POWER_PMAC_LIBRARIES  = $(POWER_PMAC_DIR)/dtlibs/libppmac/libppmac.so \
+#			$(POWER_PMAC_DIR)/xenomai-2.4.7/lib/libpthread_rt.so \
+#			$(POWER_PMAC_GLIBC_DIR)/libpthread.a \
+#			$(POWER_PMAC_GLIBC_DIR)/libdl.a \
+#			$(POWER_PMAC_GLIBC_DIR)/librt.a \
+#			$(POWER_PMAC_GLIBC_DIR)/libm.a \
+#			$(POWER_PMAC_GLIBC_DIR)/libc.a \
+#			$(POWER_PMAC_GLIBC_DIR)/libpthread.a \
+#
 
 #
 # For use with the fake_power_pmac library.
