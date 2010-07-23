@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,6 +144,9 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 	motor->synchronous_motion_mode = FALSE;
 
 	motor->real_motor_record = NULL;
+
+	motor->busy_start_interval_enabled = FALSE;
+	motor->busy_start_interval = -1;
 
 	motor->backlash_move_in_progress = FALSE;
 	motor->server_backlash_in_progress = FALSE;
@@ -313,6 +316,21 @@ mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 		}
 	}
 
+	if ( motor->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		status = mx_motor_check_busy_start_interval( motor_record,
+							&busy_start_set );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		if ( busy_start_set ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+			motor->busy = TRUE;
+		}
+	}
+
 	if ( motor->backlash_move_in_progress ) {
 		if ( motor->busy == FALSE ) {
 			motor->backlash_move_in_progress = FALSE;
@@ -370,6 +388,9 @@ mx_motor_soft_abort( MX_RECORD *motor_record )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	motor->last_start_tick.high_order = 0;
+	motor->last_start_tick.low_order  = 0;
+
 	status = ( *fptr ) ( motor );
 
 	return status;
@@ -418,6 +439,9 @@ mx_motor_immediate_abort( MX_RECORD *motor_record )
 
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	motor->last_start_tick.high_order = 0;
+	motor->last_start_tick.low_order  = 0;
 
 	status = ( *fptr ) ( motor );
 
@@ -1337,6 +1361,8 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 			motor->subclass, motor_record->name );
 	}
 
+	motor->last_start_tick = mx_current_clock_tick();
+
 	status = ( *fptr ) ( motor );
 
 	return status;
@@ -1858,6 +1884,21 @@ mx_motor_get_status( MX_RECORD *motor_record,
 		(void) mx_motor_set_traditional_status( motor );
 	}
 
+	if ( motor->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_motor_check_busy_start_interval( motor_record,
+							&busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+			motor->busy = TRUE;
+		}
+	}
+
 	/* If any error are set, turn the error bit on. */
 
 	if ( motor->status & MXSF_MTR_ERROR_BITMASK ) {
@@ -1956,6 +1997,21 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 		}
 
 		mx_status = ( *get_position_fn ) ( motor );
+	}
+
+	if ( motor->busy_start_interval_enabled ) {
+		mx_bool_type busy_start_set;
+
+		mx_status = mx_motor_check_busy_start_interval( motor_record,
+							&busy_start_set );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy_start_set ) {
+			motor->status |= MXSF_MTR_IS_BUSY;
+			motor->busy = TRUE;
+		}
 	}
 
 	if ( motor->backlash_move_in_progress ) {
@@ -3573,6 +3629,111 @@ mx_motor_send_control_command( MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
+mx_motor_set_busy_start_interval( MX_RECORD *motor_record,
+				double busy_start_interval_in_seconds )
+{
+	static const char fname[] = "mx_motor_set_busy_start_interval()";
+
+	MX_MOTOR *motor;
+
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for record '%s' is NULL.",
+			motor_record->name );
+	}
+
+	motor->busy_start_interval = busy_start_interval_in_seconds;
+
+	if ( busy_start_interval_in_seconds < 0.0 ) {
+		motor->busy_start_interval_enabled = FALSE;
+	} else {
+		motor->busy_start_interval_enabled = TRUE;
+
+		motor->busy_start_ticks =
+	    mx_convert_seconds_to_clock_ticks( busy_start_interval_in_seconds );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* If the difference between the current time and the start time of the
+ * last move is less than the value of 'busy_start_interval', then the
+ * flag busy_start_set will be set to TRUE.
+ *
+ * There exist motor controllers that have the misfeature that when you
+ * send them a 'move' command, there may be a short time after the start
+ * of the move where the controller reports that the motor is _not_ moving.
+ *
+ * While this may technically be true, it is not useful for higher level
+ * logic that is trying to figure out when a commanded move has completed.
+ * MX handles this by reporting that the motor is 'busy' for a period
+ * after a move command equal to the value of 'motor->busy_start_interval'
+ * in seconds.  This is only done if the busy start feature is enabled.
+ */
+
+MX_EXPORT mx_status_type
+mx_motor_check_busy_start_interval( MX_RECORD *motor_record,
+				mx_bool_type *busy_start_set )
+{
+	static const char fname[] = "mx_motor_check_busy_start_interval()";
+
+	MX_MOTOR *motor;
+	MX_CLOCK_TICK start_tick, busy_start_ticks;
+	MX_CLOCK_TICK finish_tick, current_tick;
+	int comparison;
+
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The motor record pointer passed was NULL." );
+	}
+	if ( busy_start_set == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy_start_set pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for record '%s' is NULL.",
+			motor_record->name );
+	}
+
+	if ( motor->busy_start_interval_enabled == FALSE ) {
+		*busy_start_set = FALSE;
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	motor->last_start_time =
+		mx_convert_clock_ticks_to_seconds( motor->last_start_tick );
+
+	start_tick = motor->last_start_tick;
+
+	busy_start_ticks = motor->busy_start_ticks;
+
+	finish_tick = mx_add_clock_ticks( start_tick, busy_start_ticks );
+
+	current_tick = mx_current_clock_tick();
+
+	comparison = mx_compare_clock_ticks( current_tick, finish_tick );
+
+	if ( comparison <= 0 ) {
+		*busy_start_set = TRUE;
+	} else {
+		*busy_start_set = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_motor_get_gain( MX_RECORD *motor_record, int gain_type, double *gain )
 {
 	static const char fname[] = "mx_motor_get_gain()";
@@ -4445,6 +4606,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 
 			motor->backlash_move_in_progress = TRUE;
 
+			motor->last_start_tick = mx_current_clock_tick();
+
 			status = ( *fptr ) ( motor );
 
 			if ( status.code != MXE_SUCCESS ) {
@@ -4537,6 +4700,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	/* Do the move. */
 
 	motor->raw_destination.stepper = motor_steps;
+
+	motor->last_start_tick = mx_current_clock_tick();
 
 	status = ( *fptr ) ( motor );
 
@@ -4883,6 +5048,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 			motor->backlash_move_in_progress = TRUE;
 
+			motor->last_start_tick = mx_current_clock_tick();
+
 			status = ( *fptr ) ( motor );
 
 			if ( status.code != MXE_SUCCESS ) {
@@ -5034,6 +5201,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	/* Do the move. */
 
 	motor->raw_destination.analog = motor_position;
+
+	motor->last_start_tick = mx_current_clock_tick();
 
 	status = ( *fptr ) ( motor );
 

@@ -434,6 +434,8 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_COMPUTE_REAL_POSITION:
 		case MXLV_MTR_GET_STATUS:
 		case MXLV_MTR_GET_EXTENDED_STATUS:
+		case MXLV_MTR_BUSY_START_INTERVAL:
+		case MXLV_MTR_LAST_START_TIME:
 		case MXLV_MTR_SAVE_START_POSITIONS:
 
 		case MXLV_MTR_VALUE_CHANGED_THRESHOLD:
@@ -600,6 +602,10 @@ mx_motor_process_function( void *record_ptr,
 				motor->position));
 #endif
 			break;
+		case MXLV_MTR_LAST_START_TIME:
+			motor->last_start_time =
+		    mx_convert_clock_ticks_to_seconds( motor->last_start_tick );
+			break;
 		case MXLV_MTR_PROPORTIONAL_GAIN:
 			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_PROPORTIONAL_GAIN, NULL );
@@ -693,12 +699,16 @@ mx_motor_process_function( void *record_ptr,
 			mx_status = mx_motor_set_acceleration_time( record,
 						motor->acceleration_time );
 			break;
+		case MXLV_MTR_BUSY_START_INTERVAL:
+			mx_status = mx_motor_set_busy_start_interval( record,
+						motor->busy_start_interval );
+			break;
 		case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 			position1 = motor->speed_choice_parameters[0];
 			position2 = motor->speed_choice_parameters[1];
 			time_for_move = motor->speed_choice_parameters[2];
 
-			mx_status = mx_motor_set_speed_between_positions( record,
+			mx_status = mx_motor_set_speed_between_positions(record,
 					position1, position2, time_for_move );
 			break;
 		case MXLV_MTR_SAVE_SPEED:

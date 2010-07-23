@@ -20,8 +20,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -44,8 +44,8 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
-LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWER_PMAC_LIB_DIRS)
+#LIBRARIES	= $(POWER_PMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm

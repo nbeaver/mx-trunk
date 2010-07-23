@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -202,6 +202,17 @@ typedef struct {
 	unsigned long status;
 	char extended_status[ MXU_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
+	/* The following fields are used to handle motor controllers that
+	 * do not set the 'busy' flag immediately after the start of a move.
+	 */
+
+	mx_bool_type busy_start_interval_enabled;
+	double busy_start_interval;	/* In seconds */
+	double last_start_time;		/* In seconds */
+
+	MX_CLOCK_TICK busy_start_ticks;
+	MX_CLOCK_TICK last_start_tick;
+
 	/* The following saved field numbers are used by the function
 	 * mx_motor_vctest_extended_status().
 	 */
@@ -263,10 +274,13 @@ typedef struct {
 #define MXLV_MTR_GET_REAL_MOTOR_FROM_PSEUDOMOTOR	1025
 #define MXLV_MTR_GET_STATUS				1026
 #define MXLV_MTR_GET_EXTENDED_STATUS			1027
-#define MXLV_MTR_SAVE_START_POSITIONS			1028
-#define MXLV_MTR_USE_START_POSITIONS			1029
+#define MXLV_MTR_BUSY_START_INTERVAL_ENABLED		1028
+#define MXLV_MTR_BUSY_START_INTERVAL			1029
+#define MXLV_MTR_LAST_START_TIME			1030
+#define MXLV_MTR_SAVE_START_POSITIONS			1031
+#define MXLV_MTR_USE_START_POSITIONS			1032
 
-#define MXLV_MTR_VALUE_CHANGED_THRESHOLD			3001
+#define MXLV_MTR_VALUE_CHANGED_THRESHOLD		3001
 
 #define MXLV_MTR_AXIS_ENABLE				4001
 #define MXLV_MTR_CLOSED_LOOP				4002
@@ -536,6 +550,21 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, extended_status), \
 	{sizeof(char)}, NULL, MXFF_POLL, \
 	0, 0, mx_motor_vctest_extended_status}, \
+  \
+  {MXLV_MTR_BUSY_START_INTERVAL_ENABLED, -1, "busy_start_interval_enabled", \
+		MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, busy_start_interval_enabled), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_BUSY_START_INTERVAL, -1, "busy_start_interval", \
+		MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, busy_start_interval), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_MTR_LAST_START_TIME, -1, "last_start_time", \
+		MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, last_start_time), \
+	{0}, NULL, 0}, \
   \
   {MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE, -1, "compute_extended_scan_range", \
 		MXFT_DOUBLE, NULL, 1, {MX_MOTOR_NUM_SCAN_RANGE_PARAMS}, \
@@ -835,6 +864,14 @@ MX_API mx_status_type mx_motor_get_acceleration_distance(
 MX_API mx_status_type mx_motor_set_acceleration_time(
 				MX_RECORD *motor_record,
 				double acceleration_time );
+
+MX_API mx_status_type mx_motor_set_busy_start_interval(
+				MX_RECORD *motor_record,
+				double busy_start_interval_in_seconds );
+
+MX_API mx_status_type mx_motor_check_busy_start_interval(
+				MX_RECORD *motor_record,
+				mx_bool_type *busy_start_set );
 
 MX_API mx_status_type mx_motor_send_control_command( MX_RECORD *motor_record,
 					int command_type, int command );
