@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_PMAC_DEBUG			TRUE
+#define MXI_PMAC_DEBUG			FALSE
 
 #define MXI_PMAC_DEBUG_TIMING		FALSE
 

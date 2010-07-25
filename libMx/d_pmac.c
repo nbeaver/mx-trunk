@@ -43,7 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list = {
 	mxd_pmac_print_structure,
 	NULL,
 	NULL,
-	NULL,
+	mxd_pmac_open,
 	NULL,
 	NULL,
 	mxd_pmac_resynchronize
@@ -285,6 +285,44 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 			move_deadband, motor->units );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_pmac_open()";
+
+	MX_MOTOR *motor;
+	MX_PMAC_MOTOR *pmac_motor = NULL;
+	MX_PMAC *pmac = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, &pmac, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( pmac->pmac_type == MX_PMAC_TYPE_POWERPMAC ) {
+
+		/* For PowerPMACs, the following call forces the
+		 * MXSF_MTR_IS_BUSY bit on for 0.01 seconds after
+		 * the start of a move.  This is done because
+		 * sometimes the PowerPMAC controller will report
+		 * the motor as not moving for a brief interval
+		 * after the start of a move.
+		 */
+
+		mx_status = mx_motor_set_busy_start_interval( record, 0.01 );
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

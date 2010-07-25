@@ -34,6 +34,7 @@ typedef struct {
 MX_API mx_status_type mxd_pmac_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_pmac_finish_record_initialization(MX_RECORD *record);
 MX_API mx_status_type mxd_pmac_print_structure( FILE *file, MX_RECORD *record );
+MX_API mx_status_type mxd_pmac_open( MX_RECORD *record );
 MX_API mx_status_type mxd_pmac_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pmac_move_absolute( MX_MOTOR *motor );
