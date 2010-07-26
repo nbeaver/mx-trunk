@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1429,6 +1429,17 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 			return mx_status;
 
 		motor->raw_maximum_speed = double_value;
+		break;
+
+	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
+		mx_status = mx_motor_get_raw_acceleration_parameters(
+					theta_record,
+					motor->raw_acceleration_parameters );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->acceleration_time = double_value;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:

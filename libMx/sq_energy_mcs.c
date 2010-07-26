@@ -15,9 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING		TRUE
-
-#define DEBUG_PAUSE_REQUEST	FALSE
+#define DEBUG_TIMING		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,19 +80,25 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 				double measurement_time,
 				mx_bool_type correct_for_quick_scan_backlash )
 {
-#if DEBUG_TIMING
 	static const char fname[] = "mxs_energy_mcs_quick_scan_move_to_start()";
-#endif
+
 	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	MX_RECORD *d_spacing_record, *theta_record;
+	MX_MOTOR *theta_motor;
 	double d_spacing;
 	double energy_start, energy_end;
 	double theta_start, theta_end;
 	double sin_theta_start, sin_theta_end;
 	long number_of_points;
 	double time_per_point, requested_scan_time;
+
 	double requested_theta_distance, requested_theta_speed;
 	double acceleration_distance, acceleration_time;
+
+	double original_raw_speed, requested_raw_speed;
+	double original_acceleration_time;
+	double raw_acceleration, raw_acceleration_distance;
+	double raw_base_speed;
 
 	double real_theta_start, real_theta_end;
 	double real_sin_theta_start, real_sin_theta_end;
@@ -106,6 +110,7 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 #if DEBUG_TIMING
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
 #endif
+
 	energy_mcs_quick_scan_extension = mcs_quick_scan->extension_ptr;
 
 	/*** Update the current value of the d-spacing. ***/
@@ -119,15 +124,12 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 
 	energy_mcs_quick_scan_extension->d_spacing = d_spacing;
 
-	MX_DEBUG(-2,("%s: d_spacing = %f", fname, d_spacing));
 
 	/*** Convert the energy start and end into the theta start and end. ***/
 
 	energy_start = quick_scan->start_position[0];
 	energy_end   = quick_scan->end_position[0];
 
-	MX_DEBUG(-2,("%s: energy start = %f, energy end = %f",
-		fname, energy_start, energy_end));
 
 	sin_theta_start = mx_divide_safely( MX_HC,
 				( 2.0 * d_spacing * energy_start ) );
@@ -139,47 +141,109 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 
 	theta_end = ( 180.0 / MX_PI )  * asin( sin_theta_end );
 
-	MX_DEBUG(-2,("%s: theta start = %f, theta end = %f",
-		fname, theta_start, theta_end));
-
 	number_of_points = quick_scan->requested_num_measurements;
 
 	time_per_point = atof( scan->measurement_arguments );
-
-	MX_DEBUG(-2,("%s: number_of_points = %ld, time_per_point = %f",
-		fname, number_of_points, time_per_point));
 
 	requested_theta_distance = fabs( theta_end - theta_start );
 
 	requested_scan_time = (number_of_points - 1) * time_per_point;
 
-	MX_DEBUG(-2,("%s: requested_theta_distance = %f, scan_time = %f",
-		fname, requested_theta_distance, requested_scan_time));
-
 	requested_theta_speed = mx_divide_safely( requested_theta_distance,
 						requested_scan_time );
 
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s: d_spacing = %f", fname, d_spacing));
+	MX_DEBUG(-2,("%s: energy start = %f, energy end = %f",
+		fname, energy_start, energy_end));
+	MX_DEBUG(-2,("%s: theta start = %f, theta end = %f",
+		fname, theta_start, theta_end));
+	MX_DEBUG(-2,("%s: number_of_points = %ld, time_per_point = %f",
+		fname, number_of_points, time_per_point));
+	MX_DEBUG(-2,("%s: requested_theta_distance = %f, scan_time = %f",
+		fname, requested_theta_distance, requested_scan_time));
 	MX_DEBUG(-2,("%s: requested_theta_speed = %f",
 		fname, requested_theta_speed));
+#endif
 
 	/*** Get the acceleration parameters for this motor. ***/
 
 	theta_record = energy_mcs_quick_scan_extension->theta_record;
 
-	mx_status = mx_motor_get_acceleration_distance( theta_record,
-						&acceleration_distance );
+	if ( theta_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The theta_record pointer for energy quick scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	theta_motor = (MX_MOTOR *) theta_record->record_class_struct;
+
+	if ( theta_motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MOTOR pointer for theta record '%s' used by "
+		"energy quick scan '%s' is NULL.",
+			theta_record->name, scan->record->name );
+	}
+
+	mx_status =
+	    mx_motor_update_speed_and_acceleration_parameters( theta_motor );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_get_acceleration_time( theta_record,
-						&acceleration_time );
+	original_raw_speed = theta_motor->raw_speed;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	original_acceleration_time = -1;
+
+	requested_raw_speed = mx_divide_safely( requested_theta_speed,
+						fabs(theta_motor->scale) );
+
+	raw_base_speed = theta_motor->raw_base_speed;
+
+	switch( theta_motor->acceleration_type ) {
+	case MXF_MTR_ACCEL_RATE:
+		raw_acceleration = theta_motor->raw_acceleration_parameters[0];
+		break;
+	case MXF_MTR_ACCEL_TIME:
+		original_acceleration_time =
+				theta_motor->raw_acceleration_parameters[0];
+
+		raw_acceleration =
+			mx_divide_safely( original_raw_speed - raw_base_speed,
+						original_acceleration_time );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Acceleration type %ld for motor '%s' is not supported "
+		"for energy quick scan '%s'.",
+			theta_motor->acceleration_type,
+			theta_record->name,
+			scan->record->name );
+	}
+
+	acceleration_time =
+		mx_divide_safely( requested_raw_speed - raw_base_speed,
+					raw_acceleration );
+
+	raw_acceleration_distance = 
+	    + 0.5 * raw_acceleration * acceleration_time * acceleration_time;
+
+	acceleration_distance =
+		fabs( theta_motor->scale * raw_acceleration_distance );
+
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s: original_raw_speed = %f, requested_raw_speed = %f",
+		fname, original_raw_speed, requested_raw_speed));
+
+	MX_DEBUG(-2,("%s: raw_base_speed = %f", fname, raw_base_speed));
+
+	MX_DEBUG(-2,
+	("%s: raw_acceleration = %f, original_acceleration_time = %f",
+		fname, raw_acceleration, original_acceleration_time));
 
 	MX_DEBUG(-2,("%s: acceleration_distance = %f, acceleration_time = %f",
 		fname, acceleration_distance, acceleration_time));
+#endif
 
 	/*** Compute the real theta start and end for the move. ***/
 
@@ -190,9 +254,6 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 		real_theta_start = theta_start - acceleration_distance;
 		real_theta_end   = theta_end + acceleration_distance;
 	}
-
-	MX_DEBUG(-2,("%s: real_theta_start = %f, real_theta_end = %f",
-		fname, real_theta_start, real_theta_end));
 
 	/*** Compute the real energy start and end for the move. ***/
 
@@ -206,21 +267,22 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 	real_energy_end = mx_divide_safely( MX_HC,
 				2.0 * d_spacing * real_sin_theta_end );
 
-	MX_DEBUG(-2,("%s: real_sin_theta_start = %f, real_sin_theta_end = %f",
-		fname, real_sin_theta_start, real_sin_theta_end ));
-
-	MX_DEBUG(-2,("%s: real_energy_start = %f, real_energy_end = %f",
-		fname, real_energy_start, real_energy_end ));
-
 	real_scan_time = requested_scan_time + 2.0 * acceleration_time;
-
-	MX_DEBUG(-2,("%s: real_scan_time = %f", fname, real_scan_time));
 
 	actual_num_measurements = 1 + mx_divide_safely( real_scan_time,
 							time_per_point );
 
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s: real_theta_start = %f, real_theta_end = %f",
+		fname, real_theta_start, real_theta_end));
+	MX_DEBUG(-2,("%s: real_sin_theta_start = %f, real_sin_theta_end = %f",
+		fname, real_sin_theta_start, real_sin_theta_end ));
+	MX_DEBUG(-2,("%s: real_energy_start = %f, real_energy_end = %f",
+		fname, real_energy_start, real_energy_end ));
+	MX_DEBUG(-2,("%s: real_scan_time = %f", fname, real_scan_time));
 	MX_DEBUG(-2,("%s: actual_num_measurements = %ld",
 		fname, actual_num_measurements));
+#endif
 
 	/*** Copy the necessary parameters into the MX scan structures. ***/
 
@@ -334,7 +396,9 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	double position, speed;
 	mx_status_type mx_status;
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, record->name));
+#endif
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
@@ -357,13 +421,21 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*** Verify that the 'theta' record exists and works. ***/
+	/*************************************************************
+	 *** Verify that the 'theta_real' record exists and works. ***
+	 *** If not found, use the 'theta' record instead.         ***
+	 *************************************************************/
 
-	theta_record = mx_get_record( record, "theta" );
+	theta_record = mx_get_record( record, "theta_real" );
 
 	if ( theta_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"No record named 'theta' is found in the MX database." );
+		theta_record = mx_get_record( record, "theta" );
+
+		if ( theta_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"No record named 'theta_real' or 'theta' "
+			"is found in the MX database.");
+		}
 	}
 
 	energy_mcs_quick_scan_extension->theta_record = theta_record;
@@ -378,8 +450,10 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s: theta position = %f, speed = %f",
 		fname, position, speed));
+#endif
 
 	/*** Verify that the 'd_spacing' record exists and works. ***/
 
@@ -398,10 +472,12 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s: d_spacing = %f", fname,
 				energy_mcs_quick_scan_extension->d_spacing));
 
 	MX_DEBUG(-2,("%s complete for scan '%s'.", fname, record->name));
+#endif
 
 	return mx_status;
 }
@@ -417,11 +493,9 @@ mxs_energy_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
-#if 0 && DEBUG_TIMING
-	MX_HRT_TIMING timing_measurement;
-#endif
-
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
@@ -436,7 +510,9 @@ mxs_energy_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -452,11 +528,9 @@ mxs_energy_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
-#if 0 && DEBUG_TIMING
-	MX_HRT_TIMING timing_measurement;
-#endif
-
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
@@ -468,7 +542,9 @@ mxs_energy_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	mx_status = mxs_mcs_quick_scan_execute_scan_body( scan );
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -490,11 +566,9 @@ mxs_energy_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	mx_status_type mx_status;
 
-#if 0 && DEBUG_TIMING
-	MX_HRT_TIMING timing_measurement;
-#endif
-
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
@@ -506,7 +580,9 @@ mxs_energy_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	mx_status = mxs_mcs_quick_scan_cleanup_after_scan_end( scan );
 
+#if DEBUG_TIMING
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return mx_status;
 }

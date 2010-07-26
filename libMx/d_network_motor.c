@@ -162,6 +162,28 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 	MX_DEBUG( 2,("%s: network_motor '%s', remote_driver_type = %ld",
 	fname, motor->record->name, network_motor->remote_driver_type ));
 
+	/* Get the remote acceleration type. */
+
+	mx_status = mx_get(&(network_motor->acceleration_type_nf),
+			MXFT_LONG, &(motor->acceleration_type) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: network_motor '%s', acceleration_type = %ld",
+		fname, motor->record->name, motor->acceleration_type));
+
+	/* Get the remote scale factor. */
+
+	mx_status = mx_get(&(network_motor->scale_nf),
+			MXFT_DOUBLE, &(network_motor->remote_scale) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: network_motor '%s', remote_scale = %g",
+		fname, motor->record->name, network_motor->remote_scale));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -209,6 +231,12 @@ mxd_network_motor_create_record_structures( MX_RECORD *record )
 
 	network_motor->remote_motor_flags = 0;
 
+	/* If we need the acceleration type later, then we will need
+	 * to explicitly fetch it from the server at that time.
+	 */
+
+	motor->acceleration_type = MXF_MTR_ACCEL_NONE;
+
 	/* A network motor is treated as an analog motor. */
 
 	motor->subclass = MXC_MTR_ANALOG;
@@ -255,6 +283,10 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_motor->acceleration_time_nf),
 		network_motor->server_record,
 		"%s.acceleration_time", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->acceleration_type_nf),
+		network_motor->server_record,
+		"%s.acceleration_type", network_motor->remote_record_name );
 
 	mx_network_field_init( &(network_motor->axis_enable_nf),
 		network_motor->server_record,
@@ -372,6 +404,10 @@ mxd_network_motor_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_motor->save_start_positions_nf),
 		network_motor->server_record,
 		"%s.save_start_positions", network_motor->remote_record_name );
+
+	mx_network_field_init( &(network_motor->scale_nf),
+		network_motor->server_record,
+		"%s.scale", network_motor->remote_record_name );
 
 	mx_network_field_init( &(network_motor->set_position_nf),
 		network_motor->server_record,
@@ -988,6 +1024,11 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 				MXFT_BOOL, &(motor->synchronous_motion_mode) );
 		break;
 
+	case MXLV_MTR_ACCELERATION_TYPE:
+		mx_status = mx_get(&(network_motor->acceleration_type_nf),
+				MXFT_LONG, &(motor->acceleration_type) );
+		break;
+
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		dimension_array[0] = MX_MOTOR_NUM_ACCELERATION_PARAMS;
 
@@ -995,6 +1036,17 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 			&(network_motor->raw_acceleration_parameters_nf),
 				MXFT_DOUBLE, 1, dimension_array,
 				&(motor->raw_acceleration_parameters) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( motor->acceleration_type == MXF_MTR_ACCEL_RATE ) {
+			motor->raw_acceleration_parameters[0]
+				*= fabs(network_motor->remote_scale);
+
+			motor->raw_acceleration_parameters[1]
+				*= fabs(network_motor->remote_scale);
+		}
 		break;
 
 	case MXLV_MTR_ACCELERATION_DISTANCE:

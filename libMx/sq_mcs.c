@@ -17,6 +17,8 @@
 
 #define DEBUG_TIMING		FALSE
 
+#define DEBUG_SPEED		FALSE
+
 #define DEBUG_PAUSE_REQUEST	FALSE
 
 #include <stdio.h>
@@ -2787,6 +2789,163 @@ mxs_mcs_quick_scan_check_for_motor_errors( MX_SCAN *scan )
 	return;
 }
 
+#if DEBUG_SPEED
+
+static mx_status_type
+mxs_mcs_quick_scan_display_scan_parameters( MX_SCAN *scan,
+					MX_QUICK_SCAN *quick_scan,
+					MX_MCS_QUICK_SCAN *mcs_quick_scan )
+{
+	static const char fname[] =
+		"mxs_mcs_quick_scan_display_scan_parameters()";
+
+	MX_RECORD *motor_record;
+	double position, speed, acceleration_time, acceleration_distance;
+	double raw_acceleration_parameters[MX_MOTOR_NUM_ACCELERATION_PARAMS];
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+	if ( (scan->num_motors == 0)
+	  || ( scan->motor_record_array == NULL ) )
+	{
+		mx_warning( "No motors are specified for scan '%s'.",
+			scan->record->name );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	MX_DEBUG(-2,("%s: --------------------------------------------",fname));
+
+	MX_DEBUG(-2,("%s: start_position = %g, end_position = %g",
+		fname, quick_scan->start_position[0],
+			quick_scan->end_position[0] ));
+
+	MX_DEBUG(-2,("%s: requested # = %ld, actual # = %ld",
+		fname, quick_scan->requested_num_measurements,
+		quick_scan->actual_num_measurements));
+
+	MX_DEBUG(-2,("%s: estimated_scan_duration = %g",
+		fname, quick_scan->estimated_scan_duration));
+
+	MX_DEBUG(-2,("%s: old_motor_speed = %g",
+		fname, quick_scan->old_motor_speed[0]));
+
+	MX_DEBUG(-2,("%s: motor_position_array[0] = %g",
+		fname, *(mcs_quick_scan->motor_position_array[0]) ));
+
+	MX_DEBUG(-2,("%s: premove_measurement_time = %g",
+		fname, mcs_quick_scan->premove_measurement_time));
+
+	MX_DEBUG(-2,("%s: acceleration_time = %g",
+		fname, mcs_quick_scan->acceleration_time));
+
+	MX_DEBUG(-2,("%s: scan_body_time = %g",
+		fname, mcs_quick_scan->scan_body_time));
+
+	MX_DEBUG(-2,("%s: deceleration_time = %g",
+		fname, mcs_quick_scan->deceleration_time));
+
+	MX_DEBUG(-2,("%s: postmove_measurement_time = %g",
+		fname, mcs_quick_scan->postmove_measurement_time));
+
+	MX_DEBUG(-2,("%s: real_start_position[0] = %g",
+		fname, mcs_quick_scan->real_start_position[0]));
+
+	MX_DEBUG(-2,("%s: real_end_position[0] = %g",
+		fname, mcs_quick_scan->real_end_position[0]));
+
+	MX_DEBUG(-2,("%s: backlash_position[0] = %g",
+		fname, mcs_quick_scan->backlash_position[0]));
+
+	MX_DEBUG(-2,("%s: --------------------------------------------",fname));
+
+	motor_record = scan->motor_record_array[0];
+
+	if ( motor_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The first motor record pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	/* If we are scanning energy, replace the energy motor record with
+	 * the theta motor record.
+	 */
+
+	if ( strcmp(motor_record->name, "energy") == 0 ) {
+		motor_record = mx_get_record( motor_record, "theta" );
+
+		if ( motor_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The 'theta' motor was not found for energy scan '%s'.",
+				scan->record->name );
+		}
+	}
+
+	MX_DEBUG(-2,("%s: reporting parameters for motor '%s'",
+		fname, motor_record->name));
+
+	mx_status = mx_motor_get_position( motor_record, &position );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: motor '%s' position = %g",
+		fname, motor_record->name, position ));
+
+	mx_status = mx_motor_get_speed( motor_record, &speed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: motor '%s' speed = %g",
+		fname, motor_record->name, speed ));
+
+	mx_status = mx_motor_get_acceleration_time( motor_record,
+						&acceleration_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: acceleration_time = %g",
+		fname, acceleration_time));
+
+	mx_status = mx_motor_get_acceleration_distance( motor_record,
+						&acceleration_distance );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: acceleration_distance = %g",
+		fname, acceleration_distance));
+
+	mx_status = mx_motor_get_raw_acceleration_parameters( motor_record,
+						raw_acceleration_parameters );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mx_get_debug_level() <= -2 ) {
+		int i;
+
+		fprintf(stderr,"%s: raw_acceleration_parameters =", fname);
+
+		for ( i = 0; i < 3; i++ ) {
+			fprintf(stderr, "  %g",
+				raw_acceleration_parameters[i]);
+		}
+
+		fprintf(stderr,"\n");
+	}
+
+	MX_DEBUG(-2,("%s: --------------------------------------------",fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
 /* Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function
  * since the cleanup_after_scan_end() function will attempt to use the arrays
  * regardless of what error code this routine returns.
@@ -2825,6 +2984,11 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if DEBUG_SPEED
+	mx_status = mxs_mcs_quick_scan_display_scan_parameters( scan,
+						quick_scan, mcs_quick_scan );
+#endif
 
 #if DEBUG_TIMING
 	MX_HRT_START( timing_measurement );

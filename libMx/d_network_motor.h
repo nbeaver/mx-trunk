@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,8 +66,9 @@ typedef struct {
 
 	long remote_driver_type;
 	char remote_driver_name[ MXU_DRIVER_NAME_LENGTH+1 ];
+	double remote_scale;
 
-	/* On the other hand, you _can_ count on motor flag bit
+/* On the other hand, you _can_ count on motor flag bit
 	 * definitions being the same in both servers and clients.
 	 */
 
@@ -76,6 +77,7 @@ typedef struct {
 	MX_NETWORK_FIELD acceleration_distance_nf;
 	MX_NETWORK_FIELD acceleration_feedforward_gain_nf;
 	MX_NETWORK_FIELD acceleration_time_nf;
+	MX_NETWORK_FIELD acceleration_type_nf;
 	MX_NETWORK_FIELD axis_enable_nf;
 	MX_NETWORK_FIELD base_speed_nf;
 	MX_NETWORK_FIELD busy_nf;
@@ -105,6 +107,7 @@ typedef struct {
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD save_speed_nf;
 	MX_NETWORK_FIELD save_start_positions_nf;
+	MX_NETWORK_FIELD scale_nf;
 	MX_NETWORK_FIELD set_position_nf;
 	MX_NETWORK_FIELD soft_abort_nf;
 	MX_NETWORK_FIELD speed_nf;

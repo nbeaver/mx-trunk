@@ -2811,8 +2811,16 @@ mx_motor_update_speed_and_acceleration_parameters( MX_MOTOR *motor )
 
 	mx_status = mx_motor_get_parameter(motor->record, MXLV_MTR_BASE_SPEED);
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( motor->acceleration_type == MXF_MTR_ACCEL_NONE ) {
+		mx_status = mx_motor_get_parameter(motor->record,
+					MXLV_MTR_ACCELERATION_TYPE);
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+	}
 
 	mx_status = mx_motor_get_parameter(motor->record,
 					MXLV_MTR_RAW_ACCELERATION_PARAMETERS);
