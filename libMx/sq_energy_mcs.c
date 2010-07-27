@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING		FALSE
+#define DEBUG_TIMING		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -329,7 +329,132 @@ mxs_energy_mcs_quick_scan_move_to_start( MX_SCAN *scan,
 	return mx_status;
 }
 
-/*------*/ MX_EXPORT mx_status_type
+/*------*/
+
+static mx_status_type
+mxs_energy_mcs_quick_scan_compute_motor_positions( MX_SCAN *scan,
+					MX_QUICK_SCAN *quick_scan,
+					MX_MCS_QUICK_SCAN *mcs_quick_scan,
+					MX_MCS *mcs )
+{
+	static const char fname[] =
+		"mxs_energy_mcs_quick_scan_compute_motor_positions()";
+
+	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
+	MX_RECORD *theta_record, *mce_record;
+	MX_MOTOR *theta_motor;
+	unsigned long num_encoder_values;
+	double *encoder_value_array;
+	double *energy_position_array;
+	double energy_start, theta_start, sin_theta_start;
+	double start_of_bin_value, scaled_encoder_value;
+	double theta, sin_theta, energy, d_spacing;
+	long i;
+	mx_status_type mx_status;
+
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
+#endif
+	energy_mcs_quick_scan_extension = mcs_quick_scan->extension_ptr;
+
+	theta_record = energy_mcs_quick_scan_extension->theta_record;
+
+	theta_motor = (MX_MOTOR *) theta_record->record_class_struct;
+
+	mce_record = mxs_mcs_quick_scan_find_encoder_readout( theta_record );
+
+	if ( mce_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"No multichannel encoder (MCE) record was found in "
+		"the MX database for theta motor '%s'.",
+			theta_record->name );
+	}
+
+	if ( mcs_quick_scan->motor_position_array == (double **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The motor_position_array pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	energy_position_array = mcs_quick_scan->motor_position_array[0];
+
+	if ( energy_position_array == (double *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The motor_position_array[0] pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	energy_start = mcs_quick_scan->real_start_position[0];
+
+	d_spacing = energy_mcs_quick_scan_extension->d_spacing;
+
+	sin_theta_start =  mx_divide_safely( MX_HC,
+				2.0 * d_spacing * energy_start );
+
+	theta_start = asin( sin_theta_start ) * 180.0 / MX_PI;
+
+	/* Read in the multichannel encoder values. */
+
+	mx_status = mx_mce_read( mce_record,
+			&num_encoder_values, &encoder_value_array );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+
+		/* An error occurred while reading the encoder
+		 * value array, so fill the position array with -1.
+		 */
+
+		for ( i = 0; i < quick_scan->actual_num_measurements; i++ ) {
+			energy_position_array[i] = -1.0;
+		}
+	} else {
+		if ( num_encoder_values > quick_scan->actual_num_measurements )
+		{
+		    num_encoder_values = quick_scan->actual_num_measurements;
+		}
+
+		start_of_bin_value = theta_start;
+
+		for ( i = 0; i < num_encoder_values; i++ ) {
+			scaled_encoder_value = theta_motor->scale
+						* encoder_value_array[i];
+
+			/* The scaled motor value reflects the distance
+			 * that the motor has moved during this bin,
+			 * so we should put the reported position
+			 * in the middle of the bin.
+			 */
+
+			theta = start_of_bin_value + 0.5 * scaled_encoder_value;
+
+			start_of_bin_value += scaled_encoder_value;
+
+			sin_theta = sin( theta * MX_PI / 180.0 );
+
+			energy = mx_divide_safely( MX_HC,
+					2.0 * d_spacing * sin_theta );
+
+			energy_position_array[i] = energy;
+		}
+
+		/* Fill in the rest of the array (if any) with 0. */
+
+		for ( ; i < quick_scan->actual_num_measurements; i++ ) {
+			energy_position_array[i] = 0.0;
+		}
+	}
+			
+
+#if DEBUG_TIMING
+	MX_DEBUG(-2,("%s complete for scan '%s'.", fname, scan->record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------*/
+
+MX_EXPORT mx_status_type
 mxs_energy_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
@@ -376,7 +501,10 @@ mxs_energy_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 	/* Replace the move_to_start function. */
 
 	mcs_quick_scan->move_to_start_fn =
-				mxs_energy_mcs_quick_scan_move_to_start;
+			mxs_energy_mcs_quick_scan_move_to_start;
+
+	mcs_quick_scan->compute_motor_positions_fn =
+			mxs_energy_mcs_quick_scan_compute_motor_positions;
 
 	return MX_SUCCESSFUL_RESULT;
 }

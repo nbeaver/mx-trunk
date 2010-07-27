@@ -48,6 +48,11 @@ typedef struct mx_mcs_quick_scan_type {
 					struct mx_mcs_quick_scan_type *,
 					double,
 					mx_bool_type );
+
+	mx_status_type (*compute_motor_positions_fn)( MX_SCAN *,
+						MX_QUICK_SCAN *,
+						struct mx_mcs_quick_scan_type *,
+						MX_MCS * );
 } MX_MCS_QUICK_SCAN;
 
 MX_API mx_status_type mxs_mcs_quick_scan_initialize_type( long type );
@@ -79,12 +84,21 @@ MX_API mx_status_type
 mxs_mcs_quick_scan_move_absolute_and_wait( MX_SCAN *scan,
 					double *position_array );
 
+MX_API MX_RECORD *
+mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record );
+
 MX_API mx_status_type
 mxs_mcs_quick_scan_default_move_to_start( MX_SCAN *scan,
 				MX_QUICK_SCAN *quick_scan,
 				MX_MCS_QUICK_SCAN *mcs_quick_scan,
 				double measurement_time,
 				mx_bool_type correct_for_quick_scan_backlash );
+
+MX_API mx_status_type
+mxs_mcs_quick_scan_default_compute_motor_positions( MX_SCAN *scan,
+					MX_QUICK_SCAN *quick_scan,
+					MX_MCS_QUICK_SCAN *mcs_quick_scan,
+					MX_MCS *mcs );
 
 #endif /* __SQ_MCS_H__ */
 

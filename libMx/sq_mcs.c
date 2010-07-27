@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_TIMING		FALSE
+#define DEBUG_TIMING		TRUE
 
 #define DEBUG_SPEED		FALSE
 
@@ -244,6 +244,9 @@ mxs_mcs_quick_scan_create_record_structures( MX_RECORD *record )
 
 	mcs_quick_scan->move_to_start_fn =
 			mxs_mcs_quick_scan_default_move_to_start;
+
+	mcs_quick_scan->compute_motor_positions_fn =
+			mxs_mcs_quick_scan_default_compute_motor_positions;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -801,7 +804,7 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 	return mx_status;
 }
 
-static MX_RECORD *
+MX_EXPORT MX_RECORD *
 mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 {
 	MX_RECORD *record_list;
@@ -1448,15 +1451,15 @@ mxs_mcs_quick_scan_compute_pseudomotor_start_from_scan_start(
 			mx_free( scan_start_position ); \
 	} while (0)
 
-static mx_status_type
-mxs_mcs_quick_scan_compute_motor_positions(
+MX_EXPORT mx_status_type
+mxs_mcs_quick_scan_default_compute_motor_positions(
 		MX_SCAN *scan,
 		MX_QUICK_SCAN *quick_scan,
 		MX_MCS_QUICK_SCAN *mcs_quick_scan,
 		MX_MCS *mcs )
 {
 	static const char fname[] =
-		"mxs_mcs_quick_scan_compute_motor_positions()";
+		"mxs_mcs_quick_scan_default_compute_motor_positions()";
 
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
@@ -2018,7 +2021,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	mx_status_type (*move_to_start_fn)( MX_SCAN *,
 					MX_QUICK_SCAN *,
-					struct mx_mcs_quick_scan_type *,
+					MX_MCS_QUICK_SCAN *,
 					double,
 					mx_bool_type );
 
@@ -3283,6 +3286,11 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	size_t string_length, buffer_left;
 	mx_status_type mx_status;
 
+	mx_status_type (*compute_motor_positions_fn)( MX_SCAN *,
+						MX_QUICK_SCAN *,
+						MX_MCS_QUICK_SCAN *,
+						MX_MCS * );
+
 #if DEBUG_TIMING
 	MX_HRT_TIMING timing_measurement;
 #endif
@@ -3326,7 +3334,15 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	 * to a pair of scaler channels or by using dead reckoning.
 	 */
 
-	mx_status = mxs_mcs_quick_scan_compute_motor_positions(
+	compute_motor_positions_fn = mcs_quick_scan->compute_motor_positions_fn;
+
+	if ( compute_motor_positions_fn == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The compute_motor_positions_fn for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	mx_status = ( *compute_motor_positions_fn )(
 			scan, quick_scan, mcs_quick_scan, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
