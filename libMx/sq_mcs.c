@@ -15,9 +15,11 @@
  *
  */
 
-#define DEBUG_TIMING		TRUE
+#define DEBUG_TIMING		FALSE
 
 #define DEBUG_SPEED		FALSE
+
+#define DEBUG_WAIT_FOR_MCS	FALSE
 
 #define DEBUG_PAUSE_REQUEST	FALSE
 
@@ -2954,6 +2956,8 @@ mxs_mcs_quick_scan_display_scan_parameters( MX_SCAN *scan,
  * regardless of what error code this routine returns.
  */
 
+#define MX_WAIT_FOR_MCS_TO_START	TRUE
+
 MX_EXPORT mx_status_type
 mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 {
@@ -2968,7 +2972,8 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	mx_bool_type busy;
 	long i;
 	unsigned long measurement_milliseconds;
-#if 1
+
+#if MX_WAIT_FOR_MCS_TO_START
 	MX_RECORD *mcs_record;
 	unsigned long wait_ms, max_attempts;
 	long j;
@@ -3071,7 +3076,9 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	mx_msleep( measurement_milliseconds
 				* MXS_SQ_MCS_NUM_PREMOVE_MEASUREMENTS );
-#if 1
+
+#if MX_WAIT_FOR_MCS_TO_START
+
 	wait_ms = 10;
 	max_attempts = 100;
 
@@ -3100,6 +3107,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		mx_msleep(wait_ms);
 	}
 
+#if DEBUG_WAIT_FOR_MCS
+	MX_DEBUG(-2,("%s: waiting for mcs, i = %ld", fname, i));
+#endif
+
 	if ( i >= max_attempts ) {
 		return mx_error( MXE_TIMED_OUT, fname,
 		"Timed out after waiting %g seconds for MCS '%s' used by "
@@ -3108,7 +3119,8 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 			mcs_quick_scan->mcs_record_array[j]->name,
 			scan->record->name );
 	}
-#endif
+
+#endif	/* MX_WAIT_FOR_MCS_TO_START */
 
 #if DEBUG_TIMING
 	MX_HRT_END( timing_measurement );
