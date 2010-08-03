@@ -521,7 +521,6 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 	MX_ENERGY_MCS_QUICK_SCAN_EXTENSION *energy_mcs_quick_scan_extension;
 	MX_RECORD *d_spacing_record;
 	MX_RECORD *theta_record;
-	double position, speed;
 	mx_status_type mx_status;
 
 #if DEBUG_TIMING
@@ -568,21 +567,6 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 
 	energy_mcs_quick_scan_extension->theta_record = theta_record;
 
-	mx_status = mx_motor_get_position( theta_record, &position );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_motor_get_speed( theta_record, &speed );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if DEBUG_TIMING
-	MX_DEBUG(-2,("%s: theta position = %f, speed = %f",
-		fname, position, speed));
-#endif
-
 	/*** Verify that the 'd_spacing' record exists and works. ***/
 
 	d_spacing_record = mx_get_record( record, "d_spacing" );
@@ -594,16 +578,7 @@ mxs_energy_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 
 	energy_mcs_quick_scan_extension->d_spacing_record = d_spacing_record;
 
-	mx_status = mx_get_double_variable( d_spacing_record,
-				&(energy_mcs_quick_scan_extension->d_spacing) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 #if DEBUG_TIMING
-	MX_DEBUG(-2,("%s: d_spacing = %f", fname,
-				energy_mcs_quick_scan_extension->d_spacing));
-
 	MX_DEBUG(-2,("%s complete for scan '%s'.", fname, record->name));
 #endif
 
