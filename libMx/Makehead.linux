@@ -466,7 +466,7 @@ MX_LIB_OBJS += ../tools/smvspatial.o
 #---------------------------------------------------
 #
 
-LN_SF		= ../scripts/ln_sf
+LN_SF		= $(PWD)/../scripts/ln_sf
 ##LN_SF		= ln -sf
 
 MAKE		= make
