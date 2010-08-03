@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -966,7 +966,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		vinput->bytes_per_frame = pixels_per_frame
 				* mx_round( vinput->bytes_per_pixel );
 
-		mx_status = mx_image_get_format_name_from_type(
+		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 

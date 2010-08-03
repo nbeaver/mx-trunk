@@ -47,7 +47,7 @@
  *
  */
 
-#define HAVE_EPIX_XCLIB			0
+#define HAVE_EPIX_XCLIB			1
 
 /*****************************************************************************
  *
@@ -67,7 +67,7 @@
  * http://www.ni.com/linux/
  */
 
-#define HAVE_NI488			0
+#define HAVE_NI488			1
 
 /*****************************************************************************
  *
@@ -92,7 +92,7 @@
  * NI-VISA, so I don't know if it works on other operating systems.
  */
 
-#define HAVE_NI_VISA			0
+#define HAVE_NI_VISA			1
 
 /*****************************************************************************
  *
@@ -101,7 +101,7 @@
  * Thus far, only the Linux version of this driver has been tested.
  */
 
-#define HAVE_SIS3100			0
+#define HAVE_SIS3100			1
  
 /*****************************************************************************
  *
@@ -113,7 +113,7 @@
  * for the Win32 version, at http://libusb-win32.sourceforge.net/.
  */
 
-#define HAVE_LIBUSB			0
+#define HAVE_LIBUSB			1
  
 /*****************************************************************************
  *
@@ -123,7 +123,7 @@
  * the obsolete Video4linux version 1 API.
  */
 
-#define HAVE_VIDEO_4_LINUX_2		0
+#define HAVE_VIDEO_4_LINUX_2		1
 
 /*****************************************************************************
  * The Delta Tau Power PMAC is a PowerPC-based motion controller that uses a
@@ -145,7 +145,7 @@
  * Available at the MX web site as portio-2.0.tar.gz
  */
 
-#define HAVE_LINUX_PORTIO		0
+#define HAVE_LINUX_PORTIO		1
 
 /*****************************************************************************
  *
@@ -181,7 +181,7 @@
  *
  */
 
-#define HAVE_JORWAY_CAMAC		0
+#define HAVE_JORWAY_CAMAC		1
 
 /*****************************************************************************
  *
