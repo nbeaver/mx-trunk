@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -522,30 +522,25 @@ mx_delete_record( MX_RECORD *record )
 			fname, record->name, list_head_struct->num_records));
 	}
 
-	/* Find the type specific 'delete record' function to 
-	 * delete the type specific parts of the record.
+	/* Find the type specific 'delete record' function to delete the
+	 * type specific parts of the record.  If anything goes wrong in
+	 * this processing, continue anyway.
 	 */
 
-	flist = (MX_RECORD_FUNCTION_LIST *) (record->record_function_list);
+	flist = (MX_RECORD_FUNCTION_LIST *) record->record_function_list;
 
 	if ( flist == (MX_RECORD_FUNCTION_LIST *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		mx_warning(
 		"record_function_list pointer for record '%s' is NULL.",
 				record->name );
-	}
-
-	fptr = flist->delete_record;
-
-	if ( fptr == NULL ) {
-		mx_status = mx_default_delete_record_handler( record );
 	} else {
-		mx_status = (*fptr)( record );
+		fptr = flist->delete_record;
 
-		/* Question to ponder: Should a failure of the
-		 * 'delete_record' function stop us from removing
-		 * the MX_RECORD structure from the record list?
-		 * For now, it does not.
-		 */
+		if ( fptr == NULL ) {
+			mx_status = mx_default_delete_record_handler( record );
+		} else {
+			mx_status = (*fptr)( record );
+		}
 	}
 
 	/* Eliminate the MX_RECORD part of the record from the list. */
