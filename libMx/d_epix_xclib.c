@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -807,6 +807,16 @@ mxd_epix_xclib_send_test_image_to_device( MX_VIDEO_INPUT *vinput,
 			epix_xclib_vinput->write_test_array = realloc(
 				epix_xclib_vinput->write_test_array,
 				new_array_bytes );
+
+			if ( epix_xclib_vinput->write_test_array == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate an "
+				"%lu element array of 16-bit integers for "
+				"the write_test_array used by EPIX XCLIB "
+				"video input '%s'.",
+					new_array_bytes,
+					vinput->record->name );
+			}
 
 			epix_xclib_vinput->num_write_test_array_bytes
 				= new_array_bytes;

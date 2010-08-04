@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -561,6 +561,14 @@ mx_bluice_device_pointer_fn( MX_BLUICE_SERVER *bluice_server,
 			    = (MX_BLUICE_FOREIGN_DEVICE **)
 				    realloc( (*foreign_device_array_ptr),
 		    			num_elements * foreign_pointer_size );
+
+			if ( (*foreign_device_array_ptr) == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to increase the "
+				"size of an array of MX_BLUICE_FOREIGN_DEVICE "
+				"pointers to %lu elements.",
+					num_elements );
+			}
 		}
 
 #if BLUICE_DEBUG_SETUP

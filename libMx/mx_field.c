@@ -3247,6 +3247,15 @@ mxp_scan_save_placeholder( MX_RECORD *referencing_record,
 				(scan->num_missing_records + 1)
 					* sizeof(MX_RECORD *) );
 
+		if ( scan->missing_record_array == (MX_RECORD **) NULL ) {
+			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to increase the size "
+			"of a placeholder missing_record_array referred "
+			"to by scan '%s' to %lu elements.",
+				referencing_record->name,
+				scan->num_missing_records + 1 );
+		}
+
 		scan->num_missing_records++;
 	}
 
