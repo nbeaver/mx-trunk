@@ -12,7 +12,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -319,7 +319,7 @@ mxi_newport_open( MX_RECORD *record )
 
 	/* ******* Do controller type specific initialization. *******/
 
-	if( record->mx_type == MXI_GEN_MM3000 ) {
+	if( record->mx_type == MXI_CTRL_MM3000 ) {
 
 		/* Set error reporting to be compatible with the way
 		 * the MM4000 is handled.  This means the following
@@ -403,7 +403,7 @@ mxi_newport_resynchronize( MX_RECORD *record )
 
 	/* Send an identify command to verify that the controller is there. */
 
-	if ( record->mx_type == MXI_GEN_ESP ) {
+	if ( record->mx_type == MXI_CTRL_ESP ) {
 		mx_status = mxi_newport_command( newport, "VE?",
 			response, sizeof response, MXI_NEWPORT_DEBUG );
 	} else {
@@ -430,13 +430,13 @@ mxi_newport_resynchronize( MX_RECORD *record )
 	/* Verify that we got the identification message that we expected. */
 
 	switch( record->mx_type ) {
-	case MXI_GEN_MM3000:
+	case MXI_CTRL_MM3000:
 		strcpy( banner, "Newport Corp. MM3000 Version" );
 		break;
-	case MXI_GEN_MM4000:
+	case MXI_CTRL_MM4000:
 		strcpy( banner, " MM400" );
 		break;
-	case MXI_GEN_ESP:
+	case MXI_CTRL_ESP:
 		strcpy( banner, "ESP" );
 		break;
 	default:
@@ -580,7 +580,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 
 	i = 0;
 
-	if ( newport->record->mx_type == MXI_GEN_MM3000 ) {
+	if ( newport->record->mx_type == MXI_CTRL_MM3000 ) {
 		max_attempts = 2;
 		sleep_ms = 1000;
 	} else {
@@ -624,7 +624,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 				"No response seen to '%s' command", command );
 		}
 
-		if ( newport->record->mx_type == MXI_GEN_MM4000 ) {
+		if ( newport->record->mx_type == MXI_CTRL_MM4000 ) {
 
 			/* Most (but _not_ _all_) response strings from
 			 * an MM4000 includes the command prefix (if any)
@@ -667,7 +667,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 
 	/* Check to see if there was an error in the command we just did. */
 
-	if ( newport->record->mx_type == MXI_GEN_ESP ) {
+	if ( newport->record->mx_type == MXI_CTRL_ESP ) {
 		mx_status = mxi_newport_putline( newport, "TB?", debug_flag );
 	} else {
 		mx_status = mxi_newport_putline( newport, "TB", debug_flag );
@@ -695,7 +695,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 	command_status = MX_SUCCESSFUL_RESULT;
 
 	switch ( newport->record->mx_type ) {
-	case MXI_GEN_MM3000:
+	case MXI_CTRL_MM3000:
 		if ( local_error_buffer[0] != 'E' ) {
 			mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Response to TB command was _not_ an error message string.  Response = '%s'",
@@ -709,7 +709,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 		}
 		break;
 
-	case MXI_GEN_MM4000:
+	case MXI_CTRL_MM4000:
 		if ( strcmp( local_error_buffer, "TB@ No error" ) != 0 ) {
 
 			command_status = mx_construct_mm4000_error_response(
@@ -717,7 +717,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 		}
 		break;
 
-	case MXI_GEN_ESP:
+	case MXI_CTRL_ESP:
 		if ( local_error_buffer[0] != '0' ) {
 			command_status = mx_construct_esp_error_response(
 				newport, local_error_buffer, fname );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -124,7 +124,7 @@ mxv_pmac_get_pointers( MX_VARIABLE *variable,
 			variable->record->name, calling_fname );
 	}
 
-	if ( pmac_record->mx_type != MXI_GEN_PMAC ) {
+	if ( pmac_record->mx_type != MXI_CTRL_PMAC ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pmac_record '%s' for PMAC variable '%s' is not a PMAC record.  "
 "Instead, it is a '%s' record.",

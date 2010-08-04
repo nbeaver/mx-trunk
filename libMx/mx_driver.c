@@ -801,104 +801,104 @@ MX_DRIVER mx_type_list[] = {
 
   /* === */
 
-{"mm3000",         MXI_GEN_MM3000,    MXI_GENERIC,        MXR_INTERFACE,
+{"mm3000",         MXI_CTRL_MM3000,    MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_newport_record_function_list,
 				NULL,
 				NULL,
 				&mxi_mm3000_num_record_fields,
 				&mxi_mm3000_rfield_def_ptr},
 
-{"mm4000",         MXI_GEN_MM4000,    MXI_GENERIC,        MXR_INTERFACE,
+{"mm4000",         MXI_CTRL_MM4000,    MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_newport_record_function_list,
 				NULL,
 				NULL,
 				&mxi_mm4000_num_record_fields,
 				&mxi_mm4000_rfield_def_ptr},
 
-{"esp",            MXI_GEN_ESP,       MXI_GENERIC,        MXR_INTERFACE,
+{"esp",            MXI_CTRL_ESP,       MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_newport_record_function_list,
 				NULL,
 				NULL,
 				&mxi_esp_num_record_fields,
 				&mxi_esp_rfield_def_ptr},
 
-{"pmac",           MXI_GEN_PMAC,      MXI_GENERIC,        MXR_INTERFACE,
+{"pmac",           MXI_CTRL_PMAC,      MXI_CONTROLLER,        MXR_INTERFACE,
                                 &mxi_pmac_record_function_list,
                                 NULL,
                                 NULL,
 				&mxi_pmac_num_record_fields,
 				&mxi_pmac_rfield_def_ptr},
 
-{"compumotor_int", MXI_GEN_COMPUMOTOR, MXI_GENERIC,       MXR_INTERFACE,
+{"compumotor_int", MXI_CTRL_COMPUMOTOR, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_compumotor_record_function_list,
 				NULL,
 				NULL,
 				&mxi_compumotor_num_record_fields,
 				&mxi_compumotor_rfield_def_ptr},
 
-{"d8",             MXI_GEN_D8,         MXI_GENERIC,       MXR_INTERFACE,
+{"d8",             MXI_CTRL_D8,         MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_d8_record_function_list,
 				NULL,
 				&mxi_d8_generic_function_list,
 				&mxi_d8_num_record_fields,
 				&mxi_d8_rfield_def_ptr},
 
-{"vp9000",         MXI_GEN_VP9000,     MXI_GENERIC,       MXR_INTERFACE,
+{"vp9000",         MXI_CTRL_VP9000,     MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vp9000_record_function_list,
 				NULL,
 				&mxi_vp9000_generic_function_list,
 				&mxi_vp9000_num_record_fields,
 				&mxi_vp9000_rfield_def_ptr},
 
-{"pdi40",          MXI_GEN_PDI40,      MXI_GENERIC,       MXR_INTERFACE,
+{"pdi40",          MXI_CTRL_PDI40,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pdi40_record_function_list,
 				NULL,
 				&mxi_pdi40_generic_function_list,
 				&mxi_pdi40_num_record_fields,
 				&mxi_pdi40_rfield_def_ptr},
 
-{"pdi45",          MXI_GEN_PDI45,      MXI_GENERIC,       MXR_INTERFACE,
+{"pdi45",          MXI_CTRL_PDI45,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pdi45_record_function_list,
 				NULL,
 				NULL,
 				&mxi_pdi45_num_record_fields,
 				&mxi_pdi45_rfield_def_ptr},
-{"i8255",          MXI_GEN_8255,       MXI_GENERIC,       MXR_INTERFACE,
+{"i8255",          MXI_CTRL_8255,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_8255_record_function_list,
 				NULL,
 				&mxi_8255_generic_function_list,
 				&mxi_8255_num_record_fields,
 				&mxi_8255_rfield_def_ptr},
 
-{"mc6821",         MXI_GEN_6821,       MXI_GENERIC,       MXR_INTERFACE,
+{"mc6821",         MXI_CTRL_6821,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_6821_record_function_list,
 				NULL,
 				&mxi_6821_generic_function_list,
 				&mxi_6821_num_record_fields,
 				&mxi_6821_rfield_def_ptr},
 
-{"lpt",            MXI_GEN_LPT,       MXI_GENERIC,       MXR_INTERFACE,
+{"lpt",            MXI_CTRL_LPT,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_lpt_record_function_list,
 				NULL,
 				NULL,
 				&mxi_lpt_num_record_fields,
 				&mxi_lpt_rfield_def_ptr},
 
-{"am9513",          MXI_GEN_AM9513,       MXI_GENERIC,       MXR_INTERFACE,
+{"am9513",          MXI_CTRL_AM9513,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_am9513_record_function_list,
 				NULL,
 				&mxi_am9513_generic_function_list,
 				&mxi_am9513_num_record_fields,
 				&mxi_am9513_rfield_def_ptr},
 
-{"hsc1",            MXI_GEN_HSC1,         MXI_GENERIC,       MXR_INTERFACE,
+{"hsc1",            MXI_CTRL_HSC1,         MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_hsc1_record_function_list,
 				NULL,
 				&mxi_hsc1_generic_function_list,
 				&mxi_hsc1_num_record_fields,
 				&mxi_hsc1_rfield_def_ptr},
 
-{"vme58",           MXI_GEN_VME58,        MXI_GENERIC,       MXR_INTERFACE,
+{"vme58",           MXI_CTRL_VME58,        MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vme58_record_function_list,
 				NULL,
 				NULL,
@@ -907,7 +907,7 @@ MX_DRIVER mx_type_list[] = {
 
 #if HAVE_VME58_ESRF
 
-{"vme58_esrf",      MXI_GEN_VME58_ESRF,   MXI_GENERIC,       MXR_INTERFACE,
+{"vme58_esrf",      MXI_CTRL_VME58_ESRF,   MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vme58_record_function_list,
 				NULL,
 				NULL,
@@ -916,77 +916,77 @@ MX_DRIVER mx_type_list[] = {
 
 #endif /* HAVE_VME58_ESRF */
 
-{"vsc16",           MXI_GEN_VSC16,        MXI_GENERIC,       MXR_INTERFACE,
+{"vsc16",           MXI_CTRL_VSC16,        MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vsc16_record_function_list,
 				NULL,
 				NULL,
 				&mxi_vsc16_num_record_fields,
 				&mxi_vsc16_rfield_def_ptr},
 
-{"pcstep",          MXI_GEN_PCSTEP,       MXI_GENERIC,       MXR_INTERFACE,
+{"pcstep",          MXI_CTRL_PCSTEP,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pcstep_record_function_list,
 				NULL,
 				&mxi_pcstep_generic_function_list,
 				&mxi_pcstep_num_record_fields,
 				&mxi_pcstep_rfield_def_ptr},
 
-{"ortec974",       MXI_GEN_ORTEC974,   MXI_GENERIC,       MXR_INTERFACE,
+{"ortec974",       MXI_CTRL_ORTEC974,   MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_ortec974_record_function_list,
 				NULL,
 				&mxi_ortec974_generic_function_list,
 				&mxi_ortec974_num_record_fields,
 				&mxi_ortec974_rfield_def_ptr},
 
-{"scipe_server",   MXI_GEN_SCIPE,      MXI_GENERIC,       MXR_INTERFACE,
+{"scipe_server",   MXI_CTRL_SCIPE,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_scipe_record_function_list,
 				NULL,
 				&mxi_scipe_generic_function_list,
 				&mxi_scipe_num_record_fields,
 				&mxi_scipe_rfield_def_ptr},
 
-{"databox",        MXI_GEN_DATABOX,    MXI_GENERIC,       MXR_INTERFACE,
+{"databox",        MXI_CTRL_DATABOX,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_databox_record_function_list,
 				NULL,
 				NULL,
 				&mxi_databox_num_record_fields,
 				&mxi_databox_rfield_def_ptr},
 
-{"sis3807",        MXI_GEN_SIS3807,    MXI_GENERIC,       MXR_INTERFACE,
+{"sis3807",        MXI_CTRL_SIS3807,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_sis3807_record_function_list,
 				NULL,
 				NULL,
 				&mxi_sis3807_num_record_fields,
 				&mxi_sis3807_rfield_def_ptr},
 
-{"mardtb",         MXI_GEN_MARDTB,     MXI_GENERIC,       MXR_INTERFACE,
+{"mardtb",         MXI_CTRL_MARDTB,     MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_mardtb_record_function_list,
 				NULL,
 				NULL,
 				&mxi_mardtb_num_record_fields,
 				&mxi_mardtb_rfield_def_ptr},
 
-{"uglide",         MXI_GEN_UGLIDE,     MXI_GENERIC,       MXR_INTERFACE,
+{"uglide",         MXI_CTRL_UGLIDE,     MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_uglide_record_function_list,
 				NULL,
 				NULL,
 				&mxi_uglide_num_record_fields,
 				&mxi_uglide_rfield_def_ptr},
 
-{"aps_adcmod2",    MXI_GEN_APS_ADCMOD2,    MXI_GENERIC,       MXR_INTERFACE,
+{"aps_adcmod2",    MXI_CTRL_APS_ADCMOD2,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_aps_adcmod2_record_function_list,
 				NULL,
 				NULL,
 				&mxi_aps_adcmod2_num_record_fields,
 				&mxi_aps_adcmod2_rfield_def_ptr},
 
-{"cxtilt02",       MXI_GEN_CXTILT02,       MXI_GENERIC,       MXR_INTERFACE,
+{"cxtilt02",       MXI_CTRL_CXTILT02,       MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_cxtilt02_record_function_list,
 				NULL,
 				NULL,
 				&mxi_cxtilt02_num_record_fields,
 				&mxi_cxtilt02_rfield_def_ptr},
 
-{"iseries",  MXI_GEN_ISERIES,  MXI_GENERIC,       MXR_INTERFACE,
+{"iseries",  MXI_CTRL_ISERIES,  MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_iseries_record_function_list,
 				NULL,
 				NULL,
@@ -994,77 +994,77 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_iseries_rfield_def_ptr},
 
 {"phidget_old_stepper_controller",
-		   MXI_GEN_PHIDGET_OLD_STEPPER, MXI_GENERIC, MXR_INTERFACE,
+		   MXI_CTRL_PHIDGET_OLD_STEPPER, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_phidget_old_stepper_record_function_list,
 				NULL,
 				NULL,
 				&mxi_phidget_old_stepper_num_record_fields,
 				&mxi_phidget_old_stepper_rfield_def_ptr},
 
-{"pfcu",           MXI_GEN_PFCU,  MXI_GENERIC,       MXR_INTERFACE,
+{"pfcu",           MXI_CTRL_PFCU,  MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pfcu_record_function_list,
 				NULL,
 				NULL,
 				&mxi_pfcu_num_record_fields,
 				&mxi_pfcu_rfield_def_ptr},
 
-{"keithley2700",   MXI_GEN_KEITHLEY2700, MXI_GENERIC, MXR_INTERFACE,
+{"keithley2700",   MXI_CTRL_KEITHLEY2700, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_keithley2700_record_function_list,
 				NULL,
 				NULL,
 				&mxi_keithley2700_num_record_fields,
 				&mxi_keithley2700_rfield_def_ptr},
 
-{"keithley2400",   MXI_GEN_KEITHLEY2400, MXI_GENERIC, MXR_INTERFACE,
+{"keithley2400",   MXI_CTRL_KEITHLEY2400, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_keithley2400_record_function_list,
 				NULL,
 				NULL,
 				&mxi_keithley2400_num_record_fields,
 				&mxi_keithley2400_rfield_def_ptr},
 
-{"keithley2000",   MXI_GEN_KEITHLEY2000, MXI_GENERIC, MXR_INTERFACE,
+{"keithley2000",   MXI_CTRL_KEITHLEY2000, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_keithley2000_record_function_list,
 				NULL,
 				NULL,
 				&mxi_keithley2000_num_record_fields,
 				&mxi_keithley2000_rfield_def_ptr},
 
-{"kohzu_sc",       MXI_GEN_KOHZU_SC,      MXI_GENERIC,       MXR_INTERFACE,
+{"kohzu_sc",       MXI_CTRL_KOHZU_SC,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_kohzu_sc_record_function_list,
 				NULL,
 				NULL,
 				&mxi_kohzu_sc_num_record_fields,
 				&mxi_kohzu_sc_rfield_def_ptr},
 
-{"picomotor_controller", MXI_GEN_PICOMOTOR, MXI_GENERIC,       MXR_INTERFACE,
+{"picomotor_controller", MXI_CTRL_PICOMOTOR, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_picomotor_record_function_list,
 				NULL,
 				NULL,
 				&mxi_picomotor_num_record_fields,
 				&mxi_picomotor_rfield_def_ptr},
 
-{"sr630",          MXI_GEN_SR630,         MXI_GENERIC,       MXR_INTERFACE,
+{"sr630",          MXI_CTRL_SR630,         MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_sr630_record_function_list,
 				NULL,
 				NULL,
 				&mxi_sr630_num_record_fields,
 				&mxi_sr630_rfield_def_ptr},
 
-{"tpg262",         MXI_GEN_TPG262,        MXI_GENERIC,       MXR_INTERFACE,
+{"tpg262",         MXI_CTRL_TPG262,        MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_tpg262_record_function_list,
 				NULL,
 				NULL,
 				&mxi_tpg262_num_record_fields,
 				&mxi_tpg262_rfield_def_ptr},
 
-{"cm17a",          MXI_GEN_CM17A,         MXI_GENERIC,       MXR_INTERFACE,
+{"cm17a",          MXI_CTRL_CM17A,         MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_cm17a_record_function_list,
 				NULL,
 				NULL,
 				&mxi_cm17a_num_record_fields,
 				&mxi_cm17a_rfield_def_ptr},
 
-{"sony_visca",     MXI_GEN_SONY_VISCA,    MXI_GENERIC,       MXR_INTERFACE,
+{"sony_visca",     MXI_CTRL_SONY_VISCA,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_sony_visca_record_function_list,
 				NULL,
 				NULL,
@@ -1072,56 +1072,56 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_sony_visca_rfield_def_ptr},
 
 {"panasonic_kx_dp702", \
-	MXI_GEN_PANASONIC_KX_DP702,    MXI_GENERIC,       MXR_INTERFACE,
+	MXI_CTRL_PANASONIC_KX_DP702,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_panasonic_kx_dp702_record_function_list,
 				NULL,
 				NULL,
 				&mxi_panasonic_kx_dp702_num_record_fields,
 				&mxi_panasonic_kx_dp702_rfield_def_ptr},
 
-{"spellman_df3",  MXI_GEN_SPELLMAN_DF3, MXI_GENERIC,    MXR_INTERFACE,
+{"spellman_df3",  MXI_CTRL_SPELLMAN_DF3, MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_spellman_df3_record_function_list,
 				NULL,
 				NULL,
 				&mxi_spellman_df3_num_record_fields,
 				&mxi_spellman_df3_rfield_def_ptr},
 
-{"bkprecision_912x", MXI_GEN_BKPRECISION_912X, MXI_GENERIC,    MXR_INTERFACE,
+{"bkprecision_912x", MXI_CTRL_BKPRECISION_912X, MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_bkprecision_912x_record_function_list,
 				NULL,
 				NULL,
 				&mxi_bkprecision_912x_num_record_fields,
 				&mxi_bkprecision_912x_rfield_def_ptr},
 
-{"isobus",        MXI_GEN_ISOBUS,        MXI_GENERIC,    MXR_INTERFACE,
+{"isobus",        MXI_CTRL_ISOBUS,        MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_isobus_record_function_list,
 				NULL,
 				NULL,
 				&mxi_isobus_num_record_fields,
 				&mxi_isobus_rfield_def_ptr},
 
-{"ilm",           MXI_GEN_ILM,           MXI_GENERIC,    MXR_INTERFACE,
+{"ilm",           MXI_CTRL_ILM,           MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_ilm_record_function_list,
 				NULL,
 				NULL,
 				&mxi_ilm_num_record_fields,
 				&mxi_ilm_rfield_def_ptr},
 
-{"itc503",        MXI_GEN_ITC503,        MXI_GENERIC,    MXR_INTERFACE,
+{"itc503",        MXI_CTRL_ITC503,        MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_itc503_record_function_list,
 				NULL,
 				NULL,
 				&mxi_itc503_num_record_fields,
 				&mxi_itc503_rfield_def_ptr},
 
-{"cryojet",       MXI_GEN_CRYOJET,       MXI_GENERIC,    MXR_INTERFACE,
+{"cryojet",       MXI_CTRL_CRYOJET,       MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_itc503_record_function_list,
 				NULL,
 				NULL,
 				&mxi_itc503_num_record_fields,
 				&mxi_itc503_rfield_def_ptr},
 
-{"linkam_t9x",    MXI_GEN_LINKAM_T9X,    MXI_GENERIC,    MXR_INTERFACE,
+{"linkam_t9x",    MXI_CTRL_LINKAM_T9X,    MXI_CONTROLLER,    MXR_INTERFACE,
 				&mxi_linkam_t9x_record_function_list,
 				NULL,
 				NULL,
@@ -1135,7 +1135,7 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_epix_camera_link_num_record_fields,
 				&mxi_epix_camera_link_rfield_def_ptr},
-{"epix_xclib",     MXI_GEN_EPIX_XCLIB,    MXI_GENERIC,       MXR_INTERFACE,
+{"epix_xclib",     MXI_CTRL_EPIX_XCLIB,    MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_epix_xclib_record_function_list,
 				NULL,
 				NULL,
@@ -1144,7 +1144,7 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_EPIX_XCLIB */
 
 #if HAVE_EDT
-{"edt",            MXI_GEN_EDT,           MXI_GENERIC,       MXR_INTERFACE,
+{"edt",            MXI_CTRL_EDT,           MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_edt_record_function_list,
 				NULL,
 				NULL,
@@ -1155,7 +1155,7 @@ MX_DRIVER mx_type_list[] = {
 
 #ifdef OS_LINUX
 
-{"linux_parport",  MXI_GEN_LINUX_PARPORT, MXI_GENERIC,       MXR_INTERFACE,
+{"linux_parport",  MXI_CTRL_LINUX_PARPORT, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_linux_parport_record_function_list,
 				NULL,
 				NULL,
@@ -1165,14 +1165,14 @@ MX_DRIVER mx_type_list[] = {
 #endif /* OS_LINUX */
 
 #if HAVE_TCPIP
-{"xia_network",    MXI_GEN_XIA_NETWORK, MXI_GENERIC,      MXR_INTERFACE,
+{"xia_network",    MXI_CTRL_XIA_NETWORK, MXI_CONTROLLER,      MXR_INTERFACE,
 				&mxi_xia_network_record_function_list,
 				NULL,
 				NULL,
 				&mxi_xia_network_num_record_fields,
 				&mxi_xia_network_rfield_def_ptr},
 
-{"handel_network", MXI_GEN_HANDEL_NETWORK, MXI_GENERIC,   MXR_INTERFACE,
+{"handel_network", MXI_CTRL_HANDEL_NETWORK, MXI_CONTROLLER,   MXR_INTERFACE,
 				&mxi_handel_network_record_function_list,
 				NULL,
 				NULL,
@@ -1181,14 +1181,14 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_TCPIP */
 
 #if HAVE_XIA_HANDEL
-{"xia_handel",     MXI_GEN_XIA_HANDEL, MXI_GENERIC,       MXR_INTERFACE,
+{"xia_handel",     MXI_CTRL_XIA_HANDEL, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_xia_handel_record_function_list,
 				NULL,
 				NULL,
 				&mxi_xia_handel_num_record_fields,
 				&mxi_xia_handel_rfield_def_ptr},
 
-{"handel",         MXI_GEN_HANDEL,     MXI_GENERIC,       MXR_INTERFACE,
+{"handel",         MXI_CTRL_HANDEL,     MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_handel_record_function_list,
 				NULL,
 				NULL,
@@ -1197,7 +1197,7 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_XIA_HANDEL */
 
 #if HAVE_XIA_XERXES
-{"xia_xerxes",     MXI_GEN_XIA_XERXES, MXI_GENERIC,       MXR_INTERFACE,
+{"xia_xerxes",     MXI_CTRL_XIA_XERXES, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_xia_xerxes_record_function_list,
 				NULL,
 				NULL,
@@ -1206,7 +1206,7 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_XIA_HANDEL */
 
 #if HAVE_ORTEC_UMCBI
-{"umcbi",          MXI_GEN_UMCBI,     MXI_GENERIC,        MXR_INTERFACE,
+{"umcbi",          MXI_CTRL_UMCBI,     MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_umcbi_record_function_list,
 				NULL,
 				&mxi_umcbi_generic_function_list,
@@ -1215,7 +1215,7 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_ORTEC_UMCBI */
 
 #if HAVE_U500
-{"u500",           MXI_GEN_U500,      MXI_GENERIC,        MXR_INTERFACE,
+{"u500",           MXI_CTRL_U500,      MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_u500_record_function_list,
 				NULL,
 				NULL,
@@ -1224,7 +1224,7 @@ MX_DRIVER mx_type_list[] = {
 #endif /* HAVE_U500 */
 
 #if HAVE_PMC_MCAPI
-{"pmc_mcapi",      MXI_GEN_PMC_MCAPI, MXI_GENERIC,        MXR_INTERFACE,
+{"pmc_mcapi",      MXI_CTRL_PMC_MCAPI, MXI_CONTROLLER,        MXR_INTERFACE,
 				&mxi_pmc_mcapi_record_function_list,
 				NULL,
 				NULL,
@@ -2714,7 +2714,7 @@ MX_DRIVER mx_type_list[] = {
 
 #if HAVE_PCMOTION32
 
-{"pcmotion32",      MXI_GEN_PCMOTION32,  MXI_GENERIC,       MXR_INTERFACE,
+{"pcmotion32",      MXI_CTRL_PCMOTION32,  MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pcmotion32_record_function_list,
 				NULL,
 				&mxi_pcmotion32_generic_function_list,
@@ -4379,7 +4379,7 @@ MX_DRIVER mx_type_list[] = {
 				&mxn_bluice_dhs_server_num_record_fields,
 				&mxn_bluice_dhs_server_rfield_def_ptr},
 
-{"bluice_dhs_manager", MXN_BLUICE_DHS_MANAGER,  MXI_GENERIC,  MXR_SERVER,
+{"bluice_dhs_manager", MXN_BLUICE_DHS_MANAGER,  MXI_CONTROLLER,  MXR_SERVER,
 				&mxn_bluice_dhs_manager_record_function_list,
 				NULL, NULL,
 				&mxn_bluice_dhs_manager_num_record_fields,

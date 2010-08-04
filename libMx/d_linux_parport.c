@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -251,7 +251,7 @@ mxd_linux_parport_in_finish_record_initialization( MX_RECORD *record )
 
 	record_matches = mx_verify_driver_type(
 			linux_parport_in->interface_record,
-			MXR_INTERFACE, MXI_GENERIC, MXI_GEN_LINUX_PARPORT );
+			MXR_INTERFACE, MXI_CONTROLLER, MXI_CTRL_LINUX_PARPORT );
 
 	if ( record_matches == FALSE ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -384,7 +384,7 @@ mxd_linux_parport_out_finish_record_initialization( MX_RECORD *record )
 
 	record_matches = mx_verify_driver_type(
 			linux_parport_out->interface_record,
-			MXR_INTERFACE, MXI_GENERIC, MXI_GEN_LINUX_PARPORT );
+			MXR_INTERFACE, MXI_CONTROLLER, MXI_CTRL_LINUX_PARPORT );
 
 	if ( record_matches == FALSE ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -216,8 +216,8 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 	databox_record = databox_motor->databox_record;
 
 	if ( ( databox_record->mx_superclass != MXR_INTERFACE )
-	  || ( databox_record->mx_class != MXI_GENERIC )
-	  || ( databox_record->mx_type != MXI_GEN_DATABOX ) )
+	  || ( databox_record->mx_class != MXI_CONTROLLER )
+	  || ( databox_record->mx_type != MXI_CTRL_DATABOX ) )
 	{
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"The field 'databox_record' in record '%s' does not point to "

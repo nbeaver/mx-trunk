@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -325,7 +325,7 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	/* We do our own determination of when to read new data. */
 
-	if ( xia_dxp_mca->xia_dxp_record->mx_type == MXI_GEN_XIA_NETWORK ) {
+	if ( xia_dxp_mca->xia_dxp_record->mx_type == MXI_CTRL_XIA_NETWORK ) {
 		mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
 	}
 
@@ -1133,7 +1133,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 		fname, record->name, xia_dxp_record->mx_type));
 
 	switch( xia_dxp_record->mx_type ) {
-	case MXI_GEN_XIA_NETWORK:
+	case MXI_CTRL_XIA_NETWORK:
 		mx_status = mxd_xia_dxp_network_open( mca,
 					xia_dxp_mca, xia_dxp_record );
 
@@ -1141,7 +1141,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 		mx_status = mxd_xia_dxp_handel_open( mca,
 					xia_dxp_mca, xia_dxp_record );
 
@@ -1152,7 +1152,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 			MXF_XIA_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
 		break;
 #else
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"XIA Handel support is not compiled into this copy of MX.  "
 		"You will need to recompile MX including Handel support "
@@ -1161,12 +1161,12 @@ mxd_xia_dxp_open( MX_RECORD *record )
 #endif /* HAVE_XIA_HANDEL */
 
 #if HAVE_XIA_XERXES
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		mx_status = mxd_xia_dxp_xerxes_open( mca,
 					xia_dxp_mca, xia_dxp_record );
 		break;
 #else
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"XIA Xerxes support is not compiled into this copy of MX.  "
 		"You will need to recompile MX including Xerxes support "
@@ -1205,7 +1205,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 	/* Verify that the firmware version in use supports hardware SCAs. */
 
-	if ( xia_dxp_record->mx_type == MXI_GEN_XIA_NETWORK ) {
+	if ( xia_dxp_record->mx_type == MXI_CTRL_XIA_NETWORK ) {
 
 		xia_network = ( MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
@@ -1237,7 +1237,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 #if HAVE_XIA_HANDEL
 
 	if ( ( xia_dxp_mca->hardware_scas_are_enabled )
-	  && (xia_dxp_record->mx_type == MXI_GEN_XIA_HANDEL ) )
+	  && (xia_dxp_record->mx_type == MXI_CTRL_XIA_HANDEL ) )
 	{
 		int xia_status;
 		double num_scas;
@@ -1285,7 +1285,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	 * unless we are connected via a 'xia_network' record.
 	 */
 
-	if ( xia_dxp_record->mx_type != MXI_GEN_XIA_NETWORK ) {
+	if ( xia_dxp_record->mx_type != MXI_CTRL_XIA_NETWORK ) {
 
 		if ( xia_dxp_mca->write_parameter == NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
@@ -1333,7 +1333,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	 * figure this out ourselves.
 	 */
 
-	if ( xia_dxp_record->mx_type == MXI_GEN_XIA_NETWORK ) {
+	if ( xia_dxp_record->mx_type == MXI_CTRL_XIA_NETWORK ) {
 
 		xia_network = ( MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
@@ -1416,7 +1416,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	 * to be correct.
 	 */
 
-	if ( xia_dxp_record->mx_type == MXI_GEN_XIA_NETWORK ) {
+	if ( xia_dxp_record->mx_type == MXI_CTRL_XIA_NETWORK ) {
 
 		xia_network = ( MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
@@ -1428,7 +1428,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else
-	if ( xia_dxp_record->mx_type == MXI_GEN_XIA_XERXES )
+	if ( xia_dxp_record->mx_type == MXI_CTRL_XIA_XERXES )
 	{
 		if ( xia_dxp_mca->runtime_clock_tick <= 0.0 ) {
 
@@ -1436,7 +1436,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 					= xia_dxp_mca->runtime_clock_tick;
 		}
 	} else
-	if ( xia_dxp_record->mx_type == MXI_GEN_XIA_HANDEL ) {
+	if ( xia_dxp_record->mx_type == MXI_CTRL_XIA_HANDEL ) {
 
 		if ( xia_dxp_mca->runtime_clock_tick <= 0.0 ) {
 
@@ -1606,7 +1606,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 	xia_dxp_record = xia_dxp_mca->xia_dxp_record;
 
 	switch( xia_dxp_record->mx_type ) {
-	case MXI_GEN_XIA_NETWORK:
+	case MXI_CTRL_XIA_NETWORK:
 		xia_network = (MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
 
@@ -1614,7 +1614,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 		mca_record_array = xia_network->mca_record_array;
 		break;
 
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 
 #if HAVE_XIA_HANDEL
 		xia_handel = (MX_XIA_HANDEL *)
@@ -1633,13 +1633,13 @@ mxd_xia_dxp_close( MX_RECORD *record )
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type MXI_GEN_XIA_HANDEL.  However, XIA Handel support is not compiled "
+"of type MXI_CTRL_XIA_HANDEL.  However, XIA Handel support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
 
 #endif /* HAVE_XIA_HANDEL */
 
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 
 #if HAVE_XIA_XERXES
 		xia_xerxes = (MX_XIA_XERXES *)
@@ -1658,7 +1658,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type MXI_GEN_XIA_XERXES.  However, XIA Xerxes support is not compiled "
+"of type MXI_CTRL_XIA_XERXES.  However, XIA Xerxes support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
 
@@ -1752,7 +1752,7 @@ mxd_xia_dxp_start( MX_MCA *mca )
 	xia_dxp_record = xia_dxp_mca->xia_dxp_record;
 
 	switch( xia_dxp_record->mx_type ) {
-	case MXI_GEN_XIA_NETWORK:
+	case MXI_CTRL_XIA_NETWORK:
 		xia_network = (MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
 
@@ -1760,7 +1760,7 @@ mxd_xia_dxp_start( MX_MCA *mca )
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 		xia_handel = (MX_XIA_HANDEL *)
 					xia_dxp_record->record_type_struct;
 
@@ -1769,7 +1769,7 @@ mxd_xia_dxp_start( MX_MCA *mca )
 #endif
 
 #if HAVE_XIA_XERXES
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		xia_xerxes = (MX_XIA_XERXES *)
 					xia_dxp_record->record_type_struct;
 
@@ -2443,7 +2443,7 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 
 	switch( xia_dxp_record->mx_type ) {
 
-	case MXI_GEN_XIA_NETWORK:
+	case MXI_CTRL_XIA_NETWORK:
 		xia_network = (MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
 
@@ -2458,7 +2458,7 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 		xia_handel = (MX_XIA_HANDEL *)
 					xia_dxp_record->record_type_struct;
 
@@ -2474,7 +2474,7 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 #endif
 
 #if HAVE_XIA_XERXES
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		xia_xerxes = (MX_XIA_XERXES *)
 					xia_dxp_record->record_type_struct;
 

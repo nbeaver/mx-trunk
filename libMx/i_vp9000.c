@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,8 +81,8 @@ mxi_vp9000_get_record_pointers( MX_RECORD *vp9000_record,
 	}
 
 	if ( (vp9000_record->mx_superclass != MXR_INTERFACE)
-	  || (vp9000_record->mx_class != MXI_GENERIC)
-	  || (vp9000_record->mx_type != MXI_GEN_VP9000) ) {
+	  || (vp9000_record->mx_class != MXI_CONTROLLER)
+	  || (vp9000_record->mx_type != MXI_CTRL_VP9000) ) {
 
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"The record '%s' is not a Velmex VP9000 interface record.",

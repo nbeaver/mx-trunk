@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -128,7 +128,7 @@ mxd_pmac_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( pmac_record->mx_type != MXI_GEN_PMAC ) {
+	if ( pmac_record->mx_type != MXI_CTRL_PMAC ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pmac_record '%s' for PMAC analog input '%s' is not a PMAC record.  "
 "Instead, it is a '%s' record.",
@@ -197,7 +197,7 @@ mxd_pmac_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			aoutput->record->name, calling_fname );
 	}
 
-	if ( pmac_record->mx_type != MXI_GEN_PMAC ) {
+	if ( pmac_record->mx_type != MXI_CTRL_PMAC ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pmac_record '%s' for PMAC analog output '%s' is not a PMAC record.  "
 "Instead, it is a '%s' record.",

@@ -327,7 +327,7 @@ mxd_handel_mca_finish_record_initialization( MX_RECORD *record )
 
 	/* We do our own determination of when to read new data. */
 
-	if ( handel_mca->handel_record->mx_type == MXI_GEN_HANDEL_NETWORK ) {
+	if ( handel_mca->handel_record->mx_type == MXI_CTRL_HANDEL_NETWORK ) {
 		mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
 	}
 
@@ -1054,7 +1054,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 		fname, record->name, handel_record->mx_type));
 
 	switch( handel_record->mx_type ) {
-	case MXI_GEN_HANDEL_NETWORK:
+	case MXI_CTRL_HANDEL_NETWORK:
 		mx_status = mxd_handel_mca_network_open( mca,
 					handel_mca, handel_record );
 
@@ -1062,7 +1062,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_HANDEL:
+	case MXI_CTRL_HANDEL:
 		mx_status = mxd_handel_mca_handel_open( mca,
 					handel_mca, handel_record );
 
@@ -1072,7 +1072,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
 		break;
 #else
-	case MXI_GEN_HANDEL:
+	case MXI_CTRL_HANDEL:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"XIA Handel support is not compiled into this copy of MX.  "
 		"You will need to recompile MX including Handel support "
@@ -1109,7 +1109,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	/* Verify that the firmware version in use supports hardware SCAs. */
 
-	if ( handel_record->mx_type == MXI_GEN_HANDEL_NETWORK ) {
+	if ( handel_record->mx_type == MXI_CTRL_HANDEL_NETWORK ) {
 
 		handel_network = ( MX_HANDEL_NETWORK *)
 					handel_record->record_type_struct;
@@ -1143,7 +1143,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 #if HAVE_XIA_HANDEL
 
 	if ( ( handel_mca->hardware_scas_are_enabled )
-	  && (handel_record->mx_type == MXI_GEN_HANDEL ) )
+	  && (handel_record->mx_type == MXI_CTRL_HANDEL ) )
 	{
 		int xia_status;
 		double num_scas;
@@ -1234,7 +1234,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	 */
 
 #if HAVE_XIA_HANDEL
-	if ( handel_record->mx_type != MXI_GEN_HANDEL_NETWORK ) {
+	if ( handel_record->mx_type != MXI_CTRL_HANDEL_NETWORK ) {
 
 		int xia_status;
 		double num_mx_channels;
@@ -1318,7 +1318,7 @@ mxd_handel_mca_close( MX_RECORD *record )
 	handel_record = handel_mca->handel_record;
 
 	switch( handel_record->mx_type ) {
-	case MXI_GEN_HANDEL_NETWORK:
+	case MXI_CTRL_HANDEL_NETWORK:
 		handel_network = (MX_HANDEL_NETWORK *)
 					handel_record->record_type_struct;
 
@@ -1326,7 +1326,7 @@ mxd_handel_mca_close( MX_RECORD *record )
 		mca_record_array = handel_network->mca_record_array;
 		break;
 
-	case MXI_GEN_HANDEL:
+	case MXI_CTRL_HANDEL:
 
 #if HAVE_XIA_HANDEL
 		handel = (MX_HANDEL *)
@@ -1345,13 +1345,13 @@ mxd_handel_mca_close( MX_RECORD *record )
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type MXI_GEN_HANDEL.  However, XIA Handel support is not compiled "
+"of type MXI_CTRL_HANDEL.  However, XIA Handel support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, handel_record->name );
 
 #endif /* HAVE_XIA_HANDEL */
 
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 
 #if HAVE_XIA_XERXES
 		xia_xerxes = (MX_XIA_XERXES *)
@@ -1370,7 +1370,7 @@ mxd_handel_mca_close( MX_RECORD *record )
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type MXI_GEN_XIA_XERXES.  However, XIA Xerxes support is not compiled "
+"of type MXI_CTRL_XIA_XERXES.  However, XIA Xerxes support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, handel_record->name );
 
@@ -1456,7 +1456,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 	handel_record = handel_mca->handel_record;
 
 	switch( handel_record->mx_type ) {
-	case MXI_GEN_HANDEL_NETWORK:
+	case MXI_CTRL_HANDEL_NETWORK:
 		handel_network = (MX_HANDEL_NETWORK *)
 					handel_record->record_type_struct;
 
@@ -1464,7 +1464,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_HANDEL:
+	case MXI_CTRL_HANDEL:
 		handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 		handel->last_measurement_interval = preset_time;
@@ -2031,7 +2031,7 @@ mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 
 	switch( handel_record->mx_type ) {
 
-	case MXI_GEN_HANDEL_NETWORK:
+	case MXI_CTRL_HANDEL_NETWORK:
 		handel_network = (MX_HANDEL_NETWORK *)
 					handel_record->record_type_struct;
 
@@ -2046,7 +2046,7 @@ mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_HANDEL:
+	case MXI_CTRL_HANDEL:
 		handel = (MX_HANDEL *)
 					handel_record->record_type_struct;
 
@@ -2062,7 +2062,7 @@ mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 #endif
 
 #if HAVE_XIA_XERXES
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		xia_xerxes = (MX_XIA_XERXES *)
 					handel_record->record_type_struct;
 

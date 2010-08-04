@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,7 +129,7 @@ mxd_ortec974_timer_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"'%s' is not an interface record.", ortec974_record->name );
 	}
-	if ( ortec974_record->mx_class != MXI_GENERIC ) {
+	if ( ortec974_record->mx_class != MXI_CONTROLLER ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"'%s' is not a generic record.", ortec974_record->name );
 	}

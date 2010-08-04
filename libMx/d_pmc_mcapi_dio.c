@@ -163,7 +163,7 @@ mxd_pmc_mcapi_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			dinput->record->name, calling_fname );
 	}
 
-	if ( pmc_mcapi_record->mx_type != MXI_GEN_PMC_MCAPI ) {
+	if ( pmc_mcapi_record->mx_type != MXI_CTRL_PMC_MCAPI ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"pmc_mcapi_record '%s' for PMC MCAPI digital input '%s' "
 		"is not a PMC MCAPI record.  Instead, it is a '%s' record.",
@@ -235,7 +235,7 @@ mxd_pmc_mcapi_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			doutput->record->name, calling_fname );
 	}
 
-	if ( pmc_mcapi_record->mx_type != MXI_GEN_PMC_MCAPI ) {
+	if ( pmc_mcapi_record->mx_type != MXI_CTRL_PMC_MCAPI ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"pmc_mcapi_record '%s' for PMC MCAPI digital input '%s' "
 		"is not a PMC MCAPI record.  Instead, it is a '%s' record.",

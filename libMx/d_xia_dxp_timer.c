@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -349,7 +349,7 @@ mxd_xia_dxp_timer_get_last_measurement_time( MX_TIMER *timer )
 	}
 
 	switch( xia_dxp_record->mx_type ) {
-	case MXI_GEN_XIA_NETWORK:
+	case MXI_CTRL_XIA_NETWORK:
 		xia_network = (MX_XIA_NETWORK *)
 					xia_dxp_record->record_type_struct;
 
@@ -358,7 +358,7 @@ mxd_xia_dxp_timer_get_last_measurement_time( MX_TIMER *timer )
 		break;
 
 #if HAVE_XIA_HANDEL
-	case MXI_GEN_XIA_HANDEL:
+	case MXI_CTRL_XIA_HANDEL:
 		xia_handel = (MX_XIA_HANDEL *)
 					xia_dxp_record->record_type_struct;
 
@@ -368,7 +368,7 @@ mxd_xia_dxp_timer_get_last_measurement_time( MX_TIMER *timer )
 #endif
 
 #if HAVE_XIA_XERXES
-	case MXI_GEN_XIA_XERXES:
+	case MXI_CTRL_XIA_XERXES:
 		xia_xerxes = (MX_XIA_XERXES *)
 					xia_dxp_record->record_type_struct;
 

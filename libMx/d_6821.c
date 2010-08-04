@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -227,12 +227,12 @@ mxd_6821_in_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			mc6821_in->interface_record->name );
         }
-        if ( mc6821_in->interface_record->mx_class != MXI_GENERIC ) {
+        if ( mc6821_in->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Motorola MC6821 interface driver.",
 			mc6821_in->interface_record->name );
         }
-        if ( mc6821_in->interface_record->mx_type != MXI_GEN_6821 ) {
+        if ( mc6821_in->interface_record->mx_type != MXI_CTRL_6821 ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Motorola MC6821 interface driver.",
 			mc6821_in->interface_record->name );
@@ -366,12 +366,12 @@ mxd_6821_out_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			mc6821_out->interface_record->name );
         }
-        if ( mc6821_out->interface_record->mx_class != MXI_GENERIC ) {
+        if ( mc6821_out->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Motorola MC6821 interface driver.",
 			mc6821_out->interface_record->name );
         }
-        if ( mc6821_out->interface_record->mx_type != MXI_GEN_6821 ) {
+        if ( mc6821_out->interface_record->mx_type != MXI_CTRL_6821 ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Motorola MC6821 interface driver.",
 			mc6821_out->interface_record->name );

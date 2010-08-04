@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,7 +200,7 @@ mxd_uglide_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	if ( mx_verify_driver_type( uglide_motor->uglide_record,
-		MXR_INTERFACE, MXI_GENERIC, MXI_GEN_UGLIDE ) == FALSE )
+		MXR_INTERFACE, MXI_CONTROLLER, MXI_CTRL_UGLIDE ) == FALSE )
 	{
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The uglide record '%s' mentioned by 'uglide_motor' "

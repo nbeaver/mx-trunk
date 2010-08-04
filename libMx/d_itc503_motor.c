@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,8 +125,8 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 	}
 
 	switch( itc503_record->mx_type ) {
-	case MXI_GEN_ITC503:
-	case MXI_GEN_CRYOJET:
+	case MXI_CTRL_ITC503:
+	case MXI_CTRL_CRYOJET:
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,

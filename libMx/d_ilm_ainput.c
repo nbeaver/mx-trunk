@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2009 Illinois Institute of Technology
+ * Copyright 2007-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -105,7 +105,7 @@ mxd_ilm_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name );
 	}
 
-	if ( ilm_record->mx_type != MXI_GEN_ILM ) {
+	if ( ilm_record->mx_type != MXI_CTRL_ILM ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"ilm_record '%s' for ILM analog input '%s' "
 		"is not an 'ilm' record.  Instead, it is of type '%s'.",

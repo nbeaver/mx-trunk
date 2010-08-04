@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,9 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"camac",          0, MXI_CAMAC,          MXR_INTERFACE,
 				NULL, NULL, NULL, NULL, NULL},
-{"generic",        0, MXI_GENERIC,        MXR_INTERFACE,
+{"controller",     0, MXI_CONTROLLER,     MXR_INTERFACE,
+				NULL, NULL, NULL, NULL, NULL},
+{"generic",        0, MXI_CONTROLLER,     MXR_INTERFACE,
 				NULL, NULL, NULL, NULL, NULL},
 {"portio",         0, MXI_PORTIO,         MXR_INTERFACE,
 				NULL, NULL, NULL, NULL, NULL},

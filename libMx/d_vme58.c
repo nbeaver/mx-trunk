@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -213,8 +213,8 @@ mxd_vme58_finish_record_initialization( MX_RECORD *record )
 	vme58_record = vme58_motor->vme58_record;
 
 	if ( ( vme58_record->mx_superclass != MXR_INTERFACE )
-	  || ( vme58_record->mx_class != MXI_GENERIC )
-	  || ( vme58_record->mx_type != MXI_GEN_VME58 ) )
+	  || ( vme58_record->mx_class != MXI_CONTROLLER )
+	  || ( vme58_record->mx_type != MXI_CTRL_VME58 ) )
 	{
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"The field 'vme58_record' in record '%s' does not point to "

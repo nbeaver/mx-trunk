@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -102,7 +102,7 @@ mxd_tpg262_pressure_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( tpg262_record->mx_type != MXI_GEN_TPG262 ) {
+	if ( tpg262_record->mx_type != MXI_CTRL_TPG262 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"tpg262_record '%s' for TPG262 analog input '%s' "
 		"is not a TPG262 record.  Instead, it is a '%s' record.",

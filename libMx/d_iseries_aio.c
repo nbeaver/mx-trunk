@@ -131,7 +131,7 @@ mxd_iseries_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( iseries_record->mx_type != MXI_GEN_ISERIES ) {
+	if ( iseries_record->mx_type != MXI_CTRL_ISERIES ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"iseries_record '%s' for iSeries analog input '%s' is "
 		"not an 'iseries' record.  Instead, it is a '%s' record.",
@@ -202,7 +202,7 @@ mxd_iseries_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			aoutput->record->name, calling_fname );
 	}
 
-	if ( iseries_record->mx_type != MXI_GEN_ISERIES ) {
+	if ( iseries_record->mx_type != MXI_CTRL_ISERIES ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"iseries_record '%s' for iSeries analog output '%s' is "
 		"not an 'iseries' record.  Instead, it is a '%s' record.",

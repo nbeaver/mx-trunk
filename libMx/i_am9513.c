@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -561,7 +561,7 @@ mxi_am9513_grab_counters( MX_RECORD *record,
 
 		this_record = am9513_interface_array[i].record;
 
-		if ( this_record->mx_type != MXI_GEN_AM9513 ) {
+		if ( this_record->mx_type != MXI_CTRL_AM9513 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Record '%s' is not an Am9513 interface record.",
 				this_record->name );
@@ -617,7 +617,7 @@ mxi_am9513_release_counters( MX_RECORD *record,
 
 		this_record = am9513_interface_array[i].record;
 
-		if ( this_record->mx_type != MXI_GEN_AM9513 ) {
+		if ( this_record->mx_type != MXI_CTRL_AM9513 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Record '%s' is not an Am9513 interface record.",
 				this_record->name );

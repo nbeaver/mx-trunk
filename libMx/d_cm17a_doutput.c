@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,7 +107,7 @@ mxd_cm17a_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			doutput->record->name, calling_fname );
 	}
 
-	if ( cm17a_record->mx_type != MXI_GEN_CM17A ) {
+	if ( cm17a_record->mx_type != MXI_CTRL_CM17A ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"cm17a_record '%s' for CM17A digital output '%s' "
 		"is not a CM17A record.  Instead, it is a '%s' record.",

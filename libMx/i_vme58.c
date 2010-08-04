@@ -19,7 +19,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,7 +204,7 @@ mxi_vme58_finish_record_initialization( MX_RECORD *record )
 
 	/* Mark the Linux device file as being closed. */
 
-	if ( record->mx_type == MXI_GEN_VME58_ESRF ) {
+	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
 		vme58->u.esrf.device_fd = -1;
 	}
 
@@ -237,7 +237,7 @@ mxi_vme58_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( record->mx_type == MXI_GEN_VME58_ESRF ) {
+	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
 
 #if defined( OS_LINUX )
 
@@ -297,7 +297,7 @@ mxi_vme58_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( record->mx_type == MXI_GEN_VME58_ESRF ) {
+	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
 
 		if ( vme58->u.esrf.device_fd >= 0 ) {
 			close_status = close( vme58->u.esrf.device_fd );
@@ -453,7 +453,7 @@ mxi_vme58_command( MX_VME58 *vme58, char *command,
 	}
 #endif
 
-	if ( vme58->record->mx_type == MXI_GEN_VME58_ESRF ) {
+	if ( vme58->record->mx_type == MXI_CTRL_VME58_ESRF ) {
 
 #if HAVE_VME58_ESRF
 

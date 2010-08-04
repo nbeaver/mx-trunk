@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,12 +247,12 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			i8255_in->interface_record->name );
         }
-        if ( i8255_in->interface_record->mx_class != MXI_GENERIC ) {
+        if ( i8255_in->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Intel 8255 interface driver.",
 			i8255_in->interface_record->name );
         }
-        if ( i8255_in->interface_record->mx_type != MXI_GEN_8255 ) {
+        if ( i8255_in->interface_record->mx_type != MXI_CTRL_8255 ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Intel 8255 interface driver.",
 			i8255_in->interface_record->name );
@@ -554,12 +554,12 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			i8255_out->interface_record->name );
         }
-        if ( i8255_out->interface_record->mx_class != MXI_GENERIC ) {
+        if ( i8255_out->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Intel 8255 interface driver.",
 			i8255_out->interface_record->name );
         }
-        if ( i8255_out->interface_record->mx_type != MXI_GEN_8255 ) {
+        if ( i8255_out->interface_record->mx_type != MXI_CTRL_8255 ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an Intel 8255 interface driver.",
 			i8255_out->interface_record->name );

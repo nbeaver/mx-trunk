@@ -13,7 +13,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -115,8 +115,8 @@ mxd_itc503_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 	}
 
 	switch( itc503_record->mx_type ) {
-	case MXI_GEN_ITC503:
-	case MXI_GEN_CRYOJET:
+	case MXI_CTRL_ITC503:
+	case MXI_CTRL_CRYOJET:
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -342,7 +342,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'G':	/* Gas flow - only for ITC503 */
 
-		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
+		if ( itc503->record->mx_type != MXI_CTRL_ITC503 ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'G' command.  Only the ITC503 "
@@ -391,7 +391,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'J':	/* Shield flow - only for Cryojet */
 
-		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+		if ( itc503->record->mx_type != MXI_CTRL_CRYOJET ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'J' command.  Only the Cryojet "
@@ -420,7 +420,7 @@ mxd_itc503_aoutput_read( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'K':	/* Sample flow - only for Cryojet */
 
-		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+		if ( itc503->record->mx_type != MXI_CTRL_CRYOJET ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'K' command.  Only the Cryojet "
@@ -587,7 +587,7 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( ( itc503->record->mx_type == MXI_GEN_CRYOJET ) 
+		if ( ( itc503->record->mx_type == MXI_CTRL_CRYOJET ) 
 		  && ( long_parameter_value == 0 ) )
 		{
 			snprintf( command, sizeof(command), "O0" );
@@ -650,7 +650,7 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'G':	/* Gas flow command - only for ITC503 */
 
-		if ( itc503->record->mx_type != MXI_GEN_ITC503 ) {
+		if ( itc503->record->mx_type != MXI_CTRL_ITC503 ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'G' command.  Only the ITC503 "
@@ -708,7 +708,7 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'J':	/* Shield flow - only for Cryojet */
 		
-		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+		if ( itc503->record->mx_type != MXI_CTRL_CRYOJET ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'J' command.  Only the Cryojet "
@@ -740,7 +740,7 @@ mxd_itc503_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	case 'K':	/* Sample flow - only for Cryojet */
 		
-		if ( itc503->record->mx_type != MXI_GEN_CRYOJET ) {
+		if ( itc503->record->mx_type != MXI_CTRL_CRYOJET ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"The %s controller used by record '%s' is not "
 			"supported for the 'K' command.  Only the Cryojet "

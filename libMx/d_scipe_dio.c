@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,7 +140,7 @@ mxd_scipe_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			dinput->record->name, calling_fname );
 	}
 
-	if ( scipe_server_record->mx_type != MXI_GEN_SCIPE ) {
+	if ( scipe_server_record->mx_type != MXI_CTRL_SCIPE ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "scipe_server_record '%s' for SCIPE digital input '%s' is not a SCIPE record.  "
 "Instead, it is a '%s' record.",
@@ -211,7 +211,7 @@ mxd_scipe_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			doutput->record->name, calling_fname );
 	}
 
-	if ( scipe_server_record->mx_type != MXI_GEN_SCIPE ) {
+	if ( scipe_server_record->mx_type != MXI_CTRL_SCIPE ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "scipe_server_record '%s' for SCIPE digital output '%s' is not a SCIPE record."
 "  Instead, it is a '%s' record.",

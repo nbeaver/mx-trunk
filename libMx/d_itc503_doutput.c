@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -112,8 +112,8 @@ mxd_itc503_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 	}
 
 	switch( itc503_record->mx_type ) {
-	case MXI_GEN_ITC503:
-	case MXI_GEN_CRYOJET:
+	case MXI_CTRL_ITC503:
+	case MXI_CTRL_CRYOJET:
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -375,7 +375,7 @@ mxd_itc503_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 					itc503->maximum_retries,
 					ITC503_DOUTPUT_DEBUG );
 
-		if ( ( itc503->record->mx_type == MXI_GEN_CRYOJET ) 
+		if ( ( itc503->record->mx_type == MXI_CTRL_CRYOJET ) 
 		  && (doutput->value == 0 ) )
 		{
 			snprintf( command, sizeof(command), "O0" );

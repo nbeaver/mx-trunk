@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -103,7 +103,7 @@ mxd_cxtilt02_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( cxtilt02_record->mx_type != MXI_GEN_CXTILT02 ) {
+	if ( cxtilt02_record->mx_type != MXI_CTRL_CXTILT02 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"cxtilt02_record '%s' for CXTILT02 analog input '%s' "
 		"is not a CXTILT02 record.  Instead, it is a '%s' record.",

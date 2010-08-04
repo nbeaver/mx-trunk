@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -122,11 +122,11 @@ mxi_itc503_open( MX_RECORD *record )
 	}
 
 	switch( record->mx_type ) {
-	case MXI_GEN_ITC503:
+	case MXI_CTRL_ITC503:
 		strlcpy( itc503->label, "ITC503", sizeof(itc503->label) );
 		break;
 
-	case MXI_GEN_CRYOJET:
+	case MXI_CTRL_CRYOJET:
 		strlcpy( itc503->label, "Cryojet", sizeof(itc503->label) );
 		break;
 
@@ -163,7 +163,7 @@ mxi_itc503_open( MX_RECORD *record )
 #endif
 
 	switch( itc503->record->mx_type ) {
-	case MXI_GEN_CRYOJET:
+	case MXI_CTRL_CRYOJET:
 		if ( strncmp( response, "JET", 3 ) != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"%s controller '%s' did not return the expected "
@@ -173,7 +173,7 @@ mxi_itc503_open( MX_RECORD *record )
 		}
 		break;
 
-	case MXI_GEN_ITC503:
+	case MXI_CTRL_ITC503:
 		break;
 	}
 

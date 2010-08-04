@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2001-2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -139,7 +139,7 @@ mxd_pmac_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			dinput->record->name, calling_fname );
 	}
 
-	if ( pmac_record->mx_type != MXI_GEN_PMAC ) {
+	if ( pmac_record->mx_type != MXI_CTRL_PMAC ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pmac_record '%s' for PMAC digital input '%s' is not a PMAC record.  "
 "Instead, it is a '%s' record.",
@@ -208,7 +208,7 @@ mxd_pmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			doutput->record->name, calling_fname );
 	}
 
-	if ( pmac_record->mx_type != MXI_GEN_PMAC ) {
+	if ( pmac_record->mx_type != MXI_CTRL_PMAC ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pmac_record '%s' for PMAC digital output '%s' is not a PMAC record.  "
 "Instead, it is a '%s' record.",

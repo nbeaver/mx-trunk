@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,12 +223,12 @@ mxd_lpt_in_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			lpt_in->interface_record->name );
         }
-        if ( lpt_in->interface_record->mx_class != MXI_GENERIC ) {
+        if ( lpt_in->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an LPT interface driver.",
 			lpt_in->interface_record->name );
         }
-        if ( lpt_in->interface_record->mx_type != MXI_GEN_LPT ) {
+        if ( lpt_in->interface_record->mx_type != MXI_CTRL_LPT ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an LPT interface driver.",
 			lpt_in->interface_record->name );
@@ -357,12 +357,12 @@ mxd_lpt_out_finish_record_initialization( MX_RECORD *record )
 	                "'%s' is not an interface record.",
 			lpt_out->interface_record->name );
         }
-        if ( lpt_out->interface_record->mx_class != MXI_GENERIC ) {
+        if ( lpt_out->interface_record->mx_class != MXI_CONTROLLER ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an LPT interface driver.",
 			lpt_out->interface_record->name );
         }
-        if ( lpt_out->interface_record->mx_type != MXI_GEN_LPT ) {
+        if ( lpt_out->interface_record->mx_type != MXI_CTRL_LPT ) {
                 return mx_error( MXE_TYPE_MISMATCH, fname,
 			"'%s' is not an LPT interface driver.",
 			lpt_out->interface_record->name );

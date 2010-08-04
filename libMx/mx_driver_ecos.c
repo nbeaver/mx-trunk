@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,21 +114,21 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_tty_rfield_def_ptr},
 #endif /* OS_UNIX */
 
-{"pdi40",          MXI_GEN_PDI40,      MXI_GENERIC,       MXR_INTERFACE,
+{"pdi40",          MXI_CTRL_PDI40,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pdi40_record_function_list,
 				NULL,
 				&mxi_pdi40_generic_function_list,
 				&mxi_pdi40_num_record_fields,
 				&mxi_pdi40_rfield_def_ptr},
 
-{"pdi45",          MXI_GEN_PDI45,      MXI_GENERIC,       MXR_INTERFACE,
+{"pdi45",          MXI_CTRL_PDI45,      MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_pdi45_record_function_list,
 				NULL,
 				NULL,
 				&mxi_pdi45_num_record_fields,
 				&mxi_pdi45_rfield_def_ptr},
 
-{"iseries",  MXI_GEN_ISERIES,  MXI_GENERIC,       MXR_INTERFACE,
+{"iseries",  MXI_CTRL_ISERIES,  MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_iseries_record_function_list,
 				NULL,
 				NULL,

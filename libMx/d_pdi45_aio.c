@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -127,7 +127,7 @@ mxd_pdi45_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( pdi45_record->mx_type != MXI_GEN_PDI45 ) {
+	if ( pdi45_record->mx_type != MXI_CTRL_PDI45 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pdi45_record '%s' for PDI45 analog input '%s' is not a PDI45 record.  "
 "Instead, it is a '%s' record.",
@@ -197,7 +197,7 @@ mxd_pdi45_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			aoutput->record->name, calling_fname );
 	}
 
-	if ( pdi45_record->mx_type != MXI_GEN_PDI45 ) {
+	if ( pdi45_record->mx_type != MXI_CTRL_PDI45 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "pdi45_record '%s' for PDI45 analog output '%s' is not a PDI45 record.  "
 "Instead, it is a '%s' record.",

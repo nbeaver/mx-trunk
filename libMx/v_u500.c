@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,7 +109,7 @@ mxv_u500_get_pointers( MX_VARIABLE *variable,
 			variable->record->name, calling_fname );
 	}
 
-	if ( u500_record->mx_type != MXI_GEN_U500 ) {
+	if ( u500_record->mx_type != MXI_CTRL_U500 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "u500_record '%s' for U500 variable '%s' is not a U500 controller.  "
 "Instead, it is a '%s' record.",

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 2005-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -142,7 +142,7 @@ mxd_xia_handel_timer_get_pointers( MX_TIMER *timer,
 				timer->record->name );
 		}
 
-		if ( handel_record->mx_type != MXI_GEN_XIA_HANDEL ) {
+		if ( handel_record->mx_type != MXI_CTRL_XIA_HANDEL ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The handel_record '%s' passed by '%s' "
 			"is not an XIA Handel record.  "
