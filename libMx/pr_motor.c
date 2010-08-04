@@ -413,6 +413,7 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_DESTINATION:
 		case MXLV_MTR_POSITION:
 		case MXLV_MTR_SET_POSITION:
+		case MXLV_MTR_BACKLASH_CORRECTION:
 		case MXLV_MTR_SOFT_ABORT:
 		case MXLV_MTR_IMMEDIATE_ABORT:
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
@@ -506,6 +507,18 @@ mx_motor_process_function( void *record_ptr,
 				fname, (int) motor->busy, motor->status,
 				motor->server_backlash_in_progress));
 #endif
+			break;
+		case MXLV_MTR_BACKLASH_CORRECTION:
+			switch( motor->subclass ) {
+			case MXC_MTR_STEPPER:
+				motor->backlash_correction = motor->scale
+				    * motor->raw_backlash_correction.stepper;
+				break;
+			case MXC_MTR_ANALOG:
+				motor->backlash_correction = motor->scale
+				    * motor->raw_backlash_correction.analog;
+				break;
+			}
 			break;
 		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
 			mx_status = mx_motor_negative_limit_hit( record, NULL );
@@ -651,6 +664,22 @@ mx_motor_process_function( void *record_ptr,
 			mx_status = mx_motor_set_position( record,
 						motor->set_position );
 
+			break;
+		case MXLV_MTR_BACKLASH_CORRECTION:
+			switch( motor->subclass ) {
+			case MXC_MTR_STEPPER:
+				motor->raw_backlash_correction.stepper = 
+					mx_round( mx_divide_safely(
+						motor->backlash_correction,
+						motor->scale ) );
+				break;
+			case MXC_MTR_ANALOG:
+				motor->raw_backlash_correction.analog =
+					mx_divide_safely(
+						motor->backlash_correction,
+						motor->scale );
+				break;
+			}
 			break;
 		case MXLV_MTR_SOFT_ABORT:
 			mx_status = mx_motor_soft_abort( record );
