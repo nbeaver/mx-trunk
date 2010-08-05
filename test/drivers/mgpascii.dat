@@ -1,12 +1,12 @@
 #
 # For use with 'gpascii'
 #
-###pmac1_socket interface rs232 telnet "" "" 38400 8 N 1 H 0x0d0a 0x0d0a -1 0x0 powerpmac 23 0x0
-###pmac1       interface generic pmac "" "" gpascii "pmac1_socket root deltatau" 1
+pmac1_socket interface rs232 telnet "" "" 38400 8 N 1 H 0x0d0a 0x0d0a -1 0x0 powerpmac 23 0x0
+pmac1       interface generic pmac "" "" gpascii "pmac1_socket root deltatau" 1
 #
 # For use with 'gplib'
 #
-pmac1       interface generic pmac "" "" gplib "" 1
+###pmac1       interface generic pmac "" "" gplib "" 1
 #
 m1          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um pmac1 0 1
 m2          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um pmac1 0 2

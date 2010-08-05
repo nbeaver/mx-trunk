@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mgpascii.dat -s ./sgpascii.dat $*
+

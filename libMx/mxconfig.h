@@ -132,7 +132,7 @@
  * Delta Tau motion control software there.
  */
 
-#define HAVE_POWER_PMAC_LIBRARY		0
+#define HAVE_POWER_PMAC_LIBRARY		1
 
 /*****************************************************************************
  *

@@ -247,6 +247,7 @@ extern "C" {
 #define MXI_CTRL_HANDEL			457
 #define MXI_CTRL_HANDEL_NETWORK		458
 #define MXI_CTRL_LINKAM_T9X		459
+#define MXI_CTRL_POWERPMAC		460
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -501,6 +502,7 @@ extern "C" {
 #define MXT_MTR_CRYOJET			50053
 #define MXT_MTR_LINKAM_T9X_TEMPERATURE	50054
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
+#define MXT_MTR_POWERPMAC		50056
 
    /* Pseudomotors. */
 
