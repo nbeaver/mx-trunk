@@ -372,6 +372,9 @@ i_pmac.$(OBJ): i_pmac.c i_pmac.h
 i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) i_pmc_mcapi.c
 
+i_powerpmac.$(OBJ): i_powerpmac.c i_powerpmac.h
+	$(COMPILE) $(CFLAGS) $(POWER_PMAC_INCLUDES) i_powerpmac.c
+
 i_pcmotion32.$(OBJ): i_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) i_pcmotion32.c
 

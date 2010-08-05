@@ -1,54 +1,38 @@
 /*
  * Name:    i_powerpmac.c
  *
- * Purpose: MX driver for Delta Tau POWERPMAC controllers.  Note that this is
- *          the driver for talking to the POWERPMAC itself.  POWERPMAC-controlled
- *          motors are interfaced via the driver in libMx/d_powerpmac.c.
+ * Purpose: MX driver for Delta Tau Power PMAC controllers.  Note that
+ *          this is the driver for talking to the POWERPMAC itself.
+ *          Power PMAC-controlled motors are interfaced via the driver
+ *          in libMx/d_powerpmac.c.
  *
  * Author:  William Lavender
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_POWERPMAC_DEBUG			FALSE
+#define MXI_POWERPMAC_DEBUG		TRUE
 
-#define MXI_POWERPMAC_DEBUG_TIMING		FALSE
-
-#define MXI_POWERPMAC_DEBUG_LOGIN		FALSE
-
-#define MXI_POWERPMAC_DEBUG_RS232		FALSE
-
-#define MXI_POWERPMAC_DEBUG_TCP		FALSE
+#define MXI_POWERPMAC_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
 #include "mxconfig.h"
+
+#if HAVE_POWER_PMAC_LIBRARY
+
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_driver.h"
-#include "mx_rs232.h"
-#include "mx_socket.h"
-
-#if HAVE_EPICS
-#  include "mx_epics.h"
-#endif
-
-#if HAVE_POWER_POWERPMAC_LIBRARY
-#  include "gplib.h"
-#endif
 
 #include "i_powerpmac.h"
-#include "i_powerpmac_ethernet.h"
-#include "i_telnet.h"
+
+#include "gplib.h"
 
 #if MXI_POWERPMAC_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
@@ -65,8 +49,10 @@ MX_RECORD_FUNCTION_LIST mxi_powerpmac_record_function_list = {
 	mxi_powerpmac_open,
 	NULL,
 	NULL,
+#if 0
 	mxi_powerpmac_resynchronize,
 	mxi_powerpmac_special_processing_setup
+#endif
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_powerpmac_record_field_defaults[] = {
@@ -83,58 +69,13 @@ MX_RECORD_FIELD_DEFAULTS *mxi_powerpmac_rfield_def_ptr
 
 /*---*/
 
+#if 0
 static mx_status_type mxi_powerpmac_process_function( void *record_ptr,
 						void *record_field_ptr,
 						int operation );
-/*--*/
-
-static mx_status_type
-mxi_powerpmac_getchar( MX_POWERPMAC *, char * );
-
-static mx_status_type
-mxi_powerpmac_receive_response_with_getchar( MX_POWERPMAC *, char *, int, int );
-
-static mx_status_type
-mxi_powerpmac_check_for_errors( MX_POWERPMAC *, char *, char *, char * );
-
-/*--*/
-
-static mx_status_type
-mxi_powerpmac_std_command( MX_POWERPMAC *, char *, char *, size_t, int );
-
-static mx_status_type
-mxi_powerpmac_std_send_command( MX_POWERPMAC *, char *, int );
-
-static mx_status_type
-mxi_powerpmac_std_receive_response( MX_POWERPMAC *, char *, int, int );
-
-/*--*/
-
-static mx_status_type
-mxi_powerpmac_tcp_flush( MX_POWERPMAC *, int );
-
-static mx_status_type
-mxi_powerpmac_tcp_command( MX_POWERPMAC *, char *, char *, size_t, int );
-
-static mx_status_type
-mxi_powerpmac_tcp_receive_response( MX_SOCKET *, char *, size_t, size_t *, int );
-
-/*--*/
-
-static mx_status_type
-mxi_powerpmac_gpascii_login( MX_POWERPMAC *powerpmac );
-
-/*--*/
-
-#if HAVE_POWER_POWERPMAC_LIBRARY
-static mx_status_type
-mxi_powerpmac_gplib_command( MX_POWERPMAC *, char *, char *, size_t, int );
 #endif
 
-#if HAVE_EPICS
-static mx_status_type
-mxi_powerpmac_epics_ect_command( MX_POWERPMAC *, char *, char *, size_t, int );
-#endif
+/*--*/
 
 /*==========================*/
 
@@ -151,7 +92,7 @@ mxi_powerpmac_create_record_structures( MX_RECORD *record )
 
 	if ( powerpmac == (MX_POWERPMAC *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_POWERPMAC structure." );
+		"Cannot allocate memory for an MX_POWERPMAC structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -162,186 +103,20 @@ mxi_powerpmac_create_record_structures( MX_RECORD *record )
 
 	powerpmac->record = record;
 
-	powerpmac->powerpmac_socket = NULL;
-	powerpmac->hostname[0] = '\0';
-
-	powerpmac->gpascii_username[0] = '\0';
-	powerpmac->gpascii_password[0] = '\0';
-
-	powerpmac->gplib_initialized = FALSE;
-
-	powerpmac->port_record = NULL;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_powerpmac_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_powerpmac_finish_record_initialization()";
+#if 0
+	static const char fname[] =
+		"mxi_powerpmac_finish_record_initialization()";
+#endif
 
 	MX_POWERPMAC *powerpmac;
-	MX_RS232 *rs232;
-	char *port_type_name;
-	char *port_args;
-	int argc;
-	char **argv;
-	int i, length;
-	char port_record_name[MXU_RECORD_NAME_LENGTH+1];
 
 	powerpmac = (MX_POWERPMAC *) record->record_type_struct;
-
-	/* Identify the port_type of the record. */
-
-	port_type_name = powerpmac->port_type_name;
-
-	length = (int) strlen( port_type_name );
-
-	for ( i = 0; i < length; i++ ) {
-		if ( isupper( (int) (port_type_name[i]) ) ) {
-			port_type_name[i] = tolower( (int)(port_type_name[i]) );
-		}
-	}
-
-	if ( strcmp( port_type_name, "rs232" ) == 0 ) {
-		powerpmac->port_type = MX_POWERPMAC_PORT_TYPE_RS232;
-
-	} else if ( strcmp( port_type_name, "tcp" ) == 0 ) {
-		powerpmac->port_type = MX_POWERPMAC_PORT_TYPE_TCP;
-
-	} else if ( strcmp( port_type_name, "gpascii" ) == 0 ) {
-		powerpmac->port_type = MX_POWERPMAC_PORT_TYPE_GPASCII;
-
-	} else if ( strcmp( port_type_name, "gplib" ) == 0 ) {
-		powerpmac->port_type = MX_POWERPMAC_PORT_TYPE_GPLIB;
-
-	} else if ( strcmp( port_type_name, "epics_ect" ) == 0 ) {
-		powerpmac->port_type = MX_POWERPMAC_PORT_TYPE_EPICS_TC;
-
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The POWERPMAC interface port_type '%s' is not a valid port_type.",
-			port_type_name );
-	}
-
-	/* Perform port_type specific processing. */
-
-	switch( powerpmac->port_type ) {
-	case MX_POWERPMAC_PORT_TYPE_RS232:
-	case MX_POWERPMAC_PORT_TYPE_GPASCII:
-		if ( powerpmac->port_type == MX_POWERPMAC_PORT_TYPE_RS232 ) {
-			strlcpy( port_record_name, powerpmac->port_args,
-				sizeof(port_record_name) );
-		} else
-		if ( powerpmac->port_type == MX_POWERPMAC_PORT_TYPE_GPASCII ) {
-
-			port_args = strdup( powerpmac->port_args );
-
-			if ( port_args == NULL ) {
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Ran out of memory trying to create a copy "
-				"of the POWERPMAC port_args." );
-			}
-
-			mx_string_split( port_args, " ", &argc, &argv );
-
-			if ( argc != 3 ) {
-				mx_free(argv);
-				mx_free(port_args);
-
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Incorrect number of arguments (%d) specified "
-				"for the 'port_args' string '%s' for POWERPMAC "
-				"controller '%s'.  The correct number of "
-				"arguments should be 3, namely, the socket "
-				"RS-232 record name, the PowerPOWERPMAC username, "
-				"and the PowerPOWERPMAC password.",
-					argc, powerpmac->port_args, record->name );
-			}
-
-			strlcpy( port_record_name, argv[0],
-				sizeof(port_record_name) );
-
-			strlcpy( powerpmac->gpascii_username, argv[1],
-				sizeof(powerpmac->gpascii_username) );
-
-			strlcpy( powerpmac->gpascii_password, argv[2],
-				sizeof(powerpmac->gpascii_password) );
-
-			mx_free(argv);
-			mx_free(port_args);
-		}
-
-		powerpmac->port_record = mx_get_record( record->list_head,
-							port_record_name );
-
-		if ( powerpmac->port_record == NULL ) {
-			return mx_error( MXE_NOT_FOUND, fname,
-			"The RS-232 interface record '%s' does not exist.",
-				port_record_name );
-		}
-		if ( powerpmac->port_record->mx_superclass != MXR_INTERFACE ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-				"'%s' is not an interface record.",
-				powerpmac->port_record->name );
-		}
-		if ( powerpmac->port_record->mx_class != MXI_RS232 ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-				"'%s' is not an RS-232 interface.",
-				powerpmac->port_record->name );
-		}
-		rs232 = (MX_RS232 *) powerpmac->port_record->record_class_struct;
-
-		if ( rs232 == (MX_RS232 *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_RS232 pointer for RS-232 record '%s' is NULL.",
-				powerpmac->port_record->name );
-		}
-
-		if ( powerpmac->port_type == MX_POWERPMAC_PORT_TYPE_RS232 ) {
-			if ( ( rs232->read_terminators != MX_CR )
-			  || ( rs232->write_terminators != MX_CR ) )
-			{
-				return mx_error(
-				MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-			"RS-232 port '%s' used by POWERPMAC interface '%s' "
-			"has incorrectly configured read "
-			"and/or write terminators.  The MX POWERPMAC RS-232 support "
-			"requires that the read and write terminators for the "
-			"RS-232 port both be set to <CR> (0x0d).",
-				powerpmac->port_record->name, record->name );
-			}
-		}
-		break;
-
-	case MX_POWERPMAC_PORT_TYPE_TCP:
-		powerpmac->port_record = NULL;
-
-		strlcpy( powerpmac->hostname, powerpmac->port_args,
-						sizeof(powerpmac->hostname) );
-		break;
-
-	case MX_POWERPMAC_PORT_TYPE_GPLIB:
-		powerpmac->port_record = NULL;
-
-		break;
-
-	case MX_POWERPMAC_PORT_TYPE_EPICS_TC:
-		powerpmac->port_record = NULL;
-
-#if HAVE_EPICS
-		mx_epics_pvname_init( &(powerpmac->strcmd_pv),
-					"%sStrCmd", powerpmac->port_args );
-
-		mx_epics_pvname_init( &(powerpmac->strrsp_pv),
-					"%sStrRsp", powerpmac->port_args );
-#endif
-		break;
-	}
-
-	/* Mark the POWERPMAC device as being closed. */
-
-	record->record_flags |= ( ~MXF_REC_OPEN );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -352,13 +127,11 @@ mxi_powerpmac_open( MX_RECORD *record )
 	static const char fname[] = "mxi_powerpmac_open()";
 
 	MX_POWERPMAC *powerpmac;
-	char command[80];
 	char response[80];
-	char powerpmac_type_name[20];
 	int num_items;
-	mx_status_type mx_status;
+	int powerpmac_status;
 
-	MX_DEBUG( 2, ("%s invoked.", fname));
+	MX_DEBUG(-2, ("%s invoked.", fname));
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -372,209 +145,45 @@ mxi_powerpmac_open( MX_RECORD *record )
 		"MX_POWERPMAC pointer for record '%s' is NULL.", record->name);
 	}
 
-	/* Perform initial port_type-specific initialization. */
+	/* Initialize the libppmac library. */
 
-	mx_status = MX_SUCCESSFUL_RESULT;
+	powerpmac_status = InitLibrary();
 
-	switch( powerpmac->port_type ) {
-	case MX_POWERPMAC_PORT_TYPE_TCP:
-		mx_status = mx_tcp_socket_open_as_client( &powerpmac->powerpmac_socket,
-						powerpmac->hostname,
-						MX_POWERPMAC_TCP_PORT_NUMBER, 0,
-						MX_SOCKET_DEFAULT_BUFFER_SIZE );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxi_powerpmac_tcp_flush( powerpmac, MXI_POWERPMAC_DEBUG );
-		break;
-
-	case MX_POWERPMAC_PORT_TYPE_GPASCII:
-		mx_status = mxi_powerpmac_gpascii_login( powerpmac );
-		break;
-
-#if HAVE_POWER_POWERPMAC_LIBRARY
-	case MX_POWERPMAC_PORT_TYPE_GPLIB:
-		if ( powerpmac->gplib_initialized == FALSE ) {
-			int powerpowerpmac_status;
-
-			powerpmac->gplib_initialized = TRUE;
-
-#if USE_FAKE_POWER_POWERPMAC
-			/* The 'fake_power_powerpmac' library needs the following
-			 * assignment, so that it can find the MX database.
-			 */
-
-			power_powerpmac_mx_record_list = powerpmac->record->list_head;
-#endif
-
-			powerpowerpmac_status = InitLibrary();
-
-			if ( powerpowerpmac_status != 0 ) {
-				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"Initialization of the Power POWERPMAC library "
-				"failed with error code = %d.",
-					powerpowerpmac_status );
-			}
-		}
-		break;
-#endif
+	if ( powerpmac_status != 0 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Initialization of the Power PMAC library "
+		"failed with error code = %d.",
+			powerpmac_status );
 	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Verify that the POWERPMAC controller is active by asking it for
+	/* Verify that the Power PMAC controller is active by asking it for
 	 * its card type.
 	 */
 
-	mx_status = mxi_powerpmac_command( powerpmac, "TYPE",
-				response, sizeof response, MXI_POWERPMAC_DEBUG );
+	powerpmac_status = GetResponse( "TYPE", response, sizeof(response), 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Original POWERPMACs and Turbo POWERPMACs have the name terminated by
-	 * a comma (') character.  However, PowerPOWERPMACs have the name
-	 * terminated by CR-LF.
-	 *
-	 * So, we initially search for a comma in the string and
-	 * NUL it out if found.
-	 *
-	 * If a comma was _not_ found in the string, we search for a
-	 * carriage return (0xd) and NUL it out if found.
-	 *
-	 * Otherwise, we leave the string alone.
-	 */
-
-#if 1
-	{
-		char *ptr;
-
-		ptr = strchr( response, ',' );
-
-		if ( ptr != NULL ) {
-			*ptr = '\0';
-		} else {
-			ptr = strchr( response, MX_CR );
-
-			if ( ptr != NULL ) {
-				*ptr = '\0';
-			}
-		}
-
-		strlcpy( powerpmac_type_name, response, sizeof(powerpmac_type_name) );
-	}
-#else
-	/* OBSOLETE: The old method before Power POWERPMAC. */
-
-	/* Now scan for the string. */
-
-	num_items = sscanf( response, "%s,", powerpmac_type_name );
-
-	if ( num_items != 1 ) {
+	if ( powerpmac_status != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"The device attached to this interface does not "
-			"seem to be a POWERPMAC controller.  "
-			"Response to POWERPMAC TYPE command = '%s'",
-				response );
-	}
-#endif
-
-	if ( strncmp( powerpmac_type_name, "POWERPMAC1",5 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_POWERPMAC1;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "POWERPMAC2",5 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_POWERPMAC2;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "POWERPMACUL",6 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_POWERPMACUL;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "TURBO1",6 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_TURBO1;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "TURBO2",6 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_TURBO2;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "TURBOU",6 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_TURBOU;
-
-	} else
-	if ( strncmp( powerpmac_type_name, "PWR POWERPMAC UMAC", 13 ) == 0 ) {
-		powerpmac->powerpmac_type = MX_POWERPMAC_TYPE_POWERPOWERPMAC;
-
-	} else {
-		if ( ( strncmp( powerpmac_type_name, "POWERPMAC", 4 ) != 0 )
-		  && ( strncmp( powerpmac_type_name, "TURBO", 5 ) != 0 )
-		  && ( strncmp( powerpmac_type_name, "PWR POWERPMAC", 8 ) != 0 ) )
-		{
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"The device attached to this interface does "
-				"not seem to be a POWERPMAC controller.  "
-				"Response to POWERPMAC TYPE command = '%s'",
-					response );
-		} else {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"Unrecognized POWERPMAC type '%s' for POWERPMAC '%s'.",
-				powerpmac_type_name, record->name );
-		}
-	}
-
-	if ( powerpmac->powerpmac_type == MX_POWERPMAC_TYPE_POWERPOWERPMAC ) {
-
-		/* For PowerPOWERPMACs, the low numbered I-variables now
-		 * actually refer to the motor parameters for motor 0.
-		 * So the I6 variable no longer is the error reporting
-		 * mode.  Instead we hard code the type of error
-		 * reporting here.
-		 */
-
-		powerpmac->error_reporting_mode = 3;
-	} else {
-		/* Ask for the style of error message reporting. */
-
-		mx_status = mxi_powerpmac_command( powerpmac, "I6",
-				response, sizeof response, MXI_POWERPMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		num_items = sscanf( response, "%ld",
-				&(powerpmac->error_reporting_mode) );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"Unable to parse response to I6 command.  "
-			"Response = '%s'", response );
-		}
+		"Power PMAC command 'TYPE' returned with error code = %d.",
+			powerpmac_status );
 	}
 
 #if MXI_POWERPMAC_DEBUG
-	MX_DEBUG(-2,("%s: error_reporting_mode = %ld",
-		fname, powerpmac->error_reporting_mode));
+	MX_DEBUG(-2,("%s: Power PMAC type = '%s'", fname, response));
 #endif
 
-	/* Now ask for PROM firmware version. */
+	/* Now ask for the PROM firmware version. */
 
-	if ( powerpmac->powerpmac_type == MX_POWERPMAC_TYPE_POWERPOWERPMAC ) {
-		strlcpy( command, "VERS", sizeof(command) );
-	} else {
-		strlcpy( command, "VERSION", sizeof(command) );
+	powerpmac_status = GetResponse( "VERS", response, sizeof(response), 0 );
+
+	if ( powerpmac_status != 0 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Power PMAC command 'VERS' returned with error code = %d.",
+			powerpmac_status );
 	}
 
-	mx_status = mxi_powerpmac_command( powerpmac, command,
-				response, sizeof response, MXI_POWERPMAC_DEBUG );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	num_items = sscanf( response, "%ld.%ld",
-			&(powerpmac->major_version), &(powerpmac->minor_version) );
+		&(powerpmac->major_version), &(powerpmac->minor_version) );
 
 	if ( num_items != 2 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -590,46 +199,7 @@ mxi_powerpmac_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_powerpmac_resynchronize( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_powerpmac_resynchronize()";
-
-	MX_POWERPMAC *powerpmac;
-	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s invoked.", fname));
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL.");
-	}
-
-	powerpmac = (MX_POWERPMAC *) record->record_type_struct;
-
-	if ( powerpmac == (MX_POWERPMAC *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_POWERPMAC pointer for record '%s' is NULL.", record->name);
-	}
-
-	/* Perform port_type-specific resynchronization. */
-
-	switch( powerpmac->port_type ) {
-	case MX_POWERPMAC_PORT_TYPE_RS232:
-	case MX_POWERPMAC_PORT_TYPE_GPASCII:
-		mx_status = mx_resynchronize_record( powerpmac->port_record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
-	}
-
-	/* Now reopen the POWERPMAC record. */
-
-	mx_status = mxi_powerpmac_open( record );
-
-	return mx_status;
-}
+#if 0
 
 MX_EXPORT mx_status_type
 mxi_powerpmac_special_processing_setup( MX_RECORD *record )
@@ -1723,10 +1293,10 @@ mxi_powerpmac_gpascii_login( MX_POWERPMAC *powerpmac )
 				powerpmac->port_record->name );
 	}
 
-	/* We must login to the PowerPOWERPMAC. */
+	/* We must login to the PowerPMAC. */
 
 #if MXI_POWERPMAC_DEBUG_LOGIN
-	MX_DEBUG(-2,("%s: Beginning login to PowerPOWERPMAC", fname));
+	MX_DEBUG(-2,("%s: Beginning login to PowerPMAC", fname));
 #endif
 
 	/* Give the server a chance to send Telnet negotiation commands. */
@@ -1887,7 +1457,7 @@ mxi_powerpmac_gpascii_login( MX_POWERPMAC *powerpmac )
 	if ( strcmp( response, "STDIN Open for ASCII Input" ) != 0 ) {
 		return mx_error( MXE_IPC_IO_ERROR, fname,
 		"Did not get the expected response to the 'gpascii' "
-		"command for PowerPOWERPMAC '%s'.  Instead, we got '%s'.",
+		"command for PowerPMAC '%s'.  Instead, we got '%s'.",
 			powerpmac->record->name, response );
 	}
 
@@ -1924,7 +1494,7 @@ mxi_powerpmac_gplib_command( MX_POWERPMAC *powerpmac, char *command,
 {
 	static const char fname[] = "mxi_powerpmac_gplib_command()";
 
-	int powerpowerpmac_status;
+	int powerpmac_status;
 
 	if ( powerpmac == (MX_POWERPMAC *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1936,18 +1506,18 @@ mxi_powerpmac_gplib_command( MX_POWERPMAC *powerpmac, char *command,
 	}
 
 	if ( (response == NULL) || (response_buffer_length == 0) ) {
-		powerpowerpmac_status = Command( command );
+		powerpmac_status = Command( command );
 	} else {
-		powerpowerpmac_status = GetResponse( command,
+		powerpmac_status = GetResponse( command,
 					response, response_buffer_length, 0 );
 	}
 
-	if ( powerpowerpmac_status == 0 ) {
+	if ( powerpmac_status == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Power POWERPMAC command '%s' returned with error code = %d.",
-			command, powerpowerpmac_status );
+		"Power PMAC command '%s' returned with error code = %d.",
+			command, powerpmac_status );
 	}
 }
 
@@ -2065,4 +1635,8 @@ mxi_powerpmac_process_function( void *record_ptr,
 
 	return mx_status;
 }
+
+#endif
+
+#endif /* HAVE_POWER_PMAC_LIBRARY */
 
