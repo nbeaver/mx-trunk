@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 
 #define MXF_ISOBUS_DEBUG			0x1
 #define MXF_ISOBUS_READ_TERMINATOR_IS_LINEFEED	0x2
+#define MXF_ISOBUS_RESYNCHRONIZE_DURING_OPEN	0x4
 
 typedef struct {
 	MX_RECORD *record;

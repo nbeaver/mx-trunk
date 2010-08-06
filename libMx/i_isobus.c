@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -129,12 +129,14 @@ mxi_isobus_open( MX_RECORD *record )
 
 		/* Reinitialize the serial port. */
 
-		mx_status = mx_resynchronize_record( interface_record );
+		if ( isobus_flags & MXF_ISOBUS_RESYNCHRONIZE_DURING_OPEN ) {
+			mx_status = mx_resynchronize_record( interface_record );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		mx_msleep(1000);
+			mx_msleep(1000);
+		}
 
 		/* Discard any characters waiting to be sent or received. */
 
