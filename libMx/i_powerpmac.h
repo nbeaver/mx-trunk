@@ -32,8 +32,8 @@ typedef struct {
 
 } MX_POWERPMAC;
 
-#define MXLV_POWERPMAC_COMMAND		7001
-#define MXLV_POWERPMAC_RESPONSE		7002
+#define MXLV_POWERPMAC_COMMAND			7001
+#define MXLV_POWERPMAC_RESPONSE			7002
 #define MXLV_POWERPMAC_COMMAND_WITH_RESPONSE	7003
 
 #define MXI_POWERPMAC_STANDARD_FIELDS \
@@ -53,11 +53,13 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POWERPMAC, command), \
 	{sizeof(char)}, NULL, 0}
 
-MX_API mx_status_type mxi_powerpmac_create_record_structures( MX_RECORD *record );
-MX_API mx_status_type mxi_powerpmac_finish_record_initialization(MX_RECORD *record);
+MX_API mx_status_type mxi_powerpmac_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxi_powerpmac_finish_record_initialization(
+							MX_RECORD *record );
 MX_API mx_status_type mxi_powerpmac_open( MX_RECORD *record );
-MX_API mx_status_type mxi_powerpmac_resynchronize( MX_RECORD *record );
-MX_API mx_status_type mxi_powerpmac_special_processing_setup( MX_RECORD *record );
+MX_API mx_status_type mxi_powerpmac_special_processing_setup(
+							MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_powerpmac_record_function_list;
 
@@ -66,9 +68,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_powerpmac_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
-MX_API mx_status_type mxi_powerpmac_command( MX_POWERPMAC *powerpmac, char *command,
-		char *response, size_t response_buffer_length,
-		mx_bool_type debug_flag );
+MX_API mx_status_type mxi_powerpmac_command( MX_POWERPMAC *powerpmac,
+				char *command,
+				char *response, size_t response_buffer_length,
+				mx_bool_type debug_flag );
 
 #endif /* __I_POWERPMAC_H__ */
 
