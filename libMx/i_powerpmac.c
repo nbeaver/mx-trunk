@@ -180,7 +180,7 @@ mxi_powerpmac_open( MX_RECORD *record )
 	}
 
 #if MXI_POWERPMAC_DEBUG
-	MX_DEBUG(-2, ("%s: POWERPMAC version: major = %ld, minor = %ld",
+	MX_DEBUG(-2, ("%s: PowerPMAC version: major = %ld, minor = %ld",
 		fname, powerpmac->major_version, powerpmac->minor_version));
 #endif
 
@@ -234,7 +234,7 @@ mxi_powerpmac_special_processing_setup( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_powerpmac_command( MX_POWERPMAC *powerpmac, char *command,
 		char *response, size_t response_buffer_length,
-		int debug_flag )
+		mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_powerpmac_command()";
 
@@ -279,6 +279,72 @@ mxi_powerpmac_command( MX_POWERPMAC *powerpmac, char *command,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mxi_powerpmac_get_long( MX_POWERPMAC *powerpmac,
+			char *command,
+			mx_bool_type debug_flag )
+{
+	char response[100];
+	char *ptr;
+	long result;
+	mx_status_type mx_status;
+
+	mx_status = mxi_powerpmac_command( powerpmac, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return (-1L);
+	}
+
+	/* If an equals sign is present in the response, skip over it. */
+
+	ptr = strchr( response, '=' );
+
+	if ( ptr == NULL ) {
+		ptr = response;
+	} else {
+		ptr++;
+	}
+
+	result = mx_string_to_long( ptr );
+
+	return result;
+}
+
+MX_EXPORT double
+mxi_powerpmac_get_double( MX_POWERPMAC *powerpmac,
+			char *command,
+			mx_bool_type debug_flag )
+{
+	char response[100];
+	char *ptr;
+	double result;
+	mx_status_type mx_status;
+
+	mx_status = mxi_powerpmac_command( powerpmac, command,
+					response, sizeof(response),
+					debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return 0.0;
+	}
+
+	/* If an equals sign is present in the response, skip over it. */
+
+	ptr = strchr( response, '=' );
+
+	if ( ptr == NULL ) {
+		ptr = response;
+	} else {
+		ptr++;
+	}
+
+	result = atof( ptr );
+
+	return result;
 }
 
 /*==================================================================*/

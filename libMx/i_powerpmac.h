@@ -76,5 +76,13 @@ MX_API mx_status_type mxi_powerpmac_command( MX_POWERPMAC *powerpmac,
 				char *response, size_t response_buffer_length,
 				mx_bool_type debug_flag );
 
+MX_API long mxi_powerpmac_get_long( MX_POWERPMAC *powerpmac,
+					char *command,
+					mx_bool_type debug_flag );
+
+MX_API double mxi_powerpmac_get_double( MX_POWERPMAC *powerpmac,
+					char *command,
+					mx_bool_type debug_flag );
+
 #endif /* __I_POWERPMAC_H__ */
 

@@ -202,17 +202,6 @@ mxd_powerpmac_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ( powerpmac_motor->motor_number < 1 )
-				|| ( powerpmac_motor->motor_number > 32 ) )
-	{
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal PowerPMAC motor number %ld for record '%s'.  "
-		"The allowed range is 1 to 32.",
-			powerpmac_motor->motor_number, record->name );
-	}
-
-	powerpmac_motor->record = record;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -224,6 +213,7 @@ mxd_powerpmac_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
+	long max_motors;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -238,6 +228,20 @@ mxd_powerpmac_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Is the motor number valid? */
+
+	max_motors = mxi_powerpmac_get_long( powerpmac, "Sys.MaxMotors",
+						POWERPMAC_DEBUG );
+
+	if ( ( powerpmac_motor->motor_number < 1 )
+	  || ( powerpmac_motor->motor_number > max_motors ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal PowerPMAC motor number %ld for record '%s'.  "
+		"The allowed range is 1 to %lu.",
+		    powerpmac_motor->motor_number, record->name, max_motors );
+	}
 
 	/* Get a pointer to the MotorData for this motor. */
 
@@ -302,8 +306,6 @@ mxd_powerpmac_get_position( MX_MOTOR *motor )
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
 	MotorData *motor_data = NULL;
-	char response[50];
-	int num_tokens;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -312,34 +314,14 @@ mxd_powerpmac_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( powerpmac_motor->use_shm ) {
-		motor_data = powerpmac_motor->motor_data;
+	motor_data = powerpmac_motor->motor_data;
 
-		motor->raw_position.analog =
-			motor_data->ActPos - motor_data->HomePos;
+	motor->raw_position.analog = motor_data->ActPos - motor_data->HomePos;
 
 #if POWERPMAC_DEBUG
-		MX_DEBUG(-2,("%s: motor->raw_position.analog = %g",
-			fname, motor->raw_position.analog));
+	MX_DEBUG(-2,("%s: motor->raw_position.analog = %g",
+		fname, motor->raw_position.analog));
 #endif
-	} else {
-		mx_status = mxd_powerpmac_jog_command(
-				powerpmac_motor, powerpmac, "P",
-				response, sizeof response, POWERPMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		num_tokens = sscanf( response, "%lg",
-				&(motor->raw_position.analog) );
-
-		if ( num_tokens != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"No position value seen in response to 'P' command.  "
-			"num_tokens = %d, Response seen = '%s'",
-				num_tokens, response );
-		}
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -351,6 +333,8 @@ mxd_powerpmac_set_position( MX_MOTOR *motor )
 
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
+	MotorData *motor_data = NULL;
+	double current_position, new_position, diff;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -359,10 +343,31 @@ mxd_powerpmac_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Redefining the current position is not yet implemented "
-		"for PowerPMAC-controlled motor '%s'.",
-			motor->record->name );
+	motor_data = powerpmac_motor->motor_data;
+
+#if POWERPMAC_DEBUG
+	MX_DEBUG(-2,("%s: ActPos = %g, HomePos = %g",
+		fname, motor_data->ActPos, motor_data->HomePos));
+#endif
+
+	current_position = motor_data->ActPos - motor_data->HomePos;
+
+	new_position = motor->raw_set_position.analog;
+
+	diff = new_position - current_position;
+
+#if POWERPMAC_DEBUG
+	MX_DEBUG(-2,("%s: current_position = %g, new_position = %g, diff = %g",
+		fname, current_position, new_position, diff ));
+#endif
+
+	motor_data->HomePos = motor_data->HomePos - diff;
+
+#if POWERPMAC_DEBUG
+	MX_DEBUG(-2,("%s: new HomePos = %g", fname, motor_data->HomePos));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -492,6 +497,7 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
+	MotorData *motor_data = NULL;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -501,19 +507,13 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	motor_data = powerpmac_motor->motor_data;
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
-						powerpmac, 22,
-						MXFT_DOUBLE, &double_value,
-						POWERPMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		/* Reported by the controller in count/msec. */
 
-		motor->raw_speed = 1000.0 * double_value;
+		motor->raw_speed = 1000.0 * motor_data->JogSpeed;
 		break;
 	case MXLV_MTR_BASE_SPEED:
 		/* The POWERPMAC doesn't seem to have the concept of
@@ -541,61 +541,29 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 		motor->raw_acceleration_parameters[3] = 0.0;
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
-		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
-						powerpmac, 0,
-						MXFT_BOOL, &double_value,
-						POWERPMAC_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( mx_round(double_value) != 0 ) {
+		if ( motor_data->ServoCtrl != 0 ) {
 			motor->axis_enable = TRUE;
 		} else {
 			motor->axis_enable = FALSE;
 		}
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 30, MXFT_DOUBLE,
-						&(motor->proportional_gain),
-						POWERPMAC_DEBUG );
+		motor->proportional_gain = motor_data->Servo.Kp;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 33, MXFT_DOUBLE,
-						&(motor->integral_gain),
-						POWERPMAC_DEBUG );
+		motor->integral_gain = motor_data->Servo.Ki;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 31, MXFT_DOUBLE,
-						&(motor->derivative_gain),
-						POWERPMAC_DEBUG );
+		motor->derivative_gain = motor_data->Servo.Kvfb;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 32, MXFT_DOUBLE,
-					&(motor->velocity_feedforward_gain),
-						POWERPMAC_DEBUG );
+		motor->velocity_feedforward_gain = motor_data->Servo.Kvff;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 35, MXFT_DOUBLE,
-					&(motor->acceleration_feedforward_gain),
-						POWERPMAC_DEBUG );
+		motor->acceleration_feedforward_gain = motor_data->Servo.Kaff;
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		mx_status = mxd_powerpmac_get_motor_variable(
-						powerpmac_motor,
-						powerpmac, 34, MXFT_DOUBLE,
-						&(motor->integral_limit),
-						POWERPMAC_DEBUG );
+		motor->integral_limit = motor_data->Servo.MaxInt;
 		break;
 	default:
 		mx_status = mx_motor_default_get_parameter_handler( motor );
@@ -612,8 +580,9 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
+	MotorData *motor_data = NULL;
+	char command[100];
 	double double_value;
-	long long_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -624,12 +593,7 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		double_value = 0.001 * motor->raw_speed;
-
-		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, 22,
-						MXFT_DOUBLE, double_value,
-						POWERPMAC_DEBUG );
+		motor_data->JogSpeed = 0.001 * motor->raw_speed;
 		break;
 	case MXLV_MTR_BASE_SPEED:
 		/* The POWERPMAC doesn't seem to have the concept of a
@@ -682,20 +646,28 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 			motor->axis_enable = TRUE;
 		}
 
-		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-					powerpmac, 0,
-					MXFT_BOOL, motor->axis_enable,
-					POWERPMAC_DEBUG );
+		if ( motor->axis_enable == FALSE ) {
+			snprintf( command, sizeof(command),
+			"#%ld out 0", powerpmac_motor->motor_number );
+
+			mx_status = mxi_powerpmac_command( powerpmac,
+					command, NULL, 0, POWERPMAC_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		motor_data->ServoCtrl = motor->axis_enable;
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
 			mx_status = mxd_powerpmac_jog_command(
-						powerpmac_motor, powerpmac,
-						"J/", NULL, 0, POWERPMAC_DEBUG );
+					powerpmac_motor, powerpmac,
+					"J/", NULL, 0, POWERPMAC_DEBUG );
 		} else {
 			mx_status = mxd_powerpmac_jog_command(
-						powerpmac_motor, powerpmac,
-						"K", NULL, 0, POWERPMAC_DEBUG );
+					powerpmac_motor, powerpmac,
+					"K", NULL, 0, POWERPMAC_DEBUG );
 		}
 		break;
 	case MXLV_MTR_FAULT_RESET:
@@ -704,52 +676,22 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 					NULL, 0, POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					30, MXFT_DOUBLE,
-					motor->proportional_gain,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.Kp = motor->proportional_gain;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					33, MXFT_DOUBLE,
-					motor->integral_gain,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.Ki = motor->integral_gain;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					31, MXFT_DOUBLE,
-					motor->derivative_gain,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.Kvfb = motor->derivative_gain;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					32, MXFT_DOUBLE,
-					motor->velocity_feedforward_gain,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.Kvff = motor->velocity_feedforward_gain;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					35, MXFT_DOUBLE,
-					motor->acceleration_feedforward_gain,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.Kaff = motor->acceleration_feedforward_gain;
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		long_value = mx_round( motor->integral_limit );
-
-		if ( long_value ) {
-			long_value = 1;
-		}
-
-		mx_status = mxd_powerpmac_set_motor_variable(
-					powerpmac_motor, powerpmac,
-					34, MXFT_DOUBLE,
-					long_value,
-					POWERPMAC_DEBUG );
+		motor_data->Servo.MaxInt = motor->integral_limit;
 		break;
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
