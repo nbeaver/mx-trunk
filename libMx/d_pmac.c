@@ -1602,6 +1602,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 	switch( pmac->port_type ) {
 	case MX_PMAC_PORT_TYPE_GPASCII:
+	case MX_PMAC_PORT_TYPE_GPLIB:
 		response_ptr = strchr( response, '=' );
 
 		if ( response_ptr == NULL ) {

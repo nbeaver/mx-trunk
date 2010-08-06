@@ -56,19 +56,11 @@ MX_MOTOR_FUNCTION_LIST mxd_powerpmac_motor_function_list = {
 	mxd_powerpmac_immediate_abort,
 	NULL,
 	NULL,
-#if 0
 	mxd_powerpmac_find_home_position,
 	mxd_powerpmac_constant_velocity_move,
 	mxd_powerpmac_get_parameter,
 	mxd_powerpmac_set_parameter,
 	mxd_powerpmac_simultaneous_start,
-#else
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-#endif
 	mxd_powerpmac_get_status
 };
 
@@ -415,7 +407,6 @@ mxd_powerpmac_immediate_abort( MX_MOTOR *motor )
 	return mx_status;
 }
 
-#if 0
 MX_EXPORT mx_status_type
 mxd_powerpmac_find_home_position( MX_MOTOR *motor )
 {
@@ -502,7 +493,6 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC_MOTOR *powerpmac_motor = NULL;
 	MX_POWERPMAC *powerpmac = NULL;
 	double double_value;
-	long gain_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -510,15 +500,6 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	switch( powerpmac->powerpmac_type ) {
-	case MX_POWERPMAC_TYPE_POWERPOWERPMAC:
-		gain_type = MXFT_DOUBLE;
-		break;
-	default:
-		gain_type = MXFT_LONG;
-		break;
-	}
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -577,42 +558,42 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 30, gain_type,
+						powerpmac, 30, MXFT_DOUBLE,
 						&(motor->proportional_gain),
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 33, gain_type,
+						powerpmac, 33, MXFT_DOUBLE,
 						&(motor->integral_gain),
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 31, gain_type,
+						powerpmac, 31, MXFT_DOUBLE,
 						&(motor->derivative_gain),
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 32, gain_type,
+						powerpmac, 32, MXFT_DOUBLE,
 					&(motor->velocity_feedforward_gain),
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 35, gain_type,
+						powerpmac, 35, MXFT_DOUBLE,
 					&(motor->acceleration_feedforward_gain),
 						POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		mx_status = mxd_powerpmac_get_motor_variable(
 						powerpmac_motor,
-						powerpmac, 34, gain_type,
+						powerpmac, 34, MXFT_DOUBLE,
 						&(motor->integral_limit),
 						POWERPMAC_DEBUG );
 		break;
@@ -633,7 +614,6 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	MX_POWERPMAC *powerpmac = NULL;
 	double double_value;
 	long long_value;
-	long gain_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_powerpmac_get_pointers( motor, &powerpmac_motor,
@@ -641,15 +621,6 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	switch( powerpmac->powerpmac_type ) {
-	case MX_POWERPMAC_TYPE_POWERPOWERPMAC:
-		gain_type = MXFT_DOUBLE;
-		break;
-	default:
-		gain_type = MXFT_LONG;
-		break;
-	}
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -735,35 +706,35 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					30, gain_type,
+					30, MXFT_DOUBLE,
 					motor->proportional_gain,
 					POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					33, gain_type,
+					33, MXFT_DOUBLE,
 					motor->integral_gain,
 					POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					31, gain_type,
+					31, MXFT_DOUBLE,
 					motor->derivative_gain,
 					POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					32, gain_type,
+					32, MXFT_DOUBLE,
 					motor->velocity_feedforward_gain,
 					POWERPMAC_DEBUG );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					35, gain_type,
+					35, MXFT_DOUBLE,
 					motor->acceleration_feedforward_gain,
 					POWERPMAC_DEBUG );
 		break;
@@ -776,7 +747,7 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 
 		mx_status = mxd_powerpmac_set_motor_variable(
 					powerpmac_motor, powerpmac,
-					34, gain_type,
+					34, MXFT_DOUBLE,
 					long_value,
 					POWERPMAC_DEBUG );
 		break;
@@ -868,22 +839,12 @@ mxd_powerpmac_simultaneous_start( long num_motor_records,
 
 		/* Append the part of the command referring to this motor. */
 
-		if ( powerpmac->num_cards > 1 ) {
-
-			length = strlen( command_buffer );
-			buffer_left = sizeof(command_buffer) - length;
-			ptr = command_buffer + length;
-
-			snprintf( ptr, buffer_left,
-				"@%lx", powerpmac_motor->card_number );
-		}
-
 		length = strlen( command_buffer );
 		buffer_left = sizeof(command_buffer) - length;
 		ptr = command_buffer + length;
 
 		snprintf( ptr, buffer_left,
-			"#%ldJ=%ld ", powerpmac_motor->motor_number, raw_steps );
+		    "#%ldJ=%ld ", powerpmac_motor->motor_number, raw_steps );
 	}
 
 	if ( powerpmac_interface_record == (MX_RECORD *) NULL ) {
@@ -901,8 +862,6 @@ mxd_powerpmac_simultaneous_start( long num_motor_records,
 
 	return mx_status;
 }
-
-#endif
 
 MX_EXPORT mx_status_type
 mxd_powerpmac_get_status( MX_MOTOR *motor )
@@ -1083,7 +1042,6 @@ mxd_powerpmac_jog_command( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	return mx_status;
 }
 
-#if 0
 MX_EXPORT mx_status_type
 mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 				MX_POWERPMAC *powerpmac,
@@ -1097,10 +1055,8 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	char command_buffer[100];
 	char response[100];
 	char *response_ptr;
-	char *ptr;
 	int num_items;
 	long long_value;
-	size_t length, buffer_left;
 	mx_status_type mx_status;
 
 	if ( powerpmac_motor == (MX_POWERPMAC_MOTOR *) NULL ) {
@@ -1113,24 +1069,8 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 			powerpmac_motor->record->name );
 	}
 
-	if ( powerpmac->num_cards > 1 ) {
-		snprintf( command_buffer, sizeof(command_buffer),
-			"@%lx", powerpmac_motor->card_number );
-	} else {
-		strlcpy( command_buffer, "", sizeof(command_buffer) );
-	}
-
-	length = strlen( command_buffer );
-	buffer_left = sizeof(command_buffer) - length;
-	ptr = command_buffer + length;
-
-	if ( powerpmac->powerpmac_type & MX_POWERPMAC_TYPE_TURBO ) {
-		snprintf( ptr, buffer_left,
-		    "I%02ld%02ld", powerpmac_motor->motor_number, variable_number );
-	} else {
-		snprintf( ptr, buffer_left,
-		    "I%ld%02ld", powerpmac_motor->motor_number, variable_number );
-	}
+	snprintf( command_buffer, sizeof(command_buffer),
+	    "I%ld%02ld", powerpmac_motor->motor_number, variable_number );
 
 	mx_status = mxi_powerpmac_command( powerpmac, command_buffer,
 				response, sizeof response, debug_flag );
@@ -1141,24 +1081,14 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	/* On PowerPMAC systems, the returned I-variable is prefixed with
 	 * an Ixx= string.  For example, if you ask for I130, the response
 	 * looks like I130=40
-	 *
-	 * For non-PowerPMAC systems, the value of the variable is returned
-	 * alone, without the name of the variable as a prefix.
 	 */
 
-	switch( powerpmac->port_type ) {
-	case MX_POWERPMAC_PORT_TYPE_GPASCII:
-		response_ptr = strchr( response, '=' );
+	response_ptr = strchr( response, '=' );
 
-		if ( response_ptr == NULL ) {
-			response_ptr = response;
-		} else {
-			response_ptr++;
-		}
-		break;
-	default:
+	if ( response_ptr == NULL ) {
 		response_ptr = response;
-		break;
+	} else {
+		response_ptr++;
 	}
 
 	/* Parse the returned value. */
@@ -1202,7 +1132,7 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG, MXFT_BOOL, and MXFT_DOUBLE are supported." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1220,9 +1150,7 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 	char command_buffer[100];
 	char response[100];
-	char *ptr;
 	long long_value;
-	size_t length, buffer_left;
 	mx_status_type mx_status;
 
 	if ( powerpmac_motor == (MX_POWERPMAC_MOTOR *) NULL ) {
@@ -1235,17 +1163,6 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 			powerpmac_motor->record->name );
 	}
 
-	if ( powerpmac->num_cards > 1 ) {
-		snprintf( command_buffer, sizeof(command_buffer),
-				"@%lx", powerpmac_motor->card_number );
-	} else {
-		strlcpy( command_buffer, "", sizeof(command_buffer) );
-	}
-
-	length = strlen( command_buffer );
-	buffer_left = sizeof(command_buffer) - length;
-	ptr = command_buffer + length;
-
 	switch( variable_type ) {
 	case MXFT_LONG:
 	case MXFT_BOOL:
@@ -1257,38 +1174,22 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 			long_value = 1;
 		}
 
-		if ( powerpmac->powerpmac_type & MX_POWERPMAC_TYPE_TURBO ) {
-			snprintf( ptr, buffer_left,
-				"I%02ld%02ld=%ld",
-				powerpmac_motor->motor_number,
-				variable_number,
-				long_value );
-		} else {
-			snprintf( ptr, buffer_left,
-				"I%ld%02ld=%ld",
-				powerpmac_motor->motor_number,
-				variable_number,
-				long_value );
-		}
+		snprintf( command_buffer, sizeof(command_buffer),
+			"I%ld%02ld=%ld",
+			powerpmac_motor->motor_number,
+			variable_number,
+			long_value );
 		break;
 	case MXFT_DOUBLE:
-		if ( powerpmac->powerpmac_type & MX_POWERPMAC_TYPE_TURBO ) {
-			snprintf( ptr, buffer_left,
-				"I%02ld%02ld=%f",
-				powerpmac_motor->motor_number,
-				variable_number,
-				double_value );
-		} else {
-			snprintf( ptr, buffer_left,
-				"I%ld%02ld=%f",
-				powerpmac_motor->motor_number,
-				variable_number,
-				double_value );
-		}
+		snprintf( command_buffer, sizeof(command_buffer),
+			"I%ld%02ld=%f",
+			powerpmac_motor->motor_number,
+			variable_number,
+			double_value );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG, MXFT_BOOL, and MXFT_DOUBLE are supported." );
 	}
 
 	mx_status = mxi_powerpmac_command( powerpmac, command_buffer,
@@ -1296,7 +1197,6 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 	return mx_status;
 }
-#endif
 
 #endif /* HAVE_POWER_PMAC_LIBRARY */
 
