@@ -591,6 +591,8 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	motor_data = powerpmac_motor->motor_data;
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		motor_data->JogSpeed = 0.001 * motor->raw_speed;
