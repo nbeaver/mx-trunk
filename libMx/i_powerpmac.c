@@ -27,16 +27,13 @@
 
 #if HAVE_POWER_PMAC_LIBRARY
 
+#include "gplib.h"	/* Delta Tau-provided include file. */
+
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_hrt_debug.h"
 
 #include "i_powerpmac.h"
-
-#include "gplib.h"
-
-#if MXI_POWERPMAC_DEBUG_TIMING
-#  include "mx_hrt_debug.h"
-#endif
 
 MX_RECORD_FUNCTION_LIST mxi_powerpmac_record_function_list = {
 	NULL,
@@ -186,6 +183,17 @@ mxi_powerpmac_open( MX_RECORD *record )
 	MX_DEBUG(-2, ("%s: POWERPMAC version: major = %ld, minor = %ld",
 		fname, powerpmac->major_version, powerpmac->minor_version));
 #endif
+
+	/* Get a pointer to the PowerPMAC shared memory. */
+
+	powerpmac->shared_mem = GetSharedMemPtr();
+
+	if ( powerpmac->shared_mem == (SHM *) NULL ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The attempt to get the shared memory pointer "
+		"for PowerPMAC '%s' using GetSharedMemPtr() failed.",
+			record->name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

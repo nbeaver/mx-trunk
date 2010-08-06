@@ -1,8 +1,8 @@
 #
 ppmac1 interface controller powerpmac "" ""
 #
-#m1     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 0 1
-#m2     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 0 2
-#m3     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 0 3
-#m4     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 0 4
+m1     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 1
+m2     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 2
+m3     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 3
+m4     device motor powerpmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 0.0001 0 um ppmac1 4
 timer1 device timer soft_timer "" ""

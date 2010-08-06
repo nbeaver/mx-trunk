@@ -19,7 +19,9 @@
 
 /*---*/
 
-#define MX_POWERPMAC_MAX_COMMAND_LENGTH	500
+#define MX_POWERPMAC_MAX_COMMAND_LENGTH		500
+
+#define MX_POWERPMAC_NUM_STATUS_CHARACTERS	16
 
 typedef struct {
 	MX_RECORD *record;
@@ -30,6 +32,7 @@ typedef struct {
 	char command[MX_POWERPMAC_MAX_COMMAND_LENGTH+1];
 	char response[MX_POWERPMAC_MAX_COMMAND_LENGTH+1];
 
+	struct SHM *shared_mem;
 } MX_POWERPMAC;
 
 #define MXLV_POWERPMAC_COMMAND			7001
