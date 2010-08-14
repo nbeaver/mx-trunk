@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -622,13 +622,25 @@ mxd_epics_mca_open( MX_RECORD *record )
 	} else {
 		epics_mca->is_dxp = TRUE;
 
-		mx_epics_pvname_init( &(epics_mca->icr_pv),
-			"%s%s.ICR", epics_mca->epics_detector_name,
+		if ( flags & MXF_EPICS_MCA_USE_VERBOSE_ICR_OCR_NAMES ) {
+			mx_epics_pvname_init( &(epics_mca->icr_pv),
+				"%s%s:InputCountRate.VAL",
+					epics_mca->epics_detector_name,
 					epics_mca->epics_dxp_name );
 
-		mx_epics_pvname_init( &(epics_mca->ocr_pv),
-			"%s%s.OCR", epics_mca->epics_detector_name,
+			mx_epics_pvname_init( &(epics_mca->ocr_pv),
+				"%s%s:OutputCountRate.VAL",
+					epics_mca->epics_detector_name,
 					epics_mca->epics_dxp_name );
+		} else {
+			mx_epics_pvname_init( &(epics_mca->icr_pv),
+				"%s%s.ICR", epics_mca->epics_detector_name,
+						epics_mca->epics_dxp_name );
+
+			mx_epics_pvname_init( &(epics_mca->ocr_pv),
+				"%s%s.OCR", epics_mca->epics_detector_name,
+						epics_mca->epics_dxp_name );
+		}
 	}
 
 #if MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK
