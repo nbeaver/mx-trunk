@@ -48,8 +48,6 @@ MX_RECORD_FUNCTION_LIST mxi_tcp232_record_function_list = {
 	mxi_tcp232_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_tcp232_open,
 	mxi_tcp232_close,
 	NULL,

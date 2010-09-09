@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,13 +35,11 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_pdi40motor_record_function_list = {
-	mxd_pdi40motor_initialize_type,
+	NULL,
 	mxd_pdi40motor_create_record_structures,
 	mxd_pdi40motor_finish_record_initialization,
-	mxd_pdi40motor_delete_record,
 	NULL,
-	mxd_pdi40motor_read_parms_from_hardware,
-	mxd_pdi40motor_write_parms_to_hardware,
+	NULL,
 	mxd_pdi40motor_open,
 	mxd_pdi40motor_close
 };
@@ -71,14 +69,6 @@ long mxd_pdi40motor_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_pdi40motor_rfield_def_ptr
 			= &mxd_pdi40motor_record_field_defaults[0];
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_pdi40motor_create_record_structures( MX_RECORD *record )
@@ -123,7 +113,8 @@ mxd_pdi40motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pdi40motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_pdi40motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40motor;
@@ -160,32 +151,129 @@ mxd_pdi40motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pdi40motor_delete_record( MX_RECORD *record )
+mxd_pdi40motor_open( MX_RECORD *record )
 {
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
+	static const char fname[] = "mxd_pdi40motor_open()";
 
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
+	MX_MOTOR *motor;
+	MX_PDI40_MOTOR *pdi40_motor;
+	MX_PDI40 *pdi40;
+	char buffer[80];
+	char c;
+	mx_status_type mx_status;
 
-		record->record_class_struct = NULL;
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
 	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			"MX_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	pdi40_motor = (MX_PDI40_MOTOR *) (record->record_type_struct);
+
+	if ( pdi40_motor == (MX_PDI40_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			"MX_PDI40_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	pdi40 = (MX_PDI40 *) pdi40_motor->pdi40_record->record_type_struct;
+
+	if ( pdi40 == (MX_PDI40 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			"MX_PDI40 pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	MX_DEBUG(2, ("mxd_pdi40motor_write_parms_to_hardware:"));
+	MX_DEBUG(2, ("  motor = %p, pdi40_motor = %p, pdi40 = %p",
+		motor, pdi40_motor, pdi40) );
+	MX_DEBUG(2, ("Record name = '%s', PDI40 name = '%s', name = '%c'",
+		record->name, pdi40->record->name, pdi40_motor->stepper_name));
+	MX_DEBUG(2, ("  stepper mode = '%c', speed = %ld, stop delay = %ld",
+		pdi40->stepper_mode, pdi40->stepper_speed,
+		pdi40->stepper_stop_delay));
+
+	/* Send the command to the PDI 40. */
+
+	snprintf( buffer, sizeof(buffer), "SE%c%c%ld;%ld",
+			pdi40_motor->stepper_name,
+			pdi40->stepper_mode,
+			pdi40->stepper_speed,
+			pdi40->stepper_stop_delay );
+
+	MX_DEBUG(2, ("SE buffer = '%s'", buffer) );
+
+	mx_status = mxi_pdi40_putline( pdi40, buffer, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read out the response. It should be a blank line, "OK",
+	 * a blank line, and then '>'.
+	 */
+
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( buffer, "" ) != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"Did not get blank line before the 'OK' response; instead saw '%s'",
+			buffer );
+	}
+
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( buffer, "OK" ) != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"Did not get 'OK' response to PDI40 command.  Response was '%s'",
+			buffer );
+	}
+
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( buffer, "" ) != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"Did not get blank line after the 'OK' response; instead saw '%s'",
+			buffer );
+	}
+
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( c != MX_PDI40_END_OF_RESPONSE ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+	"Did not see the PDI40 end of response character; instead saw '%c'",
+			c );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* Note that the values read in by mxd_pdi40motor_read_parms_from_hardware()
+/* Note that the values read in by mxd_pdi40motor_close()
  * apply to all three steppers, not just one.
  */
 
 MX_EXPORT mx_status_type
-mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
+mxd_pdi40motor_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pdi40motor_read_parms_from_hardware()";
+	static const char fname[] = "mxd_pdi40motor_close()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40_motor;
@@ -331,138 +419,6 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 	"Did not see the PDI40 end of response character; instead saw '%c'",
 			c );
 	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_pdi40motor_write_parms_to_hardware()";
-
-	MX_MOTOR *motor;
-	MX_PDI40_MOTOR *pdi40_motor;
-	MX_PDI40 *pdi40;
-	char buffer[80];
-	char c;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	pdi40_motor = (MX_PDI40_MOTOR *) (record->record_type_struct);
-
-	if ( pdi40_motor == (MX_PDI40_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_PDI40_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	pdi40 = (MX_PDI40 *) pdi40_motor->pdi40_record->record_type_struct;
-
-	if ( pdi40 == (MX_PDI40 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_PDI40 pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	MX_DEBUG(2, ("mxd_pdi40motor_write_parms_to_hardware:"));
-	MX_DEBUG(2, ("  motor = %p, pdi40_motor = %p, pdi40 = %p",
-		motor, pdi40_motor, pdi40) );
-	MX_DEBUG(2, ("Record name = '%s', PDI40 name = '%s', name = '%c'",
-		record->name, pdi40->record->name, pdi40_motor->stepper_name));
-	MX_DEBUG(2, ("  stepper mode = '%c', speed = %ld, stop delay = %ld",
-		pdi40->stepper_mode, pdi40->stepper_speed,
-		pdi40->stepper_stop_delay));
-
-	/* Send the command to the PDI 40. */
-
-	snprintf( buffer, sizeof(buffer), "SE%c%c%ld;%ld",
-			pdi40_motor->stepper_name,
-			pdi40->stepper_mode,
-			pdi40->stepper_speed,
-			pdi40->stepper_stop_delay );
-
-	MX_DEBUG(2, ("SE buffer = '%s'", buffer) );
-
-	mx_status = mxi_pdi40_putline( pdi40, buffer, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Read out the response. It should be a blank line, "OK",
-	 * a blank line, and then '>'.
-	 */
-
-	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( strcmp( buffer, "" ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Did not get blank line before the 'OK' response; instead saw '%s'",
-			buffer );
-	}
-
-	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( strcmp( buffer, "OK" ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Did not get 'OK' response to PDI40 command.  Response was '%s'",
-			buffer );
-	}
-
-	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( strcmp( buffer, "" ) != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Did not get blank line after the 'OK' response; instead saw '%s'",
-			buffer );
-	}
-
-	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( c != MX_PDI40_END_OF_RESPONSE ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Did not see the PDI40 end of response character; instead saw '%c'",
-			c );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_open( MX_RECORD *record )
-{
-	/* Nothing to do. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pdi40motor_close( MX_RECORD *record )
-{
-	/* Nothing to do. */
 
 	return MX_SUCCESSFUL_RESULT;
 }

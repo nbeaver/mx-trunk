@@ -38,8 +38,6 @@ MX_RECORD_FUNCTION_LIST mxd_linkam_t9x_temp_record_function_list = {
 	mx_motor_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_linkam_t9x_temp_open
 };
 

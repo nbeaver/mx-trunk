@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,18 +93,11 @@ typedef struct {
 
 /* First the input functions. */
 
-MX_API mx_status_type mxd_compumotor_din_initialize_type( long type );
 MX_API mx_status_type mxd_compumotor_din_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_din_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_din_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_din_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_din_write_parms_to_hardware(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_din_open( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_din_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_din_record_function_list;
@@ -116,18 +109,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_din_rfield_def_ptr;
 
 /* Second the output functions. */
 
-MX_API mx_status_type mxd_compumotor_dout_initialize_type( long type );
 MX_API mx_status_type mxd_compumotor_dout_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_dout_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_dout_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_dout_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_dout_write_parms_to_hardware(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_dout_open( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_dout_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,15 +75,10 @@ typedef struct {
 #define MX_PDI40_END_OF_LINE		'\015'
 #define MX_PDI40_END_OF_RESPONSE	'>'
 
-MX_API mx_status_type mxi_pdi40_initialize_type( long type );
 MX_API mx_status_type mxi_pdi40_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_pdi40_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxi_pdi40_open( MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_close( MX_RECORD *record );
 
 MX_API mx_status_type mxi_pdi40_getline( MX_PDI40 *pdi40,
 			char *buffer, int buffer_length, int debug_flag );

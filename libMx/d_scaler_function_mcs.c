@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxd_scaler_function_mcs_record_function_list = {
 	mxd_scaler_function_mcs_finish_record_initialization,
 	mxd_scaler_function_mcs_delete_record,
 	mxd_scaler_function_mcs_print_structure,
-	NULL,
-	NULL,
 	mxd_scaler_function_mcs_open
 };
 

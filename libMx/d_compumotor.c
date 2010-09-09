@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxd_compumotor_record_function_list = {
 	mxd_compumotor_finish_record_initialization,
 	NULL,
 	mxd_compumotor_print_structure,
-	NULL,
-	NULL,
 	mxd_compumotor_open,
 	mxd_compumotor_close,
 	NULL,

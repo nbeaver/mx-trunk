@@ -49,8 +49,6 @@ MX_RECORD_FUNCTION_LIST mxd_monochromator_record_function_list = {
 	mxd_monochromator_finish_record_initialization,
 	NULL,
 	mxd_monochromator_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_monochromator_open,
 	NULL
 };

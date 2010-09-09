@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,8 +38,6 @@
 MX_RECORD_FUNCTION_LIST mxd_aps_quadem_record_function_list = {
 	NULL,
 	mxd_aps_quadem_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

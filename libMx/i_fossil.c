@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,8 +46,6 @@ MX_RECORD_FUNCTION_LIST mxi_fossil_record_function_list = {
 	NULL,
 	mxi_fossil_create_record_structures,
 	mxi_fossil_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxi_fossil_open,

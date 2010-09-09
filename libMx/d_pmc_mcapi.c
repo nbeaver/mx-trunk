@@ -60,8 +60,6 @@ MX_RECORD_FUNCTION_LIST mxd_pmc_mcapi_record_function_list = {
 	mxd_pmc_mcapi_finish_record_initialization,
 	NULL,
 	mxd_pmc_mcapi_print_structure,
-	NULL,
-	NULL,
 	mxd_pmc_mcapi_open,
 	NULL,
 	NULL,

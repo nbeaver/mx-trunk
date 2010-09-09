@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_SOFT_MCA_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mca_record_function_list = {
 	mxd_soft_mca_finish_record_initialization,
 	mxd_soft_mca_delete_record,
 	mxd_soft_mca_print_structure,
-	NULL,
-	NULL,
 	mxd_soft_mca_open,
 	mxd_soft_mca_close
 };
@@ -62,8 +62,6 @@ long mxd_soft_mca_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_soft_mca_rfield_def_ptr
 			= &mxd_soft_mca_record_field_defaults[0];
-
-#define MXD_SOFT_MCA_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 

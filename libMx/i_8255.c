@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,13 +33,11 @@
 #include "i_8255.h"
 
 MX_RECORD_FUNCTION_LIST mxi_8255_record_function_list = {
-	mxi_8255_initialize_type,
-	mxi_8255_create_record_structures,
-	mxi_8255_finish_record_initialization,
-	mxi_8255_delete_record,
 	NULL,
-	mxi_8255_read_parms_from_hardware,
-	mxi_8255_write_parms_to_hardware,
+	mxi_8255_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
 	mxi_8255_open,
 	mxi_8255_close,
 	mxi_8255_finish_delayed_initialization
@@ -93,12 +91,6 @@ mxi_8255_get_pointers( MX_RECORD *record,
 /*=== Public functions ===*/
 
 MX_EXPORT mx_status_type
-mxi_8255_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_8255_create_record_structures( MX_RECORD *record )
 {
 	const char fname[] = "mxi_8255_create_record_structures()";
@@ -140,43 +132,6 @@ mxi_8255_create_record_structures( MX_RECORD *record )
 
 	i8255->delayed_initialization_in_progress = TRUE;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_8255_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_8255_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_8255_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_8255_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

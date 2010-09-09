@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,15 +27,12 @@
 #include "d_auto_filter.h"
 
 MX_RECORD_FUNCTION_LIST mxd_auto_filter_record_function_list = {
-	mxd_auto_filter_initialize_type,
+	NULL,
 	mxd_auto_filter_create_record_structures,
 	mxd_auto_filter_finish_record_initialization,
 	mxd_auto_filter_delete_record,
 	NULL,
-	mxd_auto_filter_dummy_function,
-	mxd_auto_filter_dummy_function,
-	mxd_auto_filter_open,
-	mxd_auto_filter_dummy_function
+	mxd_auto_filter_open
 };
 
 MX_AUTOSCALE_FUNCTION_LIST mxd_auto_filter_autoscale_function_list = {
@@ -99,12 +96,6 @@ mxd_auto_filter_get_pointers( MX_AUTOSCALE *autoscale,
 }
 
 /*****/
-
-MX_EXPORT mx_status_type
-mxd_auto_filter_initialize_type( long record_type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_auto_filter_create_record_structures( MX_RECORD *record )
@@ -270,12 +261,6 @@ MX_EXPORT mx_status_type
 mxd_auto_filter_open( MX_RECORD *record )
 {
 	return mx_autoscale_read_monitor( record, NULL );
-}
-
-MX_EXPORT mx_status_type
-mxd_auto_filter_dummy_function( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

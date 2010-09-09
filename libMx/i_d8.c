@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_D8_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,13 +30,11 @@
 #include "i_d8.h"
 
 MX_RECORD_FUNCTION_LIST mxi_d8_record_function_list = {
-	mxi_d8_initialize_type,
+	NULL,
 	mxi_d8_create_record_structures,
 	mxi_d8_finish_record_initialization,
-	mxi_d8_delete_record,
 	NULL,
-	mxi_d8_read_parms_from_hardware,
-	mxi_d8_write_parms_to_hardware,
+	NULL,
 	mxi_d8_open,
 	mxi_d8_close
 };
@@ -61,20 +61,10 @@ long mxi_d8_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_d8_rfield_def_ptr
 			= &mxi_d8_record_field_defaults[0];
 
-#define MXI_D8_DEBUG		FALSE
-
 static mx_status_type mxi_d8_construct_error_message( char *d8_response,
 				char *record_name, const char *fname );
 
 /*==========================*/
-
-MX_EXPORT mx_status_type
-mxi_d8_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_d8_create_record_structures( MX_RECORD *record )
@@ -138,37 +128,6 @@ mxi_d8_finish_record_initialization( MX_RECORD *record )
 
 	record->record_flags |= ( ~MXF_REC_OPEN );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_d8_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_d8_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_d8_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

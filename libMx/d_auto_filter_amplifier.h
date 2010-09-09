@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,6 @@ typedef struct {
 		offsetof(MX_AUTO_FILTER_AMP, amplifier_autoscale_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_initialize_type( long );
 MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_finish_record_initialization(
@@ -51,8 +50,6 @@ MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_finish_record_initialization(
 MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_delete_record(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_open( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_dummy_function(
-							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxd_auto_filter_amp_read_monitor(
 						MX_AUTOSCALE *autoscale );

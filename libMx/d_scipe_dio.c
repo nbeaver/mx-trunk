@@ -34,14 +34,7 @@
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_din_record_function_list = {
 	NULL,
-	mxd_scipe_din_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	mxd_scipe_din_create_record_structures
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_scipe_din_digital_input_function_list = {
@@ -65,14 +58,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_scipe_din_rfield_def_ptr
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_dout_record_function_list = {
 	NULL,
-	mxd_scipe_dout_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	mxd_scipe_dout_create_record_structures
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_scipe_dout_digital_output_function_list = {

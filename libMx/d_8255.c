@@ -31,15 +31,12 @@
 /* Initialize the Intel 8255 driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_8255_in_record_function_list = {
-	mxd_8255_in_initialize_type,
+	NULL,
 	mxd_8255_in_create_record_structures,
 	mxd_8255_in_finish_record_initialization,
-	mxd_8255_in_delete_record,
+	NULL,
 	mxd_8255_in_print_structure,
-	mxd_8255_in_read_parms_from_hardware,
-	mxd_8255_in_write_parms_to_hardware,
-	mxd_8255_in_open,
-	mxd_8255_in_close
+	mxd_8255_in_open
 };
 
 MX_GENERIC_FUNCTION_LIST mxd_8255_in_generic_function_list = {
@@ -66,15 +63,12 @@ MX_RECORD_FIELD_DEFAULTS *mxd_8255_in_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_8255_out_record_function_list = {
-	mxd_8255_out_initialize_type,
+	NULL,
 	mxd_8255_out_create_record_structures,
 	mxd_8255_out_finish_record_initialization,
-	mxd_8255_out_delete_record,
+	NULL,
 	mxd_8255_out_print_structure,
-	mxd_8255_out_read_parms_from_hardware,
-	mxd_8255_out_write_parms_to_hardware,
-	mxd_8255_out_open,
-	mxd_8255_out_close
+	mxd_8255_out_open
 };
 
 MX_GENERIC_FUNCTION_LIST mxd_8255_out_generic_function_list = {
@@ -184,15 +178,9 @@ mxd_8255_out_get_pointers( MX_RECORD *record, MX_8255_OUT **i8255_out,
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_8255_in_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_8255_in_create_record_structures()";
+        static const char fname[] = "mxd_8255_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_8255_IN *i8255_in;
@@ -228,7 +216,7 @@ mxd_8255_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_8255_in_finish_record_initialization()";
+        static const char fname[] = "mxd_8255_in_finish_record_initialization()";
 
         MX_8255_IN *i8255_in;
 
@@ -307,33 +295,14 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_8255_in_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_8255_in_print_structure()";
+	static const char fname[] = "mxd_8255_in_print_structure()";
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_8255_IN *i8255_in;
 	unsigned long value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -360,10 +329,10 @@ mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name       = %s\n", record->name);
 
-	status = mx_digital_input_read( record, &value );
+	mx_status = mx_digital_input_read( record, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "  value      = %lu\n", dinput->value);
 	fprintf(file, "  interface  = %s\n", i8255_in->interface_record->name);
@@ -373,58 +342,26 @@ mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_8255_in_read_parms_from_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_8255_in_read_parms_from_hardware()";
-
-	MX_DIGITAL_INPUT *dinput;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
-
-	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_DIGITAL_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	status = mxd_8255_in_read( dinput );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_8255_in_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_in_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_8255_in_open()";
+	static const char fname[] = "mxd_8255_in_open()";
 
 	MX_8255_IN *i8255_in;
 	MX_8255 *i8255;
 	uint8_t port_d_value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_8255_in_get_pointers( record, &i8255_in, &i8255, fname );
+	mx_status = mxd_8255_in_get_pointers( record, &i8255_in, &i8255, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the previous status of port D. */
 
-	status = mxi_8255_read_port( i8255, MX_8255_PORT_D, &port_d_value );
+	mx_status = mxi_8255_read_port( i8255, MX_8255_PORT_D, &port_d_value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the port to be an input port. */
 
@@ -450,37 +387,31 @@ mxd_8255_in_open( MX_RECORD *record )
 		"Illegal 8255 port number %d", i8255_in->port_number );
 	}
 
-	status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );
+	mx_status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_8255_in_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_8255_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_8255_in_read()";
+	static const char fname[] = "mxd_8255_in_read()";
 
 	MX_8255_IN *i8255_in;
 	MX_8255 *i8255;
 	uint8_t value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_8255_in_get_pointers( dinput->record,
+	mx_status = mxd_8255_in_get_pointers( dinput->record,
 						&i8255_in, &i8255, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_8255_read_port( i8255, i8255_in->port_number, &value );
+	mx_status = mxi_8255_read_port( i8255, i8255_in->port_number, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	dinput->value = (long) value;
 
@@ -490,15 +421,9 @@ mxd_8255_in_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_8255_out_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_8255_out_create_record_structures()";
+        static const char fname[] = "mxd_8255_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_8255_OUT *i8255_out;
@@ -535,7 +460,7 @@ mxd_8255_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_8255_out_finish_record_initialization()";
+        static const char fname[] = "mxd_8255_out_finish_record_initialization()";
 
         MX_8255_OUT *i8255_out;
 
@@ -614,33 +539,14 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_8255_out_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_8255_out_print_structure()";
+	static const char fname[] = "mxd_8255_out_print_structure()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_8255_OUT *i8255_out;
 	unsigned long value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -667,10 +573,10 @@ mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name       = %s\n", record->name);
 
-	status = mx_digital_output_read( record, &value );
+	mx_status = mx_digital_output_read( record, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "  value      = %lu\n", doutput->value);
 	fprintf(file, "  interface  = %s\n", i8255_out->interface_record->name);
@@ -680,78 +586,26 @@ mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_8255_out_read_parms_from_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_8255_out_read_parms_from_hardware()";
-
-	MX_DIGITAL_OUTPUT *doutput;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	doutput = (MX_DIGITAL_OUTPUT *) (record->record_class_struct);
-
-	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DIGITAL_OUTPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	status = mxd_8255_out_read( doutput );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_8255_out_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_8255_out_write_parms_to_hardware()";
-
-	MX_DIGITAL_OUTPUT *doutput;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	doutput = (MX_DIGITAL_OUTPUT *) (record->record_class_struct);
-
-	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DIGITAL_OUTPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	status = mxd_8255_out_write( doutput );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mxd_8255_out_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_8255_out_open()";
+	static const char fname[] = "mxd_8255_out_open()";
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
 	uint8_t port_d_value, mask;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_8255_out_get_pointers( record, &i8255_out, &i8255, fname );
+	mx_status = mxd_8255_out_get_pointers( record, &i8255_out, &i8255, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the previous status of port D. */
 
-	status = mxi_8255_read_port( i8255, MX_8255_PORT_D, &port_d_value );
+	mx_status = mxi_8255_read_port( i8255, MX_8255_PORT_D, &port_d_value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the port to be an output port. */
 
@@ -778,37 +632,31 @@ mxd_8255_out_open( MX_RECORD *record )
 		"Illegal 8255 port number %d", i8255_out->port_number );
 	}
 
-	status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );
+	mx_status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_8255_out_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_8255_out_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_8255_out_read()";
+	static const char fname[] = "mxd_8255_out_read()";
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
 	uint8_t value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_8255_out_get_pointers( doutput->record,
+	mx_status = mxd_8255_out_get_pointers( doutput->record,
 						&i8255_out, &i8255, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_8255_read_port( i8255, i8255_out->port_number, &value );
+	mx_status = mxi_8255_read_port( i8255, i8255_out->port_number, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	doutput->value = (long) value;
 
@@ -818,23 +666,23 @@ mxd_8255_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_8255_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_8255_out_write()";
+	static const char fname[] = "mxd_8255_out_write()";
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
 	uint8_t value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_8255_out_get_pointers( doutput->record,
+	mx_status = mxd_8255_out_get_pointers( doutput->record,
 						&i8255_out, &i8255, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	value = (uint8_t) ( doutput->value & 0xff );
 
-	status = mxi_8255_write_port( i8255, i8255_out->port_number, value );
+	mx_status = mxi_8255_write_port( i8255, i8255_out->port_number, value );
 
-	return status;
+	return mx_status;
 }
 

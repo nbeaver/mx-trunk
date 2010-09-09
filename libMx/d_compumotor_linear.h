@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,12 +55,9 @@ MX_API mx_status_type mxd_compumotor_linear_finish_record_initialization(
 MX_API mx_status_type mxd_compumotor_linear_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_linear_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_linear_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_compumotor_linear_write_parms_to_hardware(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_linear_open( MX_RECORD *record );
 MX_API mx_status_type mxd_compumotor_linear_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_compumotor_linear_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_linear_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_linear_get_position( MX_MOTOR *motor );

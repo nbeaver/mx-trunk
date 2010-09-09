@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2009 Illinois Institute of Technology
+ * Copyright 2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxd_brandeis_biocat_record_function_list = {
 	mxd_brandeis_biocat_initialize_type,
 	mxd_brandeis_biocat_create_record_structures,
 	mxd_brandeis_biocat_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_brandeis_biocat_open,

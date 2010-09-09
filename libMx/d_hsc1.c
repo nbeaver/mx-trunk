@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define HSC1_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,17 +34,15 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_hsc1_record_function_list = {
-	mxd_hsc1_initialize_type,
+	NULL,
 	mxd_hsc1_create_record_structures,
 	mxd_hsc1_finish_record_initialization,
-	mxd_hsc1_delete_record,
-	mxd_hsc1_print_structure,
-	mxd_hsc1_read_parms_from_hardware,
-	mxd_hsc1_write_parms_to_hardware,
-	mxd_hsc1_open,
-	mxd_hsc1_close,
 	NULL,
-	mxd_hsc1_resynchronize
+	mxd_hsc1_print_structure,
+	mxd_hsc1_open,
+	NULL,
+	NULL,
+	mxd_hsc1_open
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_hsc1_motor_function_list = {
@@ -76,8 +76,6 @@ long mxd_hsc1_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_hsc1_rfield_def_ptr
 			= &mxd_hsc1_record_field_defaults[0];
 
-#define HSC1_MOTOR_DEBUG	FALSE
-
 /* ==== Private function for the driver's use only. ==== */
 
 static mx_status_type
@@ -86,7 +84,7 @@ mxd_hsc1_get_pointers( MX_MOTOR *motor,
 			MX_HSC1_INTERFACE **hsc1_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_hsc1_get_pointers()";
+	static const char fname[] = "mxd_hsc1_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -140,17 +138,9 @@ mxd_hsc1_get_pointers( MX_MOTOR *motor,
 /*=== Public functions ===*/
 
 MX_EXPORT mx_status_type
-mxd_hsc1_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_hsc1_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_hsc1_create_record_structures()";
+	static const char fname[] = "mxd_hsc1_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -198,28 +188,9 @@ mxd_hsc1_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_hsc1_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_hsc1_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_hsc1_print_structure()";
+	static const char fname[] = "mxd_hsc1_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_RECORD *hsc1_interface_record;
@@ -304,35 +275,9 @@ mxd_hsc1_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_hsc1_read_parms_from_hardware( MX_RECORD *record )
-{
-	double position;
-
-	return mx_motor_get_position( record, &position );
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_hsc1_open( MX_RECORD *record )
 {
-	return mxd_hsc1_resynchronize( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_hsc1_resynchronize( MX_RECORD *record )
-{
-	const char fname[] = "mxd_hsc1_resynchronize()";
+	static const char fname[] = "mxd_hsc1_open()";
 
 	MX_MOTOR *motor;
 	MX_HSC1_INTERFACE *hsc1_interface;
@@ -391,7 +336,7 @@ mxd_hsc1_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_hsc1_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_hsc1_move_absolute()";
+	static const char fname[] = "mxd_hsc1_move_absolute()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -489,7 +434,7 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_hsc1_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_hsc1_get_position()";
+	static const char fname[] = "mxd_hsc1_get_position()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -534,7 +479,7 @@ mxd_hsc1_get_position( MX_MOTOR *motor )
 	num_items = sscanf( response, "%ld %ld", &a_steps, &b_steps );
 
 	if ( num_items != 2 ) {
-		(void) mxd_hsc1_resynchronize( motor->record );
+		(void) mxd_hsc1_open( motor->record );
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Did not find motor positions in response '%s'",
@@ -573,7 +518,7 @@ mxd_hsc1_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_hsc1_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_hsc1_set_position()";
+	static const char fname[] = "mxd_hsc1_set_position()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -603,7 +548,7 @@ mxd_hsc1_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_hsc1_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_hsc1_soft_abort()";
+	static const char fname[] = "mxd_hsc1_soft_abort()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
@@ -677,7 +622,7 @@ mxd_hsc1_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_hsc1_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_hsc1_find_home_position()";
+	static const char fname[] = "mxd_hsc1_find_home_position()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;

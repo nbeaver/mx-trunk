@@ -33,8 +33,6 @@ MX_RECORD_FUNCTION_LIST mxi_itc503_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_itc503_open
 };
 

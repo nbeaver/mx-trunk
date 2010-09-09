@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxd_network_mca_record_function_list = {
 	mxd_network_mca_finish_record_initialization,
 	mxd_network_mca_delete_record,
 	mxd_network_mca_print_structure,
-	mxd_network_mca_read_parms_from_hardware,
-	mxd_network_mca_write_parms_to_hardware,
 	mxd_network_mca_open,
 	mxd_network_mca_close,
 	NULL,
@@ -400,18 +398,6 @@ mxd_network_mca_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  maximum # of channels = %ld\n",
 					mca->maximum_num_channels);
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_network_mca_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_network_mca_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

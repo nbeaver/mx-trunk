@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DATABOX_SCALER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,19 +32,15 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_scaler_record_function_list = {
-	mxd_databox_scaler_initialize_type,
+	NULL,
 	mxd_databox_scaler_create_record_structures,
 	mxd_databox_scaler_finish_record_initialization,
-	mxd_databox_scaler_delete_record,
-	mxd_databox_scaler_print_structure,
-	mxd_databox_scaler_read_parms_from_hardware,
-	mxd_databox_scaler_write_parms_to_hardware,
-	mxd_databox_scaler_open,
-	mxd_databox_scaler_close
+	NULL,
+	mxd_databox_scaler_print_structure
 };
 
 MX_SCALER_FUNCTION_LIST mxd_databox_scaler_scaler_function_list = {
-	mxd_databox_scaler_clear,
+	NULL,
 	mxd_databox_scaler_overflow_set,
 	mxd_databox_scaler_read,
 	NULL,
@@ -68,8 +66,6 @@ long mxd_databox_scaler_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_scaler_rfield_def_ptr
 			= &mxd_databox_scaler_record_field_defaults[0];
-
-#define DATABOX_SCALER_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -130,15 +126,10 @@ mxd_databox_scaler_get_pointers( MX_SCALER *scaler,
 /*------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_databox_scaler_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_scaler_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_databox_scaler_create_record_structures()";
+	static const char fname[] =
+		"mxd_databox_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_DATABOX_SCALER *databox_scaler;
@@ -198,25 +189,6 @@ mxd_databox_scaler_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_databox_scaler_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_databox_scaler_print_structure()";
@@ -264,36 +236,6 @@ mxd_databox_scaler_print_structure( FILE *file, MX_RECORD *record )
 						scaler->dark_current);
 	fprintf(file, "  scaler flags          = %#lx\n", scaler->scaler_flags);
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_scaler_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_scaler_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_scaler_clear( MX_SCALER *scaler )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

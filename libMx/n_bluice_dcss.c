@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxn_bluice_dcss_server_record_function_list = {
 	NULL,
 	NULL,
 	mxn_bluice_dcss_server_print_structure,
-	NULL,
-	NULL,
 	mxn_bluice_dcss_server_open,
 	mxn_bluice_dcss_server_close,
 	NULL,

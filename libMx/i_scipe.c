@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005, 2008 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_SCIPE_SERVER_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +32,11 @@
 #include "i_scipe.h"
 
 MX_RECORD_FUNCTION_LIST mxi_scipe_record_function_list = {
-	mxi_scipe_initialize_type,
-	mxi_scipe_create_record_structures,
-	mxi_scipe_finish_record_initialization,
-	mxi_scipe_delete_record,
 	NULL,
-	mxi_scipe_read_parms_from_hardware,
-	mxi_scipe_write_parms_to_hardware,
+	mxi_scipe_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
 	mxi_scipe_open,
 	mxi_scipe_close,
 	NULL,
@@ -64,8 +64,6 @@ long mxi_scipe_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_scipe_rfield_def_ptr
 			= &mxi_scipe_record_field_defaults[0];
-
-#define MXI_SCIPE_SERVER_DEBUG		FALSE
 
 /* A private function for the use of the driver. */
 
@@ -114,12 +112,6 @@ mxi_scipe_get_pointers( MX_GENERIC *generic,
 /*==========================*/
 
 MX_EXPORT mx_status_type
-mxi_scipe_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_scipe_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_scipe_create_record_structures()";
@@ -153,48 +145,6 @@ mxi_scipe_create_record_structures( MX_RECORD *record )
 	generic->record = record;
 	scipe_server->record = record;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scipe_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scipe_delete_record( MX_RECORD *record )
-{
-	MX_SCIPE_SERVER *scipe_server = NULL;
-
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-
-	scipe_server = (MX_SCIPE_SERVER *) record->record_type_struct;
-
-        if ( scipe_server != NULL ) {
-                free( scipe_server );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scipe_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scipe_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

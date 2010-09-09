@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,8 +31,6 @@
 MX_RECORD_FUNCTION_LIST mxi_soft_camera_link_record_function_list = {
 	NULL,
 	mxi_soft_camera_link_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,21 +29,13 @@ typedef struct {
 	char motor_name;
 } MX_HSC1_MOTOR;
 
-MX_API mx_status_type mxd_hsc1_initialize_type( long type );
 MX_API mx_status_type mxd_hsc1_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_hsc1_finish_record_initialization(
 						MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_hsc1_print_structure( FILE *file,
 						MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_write_parms_to_hardware(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_hsc1_open( MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_close( MX_RECORD *record );
-MX_API mx_status_type mxd_hsc1_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_hsc1_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_hsc1_move_absolute( MX_MOTOR *motor );

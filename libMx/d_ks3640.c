@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list = {
 	mxd_ks3640_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_ks3640_read_parms_from_hardware,
-	mxd_ks3640_write_parms_to_hardware,
 	mxd_ks3640_open
 };
 
@@ -188,63 +186,6 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3640_read_parms_from_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_ks3640_read_parms_from_hardware()";
-
-	MX_ENCODER *encoder;
-	long current_value;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	encoder = (MX_ENCODER *)( record->record_class_struct );
-
-	if ( encoder == (MX_ENCODER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_ENCODER pointer passed is NULL." );
-	}
-
-	status = mx_encoder_read( record, &current_value );
-
-	if ( status.code != MXE_SUCCESS ) {
-		encoder->value = 0;
-	} else {
-		encoder->value = current_value;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3640_write_parms_to_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_ks3640_write_parms_to_hardware()";
-
-	MX_ENCODER *encoder;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	encoder = (MX_ENCODER *)( record->record_class_struct );
-
-	if ( encoder == (MX_ENCODER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_ENCODER pointer passed is NULL." );
-	}
-
-	status = mx_encoder_write( record, encoder->value );
-
-	return status;
 }
 
 MX_EXPORT mx_status_type

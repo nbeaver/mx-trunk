@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,10 +32,7 @@ MX_RECORD_FUNCTION_LIST mxv_position_select_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mx_receive_variable,
-	NULL,
-	mx_receive_variable,
-	NULL
+	mx_receive_variable
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_position_select_variable_function_list = {

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,8 +34,6 @@ MX_RECORD_FUNCTION_LIST mxi_hsc1_record_function_list = {
 	mxi_hsc1_initialize_type,
 	mxi_hsc1_create_record_structures,
 	mxi_hsc1_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxi_hsc1_open,

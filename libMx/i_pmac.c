@@ -60,8 +60,6 @@ MX_RECORD_FUNCTION_LIST mxi_pmac_record_function_list = {
 	mxi_pmac_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_pmac_open,
 	NULL,
 	NULL,

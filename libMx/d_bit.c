@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,15 +25,9 @@
 #include "d_bit.h"
 
 MX_RECORD_FUNCTION_LIST mxd_bit_in_record_function_list = {
-	mxd_bit_in_initialize_type,
-	mxd_bit_in_create_record_structures,
-	mxd_bit_in_finish_record_initialization,
-	mxd_bit_in_delete_record,
 	NULL,
-	mxd_bit_in_read_parms_from_hardware,
-	mxd_bit_in_write_parms_to_hardware,
-	mxd_bit_in_open,
-	mxd_bit_in_close
+	mxd_bit_in_create_record_structures,
+	mxd_bit_in_finish_record_initialization
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_bit_in_digital_input_function_list = {
@@ -56,15 +50,12 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bit_in_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_bit_out_record_function_list = {
-	mxd_bit_out_initialize_type,
+	NULL,
 	mxd_bit_out_create_record_structures,
 	mxd_bit_out_finish_record_initialization,
-	mxd_bit_out_delete_record,
 	NULL,
-	mxd_bit_out_read_parms_from_hardware,
-	mxd_bit_out_write_parms_to_hardware,
-	mxd_bit_out_open,
-	mxd_bit_out_close
+	NULL,
+	mxd_bit_out_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_bit_out_digital_output_function_list = {
@@ -88,15 +79,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bit_out_rfield_def_ptr
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_bit_in_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_bit_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_in_create_record_structures()";
+        static const char fname[] = "mxd_bit_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_BIT_IN *bit_in;
@@ -132,7 +117,7 @@ mxd_bit_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_in_finish_record_initialization()";
+        static const char fname[] = "mxd_bit_in_finish_record_initialization()";
 
         MX_BIT_IN *bit_in;
 	int i;
@@ -182,72 +167,9 @@ mxd_bit_in_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_bit_in_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_in_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_in_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_in_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_in_close( MX_RECORD *record )
-{
-	const char fname[] = "mxd_bit_in_close()";
-
-	MX_DIGITAL_INPUT *dinput;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
-
-	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_DIGITAL_INPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	mx_status = mxd_bit_in_read( dinput );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_bit_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_bit_in_read()";
+	static const char fname[] = "mxd_bit_in_read()";
 
 	MX_BIT_IN *bit_in;
 	unsigned long input_record_value;
@@ -281,15 +203,9 @@ mxd_bit_in_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_bit_out_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_bit_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_out_create_record_structures()";
+        static const char fname[] = "mxd_bit_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_BIT_OUT *bit_out;
@@ -326,7 +242,7 @@ mxd_bit_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_out_finish_record_initialization()";
+        static const char fname[] = "mxd_bit_out_finish_record_initialization()";
 
         MX_BIT_OUT *bit_out;
 	int i;
@@ -407,66 +323,9 @@ mxd_bit_out_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_bit_out_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_out_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_out_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_bit_out_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_bit_out_open()";
-
-	MX_DIGITAL_OUTPUT *doutput;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	doutput = (MX_DIGITAL_OUTPUT *) (record->record_class_struct);
-
-	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DIGITAL_OUTPUT pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	mx_status = mxd_bit_out_read( doutput );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_bit_out_close( MX_RECORD *record )
-{
-	const char fname[] = "mxd_bit_out_close()";
+	static const char fname[] = "mxd_bit_out_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	mx_status_type mx_status;
@@ -492,7 +351,7 @@ mxd_bit_out_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_bit_out_read()";
+	static const char fname[] = "mxd_bit_out_read()";
 
 	MX_BIT_OUT *bit_out;
 	unsigned long input_record_value;
@@ -526,7 +385,7 @@ mxd_bit_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_bit_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_bit_out_write()";
+	static const char fname[] = "mxd_bit_out_write()";
 
 	MX_BIT_OUT *bit_out;
 	unsigned long old_value, new_value, requested_value, shifted_value;

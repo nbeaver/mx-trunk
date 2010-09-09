@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxd_cm17a_doutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_cm17a_doutput_open
 };
 

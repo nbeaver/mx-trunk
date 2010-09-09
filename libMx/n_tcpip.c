@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxn_tcpip_server_record_function_list = {
 	mxn_tcpip_server_finish_record_initialization,
 	mxn_tcpip_server_delete_record,
 	NULL,
-	NULL,
-	NULL,
 	mxn_tcpip_server_open,
 	mxn_tcpip_server_close,
 	NULL,

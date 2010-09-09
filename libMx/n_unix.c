@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxn_unix_server_record_function_list = {
 	mxn_unix_server_finish_record_initialization,
 	mxn_unix_server_delete_record,
 	NULL,
-	NULL,
-	NULL,
 	mxn_unix_server_open,
 	mxn_unix_server_close,
 	NULL,

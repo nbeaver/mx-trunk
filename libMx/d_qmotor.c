@@ -16,7 +16,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,15 +36,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_q_motor_record_function_list = {
-	mxd_q_motor_initialize_type,
+	NULL,
 	mxd_q_motor_create_record_structures,
 	mxd_q_motor_finish_record_initialization,
-	mxd_q_motor_delete_record,
-	mxd_q_motor_print_motor_structure,
-	mxd_q_motor_read_parms_from_hardware,
-	mxd_q_motor_write_parms_to_hardware,
-	mxd_q_motor_open,
-	mxd_q_motor_close
+	NULL,
+	mxd_q_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_q_motor_motor_function_list = {
@@ -109,12 +105,6 @@ mxd_q_motor_get_pointers( MX_MOTOR *motor,
 }
 
 /* === */
-
-MX_EXPORT mx_status_type
-mxd_q_motor_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_q_motor_create_record_structures( MX_RECORD *record )
@@ -185,25 +175,6 @@ mxd_q_motor_finish_record_initialization( MX_RECORD *record )
 
 	motor->real_motor_record = q_motor->theta_motor_record;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_q_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -311,30 +282,6 @@ mxd_q_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		record->precision,
 		motor->raw_move_deadband.analog);
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_q_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_q_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_q_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_q_motor_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

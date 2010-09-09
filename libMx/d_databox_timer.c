@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,22 +34,15 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_timer_record_function_list = {
-	mxd_databox_timer_initialize_type,
-	mxd_databox_timer_create_record_structures,
-	mxd_databox_timer_finish_record_initialization,
-	mxd_databox_timer_delete_record,
 	NULL,
-	mxd_databox_timer_read_parms_from_hardware,
-	mxd_databox_timer_write_parms_to_hardware,
-	mxd_databox_timer_open,
-	mxd_databox_timer_close
+	mxd_databox_timer_create_record_structures
 };
 
 MX_TIMER_FUNCTION_LIST mxd_databox_timer_timer_function_list = {
 	mxd_databox_timer_is_busy,
 	mxd_databox_timer_start,
-	mxd_databox_timer_stop,
-	mxd_databox_timer_clear,
+	NULL,
+	NULL,
 	mxd_databox_timer_read,
 	mxd_databox_timer_get_mode,
 	mxd_databox_timer_set_mode,
@@ -130,15 +123,10 @@ mxd_databox_timer_get_pointers( MX_TIMER *timer,
 /*-----------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_databox_timer_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_timer_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_databox_timer_create_record_structures()";
+	static const char fname[] =
+		"mxd_databox_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_DATABOX_TIMER *databox_timer;
@@ -171,55 +159,6 @@ mxd_databox_timer_create_record_structures( MX_RECORD *record )
 
 	timer->record = record;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_timer_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -420,22 +359,6 @@ mxd_databox_timer_start( MX_TIMER *timer )
 	}
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_stop( MX_TIMER *timer )
-{
-	static const char fname[] = "mxd_databox_timer_stop()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"Stopping Databox timer '%s' is not supported.",
-		timer->record->name );
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_clear( MX_TIMER *timer )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

@@ -70,8 +70,6 @@ MX_RECORD_FUNCTION_LIST mxd_v4l2_input_record_function_list = {
 	mxd_v4l2_input_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_v4l2_input_open,
 	mxd_v4l2_input_close
 };

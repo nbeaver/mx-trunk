@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define SCIPE_SCALER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,13 +31,11 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_scaler_record_function_list = {
-	mxd_scipe_scaler_initialize_type,
+	NULL,
 	mxd_scipe_scaler_create_record_structures,
 	mxd_scipe_scaler_finish_record_initialization,
-	mxd_scipe_scaler_delete_record,
+	NULL,
 	mxd_scipe_scaler_print_structure,
-	mxd_scipe_scaler_read_parms_from_hardware,
-	mxd_scipe_scaler_write_parms_to_hardware,
 	mxd_scipe_scaler_open,
 	mxd_scipe_scaler_close
 };
@@ -67,8 +67,6 @@ long mxd_scipe_scaler_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_scipe_scaler_rfield_def_ptr
 			= &mxd_scipe_scaler_record_field_defaults[0];
-
-#define SCIPE_SCALER_DEBUG FALSE
 
 /* A private function for the use of the driver. */
 
@@ -137,12 +135,6 @@ mxd_scipe_scaler_get_pointers( MX_SCALER *scaler,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_scipe_scaler_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 {
 	const char fname[] = "mxd_scipe_scaler_create_record_structures()";
@@ -196,25 +188,6 @@ mxd_scipe_scaler_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_scipe_scaler_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
 	const char fname[] = "mxd_scipe_scaler_print_structure()";
@@ -264,18 +237,6 @@ mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 						scaler->dark_current);
 	fprintf(file, "  scaler flags          = %#lx\n", scaler->scaler_flags);
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

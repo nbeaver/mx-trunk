@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxi_prologix_record_function_list = {
 	NULL,
 	mxi_prologix_create_record_structures,
 	mx_gpib_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxi_prologix_open

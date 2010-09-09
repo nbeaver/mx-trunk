@@ -50,8 +50,6 @@ MX_RECORD_FUNCTION_LIST mxi_wago750_serial_record_function_list = {
 	mxi_wago750_serial_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_wago750_serial_open,
 	NULL,
 	NULL,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxd_epics_ccd_record_function_list = {
 	mxd_epics_ccd_initialize_type,
 	mxd_epics_ccd_create_record_structures,
 	mxd_epics_ccd_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_epics_ccd_open

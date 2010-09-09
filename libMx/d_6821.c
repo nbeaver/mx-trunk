@@ -62,8 +62,6 @@ MX_RECORD_FUNCTION_LIST mxd_6821_out_record_function_list = {
 	mxd_6821_out_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_6821_out_open
 };
 

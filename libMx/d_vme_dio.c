@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2001, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,6 @@
 MX_RECORD_FUNCTION_LIST mxd_vme_din_record_function_list = {
 	NULL,
 	mxd_vme_din_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -63,8 +61,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_vme_din_rfield_def_ptr
 MX_RECORD_FUNCTION_LIST mxd_vme_dout_record_function_list = {
 	NULL,
 	mxd_vme_dout_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

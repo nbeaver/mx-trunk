@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,15 +26,13 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_table_motor_record_function_list = {
-	mxd_table_motor_initialize_type,
+	NULL,
 	mxd_table_motor_create_record_structures,
 	mxd_table_motor_finish_record_initialization,
-	mxd_table_motor_delete_record,
+	NULL,
 	mxd_table_motor_print_motor_structure,
-	mxd_table_motor_read_parms_from_hardware,
-	mxd_table_motor_write_parms_to_hardware,
-	mxd_table_motor_open,
-	mxd_table_motor_close,
+	NULL,
+	NULL,
 	NULL,
 	mxd_table_motor_resynchronize
 };
@@ -132,15 +130,10 @@ mxd_table_motor_get_pointers( MX_MOTOR *motor,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_table_motor_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_table_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_table_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_table_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
@@ -180,7 +173,8 @@ mxd_table_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_table_motor_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_table_motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_table_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
@@ -224,25 +218,6 @@ mxd_table_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -318,30 +293,6 @@ mxd_table_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		move_deadband, motor->units,
 		motor->raw_move_deadband.analog );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_table_motor_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

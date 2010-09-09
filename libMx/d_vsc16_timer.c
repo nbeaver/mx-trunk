@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,10 +36,7 @@ MX_RECORD_FUNCTION_LIST mxd_vsc16_timer_record_function_list = {
 	mxd_vsc16_timer_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
-	mxd_vsc16_timer_open,
-	NULL
+	mxd_vsc16_timer_open
 };
 
 MX_TIMER_FUNCTION_LIST mxd_vsc16_timer_timer_function_list = {

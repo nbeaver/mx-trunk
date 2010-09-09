@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,6 @@
 /* Define private functions to handle CAMAC KS3344 ports. */
 
 static mx_status_type mxi_ks3344_reset_channel( MX_RS232 *rs232 );
-static mx_status_type mxi_ks3344_read_parms( MX_RS232 *rs232 );
 static mx_status_type mxi_ks3344_write_parms( MX_RS232 *rs232 );
 
 
@@ -44,8 +43,6 @@ MX_RECORD_FUNCTION_LIST mxi_ks3344_record_function_list = {
 	mxi_ks3344_finish_record_initialization,
 	NULL,
 	NULL,
-	mxi_ks3344_read_parms_from_hardware,
-	mxi_ks3344_write_parms_to_hardware,
 	mxi_ks3344_open,
 	mxi_ks3344_close
 };
@@ -119,7 +116,7 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxi_ks3344_finish_record_initialization()";
 
 	MX_KS3344 *ks3344;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	ks3344 = (MX_KS3344 *) record->record_type_struct;
 
@@ -141,10 +138,10 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 
 	/* Check to see if the RS-232 parameters are valid. */
 
-	status = mx_rs232_check_port_parameters( record );
+	mx_status = mx_rs232_check_port_parameters( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Mark the KS3344 device as being closed. */
 
@@ -154,66 +151,12 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_ks3344_read_parms_from_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_ks3344_read_parms_to_hardware()";
-
-	MX_RS232 *rs232;
-	mx_status_type status;
-
-	MX_DEBUG(-2, ("mxi_ks3344_read_parms_to_hardware() invoked."));
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL.");
-	}
-
-	rs232 = (MX_RS232 *) (record->record_class_struct);
-
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_RS232 pointer for record '%s' is NULL.", record->name);
-	}
-
-	status = mxi_ks3344_read_parms( rs232 );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxi_ks3344_write_parms_to_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_ks3344_write_parms_to_hardware()";
-
-	MX_RS232 *rs232;
-	mx_status_type status;
-
-	MX_DEBUG(-2, ("mxi_ks3344_write_parms_to_hardware() invoked."));
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL.");
-	}
-
-	rs232 = (MX_RS232 *) (record->record_class_struct);
-
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_RS232 pointer for record '%s' is NULL.", record->name);
-	}
-
-	status = mxi_ks3344_write_parms( rs232 );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mxi_ks3344_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_ks3344_open()";
 
 	MX_RS232 *rs232;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2, ("mxi_ks3344_open() invoked."));
 
@@ -229,9 +172,14 @@ mxi_ks3344_open( MX_RECORD *record )
 			"MX_RS232 structure pointer is NULL." );
 	}
 
-	status = mxi_ks3344_reset_channel( rs232 );
+	mx_status = mxi_ks3344_reset_channel( rs232 );
 
-	return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_ks3344_write_parms( rs232 );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -240,7 +188,7 @@ mxi_ks3344_close( MX_RECORD *record )
 	static const char fname[] = "mxi_ks3344_close()";
 
 	MX_RS232 *rs232;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2, ("mxi_ks3344_close() invoked."));
 
@@ -256,9 +204,9 @@ mxi_ks3344_close( MX_RECORD *record )
 			"MX_RS232 structure pointer is NULL." );
 	}
 
-	status = mxi_ks3344_reset_channel( rs232 );
+	mx_status = mxi_ks3344_reset_channel( rs232 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -462,7 +410,7 @@ mxi_ks3344_read( MX_RS232 *rs232,
 			size_t max_bytes_to_read,
 			size_t *bytes_read )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 	long i;
 
 	MX_DEBUG(-2, ("mxi_ks3344_read() invoked."));
@@ -474,9 +422,9 @@ mxi_ks3344_read( MX_RS232 *rs232,
 	rs232->transfer_flags = MXF_232_WAIT;
 
 	for ( i = 0; i < max_bytes_to_read; i++ ) {
-		status = mxi_ks3344_getchar( rs232, &buffer[i] );
+		mx_status = mxi_ks3344_getchar( rs232, &buffer[i] );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			i--;
 			continue;
 		}
@@ -493,7 +441,7 @@ mxi_ks3344_write( MX_RS232 *rs232,
 			size_t max_bytes_to_write,
 			size_t *bytes_written )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 	long i;
 
 	MX_DEBUG(-2, ("mxi_ks3344_write() invoked."));
@@ -503,10 +451,10 @@ mxi_ks3344_write( MX_RS232 *rs232,
 	rs232->transfer_flags = MXF_232_WAIT;
 
 	for ( i = 0; i < max_bytes_to_write; i++ ) {
-		status = mxi_ks3344_putchar( rs232, buffer[i] );
+		mx_status = mxi_ks3344_putchar( rs232, buffer[i] );
 
-		if ( status.code != MXE_SUCCESS ) {
-			return status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
 		}
 	}
 
@@ -573,14 +521,6 @@ mxi_ks3344_reset_channel( MX_RS232 *rs232 )
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}
-}
-
-static mx_status_type
-mxi_ks3344_read_parms( MX_RS232 *rs232 )
-{
-	MX_DEBUG(-2, ("mxi_ks3344_read_parms() not yet implemented."));
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type

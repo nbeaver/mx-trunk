@@ -129,8 +129,6 @@ MX_RECORD_FUNCTION_LIST mxi_tty_record_function_list = {
 	mxi_tty_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_tty_open,
 	mxi_tty_close,
 	NULL,

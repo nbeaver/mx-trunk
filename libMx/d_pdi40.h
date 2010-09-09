@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,16 +35,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40_MOTOR, stepper_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_pdi40motor_initialize_type( long type );
 MX_API mx_status_type mxd_pdi40motor_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_pdi40motor_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_pdi40motor_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_pdi40motor_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_pdi40motor_write_parms_to_hardware(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_pdi40motor_open( MX_RECORD *record );
 MX_API mx_status_type mxd_pdi40motor_close( MX_RECORD *record );
 

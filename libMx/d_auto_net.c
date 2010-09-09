@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,10 +30,7 @@ MX_RECORD_FUNCTION_LIST mxd_auto_network_record_function_list = {
 	mxd_auto_network_finish_record_initialization,
 	mxd_auto_network_delete_record,
 	NULL,
-	mxd_auto_network_dummy_function,
-	mxd_auto_network_dummy_function,
-	mxd_auto_network_open,
-	mxd_auto_network_close
+	mxd_auto_network_open
 };
 
 MX_AUTOSCALE_FUNCTION_LIST mxd_auto_network_autoscale_function_list = {
@@ -357,12 +354,6 @@ mxd_auto_network_close( MX_RECORD *record )
 
 	autoscale->num_monitor_offsets = 0L;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_auto_network_dummy_function( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

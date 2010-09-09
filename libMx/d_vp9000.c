@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,6 @@ MX_RECORD_FUNCTION_LIST mxd_vp9000_record_function_list = {
 	mxd_vp9000_finish_record_initialization,
 	NULL,
 	mxd_vp9000_print_structure,
-	NULL,
-	NULL,
 	mxd_vp9000_open,
 	NULL,
 	NULL,

@@ -52,8 +52,6 @@ MX_RECORD_FUNCTION_LIST mxi_pmc_mcapi_record_function_list = {
 	NULL,
 	NULL,
 	mxi_pmc_mcapi_print_structure,
-	NULL,
-	NULL,
 	mxi_pmc_mcapi_open,
 	mxi_pmc_mcapi_close,
 	NULL,

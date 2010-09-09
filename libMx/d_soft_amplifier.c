@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,15 +25,8 @@
 /* Initialize the amplifier driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_soft_amplifier_record_function_list = {
-	mxd_soft_amplifier_initialize_type,
-	mxd_soft_amplifier_create_record_structures,
-	mxd_soft_amplifier_finish_record_initialization,
-	mxd_soft_amplifier_delete_record,
 	NULL,
-	mxd_soft_amplifier_read_parms_from_hardware,
-	mxd_soft_amplifier_write_parms_to_hardware,
-	mxd_soft_amplifier_open,
-	mxd_soft_amplifier_close
+	mxd_soft_amplifier_create_record_structures
 };
 
 MX_AMPLIFIER_FUNCTION_LIST mxd_soft_amplifier_amplifier_function_list = {
@@ -62,12 +55,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_amplifier_rfield_def_ptr
 			= &mxd_soft_amplifier_record_field_defaults[0];
 
 /* === */
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_soft_amplifier_create_record_structures( MX_RECORD *record )
@@ -110,61 +97,6 @@ mxd_soft_amplifier_create_record_structures( MX_RECORD *record )
 	amplifier->gain_range[0] = 1.0;
 	amplifier->gain_range[1] = 1.0e10;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_delete_record( MX_RECORD *record )
-{
-	MX_SOFT_AMPLIFIER *soft_amplifier;
-
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	soft_amplifier = (MX_SOFT_AMPLIFIER *) record->record_type_struct;
-
-	if ( soft_amplifier != NULL ) {
-		free( soft_amplifier );
-
-		record->record_type_struct = NULL;
-	}
-
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_amplifier_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,13 +30,11 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_d8_motor_record_function_list = {
-	mxd_d8_motor_initialize_type,
+	NULL,
 	mxd_d8_motor_create_record_structures,
 	mxd_d8_motor_finish_record_initialization,
-	mxd_d8_motor_delete_record,
+	NULL,
 	mxd_d8_motor_print_structure,
-	mxd_d8_motor_read_parms_from_hardware,
-	mxd_d8_motor_write_parms_to_hardware,
 	mxd_d8_motor_open,
 	mxd_d8_motor_close
 };
@@ -129,14 +127,6 @@ mxd_d8_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_d8_motor_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_d8_motor_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_d8_motor_create_record_structures()";
@@ -184,25 +174,6 @@ mxd_d8_motor_finish_record_initialization( MX_RECORD *record )
 	mx_status = mx_motor_finish_record_initialization( record );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_d8_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -293,142 +264,6 @@ mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move deadband     = %g %s  (%g)\n\n",
 		move_deadband, motor->units,
 		motor->raw_move_deadband.analog );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_d8_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_d8_motor_read_parms_from_hardware()";
-
-	MX_MOTOR *motor;
-	MX_D8_MOTOR *d8_motor;
-	MX_RECORD *d8_record;
-	MX_D8 *d8;
-	double position;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	d8_motor = (MX_D8_MOTOR *) (record->record_type_struct);
-
-	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_D8_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	d8_record = (MX_RECORD *)
-			(d8_motor->d8_record);
-
-	if ( d8_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Interface record pointer for D8 motor '%s' is NULL.",
-			record->name );
-	}
-
-	d8 = (MX_D8 *)
-			(d8_record->record_type_struct);
-
-	if ( d8 == (MX_D8 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"MX_D8 pointer for D8 motor record '%s' is NULL.",
-			record->name );
-	}
-
-
-	/* Get the current position.  This has the side effect of
-	 * updating the position value in the MX_MOTOR structure.
-	 */
-
-	mx_status = mx_motor_get_position( record, &position );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* At present, the position is the only parameter we read out.
-	 * We rely on the non-volatile memory of the controller
-	 * for the rest of the controller parameters.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_d8_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_d8_motor_write_parms_to_hardware()";
-
-	MX_MOTOR *motor;
-	MX_D8_MOTOR *d8_motor;
-	MX_RECORD *d8_record;
-	MX_D8 *d8;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	d8_motor = (MX_D8_MOTOR *) (record->record_type_struct);
-
-	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_D8_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	d8_record = (MX_RECORD *)
-			(d8_motor->d8_record);
-
-	if ( d8_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Interface record pointer for D8 motor '%s' is NULL.",
-			record->name );
-	}
-
-	d8 = (MX_D8 *)(d8_record->record_type_struct);
-
-	if ( d8 == (MX_D8 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"MX_D8 pointer for D8 motor record '%s' is NULL.",
-			record->name );
-	}
-
-	/* === Now we can set the motor position. === */
-
-#if 0	/* For now, this is disabled. */
-
-	mx_status = mxd_d8_motor_set_position_steps(
-			motor, motor->raw_motor_steps );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* At present, the position is the only parameter we set here.
-	 * We rely on the non-volatile memory of the controller
-	 * for the rest of the controller parameters.
-	 */
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

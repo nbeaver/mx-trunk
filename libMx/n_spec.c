@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxn_spec_server_record_function_list = {
 	NULL,
 	mxn_spec_server_create_record_structures,
 	mxn_spec_server_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxn_spec_server_open,

@@ -215,8 +215,8 @@ mx_timer_stop( MX_RECORD *timer_record, double *seconds_left )
 	timer_stop = function_list->stop;
 
 	if ( timer_stop == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"stop function ptr for timer record '%s' is NULL.",
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Stopping timer '%s' is not supported.",
 			timer_record->name );
 	}
 

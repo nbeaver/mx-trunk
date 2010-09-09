@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,13 +29,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_e500_record_function_list = {
-	mxd_e500_initialize_type,
+	NULL,
 	mxd_e500_create_record_structures,
 	mxd_e500_finish_record_initialization,
-	mxd_e500_delete_record,
+	NULL,
 	mxd_e500_print_motor_structure,
-	mxd_e500_read_parms_from_hardware,
-	mxd_e500_write_parms_to_hardware,
 	mxd_e500_open,
 	mxd_e500_close
 };
@@ -69,14 +67,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr
 			= &mxd_e500_record_field_defaults[0];
 
 /* === */
-
-MX_EXPORT mx_status_type
-mxd_e500_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_e500_create_record_structures( MX_RECORD *record )
@@ -165,25 +155,6 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 			e500->subaddress );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_e500_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -279,83 +250,9 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_e500_read_parms_from_hardware( MX_RECORD *record )
+mxd_e500_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_e500_read_parms_from_hardware()";
-
-	MX_MOTOR *motor;
-	MX_E500 *e500;
-	mx_status_type status;
-	int32_t accumulator;
-	uint16_t actual_baserate;
-	int busy;
-
-	MX_DEBUG(2, ("mxd_e500_read_parms_from_hardware() called."));
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed is NULL.");
-	}
-
-	e500 = (MX_E500 *) (record->record_type_struct);
-
-	if ( e500 == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_E500 pointer for record '%s' is NULL.", record->name);
-	}
-
-	/* Is the motor currently moving?  If so, stop the motor. */
-
-	status = mx_e500_motor_busy( e500, &busy );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	if ( busy == TRUE ) {
-		status = mx_e500_soft_abort( e500 );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		mx_msleep(2000);   /* Wait 2 seconds for the motor to stop. */
-	}
-
-	status = mx_e500_read_absolute_accumulator( e500, &accumulator );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	motor->raw_position.stepper = accumulator;
-
-	status = mx_e500_read_baserate( e500, &actual_baserate );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_e500_read_pulse_parameter_reg( e500 );
-		
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_e500_read_correction_limit( e500 );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_e500_read_lam_mask( e500 );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_e500_write_parms_to_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_e500_write_parms_to_hardware()";
+	static const char fname[] = "mxd_e500_open()";
 
 	MX_MOTOR *motor;
 	MX_E500 *e500;
@@ -363,7 +260,7 @@ mxd_e500_write_parms_to_hardware( MX_RECORD *record )
 	int32_t accumulator;
 	int busy;
 
-	MX_DEBUG(2, ("mxd_e500_write_parms_to_hardware() called."));
+	MX_DEBUG(2, ("%s called.", fname));
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
@@ -426,17 +323,75 @@ mxd_e500_write_parms_to_hardware( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_e500_open( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxd_e500_open() invoked."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_e500_close( MX_RECORD *record )
 {
-	MX_DEBUG(2, ("mxd_e500_close() invoked."));
+	static const char fname[] = "mxd_e500_close()";
+
+	MX_MOTOR *motor;
+	MX_E500 *e500;
+	mx_status_type status;
+	int32_t accumulator;
+	uint16_t actual_baserate;
+	int busy;
+
+	MX_DEBUG(2, ("%s called.", fname));
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed is NULL.");
+	}
+
+	e500 = (MX_E500 *) (record->record_type_struct);
+
+	if ( e500 == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_E500 pointer for record '%s' is NULL.", record->name);
+	}
+
+	/* Is the motor currently moving?  If so, stop the motor. */
+
+	status = mx_e500_motor_busy( e500, &busy );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( busy == TRUE ) {
+		status = mx_e500_soft_abort( e500 );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		mx_msleep(2000);   /* Wait 2 seconds for the motor to stop. */
+	}
+
+	status = mx_e500_read_absolute_accumulator( e500, &accumulator );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	motor->raw_position.stepper = accumulator;
+
+	status = mx_e500_read_baserate( e500, &actual_baserate );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	status = mx_e500_read_pulse_parameter_reg( e500 );
+		
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	status = mx_e500_read_correction_limit( e500 );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	status = mx_e500_read_lam_mask( e500 );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	return MX_SUCCESSFUL_RESULT;
 }

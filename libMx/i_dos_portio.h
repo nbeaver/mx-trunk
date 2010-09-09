@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,17 +29,9 @@ MX_API mx_status_type mxi_dos_portio_finish_record_initialization(
 
 MX_API mx_status_type mxi_dos_portio_delete_record( MX_RECORD *record );
 
-MX_API mx_status_type mxi_dos_portio_read_parms_from_hardware(
-					MX_RECORD *record );
-
-MX_API mx_status_type mxi_dos_portio_write_parms_to_hardware(
-					MX_RECORD *record );
-
 MX_API mx_status_type mxi_dos_portio_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_dos_portio_close( MX_RECORD *record );
-
-MX_API mx_status_type mxi_dos_portio_dummy_function( MX_RECORD *record );
 
 MX_API uint8_t mxi_dos_portio_inp8( MX_RECORD *record,
 					unsigned long port_number );

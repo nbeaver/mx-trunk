@@ -41,8 +41,6 @@ MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list = {
 	mxd_pmac_finish_record_initialization,
 	NULL,
 	mxd_pmac_print_structure,
-	NULL,
-	NULL,
 	mxd_pmac_open,
 	NULL,
 	NULL,

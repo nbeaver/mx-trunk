@@ -17,7 +17,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,15 +43,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_aps_18id_motor_record_function_list = {
-	mxd_aps_18id_motor_initialize_type,
+	NULL,
 	mxd_aps_18id_motor_create_record_structures,
 	mxd_aps_18id_motor_finish_record_initialization,
-	mxd_aps_18id_motor_delete_record,
-	mxd_aps_18id_motor_print_motor_structure,
-	mxd_aps_18id_motor_read_parms_from_hardware,
-	mxd_aps_18id_motor_write_parms_to_hardware,
-	mxd_aps_18id_motor_open,
-	mxd_aps_18id_motor_close
+	NULL,
+	mxd_aps_18id_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_aps_18id_motor_motor_function_list = {
@@ -143,15 +139,10 @@ mxd_aps_18id_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_initialize_type( long type )
-{
-		return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_aps_18id_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_aps_18id_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
@@ -191,7 +182,8 @@ mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] ="mxd_aps_18id_motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_aps_18id_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
@@ -228,30 +220,10 @@ mxd_aps_18id_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-
-
-MX_EXPORT mx_status_type
 mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_aps_18id_motor_print_motor_structure()";
+	static const char fname[] =
+		"mxd_aps_18id_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
@@ -341,30 +313,6 @@ mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  positive limit                 = %g %s.\n\n",
 	    motor->raw_positive_limit.analog, motor->units);
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aps_18id_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aps_18id_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aps_18id_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aps_18id_motor_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

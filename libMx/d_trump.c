@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005, 2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_TRUMP_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,8 +44,6 @@ MX_RECORD_FUNCTION_LIST mxd_trump_record_function_list = {
 	mxd_trump_finish_record_initialization,
 	NULL,
 	mxd_trump_print_structure,
-	NULL,
-	NULL,
 	mxd_trump_open,
 	mxd_trump_close
 };
@@ -70,8 +70,6 @@ long mxd_trump_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_trump_rfield_def_ptr
 			= &mxd_trump_record_field_defaults[0];
-
-#define MXD_TRUMP_DEBUG		FALSE
 
 /* A private function for the use of the driver. */
 

@@ -15,7 +15,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,10 +43,8 @@ MX_RECORD_FUNCTION_LIST mxd_panther_record_function_list = {
 	mxd_panther_finish_record_initialization,
 	NULL,
 	mxd_panther_print_motor_structure,
-	mxd_panther_read_parms_from_hardware,
-	mxd_panther_write_parms_to_hardware,
 	mxd_panther_open,
-	mxd_panther_close,
+	NULL,
 	NULL,
 	mxd_panther_resynchronize
 };
@@ -379,7 +377,7 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
+static mx_status_type
 mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_panther_read_parms_from_hardware()";
@@ -750,7 +748,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
+static mx_status_type
 mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_panther_write_parms_to_hardware()";
@@ -1189,13 +1187,16 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_panther_open( MX_RECORD *record )
 {
-	return mxd_panther_resynchronize( record );
-}
+	mx_status_type mx_status;
 
-MX_EXPORT mx_status_type
-mxd_panther_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxd_panther_resynchronize( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_panther_write_parms_to_hardware( record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

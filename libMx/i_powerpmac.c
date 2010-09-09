@@ -41,8 +41,6 @@ MX_RECORD_FUNCTION_LIST mxi_powerpmac_record_function_list = {
 	mxi_powerpmac_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_powerpmac_open,
 	NULL,
 	NULL,

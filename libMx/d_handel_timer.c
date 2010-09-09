@@ -51,8 +51,6 @@ MX_RECORD_FUNCTION_LIST mxd_handel_timer_record_function_list = {
 	mxd_handel_timer_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_handel_timer_open
 };
 

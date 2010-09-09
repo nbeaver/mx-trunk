@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxd_interval_timer_record_function_list = {
 	NULL,
 	mxd_interval_timer_create_record_structures,
 	mxd_interval_timer_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_interval_timer_open,

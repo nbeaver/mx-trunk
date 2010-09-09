@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,13 +34,11 @@
 #include "i_vxi_memacc.h"
 
 MX_RECORD_FUNCTION_LIST mxi_vxi_memacc_record_function_list = {
-	mxi_vxi_memacc_initialize_type,
+	NULL,
 	mxi_vxi_memacc_create_record_structures,
 	mxi_vxi_memacc_finish_record_initialization,
-	mxi_vxi_memacc_delete_record,
+	NULL,
 	mxi_vxi_memacc_print_structure,
-	mxi_vxi_memacc_read_parms_from_hardware,
-	mxi_vxi_memacc_write_parms_to_hardware,
 	mxi_vxi_memacc_open,
 	mxi_vxi_memacc_close,
 	NULL,
@@ -182,12 +180,6 @@ mxi_vxi_memacc_get_pointers( MX_VME *vme,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxi_vxi_memacc_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_vxi_memacc_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_vxi_memacc_create_record_structures()";
@@ -255,25 +247,6 @@ mxi_vxi_memacc_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_vxi_memacc_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_vxi_memacc_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxi_vxi_memacc_print_structure()";
@@ -321,18 +294,6 @@ mxi_vxi_memacc_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf( file, "\n\n" );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_vxi_memacc_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_vxi_memacc_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

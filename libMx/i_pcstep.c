@@ -8,12 +8,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_PCSTEP_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -42,8 +44,6 @@ MX_RECORD_FUNCTION_LIST mxi_pcstep_record_function_list = {
 	mxi_pcstep_finish_record_initialization,
 	mxi_pcstep_delete_record,
 	mxi_pcstep_print_structure,
-	mxi_pcstep_read_parms_from_hardware,
-	mxi_pcstep_write_parms_to_hardware,
 	mxi_pcstep_open,
 	mxi_pcstep_close,
 	NULL,
@@ -66,14 +66,12 @@ long mxi_pcstep_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_pcstep_rfield_def_ptr
 			= &mxi_pcstep_record_field_defaults[0];
 
-#define MXI_PCSTEP_DEBUG	FALSE
-
 static mx_status_type
 mxi_pcstep_get_pointers( MX_RECORD *record,
 			MX_PCSTEP **pcstep,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_pcstep_get_pointers()";
+	static const char fname[] = "mxi_pcstep_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -108,7 +106,7 @@ mxi_pcstep_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxi_pcstep_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_create_record_structures()";
+	static const char fname[] = "mxi_pcstep_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_PCSTEP *pcstep;
@@ -153,7 +151,7 @@ mxi_pcstep_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pcstep_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_finish_record_initialization()";
+	static const char fname[] = "mxi_pcstep_finish_record_initialization()";
 
 	MX_PCSTEP *pcstep;
 
@@ -193,7 +191,7 @@ mxi_pcstep_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pcstep_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_print_structure()";
+	static const char fname[] = "mxi_pcstep_print_structure()";
 
 	MX_PCSTEP *pcstep;
 	MX_RECORD *this_record;
@@ -245,57 +243,15 @@ mxi_pcstep_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_pcstep_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pcstep_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxi_pcstep_write_parms_to_hardware()";
-
-	MX_PCSTEP *pcstep;
-	uint16_t limit_switch_polarity;
-	uint16_t enable_limit_switches;
-	mx_status_type mx_status;
-
-	pcstep = NULL;
-
-	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the polarity of the limit switches and home switches. */
-
-	limit_switch_polarity = (uint16_t) pcstep->limit_switch_polarity;
-
-	mx_status = mxi_pcstep_command( pcstep,
-				MX_PCSTEP_SET_LIMIT_SWITCH_POLARITY,
-				limit_switch_polarity, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Enable the limit switches. */
-
-	enable_limit_switches = (uint16_t) pcstep->enable_limit_switches;
-
-	mx_status = mxi_pcstep_command( pcstep,
-				MX_PCSTEP_ENABLE_LIMIT_SWITCH_INPUTS,
-				enable_limit_switches, NULL );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxi_pcstep_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_open()";
+	static const char fname[] = "mxi_pcstep_open()";
 
 	MX_PCSTEP *pcstep;
 	MX_RECORD *motor_record;
+	uint16_t limit_switch_polarity;
+	uint16_t enable_limit_switches;
+
 	int i;
 	mx_status_type mx_status;
 
@@ -390,12 +346,34 @@ mxi_pcstep_open( MX_RECORD *record )
 
 		return mx_status;
 	}
+
+	/* Set the polarity of the limit switches and home switches. */
+
+	limit_switch_polarity = (uint16_t) pcstep->limit_switch_polarity;
+
+	mx_status = mxi_pcstep_command( pcstep,
+				MX_PCSTEP_SET_LIMIT_SWITCH_POLARITY,
+				limit_switch_polarity, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Enable the limit switches. */
+
+	enable_limit_switches = (uint16_t) pcstep->enable_limit_switches;
+
+	mx_status = mxi_pcstep_command( pcstep,
+				MX_PCSTEP_ENABLE_LIMIT_SWITCH_INPUTS,
+				enable_limit_switches, NULL );
+
+	return mx_status;
 }
+
 
 MX_EXPORT mx_status_type
 mxi_pcstep_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_close()";
+	static const char fname[] = "mxi_pcstep_close()";
 
 	MX_PCSTEP *pcstep;
 	mx_status_type mx_status;
@@ -416,7 +394,7 @@ mxi_pcstep_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pcstep_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcstep_resynchronize()";
+	static const char fname[] = "mxi_pcstep_resynchronize()";
 
 	MX_PCSTEP *pcstep;
 	uint32_t long_status_word;
@@ -466,7 +444,7 @@ mxi_pcstep_resynchronize( MX_RECORD *record )
 MX_EXPORT uint16_t
 mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 {
-	const char fname[] = "mxi_pcstep_get_status_word()";
+	static const char fname[] = "mxi_pcstep_get_status_word()";
 
 	uint16_t result;
 	unsigned long port_address;
@@ -489,7 +467,7 @@ mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 static mx_status_type
 mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, uint16_t transmitted_word )
 {
-	const char fname[] = "mxi_pcstep_transmit_word()";
+	static const char fname[] = "mxi_pcstep_transmit_word()";
 
 	uint16_t status_word;
 	unsigned long i;
@@ -524,7 +502,7 @@ mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, uint16_t transmitted_word )
 static mx_status_type
 mxi_pcstep_receive_word( MX_PCSTEP *pcstep, uint16_t *received_word )
 {
-	const char fname[] = "mxi_pcstep_receive_word()";
+	static const char fname[] = "mxi_pcstep_receive_word()";
 
 	uint16_t original_received_word, status_word;
 	unsigned long i;
@@ -557,7 +535,7 @@ mxi_pcstep_receive_word( MX_PCSTEP *pcstep, uint16_t *received_word )
 MX_EXPORT mx_status_type
 mxi_pcstep_reset_errors( MX_PCSTEP *pcstep )
 {
-	const char fname[] = "mxi_pcstep_reset_errors()";
+	static const char fname[] = "mxi_pcstep_reset_errors()";
 
 	uint16_t status_word, received_word;
 	unsigned long i;
@@ -628,7 +606,7 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 			uint32_t command_argument,
 			uint32_t *command_response )
 {
-	const char fname[] = "mxi_pcstep_command()";
+	static const char fname[] = "mxi_pcstep_command()";
 
 	uint16_t command_word, current_word;
 	uint16_t received_word, return_packet_id;

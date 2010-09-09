@@ -129,8 +129,6 @@ MX_RECORD_FUNCTION_LIST mxd_aviex_pccd_record_function_list = {
 	mxd_aviex_pccd_finish_record_initialization,
 	mxd_aviex_pccd_delete_record,
 	NULL,
-	NULL,
-	NULL,
 	mxd_aviex_pccd_open,
 	mxd_aviex_pccd_close,
 	NULL,

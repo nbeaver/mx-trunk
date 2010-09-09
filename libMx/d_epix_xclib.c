@@ -68,8 +68,6 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
 	mxd_epix_xclib_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_epix_xclib_open,
 	mxd_epix_xclib_close,
 	NULL,

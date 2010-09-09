@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,13 +35,7 @@
 MX_RECORD_FUNCTION_LIST mxd_databox_mcs_record_function_list = {
 	mxd_databox_mcs_initialize_type,
 	mxd_databox_mcs_create_record_structures,
-	mxd_databox_mcs_finish_record_initialization,
-	mxd_databox_mcs_delete_record,
-	NULL,
-	mxd_databox_mcs_read_parms_from_hardware,
-	mxd_databox_mcs_write_parms_to_hardware,
-	mxd_databox_mcs_open,
-	mxd_databox_mcs_close
+	mxd_databox_mcs_finish_record_initialization
 };
 
 MX_MCS_FUNCTION_LIST mxd_databox_mcs_mcs_function_list = {
@@ -225,49 +219,6 @@ mxd_databox_mcs_finish_record_initialization( MX_RECORD *record )
 
 	databox->mcs_record = record;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_mcs_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_mcs_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_mcs_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_mcs_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_mcs_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

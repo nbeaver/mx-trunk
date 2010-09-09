@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,8 +49,6 @@ MX_RECORD_FUNCTION_LIST mxi_mmap_vme_record_function_list = {
 	mxi_mmap_vme_finish_record_initialization,
 	NULL,
 	mxi_mmap_vme_print_structure,
-	NULL,
-	NULL,
 	mxi_mmap_vme_open,
 	mxi_mmap_vme_close,
 	NULL,

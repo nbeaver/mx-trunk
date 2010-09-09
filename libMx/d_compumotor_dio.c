@@ -31,13 +31,11 @@
 /* Initialize the COMPUMOTOR digital I/O driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_compumotor_din_record_function_list = {
-	mxd_compumotor_din_initialize_type,
-	mxd_compumotor_din_create_record_structures,
-	mxd_compumotor_din_finish_record_initialization,
-	mxd_compumotor_din_delete_record,
 	NULL,
-	mxd_compumotor_din_read_parms_from_hardware,
-	mxd_compumotor_din_write_parms_to_hardware,
+	mxd_compumotor_din_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
 	mxd_compumotor_din_open,
 	mxd_compumotor_din_close
 };
@@ -63,15 +61,12 @@ MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_din_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_compumotor_dout_record_function_list = {
-	mxd_compumotor_dout_initialize_type,
-	mxd_compumotor_dout_create_record_structures,
-	mxd_compumotor_dout_finish_record_initialization,
-	mxd_compumotor_dout_delete_record,
 	NULL,
-	mxd_compumotor_dout_read_parms_from_hardware,
-	mxd_compumotor_dout_write_parms_to_hardware,
-	mxd_compumotor_dout_open,
-	mxd_compumotor_dout_close
+	mxd_compumotor_dout_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	mxd_compumotor_dout_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_compumotor_dout_digital_output_function_list
@@ -244,15 +239,10 @@ mxd_compumotor_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_compumotor_din_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_compumotor_din_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_compumotor_din_create_record_structures()";
+        static const char fname[] =
+		"mxd_compumotor_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_COMPUMOTOR_DINPUT *compumotor_dinput;
@@ -284,43 +274,6 @@ mxd_compumotor_din_create_record_structures( MX_RECORD *record )
         digital_input->record = record;
 
         return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_din_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_din_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_din_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_din_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -491,15 +444,10 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_compumotor_dout_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_compumotor_dout_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_compumotor_dout_create_record_structures()";
+        static const char fname[] =
+		"mxd_compumotor_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
@@ -532,43 +480,6 @@ mxd_compumotor_dout_create_record_structures( MX_RECORD *record )
         digital_output->record = record;
 
         return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_dout_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_dout_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_dout_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_dout_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -614,12 +525,6 @@ mxd_compumotor_dout_open( MX_RECORD *record )
 	mx_status = mxd_compumotor_dout_read( doutput );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_compumotor_dout_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

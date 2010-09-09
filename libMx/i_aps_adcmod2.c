@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxi_aps_adcmod2_record_function_list = {
 	NULL,
 	NULL,
 	mxi_aps_adcmod2_print_structure,
-	NULL,
-	NULL,
 	mxi_aps_adcmod2_open
 };
 

@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2009-2010
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxd_ls330_motor_record_function_list = {
 	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_ls330_motor_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_ls330_motor_open,
 	mxd_ls330_motor_close,
 	NULL,

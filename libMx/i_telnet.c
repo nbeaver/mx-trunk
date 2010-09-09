@@ -50,8 +50,6 @@ MX_RECORD_FUNCTION_LIST mxi_telnet_record_function_list = {
 	mxi_telnet_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_telnet_open,
 	mxi_telnet_close
 };

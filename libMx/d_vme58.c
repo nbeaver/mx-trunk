@@ -38,8 +38,6 @@ MX_RECORD_FUNCTION_LIST mxd_vme58_record_function_list = {
 	mxd_vme58_finish_record_initialization,
 	NULL,
 	mxd_vme58_print_structure,
-	NULL,
-	NULL,
 	mxd_vme58_open,
 	NULL,
 	NULL,

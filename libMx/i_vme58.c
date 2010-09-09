@@ -63,8 +63,6 @@ MX_RECORD_FUNCTION_LIST mxi_vme58_record_function_list = {
 	mxi_vme58_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_vme58_open,
 	mxi_vme58_close,
 	NULL,

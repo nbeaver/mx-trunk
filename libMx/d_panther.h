@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,10 +78,7 @@ MX_API mx_status_type mxd_panther_finish_record_initialization(
 							MX_RECORD *record);
 MX_API mx_status_type mxd_panther_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_panther_read_parms_from_hardware( MX_RECORD *record);
-MX_API mx_status_type mxd_panther_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_panther_open( MX_RECORD *record );
-MX_API mx_status_type mxd_panther_close( MX_RECORD *record );
 MX_API mx_status_type mxd_panther_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_panther_motor_is_busy( MX_MOTOR *motor );

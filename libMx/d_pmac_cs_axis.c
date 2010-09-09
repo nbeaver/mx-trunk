@@ -52,8 +52,6 @@ MX_RECORD_FUNCTION_LIST mxd_pmac_cs_axis_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_pmac_cs_axis_resynchronize
 };
 

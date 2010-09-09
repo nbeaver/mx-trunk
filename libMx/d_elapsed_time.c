@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008 Illinois Institute of Technology
+ * Copyright 1999-2003, 2007-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,15 +31,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_elapsed_time_record_function_list = {
-	mxd_elapsed_time_initialize_type,
+	NULL,
 	mxd_elapsed_time_create_record_structures,
 	mxd_elapsed_time_finish_record_initialization,
-	mxd_elapsed_time_delete_record,
-	mxd_elapsed_time_print_motor_structure,
-	mxd_elapsed_time_read_parms_from_hardware,
-	mxd_elapsed_time_write_parms_to_hardware,
-	mxd_elapsed_time_open,
-	mxd_elapsed_time_close
+	NULL,
+	mxd_elapsed_time_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list = {
@@ -74,17 +70,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_elapsed_time_rfield_def_ptr
 			= &mxd_elapsed_time_record_field_defaults[0];
 
 MX_EXPORT mx_status_type
-mxd_elapsed_time_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_elapsed_time_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_elapsed_time_create_record_structures()";
+	static const char fname[] =
+		"mxd_elapsed_time_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_ELAPSED_TIME_MOTOR *elapsed_time;
@@ -169,25 +158,6 @@ mxd_elapsed_time_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_elapsed_time_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_elapsed_time_print_motor_structure()";
@@ -249,30 +219,6 @@ mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 		motor->positive_limit, motor->units,
 		motor->raw_positive_limit.analog );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_elapsed_time_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

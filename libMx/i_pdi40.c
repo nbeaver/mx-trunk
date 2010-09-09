@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,15 +26,12 @@
 #include "i_pdi40.h"
 
 MX_RECORD_FUNCTION_LIST mxi_pdi40_record_function_list = {
-	mxi_pdi40_initialize_type,
+	NULL,
 	mxi_pdi40_create_record_structures,
 	mxi_pdi40_finish_record_initialization,
-	mxi_pdi40_delete_record,
 	NULL,
-	mxi_pdi40_read_parms_from_hardware,
-	mxi_pdi40_write_parms_to_hardware,
-	mxi_pdi40_open,
-	mxi_pdi40_close
+	NULL,
+	mxi_pdi40_open
 };
 
 MX_GENERIC_FUNCTION_LIST mxi_pdi40_generic_function_list = {
@@ -60,17 +57,9 @@ MX_RECORD_FIELD_DEFAULTS *mxi_pdi40_rfield_def_ptr
 			= &mxi_pdi40_record_field_defaults[0];
 
 MX_EXPORT mx_status_type
-mxi_pdi40_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_pdi40_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pdi40_create_record_structures()";
+	static const char fname[] = "mxi_pdi40_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_PDI40 *pdi40;
@@ -122,46 +111,15 @@ mxi_pdi40_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_pdi40_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pdi40_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pdi40_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_pdi40_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pdi40_open()";
+	static const char fname[] = "mxi_pdi40_open()";
 
 	MX_PDI40 *pdi40;
 	MX_RS232 *rs232;
 	char response[80];
 	char c;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("mxi_pdi40_open() invoked."));
 
@@ -199,26 +157,26 @@ mxi_pdi40_open( MX_RECORD *record )
 
 	/* Reset the PDI40 controller to its power-up configuration. */
 
-	status = mxi_pdi40_putline( pdi40, "RESET", FALSE );
+	mx_status = mxi_pdi40_putline( pdi40, "RESET", FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/******* Read the power up banner, which is four lines long. *******/
 
 		/* The first line is just '\0', CR, LF. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 		/* Read the identification banner. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "Welcome to the ITC232-A" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -228,10 +186,10 @@ mxi_pdi40_open( MX_RECORD *record )
 
 		/* Read the help message. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "? or h for help" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -241,10 +199,10 @@ mxi_pdi40_open( MX_RECORD *record )
 
 		/* Next line is just a bell character. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "\007" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -256,10 +214,10 @@ mxi_pdi40_open( MX_RECORD *record )
 		 * character.
 		 */
 
-	status = mxi_pdi40_getc( pdi40, &c, FALSE );
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( c != MX_PDI40_END_OF_RESPONSE ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -274,32 +232,6 @@ mxi_pdi40_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_pdi40_close( MX_RECORD *record )
-{
-	const char fname[] = "mxi_pdi40_close()";
-
-	MX_PDI40 *pdi40;
-
-	MX_DEBUG(2, ("mxi_pdi40_close() invoked."));
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL.");
-	}
-
-	pdi40 = (MX_PDI40 *) (record->record_class_struct);
-
-	if ( pdi40 == (MX_PDI40 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_PDI40 pointer for record '%s' is NULL.", record->name);
-	}
-
-	/* Nothing to do here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 /* === Functions specific to this driver. === */
 
 #define ALWAYS_SHOW_BUFFER  FALSE
@@ -308,21 +240,21 @@ MX_EXPORT mx_status_type
 mxi_pdi40_getline( MX_PDI40 *pdi40,
 		char *buffer, int buffer_length, int debug_flag )
 {
-	const char fname[] = "mxi_pdi40_getline()";
+	static const char fname[] = "mxi_pdi40_getline()";
 
 	char c;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("mxi_pdi40_getline() invoked."));
 	}
 
 	for ( i = 0; i < (buffer_length - 1) ; i++ ) {
-		status = mx_rs232_getchar( pdi40->rs232_record,
+		mx_status = mx_rs232_getchar( pdi40->rs232_record,
 						&c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			/* Make the buffer contents a valid C string
 			 * before returning, so that we can at least
 			 * see what appeared before the error.
@@ -337,10 +269,10 @@ mxi_pdi40_getline( MX_PDI40 *pdi40,
 
 				MX_DEBUG(-2,
 				("Failed with status = %ld, c = 0x%x '%c'",
-				status.code, c, c));
+				mx_status.code, c, c));
 			}
 
-			return status;
+			return mx_status;
 		}
 
 		if ( debug_flag ) {
@@ -359,16 +291,16 @@ mxi_pdi40_getline( MX_PDI40 *pdi40,
 
 			/* There is also a line feed character to throw away.*/
 
-			status = mx_rs232_getchar( pdi40->rs232_record,
+			mx_status = mx_rs232_getchar( pdi40->rs232_record,
 						&c, MXF_232_WAIT );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				if ( debug_flag ) {
 					MX_DEBUG(-2,
 			("mxi_pdi40_getline: failed to see linefeed."));
 				}
 
-				return status;
+				return mx_status;
 			}
 
 			if ( debug_flag ) {
@@ -385,12 +317,12 @@ mxi_pdi40_getline( MX_PDI40 *pdi40,
 	 */
 
 	if ( buffer[i-1] != MX_PDI40_END_OF_LINE ) {
-		status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Warning: Input buffer overrun." );
 
 		buffer[i] = '\0';
 	} else {
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		buffer[i-1] = '\0';
 	}
@@ -403,7 +335,7 @@ mxi_pdi40_getline( MX_PDI40 *pdi40,
 		MX_DEBUG(-2, ("mxi_pdi40_getline: buffer = '%s'", buffer) );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -411,7 +343,7 @@ mxi_pdi40_putline( MX_PDI40 *pdi40, char *buffer, int debug_flag )
 {
 	char *ptr;
 	char c;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 #if ALWAYS_SHOW_BUFFER
 	if ( 1 ) {
@@ -426,11 +358,11 @@ mxi_pdi40_putline( MX_PDI40 *pdi40, char *buffer, int debug_flag )
 	while ( *ptr != '\0' ) {
 		c = *ptr;
 
-		status = mx_rs232_putchar( pdi40->rs232_record,
+		mx_status = mx_rs232_putchar( pdi40->rs232_record,
 						c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
@@ -449,11 +381,11 @@ mxi_pdi40_putline( MX_PDI40 *pdi40, char *buffer, int debug_flag )
 
 		/* Send the end of string. */
 
-		status = mx_rs232_putchar( pdi40->rs232_record,
+		mx_status = mx_rs232_putchar( pdi40->rs232_record,
 						c, MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
@@ -468,9 +400,9 @@ mxi_pdi40_putline( MX_PDI40 *pdi40, char *buffer, int debug_flag )
 MX_EXPORT mx_status_type
 mxi_pdi40_getc( MX_PDI40 *pdi40, char *c, int debug_flag )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_rs232_getchar( pdi40->rs232_record, c, MXF_232_WAIT );
+	mx_status = mx_rs232_getchar( pdi40->rs232_record, c, MXF_232_WAIT );
 
 #if ALWAYS_SHOW_BUFFER
 	if ( 1 ) {
@@ -480,15 +412,15 @@ mxi_pdi40_getc( MX_PDI40 *pdi40, char *c, int debug_flag )
 		MX_DEBUG(-2, ("mxi_pdi40_getc: received 0x%x '%c'", *c, *c));
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxi_pdi40_putc( MX_PDI40 *pdi40, char c, int debug_flag )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_rs232_putchar( pdi40->rs232_record, c, MXF_232_WAIT );
+	mx_status = mx_rs232_putchar( pdi40->rs232_record, c, MXF_232_WAIT );
 
 #if ALWAYS_SHOW_BUFFER
 	if ( 1 ) {
@@ -498,7 +430,7 @@ mxi_pdi40_putc( MX_PDI40 *pdi40, char c, int debug_flag )
 		MX_DEBUG(-2, ("mxi_pdi40_putc: sent 0x%x '%c'", c, c));
 	}
 
-	return status;
+	return mx_status;
 }
 
 /* mxi_pdi40_is_any_motor_busy() exists because when a PDI40 stepping
@@ -512,12 +444,12 @@ mxi_pdi40_putc( MX_PDI40 *pdi40, char c, int debug_flag )
 MX_EXPORT mx_status_type
 mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 {
-	const char fname[] = "mxi_pdi40_is_any_motor_busy()";
+	static const char fname[] = "mxi_pdi40_is_any_motor_busy()";
 
 	MX_MOTOR *motor;
 	char buffer[80];
 	char c;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	/* First test the flag in the MX_PDI40 structure. */
 
@@ -537,9 +469,9 @@ mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 	 * mxi_pdi40_getline() will fail.
 	 */
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 
 		/* MXE_NOT_READY means that no characters were read
 		 * and the motor move is not complete.  In that case,
@@ -552,10 +484,10 @@ mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 
 		*a_motor_is_busy = TRUE;
 
-		if ( status.code == MXE_NOT_READY ) {
+		if ( mx_status.code == MXE_NOT_READY ) {
 			return MX_SUCCESSFUL_RESULT;
 		} else {
-			return status;
+			return mx_status;
 		}
 	}
 
@@ -569,10 +501,10 @@ mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 			buffer );
 	}
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "OK" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -580,10 +512,10 @@ mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 			buffer );
 	}
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -591,10 +523,10 @@ mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 			buffer );
 	}
 
-	status = mxi_pdi40_getc( pdi40, &c, FALSE );
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( c != MX_PDI40_END_OF_RESPONSE ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

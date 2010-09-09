@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2004-2006, 2008 Illinois Institute of Technology
+ * Copyright 2001-2002, 2004-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,12 +42,7 @@ MX_RECORD_FUNCTION_LIST mxv_mathop_record_function_list = {
 	mxv_mathop_initialize_type,
 	mxv_mathop_create_record_structures,
 	mxv_mathop_finish_record_initialization,
-	mx_default_delete_record_handler,
-	NULL,
-	mxv_mathop_dummy_function,
-	mxv_mathop_dummy_function,
-	mxv_mathop_dummy_function,
-	mxv_mathop_dummy_function
+	mx_default_delete_record_handler
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_mathop_variable_function_list = {

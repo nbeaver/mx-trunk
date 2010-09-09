@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003 Illinois Institute of Technology
+ * Copyright 2000-2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxd_scipe_motor_record_function_list = {
 	mxd_scipe_motor_finish_record_initialization,
 	NULL,
 	mxd_scipe_motor_print_structure,
-	NULL,
-	NULL,
 	mxd_scipe_motor_open,
 	NULL,
 	NULL,

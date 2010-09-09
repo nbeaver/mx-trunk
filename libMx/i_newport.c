@@ -37,15 +37,13 @@
 #include "i_newport.h"
 
 MX_RECORD_FUNCTION_LIST mxi_newport_record_function_list = {
-	mxi_newport_initialize_type,
+	NULL,
 	mxi_newport_create_record_structures,
 	mxi_newport_finish_record_initialization,
-	mxi_newport_delete_record,
 	NULL,
-	mxi_newport_read_parms_from_hardware,
-	mxi_newport_write_parms_to_hardware,
+	NULL,
 	mxi_newport_open,
-	mxi_newport_close,
+	NULL,
 	NULL,
 	mxi_newport_resynchronize
 };
@@ -159,12 +157,6 @@ mxi_newport_get_pointers( MX_GENERIC *generic,
 /*==========================*/
 
 MX_EXPORT mx_status_type
-mxi_newport_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_newport_create_record_structures( MX_RECORD *record )
 {
 	const char fname[] = "mxi_newport_create_record_structures()";
@@ -257,37 +249,6 @@ mxi_newport_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_newport_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_newport_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_newport_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_newport_open( MX_RECORD *record )
 {
 	const char fname[] = "mxi_newport_open()";
@@ -351,12 +312,6 @@ mxi_newport_open( MX_RECORD *record )
 
 	MX_DEBUG(2,("%s complete.", fname));
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_newport_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

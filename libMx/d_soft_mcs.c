@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_MCS_FUNCTION_LIST mxd_soft_mcs_mcs_function_list = {
 	mxd_soft_mcs_set_parameter
 };
 
-/* EPICS mcs data structures. */
+/* Soft MCS data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_mcs_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,

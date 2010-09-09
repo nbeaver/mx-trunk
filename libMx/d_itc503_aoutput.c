@@ -42,8 +42,6 @@ MX_RECORD_FUNCTION_LIST mxd_itc503_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_itc503_aoutput_resynchronize
 };
 

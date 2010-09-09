@@ -20,7 +20,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2008 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2008, 2010
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,8 +77,6 @@ MX_RECORD_FUNCTION_LIST mxi_ni488_record_function_list = {
 	mxi_ni488_finish_record_initialization,
 	NULL,
 	mxi_ni488_print_interface_structure,
-	NULL,
-	NULL,
 	mxi_ni488_open
 };
 

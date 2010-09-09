@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000, 2006 Illinois Institute of Technology
+ * Copyright 2000, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,10 +140,6 @@ MX_API mx_status_type mxi_pcstep_finish_record_initialization(
 MX_API mx_status_type mxi_pcstep_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxi_pcstep_print_structure( FILE *file,
 							MX_RECORD *record );
-MX_API mx_status_type mxi_pcstep_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_pcstep_write_parms_to_hardware(
-					MX_RECORD *record );
 MX_API mx_status_type mxi_pcstep_open( MX_RECORD *record );
 MX_API mx_status_type mxi_pcstep_close( MX_RECORD *record );
 MX_API mx_status_type mxi_pcstep_resynchronize( MX_RECORD *record );

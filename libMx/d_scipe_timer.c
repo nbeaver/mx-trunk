@@ -5,12 +5,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define SCIPE_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,15 +29,12 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_timer_record_function_list = {
-	mxd_scipe_timer_initialize_type,
+	NULL,
 	mxd_scipe_timer_create_record_structures,
 	mxd_scipe_timer_finish_record_initialization,
-	mxd_scipe_timer_delete_record,
 	NULL,
-	mxd_scipe_timer_read_parms_from_hardware,
-	mxd_scipe_timer_write_parms_to_hardware,
-	mxd_scipe_timer_open,
-	mxd_scipe_timer_close
+	NULL,
+	mxd_scipe_timer_open
 };
 
 MX_TIMER_FUNCTION_LIST mxd_scipe_timer_timer_function_list = {
@@ -63,8 +62,6 @@ long mxd_scipe_timer_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_scipe_timer_rfield_def_ptr
 			= &mxd_scipe_timer_record_field_defaults[0];
-
-#define SCIPE_TIMER_DEBUG FALSE
 
 /* A private function for the use of the driver. */
 
@@ -133,12 +130,6 @@ mxd_scipe_timer_get_pointers( MX_TIMER *timer,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_scipe_timer_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_scipe_timer_create_record_structures( MX_RECORD *record )
 {
 	const char fname[] = "mxd_scipe_timer_create_record_structures()";
@@ -179,37 +170,6 @@ MX_EXPORT mx_status_type
 mxd_scipe_timer_finish_record_initialization( MX_RECORD *record )
 {
 	return mx_timer_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_timer_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_timer_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_timer_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -260,12 +220,6 @@ mxd_scipe_timer_open( MX_RECORD *record )
 				command, record->name, response );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_scipe_timer_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

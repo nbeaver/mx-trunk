@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_uglide_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_uglide_resynchronize
 };
 

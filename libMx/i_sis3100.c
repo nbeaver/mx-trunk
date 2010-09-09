@@ -54,8 +54,6 @@ MX_RECORD_FUNCTION_LIST mxi_sis3100_record_function_list = {
 	mxi_sis3100_finish_record_initialization,
 	NULL,
 	mxi_sis3100_print_structure,
-	NULL,
-	NULL,
 	mxi_sis3100_open,
 	mxi_sis3100_close,
 	NULL,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,10 +34,8 @@ MX_RECORD_FUNCTION_LIST mxd_pcstep_record_function_list = {
 	mxd_pcstep_finish_record_initialization,
 	mxd_pcstep_delete_record,
 	mxd_pcstep_print_structure,
-	mxd_pcstep_read_parms_from_hardware,
-	mxd_pcstep_write_parms_to_hardware,
 	mxd_pcstep_open,
-	mxd_pcstep_close,
+	NULL,
 	NULL,
 	mxd_pcstep_resynchronize
 };
@@ -81,7 +79,7 @@ mxd_pcstep_get_pointers( MX_MOTOR *motor,
 				MX_PCSTEP **pcstep,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_pcstep_get_pointers()";
+	static const char fname[] = "mxd_pcstep_get_pointers()";
 
 	MX_RECORD *pcstep_controller_record;
 
@@ -140,7 +138,7 @@ mxd_pcstep_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_pcstep_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcstep_create_record_structures()";
+	static const char fname[] = "mxd_pcstep_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_PCSTEP_MOTOR *pcstep_motor;
@@ -180,7 +178,7 @@ mxd_pcstep_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcstep_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcstep_finish_record_initialization()";
+	static const char fname[] = "mxd_pcstep_finish_record_initialization()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -232,7 +230,7 @@ mxd_pcstep_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcstep_delete_record( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcstep_delete_record()";
+	static const char fname[] = "mxd_pcstep_delete_record()";
 
 	MX_PCSTEP *pcstep;
 	MX_PCSTEP_MOTOR *pcstep_motor;
@@ -291,7 +289,7 @@ mxd_pcstep_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcstep_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcstep_print_structure()";
+	static const char fname[] = "mxd_pcstep_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_PCSTEP_MOTOR *pcstep_motor;
@@ -376,15 +374,9 @@ mxd_pcstep_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcstep_read_parms_from_hardware( MX_RECORD *record )
+mxd_pcstep_open( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pcstep_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_pcstep_write_parms_to_hardware()";
+	static const char fname[] = "mxd_pcstep_open()";
 
 	MX_MOTOR *motor;
 	MX_PCSTEP_MOTOR *pcstep_motor;
@@ -507,43 +499,9 @@ mxd_pcstep_write_parms_to_hardware( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcstep_open( MX_RECORD *record )
-{
-	const char fname[] = "mxd_pcstep_open()";
-
-	MX_MOTOR *motor;
-	MX_PCSTEP_MOTOR *pcstep_motor;
-	MX_PCSTEP *pcstep;
-	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
-
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_pcstep_get_pointers( motor,
-					&pcstep_motor, &pcstep, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pcstep_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pcstep_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcstep_resynchronize()";
+	static const char fname[] = "mxd_pcstep_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_PCSTEP_MOTOR *pcstep_motor;
@@ -573,7 +531,7 @@ mxd_pcstep_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcstep_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_motor_is_busy()";
+	static const char fname[] = "mxd_pcstep_motor_is_busy()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -626,7 +584,7 @@ mxd_pcstep_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_move_absolute()";
+	static const char fname[] = "mxd_pcstep_move_absolute()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -789,7 +747,7 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_get_position()";
+	static const char fname[] = "mxd_pcstep_get_position()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -820,7 +778,7 @@ mxd_pcstep_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_set_position()";
+	static const char fname[] = "mxd_pcstep_set_position()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -860,7 +818,7 @@ mxd_pcstep_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_soft_abort()";
+	static const char fname[] = "mxd_pcstep_soft_abort()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -888,7 +846,7 @@ mxd_pcstep_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_immediate_abort()";
+	static const char fname[] = "mxd_pcstep_immediate_abort()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -916,7 +874,7 @@ mxd_pcstep_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_positive_limit_hit()";
+	static const char fname[] = "mxd_pcstep_positive_limit_hit()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -953,7 +911,7 @@ mxd_pcstep_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_negative_limit_hit()";
+	static const char fname[] = "mxd_pcstep_negative_limit_hit()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -990,7 +948,7 @@ mxd_pcstep_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_find_home_position()";
+	static const char fname[] = "mxd_pcstep_find_home_position()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -1064,7 +1022,7 @@ mxd_pcstep_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_constant_velocity_move()";
+	static const char fname[] = "mxd_pcstep_constant_velocity_move()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -1126,7 +1084,7 @@ mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_get_parameter()";
+	static const char fname[] = "mxd_pcstep_get_parameter()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
@@ -1228,7 +1186,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcstep_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcstep_set_parameter()";
+	static const char fname[] = "mxd_pcstep_set_parameter()";
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;

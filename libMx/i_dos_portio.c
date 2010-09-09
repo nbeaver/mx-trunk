@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,14 +56,7 @@
 
 MX_RECORD_FUNCTION_LIST mxi_dos_portio_record_function_list = {
 	mxi_dos_portio_initialize_type,
-	mxi_dos_portio_create_record_structures,
-	mxi_dos_portio_dummy_function,
-	mxi_dos_portio_dummy_function,
-	NULL,
-	mxi_dos_portio_dummy_function,
-	mxi_dos_portio_dummy_function,
-	mxi_dos_portio_dummy_function,
-	mxi_dos_portio_dummy_function
+	mxi_dos_portio_create_record_structures
 };
 
 MX_PORTIO_FUNCTION_LIST mxi_dos_portio_portio_function_list = {

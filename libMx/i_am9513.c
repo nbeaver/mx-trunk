@@ -37,13 +37,11 @@
 #include "i_am9513.h"
 
 MX_RECORD_FUNCTION_LIST mxi_am9513_record_function_list = {
-	mxi_am9513_initialize_type,
+	NULL,
 	mxi_am9513_create_record_structures,
-	mxi_am9513_finish_record_initialization,
-	mxi_am9513_delete_record,
+	NULL,
+	NULL,
 	mxi_am9513_print_structure,
-	mxi_am9513_read_parms_from_hardware,
-	mxi_am9513_write_parms_to_hardware,
 	mxi_am9513_open,
 	mxi_am9513_close,
 	NULL,
@@ -248,12 +246,6 @@ mxi_am9513_outp16( MX_AM9513 *am9513, long port_number,
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxi_am9513_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_am9513_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_am9513_create_record_structures()";
@@ -293,31 +285,6 @@ mxi_am9513_create_record_structures( MX_RECORD *record )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_am9513_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_am9513_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -374,18 +341,6 @@ mxi_am9513_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, ")\n");
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_am9513_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_am9513_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

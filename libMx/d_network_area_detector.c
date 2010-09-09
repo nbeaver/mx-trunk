@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,8 +34,6 @@ MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list = {
 	mxd_network_area_detector_initialize_type,
 	mxd_network_area_detector_create_record_structures,
 	mxd_network_area_detector_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_network_area_detector_open,

@@ -61,8 +61,6 @@ MX_RECORD_FUNCTION_LIST mxi_handel_record_function_list = {
 	mxi_handel_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_handel_open,
 	NULL,
 	NULL,

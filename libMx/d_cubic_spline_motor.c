@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,8 +30,6 @@ MX_RECORD_FUNCTION_LIST mxd_cubic_spline_motor_record_function_list = {
 	mxd_cubic_spline_motor_create_record_structures,
 	mxd_cubic_spline_motor_finish_record_initialization,
 	mxd_cubic_spline_motor_delete_record,
-	NULL,
-	NULL,
 	NULL,
 	mxd_cubic_spline_motor_open,
 	NULL,

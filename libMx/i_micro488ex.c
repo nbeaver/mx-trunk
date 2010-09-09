@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxi_micro488ex_record_function_list = {
 	mxi_micro488ex_finish_record_initialization,
 	NULL,
 	mxi_micro488ex_print_interface_structure,
-	NULL,
-	NULL,
 	mxi_micro488ex_open
 };
 

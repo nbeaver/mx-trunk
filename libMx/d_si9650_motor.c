@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005, 2007-2008 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxd_si9650_motor_record_function_list = {
 	mxd_si9650_motor_finish_record_initialization,
 	NULL,
 	mxd_si9650_motor_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_si9650_motor_open,
 	NULL,
 	NULL,

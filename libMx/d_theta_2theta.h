@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,20 +32,13 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_theta_2theta_motor_initialize_type( long type );
 MX_API mx_status_type mxd_theta_2theta_motor_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_theta_2theta_motor_finish_record_initialization(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_theta_2theta_motor_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_theta_2theta_motor_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_theta_2theta_motor_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_theta_2theta_motor_write_parms_to_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_theta_2theta_motor_open( MX_RECORD *record );
-MX_API mx_status_type mxd_theta_2theta_motor_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_theta_2theta_motor_get_position( MX_MOTOR *motor );

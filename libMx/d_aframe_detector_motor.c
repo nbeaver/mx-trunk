@@ -56,7 +56,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,17 +77,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_aframe_det_motor_record_function_list = {
-	mxd_aframe_det_motor_initialize_type,
+	NULL,
 	mxd_aframe_det_motor_create_record_structures,
 	mxd_aframe_det_motor_finish_record_initialization,
-	mxd_aframe_det_motor_delete_record,
-	mxd_aframe_det_motor_print_motor_structure,
-	mxd_aframe_det_motor_read_parms_from_hardware,
-	mxd_aframe_det_motor_write_parms_to_hardware,
-	mxd_aframe_det_motor_open,
-	mxd_aframe_det_motor_close,
 	NULL,
-	mxd_aframe_det_motor_resynchronize
+	mxd_aframe_det_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_aframe_det_motor_motor_function_list = {
@@ -175,15 +169,10 @@ mxd_aframe_det_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_aframe_det_motor_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_aframe_det_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_aframe_det_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_aframe_det_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
@@ -248,25 +237,6 @@ mxd_aframe_det_motor_finish_record_initialization( MX_RECORD *record )
 	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
 	motor->motor_flags |= MXF_MTR_CANNOT_QUICK_SCAN;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -376,36 +346,6 @@ mxd_aframe_det_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  dh             = '%s'\n",
 		aframe_detector_motor->dh_record->name );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_aframe_det_motor_resynchronize( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004 Illinois Institute of Technology
+ * Copyright 2001, 2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,8 +53,6 @@ MX_API_PRIVATE mx_status_type mxd_auto_network_delete_record(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_network_open( MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_network_close( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxd_auto_network_dummy_function(
-							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxd_auto_network_read_monitor(
 						MX_AUTOSCALE *autoscale );

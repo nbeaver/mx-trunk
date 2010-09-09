@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,8 +24,6 @@
 MX_API mx_status_type mxi_ks3344_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_ks3344_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxi_ks3344_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_open( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_close( MX_RECORD *record );
 

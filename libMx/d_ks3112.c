@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,6 @@ MX_RECORD_FUNCTION_LIST mxd_ks3112_record_function_list = {
 	mxd_ks3112_finish_record_initialization,
 	NULL,
 	mxd_ks3112_print_structure,
-	NULL,
-	NULL,
 	mxd_ks3112_open
 };
 

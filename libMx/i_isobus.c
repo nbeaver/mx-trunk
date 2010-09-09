@@ -33,8 +33,6 @@ MX_RECORD_FUNCTION_LIST mxi_isobus_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_isobus_open
 };
 

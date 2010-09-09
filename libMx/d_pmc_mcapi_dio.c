@@ -61,8 +61,6 @@ MX_RECORD_FUNCTION_LIST mxd_pmc_mcapi_din_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_pmc_mcapi_din_open
 };
 
@@ -88,8 +86,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pmc_mcapi_din_rfield_def_ptr
 MX_RECORD_FUNCTION_LIST mxd_pmc_mcapi_dout_record_function_list = {
 	NULL,
 	mxd_pmc_mcapi_dout_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

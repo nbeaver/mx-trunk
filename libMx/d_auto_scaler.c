@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,15 +27,9 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_autoscale_scaler_record_function_list = {
-	mxd_autoscale_scaler_initialize_type,
-	mxd_autoscale_scaler_create_record_structures,
-	mxd_autoscale_scaler_finish_record_initialization,
-	mxd_autoscale_scaler_delete_record,
 	NULL,
-	mxd_autoscale_scaler_read_parms_from_hardware,
-	mxd_autoscale_scaler_write_parms_to_hardware,
-	mxd_autoscale_scaler_open,
-	mxd_autoscale_scaler_close
+	mxd_autoscale_scaler_create_record_structures,
+	mxd_autoscale_scaler_finish_record_initialization
 };
 
 MX_SCALER_FUNCTION_LIST mxd_autoscale_scaler_scaler_function_list = {
@@ -131,15 +125,10 @@ mxd_autoscale_scaler_get_pointers( MX_SCALER *scaler,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_autoscale_scaler_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_autoscale_scaler_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_autoscale_scaler_create_record_structures()";
+	static const char fname[] =
+		"mxd_autoscale_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_AUTOSCALE_SCALER *auto_scaler;
@@ -211,54 +200,6 @@ mxd_autoscale_scaler_finish_record_initialization( MX_RECORD *record )
 			autoscale->record->name, record->name, record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_autoscale_scaler_delete_record( MX_RECORD *record )
-{
-	MX_AUTOSCALE_SCALER *auto_scaler;
-
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	auto_scaler = (MX_AUTOSCALE_SCALER *) record->record_type_struct;
-
-	if ( auto_scaler != NULL ) {
-		free( auto_scaler );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_autoscale_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_autoscale_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_autoscale_scaler_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_autoscale_scaler_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

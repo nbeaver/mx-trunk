@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,18 +90,10 @@ MX_API void mxi_am9513_outp16( MX_AM9513 *am9513, long port_number,
 
 /*---*/
 
-MX_API mx_status_type mxi_am9513_initialize_type( long type );
 MX_API mx_status_type mxi_am9513_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_am9513_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_am9513_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxi_am9513_print_structure( FILE *file,
 							MX_RECORD *record );
-MX_API mx_status_type mxi_am9513_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_am9513_write_parms_to_hardware(
-					MX_RECORD *record );
 MX_API mx_status_type mxi_am9513_open( MX_RECORD *record );
 MX_API mx_status_type mxi_am9513_close( MX_RECORD *record );
 MX_API mx_status_type mxi_am9513_resynchronize( MX_RECORD *record );

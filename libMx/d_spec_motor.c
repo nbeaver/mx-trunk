@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxd_spec_motor_record_function_list = {
 	mxd_spec_motor_finish_record_initialization,
 	NULL,
 	mxd_spec_motor_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_spec_motor_open
 };
 

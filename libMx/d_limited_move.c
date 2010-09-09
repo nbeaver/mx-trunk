@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxd_limited_move_record_function_list = {
 	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_limited_move_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_limited_move_open,
 	NULL,
 	NULL,

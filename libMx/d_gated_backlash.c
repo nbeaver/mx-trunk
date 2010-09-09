@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_gated_backlash_record_function_list = {
 	mx_motor_finish_record_initialization,
 	NULL,
 	mxd_gated_backlash_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_gated_backlash_open,
 	NULL,
 	NULL,

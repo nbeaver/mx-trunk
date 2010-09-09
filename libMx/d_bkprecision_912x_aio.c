@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,6 @@ MX_RECORD_FUNCTION_LIST mxd_bkprecision_912x_ain_record_function_list = {
 	NULL,
 	mxd_bkprecision_912x_ain_create_record_structures,
 	mx_analog_input_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_bkprecision_912x_ain_open
@@ -65,8 +63,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bkprecision_912x_ain_rfield_def_ptr
 MX_RECORD_FUNCTION_LIST mxd_bkprecision_912x_aout_record_function_list = {
 	NULL,
 	mxd_bkprecision_912x_aout_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

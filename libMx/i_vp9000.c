@@ -35,8 +35,6 @@ MX_RECORD_FUNCTION_LIST mxi_vp9000_record_function_list = {
 	mxi_vp9000_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_vp9000_open,
 	mxi_vp9000_close,
 	NULL,

@@ -71,8 +71,6 @@ MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list = {
 	mxd_handel_mca_finish_record_initialization,
 	NULL,
 	mxd_handel_mca_print_structure,
-	NULL,
-	NULL,
 	mxd_handel_mca_open,
 	mxd_handel_mca_close,
 	NULL,

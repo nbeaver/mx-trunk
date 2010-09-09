@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,17 +39,11 @@ typedef struct {
 
 #endif /* HAVE_NI_VISA && IS_MX_DRIVER */
 
-MX_API mx_status_type mxi_vxi_memacc_initialize_type( long type );
 MX_API mx_status_type mxi_vxi_memacc_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_vxi_memacc_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_vxi_memacc_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxi_vxi_memacc_print_structure( FILE *file,
-							MX_RECORD *record );
-MX_API mx_status_type mxi_vxi_memacc_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_vxi_memacc_write_parms_to_hardware(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_vxi_memacc_open( MX_RECORD *record );
 MX_API mx_status_type mxi_vxi_memacc_close( MX_RECORD *record );

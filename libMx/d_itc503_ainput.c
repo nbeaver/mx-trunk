@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_itc503_ainput_record_function_list = {
 	mx_analog_input_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_itc503_ainput_open,
 	NULL,
 	NULL,

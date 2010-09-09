@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,12 +30,8 @@ MX_RECORD_FUNCTION_LIST mxd_trans_motor_record_function_list = {
 	mxd_trans_motor_initialize_type,
 	mxd_trans_motor_create_record_structures,
 	mxd_trans_motor_finish_record_initialization,
-	mxd_trans_motor_delete_record,
-	mxd_trans_motor_print_motor_structure,
-	mxd_trans_motor_read_parms_from_hardware,
-	mxd_trans_motor_write_parms_to_hardware,
-	mxd_trans_motor_open,
-	mxd_trans_motor_close
+	NULL,
+	mxd_trans_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_trans_motor_motor_function_list = {
@@ -244,25 +240,6 @@ mxd_trans_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_trans_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_trans_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_trans_motor_print_motor_structure()";
@@ -351,30 +328,6 @@ mxd_trans_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	}
 	fprintf(file, ")\n");
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trans_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trans_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trans_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_trans_motor_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,8 +36,6 @@ MX_RECORD_FUNCTION_LIST mxd_cryostream600_motor_record_function_list = {
 	mxd_cryostream600_motor_finish_record_initialization,
 	mxd_cryostream600_motor_delete_record,
 	mxd_cryostream600_motor_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_cryostream600_motor_open,
 	NULL,
 	NULL,

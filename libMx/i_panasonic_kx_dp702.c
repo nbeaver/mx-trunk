@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,8 +27,6 @@
 MX_RECORD_FUNCTION_LIST mxi_panasonic_kx_dp702_record_function_list = {
 	NULL,
 	mxi_panasonic_kx_dp702_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

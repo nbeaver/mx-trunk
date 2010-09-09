@@ -40,8 +40,6 @@ MX_RECORD_FUNCTION_LIST mxd_epics_mca_record_function_list = {
 	mxd_epics_mca_finish_record_initialization,
 	mxd_epics_mca_delete_record,
 	mxd_epics_mca_print_structure,
-	NULL,
-	NULL,
 	mxd_epics_mca_open,
 	NULL
 };

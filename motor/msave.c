@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -120,6 +120,7 @@ motor_save_fn( int argc, char *argv[] )
 
 		if ( superclass_is_a_match == TRUE ) {
 
+#if 0
 			mx_status = mx_read_parms_from_hardware( record );
 
 			if ( mx_status.code != MXE_SUCCESS ) {
@@ -130,6 +131,7 @@ motor_save_fn( int argc, char *argv[] )
 				free( record_superclass_list );
 				return FAILURE;
 			}
+#endif
 		}
 
 		record = record->next_record;

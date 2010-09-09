@@ -39,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxd_epics_scaler_record_function_list = {
 	mxd_epics_scaler_finish_record_initialization,
 	NULL,
 	mxd_epics_scaler_print_structure,
-	NULL,
-	NULL,
 	mxd_epics_scaler_open,
 	NULL
 };

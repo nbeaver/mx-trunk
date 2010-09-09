@@ -34,8 +34,6 @@ MX_RECORD_FUNCTION_LIST mxi_linkam_t9x_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_linkam_t9x_open
 };
 

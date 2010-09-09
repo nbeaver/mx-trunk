@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_epics_timer_record_function_list = {
 	mxd_epics_timer_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_epics_timer_open,
 };
 

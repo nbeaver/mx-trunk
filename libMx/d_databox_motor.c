@@ -34,12 +34,10 @@ MX_RECORD_FUNCTION_LIST mxd_databox_motor_record_function_list = {
 	mxd_databox_motor_initialize_type,
 	mxd_databox_motor_create_record_structures,
 	mxd_databox_motor_finish_record_initialization,
-	mxd_databox_motor_delete_record,
+	NULL,
 	mxd_databox_motor_print_structure,
-	mxd_databox_motor_read_parms_from_hardware,
-	mxd_databox_motor_write_parms_to_hardware,
-	mxd_databox_motor_open,
-	mxd_databox_motor_close,
+	NULL,
+	NULL,
 	NULL,
 	mxd_databox_motor_resynchronize
 };
@@ -266,25 +264,6 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_databox_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_motor_print_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] = "mxd_databox_motor_print_structure()";
@@ -354,32 +333,6 @@ mxd_databox_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  steps per degree  = %g\n",
 		databox_motor->steps_per_degree );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_open( MX_RECORD *record )
-{
-	/* All of the necessary logic is handled in mxi_databox_open(). */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

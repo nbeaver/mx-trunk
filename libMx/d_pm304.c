@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2007, 2009
+ * Copyright 1999-2001, 2003-2004, 2006-2007, 2009-2010
  *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -40,8 +40,6 @@ MX_RECORD_FUNCTION_LIST mxd_pm304_record_function_list = {
 	mxd_pm304_finish_record_initialization,
 	NULL,
 	mxd_pm304_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_pm304_open,
 	mxd_pm304_close,
 	NULL,

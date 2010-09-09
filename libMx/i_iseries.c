@@ -39,8 +39,6 @@ MX_RECORD_FUNCTION_LIST mxi_iseries_record_function_list = {
 	mxi_iseries_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxi_iseries_open
 };
 

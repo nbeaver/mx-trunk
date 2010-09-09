@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,8 +40,6 @@ MX_RECORD_FUNCTION_LIST mxd_marccd_record_function_list = {
 	mxd_marccd_initialize_type,
 	mxd_marccd_create_record_structures,
 	mxd_marccd_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxd_marccd_open,

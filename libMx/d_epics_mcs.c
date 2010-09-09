@@ -42,8 +42,6 @@ MX_RECORD_FUNCTION_LIST mxd_epics_mcs_record_function_list = {
 	mxd_epics_mcs_finish_record_initialization,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
 	mxd_epics_mcs_open
 };
 

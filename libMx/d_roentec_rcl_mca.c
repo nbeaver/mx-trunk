@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2008 Illinois Institute of Technology
+ * Copyright 2004-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,8 +44,6 @@ MX_RECORD_FUNCTION_LIST mxd_roentec_rcl_record_function_list = {
 	mxd_roentec_rcl_create_record_structures,
 	mxd_roentec_rcl_finish_record_initialization,
 	mxd_roentec_rcl_delete_record,
-	NULL,
-	NULL,
 	NULL,
 	mxd_roentec_rcl_open,
 	NULL,

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,8 +42,6 @@ MX_RECORD_FUNCTION_LIST mxd_mdrive_record_function_list = {
 	mxd_mdrive_finish_record_initialization,
 	NULL,
 	mxd_mdrive_print_motor_structure,
-	NULL,
-	NULL,
 	mxd_mdrive_open,
 	NULL,
 	NULL,

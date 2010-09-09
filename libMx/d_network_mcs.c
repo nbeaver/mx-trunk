@@ -37,8 +37,6 @@ MX_RECORD_FUNCTION_LIST mxd_network_mcs_record_function_list = {
 	mxd_network_mcs_finish_record_initialization,
 	NULL,
 	mxd_network_mcs_print_structure,
-	NULL,
-	NULL,
 	mxd_network_mcs_open
 };
 

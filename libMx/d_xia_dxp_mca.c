@@ -80,8 +80,6 @@ MX_RECORD_FUNCTION_LIST mxd_xia_dxp_record_function_list = {
 	mxd_xia_dxp_finish_record_initialization,
 	NULL,
 	mxd_xia_dxp_print_structure,
-	NULL,
-	NULL,
 	mxd_xia_dxp_open,
 	mxd_xia_dxp_close,
 	NULL,

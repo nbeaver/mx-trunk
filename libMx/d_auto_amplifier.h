@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,6 @@ typedef struct {
 		offsetof(MX_AUTO_AMPLIFIER, present_amplifier_gain), \
 	{0}, NULL, 0 }
 
-MX_API_PRIVATE mx_status_type mxd_auto_amplifier_initialize_type( long );
 MX_API_PRIVATE mx_status_type mxd_auto_amplifier_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_amplifier_finish_record_initialization(
@@ -37,8 +36,6 @@ MX_API_PRIVATE mx_status_type mxd_auto_amplifier_finish_record_initialization(
 MX_API_PRIVATE mx_status_type mxd_auto_amplifier_delete_record(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxd_auto_amplifier_open( MX_RECORD *record );
-MX_API_PRIVATE mx_status_type mxd_auto_amplifier_dummy_function(
-							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxd_auto_amplifier_read_monitor(
 						MX_AUTOSCALE *autoscale );

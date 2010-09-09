@@ -342,8 +342,6 @@ typedef struct {
 	mx_status_type ( *finish_record_initialization )( MX_RECORD * );
 	mx_status_type ( *delete_record )( MX_RECORD * );
 	mx_status_type ( *print_structure )( FILE *file, MX_RECORD *record );
-	mx_status_type ( *read_parms_from_hardware )( MX_RECORD *record );
-	mx_status_type ( *write_parms_to_hardware )( MX_RECORD *record );
 	mx_status_type ( *open )( MX_RECORD *record );
 	mx_status_type ( *close )( MX_RECORD *record );
 	mx_status_type ( *finish_delayed_initialization )( MX_RECORD *record );
@@ -583,8 +581,6 @@ MX_API mx_status_type  mx_print_field_value( FILE *file,
 					MX_RECORD_FIELD *field,
 					void *value_ptr,
 					mx_bool_type verbose_flag );
-
-MX_API mx_status_type  mx_read_parms_from_hardware( MX_RECORD *record );
 
 MX_API mx_status_type  mx_open_hardware( MX_RECORD *record );
 MX_API mx_status_type  mx_close_hardware( MX_RECORD *record );

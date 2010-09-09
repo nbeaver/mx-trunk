@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,16 +23,13 @@
 
 /* Define all of the MX interface functions. */
 
-MX_API mx_status_type mxd_e500_initialize_type( long type );
 MX_API mx_status_type mxd_e500_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_finish_record_initialization(MX_RECORD *record);
-MX_API mx_status_type mxd_e500_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_e500_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxd_e500_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_open( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_e500_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e500_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e500_get_position( MX_MOTOR *motor );

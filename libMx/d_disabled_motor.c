@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,17 +30,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_disabled_motor_record_function_list = {
-	mxd_disabled_motor_initialize_type,
+	NULL,
 	mxd_disabled_motor_create_record_structures,
 	mxd_disabled_motor_finish_record_initialization,
-	mxd_disabled_motor_delete_record,
-	mxd_disabled_motor_print_motor_structure,
-	mxd_disabled_motor_read_parms_from_hardware,
-	mxd_disabled_motor_write_parms_to_hardware,
-	mxd_disabled_motor_open,
-	mxd_disabled_motor_close,
 	NULL,
-	mxd_disabled_motor_resynchronize
+	mxd_disabled_motor_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_disabled_motor_motor_function_list = {
@@ -76,15 +70,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_disabled_motor_rfield_def_ptr
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_disabled_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_disabled_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_disabled_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_DISABLED_MOTOR *disabled_motor;
@@ -125,7 +114,8 @@ mxd_disabled_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_disabled_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_disabled_motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_disabled_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	mx_status_type status;
@@ -169,28 +159,10 @@ mxd_disabled_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_disabled_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_disabled_motor_print_motor_structure()";
+	static const char fname[] =
+		"mxd_disabled_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	double position, move_deadband;
@@ -253,36 +225,6 @@ mxd_disabled_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		move_deadband, motor->units,
 		motor->raw_move_deadband.stepper );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_resynchronize( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

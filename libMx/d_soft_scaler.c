@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,8 +34,6 @@ MX_RECORD_FUNCTION_LIST mxd_soft_scaler_record_function_list = {
 	mxd_soft_scaler_create_record_structures,
 	mxd_soft_scaler_finish_record_initialization,
 	mxd_soft_scaler_delete_record,
-	NULL,
-	NULL,
 	NULL,
 	mxd_soft_scaler_open,
 	mxd_soft_scaler_close

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,15 +30,9 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mca_channel_record_function_list = {
-	mxd_mca_channel_initialize_type,
-	mxd_mca_channel_create_record_structures,
-	mxd_mca_channel_finish_record_initialization,
-	mxd_mca_channel_delete_record,
 	NULL,
-	mxd_mca_channel_read_parms_from_hardware,
-	mxd_mca_channel_write_parms_to_hardware,
-	mxd_mca_channel_open,
-	mxd_mca_channel_close
+	mxd_mca_channel_create_record_structures,
+	mxd_mca_channel_finish_record_initialization
 };
 
 MX_SCALER_FUNCTION_LIST mxd_mca_channel_scaler_function_list = {
@@ -123,15 +117,10 @@ mxd_mca_channel_get_pointers( MX_SCALER *scaler,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_mca_channel_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_mca_channel_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_channel_create_record_structures()";
+	static const char fname[] =
+		"mxd_mca_channel_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_MCA_CHANNEL *mca_channel;
@@ -167,7 +156,8 @@ mxd_mca_channel_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_channel_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_channel_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_mca_channel_finish_record_initialization()";
 
 	MX_MCA_CHANNEL *mca_channel;
 	MX_RECORD *mca_record;
@@ -200,54 +190,6 @@ mxd_mca_channel_finish_record_initialization( MX_RECORD *record )
 		"a multichannel analyzer.", mca_record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_channel_delete_record( MX_RECORD *record )
-{
-	MX_MCA_CHANNEL *mca_channel;
-
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	mca_channel = (MX_MCA_CHANNEL *) record->record_type_struct;
-
-	if ( mca_channel != NULL ) {
-		free( mca_channel );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_channel_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_channel_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_channel_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_channel_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

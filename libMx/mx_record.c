@@ -2728,48 +2728,12 @@ mx_print_field_array( FILE *file,
 /*----------*/
 
 MX_EXPORT mx_status_type
-mx_read_parms_from_hardware( MX_RECORD *record )
-{
-	static const char fname[] = "mx_read_parms_from_hardware()";
-
-	MX_RECORD_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_RECORD * );
-	mx_status_type mx_status;
-
-	MX_DEBUG(7, ("mx_read_parms_from_hardware() invoked for record '%s'",
-		record->name) );
-
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD structure pointer is NULL.");
-	}
-
-	fl_ptr = (MX_RECORD_FUNCTION_LIST *)(record->record_function_list);
-
-	if ( fl_ptr == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RECORD_FUNCTION_LIST pointer is NULL." );
-	}
-
-	fptr = ( fl_ptr->read_parms_from_hardware );
-
-	if ( fptr == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	} else {
-		mx_status = (*fptr)( record );
-
-		return mx_status;
-	}
-}
-	
-MX_EXPORT mx_status_type
 mx_open_hardware( MX_RECORD *record )
 {
 	static const char fname[] = "mx_open_hardware()";
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*open_ptr)( MX_RECORD * );
-	mx_status_type (*write_parms_ptr)( MX_RECORD * );
 	mx_status_type mx_status;
 
 	MX_DEBUG( 7, ("%s invoked for record '%s'", fname, record->name) );
@@ -2800,19 +2764,6 @@ mx_open_hardware( MX_RECORD *record )
 		}
 	}
 
-	write_parms_ptr = ( fl_ptr->write_parms_to_hardware );
-
-	if ( write_parms_ptr != NULL ) {
-
-		mx_status = (*write_parms_ptr)( record );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-
-			record->record_flags |= MXF_REC_FAULTED;
-
-			return mx_status;
-		}
-	}
 	MX_DEBUG( 7, ("Leaving %s for record '%s'", fname, record->name) );
 
 	return MX_SUCCESSFUL_RESULT;

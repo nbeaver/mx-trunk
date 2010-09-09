@@ -7,18 +7,18 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define MX_VXWORKS_VME_DEBUG	FALSE
+
 #include <stdio.h>
 
 #if defined(OS_VXWORKS)
-
-#define MX_VXWORKS_VME_DEBUG	FALSE
 
 #include <stdlib.h>
 #include <vme.h>
@@ -38,8 +38,6 @@ MX_RECORD_FUNCTION_LIST mxi_vxworks_vme_record_function_list = {
 	mxi_vxworks_vme_finish_record_initialization,
 	NULL,
 	mxi_vxworks_vme_print_structure,
-	NULL,
-	NULL,
 	mxi_vxworks_vme_open,
 	mxi_vxworks_vme_close,
 	NULL,

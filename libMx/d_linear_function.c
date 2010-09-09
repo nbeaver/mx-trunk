@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,11 +34,7 @@ MX_RECORD_FUNCTION_LIST mxd_linear_function_record_function_list = {
 	mxd_linear_function_create_record_structures,
 	mxd_linear_function_finish_record_initialization,
 	mxd_linear_function_delete_record,
-	mxd_linear_function_print_motor_structure,
-	mxd_linear_function_read_parms_from_hardware,
-	mxd_linear_function_write_parms_to_hardware,
-	mxd_linear_function_open,
-	mxd_linear_function_close
+	mxd_linear_function_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list = {
@@ -191,7 +187,8 @@ mxd_linear_function_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_linear_function_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_linear_function_create_record_structures()";
+	static const char fname[] =
+		"mxd_linear_function_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_LINEAR_FUNCTION_MOTOR *linear_function;
@@ -700,42 +697,6 @@ mxd_linear_function_print_motor_structure( FILE *file, MX_RECORD *record )
 		}
 	}
 	fprintf(file, ")\n");
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_read_parms_from_hardware( MX_RECORD *record )
-{
-	/* All saving of parameters is handled by the MX_MOTOR records
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_write_parms_to_hardware( MX_RECORD *record )
-{
-	/* All setting of parameters is handled by the MX_MOTOR records
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_open( MX_RECORD *record )
-{
-	/* Nothing to do. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_linear_function_close( MX_RECORD *record )
-{
-	/* Nothing to do. */
 
 	return MX_SUCCESSFUL_RESULT;
 }

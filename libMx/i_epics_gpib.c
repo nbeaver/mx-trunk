@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,8 +38,6 @@ MX_RECORD_FUNCTION_LIST mxi_epics_gpib_record_function_list = {
 	mxi_epics_gpib_finish_record_initialization,
 	NULL,
 	mxi_epics_gpib_print_interface_structure,
-	NULL,
-	NULL,
 	mxi_epics_gpib_open
 };
 

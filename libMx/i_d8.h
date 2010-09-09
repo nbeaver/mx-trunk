@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,14 +39,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_D8, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxi_d8_initialize_type( long type );
 MX_API mx_status_type mxi_d8_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_d8_finish_record_initialization( MX_RECORD *record );
-MX_API mx_status_type mxi_d8_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_d8_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_d8_write_parms_to_hardware(
-					MX_RECORD *record );
 MX_API mx_status_type mxi_d8_open( MX_RECORD *record );
 MX_API mx_status_type mxi_d8_close( MX_RECORD *record );
 

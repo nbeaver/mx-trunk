@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,8 +47,6 @@
 MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list = {
 	mxi_u500_initialize_type,
 	mxi_u500_create_record_structures,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,

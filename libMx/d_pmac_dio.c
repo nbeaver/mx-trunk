@@ -32,13 +32,11 @@
 /* Initialize the PMAC digital I/O driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_pmac_din_record_function_list = {
-	mxd_pmac_din_initialize_type,
-	mxd_pmac_din_create_record_structures,
-	mxd_pmac_din_finish_record_initialization,
-	mxd_pmac_din_delete_record,
 	NULL,
-	mxd_pmac_din_read_parms_from_hardware,
-	mxd_pmac_din_write_parms_to_hardware,
+	mxd_pmac_din_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
 	mxd_pmac_din_open,
 	mxd_pmac_din_close
 };
@@ -63,15 +61,12 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pmac_din_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_pmac_dout_record_function_list = {
-	mxd_pmac_dout_initialize_type,
-	mxd_pmac_dout_create_record_structures,
-	mxd_pmac_dout_finish_record_initialization,
-	mxd_pmac_dout_delete_record,
 	NULL,
-	mxd_pmac_dout_read_parms_from_hardware,
-	mxd_pmac_dout_write_parms_to_hardware,
-	mxd_pmac_dout_open,
-	mxd_pmac_dout_close
+	mxd_pmac_dout_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	mxd_pmac_dout_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_pmac_dout_digital_output_function_list = {
@@ -233,12 +228,6 @@ mxd_pmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_pmac_din_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pmac_din_create_record_structures( MX_RECORD *record )
 {
         static const char fname[] = "mxd_pmac_din_create_record_structures()";
@@ -273,43 +262,6 @@ mxd_pmac_din_create_record_structures( MX_RECORD *record )
 	pmac_dinput->record = record;
 
         return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_din_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_din_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_din_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_din_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -415,12 +367,6 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_pmac_dout_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pmac_dout_create_record_structures( MX_RECORD *record )
 {
         static const char fname[] = "mxd_pmac_dout_create_record_structures()";
@@ -459,43 +405,6 @@ mxd_pmac_dout_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pmac_dout_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_dout_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_dout_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_dout_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pmac_dout_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_pmac_dout_open()";
@@ -515,12 +424,6 @@ mxd_pmac_dout_open( MX_RECORD *record )
 	mx_status = mxd_pmac_dout_read( doutput );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_dout_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

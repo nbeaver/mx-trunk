@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,6 @@ MX_RECORD_FUNCTION_LIST mxi_network_rs232_record_function_list = {
 	NULL,
 	mxi_network_rs232_create_record_structures,
 	mxi_network_rs232_finish_record_initialization,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	mxi_network_rs232_open,
