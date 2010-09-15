@@ -15,6 +15,8 @@
  *
  */
 
+#define DEBUG_DRIVER_TABLES	FALSE
+
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -337,8 +339,10 @@ mx_get_superclass_driver_by_name( char *name )
 		if ( strcmp( name, list_name ) == 0 ){
 			result = &( mx_superclass_list[i] );
 
-			MX_DEBUG( 8,
+#if 0
+			MX_DEBUG(-8,
 	( "%s: ptr = 0x%p, type = %ld", fname, result, result->mx_type));
+#endif
 
 			return result;
 		}
@@ -377,8 +381,10 @@ mx_get_class_driver_by_name( char *name )
 		if ( strcmp( name, list_name ) == 0 ){
 			result = &( mx_class_list[i] );
 
-			MX_DEBUG( 8,
+#if 0
+			MX_DEBUG(-8,
 	( "%s: ptr = 0x%p, type = %ld", fname, result, result->mx_type));
+#endif
 
 			return result;
 		}
@@ -494,20 +500,25 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 	long i, num_record_fields;
 	mx_status_type mx_status;
 
+#if DEBUG_DRIVER_TABLES
 	MX_DEBUG(-8,
 	("superclass = %ld, class = %ld, type = %ld, name = '%s'",
 		driver->mx_superclass, driver->mx_class,
 		driver->mx_type, driver->name));
+#endif
 
 	/* Initialize the typeinfo fields if possible. */
 
 	if ( (driver->num_record_fields != NULL)
 	  && (driver->record_field_defaults_ptr != NULL) )
 	{
+
+#if DEBUG_DRIVER_TABLES
 		MX_DEBUG(-8,
 		("num_record_fields = %ld, *record_field_defaults_ptr = %p",
 		    *(driver->num_record_fields),
 		    *(driver->record_field_defaults_ptr)));
+#endif
 
 		mx_status = mxp_setup_typeinfo_for_record_type_fields( driver );
 
@@ -519,14 +530,18 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 
 	flist = (MX_RECORD_FUNCTION_LIST *) driver->record_function_list;
 
+#if DEBUG_DRIVER_TABLES
 	MX_DEBUG(-8,("  record_function_list pointer = %p",
 		flist));
+#endif
 
 	if ( flist != NULL ) {
 		fptr = flist->initialize_driver;
 
+#if DEBUG_DRIVER_TABLES
 		MX_DEBUG(-8,("  initialize_driver pointer = %p",
 			fptr));
+#endif
 
 		/* If all is well, invoke the function. */
 

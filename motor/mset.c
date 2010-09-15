@@ -653,6 +653,8 @@ motor_set_fn( int argc, char *argv[] )
 		if ( status != SUCCESS )
 			return status;
 
+#if ( MOTOR_PROCESS_FIELDS == FALSE )
+
 		/* Send the value of the variable to the remote server,
 		 * if any.
 		 */
@@ -661,6 +663,8 @@ motor_set_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+#endif /* MOTOR_PROCESS_FIELDS */
 
 	/* SET LABEL function. */
 
