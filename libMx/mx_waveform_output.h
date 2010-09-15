@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -179,12 +179,9 @@ MX_API mx_status_type mx_waveform_output_get_pointers(
 		MX_WAVEFORM_OUTPUT_FUNCTION_LIST **function_list_ptr,
 		const char *calling_fname );
 
-MX_API mx_status_type mx_waveform_output_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_channels_varargs_cookie,
-			long *maximum_num_steps_varargs_cookie );
+MX_API mx_status_type mx_waveform_output_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_channels_varargs_cookie,
+				long *maximum_num_steps_varargs_cookie );
 
 MX_API mx_status_type mx_waveform_output_finish_record_initialization(
 					MX_RECORD *wvout_record );

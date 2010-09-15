@@ -35,7 +35,7 @@
 /* Initialize the MCA driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_epics_mca_record_function_list = {
-	mxd_epics_mca_initialize_type,
+	mxd_epics_mca_initialize_driver,
 	mxd_epics_mca_create_record_structures,
 	mxd_epics_mca_finish_record_initialization,
 	mxd_epics_mca_delete_record,
@@ -151,18 +151,14 @@ mxd_epics_mca_acquiring_pv_callback( MX_EPICS_CALLBACK *cb, void *args )
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_epics_mca_initialize_type( long record_type )
+mxd_epics_mca_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
 	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mca_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	mx_status = mx_mca_initialize_driver( driver,
 				&maximum_num_channels_varargs_cookie,
 				&maximum_num_rois_varargs_cookie,
 				&num_soft_rois_varargs_cookie );

@@ -23,7 +23,7 @@
 #include "mx_vinline.h"
 
 MX_RECORD_FUNCTION_LIST mxv_inline_variable_record_function_list = {
-	mxv_inline_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_inline_variable_create_record_structures,
 	mxv_inline_variable_finish_record_initialization,
 	mxv_inline_variable_delete_record
@@ -225,12 +225,6 @@ MX_RECORD_FIELD_DEFAULTS *mxv_inline_record_variable_def_ptr
 			= &mxv_inline_record_variable_defaults[0];
 
 /********************************************************************/
-
-MX_EXPORT mx_status_type
-mxv_inline_variable_initialize_type( long record_type )
-{
-	return mx_variable_initialize_type( record_type );
-}
 
 MX_EXPORT mx_status_type
 mxv_inline_variable_create_record_structures( MX_RECORD *record )

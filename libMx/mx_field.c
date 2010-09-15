@@ -281,34 +281,35 @@ mx_find_record_field( MX_RECORD *record, const char *name_of_field_to_find,
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
-mx_find_record_field_defaults(
-		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
-		long num_record_fields,
+mx_find_record_field_defaults( MX_DRIVER *driver,
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found )
 {
 	static const char fname[] = "mx_find_record_field_defaults()";
 
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
 	long index_of_field_that_was_found;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	if (default_field_that_was_found == (MX_RECORD_FIELD_DEFAULTS **)NULL){
+	if ( default_field_that_was_found
+			== (MX_RECORD_FIELD_DEFAULTS **) NULL )
+	{
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"Address of location to place the address of "
 			"the MX_RECORD_FIELD_DEFAULTS was NULL." );
 	}
 
-	status = mx_find_record_field_defaults_index(
-			record_field_default_array,
-			num_record_fields,
-			name_of_field_to_find,
-			&index_of_field_that_was_found );
+	record_field_defaults_array = *(driver->record_field_defaults_ptr);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	mx_status = mx_find_record_field_defaults_index( driver,
+					name_of_field_to_find,
+					&index_of_field_that_was_found );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	*default_field_that_was_found
-	    = &record_field_default_array[ index_of_field_that_was_found ];
+	    = &record_field_defaults_array[ index_of_field_that_was_found ];
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -316,44 +317,56 @@ mx_find_record_field_defaults(
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
-mx_find_record_field_defaults_index(
-		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
-		long num_record_fields,
-		const char *name_of_field_to_find,
-		long *index_of_field_that_was_found )
+mx_find_record_field_defaults_index( MX_DRIVER *driver,
+				const char *name_of_field_to_find,
+				long *index_of_field_that_was_found )
 {
 	static const char fname[] = "mx_find_record_field_defaults_index()";
 
-	long i;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
+	long i, num_record_fields;
 
-	if (record_field_default_array == (MX_RECORD_FIELD_DEFAULTS *) NULL) {
+	if ( driver == (MX_DRIVER *) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"NULL MX_RECORD_FIELD_DEFAULTS pointer passed." );
+		"The MX_DRIVER pointer passed was NULL." );
 	}
+
+	record_field_defaults_array = *(driver->record_field_defaults_ptr);
+
+	if ( record_field_defaults_array == (MX_RECORD_FIELD_DEFAULTS *) NULL )
+	{
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD_FIELD_DEFAULTS pointer for driver '%s' is NULL.",
+			driver->name );
+	}
+
+	num_record_fields = *(driver->num_record_fields);
 
 	if ( num_record_fields <= 0 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"Number of record fields = %ld for record_field_default_array = %p "
-	"is less than or equal to zero.",
-			num_record_fields, record_field_default_array );
+		"The number of record fields = %ld for driver '%s' "
+		"is less than or equal to zero.",
+			num_record_fields, driver->name );
 	}
 
 	if ( name_of_field_to_find == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-				"NULL record field name pointer passed." );
+		"NULL record field name pointer passed for driver '%s'.",
+			driver->name );
 	}
 
 	if ( index_of_field_that_was_found == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"Address of location to place the index of "
-			"the MX_RECORD_FIELD_DEFAULTS was NULL." );
+		"Address of location to place the index of "
+		"the MX_RECORD_FIELD_DEFAULTS was NULL for driver '%s'.",
+			driver->name );
 	}
 
 	*index_of_field_that_was_found = -1;
 
 	for ( i = 0; i < num_record_fields; i++ ) {
 		if ( strcmp( name_of_field_to_find,
-				record_field_default_array[i].name ) == 0 ) {
+				record_field_defaults_array[i].name ) == 0 ) {
 
 			*index_of_field_that_was_found = i;
 
@@ -363,8 +376,8 @@ mx_find_record_field_defaults_index(
 
 	if ( i >= num_record_fields ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Record field '%s' was not found for record_field_default_array = %p",
-			name_of_field_to_find, record_field_default_array );
+		"Record field '%s' was not found for driver '%s'.",
+			name_of_field_to_find, driver->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -478,117 +491,6 @@ mx_construct_ptr_to_field_value(
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
-mx_setup_typeinfo_for_record_type_fields( long num_record_fields,
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long mx_type, long mx_class, long mx_superclass )
-{
-	static const char fname[] = "mx_setup_typeinfo_for_record_type_fields()";
-
-	MX_RECORD_FIELD_DEFAULTS *field;
-	MX_DRIVER **driver_list_array;
-	MX_DRIVER *mx_superclass_list, *mx_class_list, *mx_type_list;
-	MX_DRIVER *driver;
-	long i;
-	mx_status_type status;
-
-	if ( record_field_defaults_array == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"record_field_defaults_array argument was NULL." );
-	}
-
-	driver_list_array = mx_get_driver_lists();
-
-	/* Setup typeinfo for the superclass field. */
-
-	mx_superclass_list = driver_list_array[0];
-
-	for ( i = 0; ; i++ ) {
-		if ( mx_superclass_list[i].mx_superclass == mx_superclass ) {
-			driver = &mx_superclass_list[i];
-			break;
-		}
-		if ( mx_superclass_list[i].mx_superclass == 0 ) {
-			driver = NULL;
-			break;
-		}
-	}
-
-	if ( driver == NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Superclass %ld is not a legal superclass.",
-			mx_superclass );
-	}
-
-	status = mx_find_record_field_defaults( record_field_defaults_array,
-				num_record_fields, "mx_superclass", &field );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	field->typeinfo = driver;
-
-	/* Setup typeinfo for the class field. */
-
-	mx_class_list = driver_list_array[1];
-
-	for ( i = 0; ; i++ ) {
-		if ( mx_class_list[i].mx_class == mx_class ) {
-			driver = &mx_class_list[i];
-			break;
-		}
-		if ( mx_class_list[i].mx_class == 0 ) {
-			driver = NULL;
-			break;
-		}
-	}
-
-	if ( driver == NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Class %ld is not a legal class.", mx_class );
-	}
-
-	status = mx_find_record_field_defaults( record_field_defaults_array,
-				num_record_fields, "mx_class", &field );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	field->typeinfo = driver;
-
-	/* Setup typeinfo for the type field. */
-
-	mx_type_list = driver_list_array[2];
-
-	for ( i = 0; ; i++ ) {
-		if ( mx_type_list[i].mx_type == mx_type ) {
-			driver = &mx_type_list[i];
-			break;
-		}
-		if ( mx_type_list[i].mx_type == 0 ) {
-			driver = NULL;
-			break;
-		}
-	}
-
-	if ( driver == NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Type %ld is not a legal type.", mx_type );
-	}
-
-	status = mx_find_record_field_defaults( record_field_defaults_array,
-				num_record_fields, "mx_type", &field );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	field->typeinfo = driver;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*=====================================================================*/
-
-MX_EXPORT mx_status_type
 mx_set_1d_field_array_length( MX_RECORD_FIELD *field, unsigned long new_length )
 {
 	static const char fname[] = "mx_set_1d_field_array_length()";
@@ -650,8 +552,6 @@ mx_create_record_from_description(
 	MX_RECORD *current_record;
 	MX_RECORD *record;
 	MX_RECORD_FUNCTION_LIST *record_function_list;
-	MX_DRIVER **driver_list_array;
-	MX_DRIVER *mx_superclass_list, *mx_class_list;
 	MX_DRIVER *superclass_driver;
 	MX_DRIVER *class_driver, *type_driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
@@ -660,7 +560,6 @@ mx_create_record_from_description(
 	mx_status_type (*fptr)( MX_RECORD * );
 	mx_status_type mx_status;
 	int i, record_name_length;
-	char *list_name;
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
 	MX_DEBUG( 8,("#####################################################"));
@@ -775,33 +674,9 @@ mx_create_record_from_description(
 		return mx_status;
 	}
 
-	driver_list_array = mx_get_driver_lists();
-
 	/* === Figure out what record SUPERCLASS this is. === */
 
-	mx_superclass_list = driver_list_array[0];
-
-	superclass_driver = NULL;
-
-	for ( i = 0; ; i++ ) {
-		/* Check for the end of the list. */
-
-		if ( mx_superclass_list[i].mx_superclass == 0 ) {
-			break;		/* Exit the for() loop. */
-		}
-
-		list_name = mx_superclass_list[i].name;
-
-		if ( list_name == NULL ) {
-			break;		/* Exit the for() loop. */
-		}
-
-		if ( strcmp( token[1], list_name ) == 0 ) {
-			superclass_driver = &( mx_superclass_list[i] );
-
-			break;		/* Exit the for() loop. */
-		}
-	}
+	superclass_driver = mx_get_superclass_driver_by_name( token[1] );
 
 	if ( superclass_driver == (MX_DRIVER *) NULL ) {
 		mx_delete_record( current_record );
@@ -815,29 +690,7 @@ mx_create_record_from_description(
 
 	/* === Figure out what record CLASS this is. === */
 
-	mx_class_list = driver_list_array[1];
-
-	class_driver = NULL;
-
-	for ( i = 0; ; i++ ) {
-		/* Check for the end of the list. */
-
-		if ( mx_class_list[i].mx_class == 0 ) {
-			break;		/* Exit the for() loop. */
-		}
-
-		list_name = mx_class_list[i].name;
-
-		if ( list_name == NULL ) {
-			break;		/* Exit the for() loop. */
-		}
-
-		if ( strcmp( token[2], list_name ) == 0 ) {
-			class_driver = &( mx_class_list[i] );
-
-			break;		/* Exit the for() loop. */
-		}
-	}
+	class_driver = mx_get_class_driver_by_name( token[2] );
 
 	if ( class_driver == (MX_DRIVER *) NULL ) {
 		mx_delete_record( current_record );

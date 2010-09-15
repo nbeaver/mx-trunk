@@ -284,6 +284,8 @@ mxsrv_setup_output_functions( void )
 
 /*------------------------------------------------------------------*/
 
+#if 0
+
 static mx_status_type
 mxsrv_poll_all( void )
 {
@@ -331,6 +333,51 @@ mxsrv_poll_all( void )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+
+static mx_status_type
+mxsrv_poll_all( void )
+{
+	MX_DRIVER *current_driver;
+	long i, num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *defaults_array;
+	MX_RECORD_FIELD_DEFAULTS *array_element;
+
+	/* We are interested in the third element of this array, since
+	 * that one is an array that contains all of the drivers found
+	 * in mx_driver.c.
+	 */
+
+	current_driver = mx_get_driver_by_name( NULL );
+
+	/* Walk through all of the device drivers until we get to
+	 * the end of the array.
+	 */
+
+	while ( current_driver != (MX_DRIVER *) NULL ) {
+
+		MX_DEBUG(-2,("%s: ", current_driver->name ));
+
+		num_record_fields = *(current_driver->num_record_fields);
+
+		defaults_array = *(current_driver->record_field_defaults_ptr);
+
+		for ( i = 0; i < num_record_fields; i++ ) {
+			array_element = &defaults_array[i];
+
+			MX_DEBUG(-2,("   %s", array_element->name));
+
+			array_element->flags |= MXFF_POLL;
+		}
+
+		current_driver = current_driver->next_driver;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
 
 /*------------------------------------------------------------------*/
 

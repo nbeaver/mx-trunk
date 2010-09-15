@@ -33,7 +33,7 @@
 /* Initialize the MCE driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_network_mce_record_function_list = {
-	mxd_network_mce_initialize_type,
+	mxd_network_mce_initialize_driver,
 	mxd_network_mce_create_record_structures,
 	mxd_network_mce_finish_record_initialization,
 	mxd_network_mce_delete_record
@@ -98,16 +98,12 @@ mxd_network_mce_get_pointers( MX_MCE *mce,
 /*------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_network_mce_initialize_type( long record_type )
+mxd_network_mce_initialize_driver( MX_DRIVER *driver )
 {
-	long num_record_fields;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mce_initialize_type( record_type,
-					&num_record_fields,
-					&record_field_defaults,
+	mx_status = mx_mce_initialize_driver( driver,
 					&maximum_num_values_varargs_cookie );
 
 	return mx_status;

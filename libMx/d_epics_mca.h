@@ -95,7 +95,7 @@ typedef struct {
 		offsetof(MX_EPICS_MCA, associated_mca_record_array), \
 	{sizeof(MX_RECORD *)}, NULL, MXFF_VARARGS }
 
-MX_API mx_status_type mxd_epics_mca_initialize_type( long type );
+MX_API mx_status_type mxd_epics_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_epics_mca_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epics_mca_finish_record_initialization(

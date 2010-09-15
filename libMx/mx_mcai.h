@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2007 Illinois Institute of Technology
+ * Copyright 2004, 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,11 +87,8 @@ typedef struct {
 	mx_status_type ( *read ) ( MX_MCAI *mcai );
 } MX_MCAI_FUNCTION_LIST;
 
-MX_API mx_status_type mx_mcai_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_channels_varargs_cookie );
+MX_API mx_status_type mx_mcai_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_channels_varargs_cookie );
 
 MX_API mx_status_type mx_mcai_finish_record_initialization(
 							MX_RECORD *mcai_record);

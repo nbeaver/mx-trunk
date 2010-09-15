@@ -55,7 +55,6 @@ typedef struct mx_mcs_quick_scan_type {
 						MX_MCS * );
 } MX_MCS_QUICK_SCAN;
 
-MX_API mx_status_type mxs_mcs_quick_scan_initialize_type( long type );
 MX_API mx_status_type mxs_mcs_quick_scan_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxs_mcs_quick_scan_finish_record_initialization(

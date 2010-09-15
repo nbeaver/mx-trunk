@@ -30,7 +30,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +72,7 @@
 #endif
 
 MX_RECORD_FUNCTION_LIST mxs_apsid_quick_scan_record_function_list = {
-	mxs_mcs_quick_scan_initialize_type,
+	mx_quick_scan_initialize_driver,
 	mxs_apsid_quick_scan_create_record_structures,
 	mxs_mcs_quick_scan_finish_record_initialization,
 	mxs_mcs_quick_scan_delete_record,

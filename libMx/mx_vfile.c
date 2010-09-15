@@ -33,7 +33,7 @@
 #include "mx_vfile.h"
 
 MX_RECORD_FUNCTION_LIST mxv_file_variable_record_function_list = {
-	mxv_file_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_file_variable_create_record_structures,
 	NULL,
 	NULL,
@@ -342,12 +342,6 @@ mxvp_file_variable_write( MX_FILE_VARIABLE *file_variable, char *buffer )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxv_file_variable_initialize_type( long record_type )
-{
-	return mx_variable_initialize_type( record_type );
 }
 
 MX_EXPORT mx_status_type

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -88,27 +88,19 @@ mx_waveform_output_get_pointers( MX_RECORD *wvout_record,
  */
 
 MX_EXPORT mx_status_type
-mx_waveform_output_initialize_type( long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+mx_waveform_output_initialize_driver( MX_DRIVER *driver,
 			long *maximum_num_channels_varargs_cookie,
 			long *maximum_num_steps_varargs_cookie )
 {
 	static const char fname[] = "mx_waveform_output_initialize_type()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
 	mx_status_type mx_status;
 
-	if ( num_record_fields == NULL ) {
+	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"num_record_fields pointer passed was NULL." );
-	}
-	if ( record_field_defaults == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"record_field_defaults pointer passed was NULL." );
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 	if ( maximum_num_channels_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -119,52 +111,19 @@ mx_waveform_output_initialize_type( long record_type,
 	"maximum_num_steps_varargs_cookie pointer passed was NULL." );
 	}
 
-	driver = mx_get_driver_by_type( record_type );
-
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*record_field_defaults = *record_field_defaults_ptr;
-
-	if ( *record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*num_record_fields = *(driver->num_record_fields);
-
 	/* Set varargs cookies in 'data_array' that depend on the values
 	 * of 'maximum_num_channels' and 'maximum_num_steps'.
 	 */
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "data_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"data_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"maximum_num_channels", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"maximum_num_channels",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -175,9 +134,9 @@ mx_waveform_output_initialize_type( long record_type,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"maximum_num_steps", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"maximum_num_steps",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

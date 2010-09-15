@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,6 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_TOPUP, extra_delay_time), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-MX_API_PRIVATE mx_status_type mxv_aps_topup_initialize_type( long );
 MX_API_PRIVATE mx_status_type mxv_aps_topup_create_record_structures(
 							MX_RECORD *record );
 

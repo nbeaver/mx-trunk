@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,8 @@ typedef struct {
 					( MX_SCAN *, MX_LIST_SCAN * );
 } MX_LIST_SCAN_FUNCTION_LIST;
 
-MX_API_PRIVATE mx_status_type mxs_list_scan_initialize_type( long type );
+MX_API_PRIVATE mx_status_type mxs_list_scan_initialize_driver(
+							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxs_list_scan_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxs_list_scan_finish_record_initialization(

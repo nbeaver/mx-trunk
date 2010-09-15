@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,8 +70,8 @@ typedef struct {
 		offsetof(MX_MARCCD_SERVER_SOCKET, local_filename_prefix), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_marccd_server_socket_initialize_type(
-							long record_type );
+MX_API mx_status_type mxd_marccd_server_socket_initialize_driver(
+							MX_DRIVER *driver );
 MX_API mx_status_type mxd_marccd_server_socket_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_marccd_server_socket_finish_record_initialization(

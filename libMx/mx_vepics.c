@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 #include "mx_vepics.h"
 
 MX_RECORD_FUNCTION_LIST mxv_epics_variable_record_function_list = {
-	mxv_epics_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_epics_variable_create_record_structures,
 	mxv_epics_variable_finish_record_initialization
 };
@@ -135,12 +135,6 @@ MX_RECORD_FIELD_DEFAULTS *mxv_epics_double_variable_def_ptr
 			= &mxv_epics_double_variable_defaults[0];
 
 /********************************************************************/
-
-MX_EXPORT mx_status_type
-mxv_epics_variable_initialize_type( long record_type )
-{
-	return mx_variable_initialize_type( record_type );
-}
 
 MX_EXPORT mx_status_type
 mxv_epics_variable_create_record_structures( MX_RECORD *record )

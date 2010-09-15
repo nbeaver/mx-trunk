@@ -75,7 +75,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BKPRECISION_912X_WVOUT, list_unit), \
 	{0}, NULL, 0}
 
-MX_API mx_status_type mxd_bkprecision_912x_wvout_initialize_type( long type );
+MX_API mx_status_type mxd_bkprecision_912x_wvout_initialize_driver(
+							MX_DRIVER *driver );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bkprecision_912x_wvout_finish_record_initialization(

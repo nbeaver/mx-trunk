@@ -25,7 +25,7 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_soft_doutput_initialize_type( long type );
+MX_API mx_status_type mxd_soft_doutput_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_soft_doutput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_soft_doutput_finish_record_initialization(

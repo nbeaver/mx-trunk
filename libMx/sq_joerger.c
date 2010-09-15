@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@
 #include "d_epics_timer.h"
 
 MX_RECORD_FUNCTION_LIST mxs_joerger_quick_scan_record_function_list = {
-	mxs_joerger_quick_scan_initialize_type,
+	mx_quick_scan_initialize_driver,
 	mxs_joerger_quick_scan_create_record_structures,
 	mxs_joerger_quick_scan_finish_record_initialization,
 	mxs_joerger_quick_scan_delete_record,
@@ -143,12 +143,6 @@ mxs_joerger_quick_scan_get_pointers( MX_SCAN *scan,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxs_joerger_quick_scan_initialize_type( long type )
-{
-	return mx_quick_scan_initialize_type( type );
 }
 
 MX_EXPORT mx_status_type

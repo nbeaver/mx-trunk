@@ -177,7 +177,7 @@ typedef struct mx_aviex_pccd {
       MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, use_top_half_of_detector), \
 	{0}, NULL, 0}
 
-MX_API mx_status_type mxd_aviex_pccd_initialize_type( long record_type );
+MX_API mx_status_type mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_aviex_pccd_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_aviex_pccd_finish_record_initialization(

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -246,12 +246,9 @@ MX_API mx_status_type mx_mcs_get_pointers( MX_RECORD *mcs_record,
 	MX_MCS **mcs, MX_MCS_FUNCTION_LIST **function_list_ptr,
 	const char *calling_fname );
 
-MX_API mx_status_type mx_mcs_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_scalers_varargs_cookie,
-			long *maximum_num_measurements_varargs_cookie );
+MX_API mx_status_type mx_mcs_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_scalers_varargs_cookie,
+				long *maximum_num_measurements_varargs_cookie );
 
 MX_API mx_status_type mx_mcs_finish_record_initialization(
 					MX_RECORD *mcs_record );

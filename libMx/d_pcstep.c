@@ -29,7 +29,7 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_pcstep_record_function_list = {
-	mxd_pcstep_initialize_type,
+	NULL,
 	mxd_pcstep_create_record_structures,
 	mxd_pcstep_finish_record_initialization,
 	mxd_pcstep_delete_record,
@@ -128,12 +128,6 @@ mxd_pcstep_get_pointers( MX_MOTOR *motor,
 }
 
 /* === */
-
-MX_EXPORT mx_status_type
-mxd_pcstep_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_pcstep_create_record_structures( MX_RECORD *record )

@@ -37,7 +37,7 @@
 #endif
 
 MX_RECORD_FUNCTION_LIST mxd_sis3801_record_function_list = {
-	mxd_sis3801_initialize_type,
+	mxd_sis3801_initialize_driver,
 	mxd_sis3801_create_record_structures,
 	mxd_sis3801_finish_record_initialization,
 	NULL,
@@ -130,21 +130,17 @@ mxd_sis3801_get_pointers( MX_MCS *mcs,
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxd_sis3801_initialize_type( long record_type )
+mxd_sis3801_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_scalers_varargs_cookie;
 	long maximum_num_measurements_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	mx_status = mx_mcs_initialize_driver( driver,
 				&maximum_num_scalers_varargs_cookie,
 				&maximum_num_measurements_varargs_cookie );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

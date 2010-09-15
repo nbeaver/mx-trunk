@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,67 +24,11 @@
 #include "mx_variable.h"
 
 MX_EXPORT mx_status_type
-mx_variable_initialize_type( long record_type )
+mx_variable_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mx_variable_initialize_type()";
+	static const char fname[] = "mx_variable_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
-	long num_record_fields;
-	mx_status_type status;
-
-	driver = mx_get_driver_by_type( record_type );
-
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr = driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	/**** Fix up the record fields common to all variable types. ****/
-
-	num_record_fields = *(driver->num_record_fields);
-
-	status = mx_variable_fixup_varargs_record_field_defaults(
-			record_field_defaults, num_record_fields );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_variable_fixup_varargs_record_field_defaults(
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields )
-{
-	static const char fname[] =
-		"mx_variable_fixup_varargs_record_field_defaults()";
-
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
 	MX_RECORD_FIELD_DEFAULTS *dimension_field, *value_field;
 	long num_dimensions_field_index;
 	long num_dimensions_varargs_cookie;
@@ -93,15 +37,20 @@ mx_variable_fixup_varargs_record_field_defaults(
 	long i;
 	mx_status_type status;
 
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
+	}
+
 	MX_DEBUG( 8,("%s invoked.", fname));
 
 	/****
 	 **** Construct and place the 'num_dimensions' varargs cookie.
 	 ****/
 
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults_array, num_record_fields,
-			"num_dimensions", &num_dimensions_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"num_dimensions",
+						&num_dimensions_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -117,12 +66,14 @@ mx_variable_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults_array, num_record_fields,
-			"dimension", &dimension_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"dimension",
+						&dimension_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
+
+	record_field_defaults_array = *(driver->record_field_defaults_ptr);
 
 	dimension_field = &record_field_defaults_array[dimension_field_index];
 
@@ -130,9 +81,8 @@ mx_variable_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults_array, num_record_fields,
-			"value", &value_field );
+	status = mx_find_record_field_defaults( driver,
+						"value", &value_field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;

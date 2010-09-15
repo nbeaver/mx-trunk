@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ROENTEC_RCL_MCA, command), \
 	{sizeof(char)}, NULL, 0}
 
-MX_API mx_status_type mxd_roentec_rcl_initialize_type( long type );
+MX_API mx_status_type mxd_roentec_rcl_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_roentec_rcl_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_finish_record_initialization(
 							MX_RECORD *record );

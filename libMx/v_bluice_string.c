@@ -30,7 +30,7 @@
 #include "v_bluice_string.h"
 
 MX_RECORD_FUNCTION_LIST mxv_bluice_string_record_function_list = {
-	mx_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_bluice_string_create_record_structures,
 	mxv_bluice_string_finish_record_initialization,
 	NULL,

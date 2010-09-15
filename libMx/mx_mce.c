@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,78 +73,36 @@ mx_mce_get_pointers( MX_RECORD *mce_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mce_initialize_type( long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+mx_mce_initialize_driver( MX_DRIVER *driver,
 			long *maximum_num_values_varargs_cookie )
 {
-	static const char fname[] = "mx_mce_initialize_type()";
+	static const char fname[] = "mx_mce_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
 	mx_status_type mx_status;
 
-	if ( num_record_fields == NULL ) {
+	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"num_record_fields pointer passed was NULL." );
-	}
-	if ( record_field_defaults == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"record_field_defaults pointer passed was NULL." );
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 	if ( maximum_num_values_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"maximum_num_values_varargs_cookie pointer passed was NULL." );
 	}
 
-	driver = mx_get_driver_by_type( record_type );
-
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*record_field_defaults = *record_field_defaults_ptr;
-
-	if ( *record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*num_record_fields = *(driver->num_record_fields);
-
 	/* Set varargs cookies in 'data_array' that depend on the values
 	 * of 'maximum_num_values' and 'maximum_num_measurements'.
 	 */
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "value_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"value_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"maximum_num_values", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+				"maximum_num_values", &referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_scaler_function_initialize_type( long type );
+MX_API mx_status_type mxd_scaler_function_initialize_driver( MX_DRIVER *driver);
 MX_API mx_status_type mxd_scaler_function_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_scaler_function_finish_record_initialization(

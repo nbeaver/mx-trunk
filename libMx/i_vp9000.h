@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,9 +64,8 @@ typedef struct {
 #define MX_LF	'\012'
 #endif
 
-MX_API mx_status_type mxi_vp9000_initialize_type( long type );
-MX_API mx_status_type mxi_vp9000_create_record_structures(
-							MX_RECORD *record );
+MX_API mx_status_type mxi_vp9000_initialize_driver( MX_DRIVER *driver );
+MX_API mx_status_type mxi_vp9000_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_vp9000_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_vp9000_open( MX_RECORD *record );

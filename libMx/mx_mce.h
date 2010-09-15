@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,11 +130,8 @@ MX_API mx_status_type mx_mce_get_pointers( MX_RECORD *record,
 					MX_MCE_FUNCTION_LIST **fl_ptr,
 					const char *calling_fname );
 
-MX_API mx_status_type mx_mce_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_values_varargs_cookie );
+MX_API mx_status_type mx_mce_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_values_varargs_cookie );
 
 MX_API mx_status_type mx_mce_fixup_motor_record_array_field( MX_MCE *mce );
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@
 /* Initialize the MCE driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mcs_time_mce_record_function_list = {
-	mxd_mcs_time_mce_initialize_type,
+	mxd_mcs_time_mce_initialize_driver,
 	mxd_mcs_time_mce_create_record_structures,
 	mxd_mcs_time_mce_finish_record_initialization
 };
@@ -105,16 +105,12 @@ mxd_mcs_time_mce_get_pointers( MX_MCE *mce,
 /*------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_mcs_time_mce_initialize_type( long record_type )
+mxd_mcs_time_mce_initialize_driver( MX_DRIVER *driver )
 {
-	long num_record_fields;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mce_initialize_type( record_type,
-					&num_record_fields,
-					&record_field_defaults,
+	mx_status = mx_mce_initialize_driver( driver,
 					&maximum_num_values_varargs_cookie );
 
 	return mx_status;

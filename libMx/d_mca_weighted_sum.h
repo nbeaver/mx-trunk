@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +42,8 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 			(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-MX_API_PRIVATE mx_status_type mxd_mca_weighted_sum_initialize_type( long type );
+MX_API_PRIVATE mx_status_type mxd_mca_weighted_sum_initialize_driver(
+							MX_DRIVER *driver );
 
 MX_API_PRIVATE mx_status_type mxd_mca_weighted_sum_create_record_structures(
 							MX_RECORD *record );

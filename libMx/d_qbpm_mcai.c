@@ -30,7 +30,7 @@
 #include "d_qbpm_mcai.h"
 
 MX_RECORD_FUNCTION_LIST mxd_qbpm_mcai_record_function_list = {
-	mxd_qbpm_mcai_initialize_type,
+	mxd_qbpm_mcai_initialize_driver,
 	mxd_qbpm_mcai_create_record_structures,
 	mxd_qbpm_mcai_finish_record_initialization,
 	NULL,
@@ -127,16 +127,12 @@ mxd_qbpm_mcai_get_pointers( MX_MCAI *mcai,
 }
 
 MX_EXPORT mx_status_type
-mxd_qbpm_mcai_initialize_type( long record_type )
+mxd_qbpm_mcai_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mcai_initialize_type( record_type,
-					&num_record_fields,
-					&record_field_defaults,
+	mx_status = mx_mcai_initialize_driver( driver,
 					&maximum_num_channels_varargs_cookie );
 	return mx_status;
 }

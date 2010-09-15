@@ -31,7 +31,7 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_motor_record_function_list = {
-	mxd_databox_motor_initialize_type,
+	NULL,
 	mxd_databox_motor_create_record_structures,
 	mxd_databox_motor_finish_record_initialization,
 	NULL,
@@ -128,12 +128,6 @@ mxd_databox_motor_get_pointers( MX_MOTOR *motor,
 			motor->record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_motor_initialize_type( long type )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

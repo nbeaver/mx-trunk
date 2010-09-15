@@ -105,7 +105,7 @@ typedef struct {
 
 #define MXD_MARCCD_STANDARD_FIELDS
 
-MX_API mx_status_type mxd_marccd_initialize_type( long record_type );
+MX_API mx_status_type mxd_marccd_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_marccd_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_marccd_finish_record_initialization(
 							MX_RECORD *record );

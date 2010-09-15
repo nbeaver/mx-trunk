@@ -29,7 +29,7 @@
 #include "v_pmac.h"
 
 MX_RECORD_FUNCTION_LIST mxv_pmac_record_function_list = {
-	mx_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_pmac_create_record_structures,
 	mxv_pmac_finish_record_initialization,
 };

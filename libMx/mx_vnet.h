@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,8 @@ typedef struct {
 	offsetof(MX_NETWORK_VARIABLE, remote_field_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
-MX_API_PRIVATE mx_status_type mxv_network_variable_initialize_type( long );
+MX_API_PRIVATE mx_status_type mxv_network_variable_initialize_driver(
+							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxv_network_variable_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxv_network_variable_finish_record_initialization(

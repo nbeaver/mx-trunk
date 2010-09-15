@@ -36,7 +36,7 @@
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_bluice_area_detector_record_function_list = {
-	mxd_bluice_area_detector_initialize_type,
+	mxd_bluice_area_detector_initialize_driver,
 	mxd_bluice_area_detector_create_record_structures,
 	mx_area_detector_finish_record_initialization,
 	NULL,
@@ -605,16 +605,12 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_bluice_area_detector_initialize_type( long record_type )
+mxd_bluice_area_detector_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_rois_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_area_detector_initialize_type( record_type,
-					&num_record_fields,
-					&record_field_defaults,
+	mx_status = mx_area_detector_initialize_driver( driver,
 					&maximum_num_rois_varargs_cookie );
 	return mx_status;
 }

@@ -39,7 +39,7 @@
 #include "mx_relay.h"
 
 MX_RECORD_FUNCTION_LIST mxv_mathop_record_function_list = {
-	mxv_mathop_initialize_type,
+	mxv_mathop_initialize_driver,
 	mxv_mathop_create_record_structures,
 	mxv_mathop_finish_record_initialization,
 	mx_default_delete_record_handler
@@ -129,60 +129,23 @@ static mx_status_type mxv_mathop_change_value( MX_VARIABLE *variable,
 						double new_value );
 
 MX_EXPORT mx_status_type
-mxv_mathop_initialize_type( long record_type )
+mxv_mathop_initialize_driver( MX_DRIVER *driver )
 {
-	const char fname[] = "mxv_mathop_initialize_type()";
-
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields, referenced_field_index;
+	long referenced_field_index;
 	long num_items_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_variable_initialize_type( record_type );
+	mx_status = mx_variable_initialize_driver( driver );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	driver = mx_get_driver_by_type( record_type );
-
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr = driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	num_record_fields = *(driver->num_record_fields);
-
 	/* Construct a varargs cookie for 'num_items'. */
 
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_items", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"num_items",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -195,8 +158,8 @@ mxv_mathop_initialize_type( long record_type )
 
 	/* Initialize all the varargs fields that depend on 'num_items'. */
 
-	mx_status = mx_find_record_field_defaults( record_field_defaults,
-				num_record_fields, "item_array", &field);
+	mx_status = mx_find_record_field_defaults( driver,
+						"item_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -209,7 +172,7 @@ mxv_mathop_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxv_mathop_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxv_mathop_create_record_structures()";
+	static const char fname[] = "mxv_mathop_create_record_structures()";
 
 	MX_VARIABLE *variable_struct;
 	MX_MATHOP_VARIABLE *mathop_variable;
@@ -249,7 +212,7 @@ mxv_mathop_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxv_mathop_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxv_mathop_finish_record_initialization()";
+	static const char fname[] = "mxv_mathop_finish_record_initialization()";
 
 	MX_MATHOP_VARIABLE *mathop_variable;
 	MX_RECORD *dependent_record;
@@ -414,7 +377,7 @@ mxv_mathop_receive_variable( MX_VARIABLE *variable )
 static mx_status_type
 mxv_mathop_get_value( MX_RECORD *record, double *value )
 {
-	const char fname[] = "mxv_mathop_get_value()";
+	static const char fname[] = "mxv_mathop_get_value()";
 
 	void *pointer_to_value;
 	long num_dimensions, field_type;
@@ -583,7 +546,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 static mx_status_type
 mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 {
-	const char fname[] = "mxv_mathop_put_value()";
+	static const char fname[] = "mxv_mathop_put_value()";
 
 	void *pointer_to_value;
 	long num_dimensions, field_type;
@@ -768,7 +731,7 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 static mx_status_type
 mxv_mathop_compute_value( MX_VARIABLE *variable, double *value )
 {
-	const char fname[] = "mxv_mathop_compute_value()";
+	static const char fname[] = "mxv_mathop_compute_value()";
 
 	MX_RECORD *variable_record;
 	MX_MATHOP_VARIABLE *mathop_variable;
@@ -980,7 +943,7 @@ mxv_mathop_compute_value( MX_VARIABLE *variable, double *value )
 static mx_status_type
 mxv_mathop_change_value( MX_VARIABLE *variable, double new_value )
 {
-	const char fname[] = "mxv_mathop_change_value()";
+	static const char fname[] = "mxv_mathop_change_value()";
 
 	MX_RECORD *variable_record;
 	MX_MATHOP_VARIABLE *mathop_variable;

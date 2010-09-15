@@ -326,13 +326,10 @@ MX_API_PRIVATE mx_status_type mx_mca_get_pointers( MX_RECORD *mca_record,
 	MX_MCA **mca, MX_MCA_FUNCTION_LIST **function_list_ptr,
 	const char *calling_fname );
 
-MX_API mx_status_type mx_mca_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_channels_varargs_cookie,
-			long *maximum_num_rois_varargs_cookie,
-			long *num_soft_rois_varargs_cookie );
+MX_API mx_status_type mx_mca_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_channels_varargs_cookie,
+				long *maximum_num_rois_varargs_cookie,
+				long *num_soft_rois_varargs_cookie );
 
 MX_API_PRIVATE mx_status_type mx_mca_finish_record_initialization(
 						MX_RECORD *mca_record );

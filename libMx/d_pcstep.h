@@ -35,7 +35,6 @@ typedef struct {
 	unsigned short steps_per_revolution;
 } MX_PCSTEP_MOTOR;
 
-MX_API mx_status_type mxd_pcstep_initialize_type( long type );
 MX_API mx_status_type mxd_pcstep_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_pcstep_finish_record_initialization(

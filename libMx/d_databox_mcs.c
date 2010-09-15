@@ -33,7 +33,7 @@
 /* Initialize the mcs driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_mcs_record_function_list = {
-	mxd_databox_mcs_initialize_type,
+	mxd_databox_mcs_initialize_driver,
 	mxd_databox_mcs_create_record_structures,
 	mxd_databox_mcs_finish_record_initialization
 };
@@ -131,27 +131,22 @@ mxd_databox_mcs_get_pointers( MX_MCS *mcs,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_databox_mcs_initialize_type( long record_type )
+mxd_databox_mcs_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
 	long maximum_num_scalers_varargs_cookie;
 	long maximum_num_measurements_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mcs_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	mx_status = mx_mcs_initialize_driver( driver,
 				&maximum_num_scalers_varargs_cookie,
 				&maximum_num_measurements_varargs_cookie );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"motor_position_data", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+					"motor_position_data", &field );
 
 	field->dimension[0] = maximum_num_measurements_varargs_cookie;
 

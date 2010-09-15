@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -84,7 +84,7 @@ typedef struct {
 	{sizeof(char), sizeof(char *)}, NULL, \
 				(MXFF_IN_DESCRIPTION | MXFF_VARARGS ) }
 
-MX_API_PRIVATE mx_status_type mxv_mathop_initialize_type( long );
+MX_API_PRIVATE mx_status_type mxv_mathop_initialize_driver( MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxv_mathop_create_record_structures(
 							MX_RECORD *record );
 

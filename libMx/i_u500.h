@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2009 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -151,7 +151,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, fault_acknowledge), \
 	{0}, NULL, 0}
 
-MX_API mx_status_type mxi_u500_initialize_type( long record_type );
+MX_API mx_status_type mxi_u500_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxi_u500_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_open( MX_RECORD *record );
 MX_API mx_status_type mxi_u500_close( MX_RECORD *record );

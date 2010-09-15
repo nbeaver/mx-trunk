@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,7 @@
 #include "mx_image.h"
 
 MX_RECORD_FUNCTION_LIST mxd_network_wvout_record_function_list = {
-	mxd_network_wvout_initialize_type,
+	mxd_network_wvout_initialize_driver,
 	mxd_network_wvout_create_record_structures,
 	mxd_network_wvout_finish_record_initialization
 };
@@ -102,19 +102,15 @@ mxd_network_wvout_get_pointers( MX_WAVEFORM_OUTPUT *wvout,
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxd_network_wvout_initialize_type( long record_type )
+mxd_network_wvout_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_steps_varargs_cookie;
 	mx_status_type status;
 
-	status = mx_waveform_output_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
-				&maximum_num_channels_varargs_cookie,
-				&maximum_num_steps_varargs_cookie );
+	status = mx_waveform_output_initialize_driver( driver,
+					&maximum_num_channels_varargs_cookie,
+					&maximum_num_steps_varargs_cookie );
 
 	return status;
 }

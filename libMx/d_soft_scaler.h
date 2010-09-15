@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ typedef struct {
 	double *scaler_value;
 } MX_SOFT_SCALER;
 
-MX_API mx_status_type mxd_soft_scaler_initialize_type( long type );
+MX_API mx_status_type mxd_soft_scaler_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_soft_scaler_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_soft_scaler_finish_record_initialization(

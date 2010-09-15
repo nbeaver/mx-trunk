@@ -37,7 +37,7 @@
 /* Initialize the mcs driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_epics_mcs_record_function_list = {
-	mxd_epics_mcs_initialize_type,
+	mxd_epics_mcs_initialize_driver,
 	mxd_epics_mcs_create_record_structures,
 	mxd_epics_mcs_finish_record_initialization,
 	NULL,
@@ -114,17 +114,13 @@ mxd_epics_mcs_get_pointers( MX_MCS *mcs,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_epics_mcs_initialize_type( long record_type )
+mxd_epics_mcs_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_scalers_varargs_cookie;
 	long maximum_num_measurements_varargs_cookie;
 	mx_status_type status;
 
-	status = mx_mcs_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	status = mx_mcs_initialize_driver( driver,
 				&maximum_num_scalers_varargs_cookie,
 				&maximum_num_measurements_varargs_cookie );
 

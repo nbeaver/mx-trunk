@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +30,7 @@
 /* Initialize the MCE driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mcs_encoder_record_function_list = {
-	mxd_mcs_encoder_initialize_type,
+	mxd_mcs_encoder_initialize_driver,
 	mxd_mcs_encoder_create_record_structures,
 	mxd_mcs_encoder_finish_record_initialization
 };
@@ -65,7 +65,7 @@ mxd_mcs_encoder_get_pointers( MX_MCE *mce,
 			MX_MCS **mcs,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_mcs_encoder_get_pointers()";
+	static const char fname[] = "mxd_mcs_encoder_get_pointers()";
 
 	if ( mce == (MX_MCE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -106,16 +106,12 @@ mxd_mcs_encoder_get_pointers( MX_MCE *mce,
 /*------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_mcs_encoder_initialize_type( long record_type )
+mxd_mcs_encoder_initialize_driver( MX_DRIVER *driver )
 {
-	long num_record_fields;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mce_initialize_type( record_type,
-					&num_record_fields,
-					&record_field_defaults,
+	mx_status = mx_mce_initialize_driver( driver,
 					&maximum_num_values_varargs_cookie );
 
 	return mx_status;
@@ -124,7 +120,7 @@ mxd_mcs_encoder_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_encoder_create_record_structures()";
+	static const char fname[] = "mxd_mcs_encoder_create_record_structures()";
 
 	MX_MCE *mce;
 	MX_MCS_ENCODER *mcs_encoder;
@@ -160,7 +156,7 @@ mxd_mcs_encoder_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_encoder_finish_record_initialization()";
+	static const char fname[] = "mxd_mcs_encoder_finish_record_initialization()";
 
 	MX_MCE *mce;
 	MX_MCS_ENCODER *mcs_encoder;
@@ -218,7 +214,7 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_read( MX_MCE *mce )
 {
-	const char fname[] = "mxd_mcs_encoder_read()";
+	static const char fname[] = "mxd_mcs_encoder_read()";
 
 	MX_MCS_ENCODER *mcs_encoder;
 	MX_MCS *mcs;
@@ -311,7 +307,7 @@ mxd_mcs_encoder_read( MX_MCE *mce )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_get_current_num_values( MX_MCE *mce )
 {
-	const char fname[] = "mxd_mcs_encoder_get_current_num_values()";
+	static const char fname[] = "mxd_mcs_encoder_get_current_num_values()";
 
 	MX_MCS_ENCODER *mcs_encoder;
 	MX_MCS *mcs;

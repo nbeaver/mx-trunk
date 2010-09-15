@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,8 @@ typedef struct {
 	double real_end_position[ MXS_JQ_MAX_MOTORS ];
 } MX_JOERGER_QUICK_SCAN;
 
-MX_API mx_status_type mxs_joerger_quick_scan_initialize_type( long type );
+MX_API mx_status_type mxs_joerger_quick_scan_initialize_driver(
+						MX_DRIVER *driver );
 MX_API mx_status_type mxs_joerger_quick_scan_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxs_joerger_quick_scan_finish_record_initialization(

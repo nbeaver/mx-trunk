@@ -34,7 +34,7 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_gm10_timer_record_function_list = {
-	mxd_gm10_timer_initialize_type,
+	mxd_gm10_timer_initialize_driver,
 	mxd_gm10_timer_create_record_structures,
 	mxd_gm10_timer_finish_record_initialization
 };
@@ -94,53 +94,23 @@ mxd_gm10_timer_get_pointers( MX_TIMER *timer,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_gm10_timer_initialize_type( long type )
+mxd_gm10_timer_initialize_driver( MX_DRIVER *driver )
 {
-        static const char fname[] = "mxs_gm10_timer_initialize_type()";
+        static const char fname[] = "mxs_gm10_timer_initialize_driver()";
 
-        MX_DRIVER *driver;
-        MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-        MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
-        long num_record_fields;
 	long referenced_field_index;
         long num_scalers_varargs_cookie;
         mx_status_type mx_status;
 
-        driver = mx_get_driver_by_type( type );
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
+	}
 
-        if ( driver == (MX_DRIVER *) NULL ) {
-                return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                        "Record type %ld not found.", type );
-        }
-
-        record_field_defaults_ptr = driver->record_field_defaults_ptr;
-
-        if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-                "'record_field_defaults_ptr' for record type '%s' is NULL.",
-                        driver->name );
-        }
-
-        record_field_defaults = *record_field_defaults_ptr;
-
-        if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-                "'record_field_defaults_ptr' for record type '%s' is NULL.",
-                        driver->name );
-        }
-
-        if ( driver->num_record_fields == (long *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-                "'num_record_fields' pointer for record type '%s' is NULL.",
-                        driver->name );
-        }
-
-	num_record_fields = *(driver->num_record_fields);
-
-        mx_status = mx_find_record_field_defaults_index(
-                        record_field_defaults, num_record_fields,
-                        "num_scalers", &referenced_field_index );
+        mx_status = mx_find_record_field_defaults_index( driver,
+                        			"num_scalers",
+						&referenced_field_index );
 
         if ( mx_status.code != MXE_SUCCESS )
                 return mx_status;
@@ -151,9 +121,8 @@ mxd_gm10_timer_initialize_type( long type )
         if ( mx_status.code != MXE_SUCCESS )
                 return mx_status;
 
-	mx_status = mx_find_record_field_defaults(
-		record_field_defaults, num_record_fields,
-		"scaler_record_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"scaler_record_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

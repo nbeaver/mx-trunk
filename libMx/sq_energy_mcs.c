@@ -45,7 +45,7 @@
 #include "d_mcs_timer.h"
 
 MX_RECORD_FUNCTION_LIST mxs_energy_mcs_quick_scan_record_function_list = {
-	mxs_mcs_quick_scan_initialize_type,
+	mx_quick_scan_initialize_driver,
 	mxs_energy_mcs_quick_scan_create_record_structures,
 	mxs_energy_mcs_quick_scan_finish_record_initialization,
 	mxs_mcs_quick_scan_delete_record,

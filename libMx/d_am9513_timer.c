@@ -39,7 +39,7 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_am9513_timer_record_function_list = {
-	mxd_am9513_timer_initialize_type,
+	mxd_am9513_timer_initialize_driver,
 	mxd_am9513_timer_create_record_structures,
 	mx_timer_finish_record_initialization,
 	NULL,
@@ -82,7 +82,7 @@ mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_am9513_get_pointers()";
+	static const char fname[] = "mxd_am9513_get_pointers()";
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -130,30 +130,23 @@ mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 }
 
 MX_EXPORT mx_status_type
-mxd_am9513_timer_initialize_type( long type )
+mxd_am9513_timer_initialize_driver( MX_DRIVER *driver )
 {
-	const char fname[] = "mxd_am9513_timer_initialize_type()";
+	static const char fname[] = "mxd_am9513_timer_initialize_type()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
 	mx_status_type status;
 
-	driver = mx_get_driver_by_type( type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.", type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults = *(driver->record_field_defaults_ptr);
-	num_record_fields = *(driver->num_record_fields);
-
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_counters", &num_counters_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"num_counters",
+						&num_counters_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -164,9 +157,9 @@ mxd_am9513_timer_initialize_type( long type )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"am9513_interface_array", &field );
+	status = mx_find_record_field_defaults( driver,
+						"am9513_interface_array",
+						&field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -179,7 +172,7 @@ mxd_am9513_timer_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_timer_create_record_structures()";
+	static const char fname[] = "mxd_am9513_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_AM9513_TIMER *am9513_timer;
@@ -218,7 +211,7 @@ mxd_am9513_timer_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_timer_open()";
+	static const char fname[] = "mxd_am9513_timer_open()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
@@ -332,7 +325,7 @@ mxd_am9513_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_timer_close()";
+	static const char fname[] = "mxd_am9513_timer_close()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
@@ -368,7 +361,7 @@ mxd_am9513_timer_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_is_busy()";
+	static const char fname[] = "mxd_am9513_timer_is_busy()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
@@ -420,7 +413,7 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_start()";
+	static const char fname[] = "mxd_am9513_timer_start()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
@@ -581,7 +574,7 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_stop()";
+	static const char fname[] = "mxd_am9513_timer_stop()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
@@ -691,7 +684,7 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_clear( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_clear()";
+	static const char fname[] = "mxd_am9513_timer_clear()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function should be possible, but has not been implemented yet.");
@@ -700,7 +693,7 @@ mxd_am9513_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_read()";
+	static const char fname[] = "mxd_am9513_timer_read()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function should be possible, but has not been implemented yet.");
@@ -717,7 +710,7 @@ mxd_am9513_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_am9513_timer_set_mode()";
+	static const char fname[] = "mxd_am9513_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

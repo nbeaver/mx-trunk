@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,8 @@ typedef struct {
 	double *region_measurement_time;
 } MX_XAFS_SCAN;
 
-MX_API_PRIVATE mx_status_type mxs_xafs_scan_initialize_type( long type );
+MX_API_PRIVATE mx_status_type mxs_xafs_scan_initialize_driver(
+							MX_DRIVER *driver );
 MX_API_PRIVATE mx_status_type mxs_xafs_scan_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxs_xafs_scan_finish_record_initialization(

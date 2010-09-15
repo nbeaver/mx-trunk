@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,8 @@ typedef struct {
 	double estimated_scan_duration;		/* in seconds */
 } MX_QUICK_SCAN;
 
-MX_API_PRIVATE mx_status_type mx_quick_scan_initialize_type( long type );
+MX_API_PRIVATE mx_status_type mx_quick_scan_initialize_driver(
+							MX_DRIVER *driver );
 
 MX_API_PRIVATE mx_status_type mx_quick_scan_print_scan_structure(
 					FILE *file, MX_RECORD *record );

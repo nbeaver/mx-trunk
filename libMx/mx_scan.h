@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -185,8 +185,7 @@ MX_API void mx_handle_abnormal_scan_termination( MX_LIST_HEAD *list_head,
 MX_API double mx_scan_get_measurement_time( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_fixup_varargs_record_field_defaults(
-			MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
-			long num_record_field,
+			MX_DRIVER *driver,
 			long *num_independent_variables_varargs_cookie,
 			long *num_motors_varargs_cookie,
 			long *num_input_devices_varargs_cookie );

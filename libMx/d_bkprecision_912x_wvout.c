@@ -33,7 +33,7 @@
 #include "mx_image.h"
 
 MX_RECORD_FUNCTION_LIST mxd_bkprecision_912x_wvout_record_function_list = {
-	mxd_bkprecision_912x_wvout_initialize_type,
+	mxd_bkprecision_912x_wvout_initialize_driver,
 	mxd_bkprecision_912x_wvout_create_record_structures,
 	mxd_bkprecision_912x_wvout_finish_record_initialization,
 	NULL,
@@ -159,21 +159,17 @@ mxd_bkprecision_912x_wvout_save_list( MX_BKPRECISION_912X *bkprecision_912x )
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxd_bkprecision_912x_wvout_initialize_type( long record_type )
+mxd_bkprecision_912x_wvout_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_steps_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_waveform_output_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
-				&maximum_num_channels_varargs_cookie,
-				&maximum_num_steps_varargs_cookie );
+	mx_status = mx_waveform_output_initialize_driver( driver,
+					&maximum_num_channels_varargs_cookie,
+					&maximum_num_steps_varargs_cookie );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

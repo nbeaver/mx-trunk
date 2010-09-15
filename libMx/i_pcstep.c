@@ -39,7 +39,7 @@
 #include "i_pcstep.h"
 
 MX_RECORD_FUNCTION_LIST mxi_pcstep_record_function_list = {
-	mxi_pcstep_initialize_type,
+	NULL,
 	mxi_pcstep_create_record_structures,
 	mxi_pcstep_finish_record_initialization,
 	mxi_pcstep_delete_record,
@@ -96,12 +96,6 @@ mxi_pcstep_get_pointers( MX_RECORD *record,
 }
 
 /* ====== */
-
-MX_EXPORT mx_status_type
-mxi_pcstep_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_pcstep_create_record_structures( MX_RECORD *record )

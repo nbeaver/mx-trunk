@@ -336,8 +336,10 @@ typedef struct {
  * that are the same for all record types.
  */
 
+struct mx_driver_type;
+
 typedef struct {
-	mx_status_type ( *initialize_type )( long );
+	mx_status_type ( *initialize_driver )( struct mx_driver_type *driver );
 	mx_status_type ( *create_record_structures ) ( MX_RECORD *record );
 	mx_status_type ( *finish_record_initialization )( MX_RECORD * );
 	mx_status_type ( *delete_record )( MX_RECORD * );
@@ -351,7 +353,7 @@ typedef struct {
 
 #define MXU_DRIVER_NAME_LENGTH	32 
 
-typedef struct {
+typedef struct mx_driver_type {
 	char name[MXU_DRIVER_NAME_LENGTH+1];
 	long mx_type;
 	long mx_class;
@@ -361,6 +363,7 @@ typedef struct {
 	void *class_specific_function_list;
 	long *num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
+	struct mx_driver_type *next_driver;
 } MX_DRIVER;
 
 typedef struct {
@@ -469,7 +472,10 @@ MX_API MX_DRIVER *mx_get_driver_by_type( long record_type );
 MX_API MX_DRIVER *mx_get_driver_for_record( MX_RECORD *record );
 MX_API const char *mx_get_driver_name( MX_RECORD *record );
 
-MX_API MX_DRIVER **mx_get_driver_lists( void );
+MX_API MX_DRIVER *mx_get_superclass_driver_by_name( char *name );
+MX_API MX_DRIVER *mx_get_class_driver_by_name( char *name );
+
+MX_API mx_status_type mx_add_driver_table( MX_DRIVER *driver_table );
 
 MX_API long  mx_get_parameter_type_from_name( MX_RECORD *record, char *name );
 MX_API char *mx_get_parameter_name_from_type( MX_RECORD *record, long type,
@@ -708,14 +714,12 @@ MX_API_PRIVATE mx_status_type mx_replace_varargs_cookies_with_values(
 /* --- */
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults(
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
+		MX_DRIVER *driver,
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found );
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults_index(
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
+		MX_DRIVER *driver,
 		const char *name_of_field_to_find,
 		long *index_of_field_that_was_found );
 
@@ -729,11 +733,6 @@ MX_API const char *mx_get_field_label_string( MX_RECORD *record,
 MX_API const char *mx_get_field_type_string( long field_type );
 
 MX_API void *mx_get_field_value_pointer( MX_RECORD_FIELD *field );
-
-MX_API_PRIVATE mx_status_type  mx_setup_typeinfo_for_record_type_fields(
-		long num_record_fields,
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_for_type,
-		long mx_type, long mx_class, long mx_superclass );
 
 MX_API mx_status_type mx_set_1d_field_array_length( MX_RECORD_FIELD *field,
 							unsigned long length );

@@ -11,7 +11,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2000, 2002-2003, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2000, 2002-2003, 2006-2007, 2010
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +71,7 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_monochromator_initialize_type( long type );
+MX_API mx_status_type mxd_monochromator_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_monochromator_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_monochromator_finish_record_initialization(

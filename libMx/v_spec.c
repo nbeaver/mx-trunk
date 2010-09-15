@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 #include "v_spec.h"
 
 MX_RECORD_FUNCTION_LIST mxv_spec_property_record_function_list = {
-	mx_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_spec_create_record_structures
 };
 

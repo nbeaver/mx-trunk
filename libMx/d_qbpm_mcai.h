@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_QBPM_MCAI, icplus_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_qbpm_mcai_initialize_type( long record_type );
+MX_API mx_status_type mxd_qbpm_mcai_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_qbpm_mcai_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_qbpm_mcai_finish_record_initialization(

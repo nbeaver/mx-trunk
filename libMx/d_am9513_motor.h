@@ -36,7 +36,7 @@ typedef struct {
 	long busy_retries_left;
 } MX_AM9513_MOTOR;
 
-MX_API mx_status_type mxd_am9513_motor_initialize_type( long type );
+MX_API mx_status_type mxd_am9513_motor_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_am9513_motor_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_motor_finish_record_initialization(

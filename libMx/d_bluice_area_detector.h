@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,8 +63,8 @@ typedef struct {
 	char detector_type[MXU_BLUICE_NAME_LENGTH+1];
 } MX_BLUICE_AREA_DETECTOR;
 
-MX_API mx_status_type mxd_bluice_area_detector_initialize_type(
-							long record_type );
+MX_API mx_status_type mxd_bluice_area_detector_initialize_driver(
+							MX_DRIVER *driver );
 MX_API mx_status_type mxd_bluice_area_detector_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_area_detector_open( MX_RECORD *record );

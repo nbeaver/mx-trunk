@@ -44,7 +44,7 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_monochromator_record_function_list = {
-	mxd_monochromator_initialize_type,
+	mxd_monochromator_initialize_driver,
 	mxd_monochromator_create_record_structures,
 	mxd_monochromator_finish_record_initialization,
 	NULL,
@@ -473,63 +473,31 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 #define NUM_MONO_FIELDS   3
 
 MX_EXPORT mx_status_type
-mxd_monochromator_initialize_type( long record_type )
+mxd_monochromator_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxd_monochromator_initialize_type()";
+	static const char fname[] = "mxd_monochromator_initialize_driver()";
 
-	const char field_name[NUM_MONO_FIELDS][MXU_FIELD_NAME_LENGTH+1]
+	static const char field_name[NUM_MONO_FIELDS][MXU_FIELD_NAME_LENGTH+1]
 	   = {
 		"list_array",
 		"speed_change_permitted",
 		"speed_changed"
 	     };
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	long num_record_fields;
 	long num_dependencies_field_index;
 	long num_dependencies_varargs_cookie;
 	mx_status_type mx_status;
 
-	driver = mx_get_driver_by_type( record_type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	num_record_fields = *(driver->num_record_fields);
-
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_dependencies", &num_dependencies_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"num_dependencies",
+						&num_dependencies_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -541,9 +509,8 @@ mxd_monochromator_initialize_type( long record_type )
 		return mx_status;
 
 	for ( i = 0; i < NUM_MONO_FIELDS; i++ ) {
-		mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			field_name[i], &field );
+		mx_status = mx_find_record_field_defaults( driver,
+						field_name[i], &field );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

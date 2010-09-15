@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,76 +77,48 @@ mx_mca_get_pointers( MX_RECORD *mca_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mca_initialize_type( long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+mx_mca_initialize_driver( MX_DRIVER *driver,
 			long *maximum_num_channels_varargs_cookie,
 			long *maximum_num_rois_varargs_cookie,
 			long *num_soft_rois_varargs_cookie )
 {
-	static const char fname[] = "mx_mca_initialize_type()";
+	static const char fname[] = "mx_mca_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
 	mx_status_type mx_status;
 
-	if ( num_record_fields == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"num_record_fields pointer passed was NULL." );
-	}
-	if ( record_field_defaults == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"record_field_defaults pointer passed was NULL." );
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 	if ( maximum_num_channels_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-	"maximum_num_channels_varargs_cookie pointer passed was NULL." );
+	"The maximum_num_channels_varargs_cookie pointer passed was NULL." );
 	}
 	if ( maximum_num_rois_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-	"maximum_num_rois_varargs_cookie pointer passed was NULL." );
+	"The maximum_num_rois_varargs_cookie pointer passed was NULL." );
+	}
+	if ( num_soft_rois_varargs_cookie == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	"The num_soft_rois_varargs_cookie pointer passed was NULL." );
 	}
 
-	driver = mx_get_driver_by_type( record_type );
+	record_field_defaults_array = *(driver->record_field_defaults_ptr);
 
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
+	if (record_field_defaults_array == (MX_RECORD_FIELD_DEFAULTS *) NULL) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
+		"The MX_RECORD_FIELD_DEFAULTS array for driver '%s' is NULL.",
 			driver->name );
 	}
-
-	*record_field_defaults = *record_field_defaults_ptr;
-
-	if ( *record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*num_record_fields = *(driver->num_record_fields);
 
 	/*** Construct a varargs cookie for 'maximum_num_channels'. ***/
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"maximum_num_channels", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"maximum_num_channels",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -159,9 +131,9 @@ mx_mca_initialize_type( long record_type,
 
 	/*** Construct a varargs cookie for 'maximum_num_rois'. ***/
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"maximum_num_rois", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"maximum_num_rois",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -174,9 +146,9 @@ mx_mca_initialize_type( long record_type,
 
 	/*** Construct a varargs cookie for 'num_soft_rois'. ***/
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
-			"num_soft_rois", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"num_soft_rois",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -189,8 +161,8 @@ mx_mca_initialize_type( long record_type,
 
 	/*** 'channel_array' depends on 'maximum_num_channels'. ***/
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "channel_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"channel_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -201,16 +173,16 @@ mx_mca_initialize_type( long record_type,
 	 * 'roi_array' and 'roi_integral_array' depend on 'maximum_num_rois'.
 	 */
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "roi_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"roi_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	field->dimension[0] = *maximum_num_rois_varargs_cookie;
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "roi_integral_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"roi_integral_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -222,16 +194,16 @@ mx_mca_initialize_type( long record_type,
 	 * depend on 'num_soft_rois'.
 	 */
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "soft_roi_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"soft_roi_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	field->dimension[0] = *num_soft_rois_varargs_cookie;
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "soft_roi_integral_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+					"soft_roi_integral_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -33,7 +33,7 @@
 #include "mx_poison.h"
 
 MX_RECORD_FUNCTION_LIST mxs_xafs_scan_record_function_list = {
-	mxs_xafs_scan_initialize_type,
+	mxs_xafs_scan_initialize_driver,
 	mxs_xafs_scan_create_record_structures,
 	mxs_xafs_scan_finish_record_initialization,
 	mxs_xafs_scan_delete_record,
@@ -47,15 +47,11 @@ MX_SCAN_FUNCTION_LIST mxs_xafs_scan_scan_function_list = {
 };
 
 MX_EXPORT mx_status_type
-mxs_xafs_scan_initialize_type( long record_type )
+mxs_xafs_scan_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxs_xafs_scan_initialize_type()";
+	static const char fname[] = "mxs_xafs_scan_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
 	long num_independent_variables_varargs_cookie;
 	long num_motors_varargs_cookie;
 	long num_input_devices_varargs_cookie;
@@ -66,54 +62,26 @@ mxs_xafs_scan_initialize_type( long record_type )
 	long num_regions_varargs_cookie;
 	mx_status_type status;
 
-	driver = mx_get_driver_by_type( record_type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr = driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
 	/**** Fix up the record fields common to all scan types. ****/
 
-	num_record_fields = *(driver->num_record_fields);
-
-	status = mx_scan_fixup_varargs_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			&num_independent_variables_varargs_cookie,
-			&num_motors_varargs_cookie,
-			&num_input_devices_varargs_cookie );
+	status = mx_scan_fixup_varargs_record_field_defaults( driver,
+				&num_independent_variables_varargs_cookie,
+				&num_motors_varargs_cookie,
+				&num_input_devices_varargs_cookie );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
 	/** Fix up the record fields specific to MX_XAFS_SCAN records **/
 
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_boundaries", &num_boundaries_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"num_boundaries",
+						&num_boundaries_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -124,9 +92,8 @@ mxs_xafs_scan_initialize_type( long record_type )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"region_boundary", &field );
+	status = mx_find_record_field_defaults( driver,
+						"region_boundary", &field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -135,9 +102,9 @@ mxs_xafs_scan_initialize_type( long record_type )
 
 	/*--*/
 
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_regions", &num_regions_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"num_regions",
+						&num_regions_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -148,18 +115,16 @@ mxs_xafs_scan_initialize_type( long record_type )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"region_step_size", &field );
+	status = mx_find_record_field_defaults( driver,
+						"region_step_size", &field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
 	field->dimension[0] = num_regions_varargs_cookie;
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"region_measurement_time", &field );
+	status = mx_find_record_field_defaults( driver,
+					"region_measurement_time", &field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,6 @@ typedef struct {
 	offsetof(MX_FILE_VARIABLE, filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
-MX_API_PRIVATE mx_status_type mxv_file_variable_initialize_type( long );
 MX_API_PRIVATE mx_status_type mxv_file_variable_create_record_structures(
 							MX_RECORD *record );
 MX_API_PRIVATE mx_status_type mxv_file_variable_open( MX_RECORD *record );

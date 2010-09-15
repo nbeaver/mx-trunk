@@ -30,7 +30,7 @@
 #include "v_aps_topup.h"
 
 MX_RECORD_FUNCTION_LIST mxv_aps_topup_record_function_list = {
-	mxv_aps_topup_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_aps_topup_create_record_structures,
 	NULL,
 	NULL,
@@ -76,12 +76,6 @@ MX_RECORD_FIELD_DEFAULTS *mxv_aps_topup_time_to_inject_field_def_ptr
 		= &mxv_aps_topup_time_to_inject_record_field_defaults[0];
 
 /********************************************************************/
-
-MX_EXPORT mx_status_type
-mxv_aps_topup_initialize_type( long record_type )
-{
-	return mx_variable_initialize_type( record_type );
-}
 
 MX_EXPORT mx_status_type
 mxv_aps_topup_create_record_structures( MX_RECORD *record )

@@ -131,69 +131,27 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_initialize_type( long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_rois_varargs_cookie )
+mx_area_detector_initialize_driver( MX_DRIVER *driver,
+				long *maximum_num_rois_varargs_cookie )
 {
-	static const char fname[] = "mx_area_detector_initialize_type()";
+	static const char fname[] = "mx_area_detector_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
 	mx_status_type mx_status;
 
-	if ( num_record_fields == NULL ) {
+	if ( driver == (MX_DRIVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"num_record_fields pointer passed was NULL." );
-	}
-	if ( record_field_defaults == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"record_field_defaults pointer passed was NULL." );
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 	if ( maximum_num_rois_varargs_cookie == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-	"maximum_num_rois_varargs_cookie pointer passed was NULL." );
+		"maximum_num_rois_varargs_cookie pointer passed was NULL." );
 	}
-
-	driver = mx_get_driver_by_type( record_type );
-
-	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*record_field_defaults = *record_field_defaults_ptr;
-
-	if ( *record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	*num_record_fields = *(driver->num_record_fields);
 
 	/*** Construct a varargs cookie for 'maximum_num_rois'. ***/
 
-	mx_status = mx_find_record_field_defaults_index(
-			*record_field_defaults, *num_record_fields,
+	mx_status = mx_find_record_field_defaults_index( driver,
 			"maximum_num_rois", &referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -207,8 +165,8 @@ mx_area_detector_initialize_type( long record_type,
 
 	/* 'roi_array' depends on 'maximum_num_rois'. */
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
-			*num_record_fields, "roi_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"roi_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

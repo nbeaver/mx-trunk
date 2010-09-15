@@ -360,7 +360,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, module_type ), \
 	{sizeof(char)}, NULL, MXFF_VARARGS}
 
-MX_API mx_status_type mxd_handel_mca_initialize_type( long type );
+MX_API mx_status_type mxd_handel_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_handel_mca_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_handel_mca_finish_record_initialization(

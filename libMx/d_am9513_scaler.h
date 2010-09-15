@@ -31,7 +31,7 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_am9513_scaler_initialize_type( long type );
+MX_API mx_status_type mxd_am9513_scaler_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_am9513_scaler_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_scaler_finish_record_initialization(

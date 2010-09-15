@@ -34,7 +34,7 @@
 #include "d_compumotor.h"
 
 MX_RECORD_FUNCTION_LIST mxi_compumotor_record_function_list = {
-	mxi_compumotor_initialize_type,
+	mxi_compumotor_initialize_driver,
 	mxi_compumotor_create_record_structures,
 	mxi_compumotor_finish_record_initialization,
 	mxi_compumotor_delete_record,
@@ -98,54 +98,23 @@ mxi_compumotor_get_pointers( MX_RECORD *record,
 /*==========================*/
 
 MX_EXPORT mx_status_type
-mxi_compumotor_initialize_type( long type )
+mxi_compumotor_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxi_compumotor_initialize_type()";
+	static const char fname[] = "mxi_compumotor_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
 	long referenced_field_index;
 	long num_controllers_varargs_cookie;
 	mx_status_type mx_status;
 
-	driver = mx_get_driver_by_type( type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found in driver list.", type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if ( record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'*record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	num_record_fields = *(driver->num_record_fields);
-
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_controllers", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"num_controllers",
+						&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -156,27 +125,24 @@ mxi_compumotor_initialize_type( long type )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"num_axes", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"num_axes", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	field->dimension[0] = num_controllers_varargs_cookie;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"controller_number", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"controller_number", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	field->dimension[0] = num_controllers_varargs_cookie;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"controller_type", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"controller_type", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

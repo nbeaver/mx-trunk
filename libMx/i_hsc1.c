@@ -31,7 +31,7 @@
 #include "i_hsc1.h"
 
 MX_RECORD_FUNCTION_LIST mxi_hsc1_record_function_list = {
-	mxi_hsc1_initialize_type,
+	mxi_hsc1_initialize_driver,
 	mxi_hsc1_create_record_structures,
 	mxi_hsc1_finish_record_initialization,
 	NULL,
@@ -98,30 +98,23 @@ mxi_hsc1_get_pointers( MX_RECORD *hsc1_interface_record,
 /*=== Public functions ===*/
 
 MX_EXPORT mx_status_type
-mxi_hsc1_initialize_type( long type )
+mxi_hsc1_initialize_driver( MX_DRIVER *driver )
 {
 	static const char fname[] = "mxi_hsc1_initialize_type()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_modules_field_index;
 	long num_modules_varargs_cookie;
 	mx_status_type mx_status;
 
-	driver = mx_get_driver_by_type( type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.", type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults = *(driver->record_field_defaults_ptr);
-	num_record_fields = *(driver->num_record_fields);
-
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_modules", &num_modules_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+						"num_modules",
+						&num_modules_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -132,9 +125,8 @@ mxi_hsc1_initialize_type( long type )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"module_id", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"module_id", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

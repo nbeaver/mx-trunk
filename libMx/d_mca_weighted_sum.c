@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@
 #include "d_mca_weighted_sum.h"
 
 MX_RECORD_FUNCTION_LIST mxd_mca_weighted_sum_record_function_list = {
-	mxd_mca_weighted_sum_initialize_type,
+	mxd_mca_weighted_sum_initialize_driver,
 	mxd_mca_weighted_sum_create_record_structures,
 	mx_analog_input_finish_record_initialization
 };
@@ -93,55 +93,23 @@ mxd_mca_weighted_sum_get_pointers( MX_ANALOG_INPUT *analog_input,
 /********************************************************************/
 
 MX_EXPORT mx_status_type
-mxd_mca_weighted_sum_initialize_type( long record_type )
+mxd_mca_weighted_sum_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxd_mca_weighted_sum_initialize_type()";
+	static const char fname[] = "mxd_mca_weighted_sum_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *mca_record_array_field;
-	long num_record_fields;
 	long num_mcas_field_index;
 	long num_mcas_varargs_cookie;
 	mx_status_type mx_status;
 
-	driver = mx_get_driver_by_type( record_type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	num_record_fields = *(driver->num_record_fields);
-
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_mcas", &num_mcas_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+							"num_mcas",
+							&num_mcas_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -152,9 +120,9 @@ mxd_mca_weighted_sum_initialize_type( long record_type )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"mca_record_array", &mca_record_array_field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"mca_record_array",
+						&mca_record_array_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

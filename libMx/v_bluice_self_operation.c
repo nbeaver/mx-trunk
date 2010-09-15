@@ -28,7 +28,7 @@
 #include "v_bluice_self_operation.h"
 
 MX_RECORD_FUNCTION_LIST mxv_bluice_self_operation_record_function_list = {
-	mx_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_bluice_self_operation_create_record_structures,
 	NULL,
 	NULL,

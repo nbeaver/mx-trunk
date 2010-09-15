@@ -66,7 +66,7 @@
 /* Initialize the MCA driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list = {
-	mxd_handel_mca_initialize_type,
+	mxd_handel_mca_initialize_driver,
 	mxd_handel_mca_create_record_structures,
 	mxd_handel_mca_finish_record_initialization,
 	NULL,
@@ -152,18 +152,14 @@ mxd_handel_mca_get_pointers( MX_MCA *mca,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_handel_mca_initialize_type( long record_type )
+mxd_handel_mca_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
 	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mca_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	mx_status = mx_mca_initialize_driver( driver,
 				&maximum_num_channels_varargs_cookie,
 				&maximum_num_rois_varargs_cookie,
 				&num_soft_rois_varargs_cookie );

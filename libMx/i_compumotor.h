@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -116,7 +116,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, command), \
 	{sizeof(char)}, NULL, 0}
 
-MX_API mx_status_type mxi_compumotor_initialize_type( long type );
+MX_API mx_status_type mxi_compumotor_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxi_compumotor_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_compumotor_finish_record_initialization(

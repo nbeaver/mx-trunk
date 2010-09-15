@@ -33,7 +33,7 @@
 #include "mx_poison.h"
 
 MX_RECORD_FUNCTION_LIST mxs_linear_scan_record_function_list = {
-	mxs_linear_scan_initialize_type,
+	mxs_linear_scan_initialize_driver,
 	mxs_linear_scan_create_record_structures,
 	mxs_linear_scan_finish_record_initialization,
 	mxs_linear_scan_delete_record,
@@ -122,9 +122,9 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 #define NUM_LINEAR_SCAN_FIELDS	4
 
 MX_EXPORT mx_status_type
-mxs_linear_scan_initialize_type( long record_type )
+mxs_linear_scan_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxs_linear_scan_initialize_type()";
+	static const char fname[] = "mxs_linear_scan_initialize_driver()";
 
 	static const char
 		field_name[NUM_LINEAR_SCAN_FIELDS][MXU_FIELD_NAME_LENGTH+1]
@@ -134,57 +134,24 @@ mxs_linear_scan_initialize_type( long record_type )
 		"num_measurements",
 		"step_number"};
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	long num_record_fields;
 	long num_independent_variables_varargs_cookie;
 	long num_motors_varargs_cookie;
 	long num_input_devices_varargs_cookie;
 	mx_status_type mx_status;
 
-	driver = mx_get_driver_by_type( record_type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr
-			= driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
 	/**** Fix up the record fields common to all scan types. ****/
 
-	num_record_fields = *(driver->num_record_fields);
-
-	mx_status = mx_scan_fixup_varargs_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			&num_independent_variables_varargs_cookie,
-			&num_motors_varargs_cookie,
-			&num_input_devices_varargs_cookie );
+	mx_status = mx_scan_fixup_varargs_record_field_defaults( driver,
+				&num_independent_variables_varargs_cookie,
+				&num_motors_varargs_cookie,
+				&num_input_devices_varargs_cookie );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -192,9 +159,8 @@ mxs_linear_scan_initialize_type( long record_type )
 	/**** Fix up the record fields specific to MX_LINEAR_SCAN records ****/
 
 	for ( i = 0; i < NUM_LINEAR_SCAN_FIELDS; i++ ) {
-		mx_status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			field_name[i], &field );
+		mx_status = mx_find_record_field_defaults( driver,
+							field_name[i], &field );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

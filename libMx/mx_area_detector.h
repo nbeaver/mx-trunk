@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1042,11 +1042,8 @@ MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
                                 MX_AREA_DETECTOR_FUNCTION_LIST **flist_ptr,
                                         const char *calling_fname );
 
-MX_API mx_status_type mx_area_detector_initialize_type(
-			long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_rois_varargs_cookie );
+MX_API mx_status_type mx_area_detector_initialize_driver( MX_DRIVER *driver,
+					long *maximum_num_rois_varargs_cookie );
 
 MX_API mx_status_type mx_area_detector_finish_record_initialization(
 						MX_RECORD *record );

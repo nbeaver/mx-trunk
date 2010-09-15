@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2006, 2008 Illinois Institute of Technology
+ * Copyright 1999-2000, 2006, 2008, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, detector_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_trump_initialize_type( long type );
+MX_API mx_status_type mxd_trump_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_trump_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_finish_record_initialization(
 							MX_RECORD *record );

@@ -49,7 +49,7 @@
 #include "d_mcs_timer.h"
 
 MX_RECORD_FUNCTION_LIST mxs_mcs_quick_scan_record_function_list = {
-	mxs_mcs_quick_scan_initialize_type,
+	mx_quick_scan_initialize_driver,
 	mxs_mcs_quick_scan_create_record_structures,
 	mxs_mcs_quick_scan_finish_record_initialization,
 	mxs_mcs_quick_scan_delete_record,
@@ -170,12 +170,6 @@ mxs_mcs_quick_scan_get_pointers( MX_SCAN *scan,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxs_mcs_quick_scan_initialize_type( long type )
-{
-	return mx_quick_scan_initialize_type( type );
 }
 
 MX_EXPORT mx_status_type

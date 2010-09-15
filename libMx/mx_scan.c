@@ -2388,13 +2388,13 @@ mx_scan_get_measurement_time( MX_SCAN *scan )
 
 MX_EXPORT mx_status_type
 mx_scan_fixup_varargs_record_field_defaults(
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
+		MX_DRIVER *driver,
 		long *num_independent_variables_varargs_cookie,
 		long *num_motors_varargs_cookie,
 		long *num_input_devices_varargs_cookie )
 {
-	static const char fname[] = "mx_scan_fixup_varargs_record_field_defaults()";
+	static const char fname[] =
+		"mx_scan_fixup_varargs_record_field_defaults()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;
@@ -2406,9 +2406,8 @@ mx_scan_fixup_varargs_record_field_defaults(
 	 **** Put the 'num_motors' value in the appropriate places.
 	 ****/
 
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults_array, num_record_fields,
-			"num_motors", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+					"num_motors", &referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2424,9 +2423,8 @@ mx_scan_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults_array, num_record_fields,
-			"motor_position", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+					"motor_position", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2435,9 +2433,8 @@ mx_scan_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults_array, num_record_fields,
-			"motor_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+					"motor_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2446,9 +2443,8 @@ mx_scan_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults_array, num_record_fields,
-			"motor_is_independent_variable", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+				"motor_is_independent_variable", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2460,9 +2456,9 @@ mx_scan_fixup_varargs_record_field_defaults(
 	 **** 'input_device_array' field.
 	 ****/
 
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults_array, num_record_fields,
-			"num_input_devices", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+					"num_input_devices",
+					&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2479,9 +2475,8 @@ mx_scan_fixup_varargs_record_field_defaults(
 
 	/*---*/
 
-	mx_status = mx_find_record_field_defaults(
-			record_field_defaults_array, num_record_fields,
-			"input_device_array", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+					"input_device_array", &field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2493,9 +2488,9 @@ mx_scan_fixup_varargs_record_field_defaults(
 	 **** which is used by the individual device classes.
 	 ****/
 
-	mx_status = mx_find_record_field_defaults_index(
-			record_field_defaults_array, num_record_fields,
-			"num_independent_variables", &referenced_field_index );
+	mx_status = mx_find_record_field_defaults_index( driver,
+					"num_independent_variables",
+					&referenced_field_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

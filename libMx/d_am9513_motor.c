@@ -48,7 +48,7 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_am9513_motor_record_function_list = {
-	mxd_am9513_motor_initialize_type,
+	mxd_am9513_motor_initialize_driver,
 	mxd_am9513_motor_create_record_structures,
 	mxd_am9513_motor_finish_record_initialization,
 	NULL,
@@ -98,7 +98,7 @@ mxd_am9513_motor_get_pointers( MX_MOTOR *motor,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_am9513_get_pointers()";
+	static const char fname[] = "mxd_am9513_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -148,30 +148,23 @@ mxd_am9513_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_am9513_motor_initialize_type( long type )
+mxd_am9513_motor_initialize_driver( MX_DRIVER *driver )
 {
-	const char fname[] = "mxd_am9513_motor_initialize_type()";
+	static const char fname[] = "mxd_am9513_motor_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
+	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
 	mx_status_type status;
 
-	driver = mx_get_driver_by_type( type );
-
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.", type );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
-	record_field_defaults = *(driver->record_field_defaults_ptr);
-	num_record_fields = *(driver->num_record_fields);
-
-	status = mx_find_record_field_defaults_index(
-			record_field_defaults, num_record_fields,
-			"num_counters", &num_counters_field_index );
+	status = mx_find_record_field_defaults_index( driver,
+						"num_counters",
+						&num_counters_field_index );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -182,9 +175,8 @@ mxd_am9513_motor_initialize_type( long type )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"am9513_interface_array", &field );
+	status = mx_find_record_field_defaults( driver,
+					"am9513_interface_array", &field );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
@@ -197,7 +189,7 @@ mxd_am9513_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_motor_create_record_structures()";
+	static const char fname[] = "mxd_am9513_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -247,7 +239,7 @@ mxd_am9513_motor_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_motor_print_structure()";
+	static const char fname[] = "mxd_am9513_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -343,7 +335,7 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_motor_open()";
+	static const char fname[] = "mxd_am9513_motor_open()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -632,7 +624,7 @@ mxd_am9513_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_motor_resynchronize()";
+	static const char fname[] = "mxd_am9513_motor_resynchronize()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Resynchronize is not yet implemented for Am9513 controlled motors." );
@@ -643,7 +635,7 @@ mxd_am9513_motor_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_motor_is_busy()";
+	static const char fname[] = "mxd_am9513_motor_motor_is_busy()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
@@ -807,7 +799,7 @@ mxd_am9513_motor_move_single_step( MX_AM9513_MOTOR *am9513_motor,
 MX_EXPORT mx_status_type
 mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_move_absolute()";
+	static const char fname[] = "mxd_am9513_motor_move_absolute()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
@@ -1020,7 +1012,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_get_position()";
+	static const char fname[] = "mxd_am9513_motor_get_position()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
@@ -1096,7 +1088,7 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_set_position()";
+	static const char fname[] = "mxd_am9513_motor_set_position()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
@@ -1141,7 +1133,7 @@ mxd_am9513_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_soft_abort()";
+	static const char fname[] = "mxd_am9513_motor_soft_abort()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
@@ -1228,7 +1220,7 @@ mxd_am9513_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_am9513_motor_find_home_position()";
+	static const char fname[] = "mxd_am9513_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"The Am9513 motor driver does not support home searches." );

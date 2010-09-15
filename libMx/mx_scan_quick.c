@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,104 +30,68 @@
 #include "mx_poison.h"
 
 MX_EXPORT mx_status_type
-mx_quick_scan_initialize_type( long record_type )
+mx_quick_scan_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mx_quick_scan_initialize_type()";
+	static const char fname[] = "mx_quick_scan_initialize_driver()";
 
-	MX_DRIVER *driver;
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
 	long num_independent_variables_varargs_cookie;
 	long num_motors_varargs_cookie;
 	long num_input_devices_varargs_cookie;
-	mx_status_type status;
-
-	driver = mx_get_driver_by_type( record_type );
+	mx_status_type mx_status;
 
 	if ( driver == (MX_DRIVER *) NULL ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Record type %ld not found.",
-			record_type );
-	}
-
-	record_field_defaults_ptr = driver->record_field_defaults_ptr;
-
-	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	record_field_defaults = *record_field_defaults_ptr;
-
-	if ( record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'record_field_defaults_ptr' for record type '%s' is NULL.",
-			driver->name );
-	}
-
-	if ( driver->num_record_fields == (long *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"'num_record_fields' pointer for record type '%s' is NULL.",
-			driver->name );
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DRIVER pointer passed was NULL." );
 	}
 
 	/**** Fix up the record fields common to all scan types. ****/
 
-	num_record_fields = *(driver->num_record_fields);
+	mx_status = mx_scan_fixup_varargs_record_field_defaults( driver,
+				&num_independent_variables_varargs_cookie,
+				&num_motors_varargs_cookie,
+				&num_input_devices_varargs_cookie );
 
-	status = mx_scan_fixup_varargs_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			&num_independent_variables_varargs_cookie,
-			&num_motors_varargs_cookie,
-			&num_input_devices_varargs_cookie );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/** Fix up the record fields specific to MX_XAFS_SCAN records **/
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"old_motor_speed", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"old_motor_speed", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	field->dimension[0] = num_motors_varargs_cookie;
-
-	/*--*/
-
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"start_position", &field );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_motors_varargs_cookie;
 
 	/*--*/
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"end_position", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"start_position", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_motors_varargs_cookie;
 
 	/*--*/
 
-	status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			"saved_synchronous_motion_mode", &field );
+	mx_status = mx_find_record_field_defaults( driver,
+						"end_position", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field->dimension[0] = num_motors_varargs_cookie;
+
+	/*--*/
+
+	mx_status = mx_find_record_field_defaults( driver,
+				"saved_synchronous_motion_mode", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_motors_varargs_cookie;
 

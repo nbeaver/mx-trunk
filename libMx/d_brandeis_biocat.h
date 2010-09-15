@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BRANDEIS_BIOCAT, dummy), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxd_brandeis_biocat_initialize_type( long record_type );
+MX_API mx_status_type mxd_brandeis_biocat_initialize_driver( MX_DRIVER *driver);
 MX_API mx_status_type mxd_brandeis_biocat_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_brandeis_biocat_finish_record_initialization(
