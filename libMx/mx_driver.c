@@ -594,7 +594,7 @@
 
   /********************** Record Types **********************/
 
-MX_DRIVER mx_type_list[] = {
+MX_DRIVER mx_type_table[] = {
 
 {"list_head",      MXT_LIST_HEAD,    MXL_LIST_HEAD,      MXR_LIST_HEAD,
 				&mxr_list_head_record_function_list,

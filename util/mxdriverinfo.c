@@ -48,18 +48,16 @@ static char * find_varargs_field_name( MX_DRIVER *driver,
 					long varargs_value,
 					mx_bool_type debug );
 
-static int show_all_drivers( MX_DRIVER **list_of_types, mx_bool_type debug );
+static int show_all_drivers( mx_bool_type debug );
 
-static int show_drivers( MX_DRIVER **list_of_types,
-				int items_to_show,
-				char *item_name,
-				mx_bool_type debug );
+static int show_drivers( int items_to_show,
+			char *item_name,
+			mx_bool_type debug );
 
-static int show_field_list( MX_DRIVER **list_of_types,
-				char *item_name,
-				mx_bool_type show_all_fields,
-				mx_bool_type show_handles,
-				mx_bool_type debug );
+static int show_field_list( char *item_name,
+			mx_bool_type show_all_fields,
+			mx_bool_type show_handles,
+			mx_bool_type debug );
 
 static int show_field( MX_DRIVER *driver,
 			MX_RECORD_FIELD_DEFAULTS *field_defaults,
@@ -67,12 +65,11 @@ static int show_field( MX_DRIVER *driver,
 			mx_bool_type show_handles,
 			mx_bool_type debug );
 
-static int show_latex_field_table( MX_DRIVER **list_of_types,
-					char *item_name,
-					unsigned long structures_to_show,
-					mx_bool_type show_all_fields,
-					mx_bool_type show_link,
-					mx_bool_type debug );
+static int show_latex_field_table( char *item_name,
+				unsigned long structures_to_show,
+				mx_bool_type show_all_fields,
+				mx_bool_type show_link,
+				mx_bool_type debug );
 
 static int show_latex_field( MX_DRIVER *driver,
 				MX_RECORD_FIELD_DEFAULTS *field_defaults,
@@ -90,7 +87,6 @@ static char program_name[] = "mxdriverinfo";
 int
 main( int argc, char *argv[] ) {
 
-	MX_DRIVER **list_of_types;
 	int c, items_to_show, debug, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
 	mx_bool_type show_all_fields, show_handles, show_link;
@@ -213,23 +209,19 @@ main( int argc, char *argv[] ) {
 		fprintf(stderr,"item_name     = '%s'\n", item_name);
 	}
 
-	list_of_types = mx_get_driver_lists();
-
 	switch (items_to_show) {
 	case MXDI_DRIVERS:
-		status = show_all_drivers( list_of_types, debug );
+		status = show_all_drivers( debug );
 		break;
 	case MXDI_SUPERCLASSES:
-		status = show_drivers( list_of_types,
-					items_to_show, NULL, debug );
+		status = show_drivers( items_to_show, NULL, debug );
 		break;
 	case MXDI_CLASSES:
 	case MXDI_TYPES:
-		status = show_drivers( list_of_types,
-					items_to_show, item_name, debug );
+		status = show_drivers( items_to_show, item_name, debug );
 		break;
 	case MXDI_FIELDS:
-		status = show_field_list( list_of_types, item_name,
+		status = show_field_list( item_name,
 					show_all_fields, show_handles, debug );
 		break;
 	case MXDI_VERSION:
@@ -238,8 +230,7 @@ main( int argc, char *argv[] ) {
 		status = SUCCESS;
 		break;
 	case MXDI_LATEX_FIELDS:
-		status = show_latex_field_table( list_of_types,
-						item_name,
+		status = show_latex_field_table( item_name,
 						structures_to_show,
 						show_all_fields,
 						show_link,
@@ -344,19 +335,14 @@ find_varargs_field_name( MX_DRIVER *driver,
 }
 
 static int
-show_all_drivers( MX_DRIVER **list_of_types, mx_bool_type debug )
+show_all_drivers( mx_bool_type debug )
 {
 	static const char fname[] = "show_all_drivers()";
 
-	MX_DRIVER *superclass_list, *class_list, *type_list;
-	MX_DRIVER *driver;
-	unsigned long i, j;
+	MX_DRIVER *superclass_driver, *class_driver;
+	MX_DRIVER *current_driver;
 	unsigned long old_superclass, old_class;
 	char *superclass_name, *class_name;
-
-	superclass_list = list_of_types[0];
-	class_list      = list_of_types[1];
-	type_list       = list_of_types[2];
 
 	old_superclass = 0;
 	old_class      = 0;
@@ -364,104 +350,85 @@ show_all_drivers( MX_DRIVER **list_of_types, mx_bool_type debug )
 	superclass_name = NULL;
 	class_name      = NULL;
 
-	for ( i = 0; ; i++ ) {
+	current_driver = mx_get_driver_by_name( NULL );
 
-		driver = &type_list[i];
-
-		/* Is this the end of the list? */
-
-		if ( driver->mx_superclass == 0 ) {
-			break;			/* Exit the for() loop. */
-		}
+	while ( current_driver != (MX_DRIVER *) NULL ) {
 
 		/* Find the superclass name if necessary. */
 
-		if ( old_superclass != driver->mx_superclass ) {
+		if ( old_superclass != current_driver->mx_superclass ) {
 
-			for ( j = 0; ; j++ ) {
+			superclass_driver = mx_get_superclass_driver_by_type(
+						current_driver->mx_superclass );
 
-				if ( superclass_list[j].mx_superclass == 0 ) {
-					fprintf( stderr,
-			"%s: Internal error, driver '%s' specified a "
-			"superclass %ld that does not exist!\n",
-						fname, driver->name,
-						driver->mx_superclass );
+			if ( superclass_driver == (MX_DRIVER *) NULL ) {
 
-					return FAILURE;
-				}
+				fprintf( stderr,
+				"%s: Internal error, driver '%s' specified a "
+				"superclass %ld that does not exist!\n",
+						fname, current_driver->name,
+						current_driver->mx_superclass );
 
-				if ( driver->mx_superclass
-					== superclass_list[j].mx_superclass )
-				{
-					old_superclass = driver->mx_superclass;
-
-					superclass_name
-						= superclass_list[j].name;
-
-					/* Force the class name to be
-					 * looked up again.
-					 */
-
-					old_class = 0;
-
-					break;	/* Exit the for() loop. */
-				}
+				return FAILURE;
 			}
+
+			old_superclass = current_driver->mx_superclass;
+
+			superclass_name = superclass_driver->name;
+
+			/* Force the class name to be looked up again. */
+
+			old_class = 0;
 		}
 
 		/* Find the class name if necessary. */
 
-		if ( old_class != driver->mx_class ) {
+		if ( old_class != current_driver->mx_class ) {
 
-			for ( j = 0; ; j++ ) {
+			class_driver = mx_get_class_driver_by_type(
+						current_driver->mx_class );
 
-				if ( class_list[j].mx_class == 0 ) {
-					fprintf( stderr,
-			"%s: Internal error, driver '%s' specified a "
-			"class %ld that does not exist!\n",
-						fname, driver->name,
-						driver->mx_class );
+			if ( class_driver == (MX_DRIVER *) NULL ) {
+				fprintf( stderr,
+				"%s: Internal error, driver '%s' specified a "
+				"class %ld that does not exist!\n",
+						fname, current_driver->name,
+						current_driver->mx_class );
 
-					return FAILURE;
-				}
-
-				if ( driver->mx_class
-					== class_list[j].mx_class )
-				{
-					old_class = driver->mx_class;
-
-					class_name = class_list[j].name;
-
-					break;	/* Exit the for() loop. */
-				}
+				return FAILURE;
 			}
+
+			old_class = current_driver->mx_class;
+
+			class_name = class_driver->name;
 		}
 
 		printf( "%s %s %s\n",
-			superclass_name, class_name, driver->name );
+			superclass_name, class_name, current_driver->name );
+
+		current_driver = current_driver->next_driver;
 	}
 
 	return SUCCESS;
 }
 
 static int
-show_drivers( MX_DRIVER **list_of_types,
-		int items_to_show,
+show_drivers( int items_to_show,
 		char *item_name,
 		mx_bool_type debug )
 {
 	static const char fname[] = "show_drivers()";
 
 	MX_DRIVER *item_list;
-	MX_DRIVER *driver;
+	MX_DRIVER *driver, *current_driver, *next_driver;
 	unsigned long i, mx_superclass, mx_class, mx_type;
-	int status;
 
+	driver = NULL;
 	mx_superclass = mx_class = mx_type = 0;
 
 	switch (items_to_show) {
 	case MXDI_SUPERCLASSES:
-		item_list = list_of_types[0];
+		item_list = mx_get_superclass_driver_by_name( NULL );
 
 		if ( debug ) {
 			fprintf(stderr, "%s invoked for all superclasses\n",
@@ -469,30 +436,32 @@ show_drivers( MX_DRIVER **list_of_types,
 		}
 		break;
 	case MXDI_CLASSES:
-		item_list = list_of_types[1];
+		item_list = mx_get_class_driver_by_name( NULL );
 
 		if ( debug ) {
 			fprintf(stderr, "%s invoked for superclass '%s'\n",
 					fname, item_name);
 		}
-		status = find_driver( list_of_types[0], item_name, &driver );
 
-		if ( status != SUCCESS )
-			return status;
+		driver = mx_get_superclass_driver_by_name( item_name );
+
+		if ( driver == NULL )
+			return FAILURE;
 
 		mx_superclass = driver->mx_superclass;
 		break;
 	case MXDI_TYPES:
-		item_list = list_of_types[2];
+		item_list = mx_get_driver_by_name( NULL );
 
 		if ( debug ) {
 			fprintf(stderr, "%s invoked for class '%s'\n",
 					fname, item_name);
 		}
-		status = find_driver( list_of_types[1], item_name, &driver );
 
-		if ( status != SUCCESS )
-			return status;
+		driver = mx_get_class_driver_by_name( item_name );
+
+		if ( driver == NULL )
+			return FAILURE;
 
 		mx_superclass = driver->mx_superclass;
 		mx_class = driver->mx_class;
@@ -510,29 +479,40 @@ show_drivers( MX_DRIVER **list_of_types,
 		fprintf(stderr, "mx_type       = %lu\n", mx_type);
 	}
 
-	for ( i = 0; ; i++ ) {
+	current_driver = item_list;
+
+	while ( 1 ) {
+
 		if ( item_list[i].mx_superclass == 0 ) {
 			break;		/* End of the list. */
 		}
 
 		if ( debug ) {
-			fprintf(stderr,"item_list[%lu] = '%s'\n",
-				i, item_list[i].name);
+			fprintf( stderr,"current_driver = '%s'\n",
+					current_driver->name );
 		}
 
 		if ( ( mx_superclass == 0 )
-		  || ( mx_superclass == item_list[i].mx_superclass ) )
+		  || ( mx_superclass == current_driver->mx_superclass ) )
 		{
 			if ( ( mx_class == 0 )
-			  || ( mx_class == item_list[i].mx_class ) )
+			  || ( mx_class == current_driver->mx_class ) )
 			{
 				if ( ( mx_type == 0 )
-				  || ( mx_type == item_list[i].mx_type ) )
+				  || ( mx_type == current_driver->mx_type ) )
 				{
-					printf("%s\n", item_list[i].name);
+					printf("%s\n", current_driver->name);
 				}
 			}
 		}
+
+		next_driver = current_driver->next_driver;
+
+		if ( next_driver == NULL ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		current_driver = next_driver;
 	}
 
 	return SUCCESS;

@@ -29,7 +29,7 @@
 
   /****************** Record Superclasses ********************/
 
-static MX_DRIVER mx_superclass_list[] = {
+static MX_DRIVER mx_superclass_table[] = {
 {"list_head_sclass", 0, 0, MXR_LIST_HEAD,     NULL, NULL, NULL, NULL, NULL},
 {"interface",        0, 0, MXR_INTERFACE,     NULL, NULL, NULL, NULL, NULL},
 {"device",           0, 0, MXR_DEVICE,        NULL, NULL, NULL, NULL, NULL},
@@ -42,7 +42,7 @@ static MX_DRIVER mx_superclass_list[] = {
 
   /********************* Record Classes **********************/
 
-static MX_DRIVER mx_class_list[] = {
+static MX_DRIVER mx_class_table[] = {
 
 {"list_head_class", 0, MXL_LIST_HEAD,      MXR_LIST_HEAD,
 				NULL, NULL, NULL, NULL, NULL},
@@ -178,32 +178,9 @@ static MX_DRIVER mx_class_list[] = {
 };
 
 
-/* -- mx_type_list is now defined in another file. -- */
+/* -- mx_type_table is now defined in another file. -- */
 
-extern MX_DRIVER mx_type_list[];
-
-#if 0
-
-/* -- Define the list of record types. -- */
-
-MX_DRIVER *mx_list_of_types[] = {
-	mx_superclass_list,
-	mx_class_list,
-	mx_type_list,
-	NULL
-};
-
-MX_EXPORT MX_DRIVER **
-mx_get_driver_lists( void )
-{
-	MX_DRIVER **ptr;
-
-	ptr = mx_list_of_types;
-
-	return ptr;
-}
-
-#endif
+extern MX_DRIVER mx_type_table[];
 
 /*-----*/
 
@@ -310,34 +287,91 @@ mx_get_driver_name( MX_RECORD *record )
 MX_EXPORT MX_DRIVER *
 mx_get_superclass_driver_by_name( char *name )
 {
-	static const char fname[] = "mx_get_superclass_driver_by_name()";
-
 	MX_DRIVER *result;
 	char *list_name;
 	int i;
 
 	if ( name == NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"Record type name passed was NULL." );
-
-		return NULL;
+		return mx_superclass_table;
 	}
 
 	for ( i=0; ; i++ ) {
 		/* Check for the end of the list. */
 
-		if ( mx_superclass_list[i].mx_superclass == 0 ) {
+		if ( mx_superclass_table[i].mx_superclass == 0 ) {
 			return (MX_DRIVER *) NULL;
 		}
 
-		list_name = mx_superclass_list[i].name;
+		list_name = mx_superclass_table[i].name;
 
 		if ( list_name == NULL ) {
 			return (MX_DRIVER *) NULL;
 		}
 
 		if ( strcmp( name, list_name ) == 0 ){
-			result = &( mx_superclass_list[i] );
+			result = &( mx_superclass_table[i] );
+
+			return result;
+		}
+	}
+}
+
+MX_EXPORT MX_DRIVER *
+mx_get_class_driver_by_name( char *name )
+{
+	MX_DRIVER *result;
+	char *list_name;
+	int i;
+
+	if ( name == NULL ) {
+		return mx_class_table;
+	}
+
+	for ( i=0; ; i++ ) {
+		/* Check for the end of the list. */
+
+		if ( mx_class_table[i].mx_class == 0 ) {
+			return (MX_DRIVER *) NULL;
+		}
+
+		list_name = mx_class_table[i].name;
+
+		if ( list_name == NULL ) {
+			return (MX_DRIVER *) NULL;
+		}
+
+		if ( strcmp( name, list_name ) == 0 ){
+			result = &( mx_class_table[i] );
+
+			return result;
+		}
+	}
+}
+
+/*=====================================================================*/
+
+MX_EXPORT MX_DRIVER *
+mx_get_superclass_driver_by_type( long requested_superclass_type )
+{
+#if 0
+	static const char fname[] = "mx_get_superclass_driver_by_type()";
+#endif
+
+	MX_DRIVER *result;
+	long list_superclass;
+	int i;
+
+	for ( i=0; ; i++ ) {
+		/* Check for the end of the list. */
+
+		if ( mx_superclass_table[i].mx_superclass == 0 ) {
+			return (MX_DRIVER *) NULL;
+		}
+
+		list_superclass = mx_superclass_table[i].mx_superclass;
+
+		if ( list_superclass == requested_superclass_type ) {
+			result = &( mx_superclass_table[i] );
 
 #if 0
 			MX_DEBUG(-8,
@@ -350,36 +384,27 @@ mx_get_superclass_driver_by_name( char *name )
 }
 
 MX_EXPORT MX_DRIVER *
-mx_get_class_driver_by_name( char *name )
+mx_get_class_driver_by_type( long requested_class_type )
 {
-	static const char fname[] = "mx_get_class_driver_by_name()";
+#if 0
+	static const char fname[] = "mx_get_class_driver_by_type()";
+#endif
 
 	MX_DRIVER *result;
-	char *list_name;
+	long list_class;
 	int i;
-
-	if ( name == NULL ) {
-		mx_error( MXE_NULL_ARGUMENT, fname,
-		"Record type name passed was NULL." );
-
-		return NULL;
-	}
 
 	for ( i=0; ; i++ ) {
 		/* Check for the end of the list. */
 
-		if ( mx_class_list[i].mx_class == 0 ) {
+		if ( mx_class_table[i].mx_class == 0 ) {
 			return (MX_DRIVER *) NULL;
 		}
 
-		list_name = mx_class_list[i].name;
+		list_class = mx_class_table[i].mx_class;
 
-		if ( list_name == NULL ) {
-			return (MX_DRIVER *) NULL;
-		}
-
-		if ( strcmp( name, list_name ) == 0 ){
-			result = &( mx_class_list[i] );
+		if ( list_class == requested_class_type ) {
+			result = &( mx_class_table[i] );
 
 #if 0
 			MX_DEBUG(-8,
@@ -420,13 +445,13 @@ mxp_setup_typeinfo_for_record_type_fields( MX_DRIVER *type_driver )
 	/* Setup typeinfo for the superclass field. */
 
 	for ( i = 0; ; i++ ) {
-		if ( mx_superclass_list[i].mx_superclass
+		if ( mx_superclass_table[i].mx_superclass
 				== type_driver->mx_superclass )
 		{
-			superclass_driver = &mx_superclass_list[i];
+			superclass_driver = &mx_superclass_table[i];
 			break;
 		}
-		if ( mx_superclass_list[i].mx_superclass == 0 ) {
+		if ( mx_superclass_table[i].mx_superclass == 0 ) {
 			superclass_driver = NULL;
 			break;
 		}
@@ -450,11 +475,11 @@ mxp_setup_typeinfo_for_record_type_fields( MX_DRIVER *type_driver )
 	/* Setup typeinfo for the class field. */
 
 	for ( i = 0; ; i++ ) {
-		if ( mx_class_list[i].mx_class == type_driver->mx_class ) {
-			class_driver = &mx_class_list[i];
+		if ( mx_class_table[i].mx_class == type_driver->mx_class ) {
+			class_driver = &mx_class_table[i];
 			break;
 		}
-		if ( mx_class_list[i].mx_class == 0 ) {
+		if ( mx_class_table[i].mx_class == 0 ) {
 			class_driver = NULL;
 			break;
 		}
@@ -646,32 +671,73 @@ mx_add_driver_table( MX_DRIVER *driver_table )
 MX_EXPORT mx_status_type
 mx_initialize_drivers( void )
 {
-	MX_DRIVER *list_ptr;
+	static const char fname[] = "mx_initialize_drivers()";
+
+	MX_DRIVER *current_superclass_driver, *next_superclass_driver;
+	MX_DRIVER *current_class_driver, *next_class_driver;
 	mx_status_type mx_status;
 
-	list_ptr = mx_superclass_list;
+	/* Note: Both mx_superclass_table and mx_class_table are arrays
+	 * of MX_DRIVER structures.
+	 */
 
-	while ( list_ptr->mx_superclass != 0 ) {
-		mx_status = mxp_initialize_driver_entry( list_ptr );
+	/*---------------------------------------------------------------*/
+
+	current_superclass_driver = mx_superclass_table;
+
+	if ( current_superclass_driver->mx_superclass == 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The mx_superclass_table array contains no drivers." );
+	}
+
+	while ( 1 ) {
+		mx_status = mxp_initialize_driver_entry(
+					current_superclass_driver );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		list_ptr++;
+		next_superclass_driver = current_superclass_driver + 1;
+
+		if ( next_superclass_driver->mx_superclass == 0 ) {
+			current_superclass_driver->next_driver = NULL;
+
+			break;	/* Exit the while() loop. */
+		} else {
+			current_superclass_driver->next_driver
+				= next_superclass_driver;
+		}
+
+		current_superclass_driver = next_superclass_driver;
 	}
 
-	list_ptr = mx_class_list;
+	/*---------------------------------------------------------------*/
 
-	while ( list_ptr->mx_class != 0 ) {
-		mx_status = mxp_initialize_driver_entry( list_ptr );
+	current_class_driver = mx_class_table;
+
+	while ( 1 ) {
+		mx_status = mxp_initialize_driver_entry( current_class_driver );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		list_ptr++;
+		next_class_driver = current_class_driver + 1;
+
+		if ( next_class_driver->mx_class == 0 ) {
+			current_class_driver->next_driver = NULL;
+
+			break;	/* Exit the while() loop. */
+		} else {
+			current_class_driver->next_driver
+				= next_class_driver;
+		}
+
+		current_class_driver = next_class_driver;
 	}
 
-	mx_status = mx_add_driver_table( mx_type_list );
+	/*---------------------------------------------------------------*/
+
+	mx_status = mx_add_driver_table( mx_type_table );
 
 	return mx_status;
 }

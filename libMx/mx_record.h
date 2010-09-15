@@ -475,6 +475,9 @@ MX_API const char *mx_get_driver_name( MX_RECORD *record );
 MX_API MX_DRIVER *mx_get_superclass_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_class_driver_by_name( char *name );
 
+MX_API MX_DRIVER *mx_get_superclass_driver_by_type( long superclass_type );
+MX_API MX_DRIVER *mx_get_class_driver_by_type( long class_type );
+
 MX_API mx_status_type mx_add_driver_table( MX_DRIVER *driver_table );
 
 MX_API long  mx_get_parameter_type_from_name( MX_RECORD *record, char *name );
