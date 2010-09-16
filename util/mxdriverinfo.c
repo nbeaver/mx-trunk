@@ -40,10 +40,6 @@
 #define MXDI_VERSION		6
 #define MXDI_LATEX_FIELDS	7
 
-static int find_driver( MX_DRIVER *driver_list,
-			char *name,
-			MX_DRIVER **driver_found );
-
 static char * find_varargs_field_name( MX_DRIVER *driver,
 					long varargs_value,
 					mx_bool_type debug );
@@ -109,6 +105,19 @@ main( int argc, char *argv[] ) {
 "\n"
 "    -h                  Display array handles\n"
 "    -d                  Turn on debugging\n"
+"\n"
+"  LaTeX documentation generation options:\n"
+"\n"
+"    -F'driver_name'     Display record fields in description for LaTeX\n"
+"    -A'driver_name'     Display all record fields for LaTeX\n"
+"\n"
+"    -L                  Show the field links for LaTeX\n"
+"\n"
+"    -S[r][s][c][t]      Specify structures to show in LaTeX\n"
+"                          r = record structures\n"
+"                          s = superclass structures\n"
+"                          c = class structures\n"
+"                          t = type structures\n"
 "\n";
 
 	/* Process the command line arguments, if any. */
@@ -246,27 +255,6 @@ main( int argc, char *argv[] ) {
 		exit(1);
 
 	return 0;
-}
-
-static int
-find_driver( MX_DRIVER *driver_list, char *name, MX_DRIVER **driver_found )
-{
-	unsigned long i;
-
-	*driver_found = NULL;
-
-	for ( i = 0; ; i++ ) {
-		if ( driver_list[i].mx_superclass == 0 ) {
-			break;		/* End of the list. */
-		}
-
-		if ( strcmp( name, driver_list[i].name ) == 0 ) {
-			*driver_found = &driver_list[i];
-
-			return SUCCESS;
-		}
-	}
-	return FAILURE;
 }
 
 static char *
@@ -519,15 +507,13 @@ show_drivers( int items_to_show,
 }
 
 static int
-show_field_list( MX_DRIVER **list_of_types,
-		char *driver_name,
+show_field_list( char *driver_name,
 		mx_bool_type show_all_fields,
 		mx_bool_type show_handles,
 		mx_bool_type debug )
 {
 	static const char fname[] = "show_field_list()";
 
-	MX_DRIVER *driver_list;
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array, *field_defaults;
 	unsigned long i;
@@ -542,24 +528,15 @@ show_field_list( MX_DRIVER **list_of_types,
 
 	mx_initialize_drivers();
 
-	/* Walk through the list of drivers looking for the requested driver. */
+	/* Get the requested driver. */
 
-	driver_list = list_of_types[2];
+	driver = mx_get_driver_by_name( driver_name );
 
-	for ( i = 0; ; i++ ) {
-		if ( driver_list[i].mx_superclass == 0 ) {
-			/* End of the list. */
+	if ( driver == (MX_DRIVER *) NULL ) {
+		fprintf( stderr, "The MX driver '%s' was not found.\n",
+			driver_name );
 
-			fprintf(stderr, "The MX driver '%s' was not found.\n",
-					driver_name );
-			exit(1);
-		}
-
-		if ( strcmp( driver_name, driver_list[i].name ) == 0 ) {
-			driver = &driver_list[i];
-
-			break;	/* Exit the for() loop. */
-		}
+		exit(1);
 	}
 
 	/* The pointers to the number of record fields and the record
@@ -660,8 +637,7 @@ show_field( MX_DRIVER *driver,
  */
 
 static int
-show_latex_field_table( MX_DRIVER **list_of_types,
-		char *driver_name,
+show_latex_field_table( char *driver_name,
 		unsigned long structures_to_show,
 		mx_bool_type show_all_fields,
 		mx_bool_type show_link,
@@ -669,15 +645,11 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 {
 	static const char fname[] = "show_latex_field_table()";
 
-	MX_DRIVER *driver_list;
 	MX_DRIVER *driver;
+	MX_DRIVER *superclass_driver, *class_driver;
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array, *field_defaults;
-	MX_DRIVER *class_list, *superclass_list;
-	char class_name[MXU_DRIVER_NAME_LENGTH+1];
-	char superclass_name[MXU_DRIVER_NAME_LENGTH+1];
 	char link_name[MXU_DRIVER_NAME_LENGTH+20];
 	char macro_name[MXU_DRIVER_NAME_LENGTH+20];
-	long driver_class, driver_superclass;
 	unsigned long i;
 	int status;
 
@@ -690,24 +662,15 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 
 	mx_initialize_drivers();
 
-	/* Walk through the list of drivers looking for the requested driver. */
+	/* Get the requested driver. */
 
-	driver_list = list_of_types[2];
+	driver = mx_get_driver_by_name( driver_name );
 
-	for ( i = 0; ; i++ ) {
-		if ( driver_list[i].mx_superclass == 0 ) {
-			/* End of the list. */
+	if ( driver == (MX_DRIVER *) NULL ) {
+		fprintf( stderr, "The MX driver '%s' was not found.\n",
+			driver_name );
 
-			fprintf(stderr, "The MX driver '%s' was not found.\n",
-					driver_name );
-			exit(1);
-		}
-
-		if ( strcmp( driver_name, driver_list[i].name ) == 0 ) {
-			driver = &driver_list[i];
-
-			break;	/* Exit the for() loop. */
-		}
+		exit(1);
 	}
 
 	/* The pointers to the number of record fields and the record
@@ -738,62 +701,37 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 		} else
 		if ( structures_to_show & MXF_REC_CLASS_STRUCT ) {
 
-			driver_superclass = driver->mx_superclass;
+			superclass_driver = mx_get_superclass_driver_by_type(
+							driver->mx_superclass );
 
-			superclass_list = list_of_types[0];
-
-			for ( i = 0; ; i++ ) {
-				if ( superclass_list[i].mx_superclass == 0 ) {
-					/* End of the list. */
-
-					fprintf(stderr,
-		    "The driver superclass for MX driver '%s' was not found.\n",
-						driver_name );
-					exit(1);
-				}
-
-				if ( superclass_list[i].mx_superclass
-					== driver_superclass )
-				{
-					strlcpy( superclass_name,
-						superclass_list[i].name,
-						sizeof(superclass_name) );
-
-					break;	/* Exit the for() loop. */
-				}
+			if ( superclass_driver == (MX_DRIVER *) NULL ) {
+				fprintf(stderr,
+				"Driver superclass %ld for MX driver '%s' "
+				"was not found.\n",
+					driver->mx_superclass, driver_name );
+				exit(1);
 			}
 
 			create_latex_command( link_name, sizeof(link_name),
 				"\\MxLink%sFields",
-				capitalize_string(superclass_name) );
+				capitalize_string( superclass_driver->name ) );
 		} else
 		if ( structures_to_show & MXF_REC_TYPE_STRUCT ) {
 
-			driver_class = driver->mx_class;
+			class_driver = mx_get_class_driver_by_type(
+							driver->mx_class );
 
-			class_list = list_of_types[1];
-
-			for ( i = 0; ; i++ ) {
-				if ( class_list[i].mx_superclass == 0 ) {
-					/* End of the list. */
-
-					fprintf(stderr,
-			"The driver class for MX driver '%s' was not found.\n",
-						driver_name );
-					exit(1);
-				}
-
-				if ( class_list[i].mx_class == driver_class ) {
-					strlcpy( class_name, class_list[i].name,
-						sizeof(class_name) );
-
-					break;	/* Exit the for() loop. */
-				}
+			if ( class_driver == (MX_DRIVER *) NULL ) {
+				fprintf(stderr,
+				"Driver class %ld for MX driver '%s' "
+				"was not found.\n",
+					driver->mx_class, driver_name );
+				exit(1);
 			}
 
 			create_latex_command( link_name, sizeof(link_name),
 				"\\MxLink%sFields",
-				capitalize_string(class_name) );
+				capitalize_string( class_driver->name ) );
 		} else {
 			/* We do not need a link for this case. */
 
