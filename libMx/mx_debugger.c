@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_DEBUGGER		FALSE
+#define DEBUG_DEBUGGER			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +31,12 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
+
+#if ( defined(OS_WIN32) && (_WIN32_WINNT >= 0x0400) ) || defined(OS_MACOSX)
+#  define USE_MX_DEBUGGER_IS_PRESENT	TRUE
+#else
+#  define USE_MX_DEBUGGER_IS_PRESENT	FALSE
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -627,7 +633,7 @@ mx_debugger_is_present( void )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(USE_MX_DEBUGGER_IS_PRESENT)
+#if USE_MX_DEBUGGER_IS_PRESENT
 
 MX_EXPORT void
 mx_wait_for_debugger( void )
@@ -649,55 +655,6 @@ mx_wait_for_debugger( void )
 		if ( present ) {
 			break;
 		}
-	}
-
-	return;
-}
-
-/*------*/
-
-#elif 0
-
-/* This version attempts to detect attachment by the debugger by looking
- * for unexpected delays in the loop below.
- *
- * This method is not 1000% bulletproof.  Also, on Linux in GDB, the
- * 'finish' command does not correctly find the right stack frame to
- * return to.  Instead, it acts like a 'continue' command, which is
- * not what we want.  In order to get this to work, you typically end up
- * having to type a bunch of 'stepi' commands to step back into the 
- * mx_msleep() stack frame.
- */
-
-MX_EXPORT void
-mx_wait_for_debugger( void )
-{
-	unsigned long pid;
-	double current_time, old_time;
-
-	pid = mx_process_id();
-
-	fprintf( stderr,
-	"\nProcess %lu is now waiting to be attached to by a debugger.\n\n",
-		pid );
-	fprintf( stderr,
-	"The appropriate attach command for GDB is 'gdb -p %lu'\n", pid );
-	fprintf( stderr,
-	"The appropriate attach command for DBX is 'dbx - %lu'\n", pid );
-	fprintf( stderr, "\nWaiting...\n" );
-
-	old_time = mx_high_resolution_time_as_double();
-
-	while (1) {
-		mx_msleep(10);
-
-		current_time = mx_high_resolution_time_as_double();
-
-		if ( (current_time - old_time) > 1.0 ) {
-			break;
-		}
-
-		old_time = current_time;
 	}
 
 	return;
