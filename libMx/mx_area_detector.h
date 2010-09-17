@@ -738,6 +738,16 @@ typedef struct mx_area_detector_type {
 		offsetof(MX_AREA_DETECTOR, flood_field_scale_min), \
 	{0}, NULL, 0}, \
   \
+  {-1, -1, "flood_field_average_intensity", MXFT_DOUBLE, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+                offsetof(MX_AREA_DETECTOR, flood_field_average_intensity), \
+        {0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "bias_average_intensity", MXFT_DOUBLE, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+                offsetof(MX_AREA_DETECTOR, bias_average_intensity), \
+        {0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_AD_TRANSFER_FRAME, -1, "transfer_frame", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, transfer_frame), \
 	{0}, NULL, 0}, \
