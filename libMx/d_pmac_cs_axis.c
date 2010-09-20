@@ -1284,7 +1284,6 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	static const char fname[] = "mxd_pmac_cs_axis_set_variable()";
 
 	char command_buffer[100];
-	char response[100];
 	char *ptr;
 	long *long_ptr;
 	double *double_ptr;
@@ -1333,7 +1332,7 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,
-				response, sizeof response, debug_flag );
+				NULL, 0, debug_flag );
 
 	return mx_status;
 }
