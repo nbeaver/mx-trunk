@@ -85,7 +85,7 @@ main( int argc, char *argv[] ) {
 
 	int c, items_to_show, debug, status;
 	char item_name[ MXU_DRIVER_NAME_LENGTH + 1 ];
-	mx_bool_type show_all_fields, show_handles, show_link;
+	mx_bool_type show_all_fields, show_handles, show_link, start_debugger;
 	unsigned long i, length, structures_to_show;
 
 	static char usage_format[] =
@@ -104,7 +104,9 @@ main( int argc, char *argv[] ) {
 "    -v                  Display the version of MX in use\n"
 "\n"
 "    -h                  Display array handles\n"
-"    -d                  Turn on debugging\n"
+"    -d                  Turn on debugging output\n"
+"\n"
+"    -D                  Start debugger\n"
 "\n"
 "  LaTeX documentation generation options:\n"
 "\n"
@@ -128,9 +130,10 @@ main( int argc, char *argv[] ) {
 	show_all_fields = FALSE;
 	show_handles = FALSE;
 	show_link = FALSE;
+	start_debugger = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:df:hlst:vA:F:LS:")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:dDf:hlst:vA:F:LS:")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -145,6 +148,9 @@ main( int argc, char *argv[] ) {
 			break;
 		case 'd':
 			debug = TRUE;
+			break;
+		case 'D':
+			start_debugger = TRUE;
 			break;
 		case 'f':
 			items_to_show = MXDI_FIELDS;
@@ -213,10 +219,20 @@ main( int argc, char *argv[] ) {
 		}
 	}
 
+	if ( start_debugger ) {
+		mx_start_debugger(NULL);
+	}
+
 	if ( debug ) {
 		fprintf(stderr,"items_to_show = %d\n", items_to_show);
 		fprintf(stderr,"item_name     = '%s'\n", item_name);
 	}
+
+	/* Initialize the MX device drivers. */
+
+	mx_initialize_drivers();
+
+	/* Select the function to run. */
 
 	switch (items_to_show) {
 	case MXDI_DRIVERS:
@@ -409,7 +425,7 @@ show_drivers( int items_to_show,
 
 	MX_DRIVER *item_list;
 	MX_DRIVER *driver, *current_driver, *next_driver;
-	unsigned long i, mx_superclass, mx_class, mx_type;
+	unsigned long mx_superclass, mx_class, mx_type;
 
 	driver = NULL;
 	mx_superclass = mx_class = mx_type = 0;
@@ -471,10 +487,6 @@ show_drivers( int items_to_show,
 
 	while ( 1 ) {
 
-		if ( item_list[i].mx_superclass == 0 ) {
-			break;		/* End of the list. */
-		}
-
 		if ( debug ) {
 			fprintf( stderr,"current_driver = '%s'\n",
 					current_driver->name );
@@ -523,10 +535,6 @@ show_field_list( char *driver_name,
 		fprintf(stderr, "%s invoked for driver '%s'\n",
 			fname, driver_name);
 	}
-
-	/* Initialize the MX device drivers. */
-
-	mx_initialize_drivers();
 
 	/* Get the requested driver. */
 
@@ -657,10 +665,6 @@ show_latex_field_table( char *driver_name,
 		fprintf(stderr, "%s invoked for driver '%s'\n",
 			fname, driver_name);
 	}
-
-	/* Initialize the MX device drivers. */
-
-	mx_initialize_drivers();
 
 	/* Get the requested driver. */
 

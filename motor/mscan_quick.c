@@ -125,7 +125,8 @@ motor_setup_quick_scan_parameters(
 	MX_RECORD *clock_record;
 	double negative_limit, positive_limit;
 	double scale, offset;
-	int i, j, status;
+	int i, j;
+	int status = 0;
 	int num_items, string_length, valid_clock_name;
 	long scan_class, scan_type;
 	long scan_num_scans;
