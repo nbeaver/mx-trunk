@@ -201,9 +201,9 @@ mxd_linkam_t9x_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	if ( islower(linkam_t9x_motor->axis_name) ) {
+	if ( islower( (int) linkam_t9x_motor->axis_name) ) {
 		linkam_t9x_motor->axis_name =
-			toupper(linkam_t9x_motor->axis_name);
+			toupper( (int) linkam_t9x_motor->axis_name);
 	}
 
 	return MX_SUCCESSFUL_RESULT;

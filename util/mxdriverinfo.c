@@ -320,8 +320,8 @@ find_varargs_field_name( MX_DRIVER *driver,
 			j++;
 			defaults_string[j] = '_';
 		} else {
-			if ( isupper(c) ) {
-				defaults_string[j] = tolower(c);
+			if ( isupper( (int) c) ) {
+				defaults_string[j] = tolower( (int) c);
 			} else {
 				defaults_string[j] = c;
 			}
@@ -978,8 +978,8 @@ create_latex_command( char *buffer,
 static char *
 capitalize_string( char *buffer )
 {
-	if ( islower(buffer[0]) ) {
-		buffer[0] = toupper(buffer[0]);
+	if ( islower( (int) buffer[0]) ) {
+		buffer[0] = toupper( (int) buffer[0]);
 	}
 
 	return buffer;

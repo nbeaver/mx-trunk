@@ -114,8 +114,8 @@ mxi_linkam_t9x_open( MX_RECORD *record )
 	length = strlen(mtn);
 
 	for ( i = 0; i < length; i++ ) {
-		if ( islower(mtn[i]) ) {
-			mtn[i] = toupper(mtn[i]);
+		if ( islower( (int) (mtn[i]) ) ) {
+			mtn[i] = toupper( (int) (mtn[i]) );
 		}
 	}
 
