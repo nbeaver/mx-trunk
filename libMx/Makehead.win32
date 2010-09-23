@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-#INCLUDES  = $(MX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS)
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -21,8 +21,8 @@
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
@@ -68,8 +68,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
 #RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
-#
-# You may also need to modify some of the following definitions, depending
+# # You may also need to modify some of the following definitions, depending
 # on the drivers you plan to use.
 #
 
@@ -81,14 +80,14 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # Visual C++ 2008 Express   (_MSC_VER == 1500)
 #   (32-bit mode only)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
 #
 # Visual C++ 2005 Express   (_MSC_VER == 1400)
 #  (See below at the definition of PLATFORM_SDK)
 #
 # Visual Studio.NET 2003    (_MSC_VER == 1310)
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #

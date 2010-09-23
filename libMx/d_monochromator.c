@@ -1403,8 +1403,6 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		motor->acceleration_time = double_value;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:

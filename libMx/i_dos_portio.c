@@ -55,7 +55,7 @@
 #endif /* OS_WIN32 */
 
 MX_RECORD_FUNCTION_LIST mxi_dos_portio_record_function_list = {
-	mxi_dos_portio_initialize_type,
+	NULL,
 	mxi_dos_portio_create_record_structures
 };
 
@@ -80,12 +80,6 @@ MX_RECORD_FIELD_DEFAULTS *mxi_dos_portio_rfield_def_ptr
 			= &mxi_dos_portio_record_field_defaults[0];
 
 /* ---- */
-
-MX_EXPORT mx_status_type
-mxi_dos_portio_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_dos_portio_create_record_structures( MX_RECORD *record )
