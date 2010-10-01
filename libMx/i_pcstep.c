@@ -272,8 +272,6 @@ mxi_pcstep_open( MX_RECORD *record )
 
 		pcstep->controller_initialized = TRUE;
 
-		return MX_SUCCESSFUL_RESULT;
-
 	} else if ( mx_status.code == MXE_NOT_READY ) {
 
 		/* We get here if mxi_pcstep_resynchronize() failed to
@@ -298,8 +296,6 @@ mxi_pcstep_open( MX_RECORD *record )
 		/* If we get here, our recovery attempt succeeded. */
 
 		pcstep->controller_initialized = TRUE;
-
-		return MX_SUCCESSFUL_RESULT;
 
 	} else if ( mx_status.code == MXE_INTERFACE_ACTION_FAILED ) {
 
@@ -331,8 +327,6 @@ mxi_pcstep_open( MX_RECORD *record )
 		/* If we get here, our recovery attempt succeeded. */
 
 		pcstep->controller_initialized = TRUE;
-
-		return MX_SUCCESSFUL_RESULT;
 
 	} else {
 
