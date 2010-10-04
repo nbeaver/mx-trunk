@@ -198,6 +198,7 @@ mxd_epics_mca_create_record_structures( MX_RECORD *record )
 		= &mxd_epics_mca_mca_function_list;
 
 	mca->record = record;
+	epics_mca->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -409,7 +410,9 @@ mxd_epics_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
+	char pvname[120];
 	unsigned long i, flags;
+	double dummy;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -612,29 +615,51 @@ mxd_epics_mca_open( MX_RECORD *record )
 	/* See if this MCA is an XIA DXP MCA. */
 
 	if ( strlen( epics_mca->epics_dxp_name ) == 0 ) {
-		epics_mca->is_dxp = FALSE;
+		epics_mca->have_dxp_record = FALSE;
 	} else {
-		epics_mca->is_dxp = TRUE;
-
-		if ( flags & MXF_EPICS_MCA_USE_VERBOSE_ICR_OCR_NAMES ) {
-			mx_epics_pvname_init( &(epics_mca->icr_pv),
+		if ( flags & MXF_EPICS_MCA_DXP_RECORD_IS_NOT_USED ) {
+			epics_mca->have_dxp_record = FALSE;
+		} else {
+			snprintf( pvname, sizeof(pvname),
 				"%s%s:InputCountRate.VAL",
 					epics_mca->epics_detector_name,
 					epics_mca->epics_dxp_name );
 
-			mx_epics_pvname_init( &(epics_mca->ocr_pv),
-				"%s%s:OutputCountRate.VAL",
-					epics_mca->epics_detector_name,
-					epics_mca->epics_dxp_name );
-		} else {
-			mx_epics_pvname_init( &(epics_mca->icr_pv),
-				"%s%s.ICR", epics_mca->epics_detector_name,
-						epics_mca->epics_dxp_name );
+			mx_status = mx_caget_by_name( pvname,
+					MX_CA_DOUBLE, 1, &dummy );
 
-			mx_epics_pvname_init( &(epics_mca->ocr_pv),
-				"%s%s.OCR", epics_mca->epics_detector_name,
-						epics_mca->epics_dxp_name );
+			if ( mx_status.code == MXE_SUCCESS ) {
+				epics_mca->have_dxp_record = FALSE;
+			} else {
+				epics_mca->have_dxp_record = TRUE;
+			}
 		}
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: mca '%s' have_dxp_record = %d",
+		fname, epics_mca->record->name,
+		(int) epics_mca->have_dxp_record ));
+#endif
+
+	if ( epics_mca->have_dxp_record == FALSE ) {
+		mx_epics_pvname_init( &(epics_mca->icr_pv),
+			"%s%s:InputCountRate.VAL",
+				epics_mca->epics_detector_name,
+				epics_mca->epics_dxp_name );
+
+		mx_epics_pvname_init( &(epics_mca->ocr_pv),
+			"%s%s:OutputCountRate.VAL",
+				epics_mca->epics_detector_name,
+				epics_mca->epics_dxp_name );
+	} else {
+		mx_epics_pvname_init( &(epics_mca->icr_pv),
+			"%s%s.ICR", epics_mca->epics_detector_name,
+				epics_mca->epics_dxp_name );
+
+		mx_epics_pvname_init( &(epics_mca->ocr_pv),
+			"%s%s.OCR", epics_mca->epics_detector_name,
+				epics_mca->epics_dxp_name );
 	}
 
 #if MXD_EPICS_MCA_ENABLE_ACQUIRING_PV_CALLBACK
@@ -1228,30 +1253,14 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_INPUT_COUNT_RATE ) {
 
-		if ( epics_mca->is_dxp ) {
-			mx_status = mx_caget( &(epics_mca->icr_pv),
+		mx_status = mx_caget( &(epics_mca->icr_pv),
 				MX_CA_DOUBLE, 1, &(mca->input_count_rate) );
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Input count rates are not supported for "
-			"EPICS MCA '%s' since it is not configured "
-			"to use an EPICS DXP record.",
-				mca->record->name );
-		}
 
 	} else
 	if ( mca->parameter_type == MXLV_MCA_OUTPUT_COUNT_RATE ) {
 
-		if ( epics_mca->is_dxp ) {
-			mx_status = mx_caget( &(epics_mca->ocr_pv),
+		mx_status = mx_caget( &(epics_mca->ocr_pv),
 				MX_CA_DOUBLE, 1, &(mca->output_count_rate) );
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Output count rates are not supported for "
-			"EPICS MCA '%s' since it is not configured "
-			"to use an EPICS DXP record.",
-				mca->record->name );
-		}
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,

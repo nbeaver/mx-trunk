@@ -18,6 +18,8 @@
 #define __D_EPICS_MCA_H__
 
 typedef struct {
+	MX_RECORD *record;
+
 	char epics_detector_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_mca_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char epics_dxp_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
@@ -45,11 +47,12 @@ typedef struct {
 	MX_EPICS_PV *roi_integral_pv_array;
 	MX_EPICS_PV *roi_background_pv_array;
 
-	mx_bool_type is_dxp;
 	MX_EPICS_PV icr_pv;
 	MX_EPICS_PV ocr_pv;
 
 	unsigned long epics_mca_flags;
+
+	mx_bool_type have_dxp_record;
 
 	long num_associated_mcas;
 	MX_RECORD **associated_mca_record_array;
@@ -61,7 +64,7 @@ typedef struct {
 #define MXF_EPICS_MCA_NO_ERASE_ON_START			0x2
 #define MXF_EPICS_MCA_DISABLE_READ_OPTIMIZATION		0x4
 #define MXF_EPICS_MCA_WAIT_ON_START			0x8
-#define MXF_EPICS_MCA_USE_VERBOSE_ICR_OCR_NAMES		0x10
+#define MXF_EPICS_MCA_DXP_RECORD_IS_NOT_USED		0x10
 
 /*---*/
 
@@ -93,7 +96,11 @@ typedef struct {
 		MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH},\
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_EPICS_MCA, associated_mca_record_array), \
-	{sizeof(MX_RECORD *)}, NULL, MXFF_VARARGS }
+	{sizeof(MX_RECORD *)}, NULL, MXFF_VARARGS }, \
+  \
+  {-1, -1, "have_dxp_record", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_MCA, have_dxp_record), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_epics_mca_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_epics_mca_create_record_structures(
