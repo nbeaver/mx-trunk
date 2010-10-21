@@ -23,7 +23,7 @@
 
 #include "mxconfig.h"
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 
 #include "gplib.h"	/* Delta Tau-provided include file. */
 
@@ -1140,5 +1140,5 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	return mx_status;
 }
 
-#endif /* HAVE_POWER_PMAC_LIBRARY */
+#endif /* HAVE_POWERPMAC_LIBRARY */
 

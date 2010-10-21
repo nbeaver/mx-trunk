@@ -129,7 +129,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_picomotor.c d_picomotor_aio.c d_picomotor_dio.c d_pm304.c \
 	d_pmac.c d_pmac_aio.c d_pmac_dio.c d_pmac_mce.c d_pmac_cs_axis.c \
 	d_pmactc.c d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
-	d_polynomial_motor.c d_portio_dio.c d_powerpmac.c \
+	d_polynomial_motor.c d_portio_dio.c \
+	d_powerpmac.c d_powerpmac_aio.c d_powerpmac_dio.c \
 	d_ptz_motor.c d_pulsed_relay.c \
 	d_qbpm_mcai.c d_qmotor.c d_qs450.c d_record_field_motor.c \
 	d_roentec_rcl_mca.c \
@@ -190,7 +191,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	u_xia_dxp.c v_aps_topup.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
-	v_mathop.c v_pmac.c v_position_select.c v_spec.c v_u500.c
+	v_mathop.c v_pmac.c v_position_select.c v_powerpmac.c v_spec.c v_u500.c
 
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 
@@ -302,7 +303,7 @@ d_pmc_mcapi_dio.$(OBJ): d_pmc_mcapi_dio.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) d_pmc_mcapi_dio.c
 
 d_powerpmac.$(OBJ): d_powerpmac.c d_powerpmac.h i_powerpmac.h
-	$(COMPILE) $(CFLAGS) $(POWER_PMAC_INCLUDES) d_powerpmac.c
+	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) d_powerpmac.c
 
 d_trump.$(OBJ): d_trump.c
 	$(COMPILE) $(CFLAGS) $(UMCBI_INCLUDES) d_trump.c
@@ -371,13 +372,13 @@ i_ni488.$(OBJ): i_ni488.c
 	$(COMPILE) $(CFLAGS) $(NI488_INCLUDES) i_ni488.c
 
 i_pmac.$(OBJ): i_pmac.c i_pmac.h
-	$(COMPILE) $(CFLAGS) $(POWER_PMAC_INCLUDES) i_pmac.c
+	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_pmac.c
 
 i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) i_pmc_mcapi.c
 
 i_powerpmac.$(OBJ): i_powerpmac.c i_powerpmac.h
-	$(COMPILE) $(CFLAGS) $(POWER_PMAC_INCLUDES) i_powerpmac.c
+	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_powerpmac.c
 
 i_pcmotion32.$(OBJ): i_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) i_pcmotion32.c

@@ -137,6 +137,7 @@ extern "C" {
 #define MXV_BLUICE			67
 #define MXV_FILE			68
 #define MXV_U500			69
+#define MXV_POWERPMAC			70
 
 /* --- Server classes --- */
 
@@ -320,6 +321,7 @@ extern "C" {
 #define MXT_AIN_MCA_WEIGHTED_SUM	10042
 #define MXT_AIN_HANDEL			10043
 #define MXT_AIN_HANDEL_SUM		10044
+#define MXT_AIN_POWERPMAC		10045
 
 /* --- Analog input subclasses -- */
 
@@ -355,6 +357,7 @@ extern "C" {
 #define MXT_AOU_CRYOJET			20024
 #define MXT_AOU_SYSTRON_DONNER_M107	20025
 #define MXT_AOU_LINKAM_T9X_PUMP		20026
+#define MXT_AOU_POWERPMAC		20027
 
 /* --- Analog output subclasses -- */
 
@@ -397,6 +400,7 @@ extern "C" {
 #define MXT_DIN_ILM			30031
 #define MXT_DIN_ITC503			30032
 #define MXT_DIN_CRYOJET			30033
+#define MXT_DIN_POWERPMAC		30034
 
 /* --- Digital output types --- */
 
@@ -438,6 +442,7 @@ extern "C" {
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
 #define MXT_DOU_ITC503			40036
 #define MXT_DOU_CRYOJET			40036
+#define MXT_DOU_POWERPMAC		40037
 
 /* --- Motor subclasses --- */
 

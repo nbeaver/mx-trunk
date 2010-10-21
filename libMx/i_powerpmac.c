@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include "mxconfig.h"
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 
 #include "gplib.h"	/* Delta Tau-provided include file. */
 
@@ -418,5 +418,5 @@ mxi_powerpmac_process_function( void *record_ptr,
 	return mx_status;
 }
 
-#endif /* HAVE_POWER_PMAC_LIBRARY */
+#endif /* HAVE_POWERPMAC_LIBRARY */
 

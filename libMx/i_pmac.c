@@ -42,7 +42,7 @@
 #  include "mx_epics.h"
 #endif
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 #  include "gplib.h"
 #endif
 
@@ -124,7 +124,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac );
 
 /*--*/
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 static mx_status_type
 mxi_pmac_gplib_command( MX_PMAC *, char *, char *, size_t, int );
 #endif
@@ -391,7 +391,7 @@ mxi_pmac_open( MX_RECORD *record )
 		mx_status = mxi_pmac_gpascii_login( pmac );
 		break;
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 	case MX_PMAC_PORT_TYPE_GPLIB:
 		if ( pmac->gplib_initialized == FALSE ) {
 			int powerpmac_status;
@@ -749,7 +749,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 					response, response_buffer_length, 0 );
 		break;
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 	case MX_PMAC_PORT_TYPE_GPLIB:
 		mx_status = mxi_pmac_gplib_command( pmac, command,
 					response, response_buffer_length, 0 );
@@ -1913,7 +1913,7 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac )
 
 /*==================================================================*/
 
-#if HAVE_POWER_PMAC_LIBRARY
+#if HAVE_POWERPMAC_LIBRARY
 
 static mx_status_type
 mxi_pmac_gplib_command( MX_PMAC *pmac, char *command,
@@ -1949,7 +1949,7 @@ mxi_pmac_gplib_command( MX_PMAC *pmac, char *command,
 	}
 }
 
-#endif /* HAVE_POWER_PMAC_LIBRARY */
+#endif /* HAVE_POWERPMAC_LIBRARY */
 
 /*==================================================================*/
 

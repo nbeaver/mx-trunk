@@ -164,6 +164,8 @@ static MX_DRIVER mx_class_table[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"u500",           0, MXV_U500,           MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
+{"powerpmac",      0, MXV_POWERPMAC,      MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */
 
