@@ -10678,6 +10678,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
+					int direction,
 					mx_bool_type *value_changed_ptr )
 {
 	static const char fname[] = "mx_area_detector_vctest_extended_status()";
@@ -10783,6 +10784,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 #endif
 		mx_status = mx_area_detector_vctest_extended_status(
 							extended_status_field,
+							direction,
 							value_changed_ptr );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -10824,6 +10826,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	    &(record->record_field_array[ ad->last_frame_number_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( last_frame_number_field,
+						MX_PROCESS_GET,
 						&last_frame_number_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -10834,6 +10837,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	    &(record->record_field_array[ ad->total_num_frames_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( total_num_frames_field,
+						MX_PROCESS_GET,
 						&total_num_frames_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -10843,6 +10847,7 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	status_field = &(record->record_field_array[ ad->status_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( status_field,
+						MX_PROCESS_GET,
 						&status_changed );
 
 	if ( mx_status.code != MXE_SUCCESS )

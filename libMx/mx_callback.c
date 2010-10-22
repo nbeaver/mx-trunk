@@ -2484,6 +2484,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 			 */
 					
 			mx_status = mx_test_for_value_changed( record_field,
+						MX_PROCESS_GET,
 						&send_value_changed_callback );
 
 			if ( mx_status.code != MXE_SUCCESS )

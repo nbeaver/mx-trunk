@@ -109,7 +109,7 @@ typedef struct mx_record_field_type {
 	mx_bool_type value_has_changed_manual_override;
 
 	mx_status_type (*value_changed_test_function)(
-				struct mx_record_field_type *, mx_bool_type *);
+			struct mx_record_field_type *, int, mx_bool_type *);
 
 	void *callback_list;
 	void *application_ptr;
@@ -133,7 +133,7 @@ typedef struct {
 	long timer_interval;
 	double value_change_threshold;
 	mx_status_type (*value_changed_test_function)(
-				struct mx_record_field_type *, mx_bool_type *);
+			struct mx_record_field_type *, int, mx_bool_type *);
 } MX_RECORD_FIELD_DEFAULTS;
 
 typedef struct {

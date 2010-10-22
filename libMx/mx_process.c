@@ -219,7 +219,6 @@ mx_process_record_field( MX_RECORD *record,
 	static const char fname[] = "mx_process_record_field()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
-	mx_status_type (*vc_test_fn) ( MX_RECORD_FIELD *, mx_bool_type * );
 	mx_bool_type value_changed;
 	mx_status_type mx_status;
 
@@ -343,64 +342,18 @@ mx_process_record_field( MX_RECORD *record,
 			record_field->value_changed_test_function,
 			record_field->callback_list));
 #endif
-		vc_test_fn = record_field->value_changed_test_function;
-
-		if ( vc_test_fn != NULL ) {
-			/* If the record field has a special value changed
-			 * test function, then invoke it.
-			 */
-
-			mx_status = (*vc_test_fn)( record_field,
+		mx_status = mx_test_for_value_changed( record_field,
+							direction,
 							&value_changed );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		} else
-		if ( record_field->callback_list != NULL ) {
-
-			/* The field has a callback list. */
-
-			if ( (record_field->datatype == MXFT_STRING)
-			  || (record_field->num_dimensions >= 2) )
-			{
-				/* FIXME: For strings or multidimensional
-				 * arrays, we treat PUT operations as if
-				 * they _always_ change the value.  This
-				 * is oversimplistic.
-				 */
-				 
-				if ( direction == MX_PROCESS_PUT ) {
-					value_changed = TRUE;
-				} else {
-					value_changed = FALSE;
-				}
-			} else {
-				/* For 0-d and 1-d arrays that are not
-				 * strings, we invoke the generic value
-				 * changed test function.
-				 */
-
-				mx_status = mx_test_for_value_changed(
-						record_field, &value_changed );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			}
-		} else {
-			/* If the field does not have a callback list, or a
-			 * a special value changed function, then there is
-			 * no place to send a value changed notification.
-			 */
-
-			value_changed = FALSE;
-		}
 
 #if PROCESS_DEBUG
 		MX_DEBUG(-2,("%s: --> value_changed = %d",
 			fname, value_changed));
 #endif
 
-		if ( value_changed ) {
+		if ( value_changed
+		  && (record_field->callback_list != NULL ) )
+		{
 			mx_status = mx_local_field_invoke_callback_list(
 					record_field, MXCBT_VALUE_CHANGED );
 		}
@@ -424,13 +377,13 @@ mx_process_record_field( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
+				int direction,
 				mx_bool_type *value_changed_ptr )
 {
 #if PROCESS_DEBUG_CALLBACKS
 	static const char fname[] = "mx_test_for_value_changed()";
 #endif
-	mx_status_type (*value_changed_test_fn)( MX_RECORD_FIELD *,
-						mx_bool_type * );
+	mx_status_type (*vc_test_fn)( MX_RECORD_FIELD *, int, mx_bool_type * );
 	mx_status_type mx_status;
 
 #if PROCESS_DEBUG_CALLBACKS
@@ -444,17 +397,36 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	 * has necessary side effects.
 	 */
 
-	value_changed_test_fn = record_field->value_changed_test_function;
+	vc_test_fn = record_field->value_changed_test_function;
 
-	if ( value_changed_test_fn != NULL ) {
+	if ( vc_test_fn != NULL ) {
 		/* If so, invoke it instead of the standard test. */
 
-		mx_status = (*value_changed_test_fn)( record_field,
-							value_changed_ptr );
+		mx_status = (*vc_test_fn)( record_field,
+					direction, value_changed_ptr );
+	} else
+	if ( (record_field->datatype == MXFT_STRING)
+	  || (record_field->num_dimensions >= 2) )
+	{
+		/* FIXME: For strings or multidimensional arrays,
+		 * we treat PUT operations as if they _always_
+		 * change the value.  This is oversimplistic.
+		 */
+
+		if ( direction == MX_PROCESS_PUT ) {
+			*value_changed_ptr = TRUE;
+		} else {
+			*value_changed_ptr = FALSE;
+		}
+
+		mx_status = MX_SUCCESSFUL_RESULT;
 	} else {
-		/* Otherwise, invoke the default value changed test. */
+		/* For 0-d and 1-d arrays that are not strings, we invoke
+		 * the default value changed test.
+		 */
 
 		mx_status = mx_default_test_for_value_changed( record_field,
+							direction,
 							value_changed_ptr );
 	}
 
@@ -482,6 +454,7 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 MX_EXPORT mx_status_type
 mx_default_test_for_value_changed( MX_RECORD_FIELD *record_field,
+				int direction,
 				mx_bool_type *value_changed_ptr )
 {
 	static const char fname[] = "mx_default_test_for_value_changed()";

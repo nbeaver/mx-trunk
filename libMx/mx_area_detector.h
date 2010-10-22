@@ -1458,7 +1458,7 @@ MX_API mx_status_type mx_area_detector_default_datafile_management_handler(
 /*---*/
 
 MX_API_PRIVATE mx_status_type mx_area_detector_vctest_extended_status(
-					MX_RECORD_FIELD *, mx_bool_type * );
+				MX_RECORD_FIELD *, int, mx_bool_type * );
 
 MX_API_PRIVATE void mx_area_detector_update_extended_status_string(
 					MX_AREA_DETECTOR *ad );

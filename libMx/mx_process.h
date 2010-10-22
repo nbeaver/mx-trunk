@@ -155,10 +155,12 @@ MX_API mx_status_type mx_process_record_field(
 
 MX_API mx_status_type mx_test_for_value_changed(
 				MX_RECORD_FIELD *record_field,
+				int direction,
 				mx_bool_type *value_changed );
 
 MX_API mx_status_type mx_default_test_for_value_changed(
 				MX_RECORD_FIELD *record_field,
+				int direction,
 				mx_bool_type *value_changed );
 
 MX_API mx_status_type mx_update_next_allowed_event_time(

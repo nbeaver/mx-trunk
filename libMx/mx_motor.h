@@ -973,7 +973,7 @@ MX_API mx_status_type
 /* === */
 
 MX_API_PRIVATE mx_status_type mx_motor_vctest_extended_status(
-					MX_RECORD_FIELD *, mx_bool_type * );
+				MX_RECORD_FIELD *, int, mx_bool_type * );
 
 extern MX_RECORD_FUNCTION_LIST mx_motor_record_function_list;
 

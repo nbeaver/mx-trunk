@@ -5585,6 +5585,7 @@ mx_is_stepper_motor_position_between_software_limits(
 
 MX_EXPORT mx_status_type
 mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
+				int direction,
 				mx_bool_type *value_changed_ptr )
 {
 	static const char fname[] = "mx_motor_vctest_extended_status()";
@@ -5594,6 +5595,10 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	MX_RECORD_FIELD *extended_status_field;
 	MX_RECORD_FIELD *position_field;
 	MX_RECORD_FIELD *status_field;
+#if 0
+	mx_bool_type must_check_position;
+	mx_bool_type must_check_status;
+#endif
 	mx_bool_type position_changed;
 	mx_bool_type status_changed;
 	mx_status_type mx_status;
@@ -5628,6 +5633,30 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		fname, record->name, record_field->name ));
 #endif
 
+#if 0
+	/* What we do here depends on which field this is. */
+
+	switch( record_field->label_value ) {
+	case MXLV_MTR_POSITION:
+		must_check_position = TRUE;
+		must_check_status = FALSE;
+		break;
+	case MXLV_MTR_GET_STATUS:
+		must_check_position = FALSE;
+		must_check_status = TRUE;
+		break;
+	case MXLV_MTR_GET_EXTENDED_STATUS:
+		must_check_position = TRUE;
+		must_check_status = TRUE;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The record field '%s' passed to this function for record '%s' "
+		"is not one of the allowed values of 'position', 'status', "
+		"or 'extended_status'", record_field->name, record->name );
+	}
+#endif
+
 	/* What we do here depends on whether or not this is the
 	 * motor's 'extended_status' field.
 	 */
@@ -5645,6 +5674,7 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 #endif
 		mx_status = mx_motor_vctest_extended_status(
 						extended_status_field,
+						direction,
 						value_changed_ptr );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -5686,6 +5716,7 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		&(record->record_field_array[ motor->position_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( position_field,
+							MX_PROCESS_GET,
 							&position_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5696,6 +5727,7 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		&(record->record_field_array[ motor->status_field_number ]);
 
 	mx_status = mx_default_test_for_value_changed( status_field,
+							MX_PROCESS_GET,
 							&status_changed );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
