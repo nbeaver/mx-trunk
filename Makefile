@@ -45,8 +45,9 @@
 
 MX_ARCH = linux
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
+MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
 #MX_INSTALL_DIR = c:/opt/mx-1.5.3-2010_06_18

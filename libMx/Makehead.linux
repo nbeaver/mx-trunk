@@ -91,9 +91,9 @@ LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(EPICS_LIBRARIES) $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(POWERPMAC_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) $(POWERPMAC_LIBRARIES) \
-#						-lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(POWERPMAC_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) $(POWERPMAC_LIBRARIES) \
+						-lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS) $(EPICS_LIB_DIRS) \
 #					$(XIA_HANDEL_LIB_DIRS)
@@ -152,19 +152,23 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 
 #
 # MX_LINUX_BSP_POWERPMAC has been used successfully with a Delta Tau
-# Power PMAC motion controller.
+# Power PMAC motion controller.  This option uses cross-compiling
+# on Cygwin.  Look further down in the makefile for options for
+# native compilation using the copy of GCC that is already installed
+# on the Power PMAC controller itself out of the box.
 #
 
-#MX_LINUX_BSP = power_pmac
-
-POWERPMAC_DIR = /cygdrive/c/progra~1/deltat~1/2.0/powerp~1/powerpc-460-linux-gnu/usr/local
-
-POWERPMAC_GLIBC_DIR = $(POWERPMAC_DIR)/powerpc-405-linux-gnu/lib
-
-# MX drivers to load for the Power PMAC.
-
-MX_DRIVER_POWERPMAC_SRCS = i_tty.c \
-	d_pmac.c d_pmac_aio.c d_pmac_dio.c i_pmac.c v_pmac.c
+####MX_LINUX_BSP = power_pmac
+###
+###POWERPMAC_DIR = /cygdrive/c/progra~1/deltat~1/2.0/powerp~1/powerpc-460-linux-gnu/usr/local
+###
+###POWERPMAC_GLIBC_DIR = $(POWERPMAC_DIR)/powerpc-405-linux-gnu/lib
+###
+#### MX drivers to load for the Power PMAC.
+###
+###MX_DRIVER_POWERPMAC_SRCS = i_tty.c \
+###	d_pmac.c d_pmac_aio.c d_pmac_dio.c i_pmac.c v_pmac.c
+###
 
 #--------------------------------------------------------------------------
 
@@ -317,8 +321,9 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 # EPICS includes and libraries.
 #
 
-EPICS_ARCH	= linux-x86		# For EPICS 3.14
+#EPICS_ARCH	= linux-x86		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
 #EPICS_ARCH	= Linux			# For EPICS 3.13
@@ -326,21 +331,22 @@ EPICS_ARCH	= linux-x86		# For EPICS 3.14
 # For most EPICS installations, use the following definitions.
 
 #EPICS_TOP	= /opt/epics
-EPICS_TOP	= /opt/EPICS
+#EPICS_TOP	= /opt/EPICS
+EPICS_TOP	= /mnt/epics
 #EPICS_TOP	= /usr/local/epics
 #EPICS_TOP	= /home/lavender/local/epics
 
-#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-#			-I$(EPICS_TOP)/base/include/os/Linux
-#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+			-I$(EPICS_TOP)/base/include/os/Linux
+EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+EPICS_LIBRARIES = -lca -lCom
 
 # If you are using the EPICS Debian package, use the following definitions.
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-			-I/usr/include/epics/os/Linux
-EPICS_LIB_DIRS  = 
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+#			-I/usr/include/epics/os/Linux
+#EPICS_LIB_DIRS  = 
+#EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
