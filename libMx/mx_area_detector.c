@@ -10678,8 +10678,8 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
-					int direction,
-					mx_bool_type *value_changed_ptr )
+				int direction,
+				mx_bool_type *value_changed_ptr )
 {
 	static const char fname[] = "mx_area_detector_vctest_extended_status()";
 
@@ -10689,9 +10689,20 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
+
+	mx_bool_type must_check_last_frame_number;
+	mx_bool_type must_check_total_num_frames;
+	mx_bool_type must_check_status;
+
 	mx_bool_type last_frame_number_changed;
 	mx_bool_type total_num_frames_changed;
 	mx_bool_type status_changed;
+
+	mx_bool_type send_last_frame_number_callbacks;
+	mx_bool_type send_total_num_frames_callbacks;
+	mx_bool_type send_status_callbacks;
+	mx_bool_type send_extended_status_callbacks;
+
 	mx_status_type mx_status;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
@@ -10720,176 +10731,196 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_VCTEST
-	{
-		void *value_ptr;
-
-		value_ptr = mx_get_field_value_pointer( record_field );
-
-		if ( value_ptr == NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The value pointer for field '%s.%s' is NULL.  "
-			"(From MX_AREA_DETECTOR_DEBUG_VCTEST)",
-				record_field->record->name,
-				record_field->name );
-		}
-
-		switch( record_field->label_value ) {
-		case MXLV_AD_LAST_FRAME_NUMBER:
-		case MXLV_AD_TOTAL_NUM_FRAMES:
-			MX_DEBUG(-2,
-			("%s invoked for record field '%s.%s', value = %ld",
-				fname, record->name, record_field->name,
-				*((long *) value_ptr) ));
-			break;
-		case MXLV_AD_STATUS:
-			MX_DEBUG(-2,
-			("%s invoked for record field '%s.%s', value = %#lx",
-				fname, record->name, record_field->name,
-				*((unsigned long *) value_ptr) ));
-			break;
-		case MXLV_AD_EXTENDED_STATUS:
-			MX_DEBUG(-2,
-			("%s invoked for record field '%s.%s', value = '%s'",
-				fname, record->name, record_field->name,
-				(char *) value_ptr ));
-			break;
-		default:
-			MX_DEBUG(-2,
-			("%s invoked for _unexpected_ record field '%s.%s'",
-				fname, record->name, record_field->name ));
-			break;
-		}
-	}
+	MX_DEBUG(-2,("%s invoked for record field '%s.%s'",
+		fname, record->name, record_field->name ));
 #endif
-	/* What we do here depends on whether or not this is the
-	 * area detector's 'extended_status' field.
-	 */
 
-	if ( record_field->label_value != MXLV_AD_EXTENDED_STATUS ) {
+	/* What we do here depends on which field this is. */
 
-		/* This is _not_ the 'extended_status' field. */
-
-		/* Invoke the value changed test for the 'extended_status'
-		 * field, since this will ensure that the tests have been
-		 * performed for both this field and the 'extended_status'
-		 * field.
-		 */
-
-		extended_status_field =
-	    &(record->record_field_array[ ad->extended_status_field_number ]);
+	switch( record_field->label_value ) {
+	case MXLV_AD_LAST_FRAME_NUMBER:
+		must_check_last_frame_number = TRUE;
+		must_check_total_num_frames = FALSE;
+		must_check_status = FALSE;
+		break;
+	case MXLV_AD_TOTAL_NUM_FRAMES:
+		must_check_last_frame_number = FALSE;
+		must_check_total_num_frames = TRUE;
+		must_check_status = FALSE;
+		break;
+	case MXLV_AD_STATUS:
+		must_check_last_frame_number = FALSE;
+		must_check_total_num_frames = FALSE;
+		must_check_status = TRUE;
+		break;
+	case MXLV_AD_EXTENDED_STATUS:
+		must_check_last_frame_number = TRUE;
+		must_check_total_num_frames = TRUE;
+		must_check_status = TRUE;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The record field '%s' passed to this function for record '%s' "
+		"is not one of the allowed values of 'last_frame_number', "
+		"'total_num_frames', 'status', or 'extended_status'",
+			record_field->name, record->name );
+	}
 
 #if MX_AREA_DETECTOR_DEBUG_VCTEST
-		MX_DEBUG(-2,("%s: extended_status_field = '%s'",
-			fname, extended_status_field->name ));
+	MX_DEBUG(-2,("%s: must_check_last_frame_number = %d",
+			fname, (int) must_check_last_frame_number));
+	MX_DEBUG(-2,("%s: must_check_total_num_frames = %d",
+			fname, (int) must_check_total_num_frames));
+	MX_DEBUG(-2,("%s: must_check_status = %d",
+			fname, (int) must_check_status));
 #endif
-		mx_status = mx_area_detector_vctest_extended_status(
-							extended_status_field,
-							direction,
-							value_changed_ptr );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 
-		/* If there was a change in 'extended_status', then call
-		 * the value changed callback functions for it.
-		 */
+	/* Get pointers to all of the fields. */
 
-		if ( *value_changed_ptr ) {
-			mx_status = mx_local_field_invoke_callback_list(
-				extended_status_field, MXCBT_VALUE_CHANGED );
+	extended_status_field =
+	  &(record->record_field_array[ ad->extended_status_field_number ]);
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-		/* Any value changed callbacks required for this field
-		 * ('last_frame_number', 'total_num_frames', or 'status')
-		 * will have been sent during the call to the function
-		 * mx_area_detector_vctest_extended_status() for
-		 * 'extended_status' that was made a few lines above
-		 * here.  Thus, to avoid getting _two_ value changed
-		 * callbacks for the current field, we must set the
-		 * (*value_changed_ptr) variable to FALSE here.
-		 */
-
-		*value_changed_ptr = FALSE;
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, then this _is_ the 'extended_status' field. */
-
-	*value_changed_ptr = FALSE;
-
-	/* Test the 'last_frame_number' field. */
-
-	last_frame_number_field = 
+	last_frame_number_field =
 	    &(record->record_field_array[ ad->last_frame_number_field_number ]);
 
-	mx_status = mx_default_test_for_value_changed( last_frame_number_field,
-						MX_PROCESS_GET,
-						&last_frame_number_changed );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Test the 'total_num_frames' field. */
-
-	total_num_frames_field = 
+	total_num_frames_field =
 	    &(record->record_field_array[ ad->total_num_frames_field_number ]);
 
-	mx_status = mx_default_test_for_value_changed( total_num_frames_field,
-						MX_PROCESS_GET,
-						&total_num_frames_changed );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	status_field =
+		&(record->record_field_array[ ad->status_field_number ]);
 
-	/* Test the 'status' field. */
+	last_frame_number_changed = FALSE;
+	total_num_frames_changed = FALSE;
+	status_changed = FALSE;
 
-	status_field = &(record->record_field_array[ ad->status_field_number ]);
+	/* Test the last_frame_number field. */
 
-	mx_status = mx_default_test_for_value_changed( status_field,
-						MX_PROCESS_GET,
-						&status_changed );
+	if ( must_check_last_frame_number ) {
+		mx_status = mx_default_test_for_value_changed(
+						last_frame_number_field,
+						direction,
+						&last_frame_number_changed );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG_VCTEST
-	MX_DEBUG(-2,("%s: last_frame_number_changed = %d.",
-		fname, last_frame_number_changed));
-	MX_DEBUG(-2,("%s: total_num_frames_changed = %d.",
-		fname, total_num_frames_changed));
-	MX_DEBUG(-2,("%s: status_changed = %d.", fname, status_changed));
-#endif
-
-	*value_changed_ptr = last_frame_number_changed 
-		| total_num_frames_changed | status_changed;
-
-#if MX_AREA_DETECTOR_DEBUG_VCTEST
-	MX_DEBUG(-2,("%s: 'get_extended_status' value_changed = %d.",
-		fname, *value_changed_ptr));
-#endif
-
-	/* If the extended_status value did not change, then we are done. */
-
-	if ( *value_changed_ptr == FALSE ) {
-		return MX_SUCCESSFUL_RESULT;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	/* If the values that extended_status depend on changed, then we
-	 * must update the string version of extended_status.
+	/* Test the total_num_frames field. */
+
+	if ( must_check_total_num_frames ) {
+		mx_status = mx_default_test_for_value_changed(
+						total_num_frames_field,
+						direction,
+						&total_num_frames_changed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Test the status field. */
+
+	if ( must_check_status ) {
+		mx_status = mx_default_test_for_value_changed(
+						status_field,
+						direction,
+						&status_changed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: last_frame_number_changed = %d",
+			fname, (int) last_frame_number_changed));
+	MX_DEBUG(-2,("%s: total_num_frames_changed = %d",
+			fname, (int) total_num_frames_changed));
+	MX_DEBUG(-2,("%s: status_changed = %d",
+			fname, (int) status_changed));
+#endif
+
+	/* If the last_frame_number field, the total_num_frames field,
+	 * or the status field changed, then we must update the
+	 * extended_status field to match.
 	 */
 
 	mx_area_detector_update_extended_status_string( ad );
 
-	/* If we get here, then one or more of the fields 'last_frame_number',
-	 * 'total_num_frames', or 'status' changed its value.  For each field,
-	 * see if its value changed.  If the value changed, then invoke the
-	 * field's callback list, if it has one.
+	/* We do not send out value changed callbacks for the record field
+	 * that was passed to us, since our caller will decide whether
+	 * or not to do that.  However, we _do_ send out value changed
+	 * callbacks for any other fields.
 	 */
 
-	/* Check 'last_frame_number'. */
+	send_last_frame_number_callbacks = FALSE;
+	send_total_num_frames_callbacks  = FALSE;
+	send_status_callbacks            = FALSE;
+	send_extended_status_callbacks   = FALSE;
 
-	if ( last_frame_number_changed ) {
+	if ( record_field == last_frame_number_field ) {
+		if ( last_frame_number_changed ) {
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( total_num_frames_changed ) {
+			send_total_num_frames_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_status_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+	} else
+	if ( record_field == total_num_frames_field ) {
+		if ( last_frame_number_changed ) {
+			send_last_frame_number_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( total_num_frames_changed ) {
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_status_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+	} else
+	if ( record_field == status_field ) {
+		if ( last_frame_number_changed ) {
+			send_last_frame_number_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( total_num_frames_changed ) {
+			send_total_num_frames_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_extended_status_callbacks = TRUE;
+		}
+	} else
+	if ( record_field == extended_status_field ) {
+		if ( last_frame_number_changed ) {
+			send_last_frame_number_callbacks = TRUE;
+		}
+		if ( total_num_frames_changed ) {
+			send_total_num_frames_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_status_callbacks = TRUE;
+		}
+	}
+
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: send_last_frame_number_callbacks = %d",
+			fname, (int) send_last_frame_number_callbacks));
+	MX_DEBUG(-2,("%s: send_total_num_frames_callbacks = %d",
+			fname, (int) send_total_num_frames_callbacks));
+	MX_DEBUG(-2,("%s: send_status_callbacks = %d",
+			fname, (int) send_status_callbacks));
+	MX_DEBUG(-2,("%s: send_extended_status_callbacks = %d",
+			fname, (int) send_extended_status_callbacks));
+#endif
+
+	/* Send out last_frame_number callbacks. */
+
+	if ( send_last_frame_number_callbacks ) {
 		if ( last_frame_number_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
@@ -10900,9 +10931,9 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		}
 	}
 
-	/* Check 'total_num_frames'. */
+	/* Send out total_num_frames callbacks. */
 
-	if ( total_num_frames_changed ) {
+	if ( send_total_num_frames_callbacks ) {
 		if ( total_num_frames_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
@@ -10913,9 +10944,9 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		}
 	}
 
-	/* Check 'status'. */
+	/* Send out status callbacks. */
 
-	if ( status_changed ) {
+	if ( send_status_callbacks ) {
 		if ( status_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
@@ -10924,6 +10955,44 @@ mx_area_detector_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+	}
+
+	/* Send out extended_status callbacks. */
+
+	if ( send_extended_status_callbacks ) {
+		if ( extended_status_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+				extended_status_field, MXCBT_VALUE_CHANGED );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	if ( value_changed_ptr != NULL ) {
+		switch( record_field->label_value ) {
+		case MXLV_AD_LAST_FRAME_NUMBER:
+			*value_changed_ptr = last_frame_number_changed;
+			break;
+		case MXLV_AD_TOTAL_NUM_FRAMES:
+			*value_changed_ptr = total_num_frames_changed;
+			break;
+		case MXLV_AD_STATUS:
+			*value_changed_ptr = status_changed;
+			break;
+		case MXLV_AD_EXTENDED_STATUS:
+			*value_changed_ptr = last_frame_number_changed
+						| total_num_frames_changed
+						| status_changed;
+			break;
+		}
+
+#if MX_AREA_DETECTOR_DEBUG_VCTEST
+		MX_DEBUG(-2,("%s: '%s.%s' value_changed = %d.",
+			fname, record->name, record_field->name,
+			*value_changed_ptr));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;

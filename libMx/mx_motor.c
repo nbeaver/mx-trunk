@@ -5806,7 +5806,17 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	}
 
 	if ( value_changed_ptr != NULL ) {
-		*value_changed_ptr = position_changed | status_changed;
+		switch( record_field->label_value ) {
+		case MXLV_MTR_POSITION:
+			*value_changed_ptr = position_changed;
+			break;
+		case MXLV_MTR_GET_STATUS:
+			*value_changed_ptr = status_changed;
+			break;
+		case MXLV_MTR_GET_EXTENDED_STATUS:
+			*value_changed_ptr = position_changed | status_changed;
+			break;
+		}
 
 #if MX_MOTOR_DEBUG_VCTEST
 		MX_DEBUG(-2,("%s: '%s.%s' value_changed = %d.",
