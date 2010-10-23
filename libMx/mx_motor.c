@@ -5595,12 +5595,17 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 	MX_RECORD_FIELD *extended_status_field;
 	MX_RECORD_FIELD *position_field;
 	MX_RECORD_FIELD *status_field;
-#if 0
+
 	mx_bool_type must_check_position;
 	mx_bool_type must_check_status;
-#endif
+
 	mx_bool_type position_changed;
 	mx_bool_type status_changed;
+
+	mx_bool_type send_position_callbacks;
+	mx_bool_type send_status_callbacks;
+	mx_bool_type send_extended_status_callbacks;
+
 	mx_status_type mx_status;
 
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
@@ -5633,7 +5638,6 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		fname, record->name, record_field->name ));
 #endif
 
-#if 0
 	/* What we do here depends on which field this is. */
 
 	switch( record_field->label_value ) {
@@ -5655,118 +5659,116 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		"is not one of the allowed values of 'position', 'status', "
 		"or 'extended_status'", record_field->name, record->name );
 	}
-#endif
-
-	/* What we do here depends on whether or not this is the
-	 * motor's 'extended_status' field.
-	 */
-
-	if ( record_field->label_value != MXLV_MTR_GET_EXTENDED_STATUS ) {
-
-		/* This is _not_ the 'extended_status' field. */
-
-		extended_status_field =
-	  &(record->record_field_array[ motor->extended_status_field_number ]);
 
 #if MX_MOTOR_DEBUG_VCTEST
-		MX_DEBUG(-2,("%s: extended_status_field = '%s'",
-			fname, extended_status_field->name ));
+	MX_DEBUG(-2,("%s: must_check_position = %d",
+			fname, (int) must_check_position));
+	MX_DEBUG(-2,("%s: must_check_status = %d",
+			fname, (int) must_check_status));
 #endif
-		mx_status = mx_motor_vctest_extended_status(
-						extended_status_field,
-						direction,
-						value_changed_ptr );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	/* Get pointers to all of the fields. */
 
-		/* If there was a change in 'extended_status', then call
-		 * the value changed callback functions for it.
-		 */
-
-		if ( *value_changed_ptr ) {
-			mx_status = mx_local_field_invoke_callback_list(
-				extended_status_field, MXCBT_VALUE_CHANGED );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-		/* Any value changed callbacks required for this field
-		 * ('position' or 'status') will have been sent during
-		 * the call to mx_motor_vctest_extended_status() for 
-		 * 'extended_status' that was made a few lines above
-		 * here.  Thus, to avoid getting _two_ value changed
-		 * callbacks for the current field, we must set the
-		 * (*value_changed_ptr) variable to FALSE here.
-		 */
-
-		*value_changed_ptr = FALSE;
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, then this _is_ the 'extended_status' field. */
-
-	*value_changed_ptr = FALSE;
-
-	/* Test the 'position' field. */
+	extended_status_field =
+	  &(record->record_field_array[ motor->extended_status_field_number ]);
 
 	position_field =
 		&(record->record_field_array[ motor->position_field_number ]);
 
-	mx_status = mx_default_test_for_value_changed( position_field,
-							MX_PROCESS_GET,
-							&position_changed );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Test the 'status' field. */
-
 	status_field =
 		&(record->record_field_array[ motor->status_field_number ]);
 
-	mx_status = mx_default_test_for_value_changed( status_field,
-							MX_PROCESS_GET,
-							&status_changed );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	position_changed = FALSE;
+	status_changed = FALSE;
 
-#if MX_MOTOR_DEBUG_VCTEST
-	MX_DEBUG(-2,("%s: position_changed = %d.", fname, position_changed));
-	MX_DEBUG(-2,("%s: status_changed = %d.", fname, status_changed));
-#endif
+	/* Test the position field. */
 
-	*value_changed_ptr = position_changed | status_changed;
+	if ( must_check_position ) {
+		mx_status = mx_default_test_for_value_changed(
+							position_field,
+							direction,
+							&position_changed );
 
-#if MX_MOTOR_DEBUG_VCTEST
-	MX_DEBUG(-2,("%s: 'get_extended_status' value_changed = %d.",
-		fname, *value_changed_ptr));
-#endif
-
-	/* If the extended_status value did not change, then we are done. */
-
-	if ( *value_changed_ptr == FALSE ) {
-		return MX_SUCCESSFUL_RESULT;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	/* Update the extended status field contents to match the current
-	 * values of 'position' and 'status'.
+	/* Test the status field. */
+
+	if ( must_check_status ) {
+		mx_status = mx_default_test_for_value_changed(
+							status_field,
+							direction,
+							&status_changed );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+#if MX_MOTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: position_changed = %d",
+			fname, (int) position_changed));
+	MX_DEBUG(-2,("%s: status_changed = %d",
+			fname, (int) status_changed));
+#endif
+
+	/* If the position field or the status field changed, then we
+	 * must update the extended_status field to match.
 	 */
 
 	snprintf( motor->extended_status, sizeof(motor->extended_status),
 		MXP_MOTOR_EXTENDED_STATUS_FORMAT, record->precision,
 		motor->position, motor->status );
 
-	/* If we get here, then one or both of the fields 'position' and
-	 * 'status' changed its value.  For each field, see if its value
-	 * changed.  If the value changed, then invoke the field's
-	 * callback list, if it has one.
+	/* We do not send out value changed callbacks for the record field
+	 * that was passed to us, since our caller will decide whether
+	 * or not to do that.  However, we _do_ send out value changed
+	 * callbacks for any other fields.
 	 */
 
-	/* Check 'position'. */
+	send_position_callbacks        = FALSE;
+	send_status_callbacks          = FALSE;
+	send_extended_status_callbacks = FALSE;
 
-	if ( position_changed ) {
+	if ( record_field == position_field ) {
+		if ( position_changed ) {
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_status_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+	} else
+	if ( record_field == status_field ) {
+		if ( position_changed ) {
+			send_position_callbacks = TRUE;
+			send_extended_status_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_extended_status_callbacks = TRUE;
+		}
+	} else
+	if ( record_field == extended_status_field ) {
+		if ( position_changed ) {
+			send_position_callbacks = TRUE;
+		}
+		if ( status_changed ) {
+			send_status_callbacks = TRUE;
+		}
+	}
+
+#if MX_MOTOR_DEBUG_VCTEST
+	MX_DEBUG(-2,("%s: send_position_callbacks = %d",
+			fname, (int) send_position_callbacks));
+	MX_DEBUG(-2,("%s: send_status_callbacks = %d",
+			fname, (int) send_status_callbacks));
+	MX_DEBUG(-2,("%s: send_extended_status_callbacks = %d",
+			fname, (int) send_extended_status_callbacks));
+#endif
+
+	/* Send out position callbacks. */
+
+	if ( send_position_callbacks ) {
 		if ( position_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
@@ -5777,9 +5779,9 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 		}
 	}
 
-	/* Check 'status'. */
+	/* Send out status callbacks. */
 
-	if ( status_changed ) {
+	if ( send_status_callbacks ) {
 		if ( status_field->callback_list != NULL ) {
 
 			mx_status = mx_local_field_invoke_callback_list(
@@ -5788,6 +5790,29 @@ mx_motor_vctest_extended_status( MX_RECORD_FIELD *record_field,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+	}
+
+	/* Send out extended_status callbacks. */
+
+	if ( send_extended_status_callbacks ) {
+		if ( extended_status_field->callback_list != NULL ) {
+
+			mx_status = mx_local_field_invoke_callback_list(
+				extended_status_field, MXCBT_VALUE_CHANGED );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+	if ( value_changed_ptr != NULL ) {
+		*value_changed_ptr = position_changed | status_changed;
+
+#if MX_MOTOR_DEBUG_VCTEST
+		MX_DEBUG(-2,("%s: '%s.%s' value_changed = %d.",
+			fname, record->name, record_field->name,
+			*value_changed_ptr));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
