@@ -91,9 +91,9 @@ LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(EPICS_LIBRARIES) $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(POWERPMAC_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) $(POWERPMAC_LIBRARIES) \
-						-lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(POWERPMAC_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) $(POWERPMAC_LIBRARIES) \
+#						-lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS) $(EPICS_LIB_DIRS) \
 #					$(XIA_HANDEL_LIB_DIRS)
@@ -322,42 +322,46 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 #
 
 #EPICS_ARCH	= linux-x86		# For EPICS 3.14
-#EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
-EPICS_ARCH	= linux-ppc		# For EPICS 3.14
+EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+#EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
 #EPICS_ARCH	= Linux			# For EPICS 3.13
 
 # For most EPICS installations, use the following definitions.
 
-#EPICS_TOP	= /opt/epics
+EPICS_TOP	= /opt/epics
 #EPICS_TOP	= /opt/EPICS
-EPICS_TOP	= /mnt/epics
+#EPICS_TOP	= /mnt/epics
 #EPICS_TOP	= /usr/local/epics
 #EPICS_TOP	= /home/lavender/local/epics
 
-EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-			-I$(EPICS_TOP)/base/include/os/Linux
-EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
-
-# If you are using the EPICS Debian package, use the following definitions.
-
-#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-#			-I/usr/include/epics/os/Linux
-#EPICS_LIB_DIRS  = 
+#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+#			-I$(EPICS_TOP)/base/include/os/Linux
+#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
 #EPICS_LIBRARIES = -lca -lCom
+
+# If you are using IIT's EPICS Debian package, use the following definitions.
+
+EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+			-I/usr/include/epics/os/Linux
+EPICS_LIB_DIRS  = 
+EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
 # similar names is a coincidence.
 #
+
+#EPIX_ARCH            = i386
+EPIX_ARCH            = x86_64_pic
+
 EPIX_XCLIB_DIR       = /usr/local/xclib
 EPIX_XCLIB_INCLUDES  = -I$(EPIX_XCLIB_DIR) -DIS_MX_DRIVER \
 				-Wno-strict-prototypes -Wno-unused-variable \
 				-Wno-shadow
 EPIX_XCLIB_LIB_DIRS  = -L$(EPIX_XCLIB_DIR)
-EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_i386.a
+EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_$(EPIX_ARCH).a
 
 #
 

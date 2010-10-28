@@ -47,7 +47,7 @@
  *
  */
 
-#define HAVE_EPIX_XCLIB			0
+#define HAVE_EPIX_XCLIB			1
 
 /*****************************************************************************
  *
@@ -132,7 +132,7 @@
  * Delta Tau motion control software there.
  */
 
-#define HAVE_POWERPMAC_LIBRARY		1
+#define HAVE_POWERPMAC_LIBRARY		0
 
 /*****************************************************************************
  *

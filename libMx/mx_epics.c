@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,10 +75,14 @@
 
 #include "epicsVersion.h"
 
+#if !defined( EPICS_VERSION )
+#error Either EPICS is not installed or it is not installed at the location you configured in libMx/Makehead.$(MX_ARCH).
+#endif
+
 #define MX_EPICS_VERSION  \
     ( EPICS_VERSION * 1000000L + EPICS_REVISION * 1000L + EPICS_MODIFICATION )
 
-#if ( MX_EPICS_VERSION < 3014000L )
+#if ( defined(EPICS_VERSION) && ( MX_EPICS_VERSION < 3014000L ) )
 #error You are attempting to build MX support for EPICS with EPICS version 3.13 or before.  This is not supported.  Please upgrade to EPICS 3.14 or later.
 #endif
 
