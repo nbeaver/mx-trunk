@@ -66,6 +66,15 @@ case $osname in
 	;;
     * )
 	# Shared library path for other versions of Unix ( Linux, Solaris, etc.)
+	#
+	# WARNING: If the startup of your X11 window session uses setuid/setgid
+	# binaries, then you may find that LD_LIBRARY_PATH is removed from your
+	# environment.  This is done to avoid some security exploits that 
+	# depend on a custom LD_LIBRARY_PATH.  If this happens to you, then
+	# your best alternative is to add $(MXDIR)/lib to your /etc/ld.so.conf
+	# file (or whatever serves that function on your platform) and run
+	# /sbin/ldconfig.
+	#
 
 	if [ x${LD_LIBRARY_PATH} = x ]; then
 		LD_LIBRARY_PATH="${MXDIR}/lib"
