@@ -2178,14 +2178,12 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 					1, 0, 0.1, TRUE );
 				break;
 			case MXT_AD_PCCD_16080:
-#if 1
 				/* Send a 0.001 second pulse. */
 
 				mx_status = mx_camera_link_pulse_cc_line(
 					aviex_pccd->camera_link_record, 1,
 					-1, 1000 );
 				break;
-#endif
 			default:
 				return mx_error( MXE_UNSUPPORTED, fname,
 				"Triggering detector type %lu, record '%s', "

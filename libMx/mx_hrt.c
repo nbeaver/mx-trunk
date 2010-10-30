@@ -65,6 +65,10 @@
 #  else
 #    error Unrecognized CPU architecture for MacOS X!
 #  endif
+
+#elif ( defined(__GNUC__) && defined(__x86_64__) )
+#  define MX_NEED_HRT_FALLBACK		FALSE
+
 #else
 #  define MX_NEED_HRT_FALLBACK		TRUE
 #endif
@@ -558,7 +562,94 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#elif defined(__GNUC__) && defined(__i386__)
+#elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+
+/* The x86 and x86_64 methods for GCC share much of the same code. */
+
+#if defined(__x86_64__)
+
+/******* GCC on x86_64 *******/
+
+static int mx_high_resolution_time_init_invoked = FALSE;
+
+static double mx_hrt_counter_ticks_per_microsecond = 0.0;
+
+static __inline__ unsigned long
+mx_rdtsc( void )
+{
+	unsigned long x;
+
+	/* The following generates inline an RDTSC instruction
+	 * and puts the results in the variable "x".
+	 *
+	 * As it happens, the version of this code used on 32-bit
+         * machines will not put the value in the right place on
+	 * a 64-bit machine, so we must use this 64-bit specific
+	 * method instead.
+	 *
+	 * References:
+	 *    http://www.technovelty.org/code/c/reading-rdtsc.html
+	 *    http://lists.freedesktop.org/archives/cairo/2008-September/015029.html
+	 */
+
+	unsigned int a_register, d_register;
+
+	__asm__ volatile( "rdtsc" : "=a" (a_register), "=d" (d_register) );
+
+	x = ((unsigned long) a_register) | (((unsigned long) d_register) << 32);
+
+	return x;
+}
+
+MX_EXPORT void
+mx_udelay( unsigned long microseconds )
+{
+	unsigned long tsc_start_value, tsc_end_value;
+	unsigned long tsc_delay_ticks;
+
+	if ( mx_high_resolution_time_init_invoked == FALSE )
+		mx_high_resolution_time_init();
+
+	tsc_delay_ticks = (unsigned long)
+	    ( mx_hrt_counter_ticks_per_microsecond * (double) microseconds );
+
+	tsc_start_value = mx_rdtsc();
+
+	tsc_end_value = tsc_start_value + tsc_delay_ticks;
+
+	/* Sit in a loop until we reach the end of the delay time. */
+
+	while ( mx_rdtsc() < tsc_end_value )
+		;				/* Do nothing. */
+
+	return;
+}
+
+MX_EXPORT struct timespec
+mx_high_resolution_time( void )
+{
+	struct timespec value;
+	unsigned long tsc_value;
+	double time_in_microseconds;
+
+	if ( mx_high_resolution_time_init_invoked == FALSE )
+		mx_high_resolution_time_init();
+
+	tsc_value = mx_rdtsc();
+
+	time_in_microseconds = mx_divide_safely( (double) tsc_value,
+				mx_hrt_counter_ticks_per_microsecond );
+
+	value.tv_sec = (unsigned long) ( 0.000001 * time_in_microseconds );
+
+	time_in_microseconds -= 1000000.0 * (double) value.tv_sec;
+
+	value.tv_nsec = (unsigned long) ( 1000.0 * time_in_microseconds );
+
+	return value;
+}
+
+#elif defined(__i386__)
 
 /******* GCC on x86 *******/
 
@@ -677,6 +768,10 @@ mx_high_resolution_time( void )
 	}
 }
 
+#else
+#error Unrecognized x86 variant for GCC.
+#endif
+
 #if defined(OS_LINUX) || defined(OS_CYGWIN)
 
 /******* GCC on x86 Linux or Cygwin *******/
@@ -789,11 +884,13 @@ mx_high_resolution_time_init( void )
 
 	fclose( cpuinfo );
 
+#if defined(__i386__)
 	if ( have_tsc ) {
 		mx_cpu_delay_type = MX_CPU_USE_RDTSC;
 	} else {
 		mx_cpu_delay_type = MX_CPU_USE_XCHG;
 	}
+#endif
 
 	if ( (cpu_family == 3) || (cpu_family == 4) ) {
 		mx_hrt_counter_ticks_per_microsecond = cpu_mhz / 3.0;
@@ -898,8 +995,11 @@ mx_high_resolution_time_init( void )
 
 	mx_info(
 "Calibrating high resolution timer.  This will take around 10 seconds." );
+
+#if defined(__i386__)
 	mx_warning(
 "Calibration will fail on 386s and 486s and may cause the program to crash.");
+#endif
 
 	tsc_before = mx_rdtsc();
 

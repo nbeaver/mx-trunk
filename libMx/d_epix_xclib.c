@@ -1519,8 +1519,8 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: video fields per frame = %d",
 		fname, pxd_videoFieldsPerFrame() ));
 
-	MX_DEBUG(-2,("%s: video field count = %lu",
-		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: video field count = %lu", fname,
+	  (unsigned long) pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
 	/* Set the EXSYNC and PRINC register values needed. */
@@ -2172,11 +2172,11 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 #if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: pxd_goneLive() = %d", fname, busy ));
 
-	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
-		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu", fname,
+	  (unsigned long) pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 
 	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
-		fname, pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
+	  fname, (long) pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 	/* Take care of a variety of special circumstances. */
 
