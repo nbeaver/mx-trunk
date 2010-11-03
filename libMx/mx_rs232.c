@@ -1368,6 +1368,116 @@ mx_rs232_set_signal_bit( MX_RECORD *record, long bit_type, long bit_value )
 }
 
 MX_EXPORT mx_status_type
+mx_rs232_get_configuration( MX_RECORD *record, long *speed,
+				long *word_size, char *parity,
+				long *stop_bits, char *flow_control,
+				unsigned long *read_terminators,
+				unsigned long *write_terminators )
+{
+	static const char fname[] = "mx_rs232_get_configuration()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *flist;
+	mx_status_type ( *fptr )( MX_RS232 * );
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Optionally call the driver specific 'get configuration' function. */
+
+	fptr = flist->get_configuration;
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( rs232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( speed != (long *) NULL ) {
+		*speed = rs232->speed;
+	}
+	if ( word_size != (long *) NULL ) {
+		*word_size = rs232->word_size;
+	}
+	if ( parity != (char *) NULL ) {
+		*parity = rs232->parity;
+	}
+	if ( stop_bits != (long *) NULL ) {
+		*stop_bits = rs232->stop_bits;
+	}
+	if ( flow_control != (char *) NULL ) {
+		*flow_control = rs232->flow_control;
+	}
+	if ( read_terminators != (unsigned long *) NULL ) {
+		*read_terminators = rs232->read_terminators;
+	}
+	if ( write_terminators != (unsigned long *) NULL ) {
+		*write_terminators = rs232->write_terminators;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_set_configuration( MX_RECORD *record, long speed,
+				long word_size, char parity,
+				long stop_bits, char flow_control,
+				unsigned long read_terminators,
+				unsigned long write_terminators )
+{
+	static const char fname[] = "mx_rs232_set_configuration()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *flist;
+	mx_status_type ( *fptr )( MX_RS232 * );
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( speed != MXF_232_DONT_CARE ) {
+		rs232->speed = speed;
+	}
+	if ( word_size != MXF_232_DONT_CARE ) {
+		rs232->word_size = word_size;
+	}
+	if ( parity != MXF_232_DONT_CARE ) {
+		rs232->parity = parity;
+	}
+	if ( stop_bits != MXF_232_DONT_CARE ) {
+		rs232->stop_bits = stop_bits;
+	}
+	if ( flow_control != MXF_232_DONT_CARE ) {
+		rs232->flow_control = flow_control;
+	}
+	if ( read_terminators != MXF_232_DONT_CARE ) {
+		rs232->read_terminators = read_terminators;
+	}
+	if ( write_terminators != MXF_232_DONT_CARE ) {
+		rs232->write_terminators = write_terminators;
+	}
+
+	/* Optionally call the driver specific 'set configuration' function. */
+
+	fptr = flist->set_configuration;
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( rs232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 				long word_size, char parity,
 				long stop_bits, char flow_control,
@@ -1443,6 +1553,33 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 				rs232->write_terminators, write_terminators );
 		}
 	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_send_break( MX_RECORD *record )
+{
+	static const char fname[] = "mx_rs232_send_break()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *flist;
+	mx_status_type ( *fptr )( MX_RS232 * );
+	mx_status_type mx_status;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	fptr = flist->send_break;
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( rs232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

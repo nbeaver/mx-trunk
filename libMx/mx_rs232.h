@@ -136,6 +136,10 @@ typedef struct {
 
 	unsigned long signal_state;
 	unsigned long old_signal_state;
+
+	mx_bool_type get_configuration;
+	mx_bool_type set_configuration;
+	mx_bool_type send_break;
 } MX_RS232;
 
 #define MXLV_232_GETCHAR			101
@@ -148,6 +152,9 @@ typedef struct {
 #define MXLV_232_DISCARD_UNREAD_INPUT		108
 #define MXLV_232_DISCARD_UNWRITTEN_OUTPUT	109
 #define MXLV_232_SIGNAL_STATE			110
+#define MXLV_232_GET_CONFIGURATION			111
+#define MXLV_232_SET_CONFIGURATION			112
+#define MXLV_232_SEND_BREAK			113
 
 #define MX_RS232_STANDARD_FIELDS \
   {-1, -1, "speed", MXFT_LONG, NULL, 0, {0}, \
@@ -211,6 +218,20 @@ typedef struct {
   \
   {MXLV_232_SIGNAL_STATE, -1, "signal_state", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, signal_state), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_232_GET_CONFIGURATION, -1, "get_configuration", \
+				MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, get_configuration), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_232_SET_CONFIGURATION, -1, "set_configuration", \
+				MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, set_configuration), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_232_SEND_BREAK, -1, "send_break", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, send_break), \
 	{0}, NULL, 0}
 
 /*
@@ -242,6 +263,9 @@ typedef struct {
 	mx_status_type ( *discard_unwritten_output ) ( MX_RS232 *rs232 );
 	mx_status_type ( *get_signal_state ) ( MX_RS232 *rs232 );
 	mx_status_type ( *set_signal_state ) ( MX_RS232 *rs232 );
+	mx_status_type ( *get_configuration ) ( MX_RS232 *rs232 );
+	mx_status_type ( *set_configuration ) ( MX_RS232 *rs232 );
+	mx_status_type ( *send_break ) ( MX_RS232 *rs232 );
 } MX_RS232_FUNCTION_LIST;
 
 /* ============== Interface function prototypes. ============== */
@@ -325,6 +349,24 @@ MX_API mx_status_type mx_rs232_get_signal_bit( MX_RECORD *rs232_record,
 MX_API mx_status_type mx_rs232_set_signal_bit( MX_RECORD *rs232_record,
 					long bit_type, long bit_value );
 
+MX_API mx_status_type mx_rs232_get_configuration( MX_RECORD *rs232_record,
+					long *speed,
+					long *word_size,
+					char *parity,
+					long *stop_bits,
+					char *flow_control,
+					unsigned long *read_terminators,
+					unsigned long *write_terminators );
+
+MX_API mx_status_type mx_rs232_set_configuration( MX_RECORD *rs232_record,
+					long speed,
+					long word_size,
+					char parity,
+					long stop_bits,
+					char flow_control,
+					unsigned long read_terminators,
+					unsigned long write_terminators );
+
 MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					long speed,
 					long word_size,
@@ -333,6 +375,8 @@ MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					char flow_control,
 					unsigned long read_terminators,
 					unsigned long write_terminators );
+
+MX_API mx_status_type mx_rs232_send_break( MX_RECORD *rs232_record );
 
 #ifdef __cplusplus
 }

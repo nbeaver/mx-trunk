@@ -169,6 +169,7 @@ extern "C" {
 #define MXI_232_WAGO750_SERIAL		111
 #define MXI_232_CAMERA_LINK		112
 #define MXI_232_TELNET			113
+#define MXI_232_SIM900			114
 
 #define MXI_232_SPEC_COMMAND		150
 #define MXI_232_EPIX_XCLIB		151
@@ -249,6 +250,7 @@ extern "C" {
 #define MXI_CTRL_HANDEL_NETWORK		458
 #define MXI_CTRL_LINKAM_T9X		459
 #define MXI_CTRL_POWERPMAC		460
+#define MXI_CTRL_SIM900			461
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -508,6 +510,8 @@ extern "C" {
 #define MXT_MTR_LINKAM_T9X_TEMPERATURE	50054
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
 #define MXT_MTR_POWERPMAC		50056
+#define MXT_MTR_SIM960			50057
+#define MXT_MTR_AMPLIFIER		50058
 
    /* Pseudomotors. */
 
@@ -610,6 +614,7 @@ extern "C" {
 #define MXT_AMP_KEITHLEY2700		90010
 #define MXT_AMP_KEITHLEY2400		90011
 #define MXT_AMP_KEITHLEY2000		90012
+#define MXT_AMP_SIM983			90013
 
 /* --- Relay types --- */
 

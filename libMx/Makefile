@@ -177,7 +177,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
 	i_pmac.c i_pmc_mcapi.c i_powerpmac.c \
 	i_prologix.c i_rtems_vme.c \
-	i_scipe.c i_sis3100.c i_sis3807.c \
+	i_scipe.c i_sim900.c i_sis3100.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
 	i_sr630.c i_tcp232.c i_telnet.c i_tpg262.c i_tty.c \

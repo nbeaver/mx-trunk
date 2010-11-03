@@ -205,6 +205,7 @@
 #include "i_itc503.h"
 #include "i_ilm.h"
 #include "i_linkam_t9x.h"
+#include "i_sim900.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -1135,6 +1136,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_linkam_t9x_num_record_fields,
 				&mxi_linkam_t9x_rfield_def_ptr},
+
+{"sim900",        MXI_CTRL_SIM900,        MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_sim900_record_function_list,
+				NULL,
+				NULL,
+				&mxi_sim900_num_record_fields,
+				&mxi_sim900_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
