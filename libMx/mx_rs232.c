@@ -1573,7 +1573,12 @@ mx_rs232_send_break( MX_RECORD *record )
 
 	fptr = flist->send_break;
 
-	if ( fptr != NULL ) {
+	if ( fptr == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Sending break signals is not supported by the '%s' driver "
+		"for RS-232 device '%s'.",
+			mx_get_driver_name( record ), record->name );
+	} else {
 		mx_status = (*fptr)( rs232 );
 
 		if ( mx_status.code != MXE_SUCCESS )

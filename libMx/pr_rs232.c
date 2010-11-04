@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,11 +44,14 @@ mx_setup_rs232_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_232_GETCHAR:
-		case MXLV_232_PUTCHAR:
-		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
 		case MXLV_232_DISCARD_UNREAD_INPUT:
 		case MXLV_232_DISCARD_UNWRITTEN_OUTPUT:
+		case MXLV_232_GETCHAR:
+		case MXLV_232_GET_CONFIGURATION:
+		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
+		case MXLV_232_PUTCHAR:
+		case MXLV_232_SEND_BREAK:
+		case MXLV_232_SET_CONFIGURATION:
 		case MXLV_232_SIGNAL_STATE:
 			record_field->process_function
 					= mx_rs232_process_function;
@@ -93,6 +96,11 @@ mx_rs232_process_function( void *record_ptr,
 			mx_status = mx_rs232_getchar( record,
 						&(rs232->getchar_value), 0 );
 			break;
+		case MXLV_232_GET_CONFIGURATION:
+			mx_status = mx_rs232_get_configuration( record,
+						NULL, NULL, NULL, NULL,
+						NULL, NULL, NULL );
+			break;
 		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
 			mx_status = mx_rs232_num_input_bytes_available( record,
 								&ulong_value );
@@ -121,6 +129,17 @@ mx_rs232_process_function( void *record_ptr,
 		case MXLV_232_DISCARD_UNWRITTEN_OUTPUT:
 			mx_status = mx_rs232_discard_unwritten_output(
 								record, 0 );
+			break;
+		case MXLV_232_SEND_BREAK:
+			mx_status = mx_rs232_send_break( record );
+			break;
+		case MXLV_232_SET_CONFIGURATION:
+			mx_status = mx_rs232_set_configuration( record,
+					rs232->speed, rs232->word_size,
+					rs232->parity, rs232->stop_bits,
+					rs232->flow_control,
+					rs232->read_terminators,
+					rs232->write_terminators );
 			break;
 		case MXLV_232_SIGNAL_STATE:
 			mx_status = mx_rs232_set_signal_state( record,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,10 +34,21 @@ typedef struct {
 
 	MX_NETWORK_FIELD discard_unread_input_nf;
 	MX_NETWORK_FIELD discard_unwritten_output_nf;
+	MX_NETWORK_FIELD flow_control_nf;
 	MX_NETWORK_FIELD getchar_nf;
+	MX_NETWORK_FIELD get_configuration_nf;
 	MX_NETWORK_FIELD num_input_bytes_available_nf;
+	MX_NETWORK_FIELD parity_nf;
 	MX_NETWORK_FIELD putchar_nf;
+	MX_NETWORK_FIELD read_terminators_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
+	MX_NETWORK_FIELD send_break_nf;
+	MX_NETWORK_FIELD set_configuration_nf;
+	MX_NETWORK_FIELD signal_state_nf;
+	MX_NETWORK_FIELD speed_nf;
+	MX_NETWORK_FIELD stop_bits_nf;
+	MX_NETWORK_FIELD word_size_nf;
+	MX_NETWORK_FIELD write_terminators_nf;
 } MX_NETWORK_RS232;
 
 /* Define all of the interface functions. */
@@ -72,6 +83,11 @@ MX_API mx_status_type mxi_network_rs232_num_input_bytes_available(
 MX_API mx_status_type mxi_network_rs232_discard_unread_input( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_network_rs232_discard_unwritten_output(
 							MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_get_signal_state( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_set_signal_state( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_get_configuration( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_set_configuration( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_network_rs232_send_break( MX_RS232 *rs232 );
 
 extern MX_RECORD_FUNCTION_LIST mxi_network_rs232_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_network_rs232_rs232_function_list;

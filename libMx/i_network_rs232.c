@@ -49,7 +49,12 @@ MX_RS232_FUNCTION_LIST mxi_network_rs232_rs232_function_list = {
 	NULL,
 	mxi_network_rs232_num_input_bytes_available,
 	mxi_network_rs232_discard_unread_input,
-	mxi_network_rs232_discard_unwritten_output
+	mxi_network_rs232_discard_unwritten_output,
+	mxi_network_rs232_get_signal_state,
+	mxi_network_rs232_set_signal_state,
+	mxi_network_rs232_get_configuration,
+	mxi_network_rs232_set_configuration,
+	mxi_network_rs232_send_break
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_network_rs232_record_field_defaults[] = {
@@ -209,22 +214,66 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 		network_rs232->server_record,
 	    "%s.discard_unwritten_output", network_rs232->remote_record_name );
 
+	mx_network_field_init( &(network_rs232->flow_control_nf),
+		network_rs232->server_record,
+		"%s.flow_control", network_rs232->remote_record_name );
+
 	mx_network_field_init( &(network_rs232->getchar_nf),
 		network_rs232->server_record,
 		"%s.getchar", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->get_configuration_nf),
+		network_rs232->server_record,
+		"%s.get_configuration", network_rs232->remote_record_name );
 
 	mx_network_field_init( &(network_rs232->num_input_bytes_available_nf),
 		network_rs232->server_record,
 		"%s.num_input_bytes_available",
 		network_rs232->remote_record_name );
 
+	mx_network_field_init( &(network_rs232->parity_nf),
+		network_rs232->server_record,
+		"%s.parity", network_rs232->remote_record_name );
+
 	mx_network_field_init( &(network_rs232->putchar_nf),
 		network_rs232->server_record,
 		"%s.putchar", network_rs232->remote_record_name );
 
+	mx_network_field_init( &(network_rs232->read_terminators_nf),
+		network_rs232->server_record,
+		"%s.read_terminators", network_rs232->remote_record_name );
+
 	mx_network_field_init( &(network_rs232->resynchronize_nf),
 		network_rs232->server_record,
 		"%s.resynchronize", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->send_break_nf),
+		network_rs232->server_record,
+		"%s.send_break", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->set_configuration_nf),
+		network_rs232->server_record,
+		"%s.set_configuration", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->signal_state_nf),
+		network_rs232->server_record,
+		"%s.signal_state", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->speed_nf),
+		network_rs232->server_record,
+		"%s.speed", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->stop_bits_nf),
+		network_rs232->server_record,
+		"%s.stop_bits", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->word_size_nf),
+		network_rs232->server_record,
+		"%s.word_size", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->write_terminators_nf),
+		network_rs232->server_record,
+		"%s.write_terminators", network_rs232->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -630,6 +679,192 @@ mxi_network_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 
 	mx_status = mx_put( &(network_rs232->discard_unwritten_output_nf),
 				MXFT_BOOL, &discard_unwritten_output );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_get_signal_state( MX_RS232 *rs232 )
+{
+	static const char fname[] =
+		"mxi_network_rs232_get_signal_state()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->signal_state_nf),
+			MXFT_HEX, &(rs232->signal_state) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_set_signal_state( MX_RS232 *rs232 )
+{
+	static const char fname[] =
+		"mxi_network_rs232_set_signal_state()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->signal_state_nf),
+			MXFT_HEX, &(rs232->signal_state) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_get_configuration( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_network_rs232_get_configuration()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->get_configuration_nf),
+			MXFT_BOOL, &(rs232->get_configuration) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->speed_nf),
+			MXFT_LONG, &(rs232->speed) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->word_size_nf),
+			MXFT_LONG, &(rs232->word_size) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->parity_nf),
+			MXFT_CHAR, &(rs232->parity) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->stop_bits_nf),
+			MXFT_LONG, &(rs232->stop_bits) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->flow_control_nf),
+			MXFT_CHAR, &(rs232->flow_control) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->read_terminators_nf),
+			MXFT_HEX, &(rs232->read_terminators) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_rs232->write_terminators_nf),
+			MXFT_HEX, &(rs232->write_terminators) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_set_configuration( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_network_rs232_set_configuration()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->speed_nf),
+			MXFT_LONG, &(rs232->speed) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->word_size_nf),
+			MXFT_LONG, &(rs232->word_size) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->parity_nf),
+			MXFT_CHAR, &(rs232->parity) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->stop_bits_nf),
+			MXFT_LONG, &(rs232->stop_bits) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->flow_control_nf),
+			MXFT_CHAR, &(rs232->flow_control) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->read_terminators_nf),
+			MXFT_HEX, &(rs232->read_terminators) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->write_terminators_nf),
+			MXFT_HEX, &(rs232->write_terminators) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->set_configuration_nf),
+			MXFT_BOOL, &(rs232->set_configuration) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_send_break( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_network_rs232_send_break()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_rs232->send_break_nf),
+			MXFT_BOOL, &(rs232->send_break) );
 
 	return mx_status;
 }
