@@ -34,10 +34,6 @@
 
 #include "i_win32_com.h"
 
-/* Define private functions to handle Microsoft Win32 COM ports. */
-
-static mx_status_type win32com_write_parms( MX_RS232 *rs232 );
-
 MX_RECORD_FUNCTION_LIST mxi_win32com_record_function_list = {
 	NULL,
 	mxi_win32com_create_record_structures,
@@ -59,7 +55,10 @@ MX_RS232_FUNCTION_LIST mxi_win32com_rs232_function_list = {
 	mxi_win32com_discard_unread_input,
 	mxi_win32com_discard_unwritten_output,
 	mxi_win32com_get_signal_state,
-	mxi_win32com_set_signal_state
+	mxi_win32com_set_signal_state,
+	mxi_win32com_get_configuration,
+	mxi_win32com_set_configuration,
+	mxi_win32com_send_break
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_win32com_record_field_defaults[] = {
@@ -226,14 +225,14 @@ mxi_win32com_open( MX_RECORD *record )
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Error opening WIN32COM port '%s'.  "
+			"Error opening Win32 COM port '%s'.  "
 			"Win32 error code = %ld, error message = '%s'",
 			win32com->filename, last_error_code, message_buffer );
 	}
 
 	win32com->handle = com_port_handle;
 
-	status = win32com_write_parms( rs232 );
+	status = mxi_win32com_set_configuration( rs232 );
 
 	return status;
 }
@@ -689,7 +688,7 @@ mxi_win32com_set_signal_state( MX_RS232 *rs232 )
 				message_buffer, sizeof(message_buffer) );
 
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Error changing RTS state for WIN32COM port '%s'.  "
+			"Error changing RTS state for Win32 COM port '%s'.  "
 			"Win32 error code = %ld, error message = '%s'",
 			win32com->filename, last_error_code, message_buffer );
 		}
@@ -718,7 +717,7 @@ mxi_win32com_set_signal_state( MX_RS232 *rs232 )
 				message_buffer, sizeof(message_buffer) );
 
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Error changing DTR state for WIN32COM port '%s'.  "
+			"Error changing DTR state for Win32 COM port '%s'.  "
 			"Win32 error code = %ld, error message = '%s'",
 			win32com->filename, last_error_code, message_buffer );
 		}
@@ -727,12 +726,10 @@ mxi_win32com_set_signal_state( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* ==== Microsoft Win32 I/O functions ==== */
-
-static mx_status_type
-win32com_write_parms( MX_RS232 *rs232 )
+MX_EXPORT mx_status_type
+mxi_win32com_get_configuration( MX_RS232 *rs232 )
 {
-	static const char fname[] = "win32com_write_parms()";
+	static const char fname[] = "mxi_win32com_get_configuration()";
 
 	MX_WIN32COM *win32com;
 	BOOL win32_status;
@@ -748,7 +745,132 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	if ( win32com->handle == INVALID_HANDLE_VALUE ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"WIN32COM port device '%s' is not open.",
+		"Win32 COM port device '%s' is not open.",
+		rs232->record->name );
+	}
+
+	/* Get the current settings of the COM port. */
+
+	win32_status = GetCommState( win32com->handle, &dcb );
+
+	if ( win32_status == 0 ) {
+		DWORD last_error_code;
+		TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Attempt to get current port settings for '%s' failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			win32com->filename, last_error_code, message_buffer );
+	}
+
+	/* Get the port speed. */
+
+	switch( dcb.BaudRate ) {
+	case CBR_256000: rs232->speed = 256000; break;
+	case CBR_128000: rs232->speed = 128000; break;
+	case CBR_115200: rs232->speed = 115200; break;
+	case CBR_57600:  rs232->speed = 57600;  break;
+	case CBR_56000:  rs232->speed = 56000;  break;
+	case CBR_38400:  rs232->speed = 38400;  break;
+	case CBR_19200:  rs232->speed = 19200;  break;
+	case CBR_14400:  rs232->speed = 14400;  break;
+	case CBR_9600:   rs232->speed = 9600;   break;
+	case CBR_4800:   rs232->speed = 4800;   break;
+	case CBR_2400:   rs232->speed = 2400;   break;
+	case CBR_1200:   rs232->speed = 1200;   break;
+	case CBR_600:    rs232->speed = 600;    break;
+	case CBR_300:    rs232->speed = 300;    break;
+	case CBR_110:    rs232->speed = 110;    break;
+
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unrecognized Win32 COM speed %lu for COM port '%s'.", 
+		(unsigned long) dcb.BaudRate, rs232->record->name);
+
+		break;
+	}
+
+	/* Get the word size. */
+
+	rs232->word_size = dcb.ByteSize;
+
+	/* Get the parity. */
+
+	if ( dcb.fParity == FALSE ) {
+		rs232->parity = MXF_232_NO_PARITY;
+	} else {
+		switch( dcb.Parity ) {
+		case EVENPARITY:  rs232->parity = MXF_232_EVEN_PARITY;  break;
+		case ODDPARITY:   rs232->parity = MXF_232_ODD_PARITY;   break;
+		case MARKPARITY:  rs232->parity = MXF_232_MARK_PARITY;  break;
+		case SPACEPARITY: rs232->parity = MXF_232_SPACE_PARITY; break;
+		case NOPARITY:    rs232->parity = MXF_232_NO_PARITY;    break;
+
+		default:
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Unrecognized Win32 COM parity %lu for COM port '%s'.", 
+			(unsigned long) dcb.Parity, rs232->record->name);
+
+			break;
+		}
+	}
+
+	/* Get the stop bits. */
+
+	switch( dcb.StopBits ) {
+	case ONESTOPBIT:    rs232->stop_bits = 1;   break;
+	case TWOSTOPBITS:   rs232->stop_bits = 2;   break;
+
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unrecognized Win32 COM stop bits %lu for COM port '%s'.",
+		(unsigned long) dcb.StopBits, rs232->record->name );
+
+		break;
+	}
+
+	/* Get the flow control. */
+
+	if ( dcb.fOutxCtsFlow == TRUE ) {
+		rs232->flow_control = MXF_232_HARDWARE_FLOW_CONTROL;
+	} else
+	if ( dcb.fOutxDsrFlow == TRUE ) {
+		rs232->flow_control = MXF_232_DTR_DSR_FLOW_CONTROL;
+	} else
+	if ( dcb.fOutX == TRUE ) {
+		rs232->flow_control = MXF_232_SOFTWARE_FLOW_CONTROL;
+	} else {
+		rs232->flow_control = MXF_232_NO_FLOW_CONTROL;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_win32com_set_configuration( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_win32com_set_configuration()";
+
+	MX_WIN32COM *win32com;
+	BOOL win32_status;
+	DCB dcb;
+	mx_status_type status;
+
+	MX_DEBUG( 2,("%s invoked.",fname));
+
+	status = mxi_win32com_get_pointers( rs232, &win32com, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( win32com->handle == INVALID_HANDLE_VALUE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Win32 COM port device '%s' is not open.",
 		rs232->record->name );
 	}
 
@@ -792,7 +914,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM speed = %ld for WIN32COM '%s'.", 
+		"Unsupported Win32 COM speed = %ld for COM port '%s'.", 
 		rs232->speed, rs232->record->name);
 
 		break;
@@ -804,7 +926,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 		dcb.ByteSize = rs232->word_size;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM word size = %ld for WIN32COM '%s'.", 
+		"Unsupported Win32 COM word size = %ld for COM port '%s'.", 
 		rs232->word_size, rs232->record->name);
 	}
 
@@ -825,7 +947,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM parity = '%c' for WIN32COM '%s'.", 
+		"Unsupported Win32 COM parity = '%c' for COM port '%s'.", 
 		rs232->parity, rs232->record->name);
 
 		break;
@@ -839,7 +961,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM stop bits = %ld for WIN32COM '%s'.", 
+		"Unsupported Win32 COM stop bits = %ld for COM port '%s'.", 
 		rs232->stop_bits, rs232->record->name);
 
 		break;
@@ -880,7 +1002,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM flow control = %c for WIN32COM '%s'.", 
+		"Unsupported Win32 COM flow control = %c for COM port '%s'.", 
 		rs232->flow_control, rs232->record->name);
 
 		break;
@@ -906,6 +1028,73 @@ win32com_write_parms( MX_RS232 *rs232 )
 	}
 		
 	MX_DEBUG( 2,("%s complete.",fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_win32com_send_break( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_win32com_send_break()";
+
+	MX_WIN32COM *win32com;
+	BOOL win32_status;
+	mx_status_type status;
+
+	MX_DEBUG( 2,("%s invoked.",fname));
+
+	status = mxi_win32com_get_pointers( rs232, &win32com, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( win32com->handle == INVALID_HANDLE_VALUE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Win32 COM port device '%s' is not open.",
+		rs232->record->name );
+	}
+
+	/* Turn the break signal on. */
+
+	win32_status = SetCommBreak( win32com->handle );
+
+	if ( win32_status == 0 ) {
+		DWORD last_error_code;
+		TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Attempt to send a Break signal for '%s' failed.  "
+			"Win32 error code = %ld, error message = '%s'",
+			win32com->filename, last_error_code, message_buffer );
+	}
+
+	/* Leave the break signal on for about 0.5 seconds. */
+
+	Sleep(500);
+
+	/* Turn the break signal off. */
+		
+	win32_status = ClearCommBreak( win32com->handle );
+
+	if ( win32_status == 0 ) {
+		DWORD last_error_code;
+		TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Attempt to stop a Break signal for '%s' failed.  "
+			"Win32 error code = %ld, error message = '%s'",
+			win32com->filename, last_error_code, message_buffer );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

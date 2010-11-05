@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,8 +52,11 @@ MX_API mx_status_type mxi_win32com_discard_unread_input( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_win32com_discard_unwritten_output( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_win32com_get_signal_state( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_win32com_set_signal_state( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_win32com_get_configuration( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_win32com_set_configuration( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_win32com_send_break( MX_RS232 *rs232 );
 
-/* Define the data structures used by a Microsoft Win32 COM interface. */
+/* Define the data structures used by a Microsoft Win32 COM port. */
 
 typedef struct {
 	HANDLE handle;
