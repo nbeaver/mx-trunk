@@ -90,7 +90,8 @@ static mx_status_type
 mxi_pmac_getchar( MX_PMAC *, char * );
 
 static mx_status_type
-mxi_pmac_receive_response_with_getchar( MX_PMAC *, char *, int, int );
+mxi_pmac_receive_response_with_getchar( MX_PMAC *,
+					char *, size_t, mx_bool_type );
 
 static mx_status_type
 mxi_pmac_check_for_errors( MX_PMAC *, char *, char *, char * );
@@ -98,24 +99,25 @@ mxi_pmac_check_for_errors( MX_PMAC *, char *, char *, char * );
 /*--*/
 
 static mx_status_type
-mxi_pmac_std_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_std_command( MX_PMAC *, char *, char *, size_t, mx_bool_type );
 
 static mx_status_type
-mxi_pmac_std_send_command( MX_PMAC *, char *, int );
+mxi_pmac_std_send_command( MX_PMAC *, char *, mx_bool_type );
 
 static mx_status_type
-mxi_pmac_std_receive_response( MX_PMAC *, char *, int, int );
+mxi_pmac_std_receive_response( MX_PMAC *, char *, size_t, mx_bool_type );
 
 /*--*/
 
 static mx_status_type
-mxi_pmac_tcp_flush( MX_PMAC *, int );
+mxi_pmac_tcp_flush( MX_PMAC *, mx_bool_type );
 
 static mx_status_type
-mxi_pmac_tcp_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_tcp_command( MX_PMAC *, char *, char *, size_t, mx_bool_type );
 
 static mx_status_type
-mxi_pmac_tcp_receive_response( MX_SOCKET *, char *, size_t, size_t *, int );
+mxi_pmac_tcp_receive_response( MX_SOCKET *,
+				char *, size_t, size_t *, mx_bool_type );
 
 /*--*/
 
@@ -126,12 +128,12 @@ mxi_pmac_gpascii_login( MX_PMAC *pmac );
 
 #if HAVE_POWERPMAC_LIBRARY
 static mx_status_type
-mxi_pmac_gplib_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_gplib_command( MX_PMAC *, char *, char *, size_t, mx_bool_type );
 #endif
 
 #if HAVE_EPICS
 static mx_status_type
-mxi_pmac_epics_ect_command( MX_PMAC *, char *, char *, size_t, int );
+mxi_pmac_epics_ect_command( MX_PMAC *, char *, char *, size_t, mx_bool_type );
 #endif
 
 /*==========================*/
@@ -721,7 +723,7 @@ static int mxi_pmac_num_error_messages =
 MX_EXPORT mx_status_type
 mxi_pmac_command( MX_PMAC *pmac, char *command,
 		char *response, size_t response_buffer_length,
-		int debug_flag )
+		mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_command()";
 
@@ -787,7 +789,7 @@ MX_EXPORT mx_status_type
 mxi_pmac_card_command( MX_PMAC *pmac, long card_number,
 		char *command,
 		char *response, size_t response_buffer_length,
-		int debug_flag )
+		mx_bool_type debug_flag )
 {
 	char local_buffer[100];
 	char *command_ptr, *ptr;
@@ -825,7 +827,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 			char *variable_name,
 			long variable_type,
 			void *variable_ptr,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_get_variable()";
 
@@ -911,7 +913,7 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 			char *variable_name,
 			long variable_type,
 			void *variable_ptr,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_set_variable()";
 
@@ -1031,8 +1033,8 @@ mxi_pmac_getchar( MX_PMAC *pmac, char *c )
 static mx_status_type
 mxi_pmac_receive_response_with_getchar( MX_PMAC *pmac,
 			char *response,
-			int response_buffer_length,
-			int debug_flag )
+			size_t response_buffer_length,
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_receive_response_with_getchar()";
 
@@ -1262,15 +1264,17 @@ mxi_pmac_check_for_errors( MX_PMAC *pmac,
 /*==================================================================*/
 
 static mx_status_type
-mxi_pmac_std_command( MX_PMAC *pmac, char *command,
-		char *response_buffer, size_t response_buffer_length,
-		int debug_flag )
+mxi_pmac_std_command( MX_PMAC *pmac,
+			char *command,
+			char *response_buffer,
+			size_t response_buffer_length,
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_std_command()";
 
 	char alt_response_buffer[40];
 	char *received_response;
-	int received_response_length;
+	size_t received_response_length;
 	mx_status_type mx_status;
 
 	/* WARNING: Please note that this routine _assumes_ that I3 == 2. */
@@ -1317,7 +1321,7 @@ mxi_pmac_std_command( MX_PMAC *pmac, char *command,
 static mx_status_type
 mxi_pmac_std_send_command( MX_PMAC *pmac,
 			char *command,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_std_send_command()";
 
@@ -1378,8 +1382,8 @@ mxi_pmac_std_send_command( MX_PMAC *pmac,
 static mx_status_type
 mxi_pmac_std_receive_response( MX_PMAC *pmac,
 			char *response,
-			int response_buffer_length,
-			int debug_flag )
+			size_t response_buffer_length,
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_std_receive_response()";
 
@@ -1513,8 +1517,10 @@ mxi_pmac_tcp_flush( MX_PMAC *pmac,
 /*----*/
 
 static mx_status_type
-mxi_pmac_tcp_command( MX_PMAC *pmac, char *command,
-			char *response, size_t response_buffer_length,
+mxi_pmac_tcp_command( MX_PMAC *pmac,
+			char *command,
+			char *response,
+			size_t response_buffer_length,
 			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_tcp_command()";
@@ -1634,7 +1640,7 @@ mxi_pmac_tcp_receive_response( MX_SOCKET *mx_socket,
 				char *response,
 				size_t response_buffer_length,
 				size_t *num_bytes_received,
-				int debug_flag )
+				mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_pmac_tcp_receive_response()";
 
