@@ -63,7 +63,12 @@ MX_RS232_FUNCTION_LIST mxi_telnet_rs232_function_list = {
 	mxi_telnet_putline,
 	mxi_telnet_num_input_bytes_available,
 	mxi_telnet_discard_unread_input,
-	mxi_telnet_discard_unwritten_output
+	mxi_telnet_discard_unwritten_output,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxi_telnet_send_break
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_telnet_record_field_defaults[] = {
@@ -947,6 +952,33 @@ mxi_telnet_discard_unwritten_output( MX_RS232 *rs232 )
 
 	return mx_error( (MXE_UNSUPPORTED | MXE_QUIET), fname,
 		"This function is not supported for a TELNET device." );
+}
+
+MX_EXPORT mx_status_type
+mxi_telnet_send_break( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_telnet_send_break()";
+
+	MX_TELNET *telnet;
+	char break_command[2];
+	mx_status_type mx_status;
+
+	mx_status = mxi_telnet_get_pointers( rs232, &telnet, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_TELNET_DEBUG
+	MX_DEBUG(-2,("%s: sending break signal for '%s'.",
+		fname, rs232->record->name ));
+#endif
+
+	break_command[0] = MXF_TELNET_IAC;
+	break_command[1] = MXF_TELNET_BREAK;
+
+	mx_status = mx_socket_send( telnet->socket, break_command, 2 );
+
+	return mx_status;
 }
 
 #endif /* HAVE_TCPIP */

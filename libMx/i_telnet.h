@@ -80,6 +80,7 @@ MX_API mx_status_type mxi_telnet_putline( MX_RS232 *rs232,
 MX_API mx_status_type mxi_telnet_num_input_bytes_available( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_telnet_discard_unread_input( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_telnet_discard_unwritten_output( MX_RS232 *rs232 );
+MX_API mx_status_type mxi_telnet_send_break( MX_RS232 *rs232 );
 
 MX_API mx_status_type mxi_telnet_handle_commands( MX_RS232 *rs232,
 					unsigned long delay_milliseconds,
