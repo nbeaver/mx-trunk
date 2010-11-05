@@ -63,6 +63,13 @@ MX_API mx_status_type mxi_tty_discard_unwritten_output( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_tty_get_signal_state( MX_RS232 *rs232 );
 MX_API mx_status_type mxi_tty_set_signal_state( MX_RS232 *rs232 );
 
+MX_API mx_status_type mxi_tty_posix_termios_get_configuration(
+						MX_RS232 *rs232 );
+MX_API mx_status_type mxi_tty_posix_termios_set_configuration(
+						MX_RS232 *rs232 );
+
+MX_API mx_status_type mxi_tty_send_break( MX_RS232 *rs232 );
+
 /* Define the data structures used by a Unix TTY interface. */
 
 typedef struct {

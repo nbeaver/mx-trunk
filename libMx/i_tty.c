@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_TTY_DEBUG	FALSE
+#define MXI_TTY_DEBUG	TRUE
 
 #include <stdio.h>
 
@@ -62,9 +62,7 @@
 
 /* Define private functions to handle POSIX termios style terminal I/O. */
 
-static mx_status_type mxi_tty_posix_termios_write_settings( MX_RS232 *rs232 );
-
-static mx_status_type mxi_tty_posix_termios_initialize_settings(
+static mx_status_type mxi_tty_posix_termios_initialize_configuration(
 							MX_RS232 *rs232 );
 
 static mx_status_type mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 );
@@ -78,7 +76,8 @@ static mx_status_type mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 );
 static mx_status_type mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 );
 
 #if MXI_TTY_DEBUG
-static mx_status_type mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 );
+static mx_status_type mxi_tty_posix_termios_print_configuration(
+							MX_RS232 *rs232 );
 #endif
 
 #endif /* USE_POSIX_TERMIOS */
@@ -150,7 +149,15 @@ MX_RS232_FUNCTION_LIST mxi_tty_rs232_function_list = {
 	mxi_tty_discard_unread_input,
 	mxi_tty_discard_unwritten_output,
 	mxi_tty_get_signal_state,
-	mxi_tty_set_signal_state
+	mxi_tty_set_signal_state,
+#if USE_POSIX_TERMIOS
+	mxi_tty_posix_termios_get_configuration,
+	mxi_tty_posix_termios_set_configuration,
+#else
+	NULL,
+	NULL,
+#endif
+	mxi_tty_send_break
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_tty_record_field_defaults[] = {
@@ -248,6 +255,8 @@ mxi_tty_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_finish_record_initialization( MX_RECORD *record )
 {
@@ -281,6 +290,8 @@ mxi_tty_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_open( MX_RECORD *record )
 {
@@ -301,18 +312,10 @@ mxi_tty_open( MX_RECORD *record )
 
 	rs232 = (MX_RS232 *) record->record_class_struct;
 
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RS232 structure pointer is NULL." );
-	}
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
 
-	tty = (MX_TTY *) record->record_type_struct;
-
-	if ( tty == (MX_TTY *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_TTY structure pointer for '%s' is NULL.",
-			record->name );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,
 ("mxi_tty_open(): Somewhere in here we need to worry about TTY lock files."));
@@ -327,6 +330,15 @@ mxi_tty_open( MX_RECORD *record )
 			"Error while closing previously open TTY device '%s'.",
 				record->name );
 		}
+	}
+
+	if ( rs232->flow_control == MXF_232_DTR_DSR_FLOW_CONTROL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Linux does not support DTR-DSR flow control 'D' for "
+		"tty '%s'.  Suggestion: Make a custom connector that "
+		"connects the DTR-DSR pins on the device side to the "
+		"RTS-CTS pins on the Linux side and then use RTS-CTS "
+		"flow control via 'H' or 'R'.", record->name );
 	}
 
 	/* Decide on the flags for the open() call. */
@@ -416,7 +428,7 @@ mxi_tty_open( MX_RECORD *record )
 	/* Set the serial port parameters. */
 
 #if USE_POSIX_TERMIOS
-	mx_status = mxi_tty_posix_termios_write_settings( rs232 );
+	mx_status = mxi_tty_posix_termios_set_configuration( rs232 );
 
 #else  /* USE_POSIX_TERMIOS */
 
@@ -427,6 +439,8 @@ mxi_tty_open( MX_RECORD *record )
 	return mx_status;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_close( MX_RECORD *record )
 {
@@ -435,6 +449,7 @@ mxi_tty_close( MX_RECORD *record )
 	MX_RS232 *rs232;
 	MX_TTY *tty;
 	int result, saved_errno;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -443,17 +458,10 @@ mxi_tty_close( MX_RECORD *record )
 
 	rs232 = (MX_RS232 *) (record->record_class_struct);
 
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RS232 structure pointer is NULL." );
-	}
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
 
-	tty = (MX_TTY *) (record->record_type_struct);
-
-	if ( tty == (MX_TTY *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_TTY structure pointer is NULL." );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,
 ("mxi_tty_close(): Somewhere in here we need to worry about TTY lock files."));
@@ -478,6 +486,8 @@ mxi_tty_close( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_tty_resynchronize( MX_RECORD *record )
@@ -509,6 +519,8 @@ mxi_tty_resynchronize( MX_RECORD *record )
 	return mx_status;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_getchar( MX_RS232 *rs232, char *c )
 {
@@ -518,8 +530,12 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 	int num_chars, saved_flags, new_flags, result, saved_errno;
 	char c_temp;
 	unsigned char c_mask;
+	mx_status_type mx_status;
 
-	tty = (MX_TTY*) rs232->record->record_type_struct;
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( rs232->transfer_flags & MXF_232_NOWAIT ) {
 		/* Set the file descriptor to be non-blocking. */
@@ -590,6 +606,8 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 	}
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_putchar( MX_RS232 *rs232, char c )
 {
@@ -597,13 +615,17 @@ mxi_tty_putchar( MX_RS232 *rs232, char c )
 
 	MX_TTY *tty;
 	int num_chars;
+	mx_status_type mx_status;
 
 #if MXI_TTY_DEBUG
 	MX_DEBUG(-2,("%s invoked.  c = 0x%x, '%c'",
 		fname, (unsigned char) c, c));
 #endif
 
-	tty = (MX_TTY*) (rs232->record->record_type_struct);
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( rs232->transfer_flags & MXF_232_NOWAIT ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -621,6 +643,8 @@ mxi_tty_putchar( MX_RS232 *rs232, char c )
 		return MX_SUCCESSFUL_RESULT;
 	}
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_tty_read( MX_RS232 *rs232,
@@ -750,6 +774,8 @@ mxi_tty_read( MX_RS232 *rs232,
 	return mx_status;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_write( MX_RS232 *rs232,
 		char *buffer,
@@ -843,6 +869,8 @@ mxi_tty_write( MX_RS232 *rs232,
 
 	return mx_status;
 }
+
+/*------------------------------------------------------------------------*/
 
 #if HAVE_READV_WRITEV
 
@@ -1003,6 +1031,8 @@ mxi_tty_putline( MX_RS232 *rs232,
 
 #endif /* HAVE_READV_WRITEV */
 
+/*------------------------------------------------------------------------*/
+
 #if HAVE_FIONREAD_FOR_TTY_PORTS
 
 /* Check for input with FIONREAD. */
@@ -1113,6 +1143,8 @@ mxi_tty_select_num_input_bytes_available( MX_RS232 *rs232 )
 }
 #endif
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 {
@@ -1210,6 +1242,8 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_discard_unwritten_output( MX_RS232 *rs232 )
 {
@@ -1220,6 +1254,8 @@ mxi_tty_discard_unwritten_output( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_get_signal_state( MX_RS232 *rs232 )
 {
@@ -1227,11 +1263,15 @@ mxi_tty_get_signal_state( MX_RS232 *rs232 )
 
 	MX_TTY *tty;
 	int status_bits;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, rs232->record->name ));
 
-	tty = (MX_TTY*) rs232->record->record_type_struct;
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	rs232->signal_state = 0;
 
@@ -1267,6 +1307,8 @@ mxi_tty_get_signal_state( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxi_tty_set_signal_state( MX_RS232 *rs232 )
 {
@@ -1274,11 +1316,15 @@ mxi_tty_set_signal_state( MX_RS232 *rs232 )
 
 	MX_TTY *tty;
 	int status_bits;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, rs232->record->name ));
 
-	tty = (MX_TTY*) rs232->record->record_type_struct;
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	status_bits = 0;
 
@@ -1344,16 +1390,196 @@ mxi_tty_set_signal_state( MX_RS232 *rs232 )
 
 #if USE_POSIX_TERMIOS
 
-static mx_status_type
-mxi_tty_posix_termios_write_settings( MX_RS232 *rs232 )
+MX_EXPORT mx_status_type
+mxi_tty_posix_termios_get_configuration( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_tty_posix_termios_write_settings()";
+	static const char fname[] = "mxi_tty_posix_termios_get_configuration()";
+
+	MX_TTY *tty = NULL;
+	struct termios attr;
+	speed_t ispeed, ospeed;
+	unsigned long word_bit;
+	int termios_status, saved_errno;
+	mx_bool_type xon_xoff_used, rts_cts_used;
+	mx_status_type mx_status;
+
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_TTY_DEBUG
+	MX_DEBUG(-2,("%s invoked for tty '%s'.", fname, rs232->record->name));
+#endif
+
+#if MXI_TTY_DEBUG
+	MX_DEBUG(-2,("%s complete for tty '%s'.", fname, rs232->record->name));
+#endif
+
+	termios_status = tcgetattr( tty->file_handle, &attr );
+
+	if ( termios_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error getting termios attributes for record '%s', tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name, tty->filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/*--- tty port speed. ---*/
+
+	ospeed = cfgetospeed( &attr );
+
+	ispeed = cfgetispeed( &attr );
+
+	if ( ospeed != ispeed ) {
+		mx_warning( "The output speed for tty '%s' is not the same "
+		"as the input speed.", rs232->record->name );
+	}
+
+	switch( ospeed ) {
+	case B0: 	rs232->speed = 0; 	break;
+	case B50: 	rs232->speed = 50; 	break;
+	case B75:	rs232->speed = 75;	break;
+	case B110:	rs232->speed = 110;	break;
+	case B134:	rs232->speed = 134;	break;
+	case B150:	rs232->speed = 150;	break;
+	case B200:	rs232->speed = 200;	break;
+	case B300:	rs232->speed = 300;	break;
+	case B600:	rs232->speed = 600;	break;
+	case B1200:	rs232->speed = 1200;	break;
+	case B1800:	rs232->speed = 1800;	break;
+	case B2400:	rs232->speed = 2400;	break;
+	case B4800:	rs232->speed = 4800;	break;
+	case B9600:	rs232->speed = 9600;	break;
+	case B19200:	rs232->speed = 19200;	break;
+	case B38400:	rs232->speed = 38400;	break;
+	case B57600:	rs232->speed = 57600;	break;
+	case B115200:	rs232->speed = 115200;	break;
+
+#ifdef B230400
+	case B230400:	rs232->speed = 230400;	break;
+#endif
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unrecognized speed code %lu seen for tty '%s'.",
+		(unsigned long) ospeed, rs232->record->name );
+		break;
+	}
+
+	/*--- tty word size ---*/
+
+	word_bit = (attr.c_cflag & CSIZE);
+
+	switch( word_bit ) {
+	case CS5:	rs232->word_size = 5;	break;
+	case CS6:	rs232->word_size = 6;	break;
+	case CS7:	rs232->word_size = 7;	break;
+	case CS8:	rs232->word_size = 8;	break;
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unrecognized word size code %lu for tty '%s'.",
+			word_bit, rs232->record->name );
+		break;
+	}
+
+	/*--- tty parity ---*/
+
+	/* See the function mxi_tty_posix_termios_set_parity() below for
+	 * an explanation of mark and space parity support.
+	 */
+
+	if ( ( attr.c_cflag & PARENB ) == 0 ) {
+		rs232->parity = MXF_232_NO_PARITY;
+#ifdef CMSPAR
+	} else
+	if ( attr.c_cflag & CMSPAR ) {
+		if ( attr.c_cflag & PARODD ) {
+			rs232->parity = MXF_232_SPACE_PARITY;
+		} else {
+			rs232->parity = MXF_232_MARK_PARITY;
+		}
+#endif
+#ifdef PAREXT
+	} else
+	if ( attr.c_cflag & PAREXT ) {
+		if ( attr.c_cflag & PAROOD ) {
+			rs232->parity = MXF_232_MARK_PARITY:
+		} else {
+			rs232->parity = MXF_232_SPACE_PARITY;
+		}
+#endif
+	} else
+	if ( attr.c_cflag & PARODD ) {
+		rs232->parity = MXF_232_ODD_PARITY;
+	} else {
+		rs232->parity = MXF_232_EVEN_PARITY;
+	}
+
+	/*--- tty stop bits ---*/
+
+	if ( attr.c_cflag & CSTOPB ) {
+		rs232->stop_bits = 2;
+	} else {
+		rs232->stop_bits = 1;
+	}
+
+	/*--- tty flow control ---*/
+
+	if ( attr.c_cflag & (IXON | IXOFF) ) {
+		xon_xoff_used = TRUE;
+	} else {
+		xon_xoff_used = FALSE;
+	}
+
+#ifdef CRTSCTS
+	if ( attr.c_cflag & CRTSCTS ) {
+		rts_cts_used = TRUE;
+	} else {
+		rts_cts_used = FALSE;
+	}
+#else
+	rts_cts_used = FALSE;
+#endif
+
+	if ( xon_xoff_used ) {
+		if ( rts_cts_used ) {
+			rs232->flow_control = MXF_232_BOTH_FLOW_CONTROL;
+		} else {
+			rs232->flow_control = MXF_232_SOFTWARE_FLOW_CONTROL;
+		}
+	} else {
+		if ( rts_cts_used ) {
+			rs232->flow_control = MXF_232_HARDWARE_FLOW_CONTROL;
+		} else {
+			rs232->flow_control = MXF_232_NO_FLOW_CONTROL;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_tty_posix_termios_set_configuration( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tty_posix_termios_set_configuration()";
 
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked for tty '%s'.", fname, rs232->record->name));
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RS232 pointer passed was NULL." );
+	}
 
-	mx_status = mxi_tty_posix_termios_initialize_settings( rs232 );
+#if MXI_TTY_DEBUG
+	MX_DEBUG(-2,("%s invoked for tty '%s'.", fname, rs232->record->name));
+#endif
+
+	mx_status = mxi_tty_posix_termios_initialize_configuration( rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1384,22 +1610,24 @@ mxi_tty_posix_termios_write_settings( MX_RS232 *rs232 )
 		return mx_status;
 
 #if MXI_TTY_DEBUG
-	mx_status = mxi_tty_posix_termios_print_settings( rs232 );
+	mx_status = mxi_tty_posix_termios_print_configuration( rs232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-#endif
 
-	MX_DEBUG( 2,("%s complete for tty '%s'.", fname, rs232->record->name));
+	MX_DEBUG(-2,("%s complete for tty '%s'.", fname, rs232->record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 static mx_status_type
-mxi_tty_posix_termios_initialize_settings( MX_RS232 *rs232 )
+mxi_tty_posix_termios_initialize_configuration( MX_RS232 *rs232 )
 {
 	static const char fname[] =
-		"mxi_tty_posix_termios_initialize_settings()";
+		"mxi_tty_posix_termios_initialize_configuration()";
 
 	MX_TTY *tty = NULL;
 	struct termios attr;
@@ -1545,6 +1773,8 @@ mxi_tty_posix_termios_initialize_settings( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 static mx_status_type
 mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 {
@@ -1651,6 +1881,8 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 static mx_status_type
 mxi_tty_posix_termios_set_word_size( MX_RS232 *rs232 )
 {
@@ -1713,6 +1945,8 @@ mxi_tty_posix_termios_set_word_size( MX_RS232 *rs232 )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------------*/
 
 static mx_status_type
 mxi_tty_posix_termios_set_parity( MX_RS232 *rs232 )
@@ -1858,6 +2092,8 @@ mxi_tty_posix_termios_set_parity( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 static mx_status_type
 mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 )
 {
@@ -1919,6 +2155,8 @@ mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------------*/
 
 static mx_status_type
 mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 )
@@ -2022,10 +2260,13 @@ mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 )
 
 #if MXI_TTY_DEBUG
 
+/*------------------------------------------------------------------------*/
+
 static mx_status_type
-mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 )
+mxi_tty_posix_termios_print_configuration( MX_RS232 *rs232 )
 {
-	static const char fname[] = "mxi_tty_posix_termios_print_settings()";
+	static const char fname[] =
+		"mxi_tty_posix_termios_print_configuration()";
 
 	MX_TTY *tty = NULL;
 	struct termios attr;
@@ -2068,5 +2309,70 @@ mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 )
 #endif /* MXI_TTY_DEBUG */
 
 #endif /* USE_POSIX_TERMIOS */
+
+/*------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_tty_send_break( MX_RS232 *rs232 )
+{
+	static const char fname[] = "mxi_tty_send_break()";
+
+	MX_TTY *tty;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mxi_tty_get_pointers( rs232, &tty, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if USE_POSIX_TERMIOS
+	/* Assert break for 0.25 to 0.5 seconds. */
+
+	status = tcsendbreak( tty->file_handle, 0 );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error sending break signal for tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Wait for the break to finish. */
+
+	status = tcdrain( tty->file_handle );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error waiting for break to finish for tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+#elif defined( TCSBRK )
+	status = ioctl( tty->file_handle, TCSBRK, 0 );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Error sending break signal for tty '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			rs232->record->name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+#else
+#error Sending break is not defined for this platform.
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 #endif /* OS_UNIX || OS_CYGWIN || OS_RTEMS */
