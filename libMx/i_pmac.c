@@ -1107,7 +1107,7 @@ mxi_pmac_receive_response_with_getchar( MX_PMAC *pmac,
 
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The PMAC command response was longer than the buffer length of %d.",
-			response_buffer_length );
+			(int) response_buffer_length );
 	}
 
 	/* 'gpascii' appends an additional CR-LF sequence after the
