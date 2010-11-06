@@ -121,6 +121,7 @@
 #include "i_epix_rs232.h"
 #include "i_edt_rs232.h"
 #include "i_u500_rs232.h"
+#include "i_sim900_rs232.h"
 
 #if HAVE_TCPIP
 #include "i_tcp232.h"
@@ -747,6 +748,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_u500_rs232_num_record_fields,
 				&mxi_u500_rs232_rfield_def_ptr},
 #endif /* HAVE_U500 */
+
+{"sim900_rs232",   MXI_232_SIM900,       MXI_RS232,      MXR_INTERFACE,
+				&mxi_sim900_rs232_record_function_list,
+				NULL,
+				&mxi_sim900_rs232_rs232_function_list,
+				&mxi_sim900_rs232_num_record_fields,
+				&mxi_sim900_rs232_rfield_def_ptr},
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,
