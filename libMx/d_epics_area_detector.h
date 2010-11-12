@@ -23,13 +23,15 @@ typedef struct {
 	char epics_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	MX_EPICS_PV abort_pv;
-	MX_EPICS_PV acquire_time_pv;
 	MX_EPICS_PV acquire_pv;
+	MX_EPICS_PV acquire_time_pv;
+	MX_EPICS_PV array_data_pv;
 	MX_EPICS_PV binx_pv;
 	MX_EPICS_PV biny_pv;
 	MX_EPICS_PV detector_state_pv;
 
 	mx_bool_type acquisition_in_progress;
+	mx_bool_type array_data_available;
 } MX_EPICS_AREA_DETECTOR;
 
 #define MXD_EPICS_AREA_DETECTOR_STANDARD_FIELDS \

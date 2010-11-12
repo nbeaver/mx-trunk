@@ -95,12 +95,17 @@ typedef struct mx_epics_callback_type {
 	int epics_status;
 } MX_EPICS_CALLBACK;
 
+/* Flag bits for the mx_epics_pv_connect() 'connect_flags' argument. */
+
+#define MXF_EPVC_WAIT_FOR_CONNECTION	0x1
+#define MXF_EPVC_QUIET			0x2
+
 /* MX EPICS functions for persistent connections. */
 
 MX_API void mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... );
 
 MX_API mx_status_type mx_epics_pv_connect( MX_EPICS_PV *pv,
-				mx_bool_type wait_for_connection );
+				unsigned long connect_flags );
 
 MX_API mx_status_type mx_epics_pv_disconnect( MX_EPICS_PV *pv );
 

@@ -615,14 +615,14 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_epics_pv_connect( MX_EPICS_PV *pv,
-		mx_bool_type wait_for_connection )
+mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 {
 	static const char fname[] = "mx_epics_pv_connect()";
 
 	chid new_channel_id;
 	struct timespec current_time, timeout_time;
 	int epics_status, time_comparison;
+	long error_code;
 	mx_status_type mx_status;
 
 #if MX_EPICS_DEBUG_PERFORMANCE
@@ -708,7 +708,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
 
 	/* Return now if we are not waiting for the connection to complete. */
 
-	if ( wait_for_connection == FALSE ) {
+	if ( (connect_flags & MXF_EPVC_WAIT_FOR_CONNECTION) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -748,7 +748,13 @@ mx_epics_pv_connect( MX_EPICS_PV *pv,
 						current_time, timeout_time );
 
 		if ( time_comparison >= 0 ) {
-			return mx_error( MXE_TIMED_OUT, fname,
+			if ( connect_flags & MXF_EPVC_QUIET ) {
+				error_code = MXE_TIMED_OUT | MXE_QUIET;
+			} else {
+				error_code = MXE_TIMED_OUT;
+			}
+
+			return mx_error( error_code, fname,
 			"Initial connection to EPICS PV '%s' timed out "
 			"after %g seconds.", pv->pvname,
 				mx_convert_high_resolution_time_to_seconds(
@@ -1052,7 +1058,8 @@ mx_caget( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1083,7 +1090,8 @@ mx_caget_with_timeout( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1115,7 +1123,7 @@ mx_caget_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv, TRUE );
+	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1631,7 +1639,8 @@ mx_caput( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1666,7 +1675,8 @@ mx_caput_with_callback( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1699,7 +1709,8 @@ mx_caput_with_timeout( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1733,7 +1744,7 @@ mx_caput_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv, TRUE );
+	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1970,7 +1981,8 @@ mx_caput_nowait( MX_EPICS_PV *pv,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2002,7 +2014,7 @@ mx_caput_nowait_by_name( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv, TRUE );
+	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2130,7 +2142,8 @@ mx_epics_internal_handle_channel_disconnection( const char *calling_fname,
 
 		/* Try to reconnect to the PV. */
 
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			return mx_error( MXE_NETWORK_CONNECTION_LOST,
@@ -2207,7 +2220,8 @@ mx_epics_pv_get_field_type( MX_EPICS_PV *pv )
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return -1;
@@ -2235,7 +2249,8 @@ mx_epics_pv_get_element_count( MX_EPICS_PV *pv )
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return 0;
@@ -2342,7 +2357,8 @@ mx_epics_add_callback( MX_EPICS_PV *pv,
 #endif
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2809,7 +2825,8 @@ mx_group_caget( MX_EPICS_GROUP *epics_group,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3030,7 +3047,8 @@ mx_group_caput( MX_EPICS_GROUP *epics_group,
 	}
 
 	if ( pv->channel_id == NULL ) {
-		mx_status = mx_epics_pv_connect( pv, TRUE );
+		mx_status = mx_epics_pv_connect( pv,
+					MXF_EPVC_WAIT_FOR_CONNECTION );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -3079,7 +3097,7 @@ mx_epics_get_pv_type( char *pvname,
 
 	mx_epics_pvname_init( &pv, pvname );
 
-	mx_status = mx_epics_pv_connect( &pv, TRUE );
+	mx_status = mx_epics_pv_connect( &pv, MXF_EPVC_WAIT_FOR_CONNECTION );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

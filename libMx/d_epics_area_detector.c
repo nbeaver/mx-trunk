@@ -183,11 +183,14 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 	mx_epics_pvname_init( &(epics_ad->abort_pv),
 			"%sAbort", epics_ad->epics_prefix );
 
+	mx_epics_pvname_init( &(epics_ad->acquire_pv),
+			"%sAcquire", epics_ad->epics_prefix );
+
 	mx_epics_pvname_init( &(epics_ad->acquire_time_pv),
 			"%sAcquireTime", epics_ad->epics_prefix );
 
-	mx_epics_pvname_init( &(epics_ad->acquire_pv),
-			"%sAcquire", epics_ad->epics_prefix );
+	mx_epics_pvname_init( &(epics_ad->array_data_pv),
+			"%sArrayData", epics_ad->epics_prefix );
 
 	mx_epics_pvname_init( &(epics_ad->binx_pv),
 			"%sBinX", epics_ad->epics_prefix );
@@ -275,23 +278,40 @@ mxd_epics_ad_open( MX_RECORD *record )
 #endif
 
 	switch( data_type ) {
+	case 0:				/* Int8 */
 	case 1:				/* UInt8 */
 		ad->bits_per_pixel = 8;
 		ad->bytes_per_pixel = 1;
 		ad->image_format = MXT_IMAGE_FORMAT_GREY8;
 		break;
 
-	case 1000000:			/* FIXME - should be UInt16 */
+	case 2:				/* Int16 */
+	case 3:				/* UInt16 */
 		ad->bits_per_pixel = 16;
 		ad->bytes_per_pixel = 2;
 		ad->image_format = MXT_IMAGE_FORMAT_GREY16;
 		break;
 
+	case 4:				/* Int32 */
+	case 5:				/* UInt32 */
+		ad->bits_per_pixel = 32;
+		ad->bytes_per_pixel = 4;
+		ad->image_format = MXT_IMAGE_FORMAT_GREY32;
+		break;
+
+	case 6:				/* Float32 */
+	case 7:				/* Float64 */
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for Float32 and Float64 data types is not yet "
+		"implemented for EPICS Area Detector '%s'.",
+			record->name );
+
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"EPICS Area Detector '%s' says that it has a bit depth "
-		"of %ld bits.  Only detectors with 16 bits per pixel "
-		"or less are supported.", record->name, ad->bits_per_pixel );
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized data type %ld was requested "
+		"for EPICS Area Detector '%s'.",
+			(long) data_type, record->name );
+		
 	}
 
 	mx_status = mx_image_get_image_format_name_from_type(
@@ -322,6 +342,35 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: framesize = (%lu, %lu), binsize = (%lu, %lu)",
 		fname, ad->framesize[0], ad->framesize[1],
 		ad->binsize[0], ad->binsize[1]));
+#endif
+
+	/* Does the area detector support reading out the image data?
+	 *
+	 * Begin by testing for the presence of the $(P)$(R)ArrayData PV.
+	 */
+
+	mx_status = mx_epics_pv_connect( &(epics_ad->array_data_pv),
+			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		epics_ad->array_data_available = TRUE;
+		break;
+	case MXE_TIMED_OUT:
+		epics_ad->array_data_available = FALSE;
+		break;
+	default:
+		epics_ad->array_data_available = FALSE;
+
+		return mx_error( mx_status.code,
+				mx_status.location,
+				mx_status.message );
+		break;
+	}
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: array_data_available = %d",
+		fname, epics_ad->array_data_available));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
