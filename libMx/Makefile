@@ -84,7 +84,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_databox_scaler.c d_databox_timer.c \
 	d_delta_motor.c d_disabled_motor.c d_e500.c \
 	d_e662.c d_edt.c d_elapsed_time.c d_energy.c \
-	d_epics_aio.c d_epics_ccd.c d_epics_dio.c d_epics_mca.c \
+	d_epics_aio.c d_epics_area_detector.c d_epics_ccd.c \
+	d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_epix_xclib.c d_epix_xclib_dio.c d_fg_scaler.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \

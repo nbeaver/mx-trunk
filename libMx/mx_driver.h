@@ -737,6 +737,7 @@ extern "C" {
 #define MXT_AD_MARCCD_SERVER_SOCKET	240011
 #define MXT_AD_EPICS_CCD		240012
 #define MXT_AD_MLFSOM			240013
+#define MXT_AD_EPICS_AREA_DETECTOR	240014
 
 /* --- Waveform output types --- */
 

@@ -555,6 +555,7 @@
 #include "i_epics_gpib.h"
 #include "i_epics_vme.h"
 #include "d_epics_aio.h"
+#include "d_epics_area_detector.h"
 #include "d_epics_ccd.h"
 #include "d_epics_dio.h"
 #include "d_epics_mca.h"
@@ -2748,6 +2749,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_epics_ccd_ad_function_list,
 				&mxd_epics_ccd_num_record_fields,
 				&mxd_epics_ccd_rfield_def_ptr},
+{"epics_area_detector", MXT_AD_EPICS_AREA_DETECTOR,
+					MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_epics_ad_record_function_list,
+				NULL,
+				&mxd_epics_ad_ad_function_list,
+				&mxd_epics_ad_num_record_fields,
+				&mxd_epics_ad_rfield_def_ptr},
 {"epics_dinput",   MXT_DIN_EPICS,    MXC_DIGITAL_INPUT,   MXR_DEVICE,
 				&mxd_epics_din_record_function_list,
 				NULL,
