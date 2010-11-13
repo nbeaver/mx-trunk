@@ -22,16 +22,29 @@ typedef struct {
 
 	char epics_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
-	MX_EPICS_PV abort_pv;
 	MX_EPICS_PV acquire_pv;
+	MX_EPICS_PV acquire_period_pv;
+	MX_EPICS_PV acquire_period_rbv_pv;
 	MX_EPICS_PV acquire_time_pv;
+	MX_EPICS_PV acquire_time_rbv_pv;
+	MX_EPICS_PV array_counter_rbv_pv;
 	MX_EPICS_PV array_data_pv;
 	MX_EPICS_PV binx_pv;
+	MX_EPICS_PV binx_rbv_pv;
 	MX_EPICS_PV biny_pv;
+	MX_EPICS_PV biny_rbv_pv;
 	MX_EPICS_PV detector_state_pv;
+	MX_EPICS_PV image_mode_pv;
+	MX_EPICS_PV image_mode_rbv_pv;
+	MX_EPICS_PV num_images_pv;
+	MX_EPICS_PV num_images_rbv_pv;
+	MX_EPICS_PV num_images_counter_rbv_pv;
+	MX_EPICS_PV trigger_mode_pv;
+	MX_EPICS_PV trigger_mode_rbv_pv;
 
-	mx_bool_type acquisition_in_progress;
 	mx_bool_type array_data_available;
+
+	unsigned long max_array_bytes;
 } MX_EPICS_AREA_DETECTOR;
 
 #define MXD_EPICS_AREA_DETECTOR_STANDARD_FIELDS \
@@ -49,7 +62,9 @@ MX_API mx_status_type mxd_epics_ad_open( MX_RECORD *record );
 MX_API mx_status_type mxd_epics_ad_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_epics_ad_abort( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_epics_ad_get_extended_status( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad);
+MX_API mx_status_type mxd_epics_ad_get_total_num_frames( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_epics_ad_get_status( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_epics_ad_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad );

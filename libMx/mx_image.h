@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +34,8 @@ extern "C" {
 #define MXT_IMAGE_FORMAT_GREY8			2
 #define MXT_IMAGE_FORMAT_GREY16			3
 #define MXT_IMAGE_FORMAT_GREY32			4
+#define MXT_IMAGE_FORMAT_FLOAT			5
+#define MXT_IMAGE_FORMAT_DOUBLE			6
 
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
@@ -41,7 +43,6 @@ extern "C" {
     /* The following are for internal MX calculations. */
 
 #define MXT_IMAGE_FORMAT_INT32			10001	/* signed integer */
-#define MXT_IMAGE_FORMAT_DOUBLE			10002
 
 /*---- Datafile format definitions ----*/
 
