@@ -184,6 +184,9 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 	mx_epics_pvname_init( &(epics_ad->acquire_pv),
 			"%sAcquire", epics_ad->epics_prefix );
 
+	mx_epics_pvname_init( &(epics_ad->acquire_rbv_pv),
+			"%sAcquire_RBV", epics_ad->epics_prefix );
+
 	mx_epics_pvname_init( &(epics_ad->acquire_period_pv),
 			"%sAcquirePeriod", epics_ad->epics_prefix );
 
@@ -278,6 +281,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
+	epics_ad->acquisition_is_starting = FALSE;
 	epics_ad->array_data_available = FALSE;
 	epics_ad->max_array_bytes = 0;
 
@@ -526,6 +530,8 @@ mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	epics_ad->acquisition_is_starting = TRUE;
+
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
@@ -556,6 +562,11 @@ mxd_epics_ad_abort( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_caput( &(epics_ad->acquire_pv),
 					MX_CA_LONG, 1, &acquire_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epics_ad->acquisition_is_starting = FALSE;
 
 	return mx_status;
 }
@@ -624,7 +635,7 @@ mxd_epics_ad_get_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_get_status()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
-	int32_t detector_state;
+	int32_t detector_state, acquire_rbv;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -636,6 +647,8 @@ mxd_epics_ad_get_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Get details of the detector state from the DetectorState_RBV PV. */
+
 	mx_status = mx_caget( &(epics_ad->detector_state_pv),
 					MX_CA_LONG, 1, &detector_state );
 
@@ -672,6 +685,48 @@ mxd_epics_ad_get_status( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 		break;
 	}
+
+	/* The Acquire_RBV PV must also be checked since it is possible for
+	 * the detector state variable to return 0, even though an imaging
+	 * sequence is in process.
+	 */
+
+	mx_status = mx_caget( &(epics_ad->acquire_rbv_pv),
+				MX_CA_LONG, 1, &acquire_rbv );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( acquire_rbv != 0 ) {
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+	}
+
+	/* Just after an acquisition sequence has started, the status flags
+	 * from the EPICS Area Detector system may still be 0 for a while.
+	 * The acquisition_is_starting flag allows us to check for this
+	 * possibility and turns on the MXSF_AD_ACQUISITION_IN_PROGRESS
+	 * bit during this time interval.  After the area detector system
+	 * starts returning non-zero status values, then we turn off our
+	 * local acquisition_is_starting flag.
+	 */
+
+	if ( epics_ad->acquisition_is_starting ) {
+		if ( ad->status & MXSF_AD_IS_BUSY ) {
+			epics_ad->acquisition_is_starting = FALSE;
+		} else
+		if ( ad->status & MXSF_AD_ERROR ) {
+			epics_ad->acquisition_is_starting = FALSE;
+		} else {
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
+	}
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: acquisition_is_starting = %ld",
+		fname, (long) epics_ad->acquisition_is_starting ));
+	MX_DEBUG(-2,("%s: detector '%s' status = %#lx",
+		fname, ad->record->name, (unsigned long) ad->status ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

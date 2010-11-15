@@ -23,6 +23,7 @@ typedef struct {
 	char epics_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	MX_EPICS_PV acquire_pv;
+	MX_EPICS_PV acquire_rbv_pv;
 	MX_EPICS_PV acquire_period_pv;
 	MX_EPICS_PV acquire_period_rbv_pv;
 	MX_EPICS_PV acquire_time_pv;
@@ -42,6 +43,7 @@ typedef struct {
 	MX_EPICS_PV trigger_mode_pv;
 	MX_EPICS_PV trigger_mode_rbv_pv;
 
+	mx_bool_type acquisition_is_starting;
 	mx_bool_type array_data_available;
 
 	unsigned long max_array_bytes;
