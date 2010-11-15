@@ -254,7 +254,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	unsigned long ad_flags, mask, max_size_value;
 	char epics_string[41];
-	int32_t data_type;
+	int32_t data_type, color_mode;
 	char *max_array_bytes_string;
 	mx_status_type mx_status;
 
@@ -352,6 +352,24 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &color_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: data_type = %ld, color_mode = %ld",
+		fname, (long) data_type, (long) color_mode ));
+#endif
+
+	if ( color_mode != 0 ) {
+		mx_warning(
+		"EPICS Area Detector '%s' is using color mode %ld, "
+		"which is not yet supported by the '%s' MX driver.",
+			ad->record->name, (long) color_mode,
+			mx_get_driver_name( ad->record ) );
+	}
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: bits per pixel = %ld", fname, ad->bits_per_pixel))
