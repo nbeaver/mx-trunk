@@ -755,6 +755,11 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_readout_frame()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad;
+	long epics_data_type;
+	unsigned long num_array_elements;
+	void *image_data;
+	double acquisition_time;
+	struct timespec acquisition_timespec;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -767,7 +772,137 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	return mx_status;
+	/* If we do not have direct access to the array data, then
+	 * there is nothing for us to do here.
+	 */
+
+	if ( epics_ad->array_data_available == FALSE ) {
+
+#if MXD_EPICS_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: image data is not available.", fname));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* How big is the frame? */
+
+	ad->parameter_type = MXLV_AD_BYTES_PER_FRAME;
+
+	mx_status = mxd_epics_ad_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Is EPICS configured so that we can read this frame out? */
+
+	if ( ad->bytes_per_frame > epics_ad->max_array_bytes ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Cannot readout the image frame since the image size "
+		"of %ld bytes for EPICS Area Detector '%s' is larger than "
+		"the maximum size (%ld bytes) configured for EPICS.  "
+		"To fix this, you must set the environment "
+		"variable EPICS_CA_MAX_ARRAY_BYTES to %ld and then "
+		"restart your MX client.",  
+			ad->bytes_per_frame,
+			ad->record->name,
+			epics_ad->max_array_bytes,
+			epics_ad->max_array_bytes );
+	}
+
+	/* Yes, we can read the frame.  Make sure that the local image frame
+	 * data structure is the right size to read the frame into.
+	 */
+
+	num_array_elements = ad->framesize[0] * ad->framesize[1];
+
+	mx_status = mx_image_alloc( &(ad->image_frame),
+				ad->framesize[0],
+				ad->framesize[1],
+				ad->image_format,
+				ad->byte_order,
+				ad->bytes_per_pixel,
+				ad->header_length,
+				ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	image_data = ad->image_frame->image_data;
+
+	/* Get the EPICS data type corresponding to the MX image format. */
+
+	switch( ad->image_format ) {
+	case MXT_IMAGE_FORMAT_GREY8:
+		epics_data_type = MX_CA_CHAR;
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY16:
+		epics_data_type = MX_CA_SHORT;
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY32:
+		epics_data_type = MX_CA_LONG;
+		break;
+
+	case MXT_IMAGE_FORMAT_FLOAT:
+		epics_data_type = MX_CA_FLOAT;
+		break;
+
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		epics_data_type = MX_CA_DOUBLE;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported MX image format %ld requested for "
+		"EPICS Area Detector '%s'.",
+			ad->image_format, ad->record->name );
+		break;
+	}
+
+	/* Readout the frame. */
+
+	mx_status = mx_caget( &(epics_ad->array_data_pv),
+				epics_data_type,
+				num_array_elements,
+				&image_data );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the binsize in the header.
+	 * 
+	 * Our earlier read of MXLV_AD_BYTES_PER_FRAME will have set
+	 * the binsize correctly as a side effect.
+	 */
+
+	MXIF_ROW_BINSIZE(ad->image_frame)    = ad->binsize[0];
+	MXIF_COLUMN_BINSIZE(ad->image_frame) = ad->binsize[1];
+
+	/* Set the exposure time in the header. */
+
+	mx_status = mx_caget( &(epics_ad->acquire_time_rbv_pv),
+				MX_CA_DOUBLE, 1, &acquisition_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	acquisition_timespec =
+		mx_convert_seconds_to_high_resolution_time( acquisition_time );
+
+	MXIF_EXPOSURE_TIME_SEC(ad->image_frame)  = acquisition_timespec.tv_sec;
+	MXIF_EXPOSURE_TIME_NSEC(ad->image_frame) = acquisition_timespec.tv_nsec;
+
+	/* Set the timestamp in the header. */
+
+	MXIF_TIMESTAMP_SEC(ad->image_frame)  = 0;
+	MXIF_TIMESTAMP_NSEC(ad->image_frame) = 0;
+
+	/* We do not know what the area detector bias is, so set it to 0. */
+
+	MXIF_BIAS_OFFSET_MILLI_ADUS(ad->image_frame) = 0;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -776,7 +911,6 @@ mxd_epics_ad_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_correct_frame()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad;
-	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -788,7 +922,9 @@ mxd_epics_ad_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	sp = &(ad->sequence_parameters);
+	/* The EPICS Area Detector record will already have done the
+	 * image correction, so there is nothing for us to do here.
+	 */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -829,6 +965,7 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
+	case MXLV_AD_BYTES_PER_FRAME:
 		mx_status = mx_caget( &(epics_ad->binx_rbv_pv),
 					MX_CA_LONG, 1, &x_binsize );
 
@@ -852,6 +989,9 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 			ad->framesize[1] =
 				ad->maximum_framesize[1] / ad->binsize[1];
 		}
+
+		ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+			* ad->framesize[0] * ad->framesize[1] );
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
@@ -859,9 +999,6 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
-		break;
-
-	case MXLV_AD_BYTES_PER_FRAME:
 		break;
 
 	case MXLV_AD_BYTES_PER_PIXEL:

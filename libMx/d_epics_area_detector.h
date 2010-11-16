@@ -1,5 +1,5 @@
 /*
- * Name:    d_epics_ad.h
+ * Name:    d_epics_area_detector.h
  *
  * Purpose: MX driver header for the EPICS Area Detector record.
  *
