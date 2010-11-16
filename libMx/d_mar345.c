@@ -18,8 +18,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_bit.h"
 #include "mx_image.h"
@@ -34,11 +36,12 @@ MX_RECORD_FUNCTION_LIST mxd_mar345_record_function_list = {
 	mxd_mar345_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_mar345_open
+	mxd_mar345_open,
+	mxd_mar345_close
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_mar345_ad_function_list = {
-	NULL,
+	mxd_mar345_arm,
 	mxd_mar345_trigger,
 	mxd_mar345_abort,
 	mxd_mar345_abort,
@@ -104,6 +107,331 @@ mxd_mar345_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+static mx_status_type
+mxd_mar345_begin_command( MX_MAR345 *mar345,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_begin_command()";
+
+	int file_status, saved_errno;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	if ( mar345->port_type == MXT_MAR345_SCAN345 ) {
+
+		/* Wait for the command file to be deleted.
+		 *
+		 * FIXME: Make this more robust and add a timeout.
+		 */
+
+		while (1) {
+			file_status = access( mar345->command_filename, F_OK );
+
+			if ( file_status != 0 )
+				break;
+
+			mx_msleep(100);
+		}
+
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: opening command file '%s',",
+				fname, mar345->command_filename ));
+		}
+
+		/* Open the Scan345 command file. */
+
+		mar345->command_file = fopen( mar345->command_filename, "w" );
+
+		if ( mar345->command_file == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot open Scan345 command file '%s' for writing.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->command_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_mar345_end_command( MX_MAR345 *mar345,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_end_command()";
+
+	int file_status, saved_errno;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	if ( mar345->port_type == MXT_MAR345_SCAN345 ) {
+
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: closing command file '%s',",
+				fname, mar345->response_filename ));
+		}
+
+		file_status = fclose( mar345->command_file );
+
+		if ( file_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot close Scan345 command file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->command_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#if 0
+static mx_status_type
+mxd_mar345_begin_response( MX_MAR345 *mar345,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_begin_response()";
+
+	int file_status, saved_errno;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	if ( mar345->port_type == MXT_MAR345_SCAN345 ) {
+
+		/* Wait for the response file to appear.
+		 *
+		 * FIXME: Make this more robust and add a timeout.
+		 */
+
+		while (1) {
+			file_status = access( mar345->response_filename, F_OK );
+
+			if ( file_status == 0 )
+				break;
+
+			mx_msleep(100);
+		}
+
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: opening response file '%s',",
+				fname, mar345->response_filename ));
+		}
+
+		/* Open the Scan345 response file. */
+
+		mar345->response_file = fopen( mar345->response_filename, "r" );
+
+		if ( mar345->response_file == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot open Scan345 command file '%s' for writing.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->response_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_mar345_end_response( MX_MAR345 *mar345,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_end_response()";
+
+	int file_status, saved_errno;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	if ( mar345->port_type == MXT_MAR345_SCAN345 ) {
+
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: closing response file '%s',",
+				fname, mar345->response_filename ));
+		}
+
+		file_status = fclose( mar345->response_file );
+
+		if ( file_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot close Scan345 response file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->response_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+#endif
+
+/*---*/
+
+static mx_status_type
+mxd_mar345_putline( MX_MAR345 *mar345,
+			char *command,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_putline()";
+
+	int file_status, saved_errno;
+	mx_status_type mx_status;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+			fname, command, mar345->record->name ));
+	}
+
+	switch( mar345->port_type ) {
+	case MXT_MAR345_TCP:
+		mx_status = mx_socket_putline( mar345->mar345_socket,
+						command, "\r\n" );
+		break;
+
+	case MXT_MAR345_SCAN345:
+		file_status = fprintf( mar345->command_file, "%s\n", command );
+
+		if ( file_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot write to Scan345 command file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->command_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+		break;
+
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported Mar345 port type %ld requested for "
+		"Mar345 detector '%s'.",
+			mar345->port_type, mar345->record->name );
+		break;
+	}
+
+	return mx_status;
+}
+
+#if 0
+static mx_status_type
+mxd_mar345_getline( MX_MAR345 *mar345,
+			char *response,
+			size_t response_buffer_length,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_mar345_getline()";
+
+	char *message_ptr;
+	int saved_errno;
+	size_t length;
+	mx_status_type mx_status;
+
+	if ( mar345 == (MX_MAR345 *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MAR345 pointer passed was NULL." );
+	}
+
+	switch( mar345->port_type ) {
+	case MXT_MAR345_TCP:
+		mx_status = mx_socket_getline( mar345->mar345_socket,
+				response, response_buffer_length, "\r\n" );
+		break;
+
+	case MXT_MAR345_SCAN345:
+		message_ptr =
+	    fgets( response, response_buffer_length, mar345->response_file );
+	
+		if ( message_ptr < 0 ) {
+			saved_errno = errno;
+	
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot read from Scan345 response file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				mar345->response_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+
+		/* Strip off any trailing newline. */
+
+		length = strlen(response);
+
+		if ( response[length-1] == '\n' ) {
+			response[length-1] = '\0';
+		}
+		break;
+
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported Mar345 port type %ld requested for "
+		"Mar345 detector '%s'.",
+			mar345->port_type, mar345->record->name );
+		break;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( debug_flag && (response != NULL) ) {
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+			fname, response, mar345->record->name ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+#endif
+
+/*---*/
+
+static mx_status_type
+mxd_mar345_command( MX_MAR345 *mar345,
+			char *command,
+			mx_bool_type debug_flag )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxd_mar345_begin_command( mar345, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_mar345_putline( mar345, command, debug_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_mar345_end_command( mar345, debug_flag );
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_mar345_initialize_driver( MX_DRIVER *driver )
 {
@@ -131,8 +459,7 @@ mxd_mar345_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	mar345 = (MX_MAR345 *)
-				malloc( sizeof(MX_MAR345) );
+	mar345 = (MX_MAR345 *) malloc( sizeof(MX_MAR345) );
 
 	if ( mar345 == (MX_MAR345 *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -174,6 +501,36 @@ mxd_mar345_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Figure out what kind of port this is. */
+
+	if ( strcmp( mar345->port_type_name, "tcp" ) == 0 ) {
+		mar345->port_type = MXT_MAR345_TCP;
+	} else
+	if ( strcmp( mar345->port_type_name, "tcpip" ) == 0 ) {
+		mar345->port_type = MXT_MAR345_TCP;
+	} else
+	if ( strcmp( mar345->port_type_name, "scan345" ) == 0 ) {
+		mar345->port_type = MXT_MAR345_SCAN345;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal port type '%s' requested for Mar345 detector '%s'.  "
+		"The allowed port types are 'tcp' and 'scan345'.",
+			mar345->port_type_name, record->name );
+	}
+
+	switch( mar345->port_type ) {
+	case MXT_MAR345_TCP:
+		mar345->hostname = mar345->port_args_1;
+		mar345->port_number = atol( mar345->port_args_2 );
+		break;
+
+	case MXT_MAR345_SCAN345:
+		mar345->scan345_command = mar345->port_args_1;
+		mar345->command_filename = mar345->port_args_2;
+		mar345->response_filename = mar345->port_args_3;
+		break;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -201,6 +558,26 @@ mxd_mar345_open( MX_RECORD *record )
 #if MXD_MAR345_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	switch( mar345->port_type ) {
+	case MXT_MAR345_TCP:
+		mx_status = mx_tcp_socket_open_as_client(
+					&(mar345->mar345_socket),
+					mar345->hostname,
+					mar345->port_number,
+					0, 0 );
+		break;
+
+	case MXT_MAR345_SCAN345:
+		mx_status = mx_spawn( mar345->scan345_command,
+					0, &(mar345->scan345_process_id) );
+		break;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
@@ -239,9 +616,40 @@ mxd_mar345_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_mar345_trigger( MX_AREA_DETECTOR *ad )
+mxd_mar345_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mar345_trigger()";
+	static const char fname[] = "mxd_mar345_close()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_MAR345 *mar345 = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_mar345_get_pointers( ad, &mar345, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MAR345_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	mx_status = mxd_mar345_command( mar345, "COMMAND QUIT",
+					MXD_MAR345_DEBUG );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mar345_arm( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mar345_arm()";
 
 	MX_MAR345 *mar345 = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
@@ -260,11 +668,56 @@ mxd_mar345_trigger( MX_AREA_DETECTOR *ad )
 	sp = &(ad->sequence_parameters);
 
 #if MXD_MAR345_DEBUG
-	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+	MX_DEBUG(-2,
+	("%s: Preparing for taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxd_mar345_command( mar345, "COMMAND ERASE",
+					MXD_MAR345_DEBUG );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mar345_trigger( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mar345_trigger()";
+
+	MX_MAR345 *mar345 = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	char command[100];
+	double exposure_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mar345_get_pointers( ad, &mar345, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MAR345_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	exposure_time = sp->parameter_array[0];
+
+#if MXD_MAR345_DEBUG
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* The command tells the Mar345 to use an oscillation range of 0
+	 * for 1 oscillation.
+	 */
+
+	snprintf( command, sizeof(command),
+			"COMMAND EXPOSE 0 %lf 1", exposure_time );
+
+	mx_status = mxd_mar345_command( mar345, command, MXD_MAR345_DEBUG );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -357,6 +810,7 @@ mxd_mar345_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mar345_readout_frame()";
 
 	MX_MAR345 *mar345;
+	char command[500];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mar345_get_pointers( ad, &mar345, fname );
@@ -369,6 +823,17 @@ mxd_mar345_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
+	/* FIXME - The following command does not specify everything
+	 *         that it needs to.
+	 */
+
+	snprintf( command, sizeof(command),
+			"COMMAND SCAN\n"
+			"MODE 0\n"
+			"FORMAT MAR345\n" );
+
+	mx_status = mxd_mar345_command( mar345, command, MXD_MAR345_DEBUG );
+
 	return mx_status;
 }
 
@@ -378,7 +843,6 @@ mxd_mar345_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mar345_correct_frame()";
 
 	MX_MAR345 *mar345;
-	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mar345_get_pointers( ad, &mar345, fname );
@@ -390,7 +854,7 @@ mxd_mar345_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	sp = &(ad->sequence_parameters);
+	/* The Mar345 does the correction itself, so we do nothing here. */
 
 	return MX_SUCCESSFUL_RESULT;
 }
