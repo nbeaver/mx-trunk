@@ -473,6 +473,7 @@
 #include "d_marccd_server_socket.h"
 #include "d_bluice_area_detector.h"
 #include "d_mlfsom.h"
+#include "d_mar345.h"
 
 #include "d_network_wvout.h"
 #include "d_bkprecision_912x_wvout.h"
@@ -3785,6 +3786,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mlfsom_ad_function_list,
 				&mxd_mlfsom_num_record_fields,
 				&mxd_mlfsom_rfield_def_ptr},
+
+{"mar345",         MXT_AD_MAR345,      MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_mar345_record_function_list,
+				NULL,
+				&mxd_mar345_ad_function_list,
+				&mxd_mar345_num_record_fields,
+				&mxd_mar345_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,
