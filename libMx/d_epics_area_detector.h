@@ -20,7 +20,13 @@
 typedef struct {
 	MX_RECORD *record;
 
-	char epics_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char prefix_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char camera_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char image_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+
+	/* The following name is read back from EPICS. */
+
+	char asyn_port_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
 	MX_EPICS_PV acquire_pv;
 	MX_EPICS_PV acquire_rbv_pv;
@@ -50,8 +56,16 @@ typedef struct {
 } MX_EPICS_AREA_DETECTOR;
 
 #define MXD_EPICS_AREA_DETECTOR_STANDARD_FIELDS \
-  {-1, -1, "epics_prefix", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, epics_prefix), \
+  {-1, -1, "prefix_name", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, prefix_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "camera_name", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, camera_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "image_name", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, image_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_epics_ad_initialize_driver( MX_DRIVER *driver );

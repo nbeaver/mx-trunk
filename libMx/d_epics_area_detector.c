@@ -182,64 +182,84 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 	/* Initialize MX EPICS data structures. */
 
 	mx_epics_pvname_init( &(epics_ad->acquire_pv),
-			"%sAcquire", epics_ad->epics_prefix );
+			"%s%sAcquire",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->acquire_rbv_pv),
-			"%sAcquire_RBV", epics_ad->epics_prefix );
+			"%s%sAcquire_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->acquire_period_pv),
-			"%sAcquirePeriod", epics_ad->epics_prefix );
+			"%s%sAcquirePeriod",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->acquire_period_rbv_pv),
-			"%sAcquirePeriod_RBV", epics_ad->epics_prefix );
+			"%s%sAcquirePeriod_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->acquire_time_pv),
-			"%sAcquireTime", epics_ad->epics_prefix );
+			"%s%sAcquireTime",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->acquire_time_rbv_pv),
-			"%sAcquireTime_RBV", epics_ad->epics_prefix );
+			"%s%sAcquireTime_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->array_counter_rbv_pv),
-			"%sArrayCounter_RBV", epics_ad->epics_prefix );
+			"%s%sArrayCounter_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->array_data_pv),
-			"%sArrayData", epics_ad->epics_prefix );
+			"%s%sArrayData",
+			epics_ad->prefix_name, epics_ad->image_name );
 
 	mx_epics_pvname_init( &(epics_ad->binx_pv),
-			"%sBinX", epics_ad->epics_prefix );
+			"%s%sBinX",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->binx_rbv_pv),
-			"%sBinX_RBV", epics_ad->epics_prefix );
+			"%s%sBinX_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->biny_pv),
-			"%sBinY", epics_ad->epics_prefix );
+			"%s%sBinY",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->biny_rbv_pv),
-			"%sBinY_RBV", epics_ad->epics_prefix );
+			"%s%sBinY_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->detector_state_pv),
-			"%sDetectorState_RBV", epics_ad->epics_prefix );
+			"%s%sDetectorState_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->image_mode_pv),
-			"%sImageMode", epics_ad->epics_prefix );
+			"%s%sImageMode",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->image_mode_rbv_pv),
-			"%sImageMode_RBV", epics_ad->epics_prefix );
+			"%s%sImageMode_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->num_images_pv),
-			"%sNumImages", epics_ad->epics_prefix );
+			"%s%sNumImages",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->num_images_rbv_pv),
-			"%sNumImages_RBV", epics_ad->epics_prefix );
+			"%s%sNumImages_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->num_images_counter_rbv_pv),
-			"%sNumImagesCounter_RBV", epics_ad->epics_prefix );
+			"%s%sNumImagesCounter_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->trigger_mode_pv),
-			"%sTriggerMode", epics_ad->epics_prefix );
+			"%s%sTriggerMode",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->trigger_mode_rbv_pv),
-			"%sTriggerMode_RBV", epics_ad->epics_prefix );
+			"%s%sTriggerMode_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -289,8 +309,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 	 * its manufacturer name.
 	 */
 
-	snprintf( pvname, sizeof(pvname),
-		"%sManufacturer_RBV", epics_ad->epics_prefix );
+	snprintf( pvname, sizeof(pvname), "%s%sManufacturer_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, epics_string );
 
@@ -300,8 +320,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: CCD manufacturer = '%s'", fname, epics_string));
 #endif
-	snprintf( pvname, sizeof(pvname),
-		"%sModel_RBV", epics_ad->epics_prefix );
+	snprintf( pvname, sizeof(pvname), "%s%sModel_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, epics_string );
 
@@ -345,13 +365,16 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 	/*---*/
 
-	snprintf( pvname, sizeof(pvname),
-		"%sDataType_RBV", epics_ad->epics_prefix );
+	snprintf( pvname, sizeof(pvname), "%s%sDataType_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &data_type );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	snprintf( pvname, sizeof(pvname), "%s%sColorMode_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &color_mode );
 
@@ -429,8 +452,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 	/* Get the maximum frame size from the EPICS server. */
 
-	snprintf( pvname, sizeof(pvname),
-		"%sMaxSizeX_RBV", epics_ad->epics_prefix );
+	snprintf( pvname, sizeof(pvname), "%s%sMaxSizeX_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &max_size_value );
 	
@@ -439,8 +462,8 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 	ad->maximum_framesize[0] = max_size_value;
 
-	snprintf( pvname, sizeof(pvname),
-		"%sMaxSizeY_RBV", epics_ad->epics_prefix );
+	snprintf( pvname, sizeof(pvname), "%s%sMaxSizeY_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &max_size_value );
 	
@@ -474,28 +497,31 @@ mxd_epics_ad_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Does the area detector support reading out the image data?
-	 *
-	 * Begin by testing for the presence of the $(P)$(R)ArrayData PV.
-	 */
+	/* Does the area detector support reading out the image data? */
 
-	mx_status = mx_epics_pv_connect( &(epics_ad->array_data_pv),
+	if ( strlen( epics_ad->image_name ) == 0 ) {
+		epics_ad->array_data_available = FALSE;
+	} else {
+		/* Begin by looking for the $(P)$(R)ArrayData PV. */
+
+		mx_status = mx_epics_pv_connect( &(epics_ad->array_data_pv),
 			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
 
-	switch( mx_status.code ) {
-	case MXE_SUCCESS:
-		epics_ad->array_data_available = TRUE;
-		break;
-	case MXE_TIMED_OUT:
-		epics_ad->array_data_available = FALSE;
-		break;
-	default:
-		epics_ad->array_data_available = FALSE;
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			epics_ad->array_data_available = TRUE;
+			break;
+		case MXE_TIMED_OUT:
+			epics_ad->array_data_available = FALSE;
+			break;
+		default:
+			epics_ad->array_data_available = FALSE;
 
-		return mx_error( mx_status.code,
-				mx_status.location,
-				mx_status.message );
-		break;
+			return mx_error( mx_status.code,
+					mx_status.location,
+					mx_status.message );
+			break;
+		}
 	}
 
 #if MXD_EPICS_AREA_DETECTOR_DEBUG
@@ -806,7 +832,7 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 			ad->bytes_per_frame,
 			ad->record->name,
 			epics_ad->max_array_bytes,
-			epics_ad->max_array_bytes );
+			ad->bytes_per_frame );
 	}
 
 	/* Yes, we can read the frame.  Make sure that the local image frame
@@ -865,7 +891,7 @@ mxd_epics_ad_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_caget( &(epics_ad->array_data_pv),
 				epics_data_type,
 				num_array_elements,
-				&image_data );
+				image_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
