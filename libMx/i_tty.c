@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_TTY_DEBUG	TRUE
+#define MXI_TTY_DEBUG	FALSE
 
 #include <stdio.h>
 

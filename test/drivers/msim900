@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./msim900.dat -s ./ssim900.dat $*
+
