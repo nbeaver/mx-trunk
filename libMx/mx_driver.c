@@ -315,6 +315,7 @@
 #include "d_src_mono.h"
 #include "d_linkam_t9x_motor.h"
 #include "d_linkam_t9x_temp.h"
+#include "d_sim960.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2464,6 +2465,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_linkam_t9x_temp_motor_function_list,
 				&mxd_linkam_t9x_temp_num_record_fields,
 				&mxd_linkam_t9x_temp_rfield_def_ptr},
+
+{"sim960",          MXT_MTR_SIM960,    MXC_MOTOR,          MXR_DEVICE,
+				&mxd_sim960_record_function_list,
+				NULL,
+				&mxd_sim960_motor_function_list,
+				&mxd_sim960_num_record_fields,
+				&mxd_sim960_rfield_def_ptr},
 
 #if HAVE_POWERPMAC_LIBRARY
 
