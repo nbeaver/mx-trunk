@@ -388,6 +388,7 @@
 #include "d_udt_tramp.h"
 #include "d_keithley2700_amp.h"
 #include "d_keithley2400_amp.h"
+#include "d_sim983.h"
 
 #include "d_adc_table.h"
 #include "d_pdi40.h"
@@ -3204,6 +3205,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_keithley2400_amp_amplifier_function_list,
 				&mxd_keithley2400_amp_num_record_fields,
 				&mxd_keithley2400_amp_rfield_def_ptr},
+
+{"sim983",           MXT_AMP_SIM983,       MXC_AMPLIFIER,    MXR_DEVICE,
+				&mxd_sim983_record_function_list,
+				NULL,
+				&mxd_sim983_amplifier_function_list,
+				&mxd_sim983_num_record_fields,
+				&mxd_sim983_rfield_def_ptr},
 
 {"scipe_amplifier",MXT_AMP_SCIPE,       MXC_AMPLIFIER,    MXR_DEVICE,
 				&mxd_scipe_amplifier_record_function_list,
