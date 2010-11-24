@@ -1067,9 +1067,9 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Area detector sequence mode %ld is not supported for "
+			"Area detector sequence type %ld is not supported for "
 			"EPICS Area Detector '%s'.",
-				(long) image_mode, ad->record->name );
+				sp->sequence_type, ad->record->name );
 			break;
 		}
 
@@ -1109,7 +1109,7 @@ mxd_mar345_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported trigger mode %ld requested for "
 			"EPICS Area Detector '%s'.",
-				(long) trigger_mode, ad->record->name );
+				ad->trigger_mode, ad->record->name );
 		}
 
 		break;
