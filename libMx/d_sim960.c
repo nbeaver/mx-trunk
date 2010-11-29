@@ -239,6 +239,13 @@ mxd_sim960_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Reset the communication interface by sending a break signal. */
+
+	mx_status = mx_rs232_send_break( sim960->port_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Verify that we are connected to a SIM960 analog PID controller. */
 
 	mx_status = mxd_sim960_command( sim960, "*IDN?",

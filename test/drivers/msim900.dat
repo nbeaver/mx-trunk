@@ -6,3 +6,6 @@ sim960  device motor sim960 "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 V port1 0x0
 #
 port2   interface rs232 sim900_port "" "" 9600 8 N 1 N 0x0a 0x0a -1 0x0 sim900 2
 sim983  device amplifier sim983 "" "" 1 0 0 port2
+#
+port3   interface rs232 sim900_port "" "" 9600 8 N 1 N 0x0a 0x0a -1 0x0 sim900 3
+sim980  device analog_input sim980 "" "" 0 0.0001 0 mV 0x0 0 "" port3

@@ -213,6 +213,13 @@ mxd_sim983_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Reset the communication interface by sending a break signal. */
+
+	mx_status = mx_rs232_send_break( sim983->port_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Verify that we are connected to a SIM983 analog PID controller. */
 
 	mx_status = mxd_sim983_command( sim983, "*IDN?",

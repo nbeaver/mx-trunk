@@ -275,6 +275,7 @@
 #include "d_ilm_sample_rate.h"
 #include "d_sd_m107.h"
 #include "d_linkam_t9x_pump.h"
+#include "d_sim980.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -2131,6 +2132,13 @@ MX_DRIVER mx_type_table[] = {
 			      &mxd_linkam_t9x_pump_analog_output_function_list,
 				&mxd_linkam_t9x_pump_num_record_fields,
 				&mxd_linkam_t9x_pump_rfield_def_ptr},
+
+{"sim980",          MXT_AIN_SIM980, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+				&mxd_sim980_record_function_list,
+				NULL,
+				&mxd_sim980_analog_input_function_list,
+				&mxd_sim980_num_record_fields,
+				&mxd_sim980_rfield_def_ptr},
 
 #ifdef OS_LINUX
 

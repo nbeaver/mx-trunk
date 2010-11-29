@@ -324,6 +324,7 @@ extern "C" {
 #define MXT_AIN_HANDEL			10043
 #define MXT_AIN_HANDEL_SUM		10044
 #define MXT_AIN_POWERPMAC		10045
+#define MXT_AIN_SIM980			10046
 
 /* --- Analog input subclasses -- */
 
@@ -511,7 +512,6 @@ extern "C" {
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
 #define MXT_MTR_POWERPMAC		50056
 #define MXT_MTR_SIM960			50057
-#define MXT_MTR_AMPLIFIER		50058
 
    /* Pseudomotors. */
 
