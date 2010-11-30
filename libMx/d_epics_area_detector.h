@@ -18,6 +18,21 @@
 #define __D_EPICS_AREA_DETECTOR_H__
 
 typedef struct {
+	char array_port_name[ MXU_EPICS_STRING_LENGTH+1 ];
+
+	MX_EPICS_PV nd_array_port_pv;
+	MX_EPICS_PV nd_array_port_rbv_pv;
+	MX_EPICS_PV min_x_pv;
+	MX_EPICS_PV min_x_rbv_pv;
+	MX_EPICS_PV min_y_pv;
+	MX_EPICS_PV min_y_rbv_pv;
+	MX_EPICS_PV size_x_pv;
+	MX_EPICS_PV size_x_rbv_pv;
+	MX_EPICS_PV size_y_pv;
+	MX_EPICS_PV size_y_rbv_pv;
+} MX_EPICS_AREA_DETECTOR_ROI;
+
+typedef struct {
 	MX_RECORD *record;
 
 	char prefix_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
@@ -26,7 +41,9 @@ typedef struct {
 
 	/* The following name is read back from EPICS. */
 
-	char asyn_port_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char asyn_port_name[ MXU_EPICS_STRING_LENGTH+1 ];
+
+	MX_EPICS_AREA_DETECTOR_ROI *epics_roi_array;
 
 	MX_EPICS_PV acquire_pv;
 	MX_EPICS_PV acquire_rbv_pv;
@@ -67,7 +84,11 @@ typedef struct {
   \
   {-1, -1, "image_name", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, image_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "asyn_port_name", MXFT_STRING, NULL, 1, {MXU_EPICS_STRING_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_AREA_DETECTOR, asyn_port_name), \
+	{sizeof(char)}, NULL, 0}
 
 MX_API mx_status_type mxd_epics_ad_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_epics_ad_create_record_structures(

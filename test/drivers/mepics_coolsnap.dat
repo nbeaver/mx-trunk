@@ -1,1 +1,1 @@
-ad device area_detector epics_area_detector "" "" 0 0x0 0x0 "" "" "" "" DPCoolsnap1: cam1: image1:
+ad device area_detector epics_area_detector "" "" 4 0x0 0x0 "" "" "" "" DPCoolsnap1: cam1: image1:

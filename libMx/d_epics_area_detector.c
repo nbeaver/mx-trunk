@@ -154,6 +154,8 @@ mxd_epics_ad_create_record_structures( MX_RECORD *record )
 	ad->record = record;
 	epics_ad->record = record;
 
+	epics_ad->epics_roi_array = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -165,6 +167,8 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
+	MX_EPICS_AREA_DETECTOR_ROI *epics_ad_roi = NULL;
+	long i;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_finish_record_initialization( record );
@@ -257,6 +261,56 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sTriggerMode_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
+	/* If configured, set up the EPICS-specific ROI data structures. */
+
+	if ( ad->maximum_num_rois > 0 ) {
+		epics_ad->epics_roi_array = (MX_EPICS_AREA_DETECTOR_ROI *)
+			malloc( ad->maximum_num_rois
+				* sizeof(MX_EPICS_AREA_DETECTOR_ROI) );
+
+		if ( epics_ad->epics_roi_array == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %lu element "
+			"array of MX_EPICS_AREA_DETECTOR_ROI structures.",
+				ad->maximum_num_rois );
+		}
+	}
+
+	for ( i = 0; i < ad->maximum_num_rois; i++ ) {
+		epics_ad_roi = &(epics_ad->epics_roi_array[i]);
+
+		mx_epics_pvname_init( &(epics_ad_roi->nd_array_port_pv),
+			"%sROI%d:NDArrayPort", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->nd_array_port_rbv_pv),
+			"%sROI%d:NDArrayPort_RBV", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->min_x_pv),
+			"%sROI%d:MinX", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->min_x_rbv_pv),
+			"%sROI%d:MinX_RBV", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->size_x_pv),
+			"%sROI%d:SizeX", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->size_x_rbv_pv),
+			"%sROI%d:SizeX_RBV", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->min_y_pv),
+			"%sROI%d:MinY", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->min_y_rbv_pv),
+			"%sROI%d:MinY_RBV", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->size_y_pv),
+			"%sROI%d:SizeY", epics_ad->prefix_name, i+1 );
+
+		mx_epics_pvname_init( &(epics_ad_roi->size_y_rbv_pv),
+			"%sROI%d:SizeY_RBV", epics_ad->prefix_name, i+1 );
+
+	};
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -269,7 +323,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	char pvname[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	unsigned long ad_flags, mask, max_size_value;
-	char epics_string[41];
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	int32_t data_type, color_mode;
 	char *max_array_bytes_string;
 	mx_status_type mx_status;
@@ -493,11 +547,22 @@ mxd_epics_ad_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* What asyn port does this detector use? */
+
+	snprintf( pvname, sizeof(pvname), "%s%sPortName_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1,
+					&(epics_ad->asyn_port_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Does this version use the NumAcquisitionsCounter_RBV PV? */
 
 	/* FIXME: I currently do not know what the difference between
 	 * NumAcquisitionsCounter_RBV and NumImagesCounter_RBV, so
-	 * that is why this code is bogus.
+	 * that is why this code is here.
 	 */
 
 	mx_epics_pvname_init( &(epics_ad->mx_next_frame_number_pv),
@@ -527,7 +592,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	if ( strlen( epics_ad->image_name ) == 0 ) {
 		epics_ad->array_data_available = FALSE;
 	} else {
-		/* Begin by looking for the $(P)$(R)ArrayData PV. */
+		/* Look for the $(P)$(R)ArrayData PV. */
 
 		mx_status = mx_epics_pv_connect( &(epics_ad->array_data_pv),
 			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
@@ -986,8 +1051,10 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_get_parameter()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
+	MX_EPICS_AREA_DETECTOR_ROI *epics_ad_roi = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t x_binsize, y_binsize, trigger_mode, image_mode, num_images;
+	int32_t x_start, x_size, y_start, y_size;
 	double acquire_time, acquire_period;
 	mx_status_type mx_status;
 
@@ -1155,6 +1222,65 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 		}
 		break;
 
+	case MXLV_AD_ROI:
+		epics_ad_roi = &(epics_ad->epics_roi_array[ ad->roi_number ]);
+
+		/* First, see if the ROI is assigned to this camera. */
+
+		mx_status = mx_caget( &(epics_ad_roi->nd_array_port_rbv_pv),
+			MX_CA_STRING, 1, epics_ad_roi->array_port_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( strcmp( epics_ad_roi->array_port_name,
+				epics_ad->asyn_port_name ) != 0 )
+		{
+			/* If the ROI is not assigned to this camera, then
+			 * set the ROI boundaries to (0,0) and return.
+			 */
+
+			ad->roi[0] = 0;
+			ad->roi[1] = 0;
+			ad->roi[2] = 0;
+			ad->roi[3] = 0;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Get the ROI boundaries. */
+
+		mx_status = mx_caget( &(epics_ad_roi->min_x_rbv_pv),
+					MX_CA_LONG, 1, &x_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caget( &(epics_ad_roi->size_x_rbv_pv),
+					MX_CA_LONG, 1, &x_size );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->roi[0] = x_start;
+		ad->roi[1] = x_start + x_size;
+
+		mx_status = mx_caget( &(epics_ad_roi->min_y_rbv_pv),
+					MX_CA_LONG, 1, &y_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caget( &(epics_ad_roi->size_y_rbv_pv),
+					MX_CA_LONG, 1, &y_size );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->roi[2] = y_start;
+		ad->roi[3] = y_start + y_size;
+
+		break;
 	default:
 		mx_status = mx_area_detector_default_get_parameter_handler(ad);
 		break;
@@ -1169,10 +1295,12 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_set_parameter()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
+	MX_EPICS_AREA_DETECTOR_ROI *epics_ad_roi = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double acquire_time, acquire_period;
 	int32_t trigger_mode, image_mode, num_images;
 	int32_t x_binsize, y_binsize;
+	long x_start, x_size, y_start, y_size;
 	double raw_x_binsize, raw_y_binsize;
 	mx_status_type mx_status;
 
@@ -1320,6 +1448,48 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 	"Changing parameter '%s' for area detector '%s' is not supported.",
 			mx_get_field_label_string( ad->record,
 				ad->parameter_type ), ad->record->name );
+		break;
+
+	case MXLV_AD_ROI:
+		epics_ad_roi = &(epics_ad->epics_roi_array[ ad->roi_number ]);
+
+		/* Assign the ROI to this camera. */
+
+		mx_status = mx_caput( &(epics_ad_roi->nd_array_port_pv),
+				MX_CA_STRING, 1, epics_ad->asyn_port_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		x_start = ad->roi[0];
+		x_size  = ad->roi[1] - x_start;
+		y_start = ad->roi[2];
+		y_size  = ad->roi[3] - y_start;
+
+		mx_status = mx_caput( &(epics_ad_roi->min_x_pv),
+					MX_CA_LONG, 1, &x_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caput( &(epics_ad_roi->size_x_pv),
+					MX_CA_LONG, 1, &x_size );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caput( &(epics_ad_roi->min_y_pv),
+					MX_CA_LONG, 1, &y_start );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_caput( &(epics_ad_roi->size_y_pv),
+					MX_CA_LONG, 1, &y_size );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		break;
 
 	default:
