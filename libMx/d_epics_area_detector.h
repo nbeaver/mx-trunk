@@ -45,9 +45,10 @@ typedef struct {
 	MX_EPICS_PV image_mode_rbv_pv;
 	MX_EPICS_PV num_images_pv;
 	MX_EPICS_PV num_images_rbv_pv;
-	MX_EPICS_PV num_images_counter_rbv_pv;
 	MX_EPICS_PV trigger_mode_pv;
 	MX_EPICS_PV trigger_mode_rbv_pv;
+
+	MX_EPICS_PV mx_next_frame_number_pv;
 
 	mx_bool_type acquisition_is_starting;
 	mx_bool_type array_data_available;

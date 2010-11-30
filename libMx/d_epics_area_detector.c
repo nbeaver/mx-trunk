@@ -249,10 +249,6 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sNumImages_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
-	mx_epics_pvname_init( &(epics_ad->num_images_counter_rbv_pv),
-			"%s%sNumImagesCounter_RBV",
-			epics_ad->prefix_name, epics_ad->camera_name );
-
 	mx_epics_pvname_init( &(epics_ad->trigger_mode_pv),
 			"%s%sTriggerMode",
 			epics_ad->prefix_name, epics_ad->camera_name );
@@ -497,6 +493,35 @@ mxd_epics_ad_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Does this version use the NumAcquisitionsCounter_RBV PV? */
+
+	/* FIXME: I currently do not know what the difference between
+	 * NumAcquisitionsCounter_RBV and NumImagesCounter_RBV, so
+	 * that is why this code is bogus.
+	 */
+
+	mx_epics_pvname_init( &(epics_ad->mx_next_frame_number_pv),
+			"%s%sNumAcquisitionsCounter_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_status = mx_epics_pv_connect( &(epics_ad->mx_next_frame_number_pv),
+			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_TIMED_OUT:
+		mx_epics_pvname_init( &(epics_ad->mx_next_frame_number_pv),
+			"%s%sNumImagesCounter_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+		break;
+	default:
+		return mx_error( mx_status.code,
+				mx_status.location,
+				mx_status.message );
+		break;
+	}
+
 	/* Does the area detector support reading out the image data? */
 
 	if ( strlen( epics_ad->image_name ) == 0 ) {
@@ -621,7 +646,7 @@ mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_get_last_frame_number()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
-	int32_t num_images;
+	int32_t next_frame_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ad_get_pointers( ad, &epics_ad, fname );
@@ -633,13 +658,13 @@ mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_caget( &(epics_ad->num_images_counter_rbv_pv),
-				MX_CA_LONG, 1, &num_images );
+	mx_status = mx_caget( &(epics_ad->mx_next_frame_number_pv),
+				MX_CA_LONG, 1, &next_frame_number );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->last_frame_number = num_images - 1;
+	ad->last_frame_number = next_frame_number - 1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
