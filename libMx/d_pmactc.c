@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_PMACTC_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -278,6 +280,10 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 		break;
 	}
 
+#if MXD_PMACTC_DEBUG
+	mx_epics_set_debug_flag( TRUE );
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -400,8 +406,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 
 	current_tick = mx_current_clock_tick();
 
-	MX_DEBUG( 2,("%s: motor '%s' initial motion_state = %ld",
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s' initial motion_state = %ld",
 		fname, motor->record->name, pmac_tc_motor->motion_state));
+#endif
 
 	switch( pmac_tc_motor->motion_state ) {
 	case MXF_PTC_NO_MOVE_IN_PROGRESS:
@@ -416,8 +424,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 		/* If not, unconditionally return with motor->busy == TRUE. */
 
 		if ( comparison < 0 ) {
-			MX_DEBUG( 2,
+#if MXD_PMACTC_DEBUG
+			MX_DEBUG(-2,
 			("%s: start delay still in progress.", fname));
+#endif
 
 			motor->busy = TRUE;
 
@@ -441,8 +451,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 		/* If not, unconditionally return with motor->busy == TRUE. */
 
 		if ( comparison < 0 ) {
-			MX_DEBUG( 2,
+#if MXD_PMACTC_DEBUG
+			MX_DEBUG(-2,
 			("%s: end delay still in progress.", fname));
+#endif
 
 			motor->busy = TRUE;
 
@@ -463,8 +475,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 		break;
 	}
 
-	MX_DEBUG( 2,("%s: motor '%s' modified motion_state = %ld",
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s' modified motion_state = %ld",
 		fname, motor->record->name, pmac_tc_motor->motion_state));
+#endif
 
 	/* If we get here, ask EPICS for the 'in_position' state. */
 
@@ -474,8 +488,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: motor '%s' in_position = %hd",
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s' in_position = %hd",
 		fname, motor->record->name, in_position_value));
+#endif
 
 	switch ( in_position_value ) {
 	case 0:
@@ -503,8 +519,10 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 	  && ( motor->busy == FALSE )
 	  && ( pmac_tc_motor->end_delay > 0.0 ) )
 	{
-		MX_DEBUG( 2,("%s: motor '%s', end delay is starting.",
+#if MXD_PMACTC_DEBUG
+		MX_DEBUG(-2,("%s: motor '%s', end delay is starting.",
 			fname, motor->record->name ));
+#endif
 
 		current_tick = mx_current_clock_tick();
 
@@ -516,10 +534,12 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 				current_tick, pmac_tc_motor->end_delay_ticks );
 	}
 
-	MX_DEBUG( 2,
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,
 		("%s: motor '%s' final motion_state = %ld, motor->busy = %d",
 		fname, motor->record->name, pmac_tc_motor->motion_state,
 		(int) motor->busy ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -646,12 +666,14 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,
 	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%ld).",
 		fname, motor->record->name, motor->record->mx_type,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+#endif
 
 	/* Send the parameter request command to the StrCmd EPICS variable. */
 
@@ -694,7 +716,9 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 		break;
 	}
 
-	MX_DEBUG( 2,("%s complete.", fname));
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -714,12 +738,14 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,
 	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%ld).",
 		fname, motor->record->name, motor->record->mx_type,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+#endif
 
 	/* Send the parameter request set to the StrCmd EPICS variable. */
 
@@ -738,7 +764,9 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 	mx_status = mx_caput( &(pmac_tc_motor->strcmd_pv),
 				MX_CA_STRING, 1, command );
 
-	MX_DEBUG( 2,("%s complete.", fname));
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return mx_status;
 }
@@ -761,11 +789,13 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+#endif
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -869,11 +899,13 @@ mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
+#if MXD_PMACTC_DEBUG
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+#endif
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
