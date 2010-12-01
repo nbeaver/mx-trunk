@@ -17,6 +17,8 @@
 
 #define MXD_SIM960_DEBUG	TRUE
 
+#define MXD_SIM960_ERROR_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -112,6 +114,8 @@ mxd_sim960_command( MX_SIM960 *sim960,
 {
 	static const char fname[] = "mxd_sim960_command()";
 
+	char esr_response[10];
+	unsigned char esr_byte;
 	mx_status_type mx_status;
 
 	if ( command == (char *) NULL ) {
@@ -132,7 +136,7 @@ mxd_sim960_command( MX_SIM960 *sim960,
 		return mx_status;
 
 	if ( response != (char *) NULL ) {
-		/* Read back the response, if any. */
+		/* If a response is expected, read back the response. */
 
 		mx_status = mx_rs232_getline( sim960->port_record,
 					response, max_response_length,
@@ -147,7 +151,59 @@ mxd_sim960_command( MX_SIM960 *sim960,
 		}
 	}
 
-	return mx_status;
+	/* Check for errors in the previous command. */
+
+#if MXD_SIM960_ERROR_DEBUG
+	MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
+		fname, sim960->record->name ));
+#endif
+
+	mx_status = mx_rs232_putline( sim960->port_record, "*ESR?", NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_rs232_getline( sim960->port_record,
+					esr_response, sizeof(esr_response),
+					NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SIM960_ERROR_DEBUG
+	MX_DEBUG(-2,("%s: received '%s' from '%s'",
+		fname, esr_response, sim960->record->name ));
+#endif
+
+	esr_byte = atol( esr_response );
+
+	if ( esr_byte & 0x20 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"Command error (CME) seen for command '%s' sent to '%s'.",
+			command, sim960->record->name );
+	} else
+	if ( esr_byte & 0x10 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"Execution error (EXE) seen for command '%s' sent to '%s'.",
+			command, sim960->record->name );
+	} else
+	if ( esr_byte & 0x08 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Device dependent error (DDE) seen for command '%s' sent to '%s'.",
+			command, sim960->record->name );
+	} else
+	if ( esr_byte & 0x02 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Input data lost (INP) for command '%s' sent to '%s'.",
+			command, sim960->record->name );
+	} else
+	if ( esr_byte & 0x04 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Output data lost (QYE) for command '%s' sent to '%s'.",
+			command, sim960->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -419,6 +475,7 @@ mxd_sim960_get_parameter( MX_MOTOR *motor )
 	MX_SIM960 *sim960;
 	char response[100];
 	int proportional_action, integral_action, derivative_action;
+	int output_control;
 	mx_status_type mx_status;
 
 	sim960 = NULL;
@@ -544,6 +601,38 @@ mxd_sim960_get_parameter( MX_MOTOR *motor )
 		}
 		break;
 
+	case MXLV_MTR_EXTRA_GAIN:
+		/* If the output offset is turned off, we return
+		 * a value of 0.
+		 */
+
+		mx_status = mxd_sim960_command( sim960, "OCTL?",
+						response, sizeof(response),
+						MXD_SIM960_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		output_control = atol( response );
+
+		if ( output_control == 0 ) {
+			motor->extra_gain = 0.0;
+		} else {
+			/* The output offset is turned on, so read it into
+			 * the "extra" gain.
+			 */
+
+			mx_status = mxd_sim960_command( sim960, "OFST?",
+						response, sizeof(response),
+						MXD_SIM960_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			motor->extra_gain = atof( response );
+		}
+		break;
+
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
 	}
@@ -659,7 +748,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 		 */
 
 		if ( fabs( motor->derivative_gain ) < 1.0e-10 ) {
-			mx_status = mxd_sim960_command( sim960, "ICTL OFF",
+			mx_status = mxd_sim960_command( sim960, "DCTL OFF",
 						NULL, 0, MXD_SIM960_DEBUG );
 		} else {
 			/* Set the derivative gain and turn on
@@ -667,7 +756,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 			 */
 
 			snprintf( command, sizeof(command),
-				"INTG %lf", motor->derivative_gain );
+				"DERV %lf", motor->derivative_gain );
 
 			mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );
@@ -676,6 +765,32 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 				return mx_status;
 
 			mx_status = mxd_sim960_command( sim960, "ICTL ON",
+						NULL, 0, MXD_SIM960_DEBUG );
+		}
+		break;
+
+	case MXLV_MTR_EXTRA_GAIN:
+
+		/* If the "extra" gain is set to 0, then turn
+		 * off the output offset.
+		 */
+
+		if ( fabs( motor->extra_gain ) < 1.0e-10 ) {
+			mx_status = mxd_sim960_command( sim960, "OCTL OFF",
+						NULL, 0, MXD_SIM960_DEBUG );
+		} else {
+			/* Set and turn on the output offset. */
+
+			snprintf( command, sizeof(command),
+				"OFST %lf", motor->extra_gain );
+
+			mx_status = mxd_sim960_command( sim960, command,
+						NULL, 0, MXD_SIM960_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxd_sim960_command( sim960, "OCTL ON",
 						NULL, 0, MXD_SIM960_DEBUG );
 		}
 		break;

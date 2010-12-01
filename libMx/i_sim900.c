@@ -128,6 +128,7 @@ mxi_sim900_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+#if 0
 		mx_status = mx_rs232_verify_configuration( interface_record,
 			MXF_232_DONT_CARE, 8, 'N', 1, 'S', 0xa, 0xa );
 
@@ -148,6 +149,7 @@ mxi_sim900_open( MX_RECORD *record )
 				speed, interface_record->name, record->name );
 			break;
 		}
+#endif
 
 		/* Discard any characters waiting to be sent or received. */
 

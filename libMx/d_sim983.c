@@ -16,6 +16,8 @@
 
 #define MXD_SIM983_DEBUG	TRUE
 
+#define MXD_SIM983_ERROR_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -98,6 +100,8 @@ mxd_sim983_command( MX_SIM983 *sim983,
 {
 	static const char fname[] = "mxd_sim983_command()";
 
+	char esr_response[10];
+	unsigned char esr_byte;
 	mx_status_type mx_status;
 
 	if ( command == (char *) NULL ) {
@@ -118,7 +122,7 @@ mxd_sim983_command( MX_SIM983 *sim983,
 		return mx_status;
 
 	if ( response != (char *) NULL ) {
-		/* Read back the response, if any. */
+		/* If a response is expected, read back the response. */
 
 		mx_status = mx_rs232_getline( sim983->port_record,
 					response, max_response_length,
@@ -133,7 +137,59 @@ mxd_sim983_command( MX_SIM983 *sim983,
 		}
 	}
 
-	return mx_status;
+	/* Check for errors in the previous command. */
+
+#if MXD_SIM983_ERROR_DEBUG
+	MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
+		fname, sim983->record->name ));
+#endif
+
+	mx_status = mx_rs232_putline( sim983->port_record, "*ESR?", NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_rs232_getline( sim983->port_record,
+					esr_response, sizeof(esr_response),
+					NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SIM983_ERROR_DEBUG
+	MX_DEBUG(-2,("%s: received '%s' from '%s'",
+		fname, esr_response, sim983->record->name ));
+#endif
+
+	esr_byte = atol( esr_response );
+
+	if ( esr_byte & 0x20 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"Command error (CME) seen for command '%s' sent to '%s'.",
+			command, sim983->record->name );
+	} else
+	if ( esr_byte & 0x10 ) {
+		return mx_error( MXE_PROTOCOL_ERROR, fname,
+		"Execution error (EXE) seen for command '%s' sent to '%s'.",
+			command, sim983->record->name );
+	} else
+	if ( esr_byte & 0x08 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Device dependent error (DDE) seen for command '%s' sent to '%s'.",
+			command, sim983->record->name );
+	} else
+	if ( esr_byte & 0x02 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Input data lost (INP) for command '%s' sent to '%s'.",
+			command, sim983->record->name );
+	} else
+	if ( esr_byte & 0x04 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Output data lost (QYE) for command '%s' sent to '%s'.",
+			command, sim983->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ====== */
