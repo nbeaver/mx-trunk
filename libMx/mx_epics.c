@@ -1749,7 +1749,7 @@ mx_caput_by_name( char *pvname,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_epics_internal_caput( NULL, epics_type,
+	mx_status = mx_epics_internal_caput( &pv, epics_type,
 					num_elements, data_buffer,
 					mx_epics_io_timeout_interval, 0,
 					MXI_EPICS_CAPUT,

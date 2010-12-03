@@ -245,12 +245,28 @@ mxd_epics_ad_finish_record_initialization( MX_RECORD *record )
 			"%s%sImageMode_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
+	mx_epics_pvname_init( &(epics_ad->num_acquisitions_pv),
+			"%s%sNumAcquisitions",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->num_acquisitions_rbv_pv),
+			"%s%sNumAcquisitions_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->num_acquisitions_counter_rbv_pv),
+			"%s%sNumAcquisitionsCounter_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
 	mx_epics_pvname_init( &(epics_ad->num_images_pv),
 			"%s%sNumImages",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->num_images_rbv_pv),
 			"%s%sNumImages_RBV",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_epics_pvname_init( &(epics_ad->num_images_counter_rbv_pv),
+			"%s%sNumImagesCounter_RBV",
 			epics_ad->prefix_name, epics_ad->camera_name );
 
 	mx_epics_pvname_init( &(epics_ad->trigger_mode_pv),
@@ -325,6 +341,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	unsigned long ad_flags, mask, max_size_value;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	int32_t data_type, color_mode;
+	int32_t num_exposures, num_images;
 	char *max_array_bytes_string;
 	mx_status_type mx_status;
 
@@ -558,33 +575,49 @@ mxd_epics_ad_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Does this version use the NumAcquisitionsCounter_RBV PV? */
-
-	/* FIXME: I currently do not know what the difference between
-	 * NumAcquisitionsCounter_RBV and NumImagesCounter_RBV, so
-	 * that is why this code is here.
+	/* Does this version use the NumAcquisitionsCounter_RBV PV?
+	 *
+	 * At present (2010-12-03), only the Roper driver does that.
 	 */
 
-	mx_epics_pvname_init( &(epics_ad->mx_next_frame_number_pv),
-			"%s%sNumAcquisitionsCounter_RBV",
-			epics_ad->prefix_name, epics_ad->camera_name );
-
-	mx_status = mx_epics_pv_connect( &(epics_ad->mx_next_frame_number_pv),
+	mx_status = mx_epics_pv_connect(
+			&(epics_ad->num_acquisitions_counter_rbv_pv),
 			MXF_EPVC_QUIET | MXF_EPVC_WAIT_FOR_CONNECTION );
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
+		epics_ad->use_num_acquisitions = TRUE;
 		break;
 	case MXE_TIMED_OUT:
-		mx_epics_pvname_init( &(epics_ad->mx_next_frame_number_pv),
-			"%s%sNumImagesCounter_RBV",
-			epics_ad->prefix_name, epics_ad->camera_name );
+		epics_ad->use_num_acquisitions = FALSE;
 		break;
 	default:
 		return mx_error( mx_status.code,
 				mx_status.location,
 				mx_status.message );
 		break;
+	}
+
+	/* Set all of the lower level counter PVs to ratios of 1. */
+
+	num_exposures = 1;
+
+	snprintf( pvname, sizeof(pvname), "%s%sNumExposures",
+			epics_ad->prefix_name, epics_ad->camera_name );
+
+	mx_status = mx_caput_by_name( pvname, MX_CA_LONG, 1, &num_exposures );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( epics_ad->use_num_acquisitions ) {
+		num_images = 1;
+
+		mx_status = mx_caput( &(epics_ad->num_images_pv),
+					MX_CA_LONG, 1, &num_images );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Does the area detector support reading out the image data? */
@@ -711,6 +744,7 @@ mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_get_last_frame_number()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
+	MX_EPICS_PV *next_frame_pv = NULL;
 	int32_t next_frame_number;
 	mx_status_type mx_status;
 
@@ -723,7 +757,14 @@ mxd_epics_ad_get_last_frame_number( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_caget( &(epics_ad->mx_next_frame_number_pv),
+
+	if ( epics_ad->use_num_acquisitions ) {
+		next_frame_pv = &(epics_ad->num_acquisitions_counter_rbv_pv);
+	} else {
+		next_frame_pv = &(epics_ad->num_images_counter_rbv_pv);
+	}
+
+	mx_status = mx_caget( next_frame_pv,
 				MX_CA_LONG, 1, &next_frame_number );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1052,8 +1093,9 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	MX_EPICS_AREA_DETECTOR_ROI *epics_ad_roi = NULL;
+	MX_EPICS_PV *num_frames_pv = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	int32_t x_binsize, y_binsize, trigger_mode, image_mode, num_images;
+	int32_t x_binsize, y_binsize, trigger_mode, image_mode, num_frames;
 	int32_t x_start, x_size, y_start, y_size;
 	double acquire_time, acquire_period;
 	mx_status_type mx_status;
@@ -1155,6 +1197,13 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 		}
 		break;
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+
+		if ( epics_ad->use_num_acquisitions ) {
+			num_frames_pv = &(epics_ad->num_acquisitions_rbv_pv);
+		} else {
+			num_frames_pv = &(epics_ad->num_images_rbv_pv);
+		}
+
 		switch( sp->sequence_type ) {
 		case MXT_SQ_MULTIFRAME:
 			mx_status = mx_caget(
@@ -1164,8 +1213,8 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_caget( &(epics_ad->num_images_rbv_pv),
-					MX_CA_LONG, 1, &num_images );
+			mx_status = mx_caget( num_frames_pv,
+					MX_CA_LONG, 1, &num_frames );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -1181,7 +1230,7 @@ mxd_epics_ad_get_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
-				sp->parameter_array[0] = num_images;
+				sp->parameter_array[0] = num_frames;
 				sp->parameter_array[1] = acquire_time;
 				sp->parameter_array[2] =
 					acquire_time + acquire_period;
@@ -1296,9 +1345,10 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
 	MX_EPICS_AREA_DETECTOR_ROI *epics_ad_roi = NULL;
+	MX_EPICS_PV *num_frames_pv = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double acquire_time, acquire_period;
-	int32_t trigger_mode, image_mode, num_images;
+	int32_t trigger_mode, image_mode, num_frames;
 	int32_t x_binsize, y_binsize;
 	long x_start, x_size, y_start, y_size;
 	double raw_x_binsize, raw_y_binsize;
@@ -1385,6 +1435,13 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+
+		if ( epics_ad->use_num_acquisitions ) {
+			num_frames_pv = &(epics_ad->num_acquisitions_pv);
+		} else {
+			num_frames_pv = &(epics_ad->num_images_pv);
+		}
+
 		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
 			acquire_time = sp->parameter_array[1];
 		} else {
@@ -1398,13 +1455,13 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
-			num_images = sp->parameter_array[0];
+			num_frames = sp->parameter_array[0];
 		} else {
-			num_images = 1;
+			num_frames = 1;
 		}
 
-		mx_status = mx_caput( &(epics_ad->num_images_pv),
-					MX_CA_LONG, 1, &num_images );
+		mx_status = mx_caput( num_frames_pv,
+					MX_CA_LONG, 1, &num_frames );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

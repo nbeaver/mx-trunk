@@ -60,17 +60,20 @@ typedef struct {
 	MX_EPICS_PV detector_state_pv;
 	MX_EPICS_PV image_mode_pv;
 	MX_EPICS_PV image_mode_rbv_pv;
+	MX_EPICS_PV num_acquisitions_pv;
+	MX_EPICS_PV num_acquisitions_rbv_pv;
+	MX_EPICS_PV num_acquisitions_counter_rbv_pv;
 	MX_EPICS_PV num_images_pv;
 	MX_EPICS_PV num_images_rbv_pv;
+	MX_EPICS_PV num_images_counter_rbv_pv;
 	MX_EPICS_PV trigger_mode_pv;
 	MX_EPICS_PV trigger_mode_rbv_pv;
-
-	MX_EPICS_PV mx_next_frame_number_pv;
 
 	mx_bool_type acquisition_is_starting;
 	mx_bool_type array_data_available;
 
 	unsigned long max_array_bytes;
+	mx_bool_type use_num_acquisitions;
 } MX_EPICS_AREA_DETECTOR;
 
 #define MXD_EPICS_AREA_DETECTOR_STANDARD_FIELDS \
