@@ -251,6 +251,7 @@ extern "C" {
 #define MXI_CTRL_LINKAM_T9X		459
 #define MXI_CTRL_POWERPMAC		460
 #define MXI_CTRL_SIM900			461
+#define MXI_CTRL_I404			462
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -615,6 +616,7 @@ extern "C" {
 #define MXT_AMP_KEITHLEY2400		90011
 #define MXT_AMP_KEITHLEY2000		90012
 #define MXT_AMP_SIM983			90013
+#define MXT_AMP_I404			90014
 
 /* --- Relay types --- */
 
@@ -696,7 +698,7 @@ extern "C" {
 #define MXT_MCAI_SOFTWARE		200001
 #define MXT_MCAI_NETWORK		200002
 #define MXT_MCAI_QBPM			200003
-#define MXT_MCAI_KEITHLEY2700		200004
+#define MXT_MCAI_I404			200004
 
 /* --- Pan/Tilt/Zoom types --- */
 

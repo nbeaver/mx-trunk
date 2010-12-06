@@ -1,0 +1,8 @@
+ttyS0    interface rs232 tty "" "" 115200 8 N 1 N 0x0a 0x0a 2 0x0 /dev/ttyS0
+bpm      interface controller i404 "" "" ttyS0 -1
+gain     device amplifier i404_amp "" "" 1 0 0 bpm
+current  device mcai i404_mcai "" "" 4 4 1 0 A 0x0 bpm current
+charge   device mcai i404_mcai "" "" 4 4 1 0 A 0x0 bpm charge
+position device mcai i404_mcai "" "" 4 4 1 0 A 0x0 bpm position
+x        device analog_input mcai_function "" "" 0 1 0 um 0x0 0 "" position 2 1 0 0 0
+y        device analog_input mcai_function "" "" 0 1 0 um 0x0 0 "" position 2 0 1 0 0

@@ -92,7 +92,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_gm10_scaler.c d_gm10_timer.c \
 	d_handel_input.c d_handel_mca.c d_handel_sum.c d_handel_timer.c \
 	d_hitachi_kp_d20.c d_hsc1.c \
-	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
+	d_i404_amp.c d_i404_mcai.c d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_ilm_ainput.c d_ilm_sample_rate.c d_ilm_status.c \
 	d_interval_timer.c d_iseries_aio.c d_iseries_dio.c \
 	d_itc503_ainput.c d_itc503_aoutput.c d_itc503_doutput.c \
@@ -167,7 +167,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_rs232.c i_epix_xclib.c \
 	i_esone_camac.c i_fossil.c i_handel.c i_handel_network.c i_hsc1.c \
-	i_ilm.c i_iseries.c i_isobus.c i_itc503.c i_k500serial.c i_ks3344.c \
+	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
+	i_k500serial.c i_ks3344.c \
 	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
 	i_kohzu_sc.c i_linkam_t9x.c i_lpt.c \

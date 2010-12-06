@@ -440,6 +440,10 @@
 #include "d_databox_mcs.h"
 #include "d_databox_mce.h"
 
+#include "i_i404.h"
+#include "d_i404_amp.h"
+#include "d_i404_mcai.h"
+
 #include "d_network_pulser.h"
 #include "d_sis3807.h"
 #include "d_sis3801_pulser.h"
@@ -1156,6 +1160,13 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_sim900_num_record_fields,
 				&mxi_sim900_rfield_def_ptr},
+
+{"i404",          MXI_CTRL_I404,          MXI_CONTROLLER,    MXR_INTERFACE,
+				&mxi_i404_record_function_list,
+				NULL,
+				NULL,
+				&mxi_i404_num_record_fields,
+				&mxi_i404_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
 {"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
@@ -3221,6 +3232,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim983_num_record_fields,
 				&mxd_sim983_rfield_def_ptr},
 
+{"i404_amp",         MXT_AMP_I404,         MXC_AMPLIFIER,    MXR_DEVICE,
+				&mxd_i404_amp_record_function_list,
+				NULL,
+				&mxd_i404_amp_amplifier_function_list,
+				&mxd_i404_amp_num_record_fields,
+				&mxd_i404_amp_rfield_def_ptr},
+
 {"scipe_amplifier",MXT_AMP_SCIPE,       MXC_AMPLIFIER,    MXR_DEVICE,
 				&mxd_scipe_amplifier_record_function_list,
 				NULL,
@@ -3329,6 +3347,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_qbpm_mcai_mcai_function_list,
 				&mxd_qbpm_mcai_num_record_fields,
 				&mxd_qbpm_mcai_rfield_def_ptr},
+
+{"i404_mcai",      MXT_MCAI_I404,   MXC_MULTICHANNEL_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_i404_mcai_record_function_list,
+				NULL,
+				&mxd_i404_mcai_mcai_function_list,
+				&mxd_i404_mcai_num_record_fields,
+				&mxd_i404_mcai_rfield_def_ptr},
 
 {"soft_mca",       MXT_MCA_SOFTWARE,  MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_mca_record_function_list,
