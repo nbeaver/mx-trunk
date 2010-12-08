@@ -270,8 +270,19 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 
 	switch( i404_mcai->mcai_type ) {
 	case MXT_I404_MCAI_CHARGE:
+		num_items = sscanf( response,
+				"%lg S,%lg C,%lg C,%lg C,%lg C,%lu",
+				&integration_time,
+				&(mcai->channel_array[0]),
+				&(mcai->channel_array[1]),
+				&(mcai->channel_array[2]),
+				&(mcai->channel_array[3]),
+				&overrange_flags );
+		break;
+
 	case MXT_I404_MCAI_CURRENT:
-		num_items = sscanf( response, "%lg %lg %lg %lg %lg %lu",
+		num_items = sscanf( response,
+				"%lg S,%lg A,%lg A,%lg A,%lg A,%lu",
 				&integration_time,
 				&(mcai->channel_array[0]),
 				&(mcai->channel_array[1]),
@@ -287,7 +298,7 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 		break;
 
 	case MXT_I404_MCAI_POSITION:
-		num_items = sscanf( response, "%lg %lg",
+		num_items = sscanf( response, "%lg,%lg",
 				&(mcai->channel_array[0]),
 				&(mcai->channel_array[1]) );
 		break;

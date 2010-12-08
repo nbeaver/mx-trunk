@@ -1,4 +1,6 @@
-ttyS0    interface rs232 tty "" "" 115200 8 N 1 N 0x0a 0x0a 2 0x0 /dev/ttyS0
+###ttyS0    interface rs232 tty "" "" 115200 8 N 1 N 0x0a 0x0a 2 0x0 /dev/ttyS0
+idc36    server network tcpip_server "" "" 0x00 192.168.26.36 9727
+ttyS0    interface rs232 network_rs232 "" "" 115200 8 N 1 N 0x0a 0x0a 2 0x0 idc36 I404_rs232
 bpm      interface controller i404 "" "" ttyS0 -1
 gain     device amplifier i404_amp "" "" 1 0 0 bpm
 current  device mcai i404_mcai "" "" 4 4 1 0 A 0x0 bpm current

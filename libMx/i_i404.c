@@ -149,7 +149,7 @@ mxi_i404_open( MX_RECORD *record )
 		"the *IDN? command sent to '%s'.",
 			response, record->name );
 	}
-	if ( strcmp( argv[0], "Pyramid_Technical_Consultants" ) != 0 ) {
+	if ( strcmp( argv[0], "PYRTECHCO" ) != 0 ) {
 		free( argv );
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -157,7 +157,7 @@ mxi_i404_open( MX_RECORD *record )
 		"device.  The response to '*IDN?' was '%s'.",
 			record->name, response );
 	}
-	if ( strcmp( argv[1], "I404" ) != 0 ) {
+	if ( strncmp( argv[1], "I404", 4 ) != 0 ) {
 		free( argv );
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -223,6 +223,7 @@ mxi_i404_command( MX_I404 *i404,
 
 	MX_RS232 *rs232;
 	char local_command[100];
+	char echoed_command[100];
 	char command_status;
 	mx_status_type mx_status;
 
@@ -268,6 +269,24 @@ mxi_i404_command( MX_I404 *i404,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* FIXME: The I404 apparently echoes all commands sent back
+	 * to it.  If there is a way to turn off the echoing, then
+	 * this would be preferable to reading a line and then just
+	 * throwing it away.
+	 */
+
+	mx_status = mx_rs232_getline( i404->rs232_record,
+				echoed_command, sizeof(echoed_command),
+				NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 0
+	mx_debug(-2,("%s: echoed command '%s' to '%s'.",
+		fname, echoed_command, i404->record->name));
+#endif
 
 	/* The first byte that is returned tells us whether or not
 	 * an error occurred.  ACK (0x6) means OK.  BEL (0x7) means
