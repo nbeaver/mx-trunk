@@ -153,6 +153,8 @@ mxd_i404_amp_get_gain( MX_AMPLIFIER *amplifier )
 	MX_I404_AMP *i404_amp;
 	MX_I404 *i404;
 	char response[100];
+	double gain_value;
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxd_i404_amp_get_pointers( amplifier,
@@ -168,7 +170,16 @@ mxd_i404_amp_get_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	amplifier->gain = atof( response );
+	num_items = sscanf( response, "%lg", &gain_value );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Did not see a number in the response '%s' to the "
+		"command 'CONF:RANGE?' for '%s'.",
+			response, amplifier->record->name );
+	}
+
+	amplifier->gain = gain_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
