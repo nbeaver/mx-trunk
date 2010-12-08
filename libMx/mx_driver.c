@@ -573,6 +573,7 @@
 #include "d_epics_timer.h"
 #include "d_aps_gap.h"
 #include "v_aps_topup.h"
+#include "d_mbc_noir_1.h"
 #endif
 
 #if HAVE_ORTEC_UMCBI
@@ -2838,6 +2839,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_aps_gap_num_record_fields,
 				&mxd_aps_gap_record_field_def_ptr},
 
+{"mbc_noir_1",     MXT_AD_MBC_NOIR_1, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_mbc_noir_1_record_function_list,
+				NULL,
+				&mxd_mbc_noir_1_ad_function_list,
+				&mxd_mbc_noir_1_num_record_fields,
+				&mxd_mbc_noir_1_rfield_def_ptr},
 #endif /* HAVE_EPICS */
 
 #if HAVE_PCMOTION32

@@ -1,0 +1,732 @@
+/*
+ * Name:    d_mbc_noir_1.c
+ *
+ * Purpose: MX driver for the Molecular Biology Consortium's NOIR 1 detector.
+ *
+ * Author:  William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 2010 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#define MXD_MBC_NOIR_1_DEBUG	TRUE
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mxconfig.h"
+
+#if HAVE_EPICS
+
+#include "mx_util.h"
+#include "mx_record.h"
+#include "mx_bit.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
+#include "mx_epics.h"
+#include "d_mbc_noir_1.h"
+
+/*---*/
+
+MX_RECORD_FUNCTION_LIST mxd_mbc_noir_1_record_function_list = {
+	mxd_mbc_noir_1_initialize_driver,
+	mxd_mbc_noir_1_create_record_structures,
+	mxd_mbc_noir_1_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_mbc_noir_1_open
+};
+
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_mbc_noir_1_ad_function_list = {
+	NULL,
+	mxd_mbc_noir_1_trigger,
+	mxd_mbc_noir_1_abort,
+	mxd_mbc_noir_1_abort,
+	NULL,
+	NULL,
+	NULL,
+	mxd_mbc_noir_1_get_extended_status,
+	mxd_mbc_noir_1_readout_frame,
+	mxd_mbc_noir_1_correct_frame,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_mbc_noir_1_get_parameter,
+	mxd_mbc_noir_1_set_parameter,
+	mx_area_detector_default_measure_correction
+};
+
+MX_RECORD_FIELD_DEFAULTS mxd_mbc_noir_1_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
+	MXD_MBC_NOIR_1_STANDARD_FIELDS
+};
+
+long mxd_mbc_noir_1_num_record_fields
+		= sizeof( mxd_mbc_noir_1_record_field_defaults )
+			/ sizeof( mxd_mbc_noir_1_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_mbc_noir_1_rfield_def_ptr
+			= &mxd_mbc_noir_1_record_field_defaults[0];
+
+/*---*/
+
+static mx_status_type
+mxd_mbc_noir_1_get_pointers( MX_AREA_DETECTOR *ad,
+			MX_MBC_NOIR_1 **mbc_noir_1,
+			const char *calling_fname )
+{
+	static const char fname[] = "mxd_mbc_noir_1_get_pointers()";
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+	if (mbc_noir_1 == NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_MBC_NOIR_1 pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	*mbc_noir_1 = (MX_MBC_NOIR_1 *) ad->record->record_type_struct;
+
+	if ( *mbc_noir_1 == (MX_MBC_NOIR_1 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+  "MX_MBC_NOIR_1 pointer for record '%s' passed by '%s' is NULL.",
+			ad->record->name, calling_fname );
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_initialize_driver( MX_DRIVER *driver )
+{
+	long maximum_num_rois_varargs_cookie;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_initialize_driver( driver,
+					&maximum_num_rois_varargs_cookie );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_create_record_structures( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxd_mbc_noir_1_create_record_structures()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_MBC_NOIR_1 *mbc_noir_1;
+
+	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
+	}
+
+	mbc_noir_1 = (MX_MBC_NOIR_1 *)
+				malloc( sizeof(MX_MBC_NOIR_1) );
+
+	if ( mbc_noir_1 == (MX_MBC_NOIR_1 *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Cannot allocate memory for an MX_MBC_NOIR_1 structure." );
+	}
+
+	record->record_class_struct = ad;
+	record->record_type_struct = mbc_noir_1;
+	record->class_specific_function_list = &mxd_mbc_noir_1_ad_function_list;
+
+	memset( &(ad->sequence_parameters),
+			0, sizeof(ad->sequence_parameters) );
+
+	ad->record = record;
+	mbc_noir_1->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxd_mbc_noir_1_finish_record_initialization()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize MX EPICS data structures. */
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_angle_pv),
+			"%sCOLLECT:angle", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_delta_pv),
+			"%sCOLLECT:delta", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_distance_pv),
+			"%sCOLLECT:distance", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_energy_pv),
+			"%sCOLLECT:energy", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_expose_pv),
+			"%sCOLLECT:expose", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->collect_state_msg_pv),
+			"%sCOLLECT:state_msg", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_command_pv),
+			"%sNOIR:command", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_command_trig_pv),
+			"%sNOIR:commandTrig", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_dir_pv),
+			"%sNOIR:dir", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_dmd_pv),
+			"%sNOIR:dmd", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_err_msg_pv),
+			"%sNOIR:errMsg", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_file_pv),
+			"%sNOIR:file", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_process_time_pv),
+			"%sNOIR:processTime", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_response_pv),
+			"%sNOIR:response", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_response_trig_pv),
+			"%sNOIR:responseTrig", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_snap_time_pv),
+			"%sNOIR:snapTime", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_state_msg_pv),
+			"%sNOIR:stateMsg", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_store_msg_pv),
+			"%sNOIR:storeMsg", mbc_noir_1->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_noir_1->noir_store_time_pv),
+			"%sNOIR:storeTime", mbc_noir_1->epics_prefix );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_mbc_noir_1_open()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	unsigned long ad_flags, mask;
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+
+	mx_epics_set_debug_flag( TRUE );
+#endif
+
+	ad->maximum_frame_number = 0;
+	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
+	ad->status = 0;
+
+	/* Detect the presence of the detector by asking it for
+	 * its current state.
+	 */
+
+	mx_status = mx_caget( &(mbc_noir_1->noir_state_msg_pv),
+			MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s: NOIR state = '%s'", fname, epics_string));
+#endif
+
+	/* Set the default file format.
+	 *
+	 * FIXME - Are both of these necessary?
+	 */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+	ad->datafile_format = ad->frame_file_format;
+
+	ad->correction_frames_to_skip = 0;
+
+	/* Do we need automatic saving and/or loading of image frames by MX? */
+
+	ad_flags = ad->area_detector_flags;
+
+	mask = MXF_AD_LOAD_FRAME_AFTER_ACQUISITION
+		| MXF_AD_SAVE_FRAME_AFTER_ACQUISITION;
+
+	if ( ad_flags & mask ) {
+
+#if MXD_MBC_NOIR_1_DEBUG
+		MX_DEBUG(-2,
+	  ("%s: Enabling automatic datafile management.  ad_flags & mask = %lx",
+			fname, (ad_flags & mask) ));
+#endif
+		mx_status =
+		    mx_area_detector_setup_datafile_management( record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/*---*/
+
+	ad->bits_per_pixel = 16;
+	ad->bytes_per_pixel = 2;
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
+						ad->image_format_name,
+						MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->correction_calc_format = ad->image_format;
+
+	ad->maximum_framesize[0] = 0;	/* FIXME!!! */
+	ad->maximum_framesize[1] = 0;
+
+	/* Update the framesize and binsize to match. */
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	mx_status = mxd_mbc_noir_1_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s: framesize = (%lu, %lu), binsize = (%lu, %lu)",
+		fname, ad->framesize[0], ad->framesize[1],
+		ad->binsize[0], ad->binsize[1]));
+#endif
+
+	/* Initialize area detector parameters. */
+
+	ad->byte_order = (long) mx_native_byteorder();
+	ad->header_length = 0;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_trigger( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_trigger()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	int32_t trigger;
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	strlcpy( epics_string, "snap", sizeof(epics_string) );
+
+	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+				MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger = 1;
+
+	mx_status = mx_caput_nowait( &(mbc_noir_1->noir_command_trig_pv),
+					MX_CA_LONG, 1, &trigger );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_abort( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_abort()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	int32_t trigger;
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	strlcpy( epics_string, "init", sizeof(epics_string) );
+
+	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+				MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger = 1;
+
+	mx_status = mx_caput( &(mbc_noir_1->noir_command_trig_pv),
+					MX_CA_LONG, 1, &trigger );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_get_extended_status( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_get_extended_status()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s: detector '%s' status = %#lx",
+		fname, ad->record->name, (unsigned long) ad->status ));
+#endif
+
+	mx_status = mx_caget( &(mbc_noir_1->collect_state_msg_pv),
+					MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( epics_string, "waitCommand" ) == 0 ) {
+		ad->status = 0;
+	} else {
+		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_readout_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_readout_frame()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	int32_t trigger;
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	strlcpy( epics_string, "store", sizeof(epics_string) );
+
+	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+				MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	trigger = 1;
+
+	mx_status = mx_caput_nowait( &(mbc_noir_1->noir_command_trig_pv),
+					MX_CA_LONG, 1, &trigger );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_correct_frame()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* The MBC NOIR 1 detector automatically handles correction. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_get_parameter( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_get_parameter()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)) ));
+	}
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		ad->binsize[0] = 1;
+		ad->binsize[1] = 1;
+
+		ad->framesize[0] = ad->maximum_framesize[0];
+		ad->framesize[1] = ad->maximum_framesize[1];
+		break;
+
+	case MXLV_AD_BYTES_PER_FRAME:
+		ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+			* ad->framesize[0] * ad->framesize[1] );
+		break;
+
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		mx_status = mx_image_get_image_format_name_from_type(
+				ad->image_format, ad->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_BYTES_PER_PIXEL:
+		break;
+
+	case MXLV_AD_DETECTOR_READOUT_TIME:
+		break;
+
+	case MXLV_AD_SEQUENCE_TYPE:
+		sp->sequence_type = MXT_SQ_ONE_SHOT;
+		break;
+
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		sp->num_parameters = 1;
+		break;
+
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		mx_status = mx_caget( &(mbc_noir_1->collect_expose_pv),
+					MX_CA_DOUBLE, 1, &exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		sp->parameter_array[0] = exposure_time;
+		break;
+
+	case MXLV_AD_TRIGGER_MODE:
+		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		break;
+
+	default:
+		mx_status = mx_area_detector_default_get_parameter_handler(ad);
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_1_set_parameter( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_1_set_parameter()";
+
+	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_1_DEBUG
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)) ));
+	}
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	switch( ad->parameter_type ) {
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		ad->binsize[0] = 1;
+		ad->binsize[1] = 1;
+
+		ad->framesize[0] = ad->maximum_framesize[0];
+		ad->framesize[1] = ad->maximum_framesize[1];
+		break;
+
+	case MXLV_AD_SEQUENCE_TYPE:
+		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Sequence type %ld is not supported for "
+			"area detector '%s'.  "
+			"Only single frames are supported.",
+				sp->sequence_type, ad->record->name );
+		}
+
+		sp->sequence_type = MXT_SQ_ONE_SHOT;
+		break;
+
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		sp->num_parameters = 1;
+		break;
+
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		exposure_time = sp->parameter_array[0];
+
+		mx_status = mx_caput( &(mbc_noir_1->collect_expose_pv),
+					MX_CA_DOUBLE, 1, &exposure_time );
+		break; 
+
+	case MXLV_AD_TRIGGER_MODE:
+		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		break;
+
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	"Changing parameter '%s' for area detector '%s' is not supported.",
+			mx_get_field_label_string( ad->record,
+				ad->parameter_type ), ad->record->name );
+		break;
+
+	default:
+		mx_status = mx_area_detector_default_set_parameter_handler(ad);
+		break;
+	}
+
+	return mx_status;
+}
+
+#endif /* HAVE_EPICS */
+

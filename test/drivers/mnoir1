@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mnoir1.dat -s ./snoir1.dat $*
+
