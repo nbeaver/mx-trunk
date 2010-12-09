@@ -349,6 +349,14 @@ mxp_generate_macros( FILE *version_file )
 #if defined(__GLIBC__)
 	mxp_generate_glibc_macros( version_file );
 #endif
+
+#if defined(OS_RTEMS)
+	fprintf( version_file, "#define MX_RTEMS_VERSION    %luL\n",
+		__RTEMS_MAJOR__ * 1000000L
+		+ __RTEMS_MINOR__ * 1000L
+		+ __RTEMS_REVISION__ );
+#endif
+
 	return;
 }
 

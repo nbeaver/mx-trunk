@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,15 @@ Init( rtems_task_argument ignored )
 
 	rtems_bsdnet_initialize_network();
 
+#if ( MX_RTEMS_VERSION > 4009099 )
+	mount_and_make_target_path( NULL,
+				"/TFTP",
+				RTEMS_FILESYSTEM_TYPE_TFTPFS,
+				RTEMS_FILESYSTEM_READ_WRITE,
+				NULL );
+#else
 	rtems_bsdnet_initialize_tftp_filesystem();
+#endif
 
 	argv = (char **)
 		malloc( NUM_ARGUMENTS * sizeof(char *[MAX_ARGV_LENGTH+1]) );
