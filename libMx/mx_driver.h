@@ -741,7 +741,7 @@ extern "C" {
 #define MXT_AD_MLFSOM			240013
 #define MXT_AD_EPICS_AREA_DETECTOR	240014
 #define MXT_AD_MAR345			240015
-#define MXT_AD_MBC_NOIR_1		240016
+#define MXT_AD_MBC_NOIR			240016
 
 /* --- Waveform output types --- */
 

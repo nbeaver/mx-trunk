@@ -1,5 +1,5 @@
 /*
- * Name:    d_mbc_noir_1.c
+ * Name:    d_mbc_noir.c
  *
  * Purpose: MX driver for the Molecular Biology Consortium's NOIR 1 detector.
  *
@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_MBC_NOIR_1_DEBUG	TRUE
+#define MXD_MBC_NOIR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,79 +29,79 @@
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_epics.h"
-#include "d_mbc_noir_1.h"
+#include "d_mbc_noir.h"
 
 /*---*/
 
-MX_RECORD_FUNCTION_LIST mxd_mbc_noir_1_record_function_list = {
-	mxd_mbc_noir_1_initialize_driver,
-	mxd_mbc_noir_1_create_record_structures,
-	mxd_mbc_noir_1_finish_record_initialization,
+MX_RECORD_FUNCTION_LIST mxd_mbc_noir_record_function_list = {
+	mxd_mbc_noir_initialize_driver,
+	mxd_mbc_noir_create_record_structures,
+	mxd_mbc_noir_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_mbc_noir_1_open
+	mxd_mbc_noir_open
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_mbc_noir_1_ad_function_list = {
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_mbc_noir_ad_function_list = {
 	NULL,
-	mxd_mbc_noir_1_trigger,
-	mxd_mbc_noir_1_abort,
-	mxd_mbc_noir_1_abort,
-	NULL,
-	NULL,
-	NULL,
-	mxd_mbc_noir_1_get_extended_status,
-	mxd_mbc_noir_1_readout_frame,
-	mxd_mbc_noir_1_correct_frame,
+	mxd_mbc_noir_trigger,
+	mxd_mbc_noir_abort,
+	mxd_mbc_noir_abort,
 	NULL,
 	NULL,
 	NULL,
+	mxd_mbc_noir_get_extended_status,
+	mxd_mbc_noir_readout_frame,
+	mxd_mbc_noir_correct_frame,
 	NULL,
 	NULL,
-	mxd_mbc_noir_1_get_parameter,
-	mxd_mbc_noir_1_set_parameter,
+	NULL,
+	NULL,
+	NULL,
+	mxd_mbc_noir_get_parameter,
+	mxd_mbc_noir_set_parameter,
 	mx_area_detector_default_measure_correction
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_mbc_noir_1_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_mbc_noir_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
-	MXD_MBC_NOIR_1_STANDARD_FIELDS
+	MXD_MBC_NOIR_STANDARD_FIELDS
 };
 
-long mxd_mbc_noir_1_num_record_fields
-		= sizeof( mxd_mbc_noir_1_record_field_defaults )
-			/ sizeof( mxd_mbc_noir_1_record_field_defaults[0] );
+long mxd_mbc_noir_num_record_fields
+		= sizeof( mxd_mbc_noir_record_field_defaults )
+			/ sizeof( mxd_mbc_noir_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_mbc_noir_1_rfield_def_ptr
-			= &mxd_mbc_noir_1_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_mbc_noir_rfield_def_ptr
+			= &mxd_mbc_noir_record_field_defaults[0];
 
 /*---*/
 
 static mx_status_type
-mxd_mbc_noir_1_get_pointers( MX_AREA_DETECTOR *ad,
-			MX_MBC_NOIR_1 **mbc_noir_1,
+mxd_mbc_noir_get_pointers( MX_AREA_DETECTOR *ad,
+			MX_MBC_NOIR **mbc_noir,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_mbc_noir_1_get_pointers()";
+	static const char fname[] = "mxd_mbc_noir_get_pointers()";
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (mbc_noir_1 == NULL) {
+	if (mbc_noir == NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_MBC_NOIR_1 pointer passed by '%s' was NULL.",
+		"MX_MBC_NOIR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 
-	*mbc_noir_1 = (MX_MBC_NOIR_1 *) ad->record->record_type_struct;
+	*mbc_noir = (MX_MBC_NOIR *) ad->record->record_type_struct;
 
-	if ( *mbc_noir_1 == (MX_MBC_NOIR_1 *) NULL ) {
+	if ( *mbc_noir == (MX_MBC_NOIR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_MBC_NOIR_1 pointer for record '%s' passed by '%s' is NULL.",
+  "MX_MBC_NOIR pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -110,7 +110,7 @@ mxd_mbc_noir_1_get_pointers( MX_AREA_DETECTOR *ad,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_initialize_driver( MX_DRIVER *driver )
+mxd_mbc_noir_initialize_driver( MX_DRIVER *driver )
 {
 	long maximum_num_rois_varargs_cookie;
 	mx_status_type mx_status;
@@ -121,13 +121,13 @@ mxd_mbc_noir_1_initialize_driver( MX_DRIVER *driver )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_create_record_structures( MX_RECORD *record )
+mxd_mbc_noir_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_mbc_noir_1_create_record_structures()";
+			"mxd_mbc_noir_create_record_structures()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MBC_NOIR_1 *mbc_noir_1;
+	MX_MBC_NOIR *mbc_noir;
 
 	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
 
@@ -136,35 +136,35 @@ mxd_mbc_noir_1_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	mbc_noir_1 = (MX_MBC_NOIR_1 *)
-				malloc( sizeof(MX_MBC_NOIR_1) );
+	mbc_noir = (MX_MBC_NOIR *)
+				malloc( sizeof(MX_MBC_NOIR) );
 
-	if ( mbc_noir_1 == (MX_MBC_NOIR_1 *) NULL ) {
+	if ( mbc_noir == (MX_MBC_NOIR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	    "Cannot allocate memory for an MX_MBC_NOIR_1 structure." );
+	    "Cannot allocate memory for an MX_MBC_NOIR structure." );
 	}
 
 	record->record_class_struct = ad;
-	record->record_type_struct = mbc_noir_1;
-	record->class_specific_function_list = &mxd_mbc_noir_1_ad_function_list;
+	record->record_type_struct = mbc_noir;
+	record->class_specific_function_list = &mxd_mbc_noir_ad_function_list;
 
 	memset( &(ad->sequence_parameters),
 			0, sizeof(ad->sequence_parameters) );
 
 	ad->record = record;
-	mbc_noir_1->record = record;
+	mbc_noir->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_finish_record_initialization( MX_RECORD *record )
+mxd_mbc_noir_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_mbc_noir_1_finish_record_initialization()";
+			"mxd_mbc_noir_finish_record_initialization()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_finish_record_initialization( record );
@@ -174,80 +174,80 @@ mxd_mbc_noir_1_finish_record_initialization( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Initialize MX EPICS data structures. */
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_angle_pv),
-			"%sCOLLECT:angle", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_angle_pv),
+			"%sCOLLECT:angle", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_delta_pv),
-			"%sCOLLECT:delta", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_delta_pv),
+			"%sCOLLECT:delta", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_distance_pv),
-			"%sCOLLECT:distance", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_distance_pv),
+			"%sCOLLECT:distance", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_energy_pv),
-			"%sCOLLECT:energy", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_energy_pv),
+			"%sCOLLECT:energy", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_expose_pv),
-			"%sCOLLECT:expose", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_expose_pv),
+			"%sCOLLECT:expose", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->collect_state_msg_pv),
-			"%sCOLLECT:state_msg", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->collect_state_msg_pv),
+			"%sCOLLECT:stateMsg", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_command_pv),
-			"%sNOIR:command", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_command_pv),
+			"%sNOIR:command", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_command_trig_pv),
-			"%sNOIR:commandTrig", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_command_trig_pv),
+			"%sNOIR:commandTrig", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_dir_pv),
-			"%sNOIR:dir", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_dir_pv),
+			"%sNOIR:dir", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_dmd_pv),
-			"%sNOIR:dmd", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_dmd_pv),
+			"%sNOIR:dmd", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_err_msg_pv),
-			"%sNOIR:errMsg", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_err_msg_pv),
+			"%sNOIR:errMsg", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_file_pv),
-			"%sNOIR:file", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_file_pv),
+			"%sNOIR:file", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_process_time_pv),
-			"%sNOIR:processTime", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_process_time_pv),
+			"%sNOIR:processTime", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_response_pv),
-			"%sNOIR:response", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_response_pv),
+			"%sNOIR:response", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_response_trig_pv),
-			"%sNOIR:responseTrig", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_response_trig_pv),
+			"%sNOIR:responseTrig", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_snap_time_pv),
-			"%sNOIR:snapTime", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_snap_time_pv),
+			"%sNOIR:snapTime", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_state_msg_pv),
-			"%sNOIR:stateMsg", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_state_msg_pv),
+			"%sNOIR:stateMsg", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_store_msg_pv),
-			"%sNOIR:storeMsg", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_store_msg_pv),
+			"%sNOIR:storeMsg", mbc_noir->epics_prefix );
 
-	mx_epics_pvname_init( &(mbc_noir_1->noir_store_time_pv),
-			"%sNOIR:storeTime", mbc_noir_1->epics_prefix );
+	mx_epics_pvname_init( &(mbc_noir->noir_store_time_pv),
+			"%sNOIR:storeTime", mbc_noir->epics_prefix );
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_open( MX_RECORD *record )
+mxd_mbc_noir_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mbc_noir_1_open()";
+	static const char fname[] = "mxd_mbc_noir_open()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	unsigned long ad_flags, mask;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
@@ -259,12 +259,12 @@ mxd_mbc_noir_1_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 
 	mx_epics_set_debug_flag( TRUE );
@@ -279,13 +279,13 @@ mxd_mbc_noir_1_open( MX_RECORD *record )
 	 * its current state.
 	 */
 
-	mx_status = mx_caget( &(mbc_noir_1->noir_state_msg_pv),
+	mx_status = mx_caget( &(mbc_noir->noir_state_msg_pv),
 			MX_CA_STRING, 1, epics_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: NOIR state = '%s'", fname, epics_string));
 #endif
 
@@ -308,7 +308,7 @@ mxd_mbc_noir_1_open( MX_RECORD *record )
 
 	if ( ad_flags & mask ) {
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 		MX_DEBUG(-2,
 	  ("%s: Enabling automatic datafile management.  ad_flags & mask = %lx",
 			fname, (ad_flags & mask) ));
@@ -336,19 +336,19 @@ mxd_mbc_noir_1_open( MX_RECORD *record )
 
 	ad->correction_calc_format = ad->image_format;
 
-	ad->maximum_framesize[0] = 0;	/* FIXME!!! */
-	ad->maximum_framesize[1] = 0;
+	ad->maximum_framesize[0] = 2048;
+	ad->maximum_framesize[1] = 2048;
 
 	/* Update the framesize and binsize to match. */
 
 	ad->parameter_type = MXLV_AD_FRAMESIZE;
 
-	mx_status = mxd_mbc_noir_1_get_parameter( ad );
+	mx_status = mxd_mbc_noir_get_parameter( ad );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: framesize = (%lu, %lu), binsize = (%lu, %lu)",
 		fname, ad->framesize[0], ad->framesize[1],
 		ad->binsize[0], ad->binsize[1]));
@@ -368,22 +368,22 @@ mxd_mbc_noir_1_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_trigger( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_trigger( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_trigger()";
+	static const char fname[] = "mxd_mbc_noir_trigger()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t trigger;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -392,7 +392,7 @@ mxd_mbc_noir_1_trigger( MX_AREA_DETECTOR *ad )
 
 	strlcpy( epics_string, "snap", sizeof(epics_string) );
 
-	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+	mx_status = mx_caput( &(mbc_noir->noir_command_pv),
 				MX_CA_STRING, 1, epics_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -400,13 +400,13 @@ mxd_mbc_noir_1_trigger( MX_AREA_DETECTOR *ad )
 
 	trigger = 1;
 
-	mx_status = mx_caput_nowait( &(mbc_noir_1->noir_command_trig_pv),
+	mx_status = mx_caput_nowait( &(mbc_noir->noir_command_trig_pv),
 					MX_CA_LONG, 1, &trigger );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -415,28 +415,28 @@ mxd_mbc_noir_1_trigger( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_abort( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_abort( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_abort()";
+	static const char fname[] = "mxd_mbc_noir_abort()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	int32_t trigger;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
 	strlcpy( epics_string, "init", sizeof(epics_string) );
 
-	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+	mx_status = mx_caput( &(mbc_noir->noir_command_pv),
 				MX_CA_STRING, 1, epics_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -444,68 +444,78 @@ mxd_mbc_noir_1_abort( MX_AREA_DETECTOR *ad )
 
 	trigger = 1;
 
-	mx_status = mx_caput( &(mbc_noir_1->noir_command_trig_pv),
+	mx_status = mx_caput( &(mbc_noir->noir_command_trig_pv),
 					MX_CA_LONG, 1, &trigger );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_get_extended_status( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_get_extended_status()";
+	static const char fname[] = "mxd_mbc_noir_get_extended_status()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 
-#if MXD_MBC_NOIR_1_DEBUG
-	MX_DEBUG(-2,("%s: detector '%s' status = %#lx",
-		fname, ad->record->name, (unsigned long) ad->status ));
-#endif
+	ad->status = 0;
 
-	mx_status = mx_caget( &(mbc_noir_1->collect_state_msg_pv),
+	mx_status = mx_caget( &(mbc_noir->collect_state_msg_pv),
 					MX_CA_STRING, 1, epics_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( strcmp( epics_string, "waitCommand" ) == 0 ) {
-		ad->status = 0;
-	} else {
-		ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+	if ( strcmp( epics_string, "waitCommand" ) != 0 ) {
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
+
+	mx_status = mx_caget( &(mbc_noir->noir_state_msg_pv),
+					MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strcmp( epics_string, "waitCommand" ) != 0 ) {
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+	}
+
+#if MXD_MBC_NOIR_DEBUG
+	MX_DEBUG(-2,("%s: detector '%s' status = %#lx",
+		fname, ad->record->name, (unsigned long) ad->status ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_readout_frame( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_readout_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_readout_frame()";
+	static const char fname[] = "mxd_mbc_noir_readout_frame()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t trigger;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -514,7 +524,7 @@ mxd_mbc_noir_1_readout_frame( MX_AREA_DETECTOR *ad )
 
 	strlcpy( epics_string, "store", sizeof(epics_string) );
 
-	mx_status = mx_caput( &(mbc_noir_1->noir_command_pv),
+	mx_status = mx_caput( &(mbc_noir->noir_command_pv),
 				MX_CA_STRING, 1, epics_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -522,13 +532,13 @@ mxd_mbc_noir_1_readout_frame( MX_AREA_DETECTOR *ad )
 
 	trigger = 1;
 
-	mx_status = mx_caput_nowait( &(mbc_noir_1->noir_command_trig_pv),
+	mx_status = mx_caput_nowait( &(mbc_noir->noir_command_trig_pv),
 					MX_CA_LONG, 1, &trigger );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -537,19 +547,19 @@ mxd_mbc_noir_1_readout_frame( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_correct_frame( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_correct_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_correct_frame()";
+	static const char fname[] = "mxd_mbc_noir_correct_frame()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1;
+	MX_MBC_NOIR *mbc_noir;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG_FRAME_CORRECTION
+#if MXD_MBC_NOIR_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -559,21 +569,21 @@ mxd_mbc_noir_1_correct_frame( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_get_parameter( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_get_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_get_parameter()";
+	static const char fname[] = "mxd_mbc_noir_get_parameter()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
@@ -625,7 +635,7 @@ mxd_mbc_noir_1_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
-		mx_status = mx_caget( &(mbc_noir_1->collect_expose_pv),
+		mx_status = mx_caget( &(mbc_noir->collect_expose_pv),
 					MX_CA_DOUBLE, 1, &exposure_time );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -647,21 +657,21 @@ mxd_mbc_noir_1_get_parameter( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_noir_1_set_parameter( MX_AREA_DETECTOR *ad )
+mxd_mbc_noir_set_parameter( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_mbc_noir_1_set_parameter()";
+	static const char fname[] = "mxd_mbc_noir_set_parameter()";
 
-	MX_MBC_NOIR_1 *mbc_noir_1 = NULL;
+	MX_MBC_NOIR *mbc_noir = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_1_get_pointers( ad, &mbc_noir_1, fname );
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_MBC_NOIR_1_DEBUG
+#if MXD_MBC_NOIR_DEBUG
 	{
 		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 
@@ -704,7 +714,7 @@ mxd_mbc_noir_1_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		exposure_time = sp->parameter_array[0];
 
-		mx_status = mx_caput( &(mbc_noir_1->collect_expose_pv),
+		mx_status = mx_caput( &(mbc_noir->collect_expose_pv),
 					MX_CA_DOUBLE, 1, &exposure_time );
 		break; 
 
