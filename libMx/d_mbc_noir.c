@@ -31,6 +31,10 @@
 #include "mx_epics.h"
 #include "d_mbc_noir.h"
 
+#if 1
+#include "mx_key.h"
+#endif
+
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_mbc_noir_record_function_list = {
@@ -250,6 +254,7 @@ mxd_mbc_noir_open( MX_RECORD *record )
 	MX_MBC_NOIR *mbc_noir = NULL;
 	unsigned long ad_flags, mask;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	long dmd, trigger;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -288,6 +293,98 @@ mxd_mbc_noir_open( MX_RECORD *record )
 #if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: NOIR state = '%s'", fname, epics_string));
 #endif
+
+	/* Ask for the CCD mode via the 'dmd' PV (Detector MoDe?). */
+
+	mx_status = mx_caget( &(mbc_noir->noir_dmd_pv), MX_CA_LONG, 1, &dmd );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_DEBUG
+	MX_DEBUG(-2,("%s: NOIR dmd = %ld", fname, dmd ));
+#endif
+
+	/* If noir_dmd_pv has a value of 0, then the detector computer
+	 * may just have been powered on.  If so, then we must set the
+	 * dmd value to 3 and then initialize the detector.
+	 */
+
+	if ( dmd == 0 ) {
+		/* Set noir_dmd_pv to 3. */
+
+		dmd = 3;
+
+		mx_status = mx_caput( &(mbc_noir->noir_dmd_pv),
+					MX_CA_LONG, 1, &dmd );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 0
+		/* Set command select to 'position'.
+		 *
+		 * FIXME: What does this do exactly?
+		 */
+
+		strlcpy( epics_string, "position", sizeof(epics_string) );
+
+		mx_status = mx_caput( &(mbc_noir->collect_command_select_pv),
+					MX_CA_STRING, 1, epics_string );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
+
+		/* Tell the detector to initialize itself. */
+
+		strlcpy( epics_string, "init", sizeof(epics_string) );
+
+		mx_status = mx_caput( &(mbc_noir->noir_command_pv),
+					MX_CA_STRING, 1, epics_string );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		trigger = 1;
+
+		mx_status = mx_caput_nowait( &(mbc_noir->noir_command_trig_pv),
+						MX_CA_LONG, 1, &trigger );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait for the initialization to finish. */
+
+		while (1) {
+			mx_msleep(100);
+
+			mx_status = mx_caget( &(mbc_noir->noir_state_msg_pv),
+					MX_CA_STRING, 1, epics_string );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( strcmp( epics_string, "waitCommand" ) == 0 ) {
+				break;	/* Exit the while() loop. */
+			}
+		}
+
+		/* Did the initialization finish successfully? */
+
+		mx_status = mx_caget( &(mbc_noir->noir_err_msg_pv),
+					MX_CA_STRING, 1, epics_string );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( strcmp( epics_string, "SUCCESS_INIT_DLL" ) != 0 ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"Initializing NOIR detector '%s' failed with an "
+			"error message of '%s'.",
+				record->name, epics_string );
+		}
+	}
 
 	/* Set the default file format.
 	 *
