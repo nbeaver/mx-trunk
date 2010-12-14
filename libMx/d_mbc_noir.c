@@ -280,6 +280,8 @@ mxd_mbc_noir_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
+	mbc_noir->acquisition_in_progress = FALSE;
+
 	/* Detect the presence of the detector by asking it for
 	 * its current state.
 	 */
@@ -503,6 +505,8 @@ mxd_mbc_noir_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mbc_noir->acquisition_in_progress = TRUE;
+
 #if MXD_MBC_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
@@ -530,6 +534,7 @@ mxd_mbc_noir_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mbc_noir->acquisition_in_progress = FALSE;
 
 	strlcpy( epics_string, "init", sizeof(epics_string) );
 
@@ -588,9 +593,24 @@ mxd_mbc_noir_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
+	if ( mbc_noir->acquisition_in_progress ) {
+		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
+			ad->last_frame_number = -1;
+		} else {
+			mbc_noir->acquisition_in_progress = FALSE;
+
+			ad->last_frame_number = 0;
+			ad->total_num_frames++;
+		}
+	}
+
 #if MXD_MBC_NOIR_DEBUG
-	MX_DEBUG(-2,("%s: detector '%s' status = %#lx",
-		fname, ad->record->name, (unsigned long) ad->status ));
+	MX_DEBUG(-2,("%s: detector '%s' status = %#lx, "
+		"total_num_frames = %ld, last_frame_number = %ld",
+			fname, ad->record->name,
+			(unsigned long) ad->status,
+			ad->total_num_frames,
+			ad->last_frame_number ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

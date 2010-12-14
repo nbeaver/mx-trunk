@@ -42,6 +42,8 @@ typedef struct {
 	MX_EPICS_PV noir_store_msg_pv;
 	MX_EPICS_PV noir_store_time_pv;
 
+	mx_bool_type acquisition_in_progress;
+
 } MX_MBC_NOIR;
 
 #define MXD_MBC_NOIR_STANDARD_FIELDS \
