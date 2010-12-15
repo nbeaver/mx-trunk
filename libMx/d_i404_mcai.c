@@ -249,7 +249,6 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 	MX_I404_MCAI *i404_mcai;
 	MX_I404 *i404;
 	int num_items;
-	char *name;
 	char response[80];
 	double integration_time;
 	unsigned long overrange_flags;
@@ -306,7 +305,8 @@ mxd_i404_mcai_read( MX_MCAI *mcai )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCAI type '%s' specified for '%s'.",
-			name, mcai->record->name );
+			i404_mcai->mcai_type_name,
+			mcai->record->name );
 		break;
 	}
 
