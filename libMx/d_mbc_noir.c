@@ -57,7 +57,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_mbc_noir_ad_function_list = {
 	mxd_mbc_noir_get_extended_status,
 	mxd_mbc_noir_readout_frame,
 	mxd_mbc_noir_correct_frame,
-	NULL,
+	mxd_mbc_noir_transfer_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -683,6 +683,102 @@ mxd_mbc_noir_correct_frame( MX_AREA_DETECTOR *ad )
 	/* The MBC NOIR 1 detector automatically handles correction. */
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_noir_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_mbc_noir_transfer_frame()";
+
+	MX_MBC_NOIR *mbc_noir = NULL;
+	size_t dirname_length;
+	char remote_mbc_noir_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	char local_mbc_noir_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_noir_get_pointers( ad, &mbc_noir, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_NOIR_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* We can only handle transferring the image frame. */
+
+	if ( ad->transfer_frame != MXFT_AD_IMAGE_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Transferring frame type %lu is not supported for "
+		"MBC NOIR detector '%s'.  Only the image frame (type 0) "
+		"is supported.",
+			ad->transfer_frame, ad->record->name );
+	}
+
+	/* Fetch the current MBC NOIR directory and file name. */
+
+	mx_status = mx_caget( &(mbc_noir->noir_dir_pv),
+			MX_CA_STRING, 1, ad->datafile_directory );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caget( &(mbc_noir->noir_file_pv),
+			MX_CA_STRING, 1, ad->datafile_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We attempt to read in the most recently saved MBC NOIR image. */
+
+	dirname_length = strlen( ad->datafile_directory );
+
+	if ( dirname_length > 0 ) {
+		snprintf( remote_mbc_noir_filename,
+			sizeof(remote_mbc_noir_filename),
+			"%s/%s", ad->datafile_directory, ad->datafile_name );
+	} else {
+		snprintf( remote_mbc_noir_filename,
+			sizeof(remote_mbc_noir_filename),
+			"%s", ad->datafile_name );
+	}
+
+#if MXD_MBC_NOIR_SERVER_SOCKET_DEBUG
+	MX_DEBUG(-2,("%s: Remote MBC NOIR filename = '%s'",
+		fname, remote_mbc_noir_filename));
+#endif
+	if ( strlen( remote_mbc_noir_filename ) == 0 ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MBC NOIR 'datafile_directory' and 'datafile_name' "
+		"fields have not been initialized for detector '%s', so "
+		"we cannot read in the most recently acquired MBC NOIR image.",
+			ad->record->name );
+	}
+
+	/* Usually, this driver is not running on the same computer as 
+	 * the one running the NOIR EPICS server.  If so, then we can only
+	 * load the MBC NOIR file if it has been exported to us via somthing
+	 * like NFS or SMB.  If so, the local filename is probably different
+	 * from the filename on the 'mbc_noir' server computer.  We handle
+	 * this by stripping off the remote prefix and then prepending that
+	 * with the local prefix.
+	 */
+
+	mx_status = mx_change_filename_prefix( remote_mbc_noir_filename,
+					mbc_noir->remote_filename_prefix,
+					mbc_noir->local_filename_prefix,
+					local_mbc_noir_filename,
+					sizeof(local_mbc_noir_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now we can read in the MBC NOIR file. */
+
+	mx_status = mx_image_read_smv_file( &(ad->image_frame),
+					local_mbc_noir_filename );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

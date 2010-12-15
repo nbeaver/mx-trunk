@@ -21,6 +21,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	char epics_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
+	char remote_filename_prefix[ MXU_FILENAME_LENGTH+1 ];
+	char local_filename_prefix[ MXU_FILENAME_LENGTH+1 ];
 
 	MX_EPICS_PV collect_angle_pv;
 	MX_EPICS_PV collect_delta_pv;
@@ -49,6 +51,16 @@ typedef struct {
 #define MXD_MBC_NOIR_STANDARD_FIELDS \
   {-1, -1, "epics_prefix", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MBC_NOIR, epics_prefix), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "remote_filename_prefix", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MBC_NOIR, remote_filename_prefix), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "local_filename_prefix", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MBC_NOIR, local_filename_prefix), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_mbc_noir_initialize_driver( MX_DRIVER *driver );
@@ -65,6 +77,7 @@ MX_API mx_status_type mxd_mbc_noir_get_extended_status(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mbc_noir_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mbc_noir_correct_frame( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_mbc_noir_transfer_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mbc_noir_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_mbc_noir_set_parameter( MX_AREA_DETECTOR *ad );
 
