@@ -321,8 +321,8 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 # EPICS includes and libraries.
 #
 
-#EPICS_ARCH	= linux-x86		# For EPICS 3.14
-EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+EPICS_ARCH	= linux-x86		# For EPICS 3.14
+#EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
 #EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
@@ -334,8 +334,8 @@ EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
 #EPICS_TOP	= /opt/EPICS
 #EPICS_TOP	= /mnt/epics
 #EPICS_TOP	= /usr/local/epics
-EPICS_TOP	= /home/lavender/local/epics
-#EPICS_TOP	= /home1/daly/epics
+#EPICS_TOP	= /home/lavender/local/epics
+EPICS_TOP	= /home1/daly/epics
 
 EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
 			-I$(EPICS_TOP)/base/include/os/Linux

@@ -3065,7 +3065,11 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	/* Move to the first byte after the header. */
 
+#if 1
+	os_status = fseek( file, header_length, SEEK_SET );
+#else
 	os_status = fseek( file, MXU_IMAGE_SMV_HEADER_LENGTH, SEEK_SET );
+#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
