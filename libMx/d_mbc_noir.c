@@ -313,7 +313,7 @@ mxd_mbc_noir_open( MX_RECORD *record )
 	 */
 
 	if ( dmd == 0 ) {
-		/* Set noir_dmd_pv to 3. */
+		/* MBC always uses noir_dmd_pv set to 3. */
 
 		dmd = 3;
 
