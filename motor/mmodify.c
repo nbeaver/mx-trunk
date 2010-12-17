@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -151,6 +151,13 @@ motor_modify_fn( int argc, char *argv[] )
 			break;
 		case MXS_QUICK_SCAN:
 			status = motor_setup_quick_scan_parameters(
+				scan_name, scan,
+				scan_record_description,
+				MXU_RECORD_DESCRIPTION_LENGTH,
+				NULL, NULL, NULL );
+			break;
+		case MXS_AREA_DETECTOR_SCAN:
+			status = motor_setup_area_detector_scan_parameters(
 				scan_name, scan,
 				scan_record_description,
 				MXU_RECORD_DESCRIPTION_LENGTH,

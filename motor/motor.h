@@ -245,6 +245,14 @@ extern int motor_setup_quick_scan_parameters( char *scan_name,
 				char *measurement_parameters_string,
 				char *datafile_and_plot_parameters_string );
 
+extern int motor_setup_area_detector_scan_parameters( char *scan_name,
+				MX_SCAN *old_scan,
+				char *buffer,
+				size_t buffer_length,
+				char *input_devices_string,
+				char *measurement_parameters_string,
+				char *datafile_and_plot_parameters_string );
+
 extern mx_status_type motor_move_report_function(
 	unsigned long flags, long num_motors, MX_RECORD **motor_record );
 

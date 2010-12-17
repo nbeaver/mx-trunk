@@ -20,7 +20,7 @@ MOTOR_SRCS = command.c marea_detector.c mcopy.c mcopyfile.c mcount.c \
 	mmove_absolute.c mmove_relative.c motor.c moverwrite.c \
 	mparameter.c mptz.c mrelay.c mresync.c mrs232.c \
 	msample_changer.c msave.c msca.c \
-	mscan.c mscan_common.c \
+	mscan.c mscan_common.c mscan_area_detector.c \
 	mscan_linear.c mscan_list.c mscan_quick.c mscan_xafs.c \
 	mset.c mset_motor.c msetup.c mshow.c \
 	mstart.c mstop.c msystem.c mtake.c mtest.c mvinput.c mwvout.c
