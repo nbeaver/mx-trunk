@@ -607,6 +607,10 @@
 #include "d_handel_timer.h"
 #endif
 
+#if HAVE_PLEORA_IPORT
+#include "i_pleora_iport.h"
+#endif
+
   /********************** Record Types **********************/
 
 MX_DRIVER mx_type_table[] = {
@@ -1308,6 +1312,17 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_pmc_mcapi_dout_rfield_def_ptr},
 
 #endif /* HAVE_PMC_MCAPI */
+
+#if HAVE_PLEORA_IPORT
+
+{"pleora_iport",      MXI_CTRL_PLEORA_IPORT, MXI_CONTROLLER, MXR_INTERFACE,
+				&mxi_pleora_iport_record_function_list,
+				NULL,
+				NULL,
+				&mxi_pleora_iport_num_record_fields,
+				&mxi_pleora_iport_rfield_def_ptr},
+
+#endif /* HAVE_PLEORA_IPORT */
 
 #ifdef OS_LINUX
 #if HAVE_LINUX_PORTIO

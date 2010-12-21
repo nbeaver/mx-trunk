@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -38,6 +38,9 @@ LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
+
+INCLUDES = $(MX_INCLUDES) $(PLEORA_IPORT_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(PLEORA_IPORT_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES) $(U500_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS) $(U500_LIBS)
@@ -87,13 +90,14 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 # Visual Studio.NET 2003    (_MSC_VER == 1310)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 # Visual C++ 6.0            (_MSC_VER == 1200)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
+MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
@@ -124,12 +128,12 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
-PLATFORM_SDK = c:\\progra~1\\micros~4
+#PLATFORM_SDK = c:\\progra~1\\micros~4
 
-RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-MSDEV_DIR               = $(PLATFORM_SDK)
+#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#MSDEV_DIR               = $(PLATFORM_SDK)
 
 #---------------------------------------------------------------------------
 #
@@ -270,6 +274,15 @@ ESONE_CAMAC_INCLUDES = -I$(JORWAY_CAMAC_DIR)\\inc
 DRIVERLINX_DIR      = c:\\progra~1\\DLPortIO
 DRIVERLINX_INCLUDES = -I$(DRIVERLINX_DIR)\\API
 DRIVERLINX_LIBS     = $(DRIVERLINX_DIR)\\API\\DLPORTIO.lib
+
+#---------------------------------------------------------------------------
+#
+# Pleora iPort camera interface.
+#
+
+PLEORA_IPORT_DIR      = d:\\progra~1\\pleora~1\\ebus-v~1
+PLEORA_IPORT_INCLUDES = -I$(PLEORA_IPORT_DIR)\\Includes -DIS_MX_DRIVER
+PLEORA_IPORT_LIBS     = $(PLEORA_IPORT_DIR)\\Libraries\\CyComLib.lib
 
 #---------------------------------------------------------------------------
 #

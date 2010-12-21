@@ -252,6 +252,7 @@ extern "C" {
 #define MXI_CTRL_POWERPMAC		460
 #define MXI_CTRL_SIM900			461
 #define MXI_CTRL_I404			462
+#define MXI_CTRL_PLEORA_IPORT		463
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -742,6 +743,7 @@ extern "C" {
 #define MXT_AD_EPICS_AREA_DETECTOR	240014
 #define MXT_AD_MAR345			240015
 #define MXT_AD_MBC_NOIR			240016
+#define MXT_AD_PLEORA_IPORT		240017
 
 /* --- Waveform output types --- */
 

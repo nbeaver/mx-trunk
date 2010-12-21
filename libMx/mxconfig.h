@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -190,6 +190,13 @@
  */
 
 #define HAVE_PMC_MCAPI			0
+
+/*****************************************************************************
+ *
+ * Win32 driver for cameras supported by the Pleora iPort interface.
+ */
+
+#define HAVE_PLEORA_IPORT		1
 
 /*****************************************************************************
  *
