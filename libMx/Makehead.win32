@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-#INCLUDES  = $(MX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS)
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -39,8 +39,8 @@
 #INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(PLEORA_IPORT_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(PLEORA_IPORT_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(PLEORA_IPORT_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(PLEORA_IPORT_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES) $(U500_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS) $(U500_LIBS)
@@ -97,7 +97,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
+#MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
@@ -128,12 +128,12 @@ MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
-#PLATFORM_SDK = c:\\progra~1\\micros~4
+PLATFORM_SDK = c:\\progra~1\\micros~4
 
-#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#MSDEV_DIR               = $(PLATFORM_SDK)
+RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+MSDEV_DIR               = $(PLATFORM_SDK)
 
 #---------------------------------------------------------------------------
 #
@@ -381,6 +381,8 @@ UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
+
+MX_LIB_OBJS += $(MX_LIB_CPP_OBJS)
 
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 MX_LIB_OBJS += ..\\tools\\strptime.obj

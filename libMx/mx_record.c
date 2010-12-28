@@ -37,6 +37,7 @@
 #include "mx_net.h"
 #include "mx_motor.h"
 #include "mx_export.h"
+#include "mx_module.h"
 
 /* === Private function definitions === */
 
@@ -1146,6 +1147,38 @@ mxp_readline_from_array( MXP_DB_SOURCE *db_source,
 }
 
 static mx_status_type
+mxp_get_filename_for_read_database( char *line_buffer,
+				char *filename,
+				size_t max_filename_length )
+{
+	MX_RECORD_FIELD_PARSE_STATUS parse_status;
+	char token[ MXU_FILENAME_LENGTH + 1 ];
+	mx_status_type mx_status;
+
+	/* Get ready to parse the first two tokens on this line. */
+
+	mx_initialize_parse_status( &parse_status,
+				line_buffer, MX_RECORD_FIELD_SEPARATORS );
+
+	/* Skip the first token since we already know that it is the
+	 * !include, !load, etc. statement.
+	 */
+
+	mx_status = mx_get_next_record_token( &parse_status,
+					token, sizeof( token ) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The next token should be the file name that we are looking for. */
+
+	mx_status = mx_get_next_record_token( &parse_status,
+					filename, max_filename_length );
+
+	return mx_status;
+}
+
+static mx_status_type
 mx_read_database_private( MX_RECORD *record_list_head,
 			MXP_DB_SOURCE *db_source,
 			unsigned long flags )
@@ -1156,8 +1189,11 @@ mx_read_database_private( MX_RECORD *record_list_head,
 	MX_RECORD *created_record;
 	char buffer[MXU_RECORD_DESCRIPTION_LENGTH+1];
 	int saved_errno;
+#if 0
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char token[ MXU_FILENAME_LENGTH + 1 ];
+#endif
+	char filename[ MXU_FILENAME_LENGTH + 1 ];
 	mx_status_type mx_status;
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
@@ -1243,6 +1279,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			 * here.
 			 */
 
+#if 0
 			/* Get ready to parse the first two tokens on
 			 * this line.
 			 */
@@ -1265,29 +1302,51 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			 */
 
 			mx_status = mx_get_next_record_token( &parse_status,
-						token, sizeof( token ) );
+						filename, sizeof( filename ) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+#else
+			mx_status = mxp_get_filename_for_read_database(
+					buffer, filename, sizeof(filename) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+#endif
 
 			MX_DEBUG( 2,("%s: Trying to read include file '%s'",
-				fname, token));
+				fname, filename));
 
 			/* Try to read the include file. */
 
 			mx_status = mx_read_database_file( record_list_head,
-						token, flags );
+						filename, flags );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			MX_DEBUG( 2,("%s: Successfully read include file '%s'",
-				fname, token));
+				fname, filename));
 
 		} else if ( strncmp( buffer, "!export ", 8 ) == 0 ) {
 
 			mx_status = mx_invoke_export_callback( record_list_head,
 								buffer );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+		} else if ( strncmp( buffer, "!load ", 6 ) == 0 ) {
+
+			mx_status = mxp_get_filename_for_read_database(
+					buffer, filename, sizeof(filename) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Try to read a dynamically loadable MX module. */
+
+			mx_status = mx_load_module( filename, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

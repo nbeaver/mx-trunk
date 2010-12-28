@@ -193,10 +193,10 @@
 
 /*****************************************************************************
  *
- * Win32 driver for cameras supported by the Pleora iPort interface.
+ * Win32 drivers for cameras supported by the Pleora iPort interface.
  */
 
-#define HAVE_PLEORA_IPORT		1
+#define HAVE_PLEORA_IPORT		0
 
 /*****************************************************************************
  *
