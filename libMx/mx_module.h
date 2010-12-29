@@ -37,10 +37,7 @@ typedef struct {
 	char name[MXU_MODULE_NAME_LENGTH+1];
 	unsigned long mx_version;
 
-	unsigned long num_drivers;
 	MX_DRIVER *driver_table;
-
-	unsigned long num_extensions;
 	MX_EXTENSION *extension_table;
 
 	MX_DYNAMIC_LIBRARY *library;

@@ -1,0 +1,2 @@
+!load ../bnc725_lib.mxo
+bnc725 interface controller bnc725_lib "" ""

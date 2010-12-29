@@ -190,6 +190,23 @@ static MX_DRIVER *mx_driver_list = NULL;
 
 /*-----*/
 
+/* If, when loaded, an MX driver has an "mx_type" that is less than 0,
+ * then this means that the driver writer has requested that MX allocate
+ * an "mx_type" value dynamically.  mxp_next_dynamic_driver_type is used
+ * to store the value of the next available "mx_type" number.
+ *
+ * By setting MX_DYNAMIC_DRIVER_BASE to 1,000,000,000 we make it possible
+ * for there to be up to 1,147,483,647 dynamically allocated driver numbers
+ * on a 32-bit computer.  On a 64-bit machine, the limit is, of course,
+ * much larger.
+ */
+
+#define MX_DYNAMIC_DRIVER_BASE	1000000000L
+
+static long mxp_next_dynamic_driver_type = MX_DYNAMIC_DRIVER_BASE;
+
+/*-----*/
+
 MX_EXPORT MX_DRIVER *
 mx_get_driver_by_name( char *driver_name )
 {
@@ -519,6 +536,8 @@ mxp_setup_typeinfo_for_record_type_fields( MX_DRIVER *type_driver )
 static mx_status_type
 mxp_initialize_driver_entry( MX_DRIVER *driver )
 {
+	static const char fname[] = "mxp_initialize_driver_entry()";
+
 	MX_RECORD_FIELD_DEFAULTS *defaults_array;
 	MX_RECORD_FIELD_DEFAULTS *array_element;
 	MX_RECORD_FUNCTION_LIST *flist;
@@ -597,6 +616,39 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 		}
 	}
 
+	/* If "mx_type" is greater than MX_DYNAMIC_DRIVER_BASE, then
+	 * the driver writer has picked a static driver type value from
+	 * the dynamic range.  This is illegal, so we must generate
+	 * an error for this.
+	 */
+
+	if ( driver->mx_type >= MX_DYNAMIC_DRIVER_BASE ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Static MX driver number %ld is in the dynamic driver number "
+		"range of %ld and above.  Statically allocated MX driver "
+		"numbers must be a unique value in the range from 0 "
+		"to %ld.", driver->mx_type, MX_DYNAMIC_DRIVER_BASE - 1L );
+	}
+
+	/* If "mx_type" is less than zero, then we must dynamically
+	 * allocate an "mx_type" for the driver.
+	 */
+
+	if ( driver->mx_type < 0 ) {
+		if ( mxp_next_dynamic_driver_type >= LONG_MAX ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"We have run out of dynamically allocated "
+			"MX driver type numbers!  The maximum possible "
+			"number of dynamically loaded drivers is %ld, so "
+			"this is unlikely to happen in normal operation.",
+				LONG_MAX - MX_DYNAMIC_DRIVER_BASE - 1L );
+		}
+
+		driver->mx_type = mxp_next_dynamic_driver_type;
+
+		mxp_next_dynamic_driver_type++;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -608,7 +660,7 @@ mx_add_driver_table( MX_DRIVER *driver_table )
 	static const char fname[] = "mx_add_driver_table()";
 
 	MX_DRIVER *current_driver, *table_entry;
-	unsigned long i;
+	unsigned long i, offset;
 	mx_status_type mx_status;
 
 	if ( driver_table == (MX_DRIVER *) NULL ) {
@@ -616,20 +668,22 @@ mx_add_driver_table( MX_DRIVER *driver_table )
 		"The driver table pointer passed was NULL." );
 	}
 
-	/* Initialize the first driver in the table. */
-
-	mx_status = mxp_initialize_driver_entry( &driver_table[0] );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( mx_driver_list == (MX_DRIVER *) NULL ) {
+	if ( mx_driver_list != (MX_DRIVER *) NULL ) {
+		offset = 0;
+	} else {
 		/* We are loading our first driver table,
 		 * so initialize the driver list. */
+
+		mx_status = mxp_initialize_driver_entry( &driver_table[0] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_driver_list = &driver_table[0];
 
 		mx_driver_list->next_driver = NULL;
+
+		offset = 1;
 	}
 
 	current_driver = mx_driver_list;
@@ -642,7 +696,7 @@ mx_add_driver_table( MX_DRIVER *driver_table )
 		
 	/* Add in the rest of the driver table to the loaded driver list. */
 
-	for ( i = 1; ; i++ ) {
+	for ( i = offset; ; i++ ) {
 		table_entry = &driver_table[i];
 
 		table_entry->next_driver = NULL;

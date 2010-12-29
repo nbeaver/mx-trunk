@@ -74,34 +74,41 @@ mx_load_module( char *filename, MX_MODULE **module )
 	MX_DEBUG(-2,("%s: Module '%s' loaded from file '%s'.",
 		fname, module_ptr->name, filename ));
 	MX_DEBUG(-2,
-	("%s: Module '%s', MX version %lu, %lu drivers, %lu extensions.",
+	("%s: Module '%s', MX version %lu, drivers = %p, extensions = %p",
 		fname, module_ptr->name, module_ptr->mx_version,
-		module_ptr->num_drivers, module_ptr->num_extensions));
+		module_ptr->driver_table, module_ptr->extension_table));
 #endif
 
 	/* If there is a driver table in the module, add this driver table
 	 * to our list of drivers.
 	 */
 
-	if ( module_ptr->num_drivers > 0 ) {
-		if ( module_ptr->driver_table == (MX_DRIVER *) NULL ) {
-			mx_warning(
-			"Loadable module '%s' says that it has %lu drivers, "
-			"but the driver table pointer is NULL.",
-				module_ptr->name, module_ptr->num_drivers );
-		} else {
+	if ( module_ptr->driver_table != (MX_DRIVER *) NULL ) {
 
 #if MX_MODULE_DEBUG
-			MX_DEBUG(-2,("%s: Adding %lu drivers from module '%s'.",
-				fname, module_ptr->num_drivers,
-				module_ptr->name));
-#endif
-			mx_status = mx_add_driver_table(
-					module_ptr->driver_table );
+		MX_DEBUG(-2,("%s: Adding drivers from module '%s'.",
+				fname, module_ptr->name));
+		{
+			MX_DRIVER *driver;
+			unsigned long i;
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			for ( i = 0; ; i++ ) {
+				driver = &(module_ptr->driver_table[i]);
+
+				if ( driver->mx_superclass == 0 ) {
+					break;
+				}
+
+				MX_DEBUG(-2,("%s: Found driver '%s'",
+					fname, driver->name));
+			}
 		}
+#endif
+
+		mx_status = mx_add_driver_table( module_ptr->driver_table );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* FIXME: Currently we ignore the extensions table. */
