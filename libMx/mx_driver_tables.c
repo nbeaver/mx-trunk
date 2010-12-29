@@ -626,8 +626,10 @@ mxp_initialize_driver_entry( MX_DRIVER *driver )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Static MX driver number %ld is in the dynamic driver number "
 		"range of %ld and above.  Statically allocated MX driver "
-		"numbers must be a unique value in the range from 0 "
-		"to %ld.", driver->mx_type, MX_DYNAMIC_DRIVER_BASE - 1L );
+		"numbers must be a unique value in the range from 0 to %ld.",
+			driver->mx_type,
+			MX_DYNAMIC_DRIVER_BASE,
+			MX_DYNAMIC_DRIVER_BASE - 1L );
 	}
 
 	/* If "mx_type" is less than zero, then we must dynamically
