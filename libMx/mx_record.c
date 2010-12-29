@@ -1196,8 +1196,6 @@ mx_read_database_private( MX_RECORD *record_list_head,
 	char filename[ MXU_FILENAME_LENGTH + 1 ];
 	mx_status_type mx_status;
 
-	char separators[] = MX_RECORD_FIELD_SEPARATORS;
-
 	if ( db_source->is_array ) {
 
 		/* Is an array */
@@ -1285,7 +1283,8 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			 */
 
 			mx_initialize_parse_status( &parse_status,
-							buffer, separators );
+					buffer, MX_RECORD_FIELD_SEPARATORS );
+
 
 			/* Skip the first token since we already know that
 			 * it is the !include statement.
