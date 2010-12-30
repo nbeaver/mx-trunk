@@ -10,7 +10,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(BNC_DIR)
 
-BNC725_LIB_OBJS = bnc725_lib.$(OBJ) i_bnc725_lib.$(OBJ)
+BNC725_LIB_OBJS = bnc725_lib.$(OBJ) i_bnc725_lib.$(OBJ) d_bnc725_lib.$(OBJ)
 
 bnc725_lib.mxo: $(BNC725_LIB_OBJS)
 	link /dll /debug /nologo /out:bnc725_lib.mxo /nodefaultlib:libc \
@@ -30,6 +30,9 @@ bnc725_lib.$(OBJ): bnc725_lib.c i_bnc725_lib.h
 
 i_bnc725_lib.$(OBJ): i_bnc725_lib.cpp i_bnc725_lib.h
 	$(COMPILE) $(CFLAGS) i_bnc725_lib.cpp
+
+d_bnc725_lib.$(OBJ): d_bnc725_lib.cpp d_bnc725_lib.h i_bnc725_lib.h
+	$(COMPILE) $(CFLAGS) d_bnc725_lib.cpp
 
 
 clean:
