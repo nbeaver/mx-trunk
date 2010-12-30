@@ -1,10 +1,12 @@
 /*
- * Name:    i_bnc725_lib.c
+ * Name:    i_bnc725_lib.cpp
  *
  * Purpose: MX driver for the vendor-provided Win32 C++ library for the
  *          BNC725 digital delay generator.
  *
  * Author:  William Lavender
+ *
+ * NOTE:    This file must be compiled as C++ code.
  *
  *--------------------------------------------------------------------------
  *
@@ -18,6 +20,8 @@
 #define MXI_BNC725_LIB_DEBUG		TRUE
 
 #include <stdio.h>
+#include <ctype.h>
+#include <windows.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -34,7 +38,8 @@ MX_RECORD_FUNCTION_LIST mxi_bnc725_lib_record_function_list = {
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_bnc725_lib_record_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS
+	MX_RECORD_STANDARD_FIELDS,
+	MXI_BNC725_LIB_STANDARD_FIELDS
 };
 
 long mxi_bnc725_lib_num_record_fields
@@ -102,6 +107,13 @@ mxi_bnc725_lib_create_record_structures( MX_RECORD *record )
 
 	bnc725_lib->record = record;
 
+	bnc725_lib->clc880 = new CLC880;
+
+	if ( bnc725_lib->clc880 == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to create a CLC880 object." );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -111,10 +123,104 @@ mxi_bnc725_lib_open( MX_RECORD *record )
 	static const char fname[] = "mxi_bnc725_lib_open()";
 
 	MX_BNC725_LIB *bnc725_lib;
+	int i, c, num_items, com_number, com_speed, status;
 	mx_status_type mx_status;
 
 #if MXI_BNC725_LIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
+
+	mx_status = mxi_bnc725_lib_get_pointers( record, &bnc725_lib, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the COM port number. */
+
+	if ( mx_strncasecmp( "COM", bnc725_lib->port_name, 3 ) != 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The port name '%s' specified for BNC725 '%s' is not "
+		"a COM port name.", record->name );
+	}
+
+	/* Force the COM port name to upper case. */
+
+	for ( i = 0; i < 3; i++ ) {
+		c = bnc725_lib->port_name[i];
+
+		if ( islower(c) ) {
+			bnc725_lib->port_name[i] = (char) toupper(c);
+		}
+	}
+
+	/* Parse out the COM port number. */
+
+	num_items = sscanf( bnc725_lib->port_name, "COM%d:", &com_number );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Could not get the COM port number from port name '%s' "
+		"for BNC725 '%s'.", bnc725_lib->port_name, record->name );
+	}
+
+	/* Convert the port speed into the form 
+	 * expected by the vendor library.
+	 */
+
+	switch( bnc725_lib->port_speed ) {
+	case 2400:
+		com_speed = COMBAUD_2400;
+		break;
+	case 4800:
+		com_speed = COMBAUD_4800;
+		break;
+	case 9600:
+		com_speed = COMBAUD_9600;
+		break;
+	case 19200:
+		com_speed = COMBAUD_19200;
+		break;
+	case 38400:
+		com_speed = COMBAUD_38400;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported port speed %lu requested for BNC725 '%s'.  "
+		"The supported port speeds are 2400, 4800, 9600, 19200, "
+		"and 38400.", bnc725_lib->port_speed, record->name );
+		break;
+	}
+
+#if MXI_BNC725_LIB_DEBUG
+	MX_DEBUG(-2,("%s: BNC725 '%s', com_number = %d, com_speed = %d.",
+		fname, record->name, com_number, com_speed));
+#endif
+
+	/* Open a connection to the BNC 725 controller. */
+
+	status = bnc725_lib->clc880->InitConnection( com_number, com_speed );
+
+	if ( status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to open a connection on '%s' "
+		"to BNC725 '%s' failed.  status = %d",
+			bnc725_lib->port_name,
+			record->name, status );
+	}
+
+	/* Program all settings to defaults. */
+
+	status = bnc725_lib->clc880->CmdUpdateAll();
+
+	if ( status == 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to program all settings of BNC725 '%s' failed.  "
+		"status = %d", record->name, status );
+	}
+
+#if MXI_BNC725_LIB_DEBUG
+	MX_DEBUG(-2,("%s: BNC725 '%s' successfully initialized.",
+		fname, record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -126,12 +232,21 @@ mxi_bnc725_lib_close( MX_RECORD *record )
 	static const char fname[] = "mxi_bnc725_lib_close()";
 
 	MX_BNC725_LIB *bnc725_lib;
+	int status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_bnc725_lib_get_pointers( record, &bnc725_lib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	status = bnc725_lib->clc880->CloseConnection();
+
+	if ( status != 0 ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to close the connection to BNC725 '%s' failed.  "
+		"status = %d",  record->name, status );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
