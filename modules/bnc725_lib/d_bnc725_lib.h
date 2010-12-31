@@ -25,6 +25,8 @@ typedef struct {
 
 	MX_RECORD *bnc725_lib_record;
 	char channel_name;
+
+	CChannel *channel;
 } MX_BNC725_LIB_CHANNEL;
 
 #define MXD_BNC725_LIB_STANDARD_FIELDS \

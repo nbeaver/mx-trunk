@@ -23,6 +23,10 @@
 /* BNC-provided headers. */
 
 #include "BNC725.h"
+#include "Channel.h"
+#include "DlyDrt.h"
+#include "Clock.h"
+#include "Null.h"
 
 /*----*/
 
@@ -33,7 +37,7 @@ typedef struct {
 	char port_name[MXU_BNC725_PORT_NAME_LENGTH+1];
 	unsigned long port_speed;
 
-	CLC880 *clc880;
+	CLC880 *port;
 
 } MX_BNC725_LIB;
 

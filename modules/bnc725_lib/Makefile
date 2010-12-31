@@ -25,7 +25,7 @@ bnc725_lib.mxo: $(BNC725_LIB_OBJS)
 		rm -f bnc725_lib.mxo.manifest; \
 	fi
 
-bnc725_lib.$(OBJ): bnc725_lib.c i_bnc725_lib.h
+bnc725_lib.$(OBJ): bnc725_lib.c i_bnc725_lib.h d_bnc725_lib.h
 	$(COMPILE) $(CFLAGS) bnc725_lib.c
 
 i_bnc725_lib.$(OBJ): i_bnc725_lib.cpp i_bnc725_lib.h

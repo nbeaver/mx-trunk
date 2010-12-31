@@ -107,11 +107,11 @@ mxi_bnc725_lib_create_record_structures( MX_RECORD *record )
 
 	bnc725_lib->record = record;
 
-	bnc725_lib->clc880 = new CLC880;
+	bnc725_lib->port = new CLC880;
 
-	if ( bnc725_lib->clc880 == NULL ) {
+	if ( bnc725_lib->port == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to create a CLC880 object." );
+		"Ran out of memory trying to create a CLC880 port object." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -198,7 +198,7 @@ mxi_bnc725_lib_open( MX_RECORD *record )
 
 	/* Open a connection to the BNC 725 controller. */
 
-	status = bnc725_lib->clc880->InitConnection( com_number, com_speed );
+	status = bnc725_lib->port->InitConnection( com_number, com_speed );
 
 	if ( status != 0 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -210,7 +210,7 @@ mxi_bnc725_lib_open( MX_RECORD *record )
 
 	/* Program all settings to defaults. */
 
-	status = bnc725_lib->clc880->CmdUpdateAll();
+	status = bnc725_lib->port->CmdUpdateAll();
 
 	if ( status == 0 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
@@ -232,7 +232,7 @@ mxi_bnc725_lib_close( MX_RECORD *record )
 	static const char fname[] = "mxi_bnc725_lib_close()";
 
 	MX_BNC725_LIB *bnc725_lib;
-	int status;
+	int bnc_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_bnc725_lib_get_pointers( record, &bnc725_lib, fname );
@@ -240,12 +240,12 @@ mxi_bnc725_lib_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	status = bnc725_lib->clc880->CloseConnection();
+	bnc_status = bnc725_lib->port->CloseConnection();
 
-	if ( status != 0 ) {
+	if ( bnc_status != 0 ) {
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"The attempt to close the connection to BNC725 '%s' failed.  "
-		"status = %d",  record->name, status );
+		"BNC status = %d",  record->name, bnc_status );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
