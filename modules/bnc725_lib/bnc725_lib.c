@@ -44,10 +44,6 @@ MX_DRIVER bnc725_lib_driver_table[] = {
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
-unsigned long bnc725_lib_num_drivers =
-		sizeof( bnc725_lib_driver_table )
-		/ sizeof( bnc725_lib_driver_table[0] );
-
 MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
 	"bnc725_lib",

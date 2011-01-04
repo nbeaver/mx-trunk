@@ -17,16 +17,20 @@
 #ifndef __I_PLEORA_IPORT_H__
 #define __I_PLEORA_IPORT_H__
 
+/* Vendor include files. */
+
+#include "CyDeviceFinder.h"
+
+/*----*/
+
 typedef struct {
 	MX_RECORD *record;
 
-#if IS_MX_DRIVER
 	CyDeviceFinderH finder_handle;
 
 	long max_num_devices;
 	long num_devices;
 	struct CyDeviceEntry **device_array;
-#endif /* IS_MX_DRIVER */
 
 } MX_PLEORA_IPORT;
 

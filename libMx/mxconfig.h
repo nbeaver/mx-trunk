@@ -193,13 +193,6 @@
 
 /*****************************************************************************
  *
- * Win32 drivers for cameras supported by the Pleora iPort interface.
- */
-
-#define HAVE_PLEORA_IPORT		0
-
-/*****************************************************************************
- *
  * Win32 driver for the National Instruments stepper and servo boards
  * that were originally made by nuLogic.  This includes the ValueMotion
  * series of motor controllers.  The PCMOTION32.DLL and PCMOTION32.LIB

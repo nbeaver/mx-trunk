@@ -18,12 +18,6 @@
 
 #include <stdio.h>
 
-#include "mxconfig.h"
-
-#if HAVE_PLEORA_IPORT
-
-#include "CyDeviceFinder.h"
-
 #include "mx_util.h"
 #include "mx_record.h"
 #include "i_pleora_iport.h"
@@ -256,7 +250,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 #if MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: %ld devices found for '%s'",
-		fname, pleora_iport->num_devices));
+		fname, pleora_iport->num_devices, record->name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -284,6 +278,4 @@ mxi_pleora_iport_close( MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_PLEORA_IPORT */
 
