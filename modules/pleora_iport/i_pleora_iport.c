@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -252,6 +252,29 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: %ld devices found for '%s'",
 		fname, pleora_iport->num_devices, record->name));
 #endif
+
+	if ( pleora_iport->num_devices ) {
+		mx_warning(
+		"No Pleora iPORT cameras were found on the network." );
+
+#if MXI_PLEORA_IPORT_DEBUG
+	} else {
+		struct CyDeviceEntry *device_entry;
+
+		MX_DEBUG(-2,("%s: Pleora iPORT cameras:", fname));
+
+		for ( i = 0; i < pleora_iport->num_devices; i++ ) {
+			device_entry = pleora_iport->device_array[i];
+
+			MX_DEBUG(-2,("%s:   %s, %s, %s, %s",
+				fname,
+				device_entry->mDeviceName,
+				device_entry->mModelName,
+				device_entry->mManufacturerName,
+				device_entry->mAddressIP ));
+		}
+#endif
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

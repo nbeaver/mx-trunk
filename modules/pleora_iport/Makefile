@@ -11,7 +11,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(PLEORA_IPORT_DIR)\\Includes
 
 PLEORA_IPORT_OBJS = pleora_iport.$(OBJ) \
-		i_pleora_iport.$(OBJ) d_pleora_iport.$(OBJ)
+		i_pleora_iport.$(OBJ) d_pleora_iport_vinput.$(OBJ)
 
 pleora_iport.mxo: $(PLEORA_IPORT_OBJS)
 	link /dll /debug /nologo /out:pleora_iport.mxo /nodefaultlib:libc \
@@ -26,14 +26,15 @@ pleora_iport.mxo: $(PLEORA_IPORT_OBJS)
 		rm -f pleora_iport.mxo.manifest; \
 	fi
 
-pleora_iport.$(OBJ): pleora_iport.c i_pleora_iport.h d_pleora_iport.h
+pleora_iport.$(OBJ): pleora_iport.c i_pleora_iport.h d_pleora_iport_vinput.h
 	$(COMPILE) $(CFLAGS) pleora_iport.c
 
 i_pleora_iport.$(OBJ): i_pleora_iport.c i_pleora_iport.h
 	$(COMPILE) $(CFLAGS) i_pleora_iport.c
 
-d_pleora_iport.$(OBJ): d_pleora_iport.c d_pleora_iport.h i_pleora_iport.h
-	$(COMPILE) $(CFLAGS) d_pleora_iport.c
+d_pleora_iport_vinput.$(OBJ): d_pleora_iport_vinput.c \
+				d_pleora_iport_vinput.h i_pleora_iport.h
+	$(COMPILE) $(CFLAGS) d_pleora_iport_vinput.c
 
 
 clean:
