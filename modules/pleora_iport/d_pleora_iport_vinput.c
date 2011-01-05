@@ -207,8 +207,14 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
-	long pixels_per_frame;
+	MX_PLEORA_IPORT *pleora_iport = NULL;
+	long i, pixels_per_frame;
 	mx_status_type mx_status;
+
+	struct CyDeviceEntry *device_entry;
+	struct CyConfig *config;
+	struct CyGrabber *grabber;
+	CyResult cy_result;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -218,7 +224,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
-					&pleora_iport_vinput, NULL, fname );
+				&pleora_iport_vinput, &pleora_iport, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -226,7 +232,109 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-	/* Initialize a bunch of driver parameters. */
+
+	/* Find the camera in the device array. */
+
+	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
+		device_entry = pleora_iport->device_array[i];
+
+		if ( strcmp( device_entry->mAddressIP,
+			pleora_iport_vinput->hostname ) == 0 )
+		{
+			/* We have found the correct IP Engine. */
+
+			break;
+		}
+	}
+
+	if ( i >= pleora_iport->num_devices ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"iPORT host '%s' was not found in the scan by record '%s' "
+		"of iPORT devices for record '%s'.",
+			pleora_iport_vinput->hostname,
+			pleora_iport->record->name,
+			record->name );
+	}
+
+	/* Setup the connectivity information needed 
+	 * to connect to the IP Engine.
+	 */
+
+	config = CyConfig_Init();
+
+	if ( config == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The attempt to initialize a CyConfig structure "
+		"for record '%s' failed.", record->name );
+	}
+
+	cy_result = CyConfig_AddDevice( config );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The attempt to add a device to CyConfig %p "
+		"for record '%s'.", record->name );
+	}
+
+	/* First set the required parameters. */
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_ACCESS_MODE, device_entry->mMode, FALSE );
+
+	CyParameterRepository_SetParameterStringByID( config,
+		CY_CONFIG_PARAM_ADDRESS_MAC, device_entry->mAddressMAC, FALSE );
+
+	CyParameterRepository_SetParameterStringByID( config,
+		CY_CONFIG_PARAM_ADDRESS_IP, device_entry->mAddressIP, FALSE );
+
+	CyParameterRepository_SetParameterStringByID( config,
+		CY_CONFIG_PARAM_ADAPTER_ID, device_entry->mAdapterID, FALSE );
+
+	/* Then set the optional parameters. */
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_PACKET_SIZE, 1440, FALSE );
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_ANSWER_TIMEOUT, 1000, FALSE );
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_FIRST_PACKET_TIMEOUT, 1500, FALSE );
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_PACKET_TIMEOUT, 500, FALSE );
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_REQUEST_TIMEOUT, 5000, FALSE );
+
+	/* Set the connection topology to unicast. */
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_DATA_SENDING_MODE,
+			CY_DEVICE_DSM_UNICAST, FALSE );
+
+	CyParameterRepository_SetParameterIntByID( config,
+		CY_CONFIG_PARAM_DATA_SENDING_MODE_MASTER, 1, FALSE );
+
+	/* Create and connect to the grabber. */
+
+	grabber = CyGrabber_Init( 0, 0 );
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The attempt to initialize a CyGrabber structure "
+		"for record '%s' failed.", record->name );
+	}
+
+	cy_result = CyGrabber_Connect( grabber, config, 0 );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The attempt to connect configuration %p to grabber %p "
+		"for record '%s' failed.", record->name );
+	}
+
+	/* Initialize a bunch of MX driver parameters. */
 
 	vinput->parameter_type = -1;
 	vinput->frame_number   = -100;

@@ -20,6 +20,7 @@
 /* Vendor include files. */
 
 #include "CyDeviceFinder.h"
+#include "CyGrabber.h"
 
 /*----*/
 

@@ -253,7 +253,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		fname, pleora_iport->num_devices, record->name));
 #endif
 
-	if ( pleora_iport->num_devices ) {
+	if ( pleora_iport->num_devices == 0 ) {
 		mx_warning(
 		"No Pleora iPORT cameras were found on the network." );
 

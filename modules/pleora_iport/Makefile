@@ -16,7 +16,10 @@ PLEORA_IPORT_OBJS = pleora_iport.$(OBJ) \
 pleora_iport.mxo: $(PLEORA_IPORT_OBJS)
 	link /dll /debug /nologo /out:pleora_iport.mxo /nodefaultlib:libc \
 		$(PLEORA_IPORT_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(PLEORA_IPORT_DIR)\\Libraries\\CyComLib.lib
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyComLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyCamLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyImgLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyUtilsLib.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 

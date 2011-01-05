@@ -21,7 +21,10 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_module.h"
+#include "mx_image.h"
+#include "mx_video_input.h"
 #include "i_pleora_iport.h"
+#include "d_pleora_iport_vinput.h"
 
 MX_DRIVER pleora_iport_driver_table[] = {
 
@@ -31,6 +34,13 @@ MX_DRIVER pleora_iport_driver_table[] = {
 				NULL,
 				&mxi_pleora_iport_num_record_fields,
 				&mxi_pleora_iport_rfield_def_ptr},
+
+{"pleora_iport_vinput", -1,	MXC_VIDEO_INPUT, MXR_DEVICE,
+				&mxd_pleora_iport_vinput_record_function_list,
+				NULL,
+				NULL,
+				&mxd_pleora_iport_vinput_num_record_fields,
+				&mxd_pleora_iport_vinput_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
