@@ -23,6 +23,7 @@ typedef struct {
 	MX_RECORD *pleora_iport_record;
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 
+	struct CyGrabber *grabber;
 } MX_PLEORA_IPORT_VINPUT;
 
 

@@ -208,13 +208,14 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_PLEORA_IPORT *pleora_iport = NULL;
-	long i, pixels_per_frame;
+	long i;
 	mx_status_type mx_status;
 
 	struct CyDeviceEntry *device_entry;
 	struct CyConfig *config;
-	struct CyGrabber *grabber;
 	CyResult cy_result;
+
+	int offset_x;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -228,6 +229,8 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_breakpoint();
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
@@ -318,20 +321,88 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	/* Create and connect to the grabber. */
 
-	grabber = CyGrabber_Init( 0, 0 );
+	pleora_iport_vinput->grabber = CyGrabber_Init( 0, 0 );
 
-	if ( grabber == NULL ) {
+	if ( pleora_iport_vinput->grabber == NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The attempt to initialize a CyGrabber structure "
 		"for record '%s' failed.", record->name );
 	}
 
-	cy_result = CyGrabber_Connect( grabber, config, 0 );
+	cy_result = CyGrabber_Connect( pleora_iport_vinput->grabber,
+					config, 0 );
 
 	if ( cy_result != CY_RESULT_OK ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The attempt to connect configuration %p to grabber %p "
 		"for record '%s' failed.", record->name );
+	}
+
+	/* CyGrabber_Connect() copied all the information it needed
+	 * out of the CyConfig object, so we can now dispose of the
+	 * CyConfig object.
+	 */
+
+	CyConfig_Destroy( config );
+
+	/* Initialize the image properties. */
+
+	mx_status = mx_video_input_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bits_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_set_framesize( record,
+						vinput->framesize[0],
+						vinput->framesize[1] );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	offset_x = 40;	/* FIXME: Where does this number come from??? */
+
+	CyParameterRepository_SetParameterIntByID(
+		pleora_iport_vinput->grabber,
+		CY_GRABBER_PARAM_OFFSET_X, offset_x, FALSE );
+
+	CyParameterRepository_SetParameterIntByID(
+		pleora_iport_vinput->grabber,
+		CY_GRABBER_PARAM_OFFSET_Y, 0, FALSE );
+
+	CyParameterRepository_SetParameterIntByID(
+		pleora_iport_vinput->grabber,
+		CY_GRABBER_PARAM_TAP_QUANTITY, 1, FALSE );
+
+	CyParameterRepository_SetParameterIntByID(
+		pleora_iport_vinput->grabber,
+		CY_GRABBER_PARAM_PACKED, FALSE, FALSE );
+
+	CyParameterRepository_SetParameterIntByID(
+		pleora_iport_vinput->grabber,
+		CY_GRABBER_PARAM_NORMALIZED, FALSE, FALSE );
+
+	cy_result = CyGrabber_SaveConfig( pleora_iport_vinput->grabber );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to initialize some miscellaneous parameters "
+		"for record '%s' failed.  cy_result = %d",
+			record->name, cy_result );
 	}
 
 	/* Initialize a bunch of MX driver parameters. */
@@ -344,16 +415,15 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	vinput->byte_order     = (long) mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
+	vinput->last_frame_number = -1;
 	vinput->total_num_frames = 0;
+	vinput->status = 0x0;
 
-	vinput->image_format = -1;
-	vinput->bytes_per_pixel = 2;
-	vinput->bits_per_pixel  = 16;
+	/* FIXME: It should be possible to get maximum_frame_number
+	 * from the Pleora iPORT software.
+	 */
 
-	pixels_per_frame = vinput->framesize[0] * vinput->framesize[1];
-
-	vinput->bytes_per_frame = pixels_per_frame
-					* mx_round( vinput->bytes_per_pixel );
+	vinput->maximum_frame_number = 0;
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,
@@ -382,6 +452,8 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
+	/* FIXME: We are supposed to reprogram the PLC here. */
+
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -392,6 +464,29 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pleora_iport_vinput_close( MX_RECORD *record )
 {
+	static const char fname[] = "mxd_pleora_iport_vinput_close()";
+
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
+					&pleora_iport_vinput, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	CyGrabber_Destroy( pleora_iport_vinput->grabber );
+
+	pleora_iport_vinput->grabber = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -509,7 +604,8 @@ mxd_pleora_iport_vinput_abort( MX_VIDEO_INPUT *vinput )
 MX_EXPORT mx_status_type
 mxd_pleora_iport_vinput_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_pleora_iport_vinput_asynchronous_capture()";
+	static const char fname[] =
+			"mxd_pleora_iport_vinput_asynchronous_capture()";
 
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	mx_status_type mx_status;
