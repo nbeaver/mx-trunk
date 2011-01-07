@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2008 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,11 +66,12 @@ static MX_PROCESS_FUNCTION_SETUP mx_process_function_setup_array[] = {
 { MXR_DEVICE, MXC_PULSE_GENERATOR, mx_setup_pulser_process_functions},
 { MXR_DEVICE, MXC_AUTOSCALE, mx_setup_autoscale_process_functions },
 { MXR_DEVICE, MXC_SINGLE_CHANNEL_ANALYZER, mx_setup_sca_process_functions },
-{ MXR_DEVICE, MXC_SAMPLE_CHANGER, mx_setup_sample_changer_process_functions},
-{ MXR_DEVICE, MXC_PAN_TILT_ZOOM, mx_setup_ptz_process_functions},
-{ MXR_DEVICE, MXC_VIDEO_INPUT, mx_setup_video_input_process_functions},
-{ MXR_DEVICE, MXC_AREA_DETECTOR, mx_setup_area_detector_process_functions},
-{ MXR_DEVICE, MXC_WAVEFORM_OUTPUT, mx_setup_waveform_output_process_functions},
+{ MXR_DEVICE, MXC_SAMPLE_CHANGER, mx_setup_sample_changer_process_functions },
+{ MXR_DEVICE, MXC_MULTICHANNEL_ANALOG_INPUT, mx_setup_mcai_process_functions },
+{ MXR_DEVICE, MXC_PAN_TILT_ZOOM, mx_setup_ptz_process_functions },
+{ MXR_DEVICE, MXC_VIDEO_INPUT, mx_setup_video_input_process_functions },
+{ MXR_DEVICE, MXC_AREA_DETECTOR, mx_setup_area_detector_process_functions },
+{ MXR_DEVICE, MXC_WAVEFORM_OUTPUT, mx_setup_waveform_output_process_functions },
 { MXR_INTERFACE, MXI_RS232, mx_setup_rs232_process_functions },
 { MXR_INTERFACE, MXI_GPIB, mx_setup_gpib_process_functions },
 { MXR_VARIABLE, MXC_ANY, mx_setup_variable_process_functions },

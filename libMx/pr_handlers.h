@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2008 Illinois Institute of Technology
+ * Copyright 2004-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -122,6 +122,14 @@ extern mx_status_type mx_setup_mca_process_functions(
 					MX_RECORD *record_list );
 
 extern mx_status_type mx_mca_process_function(
+			void *record, void *record_field, int operation );
+
+/*---*/
+
+extern mx_status_type mx_setup_mcai_process_functions(
+					MX_RECORD *record_list );
+
+extern mx_status_type mx_mcai_process_function(
 			void *record, void *record_field, int operation );
 
 /*---*/

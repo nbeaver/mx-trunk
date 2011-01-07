@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -458,6 +458,8 @@
 #include "d_soft_sample_changer.h"
 #include "d_net_sample_changer.h"
 #include "d_sercat_als_robot.h"
+
+#include "d_network_mcai.h"
 
 #include "d_soft_ptz.h"
 #include "d_network_ptz.h"
@@ -3370,13 +3372,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_qbpm_mcai_num_record_fields,
 				&mxd_qbpm_mcai_rfield_def_ptr},
 
-{"i404_mcai",      MXT_MCAI_I404,   MXC_MULTICHANNEL_ANALOG_INPUT, MXR_DEVICE,
-				&mxd_i404_mcai_record_function_list,
-				NULL,
-				&mxd_i404_mcai_mcai_function_list,
-				&mxd_i404_mcai_num_record_fields,
-				&mxd_i404_mcai_rfield_def_ptr},
-
 {"soft_mca",       MXT_MCA_SOFTWARE,  MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_mca_record_function_list,
 				NULL,
@@ -3689,6 +3684,20 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_sercat_als_robot_sample_changer_function_list,
 				&mxd_sercat_als_robot_num_record_fields,
 				&mxd_sercat_als_robot_rfield_def_ptr},
+
+{"network_mcai",   MXT_MCAI_NETWORK, MXC_MULTICHANNEL_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_network_mcai_record_function_list,
+				NULL,
+				&mxd_network_mcai_mcai_function_list,
+				&mxd_network_mcai_num_record_fields,
+				&mxd_network_mcai_rfield_def_ptr},
+
+{"i404_mcai",      MXT_MCAI_I404,   MXC_MULTICHANNEL_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_i404_mcai_record_function_list,
+				NULL,
+				&mxd_i404_mcai_mcai_function_list,
+				&mxd_i404_mcai_num_record_fields,
+				&mxd_i404_mcai_rfield_def_ptr},
 
 {"soft_ptz",       MXT_PTZ_SOFTWARE,  MXC_PAN_TILT_ZOOM, MXR_DEVICE,
 				&mxd_soft_ptz_record_function_list,

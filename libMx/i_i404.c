@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -115,6 +115,17 @@ mxi_i404_open( MX_RECORD *record )
 #if MXI_I404_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name ));
 #endif
+	/* Send an <LF> character and then wait 0.1 seconds to flush out
+	 * responses from any unsent command.
+	 */
+
+	mx_status = mx_rs232_putchar( i404->rs232_record,
+					MX_LF, MXI_I404_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(100);
 
 	/* Discard any characters waiting to be sent or received. */
 

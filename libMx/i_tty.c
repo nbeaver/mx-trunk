@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -886,7 +886,7 @@ mxi_tty_putline( MX_RS232 *rs232,
 		char *buffer,
 		size_t *bytes_written )
 {
-	static const char fname[] = "mxi_tty_write()";
+	static const char fname[] = "mxi_tty_putline()";
 
 	MX_TTY *tty = NULL;
 	struct iovec iovec_array[2];
