@@ -480,7 +480,7 @@ mxd_aviex_pccd_load_linearity_lookup_table( MX_AVIEX_PCCD *aviex_pccd )
 		"The attempt to open linearity lookup table file '%s' failed.  "
 		"Errno = %d, error message = '%s'",
 			aviex_pccd->linearity_lookup_table_filename,
-			saved_errno, mx_strerror( saved_errno, NULL, 0 ) );
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	/* Allocate memory for the linearity lookup table. */
