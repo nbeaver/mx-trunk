@@ -230,8 +230,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_breakpoint();
-
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif

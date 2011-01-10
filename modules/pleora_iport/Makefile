@@ -1,3 +1,7 @@
+#
+# This module can only be used on the 'win32' platform.  It _might_ be
+# possible to get 'win32-mingw' to work, but this has not been tested.
+#
 
 MX_ARCH = win32
 
@@ -39,7 +43,15 @@ d_pleora_iport_vinput.$(OBJ): d_pleora_iport_vinput.c \
 				d_pleora_iport_vinput.h i_pleora_iport.h
 	$(COMPILE) $(CFLAGS) d_pleora_iport_vinput.c
 
+install: pleora_iport.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp pleora_iport.mxo $(MX_INSTALL_DIR)/lib/modules
+
 
 clean:
 	-$(RM) *.mxo *.obj *.exp *.ilk *.lib *.pdb *.manifest
+
+distclean: clean
+
+depend:
 

@@ -208,10 +208,9 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	for ( i = 0; i < num_access_modes; i++ ) {
 
 #if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: access_mode[%lu] = %lu",
-			fname, i, access_mode[i]));
-		MX_DEBUG(-2,("%s: ***  num_devices (before) = %ld",
-			fname, pleora_iport->num_devices));
+		MX_DEBUG(-2,
+		("%s: Calling CyDeviceFinder_Find() for access mode %d",
+			fname, access_mode[i]));
 #endif
 		cy_result = CyDeviceFinder_Find(
 					pleora_iport->finder_handle,
@@ -222,7 +221,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: cy_result = %d", fname, cy_result));
-		MX_DEBUG(-2,("%s: ***  num_devices (after) = %ld",
+		MX_DEBUG(-2,("%s: ***  Current num_devices = %ld",
 			fname, pleora_iport->num_devices));
 #endif
 		switch( cy_result ) {
@@ -243,9 +242,6 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				record->name );
 			break;
 		}
-#if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: End of loop, i = %lu", fname, i));
-#endif
 	}
 
 #if MXI_PLEORA_IPORT_DEBUG
