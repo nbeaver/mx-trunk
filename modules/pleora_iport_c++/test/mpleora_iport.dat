@@ -1,0 +1,3 @@
+!load ../pleora_iport.mxo
+iport interface controller pleora_iport "" ""
+cam1  device video_input pleora_iport_vinput "" "" 2560 2000 GREY16 -1 iport 10.1.1.55
