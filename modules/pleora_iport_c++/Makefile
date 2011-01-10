@@ -11,6 +11,7 @@ all: pleora_iport.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
+CFLAGS += -EHsc
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(PLEORA_IPORT_DIR)\\Includes
 
@@ -36,12 +37,12 @@ pleora_iport.mxo: $(PLEORA_IPORT_OBJS)
 pleora_iport.$(OBJ): pleora_iport.c i_pleora_iport.h d_pleora_iport_vinput.h
 	$(COMPILE) $(CFLAGS) pleora_iport.c
 
-i_pleora_iport.$(OBJ): i_pleora_iport.c i_pleora_iport.h
-	$(COMPILE) $(CFLAGS) i_pleora_iport.c
+i_pleora_iport.$(OBJ): i_pleora_iport.cpp i_pleora_iport.h
+	$(COMPILE) $(CFLAGS) i_pleora_iport.cpp
 
-d_pleora_iport_vinput.$(OBJ): d_pleora_iport_vinput.c \
+d_pleora_iport_vinput.$(OBJ): d_pleora_iport_vinput.cpp \
 				d_pleora_iport_vinput.h i_pleora_iport.h
-	$(COMPILE) $(CFLAGS) d_pleora_iport_vinput.c
+	$(COMPILE) $(CFLAGS) d_pleora_iport_vinput.cpp
 
 install: pleora_iport.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
