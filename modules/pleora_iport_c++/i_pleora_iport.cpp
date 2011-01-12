@@ -104,79 +104,19 @@ mxi_pleora_iport_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#define MXI_PLEORA_IPORT_ARRAY_BLOCK_SIZE	10
-
-static int
-mxi_pleora_iport_finder_callback( struct CyDeviceEntry *entry,
-					void *aContext )
-{
-	static const char fname[] = "mxi_pleora_iport_finder_callback()";
-
-	MX_PLEORA_IPORT *pleora_iport;
-	long new_max;
-	void *new_ptr;
-
-	if ( aContext == NULL ) {
-		(void) mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"The context pointer supplied was NULL." );
-		return 0;
-	}
-
-	pleora_iport = (MX_PLEORA_IPORT *) aContext;
-
-#if MXI_PLEORA_IPORT_DEBUG
-	MX_DEBUG(-2,("%s invoked for Pleora iPORT record '%s'.",
-		fname, pleora_iport->record->name ));
-
-	MX_DEBUG(-2,("%s: entry device name = '%s'.",
-		fname, entry->mDeviceName ));
-#endif
-
-	if ( pleora_iport->num_devices >= pleora_iport->max_num_devices ) {
-		new_max = pleora_iport->max_num_devices
-				+ MXI_PLEORA_IPORT_ARRAY_BLOCK_SIZE;
-
-		new_ptr = realloc( pleora_iport->device_array,
-				new_max * sizeof(struct CyDeviceEntry *) );
-
-		if ( new_ptr == NULL ) {
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to reallocate a %ld element "
-			"array of CyDeviceEntry pointer for record '%s'.",
-				new_max, pleora_iport->record->name );
-			return 0;
-		}
-
-		pleora_iport->max_num_devices = new_max;
-		pleora_iport->device_array = new_ptr;
-	}
-
-	pleora_iport->device_array[ pleora_iport->num_devices ] = entry;
-
-	pleora_iport->num_devices++;
-
-	return 1;
-}
-
 MX_EXPORT mx_status_type
 mxi_pleora_iport_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_pleora_iport_open()";
 
 	MX_PLEORA_IPORT *pleora_iport;
-	unsigned int timeout_ms;
+	long i;
 	mx_status_type mx_status;
 
+	CyDeviceFinder finder;
+	CyDeviceFinder::DeviceList ip_engine_list;
+	const CyDeviceFinder::DeviceEntry *device_entry;
 	CyResult cy_result;
-
-	unsigned long access_mode[] = {
-		CY_DEVICE_ACCESS_MODE_DRV,
-		CY_DEVICE_ACCESS_MODE_EBUS,
-		CY_DEVICE_ACCESS_MODE_GEV_EBUS };
-
-	unsigned long num_access_modes = sizeof(access_mode)
-					/ sizeof(access_mode[0]);
-	unsigned long i;
 
 	mx_status = mxi_pleora_iport_get_pointers( record,
 						&pleora_iport, fname );
@@ -184,93 +124,130 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	pleora_iport->max_num_devices = MXI_PLEORA_IPORT_ARRAY_BLOCK_SIZE;
-	pleora_iport->num_devices = 0;
+	/* Find IP engines available through the eBUS driver. */
 
-	pleora_iport->device_array = (struct CyDeviceEntry **)
-    malloc( pleora_iport->max_num_devices * sizeof(struct CyDeviceEntry *) );
+	finder.Find( CY_DEVICE_ACCESS_MODE_EBUS,
+			ip_engine_list,
+			100,
+			true );
+
+	/* Find GigE Vision IP engines available through the eBUS driver. */
+
+	finder.Find( CY_DEVICE_ACCESS_MODE_GEV_EBUS,
+			ip_engine_list,
+			100,
+			true );
+
+	/* Find IP engines available through the High Performance driver. */
+
+	finder.Find( CY_DEVICE_ACCESS_MODE_DRV,
+			ip_engine_list,
+			100,
+			true );
+
+	/* Find IP engines available through the Network Stack. */
+
+	finder.Find( CY_DEVICE_ACCESS_MODE_UDP,
+			ip_engine_list,
+			100,
+			true );
+
+	pleora_iport->num_devices = ip_engine_list.size();
+
+#if MXI_PLEORA_IPORT_DEBUG
+	MX_DEBUG(-2,("%s: %d IP engines found for record '%s'.",
+		fname, pleora_iport->num_devices, record->name ));
+#endif
+
+	/* Create a C array to store the device entries in. */
+
+	pleora_iport->device_array = ( const CyDeviceFinder::DeviceEntry ** )
+			malloc( pleora_iport->num_devices
+				* sizeof( const CyDeviceFinder::DeviceEntry * ) );
 
 	if ( pleora_iport->device_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for a %ld element array of "
-		"CyDeviceEntry pointers for record '%s'.",
-			pleora_iport->max_num_devices, record->name );
+		"Cannot allocate a %ld element array of "
+		"CyDeviceFinder::DeviceEntry pointers for record '%s'.",
+			pleora_iport->num_devices, record->name );
 	}
 
-	pleora_iport->finder_handle = CyDeviceFinder_Init( 0, 0 );
+	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
+		device_entry = &ip_engine_list[i];
+
+		pleora_iport->device_array[i] = device_entry;
 
 #if MXI_PLEORA_IPORT_DEBUG
-	MX_DEBUG(-2,("%s: finder_handle = %p",
-		fname, pleora_iport->finder_handle));
+		MX_DEBUG(-2,("%s: Entry %ld IP address = '%s'",
+		    fname, i, device_entry->mAddressIP.c_str_ascii() ));
 #endif
-	timeout_ms = 10;	/* in milliseconds */
-
-	for ( i = 0; i < num_access_modes; i++ ) {
-
-#if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,
-		("%s: Calling CyDeviceFinder_Find() for access mode %d",
-			fname, access_mode[i]));
-#endif
-		cy_result = CyDeviceFinder_Find(
-					pleora_iport->finder_handle,
-					access_mode[i],
-					timeout_ms,
-					mxi_pleora_iport_finder_callback,
-					pleora_iport );
-
-#if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: cy_result = %d", fname, cy_result));
-		MX_DEBUG(-2,("%s: ***  Current num_devices = %ld",
-			fname, pleora_iport->num_devices));
-#endif
-		switch( cy_result ) {
-		case CY_RESULT_OK:
-		case CY_RESULT_NO_AVAILABLE_DATA:
-		case CY_RESULT_NOT_SUPPORTED:
-			break;
-		case CY_RESULT_NETWORK_ERROR:
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"A network error occurred while looking for "
-			"Pleora iPORT devices on behalf of record '%s'.",
-				record->name );
-			break;
-		default:
-			return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"An unknown error occurred while looking for "
-			"Pleora iPORT devices on behalf of record '%s'.",
-				record->name );
-			break;
-		}
 	}
 
 #if MXI_PLEORA_IPORT_DEBUG
-	MX_DEBUG(-2,("%s: %ld devices found for '%s'",
-		fname, pleora_iport->num_devices, record->name));
-#endif
+	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
+		device_entry = pleora_iport->device_array[i];
 
-	if ( pleora_iport->num_devices == 0 ) {
-		mx_warning(
-		"No Pleora iPORT cameras were found on the network." );
+		MX_DEBUG(-2,("%s: Entry %ld:", fname, i));
 
-#if MXI_PLEORA_IPORT_DEBUG
-	} else {
-		struct CyDeviceEntry *device_entry;
+		MX_DEBUG(-2,("%s:   Device Identification", fname));
 
-		MX_DEBUG(-2,("%s: Pleora iPORT cameras:", fname));
+		MX_DEBUG(-2,("%s:     DeviceName = '%s'",
+		    fname, device_entry->mDeviceName.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     ModelName = '%s'",
+		    fname, device_entry->mModelName.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     ManufacturerName = '%s'",
+		    fname, device_entry->mManufacturerName.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     SerialNumber = '%s'",
+		    fname, device_entry->mSerialNumber.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     DeviceInformation = '%s'",
+		    fname, device_entry->mDeviceInformation.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     DeviceVersion = '%s'",
+		    fname, device_entry->mDeviceVersion.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     DeviceID = %u",
+		    fname, device_entry->mDeviceID ));
+		MX_DEBUG(-2,("%s:     ModuleID = %u",
+		    fname, device_entry->mModuleID ));
+		MX_DEBUG(-2,("%s:     SubID = %u",
+		    fname, device_entry->mSubID ));
+		MX_DEBUG(-2,("%s:     VendorID = %u",
+		    fname, device_entry->mVendorID ));
+		MX_DEBUG(-2,("%s:     SoftVerMaj = %u",
+		    fname, device_entry->mSoftVerMaj ));
+		MX_DEBUG(-2,("%s:     SoftVerMin = %u",
+		    fname, device_entry->mSoftVerMin ));
+		MX_DEBUG(-2,("%s:     SoftVerSub = %u",
+		    fname, device_entry->mSoftVerSub ));
+		MX_DEBUG(-2,("%s:     SoftVerSub = %u",
+		    fname, device_entry->mSoftVerSub ));
 
-		for ( i = 0; i < pleora_iport->num_devices; i++ ) {
-			device_entry = pleora_iport->device_array[i];
+		MX_DEBUG(-2,("%s:   Networking", fname));
 
-			MX_DEBUG(-2,("%s:   %s, %s, %s, %s",
-				fname,
-				device_entry->mDeviceName,
-				device_entry->mModelName,
-				device_entry->mManufacturerName,
-				device_entry->mAddressIP ));
-		}
-#endif
+		MX_DEBUG(-2,("%s:     Mode = %lu",
+		    fname, device_entry->mMode));
+		MX_DEBUG(-2,("%s:     ProtocolVerMaj = %u",
+		    fname, device_entry->mProtocolVerMaj));
+		MX_DEBUG(-2,("%s:     ProtocolVerMin = %u",
+		    fname, device_entry->mProtocolVerMin));
+		MX_DEBUG(-2,("%s:     AdapterID = \?\?\?", fname));
+		MX_DEBUG(-2,("%s:     AddressIP = '%s'",
+		    fname, device_entry->mAddressIP.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     SubnetMask = '%s'",
+		    fname, device_entry->mSubnetMask.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     Gateway = '%s'",
+		    fname, device_entry->mGateway.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     AddressMAC = '%s'",
+		    fname, device_entry->mAddressMAC.c_str_ascii() ));
+
+		MX_DEBUG(-2,("%s:   Data Information", fname));
+
+		MX_DEBUG(-2,("%s:     MulticastAddress = '%s'",
+		    fname, device_entry->mMulticastAddress.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     ChannelCount = %u",
+		    fname, device_entry->mChannelCount));
+		MX_DEBUG(-2,("%s:     SendingMode = %lu",
+		    fname, device_entry->mSendingMode));
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -289,11 +266,9 @@ mxi_pleora_iport_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pleora_iport->finder_handle != NULL ) {
-		CyDeviceFinder_Destroy( pleora_iport->finder_handle );
-
-		pleora_iport->finder_handle = NULL;
-	}
+#if MXI_PLEORA_IPORT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

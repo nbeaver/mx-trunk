@@ -17,13 +17,16 @@
 #ifndef __D_PLEORA_IPORT_VINPUT_H__
 #define __D_PLEORA_IPORT_VINPUT_H__
 
+#ifdef __cplusplus
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pleora_iport_record;
-	char hostname[MXU_HOSTNAME_LENGTH+1];
+	char ip_address_string[MXU_HOSTNAME_LENGTH+1];
 
-	struct CyGrabber *grabber;
+	CyGrabber *grabber;
+
 } MX_PLEORA_IPORT_VINPUT;
 
 
@@ -33,9 +36,16 @@ typedef struct {
 		offsetof(MX_PLEORA_IPORT_VINPUT, pleora_iport_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "hostname", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PLEORA_IPORT_VINPUT, hostname), \
+  {-1, -1, "ip_address_string", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PLEORA_IPORT_VINPUT, ip_address_string), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 MX_API mx_status_type mxd_pleora_iport_vinput_create_record_structures(
 							MX_RECORD *record );
@@ -64,6 +74,10 @@ extern MX_VIDEO_INPUT_FUNCTION_LIST mxd_pleora_iport_vinput_video_function_list;
 
 extern long mxd_pleora_iport_vinput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_vinput_rfield_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __D_PLEORA_IPORT_VINPUT_H__ */
 

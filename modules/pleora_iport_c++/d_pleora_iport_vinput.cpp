@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_array.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_pleora_iport.h"
@@ -208,14 +209,17 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_PLEORA_IPORT *pleora_iport = NULL;
-	long i;
+	long i, num_devices;
+	char device_address_string[MXU_HOSTNAME_LENGTH+1];
 	mx_status_type mx_status;
 
-	struct CyDeviceEntry *device_entry;
-	struct CyConfig *config;
+	const CyDeviceFinder::DeviceEntry *device_entry;
+	CyConfig *config;
 	CyResult cy_result;
 
 	int offset_x;
+
+	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -236,27 +240,47 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	/* Find the camera in the device array. */
 
-	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
+	num_devices = pleora_iport->num_devices;
+
+	for ( i = 0; i < num_devices; i++ ) {
 		device_entry = pleora_iport->device_array[i];
 
-		if ( strcmp( device_entry->mAddressIP,
-			pleora_iport_vinput->hostname ) == 0 )
+		MX_DEBUG(-2,("%s: i = %ld, device_entry = %p",
+			fname, i, device_entry));
+		MX_DEBUG(-2,("%s:     device_entry->mAddressIP = %p",
+			fname, device_entry->mAddressIP));
+		MX_DEBUG(-2,("%s:     device_entry->mAddressIP.c_str_ascii = %p",
+			fname, device_entry->mAddressIP.c_str_ascii));
+		MX_DEBUG(-2,("%s:     device_entry->mAddressIP.c_str_ascii() = '%s'",
+			fname, device_entry->mAddressIP.c_str_ascii() ));
+
+		strlcpy( device_address_string,
+			device_entry->mAddressIP.c_str_ascii(),
+			sizeof(device_address_string) );
+
+		if ( strcmp( device_address_string,
+			pleora_iport_vinput->ip_address_string ) == 0 )
 		{
 			/* We have found the correct IP Engine. */
 
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+			MX_DEBUG(-2,("%s: Entry %ld matches address '%s'",
+			fname, pleora_iport_vinput->ip_address_string));
+#endif
 			break;
 		}
 	}
 
-	if ( i >= pleora_iport->num_devices ) {
+	if ( i >= num_devices ) {
 		return mx_error( MXE_NOT_FOUND, fname,
 		"iPORT host '%s' was not found in the scan by record '%s' "
 		"of iPORT devices for record '%s'.",
-			pleora_iport_vinput->hostname,
+			pleora_iport_vinput->ip_address_string,
 			pleora_iport->record->name,
 			record->name );
 	}
 
+#if 0
 	/* Setup the connectivity information needed 
 	 * to connect to the IP Engine.
 	 */
@@ -450,6 +474,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
+#endif
 	/* FIXME: We are supposed to reprogram the PLC here. */
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
@@ -481,9 +506,15 @@ mxd_pleora_iport_vinput_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+#if 0
 	CyGrabber_Destroy( pleora_iport_vinput->grabber );
 
 	pleora_iport_vinput->grabber = NULL;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
