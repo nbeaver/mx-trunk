@@ -29,10 +29,16 @@
 typedef struct {
 	MX_RECORD *record;
 
-	CyDeviceFinder::DeviceList *ip_engine_list;
-	long num_devices;
+	long max_devices;
+
+	MX_RECORD **device_record_array;
 
 } MX_PLEORA_IPORT;
+
+#define MXI_PLEORA_IPORT_STANDARD_FIELDS \
+  {-1, -1, "max_devices", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PLEORA_IPORT, max_devices), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __cplusplus */
 
@@ -41,6 +47,8 @@ extern "C" {
 #endif
 
 MX_API mx_status_type mxi_pleora_iport_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxi_pleora_iport_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_pleora_iport_open( MX_RECORD *record );
 MX_API mx_status_type mxi_pleora_iport_close( MX_RECORD *record );

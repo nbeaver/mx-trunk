@@ -178,6 +178,8 @@ mxd_pleora_iport_vinput_finish_record_initialization( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_PLEORA_IPORT *pleora_iport = NULL;
+	long i;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -188,7 +190,7 @@ mxd_pleora_iport_vinput_finish_record_initialization( MX_RECORD *record )
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
-					&pleora_iport_vinput, NULL, fname );
+				&pleora_iport_vinput, &pleora_iport, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -198,7 +200,53 @@ mxd_pleora_iport_vinput_finish_record_initialization( MX_RECORD *record )
 #endif
 	mx_status = mx_video_input_finish_record_initialization( record );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We need to add this record to the device_record_array
+	 * in the pleora_iport record.
+	 */
+
+	if ( pleora_iport->max_devices <= 0 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"max_devices for Pleora iPORT record '%s' is %d "
+		"which leaves no space for record '%s' to insert itself "
+		"into pleora_iport->device_record_array",
+			pleora_iport->record->name,
+			pleora_iport->max_devices,
+			record->name );
+	}
+
+	if ( pleora_iport->device_record_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The pleora_iport->device_record_array pointer is NULL "
+		"for record '%s' used by record '%s'.",
+			pleora_iport->record->name, record->name );
+	}
+
+	/* Look for an empty slot in the device_record_array. */
+
+	for ( i = 0; i < pleora_iport->max_devices; i++ ) {
+		if ( pleora_iport->device_record_array[i] == NULL ) {
+			pleora_iport->device_record_array[i] = record;
+
+			break;	/* Exit the for() loop. */
+		}
+	}
+
+	if ( i >= pleora_iport->max_devices ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"There is no unused space available in the device_record_array "
+		"of Pleora iPORT record '%s' used by video input '%s'.  "
+		"You should increase the value of the 'max_devices' field "
+		"( currently %ld ) in record '%s' to make room.",
+			pleora_iport->record->name,
+			record->name,
+			pleora_iport->max_devices,
+			pleora_iport->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -218,7 +266,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	int offset_x;
 
-	mx_breakpoint();
+	/* mx_breakpoint(); */
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -237,6 +285,18 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+	if ( pleora_iport_vinput->grabber == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"No grabber has been connected for record '%s'.",
+			record->name );
+	}
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: pleora_iport_vinput->grabber = %p",
+		fname, pleora_iport_vinput->grabber));
+#endif
+
+#if 0
 	/* Find the camera in the IP engine list. */
 
 	CyDeviceFinder::DeviceList *ip_engine_list
@@ -293,7 +353,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 			record->name );
 	}
 
-#if 0
 	/* Setup the connectivity information needed 
 	 * to connect to the IP Engine.
 	 */
