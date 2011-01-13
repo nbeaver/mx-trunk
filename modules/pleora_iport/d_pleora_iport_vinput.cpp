@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pleora_iport_vinput_record_field_defaults[] = {
 
 long mxd_pleora_iport_vinput_num_record_fields
 		= sizeof( mxd_pleora_iport_vinput_record_field_defaults )
-			/ sizeof( mxd_pleora_iport_vinput_record_field_defaults[0] );
+		/ sizeof( mxd_pleora_iport_vinput_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_vinput_rfield_def_ptr
 			= &mxd_pleora_iport_vinput_record_field_defaults[0];
@@ -294,6 +294,27 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: pleora_iport_vinput->grabber = %p",
 		fname, pleora_iport_vinput->grabber));
+#endif
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	{
+		CyDevice &device = pleora_iport_vinput->grabber->GetDevice();
+
+		unsigned char dev_id, mod_id, sub_id;
+		unsigned char vendor_id, mac1, mac2, mac3, mac4;
+		unsigned char mac5, mac6, ip1, ip2, ip3, ip4;
+		unsigned char version_major, version_minor;
+		unsigned char channel_count, version_sub;
+
+		device.GetDeviceInfo( &dev_id, &mod_id, &sub_id,
+			&vendor_id, &mac1, &mac2, &mac3, &mac4,
+			&mac5, &mac6, &ip1, &ip2, &ip3, &ip4,
+			&version_major, &version_minor,
+			&channel_count, &version_sub );
+
+		MX_DEBUG(-2,("%s: grabber IP address = %d.%d.%d.%d",
+		fname, ip1, ip2, ip3, ip4));
+	}
 #endif
 
 #if 0

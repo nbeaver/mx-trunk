@@ -302,6 +302,8 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 	for ( i = 0; i < pleora_iport->max_devices; i++ ) {
 
+		int offset;
+
 		device_record = pleora_iport->device_record_array[i];
 
 		if ( device_record == (MX_RECORD *) NULL ) {
@@ -311,6 +313,17 @@ mxi_pleora_iport_open( MX_RECORD *record )
 			continue;
 		}
 
+		pleora_iport_vinput = (MX_PLEORA_IPORT_VINPUT *)
+					device_record->record_type_struct;
+
+		if ( pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
+			"is NULL.", device_record->name );
+		}
+
+		pleora_iport_vinput->grabber = NULL;
+
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: device_record_array[%ld] = '%s'",
 			fname, i, device_record->name ));
@@ -319,7 +332,53 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		const CyDeviceFinder::DeviceEntry &device_entry
 				= ip_engine_list[i];
 
-		/* Add an entry to a CyConfig object. */
+		/* Is this the device that we are looking for?
+		 *
+		 * Get the IP address string for this device and
+		 * strip off any leading or trailing square brackets
+		 * so that it can be compared with the address 
+		 * specified in the pleora_iport_vinput record.
+		 */
+
+		const char *device_address_ip =
+				device_entry.mAddressIP.c_str_ascii();
+
+		char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
+
+		if ( device_address_ip[0] == '[' ) {
+			offset = 1;
+		} else {
+			offset = 0;
+		}
+
+		strlcpy( ip_address_string, device_address_ip + offset,
+					sizeof(ip_address_string) );
+
+		char *ptr = strchr( ip_address_string, ']' );
+
+		if ( ptr != NULL ) {
+			*ptr = '\0';
+		}
+
+#if MXI_PLEORA_IPORT_DEBUG
+		MX_DEBUG(-2,("%s: ip_address_string = '%s'",
+			fname, ip_address_string));
+		MX_DEBUG(-2,
+		("%s: pleora_iport_vinput->ip_address_string = '%s'",
+			fname, pleora_iport_vinput->ip_address_string));
+#endif
+
+		if ( strcmp( ip_address_string,
+			pleora_iport_vinput->ip_address_string ) != 0 )
+		{
+
+#if MXI_PLEORA_IPORT_DEBUG
+			MX_DEBUG(-2,("%s: skipping device %ld", fname, i));
+#endif
+			continue;
+		}
+
+		/* Create and setup a CyConfig object for the device. */
 
 		CyConfig config;
 		config.AddDevice();
@@ -374,20 +433,30 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		 * record type structure.
 		 */
 
-		pleora_iport_vinput = (MX_PLEORA_IPORT_VINPUT *)
-					device_record->record_type_struct;
-
-		if ( pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
-			"is NULL.", device_record->name );
-		}
-
 		pleora_iport_vinput->grabber = grabber;
 
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: Saved grabber %p to record '%s'.",
 			fname, grabber, pleora_iport_vinput->record->name ));
+
+		{
+			CyDevice &device = grabber->GetDevice();
+
+			unsigned char dev_id, mod_id, sub_id;
+			unsigned char vendor_id, mac1, mac2, mac3, mac4;
+			unsigned char mac5, mac6, ip1, ip2, ip3, ip4;
+			unsigned char version_major, version_minor;
+			unsigned char channel_count, version_sub;
+
+			device.GetDeviceInfo( &dev_id, &mod_id, &sub_id,
+				&vendor_id, &mac1, &mac2, &mac3, &mac4,
+				&mac5, &mac6, &ip1, &ip2, &ip3, &ip4,
+				&version_major, &version_minor,
+				&channel_count, &version_sub );
+
+			MX_DEBUG(-2,("%s: grabber IP address = %d.%d.%d.%d",
+			fname, ip1, ip2, ip3, ip4));
+		}
 #endif
 	}
 
