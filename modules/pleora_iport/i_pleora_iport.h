@@ -29,8 +29,8 @@
 typedef struct {
 	MX_RECORD *record;
 
+	CyDeviceFinder::DeviceList *ip_engine_list;
 	long num_devices;
-	const CyDeviceFinder::DeviceEntry **device_array;
 
 } MX_PLEORA_IPORT;
 

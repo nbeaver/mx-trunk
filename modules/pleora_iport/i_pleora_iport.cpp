@@ -110,12 +110,12 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	static const char fname[] = "mxi_pleora_iport_open()";
 
 	MX_PLEORA_IPORT *pleora_iport;
-	long i;
+	long i, num_devices;
 	mx_status_type mx_status;
 
 	CyDeviceFinder finder;
-	CyDeviceFinder::DeviceList ip_engine_list;
-	const CyDeviceFinder::DeviceEntry *device_entry;
+	CyDeviceFinder::DeviceList *ip_engine_list;
+	/* const CyDeviceFinder::DeviceEntry *device_entry; */
 	CyResult cy_result;
 
 	mx_status = mxi_pleora_iport_get_pointers( record,
@@ -124,128 +124,133 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ip_engine_list = new CyDeviceFinder::DeviceList();
+
 	/* Find IP engines available through the eBUS driver. */
 
 	finder.Find( CY_DEVICE_ACCESS_MODE_EBUS,
-			ip_engine_list,
+			*ip_engine_list,
 			100,
 			true );
 
 	/* Find GigE Vision IP engines available through the eBUS driver. */
 
 	finder.Find( CY_DEVICE_ACCESS_MODE_GEV_EBUS,
-			ip_engine_list,
+			*ip_engine_list,
 			100,
 			true );
 
 	/* Find IP engines available through the High Performance driver. */
 
 	finder.Find( CY_DEVICE_ACCESS_MODE_DRV,
-			ip_engine_list,
+			*ip_engine_list,
 			100,
 			true );
 
 	/* Find IP engines available through the Network Stack. */
 
 	finder.Find( CY_DEVICE_ACCESS_MODE_UDP,
-			ip_engine_list,
+			*ip_engine_list,
 			100,
 			true );
 
-	pleora_iport->num_devices = ip_engine_list.size();
+	pleora_iport->ip_engine_list = ip_engine_list;
+
+	num_devices = ip_engine_list->size();
+
+	pleora_iport->num_devices = num_devices;
 
 #if MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: %d IP engines found for record '%s'.",
-		fname, pleora_iport->num_devices, record->name ));
+		fname, num_devices, record->name ));
+
+	MX_DEBUG(-2,("%s: ip_engine_list = %p", fname, ip_engine_list));
 #endif
 
-	/* Create a C array to store the device entries in. */
+	CyDeviceFinder::DeviceList ip_engine_list_obj = *ip_engine_list;
 
-	pleora_iport->device_array = ( const CyDeviceFinder::DeviceEntry ** )
-			malloc( pleora_iport->num_devices
-				* sizeof( const CyDeviceFinder::DeviceEntry * ) );
-
-	if ( pleora_iport->device_array == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate a %ld element array of "
-		"CyDeviceFinder::DeviceEntry pointers for record '%s'.",
-			pleora_iport->num_devices, record->name );
-	}
-
-	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
-		device_entry = &ip_engine_list[i];
-
-		pleora_iport->device_array[i] = device_entry;
+	for ( i = 0; i < num_devices; i++ ) {
+		const CyDeviceFinder::DeviceEntry &device_entry
+				= ip_engine_list_obj[i];
 
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: Entry %ld IP address = '%s'",
-		    fname, i, device_entry->mAddressIP.c_str_ascii() ));
+		    fname, i, device_entry.mAddressIP.c_str_ascii() ));
 #endif
 	}
 
 #if MXI_PLEORA_IPORT_DEBUG
-	for ( i = 0; i < pleora_iport->num_devices; i++ ) {
-		device_entry = pleora_iport->device_array[i];
+	for ( i = 0; i < num_devices; i++ ) {
+		const CyDeviceFinder::DeviceEntry &device_entry
+				= ip_engine_list_obj[i];
 
 		MX_DEBUG(-2,("%s: Entry %ld:", fname, i));
 
 		MX_DEBUG(-2,("%s:   Device Identification", fname));
 
 		MX_DEBUG(-2,("%s:     DeviceName = '%s'",
-		    fname, device_entry->mDeviceName.c_str_ascii() ));
+		    fname, device_entry.mDeviceName.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     ModelName = '%s'",
-		    fname, device_entry->mModelName.c_str_ascii() ));
+		    fname, device_entry.mModelName.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     ManufacturerName = '%s'",
-		    fname, device_entry->mManufacturerName.c_str_ascii() ));
+		    fname, device_entry.mManufacturerName.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     SerialNumber = '%s'",
-		    fname, device_entry->mSerialNumber.c_str_ascii() ));
+		    fname, device_entry.mSerialNumber.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     DeviceInformation = '%s'",
-		    fname, device_entry->mDeviceInformation.c_str_ascii() ));
+		    fname, device_entry.mDeviceInformation.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     DeviceVersion = '%s'",
-		    fname, device_entry->mDeviceVersion.c_str_ascii() ));
+		    fname, device_entry.mDeviceVersion.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     DeviceID = %u",
-		    fname, device_entry->mDeviceID ));
+		    fname, device_entry.mDeviceID ));
 		MX_DEBUG(-2,("%s:     ModuleID = %u",
-		    fname, device_entry->mModuleID ));
+		    fname, device_entry.mModuleID ));
 		MX_DEBUG(-2,("%s:     SubID = %u",
-		    fname, device_entry->mSubID ));
+		    fname, device_entry.mSubID ));
 		MX_DEBUG(-2,("%s:     VendorID = %u",
-		    fname, device_entry->mVendorID ));
+		    fname, device_entry.mVendorID ));
 		MX_DEBUG(-2,("%s:     SoftVerMaj = %u",
-		    fname, device_entry->mSoftVerMaj ));
+		    fname, device_entry.mSoftVerMaj ));
 		MX_DEBUG(-2,("%s:     SoftVerMin = %u",
-		    fname, device_entry->mSoftVerMin ));
+		    fname, device_entry.mSoftVerMin ));
 		MX_DEBUG(-2,("%s:     SoftVerSub = %u",
-		    fname, device_entry->mSoftVerSub ));
-		MX_DEBUG(-2,("%s:     SoftVerSub = %u",
-		    fname, device_entry->mSoftVerSub ));
+		    fname, device_entry.mSoftVerSub ));
 
 		MX_DEBUG(-2,("%s:   Networking", fname));
 
 		MX_DEBUG(-2,("%s:     Mode = %lu",
-		    fname, device_entry->mMode));
+		    fname, device_entry.mMode));
 		MX_DEBUG(-2,("%s:     ProtocolVerMaj = %u",
-		    fname, device_entry->mProtocolVerMaj));
+		    fname, device_entry.mProtocolVerMaj));
 		MX_DEBUG(-2,("%s:     ProtocolVerMin = %u",
-		    fname, device_entry->mProtocolVerMin));
+		    fname, device_entry.mProtocolVerMin));
 		MX_DEBUG(-2,("%s:     AdapterID = \?\?\?", fname));
 		MX_DEBUG(-2,("%s:     AddressIP = '%s'",
-		    fname, device_entry->mAddressIP.c_str_ascii() ));
+		    fname, device_entry.mAddressIP.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     SubnetMask = '%s'",
-		    fname, device_entry->mSubnetMask.c_str_ascii() ));
+		    fname, device_entry.mSubnetMask.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     Gateway = '%s'",
-		    fname, device_entry->mGateway.c_str_ascii() ));
+		    fname, device_entry.mGateway.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     AddressMAC = '%s'",
-		    fname, device_entry->mAddressMAC.c_str_ascii() ));
+		    fname, device_entry.mAddressMAC.c_str_ascii() ));
 
 		MX_DEBUG(-2,("%s:   Data Information", fname));
 
 		MX_DEBUG(-2,("%s:     MulticastAddress = '%s'",
-		    fname, device_entry->mMulticastAddress.c_str_ascii() ));
+		    fname, device_entry.mMulticastAddress.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     ChannelCount = %u",
-		    fname, device_entry->mChannelCount));
+		    fname, device_entry.mChannelCount));
 		MX_DEBUG(-2,("%s:     SendingMode = %lu",
-		    fname, device_entry->mSendingMode));
+		    fname, device_entry.mSendingMode));
+
+		MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
+
+		MX_DEBUG(-2,("%s: device_entry = %p", fname, device_entry));
+		MX_DEBUG(-2,("%s: device_entry.mAddressIP = %p",
+			fname, device_entry.mAddressIP));
+		MX_DEBUG(-2,("%s: device_entry.mAddressIP.c_str_ascii = %p",
+			fname, device_entry.mAddressIP.c_str_ascii));
+		MX_DEBUG(-2,("%s: device_entry.mAddressIP.c_str_ascii() = '%s'",
+			fname, device_entry.mAddressIP.c_str_ascii() ));
 	}
 #endif
 

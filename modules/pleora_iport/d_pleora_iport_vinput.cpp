@@ -213,7 +213,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	char device_address_string[MXU_HOSTNAME_LENGTH+1];
 	mx_status_type mx_status;
 
-	const CyDeviceFinder::DeviceEntry *device_entry;
 	CyConfig *config;
 	CyResult cy_result;
 
@@ -238,24 +237,38 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-	/* Find the camera in the device array. */
+	/* Find the camera in the IP engine list. */
 
-	num_devices = pleora_iport->num_devices;
+	CyDeviceFinder::DeviceList *ip_engine_list
+				= pleora_iport->ip_engine_list;
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: ip_engine_list = %p", fname, ip_engine_list));
+#endif
+
+	num_devices = ip_engine_list->size();
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: num_devices = %ld", fname, num_devices));
+#endif
+
+	CyDeviceFinder::DeviceList ip_engine_list_obj = *ip_engine_list;
 
 	for ( i = 0; i < num_devices; i++ ) {
-		device_entry = pleora_iport->device_array[i];
+		const CyDeviceFinder::DeviceEntry &device_entry
+				= ip_engine_list_obj[i];
 
 		MX_DEBUG(-2,("%s: i = %ld, device_entry = %p",
 			fname, i, device_entry));
-		MX_DEBUG(-2,("%s:     device_entry->mAddressIP = %p",
-			fname, device_entry->mAddressIP));
-		MX_DEBUG(-2,("%s:     device_entry->mAddressIP.c_str_ascii = %p",
-			fname, device_entry->mAddressIP.c_str_ascii));
-		MX_DEBUG(-2,("%s:     device_entry->mAddressIP.c_str_ascii() = '%s'",
-			fname, device_entry->mAddressIP.c_str_ascii() ));
+		MX_DEBUG(-2,("%s:     device_entry.mAddressIP = %p",
+			fname, device_entry.mAddressIP));
+		MX_DEBUG(-2,("%s:     device_entry.mAddressIP.c_str_ascii = %p",
+			fname, device_entry.mAddressIP.c_str_ascii));
+		MX_DEBUG(-2,("%s:     device_entry.mAddressIP.c_str_ascii() = '%s'",
+			fname, device_entry.mAddressIP.c_str_ascii() ));
 
 		strlcpy( device_address_string,
-			device_entry->mAddressIP.c_str_ascii(),
+			device_entry.mAddressIP.c_str_ascii(),
 			sizeof(device_address_string) );
 
 		if ( strcmp( device_address_string,
