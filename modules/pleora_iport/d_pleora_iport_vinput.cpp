@@ -257,16 +257,9 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_PLEORA_IPORT *pleora_iport = NULL;
-	long i, num_devices;
-	char device_address_string[MXU_HOSTNAME_LENGTH+1];
 	mx_status_type mx_status;
 
-	CyConfig *config;
-	CyResult cy_result;
-
-	int offset_x;
-
-	/* mx_breakpoint(); */
+	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -291,14 +284,15 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 			record->name );
 	}
 
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: pleora_iport_vinput->grabber = %p",
-		fname, pleora_iport_vinput->grabber));
+	MX_DEBUG(-2,("%s: grabber = %p", fname, grabber));
 #endif
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	{
-		CyDevice &device = pleora_iport_vinput->grabber->GetDevice();
+		CyDevice &device = grabber->GetDevice();
 
 		unsigned char dev_id, mod_id, sub_id;
 		unsigned char vendor_id, mac1, mac2, mac3, mac4;
@@ -316,149 +310,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, ip1, ip2, ip3, ip4));
 	}
 #endif
-
-#if 0
-	/* Find the camera in the IP engine list. */
-
-	CyDeviceFinder::DeviceList *ip_engine_list
-				= pleora_iport->ip_engine_list;
-
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: ip_engine_list = %p", fname, ip_engine_list));
-#endif
-
-	num_devices = ip_engine_list->size();
-
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: num_devices = %ld", fname, num_devices));
-#endif
-
-	CyDeviceFinder::DeviceList ip_engine_list_obj = *ip_engine_list;
-
-	for ( i = 0; i < num_devices; i++ ) {
-		const CyDeviceFinder::DeviceEntry &device_entry
-				= ip_engine_list_obj[i];
-
-		MX_DEBUG(-2,("%s: i = %ld, device_entry = %p",
-			fname, i, device_entry));
-		MX_DEBUG(-2,("%s:     device_entry.mAddressIP = %p",
-			fname, device_entry.mAddressIP));
-		MX_DEBUG(-2,("%s:     device_entry.mAddressIP.c_str_ascii = %p",
-			fname, device_entry.mAddressIP.c_str_ascii));
-		MX_DEBUG(-2,("%s:     device_entry.mAddressIP.c_str_ascii() = '%s'",
-			fname, device_entry.mAddressIP.c_str_ascii() ));
-
-		strlcpy( device_address_string,
-			device_entry.mAddressIP.c_str_ascii(),
-			sizeof(device_address_string) );
-
-		if ( strcmp( device_address_string,
-			pleora_iport_vinput->ip_address_string ) == 0 )
-		{
-			/* We have found the correct IP Engine. */
-
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
-			MX_DEBUG(-2,("%s: Entry %ld matches address '%s'",
-			fname, pleora_iport_vinput->ip_address_string));
-#endif
-			break;
-		}
-	}
-
-	if ( i >= num_devices ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"iPORT host '%s' was not found in the scan by record '%s' "
-		"of iPORT devices for record '%s'.",
-			pleora_iport_vinput->ip_address_string,
-			pleora_iport->record->name,
-			record->name );
-	}
-
-	/* Setup the connectivity information needed 
-	 * to connect to the IP Engine.
-	 */
-
-	config = CyConfig_Init();
-
-	if ( config == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The attempt to initialize a CyConfig structure "
-		"for record '%s' failed.", record->name );
-	}
-
-	cy_result = CyConfig_AddDevice( config );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The attempt to add a device to CyConfig %p "
-		"for record '%s'.", record->name );
-	}
-
-	/* First set the required parameters. */
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_ACCESS_MODE, device_entry->mMode, FALSE );
-
-	CyParameterRepository_SetParameterStringByID( config,
-		CY_CONFIG_PARAM_ADDRESS_MAC, device_entry->mAddressMAC, FALSE );
-
-	CyParameterRepository_SetParameterStringByID( config,
-		CY_CONFIG_PARAM_ADDRESS_IP, device_entry->mAddressIP, FALSE );
-
-	CyParameterRepository_SetParameterStringByID( config,
-		CY_CONFIG_PARAM_ADAPTER_ID, device_entry->mAdapterID, FALSE );
-
-	/* Then set the optional parameters. */
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_PACKET_SIZE, 1440, FALSE );
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_ANSWER_TIMEOUT, 1000, FALSE );
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_FIRST_PACKET_TIMEOUT, 1500, FALSE );
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_PACKET_TIMEOUT, 500, FALSE );
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_REQUEST_TIMEOUT, 5000, FALSE );
-
-	/* Set the connection topology to unicast. */
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_DATA_SENDING_MODE,
-			CY_DEVICE_DSM_UNICAST, FALSE );
-
-	CyParameterRepository_SetParameterIntByID( config,
-		CY_CONFIG_PARAM_DATA_SENDING_MODE_MASTER, 1, FALSE );
-
-	/* Create and connect to the grabber. */
-
-	pleora_iport_vinput->grabber = CyGrabber_Init( 0, 0 );
-
-	if ( pleora_iport_vinput->grabber == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The attempt to initialize a CyGrabber structure "
-		"for record '%s' failed.", record->name );
-	}
-
-	cy_result = CyGrabber_Connect( pleora_iport_vinput->grabber,
-					config, 0 );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The attempt to connect configuration %p to grabber %p "
-		"for record '%s' failed.", record->name );
-	}
-
-	/* CyGrabber_Connect() copied all the information it needed
-	 * out of the CyConfig object, so we can now dispose of the
-	 * CyConfig object.
-	 */
-
-	CyConfig_Destroy( config );
 
 	/* Initialize the image properties. */
 
@@ -489,36 +340,21 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	offset_x = 40;	/* FIXME: Where does this number come from??? */
+	int offset_x = 40;  /* FIXME: Where does this number come from??? */
 
-	CyParameterRepository_SetParameterIntByID(
-		pleora_iport_vinput->grabber,
-		CY_GRABBER_PARAM_OFFSET_X, offset_x, FALSE );
+	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_X, offset_x );
 
-	CyParameterRepository_SetParameterIntByID(
-		pleora_iport_vinput->grabber,
-		CY_GRABBER_PARAM_OFFSET_Y, 0, FALSE );
+	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_Y, 0 );
 
-	CyParameterRepository_SetParameterIntByID(
-		pleora_iport_vinput->grabber,
-		CY_GRABBER_PARAM_TAP_QUANTITY, 1, FALSE );
+	grabber->SetParameter( CY_GRABBER_PARAM_TAP_QUANTITY, 1 );
 
-	CyParameterRepository_SetParameterIntByID(
-		pleora_iport_vinput->grabber,
-		CY_GRABBER_PARAM_PACKED, FALSE, FALSE );
+	grabber->SetParameter( CY_GRABBER_PARAM_PACKED, false );
 
-	CyParameterRepository_SetParameterIntByID(
-		pleora_iport_vinput->grabber,
-		CY_GRABBER_PARAM_NORMALIZED, FALSE, FALSE );
+	grabber->SetParameter( CY_GRABBER_PARAM_NORMALIZED, false );
 
-	cy_result = CyGrabber_SaveConfig( pleora_iport_vinput->grabber );
+	/* Send the cached values to the grabber. */
 
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to initialize some miscellaneous parameters "
-		"for record '%s' failed.  cy_result = %d",
-			record->name, cy_result );
-	}
+	grabber->SaveConfig();
 
 	/* Initialize a bunch of MX driver parameters. */
 
@@ -567,7 +403,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
-#endif
 	/* FIXME: We are supposed to reprogram the PLC here. */
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
@@ -603,11 +438,9 @@ mxd_pleora_iport_vinput_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-#if 0
-	CyGrabber_Destroy( pleora_iport_vinput->grabber );
+	delete pleora_iport_vinput->grabber;
 
 	pleora_iport_vinput->grabber = NULL;
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

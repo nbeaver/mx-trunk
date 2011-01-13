@@ -226,7 +226,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 #endif
 	}
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if 0 && MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
 
 	for ( i = 0; i < num_devices; i++ ) {
@@ -457,6 +457,8 @@ mxi_pleora_iport_open( MX_RECORD *record )
 			MX_DEBUG(-2,("%s: grabber IP address = %d.%d.%d.%d",
 			fname, ip1, ip2, ip3, ip4));
 		}
+
+		MX_DEBUG(-2,("++++++++ %s complete ++++++++", fname));
 #endif
 	}
 
