@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_SIM900_PORT_DEBUG	FALSE
+#define MXI_SIM900_PORT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -298,7 +298,7 @@ mxi_sim900_port_open( MX_RECORD *record )
 
 #if MXI_SIM900_PORT_DEBUG
 	MX_DEBUG(-2, ("%s invoked by record '%s' for SIM900 '%s', port '%c'",
-		fname, record->name, sim900->record->name, sim900->port_name));
+	fname, record->name, sim900->record->name, sim900_port->port_name));
 #endif
 	/* Ports C and D need special processing to be used as
 	 * general purpose ports.
@@ -1048,6 +1048,9 @@ mxi_sim900_port_send_break( MX_RS232 *rs232 )
 	MX_SIM900_PORT *sim900_port;
 	MX_SIM900 *sim900;
 	char command[100];
+	char response[250];
+	unsigned long bytes_waiting_to_be_read, bytes_to_throw_away;
+	int num_items;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sim900_port_get_pointers( rs232,
@@ -1056,11 +1059,86 @@ mxi_sim900_port_send_break( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* FIXME: For now we disable the break */
+
+	return MX_SUCCESSFUL_RESULT;
+
+	/* Send the SRST command. */
+
 	snprintf( command, sizeof(command), "SRST %c",
 					sim900_port->port_name );
 
 	mx_status = mxi_sim900_command( sim900, command,
 					NULL, 0, MXI_SIM900_PORT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait a while for the break to complete. */
+
+	mx_msleep(1000);
+
+	/* After sending a break, it can be hard to get the port to
+	 * communicate again.  We deal with this by sending an *ESR?
+	 * command and then throwing away the response.
+	 */
+
+	snprintf( command, sizeof(command),
+		"*ESR? %c", sim900_port->port_name );
+
+	mx_status = mxi_sim900_command( sim900, command,
+					NULL, 0, MXI_SIM900_PORT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(100);
+
+	/* How many bytes are waiting to be thrown away? */
+
+	snprintf( command, sizeof(command),
+		"NINP? %c", sim900_port->port_name );
+
+	mx_status = mxi_sim900_command( sim900, command,
+			response, sizeof(response), MXI_SIM900_PORT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( response, "%ld", &bytes_waiting_to_be_read );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"No number found in the response '%s' to command '%s' "
+		"sent to SIM900 controller '%s'.",
+			response, command, rs232->record->name );
+	}
+
+	/* Throw away that many bytes. */
+
+	while ( bytes_waiting_to_be_read > 0 ) {
+		if ( bytes_waiting_to_be_read > sizeof(response) ) {
+			bytes_to_throw_away = sizeof(response);
+		} else {
+			bytes_to_throw_away = bytes_waiting_to_be_read;
+		}
+
+		snprintf( command, sizeof(command), "RAWN? %c,%ld",
+						sim900_port->port_name,
+						bytes_to_throw_away );
+
+		mx_status = mxi_sim900_command( sim900, command,
+			response, sizeof(response), MXI_SIM900_PORT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( bytes_waiting_to_be_read > bytes_to_throw_away ) {
+			bytes_waiting_to_be_read -= bytes_to_throw_away;
+		} else {
+			bytes_waiting_to_be_read = 0;
+		}
+	}
 
 	return mx_status;
 }

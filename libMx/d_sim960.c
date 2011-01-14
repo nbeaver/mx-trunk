@@ -153,6 +153,8 @@ mxd_sim960_command( MX_SIM960 *sim960,
 
 	/* Check for errors in the previous command. */
 
+#if 0
+
 #if MXD_SIM960_ERROR_DEBUG
 	MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
 		fname, sim960->record->name ));
@@ -174,6 +176,8 @@ mxd_sim960_command( MX_SIM960 *sim960,
 	MX_DEBUG(-2,("%s: received '%s' from '%s'",
 		fname, esr_response, sim960->record->name ));
 #endif
+
+#endif /* 0 */
 
 	esr_byte = atol( esr_response );
 

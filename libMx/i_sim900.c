@@ -258,6 +258,10 @@ mxi_sim900_command( MX_SIM900 *sim900,
 	long gpib_address;
 	mx_status_type mx_status;
 
+	MX_RS232 *rs232;
+	MX_CLOCK_TICK current_tick, finish_tick, timeout_in_ticks;
+	unsigned long num_bytes_available;
+
 	if ( sim900 == (MX_SIM900 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SIM900 pointer passed was NULL." );
@@ -292,6 +296,52 @@ mxi_sim900_command( MX_SIM900 *sim900,
 			return mx_status;
 
 		if ( response != NULL ) {
+
+			mx_msleep(1000);
+
+			/* Wait until there are bytes available to be read. */
+
+			rs232 = interface_record->record_class_struct;
+
+			timeout_in_ticks = mx_convert_seconds_to_clock_ticks(
+							rs232->timeout );
+
+			current_tick = mx_current_clock_tick();
+
+			finish_tick = mx_add_clock_ticks( current_tick,
+							timeout_in_ticks );
+
+			while (1) {
+				int comparison;
+
+				mx_status = mx_rs232_num_input_bytes_available(
+						interface_record,
+						&num_bytes_available );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				if ( num_bytes_available > 0 ) {
+					break;	/* Exit the while() loop. */
+				}
+
+				current_tick = mx_current_clock_tick();
+
+				comparison = mx_compare_clock_ticks(
+							current_tick,
+							finish_tick );
+
+				if ( comparison >= 0 ) {
+					return mx_error( MXE_TIMED_OUT, fname,
+					"Timed out after waiting %f seconds "
+					"for a response to the '%s' command "
+					"sent to '%s'.",
+						rs232->timeout,
+						command,
+						interface_record->name );
+				}
+			}
+
 			/* Get the response. */
 
 			mx_status = mx_rs232_getline( interface_record,

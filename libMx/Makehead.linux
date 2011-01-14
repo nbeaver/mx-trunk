@@ -20,8 +20,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -32,8 +32,8 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -337,20 +337,20 @@ EPICS_ARCH	= linux-x86		# For EPICS 3.14
 #EPICS_TOP	= /home/lavender/local/epics
 EPICS_TOP	= /home1/daly/epics
 
-EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-			-I$(EPICS_TOP)/base/include/os/Linux
-EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+#			-I$(EPICS_TOP)/base/include/os/Linux
+#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+#EPICS_LIBRARIES = -lca -lCom
 
 # If you are using IIT's EPICS Debian package, use the following definitions.
 #
 # IIT's Debian and Ubuntu packages can be found at http://debian-xray.iit.edu/
 #     
 
-#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-#			-I/usr/include/epics/os/Linux
-#EPICS_LIB_DIRS  = 
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+			-I/usr/include/epics/os/Linux
+EPICS_LIB_DIRS  = 
+EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
