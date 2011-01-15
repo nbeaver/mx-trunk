@@ -103,8 +103,10 @@ mxd_sim980_command( MX_SIM980 *sim980,
 {
 	static const char fname[] = "mxd_sim980_command()";
 
+#if 0
 	char esr_response[10];
 	unsigned char esr_byte;
+#endif
 	mx_status_type mx_status;
 
 	if ( command == (char *) NULL ) {
@@ -141,6 +143,8 @@ mxd_sim980_command( MX_SIM980 *sim980,
 	}
 
 	/* Check for errors in the previous command. */
+
+#if 0
 
 #if MXD_SIM980_ERROR_DEBUG
 	MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
@@ -191,6 +195,8 @@ mxd_sim980_command( MX_SIM980 *sim980,
 		"Output data lost (QYE) for command '%s' sent to '%s'.",
 			command, sim980->record->name );
 	}
+
+#endif /* 0 */
 
 	return MX_SUCCESSFUL_RESULT;
 }

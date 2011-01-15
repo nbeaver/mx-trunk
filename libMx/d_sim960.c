@@ -114,8 +114,10 @@ mxd_sim960_command( MX_SIM960 *sim960,
 {
 	static const char fname[] = "mxd_sim960_command()";
 
+#if 0
 	char esr_response[10];
 	unsigned char esr_byte;
+#endif
 	mx_status_type mx_status;
 
 	if ( command == (char *) NULL ) {
@@ -177,8 +179,6 @@ mxd_sim960_command( MX_SIM960 *sim960,
 		fname, esr_response, sim960->record->name ));
 #endif
 
-#endif /* 0 */
-
 	esr_byte = atol( esr_response );
 
 	if ( esr_byte & 0x20 ) {
@@ -206,6 +206,8 @@ mxd_sim960_command( MX_SIM960 *sim960,
 		"Output data lost (QYE) for command '%s' sent to '%s'.",
 			command, sim960->record->name );
 	}
+
+#endif /* 0 */
 
 	return MX_SUCCESSFUL_RESULT;
 }

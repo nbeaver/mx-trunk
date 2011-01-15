@@ -581,8 +581,6 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	unsigned long num_bytes_that_should_have_been_read;
 	mx_status_type mx_status;
 
-	mx_msleep(1000);
-
 	if ( max_bytes_to_read_including_prefix < MXP_GETN_PREFIX_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The read buffer of '%s' for getn must be at least %d "
@@ -620,9 +618,21 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	 */
 
 	if ( buffer[0] == '\0' ) {
-		return mx_error( MXE_TRY_AGAIN, fname,
-		"Try again for '%s'.", sim900_port->record->name );
-			
+		/* Wait a moment and try the read again. */
+
+		mx_msleep(500);
+
+#if MXI_SIM900_PORT_DEBUG
+		MX_DEBUG(-2,("%s: Retrying read from '%s'.",
+			fname, sim900->record->name));
+#endif
+
+		mx_status = mxi_sim900_command( sim900, NULL, buffer,
+					max_bytes_to_read_including_prefix,
+					MXI_SIM900_PORT_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Is there a prefix at the start of the message? */
@@ -645,7 +655,7 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	 */
 
 	if ( length_from_header == 0 ) {
-		return mx_error( MXE_END_OF_DATA, fname,
+		return mx_error( (MXE_END_OF_DATA | MXE_QUIET) , fname,
 		"End of data from '%s'.", sim900_port->record->name );
 			
 	}

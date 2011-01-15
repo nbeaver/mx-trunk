@@ -265,10 +265,6 @@ mxi_sim900_command( MX_SIM900 *sim900,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SIM900 pointer passed was NULL." );
 	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command pointer passed was NULL." );
-	}
 
 	interface_record = sim900->sim900_interface.record;
 
@@ -280,7 +276,7 @@ mxi_sim900_command( MX_SIM900 *sim900,
 
 	/* Send the command and get the response. */
 
-	if ( sim900_flags & MXF_SIM900_DEBUG ) {
+	if ( ( command != NULL ) && (sim900_flags & MXF_SIM900_DEBUG ) ) {
 
 		MX_DEBUG(-2,("%s: sending command '%s' to '%s'.",
 		    fname, command, sim900->record->name));
@@ -295,11 +291,13 @@ mxi_sim900_command( MX_SIM900 *sim900,
 				interface_record->name );
 		}
 
-		mx_status = mx_rs232_putline( interface_record,
-						command, NULL, 0 );
+		if ( command != NULL ) {
+			mx_status = mx_rs232_putline( interface_record,
+							command, NULL, 0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		if ( response != NULL ) {
 
@@ -326,11 +324,14 @@ mxi_sim900_command( MX_SIM900 *sim900,
 
 		gpib_address = sim900->sim900_interface.address;
 
-		mx_status = mx_gpib_putline( interface_record, gpib_address,
-						command, NULL, 0 );
+		if ( command != NULL ) {
+			mx_status = mx_gpib_putline( interface_record,
+							gpib_address,
+							command, NULL, 0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		if ( response != NULL ) {
 			mx_status = mx_gpib_getline(
