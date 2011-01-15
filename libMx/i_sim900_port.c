@@ -566,6 +566,124 @@ mxi_sim900_port_write( MX_RS232 *rs232,
 
 #define MXP_GETN_PREFIX_LENGTH	5
 
+static mx_status_type
+mxi_sim900_port_getn( MX_RS232 *rs232,
+			MX_SIM900_PORT *sim900_port,
+			MX_SIM900 *sim900,
+			char *buffer,
+			size_t max_bytes_to_read_including_prefix,
+			size_t *bytes_read )
+{
+	static const char fname[] = "mxi_sim900_port_getn()";
+
+	char command[40];
+	unsigned long max_bytes, length_from_header;
+	unsigned long num_bytes_that_should_have_been_read;
+	mx_status_type mx_status;
+
+	mx_msleep(1000);
+
+	if ( max_bytes_to_read_including_prefix < MXP_GETN_PREFIX_LENGTH ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The read buffer of '%s' for getn must be at least %d "
+		"bytes long, but is actually %lu bytes long.",
+			sim900_port->record->name,
+			MXP_GETN_PREFIX_LENGTH,
+			(unsigned long) max_bytes_to_read_including_prefix );
+	}
+
+	max_bytes = max_bytes_to_read_including_prefix - MXP_GETN_PREFIX_LENGTH;
+
+	/* By experimentation, it appears that attempts to request more
+	 * than 128 bytes at a time fails, so we must truncate max_bytes
+	 * at 128.
+	 */
+
+	if ( max_bytes > 128 ) {
+		max_bytes = 128;
+	}
+
+	/* Send the command to the SIM900. */
+
+	snprintf( command, sizeof(command), "GETN? %c,%lu",
+					sim900_port->port_name, max_bytes );
+
+	mx_status = mxi_sim900_command( sim900, command, buffer,
+					max_bytes_to_read_including_prefix,
+					MXI_SIM900_PORT_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Did we just get back an empty message?  If so, then
+	 * we should try again later.
+	 */
+
+	if ( buffer[0] == '\0' ) {
+		return mx_error( MXE_TRY_AGAIN, fname,
+		"Try again for '%s'.", sim900_port->record->name );
+			
+	}
+
+	/* Is there a prefix at the start of the message? */
+
+	if ( buffer[0] != '#' ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"The first byte '%c' of the response '%s' to the "
+		"command '%s' sent to '%s' is not the prefix character '#'.",
+			buffer[0], buffer, command, sim900_port->record->name );
+	}
+
+	/* How many bytes does the message header say are in the message? */
+
+	length_from_header = 100 * ( buffer[2] - '0' )
+			    + 10 * ( buffer[3] - '0' )
+			         + ( buffer[4] - '0' );
+
+	/* If the length from the header is 0, then
+	 * the line should be complete.
+	 */
+
+	if ( length_from_header == 0 ) {
+		return mx_error( MXE_END_OF_DATA, fname,
+		"End of data from '%s'.", sim900_port->record->name );
+			
+	}
+
+	num_bytes_that_should_have_been_read = MXP_GETN_PREFIX_LENGTH
+					+ length_from_header
+					+ rs232->num_read_terminator_chars
+					+ 1;	/* For the NUL byte. */
+
+	if ( num_bytes_that_should_have_been_read
+		> max_bytes_to_read_including_prefix )
+	{
+		(void) mxi_sim900_port_discard_unread_input( rs232 );
+
+		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+		"Buffer overrun seen in the response '%s' to the command '%s' "
+		"sent to '%s'.  The message header says that we should have "
+		"attempted to read %lu bytes, but the buffer available was "
+		"only %lu bytes long.",
+			buffer, command, sim900_port->record->name,
+			num_bytes_that_should_have_been_read,
+			(unsigned long) max_bytes_to_read_including_prefix );
+	}
+
+	/* Move the bytes after the prefix to their proper position at 
+	 * the start of the buffer.
+	 */
+
+	memmove( buffer, buffer + MXP_GETN_PREFIX_LENGTH,
+			length_from_header );
+
+	if ( bytes_read != NULL ) {
+		*bytes_read = length_from_header;
+	}
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxi_sim900_port_getline( MX_RS232 *rs232,
 			char *buffer,
@@ -576,10 +694,8 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 
 	MX_SIM900_PORT *sim900_port;
 	MX_SIM900 *sim900;
-	char command[40];
-	long max_bytes, length_from_header;
-	long num_bytes_that_should_have_been_read;
-	long read_terminator_start;
+	char *buffer_ptr, *terminators_ptr;
+	size_t bytes_left_in_buffer, bytes_read_so_far, bytes_read_by_getn;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sim900_port_get_pointers( rs232,
@@ -588,59 +704,73 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( max_bytes_to_read < MXP_GETN_PREFIX_LENGTH ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The read buffer of '%s' for getline must be at least %d "
-		"bytes long.", rs232->record->name, MXP_GETN_PREFIX_LENGTH );
-	}
+	buffer_ptr = buffer;
+	bytes_left_in_buffer = max_bytes_to_read;
+	bytes_read_so_far = 0;
 
-	max_bytes = max_bytes_to_read - MXP_GETN_PREFIX_LENGTH;
+	while (1) {
+		mx_status = mxi_sim900_port_getn( rs232, sim900_port, sim900,
+						buffer_ptr,
+						bytes_left_in_buffer,
+						&bytes_read_by_getn );
 
-	snprintf( command, sizeof(command), "GETN? %c,%lu",
-				sim900_port->port_name, max_bytes );
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			break;
 
-	mx_status = mxi_sim900_command( sim900, command,
-					buffer, max_bytes_to_read,
-					MXI_SIM900_PORT_DEBUG );
+		case MXE_TRY_AGAIN:
+			mx_msleep(100);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+			/* Go back and try the read again. */
 
-	/* How many bytes does the message header say were in the message? */
+			continue; /* Go to the top of the while() loop. */
 
-	length_from_header = 100 * ( buffer[2] - '0' )
-                            + 10 * ( buffer[3] - '0' )
-                                 + ( buffer[4] - '0' );
+			break;
 
-	num_bytes_that_should_have_been_read = MXP_GETN_PREFIX_LENGTH
-					+ length_from_header
-					+ rs232->num_read_terminator_chars
-					+ 1;     /* For the NUL byte. */
+		case MXE_END_OF_DATA:
+			if ( bytes_read != NULL ) {
+				*bytes_read = bytes_read_so_far;
+			}
+			return MX_SUCCESSFUL_RESULT;
+			break;
 
-	if ( num_bytes_that_should_have_been_read > max_bytes_to_read ) {
-		(void) mxi_sim900_port_discard_unread_input( rs232 );
+		default:
+			return mx_status;
+			break;
+		}
 
-		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
-		"Buffer overrun seen in response to the '%s' command "
-		"sent to '%s'.", command, rs232->record->name );
-	}
+		bytes_read_so_far += bytes_read_by_getn;
 
-	/* Strip off the line terminators. */
+		/* See if the read terminators are found in the data
+		 * returned by GETN.
+		 */
 
-	read_terminator_start = MXP_GETN_PREFIX_LENGTH + length_from_header
-				- rs232->num_read_terminator_chars;
+		terminators_ptr = mx_rs232_find_terminators( buffer_ptr,
+					bytes_left_in_buffer,
+					rs232->num_read_terminator_chars,
+					rs232->read_terminator_array );
 
-	buffer[read_terminator_start] = '\0';
+		if ( terminators_ptr != NULL ) {
+			*terminators_ptr = '\0';
 
-	/* Move the body of the message to the start of the buffer. */
+			if ( bytes_read != NULL ) {
+				*bytes_read = bytes_read_so_far
+					- rs232->num_read_terminator_chars;
 
-	memmove( buffer, buffer + MXP_GETN_PREFIX_LENGTH,
-		read_terminator_start );
+				return MX_SUCCESSFUL_RESULT;
+			}
+		}
 
-	/* We are done, so return the results. */
+		if ( bytes_read_by_getn >= bytes_left_in_buffer ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The total response beginning with '%s' from '%s'"
+			"would exceed the specified buffer size of %lu.",
+				buffer, rs232->record->name,
+				(unsigned long) max_bytes_to_read );
+		}
 
-	if ( bytes_read != (size_t *) NULL ) {
-		*bytes_read = length_from_header;
+		buffer_ptr += bytes_read_by_getn;
+		bytes_left_in_buffer -= bytes_read_by_getn;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

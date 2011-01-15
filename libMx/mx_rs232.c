@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -254,6 +254,51 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT char *
+mx_rs232_find_terminators( char *buffer,
+			size_t buffer_length,
+			unsigned long num_terminators,
+			char *terminator_array )
+{
+	char *buffer_ptr;
+	size_t buffer_left;
+	mx_bool_type terminators_found;
+	unsigned long i;
+
+	if ( num_terminators < 1 ) {
+		return NULL;
+	}
+
+	buffer_ptr = buffer;
+	buffer_left = buffer_length;
+
+	while (1) {
+		if ( buffer_left < num_terminators ) {
+			return NULL;
+		}
+
+		if ( buffer_ptr[0] == terminator_array[0] ) {
+			terminators_found = TRUE;
+
+			for ( i = 1; i < num_terminators; i++ ) {
+				if ( buffer_ptr[i] != terminator_array[i] ) {
+					terminators_found = FALSE;
+					break;	/* Exit the for() loop. */
+				}
+			}
+
+			if ( terminators_found ) {
+				return buffer_ptr;
+			}
+		}
+
+		buffer_ptr++;
+		buffer_left--;
+	}
+
+	return NULL;
 }
 
 MX_EXPORT mx_status_type
@@ -1089,6 +1134,77 @@ mx_rs232_num_input_bytes_available( MX_RECORD *record,
 
 	if ( num_input_bytes_available != NULL ) {
 		*num_input_bytes_available = rs232->num_input_bytes_available;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_rs232_wait_for_input_available( MX_RECORD *record,
+				unsigned long *num_input_bytes_available,
+				double wait_timeout_in_seconds )
+{
+	static const char fname[] = "mx_rs232_wait_for_input_available()";
+
+	MX_RS232 *rs232;
+	MX_RS232_FUNCTION_LIST *fl_ptr;
+	mx_status_type (*fptr)( MX_RS232 *, double );
+	mx_status_type mx_status;
+
+	MX_CLOCK_TICK current_tick, finish_tick, timeout_in_ticks;
+	int comparison;
+	mx_bool_type wait_forever;
+	unsigned long num_bytes_available;
+
+	mx_status = mx_rs232_get_pointers( record, &rs232, &fl_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	fptr = fl_ptr->wait_for_input_available;
+
+	if ( fptr != NULL ) {
+		mx_status = (*fptr)( rs232, wait_timeout_in_seconds );
+	} else {
+		if ( wait_timeout_in_seconds < 0.0 ) {
+			wait_forever = TRUE;
+		} else {
+			wait_forever = FALSE;
+
+			timeout_in_ticks = mx_convert_seconds_to_clock_ticks(
+						wait_timeout_in_seconds );
+
+			current_tick = mx_current_clock_tick();
+
+			finish_tick = mx_add_clock_ticks( current_tick,
+							timeout_in_ticks );
+		}
+
+		while (1) {
+			mx_status = mx_rs232_num_input_bytes_available(
+						record, &num_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_bytes_available > 0 ) {
+				break;	/* Exit the while() loop. */
+			}
+
+			if ( wait_forever == FALSE ) {
+				comparison = mx_compare_clock_ticks(
+							current_tick,
+							finish_tick );
+
+				if ( comparison >= 0 ) {
+					return mx_error( MXE_TIMED_OUT, fname,
+					"Timed out after waiting %f seconds "
+					"for available input from '%s'.",
+						wait_timeout_in_seconds,
+						record->name );
+				}
+			}
+		}
 	}
 
 	return mx_status;

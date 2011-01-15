@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -266,6 +266,8 @@ typedef struct {
 	mx_status_type ( *get_configuration ) ( MX_RS232 *rs232 );
 	mx_status_type ( *set_configuration ) ( MX_RS232 *rs232 );
 	mx_status_type ( *send_break ) ( MX_RS232 *rs232 );
+	mx_status_type ( *wait_for_input_available ) ( MX_RS232 *rs232,
+					double wait_timeout_in_seconds );
 } MX_RS232_FUNCTION_LIST;
 
 /* ============== Interface function prototypes. ============== */
@@ -274,6 +276,10 @@ MX_API mx_status_type mx_rs232_check_port_parameters(MX_RECORD *rs232_record);
 
 MX_API mx_status_type mx_rs232_convert_terminator_characters(
 						MX_RECORD *rs232_record);
+
+MX_API char *mx_rs232_find_terminators( char *buffer, size_t buffer_length,
+					unsigned long num_terminators,
+					char *terminator_array );
 
 MX_API mx_status_type mx_rs232_get_pointers( MX_RECORD *rs232_record,
 					MX_RS232 **rs232,
@@ -326,6 +332,11 @@ MX_API mx_status_type mx_rs232_putline( MX_RECORD *rs232_record,
 MX_API mx_status_type mx_rs232_num_input_bytes_available(
 					MX_RECORD *rs232_record,
 				    unsigned long *num_input_bytes_available );
+
+MX_API mx_status_type mx_rs232_wait_for_input_available(
+					MX_RECORD *rs232_record,
+				    unsigned long *num_input_bytes_available,
+					double wait_timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_discard_unread_input(
 					MX_RECORD *rs232_record,
