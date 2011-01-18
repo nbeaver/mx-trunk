@@ -1,5 +1,5 @@
-ttyS0   interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 2 0x0 /dev/ttyS1
-sim900  interface controller sim900 "" "" ttyS0 0x0
+ttyS1   interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0a 2 0x0 /dev/ttyS1
+sim900  interface controller sim900 "" "" ttyS1 0x0
 #
 port1 interface rs232 sim900_port "" "" 9600 8 N 1 N 0x0d0a 0x0a 5.0 0x0 sim900 1
 sim960  device motor sim960 "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 V port1 0x0

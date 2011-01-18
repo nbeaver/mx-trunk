@@ -7,14 +7,18 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_SIM900_PORT_DEBUG	TRUE
+#define MXI_SIM900_PORT_DEBUG		TRUE
+
+#define MXI_SIM900_PORT_DEBUG_GETN	FALSE
+
+#define MXI_SIM900_PORT_DEBUG_GETCHAR	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +28,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
+#include "mx_gpib.h"
 #include "i_sim900.h"
 #include "i_sim900_port.h"
 
@@ -577,8 +582,10 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	static const char fname[] = "mxi_sim900_port_getn()";
 
 	char command[40];
-	unsigned long max_bytes, length_from_header;
-	unsigned long num_bytes_that_should_have_been_read;
+	char *termarray;
+	unsigned long i, j, max_bytes, length_from_header;
+	unsigned long total_message_length, num_terminators;
+	double getchar_timeout;
 	mx_status_type mx_status;
 
 	if ( max_bytes_to_read_including_prefix < MXP_GETN_PREFIX_LENGTH ) {
@@ -606,79 +613,136 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	snprintf( command, sizeof(command), "GETN? %c,%lu",
 					sim900_port->port_name, max_bytes );
 
-	mx_status = mxi_sim900_command( sim900, command, buffer,
-					max_bytes_to_read_including_prefix,
+	/* Send the command. */
+
+	mx_status = mxi_sim900_command( sim900, command, NULL, 0,
 					MXI_SIM900_PORT_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Did we just get back an empty message?  If so, then
-	 * we should try again later.
-	 */
+	if ( sim900->sim900_interface.record->mx_class == MXI_GPIB ) {
+		/* GPIB is _UNTESTED_! */
 
-	if ( buffer[0] == '\0' ) {
-		/* Wait a moment and try the read again. */
-
-		mx_msleep(500);
-
-#if MXI_SIM900_PORT_DEBUG
-		MX_DEBUG(-2,("%s: Retrying read from '%s'.",
-			fname, sim900->record->name));
-#endif
-
-		mx_status = mxi_sim900_command( sim900, NULL, buffer,
+		mx_status = mx_gpib_getline( sim900->sim900_interface.record,
+					sim900->sim900_interface.address,
+					buffer,
 					max_bytes_to_read_including_prefix,
+					NULL,
 					MXI_SIM900_PORT_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-	}
+	} else
+	if ( sim900->sim900_interface.record->mx_class == MXI_RS232 ) {
+		/* RS232 is more difficult to work with. */
 
-	/* Is there a prefix at the start of the message? */
+		/* Read back the prefix of the command. */
 
-	if ( buffer[0] != '#' ) {
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"The first byte '%c' of the response '%s' to the "
-		"command '%s' sent to '%s' is not the prefix character '#'.",
+		getchar_timeout = 1.0;
+
+		for ( i = 0; i < MXP_GETN_PREFIX_LENGTH; i++ ) {
+
+			mx_status = mx_rs232_getchar_with_timeout(
+						sim900->sim900_interface.record,
+						&buffer[i],
+						MXI_SIM900_PORT_DEBUG,
+						getchar_timeout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MXI_SIM900_PORT_DEBUG_GETCHAR
+			MX_DEBUG(-2,("%s: buffer[%lu] = %#x '%c'",
+				fname, i, buffer[i], buffer[i]));
+#endif
+		}
+
+		/* Is there a prefix at the start of the message? */
+
+		if ( buffer[0] != '#' ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"The first byte '%c' of the response '%s' to the "
+			"command '%s' sent to '%s' is not "
+			"the prefix character '#'.",
 			buffer[0], buffer, command, sim900_port->record->name );
+		}
+
+		/* How many bytes does the message header say
+		 * are in the message?
+		 */
+
+		length_from_header = 100 * ( buffer[2] - '0' )
+				    + 10 * ( buffer[3] - '0' )
+				         + ( buffer[4] - '0' );
+
+		num_terminators = rs232->num_read_terminator_chars;
+
+		total_message_length =
+		  MXP_GETN_PREFIX_LENGTH + length_from_header + num_terminators;
+
+#if MXI_SIM900_PORT_DEBUG_GETCHAR
+		MX_DEBUG(-2,("%s: total_message_length = %lu",
+			fname, total_message_length));
+#endif
+
+		/* Read in the body of the message. */
+
+		for ( i = MXP_GETN_PREFIX_LENGTH;
+			i < ( total_message_length - num_terminators );
+			i++ )
+		{
+			mx_status = mx_rs232_getchar_with_timeout(
+						sim900->sim900_interface.record,
+						&buffer[i],
+						MXI_SIM900_PORT_DEBUG,
+						getchar_timeout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MXI_SIM900_PORT_DEBUG_GETCHAR
+			MX_DEBUG(-2,("%s: buffer[%lu] = %#x '%c'",
+				fname, i, buffer[i], buffer[i]));
+#endif
+		}
+
+		/* Read in and discard the terminators. */
+
+		termarray = rs232->read_terminator_array;
+
+		for ( i = (MXP_GETN_PREFIX_LENGTH + length_from_header), j = 0;
+			i < total_message_length;
+			i++, j++ )
+		{
+			mx_status = mx_rs232_getchar_with_timeout(
+						sim900->sim900_interface.record,
+						&buffer[i],
+						MXI_SIM900_PORT_DEBUG,
+						getchar_timeout );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if MXI_SIM900_PORT_DEBUG_GETCHAR
+			MX_DEBUG(-2,("%s: buffer[%lu] = %#x '%c'",
+				fname, i, buffer[i], buffer[i]));
+#endif
+			if ( buffer[i] != termarray[j] ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Did not see the expected read terminators "
+				"%#lx in the buffer '%s' read from '%s'.",
+					rs232->read_terminators,
+					buffer, sim900->record->name );
+			}
+
+			buffer[i] = '\0';
+		}
 	}
 
-	/* How many bytes does the message header say are in the message? */
-
-	length_from_header = 100 * ( buffer[2] - '0' )
-			    + 10 * ( buffer[3] - '0' )
-			         + ( buffer[4] - '0' );
-
-	/* If the length from the header is 0, then
-	 * the line should be complete.
-	 */
-
-	if ( length_from_header == 0 ) {
-		return mx_error( (MXE_END_OF_DATA | MXE_QUIET) , fname,
-		"End of data from '%s'.", sim900_port->record->name );
-			
-	}
-
-	num_bytes_that_should_have_been_read = MXP_GETN_PREFIX_LENGTH
-					+ length_from_header
-					+ rs232->num_read_terminator_chars
-					+ 1;	/* For the NUL byte. */
-
-	if ( num_bytes_that_should_have_been_read
-		> max_bytes_to_read_including_prefix )
-	{
-		(void) mxi_sim900_port_discard_unread_input( rs232 );
-
-		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
-		"Buffer overrun seen in the response '%s' to the command '%s' "
-		"sent to '%s'.  The message header says that we should have "
-		"attempted to read %lu bytes, but the buffer available was "
-		"only %lu bytes long.",
-			buffer, command, sim900_port->record->name,
-			num_bytes_that_should_have_been_read,
-			(unsigned long) max_bytes_to_read_including_prefix );
-	}
+#if MXI_SIM900_PORT_DEBUG_GETN
+	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
 
 	/* Move the bytes after the prefix to their proper position at 
 	 * the start of the buffer.
@@ -686,6 +750,8 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 
 	memmove( buffer, buffer + MXP_GETN_PREFIX_LENGTH,
 			length_from_header );
+
+	buffer[length_from_header] = '\0';
 
 	if ( bytes_read != NULL ) {
 		*bytes_read = length_from_header;
@@ -724,30 +790,8 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 						bytes_left_in_buffer,
 						&bytes_read_by_getn );
 
-		switch( mx_status.code ) {
-		case MXE_SUCCESS:
-			break;
-
-		case MXE_TRY_AGAIN:
-			mx_msleep(100);
-
-			/* Go back and try the read again. */
-
-			continue; /* Go to the top of the while() loop. */
-
-			break;
-
-		case MXE_END_OF_DATA:
-			if ( bytes_read != NULL ) {
-				*bytes_read = bytes_read_so_far;
-			}
-			return MX_SUCCESSFUL_RESULT;
-			break;
-
-		default:
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-			break;
-		}
 
 		bytes_read_so_far += bytes_read_by_getn;
 
@@ -766,9 +810,13 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 			if ( bytes_read != NULL ) {
 				*bytes_read = bytes_read_so_far
 					- rs232->num_read_terminator_chars;
-
-				return MX_SUCCESSFUL_RESULT;
 			}
+
+#if MXI_SIM900_PORT_DEBUG
+			MX_DEBUG(-2,("%s: received '%s' from '%s'.",
+				fname, buffer, rs232->record->name));
+#endif
+			return MX_SUCCESSFUL_RESULT;
 		}
 
 		if ( bytes_read_by_getn >= bytes_left_in_buffer ) {

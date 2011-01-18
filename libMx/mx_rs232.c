@@ -279,6 +279,10 @@ mx_rs232_find_terminators( char *buffer,
 			return NULL;
 		}
 
+		if ( buffer_ptr[0] == '\0' ) {
+			return NULL;
+		}
+
 		if ( buffer_ptr[0] == terminator_array[0] ) {
 			terminators_found = TRUE;
 
