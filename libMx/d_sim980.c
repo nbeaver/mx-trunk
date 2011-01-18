@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -291,6 +291,11 @@ mxd_sim980_open( MX_RECORD *record )
 		return mx_status;
 
 	/* Reset the communication interface by sending a break signal. */
+
+#if MXD_SIM980_DEBUG
+	MX_DEBUG(-2,("%s: sending a break signal to '%s'.",
+				fname, record->name ));
+#endif
 
 	mx_status = mx_rs232_send_break( sim980->port_record );
 
