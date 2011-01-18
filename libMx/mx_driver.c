@@ -2162,7 +2162,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_linkam_t9x_pump_num_record_fields,
 				&mxd_linkam_t9x_pump_rfield_def_ptr},
 
-{"sim980",          MXT_AIN_SIM980, MXC_ANALOG_OUTPUT, MXR_DEVICE,
+{"sim980",          MXT_AIN_SIM980, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_sim980_record_function_list,
 				NULL,
 				&mxd_sim980_analog_input_function_list,
