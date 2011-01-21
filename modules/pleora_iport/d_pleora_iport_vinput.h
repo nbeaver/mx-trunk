@@ -26,6 +26,8 @@ typedef struct {
 	char ip_address_string[MXU_HOSTNAME_LENGTH+1];
 
 	CyGrabber *grabber;
+	CyResultEvent *grab_finished_event;
+	mx_bool_type sequence_in_progress;
 
 } MX_PLEORA_IPORT_VINPUT;
 

@@ -167,6 +167,10 @@ mxd_pleora_iport_vinput_create_record_structures( MX_RECORD *record )
 
 	vinput->trigger_mode = 0;
 
+	pleora_iport_vinput->grabber = NULL;
+	pleora_iport_vinput->grab_finished_event = NULL;
+	pleora_iport_vinput->sequence_in_progress = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -258,8 +262,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_PLEORA_IPORT *pleora_iport = NULL;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -403,7 +405,54 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
-	/* FIXME: We are supposed to reprogram the PLC here. */
+	pleora_iport_vinput->grab_finished_event =
+				new CyResultEvent( false, false );
+
+	/* FIXME: We do not yet fully understand what the following PLC code
+	 * does exactly.  Comments copied from MBC's CameraTrigger.cpp.
+	 */
+
+	CyDevice &device = grabber->GetDevice();
+
+	CyDeviceExtension *extension =
+				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
+
+	// See PLC controls in Coyote Configuration for these settings.
+
+	/* Set I0 to TTL Input 0 */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
+
+	/* Set I2 to Camera Frame Valid */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
+
+	/* Set I7 to Pulse Generator 0 Output */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
+
+	/* Reprogram the PLC to generate a sync pulse for the camera
+	 * and to initialize control inputs.
+	 *
+	 * Initialize the PLC for SCAN mode (Q4=0) and EXSYNC modulated
+	 * by TTL_IN0 (or A0 on I0).
+	 */
+
+	CyString program =
+		"Q0 = I2\r\n"
+		"Q1 = 0\r\n"
+		"Q4 = 0\r\n"
+		"Q5 = 1\r\n"
+		"Q6 = 1\r\n"
+		"Q7 = I7 & !I0\r\n";
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM, program );
+
+	/* Send the changes to the IP engine. */
+
+	extension->SaveToDevice();
+
+	/* FIXME: End of the PLC magic. */
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -464,8 +513,44 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	/* For this video input, the input frame buffer must be set up
+	 * before we can execute the grabber->Grab() method.  For that
+	 * reason, we do mx_image_alloc() here to make sure that the
+	 * frame is set up.
+	 */
+
+	mx_status = mx_image_alloc( &(vinput->frame),
+					vinput->framesize[0],
+					vinput->framesize[1],
+					vinput->image_format,
+					vinput->byte_order,
+					vinput->bytes_per_pixel,
+					MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+					vinput->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
+		fname, vinput->trigger_mode ));
+#endif
+
+	switch( vinput->trigger_mode ) {
+	case MXT_IMAGE_INTERNAL_TRIGGER:
+		pleora_iport_vinput->sequence_in_progress = FALSE;
+		break;
+	case MXT_IMAGE_EXTERNAL_TRIGGER:
+		pleora_iport_vinput->sequence_in_progress = TRUE;
+		break;
+	}
 
 	seq = &(vinput->sequence_parameters);
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: Prepare for sequence type %d",
+		fname, seq->sequence_type));
+#endif
 
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
@@ -480,13 +565,6 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
-	switch( vinput->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
-		break;
-	case MXT_IMAGE_EXTERNAL_TRIGGER:
-		break;
-	}
-
 	return mx_status;
 }
 
@@ -496,6 +574,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_pleora_iport_vinput_trigger()";
 
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_IMAGE_FRAME *frame;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
@@ -508,6 +587,54 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+
+	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+
+		/* If internal triggering is not enabled,
+		 * return without doing anything.
+		 */
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+		MX_DEBUG(-2,
+		("%s: internal trigger disabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we are doing internal triggering. */
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: Sending internal trigger for '%s'.",
+		fname, vinput->record->name));
+#endif
+	frame = vinput->frame;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"No image frame has been allocated for video input '%s'.",
+			vinput->record->name );
+	}
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	CyResult cy_result = grabber->Grab(
+				CyChannel(0),
+				(unsigned char *) frame->image_data,
+				vinput->bytes_per_frame,
+				pleora_iport_vinput->grab_finished_event,
+				NULL,
+				CY_GRABBER_FLAG_NO_WAIT,
+				NULL );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to start acquiring a frame for '%s' failed.  "
+		"cy_result = %d",
+			vinput->record->name );
+	}
+
+	pleora_iport_vinput->sequence_in_progress = TRUE;
 
 	return mx_status;
 }
@@ -593,6 +720,18 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	vinput->status = 0;
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	bool is_grabbing = grabber->IsGrabbing( CyChannel(0) );
+
+	if ( is_grabbing ) {
+		vinput->status |= MXSF_VIN_IS_BUSY;
+	}
+
+	/* FIXME: We should look at pleora_iport_vinput->grab_finished_event. */
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;
