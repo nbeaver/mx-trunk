@@ -1,0 +1,635 @@
+/*
+ * Name:    d_radicon_helios.c
+ *
+ * Purpose: MX driver for the Radicon Helios 20x25 CMOS detector.
+ *
+ * Author:  William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 2011 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#define MXD_RADICON_HELIOS_DEBUG	TRUE
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mx_util.h"
+#include "mx_record.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
+#include "d_radicon_helios.h"
+
+#if 1
+#include "mx_key.h"
+#endif
+
+/*---*/
+
+MX_RECORD_FUNCTION_LIST mxd_radicon_helios_record_function_list = {
+	mxd_radicon_helios_initialize_driver,
+	mxd_radicon_helios_create_record_structures,
+	mxd_radicon_helios_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_radicon_helios_open
+};
+
+MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list = {
+	NULL,
+	mxd_radicon_helios_trigger,
+	mxd_radicon_helios_abort,
+	mxd_radicon_helios_abort,
+	NULL,
+	NULL,
+	NULL,
+	mxd_radicon_helios_get_extended_status,
+	mxd_radicon_helios_readout_frame,
+	mxd_radicon_helios_correct_frame,
+	mxd_radicon_helios_transfer_frame,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_radicon_helios_get_parameter,
+	mxd_radicon_helios_set_parameter,
+	mx_area_detector_default_measure_correction
+};
+
+MX_RECORD_FIELD_DEFAULTS mxd_radicon_helios_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
+	MXD_RADICON_HELIOS_STANDARD_FIELDS
+};
+
+long mxd_radicon_helios_num_record_fields
+		= sizeof( mxd_radicon_helios_record_field_defaults )
+			/ sizeof( mxd_radicon_helios_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_radicon_helios_rfield_def_ptr
+			= &mxd_radicon_helios_record_field_defaults[0];
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
+			MX_RADICON_HELIOS **radicon_helios,
+			const char *calling_fname )
+{
+	static const char fname[] = "mxd_radicon_helios_get_pointers()";
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+	if (radicon_helios == NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RADICON_HELIOS pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	*radicon_helios = (MX_RADICON_HELIOS *) ad->record->record_type_struct;
+
+	if ( *radicon_helios == (MX_RADICON_HELIOS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+  "MX_RADICON_HELIOS pointer for record '%s' passed by '%s' is NULL.",
+			ad->record->name, calling_fname );
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_initialize_driver( MX_DRIVER *driver )
+{
+	long maximum_num_rois_varargs_cookie;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_initialize_driver( driver,
+					&maximum_num_rois_varargs_cookie );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_create_record_structures( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxd_radicon_helios_create_record_structures()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_RADICON_HELIOS *radicon_helios;
+
+	ad = (MX_AREA_DETECTOR *) malloc( sizeof(MX_AREA_DETECTOR) );
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
+	}
+
+	radicon_helios = (MX_RADICON_HELIOS *)
+				malloc( sizeof(MX_RADICON_HELIOS) );
+
+	if ( radicon_helios == (MX_RADICON_HELIOS *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Cannot allocate memory for an MX_RADICON_HELIOS structure." );
+	}
+
+	record->record_class_struct = ad;
+	record->record_type_struct = radicon_helios;
+	record->class_specific_function_list = &mxd_radicon_helios_ad_function_list;
+
+	memset( &(ad->sequence_parameters),
+			0, sizeof(ad->sequence_parameters) );
+
+	ad->record = record;
+	radicon_helios->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+			"mxd_radicon_helios_finish_record_initialization()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_radicon_helios_open()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	unsigned long ad_flags, mask;
+	long dmd, trigger;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	ad->maximum_frame_number = 0;
+	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
+	ad->status = 0;
+
+	radicon_helios->acquisition_in_progress = FALSE;
+
+	/* Set the default file format.
+	 *
+	 * FIXME - Are both of these necessary?
+	 */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+	ad->datafile_format = ad->frame_file_format;
+
+	ad->correction_frames_to_skip = 0;
+
+	/* Do we need automatic saving and/or loading of image frames by MX? */
+
+	ad_flags = ad->area_detector_flags;
+
+	mask = MXF_AD_LOAD_FRAME_AFTER_ACQUISITION
+		| MXF_AD_SAVE_FRAME_AFTER_ACQUISITION;
+
+	if ( ad_flags & mask ) {
+
+#if MXD_RADICON_HELIOS_DEBUG
+		MX_DEBUG(-2,
+	  ("%s: Enabling automatic datafile management.  ad_flags & mask = %lx",
+			fname, (ad_flags & mask) ));
+#endif
+		mx_status =
+		    mx_area_detector_setup_datafile_management( record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/*---*/
+
+	ad->bits_per_pixel = 16;
+	ad->bytes_per_pixel = 2;
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						ad->image_format,
+						ad->image_format_name,
+						MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->correction_calc_format = ad->image_format;
+
+	ad->maximum_framesize[0] = 2560;
+	ad->maximum_framesize[1] = 2000;
+
+	/* Update the framesize and binsize to match. */
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	mx_status = mxd_radicon_helios_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: framesize = (%lu, %lu), binsize = (%lu, %lu)",
+		fname, ad->framesize[0], ad->framesize[1],
+		ad->binsize[0], ad->binsize[1]));
+#endif
+
+	/* Initialize area detector parameters. */
+
+	ad->byte_order = (long) mx_native_byteorder();
+	ad->header_length = 0;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_trigger()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	radicon_helios->acquisition_in_progress = TRUE;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_abort( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_abort()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	radicon_helios->acquisition_in_progress = FALSE;
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_get_extended_status()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	ad->status = 0;
+
+	if ( radicon_helios->acquisition_in_progress ) {
+		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
+			ad->last_frame_number = -1;
+		} else {
+			radicon_helios->acquisition_in_progress = FALSE;
+
+			ad->last_frame_number = 0;
+			ad->total_num_frames++;
+		}
+	}
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: detector '%s' status = %#lx, "
+		"total_num_frames = %ld, last_frame_number = %ld",
+			fname, ad->record->name,
+			(unsigned long) ad->status,
+			ad->total_num_frames,
+			ad->last_frame_number ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_readout_frame()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_correct_frame()";
+
+	MX_RADICON_HELIOS *radicon_helios;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_transfer_frame()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	size_t dirname_length;
+	char remote_radicon_helios_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	char local_radicon_helios_filename[(2*MXU_FILENAME_LENGTH) + 20];
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	/* We can only handle transferring the image frame. */
+
+	if ( ad->transfer_frame != MXFT_AD_IMAGE_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Transferring frame type %lu is not supported for "
+		"MBC NOIR detector '%s'.  Only the image frame (type 0) "
+		"is supported.",
+			ad->transfer_frame, ad->record->name );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_get_parameter()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)) ));
+	}
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		ad->binsize[0] = 1;
+		ad->binsize[1] = 1;
+
+		ad->framesize[0] = ad->maximum_framesize[0];
+		ad->framesize[1] = ad->maximum_framesize[1];
+		break;
+
+	case MXLV_AD_BYTES_PER_FRAME:
+		ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+			* ad->framesize[0] * ad->framesize[1] );
+		break;
+
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		mx_status = mx_image_get_image_format_name_from_type(
+				ad->image_format, ad->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_BYTES_PER_PIXEL:
+		break;
+
+	case MXLV_AD_DETECTOR_READOUT_TIME:
+		break;
+
+	case MXLV_AD_SEQUENCE_TYPE:
+		sp->sequence_type = MXT_SQ_ONE_SHOT;
+		break;
+
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		sp->num_parameters = 1;
+		break;
+
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		exposure_time = 0;	/* FIXME */
+
+		sp->parameter_array[0] = exposure_time;
+		break;
+
+	case MXLV_AD_TRIGGER_MODE:
+		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		break;
+
+	default:
+		mx_status = mx_area_detector_default_get_parameter_handler(ad);
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_set_parameter()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+						&radicon_helios, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+	switch( ad->parameter_type ) {
+	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
+		ad->binsize[0] = 1;
+		ad->binsize[1] = 1;
+
+		ad->framesize[0] = ad->maximum_framesize[0];
+		ad->framesize[1] = ad->maximum_framesize[1];
+		break;
+
+	case MXLV_AD_SEQUENCE_TYPE:
+		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Sequence type %ld is not supported for "
+			"area detector '%s'.  "
+			"Only single frames are supported.",
+				sp->sequence_type, ad->record->name );
+		}
+
+		sp->sequence_type = MXT_SQ_ONE_SHOT;
+		break;
+
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		sp->num_parameters = 1;
+		break;
+
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		exposure_time = sp->parameter_array[0];
+
+		break; 
+
+	case MXLV_AD_TRIGGER_MODE:
+		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		break;
+
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	"Changing parameter '%s' for area detector '%s' is not supported.",
+			mx_get_field_label_string( ad->record,
+				ad->parameter_type ), ad->record->name );
+		break;
+
+	default:
+		mx_status = mx_area_detector_default_set_parameter_handler(ad);
+		break;
+	}
+
+	return mx_status;
+}
+

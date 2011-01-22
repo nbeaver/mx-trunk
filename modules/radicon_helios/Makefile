@@ -1,0 +1,48 @@
+#
+# This module can only be used on the 'win32' platform.  It _might_ be
+# possible to get 'win32-mingw' to work, but this has not been tested.
+#
+
+MX_ARCH = win32
+
+RADICON_HELIOS_DIR = d:\\progra~1\\pleora~1\\ebus-v~1
+
+all: radicon_helios.mxo
+
+include ../../libMx/Makehead.$(MX_ARCH)
+
+CFLAGS += -I../../libMx -D__MX_LIBRARY__
+
+RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ)
+
+radicon_helios.mxo: $(RADICON_HELIOS_OBJS)
+	link /dll /debug /nologo /out:radicon_helios.mxo /nodefaultlib:libc \
+		$(RADICON_HELIOS_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME)
+
+	# For VC2005 or later, embed the manifest in the module.
+
+	if test -f radicon_helios.mxo.manifest; then \
+		$(MSMANIFEST_TOOL) -nologo \
+			-outputresource:radicon_helios.mxo\;2 \
+			-manifest radicon_helios.mxo.manifest ; \
+		rm -f radicon_helios.mxo.manifest; \
+	fi
+
+radicon_helios.$(OBJ): radicon_helios.c d_radicon_helios.h
+	$(COMPILE) $(CFLAGS) radicon_helios.c
+
+d_radicon_helios.$(OBJ): d_radicon_helios.c d_radicon_helios.h
+	$(COMPILE) $(CFLAGS) d_radicon_helios.c
+
+install: radicon_helios.mxo
+	-mkdir $(MX_INSTALL_DIR)/lib/modules
+	cp radicon_helios.mxo $(MX_INSTALL_DIR)/lib/modules
+
+
+clean:
+	-$(RM) *.mxo *.obj *.exp *.ilk *.lib *.pdb *.manifest
+
+distclean: clean
+
+depend:
+

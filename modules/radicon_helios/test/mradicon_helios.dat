@@ -1,0 +1,6 @@
+!load ../../pleora_iport/pleora_iport.mxo
+!load ../radicon_helios.mxo
+#
+iport interface controller pleora_iport "" "" 1
+cam1  device video_input pleora_iport_vinput "" "" 2560 2000 GREY16 -1 iport 169.254.93.209
+helios device area_detector radicon_helios "" "" 0 0x0 0x0 "" "" "" "" cam1

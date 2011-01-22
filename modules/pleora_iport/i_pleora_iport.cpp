@@ -226,7 +226,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 #endif
 	}
 
-#if 0 && MXI_PLEORA_IPORT_DEBUG
+#if 1 && MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
 
 	for ( i = 0; i < num_devices; i++ ) {
@@ -343,39 +343,78 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		const char *device_address_ip =
 				device_entry.mAddressIP.c_str_ascii();
 
-		char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
+		if ( strlen( device_address_ip ) > 0 ) {
+			/* The device already has an IP address.  Do we
+			 * have the same address?
+			 */
 
-		if ( device_address_ip[0] == '[' ) {
-			offset = 1;
+			char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
+
+			if ( device_address_ip[0] == '[' ) {
+				offset = 1;
+			} else {
+				offset = 0;
+			}
+
+			strlcpy( ip_address_string, device_address_ip + offset,
+						sizeof(ip_address_string) );
+
+			char *ptr = strchr( ip_address_string, ']' );
+
+			if ( ptr != NULL ) {
+				*ptr = '\0';
+			}
+
+#if MXI_PLEORA_IPORT_DEBUG
+			MX_DEBUG(-2,("%s: ip_address_string = '%s'",
+				fname, ip_address_string));
+			MX_DEBUG(-2,
+			("%s: pleora_iport_vinput->ip_address_string = '%s'",
+				fname, pleora_iport_vinput->ip_address_string));
+#endif
+
+			if ( strcmp( ip_address_string,
+				pleora_iport_vinput->ip_address_string ) != 0 )
+			{
+
+#if MXI_PLEORA_IPORT_DEBUG
+				MX_DEBUG(-2,
+				("%s: skipping device %ld", fname, i));
+#endif
+				continue;  /* Go back for the next device. */
+			}
 		} else {
-			offset = 0;
-		}
+			char formatted_ip_address[ MXU_HOSTNAME_LENGTH+1 ];
 
-		strlcpy( ip_address_string, device_address_ip + offset,
-					sizeof(ip_address_string) );
+			/* The device does not have an IP address, so
+			 * we assign one.
+			 */
 
-		char *ptr = strchr( ip_address_string, ']' );
-
-		if ( ptr != NULL ) {
-			*ptr = '\0';
-		}
+			snprintf( formatted_ip_address,
+				sizeof(formatted_ip_address),
+				"[%s]", pleora_iport_vinput->ip_address_string);
 
 #if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: ip_address_string = '%s'",
-			fname, ip_address_string));
-		MX_DEBUG(-2,
-		("%s: pleora_iport_vinput->ip_address_string = '%s'",
-			fname, pleora_iport_vinput->ip_address_string));
+			MX_DEBUG(-2,
+			("%s: device %ld does not have an IP address, "
+			"so we will assign it the address '%s'.",
+				fname, i, formatted_ip_address ));
 #endif
+			cy_result = finder.SetIP( device_entry.mMode,
+						device_entry.mAdapterID,
+						device_entry.mAddressMAC,
+						formatted_ip_address );
 
-		if ( strcmp( ip_address_string,
-			pleora_iport_vinput->ip_address_string ) != 0 )
-		{
+			if ( cy_result != CY_RESULT_OK ) {
+				(void) mx_error( MXE_DEVICE_IO_ERROR, fname,
+				"The attempt to set the IP address of "
+				"ethernet MAC address '%s' failed.  "
+				"cy_result = %d",
+					device_entry.mAddressMAC,
+					cy_result );
 
-#if MXI_PLEORA_IPORT_DEBUG
-			MX_DEBUG(-2,("%s: skipping device %ld", fname, i));
-#endif
-			continue;
+				continue;  /* Go back for the next device. */
+			}
 		}
 
 		/* Create and setup a CyConfig object for the device. */

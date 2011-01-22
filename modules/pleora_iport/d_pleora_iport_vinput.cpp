@@ -281,7 +281,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 #endif
 
 	if ( pleora_iport_vinput->grabber == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"No grabber has been connected for record '%s'.",
 			record->name );
 	}
