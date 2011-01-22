@@ -1,5 +1,5 @@
 /*
- * Name:    d_radicon_helios.c
+ * Name:    d_radicon_helios.cpp
  *
  * Purpose: MX driver for the Radicon Helios 20x25 CMOS detector.
  *
@@ -21,13 +21,13 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_bit.h"
 #include "mx_image.h"
+#include "mx_video_input.h"
 #include "mx_area_detector.h"
+#include "i_pleora_iport.h"
+#include "d_pleora_iport_vinput.h"
 #include "d_radicon_helios.h"
-
-#if 1
-#include "mx_key.h"
-#endif
 
 /*---*/
 
@@ -80,28 +80,81 @@ MX_RECORD_FIELD_DEFAULTS *mxd_radicon_helios_rfield_def_ptr
 static mx_status_type
 mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 			MX_RADICON_HELIOS **radicon_helios,
+			MX_PLEORA_IPORT_VINPUT **pleora_iport_vinput,
+			MX_PLEORA_IPORT **pleora_iport,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_radicon_helios_get_pointers()";
+
+	MX_RADICON_HELIOS *radicon_helios_ptr;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput_ptr;
+	MX_PLEORA_IPORT *pleora_iport_ptr;
+	MX_RECORD *vinput_record, *iport_record;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_AREA_DETECTOR pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (radicon_helios == NULL) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RADICON_HELIOS pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
 
-	*radicon_helios = (MX_RADICON_HELIOS *) ad->record->record_type_struct;
+	radicon_helios_ptr = (MX_RADICON_HELIOS *)
+					ad->record->record_type_struct;
 
-	if ( *radicon_helios == (MX_RADICON_HELIOS *) NULL ) {
+	if ( radicon_helios_ptr == (MX_RADICON_HELIOS *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_RADICON_HELIOS pointer for record '%s' passed by '%s' is NULL.",
+	"The MX_RADICON_HELIOS pointer for record '%s' passed by '%s' is NULL.",
 			ad->record->name, calling_fname );
 	}
+
+	if ( radicon_helios != (MX_RADICON_HELIOS **) NULL ) {
+		*radicon_helios = radicon_helios_ptr;
+	}
+
+	vinput_record = radicon_helios_ptr->video_input_record;
+
+	if ( vinput_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The video input record pointer for record '%s' is NULL.",
+			ad->record->name );
+	}
+
+	pleora_iport_vinput_ptr = (MX_PLEORA_IPORT_VINPUT *)
+					vinput_record->record_type_struct;
+
+	if ( pleora_iport_vinput_ptr == (MX_PLEORA_IPORT_VINPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
+		"used by record '%s' is NULL.",
+			vinput_record->name, ad->record->name );
+	}
+
+	if ( pleora_iport_vinput != (MX_PLEORA_IPORT_VINPUT **) NULL ) {
+		*pleora_iport_vinput = pleora_iport_vinput_ptr;
+	}
+
+	if ( pleora_iport != (MX_PLEORA_IPORT **) NULL ) {
+		iport_record = pleora_iport_vinput_ptr->pleora_iport_record;
+
+		if ( iport_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The iport_record pointer for record '%s' used "
+			"by record '%s' is NULL.",
+				vinput_record->name, ad->record->name );
+		}
+
+		*pleora_iport = (MX_PLEORA_IPORT *)
+					iport_record->record_type_struct;
+
+		if ( (*pleora_iport) == (MX_PLEORA_IPORT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_PLEORA_IPORT pointer for record '%s' "
+			"used by records '%s' and '%s' is NULL.",
+				iport_record->name,
+				vinput_record->name,
+				ad->record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -144,7 +197,8 @@ mxd_radicon_helios_create_record_structures( MX_RECORD *record )
 
 	record->record_class_struct = ad;
 	record->record_type_struct = radicon_helios;
-	record->class_specific_function_list = &mxd_radicon_helios_ad_function_list;
+	record->class_specific_function_list =
+			&mxd_radicon_helios_ad_function_list;
 
 	memset( &(ad->sequence_parameters),
 			0, sizeof(ad->sequence_parameters) );
@@ -173,7 +227,7 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -188,6 +242,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	unsigned long ad_flags, mask;
 	long dmd, trigger;
 	mx_status_type mx_status;
@@ -200,7 +255,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, &pleora_iport_vinput,
+					NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -291,6 +347,67 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Configure the Pleora iPORT PLC to work with
+	 * the Radicon Helios detector.
+	 */
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The CyGrabber pointer for record '%s' is NULL.",
+			pleora_iport_vinput->record->name );
+	}
+
+	CyDevice &device = grabber->GetDevice();
+
+	/* Get the extension needed for controlling the PLC's
+	 * Signal Routing Block and the PLC's Lookup Table.
+	 */
+
+	CyDeviceExtension *extension =
+				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
+
+	/* FIXME: I do not yet know where the values come from for the
+	 * second argument of the calls to SetParameter().
+	 */
+
+	/* Connect TTL Input 0 to I0. */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
+
+	/* Connect Camera Frame Valid to I2. */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
+
+	/* Connect Pulse Generator 0 Output to I7. */
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
+
+	/* Reprogram the PLC to generate a sync pulse for the camera
+	 * and to initialize control inputs.
+	 *
+	 * Initialize the PLC for SCAN mode (Q4=0) and EXSYNC modulated
+	 * by TTL_IN0 (aka A0 on I0).
+	 */
+
+	CyString lut_program =
+                "Q0 = I2\r\n"
+                "Q1 = 0\r\n"
+                "Q4 = 0\r\n"
+                "Q5 = 1\r\n"
+                "Q6 = 1\r\n"
+                "Q7 = I7 & !I0\r\n";
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
+							lut_program );
+
+	/* Send the changes to the IP engine. */
+
+	extension->SaveToDevice();
+
+	/* End of the PLC reconfiguration. */
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -304,7 +421,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -335,7 +452,7 @@ mxd_radicon_helios_abort( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -358,7 +475,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -403,7 +520,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -432,7 +549,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -457,7 +574,7 @@ mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -490,7 +607,7 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -575,7 +692,7 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-						&radicon_helios, fname );
+					&radicon_helios, NULL, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

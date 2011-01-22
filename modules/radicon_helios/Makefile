@@ -5,19 +5,26 @@
 
 MX_ARCH = win32
 
-RADICON_HELIOS_DIR = d:\\progra~1\\pleora~1\\ebus-v~1
+PLEORA_IPORT_DIR = d:\\progra~1\\pleora~1\\ebus-v~1
 
 all: radicon_helios.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
+CFLAGS += -EHsc
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
+CFLAGS += -I../pleora_iport
+CFLAGS += -I$(PLEORA_IPORT_DIR)\\includes
 
 RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ)
 
 radicon_helios.mxo: $(RADICON_HELIOS_OBJS)
 	link /dll /debug /nologo /out:radicon_helios.mxo /nodefaultlib:libc \
-		$(RADICON_HELIOS_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME)
+		$(RADICON_HELIOS_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyComLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyCamLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyImgLib.lib \
+		$(PLEORA_IPORT_DIR)\\Libraries\\CyUtilsLib.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
@@ -31,8 +38,8 @@ radicon_helios.mxo: $(RADICON_HELIOS_OBJS)
 radicon_helios.$(OBJ): radicon_helios.c d_radicon_helios.h
 	$(COMPILE) $(CFLAGS) radicon_helios.c
 
-d_radicon_helios.$(OBJ): d_radicon_helios.c d_radicon_helios.h
-	$(COMPILE) $(CFLAGS) d_radicon_helios.c
+d_radicon_helios.$(OBJ): d_radicon_helios.cpp d_radicon_helios.h
+	$(COMPILE) $(CFLAGS) d_radicon_helios.cpp
 
 install: radicon_helios.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

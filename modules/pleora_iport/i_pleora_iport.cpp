@@ -212,8 +212,6 @@ mxi_pleora_iport_open( MX_RECORD *record )
 #if MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: %d IP engines found for record '%s'.",
 		fname, num_devices, record->name ));
-
-	MX_DEBUG(-2,("%s: ip_engine_list = %p", fname, ip_engine_list));
 #endif
 
 	for ( i = 0; i < num_devices; i++ ) {
@@ -221,12 +219,13 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				= ip_engine_list[i];
 
 #if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: Entry %ld IP address = '%s'",
-		    fname, i, device_entry.mAddressIP.c_str_ascii() ));
+		MX_DEBUG(-2,("%s: %ld>> MAC '%s', IP '%s'",
+			fname, i, device_entry.mAddressMAC.c_str_ascii(),
+			device_entry.mAddressIP.c_str_ascii() ));
 #endif
 	}
 
-#if 1 && MXI_PLEORA_IPORT_DEBUG
+#if 0 && MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
 
 	for ( i = 0; i < num_devices; i++ ) {

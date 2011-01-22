@@ -17,6 +17,8 @@
 #ifndef __D_RADICON_HELIOS_H__
 #define __D_RADICON_HELIOS_H__
 
+#ifdef __cplusplus
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -30,6 +32,12 @@ typedef struct {
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, video_input_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 MX_API mx_status_type mxd_radicon_helios_initialize_driver( MX_DRIVER *driver );
 MX_API mx_status_type mxd_radicon_helios_create_record_structures(
@@ -54,6 +62,10 @@ extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list;
 
 extern long mxd_radicon_helios_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_radicon_helios_rfield_def_ptr;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __D_RADICON_HELIOS_H__ */
 

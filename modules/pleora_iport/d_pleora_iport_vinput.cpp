@@ -408,52 +408,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	pleora_iport_vinput->grab_finished_event =
 				new CyResultEvent( false, false );
 
-	/* FIXME: We do not yet fully understand what the following PLC code
-	 * does exactly.  Comments copied from MBC's CameraTrigger.cpp.
-	 */
-
-	CyDevice &device = grabber->GetDevice();
-
-	CyDeviceExtension *extension =
-				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
-
-	// See PLC controls in Coyote Configuration for these settings.
-
-	/* Set I0 to TTL Input 0 */
-
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
-
-	/* Set I2 to Camera Frame Valid */
-
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
-
-	/* Set I7 to Pulse Generator 0 Output */
-
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
-
-	/* Reprogram the PLC to generate a sync pulse for the camera
-	 * and to initialize control inputs.
-	 *
-	 * Initialize the PLC for SCAN mode (Q4=0) and EXSYNC modulated
-	 * by TTL_IN0 (or A0 on I0).
-	 */
-
-	CyString program =
-		"Q0 = I2\r\n"
-		"Q1 = 0\r\n"
-		"Q4 = 0\r\n"
-		"Q5 = 1\r\n"
-		"Q6 = 1\r\n"
-		"Q7 = I7 & !I0\r\n";
-
-	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM, program );
-
-	/* Send the changes to the IP engine. */
-
-	extension->SaveToDevice();
-
-	/* FIXME: End of the PLC magic. */
-
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
