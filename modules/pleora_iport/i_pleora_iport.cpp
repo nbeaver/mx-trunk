@@ -214,6 +214,14 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		fname, num_devices, record->name ));
 #endif
 
+	if ( num_devices == 0 ) {
+		mx_warning( "No Pleora iPORT engines were found for "
+		"record '%s', so no iPORT-based cameras will be initialized.",
+			record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	for ( i = 0; i < num_devices; i++ ) {
 		const CyDeviceFinder::DeviceEntry &device_entry
 				= ip_engine_list[i];
@@ -333,10 +341,35 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 		/* Is this the device that we are looking for?
 		 *
-		 * Get the IP address string for this device and
-		 * strip off any leading or trailing square brackets
-		 * so that it can be compared with the address 
-		 * specified in the pleora_iport_vinput record.
+		 * Compare the MAC address string for this device to the
+		 * MAC address specified in the pleora_iport_vinput record.
+		 */
+
+		const char *device_address_mac =
+				device_entry.mAddressMAC.c_str_ascii();
+
+#if MXI_PLEORA_IPORT_DEBUG
+		MX_DEBUG(-2,("%s: device_address_mac = '%s'",
+			fname, device_address_mac));
+		MX_DEBUG(-2,
+		("%s: pleora_iport_vinput->mac_address_string = '%s'",
+			fname, pleora_iport_vinput->mac_address_string));
+#endif
+
+		if ( mx_strcasecmp( device_address_mac,
+			pleora_iport_vinput->mac_address_string ) != 0 )
+		{
+
+#if MXI_PLEORA_IPORT_DEBUG
+			MX_DEBUG(-2,("%s: skipping device %ld", fname, i));
+#endif
+			continue;	/* Go back for the next device. */
+		}
+
+		/* If the device already has an IP address and it is
+		 * different from the one specified in the MX config file,
+		 * then we print a warning message, but otherwise leave
+		 * the situation alone.
 		 */
 
 		const char *device_address_ip =
@@ -376,12 +409,15 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				pleora_iport_vinput->ip_address_string ) != 0 )
 			{
 
-#if MXI_PLEORA_IPORT_DEBUG
-				MX_DEBUG(-2,
-				("%s: skipping device %ld", fname, i));
-#endif
-				continue;  /* Go back for the next device. */
+				mx_warning( "The IP address '%s' of the "
+				"IP engine differs from the address '%s' "
+				"specified in the MX configuration files.  "
+				"We will use the IP address '%s'.",
+					ip_address_string,
+					pleora_iport_vinput->ip_address_string,
+					ip_address_string );
 			}
+
 		} else {
 			char formatted_ip_address[ MXU_HOSTNAME_LENGTH+1 ];
 
@@ -474,8 +510,9 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		pleora_iport_vinput->grabber = grabber;
 
 #if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: Saved grabber %p to record '%s'.",
-			fname, grabber, pleora_iport_vinput->record->name ));
+		MX_DEBUG(-2,("%s: Saved grabber %p to record %p '%s'.",
+			fname, grabber, pleora_iport_vinput,
+			pleora_iport_vinput->record->name ));
 
 		{
 			CyDevice &device = grabber->GetDevice();
@@ -522,5 +559,76 @@ mxi_pleora_iport_close( MX_RECORD *record )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------*/
+
+MX_EXPORT void
+mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+					unsigned long num_parameters,
+					unsigned long *parameter_array )
+{
+	CyString cy_string;
+	unsigned long i, parameter_id, parameter_type;
+	__int64 int64_min, int64_max, int64_value;
+	double double_min, double_max, double_value;
+
+	for ( i = 0; i < num_parameters; i++ ) {
+		parameter_id = parameter_array[i];
+
+		parameter_type = extension->GetParameterType( parameter_id );
+
+		CyString parameter_name =
+				extension->GetParameterName( parameter_id );
+
+		fprintf( stderr, "Param (%lu) '%s', ",
+				parameter_id, parameter_name.c_str_ascii() );
+
+		switch( parameter_type ) {
+		case CY_PARAMETER_STRING:
+			extension->GetParameter( parameter_type, cy_string );
+
+			fprintf( stderr, "string  '%s'\n",
+				cy_string.c_str_ascii() );
+			break;
+
+		case CY_PARAMETER_INT:
+			extension->GetParameter( parameter_id, int64_value );
+
+			extension->GetParameterRange( parameter_id,
+						int64_min, int64_max );
+
+			fprintf( stderr, " int64  %lI64d (%lI64d to %lI64d)\n",
+					int64_value, int64_min, int64_max );
+			break;
+
+		case CY_PARAMETER_DOUBLE:
+			extension->GetParameter( parameter_id, double_value );
+
+			extension->GetParameterRange( parameter_id,
+						double_min, double_max );
+
+			fprintf( stderr, "double  %g (%g to %g)\n",
+						double_min, double_max );
+			break;
+
+		case CY_PARAMETER_BOOL:
+
+			fprintf( stderr, "bool\n" );
+			break;
+
+		case CY_PARAMETER_ENUM:
+
+			fprintf( stderr, "enum\n" );
+			break;
+
+		default:
+			fprintf( stderr, "unrecognized type %lu\n",
+						parameter_type );
+			break;
+		}
+	}
+
+	return;
 }
 

@@ -351,11 +351,19 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 * the Radicon Helios detector.
 	 */
 
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: pleora_iport_vinput = %p",
+		fname, pleora_iport_vinput ));
+
+	MX_DEBUG(-2,("%s: pleora_iport_vinput->grabber = %p",
+		fname, pleora_iport_vinput->grabber));
+#endif
+
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
 
 	if ( grabber == NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The CyGrabber pointer for record '%s' is NULL.",
+		"No grabber has been connected for record '%s'.",
 			pleora_iport_vinput->record->name );
 	}
 
@@ -407,6 +415,38 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	extension->SaveToDevice();
 
 	/* End of the PLC reconfiguration. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_arm()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+					&radicon_helios, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	sp = &(ad->sequence_parameters);
+
+	/* radicon_helios->acquisition_in_progress = TRUE; */
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -472,6 +512,9 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_get_extended_status()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	long last_frame_number;
+	long total_num_frames;
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -485,17 +528,25 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
+	/* Ask the video board for its current status. */
+
+	mx_status = mx_video_input_get_extended_status(
+					radicon_helios->video_input_record,
+					&last_frame_number,
+					&total_num_frames,
+					&status_flags );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->last_frame_number = last_frame_number;
+
+	ad->total_num_frames = total_num_frames;
+
 	ad->status = 0;
 
-	if ( radicon_helios->acquisition_in_progress ) {
-		if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
-			ad->last_frame_number = -1;
-		} else {
-			radicon_helios->acquisition_in_progress = FALSE;
-
-			ad->last_frame_number = 0;
-			ad->total_num_frames++;
-		}
+	if ( status_flags & MXSF_VIN_IS_BUSY ) {
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
 #if MXD_RADICON_HELIOS_DEBUG
@@ -603,6 +654,7 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	MX_RECORD *video_input_record;
 	double exposure_time;
 	mx_status_type mx_status;
 
@@ -626,30 +678,40 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
+	video_input_record = radicon_helios->video_input_record;
+
 	switch( ad->parameter_type ) {
 	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
-	case MXLV_AD_FRAMESIZE:
-	case MXLV_AD_BINSIZE:
-		ad->binsize[0] = 1;
-		ad->binsize[1] = 1;
-
-		ad->framesize[0] = ad->maximum_framesize[0];
-		ad->framesize[1] = ad->maximum_framesize[1];
+		mx_status = mx_video_input_get_maximum_frame_number(
+			video_input_record, &(ad->maximum_frame_number) );
 		break;
 
-	case MXLV_AD_BYTES_PER_FRAME:
-		ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
-			* ad->framesize[0] * ad->framesize[1] );
+	case MXLV_AD_FRAMESIZE:
+		mx_status = mx_video_input_get_framesize( video_input_record,
+				&(ad->framesize[0]), &(ad->framesize[1]) );
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
+		mx_status = mx_video_input_get_image_format( video_input_record,
+						&(ad->image_format) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 		break;
 
+	case MXLV_AD_BYTES_PER_FRAME:
+		mx_status = mx_video_input_get_bytes_per_frame(
+				video_input_record, &(ad->bytes_per_frame) );
+		break;
+
 	case MXLV_AD_BYTES_PER_PIXEL:
+		mx_status = mx_video_input_get_bytes_per_pixel(
+				video_input_record, &(ad->bytes_per_pixel) );
 		break;
 
 	case MXLV_AD_DETECTOR_READOUT_TIME:
@@ -670,7 +732,8 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		mx_status = mx_video_input_get_trigger_mode(
+				video_input_record, &(ad->trigger_mode) );
 		break;
 
 	default:
@@ -687,51 +750,98 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_set_parameter()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	double exposure_time;
+	MX_RECORD *video_input_record;
+	long num_frames;
+	double exposure_time, frame_time, delay_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-					&radicon_helios, NULL, NULL, fname );
+			&radicon_helios, &pleora_iport_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	sp = &(ad->sequence_parameters);
 
+	video_input_record = radicon_helios->video_input_record;
+
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-	case MXLV_AD_BINSIZE:
-		ad->binsize[0] = 1;
-		ad->binsize[1] = 1;
-
-		ad->framesize[0] = ad->maximum_framesize[0];
-		ad->framesize[1] = ad->maximum_framesize[1];
+		mx_status = mx_video_input_set_framesize( video_input_record,
+					ad->framesize[0], ad->framesize[1] );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
-		if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
-			mx_status = mx_error( MXE_UNSUPPORTED, fname,
-			"Sequence type %ld is not supported for "
-			"area detector '%s'.  "
-			"Only single frames are supported.",
-				sp->sequence_type, ad->record->name );
-		}
-
-		sp->sequence_type = MXT_SQ_ONE_SHOT;
-		break;
-
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-		sp->num_parameters = 1;
+
+		/* Wait until MXLV_AD_SEQUENCE_PARAMETER_ARRAY is set
+		 * before sending any commands to the video card.
+		 */
 		break;
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
-		exposure_time = sp->parameter_array[0];
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			exposure_time = sp->parameter_array[0];
+			frame_time = exposure_time;
+			break;
 
+		case MXT_SQ_MULTIFRAME:
+			num_frames = sp->parameter_array[0];
+			exposure_time = sp->parameter_array[1];
+			frame_time = sp->parameter_array[2];
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Sequence type %ld is not supported for detector '%s'.",
+				sp->sequence_type, ad->record->name );
+			break;
+		}
+
+		delay_time = frame_time - exposure_time;
+
+		/* The timing of imaging sequences is controlled by
+		 * pulse generator 0 of the Pleora iPORT grabber.
+		 */
+
+		{
+			CyGrabber *grabber = pleora_iport_vinput->grabber;
+	
+			CyDevice &device = grabber->GetDevice();
+	
+			CyDeviceExtension *extension =
+				&device.GetExtension(
+					CY_DEVICE_EXT_PULSE_GENERATOR );
+	
+#if 1
+			{
+				unsigned long parameter_array[] = {
+					CY_PULSE_GEN_PARAM_DELAY,
+					CY_PULSE_GEN_PARAM_FREQUENCY,
+					CY_PULSE_GEN_PARAM_GRANULARITY,
+					CY_PULSE_GEN_PARAM_PERIOD,
+					CY_PULSE_GEN_PARAM_PERIODIC,
+					CY_PULSE_GEN_PARAM_TRIGGER_MODE,
+					CY_PULSE_GEN_PARAM_WIDTH };
+	
+				unsigned long num_parameters
+					= sizeof(parameter_array)
+					/ sizeof(parameter_array[0]);
+	
+				mxi_pleora_iport_display_parameter_info(
+				  extension, num_parameters, parameter_array );
+			}
+#endif
+		}
 		break; 
 
 	case MXLV_AD_TRIGGER_MODE:
-		ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		mx_status = mx_video_input_set_trigger_mode( video_input_record,
+							ad->trigger_mode );
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:

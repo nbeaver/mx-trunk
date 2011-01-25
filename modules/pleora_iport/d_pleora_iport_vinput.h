@@ -19,11 +19,16 @@
 
 #ifdef __cplusplus
 
+#ifndef MXU_MAC_ADDRESS_STRING_LENGTH
+#   define MXU_MAC_ADDRESS_STRING_LENGTH	18
+#endif
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pleora_iport_record;
-	char ip_address_string[MXU_HOSTNAME_LENGTH+1];
+	char mac_address_string[ MXU_MAC_ADDRESS_STRING_LENGTH+1 ];
+	char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
 
 	CyGrabber *grabber;
 	CyResultEvent *grab_finished_event;
@@ -37,6 +42,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PLEORA_IPORT_VINPUT, pleora_iport_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "mac_address_string", MXFT_STRING, NULL, \
+		1, {MXU_MAC_ADDRESS_STRING_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_PLEORA_IPORT_VINPUT, mac_address_string), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "ip_address_string", MXFT_STRING, NULL, 1, {MXU_HOSTNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \

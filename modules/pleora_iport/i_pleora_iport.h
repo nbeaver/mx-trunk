@@ -40,6 +40,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PLEORA_IPORT, max_devices), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
+MX_API void
+mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+					unsigned long num_parameters,
+					unsigned long *parameter_array );
+
 #endif /* __cplusplus */
 
 #ifdef __cplusplus

@@ -20,7 +20,9 @@ RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ)
 
 radicon_helios.mxo: $(RADICON_HELIOS_OBJS)
 	link /dll /debug /nologo /out:radicon_helios.mxo /nodefaultlib:libc \
-		$(RADICON_HELIOS_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(RADICON_HELIOS_OBJS) \
+		..\\pleora_iport\\pleora_iport.lib \
+		..\\..\\libMx\\$(MX_LIBRARY_NAME) \
 		$(PLEORA_IPORT_DIR)\\Libraries\\CyComLib.lib \
 		$(PLEORA_IPORT_DIR)\\Libraries\\CyCamLib.lib \
 		$(PLEORA_IPORT_DIR)\\Libraries\\CyImgLib.lib \
