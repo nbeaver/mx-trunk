@@ -41,9 +41,13 @@ typedef struct {
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 MX_API void
-mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
 					unsigned long num_parameters,
 					unsigned long *parameter_array );
+
+MX_API void
+mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+					unsigned long parameter_id );
 
 #endif /* __cplusplus */
 

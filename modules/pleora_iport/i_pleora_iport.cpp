@@ -564,69 +564,91 @@ mxi_pleora_iport_close( MX_RECORD *record )
 /*-------------------*/
 
 MX_EXPORT void
-mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
 					unsigned long num_parameters,
 					unsigned long *parameter_array )
 {
-	CyString cy_string;
-	unsigned long i, parameter_id, parameter_type;
-	__int64 int64_min, int64_max, int64_value;
-	double double_min, double_max, double_value;
+	unsigned long i, parameter_id;
 
 	for ( i = 0; i < num_parameters; i++ ) {
 		parameter_id = parameter_array[i];
 
-		parameter_type = extension->GetParameterType( parameter_id );
+		mxi_pleora_iport_display_parameter_info( extension,
+							parameter_id );
+	}
 
-		CyString parameter_name =
-				extension->GetParameterName( parameter_id );
+	return;
+}
 
-		fprintf( stderr, "Param (%lu) '%s', ",
-				parameter_id, parameter_name.c_str_ascii() );
+MX_EXPORT void
+mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
+					unsigned long parameter_id )
+{
+	CyString cy_string;
+	unsigned long parameter_type;
+	__int64 int64_min, int64_max, int64_value;
+	double double_min, double_max, double_value;
 
-		switch( parameter_type ) {
-		case CY_PARAMETER_STRING:
-			extension->GetParameter( parameter_type, cy_string );
+	parameter_type = extension->GetParameterType( parameter_id );
 
-			fprintf( stderr, "string  '%s'\n",
-				cy_string.c_str_ascii() );
-			break;
+	CyString parameter_name =
+			extension->GetParameterName( parameter_id );
 
-		case CY_PARAMETER_INT:
-			extension->GetParameter( parameter_id, int64_value );
+	fprintf( stderr, "Param (%lu) '%s', ",
+			parameter_id, parameter_name.c_str_ascii() );
 
-			extension->GetParameterRange( parameter_id,
-						int64_min, int64_max );
+	switch( parameter_type ) {
+	case CY_PARAMETER_STRING:
+		extension->GetParameter( parameter_type, cy_string );
 
-			fprintf( stderr, " int64  %lI64d (%lI64d to %lI64d)\n",
-					int64_value, int64_min, int64_max );
-			break;
+		fprintf( stderr, "string  '%s'\n",
+			cy_string.c_str_ascii() );
+		break;
 
-		case CY_PARAMETER_DOUBLE:
-			extension->GetParameter( parameter_id, double_value );
+	case CY_PARAMETER_INT:
+		extension->GetParameter( parameter_id, int64_value );
 
-			extension->GetParameterRange( parameter_id,
-						double_min, double_max );
+		extension->GetParameterRange( parameter_id,
+					int64_min, int64_max );
 
-			fprintf( stderr, "double  %g (%g to %g)\n",
-						double_min, double_max );
-			break;
+		fprintf( stderr, " int64  %lI64d (%lI64d to %lI64d)\n",
+				int64_value, int64_min, int64_max );
+		break;
 
-		case CY_PARAMETER_BOOL:
+	case CY_PARAMETER_DOUBLE:
+		extension->GetParameter( parameter_id, double_value );
 
-			fprintf( stderr, "bool\n" );
-			break;
+		extension->GetParameterRange( parameter_id,
+					double_min, double_max );
 
-		case CY_PARAMETER_ENUM:
+		fprintf( stderr, "double  %g (%g to %g)\n",
+					double_min, double_max );
+		break;
 
-			fprintf( stderr, "enum\n" );
-			break;
+	case CY_PARAMETER_BOOL:
+		extension->GetParameter( parameter_id, int64_value );
 
-		default:
-			fprintf( stderr, "unrecognized type %lu\n",
-						parameter_type );
-			break;
-		}
+		extension->GetParameterRange( parameter_id,
+					int64_min, int64_max );
+
+		fprintf( stderr, " bool  %lI64d (%lI64d to %lI64d)\n",
+				int64_value, int64_min, int64_max );
+		break;
+
+	case CY_PARAMETER_ENUM:
+		extension->GetParameter( parameter_id, int64_value );
+
+		extension->GetParameterRange( parameter_id,
+					int64_min, int64_max );
+
+		fprintf( stderr, " enum  %lI64d (%lI64d to %lI64d)\n",
+				int64_value, int64_min, int64_max );
+		break;
+
+	default:
+		fprintf( stderr, "unrecognized type %lu\n",
+					parameter_type );
+		break;
 	}
 
 	return;

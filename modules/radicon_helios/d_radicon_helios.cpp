@@ -809,6 +809,11 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 		 */
 
 		{
+			__int64 exposure_ticks, delay_ticks;
+			__int64 pg_granularity;
+			double timer_quantum;
+			bool periodic;
+			
 			CyGrabber *grabber = pleora_iport_vinput->grabber;
 	
 			CyDevice &device = grabber->GetDevice();
@@ -816,7 +821,61 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 			CyDeviceExtension *extension =
 				&device.GetExtension(
 					CY_DEVICE_EXT_PULSE_GENERATOR );
-	
+
+			/* Pulse generator granularity is expressed in
+			 * multiples of 30 nanoseconds.  Here we set
+			 * the pulse generator granularity to 33333,
+			 * which produces a timer quantum of 999990
+			 * nanoseconds.  That is the closest we can
+			 * get to 1 millisecond.
+			 *
+			 * With this setup, the longest possible exposure
+			 * or delay times are 65.5343 seconds.
+			 */
+
+			pg_granularity = 33333;
+
+			timer_quantum = 30.0e-9 * (double) pg_granularity;
+
+			extension->SetParameter(
+			    CY_PULSE_GEN_PARAM_GRANULARITY, pg_granularity );
+
+			exposure_ticks =
+				mx_round( exposure_time / timer_quantum );
+
+			delay_ticks = mx_round( delay_time / timer_quantum );
+
+			if ( exposure_ticks > 65535 ) {
+				exposure_ticks = 65535;
+			} else
+			if ( exposure_ticks < 1 ) {
+				exposure_ticks = 1;
+			}
+
+			if ( delay_ticks > 65535 ) {
+				delay_ticks = 65535;
+			} else
+			if ( delay_ticks < 1 ) {
+				delay_ticks = 1;
+			}
+
+			extension->SetParameter(
+				CY_PULSE_GEN_PARAM_WIDTH, exposure_ticks );
+
+			extension->SetParameter(
+				CY_PULSE_GEN_PARAM_DELAY, delay_ticks );
+
+			if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+				periodic = false;
+			} else {
+				periodic = true;
+			}
+
+			extension->SetParameter(
+				CY_PULSE_GEN_PARAM_PERIODIC, periodic );
+
+			extension->SaveToDevice();
+
 #if 1
 			{
 				unsigned long parameter_array[] = {
@@ -832,10 +891,11 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 					= sizeof(parameter_array)
 					/ sizeof(parameter_array[0]);
 	
-				mxi_pleora_iport_display_parameter_info(
+				mxi_pleora_iport_display_parameter_array(
 				  extension, num_parameters, parameter_array );
 			}
 #endif
+
 		}
 		break; 
 
