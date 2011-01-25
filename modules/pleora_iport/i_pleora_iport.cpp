@@ -568,7 +568,14 @@ mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
 					unsigned long num_parameters,
 					unsigned long *parameter_array )
 {
+	CyString cy_string;
 	unsigned long i, parameter_id;
+	const char *extension_name;
+
+	extension_name = extension->GetName().c_str_ascii();
+
+	fprintf(stderr, "*************************************************\n");
+	fprintf(stderr, "Extension '%s'\n", extension_name);
 
 	for ( i = 0; i < num_parameters; i++ ) {
 		parameter_id = parameter_array[i];
@@ -576,6 +583,7 @@ mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
 		mxi_pleora_iport_display_parameter_info( extension,
 							parameter_id );
 	}
+	fprintf(stderr, "*************************************************\n");
 
 	return;
 }
