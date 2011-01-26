@@ -32,7 +32,7 @@ typedef struct {
 
 	CyGrabber *grabber;
 	CyResultEvent *grab_finished_event;
-	mx_bool_type sequence_in_progress;
+	mx_bool_type grab_in_progress;
 
 } MX_PLEORA_IPORT_VINPUT;
 

@@ -561,7 +561,7 @@ mxi_pleora_iport_close( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------*/
+/*--------------- Exported driver-specific functions ---------------*/
 
 MX_EXPORT void
 mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
@@ -658,6 +658,23 @@ mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
 					parameter_type );
 		break;
 	}
+
+	return;
+}
+
+MX_EXPORT void
+mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,
+					CyString &lookup_table_program )
+{
+	CyDevice &device = grabber->GetDevice();
+
+	CyDeviceExtension *extension =
+				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
+
+	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
+						lookup_table_program );
+
+	extension->SaveToDevice();
 
 	return;
 }

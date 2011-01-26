@@ -49,7 +49,13 @@ MX_API void
 mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
 					unsigned long parameter_id );
 
+MX_API void
+mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,
+					CyString &lookup_table_program );
+
 #endif /* __cplusplus */
+
+/* The following data structures must be exported as C symbols. */
 
 #ifdef __cplusplus
 extern "C" {

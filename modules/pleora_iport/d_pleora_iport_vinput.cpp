@@ -169,7 +169,7 @@ mxd_pleora_iport_vinput_create_record_structures( MX_RECORD *record )
 
 	pleora_iport_vinput->grabber = NULL;
 	pleora_iport_vinput->grab_finished_event = NULL;
-	pleora_iport_vinput->sequence_in_progress = FALSE;
+	pleora_iport_vinput->grab_in_progress = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -490,15 +490,6 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->trigger_mode ));
 #endif
 
-	switch( vinput->trigger_mode ) {
-	case MXT_IMAGE_INTERNAL_TRIGGER:
-		pleora_iport_vinput->sequence_in_progress = FALSE;
-		break;
-	case MXT_IMAGE_EXTERNAL_TRIGGER:
-		pleora_iport_vinput->sequence_in_progress = TRUE;
-		break;
-	}
-
 	seq = &(vinput->sequence_parameters);
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
@@ -508,7 +499,6 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
 		break;
 	case MXT_SQ_MULTIFRAME:
 		break;
@@ -519,7 +509,34 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 
-	return mx_status;
+	/* Tell the grabber to wait for an incoming frame. */
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No grabber has been connected for record '%s'.",
+			vinput->record->name );
+	}
+
+	unsigned char *image_data = (unsigned char *) vinput->frame->image_data;
+
+	unsigned long image_length = vinput->frame->image_length;
+
+	CyResult cy_result = grabber->Grab(
+				CyChannel(0), image_data, image_length,
+				pleora_iport_vinput->grab_finished_event,
+				NULL, CY_GRABBER_FLAG_NO_WAIT, NULL );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to tell the grabber for '%s' to grab a frame.  "
+		"cy_result = %d.", vinput->record->name, cy_result );
+	}
+
+	pleora_iport_vinput->grab_in_progress = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -588,7 +605,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 			vinput->record->name );
 	}
 
-	pleora_iport_vinput->sequence_in_progress = TRUE;
+	pleora_iport_vinput->grab_in_progress = TRUE;
 
 	return mx_status;
 }
@@ -677,15 +694,26 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	vinput->status = 0;
 
-	CyGrabber *grabber = pleora_iport_vinput->grabber;
+	/* Poll for the event status. */
 
-	bool is_grabbing = grabber->IsGrabbing( CyChannel(0) );
+	CyResultEvent *grab_finished_event =
+				pleora_iport_vinput->grab_finished_event;
 
-	if ( is_grabbing ) {
-		vinput->status |= MXSF_VIN_IS_BUSY;
+	unsigned long timeout_ms = 1L;
+
+	CyResult cy_result =
+		grab_finished_event->WaitUntilSignaled( timeout_ms );
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: WaitUntilSignaled() returned %d",
+		fname, cy_result ));
+#endif
+
+	if ( pleora_iport_vinput->grab_in_progress ) {
+		if ( 0 ) {
+			vinput->status |= MXSF_VIN_IS_BUSY;
+		}
 	}
-
-	/* FIXME: We should look at pleora_iport_vinput->grab_finished_event. */
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;

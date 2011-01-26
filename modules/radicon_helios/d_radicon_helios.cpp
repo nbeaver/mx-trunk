@@ -407,6 +407,11 @@ mxd_radicon_helios_open( MX_RECORD *record )
                 "Q6 = 1\r\n"
                 "Q7 = I7 & !I0\r\n";
 
+	/* We do not use mxi_pleora_iport_send_lookup_table_program() here,
+	 * since it is probably better to change the I-registers and the
+	 * lookup table as a quasi-atomic operation.
+	 */
+
 	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
 							lut_program );
 
@@ -426,6 +431,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	long trigger_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -441,12 +447,34 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	/* radicon_helios->acquisition_in_progress = TRUE; */
-
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
+	/* Tell the video card to wait for an incoming frame. */
+
+	mx_status = mx_video_input_arm( radicon_helios->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If the video card is _not_ in internal trigger mode, then we
+	 * mark the Radicon Helios as having an acquisition in progress.
+	 */
+
+	mx_status = mx_video_input_get_trigger_mode(
+					radicon_helios->video_input_record,
+					&trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode != MXT_IMAGE_INTERNAL_TRIGGER ) {
+		radicon_helios->acquisition_in_progress = TRUE;
+	} else {
+		radicon_helios->acquisition_in_progress = FALSE;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -457,11 +485,13 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_trigger()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	long trigger_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-					&radicon_helios, NULL, NULL, fname );
+			&radicon_helios, &pleora_iport_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -473,7 +503,51 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	radicon_helios->acquisition_in_progress = TRUE;
+	/* If the video card is in internal trigger mode, then we
+	 * need to send a software trigger.
+	 */
+
+	mx_status = mx_video_input_get_trigger_mode(
+					radicon_helios->video_input_record,
+					&trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+		CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+		/* Set the Helios EXSYNC signal to high
+		 * to trigger image readout.
+		 */
+
+		CyString lut_program_high =
+			"Q0 = I2\r\n"
+			"Q4 = 1\r\n"
+			"Q5 = 1\r\n"
+			"Q6 = 1\r\n"
+			"Q7 = 1\r\n";
+
+		mxi_pleora_iport_send_lookup_table_program( grabber,
+							lut_program_high );
+
+		mx_msleep( 10 );
+
+		/* Return the Helios EXSYNC signal back to low. */
+
+		CyString lut_program_low =
+			"Q0 = I2\r\n"
+			"Q4 = 1\r\n"
+			"Q5 = 1\r\n"
+			"Q6 = 1\r\n"
+			"Q7 = 0\r\n";
+
+		mxi_pleora_iport_send_lookup_table_program( grabber,
+							lut_program_low );
+
+		radicon_helios->acquisition_in_progress = TRUE;
+	}
 
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
