@@ -215,8 +215,9 @@ mxi_pleora_iport_open( MX_RECORD *record )
 #endif
 
 	if ( num_devices == 0 ) {
-		mx_warning( "No Pleora iPORT engines were found for "
-		"record '%s', so no iPORT-based cameras will be initialized.",
+		mx_warning( "No Pleora iPORT engines were found on the "
+		"network by record '%s', so no iPORT-based cameras will "
+		"be initialized.",
 			record->name );
 
 		return MX_SUCCESSFUL_RESULT;

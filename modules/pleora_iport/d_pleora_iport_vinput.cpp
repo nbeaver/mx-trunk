@@ -130,6 +130,84 @@ mxd_pleora_iport_vinput_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+
+static void
+mxd_pleora_iport_vinput_display_extensions( MX_RECORD *record,
+					CyGrabber *grabber )
+{
+	static const char fname[] =
+		"mxd_pleora_iport_vinput_display_extensions()";
+
+	int i;
+
+	fprintf( stderr, "Camera '%s' device extensions:\n", record->name );
+
+	struct {
+		char extension_name[80];
+		unsigned long extension_id;
+	} device_extensions[] = {
+
+	{"CY_DEVICE_EXT_COUNTER", CY_DEVICE_EXT_COUNTER},
+	{"CY_DEVICE_EXT_DEBOUNCING", CY_DEVICE_EXT_DEBOUNCING},
+	{"CY_DEVICE_EXT_DELAYER", CY_DEVICE_EXT_DELAYER},
+	{"CY_DEVICE_EXT_FLOW_CONTROL", CY_DEVICE_EXT_FLOW_CONTROL},
+	{"CY_DEVICE_EXT_GPIO_CONTROL_BITS", CY_DEVICE_EXT_GPIO_CONTROL_BITS},
+	{"CY_DEVICE_EXT_GPIO_FUNCTION_SELECT",
+					CY_DEVICE_EXT_GPIO_FUNCTION_SELECT},
+	{"CY_DEVICE_EXT_GPIO_INTERRUPTS", CY_DEVICE_EXT_GPIO_INTERRUPTS},
+	{"CY_DEVICE_EXT_GPIO_LUT", CY_DEVICE_EXT_GPIO_LUT},
+	{"CY_DEVICE_EXT_PULSE_GENERATOR", CY_DEVICE_EXT_PULSE_GENERATOR},
+	{"CY_DEVICE_EXT_RESCALER", CY_DEVICE_EXT_RESCALER},
+	{"CY_DEVICE_EXT_STREAMING_INT_SELECTION",
+					CY_DEVICE_EXT_STREAMING_INT_SELECTION},
+	{"CY_DEVICE_EXT_TIMESTAMP_COUNTER", CY_DEVICE_EXT_TIMESTAMP_COUNTER},
+	{"CY_DEVICE_EXT_TIMESTAMP_TRIGGERS", CY_DEVICE_EXT_TIMESTAMP_TRIGGERS},
+	{"", 0} };
+
+	CyDevice &device = grabber->GetDevice();
+
+	for ( i = 0; ; i++ ) {
+		if ( strlen( device_extensions[i].extension_name ) == 0 ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		fprintf( stderr, "%-38s %lu extension(s)\n",
+			device_extensions[i].extension_name,
+			device.GetExtensionCountByType(
+				device_extensions[i].extension_id ) );
+	}
+
+	fprintf( stderr, "Camera '%s' grabber extensions:\n", record->name );
+
+	struct {
+		char extension_name[80];
+		unsigned long extension_id;
+	} grabber_extensions[] = {
+
+	{"CY_GRABBER_EXT_CAMERA_LINK", CY_GRABBER_EXT_CAMERA_LINK},
+	{"CY_GRABBER_EXT_CAMERA_LVDS", CY_GRABBER_EXT_CAMERA_LVDS},
+	{"CY_GRABBER_EXT_ANALOG_SOURCE", CY_GRABBER_EXT_ANALOG_SOURCE},
+	{"", 0} };
+
+	for ( i = 0; ; i++ ) {
+		if ( strlen( grabber_extensions[i].extension_name ) == 0 ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		fprintf( stderr, "%-38s %lu extension(s)\n",
+			grabber_extensions[i].extension_name,
+			grabber->GetExtensionCountByType(
+				grabber_extensions[i].extension_id ) );
+	}
+
+	return;
+}
+
+#endif /* MXD_PLEORA_IPORT_VINPUT_DEBUG */
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_pleora_iport_vinput_create_record_structures( MX_RECORD *record )
 {
@@ -311,6 +389,15 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: grabber IP address = %d.%d.%d.%d",
 		fname, ip1, ip2, ip3, ip4));
 	}
+#endif
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+
+	/* For debugging purposes, print out information about
+	 * the extensions that we need.
+	 */
+
+	mxd_pleora_iport_vinput_display_extensions( record, grabber );
 #endif
 
 	/* Initialize the image properties. */
