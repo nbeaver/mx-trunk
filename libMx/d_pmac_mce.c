@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -469,6 +469,7 @@ mxd_pmac_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	MX_PMAC *pmac;
 	MX_PMAC_MOTOR *pmac_motor;
 	char command[80];
+	long slave_axis_number;
 	mx_status_type mx_status;
 
 	if ( motor_record == (MX_RECORD *) NULL ) {
@@ -511,35 +512,146 @@ mxd_pmac_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 
 	pmac_mce->selected_motor_record = motor_record;
 
-	/* Change the configured axis number for the MCE by assigning it
-	 * to the PMAC variable M3300.
+	/* We either change the following directly
+	 * or use a PLC program to do it.
 	 */
 
-	if ( pmac->num_cards > 1 ) {
-		snprintf( command, sizeof(command),
-			"@%lxM3300=%ld",
+	if ( pmac_mce->plc_program_number < 0 ) {
+		/*** We are changing the following directly. ***/
+
+		/* The existing record description format for the 'pmac_mce'
+		 * driver does not tell us what axis is being used for the
+		 * slave.  To keep the database format the same, we recycle
+		 * the plc_program_number parameter that we are not using
+		 * to provide the slave axis number.
+		 *
+		 * WARNING: You must specify the slave axis number 
+		 * multiplied by -1 to let the driver know that we
+		 * are not specifying a PLC program number.
+		 */
+
+		slave_axis_number = -(pmac_mce->plc_program_number);
+
+		/* Disable the servo loop for the slave axis. */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lx#%ldK",
+				pmac_motor->card_number, slave_axis_number );
+		} else {
+			snprintf( command, sizeof(command),
+				"#%ldK", slave_axis_number );
+		}
+
+		mx_status = mxi_pmac_command( pmac, command,
+					NULL, 0, MXD_PMAC_MCE_DEBUG );
+			
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Disable position following for the slave. */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lxI%ld06=0",
+				pmac_motor->card_number, slave_axis_number );
+		} else {
+			snprintf( command, sizeof(command),
+				"I%ld06=0", slave_axis_number );
+		}
+
+		mx_status = mxi_pmac_command( pmac, command,
+					NULL, 0, MXD_PMAC_MCE_DEBUG );
+			
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Tell the slave axis to follow the requested motor. */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lxI%ld05=I%ld03",
+				pmac_motor->card_number, slave_axis_number,
+				pmac_motor->motor_number );
+		} else {
+			snprintf( command, sizeof(command),
+				"I%ld05=I%ld03",
+				slave_axis_number,
+				pmac_motor->motor_number );
+		}
+
+		mx_status = mxi_pmac_command( pmac, command,
+					NULL, 0, MXD_PMAC_MCE_DEBUG );
+			
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Reenable position following for the slave. */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lxI%ld06=1",
+				pmac_motor->card_number, slave_axis_number );
+		} else {
+			snprintf( command, sizeof(command),
+				"I%ld06=1", slave_axis_number );
+		}
+
+		mx_status = mxi_pmac_command( pmac, command,
+					NULL, 0, MXD_PMAC_MCE_DEBUG );
+			
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Reenable the servo loop for the slave axis. */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lx#%ldJ/",
+				pmac_motor->card_number, slave_axis_number );
+		} else {
+			snprintf( command, sizeof(command),
+				"#%ldJ/", slave_axis_number );
+		}
+
+		mx_status = mxi_pmac_command( pmac, command,
+					NULL, 0, MXD_PMAC_MCE_DEBUG );
+			
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/*** We are using a PLC program to change the following. ***/
+
+		/* Change the configured axis number for the MCE by assigning
+		 * it to the PMAC variable M3300.
+		 */
+
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lxM3300=%ld",
 			pmac_motor->card_number, pmac_motor->motor_number );
-	} else {
-		snprintf( command, sizeof(command),
-			"M3300=%ld", pmac_motor->motor_number );
-	}
+		} else {
+			snprintf( command, sizeof(command),
+				"M3300=%ld", pmac_motor->motor_number );
+		}
 
-	mx_status = mxi_pmac_command( pmac, command,
+		mx_status = mxi_pmac_command( pmac, command,
 					NULL, 0, MXD_PMAC_MCE_DEBUG );
 
-	/* Run the PLCC program to change the axis. */
+		/* Run the PLCC program to change the axis. */
 
-	if ( pmac->num_cards > 1 ) {
-		snprintf( command, sizeof(command),
-			"@%lxENA PLC %ld",
+		if ( pmac->num_cards > 1 ) {
+			snprintf( command, sizeof(command),
+				"@%lxENA PLC %ld",
 			pmac_motor->card_number, pmac_mce->plc_program_number );
-	} else {
-		snprintf( command, sizeof(command),
-			"ENA PLC %ld", pmac_mce->plc_program_number );
-	}
+		} else {
+			snprintf( command, sizeof(command),
+				"ENA PLC %ld", pmac_mce->plc_program_number );
+		}
 
-	mx_status = mxi_pmac_command( pmac, command,
+		mx_status = mxi_pmac_command( pmac, command,
 					NULL, 0, MXD_PMAC_MCE_DEBUG );
+	}
 
 	return mx_status;
 }
