@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2010 Illinois Institute of Technology
+ * Copyright 2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ MX_RECORD_FUNCTION_LIST mxi_soft_camera_link_record_function_list = {
 };
 
 MX_CAMERA_LINK_API_LIST mxi_soft_camera_link_api_list = {
-	NULL,
+	mxi_soft_camera_link_flush_port,
 	NULL,
 	NULL,
 	mxi_soft_camera_link_get_num_bytes_avail,
@@ -216,6 +216,14 @@ MX_EXPORT mx_status_type
 mxi_soft_camera_link_close( MX_RECORD *record )
 {
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT INT32 MX_CLCALL
+mxi_soft_camera_link_flush_port( hSerRef serial_ref )
+{
+	/* Flush port does nothing for this driver, so we just return. */
+
+	return CL_ERR_NO_ERR;
 }
 
 MX_EXPORT INT32 MX_CLCALL

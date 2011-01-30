@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,6 +39,8 @@ typedef struct mx_soft_camera_link_port_type {
 } MX_SOFT_CAMERA_LINK_PORT;
 
 extern MX_CAMERA_LINK_API_LIST mxi_soft_camera_link_api_list;
+
+MX_API INT32 MX_CLCALL mxi_soft_camera_link_flush_port( hSerRef serial_ref );
 
 MX_API INT32 MX_CLCALL mxi_soft_camera_link_get_num_bytes_avail(
 							hSerRef serial_ref,
