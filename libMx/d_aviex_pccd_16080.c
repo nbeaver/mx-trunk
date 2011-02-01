@@ -992,7 +992,11 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd,
 				MXLV_AVIEX_PCCD_16080_DH_NOF,
+#if 0
 				num_frames );
+#else
+				1 );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

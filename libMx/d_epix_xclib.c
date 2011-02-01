@@ -11,20 +11,28 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG			FALSE
+#define MXD_EPIX_XCLIB_DEBUG				FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME			FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	FALSE
+#define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS		FALSE
 
-#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS	FALSE
+#define MXD_EPIX_XCLIB_DEBUG_TRIGGER			FALSE
+
+#define MXD_EPIX_XCLIB_DEBUG_STOP			FALSE
+
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
+
+#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		FALSE
+
+#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	FALSE
 
 #include <stdio.h>
 
@@ -1037,6 +1045,12 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib_vinput->sequence_in_progress = FALSE;
 	epix_xclib_vinput->new_sequence = FALSE;
+
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
+
 	epix_xclib_vinput->old_total_num_frames = 0;
 
 	epix_xclib_vinput->circular_frame_period = 0;
@@ -1211,7 +1225,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -1232,15 +1246,9 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	 * 'new_sequence' is used by mxd_epix_xclib_get_last_frame_number().
 	 * While 'new_sequence' is TRUE, mxd_epix_xclib_get_last_frame_number()
 	 * will always set 'last_frame_number' to (-1).
-	 *
-	 * 'sequence_in_progress' is used by mxd_epix_xclib_get_status().
-	 * Once pxd_goneLive() returns 0, mxd_epix_xclib_get_status()
-	 * invokes mx_video_input_stop() to stop any CC1 pulses that may
-	 * be sent and then sets 'sequence_in_progress' to FALSE.
 	 */
 
 	epix_xclib_vinput->new_sequence = TRUE;
-	epix_xclib_vinput->sequence_in_progress = TRUE;
 
 	/* If the 'write test' feature is enabled, fill
 	 * the first frame buffer with a test value.
@@ -1263,14 +1271,14 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	 * return without doing anything further.
 	 */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %#lx",
 		fname, vinput->trigger_mode));
 #endif
 
 	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,
 		("%s: external trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -1282,7 +1290,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 	sp = &(vinput->sequence_parameters);
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: External triggering selected.", fname));
 
 	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
@@ -1418,7 +1426,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 	/* Enable the external trigger on General Purpose Trigger 1. */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld, numbuf = %ld",
 		fname, startbuf, endbuf, numbuf));
 #endif
@@ -1431,7 +1439,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		0, 0, 0,                /* No end trigger */
 		0, 0, 0, 0, 0, 0 );     /* yet more reserved */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: pxd_goLiveSeqTrig( %ld, %ld, %ld, 1, %ld, ... ) = %d",
 		fname, epix_xclib_vinput->unitmap,
 		startbuf, endbuf, numbuf, epix_status));
@@ -1447,6 +1455,19 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		"video input '%s' failed.  %s",
 			vinput->record->name, error_message );
 	}
+
+	/* 'sequence_in_progress' is used by mxd_epix_xclib_get_status().
+	 * Once pxd_goneLive() returns 0, mxd_epix_xclib_get_status()
+	 * invokes mxd_epix_xclib_stop() to stop any CC1 pulses that may
+	 * be sent and then sets 'sequence_in_progress' to FALSE.
+	 */
+
+	epix_xclib_vinput->sequence_in_progress = TRUE;
+
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
 
 	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
 
@@ -1475,7 +1496,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -1487,7 +1508,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		 * return without doing anything
 		 */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,
 		("%s: internal trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -1505,14 +1526,14 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	sp = &(vinput->sequence_parameters);
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Internal triggering selected.", fname));
 
 	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,
 		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
 
@@ -1583,13 +1604,13 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_STREAK_CAMERA:
 	case MXT_SQ_SUBIMAGE:
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: triggering one-shot, streak camera, "
 	    "or subimage mode for vinput '%s'.", fname, vinput->record->name ));
 #endif
 		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,("%s: pxd_goSnap( %ld, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap, epix_status));
 #endif
@@ -1607,13 +1628,13 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_CONTINUOUS:
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: triggering continuous mode for vinput '%s'.",
 		fname, vinput->record->name ));
 #endif
 		epix_status = pxd_goLive( epix_xclib_vinput->unitmap, 1 );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,("%s: pxd_goLive( %ld, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap, epix_status));
 #endif
@@ -1661,7 +1682,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 			numbuf = endbuf;
 		}
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: triggering multiframe sequence for vinput '%s'.",
 		fname, vinput->record->name ));
 	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld, numbuf = %ld",
@@ -1670,7 +1691,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 					startbuf, endbuf, 1, numbuf, 1 );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 		MX_DEBUG(-2,
 		("%s: pxd_goLiveSeq( %ld, %ld, %ld, 1, %ld, 1 ) = %d",
 			fname, epix_xclib_vinput->unitmap,
@@ -1700,7 +1721,20 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG
+	/* 'sequence_in_progress' is used by mxd_epix_xclib_get_status().
+	 * Once pxd_goneLive() returns 0, mxd_epix_xclib_get_status()
+	 * invokes mxd_epix_xclib_stop() to stop any CC1 pulses that may
+	 * be sent and then sets 'sequence_in_progress' to FALSE.
+	 */
+
+	epix_xclib_vinput->sequence_in_progress = TRUE;
+
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Started taking frame(s) using video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -1725,7 +1759,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
@@ -1733,7 +1767,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 
 	epix_status = pxd_goUnLive( epix_xclib_vinput->unitmap );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s: pxd_goUnLive(%ld) = %d",
 		fname, epix_xclib_vinput->unitmap, epix_status));
 #endif
@@ -1759,7 +1793,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
 						0, princ_mode );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, %u) = %d",
 		fname, epix_xclib_vinput->unitmap, princ_mode, epix_status));
 #endif
@@ -1787,7 +1821,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s complete.", fname));
 	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 #endif
@@ -1811,7 +1845,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
@@ -1840,7 +1874,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
 						0, princ_mode );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, %u) = %d",
 		fname, epix_xclib_vinput->unitmap, princ_mode, epix_status));
 #endif
@@ -1867,7 +1901,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_STOP
 	MX_DEBUG(-2,("%s complete.", fname));
 	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 #endif
@@ -1891,7 +1925,7 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 
@@ -1947,12 +1981,17 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	epix_xclib_vinput->new_sequence = TRUE;
 	epix_xclib_vinput->sequence_in_progress = TRUE;
 
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
+
 	/* Start the sequence. */
 
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 			1, requested_num_frames, 1, numbuf, 1 );
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, %ld, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap,
 		requested_num_frames, numbuf, epix_status));
@@ -2110,15 +2149,25 @@ mxd_epix_xclib_terminate_sequence( MX_VIDEO_INPUT *vinput,
 {
 	mx_status_type mx_status;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE
 	static const char fname[] = "mxd_epix_xclib_terminate_sequence()";
 
+	MX_DEBUG(-2,
+("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
 	MX_DEBUG(-2,("%s: Terminating sequence.", fname));
+	MX_DEBUG(-2,
+("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
 #endif
 	epix_xclib_vinput->sequence_in_progress = FALSE;
+
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
+
 	vinput->asynchronous_circular = FALSE;
 
-	mx_status = mxd_epix_xclib_abort( vinput );
+	mx_status = mxd_epix_xclib_stop( vinput );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2153,10 +2202,12 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
 				error_message, sizeof(error_message) );
 
-#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
+#if MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS
 	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
-		fname, (int) epix_xclib_vinput->sequence_in_progress));
+		fname, epix_xclib_vinput->sequence_in_progress));
+#endif
 
+#if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: pxd_mesgFaultText() = %d", fname, epix_status));
 #endif
 
@@ -2248,7 +2299,8 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 		/* not busy */
 
 #if MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS
-		MX_DEBUG(-2,("%s: SIGN 2", fname));
+		MX_DEBUG(-2,("%s: SIGN 2: sequence_in_progress = %d",
+			fname, epix_xclib_vinput->sequence_in_progress));
 #endif
 		vinput->asynchronous_circular = FALSE;
 
