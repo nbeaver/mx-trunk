@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -10500,6 +10500,11 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	flags = ad->area_detector_flags;
 
+	if ( (flags & MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION)
+			  && ad->correction_measurement_in_progress )
+	{
+		save_frame_after_acquisition = TRUE;
+	} else
 	if ( flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
 		if ( ad->correction_measurement_in_progress ) {
 			save_frame_after_acquisition = FALSE;
@@ -10507,7 +10512,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			save_frame_after_acquisition = TRUE;
 		}
 	} else {
-			save_frame_after_acquisition = FALSE;
+		save_frame_after_acquisition = FALSE;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
