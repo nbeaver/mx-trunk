@@ -12,7 +12,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1858,26 +1858,6 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 		fname, (int) camera_is_master, (int) external_trigger));
 #endif
 
-	switch ( sp->sequence_type ) {
-	case MXT_SQ_CONTINUOUS:
-		/* For continuous sequences, we must use video board
-		 * CC1 pulses to trigger the taking of frames, so that
-		 * the total number of frames is not limited.
-		 */
-
-		camera_is_master = FALSE;
-		break;
-
-	case MXT_SQ_STROBE:
-		/* For strobe sequences, the external trigger goes into
-		 * the video card, which triggers the taking of frames
-		 * via CC1 pulses.
-		 */
-
-		camera_is_master = FALSE;
-		break;
-	}
-
 	/* Stop any currently running imaging sequence. */
 
 	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
@@ -2090,26 +2070,6 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: camera_is_master = %d, internal_trigger = %d",
 		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
-
-	switch ( sp->sequence_type ) {
-	case MXT_SQ_CONTINUOUS:
-		/* For continuous sequences, we must use video board
-		 * CC1 pulses to trigger the taking of frames, so that
-		 * the total number of frames is not limited.
-		 */
-
-		camera_is_master = FALSE;
-		break;
-
-	case MXT_SQ_STROBE:
-		/* For strobe sequences, the external trigger goes into
-		 * the video card, which triggers the taking of frames
-		 * via CC1 pulses.
-		 */
-
-		camera_is_master = FALSE;
-		break;
-	}
 
 	if ( camera_is_master && internal_trigger ) {
 

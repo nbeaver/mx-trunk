@@ -4225,6 +4225,7 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 	unsigned long image_width, image_height;
 	unsigned long correction_width, correction_height;
 	unsigned long rebinned_width, rebinned_height;
+	mx_bool_type configuration_conflict;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
@@ -4321,17 +4322,38 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 	}
 
 	/* Otherwise, we check to see if the correction frame dimensions
-	 * are an integer multiple of the image frame dimensions.
+	 * are an integer multiple or integer divisor of the image frame
+	 * dimensions.
 	 */
 
-	if ( ((correction_width % image_width) != 0)
-	  || ((correction_height % image_height) != 0) )
-	{
+	configuration_conflict = FALSE;
+
+	if ( correction_width >= image_width ) {
+		if ( (correction_width % image_width) != 0 ) {
+			configuration_conflict = TRUE;
+		}
+	} else {
+		if ( (image_width % correction_width) != 0 ) {
+			configuration_conflict = TRUE;
+		}
+	}
+
+	if ( correction_height >= image_height ) {
+		if ( (correction_height % image_height) != 0 ) {
+			configuration_conflict = TRUE;
+		}
+	} else {
+		if ( (image_height % correction_height) != 0 ) {
+			configuration_conflict = TRUE;
+		}
+	}
+
+	if ( configuration_conflict ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
 		"The dimensions of the %s frame (%lu,%lu) are not an integer "
-		"multiple of the dimensions of the image frame (%lu,%lu) for "
-		"area detector '%s'.  The %s frame cannot be used for image "
-		"correction as long as this is the case.",
+		"multiple or integer divisor of the dimensions of the image "
+		"frame (%lu,%lu) for area detector '%s'.  The %s frame cannot "
+		"be used for image correction as long as this is the case.",
 			frame_name, correction_width, correction_height,
 			image_width, image_height, ad->record->name,
 			frame_name );

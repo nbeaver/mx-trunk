@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -929,6 +929,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	double subimage_time, gap_time;
 	long gap_steps;
 #endif
+	long master_clock;
+	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
 
 #if MXD_AVIEX_PCCD_16080_DEBUG
@@ -940,6 +942,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_STROBE:
+	case MXT_SQ_BULB:
 
 #if 0
 		if ( in_subimage_mode ) {
@@ -975,44 +979,76 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		 * number of frames, exposure time, and gap time.
 		 */
 
-		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
-		} else
-		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+			camera_is_master = FALSE;
+			break;
+		case MXT_SQ_MULTIFRAME:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = sp->parameter_array[1];
-		} else {
+			camera_is_master = FALSE;
+			break;
+		case MXT_SQ_STROBE:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = sp->parameter_array[1];
+			camera_is_master = TRUE;
+			break;
+		case MXT_SQ_BULB:
+			num_frames = mx_round( sp->parameter_array[0] );
+			exposure_time = -1.0;
+			camera_is_master = TRUE;
+			break;
+		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Inconsistent control structures for "
 			"sequence type.  Sequence type = %lu",
 				sp->sequence_type );
+			break;
 		}
 
 		mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd,
 				MXLV_AVIEX_PCCD_16080_DH_NOF,
-#if 0
-				num_frames );
-#else
 				1 );
-#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		exposure_steps = mx_round_down( exposure_time
-			/ aviex_pccd->exposure_and_gap_step_size );
+		if ( sp->sequence_type != MXT_SQ_BULB ) {
+			exposure_steps = mx_round_down( exposure_time
+				/ aviex_pccd->exposure_and_gap_step_size );
 
 #if MXD_AVIEX_PCCD_16080_DEBUG
-		MX_DEBUG(-2,("%s: exposure_steps = %lu",
-			fname, exposure_steps));
+			MX_DEBUG(-2,("%s: exposure_steps = %lu",
+				fname, exposure_steps));
 #endif
 
-		mx_status = mxd_aviex_pccd_16080_write_register(
-				aviex_pccd,
-				MXLV_AVIEX_PCCD_16080_DH_SHUTTER,
-				exposure_steps );
+			mx_status = mxd_aviex_pccd_16080_write_register(
+					aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_SHUTTER,
+					exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( camera_is_master ) {
+			master_clock = MXF_VIN_MASTER_CAMERA;
+
+			aviex_pccd->aviex_pccd_flags
+				|= MXF_AVIEX_PCCD_CAMERA_IS_MASTER;
+		} else {
+			master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
+
+			aviex_pccd->aviex_pccd_flags
+				&= (~MXF_AVIEX_PCCD_CAMERA_IS_MASTER);
+		}
+
+		mx_status = mx_video_input_set_master_clock(
+						aviex_pccd->video_input_record,
+						master_clock );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
