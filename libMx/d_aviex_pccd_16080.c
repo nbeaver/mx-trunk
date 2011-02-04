@@ -648,11 +648,23 @@ mxd_aviex_pccd_16080_set_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_16080_set_external_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
-                                                mx_bool_type external_trigger )
+mxd_aviex_pccd_16080_set_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
+					mx_bool_type external_trigger,
+					mx_bool_type edge_triggered )
 {
+	static const char fname[] = "mxd_aviex_pccd_16080_set_trigger_mode()";
+
+	MX_AREA_DETECTOR *ad;
         unsigned long control_register_value;
         mx_status_type mx_status;
+
+	ad = (MX_AREA_DETECTOR *) aviex_pccd->record->record_class_struct;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for '%s' is NULL.",
+			aviex_pccd->record->name );
+	}
 
         mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
                                         MXLV_AVIEX_PCCD_16080_DH_CONTROL,
@@ -661,12 +673,28 @@ mxd_aviex_pccd_16080_set_external_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
         if ( mx_status.code != MXE_SUCCESS )
                 return mx_status;
 
+	ad->trigger_mode = 0;
+
         if ( external_trigger ) {
                 control_register_value
                         |= MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER;
+
+		ad->trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
         } else {
                 control_register_value
                         &= (~MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER);
+
+		ad->trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
+        }
+
+        if ( edge_triggered ) {
+                control_register_value
+                        |= MXF_AVIEX_PCCD_16080_EDGE_TRIGGER;
+
+		ad->trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
+        } else {
+                control_register_value
+                        &= (~MXF_AVIEX_PCCD_16080_EDGE_TRIGGER);
         }
 
         mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
@@ -931,6 +959,8 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 #endif
 	long master_clock;
 	mx_bool_type camera_is_master;
+
+	long trigger_mode, original_trigger_mode, mask, multiframe_trigger;
 	mx_status_type mx_status;
 
 #if MXD_AVIEX_PCCD_16080_DEBUG
@@ -979,26 +1009,50 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		 * number of frames, exposure time, and gap time.
 		 */
 
+		original_trigger_mode = ad->trigger_mode;
+
+		mask = MXT_IMAGE_INTERNAL_TRIGGER
+				| MXT_IMAGE_EXTERNAL_TRIGGER
+				| MXT_IMAGE_EDGE_TRIGGER
+				| MXT_IMAGE_LEVEL_TRIGGER;
+
+		trigger_mode = original_trigger_mode & (~mask);
+
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 			num_frames = 1;
 			exposure_time = sp->parameter_array[0];
 			camera_is_master = FALSE;
+			trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
+			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_MULTIFRAME:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = sp->parameter_array[1];
 			camera_is_master = FALSE;
+
+			/* Internal/external trigger setting is left alone. */
+
+			multiframe_trigger = original_trigger_mode
+		  & ( MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER );
+
+			trigger_mode |= multiframe_trigger;
+
+			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_STROBE:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = sp->parameter_array[1];
 			camera_is_master = TRUE;
+			trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
+			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
 			break;
 		case MXT_SQ_BULB:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = -1.0;
 			camera_is_master = TRUE;
+			trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
+			trigger_mode |= MXT_IMAGE_LEVEL_TRIGGER;
 			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -1007,6 +1061,12 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 				sp->sequence_type );
 			break;
 		}
+
+#if MXD_AVIEX_PCCD_16080_DEBUG
+		MX_DEBUG(-2,("%s: trigger_mode = %#lx", fname, trigger_mode ));
+#endif
+
+		ad->trigger_mode = trigger_mode;
 
 		mx_status = mxd_aviex_pccd_16080_write_register(
 				aviex_pccd,

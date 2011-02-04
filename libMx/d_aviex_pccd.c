@@ -1811,7 +1811,7 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 	int comparison;
 	long num_frames_in_sequence, master_clock;
 	unsigned long status_flags;
-	mx_bool_type camera_is_master, external_trigger, circular;
+	mx_bool_type camera_is_master, external_trigger, edge_trigger, circular;
 	mx_status_type mx_status;
 
 	aviex_pccd = NULL;
@@ -1851,11 +1851,15 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 		camera_is_master = FALSE;
 	}
 
-	external_trigger = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
+	external_trigger = (ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
+
+	edge_trigger = (ad->trigger_mode & MXT_IMAGE_EDGE_TRIGGER);
 
 #if MXD_AVIEX_PCCD_DEBUG
-	MX_DEBUG(-2,("%s: camera_is_master = %d, external_trigger = %d",
-		fname, (int) camera_is_master, (int) external_trigger));
+	MX_DEBUG(-2,
+	("%s: camera_is_master = %d, external_trigger = %d, edge_trigger = %d",
+		fname, (int) camera_is_master,
+		(int) external_trigger, (int) edge_trigger));
 #endif
 
 	/* Stop any currently running imaging sequence. */
@@ -1930,16 +1934,16 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 
 	switch( ad->record->mx_type ) {
 	case MXT_AD_PCCD_170170:
-		mx_status = mxd_aviex_pccd_170170_set_external_trigger_mode(
-						aviex_pccd, external_trigger );
+		mx_status = mxd_aviex_pccd_170170_set_trigger_mode( aviex_pccd,
+					external_trigger, edge_trigger );
 		break;
 	case MXT_AD_PCCD_4824:
-		mx_status = mxd_aviex_pccd_4824_set_external_trigger_mode(
-						aviex_pccd, external_trigger );
+		mx_status = mxd_aviex_pccd_4824_set_trigger_mode( aviex_pccd,
+					external_trigger, edge_trigger );
 		break;
 	case MXT_AD_PCCD_16080:
-		mx_status = mxd_aviex_pccd_16080_set_external_trigger_mode(
-						aviex_pccd, external_trigger );
+		mx_status = mxd_aviex_pccd_16080_set_trigger_mode( aviex_pccd,
+					external_trigger, edge_trigger );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -3309,6 +3313,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long shutter_disabled;
+	long mask, trigger_mode, vinput_trigger_mode;
 	mx_status_type mx_status;
 
 	aviex_pccd = NULL;
@@ -3421,8 +3426,19 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
+		mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+
+		trigger_mode = ad->trigger_mode & (~mask);
+
 		mx_status = mx_video_input_get_trigger_mode(
-				video_input_record, &(ad->trigger_mode) );
+				video_input_record, &vinput_trigger_mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		vinput_trigger_mode &= mask;
+
+		ad->trigger_mode |= vinput_trigger_mode;
 		break;
 
 	case MXLV_AD_REGISTER_VALUE:

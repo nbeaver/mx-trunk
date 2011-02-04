@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -461,11 +461,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		if ( trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+		if ( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 			fprintf( output,
 			"Starting sequence in internal trigger mode.\n" );
 		} else
-		if ( trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		if ( trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 			fprintf( output,
 			"Starting sequence in external trigger mode.\n" );
 		} else {
@@ -1482,18 +1482,18 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			if( trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+			if( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 				fprintf( output,
-			"Area detector '%s': trigger mode = internal (%ld)\n",
+			"Area detector '%s': trigger mode = internal (%#lx)\n",
 				ad_record->name, trigger_mode );
 			} else
-			if ( trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			if ( trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 				fprintf( output,
-			"Area detector '%s': trigger mode = external (%ld)\n",
+			"Area detector '%s': trigger mode = external (%#lx)\n",
 				ad_record->name, trigger_mode );
 			} else {
 				fprintf( output,
-			"Area detector '%s': trigger mode = ILLEGAL (%ld)\n",
+			"Area detector '%s': trigger mode = ILLEGAL (%#lx)\n",
 				ad_record->name, trigger_mode );
 			}
 		} else
@@ -1723,6 +1723,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 				ad->framesize[0], ad->framesize[1] );
 		} else
 		if ( strncmp( "trigger_mode", argv[4], strlen(argv[4]) ) == 0) {
+
+			unsigned long mask;
 			
 			if ( argc != 6 ) {
 				fprintf( output,
@@ -1731,15 +1733,26 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
+			mx_status = mx_area_detector_get_trigger_mode(
+						ad_record, &trigger_mode );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mask = MXT_IMAGE_INTERNAL_TRIGGER
+				| MXT_IMAGE_EXTERNAL_TRIGGER;
+
+			trigger_mode &= (~mask);
+
 			length = strlen(argv[5]);
 
 			if (mx_strncasecmp( argv[5], "internal", length ) == 0)
 			{
-				trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+				trigger_mode |= MXT_IMAGE_INTERNAL_TRIGGER;
 			} else
 			if (mx_strncasecmp( argv[5], "external", length ) == 0)
 			{
-				trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+				trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
 			} else {
 				trigger_mode = strtol( argv[5], &endptr, 0 );
 

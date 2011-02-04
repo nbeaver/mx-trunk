@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -89,8 +89,9 @@ mxd_aviex_pccd_16080_set_pseudo_register( struct mx_aviex_pccd *,
                                         long, unsigned long );
 
 MX_API_PRIVATE mx_status_type
-mxd_aviex_pccd_16080_set_external_trigger_mode( struct mx_aviex_pccd *,
-                                                        mx_bool_type );
+mxd_aviex_pccd_16080_set_trigger_mode( struct mx_aviex_pccd *aviex_pccd,
+                                        mx_bool_type external_trigger,
+					mx_bool_type edge_triggered );
 
 MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *, struct mx_aviex_pccd * );

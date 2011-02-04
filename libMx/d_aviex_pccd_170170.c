@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -523,8 +523,9 @@ mxd_aviex_pccd_170170_set_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_aviex_pccd_170170_set_external_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
-						mx_bool_type external_trigger )
+mxd_aviex_pccd_170170_set_trigger_mode( MX_AVIEX_PCCD *aviex_pccd,
+				mx_bool_type external_trigger,
+				mx_bool_type edge_trigger )
 {
 	unsigned long control_register_value;
 	mx_status_type mx_status;
