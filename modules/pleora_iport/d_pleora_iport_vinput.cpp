@@ -397,7 +397,9 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	 * the extensions that we need.
 	 */
 
-	mxd_pleora_iport_vinput_display_extensions( record, grabber );
+	if ( 0 ) {
+		mxd_pleora_iport_vinput_display_extensions( record, grabber );
+	}
 #endif
 
 	/* Initialize the image properties. */

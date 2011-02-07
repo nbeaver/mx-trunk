@@ -158,88 +158,22 @@ mxi_pleora_iport_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_pleora_iport_open( MX_RECORD *record )
+#if MXI_PLEORA_IPORT_DEBUG
+
+static void
+mxi_pleora_iport_show_ip_engines( CyDeviceFinder::DeviceList ip_engine_list )
 {
-	static const char fname[] = "mxi_pleora_iport_open()";
+	static const char fname[] = "mxi_pleora_iport_show_ip_engines()";
 
-	MX_PLEORA_IPORT *pleora_iport;
-	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
-	MX_RECORD *device_record;
-	long i, num_devices;
-	mx_status_type mx_status;
+	long i;
 
-	CyDeviceFinder finder;
-	CyDeviceFinder::DeviceList ip_engine_list;
-	CyResult cy_result;
-
-	mx_status = mxi_pleora_iport_get_pointers( record,
-						&pleora_iport, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Find IP engines available through the eBUS driver. */
-
-	finder.Find( CY_DEVICE_ACCESS_MODE_EBUS,
-			ip_engine_list,
-			100,
-			true );
-
-	/* Find GigE Vision IP engines available through the eBUS driver. */
-
-	finder.Find( CY_DEVICE_ACCESS_MODE_GEV_EBUS,
-			ip_engine_list,
-			100,
-			true );
-
-	/* Find IP engines available through the High Performance driver. */
-
-	finder.Find( CY_DEVICE_ACCESS_MODE_DRV,
-			ip_engine_list,
-			100,
-			true );
-
-	/* Find IP engines available through the Network Stack. */
-
-	finder.Find( CY_DEVICE_ACCESS_MODE_UDP,
-			ip_engine_list,
-			100,
-			true );
-
-	num_devices = ip_engine_list.size();
-
-#if MXI_PLEORA_IPORT_DEBUG
-	MX_DEBUG(-2,("%s: %d IP engines found for record '%s'.",
-		fname, num_devices, record->name ));
-#endif
-
-	if ( num_devices == 0 ) {
-		mx_warning( "No Pleora iPORT engines were found on the "
-		"network by record '%s', so no iPORT-based cameras will "
-		"be initialized.",
-			record->name );
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	for ( i = 0; i < num_devices; i++ ) {
-		const CyDeviceFinder::DeviceEntry &device_entry
-				= ip_engine_list[i];
-
-#if MXI_PLEORA_IPORT_DEBUG
-		MX_DEBUG(-2,("%s: %ld>> MAC '%s', IP '%s'",
-			fname, i, device_entry.mAddressMAC.c_str_ascii(),
-			device_entry.mAddressIP.c_str_ascii() ));
-#endif
-	}
-
-#if 0 && MXI_PLEORA_IPORT_DEBUG
 	MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
 
+	long num_devices = ip_engine_list.size();
+
 	for ( i = 0; i < num_devices; i++ ) {
 		const CyDeviceFinder::DeviceEntry &device_entry
-				= ip_engine_list[i];
+			= ip_engine_list[i];
 
 		MX_DEBUG(-2,("%s: Entry %ld:", fname, i));
 
@@ -250,11 +184,11 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s:     ModelName = '%s'",
 		    fname, device_entry.mModelName.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     ManufacturerName = '%s'",
-		    fname, device_entry.mManufacturerName.c_str_ascii() ));
+		 fname, device_entry.mManufacturerName.c_str_ascii()));
 		MX_DEBUG(-2,("%s:     SerialNumber = '%s'",
 		    fname, device_entry.mSerialNumber.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     DeviceInformation = '%s'",
-		    fname, device_entry.mDeviceInformation.c_str_ascii() ));
+		 fname, device_entry.mDeviceInformation.c_str_ascii()));
 		MX_DEBUG(-2,("%s:     DeviceVersion = '%s'",
 		    fname, device_entry.mDeviceVersion.c_str_ascii() ));
 		MX_DEBUG(-2,("%s:     DeviceID = %u",
@@ -293,7 +227,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s:   Data Information", fname));
 
 		MX_DEBUG(-2,("%s:     MulticastAddress = '%s'",
-		    fname, device_entry.mMulticastAddress.c_str_ascii() ));
+		 fname, device_entry.mMulticastAddress.c_str_ascii()));
 		MX_DEBUG(-2,("%s:     ChannelCount = %u",
 		    fname, device_entry.mChannelCount));
 		MX_DEBUG(-2,("%s:     SendingMode = %lu",
@@ -302,13 +236,119 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: +++++++++++++++++++++", fname));
 
 	}
+
+	return;
+}
+
 #endif
 
-	/* Loop through all the records in device_record_array to find 
-	 * the CyGrabber objects that correspond to them.
-	 */
+MX_EXPORT mx_status_type
+mxi_pleora_iport_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_pleora_iport_open()";
 
-	for ( i = 0; i < pleora_iport->max_devices; i++ ) {
+	MX_PLEORA_IPORT *pleora_iport;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
+	MX_RECORD *device_record;
+	long i, num_devices;
+	int pass;
+	mx_status_type mx_status;
+
+	CyResult cy_result;
+
+	mx_status = mxi_pleora_iport_get_pointers( record,
+						&pleora_iport, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/******************************************************************
+	 *                                                                *
+	 * Find the IP engines in two passes.                             *
+	 *                                                                *
+	 * Assigning an IP address using SetIP() forces us to go back     *
+	 * through the Find() process a second time, since we cannot      *
+	 * Connect() a grabber to a SetIP()-ed IP engine without going    *
+	 * through the Find() process again.                              *
+	 *                                                                *
+	 * Pass 1: Look for IP engines that must be SetIP()-ed.           *
+	 *                                                                *
+	 * Pass 2: Connect a grabber to each of the requested IP engines. *
+	 *                                                                *
+	 ******************************************************************/
+
+	for ( pass = 1; pass <= 2; pass++ ) {
+
+	    CyDeviceFinder finder;
+	    CyDeviceFinder::DeviceList ip_engine_list;
+
+	    /* Find IP engines available through the eBUS driver. */
+
+	    finder.Find( CY_DEVICE_ACCESS_MODE_EBUS,
+			ip_engine_list,
+			100,
+			true );
+
+	    /* Find GigE Vision IP engines available through the
+	     * eBUS driver.
+	     */
+
+	    finder.Find( CY_DEVICE_ACCESS_MODE_GEV_EBUS,
+			ip_engine_list,
+			100,
+			false );
+
+	    /* Find IP engines available through the High Performance
+	     * driver.
+	     */
+
+	    finder.Find( CY_DEVICE_ACCESS_MODE_DRV,
+			ip_engine_list,
+			100,
+			false );
+
+	    /* Find IP engines available through the Network Stack. */
+
+	    finder.Find( CY_DEVICE_ACCESS_MODE_UDP,
+			ip_engine_list,
+			100,
+			false );
+
+	    num_devices = ip_engine_list.size();
+
+#if MXI_PLEORA_IPORT_DEBUG
+	    MX_DEBUG(-2,("%s: %d IP engines found for record '%s' (pass %d).",
+			fname, num_devices, record->name, pass ));
+#endif
+
+	    if ( num_devices == 0 ) {
+		mx_warning( "No Pleora iPORT engines were found on the "
+			"network by record '%s', so no iPORT-based cameras "
+			"will be initialized.", record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	    }
+
+#if MXI_PLEORA_IPORT_DEBUG
+	    for ( i = 0; i < num_devices; i++ ) {
+		const CyDeviceFinder::DeviceEntry &device_entry
+				= ip_engine_list[i];
+
+		MX_DEBUG(-2,("%s: %ld>> MAC '%s', IP '%s'",
+			fname, i, device_entry.mAddressMAC.c_str_ascii(),
+			device_entry.mAddressIP.c_str_ascii() ));
+	    }
+
+	    if (0) {
+		    mxi_pleora_iport_show_ip_engines( ip_engine_list );
+	    }
+#endif
+
+	    /* Loop through all the records in device_record_array to find 
+	     * the device entries that correspond to them.
+	     */
+
+	    for ( i = 0; i < pleora_iport->max_devices; i++ ) {
 
 		int offset;
 
@@ -324,17 +364,18 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		pleora_iport_vinput = (MX_PLEORA_IPORT_VINPUT *)
 					device_record->record_type_struct;
 
-		if ( pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL ) {
+		if ( pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL )
+		{
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
-			"is NULL.", device_record->name );
+				"The MX_PLEORA_IPORT_VINPUT pointer for "
+				"record '%s' is NULL.", device_record->name );
 		}
 
 		pleora_iport_vinput->grabber = NULL;
 
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: device_record_array[%ld] = '%s'",
-			fname, i, device_record->name ));
+				fname, i, device_record->name ));
 #endif
 
 		const CyDeviceFinder::DeviceEntry &device_entry
@@ -342,8 +383,9 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 		/* Is this the device that we are looking for?
 		 *
-		 * Compare the MAC address string for this device to the
-		 * MAC address specified in the pleora_iport_vinput record.
+		 * Compare the MAC address string for this
+		 * device to the MAC address specified in the
+		 * pleora_iport_vinput record.
 		 */
 
 		const char *device_address_mac =
@@ -351,75 +393,45 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 #if MXI_PLEORA_IPORT_DEBUG
 		MX_DEBUG(-2,("%s: device_address_mac = '%s'",
-			fname, device_address_mac));
+				fname, device_address_mac));
 		MX_DEBUG(-2,
-		("%s: pleora_iport_vinput->mac_address_string = '%s'",
-			fname, pleora_iport_vinput->mac_address_string));
+			("%s: pleora_iport_vinput->mac_address_string = '%s'",
+			    fname, pleora_iport_vinput->mac_address_string));
 #endif
 
 		if ( mx_strcasecmp( device_address_mac,
-			pleora_iport_vinput->mac_address_string ) != 0 )
+				pleora_iport_vinput->mac_address_string ) != 0 )
 		{
 
 #if MXI_PLEORA_IPORT_DEBUG
 			MX_DEBUG(-2,("%s: skipping device %ld", fname, i));
 #endif
-			continue;	/* Go back for the next device. */
+			continue;    /* Go back for the next device. */
 		}
 
-		/* If the device already has an IP address and it is
-		 * different from the one specified in the MX config file,
-		 * then we print a warning message, but otherwise leave
-		 * the situation alone.
+		/* If the device does not already have an IP address,
+		 * then we must assign one.
 		 */
+
+			/* If the device already has an IP address and it is
+			 * different from the one specified in the MX config
+			 * file, then we print a warning message, but
+			 * otherwise leave the situation alone.
+			 */
 
 		const char *device_address_ip =
 				device_entry.mAddressIP.c_str_ascii();
 
-		if ( strlen( device_address_ip ) > 0 ) {
-			/* The device already has an IP address.  Do we
-			 * have the same address?
-			 */
+		if ( pass == 1 ) {
 
-			char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
+		    /**************** PASS 1 ******************/
 
-			if ( device_address_ip[0] == '[' ) {
-				offset = 1;
-			} else {
-				offset = 0;
-			}
+		    /* For Pass 1, we attempt to assign IP addresses to
+		     * IP engines that do not already have one.
+		     */
 
-			strlcpy( ip_address_string, device_address_ip + offset,
-						sizeof(ip_address_string) );
+		    if ( strlen( device_address_ip ) == 0 ) {
 
-			char *ptr = strchr( ip_address_string, ']' );
-
-			if ( ptr != NULL ) {
-				*ptr = '\0';
-			}
-
-#if MXI_PLEORA_IPORT_DEBUG
-			MX_DEBUG(-2,("%s: ip_address_string = '%s'",
-				fname, ip_address_string));
-			MX_DEBUG(-2,
-			("%s: pleora_iport_vinput->ip_address_string = '%s'",
-				fname, pleora_iport_vinput->ip_address_string));
-#endif
-
-			if ( strcmp( ip_address_string,
-				pleora_iport_vinput->ip_address_string ) != 0 )
-			{
-
-				mx_warning( "The IP address '%s' of the "
-				"IP engine differs from the address '%s' "
-				"specified in the MX configuration files.  "
-				"We will use the IP address '%s'.",
-					ip_address_string,
-					pleora_iport_vinput->ip_address_string,
-					ip_address_string );
-			}
-
-		} else {
 			char formatted_ip_address[ MXU_HOSTNAME_LENGTH+1 ];
 
 			/* The device does not have an IP address, so
@@ -448,9 +460,70 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				"cy_result = %d",
 					device_entry.mAddressMAC,
 					cy_result );
-
-				continue;  /* Go back for the next device. */
 			}
+		    }
+
+		    continue;  /* Go back for the next device. */
+
+		    /*** End of PASS 1 for this device ***/
+		}
+
+		/**************** PASS 2 ******************/
+
+		if ( strlen( device_address_ip ) == 0 ) {
+		    /* This device _STILL_ does not have an IP address,
+		     * even though it was presumably given one by SetIP()
+		     * during Pass 1!
+		     */
+
+		    mx_warning( "MAC address '%s' (record '%s') does not "
+			"have an IP address even after it was assigned "
+			"one during pass 1.  Skipping this device.",
+				device_address_mac,
+				pleora_iport_vinput->record->name );
+
+		    continue;	/* Go back for the next device. */
+		}
+
+		/* The device has an IP address.  Do we
+		 * have the same address?
+		 */
+
+		char ip_address_string[ MXU_HOSTNAME_LENGTH+1 ];
+
+		if ( device_address_ip[0] == '[' ) {
+			offset = 1;
+		} else {
+			offset = 0;
+		}
+
+		strlcpy( ip_address_string, device_address_ip + offset,
+					sizeof(ip_address_string) );
+
+		char *ptr = strchr( ip_address_string, ']' );
+
+		if ( ptr != NULL ) {
+			*ptr = '\0';
+		}
+
+#if MXI_PLEORA_IPORT_DEBUG
+		MX_DEBUG(-2,("%s: ip_address_string = '%s'",
+				fname, ip_address_string));
+		MX_DEBUG(-2,
+		    ("%s: pleora_iport_vinput->ip_address_string = '%s'",
+				fname, pleora_iport_vinput->ip_address_string));
+#endif
+
+		if ( strcmp( ip_address_string,
+				pleora_iport_vinput->ip_address_string ) != 0 )
+		{
+			mx_warning( "The IP address '%s' of the "
+				"IP engine differs from the address '%s' "
+				"specified in the MX configuration files.  "
+				"We will use the IP address '%s'.",
+					ip_address_string,
+					pleora_iport_vinput->ip_address_string,
+					ip_address_string );
 		}
 
 		/* Create and setup a CyConfig object for the device. */
@@ -533,10 +606,14 @@ mxi_pleora_iport_open( MX_RECORD *record )
 			MX_DEBUG(-2,("%s: grabber IP address = %d.%d.%d.%d",
 			fname, ip1, ip2, ip3, ip4));
 		}
-
-		MX_DEBUG(-2,("++++++++ %s complete ++++++++", fname));
 #endif
+
+	    }
 	}
+
+#if MXI_PLEORA_IPORT_DEBUG
+	MX_DEBUG(-2,("++++++++ %s complete ++++++++", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
