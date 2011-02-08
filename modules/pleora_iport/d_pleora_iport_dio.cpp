@@ -35,19 +35,22 @@
 
 MX_RECORD_FUNCTION_LIST mxd_pleora_iport_dinput_record_function_list = {
 	NULL,
-	mxd_pleora_iport_dinput_create_record_structures
+	mxd_pleora_iport_dinput_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	mxd_pleora_iport_dinput_open
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST
 mxd_pleora_iport_dinput_digital_input_function_list = {
-	mxd_pleora_iport_dinput_read,
-	mxd_pleora_iport_dinput_clear
+	mxd_pleora_iport_dinput_read
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pleora_iport_dinput_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DIGITAL_INPUT_STANDARD_FIELDS,
-	MXD_PLEORA_IPORT_DIGITAL_INPUT_STANDARD_FIELDS
+	MXD_PLEORA_IPORT_DINPUT_STANDARD_FIELDS
 };
 
 long mxd_pleora_iport_dinput_num_record_fields
@@ -61,19 +64,23 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_dinput_rfield_def_ptr
 
 MX_RECORD_FUNCTION_LIST mxd_pleora_iport_doutput_record_function_list = {
 	NULL,
-	mxd_pleora_iport_doutput_create_record_structures
+	mxd_pleora_iport_doutput_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	mxd_pleora_iport_doutput_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST
 mxd_pleora_iport_doutput_digital_output_function_list = {
-	mxd_pleora_iport_doutput_read,
+	NULL,
 	mxd_pleora_iport_doutput_write
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pleora_iport_doutput_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DIGITAL_OUTPUT_STANDARD_FIELDS,
-	MXD_PLEORA_IPORT_DIGITAL_OUTPUT_STANDARD_FIELDS
+	MXD_PLEORA_IPORT_DOUTPUT_STANDARD_FIELDS
 };
 
 long mxd_pleora_iport_doutput_num_record_fields
@@ -86,7 +93,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_doutput_rfield_def_ptr
 static mx_status_type
 mxd_pleora_iport_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PLEORA_IPORT_DIGITAL_INPUT **pleora_iport_dinput,
-			MX_PLEORA_IPORT_VIDEO_INPUT **pleora_iport_vinput,
+			MX_PLEORA_IPORT_VINPUT **pleora_iport_vinput,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_pleora_iport_dinput_get_pointers()";
@@ -108,7 +115,8 @@ mxd_pleora_iport_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 	pleora_iport_dinput_ptr = (MX_PLEORA_IPORT_DIGITAL_INPUT *)
 					dinput->record->record_type_struct;
 
-	if ( pleora_iport_dinput_ptr == (MX_PLEORA_IPORT_DIGITAL_INPUT *) NULL ) {
+	if (pleora_iport_dinput_ptr == (MX_PLEORA_IPORT_DIGITAL_INPUT *) NULL)
+	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_PLEORA_IPORT_DIGITAL_INPUT pointer for record '%s' "
 		"passed by '%s' is NULL.",
@@ -119,7 +127,7 @@ mxd_pleora_iport_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 		*pleora_iport_dinput = pleora_iport_dinput_ptr;
 	}
 
-	if ( pleora_iport_vinput != (MX_PLEORA_IPORT_VIDEO_INPUT **) NULL ) {
+	if ( pleora_iport_vinput != (MX_PLEORA_IPORT_VINPUT **) NULL ) {
 
 		pleora_iport_vinput_record =
 			pleora_iport_dinput_ptr->pleora_iport_vinput_record;
@@ -131,12 +139,12 @@ mxd_pleora_iport_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 				dinput->record->name, calling_fname );
 		}
 
-		*pleora_iport_vinput =
+		*pleora_iport_vinput = (MX_PLEORA_IPORT_VINPUT *)
 			pleora_iport_vinput_record->record_type_struct;
 
-		if (*pleora_iport_vinput == (MX_PLEORA_IPORT_VIDEO_INPUT *) NULL) {
+		if (*pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_PLEORA_IPORT_VIDEO_INPUT pointer for record '%s' "
+			"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
 			"used by digital input record '%s' and passed "
 			"by '%s' is NULL.",
 				pleora_iport_vinput_record->name,
@@ -151,7 +159,7 @@ mxd_pleora_iport_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 static mx_status_type
 mxd_pleora_iport_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PLEORA_IPORT_DIGITAL_OUTPUT **pleora_iport_doutput,
-			MX_PLEORA_IPORT_VIDEO_INPUT **pleora_iport_vinput,
+			MX_PLEORA_IPORT_VINPUT **pleora_iport_vinput,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_pleora_iport_doutput_get_pointers()";
@@ -173,18 +181,19 @@ mxd_pleora_iport_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 	pleora_iport_doutput_ptr = (MX_PLEORA_IPORT_DIGITAL_OUTPUT *)
 					doutput->record->record_type_struct;
 
-	if ( pleora_iport_doutput_ptr == (MX_PLEORA_IPORT_DIGITAL_OUTPUT *) NULL ) {
+	if (pleora_iport_doutput_ptr == (MX_PLEORA_IPORT_DIGITAL_OUTPUT *) NULL)
+	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_PLEORA_IPORT_DIGITAL_OUTPUT pointer for record '%s' "
 		"passed by '%s' is NULL.",
 			doutput->record->name, calling_fname );
 	}
 
-	if ( pleora_iport_doutput != (MX_PLEORA_IPORT_DIGITAL_OUTPUT **) NULL ) {
+	if (pleora_iport_doutput != (MX_PLEORA_IPORT_DIGITAL_OUTPUT **) NULL) {
 		*pleora_iport_doutput = pleora_iport_doutput_ptr;
 	}
 
-	if ( pleora_iport_vinput != (MX_PLEORA_IPORT_VIDEO_INPUT **) NULL ) {
+	if ( pleora_iport_vinput != (MX_PLEORA_IPORT_VINPUT **) NULL ) {
 
 		pleora_iport_vinput_record =
 			pleora_iport_doutput_ptr->pleora_iport_vinput_record;
@@ -196,12 +205,12 @@ mxd_pleora_iport_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 				doutput->record->name, calling_fname );
 		}
 
-		*pleora_iport_vinput =
+		*pleora_iport_vinput = (MX_PLEORA_IPORT_VINPUT *)
 			pleora_iport_vinput_record->record_type_struct;
 
-		if (*pleora_iport_vinput == (MX_PLEORA_IPORT_VIDEO_INPUT *) NULL) {
+		if (*pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_PLEORA_IPORT_VIDEO_INPUT pointer for record '%s' "
+			"The MX_PLEORA_IPORT_VINPUT pointer for record '%s' "
 			"used by digital output record '%s' and passed "
 			"by '%s' is NULL.",
 				pleora_iport_vinput_record->name,
@@ -255,85 +264,79 @@ mxd_pleora_iport_dinput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pleora_iport_dinput_read( MX_DIGITAL_INPUT *dinput )
+mxd_pleora_iport_dinput_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pleora_iport_dinput_read()";
+	static const char fname[] = "mxd_pleora_iport_dinput_open()";
 
+	MX_DIGITAL_INPUT *dinput;
 	MX_PLEORA_IPORT_DIGITAL_INPUT *pleora_iport_dinput;
-	MX_PLEORA_IPORT_VIDEO_INPUT *pleora_iport_vinput;
-	char error_message[80];
-	int value;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
 	mx_status_type mx_status;
 
-	/* Suppress GCC 4 uninitialized variable warning. */
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
 
-	pleora_iport_vinput = NULL;
+	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_pleora_iport_dinput_get_pointers( dinput,
-				&pleora_iport_dinput, &pleora_iport_vinput, fname );
+			&pleora_iport_dinput, &pleora_iport_vinput, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pleora_iport_dinput->trigger_number >= 0 ) {
-		value = pxd_getGPTrigger( pleora_iport_vinput->unitmap,
-					pleora_iport_dinput->trigger_number );
+	if ( mx_strcasecmp( "A0", pleora_iport_dinput->line_name ) == 0 ) {
+		pleora_iport_dinput->line_id = 0;
+	} else
+	if ( mx_strcasecmp( "A1", pleora_iport_dinput->line_name ) == 0 ) {
+		pleora_iport_dinput->line_id = 1;
+	} else
+	if ( mx_strcasecmp( "A2", pleora_iport_dinput->line_name ) == 0 ) {
+		pleora_iport_dinput->line_id = 2;
+	} else
+	if ( mx_strcasecmp( "A3", pleora_iport_dinput->line_name ) == 0 ) {
+		pleora_iport_dinput->line_id = 3;
 	} else {
-		value = pxd_getGPIn( pleora_iport_vinput->unitmap, 0 );
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized line name '%s' requested for "
+		"digital input '%s'.  The allowed names are "
+		"A0, A1, A2, and A3.",
+			pleora_iport_dinput->line_name,
+			record->name );
 	}
-
-	if ( value < 0 ) {
-		mxi_pleora_iport_error_message(
-			pleora_iport_vinput->unitmap, value,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to read from digital input '%s' failed.  %s",
-			dinput->record->name, error_message );
-	}
-
-	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_pleora_iport_dinput_clear( MX_DIGITAL_INPUT *dinput )
+mxd_pleora_iport_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
-	static const char fname[] = "mxd_pleora_iport_dinput_clear()";
+	static const char fname[] = "mxd_pleora_iport_dinput_read()";
 
 	MX_PLEORA_IPORT_DIGITAL_INPUT *pleora_iport_dinput;
-	MX_PLEORA_IPORT_VIDEO_INPUT *pleora_iport_vinput;
-	char error_message[80];
-	int epix_status;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
+	__int64 raw_value;
 	mx_status_type mx_status;
 
-	/* Suppress GCC 4 uninitialized variable warning. */
-
-	pleora_iport_vinput = NULL;
-
 	mx_status = mxd_pleora_iport_dinput_get_pointers( dinput,
-				&pleora_iport_dinput, &pleora_iport_vinput, fname );
+			&pleora_iport_dinput, &pleora_iport_vinput, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( pleora_iport_dinput->trigger_number >= 0 ) {
-		/* You cannot clear a trigger count. */
+	CyDevice &device = pleora_iport_vinput->grabber->GetDevice();
 
-		return MX_SUCCESSFUL_RESULT;
-	}
+	CyDeviceExtension *extension =
+			&device.GetExtension( CY_DEVICE_EXT_GPIO_CONTROL_BITS );
 
-	epix_status = pxd_setGPIn( pleora_iport_vinput->unitmap, 0 );
+	extension->LoadFromDevice();
+	extension->GetParameter(CY_GPIO_CONTROL_BITS_INPUTS_VALUE, raw_value);
 
-	if ( epix_status < 0 ) {
-		mxi_pleora_iport_error_message(
-			pleora_iport_vinput->unitmap, epix_status,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to clear digital input '%s' failed.  %s",
-			dinput->record->name, error_message );
+	if ( raw_value & ( 1 << pleora_iport_dinput->line_id ) ) {
+		dinput->value = 1;
+	} else {
+		dinput->value = 0;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -365,7 +368,7 @@ mxd_pleora_iport_doutput_create_record_structures( MX_RECORD *record )
 
         if ( pleora_iport_doutput == (MX_PLEORA_IPORT_DIGITAL_OUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Cannot allocate memory for MX_PLEORA_IPORT_DIGITAL_OUTPUT structure." );
+	"Cannot allocate memory for MX_PLEORA_IPORT_DIGITAL_OUTPUT structure.");
         }
 
         /* Now set up the necessary pointers. */
@@ -373,7 +376,7 @@ mxd_pleora_iport_doutput_create_record_structures( MX_RECORD *record )
         record->record_class_struct = digital_output;
         record->record_type_struct = pleora_iport_doutput;
         record->class_specific_function_list
-			= &mxd_pleora_iport_doutput_digital_output_function_list;
+		= &mxd_pleora_iport_doutput_digital_output_function_list;
 
         digital_output->record = record;
 	pleora_iport_doutput->record = record;
@@ -382,15 +385,21 @@ mxd_pleora_iport_doutput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pleora_iport_doutput_read( MX_DIGITAL_OUTPUT *doutput )
+mxd_pleora_iport_doutput_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pleora_iport_doutput_read()";
+	static const char fname[] = "mxd_pleora_iport_doutput_open()";
 
+	MX_DIGITAL_OUTPUT *doutput;
 	MX_PLEORA_IPORT_DIGITAL_OUTPUT *pleora_iport_doutput;
-	MX_PLEORA_IPORT_VIDEO_INPUT *pleora_iport_vinput;
-	char error_message[80];
-	int value;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
 	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	doutput = (MX_DIGITAL_OUTPUT *) record->record_class_struct;
 
 	mx_status = mxd_pleora_iport_doutput_get_pointers( doutput,
 			&pleora_iport_doutput, &pleora_iport_vinput, fname );
@@ -398,19 +407,25 @@ mxd_pleora_iport_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = pxd_getGPOut( pleora_iport_vinput->unitmap, 0 );
-
-	if ( value < 0 ) {
-		mxi_pleora_iport_error_message(
-			pleora_iport_vinput->unitmap, value,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to read from digital output '%s' failed.  %s",
-			doutput->record->name, error_message );
+	if ( mx_strcasecmp( "A0", pleora_iport_doutput->line_name ) == 0 ) {
+		pleora_iport_doutput->line_id = 0;
+	} else
+	if ( mx_strcasecmp( "A1", pleora_iport_doutput->line_name ) == 0 ) {
+		pleora_iport_doutput->line_id = 1;
+	} else
+	if ( mx_strcasecmp( "A2", pleora_iport_doutput->line_name ) == 0 ) {
+		pleora_iport_doutput->line_id = 2;
+	} else
+	if ( mx_strcasecmp( "A3", pleora_iport_doutput->line_name ) == 0 ) {
+		pleora_iport_doutput->line_id = 3;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized line name '%s' requested for "
+		"digital output '%s'.  The allowed names are "
+		"A0, A1, A2, and A3.",
+			pleora_iport_doutput->line_name,
+			record->name );
 	}
-
-	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -421,9 +436,7 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_pleora_iport_doutput_write()";
 
 	MX_PLEORA_IPORT_DIGITAL_OUTPUT *pleora_iport_doutput;
-	MX_PLEORA_IPORT_VIDEO_INPUT *pleora_iport_vinput;
-	char error_message[80];
-	int epix_status;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_doutput_get_pointers( doutput,
@@ -431,18 +444,6 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	epix_status = pxd_setGPOut(pleora_iport_vinput->unitmap, doutput->value);
-
-	if ( epix_status < 0 ) {
-		mxi_pleora_iport_error_message(
-			pleora_iport_vinput->unitmap, epix_status,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to write to digital output '%s' failed.  %s",
-			doutput->record->name, error_message );
-	}
 
 	return mx_status;
 }

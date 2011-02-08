@@ -28,6 +28,8 @@ typedef struct {
 	MX_RECORD *pleora_iport_vinput_record;
 	char line_name[ MXU_PLEORA_IPORT_DIO_NAME_LENGTH+1 ];
 
+	unsigned long line_id;
+
 } MX_PLEORA_IPORT_DIGITAL_INPUT;
 
 typedef struct {
@@ -35,6 +37,8 @@ typedef struct {
 
 	MX_RECORD *pleora_iport_vinput_record;
 	char line_name[ MXU_PLEORA_IPORT_DIO_NAME_LENGTH+1 ];
+
+	unsigned long line_id;
 
 } MX_PLEORA_IPORT_DIGITAL_OUTPUT;
 
@@ -72,6 +76,7 @@ extern "C" {
 
 MX_API mx_status_type mxd_pleora_iport_dinput_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_pleora_iport_dinput_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pleora_iport_dinput_read( MX_DIGITAL_INPUT *dinput );
 
@@ -86,9 +91,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_dinput_rfield_def_ptr;
 
 MX_API mx_status_type mxd_pleora_iport_doutput_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_pleora_iport_doutput_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_pleora_iport_doutput_read(
-					MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_pleora_iport_doutput_write(
 					MX_DIGITAL_OUTPUT *voutput );
 
