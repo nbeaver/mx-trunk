@@ -16,7 +16,8 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(PLEORA_IPORT_DIR)\\Includes
 
 PLEORA_IPORT_OBJS = pleora_iport.$(OBJ) \
-		i_pleora_iport.$(OBJ) d_pleora_iport_vinput.$(OBJ)
+		i_pleora_iport.$(OBJ) d_pleora_iport_vinput.$(OBJ) \
+		d_pleora_iport_dio.$(OBJ) 
 
 pleora_iport.mxo: $(PLEORA_IPORT_OBJS)
 	link /dll /debug /nologo /out:pleora_iport.mxo /nodefaultlib:libc \
@@ -43,6 +44,10 @@ i_pleora_iport.$(OBJ): i_pleora_iport.cpp i_pleora_iport.h
 d_pleora_iport_vinput.$(OBJ): d_pleora_iport_vinput.cpp \
 				d_pleora_iport_vinput.h i_pleora_iport.h
 	$(COMPILE) $(CFLAGS) d_pleora_iport_vinput.cpp
+
+d_pleora_iport_dio.$(OBJ): d_pleora_iport_dio.cpp d_pleora_iport_dio.h \
+				d_pleora_iport_vinput.h i_pleora_iport.h
+	$(COMPILE) $(CFLAGS) d_pleora_iport_dio.cpp
 
 install: pleora_iport.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
