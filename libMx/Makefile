@@ -87,7 +87,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_epics_aio.c d_epics_area_detector.c d_epics_ccd.c \
 	d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
-	d_epix_xclib.c d_epix_xclib_dio.c d_fg_scaler.c d_file_vinput.c \
+	d_epix_xclib.c d_epix_xclib_dio.c d_fg_scaler.c \
+	d_file_dinput.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c \
 	d_handel_input.c d_handel_mca.c d_handel_sum.c d_handel_timer.c \
@@ -101,6 +102,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2400_ainput.c d_keithley2400_amp.c \
 	d_keithley2400_aoutput.c d_keithley2400_doutput.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
+	d_keyboard_dinput.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \
 	d_lakeshore330_motor.c d_limited_move.c d_linear_function.c \
 	d_linkam_t9x_motor.c d_linkam_t9x_pump.c d_linkam_t9x_temp.c \

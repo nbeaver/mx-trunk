@@ -23,6 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
+	MX_RECORD *external_trigger_record;
 
 	mx_bool_type acquisition_in_progress;
 
@@ -31,6 +32,11 @@ typedef struct {
 #define MXD_RADICON_HELIOS_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, video_input_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "external_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_HELIOS, external_trigger_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __cplusplus */

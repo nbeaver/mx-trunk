@@ -406,6 +406,8 @@ extern "C" {
 #define MXT_DIN_ITC503			30032
 #define MXT_DIN_CRYOJET			30033
 #define MXT_DIN_POWERPMAC		30034
+#define MXT_DIN_KEYBOARD		30035
+#define MXT_DIN_FILE			30036
 
 /* --- Digital output types --- */
 

@@ -276,6 +276,8 @@
 #include "d_sd_m107.h"
 #include "d_linkam_t9x_pump.h"
 #include "d_sim980.h"
+#include "d_keyboard_dinput.h"
+#include "d_file_dinput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -2168,6 +2170,20 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim980_analog_input_function_list,
 				&mxd_sim980_num_record_fields,
 				&mxd_sim980_rfield_def_ptr},
+
+{"keyboard_dinput",  MXT_DIN_KEYBOARD,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
+				&mxd_keyboard_dinput_record_function_list,
+				NULL,
+			&mxd_keyboard_dinput_digital_input_function_list,
+				&mxd_keyboard_dinput_num_record_fields,
+				&mxd_keyboard_dinput_rfield_def_ptr},
+
+{"file_dinput",      MXT_DIN_FILE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
+				&mxd_file_dinput_record_function_list,
+				NULL,
+				&mxd_file_dinput_digital_input_function_list,
+				&mxd_file_dinput_num_record_fields,
+				&mxd_file_dinput_rfield_def_ptr},
 
 #ifdef OS_LINUX
 

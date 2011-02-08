@@ -249,6 +249,8 @@ mxd_pleora_iport_vinput_create_record_structures( MX_RECORD *record )
 	pleora_iport_vinput->grab_finished_event = NULL;
 	pleora_iport_vinput->grab_in_progress = FALSE;
 
+	vinput->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -579,6 +581,22 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->trigger_mode ));
 #endif
 
+	if ( (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+
+		/* If external triggering is not enabled,
+		 * return without doing anything further.
+		 */
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+		MX_DEBUG(-2,
+		("%s: external trigger disabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we are doing external triggering. */
+
 	seq = &(vinput->sequence_parameters);
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
@@ -586,6 +604,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, seq->sequence_type));
 #endif
 
+#if 0
 	switch( seq->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		break;
@@ -597,6 +616,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 			seq->sequence_type, vinput->record->name );
 		break;
 	}
+#endif
 
 	/* Tell the grabber to wait for an incoming frame. */
 
@@ -623,7 +643,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		"cy_result = %d.", vinput->record->name, cy_result );
 	}
 
-	pleora_iport_vinput->grab_in_progress = FALSE;
+	pleora_iport_vinput->grab_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -781,8 +801,6 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->status = 0;
-
 	/* Poll for the event status. */
 
 	CyResultEvent *grab_finished_event =
@@ -798,10 +816,32 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 		fname, cy_result ));
 #endif
 
-	if ( pleora_iport_vinput->grab_in_progress ) {
-		if ( 0 ) {
-			vinput->status |= MXSF_VIN_IS_BUSY;
+	vinput->status = 0;
+
+	switch( cy_result ) {
+	case CY_RESULT_OK:
+		if ( pleora_iport_vinput->grab_in_progress ) {
+			vinput->last_frame_number = 0;
+			vinput->total_num_frames++;
+
+			pleora_iport_vinput->grab_in_progress = FALSE;
 		}
+		break;
+
+	case CY_RESULT_TIMEOUT:
+		if ( pleora_iport_vinput->grab_in_progress ) {
+			vinput->status |= MXSF_VIN_IS_BUSY;
+
+			vinput->last_frame_number = -1;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"WaitUntilSignaled(%lu) returned an unexpected "
+		"value (%d) for record '%s'.",
+			timeout_ms, cy_result, vinput->record->name );
+		break;
 	}
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
@@ -890,7 +930,6 @@ mxd_pleora_iport_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:

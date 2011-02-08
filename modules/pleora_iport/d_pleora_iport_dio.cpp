@@ -339,6 +339,11 @@ mxd_pleora_iport_dinput_read( MX_DIGITAL_INPUT *dinput )
 		dinput->value = 0;
 	}
 
+#if MXD_PLEORA_IPORT_DIO_DEBUG
+	MX_DEBUG(-2,("%s: raw_value = %#lI64x, dinput->value = %lu",
+		fname, raw_value, dinput->value));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
