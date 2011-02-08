@@ -5,22 +5,22 @@
 #   bsd           - Compile for FreeBSD, NetBSD, or OpenBSD
 #   cygwin        - Compile for Cygwin 1.5 or 1.7
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3 or above
-#   ecos          - Compile for i386 under eCos
-#   hpux          - Compile for HP 9000/8xx under HP-UX 11v2
-#   hpux-gcc      - Compile for HP 9000/8xx under HP-UX 11v2 using GCC
-#   irix          - Compile for SGI under Irix 6.3 or above
-#   irix-gcc      - Compile for SGI under Irix 6.5 using GCC
+#   ecos          - Compile for x86 with eCos
+#   hpux          - Compile for HP 9000/8xx with HP-UX 11v2
+#   hpux-gcc      - Compile for HP 9000/8xx with HP-UX 11v2 using GCC
+#   irix          - Compile for SGI with Irix 6.3 or above
+#   irix-gcc      - Compile for SGI with Irix 6.5 using GCC
 #   linux         - Compile for Linux 2.2 or above using GCC
 #   linux-icc     - Compile for Linux 2.6 using Intel C++.
-#   macosx        - Compile for powerpc under MacOS X
-#   qnx           - Compile for i386 under QNX Neutrino
-#   rtems         - Compile for i386/m68k/powerpc under RTEMS
-#   solaris       - Compile for sparc under Solaris 8 or above
-#   solaris-gcc   - Compile for sparc under Solaris 8 or above using GCC
-#   tru64         - Compile for alpha under HP Tru64 Unix 5.1b
-#   tru64-gcc     - Compile for alpha under HP Tru64 Unix 5.1b using GCC
-#   vms           - Compile for alpha/vax/ia64 under OpenVMS 7.3.1 or 8.x
-#   vms-gnv       - Compile for ia64 under OpenVMS 8.3 using GNV 1.6-4
+#   macosx        - Compile for x86/powerpc with MacOS X
+#   qnx           - Compile for x86 with QNX Neutrino
+#   rtems         - Compile for x86/m68k/powerpc with RTEMS
+#   solaris       - Compile for sparc/x86 with Solaris 8 or above
+#   solaris-gcc   - Compile for sparc/x86 with Solaris 8 or above using GCC
+#   tru64         - Compile for alpha with HP Tru64 Unix 5.1b
+#   tru64-gcc     - Compile for alpha with HP Tru64 Unix 5.1b using GCC
+#   vms           - Compile for alpha/vax/ia64 with OpenVMS 7.3.1 or 8.x
+#   vms-gnv       - Compile for ia64 with OpenVMS 8.3 using GNV 1.6-4
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4 or above
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1
@@ -43,7 +43,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
