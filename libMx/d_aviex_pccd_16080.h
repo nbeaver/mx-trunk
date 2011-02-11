@@ -110,6 +110,10 @@ MX_API_PRIVATE mx_status_type
 mxd_aviex_pccd_16080_compute_sequence_times( MX_AREA_DETECTOR *,
                                                 struct mx_aviex_pccd * );
 
+MX_API_PRIVATE mx_status_type
+mxd_aviex_pccd_16080_terminate_sequence( MX_AREA_DETECTOR *,
+						struct mx_aviex_pccd * );
+
 /*-------------------------------------------------------------*/
 
 /* Control register bit definitions. */

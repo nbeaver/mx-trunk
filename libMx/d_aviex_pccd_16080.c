@@ -1248,3 +1248,43 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 }
 
 /*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_aviex_pccd_16080_terminate_sequence( MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
+{
+	unsigned long old_control_register, new_control_register;
+	mx_status_type mx_status;
+
+	mx_status = mxd_aviex_pccd_16080_read_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+					&old_control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	new_control_register = old_control_register;
+
+	/* Turn off the external trigger bit. */
+
+	new_control_register &= (~MXF_AVIEX_PCCD_16080_EXTERNAL_TRIGGER);
+	
+
+	/* Turn on the edge trigger bit. */
+
+	new_control_register |= MXF_AVIEX_PCCD_16080_EDGE_TRIGGER;
+
+	if ( new_control_register != old_control_register ) {
+
+		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_CONTROL,
+					new_control_register );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/

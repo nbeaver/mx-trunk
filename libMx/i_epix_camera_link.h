@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,6 +72,11 @@ MX_API INT32 MX_CLCALL mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref,
 MX_API INT32 MX_CLCALL mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 							UINT32 cc_line_number,
 							UINT32 cc_line_state );
+
+/*----*/
+
+MX_API MX_EPIX_CAMERA_LINK_PORT *
+mxi_epix_camera_link_get_port_from_unit_number( long unit_number );
 
 #endif /* IS_MX_DRIVER */
 

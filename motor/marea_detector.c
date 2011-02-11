@@ -196,13 +196,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return SUCCESS;
 		}
 
-		if ( atol(argv[4]) == MXFT_AD_DARK_CURRENT_FRAME ) {
-		      mx_status = mx_area_detector_compute_dark_current_offset(
-				ad, ad->bias_frame, ad->dark_current_frame );
-		} else
-		if ( atol(argv[4]) == MXFT_AD_FLOOD_FIELD_FRAME ) {
-		      mx_status = mx_area_detector_compute_flood_field_scale(
-				ad, ad->bias_frame, ad->flood_field_frame );
+		if ( strcmp( argv[4], "nosave" ) == 0 ) {
+			ad->datafile_management_handler = NULL;
+
+			fprintf( stderr,
+			"ad->datafile_management_handler = %p\n",
+				ad->datafile_management_handler );
 		} else {
 			return SUCCESS;
 		}

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,8 @@ typedef struct mx_aviex_pccd {
 	mx_bool_type use_top_half_of_detector;
 
 	mx_bool_type first_dh_command;
+
+	mx_bool_type sequence_in_progress;
 
 	double exposure_and_gap_step_size;	/* in seconds */
 

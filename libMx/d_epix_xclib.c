@@ -66,6 +66,7 @@
 #include "xcliball.h"	/* Vendor include file */
 
 #include "i_epix_xclib.h"
+#include "i_epix_camera_link.h"
 #include "d_epix_xclib.h"
 
 /*---*/
@@ -2154,7 +2155,8 @@ mxd_epix_xclib_terminate_sequence( MX_VIDEO_INPUT *vinput,
 
 	MX_DEBUG(-2,
 ("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
-	MX_DEBUG(-2,("%s: Terminating sequence.", fname));
+	MX_DEBUG(-2,("%s: Terminating sequence for '%s'.",
+		fname, vinput->record->name ));
 	MX_DEBUG(-2,
 ("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
 #endif
@@ -2167,12 +2169,12 @@ mxd_epix_xclib_terminate_sequence( MX_VIDEO_INPUT *vinput,
 
 	vinput->asynchronous_circular = FALSE;
 
-	mx_status = mxd_epix_xclib_stop( vinput );
+	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, FALSE );
+	mx_status = mxd_epix_xclib_stop( vinput );
 
 	return mx_status;
 }

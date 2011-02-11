@@ -7,16 +7,18 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_EPIX_CAMERA_LINK_DEBUG	FALSE
+#define MXI_EPIX_CAMERA_LINK_DEBUG		FALSE
 
-#define MXI_EPIX_CAMERA_LINK_DEBUG_CC	FALSE
+#define MXI_EPIX_CAMERA_LINK_DEBUG_CC		FALSE
+
+#define MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT	FALSE
 
 #include <stdio.h>
 
@@ -1038,6 +1040,43 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 
 	return CL_ERR_NO_ERR;
+}
+
+/*----*/
+
+MX_EXPORT MX_EPIX_CAMERA_LINK_PORT *
+mxi_epix_camera_link_get_port_from_unit_number( long unit_number )
+{
+#if MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT
+	static const char fname[] =
+			"mxi_epix_camera_link_get_port_from_unit_number()";
+#endif
+	MX_EPIX_CAMERA_LINK_PORT *port;
+	int i;
+
+	if ( mxi_epix_camera_link_serial_port_array != NULL ) {
+
+	    for ( i = 0; i < mxi_epix_camera_link_num_serial_ports; i++ ) {
+		port = mxi_epix_camera_link_serial_port_array[i];
+
+		if ( port != NULL ) {
+		    if ( port->unit_number == unit_number ) {
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT
+			MX_DEBUG(-2,("%s: port '%s', unit_number = %ld",
+				fname, port->record->name, unit_number));
+#endif
+			return port;
+		    }
+		}
+	    }
+	}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT
+	MX_DEBUG(-2,("%s: No port found for unit number %ld.",
+		fname, unit_number));
+#endif
+	return NULL;
 }
 
 #endif /* HAVE_EPIX_XCLIB */

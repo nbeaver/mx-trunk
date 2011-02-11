@@ -41,6 +41,8 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
 
+#define MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE		FALSE
+
 #define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		FALSE
@@ -1194,6 +1196,8 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 
 	aviex_pccd->first_dh_command = TRUE;
 
+	aviex_pccd->sequence_in_progress = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1977,6 +1981,8 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 			break;
 		}
 
+		aviex_pccd->sequence_in_progress = TRUE;
+
 		mx_status = mx_video_input_asynchronous_capture(
 					aviex_pccd->video_input_record,
 					num_frames_in_sequence, circular );
@@ -2100,6 +2106,8 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 	} else {
 		/* Send the trigger request to the video input board. */
 
+		aviex_pccd->sequence_in_progress = TRUE;
+
 		mx_status = mx_video_input_trigger(
 					aviex_pccd->video_input_record );
 	}
@@ -2164,6 +2172,8 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 				mx_msleep(100);		/* Wait 0.1 seconds. */
 			}
 		}
+
+		aviex_pccd->sequence_in_progress = TRUE;
 	}
 
 #if MXD_AVIEX_PCCD_DEBUG
@@ -2325,6 +2335,36 @@ mxd_aviex_pccd_abort( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
+static mx_status_type
+mxd_aviex_pccd_terminate_sequence( MX_AREA_DETECTOR *ad,
+				MX_AVIEX_PCCD *aviex_pccd )
+{
+	mx_status_type mx_status;
+
+#if MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE
+	static const char fname[] = "mxd_aviex_pccd_terminate_sequence()";
+
+	MX_DEBUG(-2,
+("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
+	MX_DEBUG(-2,("%s: Terminating sequence for '%s'.",
+		fname, ad->record->name ));
+	MX_DEBUG(-2,
+("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"));
+#endif
+
+	switch( ad->record->mx_type ) {
+	case MXT_AD_PCCD_16080:
+		mx_status = mxd_aviex_pccd_16080_terminate_sequence(
+							ad, aviex_pccd );
+		break;
+	default:
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	}
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 {
@@ -2362,59 +2402,6 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, last_frame_number, total_num_frames, status_flags));
 #endif
 
-#if 0
-	/* The following is debugging code used to figure out the
-	 * differences in behavior between being called by the function 
-	 * mx_area_detector_get_extended_status() and other possibilities.
-	 */
-
-#define MAXDEPTH 100
-#define MAXSAVED 10
-
-	if ( status_flags != 0 ) {
-		static void *addresses[ MAXDEPTH ];
-		void *return_address;
-		int i, num_addresses;
-		static void *saved_addresses[ MAXSAVED ];
-		static int num_saved = 0;
-
-		mx_stack_traceback();
-
-		num_addresses = backtrace( addresses, MAXDEPTH );
-
-		return_address = addresses[1];
-
-		MX_DEBUG(-2,("%s: return_address = %p", fname, return_address));
-
-		for ( i = 0; i < num_saved; i++ ) {
-			if ( return_address == saved_addresses[i] ) {
-				break;
-			}
-		}
-
-		if ( i >= num_saved ) {
-			if ( i < (MAXSAVED-1) ) {
-				saved_addresses[i] = return_address;
-				num_saved++;
-			}
-		}
-		
-		for ( i = 0; i < num_saved; i++ ) {
-			MX_DEBUG(-2,("%s: saved_addresses[%d] = %p",
-			fname, i, saved_addresses[i] ));
-		}
-
-#if 0
-		if ( ad->correction_measurement_in_progress ) {
-			if ( return_address == saved_addresses[1] ) {
-				mx_breakpoint();
-			}
-		}
-#endif
-	}
-#endif
-
-
 	ad->last_frame_number = last_frame_number;
 
 	ad->total_num_frames = total_num_frames;
@@ -2428,6 +2415,23 @@ mxd_aviex_pccd_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( aviex_pccd->buffer_overrun ) {
 		ad->status |= MXSF_AD_BUFFER_OVERRUN;
 	}
+
+	if ( aviex_pccd->sequence_in_progress ) {
+		if ( ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) == 0 ) {
+			aviex_pccd->sequence_in_progress = FALSE;
+
+			mx_status = mxd_aviex_pccd_terminate_sequence(
+							ad, aviex_pccd );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: aviex_pccd->sequence_in_progress = %d",
+		fname, aviex_pccd->sequence_in_progress ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
