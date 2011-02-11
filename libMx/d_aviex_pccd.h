@@ -37,7 +37,7 @@
 #define MXF_AVIEX_PCCD_USE_INT32_CORRECTION		0x1000
 #define MXF_AVIEX_PCCD_USE_DOUBLE_CORRECTION		0x2000
 
-#define MXF_AVIEX_PCCD_ENABLE_EXTERNAL_START		0x10000
+#define MXF_AVIEX_PCCD_ENABLE_MONITOR_CALLBACKS		0x10000
 
 /*---*/
 
@@ -55,6 +55,13 @@ typedef struct {
 	unsigned long maximum;
 	char *name;
 } MX_AVIEX_PCCD_REGISTER;
+
+typedef struct {
+	MX_AREA_DETECTOR *area_detector;
+	struct mx_aviex_pccd *aviex_pccd;
+
+	MX_CALLBACK_MESSAGE *callback_message;
+} MX_AVIEX_PCCD_MONITOR_MEASUREMENT;
 
 typedef struct mx_aviex_pccd {
 	MX_RECORD *record;
@@ -75,6 +82,8 @@ typedef struct mx_aviex_pccd {
 	mx_bool_type first_dh_command;
 
 	mx_bool_type sequence_in_progress;
+
+	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
 
 	double exposure_and_gap_step_size;	/* in seconds */
 

@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_FILE_DINPUT_DEBUG	TRUE
+#define MXD_FILE_DINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,6 +154,14 @@ mxd_file_dinput_read( MX_DIGITAL_INPUT *dinput )
 
 	if ( file == NULL ) {
 		dinput->value = 0;
+
+		if ( saved_errno != ENOENT ) {
+			mx_warning( "The attempt to open '%s' by '%s' "
+			"failed.  errno = %d, error message = '%s'",
+				file_dinput->filename,
+				dinput->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
 	} else {
 		fgets( buffer, sizeof(buffer), file );
 
@@ -191,7 +199,7 @@ mxd_file_dinput_clear( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_file_dinput_clear()";
 
 	MX_FILE_DINPUT *file_dinput;
-	int os_status;
+	int os_status, saved_errno;
 	mx_status_type mx_status;
 
 	mx_status = mxd_file_dinput_get_pointers( dinput,
@@ -203,6 +211,31 @@ mxd_file_dinput_clear( MX_DIGITAL_INPUT *dinput )
 	/* We 'clear' the digital input by removing its file. */
 
 	os_status = remove( file_dinput->filename );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOENT:
+			/* No warning will be displayed for trying to
+			 * remove a nonexistent file.
+			 */
+			break;
+		case EPERM:
+			mx_warning( "This process does not have permission "
+				"to delete the file '%s' for '%s'.",
+				file_dinput->filename,
+				dinput->record->name );
+			break;
+		default:
+			mx_warning( "The attempt to open '%s' by '%s' "
+			"failed.  errno = %d, error message = '%s'",
+				file_dinput->filename,
+				dinput->record->name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
 
 #if MXD_FILE_DINPUT_DEBUG
 	MX_DEBUG(-2,("%s: remove( '%s' ) = %d",

@@ -47,6 +47,8 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		FALSE
 
+#define MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS		FALSE
+
 /* FIXME: Leave the geometrical mask kludge definition set to TRUE. */
 
 #define MXD_AVIEX_PCCD_GEOMETRICAL_MASK_KLUDGE		TRUE
@@ -69,6 +71,7 @@
 #include "mx_hrt.h"
 #include "mx_memory.h"
 #include "mx_image.h"
+#include "mx_digital_input.h"
 #include "mx_digital_output.h"
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
@@ -1151,6 +1154,205 @@ mxp_aviex_pccd_epix_save_start_timespec( MX_AVIEX_PCCD *aviex_pccd )
 
 /*---*/
 
+static mx_status_type
+mxp_aviex_pccd_monitor_callback_function(MX_CALLBACK_MESSAGE *callback_message)
+{
+	static const char fname[] =
+			"mxp_aviex_pccd_monitor_callback_function()";
+
+	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
+	MX_AREA_DETECTOR *area_detector;
+	MX_AVIEX_PCCD *aviex_pccd;
+	unsigned long status_flags, external_start_value;
+	mx_status_type mx_status;
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
+	MX_DEBUG(-2,("%s invoked for callback %p.", fname, callback_message));
+#endif
+
+	if ( callback_message == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
+	}
+
+	monitor = callback_message->u.function.callback_args;
+
+	if ( monitor == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AVIEX_PCCD_MONITOR_MEASUREMENT pointer "
+		"for callback %p was NULL.", callback_message );
+	}
+
+	area_detector = monitor->area_detector;
+	aviex_pccd    = monitor->aviex_pccd;
+
+	/* Call get_extended_status to make sure that the detector
+	 * status is update.  For example, this will make sure that
+	 * sequences are terminated in a timely fashion.
+	 */
+
+	mx_status = mx_area_detector_get_extended_status( area_detector->record,
+						NULL, NULL, &status_flags );
+
+	if ( ( mx_status.code == MXE_SUCCESS )
+	  && (( status_flags & MXSF_AD_IS_BUSY ) == 0) )
+	{
+
+		/* If the area detector is idle, check the external start
+		 * trigger to see if someone has asked us to start a sequence
+		 * via a digital input.
+		 */
+
+		mx_status = mx_digital_input_read(
+					aviex_pccd->external_start_record,
+					&external_start_value );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			if ( external_start_value != 0 ) {
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+				MX_DEBUG(-2,("%s: Starting area detector '%s' "
+				"due to signal %lu from '%s'.",
+				fname, area_detector->record->name,
+				external_start_value,
+				aviex_pccd->external_start_record->name ));
+#endif
+
+				(void) mx_area_detector_start(
+							area_detector->record );
+
+				(void) mx_digital_input_clear(
+					aviex_pccd->external_start_record );
+			}
+		}
+	}
+
+	/* Restart the callback timer. */
+
+	mx_status = mx_virtual_timer_start(
+		callback_message->u.function.oneshot_timer,
+		callback_message->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxp_aviex_pccd_enable_monitor_callbacks( MX_RECORD *record, 
+					MX_AREA_DETECTOR *ad,
+					MX_AVIEX_PCCD *aviex_pccd )
+{
+	static const char fname[] = "mxp_aviex_pccd_enable_monitor_callbacks()";
+
+	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
+	MX_LIST_HEAD *list_head;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	mx_status_type mx_status;
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("******************************************************"));
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	/* See if callbacks are enabled */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head->callback_pipe == NULL ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"This process is not configured to handle callbacks, so "
+		"monitor callbacks cannot be enabled for area detector '%s'.",
+			record->name );
+	}
+
+	/* Create a monitor structure. */
+
+	monitor = calloc( 1, sizeof(MX_AVIEX_PCCD_MONITOR_MEASUREMENT) );
+
+	if ( monitor == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an "
+		"MX_AVIEX_PCCD_MONITOR_MEASUREMENT structure "
+		"for record '%s'.", record->name );
+	}
+
+	monitor->area_detector = ad;
+	monitor->aviex_pccd = aviex_pccd;
+
+	aviex_pccd->monitor = monitor;
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("%s: Creating callback message.", fname));
+#endif
+
+	/* Create a callback message structure. */
+
+	monitor->callback_message = calloc( 1, sizeof(MX_CALLBACK_MESSAGE) );
+
+	if ( monitor->callback_message == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_CALLBACK_MESSAGE "
+		"structure for record '%s'.", record->name );
+	}
+
+	monitor->callback_message->callback_type = MXCBT_FUNCTION;
+	monitor->callback_message->list_head = list_head;
+
+	monitor->callback_message->u.function.callback_function =
+		mxp_aviex_pccd_monitor_callback_function;
+
+	monitor->callback_message->u.function.callback_args = monitor;
+
+	/* Specify the callback interval in seconds. */
+
+	monitor->callback_message->u.function.callback_interval = 1.0;
+
+	/* Create a one-shot interval timer that will arrange for the
+	 * monitor callback function to be called later.
+	 */
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("%s: Creating callback timer.", fname));
+#endif
+
+	mx_status = mx_virtual_timer_create(
+				&oneshot_timer,
+				list_head->master_timer,
+				MXIT_ONE_SHOT_TIMER,
+				mx_callback_standard_vtimer_handler,
+				monitor->callback_message );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	monitor->callback_message->u.function.oneshot_timer = oneshot_timer;
+
+	/* Start the callback virtual timer. */
+
+	mx_status = mx_virtual_timer_start( oneshot_timer,
+		monitor->callback_message->u.function.callback_interval );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
+	MX_DEBUG(-2,("%s: Callback virtual timer started.", fname));
+	MX_DEBUG(-2,("******************************************************"));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver )
 {
@@ -1197,6 +1399,8 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 	aviex_pccd->first_dh_command = TRUE;
 
 	aviex_pccd->sequence_in_progress = FALSE;
+
+	aviex_pccd->monitor = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1741,6 +1945,15 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		srand( hrt.tv_sec );
 
 		ad->dezinger_threshold = 2.0;
+	}
+
+	if ( pccd_flags & MXF_AVIEX_PCCD_ENABLE_MONITOR_CALLBACKS ) {
+
+		mx_status = mxp_aviex_pccd_enable_monitor_callbacks(
+						record, ad, aviex_pccd );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 #if MXD_AVIEX_PCCD_DEBUG
