@@ -37,6 +37,8 @@
 #define MXF_AVIEX_PCCD_USE_INT32_CORRECTION		0x1000
 #define MXF_AVIEX_PCCD_USE_DOUBLE_CORRECTION		0x2000
 
+#define MXF_AVIEX_PCCD_ENABLE_EXTERNAL_START		0x10000
+
 /*---*/
 
 #define MXF_AVIEX_PCCD_MAXIMUM_DETECTOR_HEAD_FRAMES	255
@@ -59,7 +61,8 @@ typedef struct mx_aviex_pccd {
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *camera_link_record;
-	MX_RECORD *internal_trigger_record;
+	MX_RECORD *camera_head_trigger_record;
+	MX_RECORD *external_start_record;
 	unsigned long initial_trigger_mode;
 	unsigned long aviex_pccd_flags;
 	char geometrical_spline_filename[MXU_FILENAME_LENGTH+1];
@@ -139,8 +142,13 @@ typedef struct mx_aviex_pccd {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, camera_link_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "internal_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, internal_trigger_record),\
+  {-1, -1, "camera_head_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_AVIEX_PCCD, camera_head_trigger_record),\
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "external_start_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, external_start_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \

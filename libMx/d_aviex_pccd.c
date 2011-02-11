@@ -1469,10 +1469,10 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		break;
 	}
 
-	/* Make sure the internal trigger output is low. */
+	/* Make sure the camera head trigger output is low. */
 
 	mx_status = mx_digital_output_write(
-				aviex_pccd->internal_trigger_record, 0 );
+				aviex_pccd->camera_head_trigger_record, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2146,7 +2146,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 				/* Send a 0.1 second pulse. */
 
 				mx_status = mx_digital_output_pulse_wait(
-					aviex_pccd->internal_trigger_record,
+					aviex_pccd->camera_head_trigger_record,
 					1, 0, 0.1, TRUE );
 				break;
 			case MXT_AD_PCCD_16080:
