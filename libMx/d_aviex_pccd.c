@@ -1163,7 +1163,7 @@ mxp_aviex_pccd_monitor_callback_function(MX_CALLBACK_MESSAGE *callback_message)
 	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
 	MX_AREA_DETECTOR *area_detector;
 	MX_AVIEX_PCCD *aviex_pccd;
-	unsigned long status_flags, external_start_value;
+	unsigned long status_flags, external_arm_value;
 	mx_status_type mx_status;
 
 #if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
@@ -1199,31 +1199,31 @@ mxp_aviex_pccd_monitor_callback_function(MX_CALLBACK_MESSAGE *callback_message)
 	  && (( status_flags & MXSF_AD_IS_BUSY ) == 0) )
 	{
 
-		/* If the area detector is idle, check the external start
-		 * trigger to see if someone has asked us to start a sequence
-		 * via a digital input.
+		/* If the area detector is idle, check the external arm
+		 * trigger to see if someone has asked us to prepare for
+		 * a sequence via a digital input.
 		 */
 
 		mx_status = mx_digital_input_read(
-					aviex_pccd->external_start_record,
-					&external_start_value );
+					aviex_pccd->external_arm_record,
+					&external_arm_value );
 
 		if ( mx_status.code == MXE_SUCCESS ) {
-			if ( external_start_value != 0 ) {
+			if ( external_arm_value != 0 ) {
 
 #if MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS
 				MX_DEBUG(-2,("%s: Starting area detector '%s' "
 				"due to signal %lu from '%s'.",
 				fname, area_detector->record->name,
-				external_start_value,
-				aviex_pccd->external_start_record->name ));
+				external_arm_value,
+				aviex_pccd->external_arm_record->name ));
 #endif
 
 				(void) mx_area_detector_start(
 							area_detector->record );
 
 				(void) mx_digital_input_clear(
-					aviex_pccd->external_start_record );
+					aviex_pccd->external_arm_record );
 			}
 		}
 	}
