@@ -8,24 +8,28 @@ include $(LIBMXDIR)/Makehead.$(MX_ARCH)
 
 semaphore_lock: semaphore_lock.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)semaphore_lock$(DOTEXE) semaphore_lock.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 semaphore_trylock: semaphore_trylock.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)semaphore_trylock$(DOTEXE) \
 		semaphore_trylock.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 named_semaphore_server: named_semaphore_server.c \
 					$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)named_semaphore_server$(DOTEXE) \
 		named_semaphore_server.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 named_semaphore_client: named_semaphore_client.c \
 					$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)named_semaphore_client$(DOTEXE) \
 		named_semaphore_client.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 clean:
 	-$(RM) semaphore_lock semaphore_trylock

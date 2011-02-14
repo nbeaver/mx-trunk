@@ -4,6 +4,6 @@ port  interface camera_link epix_camera_link "" "" 9600 0.5 1
 rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 port
 epix  device video_input epix_xclib_video_input "" "" 7168 1024 grey16 -1 xclib 1 ready 0x1001 0x5555
 camera_trigger device digital_output epix_xclib_doutput "" "" 0 epix
-external_start device digital_input soft_dinput "" "" 0
-ad   device area_detector pccd_4824 "" "" 0 0x0 0x0 "" "" "" "" epix port camera_trigger external_start 0x1 0x20 "" "" /home/lavender/mx_bias_lookup_table/16tap_lookup_table.bin
-###ad   device area_detector pccd_4824 "" "" 0 0x0 0x0 "" "" "" "" epix port camera_trigger external_start 0x1 0x0 "" "" ""
+external_arm device digital_input soft_dinput "" "" 0
+ad   device area_detector pccd_4824 "" "" 0 0x0 0x0 "" "" "" "" epix port camera_trigger external_arm 0x1 0x20 "" "" /home/lavender/mx_bias_lookup_table/16tap_lookup_table.bin
+###ad   device area_detector pccd_4824 "" "" 0 0x0 0x0 "" "" "" "" epix port camera_trigger external_arm 0x1 0x0 "" "" ""

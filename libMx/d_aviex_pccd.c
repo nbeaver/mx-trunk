@@ -1313,7 +1313,8 @@ mxp_aviex_pccd_enable_monitor_callbacks( MX_RECORD *record,
 
 	/* Specify the callback interval in seconds. */
 
-	monitor->callback_message->u.function.callback_interval = 1.0;
+	monitor->callback_message->u.function.callback_interval =
+		aviex_pccd->monitor_callback_interval;
 
 	/* Create a one-shot interval timer that will arrange for the
 	 * monitor callback function to be called later.
@@ -1401,6 +1402,7 @@ mxd_aviex_pccd_create_record_structures( MX_RECORD *record )
 	aviex_pccd->sequence_in_progress = FALSE;
 
 	aviex_pccd->monitor = NULL;
+	aviex_pccd->monitor_callback_interval = 1.0;   /* in seconds */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -5149,6 +5151,7 @@ mxd_aviex_pccd_special_processing_setup( MX_RECORD *record )
 		} else {
 			switch( record_field->label_value ) {
 			case MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME:
+			case MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL:
 				record_field->process_function
 					= mxd_aviex_pccd_process_function;
 				break;
@@ -5171,6 +5174,8 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_AREA_DETECTOR *ad;
+	MX_AVIEX_PCCD *aviex_pccd;
+	MX_CALLBACK_MESSAGE *callback_message;
 	unsigned long *register_value_ptr;
 	mx_status_type mx_status;
 
@@ -5191,6 +5196,14 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	aviex_pccd = (MX_AVIEX_PCCD *) record->record_type_struct;
+
+	if ( aviex_pccd == (MX_AVIEX_PCCD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_AREA_DETECTOR pointer for record '%s' is NULL.",
 			record->name );
@@ -5229,6 +5242,21 @@ mxd_aviex_pccd_process_function( void *record_ptr,
 				mx_status =
 			    mxp_aviex_pccd_geometrical_mask_changed( record );
 
+				break;
+			case MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL:
+				if ( aviex_pccd->monitor == NULL ) {
+					return MX_SUCCESSFUL_RESULT;
+				}
+
+				callback_message =
+					aviex_pccd->monitor->callback_message;
+
+				if ( callback_message == NULL ) {
+					return MX_SUCCESSFUL_RESULT;
+				}
+
+				callback_message->u.function.callback_interval
+				    = aviex_pccd->monitor_callback_interval;
 				break;
 			default:
 				break;

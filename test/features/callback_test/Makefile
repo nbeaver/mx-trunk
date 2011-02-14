@@ -6,7 +6,8 @@ include $(LIBMXDIR)/Makehead.$(MX_ARCH)
 
 vcc_monitor: vcc_monitor.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)vcc_monitor$(DOTEXE) vcc_monitor.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 clean:
 	-$(RM) vcc_monitor

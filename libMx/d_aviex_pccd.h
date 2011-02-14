@@ -84,6 +84,7 @@ typedef struct mx_aviex_pccd {
 	mx_bool_type sequence_in_progress;
 
 	MX_AVIEX_PCCD_MONITOR_MEASUREMENT *monitor;
+	double monitor_callback_interval;
 
 	double exposure_and_gap_step_size;	/* in seconds */
 
@@ -134,6 +135,7 @@ typedef struct mx_aviex_pccd {
 /*-------------------------------------------------------------*/
 
 #define MXLV_AVIEX_PCCD_GEOMETRICAL_MASK_FILENAME	50000
+#define MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL	50001
 
 /*----*/
 
@@ -194,6 +196,11 @@ typedef struct mx_aviex_pccd {
   \
   {-1, -1, "use_top_half_of_detector", MXFT_BOOL, NULL, 0, {0}, \
       MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, use_top_half_of_detector), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AVIEX_PCCD_MONITOR_CALLBACK_INTERVAL, \
+		-1, "monitor_callback_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+   MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, monitor_callback_interval), \
 	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_aviex_pccd_initialize_driver( MX_DRIVER *driver );

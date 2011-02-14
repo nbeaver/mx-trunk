@@ -7,19 +7,22 @@ include $(LIBMXDIR)/Makehead.$(MX_ARCH)
 
 tridiagonal: tridiagonal.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)tridiagonal$(DOTEXE) tridiagonal.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 natural_cubic_spline: natural_cubic_spline.c \
 			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)natural_cubic_spline$(DOTEXE) \
 		natural_cubic_spline.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 clamped_cubic_spline: clamped_cubic_spline.c \
 			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)clamped_cubic_spline$(DOTEXE) \
 		clamped_cubic_spline.c \
-		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) \
+		$(LIB_DIRS) $(LIBRARIES)
 
 clean:
 	-$(RM) tridiagonal natural_cubic_spline clamped_cubic_spline \
