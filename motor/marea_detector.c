@@ -196,14 +196,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return SUCCESS;
 		}
 
+		mx_status = MX_SUCCESSFUL_RESULT;
+
 		if ( strcmp( argv[4], "nosave" ) == 0 ) {
 			ad->datafile_management_handler = NULL;
 
 			fprintf( stderr,
 			"ad->datafile_management_handler = %p\n",
 				ad->datafile_management_handler );
-		} else {
-			return SUCCESS;
 		}
 			
 		if ( mx_status.code != MXE_SUCCESS ) {
