@@ -524,6 +524,10 @@ mxi_pleora_iport_open( MX_RECORD *record )
 					ip_address_string,
 					pleora_iport_vinput->ip_address_string,
 					ip_address_string );
+
+			strlcpy( pleora_iport_vinput->ip_address_string,
+				ip_address_string,
+				sizeof(pleora_iport_vinput->ip_address_string));
 		}
 
 		/* Create and setup a CyConfig object for the device. */
