@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -322,6 +322,36 @@ mx_video_input_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
 }
 
 MX_EXPORT mx_status_type
+mx_video_input_set_bytes_per_frame( MX_RECORD *record, long bytes_per_frame )
+{
+	static const char fname[] = "mx_video_input_set_bytes_per_frame()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BYTES_PER_FRAME;
+
+	vinput->bytes_per_frame = bytes_per_frame;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_video_input_get_bytes_per_pixel( MX_RECORD *record, double *bytes_per_pixel )
 {
 	static const char fname[] = "mx_video_input_get_bytes_per_pixel()";
@@ -357,6 +387,36 @@ mx_video_input_get_bytes_per_pixel( MX_RECORD *record, double *bytes_per_pixel )
 }
 
 MX_EXPORT mx_status_type
+mx_video_input_set_bytes_per_pixel( MX_RECORD *record, double bytes_per_pixel )
+{
+	static const char fname[] = "mx_video_input_set_bytes_per_pixel()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BYTES_PER_PIXEL;
+
+	vinput->bytes_per_pixel = bytes_per_pixel;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_video_input_get_bits_per_pixel( MX_RECORD *record, long *bits_per_pixel )
 {
 	static const char fname[] = "mx_video_input_get_bits_per_pixel()";
@@ -389,6 +449,36 @@ mx_video_input_get_bits_per_pixel( MX_RECORD *record, long *bits_per_pixel )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_set_bits_per_pixel( MX_RECORD *record, long bits_per_pixel )
+{
+	static const char fname[] = "mx_video_input_set_bits_per_pixel()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BITS_PER_PIXEL;
+
+	vinput->bits_per_pixel = bits_per_pixel;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
 }
 
 /*---*/

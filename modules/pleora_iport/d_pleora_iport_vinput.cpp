@@ -249,6 +249,8 @@ mxd_pleora_iport_vinput_create_record_structures( MX_RECORD *record )
 	pleora_iport_vinput->grab_finished_event = NULL;
 	pleora_iport_vinput->grab_in_progress = FALSE;
 
+	pleora_iport_vinput->user_buffer = NULL;
+
 	vinput->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -411,15 +413,44 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_video_input_get_bits_per_pixel( record, NULL );
+	switch( vinput->image_format ) {
+	case MXT_IMAGE_FORMAT_RGB:
+		vinput->bytes_per_pixel = 3;
+		vinput->bits_per_pixel  = 24;
+		break;
+	case MXT_IMAGE_FORMAT_GREY8:
+		vinput->bytes_per_pixel = 1;
+		vinput->bits_per_pixel  = 8;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel  = 16;
+		break;
+	case MXT_IMAGE_FORMAT_GREY32:
+		vinput->bytes_per_pixel = 4;
+		vinput->bits_per_pixel  = 32;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image format %ld for video input '%s'.",
+			vinput->image_format, vinput->record->name );
+		break;
+	}
+
+	/* We set the bits per pixel here so that
+	 * CY_GRABBER_PARAM_PIXEL_DEPTH will be set
+	 * under the hood.
+	 */
+
+	mx_status = mx_video_input_set_bits_per_pixel( record,
+						vinput->bits_per_pixel );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_video_input_get_bytes_per_pixel( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* We set the image frame size here so that CY_GRABBER_PARAM_SIZE_X
+	 * and CY_GRABBER_PARAM_SIZE_Y will be set under the hood.
+	 */
 
 	mx_status = mx_video_input_set_framesize( record,
 						vinput->framesize[0],
@@ -428,12 +459,25 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_video_input_get_bytes_per_frame( record, NULL );
+	vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
+			* vinput->framesize[0] * vinput->framesize[1] );
+
+	/* We set the bytes per frame here so that
+	 * CY_GRABBER_PARAM_IMAGE_SIZE will be set
+	 * under the hood.
+	 */
+
+	mx_status = mx_video_input_set_bytes_per_frame( record,
+						vinput->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	int offset_x = 40;  /* FIXME: Where does this number come from??? */
+#else
+	int offset_x = 0;
+#endif
 
 	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_X, offset_x );
 
@@ -496,9 +540,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
-	pleora_iport_vinput->grab_finished_event =
-				new CyResultEvent( false, false );
-
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -532,7 +573,9 @@ mxd_pleora_iport_vinput_close( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
-	delete pleora_iport_vinput->grabber;
+	if ( pleora_iport_vinput->grabber != NULL ) {
+		delete pleora_iport_vinput->grabber;
+	}
 
 	pleora_iport_vinput->grabber = NULL;
 
@@ -575,6 +618,16 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Create a CyUserBuffer() structure to use in receiving frames. */
+
+	if ( pleora_iport_vinput->user_buffer != NULL ) {
+		delete pleora_iport_vinput->user_buffer;
+	}
+
+	pleora_iport_vinput->user_buffer = new CyUserBuffer(
+				(unsigned char *) vinput->frame->image_data,
+				vinput->bytes_per_frame, 0 );
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
@@ -795,6 +848,7 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 		"mxd_pleora_iport_vinput_get_extended_status()";
 
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	unsigned long timeout_ms = 1L;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
@@ -805,13 +859,12 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	/* Poll for the event status. */
 
-	CyResultEvent *grab_finished_event =
-				pleora_iport_vinput->grab_finished_event;
+	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
 
-	unsigned long timeout_ms = 1L;
+	CyResultEvent &grab_finished_event = user_buffer->GetCompletionEvent();
 
 	CyResult cy_result =
-		grab_finished_event->WaitUntilSignaled( timeout_ms );
+		grab_finished_event.WaitUntilSignaled( timeout_ms );
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: WaitUntilSignaled() returned %d",
@@ -822,11 +875,53 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	switch( cy_result ) {
 	case CY_RESULT_OK:
+	case CY_RESULT_IMAGE_ERROR:
 		if ( pleora_iport_vinput->grab_in_progress ) {
 			vinput->last_frame_number = 0;
 			vinput->total_num_frames++;
 
 			pleora_iport_vinput->grab_in_progress = FALSE;
+		}
+
+		if ( 1 ) {
+			CyImageInfo &image_info = user_buffer->GetImageInfo();
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+			MX_DEBUG(-2,("%s: image ID = %lu",
+				fname, image_info.GetImageID() ));
+			MX_DEBUG(-2,("%s: image size = %lu",
+				fname, image_info.GetSize() ));
+			MX_DEBUG(-2,("%s: image timestamp = %lu",
+				fname, image_info.GetTimestamp() ));
+#endif
+
+			CyBufferQueue::ImageStatus &image_status
+				= image_info.GetImageStatus();
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+			MX_DEBUG(-2,("%s: mFrameOverrun = %d",
+				fname, image_status.mFrameOverrun));
+			MX_DEBUG(-2,("%s: mGrabberFIFOOverrun = %d",
+				fname, image_status.mGrabberFIFOOverrun));
+			MX_DEBUG(-2,("%s: mImageDropped = %d",
+				fname, image_status.mImageDropped));
+			MX_DEBUG(-2,("%s: mPartialLineMissing = %d",
+				fname, image_status.mPartialLineMissing));
+			MX_DEBUG(-2,("%s: mFullLineMissing = %d",
+				fname, image_status.mFullLineMissing));
+			MX_DEBUG(-2,("%s: mInterlaced = %d",
+				fname, image_status.mInterlaced));
+			MX_DEBUG(-2,("%s: mFirstGrabbedField = %d",
+				fname, image_status.mFirstGrabbedField));
+			MX_DEBUG(-2,("%s: mFieldFirstLine = %d",
+				fname, image_status.mFieldFirstLine));
+			MX_DEBUG(-2,("%s: mHorizontalUnlocked = %d",
+				fname, image_status.mHorizontalUnlocked));
+			MX_DEBUG(-2,("%s: mVerticalUnlocked = %d",
+				fname, image_status.mVerticalUnlocked));
+			MX_DEBUG(-2,("%s: mEOFByLineCount = %d",
+				fname, image_status.mEOFByLineCount));
+#endif
 		}
 		break;
 
@@ -940,24 +1035,6 @@ mxd_pleora_iport_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_PIXEL:
-		switch( vinput->image_format ) {
-		case MXT_IMAGE_FORMAT_RGB:
-			vinput->bytes_per_pixel = 3;
-			vinput->bits_per_pixel  = 24;
-			break;
-		case MXT_IMAGE_FORMAT_GREY8:
-			vinput->bytes_per_pixel = 1;
-			vinput->bits_per_pixel  = 8;
-			break;
-		case MXT_IMAGE_FORMAT_GREY16:
-			vinput->bytes_per_pixel = 2;
-			vinput->bits_per_pixel  = 16;
-			break;
-		default:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported image format %ld for video input '%s'.",
-				vinput->image_format, vinput->record->name );
-		}
 		break;
 
 	case MXLV_VIN_BUSY:
@@ -1002,8 +1079,15 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name, vinput->parameter_type));
 #endif
 
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
+		grabber->SetParameter( CY_GRABBER_PARAM_SIZE_X,
+						vinput->framesize[0] );
+		grabber->SetParameter( CY_GRABBER_PARAM_SIZE_Y,
+						vinput->framesize[1] );
+		grabber->SaveConfig();
 		break;
 
 	case MXLV_VIN_FORMAT:
@@ -1021,10 +1105,22 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Directly changing the number of bytes per frame "
-			"for video input '%s' is not supported.",
-				vinput->record->name );
+		grabber->SetParameter( CY_GRABBER_PARAM_IMAGE_SIZE,
+						vinput->bytes_per_frame );
+		grabber->SaveConfig();
+		break;
+
+	case MXLV_VIN_BYTES_PER_PIXEL:
+		grabber->SetParameter( CY_GRABBER_PARAM_PIXEL_DEPTH,
+				mx_round(8.0 * vinput->bytes_per_pixel) );
+		grabber->SaveConfig();
+		break;
+
+	case MXLV_VIN_BITS_PER_PIXEL:
+		grabber->SetParameter( CY_GRABBER_PARAM_PIXEL_DEPTH,
+						vinput->bits_per_pixel );
+		grabber->SaveConfig();
+		break;
 
 	case MXLV_VIN_SEQUENCE_TYPE:
 		break;

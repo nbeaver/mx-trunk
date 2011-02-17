@@ -556,9 +556,9 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 		config.SetParameter( CY_CONFIG_PARAM_ANSWER_TIMEOUT, 1000 );
 		config.SetParameter( CY_CONFIG_PARAM_FIRST_PACKET_TIMEOUT,
-								1500 );
+								15000 );
 		config.SetParameter( CY_CONFIG_PARAM_PACKET_TIMEOUT, 500 );
-		config.SetParameter( CY_CONFIG_PARAM_REQUEST_TIMEOUT, 5000 );
+		config.SetParameter( CY_CONFIG_PARAM_REQUEST_TIMEOUT, 15000 );
 
 		/* Set the connection topology to unicast. */
 

@@ -181,10 +181,9 @@ mxd_radicon_helios_trigger_image_readout( MX_RADICON_HELIOS *radicon_helios,
 
 	unsigned long image_length = vinput->frame->image_length;
 
-	CyResult cy_result = grabber->Grab(
-				CyChannel(0), image_data, image_length,
-				pleora_iport_vinput->grab_finished_event,
-				NULL, CY_GRABBER_FLAG_NO_WAIT, NULL );
+	CyResult cy_result = grabber->Grab( CyChannel(0),
+					*pleora_iport_vinput->user_buffer,
+					CY_GRABBER_FLAG_NO_WAIT );
 
 	if ( cy_result != CY_RESULT_OK ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -818,6 +817,21 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
 		fname, ad->record->name ));
+
+	{
+		int i;
+		uint16_t *image_data;
+
+		image_data = (uint16_t *) ad->image_frame->image_data;
+
+		fprintf( stderr, "Image data: " );
+
+		for ( i = 0; i < 30; i++ ) {
+			fprintf( stderr, "%lu ", image_data[i] );
+		}
+
+		fprintf( stderr, "...\n" );
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
