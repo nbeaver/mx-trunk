@@ -159,12 +159,38 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-static void
+static mx_status_type
 mxd_radicon_helios_trigger_image_readout( MX_RADICON_HELIOS *radicon_helios,
+					MX_VIDEO_INPUT *vinput,
 				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
 {
+	static const char fname[] =
+			"mxd_radicon_helios_trigger_image_readout()";
+
+	/* Tell the grabber to wait for an incoming frame. */
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No grabber has been connected for record '%s'.",
+			pleora_iport_vinput->record->name );
+	}
+
+	unsigned char *image_data = (unsigned char *) vinput->frame->image_data;
+
+	unsigned long image_length = vinput->frame->image_length;
+
+	CyResult cy_result = grabber->Grab(
+				CyChannel(0), image_data, image_length,
+				pleora_iport_vinput->grab_finished_event,
+				NULL, CY_GRABBER_FLAG_NO_WAIT, NULL );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to tell the grabber for '%s' to grab a frame.  "
+		"cy_result = %d.", vinput->record->name, cy_result );
+	}
 
 	/* Set the Helios EXSYNC signal to high to trigger image readout. */
 
@@ -190,7 +216,7 @@ mxd_radicon_helios_trigger_image_readout( MX_RADICON_HELIOS *radicon_helios,
 
 	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program_low );
 
-	return;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -466,6 +492,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	long trigger_mode;
 	unsigned long trigger_value;
@@ -611,8 +638,14 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 		mx_msleep(50);
 	}
 
-	mxd_radicon_helios_trigger_image_readout( radicon_helios,
-						pleora_iport_vinput );
+	vinput = (MX_VIDEO_INPUT *)
+			pleora_iport_vinput->record->record_class_struct;
+
+	mx_status = mxd_radicon_helios_trigger_image_readout(
+				radicon_helios, vinput, pleora_iport_vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	radicon_helios->acquisition_in_progress = TRUE;
 
@@ -626,6 +659,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	long trigger_mode;
 	mx_status_type mx_status;
@@ -662,8 +696,14 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	/* FIXME: Internal trigger does not work yet. */
 
-	mxd_radicon_helios_trigger_image_readout( radicon_helios,
-						pleora_iport_vinput );
+	vinput = (MX_VIDEO_INPUT *)
+			pleora_iport_vinput->record->record_class_struct;
+
+	mx_status = mxd_radicon_helios_trigger_image_readout(
+				radicon_helios, vinput, pleora_iport_vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	radicon_helios->acquisition_in_progress = TRUE;
 

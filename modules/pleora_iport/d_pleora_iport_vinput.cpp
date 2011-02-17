@@ -618,6 +618,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 	}
 #endif
 
+#if 0
 	/* Tell the grabber to wait for an incoming frame. */
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
@@ -642,6 +643,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		"Unable to tell the grabber for '%s' to grab a frame.  "
 		"cy_result = %d.", vinput->record->name, cy_result );
 	}
+#endif
 
 	pleora_iport_vinput->grab_in_progress = TRUE;
 
