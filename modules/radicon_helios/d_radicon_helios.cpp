@@ -743,13 +743,14 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_get_extended_status()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	long last_frame_number;
 	long total_num_frames;
 	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-					&radicon_helios, NULL, NULL, fname );
+			&radicon_helios, &pleora_iport_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -787,7 +788,29 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 			(unsigned long) ad->status,
 			ad->total_num_frames,
 			ad->last_frame_number ));
+
+	MX_DEBUG(-2,("%s: acquisition_in_progress = %d",
+		fname, radicon_helios->acquisition_in_progress));
 #endif
+
+	if ( radicon_helios->acquisition_in_progress ) {
+		if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
+
+			radicon_helios->acquisition_in_progress = FALSE;
+
+			CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+			CyString lut_program =
+				"Q0 = I2\r\n"
+				"Q4 = 0\r\n"
+				"Q5 = 1\r\n"
+				"Q6 = 1\r\n"
+				"Q7 = I7 & !I0\r\n";
+
+			mxi_pleora_iport_send_lookup_table_program(
+							grabber, lut_program );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1111,11 +1134,15 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 			extension->SetParameter(
 				CY_PULSE_GEN_PARAM_DELAY, delay_ticks );
 
+#if 0
 			if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 				periodic = false;
 			} else {
 				periodic = true;
 			}
+#else
+			periodic = true;
+#endif
 
 			extension->SetParameter(
 				CY_PULSE_GEN_PARAM_PERIODIC, periodic );
