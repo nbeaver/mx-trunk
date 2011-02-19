@@ -645,6 +645,7 @@ mxi_pleora_iport_close( MX_RECORD *record )
 
 /*--------------- Exported driver-specific functions ---------------*/
 
+#if 0
 MX_EXPORT void
 mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
 					unsigned long num_parameters,
@@ -743,6 +744,7 @@ mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
 
 	return;
 }
+#endif
 
 MX_EXPORT void
 mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,

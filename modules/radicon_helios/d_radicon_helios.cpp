@@ -30,6 +30,8 @@
 #include "d_pleora_iport_vinput.h"
 #include "d_radicon_helios.h"
 
+#include "../pleora_iport/display.inc"
+
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_radicon_helios_record_function_list = {
@@ -176,6 +178,10 @@ mxd_radicon_helios_trigger_image_readout( MX_RADICON_HELIOS *radicon_helios,
 		"No grabber has been connected for record '%s'.",
 			pleora_iport_vinput->record->name );
 	}
+
+#if 1
+	mxi_pleora_iport_display_all_parameters( grabber );
+#endif
 
 	unsigned char *image_data = (unsigned char *) vinput->frame->image_data;
 
@@ -821,11 +827,13 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_readout_frame()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_VIDEO_INPUT *vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
-					&radicon_helios, NULL, NULL, fname );
+			&radicon_helios, &pleora_iport_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -840,12 +848,46 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
 		fname, ad->record->name ));
+#endif
 
+	vinput = (MX_VIDEO_INPUT *)
+		pleora_iport_vinput->record->record_class_struct;
+
+	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
+
+#if MXD_RADICON_HELIOS_DEBUG
+		MX_DEBUG(-2,("%s: vinput->frame->image_data = %p",
+			fname, vinput->frame->image_data));
+
+		MX_DEBUG(-2,("%s: CyUserBuffer::GetBuffer() = %p",
+			fname, user_buffer->GetBuffer() ));
+
+		MX_DEBUG(-2,("%s: CyUserBuffer::GetBufferSize() = %lu",
+			fname, user_buffer->GetBufferSize() ));
+#endif
+
+/*
+ * FIXME FIXME FIXME!
+ *
+ * This is exceedingly bogus.  There should not be two separate image frames
+ * with one of them in the video input driver and one in the area detector
+ * driver.  It should also not be necessary to copy from one to the other!
+ */
+
+	mx_status = mx_image_copy_frame( vinput->frame, &(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
 	{
-		int i;
+		unsigned long i;
 		uint16_t *image_data;
 
 		image_data = (uint16_t *) ad->image_frame->image_data;
+
+		MX_DEBUG(-2,("%s: ad->image_frame->image_data = %p",
+			fname, ad->image_frame->image_data));
 
 		fprintf( stderr, "Image data: " );
 
@@ -1114,18 +1156,23 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 
 			delay_ticks = mx_round( delay_time / timer_quantum );
 
+			/* FIXME: The following logic has been tortured
+			 * to attempt to produce the same result as the
+			 * CameraTrigger.cpp program.
+			 */
+
 			if ( exposure_ticks > 65535 ) {
 				exposure_ticks = 65535;
 			} else
-			if ( exposure_ticks < 1 ) {
-				exposure_ticks = 1;
+			if ( exposure_ticks < 10 ) {
+				exposure_ticks = 10;
 			}
 
 			if ( delay_ticks > 65535 ) {
 				delay_ticks = 65535;
 			} else
-			if ( delay_ticks < 1 ) {
-				delay_ticks = 1;
+			if ( delay_ticks < 40 ) {
+				delay_ticks = 40;
 			}
 
 			extension->SetParameter(
@@ -1149,25 +1196,6 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 
 			extension->SaveToDevice();
 
-#if 1
-			{
-				unsigned long parameter_array[] = {
-					CY_PULSE_GEN_PARAM_DELAY,
-					CY_PULSE_GEN_PARAM_FREQUENCY,
-					CY_PULSE_GEN_PARAM_GRANULARITY,
-					CY_PULSE_GEN_PARAM_PERIOD,
-					CY_PULSE_GEN_PARAM_PERIODIC,
-					CY_PULSE_GEN_PARAM_TRIGGER_MODE,
-					CY_PULSE_GEN_PARAM_WIDTH };
-	
-				unsigned long num_parameters
-					= sizeof(parameter_array)
-					/ sizeof(parameter_array[0]);
-	
-				mxi_pleora_iport_display_parameter_array(
-				  extension, num_parameters, parameter_array );
-			}
-#endif
 
 		}
 		break; 

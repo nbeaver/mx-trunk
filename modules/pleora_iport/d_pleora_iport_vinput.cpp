@@ -630,6 +630,20 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 				vinput->bytes_per_frame, 0 );
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: Created pleora_iport_vinput->user_buffer = %p",
+			fname, pleora_iport_vinput->user_buffer));
+
+	MX_DEBUG(-2,("%s:   This CyUserBuffer control buffer %p of length %lu.",
+		fname, vinput->frame->image_data, vinput->bytes_per_frame));
+
+	MX_DEBUG(-2,("%s:   CyUserBuffer::GetBuffer() = %p",
+		fname, pleora_iport_vinput->user_buffer->GetBuffer() ));
+
+	MX_DEBUG(-2,("%s:   CyUserBuffer::GetBufferSize() = %lu",
+		fname, pleora_iport_vinput->user_buffer->GetBufferSize() ));
+#endif
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
 		fname, vinput->trigger_mode ));
 #endif
@@ -1066,6 +1080,7 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_pleora_iport_vinput_set_parameter()";
 
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	unsigned long bytes_per_frame;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_vinput_get_pointers( vinput,
@@ -1105,8 +1120,23 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
+		/* The documentation for the CyUserBuffer class states that
+		 * the image buffer size must be a multiple of 4 bytes.
+		 */
+
+		bytes_per_frame = vinput->bytes_per_frame;
+
+		if ( (bytes_per_frame % 4) != 0 ) {
+			bytes_per_frame += ( 4 - (bytes_per_frame % 4) );
+
+			mx_warning( "The bytes per frame of video input '%s' "
+			"was rounded up to %lu so that it is a multiple of 4.",
+				vinput->record->name,
+				bytes_per_frame );
+		}
+
 		grabber->SetParameter( CY_GRABBER_PARAM_IMAGE_SIZE,
-						vinput->bytes_per_frame );
+						bytes_per_frame );
 		grabber->SaveConfig();
 		break;
 
