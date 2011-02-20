@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2051,6 +2051,9 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
+	case MXT_IMAGE_FILE_RAW:
+		mx_status = mx_image_read_raw_file( frame_ptr, datafile_name );
+		break;
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
 		break;
@@ -2082,6 +2085,9 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	switch( datafile_type ) {
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_write_pnm_file( frame, datafile_name );
+		break;
+	case MXT_IMAGE_FILE_RAW:
+		mx_status = mx_image_write_raw_file( frame, datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_write_smv_file( frame, datafile_name );
@@ -2590,6 +2596,222 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: PNM file '%s' successfully written.", fname, datafile_name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_read_raw_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_raw_file()";
+
+	FILE *file;
+	struct stat file_stat;
+	int os_status, saved_errno;
+	long framesize[2];
+	long image_format, datafile_byteorder;
+	long bytes_per_frame, bytes_read;
+	double bytes_per_pixel;
+	unsigned long image_size_in_bytes;
+	double image_size_in_pixels, sqrt_image_size;
+	struct timespec timestamp_timespec;
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+#endif
+	/* We can get the timestamp from the filesystem. */
+
+	os_status = stat( datafile_name, &file_stat );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot get file status for image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name, saved_errno,
+			strerror( saved_errno ) );
+	}
+
+	timestamp_timespec.tv_sec = file_stat.st_mtime;
+	timestamp_timespec.tv_nsec = 0;
+
+	/* Since the file will not have a header, we need to figure out
+	 * the rest of the information about the image format in some
+	 * other fashion.
+	 */
+
+	if ( (*frame) != (MX_IMAGE_FRAME *) NULL ) {
+
+		/* If (*frame) points to an already existing image frame,
+		 * then we can get the necessary information from there.
+		 */
+
+		framesize[0] = MXIF_ROW_FRAMESIZE(*frame);
+		framesize[1] = MXIF_COLUMN_FRAMESIZE(*frame);
+		image_format = MXIF_IMAGE_FORMAT(*frame);
+		datafile_byteorder = MXIF_BYTE_ORDER(*frame);
+		bytes_per_pixel    = MXIF_BYTES_PER_PIXEL(*frame);
+	} else {
+		/* If (*frame) is NULL, then we must guess. */
+
+		image_format = MXT_IMAGE_FORMAT_GREY16;
+		datafile_byteorder = mx_native_byteorder();
+		bytes_per_pixel = 2;
+
+		/* We attempt to infer the framesize by assuming that
+		 * the image frame is square.
+		 */
+
+		image_size_in_bytes = file_stat.st_size;
+
+		image_size_in_pixels = image_size_in_bytes / bytes_per_pixel;
+
+		sqrt_image_size = sqrt( image_size_in_pixels );
+
+		framesize[0] = mx_round( sqrt_image_size );
+		framesize[1] = framesize[0];
+	}
+
+	/* Open the data file. */
+
+	file = fopen( datafile_name, "rb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Cannot open RAW image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* --- */
+
+	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
+
+	/* Change the size of the MX_IMAGE_FRAME to match the SMV file. */
+
+	mx_status = mx_image_alloc( frame,
+					framesize[0],
+					framesize[1],
+					image_format,
+					datafile_byteorder,
+					(double) bytes_per_pixel,
+					0,
+					bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MXIF_TIMESTAMP_SEC(*frame)  = timestamp_timespec.tv_sec;
+	MXIF_TIMESTAMP_NSEC(*frame) = timestamp_timespec.tv_nsec;
+
+	/* Add some plausible 'fake' information to the MX_IMAGE_FRAME header.*/
+
+	MXIF_ROW_BINSIZE(*frame)    = 1;
+	MXIF_COLUMN_BINSIZE(*frame) = 1;
+
+	MXIF_EXPOSURE_TIME_SEC(*frame)  = 1;
+	MXIF_EXPOSURE_TIME_NSEC(*frame) = 0;
+
+	MXIF_BIAS_OFFSET_MILLI_ADUS(*frame) = 0;
+
+	/* Read in the binary image. */
+
+	bytes_read = (long) fread( (*frame)->image_data, sizeof(unsigned char),
+				bytes_per_frame, file );
+
+	if ( bytes_read < bytes_per_frame ) {
+		if ( feof(file) ) {
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"End of file at image byte offset %ld for SMV image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred at image byte offset %ld "
+			"for SMV image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Only %ld image bytes were read from "
+			"SMV image file '%s' when %ld bytes were expected.",
+				bytes_read, datafile_name, bytes_per_frame );
+	}
+
+	fclose( file );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_image_write_raw_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_write_raw_file()";
+
+	FILE *file;
+	int saved_errno;
+	size_t bytes_written;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+	if ( frame->image_data == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_IMAGE_FRAME passed (%p) has a NULL image_data pointer.",
+			frame );
+	}
+
+	file = fopen( datafile_name, "wb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot open SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	bytes_written = fwrite(frame->image_data, 1, frame->image_length, file);
+
+	fclose( file );
+
+	if ( bytes_written < frame->image_length ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Fewer bytes were written (%ld) to RAW image file '%s' "
+		"than the number (%ld) in the original image.",
+			bytes_written, datafile_name, frame->image_length );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,
+	("%s: RAW file '%s' successfully written.", fname, datafile_name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

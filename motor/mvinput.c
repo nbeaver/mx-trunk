@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,9 +38,10 @@ motor_vinput_fn( int argc, char *argv[] )
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
-	static char usage[]
-= "Usage:  vinput 'vinput_name' snap 'exposure_time' 'file_format' 'filename'\n"
-	;
+	static char usage[] =
+"Usage:\n"
+"  vinput 'vinput_name' snap 'exposure_time' 'file_format' 'filename'\n"
+"  vinput 'vinput_name' read frame 'file_format' filename'\n";
 
 	if ( argc < 7 ) {
 		fprintf( output, "%s\n", usage );
@@ -153,6 +154,54 @@ motor_vinput_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		free( frame );
+	} else
+	if ( strncmp( "read", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 7 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'read frame' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strcmp( argv[5], "pnm" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_PNM;
+		} else
+		if ( strcmp( argv[5], "marccd" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_MARCCD;
+		} else
+		if ( strcmp( argv[5], "smv" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_SMV;
+		} else
+		if ( strcmp( argv[5], "raw" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_RAW;
+		} else {
+			fprintf( output,
+				"%s: Unrecognized datafile type '%s'\n",
+				cname, argv[5] );
+
+			return FAILURE;
+		}
+
+		filename = argv[6];
+
+		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_image_read_file( &(vinput->frame),
+							datafile_type,
+							filename );
+		} else {
+			fprintf( output,
+			"%s: Illegal 'read' argument '%s'\n",
+				cname, argv[4] );
+			return FAILURE;
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 	} else {
 		/* Unrecognized command. */
 

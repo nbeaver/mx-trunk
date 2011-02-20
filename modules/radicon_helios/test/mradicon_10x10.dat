@@ -2,7 +2,8 @@
 !load ../radicon_helios.mxo
 #
 iport interface controller pleora_iport "" "" 1
-cam1  device video_input pleora_iport_vinput "" "" 1024 1024 GREY16 -1 iport 00-11-1C-00-81-AA 169.254.93.209
+###cam1  device video_input pleora_iport_vinput "" "" 1024 1024 GREY16 -1 iport 00-11-1C-00-81-AA 169.254.93.209
+cam1  device video_input pleora_iport_vinput "" "" 1024 1024 GREY16 -1 iport 00-11-1C-00-69-49 169.254.93.209
 a0     device digital_input pleora_iport_dinput "" "" 0 cam1 A0
 a1     device digital_input pleora_iport_dinput "" "" 0 cam1 A1
 a2     device digital_input pleora_iport_dinput "" "" 0 cam1 A2

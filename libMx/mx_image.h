@@ -47,6 +47,7 @@ extern "C" {
 /*---- Datafile format definitions ----*/
 
 #define MXT_IMAGE_FILE_PNM			1
+#define MXT_IMAGE_FILE_RAW			2
 
     /* The following are area detector file formats. */
 
@@ -348,6 +349,14 @@ MX_API mx_status_type mx_image_read_pnm_file( MX_IMAGE_FRAME **frame,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_pnm_file( MX_IMAGE_FRAME *frame,
+						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
+						char *datafile_name );
+
+MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
 
 /*----*/
