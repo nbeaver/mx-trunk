@@ -30,8 +30,6 @@
 #include "d_pleora_iport_vinput.h"
 #include "d_radicon_helios.h"
 
-#include "../pleora_iport/display.inc"
-
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_radicon_helios_record_function_list = {

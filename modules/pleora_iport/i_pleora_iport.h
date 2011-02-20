@@ -40,18 +40,34 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PLEORA_IPORT, max_devices), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
-MX_API void
-mxi_pleora_iport_display_parameter_array( CyDeviceExtension *extension,
-					unsigned long num_parameters,
-					unsigned long *parameter_array );
-
-MX_API void
-mxi_pleora_iport_display_parameter_info( CyDeviceExtension *extension,
-					unsigned long parameter_id );
+/*-----*/
 
 MX_API void
 mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,
 					CyString &lookup_table_program );
+
+/*-----*/
+
+MX_API void
+mxi_pleora_iport_display_extension_array( CyDeviceExtension *extension,
+					unsigned long num_parameters,
+					unsigned long *parameter_array );
+
+MX_API void
+mxi_pleora_iport_display_extension_info( CyDeviceExtension *extension,
+					unsigned long parameter_id );
+
+MX_API void
+mxi_pleora_iport_display_grabber_array( CyGrabber *grabber,
+					unsigned long num_parameters,
+					unsigned long *parameter_array );
+
+MX_API void
+mxi_pleora_iport_display_grabber_info( CyGrabber *grabber,
+					unsigned long parameter_id );
+
+MX_API void
+mxi_pleora_iport_display_all_parameters( CyGrabber *grabber );
 
 #endif /* __cplusplus */
 

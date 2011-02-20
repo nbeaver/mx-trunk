@@ -41,7 +41,8 @@ radicon_helios.$(OBJ): radicon_helios.c d_radicon_helios.h
 	$(COMPILE) $(CFLAGS) radicon_helios.c
 
 d_radicon_helios.$(OBJ): d_radicon_helios.cpp d_radicon_helios.h \
-		../pleora_iport/display.inc
+		..\pleora_iport\i_pleora_iport.h \
+		..\pleora_iport\d_pleora_iport_vinput.h
 	$(COMPILE) $(CFLAGS) d_radicon_helios.cpp
 
 install: radicon_helios.mxo
