@@ -671,47 +671,6 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, seq->sequence_type));
 #endif
 
-#if 0
-	switch( seq->sequence_type ) {
-	case MXT_SQ_ONE_SHOT:
-		break;
-	case MXT_SQ_MULTIFRAME:
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported sequence type %lu requested for video input '%s'.",
-			seq->sequence_type, vinput->record->name );
-		break;
-	}
-#endif
-
-#if 0
-	/* Tell the grabber to wait for an incoming frame. */
-
-	CyGrabber *grabber = pleora_iport_vinput->grabber;
-
-	if ( grabber == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"No grabber has been connected for record '%s'.",
-			vinput->record->name );
-	}
-
-	unsigned char *image_data = (unsigned char *) vinput->frame->image_data;
-
-	unsigned long image_length = vinput->frame->image_length;
-
-	CyResult cy_result = grabber->Grab(
-				CyChannel(0), image_data, image_length,
-				pleora_iport_vinput->grab_finished_event,
-				NULL, CY_GRABBER_FLAG_NO_WAIT, NULL );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Unable to tell the grabber for '%s' to grab a frame.  "
-		"cy_result = %d.", vinput->record->name, cy_result );
-	}
-#endif
-
 	pleora_iport_vinput->grab_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;

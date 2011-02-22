@@ -433,11 +433,41 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	CyDevice &device = grabber->GetDevice();
 
+	/* Configure pulse generator 0 to generate a 20 Hz pulse train
+	 * that is used to do the CMOS equivalent of continuout clear.
+	 */
+
+	CyDeviceExtension *pg_extension = &device.GetExtension(
+					CY_DEVICE_EXT_PULSE_GENERATOR );
+
+	/* Pulse generator granularity is expressed in multiples of
+	 * 30 nanoseconds.  Here we set the pulse generator granularity
+	 * to 33333, which produces a timer quantum of 999990 nanoseconds.
+	 * That is the closest we can get to 1 millisecond.
+	 *
+	 * With this setup, the longest possible exposure or delay times
+	 * are 65.5343 seconds.
+	 */
+
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_GRANULARITY, 33333 );
+
+	/* Use a 10 millisecond pulse width together with a 40 millisecond
+	 * delay to produce a 50 millisecond pulse period.
+	 */
+
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_WIDTH, 10 );
+
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_DELAY, 40 );
+
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_PERIODIC, true );
+
+	pg_extension->SaveToDevice();
+
 	/* Get the extension needed for controlling the PLC's
 	 * Signal Routing Block and the PLC's Lookup Table.
 	 */
 
-	CyDeviceExtension *extension =
+	CyDeviceExtension *lut_extension =
 				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
 
 	/* FIXME: I do not yet know where the values come from for the
@@ -446,15 +476,15 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	/* Connect TTL Input 0 to I0. */
 
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
 
 	/* Connect Camera Frame Valid to I2. */
 
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
 
 	/* Connect Pulse Generator 0 Output to I7. */
 
-	extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
 
 	/* Reprogram the PLC to generate a sync pulse for the camera
 	 * and to initialize control inputs.
@@ -476,12 +506,12 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 * lookup table as a quasi-atomic operation.
 	 */
 
-	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
 							lut_program );
 
 	/* Send the changes to the IP engine. */
 
-	extension->SaveToDevice();
+	lut_extension->SaveToDevice();
 
 	/* End of the PLC reconfiguration. */
 
@@ -1062,8 +1092,6 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_RECORD *video_input_record;
-	long num_frames;
-	double exposure_time, frame_time, delay_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -1092,16 +1120,13 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		switch( sp->sequence_type ) {
-		case MXT_SQ_ONE_SHOT:
-			num_frames = 1;
-			exposure_time = sp->parameter_array[0];
-			frame_time = exposure_time;
+		case MXT_SQ_BULB:
+			/* We rely on the external trigger to remain high
+			 * for the duration of the exposure.
+			 */
 			break;
 
-		case MXT_SQ_MULTIFRAME:
-			num_frames = sp->parameter_array[0];
-			exposure_time = sp->parameter_array[1];
-			frame_time = sp->parameter_array[2];
+		case MXT_SQ_ONE_SHOT:
 			break;
 
 		default:
@@ -1111,91 +1136,6 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		}
 
-		delay_time = frame_time - exposure_time;
-
-		/* The timing of imaging sequences is controlled by
-		 * pulse generator 0 of the Pleora iPORT grabber.
-		 */
-
-		{
-			__int64 exposure_ticks, delay_ticks;
-			__int64 pg_granularity;
-			double timer_quantum;
-			bool periodic;
-			
-			CyGrabber *grabber = pleora_iport_vinput->grabber;
-	
-			CyDevice &device = grabber->GetDevice();
-	
-			CyDeviceExtension *extension =
-				&device.GetExtension(
-					CY_DEVICE_EXT_PULSE_GENERATOR );
-
-			/* Pulse generator granularity is expressed in
-			 * multiples of 30 nanoseconds.  Here we set
-			 * the pulse generator granularity to 33333,
-			 * which produces a timer quantum of 999990
-			 * nanoseconds.  That is the closest we can
-			 * get to 1 millisecond.
-			 *
-			 * With this setup, the longest possible exposure
-			 * or delay times are 65.5343 seconds.
-			 */
-
-			pg_granularity = 33333;
-
-			timer_quantum = 30.0e-9 * (double) pg_granularity;
-
-			extension->SetParameter(
-			    CY_PULSE_GEN_PARAM_GRANULARITY, pg_granularity );
-
-			exposure_ticks =
-				mx_round( exposure_time / timer_quantum );
-
-			delay_ticks = mx_round( delay_time / timer_quantum );
-
-			/* FIXME: The following logic has been tortured
-			 * to attempt to produce the same result as the
-			 * CameraTrigger.cpp program.
-			 */
-
-			if ( exposure_ticks > 65535 ) {
-				exposure_ticks = 65535;
-			} else
-			if ( exposure_ticks < 10 ) {
-				exposure_ticks = 10;
-			}
-
-			if ( delay_ticks > 65535 ) {
-				delay_ticks = 65535;
-			} else
-			if ( delay_ticks < 40 ) {
-				delay_ticks = 40;
-			}
-
-			extension->SetParameter(
-				CY_PULSE_GEN_PARAM_WIDTH, exposure_ticks );
-
-			extension->SetParameter(
-				CY_PULSE_GEN_PARAM_DELAY, delay_ticks );
-
-#if 0
-			if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
-				periodic = false;
-			} else {
-				periodic = true;
-			}
-#else
-			periodic = true;
-#endif
-
-			extension->SetParameter(
-				CY_PULSE_GEN_PARAM_PERIODIC, periodic );
-
-			extension->SaveToDevice();
-
-
-		}
 		break; 
 
 	case MXLV_AD_TRIGGER_MODE:
