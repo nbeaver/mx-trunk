@@ -25,7 +25,8 @@ typedef struct {
 	MX_RECORD *video_input_record;
 	MX_RECORD *external_trigger_record;
 
-	mx_bool_type acquisition_in_progress;
+	mx_bool_type arm_signal_present;
+	mx_bool_type grab_in_progress;
 
 } MX_RADICON_HELIOS;
 

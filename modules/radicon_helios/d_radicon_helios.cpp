@@ -160,40 +160,10 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_radicon_helios_trigger_image_readout( MX_RADICON_HELIOS *radicon_helios,
-					MX_VIDEO_INPUT *vinput,
-				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
+mxd_radicon_helios_trigger_image_readout( CyGrabber *grabber )
 {
 	static const char fname[] =
 			"mxd_radicon_helios_trigger_image_readout()";
-
-	/* Tell the grabber to wait for an incoming frame. */
-
-	CyGrabber *grabber = pleora_iport_vinput->grabber;
-
-	if ( grabber == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"No grabber has been connected for record '%s'.",
-			pleora_iport_vinput->record->name );
-	}
-
-#if 1
-	mxi_pleora_iport_display_all_parameters( grabber );
-#endif
-
-	unsigned char *image_data = (unsigned char *) vinput->frame->image_data;
-
-	unsigned long image_length = vinput->frame->image_length;
-
-	CyResult cy_result = grabber->Grab( CyChannel(0),
-					*pleora_iport_vinput->user_buffer,
-					CY_GRABBER_FLAG_NO_WAIT );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Unable to tell the grabber for '%s' to grab a frame.  "
-		"cy_result = %d.", vinput->record->name, cy_result );
-	}
 
 	/* Set the Helios EXSYNC signal to high to trigger image readout. */
 
@@ -334,7 +304,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
-	radicon_helios->acquisition_in_progress = FALSE;
+	radicon_helios->arm_signal_present = FALSE;
+	radicon_helios->grab_in_progress = FALSE;
 
 	/* Set the default file format.
 	 *
@@ -575,8 +546,6 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	radicon_helios->acquisition_in_progress = FALSE;
-
 	if ( (trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -630,7 +599,21 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 		mx_msleep(50);
 	}
 
+	radicon_helios->arm_signal_present = TRUE;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Arm signal present.",fname));
+#endif
+
 	/* Stop sending START pulses to EXSYNC (Q7=0). */
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No grabber has been connected for record '%s'.",
+			pleora_iport_vinput->record->name );
+	}
 
 	CyString lookup_table_program = 
 				"Q0 = I2\r\n"
@@ -643,44 +626,27 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 					pleora_iport_vinput->grabber,
 					lookup_table_program );
 
-	/* Wait for the external trigger to go away. */
+	/* Tell the iPORT to wait for a frame to arrive. */
 
-	while (1) {
-		mx_status = mx_digital_input_read(
-				radicon_helios->external_trigger_record,
-				&trigger_value );
+#if 1
+	mxi_pleora_iport_display_all_parameters( grabber );
+#endif
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	CyResult cy_result = grabber->Grab( CyChannel(0),
+					*pleora_iport_vinput->user_buffer,
+					CY_GRABBER_FLAG_NO_WAIT );
 
-		if ( trigger_value == 0 ) {
-			/* The trigger signal has ended, so break out
-			 * of the while loop.
-			 */
-
-			break;
-		} else
-		if ( trigger_value == 1 ) {
-			/* The trigger signal has not yet ended. */
-		} else {
-			return mx_error( MXE_INTERRUPTED, fname,
-			"Waiting for the external trigger for '%s' "
-			"was interrupted.", ad->record->name );
-		}
-
-		mx_msleep(50);
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to tell the grabber for '%s' to grab a frame.  "
+		"cy_result = %d.", vinput->record->name, cy_result );
 	}
 
-	vinput = (MX_VIDEO_INPUT *)
-			pleora_iport_vinput->record->record_class_struct;
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Grab() started.", fname));
+#endif
 
-	mx_status = mxd_radicon_helios_trigger_image_readout(
-				radicon_helios, vinput, pleora_iport_vinput );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	radicon_helios->acquisition_in_progress = TRUE;
+	radicon_helios->grab_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -729,16 +695,14 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	/* FIXME: Internal trigger does not work yet. */
 
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Internal trigger not yet implemented." );
+
 	vinput = (MX_VIDEO_INPUT *)
 			pleora_iport_vinput->record->record_class_struct;
 
-	mx_status = mxd_radicon_helios_trigger_image_readout(
-				radicon_helios, vinput, pleora_iport_vinput );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	radicon_helios->acquisition_in_progress = TRUE;
+	radicon_helios->arm_signal_present = TRUE;
+	radicon_helios->grab_in_progress = TRUE;
 
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -766,7 +730,8 @@ mxd_radicon_helios_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	radicon_helios->acquisition_in_progress = FALSE;
+	radicon_helios->arm_signal_present = FALSE;
+	radicon_helios->grab_in_progress = FALSE;
 
 	return mx_status;
 }
@@ -778,9 +743,8 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
-	long last_frame_number;
-	long total_num_frames;
-	unsigned long status_flags;
+	long last_frame_number, total_num_frames;
+	unsigned long trigger_value, status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -793,8 +757,38 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* If an arm signal was present, check to see if it is still present. */
 
-	/* Ask the video board for its current status. */
+	if ( radicon_helios->arm_signal_present ) {
+		mx_status = mx_digital_input_read(
+				radicon_helios->external_trigger_record,
+				&trigger_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( trigger_value == 1 ) {
+			/* The trigger signal has not yet ended. */
+
+			ad->status = MXSF_AD_ACQUISITION_IN_PROGRESS;
+
+			return MX_SUCCESSFUL_RESULT;
+		} else
+		if ( trigger_value == 0 ) {
+			/* The trigger signal has ended. */
+
+			radicon_helios->arm_signal_present = FALSE;
+		} else {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Unexpected value (%lu) returned from "
+			"digital input '%s'.", trigger_value,
+			radicon_helios->external_trigger_record->name );
+		}
+	}
+
+	/* Ask the video board for its current status.
+	 * For the Pleora board,
+	 */
 
 	mx_status = mx_video_input_get_extended_status(
 					radicon_helios->video_input_record,
@@ -823,16 +817,18 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 			ad->total_num_frames,
 			ad->last_frame_number ));
 
-	MX_DEBUG(-2,("%s: acquisition_in_progress = %d",
-		fname, radicon_helios->acquisition_in_progress));
+	MX_DEBUG(-2,("%s: grab_in_progress = %d",
+		fname, radicon_helios->grab_in_progress));
 #endif
 
-	if ( radicon_helios->acquisition_in_progress ) {
+	if ( radicon_helios->grab_in_progress ) {
 		if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
 
-			radicon_helios->acquisition_in_progress = FALSE;
-
 			CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+			mxd_radicon_helios_trigger_image_readout( grabber );
+
+			radicon_helios->grab_in_progress = FALSE;
 
 			CyString lut_program =
 				"Q0 = I2\r\n"
