@@ -160,11 +160,31 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_radicon_helios_trigger_image_readout( CyGrabber *grabber )
+mxd_radicon_helios_trigger_image_readout(
+			MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
 {
 	static const char fname[] =
 			"mxd_radicon_helios_trigger_image_readout()";
 
+	/* Tell the iPORT to wait for a frame to arrive. */
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	CyResult cy_result = grabber->Grab( CyChannel(0),
+					*pleora_iport_vinput->user_buffer,
+					CY_GRABBER_FLAG_NO_WAIT );
+
+	if ( cy_result != CY_RESULT_OK ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Unable to tell the grabber for '%s' to grab a frame.  "
+		"cy_result = %d.",
+			pleora_iport_vinput->record->name, cy_result );
+	}
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Grab() started.", fname));
+#endif
+		
 	/* Set the Helios EXSYNC signal to high to trigger image readout. */
 
 	CyString lut_program_high =
@@ -305,7 +325,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	ad->status = 0;
 
 	radicon_helios->arm_signal_present = FALSE;
-	radicon_helios->grab_in_progress = FALSE;
+	radicon_helios->acquisition_in_progress = FALSE;
 
 	/* Set the default file format.
 	 *
@@ -626,27 +646,11 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 					pleora_iport_vinput->grabber,
 					lookup_table_program );
 
-	/* Tell the iPORT to wait for a frame to arrive. */
-
 #if 1
 	mxi_pleora_iport_display_all_parameters( grabber );
 #endif
 
-	CyResult cy_result = grabber->Grab( CyChannel(0),
-					*pleora_iport_vinput->user_buffer,
-					CY_GRABBER_FLAG_NO_WAIT );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Unable to tell the grabber for '%s' to grab a frame.  "
-		"cy_result = %d.", vinput->record->name, cy_result );
-	}
-
-#if MXD_RADICON_HELIOS_DEBUG
-	MX_DEBUG(-2,("%s: Grab() started.", fname));
-#endif
-
-	radicon_helios->grab_in_progress = TRUE;
+	radicon_helios->acquisition_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -702,7 +706,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 			pleora_iport_vinput->record->record_class_struct;
 
 	radicon_helios->arm_signal_present = TRUE;
-	radicon_helios->grab_in_progress = TRUE;
+	radicon_helios->acquisition_in_progress = TRUE;
 
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -731,7 +735,7 @@ mxd_radicon_helios_abort( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	radicon_helios->arm_signal_present = FALSE;
-	radicon_helios->grab_in_progress = FALSE;
+	radicon_helios->acquisition_in_progress = FALSE;
 
 	return mx_status;
 }
@@ -778,6 +782,13 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 			/* The trigger signal has ended. */
 
 			radicon_helios->arm_signal_present = FALSE;
+
+			/* Start the Grab() and send the EXSYNC pulse
+			 * to trigger the readout.
+			 */
+
+			mxd_radicon_helios_trigger_image_readout(
+						pleora_iport_vinput );
 		} else {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Unexpected value (%lu) returned from "
@@ -817,18 +828,14 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 			ad->total_num_frames,
 			ad->last_frame_number ));
 
-	MX_DEBUG(-2,("%s: grab_in_progress = %d",
-		fname, radicon_helios->grab_in_progress));
+	MX_DEBUG(-2,("%s: acquisition_in_progress = %d",
+		fname, radicon_helios->acquisition_in_progress));
 #endif
 
-	if ( radicon_helios->grab_in_progress ) {
+	if ( radicon_helios->acquisition_in_progress ) {
 		if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
 
-			CyGrabber *grabber = pleora_iport_vinput->grabber;
-
-			mxd_radicon_helios_trigger_image_readout( grabber );
-
-			radicon_helios->grab_in_progress = FALSE;
+			radicon_helios->acquisition_in_progress = FALSE;
 
 			CyString lut_program =
 				"Q0 = I2\r\n"
@@ -838,7 +845,8 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 				"Q7 = I7 & !I0\r\n";
 
 			mxi_pleora_iport_send_lookup_table_program(
-							grabber, lut_program );
+					pleora_iport_vinput->grabber,
+					lut_program );
 		}
 	}
 
