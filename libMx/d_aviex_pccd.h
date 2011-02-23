@@ -271,6 +271,8 @@ MX_API_PRIVATE mx_status_type mxd_aviex_pccd_check_value(
 
 MX_API_PRIVATE mx_status_type mxd_aviex_pccd_alloc_sector_array(
 					uint16_t ****sector_array_ptr,
+					long row_framesize,
+					long column_framesize,
 					long sector_width,
 					long sector_height,
 					long num_sector_rows,

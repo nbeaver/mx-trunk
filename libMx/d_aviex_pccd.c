@@ -33,6 +33,8 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
 
+#define MXD_AVIEX_PCCD_DEBUG_BINNING			TRUE
+
 #define MXD_AVIEX_PCCD_DEBUG_TIMING			FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION		FALSE
@@ -229,6 +231,8 @@ mxd_aviex_pccd_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 
 MX_EXPORT mx_status_type
 mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
+					long row_framesize,
+					long column_framesize,
 					long sector_width,
 					long sector_height,
 					long num_sector_rows,
@@ -344,7 +348,15 @@ mxd_aviex_pccd_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	sizeof_sector_row = (long) ( sector_width * sizeof(uint16_t) );
 
+#if 0
 	sizeof_full_row = num_sector_columns * sizeof_sector_row;
+#else
+	/* Note: This should work even if the original image width
+	 * is not a power of two.
+	 */
+
+	sizeof_full_row = row_framesize * sizeof(uint16_t);
+#endif
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
@@ -700,6 +712,7 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 
 		mx_status = mxd_aviex_pccd_alloc_sector_array(
 				&(aviex_pccd->sector_array),
+				row_framesize, column_framesize,
 				j_framesize, i_framesize,
 				aviex_pccd->num_sector_rows,
 				aviex_pccd->num_sector_columns,
@@ -2867,19 +2880,39 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	column_framesize = 
 		raw_column_framesize * aviex_pccd->vert_descramble_factor;
 
+	num_sector_rows    = aviex_pccd->num_sector_rows;
+	num_sector_columns = aviex_pccd->num_sector_columns;
+
+#if 0
 	/* The dimensions of an image sector must be integer numbers, so
 	 * we must make sure that the image framesizes will be integer
 	 * multiples of the sector dimensions.
 	 */
-
-	num_sector_rows    = aviex_pccd->num_sector_rows;
-	num_sector_columns = aviex_pccd->num_sector_columns;
 
 	row_framesize = 
 		num_sector_columns * ( row_framesize / num_sector_columns );
 
 	column_framesize =
 		num_sector_rows * ( column_framesize / num_sector_rows );
+#else
+	/* Note: The use of mx_divide_safely() here causes the calculation
+	 * to be done using double precision floating point, which avoids
+	 * issues with incorrect truncation of the framesize.
+	 */
+
+	row_framesize = mx_round( num_sector_columns
+		* mx_divide_safely( row_framesize, num_sector_columns ) );
+
+	column_framesize = mx_round( num_sector_rows
+		* mx_divide_safely( column_framesize, num_sector_rows ) );
+#endif
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+	MX_DEBUG(-2,("%s: raw_row_framesize = %ld, raw_column_framesize = %ld",
+		fname, raw_row_framesize, raw_column_framesize));
+	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
+		fname, row_framesize, column_framesize));
+#endif
 
 #if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,

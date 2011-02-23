@@ -837,7 +837,15 @@ mx_image_alloc_sector_array( MX_IMAGE_FRAME *image_frame,
 
 	sizeof_sector_row = (long) ( sector_width * pixel_size );
 
+#if 0
 	sizeof_full_row = num_sector_columns * sizeof_sector_row;
+#else
+	/* Note: This should work even if the original image width
+	 * is not a power of two.
+	 */
+
+	sizeof_full_row = image_width * pixel_size;
+#endif
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
@@ -2804,9 +2812,11 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	if ( bytes_written < frame->image_length ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Fewer bytes were written (%ld) to RAW image file '%s' "
-		"than the number (%ld) in the original image.",
-			bytes_written, datafile_name, frame->image_length );
+		"Fewer bytes were written (%lu) to RAW image file '%s' "
+		"than the number (%lu) in the original image.",
+			(unsigned long) bytes_written,
+			datafile_name,
+			(unsigned long) frame->image_length );
 	}
 
 #if MX_IMAGE_DEBUG
