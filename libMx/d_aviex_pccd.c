@@ -33,7 +33,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_BINNING			TRUE
+#define MXD_AVIEX_PCCD_DEBUG_BINNING			FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_TIMING			FALSE
 
@@ -2735,6 +2735,11 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	mx_status_type mx_status;
 
+#if 1
+	double dbl_row_framesize, dbl_column_framesize;
+	double dbl_row_binsize, dbl_column_binsize;
+#endif
+
 	aviex_pccd = NULL;
 
 	mx_status = mxd_aviex_pccd_get_pointers( ad, &aviex_pccd, fname );
@@ -2874,6 +2879,11 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	raw_column_framesize = 
 		(long) MXIF_COLUMN_FRAMESIZE(aviex_pccd->raw_frame);
 
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+	MX_DEBUG(-2,("%s: raw_row_framesize = %ld, raw_column_framesize = %ld",
+		fname, raw_row_framesize, raw_column_framesize));
+#endif
+
 	row_framesize = 
 		raw_row_framesize / aviex_pccd->horiz_descramble_factor;
 
@@ -2900,18 +2910,27 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	 * issues with incorrect truncation of the framesize.
 	 */
 
-	row_framesize = mx_round( num_sector_columns
-		* mx_divide_safely( row_framesize, num_sector_columns ) );
+	dbl_row_framesize = num_sector_columns
+		* mx_divide_safely( row_framesize, num_sector_columns );
 
-	column_framesize = mx_round( num_sector_rows
-		* mx_divide_safely( column_framesize, num_sector_rows ) );
+	dbl_column_framesize = num_sector_rows
+		* mx_divide_safely( column_framesize, num_sector_rows );
+
+	/* Attempt to force the binsize to an integer. */
+
+	dbl_row_binsize    = ad->maximum_framesize[0] / dbl_row_framesize;
+	dbl_column_binsize = ad->maximum_framesize[1] / dbl_column_framesize;
+
+	ad->binsize[0] = mx_round( dbl_row_binsize );
+	ad->binsize[1] = mx_round( dbl_column_binsize );
+
+	ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
+	ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
 #endif
 
 #if MXD_AVIEX_PCCD_DEBUG_BINNING
-	MX_DEBUG(-2,("%s: raw_row_framesize = %ld, raw_column_framesize = %ld",
-		fname, raw_row_framesize, raw_column_framesize));
-	MX_DEBUG(-2,("%s: row_framesize = %ld, column_framesize = %ld",
-		fname, row_framesize, column_framesize));
+	MX_DEBUG(-2,("%s: ad->framesize[0] = %ld, ad->framesize[1] = %ld",
+		fname, ad->framesize[0], ad->framesize[1]));
 #endif
 
 #if MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC
@@ -2921,8 +2940,8 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	mx_status = mx_image_alloc( &(ad->image_frame),
-				row_framesize,
-				column_framesize,
+				ad->framesize[0],
+				ad->framesize[1],
 				(long) MXIF_IMAGE_FORMAT(aviex_pccd->raw_frame),
 				(long) MXIF_BYTE_ORDER(aviex_pccd->raw_frame),
 				MXIF_BYTES_PER_PIXEL(aviex_pccd->raw_frame),
@@ -2944,9 +2963,9 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 	 * so we patch in the correct descrambled dimensions.
 	 */
 
-	MXIF_ROW_FRAMESIZE(ad->image_frame) = row_framesize;
+	MXIF_ROW_FRAMESIZE(ad->image_frame) = ad->framesize[0];
 
-	MXIF_COLUMN_FRAMESIZE(ad->image_frame) = column_framesize;
+	MXIF_COLUMN_FRAMESIZE(ad->image_frame) = ad->framesize[1];
 
 	flags = aviex_pccd->aviex_pccd_flags;
 
@@ -3564,6 +3583,10 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_AVIEX_PCCD *aviex_pccd;
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+#if 1
+	double ad_horiz_framesize, ad_vert_framesize;
+	double ad_horiz_binsize, ad_vert_binsize;
+#endif
 	long shutter_disabled;
 	long mask, trigger_mode, vinput_trigger_mode;
 	mx_status_type mx_status;
@@ -3606,11 +3629,58 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 		 * horizontal and vertical descramble factors come from.
 		 */
 
+#if 0
 		ad->framesize[0] = 
 		  vinput_horiz_framesize / aviex_pccd->horiz_descramble_factor;
 
 		ad->framesize[1] =
 		  vinput_vert_framesize * aviex_pccd->vert_descramble_factor;
+#else
+		/* When possible, the ratio of the maximum framesize to
+		 * the framesize (aka the binning) must be an integer.
+		 * We must attempt to force this to be the case.
+		 */
+
+		ad_horiz_framesize = mx_divide_safely( vinput_horiz_framesize,
+					aviex_pccd->horiz_descramble_factor );
+
+		ad_vert_framesize = vinput_vert_framesize
+					* aviex_pccd->vert_descramble_factor;
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+		MX_DEBUG(-2,
+		("%s: ad_horiz_framesize = %g, ad_vert_framesize = %g",
+			fname, ad_horiz_framesize, ad_vert_framesize));
+#endif
+		ad_horiz_binsize = mx_divide_safely( ad->maximum_framesize[0],
+							ad_horiz_framesize );
+
+		ad_vert_binsize = mx_divide_safely( ad->maximum_framesize[1],
+							ad_vert_framesize );
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+		MX_DEBUG(-2,
+		("%s: ad_horiz_binsize = %g, ad_vert_binsize = %g",
+			fname, ad_horiz_binsize, ad_vert_binsize));
+#endif
+
+		ad->binsize[0] = mx_round( ad_horiz_binsize );
+		ad->binsize[1] = mx_round( ad_vert_binsize );
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+		MX_DEBUG(-2,("%s: ad->binsize = { %lu, %lu }",
+			fname, ad->binsize[0], ad->binsize[1]));
+#endif
+
+		ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
+		ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+		MX_DEBUG(-2,("%s: ad->framesize = { %lu, %lu }",
+			fname, ad->framesize[0], ad->framesize[1]));
+#endif
+
+#endif
 
 		break;
 
@@ -3907,6 +3977,13 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		    ad->bytes_per_pixel * ad->framesize[0] * ad->framesize[1];
 
 		ad->bytes_per_frame = mx_round( bytes_per_frame );
+
+#if MXD_AVIEX_PCCD_DEBUG_BINNING
+		MX_DEBUG(-2,("%s: ad->framesize = { %lu, %lu }",
+			fname, ad->framesize[0], ad->framesize[1] ));
+		MX_DEBUG(-2,("%s: ad->binsize = { %lu, %lu }",
+			fname, ad->binsize[0], ad->binsize[1] ));
+#endif
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
