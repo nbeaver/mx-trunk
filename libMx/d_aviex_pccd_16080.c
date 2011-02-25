@@ -871,7 +871,7 @@ mxd_aviex_pccd_16080_set_binsize( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Since NOF has been set to 0, then VREAD = ROILINES and ROIOFFS = 0 */
+	/* Since NOF has been set to 1, then VREAD = ROILINES and ROIOFFS = 0 */
 
 	mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
 					MXLV_AVIEX_PCCD_16080_DH_VREAD,

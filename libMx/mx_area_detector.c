@@ -4328,6 +4328,9 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 
 	configuration_conflict = FALSE;
 
+#if 0
+	/* FIXME: Ratios that are "close" to an integer _must_ be supported! */
+
 	if ( correction_width >= image_width ) {
 		if ( (correction_width % image_width) != 0 ) {
 			configuration_conflict = TRUE;
@@ -4347,6 +4350,7 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 			configuration_conflict = TRUE;
 		}
 	}
+#endif
 
 	if ( configuration_conflict ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
@@ -11152,7 +11156,10 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mx_area_detector_compute_new_binning()";
 
-	double x_binsize, y_binsize, x_framesize, y_framesize;
+	double x_binsize, y_binsize;
+#if 0
+	double x_framesize, y_framesize;
+#endif
 
 	if ( parameter_type == MXLV_AD_FRAMESIZE ) {
 		x_binsize = mx_divide_safely( ad->maximum_framesize[0],
@@ -11180,6 +11187,7 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 
 	/* Compute the matching frame sizes. */
 
+#if 0
 	x_framesize = mx_divide_safely( ad->maximum_framesize[0],
 						ad->binsize[0] );
 
@@ -11188,6 +11196,10 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 
 	ad->framesize[0] = mx_round( x_framesize );
 	ad->framesize[1] = mx_round( y_framesize );
+#else
+	ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
+	ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

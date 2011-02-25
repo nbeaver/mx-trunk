@@ -1527,23 +1527,27 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	}
 
 	if ( original_width >= rebinned_width ) {
+#if 0
 		if ( (original_width % rebinned_width) != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The rebinned width (%lu) of the image is not "
 			"an integer factor of the original width (%lu).",
 				rebinned_width, original_width );
 		}
+#endif
 
 		shrink_width = TRUE;
 
 		width_shrink_factor = original_width / rebinned_width;
 	} else {
+#if 0
 		if ( (rebinned_width % original_width) != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The rebinned width (%lu) of the image is not "
 			"an integer multiple of the original width (%lu).",
 				rebinned_width, original_width );
 		}
+#endif
 
 		shrink_width = FALSE;
 
@@ -1551,23 +1555,27 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	}
 
 	if ( original_height >= rebinned_height ) {
+#if 0
 		if ( (original_height % rebinned_height) != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The rebinned height (%lu) of the image is not "
 			"an integer factor of the original height (%lu).",
 				rebinned_height, original_height );
 		}
+#endif
 
 		shrink_height = TRUE;
 
 		height_shrink_factor = original_height / rebinned_height;
 	} else {
+#if 0
 		if ( (rebinned_height % original_height) != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The rebinned height (%lu) of the image is not "
 			"an integer multiple of the original height (%lu).",
 				rebinned_height, original_height );
 		}
+#endif
 
 		shrink_height = FALSE;
 
