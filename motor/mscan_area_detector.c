@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ motor_setup_area_detector_scan_parameters(
 	int string_length;
 	MX_RECORD *energy_record;
 	long old_number_of_energies;
-	double *old_energy_array;
+	double *old_energy_array = NULL;
 	double new_energy, wedge_size;
 
 #if ( USE_NUM_MEASUREMENTS == FALSE )

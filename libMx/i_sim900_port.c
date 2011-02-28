@@ -588,6 +588,8 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 	double getchar_timeout;
 	mx_status_type mx_status;
 
+	length_from_header = 0;
+
 	if ( max_bytes_to_read_including_prefix < MXP_GETN_PREFIX_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The read buffer of '%s' for getn must be at least %d "
@@ -783,6 +785,8 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 	buffer_ptr = buffer;
 	bytes_left_in_buffer = max_bytes_to_read;
 	bytes_read_so_far = 0;
+
+	bytes_read_by_getn = 0;
 
 	while (1) {
 		mx_status = mxi_sim900_port_getn( rs232, sim900_port, sim900,
