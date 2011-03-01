@@ -1505,8 +1505,8 @@ mxi_tty_posix_termios_get_configuration( MX_RS232 *rs232 )
 #ifdef PAREXT
 	} else
 	if ( attr.c_cflag & PAREXT ) {
-		if ( attr.c_cflag & PAROOD ) {
-			rs232->parity = MXF_232_MARK_PARITY:
+		if ( attr.c_cflag & PARODD ) {
+			rs232->parity = MXF_232_MARK_PARITY;
 		} else {
 			rs232->parity = MXF_232_SPACE_PARITY;
 		}

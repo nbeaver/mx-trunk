@@ -1116,7 +1116,7 @@ mxi_sim900_port_set_configuration( MX_RS232 *rs232 )
 
 	/* Set the word size. */
 
-	if ( isalpha( sim900_port->port_name ) ) {
+	if ( isalpha( (int) sim900_port->port_name ) ) {
 		switch( rs232->word_size ) {
 		case 5:
 		case 6:
@@ -1179,7 +1179,7 @@ mxi_sim900_port_set_configuration( MX_RS232 *rs232 )
 
 	/* Set the stop bits. */
 
-	if ( isalpha( sim900_port->port_name ) ) {
+	if ( isalpha( (int) sim900_port->port_name ) ) {
 		switch( rs232->stop_bits ) {
 		case 1:
 		case 2:
