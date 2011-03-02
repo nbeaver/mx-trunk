@@ -28,6 +28,8 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_STOP			FALSE
 
+#define MXD_EPIX_XCLIB_DEBUG_SIGNALS			TRUE
+
 #define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		FALSE
@@ -353,7 +355,7 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 			:"m" (_total_num_frames_sigusr2));
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_SIGNALS
 	/* Show the current value of mxd_epix_xclib_total_num_frames. */
 
 	{
@@ -401,7 +403,7 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 
 		write( 2, "\n", 1 );
 	}
-#endif
+#endif  /* MXD_EPIX_XCLIB_DEBUG_SIGNALS */
 
 	return;
 }
