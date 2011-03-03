@@ -271,6 +271,7 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_HELIOS *radicon_helios = NULL;
+	char *dtname;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_finish_record_initialization( record );
@@ -285,6 +286,27 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	dtname = radicon_helios->detector_type_name;
+
+	if ( mx_strcasecmp("10x10", radicon_helios->detector_type_name) == 0 ) {
+
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_10x10;
+	} else
+	if ( mx_strcasecmp("25x20", radicon_helios->detector_type_name) == 0 ) {
+
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_25x20;
+	} else
+	if ( mx_strcasecmp("30x30", radicon_helios->detector_type_name) == 0 ) {
+
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_30x30;
+	} else {
+		radicon_helios->detector_type = -1;
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "Unrecognized detector type '%s' requested for area detector '%s'.",
+			radicon_helios->detector_type_name, record->name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -374,10 +396,28 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	ad->correction_calc_format = ad->image_format;
 
-	ad->maximum_framesize[0] = 2560;
-	ad->maximum_framesize[1] = 2000;
+	switch( radicon_helios->detector_type ) {
+	case MXT_RADICON_HELIOS_10x10:
+		ad->maximum_framesize[0] = 1024;
+		ad->maximum_framesize[1] = 1024;
+		break;
 
-	/* Update the framesize and binsize to match. */
+	case MXT_RADICON_HELIOS_25x20:
+		ad->maximum_framesize[0] = 2560;
+		ad->maximum_framesize[1] = 2000;
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "Unrecognized detector type '%s' requested for area detector '%s'.",
+			radicon_helios->detector_type_name, record->name );
+		break;
+	}
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
+	/* Update the framesize to match. */
 
 	ad->parameter_type = MXLV_AD_FRAMESIZE;
 

@@ -473,7 +473,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if 1
 	int offset_x = 40;  /* FIXME: Where does this number come from??? */
 #else
 	int offset_x = 0;

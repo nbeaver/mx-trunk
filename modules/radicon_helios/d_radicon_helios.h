@@ -19,11 +19,22 @@
 
 #ifdef __cplusplus
 
+#define MXU_DETECTOR_TYPE_NAME_LENGTH	40
+
+/* --- Values for the 'detector_type' field. --- */
+
+#define MXT_RADICON_HELIOS_10x10	1
+#define MXT_RADICON_HELIOS_25x20	2
+#define MXT_RADICON_HELIOS_30x30	3
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
+	char detector_type_name[MXU_DETECTOR_TYPE_NAME_LENGTH+1];
 	MX_RECORD *external_trigger_record;
+
+	long detector_type;
 
 	mx_bool_type arm_signal_present;
 	mx_bool_type acquisition_in_progress;
@@ -35,10 +46,19 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, video_input_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {-1, -1, "detector_type_name", MXFT_STRING, \
+				NULL, 1, {MXU_DETECTOR_TYPE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, detector_type_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "external_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_HELIOS, external_trigger_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "detector_type", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, detector_type), \
+	{0}, NULL, 0 }
 
 #endif /* __cplusplus */
 

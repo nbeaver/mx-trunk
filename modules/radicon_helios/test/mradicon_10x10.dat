@@ -10,4 +10,4 @@ a2     device digital_input pleora_iport_dinput "" "" 0 cam1 A2
 a3     device digital_input pleora_iport_dinput "" "" 0 cam1 A3
 a0key  device digital_input keyboard_dinput "" "" 0 1
 a0file device digital_input file_dinput "" "" 0 1 ./status
-helios device area_detector radicon_helios "" "" 0 0x0 0x0 "" "" "" "" cam1 a0
+helios device area_detector radicon_helios "" "" 0 0x0 0x0 "" "" "" "" cam1 10x10 a0

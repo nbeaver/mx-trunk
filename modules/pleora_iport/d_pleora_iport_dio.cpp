@@ -412,16 +412,16 @@ mxd_pleora_iport_doutput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mx_strcasecmp( "A0", pleora_iport_doutput->line_name ) == 0 ) {
+	if ( mx_strcasecmp( "Q0", pleora_iport_doutput->line_name ) == 0 ) {
 		pleora_iport_doutput->line_id = 0;
 	} else
-	if ( mx_strcasecmp( "A1", pleora_iport_doutput->line_name ) == 0 ) {
+	if ( mx_strcasecmp( "Q1", pleora_iport_doutput->line_name ) == 0 ) {
 		pleora_iport_doutput->line_id = 1;
 	} else
-	if ( mx_strcasecmp( "A2", pleora_iport_doutput->line_name ) == 0 ) {
+	if ( mx_strcasecmp( "Q2", pleora_iport_doutput->line_name ) == 0 ) {
 		pleora_iport_doutput->line_id = 2;
 	} else
-	if ( mx_strcasecmp( "A3", pleora_iport_doutput->line_name ) == 0 ) {
+	if ( mx_strcasecmp( "Q3", pleora_iport_doutput->line_name ) == 0 ) {
 		pleora_iport_doutput->line_id = 3;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -442,6 +442,7 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_PLEORA_IPORT_DIGITAL_OUTPUT *pleora_iport_doutput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
+	char program_buffer[20];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_doutput_get_pointers( doutput,
@@ -449,6 +450,22 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( doutput->value == 0 ) {
+		snprintf( program_buffer, sizeof(program_buffer),
+			"Q%d=0\r\n", pleora_iport_doutput->line_id );
+	} else {
+		doutput->value = 1;
+
+		snprintf( program_buffer, sizeof(program_buffer),
+			"Q%d=1\r\n", pleora_iport_doutput->line_id );
+	}
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	CyString lut_program = program_buffer;
+
+	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program );
 
 	return mx_status;
 }
