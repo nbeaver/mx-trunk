@@ -231,6 +231,8 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 
 /*---*/
 
+#if 0
+
 static mx_status_type
 mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 					uint16_t **dest_2d_array,
@@ -258,6 +260,54 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+
+static mx_status_type
+mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
+
+	long i_src, j_src, i_dest, j_dest;
+
+	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
+		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
+
+			if ( j_src < dest_framesize[0] ) {
+
+				if ( j_src & 0x1 ) {
+					/* Odd numbered columns. */
+
+					i_dest = i_src + source_framesize[1];
+					j_dest = j_src / 2L;
+				} else {
+					/* Even numbered columns. */
+
+					i_dest = i_src;
+					j_dest = j_src / 2L;
+				}
+
+#if 0
+				MX_DEBUG(-2,
+		("%s: i_src = %ld, j_src = %ld, i_dest = %ld, j_dest = %ld",
+					fname, i_src, j_src, i_dest, j_dest));
+#endif
+			} else {
+				continue;
+			}
+
+			dest_2d_array[i_dest][j_dest]
+				= source_2d_array[i_src][j_src];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
 
 /*---*/
 
@@ -1021,6 +1071,36 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		mx_array_free_overlay( source_2d_array, 2 );
 		return mx_status;
 	}
+
+#if 1
+	int i, row, offset;
+	uint16_t value;
+
+	for ( row = 0; row < 4; row++ ) {
+		fprintf( stderr, "\nVinput frame (row %d ): ", row );
+
+		for ( i = 0; i < 10; i++ ) {
+			offset = i + row * vinput->framesize[0];
+
+			value = ((uint16_t *)
+				vinput->frame->image_data)[offset];
+
+			fprintf( stderr, "%hu ", (unsigned short) value );
+		}
+	}
+
+	for ( row = 0; row < 4; row++ ) {
+		fprintf( stderr, "\n2d array( row %d ): ", row );
+
+		for ( i = 0; i < 10; i++ ) {
+			value = source_2d_array[row][i];
+
+			fprintf( stderr, "%hu ", (unsigned short) value );
+		}
+	}
+
+	fprintf( stderr, "\n" );
+#endif
 
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:

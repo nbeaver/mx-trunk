@@ -93,6 +93,9 @@ MX_API mx_status_type mxd_pleora_iport_doutput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_pleora_iport_doutput_open( MX_RECORD *record );
 
+MX_API mx_status_type mxd_pleora_iport_doutput_read(
+					MX_DIGITAL_OUTPUT *voutput );
+
 MX_API mx_status_type mxd_pleora_iport_doutput_write(
 					MX_DIGITAL_OUTPUT *voutput );
 

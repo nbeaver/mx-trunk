@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -510,7 +510,7 @@ mx_array_add_overlay( void *vector_pointer,
 
 	for ( dim = num_dimensions; dim >= 2; dim-- ) {
 		num_pointers_in_this_level
-			*= dimension_array[num_dimensions - dim];
+			*= dimension_array[num_dimensions - (dim - 1)];
 
 		pointer_size = element_size_array[dim-1];
 
@@ -566,10 +566,10 @@ mx_array_add_overlay( void *vector_pointer,
 		upper_step_size = upper_pointer_size;
 
 		lower_step_size = lower_data_size
-				* dimension_array[num_dimensions - dim + 1];
+				* dimension_array[num_dimensions - dim];
 
 		num_pointers_in_this_level = num_pointers_in_previous_level
-					* dimension_array[num_dimensions - dim];
+				* dimension_array[num_dimensions - (dim - 1)];
 
 #if MX_ARRAY_DEBUG_OVERLAY
 		MX_DEBUG(-2,("%s: upper_pointer = %p, lower_pointer = %p",

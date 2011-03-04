@@ -73,7 +73,7 @@ MX_RECORD_FUNCTION_LIST mxd_pleora_iport_doutput_record_function_list = {
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST
 mxd_pleora_iport_doutput_digital_output_function_list = {
-	NULL,
+	mxd_pleora_iport_doutput_read,
 	mxd_pleora_iport_doutput_write
 };
 
@@ -432,6 +432,12 @@ mxd_pleora_iport_doutput_open( MX_RECORD *record )
 			record->name );
 	}
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pleora_iport_doutput_read( MX_DIGITAL_OUTPUT *doutput )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
