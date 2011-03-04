@@ -834,6 +834,17 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
 
+	if ( user_buffer == NULL ) {
+
+		/* If we have never started an acquisition sequence, then
+		 * the detector is idle.
+		 */
+
+		vinput->status = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	CyResultEvent &grab_finished_event = user_buffer->GetCompletionEvent();
 
 	CyResult cy_result =

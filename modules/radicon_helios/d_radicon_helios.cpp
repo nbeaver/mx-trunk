@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bit.h"
+#include "mx_array.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
@@ -159,6 +160,8 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---*/
+
 static mx_status_type
 mxd_radicon_helios_trigger_image_readout(
 			MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
@@ -208,6 +211,50 @@ mxd_radicon_helios_trigger_image_readout(
 		"Q7 = 0\r\n";
 
 	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program_low );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"This function is not yet implemented." );
+}
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
+
+	long i_src, j_src, i_dest, j_dest;
+
+	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
+		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
+			if ( j_src < dest_framesize[0] ) {
+				i_dest = i_src;
+				j_dest = j_src;
+			} else {
+				i_dest = i_src + source_framesize[1];
+				j_dest = j_src - source_framesize[0];
+			}
+
+			dest_2d_array[i_dest][j_dest]
+				= source_2d_array[i_src][j_src];
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -902,6 +949,8 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_VIDEO_INPUT *vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	uint16_t **source_2d_array, **dest_2d_array;
+	size_t element_size[2];
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -925,31 +974,81 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	vinput = (MX_VIDEO_INPUT *)
 		pleora_iport_vinput->record->record_class_struct;
 
+#if MXD_RADICON_HELIOS_DEBUG
+
 	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
 
-#if MXD_RADICON_HELIOS_DEBUG
-		MX_DEBUG(-2,("%s: vinput->frame->image_data = %p",
-			fname, vinput->frame->image_data));
+	MX_DEBUG(-2,("%s: vinput->frame->image_data = %p",
+		fname, vinput->frame->image_data));
 
-		MX_DEBUG(-2,("%s: CyUserBuffer::GetBuffer() = %p",
-			fname, user_buffer->GetBuffer() ));
+	MX_DEBUG(-2,("%s: CyUserBuffer::GetBuffer() = %p",
+		fname, user_buffer->GetBuffer() ));
 
-		MX_DEBUG(-2,("%s: CyUserBuffer::GetBufferSize() = %lu",
-			fname, user_buffer->GetBufferSize() ));
+	MX_DEBUG(-2,("%s: CyUserBuffer::GetBufferSize() = %lu",
+		fname, user_buffer->GetBufferSize() ));
 #endif
 
-/*
- * FIXME FIXME FIXME!
- *
- * This is exceedingly bogus.  There should not be two separate image frames
- * with one of them in the video input driver and one in the area detector
- * driver.  It should also not be necessary to copy from one to the other!
- */
+
+#if 0
+	/* Copy the video card image to the area detector's buffer. */
 
 	mx_status = mx_image_copy_frame( vinput->frame, &(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#else
+	/* Descramble the video card image to the area detector's buffer. */
+
+	/* Create two dimensional overlay arrays for the source and
+	 * destination image frames.
+	 */
+
+	element_size[0] = sizeof(uint16_t);
+	element_size[1] = sizeof(uint16_t *);
+
+	mx_status = mx_array_add_overlay( vinput->frame->image_data,
+					2, vinput->framesize, element_size,
+					(void **) &source_2d_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_array_add_overlay( ad->image_frame->image_data,
+					2, ad->framesize, element_size,
+					(void **) &dest_2d_array );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_array_free_overlay( source_2d_array, 2 );
+		return mx_status;
+	}
+
+	switch( radicon_helios->detector_type ) {
+	case MXT_RADICON_HELIOS_10x10:
+		mx_status = mxd_radicon_helios_descramble_10x10(
+						source_2d_array,
+						dest_2d_array,
+						vinput->framesize,
+						ad->framesize );
+		break;
+	case MXT_RADICON_HELIOS_25x20:
+		mx_status = mxd_radicon_helios_descramble_25x20(
+						source_2d_array,
+						dest_2d_array,
+						vinput->framesize,
+						ad->framesize );
+		break;
+	case MXT_RADICON_HELIOS_30x30:
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Descrambling by record '%s' for detector type '%s' "
+		"is not yet implemented.",
+			ad->record->name, radicon_helios->detector_type_name );
+		break;
+	}
+
+	mx_array_free_overlay( source_2d_array, 2 );
+	mx_array_free_overlay( dest_2d_array, 2 );
+#endif
 
 #if MXD_RADICON_HELIOS_DEBUG
 	{
@@ -1038,6 +1137,7 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_RECORD *video_input_record;
+	long vinput_horiz_framesize, vinput_vert_framesize;
 	double exposure_time;
 	mx_status_type mx_status;
 
@@ -1071,7 +1171,21 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_FRAMESIZE:
 		mx_status = mx_video_input_get_framesize( video_input_record,
-				&(ad->framesize[0]), &(ad->framesize[1]) );
+			&vinput_horiz_framesize, &vinput_vert_framesize );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( radicon_helios->detector_type ) {
+		case MXT_RADICON_HELIOS_25x20:
+			ad->framesize[0] = vinput_horiz_framesize / 2L;
+			ad->framesize[1] = vinput_vert_framesize  * 2L;
+			break;
+		default:
+			ad->framesize[0] = vinput_horiz_framesize;
+			ad->framesize[1] = vinput_vert_framesize;
+			break;
+		}
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
@@ -1136,6 +1250,7 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_RECORD *video_input_record;
+	long vinput_horiz_framesize, vinput_vert_framesize;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -1150,6 +1265,17 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
+		switch( radicon_helios->detector_type ) {
+		case MXT_RADICON_HELIOS_25x20:
+			vinput_horiz_framesize = ad->framesize[0] * 2L;
+			vinput_vert_framesize  = ad->framesize[1] / 2L;
+			break;
+		default:
+			vinput_horiz_framesize = ad->framesize[0];
+			vinput_vert_framesize  = ad->framesize[1];
+			break;
+		}
+
 		mx_status = mx_video_input_set_framesize( video_input_record,
 					ad->framesize[0], ad->framesize[1] );
 		break;
