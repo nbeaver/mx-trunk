@@ -289,14 +289,19 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 					i_dest = i_src;
 					j_dest = j_src / 2L;
 				}
-
-#if 0
-				MX_DEBUG(-2,
-		("%s: i_src = %ld, j_src = %ld, i_dest = %ld, j_dest = %ld",
-					fname, i_src, j_src, i_dest, j_dest));
-#endif
 			} else {
-				continue;
+
+				if ( j_src & 0x1 ) {
+					/* Odd numbered columns. */
+
+					i_dest = i_src + source_framesize[1];
+					j_dest = j_src / 2L;
+				} else {
+					/* Even numbered columns. */
+
+					i_dest = i_src;
+					j_dest = j_src / 2L;
+				}
 			}
 
 			dest_2d_array[i_dest][j_dest]
