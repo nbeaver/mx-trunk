@@ -225,8 +225,24 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 {
 	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"This function is not yet implemented." );
+#if 1
+	memcpy( &(dest_2d_array[0][0]), &(source_2d_array[0][0]),
+		2 * source_framesize[0] * source_framesize[1] );
+#else
+	long i_src, j_src, i_dest, j_dest;
+
+	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
+		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
+			i_dest = i_src;
+			j_dest = j_src;
+
+			dest_2d_array[i_dest][j_dest]
+				= source_2d_array[i_src][j_src];
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -261,94 +277,7 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif 0
-
-/* Every 2nd pixel */
-
-static mx_status_type
-mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
-					uint16_t **dest_2d_array,
-					long *source_framesize,
-					long *dest_framesize )
-{
-	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
-
-	long i_src, j_src, i_dest, j_dest;
-
-	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
-		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
-
-			if ( j_src < dest_framesize[0] ) {
-
-				if ( j_src & 0x1 ) {
-					/* Odd numbered columns. */
-
-					i_dest = i_src + source_framesize[1];
-					j_dest = j_src / 2L;
-				} else {
-					/* Even numbered columns. */
-
-					i_dest = i_src;
-					j_dest = j_src / 2L;
-				}
-			} else {
-
-				if ( j_src & 0x1 ) {
-					/* Odd numbered columns. */
-
-					i_dest = i_src + source_framesize[1];
-					j_dest = j_src / 2L;
-				} else {
-					/* Even numbered columns. */
-
-					i_dest = i_src;
-					j_dest = j_src / 2L;
-				}
-			}
-
-			dest_2d_array[i_dest][j_dest]
-				= source_2d_array[i_src][j_src];
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#elif 0
-
-/* Every 10th pixel (version 1) */
-
-static mx_status_type
-mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
-					uint16_t **dest_2d_array,
-					long *source_framesize,
-					long *dest_framesize )
-{
-	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
-
-	long i_src, j_src, i_dest, j_dest;
-
-	for ( i_dest = 0; i_dest < dest_framesize[1]; i_dest++ ) {
-		for ( j_dest = 0; j_dest < dest_framesize[0]; j_dest++ ) {
-
-
-			if ( (i_dest < source_framesize[1]) && (j_dest < 512) )
-			{
-				i_src = i_dest;
-				j_src = 10L * j_dest;
-			} else {
-				continue;
-			}
-
-			dest_2d_array[i_dest][j_dest]
-				= source_2d_array[i_src][j_src];
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#elif 1
+#else
 
 /* Every 10th pixel */
 
@@ -1245,11 +1174,17 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:
+
+#if 0
 		mx_status = mxd_radicon_helios_descramble_10x10(
 						source_2d_array,
 						dest_2d_array,
 						vinput->framesize,
 						ad->framesize );
+#else
+		mx_status = mx_image_copy_frame( vinput->frame,
+							&(ad->image_frame) );
+#endif
 		break;
 	case MXT_RADICON_HELIOS_25x20:
 		mx_status = mxd_radicon_helios_descramble_25x20(
