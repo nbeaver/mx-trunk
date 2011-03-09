@@ -629,6 +629,36 @@ mxd_radicon_helios_open( MX_RECORD *record )
 			pleora_iport_vinput->record->name );
 	}
 
+	/* Set CY_GRABBER_PARAM_OFFSET_X for this detector type. */
+
+	unsigned long offset_x;
+
+	switch( radicon_helios->detector_type ) {
+	case MXT_RADICON_HELIOS_10x10:
+		offset_x = 8;
+		break;
+	case MXT_RADICON_HELIOS_25x20:
+		offset_x = 40;
+		break;
+	case MXT_RADICON_HELIOS_30x30:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"The value of CY_GRABBER_PARAM_OFFSET_X for the 30x30 "
+			"Rad-icon detector has not yet been specified." );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Detector type %lu is not supported by the "
+			"'%s' driver.", radicon_helios->detector_type,
+			mx_get_driver_name( record ) );
+		break;
+	}
+
+	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_X, offset_x );
+
+	grabber->SaveConfig();
+
+	/* Configure various device extensions for the Rad-icon detector. */
+
 	CyDevice &device = grabber->GetDevice();
 
 	/* Configure pulse generator 0 to generate a 20 Hz pulse train

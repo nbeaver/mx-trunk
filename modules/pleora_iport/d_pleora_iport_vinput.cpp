@@ -473,13 +473,15 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
-	int offset_x = 40;  /* FIXME: Where does this number come from??? */
-#else
-	int offset_x = 0;
-#endif
+	/*
+	 * NOTE: The _real_ value for CY_GRABBER_PARAM_OFFSET_X is
+	 * set in the open() routine of the area detector driver,
+	 * rather than here in the video input driver, since this
+	 * part of the software does not know which area detector
+	 * driver is being used.
+	 */
 
-	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_X, offset_x );
+	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_X, 0 );
 
 	grabber->SetParameter( CY_GRABBER_PARAM_OFFSET_Y, 0 );
 

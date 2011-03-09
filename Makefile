@@ -52,7 +52,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = /home/lavender/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-MX_INSTALL_DIR = d:/opt/mx-1.5.3-2011_03_03
+MX_INSTALL_DIR = d:/opt/mx-1.5.3-2011_03_09
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
@@ -95,6 +95,25 @@ install: depend_files
 	( cd server ; $(MAKECMD) mx_install )
 	( cd update ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
+
+#------------------------------------------------------------------------------
+
+modules: modules-build
+
+modules-build:
+	( cd modules ; $(MAKECMD) build )
+
+modules-clean:
+	( cd modules ; $(MAKECMD) clean )
+
+modules-distclean:
+	( cd modules ; $(MAKECMD) distclean )
+
+modules-depend:
+	( cd modules ; $(MAKECMD) depend )
+
+modules-install:
+	( cd modules ; $(MAKECMD) install )
 
 #------------------------------------------------------------------------------
 
