@@ -578,6 +578,7 @@
 #include "d_aps_gap.h"
 #include "v_aps_topup.h"
 #include "d_mbc_noir.h"
+#include "d_mbc_trigger.h"
 #endif
 
 #if HAVE_ORTEC_UMCBI
@@ -2878,6 +2879,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mbc_noir_ad_function_list,
 				&mxd_mbc_noir_num_record_fields,
 				&mxd_mbc_noir_rfield_def_ptr},
+
+{"mbc_trigger",    MXT_TIM_MBC_TRIGGER, MXC_TIMER,        MXR_DEVICE,
+				&mxd_mbc_trigger_record_function_list,
+				NULL,
+				&mxd_mbc_trigger_timer_function_list,
+				&mxd_mbc_trigger_num_record_fields,
+				&mxd_mbc_trigger_rfield_def_ptr},
+
 #endif /* HAVE_EPICS */
 
 #if HAVE_PCMOTION32

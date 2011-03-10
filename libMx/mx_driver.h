@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -602,6 +602,7 @@ extern "C" {
 #define MXT_TIM_XIA_DXP			80020
 #define MXT_TIM_HANDEL			80021
 #define MXT_TIM_AREA_DETECTOR		80022
+#define MXT_TIM_MBC_TRIGGER		80023
 
 /* --- Amplifier types --- */
 
