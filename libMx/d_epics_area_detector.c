@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1417,9 +1417,9 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Area detector sequence mode %ld is not supported for "
+			"Area detector sequence type %ld is not supported for "
 			"EPICS Area Detector '%s'.",
-				(long) image_mode, ad->record->name );
+				(long) sp->sequence_type, ad->record->name );
 			break;
 		}
 
@@ -1489,7 +1489,7 @@ mxd_epics_ad_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported trigger mode %ld requested for "
 			"EPICS Area Detector '%s'.",
-				(long) trigger_mode, ad->record->name );
+				(long) ad->trigger_mode, ad->record->name );
 		}
 
 		mx_status = mx_caput( &(epics_ad->trigger_mode_pv),
