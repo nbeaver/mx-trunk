@@ -217,6 +217,10 @@ mxd_radicon_helios_trigger_image_readout(
 
 /*---*/
 
+#if 0
+
+/* This version reproduces the same picture as ShadoCam or xray2. */
+
 static mx_status_type
 mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 					uint16_t **dest_2d_array,
@@ -225,48 +229,20 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 {
 	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
 
-#if 1
-	memcpy( &(dest_2d_array[0][0]), &(source_2d_array[0][0]),
-		2 * source_framesize[0] * source_framesize[1] );
-#else
 	long i_src, j_src, i_dest, j_dest;
 
-	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
-		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
-			i_dest = i_src;
-			j_dest = j_src;
+	for ( i_src = 0; i_src < 1024; i_src++ ) {
+		i_dest = i_src;
 
-			dest_2d_array[i_dest][j_dest]
-				= source_2d_array[i_src][j_src];
-		}
-	}
-#endif
+		for ( j_src = 0; j_src < 1024; j_src++ ) {
+			if ( j_src & 0x1 ) {
+				/* Odd numbered pixels. */
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
-
-#if 0
-
-static mx_status_type
-mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
-					uint16_t **dest_2d_array,
-					long *source_framesize,
-					long *dest_framesize )
-{
-	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
-
-	long i_src, j_src, i_dest, j_dest;
-
-	for ( i_src = 0; i_src < source_framesize[1]; i_src++ ) {
-		for ( j_src = 0; j_src < source_framesize[0]; j_src++ ) {
-			if ( j_src < dest_framesize[0] ) {
-				i_dest = i_src;
-				j_dest = j_src;
+				j_dest = 512 + (j_src - 1) / 2;
 			} else {
-				i_dest = i_src + source_framesize[1];
-				j_dest = j_src - source_framesize[0];
+				/* Even numbered pixels. */
+
+				j_dest = j_src / 2;
 			}
 
 			dest_2d_array[i_dest][j_dest]
@@ -278,6 +254,52 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 }
 
 #else
+
+/* This version rotates and transforms the image to the correct configuration.*/
+
+static mx_status_type
+mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
+
+	long i_src, j_src, i_dest, j_dest, i_dest_temp, j_dest_temp;
+
+	for ( i_src = 0; i_src < 1024; i_src++ ) {
+		i_dest_temp = i_src;
+
+		j_dest = i_dest_temp;
+
+		for ( j_src = 0; j_src < 1024; j_src++ ) {
+			if ( j_src & 0x1 ) {
+				/* Odd numbered pixels. */
+
+				j_dest_temp = 512 + (j_src - 1) / 2;
+			} else {
+				/* Even numbered pixels. */
+
+				j_dest_temp = j_src / 2;
+			}
+
+			if ( j_dest_temp < 512 ) {
+				i_dest = j_dest_temp + 512;
+			} else {
+				i_dest = j_dest_temp - 512;
+			}
+
+			dest_2d_array[i_dest][j_dest]
+				= source_2d_array[i_src][j_src];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
+/*---*/
 
 /* Every 10th pixel */
 
@@ -376,8 +398,6 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif
 
 /*---*/
 
@@ -1139,14 +1159,6 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 
-#if 0
-	/* Copy the video card image to the area detector's buffer. */
-
-	mx_status = mx_image_copy_frame( vinput->frame, &(ad->image_frame) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#else
 	/* Descramble the video card image to the area detector's buffer. */
 
 	/* Create two dimensional overlay arrays for the source and
@@ -1205,16 +1217,11 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:
 
-#if 0
 		mx_status = mxd_radicon_helios_descramble_10x10(
 						source_2d_array,
 						dest_2d_array,
 						vinput->framesize,
 						ad->framesize );
-#else
-		mx_status = mx_image_copy_frame( vinput->frame,
-							&(ad->image_frame) );
-#endif
 		break;
 	case MXT_RADICON_HELIOS_25x20:
 		mx_status = mxd_radicon_helios_descramble_25x20(
@@ -1234,7 +1241,6 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 	mx_array_free_overlay( source_2d_array, 2 );
 	mx_array_free_overlay( dest_2d_array, 2 );
-#endif
 
 #if MXD_RADICON_HELIOS_DEBUG
 	{
