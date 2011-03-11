@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1352,6 +1352,14 @@ mx_parse_mx_record_field( void *memory_location, char *token,
 	list_head_struct
 	    = (MX_LIST_HEAD *) (list_head_record->record_superclass_struct);
 
+#if 0
+	if ( strlen(token) == 0 ) {
+		referenced_record = NULL;
+
+		mx_write_void_pointer_to_memory_location( memory_location,
+						referenced_record );
+	} else
+#endif
 	if ( list_head_struct->fixup_records_in_use == FALSE ) {
 		referenced_record = mx_get_record( list_head_record, token );
 
@@ -1459,7 +1467,11 @@ mx_construct_mx_record_field( void *memory_location,
 		mx_read_void_pointer_from_memory_location( memory_location );
 
 	if ( referenced_record == NULL ) {
+#if 0
+		strlcpy( token_buffer, "\"\"", token_buffer_length );
+#else
 		sprintf( token_buffer, "NULL_record" );
+#endif
 	} else {
 		sprintf( token_buffer, "%s", referenced_record->name );
 	}

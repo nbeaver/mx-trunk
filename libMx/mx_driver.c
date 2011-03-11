@@ -2880,10 +2880,10 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mbc_noir_num_record_fields,
 				&mxd_mbc_noir_rfield_def_ptr},
 
-{"mbc_trigger",    MXT_TIM_MBC_TRIGGER, MXC_TIMER,        MXR_DEVICE,
+{"mbc_trigger",    MXT_PGN_MBC_TRIGGER, MXC_PULSE_GENERATOR, MXR_DEVICE,
 				&mxd_mbc_trigger_record_function_list,
 				NULL,
-				&mxd_mbc_trigger_timer_function_list,
+				&mxd_mbc_trigger_pulser_function_list,
 				&mxd_mbc_trigger_num_record_fields,
 				&mxd_mbc_trigger_rfield_def_ptr},
 

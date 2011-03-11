@@ -1,8 +1,8 @@
 /*
  * Name:    d_mbc_trigger.c
  *
- * Purpose: MX timer driver to control the MBC (ALS 4.2.2) beamline
- *          trigger signal.
+ * Purpose: MX pulse generator driver to control the MBC (ALS 4.2.2)
+ *          beamline trigger signal.
  *
  * Author:  William Lavender
  *
@@ -17,8 +17,6 @@
 
 #define MXD_MBC_TRIGGER_DEBUG		TRUE
 
-#define MXD_MBC_TRIGGER_DEBUG_TIMING	FALSE
-
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -31,13 +29,11 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_driver.h"
-#include "mx_measurement.h"
-#include "mx_hrt_debug.h"
 #include "mx_epics.h"
-#include "mx_timer.h"
+#include "mx_pulse_generator.h"
 #include "d_mbc_trigger.h"
 
-/* Initialize the timer driver jump table. */
+/* Initialize the pulse generator driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mbc_trigger_record_function_list = {
 	NULL,
@@ -48,19 +44,19 @@ MX_RECORD_FUNCTION_LIST mxd_mbc_trigger_record_function_list = {
 	mxd_mbc_trigger_open
 };
 
-MX_TIMER_FUNCTION_LIST mxd_mbc_trigger_timer_function_list = {
+MX_PULSE_GENERATOR_FUNCTION_LIST mxd_mbc_trigger_pulser_function_list = {
 	mxd_mbc_trigger_is_busy,
 	mxd_mbc_trigger_start,
 	mxd_mbc_trigger_stop,
-	NULL,
-	mxd_mbc_trigger_read
+	mxd_mbc_trigger_get_parameter,
+	mxd_mbc_trigger_set_parameter
 };
 
 /* MX MBC trigger timer data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_mbc_trigger_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_TIMER_STANDARD_FIELDS,
+	MX_PULSE_GENERATOR_STANDARD_FIELDS,
 	MXD_MBC_TRIGGER_STANDARD_FIELDS
 };
 
@@ -74,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_mbc_trigger_rfield_def_ptr
 /*=======================================================================*/
 
 static mx_status_type
-mxd_mbc_trigger_get_pointers( MX_TIMER *timer,
+mxd_mbc_trigger_get_pointers( MX_PULSE_GENERATOR *pulser,
 			MX_MBC_TRIGGER **mbc_trigger,
 			const char *calling_fname )
 {
@@ -83,24 +79,25 @@ mxd_mbc_trigger_get_pointers( MX_TIMER *timer,
 	MX_MBC_TRIGGER *mbc_trigger_ptr;
 	MX_RECORD *handel_record;
 
-	if ( timer == (MX_TIMER *) NULL ) {
+	if ( pulser == (MX_PULSE_GENERATOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The timer pointer passed by '%s' was NULL",
+		"The MX_PULSE_GENERATOR pointer passed by '%s' was NULL",
 			calling_fname );
 	}
 
-	if ( timer->record == (MX_RECORD *) NULL ) {
+	if ( pulser->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"MX_RECORD pointer for timer pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
-	mbc_trigger_ptr = (MX_MBC_TRIGGER *) timer->record->record_type_struct;
+	mbc_trigger_ptr = (MX_MBC_TRIGGER *) pulser->record->record_type_struct;
 
 	if ( mbc_trigger_ptr == (MX_MBC_TRIGGER *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"The MX_MBC_TRIGGER pointer for timer record '%s' passed by '%s' is NULL",
-				timer->record->name, calling_fname );
+			"The MX_MBC_TRIGGER pointer for pulse generator "
+			"record '%s' passed by '%s' is NULL",
+				pulser->record->name, calling_fname );
 	}
 
 	if ( mbc_trigger != (MX_MBC_TRIGGER **) NULL ) {
@@ -118,16 +115,16 @@ mxd_mbc_trigger_create_record_structures( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_mbc_trigger_create_record_structures()";
 
-	MX_TIMER *timer;
+	MX_PULSE_GENERATOR *pulser;
 	MX_MBC_TRIGGER *mbc_trigger;
 
 	/* Allocate memory for the necessary structures. */
 
-	timer = (MX_TIMER *) malloc( sizeof(MX_TIMER) );
+	pulser = (MX_PULSE_GENERATOR *) malloc( sizeof(MX_PULSE_GENERATOR) );
 
-	if ( timer == NULL ) {
+	if ( pulser == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_TIMER structure." );
+		"Can't allocate memory for MX_PULSE_GENERATOR structure." );
 	}
 
 	mbc_trigger = (MX_MBC_TRIGGER *) malloc( sizeof(MX_MBC_TRIGGER) );
@@ -139,12 +136,12 @@ mxd_mbc_trigger_create_record_structures( MX_RECORD *record )
 
 	/* Now set up the necessary pointers. */
 
-	record->record_class_struct = timer;
+	record->record_class_struct = pulser;
 	record->record_type_struct = mbc_trigger;
 	record->class_specific_function_list
-			= &mxd_mbc_trigger_timer_function_list;
+			= &mxd_mbc_trigger_pulser_function_list;
 
-	timer->record = record;
+	pulser->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -155,7 +152,7 @@ mxd_mbc_trigger_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 			"mxd_mbc_trigger_finish_record_initialization()";
 
-	MX_TIMER *timer;
+	MX_PULSE_GENERATOR *pulser;
 	MX_MBC_TRIGGER *mbc_trigger;
 	mx_status_type mx_status;
 
@@ -164,16 +161,9 @@ mxd_mbc_trigger_finish_record_initialization( MX_RECORD *record )
 		"MX_RECORD pointer passed was NULL." );
 	}
 
-	timer = (MX_TIMER *) record->record_class_struct;
+	pulser = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	timer->mode = MXCM_PRESET_MODE;
-
-	mx_status = mx_timer_finish_record_initialization( record );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -200,7 +190,7 @@ mxd_mbc_trigger_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_mbc_trigger_open()";
 
-	MX_TIMER *timer;
+	MX_PULSE_GENERATOR *pulser;
 	MX_MBC_TRIGGER *mbc_trigger;
 	mx_status_type mx_status;
 
@@ -209,9 +199,9 @@ mxd_mbc_trigger_open( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
-	timer = (MX_TIMER *) record->record_class_struct;
+	pulser = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -222,7 +212,7 @@ mxd_mbc_trigger_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_trigger_is_busy( MX_TIMER *timer )
+mxd_mbc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_mbc_trigger_is_busy()";
 
@@ -230,13 +220,13 @@ mxd_mbc_trigger_is_busy( MX_TIMER *timer )
 	long shutter_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( mbc_trigger->exposure_in_progress == FALSE ) {
-		timer->busy = FALSE;
+		pulser->busy = FALSE;
 
 		shutter_status = -1;
 	} else {
@@ -247,22 +237,23 @@ mxd_mbc_trigger_is_busy( MX_TIMER *timer )
 			return mx_status;
 
 		if ( shutter_status ) {
-			timer->busy = TRUE;
+			pulser->busy = TRUE;
 		} else {
-			timer->busy = FALSE;
+			pulser->busy = FALSE;
 		}
 	}
 
 #if MXD_MBC_TRIGGER_DEBUG
-	MX_DEBUG(-2,("%s: Timer '%s', shutter_status = %ld, busy = %d",
-		fname, timer->record->name, shutter_status, timer->busy));
+	MX_DEBUG(-2,
+		("%s: Pulse generator '%s', shutter_status = %ld, busy = %d",
+		fname, pulser->record->name, shutter_status, pulser->busy));
 #endif
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_trigger_start( MX_TIMER *timer )
+mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_mbc_trigger_start()";
 
@@ -272,16 +263,16 @@ mxd_mbc_trigger_start( MX_TIMER *timer )
 	long command_trigger;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	exposure_seconds = timer->value;
+	exposure_seconds = pulser->pulse_width;
 
 #if MXD_MBC_TRIGGER_DEBUG
-	MX_DEBUG(-2,("%s: Timer '%s' starting for %g seconds.",
-		fname, timer->record->name, exposure_seconds));
+	MX_DEBUG(-2,("%s: Pulse generator '%s' starting for %g seconds.",
+		fname, pulser->record->name, exposure_seconds));
 #endif
 	/* Prepare the MBC beamline for an exposure. */
 
@@ -319,62 +310,125 @@ mxd_mbc_trigger_start( MX_TIMER *timer )
 
 	mbc_trigger->exposure_in_progress = TRUE;
 
-	/* Save this measurement time. */
-
-	timer->last_measurement_time = exposure_seconds;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_trigger_stop( MX_TIMER *timer )
+mxd_mbc_trigger_stop( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_mbc_trigger_stop()";
 
 	MX_MBC_TRIGGER *mbc_trigger;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MXD_MBC_TRIGGER_DEBUG
-	MX_DEBUG(-2,("%s: Stopping timer '%s'.", fname, timer->record->name ));
+	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
+		fname, pulser->record->name ));
 #endif
 
 	mbc_trigger->exposure_in_progress = FALSE;
-
-	timer->value = 0.0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_mbc_trigger_read( MX_TIMER *timer )
+mxd_mbc_trigger_get_parameter( MX_PULSE_GENERATOR *pulser )
 {
-	static const char fname[] = "mxd_mbc_trigger_read()";
+	static const char fname[] = "mxd_mbc_trigger_get_parameter()";
 
-	MX_MBC_TRIGGER *mbc_trigger;
+	MX_MBC_TRIGGER *mbc_trigger = NULL;
 	mx_status_type mx_status;
 
-#if MXD_MBC_TRIGGER_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
-
-	mx_status = mxd_mbc_trigger_get_pointers( timer, &mbc_trigger, fname );
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( mbc_trigger->exposure_in_progress == FALSE ) {
-		timer->value = 0;
+#if MXD_MBC_TRIGGER_DEBUG
+	MX_DEBUG(-2,
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
+		fname, pulser->record->name,
+		mx_get_field_label_string( pulser->record,
+					pulser->parameter_type ),
+		pulser->parameter_type));
+#endif
+
+	switch( pulser->parameter_type ) {
+	case MXLV_PGN_NUM_PULSES:
+		break;
+	case MXLV_PGN_PULSE_WIDTH:
+		break;
+	case MXLV_PGN_PULSE_DELAY:
+		break;
+	case MXLV_PGN_MODE:
+		break;
+	case MXLV_PGN_PULSE_PERIOD:
+		break;
+	default:
+		return
+		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
+	MX_DEBUG(-2,("%s complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_mbc_trigger_set_parameter()";
+
+	MX_MBC_TRIGGER *mbc_trigger;
+	mx_status_type mx_status;
+
+	mbc_trigger = NULL;
+
+	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_MBC_TRIGGER_DEBUG
-	MX_DEBUG(-2,("%s: Timer '%s' value = %g",
-		fname, timer->record->name, timer->value ));
+	MX_DEBUG(-2,
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
+		fname, pulser->record->name,
+		mx_get_field_label_string( pulser->record,
+					pulser->parameter_type ),
+		pulser->parameter_type));
 #endif
+
+	switch( pulser->parameter_type ) {
+	case MXLV_PGN_NUM_PULSES:
+		pulser->num_pulses = 1;
+		break;
+
+	case MXLV_PGN_PULSE_WIDTH:
+		/* This value is used by the start() routine above. */
+		break;
+
+	case MXLV_PGN_PULSE_DELAY:
+		pulser->pulse_delay = 0;
+		break;
+
+	case MXLV_PGN_MODE:
+		pulser->mode = MXF_PGN_SQUARE_WAVE;
+		break;
+
+	case MXLV_PGN_PULSE_PERIOD:
+		pulser->pulse_period = pulser->pulse_width;
+		break;
+
+	default:
+		return
+		    mx_pulse_generator_default_set_parameter_handler( pulser );
+	}
+	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }

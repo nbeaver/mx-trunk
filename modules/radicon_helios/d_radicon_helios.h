@@ -33,8 +33,10 @@ typedef struct {
 	MX_RECORD *video_input_record;
 	char detector_type_name[MXU_DETECTOR_TYPE_NAME_LENGTH+1];
 	MX_RECORD *external_trigger_record;
+	char pulse_generator_record_name[MXU_RECORD_NAME_LENGTH+1];
 
 	long detector_type;
+	MX_RECORD *pulse_generator_record;
 
 	mx_bool_type arm_signal_present;
 	mx_bool_type acquisition_in_progress;
@@ -55,6 +57,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_HELIOS, external_trigger_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pulse_generator_record_name", MXFT_STRING, \
+		NULL, 1, {MXU_DETECTOR_TYPE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_HELIOS, pulse_generator_record_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "detector_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, detector_type), \

@@ -602,7 +602,6 @@ extern "C" {
 #define MXT_TIM_XIA_DXP			80020
 #define MXT_TIM_HANDEL			80021
 #define MXT_TIM_AREA_DETECTOR		80022
-#define MXT_TIM_MBC_TRIGGER		80023
 
 /* --- Amplifier types --- */
 
@@ -683,6 +682,7 @@ extern "C" {
 #define MXT_PGN_SIS3807			160003
 #define MXT_PGN_SIS3801			160004
 #define MXT_PGN_PDI45			160005
+#define MXT_PGN_MBC_TRIGGER		160006
 
 /* --- Single channel analyzer types --- */
 

@@ -23,6 +23,7 @@
 #include "mx_record.h"
 #include "mx_bit.h"
 #include "mx_array.h"
+#include "mx_pulse_generator.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
@@ -255,7 +256,7 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 
 #else
 
-/* This version rotates and transforms the image to the correct configuration.*/
+/* This version rotates and transforms the image to the correct layout. */
 
 static mx_status_type
 mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
@@ -544,6 +545,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
 	ad->datafile_format = ad->frame_file_format;
 
+	ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+
 	ad->correction_frames_to_skip = 0;
 
 	/* Do we need automatic saving and/or loading of image frames by MX? */
@@ -629,9 +632,41 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Configure the Pleora iPORT PLC to work with
-	 * the Radicon Helios detector.
+	/* Is this record configured for one-shot mode
+	 * with an external pulse generator?
 	 */
+
+	if ( strlen( radicon_helios->pulse_generator_record_name ) == 0 ) {
+		radicon_helios->pulse_generator_record = NULL;
+	} else {
+		radicon_helios->pulse_generator_record = mx_get_record( record,
+				radicon_helios->pulse_generator_record_name );
+
+		if ( radicon_helios->pulse_generator_record == NULL ) {
+			mx_warning( "The requested pulse generator '%s' "
+			"was not found.  One-shot mode for detector '%s' "
+			"will not be able to directly control "
+			"an external trigger.",
+				radicon_helios->pulse_generator_record_name,
+				record->name );
+		}
+	}
+
+	/* Initialize this detector to bulb mode.
+	 *
+	 * It will default to waiting for an external trigger, rather than
+	 * indirectly generating a trigger itself through a pulse generator.
+	 */
+
+	mx_status = mx_area_detector_set_bulb_mode( record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/***********************************************
+	 * Configure the Pleora iPORT PLC to work with *
+	 * the Radicon Helios detector.                *
+	 ***********************************************/
 
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: pleora_iport_vinput = %p",
@@ -766,68 +801,17 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
+static mx_status_type
+mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
+				MX_RADICON_HELIOS *radicon_helios,
+				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
 {
-	static const char fname[] = "mxd_radicon_helios_arm()";
+	static const char fname[] =
+		"mxd_radicon_helios_wait_for_external_trigger()";
 
-	MX_RADICON_HELIOS *radicon_helios = NULL;
-	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
-	MX_VIDEO_INPUT *vinput = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
-	long trigger_mode;
 	unsigned long trigger_value;
 	mx_bool_type trigger_seen;
 	mx_status_type mx_status;
-
-	mx_status = mxd_radicon_helios_get_pointers( ad,
-			&radicon_helios, &pleora_iport_vinput, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	sp = &(ad->sequence_parameters);
-
-#if MXD_RADICON_HELIOS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
-#endif
-	/* FIXME: Currently we only support external trigger, so
-	 * we force that on.
-	 */
-
-	mx_status = mx_area_detector_set_trigger_mode( ad->record,
-						MXT_IMAGE_EXTERNAL_TRIGGER );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Are we using external trigger or internal trigger? */
-
-	mx_status = mx_video_input_get_trigger_mode(
-					radicon_helios->video_input_record,
-					&trigger_mode );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_HELIOS_DEBUG
-	MX_DEBUG(-2,("%s: Arming area detector '%s', trigger_mode = %#lx",
-		fname, ad->record->name, trigger_mode ));
-#endif
-
-	/* Tell the video card to get ready for an incoming frame. */
-
-	mx_status = mx_video_input_arm( radicon_helios->video_input_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( (trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER) == 0 ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here we are using an external trigger. */
 
 	/* FIXME: This is a poor way of waiting for the external trigger,
 	 * since it is guaranteed to have lots of timing jitter.  It should
@@ -913,15 +897,112 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
+mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_arm()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+			&radicon_helios, &pleora_iport_vinput, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+
+	/* The acceptable combinations of sequence modes and triggering
+	 * are limited for this detector, so we must force the detector
+	 * to use a supported one.
+	 */
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		if ( radicon_helios->pulse_generator_record != NULL ) {
+			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+
+			break;		/* Exit the switch() statement. */
+		}
+
+		/* No pulse generator record is available, so we force
+		 * the measurement into bulb mode.
+		 */
+
+		mx_warning( "No pulse generator is configured for "
+			"detector '%s', so this measurement will be "
+			"forced into bulb mode.", ad->record->name );
+
+		sp->sequence_type = MXT_SQ_BULB;
+		sp->num_parameters = 1;
+		sp->parameter_array[0] = 1;	/* one pulse */
+
+		/* Fall through to the bulb mode case. */
+
+	case MXT_SQ_BULB:
+		ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Sequence type %ld is not supported for detector '%s'.",
+			sp->sequence_type, ad->record->name );
+		break;
+	}
+
+	/* The Pleora iPORT is unconditionally told to be in external trigger
+	 * mode, since (from its point of view) it _will_ be receiving
+	 * an external trigger.
+	 */
+
+	mx_status = mx_video_input_set_trigger_mode(
+					pleora_iport_vinput->record,
+					MXT_IMAGE_EXTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG
+	MX_DEBUG(-2,("%s: Arming area detector '%s', trigger_mode = %#lx",
+		fname, ad->record->name, ad->trigger_mode ));
+#endif
+
+	/* Tell the video card to get ready for an incoming frame. */
+
+	mx_status = mx_video_input_arm( radicon_helios->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here we are using an external trigger. */
+
+	mx_status = mxd_radicon_helios_wait_for_external_trigger( 
+				ad, radicon_helios, pleora_iport_vinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_radicon_helios_trigger()";
 
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
-	MX_VIDEO_INPUT *vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	long trigger_mode;
+	MX_RECORD *pulser_record;
+	double exposure_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -937,33 +1018,82 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-	/* If the video card is in internal trigger mode, then we
-	 * need to send a software trigger.
+	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_breakpoint();
+
+	/* If we get here, then internal trigger has been requested. */
+
+	if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"An internal trigger has been requested for detector '%s', "
+		"but the detector is not in one-shot mode.  Instead, it is "
+		"in mode %ld.", ad->record->name, sp->sequence_type );
+	}
+
+	exposure_time = sp->parameter_array[0];
+
+	/* NOTE: The "internal" trigger mode actually uses an external
+	 * pulse generator to send the trigger signal to the detector.
+	 * However, we call this an "internal" trigger, since we directly
+	 * control when the trigger is sent.
 	 */
 
-	mx_status = mx_video_input_get_trigger_mode(
-					radicon_helios->video_input_record,
-					&trigger_mode );
+	pulser_record = radicon_helios->pulse_generator_record;
+
+	if ( pulser_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"An internal trigger has been requested for detector '%s', "
+		"but no pulse generator has been configured for it.",
+			ad->record->name );
+	}
+
+	/* Configure the pulse generator for this measurement. */
+
+	mx_status = mx_pulse_generator_set_mode( pulser_record,
+						MXF_PGN_SQUARE_WAVE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ( trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
+	mx_status = mx_pulse_generator_set_num_pulses( pulser_record, 1 );
 
-	/* If we get here, then the internal trigger has been enabled. */
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* FIXME: Internal trigger does not work yet. */
+	mx_status = mx_pulse_generator_set_pulse_delay( pulser_record, 0 );
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Internal trigger not yet implemented." );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	vinput = (MX_VIDEO_INPUT *)
-			pleora_iport_vinput->record->record_class_struct;
+	mx_status = mx_pulse_generator_set_pulse_width( pulser_record,
+							exposure_time );
 
-	radicon_helios->arm_signal_present = TRUE;
-	radicon_helios->acquisition_in_progress = TRUE;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period( pulser_record,
+							2.0 * exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now start the pulse generator. */
+
+	mx_status = mx_pulse_generator_start( pulser_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the pulse generator's pulse to arrive. */
+
+	mx_status = mxd_radicon_helios_wait_for_external_trigger( 
+				ad, radicon_helios, pleora_iport_vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -1330,7 +1460,6 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
-	double exposure_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -1407,22 +1536,13 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
-		sp->sequence_type = MXT_SQ_ONE_SHOT;
-		break;
-
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-		sp->num_parameters = 1;
-		break;
-
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
-		exposure_time = 0;	/* FIXME */
+		/* Just report back values that were previously written here. */
 
-		sp->parameter_array[0] = exposure_time;
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mx_status = mx_video_input_get_trigger_mode(
-				video_input_record, &(ad->trigger_mode) );
 		break;
 
 	default:
@@ -1489,6 +1609,20 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_ONE_SHOT:
+			/* We can only use one-shot mode if a pulse generator
+			 * has been configured to generate a gate pulse for
+			 * the detector.
+			 */
+
+			if ( radicon_helios->pulse_generator_record == NULL ) {
+				mx_warning( "No pulse generator has been "
+				"configured for detector '%s', so we are "
+				"switching to bulb mode.", ad->record->name );
+
+				sp->sequence_type = MXT_SQ_BULB;
+				sp->num_parameters = 1;
+				sp->parameter_array[0] = 1;
+			}
 			break;
 
 		default:

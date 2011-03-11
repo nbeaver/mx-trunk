@@ -8,4 +8,4 @@ a1     device digital_input pleora_iport_dinput "" "" 0 cam1 A1
 a2     device digital_input pleora_iport_dinput "" "" 0 cam1 A2
 a3     device digital_input pleora_iport_dinput "" "" 0 cam1 A3
 q1     device digital_input pleora_iport_doutput "" "" 0 cam1 Q1
-helios device area_detector radicon_helios "" "" 0 0x0 0x0 "" "" "" "" cam1 25x20 a1
+helios device area_detector radicon_helios "" "" 0 0x0 0x0 "" "" "" "" cam1 25x20 a1 ""
