@@ -300,6 +300,14 @@ mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	/* Start the exposure. */
 
+	strlcpy( epics_string, "snap", sizeof(epics_string) );
+
+	mx_status = mx_caput( &(mbc_trigger->command_pv), 
+				MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	command_trigger = 0;
 
 	mx_status = mx_caput( &(mbc_trigger->command_trig_pv),

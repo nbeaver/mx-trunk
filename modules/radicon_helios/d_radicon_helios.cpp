@@ -1022,8 +1022,6 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	mx_breakpoint();
-
 	/* If we get here, then internal trigger has been requested. */
 
 	if ( sp->sequence_type != MXT_SQ_ONE_SHOT ) {

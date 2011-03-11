@@ -56,9 +56,9 @@ extern long mxd_mbc_trigger_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mbc_trigger_rfield_def_ptr;
 
 #define MXD_MBC_TRIGGER_STANDARD_FIELDS \
-  {-1, -1, "epics_prefix", MXFT_STRING, NULL, 0, {MXU_EPICS_PVNAME_LENGTH}, \
+  {-1, -1, "epics_prefix", MXFT_STRING, NULL, 1, {MXU_EPICS_PVNAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MBC_TRIGGER, epics_prefix), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_MBC_TRIGGER_H__ */
 
