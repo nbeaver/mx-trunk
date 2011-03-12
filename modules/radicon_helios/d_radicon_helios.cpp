@@ -1066,14 +1066,14 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_pulse_generator_set_pulse_width( pulser_record,
-							exposure_time );
+	mx_status = mx_pulse_generator_set_pulse_period( pulser_record,
+							2.0 * exposure_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_pulse_generator_set_pulse_period( pulser_record,
-							2.0 * exposure_time );
+	mx_status = mx_pulse_generator_set_pulse_width( pulser_record,
+							exposure_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
