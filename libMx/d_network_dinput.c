@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2007, 2011
+ *   Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,7 +73,7 @@ mxd_network_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 
 	if ( *network_dinput == (MX_NETWORK_DINPUT *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"The MX_NETWORK_DOUTPUT pointer for dinput record '%s' passed by '%s' is NULL",
+"The MX_NETWORK_DINPUT pointer for dinput record '%s' passed by '%s' is NULL",
 				dinput->record->name, calling_fname );
 	}
 

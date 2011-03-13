@@ -1,0 +1,3 @@
+!load ../daqmx_base.mxo
+daqmx_base interface controller daqmx_base "" "" 1
+port0 device digital_input daqmx_base_dinput "" "" 0 daqmx_base Dev1/port0
