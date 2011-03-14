@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_DAQMX_BASE_DINPUT_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -177,6 +179,15 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 
 	daqmx_status = DAQmxBaseCreateTask( "", &(daqmx_base_dinput->handle) );
 
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: DAQmxBaseCreateTask( &(daqmx_base_dinput->handle) ) = %d",
+		fname, (int) daqmx_status));
+
+	MX_DEBUG(-2,("%s:   daqmx_base_dinput->handle = %#lx",
+		fname, (unsigned long) daqmx_base_dinput->handle));
+#endif
+
 	if ( daqmx_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to create a DAQmx Base task failed for '%s'.  "
@@ -190,6 +201,14 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 					daqmx_base_dinput->channel_name, NULL,
 					DAQmx_Val_ChanForAllLines );
 
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxBaseCreateDIChan( %#lx, '%s', NULL, %#lx ) = %d",
+		fname, (unsigned long) daqmx_base_dinput->handle,
+		daqmx_base_dinput->channel_name,
+		(unsigned long) DAQmx_Val_ChanForAllLines,
+		(int) daqmx_status));
+#endif
+
 	if ( daqmx_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to associate digital input '%s' with "
@@ -202,6 +221,12 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 	/* Start the task. */
 
 	daqmx_status = DAQmxBaseStartTask( daqmx_base_dinput->handle );
+
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxBaseStartTask( %#lx ) = %d",
+		fname, (unsigned long) daqmx_base_dinput->handle,
+		(int) daqmx_status));
+#endif
 
 	if ( daqmx_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -244,6 +269,12 @@ mxd_daqmx_base_dinput_close( MX_RECORD *record )
 
 		daqmx_status = DAQmxBaseStopTask( daqmx_base_dinput->handle );
 
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+		MX_DEBUG(-2,("%s: DAQmxBaseStopTask( %#lx ) = %d",
+			fname, (unsigned long) daqmx_base_dinput->handle,
+			(int) daqmx_status));
+#endif
+
 		if ( daqmx_status != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"The attempt to stop task %#lx for digital input '%s' "
@@ -252,6 +283,12 @@ mxd_daqmx_base_dinput_close( MX_RECORD *record )
 				record->name,
 				(int) daqmx_status );
 		}
+
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+		MX_DEBUG(-2,("%s: DAQmxBaseClearTask( %#lx ) = %d",
+			fname, (unsigned long) daqmx_base_dinput->handle,
+			(int) daqmx_status));
+#endif
 
 		/* Release the resources used by this task. */
 
@@ -302,6 +339,17 @@ mxd_daqmx_base_dinput_read( MX_DIGITAL_INPUT *dinput )
 					read_array, read_array_length,
 					&num_samples_read, NULL );
 
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxBaseReadDigitalU32( "
+	"%#lx, %lu, %f, %#x, read_array, %lu, &num_samples, NULL ) = %d",
+		fname, (unsigned long) daqmx_base_dinput->handle,
+		num_samples,
+		timeout,
+		DAQmx_Val_GroupByChannel,
+		(unsigned long) read_array_length,
+		(int) daqmx_status));
+#endif
+
 	if ( daqmx_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to read digital input '%s' failed.  "
@@ -309,6 +357,11 @@ mxd_daqmx_base_dinput_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name,
 			(int) daqmx_status );
 	}
+
+#if MXD_DAQMX_BASE_DINPUT_DEBUG
+	MX_DEBUG(-2,("%s:   num_samples_read = %lu, read_array[0] = %lu",
+		fname, num_samples_read, read_array[0]));
+#endif
 
 	dinput->value = read_array[0];
 

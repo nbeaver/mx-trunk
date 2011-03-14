@@ -10,10 +10,17 @@ ifndef MX_INSTALL_DIR
   MX_INSTALL_DIR = /opt/mx
 endif
 
+ifeq ($(MX_ARCH),linux)
+	DAQMX_BASE_DIR = /usr/local/natinst/nidaqmxbase
+
+	CFLAGS += -I$(DAQMX_BASE_DIR)/include
+endif
+
 ifeq ($(MX_ARCH),win32)
 	DAQMX_BASE_DIR = c:\\progra~1\\nation~1\\ni-daq~1
 
 	CFLAGS += -DWIN32
+	CFLAGS += -I$(DAQMX_BASE_DIR)\\include
 endif
 
 #--------------------------------------------------------------------------
@@ -23,10 +30,21 @@ all: daqmx_base.mxo
 include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
-CFLAGS += -I$(DAQMX_BASE_DIR)\\Include
 
 DAQMX_BASE_OBJS = daqmx_base.$(OBJ) i_daqmx_base.$(OBJ) \
 		d_daqmx_base_dinput.$(OBJ)
+
+#--------------------------------------------------------------------------
+
+ifeq ($(MX_ARCH),linux)
+
+daqmx_base.mxo: $(DAQMX_BASE_OBJS)
+	$(CC) -shared -o daqmx_base.mxo $(DAQMX_BASE_OBJS) \
+		-lnidaqmxbase -lnidaqmxbaselv \
+		/usr/local/lib/liblvrtdark.so.10.0 \
+		/usr/local/lib/LabVIEW-2010/libniCPULib.so
+
+endif
 
 #--------------------------------------------------------------------------
 
