@@ -20,8 +20,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
@@ -64,6 +64,9 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(PMC_MCAPI_LIB_DIRS)
 #LIBRARIES	= $(PMC_MCAPI_LIBRARIES) -lpthread -lrt -ldl -lm
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_DAQMX_BASE_LIB_DIRS)
+LIBRARIES	= $(NI_DAQMX_BASE_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
@@ -282,6 +285,17 @@ ESONE_CAMAC_INCLUDES   = -I$(JORWAY_CAMAC_DIR)/include
 PMC_MCAPI_INCLUDES  = -I/usr/local/src/mcapi-4.1.2/src
 PMC_MCAPI_LIB_DIRS  = -L/usr/local/lib
 PMC_MCAPI_LIBRARIES = -lmcapi
+
+#
+# Note: The wierd stuff below with -rpath is only necessary for distributions
+#       derived from Red Hat Enterprise Linux 5.  You should probably remove
+#       it for other distributions.  The reason for it is explained here:
+#
+# http://decibel.ni.com/content/thread/5902?decorator=print&displayFullThread=true
+#
+NI_DAQMX_BASE_LIB_DIRS  = -L/usr/local/lib
+NI_DAQMX_BASE_LIBRARIES = -lnidaqmxbase \
+     -Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
 
 #
 I8255_INCLUDES  =

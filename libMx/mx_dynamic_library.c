@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -440,10 +440,16 @@ mx_dynamic_library_open( const char *filename,
 
 		mx_free( *library );
 
+#if 0
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to open dynamic library '%s'.  "
 			"Error code = %d, error message = '%s'.",
 			filename, saved_errno, strerror(saved_errno) );
+#else
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to open dynamic library '%s'.  "
+			"dlopen() error message = '%s'.", filename, dlerror() );
+#endif
 	}
 
 	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );

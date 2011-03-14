@@ -138,6 +138,9 @@ mxi_daqmx_base_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_warning( "The National Instruments DAQmx Base system "
+	"takes a _long_ time to initialize itself, so please be patient." );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
