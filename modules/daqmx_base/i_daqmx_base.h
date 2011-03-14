@@ -39,9 +39,8 @@ typedef struct {
 
 /*-----*/
 
-MX_API void
-mxi_daqmx_base_send_lookup_table_program( int *grabber,
-					int lookup_table_program );
+MX_API mx_status_type
+mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle );
 
 /*-----*/
 

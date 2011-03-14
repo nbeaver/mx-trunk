@@ -163,12 +163,49 @@ mxi_daqmx_base_close( MX_RECORD *record )
 
 /*--------------- Exported driver-specific functions ---------------*/
 
-MX_EXPORT void
-mxi_daqmx_base_send_lookup_table_program( int *grabber,
-					int lookup_table_program )
+MX_EXPORT mx_status_type
+mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 {
-	return;
-}
+	static const char fname[] = "mxi_daqmx_base_shutdown_task()";
 
-/*------------------------------------------------------------------------*/
+	int32 daqmx_status;
+
+	/* Stop the task. */
+
+	daqmx_status = DAQmxBaseStopTask( task_handle );
+
+#if MXI_DAQMX_BASE_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxBaseStopTask( %#lx ) = %d",
+		fname, (unsigned long) task_handle, (int) daqmx_status));
+#endif
+
+	if ( daqmx_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to stop task %#lx for DAQmx Base device '%s' "
+		"failed.  DAQmx error code = %d",
+			(unsigned long) task_handle,
+			record->name,
+			(int) daqmx_status );
+	}
+
+#if MXI_DAQMX_BASE_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxBaseClearTask( %#lx ) = %d",
+		fname, (unsigned long) task_handle, (int) daqmx_status));
+#endif
+
+	/* Release the resources used by this task. */
+
+	daqmx_status = DAQmxBaseClearTask( task_handle );
+
+	if ( daqmx_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to clear task %#lx for DAQmx Base device '%s' "
+		"failed.  DAQmx error code = %d",
+			(unsigned long) task_handle,
+			record->name,
+			(int) daqmx_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 

@@ -32,7 +32,8 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 DAQMX_BASE_OBJS = daqmx_base.$(OBJ) i_daqmx_base.$(OBJ) \
-		d_daqmx_base_dinput.$(OBJ) d_daqmx_base_doutput.$(OBJ)
+		d_daqmx_base_dinput.$(OBJ) d_daqmx_base_doutput.$(OBJ) \
+		d_daqmx_base_aoutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -42,9 +43,6 @@ ifeq ($(MX_ARCH),linux)
 # Read http://decibel.ni.com/content/thread/5902?decorator=print&displayFullThread=true
 # for an explanation of why the line starting with -Wl,... must be present
 # on Linux distributions derived from Red Hat Enterprise Linux 5.
-#
-# Warning: As of March 13, 2011, the above change does not actually fix
-# the problem.
 #
 
 daqmx_base.mxo: $(DAQMX_BASE_OBJS)
@@ -93,6 +91,10 @@ d_daqmx_base_dinput.$(OBJ): d_daqmx_base_dinput.c i_daqmx_base.h \
 d_daqmx_base_doutput.$(OBJ): d_daqmx_base_doutput.c i_daqmx_base.h \
 			d_daqmx_base_doutput.h
 	$(COMPILE) $(CFLAGS) d_daqmx_base_doutput.c
+
+d_daqmx_base_aoutput.$(OBJ): d_daqmx_base_aoutput.c i_daqmx_base.h \
+			d_daqmx_base_aoutput.h
+	$(COMPILE) $(CFLAGS) d_daqmx_base_aoutput.c
 
 install: daqmx_base.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

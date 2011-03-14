@@ -2,3 +2,4 @@
 daqmx_base interface controller daqmx_base "" "" 1
 port0  device digital_input daqmx_base_dinput "" "" 0 daqmx_base Dev1/port0
 port1  device digital_output daqmx_base_doutput "" "" 0 daqmx_base Dev1/port1
+ao0    device analog_output daqmx_base_aoutput "" "" 0 1 0 V 0x0 daqmx_base Dev1/ao0 0.0 5.0

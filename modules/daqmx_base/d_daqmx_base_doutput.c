@@ -93,14 +93,15 @@ mxd_daqmx_base_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_daqmx_base_doutput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_daqmx_base_doutput_create_record_structures()";
+        const char fname[] =
+		"mxd_daqmx_base_doutput_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_DAQMX_BASE_DOUTPUT *daqmx_base_doutput;
 
         /* Allocate memory for the necessary structures. */
 
-        digital_output = (MX_DIGITAL_OUTPUT *) malloc(sizeof(MX_DIGITAL_OUTPUT));
+        digital_output = (MX_DIGITAL_OUTPUT *)malloc(sizeof(MX_DIGITAL_OUTPUT));
 
         if ( digital_output == (MX_DIGITAL_OUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -123,6 +124,7 @@ mxd_daqmx_base_doutput_create_record_structures( MX_RECORD *record )
 			= &mxd_daqmx_base_doutput_digital_output_function_list;
 
         digital_output->record = record;
+	daqmx_base_doutput->record = record;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -196,13 +198,11 @@ mxd_daqmx_base_doutput_open( MX_RECORD *record )
 			record->name, (int) daqmx_status );
 	}
 
-#if 0
 	if ( daqmx_base_doutput->handle == 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to create a TaskHandle for '%s' failed.",
 			record->name );
 	}
-#endif
 
 	/* Associate a digital output channel with this task. */
 
@@ -256,7 +256,6 @@ mxd_daqmx_base_doutput_close( MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_DAQMX_BASE_DOUTPUT *daqmx_base_doutput = NULL;
-	int32 daqmx_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -273,47 +272,11 @@ mxd_daqmx_base_doutput_close( MX_RECORD *record )
 		return mx_status;
 
 	if ( daqmx_base_doutput->handle != 0 ) {
-
-		/* Stop the task. */
-
-		daqmx_status = DAQmxBaseStopTask( daqmx_base_doutput->handle );
-
-#if MXD_DAQMX_BASE_DOUTPUT_DEBUG
-		MX_DEBUG(-2,("%s: DAQmxBaseStopTask( %#lx ) = %d",
-			fname, (unsigned long) daqmx_base_doutput->handle,
-			(int) daqmx_status));
-#endif
-
-		if ( daqmx_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to stop task %#lx for digital output '%s' "
-			"failed.  DAQmx error code = %d",
-				(unsigned long) daqmx_base_doutput->handle,
-				record->name,
-				(int) daqmx_status );
-		}
-
-#if MXD_DAQMX_BASE_DOUTPUT_DEBUG
-		MX_DEBUG(-2,("%s: DAQmxBaseClearTask( %#lx ) = %d",
-			fname, (unsigned long) daqmx_base_doutput->handle,
-			(int) daqmx_status));
-#endif
-
-		/* Release the resources used by this task. */
-
-		daqmx_status = DAQmxBaseClearTask( daqmx_base_doutput->handle );
-
-		if ( daqmx_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to clear task %#lx for digital output '%s' "
-			"failed.  DAQmx error code = %d",
-				(unsigned long) daqmx_base_doutput->handle,
-				record->name,
-				(int) daqmx_status );
-		}
+		mx_status = mxi_daqmx_base_shutdown_task( record,
+						daqmx_base_doutput->handle );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

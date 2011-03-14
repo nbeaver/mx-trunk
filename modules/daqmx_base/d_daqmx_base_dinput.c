@@ -122,6 +122,7 @@ mxd_daqmx_base_dinput_create_record_structures( MX_RECORD *record )
 			= &mxd_daqmx_base_dinput_digital_input_function_list;
 
         digital_input->record = record;
+	daqmx_base_dinput->record = record;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -195,13 +196,11 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 			record->name, (int) daqmx_status );
 	}
 
-#if 0
 	if ( daqmx_base_dinput->handle == 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to create a TaskHandle for '%s' failed.",
 			record->name );
 	}
-#endif
 
 	/* Associate a digital input channel with this task. */
 
@@ -255,7 +254,6 @@ mxd_daqmx_base_dinput_close( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_DAQMX_BASE_DINPUT *daqmx_base_dinput = NULL;
-	int32 daqmx_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -272,47 +270,11 @@ mxd_daqmx_base_dinput_close( MX_RECORD *record )
 		return mx_status;
 
 	if ( daqmx_base_dinput->handle != 0 ) {
-
-		/* Stop the task. */
-
-		daqmx_status = DAQmxBaseStopTask( daqmx_base_dinput->handle );
-
-#if MXD_DAQMX_BASE_DINPUT_DEBUG
-		MX_DEBUG(-2,("%s: DAQmxBaseStopTask( %#lx ) = %d",
-			fname, (unsigned long) daqmx_base_dinput->handle,
-			(int) daqmx_status));
-#endif
-
-		if ( daqmx_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to stop task %#lx for digital input '%s' "
-			"failed.  DAQmx error code = %d",
-				(unsigned long) daqmx_base_dinput->handle,
-				record->name,
-				(int) daqmx_status );
-		}
-
-#if MXD_DAQMX_BASE_DINPUT_DEBUG
-		MX_DEBUG(-2,("%s: DAQmxBaseClearTask( %#lx ) = %d",
-			fname, (unsigned long) daqmx_base_dinput->handle,
-			(int) daqmx_status));
-#endif
-
-		/* Release the resources used by this task. */
-
-		daqmx_status = DAQmxBaseClearTask( daqmx_base_dinput->handle );
-
-		if ( daqmx_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to clear task %#lx for digital input '%s' "
-			"failed.  DAQmx error code = %d",
-				(unsigned long) daqmx_base_dinput->handle,
-				record->name,
-				(int) daqmx_status );
-		}
+		mx_status = mxi_daqmx_base_shutdown_task( record,
+						daqmx_base_dinput->handle );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
