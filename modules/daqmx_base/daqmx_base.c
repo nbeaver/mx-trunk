@@ -22,6 +22,7 @@
 #include "mx_module.h"
 #include "i_daqmx_base.h"
 #include "d_daqmx_base_dinput.h"
+#include "d_daqmx_base_doutput.h"
 
 MX_DRIVER daqmx_base_driver_table[] = {
 
@@ -35,9 +36,16 @@ MX_DRIVER daqmx_base_driver_table[] = {
 {"daqmx_base_dinput", -1, MXC_DIGITAL_INPUT, MXR_DEVICE,
 				&mxd_daqmx_base_dinput_record_function_list,
 				NULL,
-			    &mxd_daqmx_base_dinput_digital_input_function_list,
+			   &mxd_daqmx_base_dinput_digital_input_function_list,
 				&mxd_daqmx_base_dinput_num_record_fields,
 				&mxd_daqmx_base_dinput_rfield_def_ptr},
+
+{"daqmx_base_doutput", -1, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_daqmx_base_doutput_record_function_list,
+				NULL,
+			   &mxd_daqmx_base_doutput_digital_output_function_list,
+				&mxd_daqmx_base_doutput_num_record_fields,
+				&mxd_daqmx_base_doutput_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

@@ -32,7 +32,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 DAQMX_BASE_OBJS = daqmx_base.$(OBJ) i_daqmx_base.$(OBJ) \
-		d_daqmx_base_dinput.$(OBJ)
+		d_daqmx_base_dinput.$(OBJ) d_daqmx_base_doutput.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ endif
 #--------------------------------------------------------------------------
 
 daqmx_base.$(OBJ): daqmx_base.c i_daqmx_base.h \
-			d_daqmx_base_dinput.h
+			d_daqmx_base_dinput.h d_daqmx_base_doutput.h
 	$(COMPILE) $(CFLAGS) daqmx_base.c
 
 i_daqmx_base.$(OBJ): i_daqmx_base.c i_daqmx_base.h
@@ -79,6 +79,10 @@ i_daqmx_base.$(OBJ): i_daqmx_base.c i_daqmx_base.h
 d_daqmx_base_dinput.$(OBJ): d_daqmx_base_dinput.c i_daqmx_base.h \
 			d_daqmx_base_dinput.h
 	$(COMPILE) $(CFLAGS) d_daqmx_base_dinput.c
+
+d_daqmx_base_doutput.$(OBJ): d_daqmx_base_doutput.c i_daqmx_base.h \
+			d_daqmx_base_doutput.h
+	$(COMPILE) $(CFLAGS) d_daqmx_base_doutput.c
 
 install: daqmx_base.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
