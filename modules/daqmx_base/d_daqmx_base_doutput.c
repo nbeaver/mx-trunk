@@ -196,11 +196,13 @@ mxd_daqmx_base_doutput_open( MX_RECORD *record )
 			record->name, (int) daqmx_status );
 	}
 
+#if 0
 	if ( daqmx_base_doutput->handle == 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to create a TaskHandle for '%s' failed.",
 			record->name );
 	}
+#endif
 
 	/* Associate a digital output channel with this task. */
 

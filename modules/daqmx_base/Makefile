@@ -38,11 +38,21 @@ DAQMX_BASE_OBJS = daqmx_base.$(OBJ) i_daqmx_base.$(OBJ) \
 
 ifeq ($(MX_ARCH),linux)
 
+#
+# Read http://decibel.ni.com/content/thread/5902?decorator=print&displayFullThread=true
+# for an explanation of why the line starting with -Wl,... must be present
+# on Linux distributions derived from Red Hat Enterprise Linux 5.
+#
+# Warning: As of March 13, 2011, the above change does not actually fix
+# the problem.
+#
+
 daqmx_base.mxo: $(DAQMX_BASE_OBJS)
-	$(CC) -shared -o daqmx_base.mxo $(DAQMX_BASE_OBJS) \
+	$(CC) -shared -rdynamic -o daqmx_base.mxo $(DAQMX_BASE_OBJS) \
 		-lnidaqmxbase -lnidaqmxbaselv \
 		/usr/local/lib/liblvrtdark.so.10.0 \
-		/usr/local/lib/LabVIEW-2010/libniCPULib.so
+		/usr/local/lib/LabVIEW-2010/libniCPULib.so \
+	-Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
 
 endif
 

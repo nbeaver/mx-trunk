@@ -195,11 +195,13 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 			record->name, (int) daqmx_status );
 	}
 
+#if 0
 	if ( daqmx_base_dinput->handle == 0 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to create a TaskHandle for '%s' failed.",
 			record->name );
 	}
+#endif
 
 	/* Associate a digital input channel with this task. */
 
@@ -336,7 +338,7 @@ mxd_daqmx_base_dinput_read( MX_DIGITAL_INPUT *dinput )
 		return mx_status;
 
 	num_samples       = 1;
-	timeout           = 1.0;    /* read timeout in seconds */
+	timeout           = 10.0;    /* read timeout in seconds */
 	read_array_length = 1;
 
 	daqmx_status = DAQmxBaseReadDigitalU32( daqmx_base_dinput->handle,
