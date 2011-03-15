@@ -10,13 +10,13 @@
 
 all: build
 
-MODULES += daqmx_base
+#MODULES += daqmx_base
 
 # Win32-only modules.
 
-#MODULES += pleora_iport
+MODULES += pleora_iport
 
-#MODULES += radicon_helios
+MODULES += radicon_helios
 
 #MODULES += bnc725_lib
 

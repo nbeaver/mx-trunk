@@ -252,6 +252,29 @@ mxd_mbc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	return mx_status;
 }
 
+static mx_status_type
+mxd_mbc_trigger_send_command( MX_MBC_TRIGGER *mbc_trigger, char *command )
+{
+	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
+	long command_trigger;
+	mx_status_type mx_status;
+
+	strlcpy( epics_string, command, sizeof(epics_string) );
+
+	mx_status = mx_caput( &(mbc_trigger->command_pv),
+				MX_CA_STRING, 1, epics_string );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_trigger = 0;
+
+	mx_status = mx_caput( &(mbc_trigger->command_trig_pv),
+				MX_CA_LONG, 1, &command_trigger );
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 {
@@ -259,8 +282,7 @@ mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	MX_MBC_TRIGGER *mbc_trigger;
 	double exposure_seconds;
-	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
-	long command_trigger;
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mbc_trigger_get_pointers( pulser, &mbc_trigger, fname );
@@ -276,18 +298,7 @@ mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 #endif
 	/* Prepare the MBC beamline for an exposure. */
 
-	strlcpy( epics_string, "init", sizeof(epics_string) );
-
-	mx_status = mx_caput( &(mbc_trigger->command_pv), 
-				MX_CA_STRING, 1, epics_string );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	command_trigger = 0;
-
-	mx_status = mx_caput( &(mbc_trigger->command_trig_pv),
-				MX_CA_LONG, 1, &command_trigger );
+	mx_status = mxd_mbc_trigger_send_command( mbc_trigger, "init" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -300,21 +311,26 @@ mxd_mbc_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	/* Start the exposure. */
 
-	strlcpy( epics_string, "snap", sizeof(epics_string) );
-
-	mx_status = mx_caput( &(mbc_trigger->command_pv), 
-				MX_CA_STRING, 1, epics_string );
+	mx_status = mxd_mbc_trigger_send_command( mbc_trigger, "snap" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	command_trigger = 0;
+#if 1
+	/* FIXME: This should not be necessary, but the procedure
+	 *        does not work without it.  Note that 'caput' must
+	 *        be in the PATH for this to work.
+	 */
 
-	mx_status = mx_caput( &(mbc_trigger->command_trig_pv),
-				MX_CA_LONG, 1, &command_trigger );
+	snprintf( command, sizeof(command), "caput %sCOLLECT:commandTrig 0",
+					mbc_trigger->epics_prefix );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+#if MXD_MBC_TRIGGER_DEBUG
+	MX_DEBUG(-2,("%s: executing command '%s'", fname, command));
+#endif
+
+	system( command );
+#endif
 
 	mbc_trigger->exposure_in_progress = TRUE;
 
