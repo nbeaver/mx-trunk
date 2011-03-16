@@ -682,7 +682,8 @@ extern "C" {
 #define MXT_PGN_SIS3807			160003
 #define MXT_PGN_SIS3801			160004
 #define MXT_PGN_PDI45			160005
-#define MXT_PGN_MBC_TRIGGER		160006
+#define MXT_PGN_MBC_NOIR_TRIGGER	160006
+#define MXT_PGN_MBC_GSC_TRIGGER		160007
 
 /* --- Single channel analyzer types --- */
 

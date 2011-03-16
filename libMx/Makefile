@@ -109,7 +109,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_linux_parport.c d_lpt.c \
 	d_mar345.c d_marccd.c d_marccd_server_socket.c d_marccd_shutter.c \
 	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
-	d_mbc_noir.c d_mbc_trigger.c \
+	d_mbc_noir.c d_mbc_noir_trigger.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
 	d_mca_timer.c d_mca_value.c d_mca_weighted_sum.c d_mcai_function.c \
 	d_mclennan.c d_mclennan_aio.c d_mclennan_dio.c \
