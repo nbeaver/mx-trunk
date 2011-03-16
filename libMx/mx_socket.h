@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,10 @@
 /* Include standard socket defines and prototypes. */
 
 #if defined( OS_WIN32 )
+#  include <errno.h>	/* Include <errno.h> here so that we can redefine
+			 * EWOULDBLOCK and friends further down in the
+			 * header file.
+			 */
 #  include <winsock.h>
 
 #elif defined( OS_VMS ) && defined( HAVE_WINTCP )
@@ -130,11 +134,28 @@ typedef struct {
 
 #if defined( OS_WIN32 )
 
-#  define ECONNRESET	WSAECONNRESET
-#  define ECONNABORTED  WSAECONNABORTED
-#  define ENOTCONN	WSAENOTCONN
-#  define EWOULDBLOCK	WSAEWOULDBLOCK
+   /* For Visual Studio 2010 and above, the error codes are defined
+    * with different values than the Winsock values, but the Winsock
+    * values are the ones you get back from socket functions.
+    */
 
+#  ifdef ECONNRESET
+#     undef ECONNRESET
+#  endif
+#  ifdef ECONNABORTED
+#     undef ECONNABORTED
+#  endif
+#  ifdef ENOTCONN
+#     undef ENOTCONN
+#  endif
+#  ifdef EWOULDBLOCK
+#     undef EWOULDBLOCK
+#  endif
+
+#  define ECONNRESET    WSAECONNRESET
+#  define ECONNABORTED  WSAECONNABORTED
+#  define ENOTCONN      WSAENOTCONN
+#  define EWOULDBLOCK   WSAEWOULDBLOCK
 #endif
 
 /* mx_socklen_t is used by the third argument of accept(). */
