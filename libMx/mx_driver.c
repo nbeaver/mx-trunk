@@ -579,6 +579,7 @@
 #include "v_aps_topup.h"
 #include "d_mbc_noir.h"
 #include "d_mbc_noir_trigger.h"
+#include "d_mbc_gsc_trigger.h"
 #endif
 
 #if HAVE_ORTEC_UMCBI
@@ -2886,6 +2887,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_mbc_noir_trigger_pulser_function_list,
 				&mxd_mbc_noir_trigger_num_record_fields,
 				&mxd_mbc_noir_trigger_rfield_def_ptr},
+
+{"mbc_gsc_trigger", MXT_PGN_MBC_GSC_TRIGGER, MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_mbc_gsc_trigger_record_function_list,
+				NULL,
+				&mxd_mbc_gsc_trigger_pulser_function_list,
+				&mxd_mbc_gsc_trigger_num_record_fields,
+				&mxd_mbc_gsc_trigger_rfield_def_ptr},
 
 #endif /* HAVE_EPICS */
 

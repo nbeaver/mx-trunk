@@ -2,7 +2,8 @@
  * Name:    d_mbc_noir_trigger.h
  *
  * Purpose: Header file for MX pulse generator driver to control
- *          the MBC (ALS 4.2.2) beamline trigger signal.
+ *          the MBC (ALS 4.2.2) beamline trigger signal using
+ *          MBC:NOIR: EPICS PVs.
  *
  * Author:  William Lavender
  *

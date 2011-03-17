@@ -2,7 +2,7 @@
  * Name:    d_mbc_noir_trigger.c
  *
  * Purpose: MX pulse generator driver to control the MBC (ALS 4.2.2)
- *          beamline trigger signal.
+ *          beamline trigger signal using MBC:NOIR: EPICS PVs.
  *
  * Author:  William Lavender
  *
@@ -91,7 +91,8 @@ mxd_mbc_noir_trigger_get_pointers( MX_PULSE_GENERATOR *pulser,
 			calling_fname );
 	}
 
-	mbc_noir_trigger_ptr = (MX_MBC_NOIR_TRIGGER *) pulser->record->record_type_struct;
+	mbc_noir_trigger_ptr = (MX_MBC_NOIR_TRIGGER *)
+					pulser->record->record_type_struct;
 
 	if ( mbc_noir_trigger_ptr == (MX_MBC_NOIR_TRIGGER *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -127,7 +128,8 @@ mxd_mbc_noir_trigger_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_PULSE_GENERATOR structure." );
 	}
 
-	mbc_noir_trigger = (MX_MBC_NOIR_TRIGGER *) malloc( sizeof(MX_MBC_NOIR_TRIGGER) );
+	mbc_noir_trigger = (MX_MBC_NOIR_TRIGGER *)
+				malloc( sizeof(MX_MBC_NOIR_TRIGGER) );
 
 	if ( mbc_noir_trigger == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -163,7 +165,8 @@ mxd_mbc_noir_trigger_finish_record_initialization( MX_RECORD *record )
 
 	pulser = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -201,7 +204,8 @@ mxd_mbc_noir_trigger_open( MX_RECORD *record )
 
 	pulser = (MX_PULSE_GENERATOR *) record->record_class_struct;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -220,7 +224,8 @@ mxd_mbc_noir_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	long shutter_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -253,7 +258,8 @@ mxd_mbc_noir_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 }
 
 static mx_status_type
-mxd_mbc_noir_trigger_send_command( MX_MBC_NOIR_TRIGGER *mbc_noir_trigger, char *command )
+mxd_mbc_noir_trigger_send_command( MX_MBC_NOIR_TRIGGER *mbc_noir_trigger,
+							char *command )
 {
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	long command_trigger;
@@ -285,7 +291,8 @@ mxd_mbc_noir_trigger_start( MX_PULSE_GENERATOR *pulser )
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -298,7 +305,8 @@ mxd_mbc_noir_trigger_start( MX_PULSE_GENERATOR *pulser )
 #endif
 	/* Prepare the MBC beamline for an exposure. */
 
-	mx_status = mxd_mbc_noir_trigger_send_command( mbc_noir_trigger, "init" );
+	mx_status = mxd_mbc_noir_trigger_send_command(
+						mbc_noir_trigger, "init" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -311,7 +319,8 @@ mxd_mbc_noir_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	/* Start the exposure. */
 
-	mx_status = mxd_mbc_noir_trigger_send_command( mbc_noir_trigger, "snap" );
+	mx_status = mxd_mbc_noir_trigger_send_command(
+						mbc_noir_trigger, "snap" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -345,7 +354,8 @@ mxd_mbc_noir_trigger_stop( MX_PULSE_GENERATOR *pulser )
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -368,7 +378,8 @@ mxd_mbc_noir_trigger_get_parameter( MX_PULSE_GENERATOR *pulser )
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -413,7 +424,8 @@ mxd_mbc_noir_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	mbc_noir_trigger = NULL;
 
-	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser, &mbc_noir_trigger, fname );
+	mx_status = mxd_mbc_noir_trigger_get_pointers( pulser,
+						&mbc_noir_trigger, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
