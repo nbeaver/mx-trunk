@@ -176,11 +176,26 @@ mxd_mbc_gsc_trigger_finish_record_initialization( MX_RECORD *record )
 	mx_epics_pvname_init( &(mbc_gsc_trigger->collect_count_pv),
 			"%ssclC1.CNT", mbc_gsc_trigger->epics_prefix );
 
+	mx_epics_pvname_init( &(mbc_gsc_trigger->exposure_gate_enable_pv),
+			"%sgsc:ExpGateEna", mbc_gsc_trigger->epics_prefix );
+
 	mx_epics_pvname_init( &(mbc_gsc_trigger->collect_preset_enable_pv),
 			"%ssclC1.G1", mbc_gsc_trigger->epics_prefix );
 
 	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_pv),
 			"%sgsc:Shutter1", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_control_pv),
+			"%sgsc:CtrlSrcOut", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_exposure_enable_pv),
+			"%sgsc:Gate2GateEna", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_gate_enable_pv),
+			"%sgsc:Gate1GateEna", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_shutter_enable_pv),
+			"%sgsc:Sht1GateEna", mbc_gsc_trigger->epics_prefix );
 
 	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_timeout_val_pv),
 			"%sgsc:TimeoutVal", mbc_gsc_trigger->epics_prefix );
@@ -285,6 +300,10 @@ mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	return mx_status;
 }
 
+/* FIXME: The start() routine currently only handles 'stills'.  It currently
+ *        does not handle 'dark' measurements or 'expose' requests.
+ */
+
 MX_EXPORT mx_status_type
 mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 {
@@ -307,7 +326,7 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s: Pulse generator '%s' starting for %g seconds.",
 		fname, pulser->record->name, exposure_seconds));
 #endif
-	/* Prepare the Joerger counter/timer called "Counter" to measure
+	/* Prepare the Joerger scaler called "Counter" to measure
 	 * the actual exposure time.
 	 */
 
@@ -321,7 +340,7 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Tell the "Counter" counter/timer to 'start' counting.  Since
+	/* Tell the "Counter" scaler to 'start' counting.  Since
 	 * the counter is configured for external gating, no actual counting
 	 * will occur until the Gate1 output of the GonioSync Controller
 	 * sends a gate pulse.
@@ -333,7 +352,41 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the exposure time in the Joerger counter/timer called "Time". */
+	/* Configure the GSC to take its timer input from the "Time" scaler. */
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_control_pv),
+				MX_CA_STRING, 1, "Timer" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set a bunch of enable flags. */
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_gate_enable_pv),
+				MX_CA_STRING, 1, "Enabled" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->exposure_gate_enable_pv),
+				MX_CA_STRING, 1, "Enabled" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_exposure_enable_pv),
+				MX_CA_STRING, 1, "Enabled" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_shutter_enable_pv),
+				MX_CA_STRING, 1, "Enabled" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the exposure time in the "Time" scaler. */
 
 	mx_status = mx_caput( &(mbc_gsc_trigger->timer_preset_pv),
 				MX_CA_DOUBLE, 1, &exposure_seconds );
@@ -343,8 +396,8 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	/* Compute and set the timeout for the exposure shutter. */
 
-	/* NOTE: This is the calculation from the processCommandStill state
-	 * of the GSC state program.
+	/* NOTE: This is the correct calculation for 'still' and 'dark'
+	 * measurements, but not for 'expose' requests.
 	 */
 
 	shutter_timeout = ( 1.1 * exposure_seconds ) + 0.5;

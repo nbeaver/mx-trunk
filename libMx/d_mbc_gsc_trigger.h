@@ -30,7 +30,12 @@ typedef struct {
 
 	MX_EPICS_PV collect_count_pv;
 	MX_EPICS_PV collect_preset_enable_pv;
+	MX_EPICS_PV exposure_gate_enable_pv;
 	MX_EPICS_PV shutter_pv;
+	MX_EPICS_PV shutter_control_pv;
+	MX_EPICS_PV shutter_exposure_enable_pv;
+	MX_EPICS_PV shutter_gate_enable_pv;
+	MX_EPICS_PV shutter_shutter_enable_pv;
 	MX_EPICS_PV shutter_timeout_val_pv;
 	MX_EPICS_PV timer_count_pv;
 	MX_EPICS_PV timer_preset_pv;
