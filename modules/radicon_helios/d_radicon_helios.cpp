@@ -1134,6 +1134,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	long last_frame_number, total_num_frames;
 	unsigned long trigger_value, status_flags;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -1203,6 +1204,21 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	if ( status_flags & MXSF_VIN_IS_BUSY ) {
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+	}
+
+	/* Ask the pulse generator (if present) for its current status. */
+
+	if ( radicon_helios->pulse_generator_record != NULL ) {
+		mx_status = mx_pulse_generator_is_busy(
+					radicon_helios->pulse_generator_record,
+					&busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy ) {
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
+		}
 	}
 
 #if MXD_RADICON_HELIOS_DEBUG

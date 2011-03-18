@@ -1,7 +1,8 @@
 /*
  * Name: radicon_helios.c
  *
- * Purpose: Module wrapper for the Radicon Helios 20x25 CMOS detector.
+ * Purpose: Module wrapper for the Radicon Helios 25x20
+ *          and 10x10 CMOS detectors.
  *
  * Author:  William Lavender
  *

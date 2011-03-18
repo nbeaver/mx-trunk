@@ -173,8 +173,17 @@ mxd_mbc_gsc_trigger_finish_record_initialization( MX_RECORD *record )
 
 	/* Initialize MX EPICS data structures. */
 
+	mx_epics_pvname_init( &(mbc_gsc_trigger->collect_count_pv),
+			"%ssclC1.CNT", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->collect_preset_enable_pv),
+			"%ssclC1.G1", mbc_gsc_trigger->epics_prefix );
+
 	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_pv),
 			"%sgsc:Shutter1", mbc_gsc_trigger->epics_prefix );
+
+	mx_epics_pvname_init( &(mbc_gsc_trigger->shutter_timeout_val_pv),
+			"%sgsc:TimeoutVal", mbc_gsc_trigger->epics_prefix );
 
 	mx_epics_pvname_init( &(mbc_gsc_trigger->timer_count_pv),
 			"%ssclT1.CNT", mbc_gsc_trigger->epics_prefix );
@@ -231,6 +240,7 @@ mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 		pulser->busy = FALSE;
 
 		shutter_status = -1;
+		timer_status   = -1;
 	} else {
 		mx_status = mx_caget( &(mbc_gsc_trigger->shutter_pv),
 					MX_CA_LONG, 1, &shutter_status );
@@ -248,6 +258,20 @@ mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 			pulser->busy = TRUE;
 		} else {
 			pulser->busy = FALSE;
+
+			mbc_gsc_trigger->exposure_in_progress = FALSE;
+
+			/* Stop the "Collect" counter so that the time read
+			 * out will reset to zero the next time the counter
+			 * is started.
+			 */
+
+			mx_status = mx_caput(
+					&(mbc_gsc_trigger->collect_count_pv),
+					MX_CA_STRING, 1, "Done" );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 
@@ -267,8 +291,7 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	static const char fname[] = "mxd_mbc_gsc_trigger_start()";
 
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
-	double exposure_seconds;
-	long start_timer;
+	double exposure_seconds, shutter_timeout;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -284,19 +307,58 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s: Pulse generator '%s' starting for %g seconds.",
 		fname, pulser->record->name, exposure_seconds));
 #endif
+	/* Prepare the Joerger counter/timer called "Counter" to measure
+	 * the actual exposure time.
+	 */
+
+	/* Disable the "Counter" internal timer gate so that it will use the
+	 * external gate input instead to determine its measurement time.
+	 */
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->collect_preset_enable_pv),
+				MX_CA_STRING, 1, "N" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the "Counter" counter/timer to 'start' counting.  Since
+	 * the counter is configured for external gating, no actual counting
+	 * will occur until the Gate1 output of the GonioSync Controller
+	 * sends a gate pulse.
+	 */
+
+	mx_status = mx_caput_nowait( &(mbc_gsc_trigger->collect_count_pv),
+				MX_CA_STRING, 1, "Count" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the exposure time in the Joerger counter/timer called "Time". */
 
 	mx_status = mx_caput( &(mbc_gsc_trigger->timer_preset_pv),
-				MX_CA_LONG, 1, &exposure_seconds );
+				MX_CA_DOUBLE, 1, &exposure_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute and set the timeout for the exposure shutter. */
+
+	/* NOTE: This is the calculation from the processCommandStill state
+	 * of the GSC state program.
+	 */
+
+	shutter_timeout = ( 1.1 * exposure_seconds ) + 0.5;
+
+	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_timeout_val_pv),
+				MX_CA_DOUBLE, 1, &shutter_timeout );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Start the exposure. */
 
-	start_timer = 1;
-
 	mx_status = mx_caput_nowait( &(mbc_gsc_trigger->timer_count_pv),
-					MX_CA_LONG, 1, &start_timer );
+					MX_CA_STRING, 1, "Count" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -324,6 +386,11 @@ mxd_mbc_gsc_trigger_stop( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
 		fname, pulser->record->name ));
 #endif
+	mx_status = mx_caput_nowait( &(mbc_gsc_trigger->timer_count_pv),
+					MX_CA_STRING, 1, "Done" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mbc_gsc_trigger->exposure_in_progress = FALSE;
 
