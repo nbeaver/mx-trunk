@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,6 +186,28 @@ mx_epics_set_debug_flag( int flag )
 
 /*--------------------------------------------------------------------------*/
 
+#if defined(OS_WIN32)
+
+#include <windows.h>
+
+static void CALLBACK
+mx_win32_epics_atexit_timer_callback( UINT uTimerID,
+					UINT uMsg,
+					DWORD_PTR dwUser,
+					DWORD dw1,
+					DWORD dw2 )
+{
+	unsigned long process_id;
+
+	process_id = mx_process_id();
+
+	mx_kill_process_id( process_id );
+}
+
+#endif
+
+/*--------------------------------------------------------------------------*/
+
 static void
 mx_epics_atexit_handler( void )
 {
@@ -195,22 +217,33 @@ mx_epics_atexit_handler( void )
 	MX_DEBUG(-2,("%s: atexit handler invoked.", fname));
 #endif
 
+#if !defined(OS_WIN32)
+
 	/* Allow any last straggling events to be processed. */
 
 	ca_pend_event( 0.1 );
+#endif
 
 	/* If a VME crate is shut down before we exit, we may hang in
 	 * ca_context_destroy().  In order to recover from this, we set
 	 * up a timeout mechanism for ca_context_destroy().
 	 */
 
-#if ! defined(OS_WIN32)
+#if defined(OS_WIN32)
+
+	(void) timeSetEvent( 5000, 0,
+			mx_win32_epics_atexit_timer_callback,
+			(DWORD_PTR) NULL, TIME_ONESHOT );
+
+#else /* not OS_WIN32 */
+
 	/* On Unix-like systems, we use alarm() and SIGALRM to terminate. */
 
 	signal( SIGALRM, SIG_DFL );
 
 	alarm(5);
-#endif
+
+#endif /* not OS_WIN32 */
 
 #if MX_EPICS_DEBUG_HANDLERS
 	MX_DEBUG(-2,("%s: About to shutdown Channel Access.", fname));
