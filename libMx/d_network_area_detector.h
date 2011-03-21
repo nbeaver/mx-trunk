@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,7 @@ typedef struct {
 	MX_NETWORK_FIELD datafile_pattern_nf;
 	MX_NETWORK_FIELD detector_readout_time_nf;
 	MX_NETWORK_FIELD exposure_distance_nf;
+	MX_NETWORK_FIELD exposure_mode_nf;
 	MX_NETWORK_FIELD exposure_motor_name_nf;
 	MX_NETWORK_FIELD exposure_trigger_name_nf;
 	MX_NETWORK_FIELD extended_status_nf;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -301,6 +301,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 			"%s.exposure_distance",
 			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->exposure_mode_nf),
+		network_area_detector->server_record,
+		"%s.exposure_mode", network_area_detector->remote_record_name );
 
 	mx_network_field_init(
 		&(network_area_detector->exposure_motor_name_nf),
@@ -1551,6 +1556,11 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 					MXFT_LONG, &(ad->trigger_mode) );
 		break;
 
+	case MXLV_AD_EXPOSURE_MODE:
+		mx_status = mx_get( &(network_area_detector->exposure_mode_nf),
+					MXFT_LONG, &(ad->exposure_mode) );
+		break;
+
 	case MXLV_AD_BYTES_PER_FRAME:
 		mx_status =
 			mx_get( &(network_area_detector->bytes_per_frame_nf),
@@ -1795,6 +1805,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_TRIGGER_MODE:
 		mx_status = mx_put( &(network_area_detector->trigger_mode_nf),
 				MXFT_LONG, &(ad->trigger_mode) );
+		break;
+
+	case MXLV_AD_EXPOSURE_MODE:
+		mx_status = mx_put( &(network_area_detector->exposure_mode_nf),
+					MXFT_LONG, &(ad->exposure_mode) );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

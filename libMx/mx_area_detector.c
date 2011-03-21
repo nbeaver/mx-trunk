@@ -207,6 +207,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->byte_order = (long) mx_native_byteorder();
 
+	ad->trigger_mode = MXT_IMAGE_NO_TRIGGER;
+	ad->exposure_mode = MXF_AD_STILL_MODE;
+
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
 	ad->total_num_frames = -1;
@@ -2034,6 +2037,75 @@ mx_area_detector_set_trigger_mode( MX_RECORD *record, long trigger_mode )
 	ad->parameter_type = MXLV_AD_TRIGGER_MODE; 
 
 	ad->trigger_mode = trigger_mode;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_exposure_mode( MX_RECORD *record, long *exposure_mode )
+{
+	static const char fname[] = "mx_area_detector_get_exposure_mode()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_EXPOSURE_MODE; 
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( exposure_mode != (long *) NULL ) {
+		*exposure_mode = ad->exposure_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_exposure_mode( MX_RECORD *record, long exposure_mode )
+{
+	static const char fname[] = "mx_area_detector_set_exposure_mode()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_EXPOSURE_MODE; 
+
+	ad->exposure_mode = exposure_mode;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -5138,6 +5210,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_AD_TRIGGER_MODE:
+	case MXLV_AD_EXPOSURE_MODE:
 	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_ROI_NUMBER:
 	case MXLV_AD_CORRECTION_FLAGS:
@@ -5308,6 +5381,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_AD_TRIGGER_MODE:
+	case MXLV_AD_EXPOSURE_MODE:
 	case MXLV_AD_ROI_NUMBER:
 	case MXLV_AD_CORRECTION_FLAGS:
 	case MXLV_AD_SHUTTER_ENABLE:
