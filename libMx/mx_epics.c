@@ -18,7 +18,7 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO			TRUE
+#define MX_EPICS_DEBUG_IO			FALSE
 
 #define MX_EPICS_DEBUG_HANDLERS			FALSE
 
