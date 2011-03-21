@@ -652,13 +652,13 @@ mxd_radicon_helios_open( MX_RECORD *record )
 		}
 	}
 
-	/* Initialize this detector to bulb mode.
+	/* Initialize this detector to duration mode.
 	 *
 	 * It will default to waiting for an external trigger, rather than
 	 * indirectly generating a trigger itself through a pulse generator.
 	 */
 
-	mx_status = mx_area_detector_set_bulb_mode( record, 1 );
+	mx_status = mx_area_detector_set_duration_mode( record, 1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -933,20 +933,20 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 		}
 
 		/* No pulse generator record is available, so we force
-		 * the measurement into bulb mode.
+		 * the measurement into duration mode.
 		 */
 
 		mx_warning( "No pulse generator is configured for "
 			"detector '%s', so this measurement will be "
-			"forced into bulb mode.", ad->record->name );
+			"forced into duration mode.", ad->record->name );
 
-		sp->sequence_type = MXT_SQ_BULB;
+		sp->sequence_type = MXT_SQ_DURATION;
 		sp->num_parameters = 1;
 		sp->parameter_array[0] = 1;	/* one pulse */
 
-		/* Fall through to the bulb mode case. */
+		/* Fall through to the duration mode case. */
 
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 		ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 		break;
 
@@ -1616,7 +1616,7 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		switch( sp->sequence_type ) {
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			/* We rely on the external trigger to remain high
 			 * for the duration of the exposure.
 			 */
@@ -1631,9 +1631,10 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( radicon_helios->pulse_generator_record == NULL ) {
 				mx_warning( "No pulse generator has been "
 				"configured for detector '%s', so we are "
-				"switching to bulb mode.", ad->record->name );
+				"switching to duration mode.",
+					ad->record->name );
 
-				sp->sequence_type = MXT_SQ_BULB;
+				sp->sequence_type = MXT_SQ_DURATION;
 				sp->num_parameters = 1;
 				sp->parameter_array[0] = 1;
 			}
