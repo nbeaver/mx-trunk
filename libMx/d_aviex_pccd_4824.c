@@ -733,7 +733,7 @@ mxd_aviex_pccd_4824_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	new_control_register_value = old_control_register_value;
 
 	/* Mask off the duration bit, since it is only used
-	 * by MXT_SQ_BULB sequences.
+	 * by MXT_SQ_DURATION sequences.
 	 */
 
 	new_control_register_value
@@ -745,11 +745,11 @@ mxd_aviex_pccd_4824_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 
-		/* If this is bulb mode, turn on the duration bit. */
+		/* If this is duration mode, turn on the duration bit. */
 
-		if ( sp->sequence_type == MXT_SQ_BULB ) {
+		if ( sp->sequence_type == MXT_SQ_DURATION ) {
 			new_control_register_value
 		    |= MXF_AVIEX_PCCD_4824_EXTERNAL_DURATION_TRIGGER;
 		}
@@ -824,13 +824,13 @@ mxd_aviex_pccd_4824_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			frame_time = exposure_time
 					+ ad->detector_readout_time;
 		} else
-		if ( sp->sequence_type == MXT_SQ_BULB ) {
+		if ( sp->sequence_type == MXT_SQ_DURATION ) {
 			num_frames = mx_round( sp->parameter_array[0] );
 
 			if ( num_frames > 1 ) {
 				return mx_error(
 				MXE_WOULD_EXCEED_LIMIT, fname,
-			"For a 'bulb' sequence, the maximum number of "
+			"For a 'duration' sequence, the maximum number of "
 			"images for detector '%s' is 1.  You requested "
 			"%ld images, which is not supported.",
 					ad->record->name, num_frames );

@@ -2283,7 +2283,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 	case MXT_SQ_GEOMETRICAL:
 	case MXT_SQ_SUBIMAGE:
 	case MXT_SQ_STREAK_CAMERA:
@@ -4108,7 +4108,7 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_STROBE:
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			mx_status = mx_video_input_set_trigger_mode( 
 						aviex_pccd->video_input_record,
 						MXT_IMAGE_EXTERNAL_TRIGGER );

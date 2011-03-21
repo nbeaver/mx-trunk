@@ -973,7 +973,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_STROBE:
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 
 #if 0
 		if ( in_subimage_mode ) {
@@ -1047,7 +1047,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 			trigger_mode |= MXT_IMAGE_EXTERNAL_TRIGGER;
 			trigger_mode |= MXT_IMAGE_EDGE_TRIGGER;
 			break;
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			num_frames = mx_round( sp->parameter_array[0] );
 			exposure_time = -1.0;
 			camera_is_master = TRUE;
@@ -1076,7 +1076,7 @@ mxd_aviex_pccd_16080_configure_for_sequence( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( sp->sequence_type != MXT_SQ_BULB ) {
+		if ( sp->sequence_type != MXT_SQ_DURATION ) {
 			exposure_steps = mx_round_down( exposure_time
 				/ aviex_pccd->exposure_and_gap_step_size );
 

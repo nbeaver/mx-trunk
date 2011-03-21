@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -133,7 +133,8 @@ mxd_brandeis_biocat_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	brandeis_biocat = (MX_BRANDEIS_BIOCAT *) malloc( sizeof(MX_BRANDEIS_BIOCAT) );
+	brandeis_biocat = (MX_BRANDEIS_BIOCAT *)
+				malloc( sizeof(MX_BRANDEIS_BIOCAT) );
 
 	if ( brandeis_biocat == (MX_BRANDEIS_BIOCAT *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -176,7 +177,8 @@ mxd_brandeis_biocat_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -203,7 +205,8 @@ mxd_brandeis_biocat_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -226,7 +229,8 @@ mxd_brandeis_biocat_trigger( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -254,7 +258,8 @@ mxd_brandeis_biocat_stop( MX_AREA_DETECTOR *ad )
 	MX_BRANDEIS_BIOCAT *brandeis_biocat;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -275,7 +280,8 @@ mxd_brandeis_biocat_abort( MX_AREA_DETECTOR *ad )
 	MX_BRANDEIS_BIOCAT *brandeis_biocat;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -295,7 +301,8 @@ mxd_brandeis_biocat_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_BRANDEIS_BIOCAT *brandeis_biocat;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -325,7 +332,8 @@ mxd_brandeis_biocat_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_BRANDEIS_BIOCAT *brandeis_biocat;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -347,7 +355,8 @@ mxd_brandeis_biocat_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -370,7 +379,8 @@ mxd_brandeis_biocat_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS seq;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -422,7 +432,7 @@ mxd_brandeis_biocat_get_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			/* For these cases, use the default calculation. */
 
 			ad->parameter_type = MXLV_AD_TOTAL_SEQUENCE_TIME;
@@ -470,7 +480,8 @@ mxd_brandeis_biocat_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
-	mx_status = mxd_brandeis_biocat_get_pointers( ad, &brandeis_biocat, fname );
+	mx_status = mxd_brandeis_biocat_get_pointers( ad,
+						&brandeis_biocat, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

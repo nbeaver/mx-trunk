@@ -1884,13 +1884,13 @@ mx_area_detector_set_strobe_mode( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_bulb_mode( MX_RECORD *record,
-				long num_frames )
+mx_area_detector_set_duration_mode( MX_RECORD *record,
+					long num_frames )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
 	mx_status_type mx_status;
 
-	seq_params.sequence_type = MXT_SQ_BULB;
+	seq_params.sequence_type = MXT_SQ_DURATION;
 	seq_params.num_parameters = 1;
 	seq_params.parameter_array[0] = num_frames;
 
@@ -5252,7 +5252,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 			ad->total_sequence_time = ad->sequence_start_delay
 						+ ad->total_acquisition_time;
 			break;
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			num_frames = mx_round( seq.parameter_array[0] );
 
 			ad->total_acquisition_time = ad->detector_readout_time

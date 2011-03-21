@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -565,7 +565,7 @@ mxd_epics_ccd_get_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 			/* For these cases, use the default calculation. */
 
 			ad->parameter_type = MXLV_AD_TOTAL_SEQUENCE_TIME;

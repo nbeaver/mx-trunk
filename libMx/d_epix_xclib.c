@@ -1386,7 +1386,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 				vinput->record->name );
 		break;
 
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 		startbuf = 1;
 		endbuf = 1;
 		numbuf = 1;
@@ -1714,7 +1714,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_STROBE:
-	case MXT_SQ_BULB:
+	case MXT_SQ_DURATION:
 		/* These modes use external triggers, so we do nothing here. */
 		break;
 	default:

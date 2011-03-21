@@ -65,7 +65,7 @@ extern "C" {
 #define MXT_SQ_MULTIFRAME			3
 #define MXT_SQ_CIRCULAR_MULTIFRAME		4
 #define MXT_SQ_STROBE				5
-#define MXT_SQ_BULB				6
+#define MXT_SQ_DURATION				6
 
 /*---- AVIEX specific sequence types ----*/
 

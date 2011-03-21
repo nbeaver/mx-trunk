@@ -106,7 +106,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set circular_multiframe_mode '# frames'\n"
 "                                                'exposure time' 'frame_time'\n"
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
-"  area_detector 'name' set bulb_mode '# frames'\n"
+"  area_detector 'name' set duration_mode '# frames'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
 "      'exposure time' 'frame_time' 'exposure multiplier' 'gap multiplier'\n"
 "  area_detector 'name' set streak_camera_mode '# lines'\n"
@@ -406,7 +406,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
-		case MXT_SQ_BULB:
+		case MXT_SQ_DURATION:
 		case MXT_SQ_GEOMETRICAL:
 			num_frames = mx_round( sp.parameter_array[0] );
 			break;
@@ -1991,7 +1991,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			"The sequence will take %g seconds.\n",
 				total_sequence_time );
 		} else
-		if ( strncmp("bulb_mode", argv[4], strlen(argv[4])) == 0)
+		if ( strncmp("duration_mode", argv[4], strlen(argv[4])) == 0)
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
@@ -2010,7 +2010,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_set_bulb_mode(
+			mx_status = mx_area_detector_set_duration_mode(
 						ad_record, num_frames );
 
 			if ( mx_status.code != MXE_SUCCESS )
