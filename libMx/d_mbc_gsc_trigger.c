@@ -77,7 +77,6 @@ mxd_mbc_gsc_trigger_get_pointers( MX_PULSE_GENERATOR *pulser,
 	static const char fname[] = "mxd_mbc_gsc_trigger_get_pointers()";
 
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger_ptr;
-	MX_RECORD *handel_record;
 
 	if ( pulser == (MX_PULSE_GENERATOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -311,7 +310,6 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
 	double exposure_seconds, shutter_timeout;
-	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_mbc_gsc_trigger_get_pointers( pulser,

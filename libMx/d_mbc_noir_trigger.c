@@ -77,7 +77,6 @@ mxd_mbc_noir_trigger_get_pointers( MX_PULSE_GENERATOR *pulser,
 	static const char fname[] = "mxd_mbc_noir_trigger_get_pointers()";
 
 	MX_MBC_NOIR_TRIGGER *mbc_noir_trigger_ptr;
-	MX_RECORD *handel_record;
 
 	if ( pulser == (MX_PULSE_GENERATOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
