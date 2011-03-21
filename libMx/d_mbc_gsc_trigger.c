@@ -30,6 +30,8 @@
 #include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_epics.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_pulse_generator.h"
 #include "d_mbc_gsc_trigger.h"
 
@@ -299,31 +301,22 @@ mxd_mbc_gsc_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 	return mx_status;
 }
 
-/* FIXME: The start() routine currently only handles 'stills'.  It currently
- *        does not handle 'dark' measurements or 'expose' requests.
- */
+/*----*/
 
-MX_EXPORT mx_status_type
-mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
+static mx_status_type
+mxd_mbc_gsc_trigger_start_still_or_dark( MX_PULSE_GENERATOR *pulser,
+					MX_MBC_GSC_TRIGGER *mbc_gsc_trigger )
 {
-	static const char fname[] = "mxd_mbc_gsc_trigger_start()";
+	static const char fname[] = "mxd_mbc_gsc_trigger_start_still_or_dark()";
 
-	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
 	double exposure_seconds, shutter_timeout;
+	long exposure_mode;
 	mx_status_type mx_status;
-
-	mx_status = mxd_mbc_gsc_trigger_get_pointers( pulser,
-						&mbc_gsc_trigger, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	exposure_seconds = pulser->pulse_width;
 
-#if MXD_MBC_GSC_TRIGGER_DEBUG
-	MX_DEBUG(-2,("%s: Pulse generator '%s' starting for %g seconds.",
-		fname, pulser->record->name, exposure_seconds));
-#endif
+	exposure_mode = mbc_gsc_trigger->area_detector_exposure_mode;
+
 	/* Prepare the Joerger scaler called "Counter" to measure
 	 * the actual exposure time.
 	 */
@@ -378,8 +371,15 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_caput( &(mbc_gsc_trigger->shutter_shutter_enable_pv),
+	if ( exposure_mode == MXF_AD_DARK_MODE ) {
+		mx_status = mx_caput(
+				&(mbc_gsc_trigger->shutter_shutter_enable_pv),
+				MX_CA_STRING, 1, "Disabled" );
+	} else {
+		mx_status = mx_caput(
+				&(mbc_gsc_trigger->shutter_shutter_enable_pv),
 				MX_CA_STRING, 1, "Enabled" );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -417,6 +417,61 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 	mbc_gsc_trigger->exposure_in_progress = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_mbc_gsc_trigger_start_expose( MX_PULSE_GENERATOR *pulser,
+				MX_MBC_GSC_TRIGGER *mbc_gsc_trigger )
+{
+	static const char fname[] = "mxd_mbc_gsc_trigger_start_expose()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Pulse generator start for record '%s' is not yet implemented "
+	"for expose/oscillation mode.", pulser->record->name );
+}
+
+MX_EXPORT mx_status_type
+mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
+{
+	static const char fname[] = "mxd_mbc_gsc_trigger_start()";
+
+	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mbc_gsc_trigger_get_pointers( pulser,
+						&mbc_gsc_trigger, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MBC_GSC_TRIGGER_DEBUG
+	MX_DEBUG(-2,
+	("%s: Pulse generator '%s' starting for %g seconds, exposure mode %ld.",
+		fname, pulser->record->name,
+		pulser->pulse_width,
+		mbc_gsc_trigger->area_detector_exposure_mode ));
+#endif
+
+	switch( mbc_gsc_trigger->area_detector_exposure_mode ) {
+	case MXF_AD_STILL_MODE:
+	case MXF_AD_DARK_MODE:
+		mx_status = mxd_mbc_gsc_trigger_start_still_or_dark(
+						pulser, mbc_gsc_trigger );
+		break;
+	case MXF_AD_EXPOSE_MODE:
+		mx_status = mxd_mbc_gsc_trigger_start_expose( pulser,
+							mbc_gsc_trigger );
+		break;
+	default:
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unsupported area detector exposure mode %ld requested "
+			"for pulse generator '%s'.",
+				mbc_gsc_trigger->area_detector_exposure_mode,
+				pulser->record->name );
+		break;
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

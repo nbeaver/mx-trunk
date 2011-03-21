@@ -91,6 +91,8 @@ MX_API mx_status_type mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_helios_measure_correction(
+							MX_AREA_DETECTOR *ad );
 
 extern MX_RECORD_FUNCTION_LIST mxd_radicon_helios_record_function_list;
 extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list;

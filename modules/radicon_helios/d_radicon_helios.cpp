@@ -21,6 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_bit.h"
 #include "mx_array.h"
 #include "mx_pulse_generator.h"
@@ -28,6 +29,7 @@
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "mx_digital_input.h"
+#include "d_mbc_gsc_trigger.h"
 #include "i_pleora_iport.h"
 #include "d_pleora_iport_vinput.h"
 #include "d_radicon_helios.h"
@@ -61,7 +63,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list = {
 	NULL,
 	mxd_radicon_helios_get_parameter,
 	mxd_radicon_helios_set_parameter,
-	mx_area_detector_default_measure_correction
+	mxd_radicon_helios_measure_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_radicon_helios_record_field_defaults[] = {
@@ -395,6 +397,54 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			dest_2d_array[i_dest][j_dest] =
 						source_2d_array[i_src][j_src];
 		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_set_exposure_mode( MX_AREA_DETECTOR *ad,
+					MX_RADICON_HELIOS *radicon_helios,
+					long exposure_mode )
+{
+	static const char fname[] = "mxd_radicon_helios_set_exposure_mode()";
+
+	MX_RECORD *pulser_record;
+	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
+
+	pulser_record = radicon_helios->pulse_generator_record;
+
+	/* If no pulse generator is configured, then just return. */
+
+	if ( pulser_record == (MX_RECORD *) NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+	/* For particular kinds of pulse generators, we store the
+	 * area detector's exposure mode in the pulse generator's
+	 * data structures.
+	 */
+
+	switch( pulser_record->mx_type ) {
+	case MXT_PGN_MBC_GSC_TRIGGER:
+		mbc_gsc_trigger = (MX_MBC_GSC_TRIGGER *)
+					pulser_record->record_type_struct;
+
+		if ( mbc_gsc_trigger == (MX_MBC_GSC_TRIGGER *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MBC_GSC_TRIGGER pointer for record '%s' "
+			"used by area detector '%s' is NULL.",
+				pulser_record->name,
+				ad->record->name );
+				
+		}
+
+		mbc_gsc_trigger->area_detector_exposure_mode = exposure_mode;
+		break;
+	default:
+		return MX_SUCCESSFUL_RESULT;
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1233,6 +1283,11 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, radicon_helios->acquisition_in_progress));
 #endif
 
+	if ( ( ad->status & MXSF_AD_IS_BUSY ) == 0 ) {
+		mx_status = mxd_radicon_helios_set_exposure_mode( ad,
+					radicon_helios, MXF_AD_STILL_MODE );
+	}
+
 	if ( radicon_helios->acquisition_in_progress ) {
 		if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
 
@@ -1251,7 +1306,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1666,6 +1721,34 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_helios_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_helios_measure_correction()";
+
+	MX_RADICON_HELIOS *radicon_helios = NULL;
+	long exposure_mode;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_helios_get_pointers( ad,
+					&radicon_helios, NULL, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	exposure_mode = MXF_AD_STILL_MODE;
+
+	mx_status = mxd_radicon_helios_set_exposure_mode( ad, radicon_helios,
+								exposure_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_default_measure_correction( ad );
 
 	return mx_status;
 }

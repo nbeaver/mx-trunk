@@ -19,6 +19,7 @@
 #ifndef __D_MBC_GSC_TRIGGER_H__
 #define __D_MBC_GSC_TRIGGER_H__
 
+#include "mx_epics.h"
 #include "mx_pulse_generator.h"
 
 /* ==== MBC trigger data structure ==== */
@@ -41,6 +42,8 @@ typedef struct {
 	MX_EPICS_PV timer_preset_pv;
 
 	double timer_frequency;
+
+	long area_detector_exposure_mode;
 } MX_MBC_GSC_TRIGGER;
 
 /* Define all of the interface functions. */
