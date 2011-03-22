@@ -13,10 +13,10 @@
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lm -lnsl -lsocket -lposix4 -lmalloc
+LIBRARIES	= -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -lsocket -lposix4 -lmalloc
+#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -42,7 +42,8 @@ READLINE_LIBRARIES = -ledit
 #
 EPICS_ARCH	= solarisGnu
 EPICS_TOP	= /opt/epics
-EPICS_INCLUDES	= -I$(EPICS_TOP)/base/include
+EPICS_INCLUDES	= -I$(EPICS_TOP)/base/include \
+			-I$(EPICS_TOP)/base/include/os/solaris
 EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
 EPICS_LIBRARIES = -lca -lCom
 
