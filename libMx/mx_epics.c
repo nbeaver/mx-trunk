@@ -186,28 +186,6 @@ mx_epics_set_debug_flag( int flag )
 
 /*--------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32)
-
-#include <windows.h>
-
-static void CALLBACK
-mx_win32_epics_atexit_timer_callback( UINT uTimerID,
-					UINT uMsg,
-					DWORD_PTR dwUser,
-					DWORD dw1,
-					DWORD dw2 )
-{
-	unsigned long process_id;
-
-	process_id = mx_process_id();
-
-	mx_kill_process_id( process_id );
-}
-
-#endif
-
-/*--------------------------------------------------------------------------*/
-
 static void
 mx_epics_atexit_handler( void )
 {
@@ -231,9 +209,7 @@ mx_epics_atexit_handler( void )
 
 #if defined(OS_WIN32)
 
-	(void) timeSetEvent( 5000, 0,
-			mx_win32_epics_atexit_timer_callback,
-			(DWORD_PTR) NULL, TIME_ONESHOT );
+	/* For Windows, we do nothing here. */
 
 #else /* not OS_WIN32 */
 

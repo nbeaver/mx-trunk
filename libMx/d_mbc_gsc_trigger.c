@@ -462,6 +462,12 @@ mxd_mbc_gsc_trigger_start( MX_PULSE_GENERATOR *pulser )
 		mx_status = mxd_mbc_gsc_trigger_start_expose( pulser,
 							mbc_gsc_trigger );
 		break;
+	case 0:
+		mx_status = mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The area detector exposure mode has not yet been set "
+			"for pulse generator '%s'.",
+				pulser->record->name );
+		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unsupported area detector exposure mode %ld requested "

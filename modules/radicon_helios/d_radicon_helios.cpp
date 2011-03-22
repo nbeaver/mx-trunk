@@ -62,8 +62,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_helios_ad_function_list = {
 	NULL,
 	NULL,
 	mxd_radicon_helios_get_parameter,
-	mxd_radicon_helios_set_parameter,
-	mxd_radicon_helios_measure_correction
+	mxd_radicon_helios_set_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_radicon_helios_record_field_defaults[] = {
@@ -713,6 +712,14 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Initialize the pulse generator to expect 'still' mode exposures. */
+
+	mx_status = mxd_radicon_helios_set_exposure_mode( ad,
+					radicon_helios, MXF_AD_STILL_MODE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/***********************************************
 	 * Configure the Pleora iPORT PLC to work with *
 	 * the Radicon Helios detector.                *
@@ -954,6 +961,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	long exposure_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -968,6 +976,20 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	exposure_mode = MXF_AD_STILL_MODE;
+
+	if ( ( ad->correction_measurement_in_progress )
+	  && ( ad->correction_measurement_type == MXFT_AD_DARK_CURRENT_FRAME ) )
+	{
+		exposure_mode = MXF_AD_DARK_MODE;
+	}
+
+	mx_status = mxd_radicon_helios_set_exposure_mode( ad, radicon_helios,
+								exposure_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The acceptable combinations of sequence modes and triggering
 	 * are limited for this detector, so we must force the detector
@@ -1509,6 +1531,7 @@ mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad )
 #endif
 	/* We can only handle transferring the image frame. */
 
+#if 0
 	if ( ad->transfer_frame != MXFT_AD_IMAGE_FRAME ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Transferring frame type %lu is not supported for "
@@ -1516,6 +1539,7 @@ mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad )
 		"is supported.",
 			ad->transfer_frame, ad->record->name );
 	}
+#endif
 
 	return mx_status;
 }
@@ -1721,34 +1745,6 @@ mxd_radicon_helios_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_radicon_helios_measure_correction( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_radicon_helios_measure_correction()";
-
-	MX_RADICON_HELIOS *radicon_helios = NULL;
-	long exposure_mode;
-	mx_status_type mx_status;
-
-	mx_status = mxd_radicon_helios_get_pointers( ad,
-					&radicon_helios, NULL, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	exposure_mode = MXF_AD_STILL_MODE;
-
-	mx_status = mxd_radicon_helios_set_exposure_mode( ad, radicon_helios,
-								exposure_mode );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_default_measure_correction( ad );
 
 	return mx_status;
 }
