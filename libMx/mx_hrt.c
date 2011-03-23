@@ -1048,6 +1048,16 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+MX_EXPORT double
+mx_cpu_speed( void )
+{
+	if ( mx_high_resolution_time_init_invoked == FALSE ) {
+		mx_high_resolution_time_init();
+	}
+
+	return mx_hrt_counter_ticks_per_microsecond;
+}
+
 #else	/* not OS_LINUX */
 
 MX_EXPORT void
@@ -1190,6 +1200,16 @@ mx_high_resolution_time_init( void )
 	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
 
 	return;
+}
+
+MX_EXPORT double
+mx_cpu_speed( void )
+{
+	if ( mx_high_resolution_time_init_invoked == FALSE ) {
+		mx_high_resolution_time_init();
+	}
+
+	return mx_hrt_counter_ticks_per_microsecond;
 }
 
 #else	/* not OS_MACOSX */
