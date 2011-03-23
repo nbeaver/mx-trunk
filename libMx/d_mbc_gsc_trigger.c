@@ -307,7 +307,9 @@ static mx_status_type
 mxd_mbc_gsc_trigger_start_still_or_dark( MX_PULSE_GENERATOR *pulser,
 					MX_MBC_GSC_TRIGGER *mbc_gsc_trigger )
 {
+#if 0
 	static const char fname[] = "mxd_mbc_gsc_trigger_start_still_or_dark()";
+#endif
 
 	double exposure_seconds, shutter_timeout;
 	long exposure_mode;

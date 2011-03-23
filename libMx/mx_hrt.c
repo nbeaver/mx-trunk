@@ -828,6 +828,8 @@ mx_high_resolution_time( void )
 
 #if defined(OS_LINUX) || defined(OS_CYGWIN)
 
+static double mx_cpu_mhz = -1.0;
+
 /******* GCC on x86 Linux or Cygwin *******/
 
 MX_EXPORT void
@@ -838,7 +840,6 @@ mx_high_resolution_time_init( void )
 	char buffer[500];
 	char *ptr, *ptr2;
 	int cpu_family, have_tsc, num_items;
-	double cpu_mhz;
 
 	/* Reading /proc/cpuinfo is the only vaguely portable way I know of
 	 * for getting the necessary information.
@@ -861,7 +862,6 @@ mx_high_resolution_time_init( void )
 
 	cpu_family = 0;
 	have_tsc = FALSE;
-	cpu_mhz = 0.0;
 
 	fgets( buffer, sizeof buffer, cpuinfo );
 
@@ -902,7 +902,7 @@ mx_high_resolution_time_init( void )
 			} else {
 				ptr++;
 
-				num_items = sscanf( ptr, "%lg", &cpu_mhz );
+				num_items = sscanf( ptr, "%lg", &mx_cpu_mhz );
 
 				if ( num_items != 1 ) {
 				    (void) mx_error( MXE_UNPARSEABLE_STRING,
@@ -947,15 +947,25 @@ mx_high_resolution_time_init( void )
 #endif
 
 	if ( (cpu_family == 3) || (cpu_family == 4) ) {
-		mx_hrt_counter_ticks_per_microsecond = cpu_mhz / 3.0;
+		mx_hrt_counter_ticks_per_microsecond = mx_cpu_mhz / 3.0;
 	} else {
-		mx_hrt_counter_ticks_per_microsecond = cpu_mhz;
+		mx_hrt_counter_ticks_per_microsecond = mx_cpu_mhz;
 	}
 
 	MX_DEBUG( 2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
 		fname, mx_hrt_counter_ticks_per_microsecond));
 
 	return;
+}
+
+MX_EXPORT double
+mx_cpu_speed( void )
+{
+	if ( mx_high_resolution_time_init_invoked == FALSE ) {
+		mx_high_resolution_time_init();
+	}
+
+	return mx_cpu_mhz;
 }
 
 #elif defined(__FreeBSD__)
