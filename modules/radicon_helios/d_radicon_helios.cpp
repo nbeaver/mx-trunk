@@ -16,6 +16,8 @@
 
 #define MXD_RADICON_HELIOS_DEBUG	TRUE
 
+#define MXD_RADICON_HELIOS_BYTESWAP	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -291,8 +293,13 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 				i_dest = j_dest_temp - 512;
 			}
 
+#if MXD_RADICON_HELIOS_BYTESWAP
+			dest_2d_array[i_dest][j_dest]
+			  = mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+#else
 			dest_2d_array[i_dest][j_dest]
 				= source_2d_array[i_src][j_src];
+#endif
 		}
 	}
 
