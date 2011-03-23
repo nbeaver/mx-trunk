@@ -462,6 +462,42 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+MX_EXPORT double
+mx_cpu_speed( void )
+{
+	FILE *popen_file;
+	char buffer[120];
+	char board_name[20];
+	char cpu_name[20];
+	double megahertz;
+	int num_items;
+
+	popen_file = popen( "/usr/platform/`uname -m`/sbin/prtdiag", "r" );
+
+	fgets( buffer, sizeof(buffer), popen_file );
+
+	while ( !feof( popen_file ) ) {
+		if ( strncmp( buffer, " A ", 3 ) == 0 ) {
+			num_items = sscanf( buffer, "%s %s %lf",
+					board_name, cpu_name, &megahertz );
+
+			if ( num_items != 3 ) {
+				pclose( popen_file );
+
+				return -1.0;
+			}
+
+			return megahertz;
+		}
+
+		fgets( buffer, sizeof(buffer), popen_file );
+	}
+
+	pclose( popen_file );
+
+	return -1.0;
+}
+
 #elif defined(OS_IRIX)
 
 /******* SGI Irix *******/

@@ -184,7 +184,7 @@ motor_main( int argc, char *argv[] )
 		exit(1);
 	}
 
-#if 1
+#if 0
 	{
 		double mhz = mx_cpu_speed();
 
