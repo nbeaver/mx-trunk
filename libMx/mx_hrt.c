@@ -616,6 +616,16 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
+MX_EXPORT double
+mx_cpu_speed( void )
+{
+	if ( mx_high_resolution_time_init_invoked == FALSE ) {
+		mx_high_resolution_time_init();
+	}
+
+	return mx_hrt_counter_ticks_per_microsecond;
+}
+
 #elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
 
 /* The x86 and x86_64 methods for GCC share much of the same code. */
