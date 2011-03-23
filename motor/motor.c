@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,6 +183,14 @@ motor_main( int argc, char *argv[] )
 
 		exit(1);
 	}
+
+#if 1
+	{
+		double mhz = mx_cpu_speed();
+
+		fprintf(stderr, "mx_cpu_speed(): %f MHz\n", mhz);
+	}
+#endif
 
 	cmd_set_program_name( "motor" );
 

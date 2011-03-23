@@ -29,12 +29,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MX_DEBUG_CPU_SPEED	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -361,6 +363,58 @@ mx_high_resolution_time_init( void )
 	}
 	return;
 }
+
+#if defined(_MSC_VER)
+
+ /* According to http://developer.intel.com/drg/pentiumII/appnotes/RDTSCPM1.HTM
+  * (found at http://www.ccsl.carleton.ca/~jamuir/rdtscpm1.pdf), the rdtsc
+  * instruction is not recognized by Visual C++ 5.0 and below, so we must
+  * use __emit statements for those old compiler versions.
+  */
+
+static double
+mx_rdtsc_as_double( void )
+{
+	unsigned __int32 time_low, time_high;
+	double time_value;
+
+#  if (_MSC_VER < 1200)
+	__asm __emit 0fh __asm __emit 031h
+#  else
+	__asm  rdtsc
+#  endif
+	__asm  mov    time_low, eax
+	__asm  mov    time_high, edx
+
+	time_value = 4294967296.0 * (double) time_high;
+
+	time_value += (double) time_low;
+
+	return time_value;
+}
+
+MX_EXPORT double
+mx_cpu_speed( void ) {
+
+	/* Delay for 1000 microseconds and take RDTSC samples before
+	 * and after the delay.
+	 */
+
+	double rdtsc_before, rdtsc_after;
+	double mhz;
+
+	rdtsc_before = mx_rdtsc_as_double();
+
+	mx_udelay( 1000 );
+
+	rdtsc_after = mx_rdtsc_as_double();
+
+	mhz = ( rdtsc_after - rdtsc_before ) / 1000.0;
+
+	return mhz;
+}
+
+#endif
 
 #elif defined(OS_SOLARIS)
 
