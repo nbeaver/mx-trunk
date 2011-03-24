@@ -24,6 +24,8 @@
 
 #define MX_EPICS_DEBUG_CA_POLL			FALSE
 
+#define MX_EPICS_DEBUG_ATEXIT			FALSE
+
 #define MX_EPICS_DEBUG_PERFORMANCE		FALSE
 
 #define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
@@ -189,41 +191,62 @@ mx_epics_set_debug_flag( int flag )
 static void
 mx_epics_atexit_handler( void )
 {
-#if MX_EPICS_DEBUG_HANDLERS
+#if MX_EPICS_DEBUG_ATEXIT
 	static char fname[] = "mx_epics_atexit_handler()";
 
 	MX_DEBUG(-2,("%s: atexit handler invoked.", fname));
 #endif
 
-#if !defined(OS_WIN32)
+#if MX_EPICS_DEBUG_ATEXIT
+	MX_DEBUG(-2,("%s: Calling ca_pend_event( 0.1 )", fname));
+#endif
 
 	/* Allow any last straggling events to be processed. */
 
 	ca_pend_event( 0.1 );
-#endif
 
 	/* If a VME crate is shut down before we exit, we may hang in
 	 * ca_context_destroy().  In order to recover from this, we set
-	 * up a timeout mechanism for ca_context_destroy().
+	 * up a timeout mechanism for ca_context_destroy().  The timeout
+	 * is currently set to 5 seconds.
 	 */
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) || defined(OS_CYGWIN)
 
-	/* For Windows, we do nothing here. */
+	/* There does not seem to be a reliable way of arranging for
+	 * a timeout in an atexit() handler on Windows.  It is possible
+	 * to use timeSetEvent() or _beginthreadex() to try to arrange
+	 * for something to happen after the timeout.  However, the
+	 * event handler or thread never seems to execute.  Apparently,
+	 * atexit() handlers in a DLL are invoked after most of the
+	 * handles have already been destroy, which presumably has
+	 * something to do with the problem.
+	 *
+	 * For this reason, we skip trying to invoke ca_context_destroy()
+	 * on Windows.
+	 */
+
+#if MX_EPICS_DEBUG_ATEXIT
+	MX_DEBUG(-2,("%s: atexit handler returning.", fname));
+#endif
+
+	return;
 
 #else /* not OS_WIN32 */
 
-	/* On Unix-like systems, we use alarm() and SIGALRM to terminate. */
+	/* On Unix-like systems, we use alarm() and SIGALRM to terminate
+	 * after a timeout.
+	 */
 
 	signal( SIGALRM, SIG_DFL );
 
 	alarm(5);
 
-#endif /* not OS_WIN32 */
-
-#if MX_EPICS_DEBUG_HANDLERS
+#if MX_EPICS_DEBUG_ATEXIT
 	MX_DEBUG(-2,("%s: About to shutdown Channel Access.", fname));
 #endif
+
+	/* Destroy the Channel Access context. */
 
 #if ( MX_EPICS_VERSION < 3014000L )
 	(void) ca_task_exit();
@@ -231,9 +254,12 @@ mx_epics_atexit_handler( void )
 	ca_context_destroy();
 #endif
 
-#if MX_EPICS_DEBUG_HANDLERS
+#if MX_EPICS_DEBUG_ATEXIT
 	MX_DEBUG(-2,("%s: atexit handler complete.", fname));
 #endif
+
+#endif /* not OS_WIN32 */
+
 }
 
 /*--------------------------------------------------------------------------*/
