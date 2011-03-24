@@ -29,14 +29,12 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009-2010 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MX_DEBUG_CPU_SPEED	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -364,58 +362,6 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#if defined(_MSC_VER)
-
- /* According to http://developer.intel.com/drg/pentiumII/appnotes/RDTSCPM1.HTM
-  * (found at http://www.ccsl.carleton.ca/~jamuir/rdtscpm1.pdf), the rdtsc
-  * instruction is not recognized by Visual C++ 5.0 and below, so we must
-  * use __emit statements for those old compiler versions.
-  */
-
-static double
-mx_rdtsc_as_double( void )
-{
-	unsigned __int32 time_low, time_high;
-	double time_value;
-
-#  if (_MSC_VER < 1200)
-	__asm __emit 0fh __asm __emit 031h
-#  else
-	__asm  rdtsc
-#  endif
-	__asm  mov    time_low, eax
-	__asm  mov    time_high, edx
-
-	time_value = 4294967296.0 * (double) time_high;
-
-	time_value += (double) time_low;
-
-	return time_value;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void ) {
-
-	/* Delay for 1000 microseconds and take RDTSC samples before
-	 * and after the delay.
-	 */
-
-	double rdtsc_before, rdtsc_after;
-	double mhz;
-
-	rdtsc_before = mx_rdtsc_as_double();
-
-	mx_udelay( 1000 );
-
-	rdtsc_after = mx_rdtsc_as_double();
-
-	mhz = ( rdtsc_after - rdtsc_before ) / 1000.0;
-
-	return mhz;
-}
-
-#endif
-
 #elif defined(OS_SOLARIS)
 
 #include <sys/time.h>
@@ -460,42 +406,6 @@ mx_high_resolution_time_init( void )
 	/* Solaris does not need any initialization. */
 
 	return;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void )
-{
-	FILE *popen_file;
-	char buffer[120];
-	char board_name[20];
-	char cpu_name[20];
-	double megahertz;
-	int num_items;
-
-	popen_file = popen( "/usr/platform/`uname -m`/sbin/prtdiag", "r" );
-
-	fgets( buffer, sizeof(buffer), popen_file );
-
-	while ( !feof( popen_file ) ) {
-		if ( strncmp( buffer, " A ", 3 ) == 0 ) {
-			num_items = sscanf( buffer, "%s %s %lf",
-					board_name, cpu_name, &megahertz );
-
-			if ( num_items != 3 ) {
-				pclose( popen_file );
-
-				return -1.0;
-			}
-
-			return megahertz;
-		}
-
-		fgets( buffer, sizeof(buffer), popen_file );
-	}
-
-	pclose( popen_file );
-
-	return -1.0;
 }
 
 #elif defined(OS_IRIX)
@@ -650,16 +560,6 @@ mx_high_resolution_time_init( void )
 	}
 
 	return;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE ) {
-		mx_high_resolution_time_init();
-	}
-
-	return mx_hrt_counter_ticks_per_microsecond;
 }
 
 #elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
@@ -874,8 +774,6 @@ mx_high_resolution_time( void )
 
 #if defined(OS_LINUX) || defined(OS_CYGWIN)
 
-static double mx_cpu_mhz = -1.0;
-
 /******* GCC on x86 Linux or Cygwin *******/
 
 MX_EXPORT void
@@ -886,6 +784,7 @@ mx_high_resolution_time_init( void )
 	char buffer[500];
 	char *ptr, *ptr2;
 	int cpu_family, have_tsc, num_items;
+	double cpu_mhz;
 
 	/* Reading /proc/cpuinfo is the only vaguely portable way I know of
 	 * for getting the necessary information.
@@ -908,6 +807,7 @@ mx_high_resolution_time_init( void )
 
 	cpu_family = 0;
 	have_tsc = FALSE;
+	cpu_mhz = 0.0;
 
 	fgets( buffer, sizeof buffer, cpuinfo );
 
@@ -948,7 +848,7 @@ mx_high_resolution_time_init( void )
 			} else {
 				ptr++;
 
-				num_items = sscanf( ptr, "%lg", &mx_cpu_mhz );
+				num_items = sscanf( ptr, "%lg", &cpu_mhz );
 
 				if ( num_items != 1 ) {
 				    (void) mx_error( MXE_UNPARSEABLE_STRING,
@@ -993,25 +893,15 @@ mx_high_resolution_time_init( void )
 #endif
 
 	if ( (cpu_family == 3) || (cpu_family == 4) ) {
-		mx_hrt_counter_ticks_per_microsecond = mx_cpu_mhz / 3.0;
+		mx_hrt_counter_ticks_per_microsecond = cpu_mhz / 3.0;
 	} else {
-		mx_hrt_counter_ticks_per_microsecond = mx_cpu_mhz;
+		mx_hrt_counter_ticks_per_microsecond = cpu_mhz;
 	}
 
 	MX_DEBUG( 2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
 		fname, mx_hrt_counter_ticks_per_microsecond));
 
 	return;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE ) {
-		mx_high_resolution_time_init();
-	}
-
-	return mx_cpu_mhz;
 }
 
 #elif defined(__FreeBSD__)
@@ -1092,16 +982,6 @@ mx_high_resolution_time_init( void )
 	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
 
 	return;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE ) {
-		mx_high_resolution_time_init();
-	}
-
-	return mx_hrt_counter_ticks_per_microsecond;
 }
 
 #else	/* not OS_LINUX */
@@ -1246,16 +1126,6 @@ mx_high_resolution_time_init( void )
 	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
 
 	return;
-}
-
-MX_EXPORT double
-mx_cpu_speed( void )
-{
-	if ( mx_high_resolution_time_init_invoked == FALSE ) {
-		mx_high_resolution_time_init();
-	}
-
-	return mx_hrt_counter_ticks_per_microsecond;
 }
 
 #else	/* not OS_MACOSX */

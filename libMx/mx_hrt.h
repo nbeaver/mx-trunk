@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2005, 2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 2003-2005, 2007, 2009 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,10 +73,6 @@ MX_API double mx_high_resolution_time_as_double( void );
  */
 
 MX_API void mx_udelay( unsigned long microseconds );
-
-/* mx_cpu_speed() reports the CPU speed in megahertz. */
-
-MX_API double mx_cpu_speed( void );
 
 #ifdef __cplusplus
 }
