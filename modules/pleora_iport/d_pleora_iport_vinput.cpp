@@ -509,10 +509,6 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	vinput->total_num_frames = 0;
 	vinput->status = 0x0;
 
-	/* FIXME: It should be possible to get maximum_frame_number
-	 * from the Pleora iPORT software.
-	 */
-
 	vinput->maximum_frame_number = 0;
 
 #if MXD_PLEORA_IPORT_VINPUT_DEBUG

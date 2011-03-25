@@ -555,6 +555,48 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* NOTE:
+ *
+ * The necessary values of the second parameter (y) to calls like this
+ *
+ *   lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIGx, y );
+ *
+ * (where CY_GPIP_LUT_PARAM_INPUT_CONFIGx corresponds to Ix) are not
+ * documented _anywhere_ in the documentation for the Pleora iPORT.
+ * 
+ * The _only_ place that they are documented is in one particular dialog
+ * of the Coyote configuration program.  Here is how you find that.
+ *
+ * 1.  Start up the Coyote configuration program.
+ *
+ * 2.  Press the Detect... button to find the available IP engines.
+ *
+ * 3.  Select the appropriate engine from the "IP Engine Selection" dialog
+ *     that pops up.
+ *
+ * 4.  Press the Connect button in the lower left of the Coyote window.
+ *
+ * 5.  Press the Configure... button in the lower right of the Coyote window.
+ *
+ * 6.  The "Configuration - Advanced" window should pop up.  Make sure that
+ *     the "IP Engine" tab is selected.
+ *
+ * 7.  Press the + button for the "Programmable Logic Controller" entry.
+ *
+ * 8.  Press the + button for the "Signal Routing Block and Lookup Table" entry.
+ *
+ * 9.  You will see a table of definitions for the I0 through I7 signals.
+ *     Click in the second column of one of those table entries.
+ *
+ * 10. A list of the possible values for that Ix variable will pop up in
+ *     numerical order.  If you want to explicitly see the values, they also
+ *     show up in a list in the scrolling window at the bottom of the dialog
+ *     listed under "Possible values:".
+ *
+ * Note that only particular combinations of Ix variables with possible inputs
+ * can be done.  You do not have full flexibility over the choice.
+ */
+
 MX_EXPORT mx_status_type
 mxd_radicon_helios_open( MX_RECORD *record )
 {
@@ -792,7 +834,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 * to 33333, which produces a timer quantum of 999990 nanoseconds.
 	 * That is the closest we can get to 1 millisecond.
 	 *
-	 * With this setup, the longest possible exposure or delay times
+	 * With this setup, the longest possible width or delay times
 	 * are 65.5343 seconds.
 	 */
 
@@ -817,8 +859,9 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	CyDeviceExtension *lut_extension =
 				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
 
-	/* FIXME: I do not yet know where the values come from for the
-	 * second argument of the calls to SetParameter().
+	/* NOTE: See the description before the beginning of this _open()
+	 * function of how to get the values of the second argument to
+	 * SetParameter() from the Coyote program.
 	 */
 
 	/* Connect TTL Input 0 to I0. */

@@ -25,6 +25,7 @@
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_radicon_helios.h"
+#include "d_radicon_helios_trigger.h"
 
 MX_DRIVER radicon_helios_driver_table[] = {
 
@@ -34,6 +35,13 @@ MX_DRIVER radicon_helios_driver_table[] = {
 				NULL,
 				&mxd_radicon_helios_num_record_fields,
 				&mxd_radicon_helios_rfield_def_ptr},
+
+{"radicon_helios_trigger", -1, MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_rh_trigger_record_function_list,
+				NULL,
+				&mxd_rh_trigger_pulser_function_list,
+				&mxd_rh_trigger_num_record_fields,
+				&mxd_rh_trigger_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
