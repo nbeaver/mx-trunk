@@ -448,7 +448,7 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_PLEORA_IPORT_DIGITAL_OUTPUT *pleora_iport_doutput;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput;
-	char program_buffer[20];
+	char lut_program[20];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pleora_iport_doutput_get_pointers( doutput,
@@ -458,20 +458,17 @@ mxd_pleora_iport_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( doutput->value == 0 ) {
-		snprintf( program_buffer, sizeof(program_buffer),
+		snprintf( lut_program, sizeof(lut_program),
 			"Q%d=0\r\n", pleora_iport_doutput->line_id );
 	} else {
 		doutput->value = 1;
 
-		snprintf( program_buffer, sizeof(program_buffer),
+		snprintf( lut_program, sizeof(lut_program),
 			"Q%d=1\r\n", pleora_iport_doutput->line_id );
 	}
 
-	CyGrabber *grabber = pleora_iport_vinput->grabber;
-
-	CyString lut_program = program_buffer;
-
-	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program );
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+								lut_program );
 
 	return mx_status;
 }

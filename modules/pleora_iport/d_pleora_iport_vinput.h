@@ -20,8 +20,12 @@
 #ifdef __cplusplus
 
 #ifndef MXU_MAC_ADDRESS_STRING_LENGTH
-#   define MXU_MAC_ADDRESS_STRING_LENGTH	18
+#   define MXU_MAC_ADDRESS_STRING_LENGTH   18
 #endif
+
+#define MX_NUM_PLEORA_IPORT_Q_VARIABLES    18
+
+#define MXU_PLEORA_IPORT_Q_VALUE_LENGTH    20
 
 typedef struct {
 	MX_RECORD *record;
@@ -35,6 +39,9 @@ typedef struct {
 	mx_bool_type grab_in_progress;
 
 	CyUserBuffer *user_buffer;
+
+	char lookup_table[ MX_NUM_PLEORA_IPORT_Q_VARIABLES ]
+				[ MXU_PLEORA_IPORT_Q_VALUE_LENGTH + 1 ];
 
 } MX_PLEORA_IPORT_VINPUT;
 
@@ -89,6 +96,23 @@ extern MX_VIDEO_INPUT_FUNCTION_LIST mxd_pleora_iport_vinput_video_function_list;
 
 extern long mxd_pleora_iport_vinput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_vinput_rfield_def_ptr;
+
+/*-----*/
+
+#ifdef __cplusplus
+
+/* mxd_pleora_iport_vinput_send_lookup_table_program() is only available
+ * for C++ code, since it makes use of the MX_PLEORA_IPORT_VINPUT structure
+ * which makes use of C++ classes.
+ */
+
+MX_API mx_status_type
+mxd_pleora_iport_vinput_send_lookup_table_program(
+				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput,
+				char *mx_lookup_table_program );
+#endif
+
+/*-----*/
 
 #ifdef __cplusplus
 }

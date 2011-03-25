@@ -194,27 +194,29 @@ mxd_radicon_helios_trigger_image_readout(
 		
 	/* Set the Helios EXSYNC signal to high to trigger image readout. */
 
-	CyString lut_program_high =
+	char lut_program_high[] =
 		"Q0 = I2\r\n"
 		"Q4 = 1\r\n"
 		"Q5 = 1\r\n"
 		"Q6 = 1\r\n"
 		"Q7 = 1\r\n";
 
-	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program_high );
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lut_program_high );
 
 	mx_msleep( 10 );
 
 	/* Return the Helios EXSYNC signal back to low. */
 
-	CyString lut_program_low =
+	char lut_program_low[] =
 		"Q0 = I2\r\n"
 		"Q4 = 1\r\n"
 		"Q5 = 1\r\n"
 		"Q6 = 1\r\n"
 		"Q7 = 0\r\n";
 
-	mxi_pleora_iport_send_lookup_table_program( grabber, lut_program_low );
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lut_program_low );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -876,6 +878,10 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG7, 0 );
 
+	/* Send the changes to the IP engine. */
+
+	lut_extension->SaveToDevice();
+
 	/* Reprogram the PLC to generate a sync pulse for the camera
 	 * and to initialize control inputs.
 	 *
@@ -883,25 +889,15 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 * by TTL_IN0 (aka A0 on I0).
 	 */
 
-	CyString lut_program =
+	char lut_program[] =
                 "Q0 = I2\r\n"
-                "Q1 = 0\r\n"
                 "Q4 = 0\r\n"
                 "Q5 = 1\r\n"
                 "Q6 = 1\r\n"
                 "Q7 = I7 & !I0\r\n";
 
-	/* We do not use mxi_pleora_iport_send_lookup_table_program() here,
-	 * since it is probably better to change the I-registers and the
-	 * lookup table as a quasi-atomic operation.
-	 */
-
-	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
-							lut_program );
-
-	/* Send the changes to the IP engine. */
-
-	lut_extension->SaveToDevice();
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+								lut_program );
 
 	/* End of the PLC reconfiguration. */
 
@@ -975,27 +971,18 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 
 	/* Stop sending START pulses to EXSYNC (Q7=0). */
 
-	CyGrabber *grabber = pleora_iport_vinput->grabber;
-
-	if ( grabber == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"No grabber has been connected for record '%s'.",
-			pleora_iport_vinput->record->name );
-	}
-
-	CyString lookup_table_program = 
+	char lookup_table_program[] = 
 				"Q0 = I2\r\n"
 				"Q4 = 1\r\n"
 				"Q5 = 1\r\n"
 				"Q6 = 1\r\n"
 				"Q7 = 0\r\n";
 
-	mxi_pleora_iport_send_lookup_table_program(
-					pleora_iport_vinput->grabber,
-					lookup_table_program );
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lookup_table_program );
 
 #if 1
-	mxi_pleora_iport_display_all_parameters( grabber );
+	mxi_pleora_iport_display_all_parameters( pleora_iport_vinput->grabber );
 #endif
 
 	radicon_helios->acquisition_in_progress = TRUE;
@@ -1365,16 +1352,15 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 
 			radicon_helios->acquisition_in_progress = FALSE;
 
-			CyString lut_program =
+			char lut_program[] =
 				"Q0 = I2\r\n"
 				"Q4 = 0\r\n"
 				"Q5 = 1\r\n"
 				"Q6 = 1\r\n"
 				"Q7 = I7 & !I0\r\n";
 
-			mxi_pleora_iport_send_lookup_table_program(
-					pleora_iport_vinput->grabber,
-					lut_program );
+			mxd_pleora_iport_vinput_send_lookup_table_program(
+					pleora_iport_vinput, lut_program );
 		}
 	}
 

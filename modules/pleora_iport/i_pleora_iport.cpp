@@ -646,25 +646,6 @@ mxi_pleora_iport_close( MX_RECORD *record )
 /*--------------- Exported driver-specific functions ---------------*/
 
 MX_EXPORT void
-mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,
-					CyString &lookup_table_program )
-{
-	CyDevice &device = grabber->GetDevice();
-
-	CyDeviceExtension *extension =
-				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
-
-	extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
-						lookup_table_program );
-
-	extension->SaveToDevice();
-
-	return;
-}
-
-/*------------------------------------------------------------------------*/
-
-MX_EXPORT void
 mxi_pleora_iport_display_extension_info( CyDeviceExtension *extension,
 			unsigned long parameter_id )
 {

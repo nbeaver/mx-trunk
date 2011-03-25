@@ -14,7 +14,9 @@
  *
  */
 
-#define MXD_PLEORA_IPORT_VINPUT_DEBUG	TRUE
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG			TRUE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -330,6 +332,14 @@ mxd_pleora_iport_vinput_finish_record_initialization( MX_RECORD *record )
 			record->name,
 			pleora_iport->max_devices,
 			pleora_iport->record->name );
+	}
+
+	/* Initialize the local version of the lookup table to contain
+	 * only empty strings.
+	 */
+
+	for ( i = 0; i < MX_NUM_PLEORA_IPORT_Q_VARIABLES; i++ ) {
+		pleora_iport_vinput->lookup_table[i][0] = '\0';
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1131,6 +1141,210 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		mx_status =
 			mx_video_input_default_set_parameter_handler( vinput );
 		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* 
+ * When you send a new Lookup Table program to a Pleora iPORT, it throws away
+ * all previously existing contents of the lookup table that was in place
+ * before.  Thus, unless we want to repeat the contents of each variable in
+ * the lookup table every time we want to update one of the variables, we must
+ * maintain a local table of the lookup table contents.
+ *
+ * mxd_pleora_iport_vinput_send_lookup_table_program() is responsible for
+ * updating that table and then sending the new table on to the grabber.
+ */
+
+MX_EXPORT mx_status_type
+mxd_pleora_iport_vinput_send_lookup_table_program(
+				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput,
+				char *mx_lookup_table_program )
+{
+	static const char fname[] =
+			"mxd_pleora_iport_vinput_send_lookup_table_program()";
+
+	char *start_of_current_command = NULL;
+	char *end_of_current_command   = NULL;
+	char *start_of_next_command    = NULL;
+
+	char *lut_duplicate, *value_ptr;
+	int c, num_items;
+	long variable_number;
+	size_t i, length, num_whitespace_chars;
+
+	char new_lut_buffer[500];
+	char new_q_command[40];
+
+	if ( pleora_iport_vinput == (MX_PLEORA_IPORT_VINPUT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PLEORA_IPORT_VINPUT pointer passed was NULL." );
+	}
+	if ( mx_lookup_table_program == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The mx_lookup_table_program pointer passed was NULL." );
+	}
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No grabber has been connected for record '%s'.",
+			pleora_iport_vinput->record->name );
+	}
+
+	/* Make a copy of the incoming lookup table program and then parse it.*/
+
+	lut_duplicate = strdup( mx_lookup_table_program );
+
+	if ( lut_duplicate == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to duplicate the incoming string." );
+	}
+
+	/* Change all lowercase characters to uppercase. */
+
+	length = strlen( lut_duplicate );
+
+	for ( i = 0; i < length; i++ ) {
+		c = lut_duplicate[i];
+
+		if ( islower(c) ) {
+			lut_duplicate[i] = toupper(c);
+		}
+	}
+
+	start_of_current_command = lut_duplicate;
+
+	while ( *start_of_current_command != '\0' ) {
+
+		/* Skip over any leading whitespace. */
+
+		num_whitespace_chars =
+				strspn( start_of_current_command, " \t" );
+
+		start_of_current_command += num_whitespace_chars;
+
+		/* Look for the CR-LF at the end of a command. */
+
+		end_of_current_command =
+				strstr( start_of_current_command, "\r\n" );
+
+		if ( end_of_current_command == NULL ) {
+			mx_free( lut_duplicate );
+
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Syntax error in Pleora LUT program fragment '%s' for "
+			"Pleora iPORT grabber '%s'.  "
+			"There is no CR-LF at the end of the current command.",
+				start_of_current_command,
+				pleora_iport_vinput->record->name );
+		}
+
+		/* Null terminate the current command. */
+
+		*end_of_current_command = '\0';
+
+		/* Compute the location of the next command. */
+
+		start_of_next_command = end_of_current_command + 2;
+
+#if 0 && MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE
+		MX_DEBUG(-2,("%s: received '%s'",
+				fname, start_of_current_command ));
+#endif
+
+		/* Figure out which Q variable this is. */
+
+		num_items = sscanf( start_of_current_command, "Q%ld=",
+						&variable_number );
+
+		if ( num_items != 1 ) {
+			mx_free( lut_duplicate );
+
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Did not find a Q variable assignment at the start "
+			"of the command '%s' for Pleora iPORT '%s'.",
+				start_of_current_command,
+				pleora_iport_vinput->record->name );
+		}
+
+		/* Find the new value after the equals sign. */
+
+		value_ptr = strchr( start_of_current_command, '=' );
+
+		value_ptr++;
+
+		/* Skip any leading whitespace. */
+
+		num_whitespace_chars = strspn( value_ptr, " \t" );
+
+		value_ptr += num_whitespace_chars;
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE
+		MX_DEBUG(-2,("%s: received Q(%ld) = '%s'",
+			fname, variable_number, value_ptr));
+#endif
+
+		/* Store a copy of the new value for this Q variable in
+		 * our local repository.
+		 */
+
+		strlcpy( pleora_iport_vinput->lookup_table[ variable_number ],
+				value_ptr, MXU_PLEORA_IPORT_Q_VALUE_LENGTH );
+
+		start_of_current_command = start_of_next_command;
+	}
+
+	mx_free( lut_duplicate );
+
+	/* Construct the revised lookup table to send to the Pleora iPORT. */
+
+	new_lut_buffer[0] = '\0';
+
+	for ( i = 0; i < MX_NUM_PLEORA_IPORT_Q_VARIABLES; i++ ) {
+
+		if ( pleora_iport_vinput->lookup_table[i][0] != '\0' ) {
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE
+			MX_DEBUG(-2,("%s: sending Q(%ld) = '%s'",
+				fname, i,
+				pleora_iport_vinput->lookup_table[i]));
+#endif
+			snprintf( new_q_command, sizeof(new_q_command),
+				"Q%ld = %s\r\n",
+				i, pleora_iport_vinput->lookup_table[i] );
+
+			strlcat( new_lut_buffer, new_q_command,
+					sizeof(new_lut_buffer) );
+		}
+	}
+
+	/* If the new lookup table has a non-zero length, then send it
+	 * to the Pleora iPORT grabber.
+	 */
+
+	if ( strlen( new_lut_buffer ) > 0 ) {
+
+		CyString new_lut_program = new_lut_buffer;
+
+		CyDevice &device = grabber->GetDevice();
+
+		CyDeviceExtension *extension =
+				&device.GetExtension( CY_DEVICE_EXT_GPIO_LUT );
+
+		extension->SetParameter( CY_GPIO_LUT_PARAM_GPIO_LUT_PROGRAM,
+							new_lut_program );
+
+		extension->SaveToDevice();
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE
+		MX_DEBUG(-2,("%s: New lookup table sent to grabber '%s'",
+			fname, pleora_iport_vinput->record->name));
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;

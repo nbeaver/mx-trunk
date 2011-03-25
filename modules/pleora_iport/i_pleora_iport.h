@@ -43,12 +43,6 @@ typedef struct {
 /*-----*/
 
 MX_API void
-mxi_pleora_iport_send_lookup_table_program( CyGrabber *grabber,
-					CyString &lookup_table_program );
-
-/*-----*/
-
-MX_API void
 mxi_pleora_iport_display_extension_array( CyDeviceExtension *extension,
 					unsigned long num_parameters,
 					unsigned long *parameter_array );

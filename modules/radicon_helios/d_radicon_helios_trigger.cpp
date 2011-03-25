@@ -426,27 +426,29 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	/* Set the trigger input low and the trigger output low. */
 
 #if 0
-	CyString lut_program_low = 
+	char lut_program_low[] = 
 			"Q1=0\r\n"
 			"Q8=I5\r\n";
 #else
-	CyString lut_program_low = "Q1=1\r\n";
+	char lut_program_low[] = "Q1=0\r\n";
 #endif
 
-	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_low);
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lut_program_low );
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 1 );
+	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
 
 #if 0
 	/* Connect pulse generator 1 output to the counter "up" input
 	 * and connect remote control input 1 to the counter's clear input.
 	 */
 
-	CyString lut_program_clear = 
+	char lut_program_clear[] = 
 			"Q11=I4\r\n"
 			"Q17=I6\r\n";
 
-	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_clear);
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lut_program_clear );
 
 	/* Clear the counter. */
 
@@ -460,14 +462,13 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	/* Enable the trigger output by connecting it to the counter. */
 
 #if 0
-	CyString lut_program_out = "Q1=I3\r\n";
+	char lut_program_out[] = "Q1=I3\r\n";
 #else
-	CyString lut_program_out = "Q1=I5\r\n";
+	char lut_program_out[] = "Q1=I5\r\n";
 #endif
 
-	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_out);
-
-	mx_msleep(1000);
+	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
+							lut_program_out );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -576,12 +577,6 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 					gate_time_in_milliseconds );
 
 	ctr_extension->SaveToDevice();
-
-#if 1
-	CyString lut_program_out = "Q1=I5\r\n";
-
-	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_out);
-#endif
 
 	/* Assert the input trigger for the pulse generator. */
 
