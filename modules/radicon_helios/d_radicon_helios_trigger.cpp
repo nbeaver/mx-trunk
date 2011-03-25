@@ -15,7 +15,9 @@
  *
  */
 
-#define MXD_RADICON_HELIOS_TRIGGER_DEBUG	TRUE
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG		TRUE
+
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT	TRUE
 
 #include <stdio.h>
 
@@ -206,14 +208,26 @@ mxd_rh_trigger_set_rcbit( CyGrabber *grabber, int bit_number, int bit_value )
 	bit_mask = ( 1 << bit_number );
 
 	if ( bit_value == 0 ) {
-		set_value = old_value & (~bit_mask);
+		set_value = 0;
 
 		clear_value = ( (~old_value) & 0xf ) | bit_mask;
 	} else {
 		set_value = old_value | bit_mask;
 
-		clear_value = ( (~old_value) & 0xf ) & (~bit_mask);
+		clear_value = 0;
 	}
+
+#if MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT
+	static const char fname[] = "mxd_rh_trigger_set_rcbit()";
+
+	MX_DEBUG(-2,("%s: bit_number = %d, bit_value = %d",
+			fname, bit_number, bit_value));
+	MX_DEBUG(-2,("%s: old_value = %#x", fname, (unsigned long) old_value));
+	MX_DEBUG(-2,("%s: bit_mask = %#x", fname, (unsigned long) bit_mask));
+	MX_DEBUG(-2,("%s: set_value = %#x, clear_value = %#x",
+			fname, (unsigned long) set_value,
+			(unsigned long) clear_value));
+#endif
 
 	extension->SetParameter( CY_GPIO_CONTROL_BITS_SET, set_value );
 
@@ -327,6 +341,7 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	rcbits_extension->SaveToDevice();
 
+#if 0
 	/*-------------------------------------------------------------------*/
 
 	/* Configure pulse generator 1 to generate a 1 kHz pulse train
@@ -370,6 +385,7 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_COMPARE_VALUE, 0 );
 
 	ctr_extension->SaveToDevice();
+#endif
 
 	/*-------------------------------------------------------------------*/
 
@@ -409,14 +425,19 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	/* Set the trigger input low and the trigger output low. */
 
+#if 0
 	CyString lut_program_low = 
 			"Q1=0\r\n"
 			"Q8=I5\r\n";
+#else
+	CyString lut_program_low = "Q1=1\r\n";
+#endif
 
 	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_low);
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
+	mxd_rh_trigger_set_rcbit( grabber, 0, 1 );
 
+#if 0
 	/* Connect pulse generator 1 output to the counter "up" input
 	 * and connect remote control input 1 to the counter's clear input.
 	 */
@@ -434,10 +455,19 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	mx_msleep(1);
 
 	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
+#endif
 
 	/* Enable the trigger output by connecting it to the counter. */
 
+#if 0
 	CyString lut_program_out = "Q1=I3\r\n";
+#else
+	CyString lut_program_out = "Q1=I5\r\n";
+#endif
+
+	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_out);
+
+	mx_msleep(1000);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -460,6 +490,12 @@ mxd_rh_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 1
+	pulser->busy = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
+#endif
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
 
@@ -540,6 +576,12 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 					gate_time_in_milliseconds );
 
 	ctr_extension->SaveToDevice();
+
+#if 1
+	CyString lut_program_out = "Q1=I5\r\n";
+
+	mxi_pleora_iport_send_lookup_table_program(grabber, lut_program_out);
+#endif
 
 	/* Assert the input trigger for the pulse generator. */
 
