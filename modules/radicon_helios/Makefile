@@ -16,7 +16,8 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I../pleora_iport
 CFLAGS += -I$(PLEORA_IPORT_DIR)\\includes
 
-RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ)
+RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ) \
+		d_radicon_helios_trigger.$(OBJ)
 
 radicon_helios.mxo: $(RADICON_HELIOS_OBJS)
 	link /dll /debug /nologo /out:radicon_helios.mxo /nodefaultlib:libc \
@@ -44,6 +45,12 @@ d_radicon_helios.$(OBJ): d_radicon_helios.cpp d_radicon_helios.h \
 		..\pleora_iport\i_pleora_iport.h \
 		..\pleora_iport\d_pleora_iport_vinput.h
 	$(COMPILE) $(CFLAGS) d_radicon_helios.cpp
+
+d_radicon_helios_trigger.$(OBJ): d_radicon_helios_trigger.cpp \
+				d_radicon_helios_trigger.h \
+				..\pleora_iport\i_pleora_iport.h \
+				..\pleora_iport\d_pleora_iport_vinput.h
+	$(COMPILE) $(CFLAGS) d_radicon_helios_trigger.cpp
 
 install: radicon_helios.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

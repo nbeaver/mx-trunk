@@ -21,19 +21,25 @@
 
 #include "mx_pulse_generator.h"
 
+#ifdef __cplusplus
+
 /* ==== Radicon Helios trigger data structure ==== */
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *radicon_helios_record;
+
+	unsigned long preset_value;
 } MX_RADICON_HELIOS_TRIGGER;
 
-/* Define all of the interface functions. */
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 MX_API mx_status_type mxd_rh_trigger_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_rh_trigger_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_rh_trigger_open( MX_RECORD *record );
 
@@ -56,6 +62,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_rh_trigger_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_HELIOS_TRIGGER, radicon_helios_record), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __D_RADICON_HELIOS_TRIGGER_H__ */
 
