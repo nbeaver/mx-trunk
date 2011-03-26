@@ -17,6 +17,8 @@
 
 #define MXD_RADICON_HELIOS_TRIGGER_DEBUG		TRUE
 
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY		TRUE
+
 #define MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT	TRUE
 
 #include <stdio.h>
@@ -341,7 +343,6 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	rcbits_extension->SaveToDevice();
 
-#if 0
 	/*-------------------------------------------------------------------*/
 
 	/* Configure pulse generator 1 to generate a 1 kHz pulse train
@@ -351,13 +352,13 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	CyDeviceExtension *pg_extension = &device.GetExtension(
 					CY_DEVICE_EXT_PULSE_GENERATOR + 1 );
 
-	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_GRANULARITY, 16667 );
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_GRANULARITY, 1666 );
 
-	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_WIDTH, 1 );
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_WIDTH, 10 );
 
-	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_DELAY, 1 );
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_DELAY, 9 );
 
-	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_PERIODIC, true );
+	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_PERIODIC, false );
 
 	pg_extension->SetParameter( CY_PULSE_GEN_PARAM_TRIGGER_MODE, 1 );
 
@@ -376,7 +377,7 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_UP_EVENT, 1 );
 
-	ctr_extension->SetParameter( CY_COUNTER_PARAM_DOWN_EVENT, 1 );
+	ctr_extension->SetParameter( CY_COUNTER_PARAM_DOWN_EVENT, 0 );
 
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_CLEAR_EVENT, 1 );
 
@@ -385,7 +386,6 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_COMPARE_VALUE, 0 );
 
 	ctr_extension->SaveToDevice();
-#endif
 
 	/*-------------------------------------------------------------------*/
 
@@ -425,20 +425,15 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	/* Set the trigger input low and the trigger output low. */
 
-#if 0
 	char lut_program_low[] = 
 			"Q1=0\r\n"
 			"Q8=I5\r\n";
-#else
-	char lut_program_low[] = "Q1=0\r\n";
-#endif
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lut_program_low );
 
 	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
 
-#if 0
 	/* Connect pulse generator 1 output to the counter "up" input
 	 * and connect remote control input 1 to the counter's clear input.
 	 */
@@ -454,18 +449,13 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
 
-	mx_msleep(1);
+	mx_msleep(1000);
 
 	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
-#endif
 
 	/* Enable the trigger output by connecting it to the counter. */
 
-#if 0
 	char lut_program_out[] = "Q1=I3\r\n";
-#else
-	char lut_program_out[] = "Q1=I5\r\n";
-#endif
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lut_program_out );
@@ -491,12 +481,6 @@ mxd_rh_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if 1
-	pulser->busy = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-#endif
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
 
@@ -528,6 +512,13 @@ mxd_rh_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 
 		mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
 	}
+
+#if MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY
+	MX_DEBUG(-2,("%s: busy = %d, current_value = %lu, preset_value = %lu",
+		fname, pulser->busy,
+		(unsigned long) current_value,
+		rh_trigger->preset_value));
+#endif
 
 	return mx_status;
 }
@@ -582,6 +573,11 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	mxd_rh_trigger_set_rcbit( grabber, 0, 1 );
 
+#if MXD_RADICON_HELIOS_TRIGGER_DEBUG
+	MX_DEBUG(-2,("%s: '%s' started with preset %lu",
+		fname, pulser->record->name, rh_trigger->preset_value));
+#endif
+
 	return mx_status;
 }
 
@@ -607,6 +603,24 @@ mxd_rh_trigger_stop( MX_PULSE_GENERATOR *pulser )
 	MX_DEBUG(-2,("%s: Stopping pulse generator '%s'.",
 		fname, pulser->record->name ));
 #endif
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	if ( grabber == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"No grabber has been connected for record '%s'.",
+			pleora_iport_vinput->record->name );
+	}
+
+	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
+
+	mx_msleep(500);
+
+	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
+
+	mx_msleep(500);
+
+	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
 
 	return MX_SUCCESSFUL_RESULT;
 }
