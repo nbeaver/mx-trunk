@@ -612,9 +612,13 @@ mxd_rh_trigger_stop( MX_PULSE_GENERATOR *pulser )
 			pleora_iport_vinput->record->name );
 	}
 
+	/* Stop counting. */
+
 	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
 
 	mx_msleep(500);
+
+	/* Clear the counter. */
 
 	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
 
