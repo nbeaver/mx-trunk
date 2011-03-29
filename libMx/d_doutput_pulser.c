@@ -19,6 +19,7 @@
 #define MXD_DOUTPUT_PULSER_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
