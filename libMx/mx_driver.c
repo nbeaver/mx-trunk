@@ -450,6 +450,7 @@
 #include "d_sis3807.h"
 #include "d_sis3801_pulser.h"
 #include "d_pdi45_pulser.h"
+#include "d_doutput_pulser.h"
 
 #include "d_soft_sca.h"
 #include "d_network_sca.h"
@@ -3642,7 +3643,7 @@ MX_DRIVER mx_type_table[] = {
 {"network_pulser", MXT_PGN_NETWORK,   MXC_PULSE_GENERATOR, MXR_DEVICE,
 				&mxd_network_pulser_record_function_list,
 				NULL,
-				&mxd_network_pulser_pulse_generator_function_list,
+			&mxd_network_pulser_pulse_generator_function_list,
 				&mxd_network_pulser_num_record_fields,
 				&mxd_network_pulser_rfield_def_ptr},
 
@@ -3666,6 +3667,14 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_pdi45_pulser_pulse_generator_function_list,
 				&mxd_pdi45_pulser_num_record_fields,
 				&mxd_pdi45_pulser_rfield_def_ptr},
+
+{"digital_output_pulser", MXT_PGN_DIGITAL_OUTPUT,
+						MXC_PULSE_GENERATOR, MXR_DEVICE,
+				&mxd_doutput_pulser_record_function_list,
+				NULL,
+				NULL,
+				&mxd_doutput_pulser_num_record_fields,
+				&mxd_doutput_pulser_rfield_def_ptr},
 
 {"soft_sca",       MXT_SCA_SOFTWARE,  MXC_SINGLE_CHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_soft_sca_record_function_list,
