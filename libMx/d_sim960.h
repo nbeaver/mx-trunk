@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,13 +20,15 @@
 
 /* Values for the sim960_flags variable. */
 
-#define MXF_SIM960_EXTERNAL_SETPOINT	0x1
+#define MXF_SIM960_USE_EXTERNAL_SETPOINT	0x1
+#define MXF_SIM960_ENABLE_BUSY_DEADBAND		0x2
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *port_record;
 	unsigned long sim960_flags;
+	double busy_deadband;
 
 	double version;
 } MX_SIM960;
@@ -54,6 +56,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_sim960_rfield_def_ptr;
   \
   {-1, -1, "sim960_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIM960, sim960_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "busy_deadband", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIM960, busy_deadband), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_SIM960_H__ */

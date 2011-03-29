@@ -382,13 +382,21 @@ mxd_sim960_open( MX_RECORD *record )
 
 	flags = sim960->sim960_flags;
 
-	if ( flags & MXF_SIM960_EXTERNAL_SETPOINT ) {
+	if ( flags & MXF_SIM960_USE_EXTERNAL_SETPOINT ) {
 		strlcpy( command, "INPT EXT", sizeof(command) );
 	} else {
 		strlcpy( command, "INPT INT", sizeof(command) );
 	}
 
 	mx_status = mxd_sim960_command( sim960, command,
+					NULL, 0, MXD_SIM960_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Enable PID control. */
+
+	mx_status = mxd_sim960_command( sim960, "AMAN PID",
 					NULL, 0, MXD_SIM960_DEBUG );
 
 	return mx_status;
@@ -413,7 +421,7 @@ mxd_sim960_move_absolute( MX_MOTOR *motor )
 
 	flags = sim960->sim960_flags;
 
-	if ( ( flags & MXF_SIM960_EXTERNAL_SETPOINT ) == 0 ) {
+	if ( ( flags & MXF_SIM960_USE_EXTERNAL_SETPOINT ) == 0 ) {
 
 		snprintf( command, sizeof(command), "SETP %lf",
 					motor->raw_destination.analog );
@@ -821,6 +829,8 @@ mxd_sim960_get_status( MX_MOTOR *motor )
 	MX_SIM960 *sim960;
 	char response[80];
 	long ramping_status;
+	unsigned long flags;
+	double difference;
 	mx_status_type mx_status;
 
 	sim960 = NULL;
@@ -846,6 +856,45 @@ mxd_sim960_get_status( MX_MOTOR *motor )
 	if ( ramping_status != 0 ) {
 		motor->status |= MXSF_MTR_IS_BUSY;
 	}
+
+	/* See if we must check the busy deadband as well. */
+
+	if ( (motor->status & MXSF_MTR_IS_BUSY) == 0 ) {
+
+		/* RMPS? says the motor is not ramping. */
+
+		flags = sim960->sim960_flags;
+
+		if ( flags & MXF_SIM960_ENABLE_BUSY_DEADBAND ) {
+
+			mx_status = mxd_sim960_get_position( motor );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			difference = fabs( motor->raw_destination.analog
+					- motor->raw_position.analog );
+#if MXD_SIM960_DEBUG
+			MX_DEBUG(-2,
+			("%s: raw_destination = %f, raw_position = %f",
+				fname, motor->raw_destination.analog,
+				motor->raw_position.analog));
+
+			MX_DEBUG(-2,("%s: difference = %f, busy_deadband = %f",
+				fname, difference,
+				sim960->busy_deadband));
+#endif
+
+			if ( difference > sim960->busy_deadband ) {
+				motor->status |= MXSF_MTR_IS_BUSY;
+			}
+		}
+	}
+
+#if MXD_SIM960_DEBUG
+	MX_DEBUG(-2,("%s: Motor '%s', status = %#lx",
+		fname, motor->record->name, motor->status));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
