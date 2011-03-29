@@ -112,8 +112,10 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 	static const char fname[] =
 			"mxd_doutput_pulser_update_internal_state()";
 
+	unsigned long flags;
 	struct timespec current_timespec, transition_timespec;
 	struct timespec timespec_until_next_transition;
+	struct timespec old_transition_timespec;
 	int comparison;
 	unsigned long next_doutput_value;
 	double time_until_next_transition;
@@ -128,6 +130,8 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_DOUTPUT_PULSER pointer passed was NULL." );
 	}
+
+	flags = doutput_pulser->digital_output_pulser_flags;
 
 #if MXD_DOUTPUT_PULSER_DEBUG
 	MX_DEBUG(-2,("%s invoked for '%s', busy = %d, "
@@ -213,17 +217,31 @@ mxd_doutput_pulser_update_internal_state( MX_PULSE_GENERATOR *pulser,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If necessary, compute the time of the next transition. */
+	/* If necessary, compute the time of the next transition.
+	 *
+	 * If the flag bit MXF_DOUTPUT_PULSER_ALLOW_TIME_SKEW is set,
+	 * we compute the time of the next transition relative to the
+	 * current time.  Otherwise, we compute the time of the next
+	 * transition relative to the time when the previous transition
+	 * _should_ have occurred in the absence of operating system
+	 * delays.
+	 */
 
 	if ( pulser->busy ) {
 		timespec_until_next_transition =
 			mx_convert_seconds_to_high_resolution_time(
 				time_until_next_transition );
 
+		if ( flags & MXF_DOUTPUT_PULSER_ALLOW_TIME_SKEW ) {
+			old_transition_timespec = mx_high_resolution_time();
+		} else {
+			old_transition_timespec =
+				doutput_pulser->next_transition_timespec;
+		}
+
 		doutput_pulser->next_transition_timespec =
-			mx_add_high_resolution_times(
-				doutput_pulser->next_transition_timespec,
-				timespec_until_next_transition );
+			mx_add_high_resolution_times( old_transition_timespec,
+					timespec_until_next_transition );
 
 #if MXD_DOUTPUT_PULSER_DEBUG
 		MX_DEBUG(-2,("%s: new next_transition_time = (%lu,%lu)",

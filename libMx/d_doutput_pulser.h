@@ -20,10 +20,13 @@
 
 #include "mx_pulse_generator.h"
 
+#define MXF_DOUTPUT_PULSER_ALLOW_TIME_SKEW	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *digital_output_record;
+	unsigned long digital_output_pulser_flags;
 
 	mx_bool_type use_callback;
 	MX_CALLBACK_MESSAGE *callback_message;
@@ -57,7 +60,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_doutput_pulser_rfield_def_ptr;
   {-1, -1, "digital_output_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_DOUTPUT_PULSER, digital_output_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "digital_output_pulser_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_DOUTPUT_PULSER, digital_output_pulser_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_DOUTPUT_PULSER_H__ */
 
