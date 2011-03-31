@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009 Illinois Institute of Technology
+ * Copyright 2006, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1034,8 +1034,13 @@ mx_construct_control_system_filename( int filename_type,
 			fname, filename_buffer2));
 #endif
 
+#if 0
 	mx_normalize_filename( filename_buffer2,
 			filename_buffer1, sizeof(filename_buffer1) );
+#else
+	mx_canonicalize_filename( filename_buffer2,
+			filename_buffer1, sizeof(filename_buffer1) );
+#endif
 
 #if MX_CFN_DEBUG
 	MX_DEBUG(-2,("%s:   normalized filename = '%s'",

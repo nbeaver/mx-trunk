@@ -1549,8 +1549,9 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_area_detector_default_correct_frame( ad );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

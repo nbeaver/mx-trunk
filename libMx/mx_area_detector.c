@@ -30,6 +30,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	TRUE
+
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
@@ -60,6 +62,7 @@
 #include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_dirent.h"
+#include "mx_cfn.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
@@ -424,6 +427,7 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	static const char fname[] = "mx_area_detector_load_correction_files()";
 
 	MX_AREA_DETECTOR *ad;
+	char correction_filename[ MXU_FILENAME_LENGTH+1 ];
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
@@ -441,9 +445,19 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 #endif
 
 	if ( strlen(ad->mask_filename) > 0 ) {
+		mx_construct_control_system_filename( MX_CFN_CONFIG,
+						ad->mask_filename,
+						correction_filename,
+						sizeof(correction_filename) );
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
+		MX_DEBUG(-2,("%s: mask filename = '%s'",
+			fname, correction_filename));
+#endif
+
 		mx_status = mx_area_detector_load_frame( record,
 							MXFT_AD_MASK_FRAME,
-							ad->mask_filename );
+							correction_filename );
 
 		if ( (mx_status.code != MXE_SUCCESS)
 		  && (mx_status.code != MXE_NOT_FOUND) )
@@ -453,9 +467,19 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->bias_filename) > 0 ) {
+		mx_construct_control_system_filename( MX_CFN_CONFIG,
+						ad->bias_filename,
+						correction_filename,
+						sizeof(correction_filename) );
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
+		MX_DEBUG(-2,("%s: bias filename = '%s'",
+			fname, correction_filename));
+#endif
+
 		mx_status = mx_area_detector_load_frame( record,
 							MXFT_AD_BIAS_FRAME,
-							ad->bias_filename );
+							correction_filename );
 
 		if ( (mx_status.code != MXE_SUCCESS)
 		  && (mx_status.code != MXE_NOT_FOUND) )
@@ -465,9 +489,19 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->dark_current_filename) > 0 ) {
+		mx_construct_control_system_filename( MX_CFN_CONFIG,
+						ad->dark_current_filename,
+						correction_filename,
+						sizeof(correction_filename) );
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
+		MX_DEBUG(-2,("%s: dark current filename = '%s'",
+			fname, correction_filename));
+#endif
+
 		mx_status = mx_area_detector_load_frame( record,
 						MXFT_AD_DARK_CURRENT_FRAME,
-						ad->dark_current_filename );
+						correction_filename );
 
 		if ( (mx_status.code != MXE_SUCCESS)
 		  && (mx_status.code != MXE_NOT_FOUND) )
@@ -477,9 +511,19 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->flood_field_filename) > 0 ) {
+		mx_construct_control_system_filename( MX_CFN_CONFIG,
+						ad->flood_field_filename,
+						correction_filename,
+						sizeof(correction_filename) );
+
+#if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
+		MX_DEBUG(-2,("%s: flood field filename = '%s'",
+			fname, correction_filename));
+#endif
+
 		mx_status = mx_area_detector_load_frame( record,
 						MXFT_AD_FLOOD_FIELD_FRAME,
-						ad->flood_field_filename );
+						correction_filename );
 
 		if ( (mx_status.code != MXE_SUCCESS)
 		  && (mx_status.code != MXE_NOT_FOUND) )

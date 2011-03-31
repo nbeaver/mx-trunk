@@ -702,24 +702,6 @@ MX_API mx_status_type mx_initialize_runtime( void );
 
 /*------------------------------------------------------------------------*/
 
-/* mx_copy_file() copies an old file to a new file where new_file_mode
- * specifies the permissions for the new file using the same bit patterns
- * for the mode as the Posix open() and creat() calls.
- */
-
-MX_API mx_status_type mx_copy_file( char *original_filename,
-				char *new_filename,
-				int new_file_mode );
-
-MX_API int mx_command_found( char *command_name );
-
-/* mx_verify_directory() verifies the existence of the specified directory
- * and optionally creates it if it does not already exist.
- */
-
-MX_API mx_status_type mx_verify_directory( char *directory_name,
-					int create_flag );
-
 MX_API mx_status_type mx_get_os_version_string( char *version_string,
 					size_t max_version_string_length );
 
@@ -737,6 +719,17 @@ MX_API mx_status_type mx_get_system_boot_time( struct timespec *boot_timespec );
 MX_API mx_status_type mx_get_system_boot_time_from_ticks(
 					struct timespec *boot_timespec );
 
+/* mx_copy_file() copies an old file to a new file where new_file_mode
+ * specifies the permissions for the new file using the same bit patterns
+ * for the mode as the Posix open() and creat() calls.
+ */
+
+/*------------------------------------------------------------------------*/
+
+MX_API mx_status_type mx_copy_file( char *original_filename,
+				char *new_filename,
+				int new_file_mode );
+
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 
@@ -745,6 +738,21 @@ MX_API mx_status_type mx_change_filename_prefix( char *old_filename,
 						char *new_prefix,
 						char *new_filename,
 						size_t max_new_filename_length);
+
+MX_API int mx_command_found( char *command_name );
+
+/* mx_verify_directory() verifies the existence of the specified directory
+ * and optionally creates it if it does not already exist.
+ */
+
+MX_API mx_status_type mx_verify_directory( char *directory_name,
+					int create_flag );
+
+/* Converts a filename into the canonical form for that operating system. */
+
+MX_API mx_status_type mx_canonicalize_filename( char *original_name,
+						char *canonical_name,
+					size_t max_canonical_name_length );
 
 /*------------------------------------------------------------------------*/
 
