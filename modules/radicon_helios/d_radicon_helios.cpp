@@ -554,6 +554,8 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 			radicon_helios->detector_type_name, record->name );
 	}
 
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -728,6 +730,13 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	ad->header_length = 0;
 
 	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Load the image correction_files. */
+
+	mx_status = mx_area_detector_load_correction_files( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
