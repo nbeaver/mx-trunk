@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -631,7 +632,7 @@ mx_verify_directory( char *directory_name, int create_flag )
 
 /*-------------------------------------------------------------------------*/
 
-#if 1 && defined(OS_WIN32)
+#if 1
 
 MX_EXPORT mx_status_type
 mx_canonicalize_filename( char *original_filename,
@@ -722,6 +723,59 @@ mx_canonicalize_filename( char *original_filename,
 
 	strlcpy( canonical_filename, local_canonical_filename,
 					max_canonical_filename_length );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined(OS_UNIX) || defined(OS_CYGWIN)
+
+MX_EXPORT mx_status_type
+mx_canonicalize_filename( char *original_filename,
+			char *canonical_filename,
+			size_t max_canonical_filename_length )
+{
+	static const char fname[] = "mx_canonicalize_filename()";
+
+	char *local_canonical_filename, *ptr;
+	long max_path_length;
+	int saved_errno;
+
+#if defined(PATH_MAX)
+	max_path_length = PATH_MAX;
+#else
+	max_path_length = pathconf( xxx, _PC_PATH_MAX );
+
+	if ( max_path_length <= 0 ) {
+		max_path_length = 4096;
+	}
+#endif
+
+	local_canonical_filename = malloc( max_path_length );
+
+	if ( local_canonical_filename == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"canonical filename buffer.", max_path_length );
+	}
+
+	ptr = realpath( original_filename, local_canonical_filename );
+
+	if ( ptr == NULL ) {
+		mx_free( local_canonical_filename );
+
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to canonicalize the filename '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			original_filename, saved_errno, strerror(saved_errno) );
+	}
+	
+
+	strlcpy( canonical_filename, local_canonical_filename,
+					max_canonical_filename_length );
+
+	mx_free( local_canonical_filename );
 
 	return MX_SUCCESSFUL_RESULT;
 }

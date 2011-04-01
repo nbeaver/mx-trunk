@@ -5,12 +5,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXS_WEDGE_SCAN_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +60,9 @@ mxs_wedge_scan_create_record_structures( MX_RECORD *record,
 
 	MX_WEDGE_SCAN *wedge_scan;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, record->name));
+#endif
 
 	wedge_scan = (MX_WEDGE_SCAN *) malloc( sizeof(MX_WEDGE_SCAN) );
 
@@ -90,7 +94,9 @@ mxs_wedge_scan_finish_record_initialization( MX_RECORD *record )
 		"The MX_RECORD pointer passed was NULL." );
 	}
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, record->name));
+#endif
 
 	scan = (MX_SCAN *) record->record_superclass_struct;
 
@@ -140,7 +146,9 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 	wedge_scan = scan->record->record_type_struct;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s invoked for scan '%s'.", fname, scan->record->name));
+#endif
 
 	flist = scan->record->class_specific_function_list;
 
@@ -168,7 +176,7 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 	    	flist->construct_next_datafile_name;
 	}
 
-#if 1
+#if MXS_WEDGE_SCAN_DEBUG
 	for ( i = 0; i < scan->num_motors; i++ ) {
 		MX_DEBUG(-2,
 ("%s: motor(%lu) = '%s', start = %f, step size = %f, # measurements = %ld",
@@ -199,8 +207,10 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 	use_inverse_beam = ad_scan->use_inverse_beam;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s: use_inverse_beam = %d",
 			fname, (int) use_inverse_beam));
+#endif
 
 	units_length = strlen( motor->units );
 
@@ -257,8 +267,10 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 	num_energies = ad_scan->num_energies;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s: num_wedges = %lu, num_energies = %lu",
 		fname, num_wedges, num_energies));
+#endif
 
 	for ( w = 0; w < num_wedges; w++ ) {
 		wedge_scan->current_wedge_number = (long) w;
@@ -266,30 +278,38 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 		wedge_start = motor_start + w * wedge_size;
 		wedge_end   = motor_start + (w+1) * wedge_size;
 
+#if MXS_WEDGE_SCAN_DEBUG
 		MX_DEBUG(-2,("%s: w = %lu, wedge_start = %f, wedge_end = %f",
 			fname, w, wedge_start, wedge_end));
+#endif
 
 		raw_start_step = mx_divide_safely( w * abs_wedge_size,
 							abs_step_size );
 
 		start_step = mx_round( raw_start_step );
 
+#if MXS_WEDGE_SCAN_DEBUG
 		MX_DEBUG(-2,("%s: raw_start_step = %f, start_step = %lu",
 			fname, raw_start_step, start_step));
+#endif
 
 		raw_end_step = mx_divide_safely( (w+1) * abs_wedge_size,
 							abs_step_size );
 
 		end_step = mx_round( raw_end_step );
 
+#if MXS_WEDGE_SCAN_DEBUG
 		MX_DEBUG(-2,("%s: raw_end_step = %f, end_step = %lu",
 			fname, raw_end_step, end_step));
+#endif
 
 		if ( end_step > motor_num_steps ) {
 			end_step = motor_num_steps;
 
+#if MXS_WEDGE_SCAN_DEBUG
 			MX_DEBUG(-2,("%s: truncating end_step to %lu",
 					fname, end_step ));
+#endif
 		}
 
 		for ( n = 0; n < num_energies; n++ ) {
@@ -302,8 +322,10 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 
 				position = motor_start + i * motor_step_size;
 
+#if MXS_WEDGE_SCAN_DEBUG
 				MX_DEBUG(-2,("%s: energy = %f, position = %f",
 					fname, energy, position));
+#endif
 
 				/* Move to the new position. */
 
@@ -351,8 +373,10 @@ mxs_wedge_scan_execute_scan_body( MX_SCAN *scan )
 				position = motor_start + inverse_distance
 						+ i * motor_step_size;
 
+#if MXS_WEDGE_SCAN_DEBUG
 				MX_DEBUG(-2,("%s: energy = %f, position = %f",
 					fname, energy, position));
+#endif
 
 				/* Move to the new position. */
 
@@ -395,7 +419,9 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 			MX_AREA_DETECTOR_SCAN *ad_scan,
 			MX_WEDGE_SCAN *wedge_scan )
 {
+#if MXS_WEDGE_SCAN_DEBUG
 	static const char fname[] = "mxp_wedge_scan_take_frame()";
+#endif
 
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
@@ -406,7 +432,9 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	unsigned long ad_status;
 	mx_status_type mx_status;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s invoked for scan '%s'", fname, scan->record->name));
+#endif
 
 	ad_record = scan->input_device_array[0];
 
@@ -426,11 +454,13 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 
 	motor = motor_record->record_class_struct;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s: Starting exposure of '%s' for %f seconds "
 	"using shutter '%s' with an oscillation of '%s' for %f %s",
 		fname, ad_record->name, exposure_time,
 		shutter_record->name, motor_record->name,
 		delta, motor->units ));
+#endif
 
 	/* FIXME - Move this call to mx_area_detector_setup_exposure()
 	 * to somewhere else, so that we are not doing it for each frame.
@@ -473,7 +503,9 @@ mxp_wedge_scan_take_frame( MX_SCAN *scan,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXS_WEDGE_SCAN_DEBUG
 	MX_DEBUG(-2,("%s: frame complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

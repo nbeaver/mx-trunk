@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG_SCAN	TRUE
+#define MX_AREA_DETECTOR_DEBUG_SCAN	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
