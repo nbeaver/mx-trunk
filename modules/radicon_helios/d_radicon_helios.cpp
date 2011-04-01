@@ -25,6 +25,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_bit.h"
+#include "mx_hrt.h"
 #include "mx_array.h"
 #include "mx_pulse_generator.h"
 #include "mx_image.h"
@@ -1526,7 +1527,25 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 		fprintf( stderr, "...\n" );
 	}
+
+	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
 #endif
+
+	/* If known, update the image header with the requested exposure time.*/
+
+	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+
+		double exposure_time = sp->parameter_array[0];
+
+		struct timespec exposure_timespec =
+		    mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+		MXIF_EXPOSURE_TIME_SEC( ad->image_frame )
+						= exposure_timespec.tv_sec;
+
+		MXIF_EXPOSURE_TIME_NSEC( ad->image_frame )
+						= exposure_timespec.tv_nsec;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

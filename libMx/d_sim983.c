@@ -14,9 +14,9 @@
  *
  */
 
-#define MXD_SIM983_DEBUG	TRUE
+#define MXD_SIM983_DEBUG	FALSE
 
-#define MXD_SIM983_ERROR_DEBUG	TRUE
+#define MXD_SIM983_ERROR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

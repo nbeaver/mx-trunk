@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_SIM900_DEBUG	TRUE
+#define MXI_SIM900_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
