@@ -224,6 +224,9 @@ mxd_rh_trigger_set_rcbit( CyGrabber *grabber, int bit_number, int bit_value )
 
 	MX_DEBUG(-2,("%s: bit_number = %d, bit_value = %d",
 			fname, bit_number, bit_value));
+#endif
+
+#if 0
 	MX_DEBUG(-2,("%s: old_value = %#x", fname, (unsigned long) old_value));
 	MX_DEBUG(-2,("%s: bit_mask = %#x", fname, (unsigned long) bit_mask));
 	MX_DEBUG(-2,("%s: set_value = %#x, clear_value = %#x",
@@ -377,7 +380,7 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_UP_EVENT, 1 );
 
-	ctr_extension->SetParameter( CY_COUNTER_PARAM_DOWN_EVENT, 0 );
+	ctr_extension->SetParameter( CY_COUNTER_PARAM_DOWN_EVENT, 1 );
 
 	ctr_extension->SetParameter( CY_COUNTER_PARAM_CLEAR_EVENT, 1 );
 
@@ -407,23 +410,31 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG3, 15 );
 
-	/* Connect "GPIO control bit 1" to I4. */
+	/* Connect "PLC control bit 1" to I4. (counter clear) */
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG4, 0 );
 
-	/* Connect "GPIO control bit 0" to I5. */
+	/* Connect "PLC control bit 0" to I5. (pulse generator trigger) */
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG5, 0 );
 
-	/* Connect "Pulse generator 1 output" to I6. */
+#if 1
+	/* Connect "Pulse generator 1 output" to I6. (counter up) */
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG6, 0 );
+#else
+	/* Connect "PLC control bit 2" to I6. (counter up) */
+
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG6, 10 );
+#endif
 
 	lut_extension->SaveToDevice();
 
 	/*-------------------------------------------------------------------*/
 
 	/* Set the trigger input low and the trigger output low. */
+
+	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
 
 	char lut_program_low[] = 
 			"Q1=0\r\n"
@@ -432,10 +443,8 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lut_program_low );
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
-
 	/* Connect pulse generator 1 output to the counter "up" input
-	 * and connect remote control input 1 to the counter's clear input.
+	 * and connect PLC control input 1 to the counter's clear input.
 	 */
 
 	char lut_program_clear[] = 
@@ -453,9 +462,16 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
 
-	/* Enable the trigger output by connecting it to the counter. */
+	/* Enable the trigger output by connecting it to the output of
+	 * the counter.
+	 *
+	 * The counter generates a 'greater than' signal, but what we
+	 * actually need is a 'less than' signal.  So what we do is to
+	 * invert the output of the counter plus do a logical 'and' with
+	 * the pulse generator trigger.
+	 */
 
-	char lut_program_out[] = "Q1=I3\r\n";
+	char lut_program_out[] = "Q1=I5 & !I3\r\n";
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lut_program_out );
@@ -501,9 +517,10 @@ mxd_rh_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 
 	ctr_extension->LoadFromDevice();
 
-	ctr_extension->GetParameter( CY_COUNTER_PARAM_UP_EVENT, current_value );
+	ctr_extension->GetParameter( CY_COUNTER_PARAM_CURRENT_VALUE,
+							current_value );
 
-	if ( current_value < rh_trigger->preset_value ) {
+	if ( current_value <= rh_trigger->preset_value ) {
 		pulser->busy = TRUE;
 	} else {
 		pulser->busy = FALSE;
@@ -549,7 +566,7 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	rh_trigger->preset_value = gate_time_in_milliseconds;
 
-	/* Update the counter compare value. */
+	/* Clear the counter. */
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
 
@@ -558,6 +575,12 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 		"No grabber has been connected for record '%s'.",
 			pleora_iport_vinput->record->name );
 	}
+
+	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
+
+	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
+
+	/* Update the counter compare value. */
 
 	CyDevice &device = grabber->GetDevice();
 

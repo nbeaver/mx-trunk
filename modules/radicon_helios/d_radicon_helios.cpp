@@ -970,7 +970,13 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 			"was interrupted.", ad->record->name );
 		}
 
+#if 0
 		mx_msleep(50);
+#elif 1
+		mx_msleep(10);
+#else
+		mx_usleep(500);
+#endif
 	}
 
 	radicon_helios->arm_signal_present = TRUE;
