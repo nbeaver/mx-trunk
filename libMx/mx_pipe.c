@@ -759,7 +759,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( num_bytes_available == (size_t) NULL ) {
+	if ( num_bytes_available == (size_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_bytes_available_pointer passed was NULL." );
 	}

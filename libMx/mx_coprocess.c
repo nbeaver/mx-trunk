@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -510,7 +510,7 @@ mx_coprocess_num_bytes_available( MX_COPROCESS *coprocess,
 	int read_fd;
 	mx_status_type mx_status;
 
-	if ( num_bytes_available == (size_t) NULL ) {
+	if ( num_bytes_available == (size_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_bytes_available_pointer passed was NULL." );
 	}
