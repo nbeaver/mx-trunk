@@ -16,7 +16,7 @@
 
 #define MXD_RADICON_HELIOS_DEBUG	TRUE
 
-#define MXD_RADICON_HELIOS_BYTESWAP	TRUE
+#define MXD_RADICON_HELIOS_BYTESWAP	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -224,6 +224,12 @@ mxd_radicon_helios_trigger_image_readout(
 
 /*---*/
 
+#if MXD_RADICON_HELIOS_BYTESWAP
+#  define MX_BYTESWAP(x)	mx_16bit_byteswap( x )
+#else
+#  define MX_BYTESWAP(x)	(x)
+#endif
+
 #if 0
 
 /* This version reproduces the same picture as ShadoCam or xray2. */
@@ -296,13 +302,8 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 				i_dest = j_dest_temp - 512;
 			}
 
-#if MXD_RADICON_HELIOS_BYTESWAP
 			dest_2d_array[i_dest][j_dest]
-			  = mx_16bit_byteswap( source_2d_array[i_src][j_src] );
-#else
-			dest_2d_array[i_dest][j_dest]
-				= source_2d_array[i_src][j_src];
-#endif
+			  = MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 
@@ -332,14 +333,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 5110 - 10 * j_dest + 9;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * j_dest;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 
@@ -349,14 +350,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 10230 - 10 * j_dest + 7;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 512) + 2;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
@@ -365,14 +366,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 15350 - 10 * j_dest + 5;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1024) + 4;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
@@ -381,14 +382,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 20470 - 10 * j_dest + 3;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1536) + 6;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
@@ -397,14 +398,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 25590 - 10 * j_dest + 1;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 2048) + 8;
 
 			dest_2d_array[i_dest][j_dest] =
-						source_2d_array[i_src][j_src];
+				MX_BYTESWAP( source_2d_array[i_src][j_src] );
 		}
 	}
 
@@ -645,7 +646,17 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 * FIXME - Are both of these necessary?
 	 */
 
+#if 0
 	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+#else
+	mx_status = mx_image_get_file_format_type_from_name(
+			radicon_helios->helios_file_format_name,
+			&(ad->frame_file_format) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
 	ad->datafile_format = ad->frame_file_format;
 
 	ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;

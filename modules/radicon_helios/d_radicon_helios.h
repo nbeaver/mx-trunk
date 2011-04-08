@@ -21,6 +21,10 @@
 
 #define MXU_DETECTOR_TYPE_NAME_LENGTH	40
 
+/* --- Values for the 'helios_flags' field. --- */
+
+#define MXF_RADICON_HELIOS_BYTESWAP	0x1
+
 /* --- Values for the 'detector_type' field. --- */
 
 #define MXT_RADICON_HELIOS_10x10	1
@@ -34,6 +38,8 @@ typedef struct {
 	char detector_type_name[MXU_DETECTOR_TYPE_NAME_LENGTH+1];
 	MX_RECORD *external_trigger_record;
 	char pulse_generator_record_name[MXU_RECORD_NAME_LENGTH+1];
+	unsigned long helios_flags;
+	char helios_file_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 
 	long detector_type;
 	MX_RECORD *pulse_generator_record;
@@ -63,6 +69,16 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_HELIOS, pulse_generator_record_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "helios_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, helios_flags), \
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "helios_file_format_name", MXFT_STRING, \
+				NULL, 1, {MXU_DETECTOR_TYPE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_HELIOS, helios_file_format_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "detector_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, detector_type), \
