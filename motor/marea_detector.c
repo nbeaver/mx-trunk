@@ -738,7 +738,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		mx_status = mx_area_detector_wait_for_exposure_end(
+		mx_status = mx_area_detector_wait_for_exposure_complete(
 				ad_record, 10.0 * shutter_time );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -19,17 +19,18 @@
 
 #ifdef __cplusplus
 
-#define MXU_DETECTOR_TYPE_NAME_LENGTH	40
+#define MXU_DETECTOR_TYPE_NAME_LENGTH		40
 
 /* --- Values for the 'helios_flags' field. --- */
 
-#define MXF_RADICON_HELIOS_BYTESWAP	0x1
+#define MXF_RADICON_HELIOS_FORCE_BYTESWAP	0x1
+#define MXF_RADICON_HELIOS_AUTODETECT_BYTESWAP	0x2
 
 /* --- Values for the 'detector_type' field. --- */
 
-#define MXT_RADICON_HELIOS_10x10	1
-#define MXT_RADICON_HELIOS_25x20	2
-#define MXT_RADICON_HELIOS_30x30	3
+#define MXT_RADICON_HELIOS_10x10		1
+#define MXT_RADICON_HELIOS_25x20		2
+#define MXT_RADICON_HELIOS_30x30		3
 
 typedef struct {
 	MX_RECORD *record;
@@ -47,6 +48,7 @@ typedef struct {
 	mx_bool_type arm_signal_present;
 	mx_bool_type acquisition_in_progress;
 
+	mx_bool_type byteswap;
 } MX_RADICON_HELIOS;
 
 #define MXD_RADICON_HELIOS_STANDARD_FIELDS \

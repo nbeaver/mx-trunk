@@ -2908,10 +2908,88 @@ mx_area_detector_trigger_exposure( MX_RECORD *ad_record )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
+mx_area_detector_wait_for_image_complete( MX_RECORD *record, double timeout )
+{
+	static const char fname[] =
+		"mx_area_detector_wait_for_image_complete()";
+
+	MX_AREA_DETECTOR *ad = NULL;
+	MX_CLOCK_TICK current_tick, finish_tick, timeout_ticks;
+	int comparison;
+	mx_bool_type check_for_timeout;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( timeout < 0.0 ) {
+		check_for_timeout = FALSE;
+	} else {
+		check_for_timeout = TRUE;
+
+		current_tick = mx_current_clock_tick();
+
+		timeout_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+
+		finish_tick = mx_add_clock_ticks( current_tick,
+						timeout_ticks );
+#if 1
+		MX_DEBUG(-2,("%s: timeout_ticks = (%lu,%lu)", fname,
+			timeout_ticks.high_order, timeout_ticks.low_order));
+
+		MX_DEBUG(-2,
+		("%s: current_tick = (%lu,%lu), finish_tick = (%lu,%lu)",
+			fname, current_tick.high_order, current_tick.low_order,
+			finish_tick.high_order, finish_tick.low_order));
+#endif
+	}
+
+	/* Wait for the area detector to finish acquiring its image frame. */
+
+	for(;;) {
+		mx_status = mx_area_detector_get_status( ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ( ad->status & MXSF_AD_IS_BUSY ) == 0 ) {
+			break;		/* Exit the for(;;) loop. */
+		}
+
+		if ( check_for_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( current_tick,
+								finish_tick );
+#if 1
+			MX_DEBUG(-2,
+    ("%s: finish_tick = (%lu,%lu), current_tick = (%lu,%lu), comparison = %d",
+			fname, finish_tick.high_order, finish_tick.low_order,
+			current_tick.high_order, current_tick.low_order,
+			comparison));
+#endif
+			if ( comparison > 0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %f seconds for the "
+				"exposure to end for area detector '%s'.",
+					timeout, record->name );
+			}
+		}
+
+		mx_msleep(10);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_wait_for_exposure_complete( MX_RECORD *record,
 					double timeout )
 {
-	static const char fname[] = "mx_area_detector_wait_for_exposure_end()";
+	static const char fname[] =
+		"mx_area_detector_wait_for_exposure_complete()";
 
 	MX_AREA_DETECTOR *ad = NULL;
 	MX_DIGITAL_OUTPUT *doutput = NULL;

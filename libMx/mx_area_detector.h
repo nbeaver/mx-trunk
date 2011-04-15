@@ -1322,7 +1322,12 @@ MX_API mx_status_type mx_area_detector_setup_exposure( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_trigger_exposure( MX_RECORD *ad_record );
 
-MX_API mx_status_type mx_area_detector_wait_for_exposure_end( MX_RECORD *record,
+MX_API mx_status_type mx_area_detector_wait_for_image_complete(
+							MX_RECORD *record,
+							double timeout );
+
+MX_API mx_status_type mx_area_detector_wait_for_exposure_complete(
+							MX_RECORD *record,
 							double timeout );
 
 MX_API mx_status_type mx_area_detector_trigger_unsafe_exposure(

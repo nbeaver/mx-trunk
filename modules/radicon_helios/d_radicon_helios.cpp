@@ -16,8 +16,6 @@
 
 #define MXD_RADICON_HELIOS_DEBUG	TRUE
 
-#define MXD_RADICON_HELIOS_BYTESWAP	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -168,6 +166,101 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 /*---*/
 
 static mx_status_type
+mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
+					MX_RADICON_HELIOS *radicon_helios )
+{
+	static const char fname[] = "mxd_radicon_helios_autodetect_byteswap()";
+
+	MX_IMAGE_FRAME *image_frame;
+	uint16_t *helios_image_data;
+	size_t i, num_pixels;
+	unsigned long ad_status;
+	mx_status_type mx_status;
+
+	/* Select one-shot mode for a 0.1 second measurement. */
+
+	mx_status = mx_area_detector_set_one_shot_mode( ad->record, 0.1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start the measurement. */
+
+	mx_status = mx_area_detector_start( ad->record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The status routine for the Helios detector must be called at least
+	 * twice for the readout to successfully complete.
+	 */
+
+#if 0
+	mx_status = mx_area_detector_get_status( ad->record, &ad_status );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
+	/* Wait for the measurement to complete. */
+
+	mx_status = mx_area_detector_wait_for_image_complete( ad->record, 1.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_readout_frame( ad->record, -1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The Radicon Helios detectors have 14-bit resolution, which means
+	 * that we should not see any values larger than 16383.  If we _do_
+	 * see values bigger than 16383, then we assume that the pixel values
+	 * need to be byteswapped.
+	 */
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_IMAGE_FRAME pointer for the primary image frame of "
+		"area detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	if ( image_frame->image_data == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The image_data pointer for the primary image frame of "
+		"area detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	radicon_helios->byteswap = FALSE;
+
+	helios_image_data = (uint16_t *) image_frame->image_data;
+
+	num_pixels = image_frame->image_length / 2;
+
+	for ( i = 0; i < num_pixels; i++ ) {
+		if ( helios_image_data[i] > 16383 ) {
+			radicon_helios->byteswap = TRUE;
+
+			break;	/* Exit the for() loop. */
+		}
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: area detector '%s', byteswap = %d",
+		fname, ad->record->name, (int) radicon_helios->byteswap ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
 mxd_radicon_helios_trigger_image_readout(
 			MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput )
 {
@@ -224,59 +317,17 @@ mxd_radicon_helios_trigger_image_readout(
 
 /*---*/
 
-#if MXD_RADICON_HELIOS_BYTESWAP
-#  define MX_BYTESWAP(x)	mx_16bit_byteswap( x )
-#else
-#  define MX_BYTESWAP(x)	(x)
-#endif
-
-#if 0
-
-/* This version reproduces the same picture as ShadoCam or xray2. */
-
-static mx_status_type
-mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
-					uint16_t **dest_2d_array,
-					long *source_framesize,
-					long *dest_framesize )
-{
-	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
-
-	long i_src, j_src, i_dest, j_dest;
-
-	for ( i_src = 0; i_src < 1024; i_src++ ) {
-		i_dest = i_src;
-
-		for ( j_src = 0; j_src < 1024; j_src++ ) {
-			if ( j_src & 0x1 ) {
-				/* Odd numbered pixels. */
-
-				j_dest = 512 + (j_src - 1) / 2;
-			} else {
-				/* Even numbered pixels. */
-
-				j_dest = j_src / 2;
-			}
-
-			dest_2d_array[i_dest][j_dest]
-				= source_2d_array[i_src][j_src];
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#else
-
 /* This version rotates and transforms the image to the correct layout. */
 
 static mx_status_type
-mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
+mxd_radicon_helios_descramble_10x10_without_byteswap(
+					uint16_t **source_2d_array,
 					uint16_t **dest_2d_array,
 					long *source_framesize,
 					long *dest_framesize )
 {
-	static const char fname[] = "mxd_radicon_helios_descramble_10x10()";
+	static const char fname[] =
+		"mxd_radicon_helios_descramble_10x10_without_byteswap()";
 
 	long i_src, j_src, i_dest, j_dest, i_dest_temp, j_dest_temp;
 
@@ -303,26 +354,91 @@ mxd_radicon_helios_descramble_10x10( uint16_t **source_2d_array,
 			}
 
 			dest_2d_array[i_dest][j_dest]
-			  = MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				= source_2d_array[i_src][j_src];
 		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif
+static mx_status_type
+mxd_radicon_helios_descramble_10x10_with_byteswap(
+					uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] =
+			"mxd_radicon_helios_descramble_10x10_with_byteswap()";
+
+	long i_src, j_src, i_dest, j_dest, i_dest_temp, j_dest_temp;
+
+	for ( i_src = 0; i_src < 1024; i_src++ ) {
+		i_dest_temp = i_src;
+
+		j_dest = i_dest_temp;
+
+		for ( j_src = 0; j_src < 1024; j_src++ ) {
+			if ( j_src & 0x1 ) {
+				/* Odd numbered pixels. */
+
+				j_dest_temp = 512 + (j_src - 1) / 2;
+			} else {
+				/* Even numbered pixels. */
+
+				j_dest_temp = j_src / 2;
+			}
+
+			if ( j_dest_temp < 512 ) {
+				i_dest = j_dest_temp + 512;
+			} else {
+				i_dest = j_dest_temp - 512;
+			}
+
+			dest_2d_array[i_dest][j_dest]
+			  = mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_radicon_helios_descramble_10x10( MX_RADICON_HELIOS *radicon_helios,
+					uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	mx_status_type mx_status;
+
+	if ( radicon_helios->byteswap ) {
+		mx_status = mxd_radicon_helios_descramble_10x10_with_byteswap(
+					source_2d_array, dest_2d_array,
+					source_framesize, dest_framesize );
+	} else {
+		mx_status =
+			mxd_radicon_helios_descramble_10x10_without_byteswap(
+					source_2d_array, dest_2d_array,
+					source_framesize, dest_framesize );
+	}
+
+	return mx_status;
+}
 
 /*---*/
 
 /* Every 10th pixel */
 
 static mx_status_type
-mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
+mxd_radicon_helios_descramble_25x20_without_byteswap(
+					uint16_t **source_2d_array,
 					uint16_t **dest_2d_array,
 					long *source_framesize,
 					long *dest_framesize )
 {
-	static const char fname[] = "mxd_radicon_helios_descramble_25x20()";
+	static const char fname[] =
+		"mxd_radicon_helios_descramble_25x20_without_byteswap()";
 
 	long i_src, j_src, i_dest, j_dest;
 
@@ -333,14 +449,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 5110 - 10 * j_dest + 9;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * j_dest;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 	}
 
@@ -350,14 +466,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 10230 - 10 * j_dest + 7;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 512) + 2;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 	}
 	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
@@ -366,14 +482,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 15350 - 10 * j_dest + 5;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1024) + 4;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 	}
 	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
@@ -382,14 +498,14 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 20470 - 10 * j_dest + 3;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 1536) + 6;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 	}
 	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
@@ -398,18 +514,138 @@ mxd_radicon_helios_descramble_25x20( uint16_t **source_2d_array,
 			j_src = 25590 - 10 * j_dest + 1;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
 			i_src = i_dest - 1000;
 			j_src = 10 * (j_dest - 2048) + 8;
 
 			dest_2d_array[i_dest][j_dest] =
-				MX_BYTESWAP( source_2d_array[i_src][j_src] );
+				source_2d_array[i_src][j_src];
 		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	static const char fname[] =
+			"mxd_radicon_helios_descramble_25x20_with_byteswap()";
+
+	long i_src, j_src, i_dest, j_dest;
+
+	for ( j_dest = 0; j_dest < 512; j_dest++ ) {
+
+		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
+			i_src = 1000 - i_dest;
+			j_src = 5110 - 10 * j_dest + 9;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
+			i_src = i_dest - 1000;
+			j_src = 10 * j_dest;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+
+	for ( j_dest = 512; j_dest < 1024; j_dest++ ) {
+		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
+			i_src = 1000 - i_dest;
+			j_src = 10230 - 10 * j_dest + 7;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
+			i_src = i_dest - 1000;
+			j_src = 10 * (j_dest - 512) + 2;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
+		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
+			i_src = 1000 - i_dest;
+			j_src = 15350 - 10 * j_dest + 5;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
+			i_src = i_dest - 1000;
+			j_src = 10 * (j_dest - 1024) + 4;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
+		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
+			i_src = 1000 - i_dest;
+			j_src = 20470 - 10 * j_dest + 3;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
+			i_src = i_dest - 1000;
+			j_src = 10 * (j_dest - 1536) + 6;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
+		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
+			i_src = 1000 - i_dest;
+			j_src = 25590 - 10 * j_dest + 1;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+		for ( i_dest = 1000; i_dest < 2000; i_dest++ ) {
+			i_src = i_dest - 1000;
+			j_src = 10 * (j_dest - 2048) + 8;
+
+			dest_2d_array[i_dest][j_dest] =
+			    mx_16bit_byteswap( source_2d_array[i_src][j_src] );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_radicon_helios_descramble_25x20( MX_RADICON_HELIOS *radicon_helios,
+					uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	mx_status_type mx_status;
+
+	if ( radicon_helios->byteswap ) {
+		mx_status = mxd_radicon_helios_descramble_25x20_with_byteswap(
+					source_2d_array, dest_2d_array,
+					source_framesize, dest_framesize );
+	} else {
+		mx_status =
+			mxd_radicon_helios_descramble_25x20_without_byteswap(
+					source_2d_array, dest_2d_array,
+					source_framesize, dest_framesize );
+	}
+
+	return mx_status;
 }
 
 /*---*/
@@ -611,7 +847,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
-	unsigned long ad_flags, mask;
+	unsigned long ad_flags, helios_flags, mask;
 	long dmd, trigger;
 	mx_status_type mx_status;
 
@@ -735,13 +971,28 @@ mxd_radicon_helios_open( MX_RECORD *record )
 		fname, ad->framesize[0], ad->framesize[1],
 		ad->binsize[0], ad->binsize[1]));
 #endif
-
 	/* Initialize area detector parameters. */
 
 	ad->byte_order = (long) mx_native_byteorder();
-	ad->header_length = 0;
+	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
 
 	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Make sure that an MX_IMAGE_FRAME structure has been allocated
+	 * for ad->image_frame.
+	 */
+
+	mx_status = mx_image_alloc( &(ad->image_frame),
+					ad->framesize[0],
+					ad->framesize[1],
+					ad->image_format,
+					ad->byte_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -921,6 +1172,26 @@ mxd_radicon_helios_open( MX_RECORD *record )
 								lut_program );
 
 	/* End of the PLC reconfiguration. */
+
+	/* See if we need to byteswap data coming in from the Pleora board. */
+
+	helios_flags = radicon_helios->helios_flags;
+
+	if ( helios_flags & MXF_RADICON_HELIOS_FORCE_BYTESWAP ) {
+		radicon_helios->byteswap = TRUE;
+	} else {
+		radicon_helios->byteswap = FALSE;
+
+		if ( helios_flags & MXF_RADICON_HELIOS_AUTODETECT_BYTESWAP ) {
+
+			mx_status = mxd_radicon_helios_autodetect_byteswap(
+							ad, radicon_helios );
+		}
+	}
+
+	if ( radicon_helios->byteswap ) {
+		mx_warning( "Radicon Helios image data will be BYTESWAPPED." );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1442,7 +1713,6 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, user_buffer->GetBufferSize() ));
 #endif
 
-
 	/* Descramble the video card image to the area detector's buffer. */
 
 	/* Create two dimensional overlay arrays for the source and
@@ -1502,6 +1772,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	case MXT_RADICON_HELIOS_10x10:
 
 		mx_status = mxd_radicon_helios_descramble_10x10(
+						radicon_helios,
 						source_2d_array,
 						dest_2d_array,
 						vinput->framesize,
@@ -1509,6 +1780,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		break;
 	case MXT_RADICON_HELIOS_25x20:
 		mx_status = mxd_radicon_helios_descramble_25x20(
+						radicon_helios,
 						source_2d_array,
 						dest_2d_array,
 						vinput->framesize,
