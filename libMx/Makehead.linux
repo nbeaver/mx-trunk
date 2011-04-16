@@ -20,14 +20,14 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
@@ -331,8 +331,8 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 # EPICS includes and libraries.
 #
 
-#EPICS_ARCH	= linux-x86		# For EPICS 3.14
 EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+#EPICS_ARCH	= linux-x86		# For EPICS 3.14
 #EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
@@ -344,15 +344,28 @@ EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
 #EPICS_TOP	= /opt/EPICS
 #EPICS_TOP	= /mnt/epics
 #EPICS_TOP	= /usr/local/epics
-EPICS_TOP	= /home/lavender/local/epics
+#EPICS_TOP	= /home/lavender/local/epics
 #EPICS_TOP	= /home1/daly/epics
 
-EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
-			-I$(EPICS_TOP)/base/include/os/Linux
-EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+#EPICS_INCLUDES	= -Wno-shadow -I$(EPICS_TOP)/base/include \
+#			-I$(EPICS_TOP)/base/include/os/Linux
+#EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
+#EPICS_LIBRARIES = -lca -lCom
+
+# If you are using the NSLS-II EPICS Debian packages, then use the following
+# definitions.
+#
+# The NSLS-II Debian packages can be found at http://epics.nsls2.bnl.gov/debian/
+#     
+
+EPICS_INCLUDES  = -Wno-shadow -I/usr/lib/epics/include \
+			-I/usr/lib/epics/include/os/Linux
+EPICS_LIB_DIRS  = -L/usr/lib/epics/lib/$(EPICS_ARCH)
 EPICS_LIBRARIES = -lca -lCom
 
-# If you are using IIT's EPICS Debian package, use the following definitions.
+
+# If you are using IIT's EPICS Debian packages, then use the following
+# definitions.
 #
 # IIT's Debian and Ubuntu packages can be found at http://debian-xray.iit.edu/
 #     
