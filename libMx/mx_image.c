@@ -1107,7 +1107,10 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	unsigned long row_framesize, column_framesize;
 	double sum, sum_of_squares, mean, standard_deviation;
 	double pixel, diff, pixel_sd;
+	double min_pixel, max_pixel;
 	double first_pixel;
+	long sd_bin;
+	double sd_value;
 	mx_bool_type pixels_are_all_equal;
 	long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
@@ -1156,6 +1159,9 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	sum = 0.0;
 	pixels_are_all_equal = TRUE;
 
+	min_pixel = 1.0e38;
+	max_pixel = -1.0e38;
+
 	for ( i = 0; i < num_pixels; i++ ) {
 		switch( image_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
@@ -1171,6 +1177,12 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 				pixels_are_all_equal = FALSE;
 			}
 		}
+
+		if ( pixel < min_pixel )
+			min_pixel = pixel;
+
+		if ( pixel > max_pixel )
+			max_pixel = pixel;
 
 		sum += pixel;
 	}
@@ -1247,10 +1259,18 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 
 	mx_info( " " );
 
+	mx_info( "        min = %g, max = %g", min_pixel, max_pixel );
+
+	mx_info( " " );
+
 	for ( i = 0; i < MX_IMAGE_STATISTICS_BINS; i++ ) {
-		mx_info( "  %-3ld : %lu",
-			(long) i - MX_IMAGE_STATISTICS_MAX_SD,
-			sd_histogram[i] );
+
+		sd_bin = i - MX_IMAGE_STATISTICS_MAX_SD,
+
+		sd_value = mean + standard_deviation * sd_bin;
+
+		mx_info( " %15.3f (%3ld) : %lu",
+			sd_value, sd_bin, sd_histogram[i] );
 	}
 
 	mx_info( " " );
@@ -2097,6 +2117,28 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	static const char fname[] = "mx_image_write_file()";
 
 	mx_status_type mx_status;
+
+#if 1
+	{
+		uint16_t *image_data;
+		uint8_t *byte_data;
+
+		image_data = (uint16_t *) frame->image_data;
+
+		byte_data = (uint8_t *) frame->image_data;
+
+		MX_DEBUG(-2,("%s: byte_data = %u %u %u %u %u %u ...",
+		fname, byte_data[0], byte_data[1], byte_data[2],
+		byte_data[3], byte_data[4], byte_data[5]));
+
+		MX_DEBUG(-2,("%s: image_data = %u %u %u ...",
+		fname, image_data[0], image_data[1], image_data[2]));
+	}
+#endif
+
+#if 1
+	mx_image_statistics( frame );
+#endif
 
 	switch( datafile_type ) {
 	case MXT_IMAGE_FILE_PNM:

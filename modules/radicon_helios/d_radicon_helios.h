@@ -32,6 +32,8 @@
 #define MXT_RADICON_HELIOS_25x20		2
 #define MXT_RADICON_HELIOS_30x30		3
 
+#define MXT_RADICON_HELIOS_TEST			1000
+
 typedef struct {
 	MX_RECORD *record;
 

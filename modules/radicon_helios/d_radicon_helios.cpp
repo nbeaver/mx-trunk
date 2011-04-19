@@ -165,6 +165,41 @@ mxd_radicon_helios_get_pointers( MX_AREA_DETECTOR *ad,
 
 /*---*/
 
+static void
+mxd_radicon_helios_debug_addresses( uint16_t *one_d_array,
+					uint16_t **two_d_array,
+					long num_columns,
+					long num_rows )
+{
+	static const char fname[] = "DBG:";
+
+	unsigned long i, j;
+	uint16_t *one_ptr;
+	uint16_t *two_ptr;
+
+	MX_DEBUG(-2,("%s: one_d_array = %p, two_d_array = %p",
+		fname, one_d_array, two_d_array ));
+
+	MX_DEBUG(-2,("%s: &one_d_array[0] = %p, &two_d_array[0][0] = %p",
+		fname, &one_d_array[0], &two_d_array[0][0]));
+
+	for ( i = 0; i < num_rows; i += 250 ) {
+		for ( j = 0; j < 4; j++ ) {
+			one_ptr = one_d_array + i * num_columns + j;
+			two_ptr = &(two_d_array[i][j]);
+
+			MX_DEBUG(-2,
+			("%s: (%lu,%lu), one_ptr = %p, two_ptr = %p",
+				fname, i, j, one_ptr, two_ptr ));
+			MX_DEBUG(-2,
+			("%s:         *one_ptr = %lu,     *two_ptr = %lu",
+				fname, *one_ptr, *two_ptr));
+		}
+	}
+}
+
+/*---*/
+
 static mx_status_type
 mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 					MX_RADICON_HELIOS *radicon_helios )
@@ -174,6 +209,7 @@ mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 	MX_IMAGE_FRAME *image_frame;
 	uint16_t *helios_image_data;
 	size_t i, num_pixels;
+	double sum, average;
 	unsigned long ad_status;
 	mx_status_type mx_status;
 
@@ -215,9 +251,9 @@ mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 		return mx_status;
 
 	/* The Radicon Helios detectors have 14-bit resolution, which means
-	 * that we should not see any values larger than 16383.  If we _do_
-	 * see values bigger than 16383, then we assume that the pixel values
-	 * need to be byteswapped.
+	 * that we should not see any values larger than 16383.  So we compute
+	 * the average of the pixel values.  If the average is bigger than
+	 * 16383, then we assume that the pixel values need to be byteswapped.
 	 */
 
 	image_frame = ad->image_frame;
@@ -242,17 +278,25 @@ mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 
 	num_pixels = image_frame->image_length / 2;
 
-	for ( i = 0; i < num_pixels; i++ ) {
-		if ( helios_image_data[i] > 16383 ) {
-			radicon_helios->byteswap = TRUE;
+	sum = 0.0;
 
-			break;	/* Exit the for() loop. */
-		}
+	for ( i = 0; i < num_pixels; i++ ) {
+		sum += (double) helios_image_data[i];
+	}
+
+	average = mx_divide_safely( sum, num_pixels );
+
+	if ( average > 16383.001 ) {
+		radicon_helios->byteswap = TRUE;
+	} else {
+		radicon_helios->byteswap = FALSE;
 	}
 
 #if 1
-	MX_DEBUG(-2,("%s: area detector '%s', byteswap = %d",
-		fname, ad->record->name, (int) radicon_helios->byteswap ));
+	MX_DEBUG(-2,
+	("%s: area detector '%s', sum = %g, average = %g, byteswap = %d",
+		fname, ad->record->name,
+		sum, average, (int) radicon_helios->byteswap ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -445,7 +489,7 @@ mxd_radicon_helios_descramble_25x20_without_byteswap(
 	for ( j_dest = 0; j_dest < 512; j_dest++ ) {
 
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 5110 - 10 * j_dest + 9;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -462,7 +506,7 @@ mxd_radicon_helios_descramble_25x20_without_byteswap(
 
 	for ( j_dest = 512; j_dest < 1024; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 10230 - 10 * j_dest + 7;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -478,7 +522,7 @@ mxd_radicon_helios_descramble_25x20_without_byteswap(
 	}
 	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 15350 - 10 * j_dest + 5;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -494,7 +538,7 @@ mxd_radicon_helios_descramble_25x20_without_byteswap(
 	}
 	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 20470 - 10 * j_dest + 3;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -510,7 +554,7 @@ mxd_radicon_helios_descramble_25x20_without_byteswap(
 	}
 	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 25590 - 10 * j_dest + 1;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -542,7 +586,7 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 	for ( j_dest = 0; j_dest < 512; j_dest++ ) {
 
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 5110 - 10 * j_dest + 9;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -559,7 +603,7 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 
 	for ( j_dest = 512; j_dest < 1024; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 10230 - 10 * j_dest + 7;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -575,7 +619,7 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 	}
 	for ( j_dest = 1024; j_dest < 1536; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 15350 - 10 * j_dest + 5;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -591,7 +635,7 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 	}
 	for ( j_dest = 1536; j_dest < 2048; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 20470 - 10 * j_dest + 3;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -607,7 +651,7 @@ mxd_radicon_helios_descramble_25x20_with_byteswap( uint16_t **source_2d_array,
 	}
 	for ( j_dest = 2048; j_dest < 2560; j_dest++ ) {
 		for ( i_dest = 0; i_dest < 1000; i_dest++ ) {
-			i_src = 1000 - i_dest;
+			i_src = 999 - i_dest;
 			j_src = 25590 - 10 * j_dest + 1;
 
 			dest_2d_array[i_dest][j_dest] =
@@ -646,6 +690,33 @@ mxd_radicon_helios_descramble_25x20( MX_RADICON_HELIOS *radicon_helios,
 	}
 
 	return mx_status;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_descramble_test( MX_RADICON_HELIOS *radicon_helios,
+					uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	long i, j;
+
+	for ( i = 0; i < 1000; i++ ) {
+		for ( j = 0; j < 2560; j++ ) {
+			dest_2d_array[i][j] = source_2d_array[i][j];
+		}
+	}
+
+	for ( i = 1000; i < 2000; i++ ) {
+		for ( j = 0; j < 2560; j++ ) {
+			dest_2d_array[i][j] =
+				source_2d_array[i - 1000][j + 2560];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -784,6 +855,10 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	if ( mx_strcasecmp("30x30", radicon_helios->detector_type_name) == 0 ) {
 
 		radicon_helios->detector_type = MXT_RADICON_HELIOS_30x30;
+	} else
+	if ( mx_strcasecmp("test", radicon_helios->detector_type_name) == 0 ) {
+
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_TEST;
 	} else {
 		radicon_helios->detector_type = -1;
 
@@ -943,6 +1018,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 		break;
 
 	case MXT_RADICON_HELIOS_25x20:
+	case MXT_RADICON_HELIOS_TEST:
 		ad->maximum_framesize[0] = 2560;
 		ad->maximum_framesize[1] = 2000;
 		break;
@@ -1073,6 +1149,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 		offset_x = 8;
 		break;
 	case MXT_RADICON_HELIOS_25x20:
+	case MXT_RADICON_HELIOS_TEST:
 		offset_x = 40;
 		break;
 	case MXT_RADICON_HELIOS_30x30:
@@ -1713,6 +1790,32 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, user_buffer->GetBufferSize() ));
 #endif
 
+#if MXD_RADICON_HELIOS_DEBUG
+	{
+		unsigned long i, num_pixels;
+		uint16_t *image_data;
+		double sum, average;
+
+		image_data = (uint16_t *) vinput->frame->image_data;
+
+		num_pixels = vinput->frame->image_length / 2;
+
+		sum = 0.0;
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			sum += (double) image_data[i];
+		}
+
+		average = sum / num_pixels;
+
+		MX_DEBUG(-2,
+		("%s: BEFORE: num_pixels = %lu, sum = %g, average = %g",
+			fname, num_pixels, sum, average));
+
+		mx_image_statistics( vinput->frame );
+	}
+#endif
+
 	/* Descramble the video card image to the area detector's buffer. */
 
 	/* Create two dimensional overlay arrays for the source and
@@ -1768,6 +1871,12 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	fprintf( stderr, "\n" );
 #endif
 
+#if 0
+	mxd_radicon_helios_debug_addresses(
+		(uint16_t *) vinput->frame->image_data, source_2d_array,
+		vinput->framesize[0], vinput->framesize[1] );
+#endif
+
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:
 
@@ -1786,6 +1895,14 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 						vinput->framesize,
 						ad->framesize );
 		break;
+	case MXT_RADICON_HELIOS_TEST:
+		mx_status = mxd_radicon_helios_descramble_test(
+						radicon_helios,
+						source_2d_array,
+						dest_2d_array,
+						vinput->framesize,
+						ad->framesize );
+		break;
 	case MXT_RADICON_HELIOS_30x30:
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -1794,9 +1911,6 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name, radicon_helios->detector_type_name );
 		break;
 	}
-
-	mx_array_free_overlay( source_2d_array, 2 );
-	mx_array_free_overlay( dest_2d_array, 2 );
 
 #if MXD_RADICON_HELIOS_DEBUG
 	{
@@ -1816,8 +1930,43 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 		fprintf( stderr, "...\n" );
 	}
+#endif
+
+#if 0
+	mxd_radicon_helios_debug_addresses(
+		(uint16_t *) ad->image_frame->image_data, dest_2d_array,
+		ad->framesize[0], ad->framesize[1] );
 
 	MX_DEBUG(-2,("%s: sequence type = %ld", fname, sp->sequence_type));
+#endif
+
+	mx_array_free_overlay( source_2d_array, 2 );
+	mx_array_free_overlay( dest_2d_array, 2 );
+
+#if MXD_RADICON_HELIOS_DEBUG
+	{
+		unsigned long i, num_pixels;
+		uint16_t *image_data;
+		double sum, average;
+
+		image_data = (uint16_t *) ad->image_frame->image_data;
+
+		num_pixels = ad->image_frame->image_length / 2;
+
+		sum = 0.0;
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			sum += (double) image_data[i];
+		}
+
+		average = sum / num_pixels;
+
+		MX_DEBUG(-2,
+		("%s: AFTER: num_pixels = %lu, sum = %g, average = %g",
+			fname, num_pixels, sum, average));
+
+		mx_image_statistics( ad->image_frame );
+	}
 #endif
 
 	/* If known, update the image header with the requested exposure time.*/
@@ -1946,6 +2095,7 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( radicon_helios->detector_type ) {
 		case MXT_RADICON_HELIOS_25x20:
+		case MXT_RADICON_HELIOS_TEST:
 			ad->framesize[0] = vinput_horiz_framesize / 2L;
 			ad->framesize[1] = vinput_vert_framesize  * 2L;
 			break;
