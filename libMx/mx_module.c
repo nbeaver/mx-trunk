@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_MODULE_DEBUG		TRUE
+#define MX_MODULE_DEBUG		FALSE
 
 #include <stdio.h>
 

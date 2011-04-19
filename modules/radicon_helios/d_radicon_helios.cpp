@@ -14,7 +14,17 @@
  *
  */
 
-#define MXD_RADICON_HELIOS_DEBUG	TRUE
+#define MXD_RADICON_HELIOS_DEBUG			FALSE
+
+#define MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS	FALSE
+
+#define MXD_RADICON_HELIOS_DEBUG_BYTESWAP		TRUE
+
+#define MXD_RADICON_HELIOS_DEBUG_PIXEL_VALUES		FALSE
+
+#define MXD_RADICON_HELIOS_DEBUG_STATISTICS		FALSE
+
+#define MXD_RADICON_HELIOS_DEBUG_PARAMETER_VALUES	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -227,17 +237,6 @@ mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The status routine for the Helios detector must be called at least
-	 * twice for the readout to successfully complete.
-	 */
-
-#if 0
-	mx_status = mx_area_detector_get_status( ad->record, &ad_status );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
 	/* Wait for the measurement to complete. */
 
 	mx_status = mx_area_detector_wait_for_image_complete( ad->record, 1.0 );
@@ -292,7 +291,7 @@ mxd_radicon_helios_autodetect_byteswap( MX_AREA_DETECTOR *ad,
 		radicon_helios->byteswap = FALSE;
 	}
 
-#if 1
+#if MXD_RADICON_HELIOS_DEBUG_BYTESWAP
 	MX_DEBUG(-2,
 	("%s: area detector '%s', sum = %g, average = %g, byteswap = %d",
 		fname, ad->record->name,
@@ -1356,7 +1355,7 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lookup_table_program );
 
-#if 1
+#if MXD_RADICON_HELIOS_DEBUG_PARAMETER_VALUES
 	mxi_pleora_iport_display_all_parameters( pleora_iport_vinput->grabber );
 #endif
 
@@ -1627,7 +1626,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -1705,7 +1704,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: detector '%s' status = %#lx, "
 		"total_num_frames = %ld, last_frame_number = %ld",
 			fname, ad->record->name,
@@ -1768,15 +1767,10 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-#if MXD_RADICON_HELIOS_DEBUG
-	MX_DEBUG(-2,("%s: Started storing a frame using area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-
 	vinput = (MX_VIDEO_INPUT *)
 		pleora_iport_vinput->record->record_class_struct;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if 0
 
 	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
 
@@ -1790,7 +1784,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, user_buffer->GetBufferSize() ));
 #endif
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_STATISTICS
 	{
 		unsigned long i, num_pixels;
 		uint16_t *image_data;
@@ -1841,7 +1835,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 	}
 
-#if 1
+#if MXD_RADICON_HELIOS_DEBUG_PIXEL_VALUES
 	int i, row, offset;
 	uint16_t value;
 
@@ -1912,7 +1906,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_PIXEL_VALUES
 	{
 		unsigned long i;
 		uint16_t *image_data;
@@ -1943,7 +1937,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_array_free_overlay( source_2d_array, 2 );
 	mx_array_free_overlay( dest_2d_array, 2 );
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_STATISTICS
 	{
 		unsigned long i, num_pixels;
 		uint16_t *image_data;

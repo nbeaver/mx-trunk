@@ -14,7 +14,9 @@
  *
  */
 
-#define MXI_PLEORA_IPORT_DEBUG		TRUE
+#define MXI_PLEORA_IPORT_DEBUG		FALSE
+
+#define MXI_PLEORA_IPORT_DEBUG_OPEN	TRUE
 
 #include <stdio.h>
 
@@ -158,7 +160,7 @@ mxi_pleora_iport_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 
 static void
 mxi_pleora_iport_show_ip_engines( CyDeviceFinder::DeviceList ip_engine_list )
@@ -316,7 +318,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 	    num_devices = ip_engine_list.size();
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 	    MX_DEBUG(-2,("%s: %d IP engines found for record '%s' (pass %d).",
 			fname, num_devices, record->name, pass ));
 #endif
@@ -329,7 +331,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		return MX_SUCCESSFUL_RESULT;
 	    }
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 	    for ( i = 0; i < num_devices; i++ ) {
 		const CyDeviceFinder::DeviceEntry &device_entry
 				= ip_engine_list[i];
@@ -373,7 +375,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 		pleora_iport_vinput->grabber = NULL;
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 		MX_DEBUG(-2,("%s: device_record_array[%ld] = '%s'",
 				fname, i, device_record->name ));
 #endif
@@ -391,7 +393,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 		const char *device_address_mac =
 				device_entry.mAddressMAC.c_str_ascii();
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 		MX_DEBUG(-2,("%s: device_address_mac = '%s'",
 				fname, device_address_mac));
 		MX_DEBUG(-2,
@@ -403,7 +405,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				pleora_iport_vinput->mac_address_string ) != 0 )
 		{
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 			MX_DEBUG(-2,("%s: skipping device %ld", fname, i));
 #endif
 			continue;    /* Go back for the next device. */
@@ -442,7 +444,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 				sizeof(formatted_ip_address),
 				"[%s]", pleora_iport_vinput->ip_address_string);
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 			MX_DEBUG(-2,
 			("%s: device %ld does not have an IP address, "
 			"so we will assign it the address '%s'.",
@@ -506,7 +508,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 			*ptr = '\0';
 		}
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 		MX_DEBUG(-2,("%s: ip_address_string = '%s'",
 				fname, ip_address_string));
 		MX_DEBUG(-2,
@@ -587,7 +589,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 
 		pleora_iport_vinput->grabber = grabber;
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 		MX_DEBUG(-2,("%s: Saved grabber %p to record %p '%s'.",
 			fname, grabber, pleora_iport_vinput,
 			pleora_iport_vinput->record->name ));
@@ -615,7 +617,7 @@ mxi_pleora_iport_open( MX_RECORD *record )
 	    }
 	}
 
-#if MXI_PLEORA_IPORT_DEBUG
+#if MXI_PLEORA_IPORT_DEBUG_OPEN
 	MX_DEBUG(-2,("++++++++ %s complete ++++++++", fname));
 #endif
 

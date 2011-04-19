@@ -30,7 +30,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	TRUE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
@@ -2935,7 +2935,7 @@ mx_area_detector_wait_for_image_complete( MX_RECORD *record, double timeout )
 
 		finish_tick = mx_add_clock_ticks( current_tick,
 						timeout_ticks );
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: timeout_ticks = (%lu,%lu)", fname,
 			timeout_ticks.high_order, timeout_ticks.low_order));
 
@@ -2963,7 +2963,7 @@ mx_area_detector_wait_for_image_complete( MX_RECORD *record, double timeout )
 
 			comparison = mx_compare_clock_ticks( current_tick,
 								finish_tick );
-#if 1
+#if 0
 			MX_DEBUG(-2,
     ("%s: finish_tick = (%lu,%lu), current_tick = (%lu,%lu), comparison = %d",
 			fname, finish_tick.high_order, finish_tick.low_order,

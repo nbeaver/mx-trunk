@@ -2118,7 +2118,7 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 
 	mx_status_type mx_status;
 
-#if 1
+#if 0
 	{
 		uint16_t *image_data;
 		uint8_t *byte_data;
@@ -2136,7 +2136,7 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	}
 #endif
 
-#if 1
+#if 0
 	mx_image_statistics( frame );
 #endif
 

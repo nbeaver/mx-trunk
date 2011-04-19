@@ -14,9 +14,19 @@
  *
  */
 
-#define MXD_PLEORA_IPORT_VINPUT_DEBUG			TRUE
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG			FALSE
 
-#define MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE	TRUE
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN		FALSE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM		FALSE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_TRIGGER		FALSE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS	FALSE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE	FALSE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_MX_PARAMETERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,7 +378,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
@@ -380,11 +390,11 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	CyGrabber *grabber = pleora_iport_vinput->grabber;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: grabber = %p", fname, grabber));
 #endif
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 	{
 		CyDevice &device = grabber->GetDevice();
 
@@ -405,7 +415,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 	}
 #endif
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 
 	/* For debugging purposes, print out information about
 	 * the extensions that we need.
@@ -521,7 +531,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 
 	vinput->maximum_frame_number = 0;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 	MX_DEBUG(-2,
 	("%s: vinput->framesize[0] = %ld, vinput->framesize[1] = %ld",
 		fname, vinput->framesize[0], vinput->framesize[1] ));
@@ -548,7 +558,7 @@ mxd_pleora_iport_vinput_open( MX_RECORD *record )
 		fname, vinput->bytes_per_frame));
 #endif
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -605,7 +615,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -637,7 +647,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 				(unsigned char *) vinput->frame->image_data,
 				vinput->bytes_per_frame, 0 );
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM
 	MX_DEBUG(-2,("%s: Created pleora_iport_vinput->user_buffer = %p",
 			fname, pleora_iport_vinput->user_buffer));
 
@@ -651,7 +661,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, pleora_iport_vinput->user_buffer->GetBufferSize() ));
 #endif
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM
 	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
 		fname, vinput->trigger_mode ));
 #endif
@@ -662,7 +672,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 		 * return without doing anything further.
 		 */
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM
 		MX_DEBUG(-2,
 		("%s: external trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -674,7 +684,7 @@ mxd_pleora_iport_vinput_arm( MX_VIDEO_INPUT *vinput )
 
 	seq = &(vinput->sequence_parameters);
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_ARM
 	MX_DEBUG(-2,("%s: Prepare for sequence type %d",
 		fname, seq->sequence_type));
 #endif
@@ -699,7 +709,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
@@ -710,7 +720,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 		 * return without doing anything.
 		 */
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_TRIGGER
 		MX_DEBUG(-2,
 		("%s: internal trigger disabled for video input '%s'",
 			fname, vinput->record->name));
@@ -720,7 +730,7 @@ mxd_pleora_iport_vinput_trigger( MX_VIDEO_INPUT *vinput )
 
 	/* If we get here, we are doing internal triggering. */
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Sending internal trigger for '%s'.",
 		fname, vinput->record->name));
 #endif
@@ -858,7 +868,7 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	CyResult cy_result =
 		grab_finished_event.WaitUntilSignaled( timeout_ms );
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,("%s: WaitUntilSignaled() returned %d",
 		fname, cy_result ));
 #endif
@@ -875,10 +885,10 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 			pleora_iport_vinput->grab_in_progress = FALSE;
 		}
 
-		if ( 1 ) {
+		if ( 0 ) {
 			CyImageInfo &image_info = user_buffer->GetImageInfo();
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS
 			MX_DEBUG(-2,("%s: image ID = %lu",
 				fname, image_info.GetImageID() ));
 			MX_DEBUG(-2,("%s: image size = %lu",
@@ -890,7 +900,7 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 			CyBufferQueue::ImageStatus &image_status
 				= image_info.GetImageStatus();
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS
 			MX_DEBUG(-2,("%s: mFrameOverrun = %d",
 				fname, image_status.mFrameOverrun));
 			MX_DEBUG(-2,("%s: mGrabberFIFOOverrun = %d",
@@ -939,7 +949,7 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 		vinput->busy = FALSE;
 	}
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 		fname, vinput->last_frame_number, vinput->total_num_frames,
@@ -993,7 +1003,7 @@ mxd_pleora_iport_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, vinput->record->name, vinput->parameter_type));
 #endif
@@ -1008,7 +1018,8 @@ mxd_pleora_iport_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_MX_PARAMETERS
 		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
 		    fname, vinput->image_format, vinput->image_format_name));
 #endif
@@ -1067,7 +1078,7 @@ mxd_pleora_iport_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PLEORA_IPORT_VINPUT_DEBUG
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_MX_PARAMETERS
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, vinput->record->name, vinput->parameter_type));
 #endif

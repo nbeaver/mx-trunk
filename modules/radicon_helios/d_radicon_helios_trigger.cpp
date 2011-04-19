@@ -15,11 +15,11 @@
  *
  */
 
-#define MXD_RADICON_HELIOS_TRIGGER_DEBUG		TRUE
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG		FALSE
 
-#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY		TRUE
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY		FALSE
 
-#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT	TRUE
+#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT	FALSE
 
 #include <stdio.h>
 
@@ -695,7 +695,9 @@ mxd_rh_trigger_get_parameter( MX_PULSE_GENERATOR *pulser )
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
+#if MXD_RADICON_HELIOS_TRIGGER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -752,7 +754,10 @@ mxd_rh_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 		return
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
+
+#if MXD_RADICON_HELIOS_TRIGGER_DEBUG
 	MX_DEBUG( 2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
