@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_MBC_GSC_TRIGGER_DEBUG		TRUE
+#define MXD_MBC_GSC_TRIGGER_DEBUG		FALSE
 
 #include <stdio.h>
 
@@ -550,7 +550,9 @@ mxd_mbc_gsc_trigger_get_parameter( MX_PULSE_GENERATOR *pulser )
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
+#if MXD_MBC_GSC_TRIGGER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -605,7 +607,10 @@ mxd_mbc_gsc_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 		return
 		    mx_pulse_generator_default_set_parameter_handler( pulser );
 	}
+
+#if MXD_MBC_GSC_TRIGGER_DEBUG
 	MX_DEBUG( 2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
