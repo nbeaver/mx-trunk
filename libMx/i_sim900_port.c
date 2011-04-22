@@ -253,7 +253,8 @@ mxi_sim900_port_finish_record_initialization( MX_RECORD *record )
 	case 'b':
 	case 'c':
 	case 'd':
-		sim900_port->port_name = toupper( sim900_port->port_name );
+		sim900_port->port_name =
+			toupper( (int) sim900_port->port_name );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
