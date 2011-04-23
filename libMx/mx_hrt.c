@@ -946,7 +946,47 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#elif defined(OS_MACOSX) || defined(OS_BSD)
+#elif defined(__NetBSD__)
+
+#include <errno.h>
+#include <sys/sysctl.h>
+
+MX_EXPORT void
+mx_high_resolution_time_init( void )
+{
+	static const char fname[] = "mx_high_resolution_time_init()";
+
+	int mib[2];
+	int status, saved_errno;
+	struct clockinfo clockinfo_struct;
+	size_t clockinfo_size;
+
+	mx_high_resolution_time_init_invoked = TRUE;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_CLOCKRATE;
+
+	clockinfo_size = sizeof(clockinfo_struct);
+
+	status = sysctl(mib, 2, &clockinfo_struct, &clockinfo_size, NULL, 0);
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to get the x86 CPU speed failed.  "
+		"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+		return;
+	}
+
+	mx_hrt_counter_ticks_per_microsecond =
+		1.0e-6 * (double) clockinfo_struct.hz;
+
+	return;
+}
+
+#elif defined(OS_MACOSX) || defined(__OpenBSD__)
 
 #include <errno.h>
 #include <sys/sysctl.h>
@@ -966,12 +1006,8 @@ mx_high_resolution_time_init( void )
 
 #if defined(OS_MACOSX)
 	mib[1] = HW_TB_FREQ;
-
-#elif defined(__OpenBSD__)
-	mib[1] = HW_CPUSPEED;
-
 #else
-#error Unsupported platform for sysctl().
+	mib[1] = HW_CPUSPEED;
 #endif
 
 	cpu_speed_size = sizeof(cpu_speed);
