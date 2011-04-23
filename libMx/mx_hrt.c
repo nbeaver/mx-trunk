@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -946,40 +946,49 @@ mx_high_resolution_time_init( void )
 	return;
 }
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
-#include <sys/sysctl.h>
 #include <errno.h>
+#include <sys/sysctl.h>
 
 MX_EXPORT void
 mx_high_resolution_time_init( void )
 {
 	static const char fname[] = "mx_high_resolution_time_init()";
 
-	int mib[2], tbfrequency;
+	int mib[2], cpu_speed;
 	int status, saved_errno;
-	size_t tbsize;
+	size_t cpu_speed_size;
 
 	mx_high_resolution_time_init_invoked = TRUE;
 
 	mib[0] = CTL_HW;
+
+#if defined(OS_MACOSX)
 	mib[1] = HW_TB_FREQ;
 
-	tbsize = sizeof(tbfrequency);
+#elif defined(__OpenBSD__)
+	mib[1] = HW_CPUSPEED;
 
-	status = sysctl(mib, 2, &tbfrequency, &tbsize, NULL, 0);
+#else
+#error Unsupported platform for sysctl().
+#endif
+
+	cpu_speed_size = sizeof(cpu_speed);
+
+	status = sysctl(mib, 2, &cpu_speed, &cpu_speed_size, NULL, 0);
 
 	if ( status != 0 ) {
 		saved_errno = errno;
 
 		(void) mx_error( MXE_FUNCTION_FAILED, fname,
-		"Attempt to get the x86 timebase frequency failed.  "
+		"The attempt to get the x86 CPU speed failed.  "
 		"Errno = %d, error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
 		return;
 	}
 
-	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) tbfrequency;
+	mx_hrt_counter_ticks_per_microsecond = 1.0e-6 * (double) cpu_speed;
 
 	return;
 }
