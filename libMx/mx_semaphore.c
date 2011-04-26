@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1358,24 +1358,14 @@ typedef struct {
 
 #if defined(OS_QNX)
 
-/* Although they are defined in the header files, semctl(), semget(),
- * and semop() are not really available in QNX, so we include stubs here.
+/* <sys/sem.h> has definitions for the semaphore functions on QNX,
+ * but for some reason they are commented out.
  */
 
-int semctl( int semid, int semnum, int cmd, ... )
-{
-	return EINVAL;
-}
-int semop( int semid, struct sembuf *sops, unsigned nsops )
-{
-	return EINVAL;
-}
-int semget( key_t key, int nsems, int semflg )
-{
-	return EINVAL;
-}
-
-#endif /* QNX */
+extern int semctl(int __semid, int __semnum, int __cmd, ...);
+extern int semget(key_t __key, int __nsems, int __semflg);
+extern int semop(int __semid, struct sembuf *__sops, size_t __nsops);
+#endif
 
 static mx_status_type
 mx_sysv_named_semaphore_exclusive_create_file( MX_SEMAPHORE *semaphore,
