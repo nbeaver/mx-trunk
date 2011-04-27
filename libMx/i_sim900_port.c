@@ -836,7 +836,9 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 		bytes_left_in_buffer -= bytes_read_by_getn;
 	}
 
+#if !defined(OS_SOLARIS)
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type

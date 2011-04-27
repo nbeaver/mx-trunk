@@ -17,11 +17,11 @@
 #
 INCLUDES	= $(MX_INCLUDES)
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) 
-#LIBRARIES	= -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
+LIB_DIRS	= -L$(MX_LIB_DIR) 
+LIBRARIES	= -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -ldl -lsocket -lposix4 -lmalloc
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -43,8 +43,8 @@ READLINE_LIBRARIES = -ledit
 # /opt/sunstudio12.1/
 #
 
-#CC_CMD = /opt/sunstudio12.1/bin/cc
-CC_CMD = /opt/SUNWspro/bin/cc
+CC_CMD = /opt/sunstudio12.1/bin/cc
+#CC_CMD = /opt/SUNWspro/bin/cc
 
 #
 # You may also need to modify some of the following definitions, depending
