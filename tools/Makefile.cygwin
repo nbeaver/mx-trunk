@@ -20,5 +20,5 @@ xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
 
 mx_clean:
-	-rm xdr_hyper.o mx_private_version
+	-rm *.o *.exe
 

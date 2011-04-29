@@ -3,10 +3,9 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Cygwin under Microsoft Win32.
+#          for Cygwin under Microsoft Windows.
 #
-#          Cygwin may be found at http://sources.redhat.com/cygwin/
-#          or http://cygwin.com/
+#          Cygwin may be found at http://www.cygwin.com/
 #
 #          Note: MX will not compile under Cygwin unless the 'sunrpc'
 #          package is installed.
@@ -19,11 +18,10 @@ INCLUDES	= $(MX_INCLUDES)
 #
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-#LIBRARIES	= 
-LIBRARIES	= -lrpclib
+LIBRARIES	= 
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lrpclib
+#LIBRARIES	= $(EPICS_LIBRARIES)
 
 #
 # EPICS includes and libraries.
@@ -46,6 +44,17 @@ EPICS_LIBRARIES	= -lca -lCom
 #
 
 #
+# On older versions of Cygwin, we need to add rpclib to the linker
+# command line, so we test for the existence of /usr/lib/librpclib.a
+#
+
+HAS_CYGWIN_RPCLIB = $(shell ls -1 /usr/lib/librpclib.a 2>> /dev/null | wc -l )
+
+ifeq ($(HAS_CYGWIN_RPCLIB),1)
+	LIBRARIES += -lrpclib
+endif
+
+#
 # gcc specific flags
 #
 GCCFLAGS = -Wall -Werror \
@@ -58,7 +67,7 @@ GCCFLAGS = -Wall -Werror \
 -Wnested-externs \
 -Winline
 
-# Intel x86 with Cygwin 1.3.2 under Microsoft Win32.
+# Intel x86 or amd64 with Cygwin under Microsoft Windows.
 #
 CC		= gcc
 CFLAGS		= -g -O $(GCCFLAGS) $(INCLUDES) \
@@ -137,8 +146,6 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	dllwrap -o libMx.dll --export-all-symbols \
 		--output-lib libMx.dll.a \
 		$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
-
-#		--driver-flags --no-fatal-warnings
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
