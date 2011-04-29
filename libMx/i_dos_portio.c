@@ -94,12 +94,6 @@ mxi_dos_portio_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_dos_portio_dummy_function( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
 MX_EXPORT uint8_t
 mxi_dos_portio_inp8( MX_RECORD *record, unsigned long port_number )
 {
