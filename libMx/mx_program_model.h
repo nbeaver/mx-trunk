@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2008 Illinois Institute of Technology
+ * Copyright 2006-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,15 @@
 
 #include <limits.h>
 
-#if defined(OS_SOLARIS)
+#if defined(OS_WIN32)
+
+#  if defined(_WIN64)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LLP64
+#  else
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+#  endif
+
+#elif defined(OS_SOLARIS)
 
 #  include <sys/types.h>
 
@@ -125,6 +133,11 @@
 #  endif
 #endif
 
-#define MX_WORDSIZE	( MX_PROGRAM_MODEL & ~0xf )
+#if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64 )
+#  define MX_WORDSIZE	64
+#else
+#  define MX_WORDSIZE	( MX_PROGRAM_MODEL & ~0xf )
+#endif
 
 #endif /* __MX_PROGRAM_MODEL_H__ */
+
