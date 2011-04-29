@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007 Illinois Institute of Technology
+ * Copyright 2005-2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,8 @@
 
 #ifndef __MX_XDR_H__
 #define __MX_XDR_H__
+
+#include "mx_private_version.h"
 
 #if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
 
@@ -44,7 +46,7 @@
 #      define xdr_int64_t	xdr_hyper
 #      define xdr_uint64_t	xdr_u_hyper
 
-#   elif defined(OS_CYGWIN)
+#   elif defined(OS_CYGWIN) && ( MX_CYGWIN_VERSION < 1007006 )
 #      define xdr_int8_t	xdr_char
 #      define xdr_uint8_t	xdr_u_char
 #      define xdr_int16_t	xdr_short
