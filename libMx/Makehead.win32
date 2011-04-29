@@ -9,11 +9,11 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-#INCLUDES  = $(MX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS)
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
@@ -80,6 +80,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # Visual C++ 2010 Express   (_MSC_VER == 1600)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
 # Visual C++ 2008 Express   (_MSC_VER == 1500)
@@ -99,7 +100,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
+#MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
@@ -409,7 +410,7 @@ MX_LIBRARY_STATIC_NAME = $(MX_LIBRARY_NAME)
 
 MX_LIBRARY_DELETE = $(RM) libMx.*
 
-$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+$(MX_LIBRARY_NAME): $(shell echo $(MX_LIB_OBJS) | tr \\\\ / )
 	-$(MX_LIBRARY_DELETE)
 	link /dll /debug /nologo /out:libMx.dll /nodefaultlib:libc \
 			$(DEBUG_OPTS) $(MX_LIB_OBJS) $(LIBRARIES)
@@ -449,7 +450,8 @@ library_install:
 #
 MOTOR_NAME	= motor.exe
 
-$(MOTOR_NAME): $(MOTOR_OBJS) motor.res $(MX_LIBRARY_PATH)
+$(MOTOR_NAME): $(MOTOR_OBJS) motor.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
 	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) motor.res \
 		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
@@ -472,9 +474,11 @@ motor_install:
 #
 SERVER_NAME	= mxserver.exe
 
-$(SERVER_NAME): $(SERVER_OBJS) mxserver.res $(MX_LIBRARY_PATH)
+$(SERVER_NAME): $(SERVER_OBJS) mxserver.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
 	link /debug /nologo /out:mxserver.exe *.obj mxserver.res \
-		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -499,9 +503,11 @@ server_install:
 #
 UPDATE_NAME	= mxupdate.exe
 
-$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+$(UPDATE_NAME): $(UPDATE_OBJS) mxupdate.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
 	link /debug /nologo /out:mxupdate.exe *.obj \
-		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -510,6 +516,9 @@ $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 			-manifest $(UPDATE_NAME).manifest $(EXTRA_MANIFESTS) ; \
 		rm -f $(UPDATE_NAME).manifest; \
 	fi
+
+mxupdate.res: mxupdate.rc
+	rc -i$(MSDEV_DIR)/include mxupdate.rc
 
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
@@ -521,9 +530,11 @@ update_install:
 #
 MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
-$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) mxdriverinfo.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
 	link /debug /nologo /out:mxdriverinfo.exe *.obj \
-		/nodefaultlib:libc $(DEBUG_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
@@ -533,6 +544,9 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 		  -manifest $(MXDRIVERINFO_NAME).manifest $(EXTRA_MANIFESTS) ; \
 		rm -f $(MXDRIVERINFO_NAME).manifest; \
 	fi
+
+mxdriverinfo.res: mxdriverinfo.rc
+	rc -i$(MSDEV_DIR)/include mxdriverinfo.rc
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin

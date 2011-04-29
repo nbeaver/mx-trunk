@@ -1,5 +1,5 @@
 /*
- * Name:    motor.rc
+ * Name:    mxupdate.rc
  *
  * Purpose: Win32 versioninfo resource file.
  *
@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011 Illinois Institute of Technology
+ * Copyright 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,11 +34,11 @@ BEGIN
         BLOCK "04090000"
         BEGIN
             VALUE "CompanyName", "Illinois Institute of Technology\0"
-            VALUE "FileDescription", "MX Command Line Client\0"
+            VALUE "FileDescription", "MX Data Acquisition and Control Autosave/restore Program\0"
             VALUE "FileVersion", "1.5.4\0"
-            VALUE "InternalName", "motor\0"
+            VALUE "InternalName", "mxupdate\0"
             VALUE "LegalCopyright", "Copyright 2011 Illinois Institute of Technology\0"
-            VALUE "OriginalFilename", "motor.exe\0"
+            VALUE "OriginalFilename", "mxupdate.exe\0"
             VALUE "ProductName", "MX Data Acquisition and Control System\0"
             VALUE "ProductVersion", "1.5.4\0"
         END

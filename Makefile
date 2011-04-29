@@ -43,13 +43,13 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = solaris
+MX_ARCH = win32
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
-#MX_INSTALL_DIR = $(HOME)/mxtest
+MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
 #MX_INSTALL_DIR = d:/opt/mx-1.5.3-2011_04_18
 
