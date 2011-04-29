@@ -19,8 +19,8 @@ INCLUDES	= $(MX_INCLUDES)
 #
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= 
-#LIBRARIES	= -lrpclib
+#LIBRARIES	= 
+LIBRARIES	= -lrpclib
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(EPICS_LIBRARIES) -lrpclib
@@ -134,9 +134,11 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	ar rcs libMx.a $(MX_LIB_OBJS)
 	ranlib libMx.a
-	dllwrap --verbose -o libMx.dll --export-all-symbols \
+	dllwrap -o libMx.dll --export-all-symbols \
 		--output-lib libMx.dll.a \
 		$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+
+#		--driver-flags --no-fatal-warnings
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
