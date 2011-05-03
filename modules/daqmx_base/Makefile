@@ -32,8 +32,9 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
 DAQMX_BASE_OBJS = daqmx_base.$(OBJ) i_daqmx_base.$(OBJ) \
+		d_daqmx_base_ainput.$(OBJ) d_daqmx_base_aoutput.$(OBJ) \
 		d_daqmx_base_dinput.$(OBJ) d_daqmx_base_doutput.$(OBJ) \
-		d_daqmx_base_aoutput.$(OBJ)
+		d_daqmx_base_thermocouple.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -78,11 +79,21 @@ endif
 #--------------------------------------------------------------------------
 
 daqmx_base.$(OBJ): daqmx_base.c i_daqmx_base.h \
-			d_daqmx_base_dinput.h d_daqmx_base_doutput.h
+			d_daqmx_base_ainput.h d_daqmx_base_aoutput.h \
+			d_daqmx_base_dinput.h d_daqmx_base_doutput.h \
+			d_daqmx_base_thermocouple.h
 	$(COMPILE) $(CFLAGS) daqmx_base.c
 
 i_daqmx_base.$(OBJ): i_daqmx_base.c i_daqmx_base.h
 	$(COMPILE) $(CFLAGS) i_daqmx_base.c
+
+d_daqmx_base_ainput.$(OBJ): d_daqmx_base_ainput.c i_daqmx_base.h \
+			d_daqmx_base_ainput.h
+	$(COMPILE) $(CFLAGS) d_daqmx_base_ainput.c
+
+d_daqmx_base_aoutput.$(OBJ): d_daqmx_base_aoutput.c i_daqmx_base.h \
+			d_daqmx_base_aoutput.h
+	$(COMPILE) $(CFLAGS) d_daqmx_base_aoutput.c
 
 d_daqmx_base_dinput.$(OBJ): d_daqmx_base_dinput.c i_daqmx_base.h \
 			d_daqmx_base_dinput.h
@@ -91,10 +102,6 @@ d_daqmx_base_dinput.$(OBJ): d_daqmx_base_dinput.c i_daqmx_base.h \
 d_daqmx_base_doutput.$(OBJ): d_daqmx_base_doutput.c i_daqmx_base.h \
 			d_daqmx_base_doutput.h
 	$(COMPILE) $(CFLAGS) d_daqmx_base_doutput.c
-
-d_daqmx_base_aoutput.$(OBJ): d_daqmx_base_aoutput.c i_daqmx_base.h \
-			d_daqmx_base_aoutput.h
-	$(COMPILE) $(CFLAGS) d_daqmx_base_aoutput.c
 
 install: daqmx_base.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
