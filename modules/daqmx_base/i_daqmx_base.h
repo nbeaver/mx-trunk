@@ -28,16 +28,14 @@
 typedef struct {
 	MX_RECORD *record;
 
-	long dummy;
-
 } MX_DAQMX_BASE;
 
-#define MXI_DAQMX_BASE_STANDARD_FIELDS \
-  {-1, -1, "dummy", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_DAQMX_BASE, dummy), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+#define MXI_DAQMX_BASE_STANDARD_FIELDS
 
 /*-----*/
+
+MX_API mx_status_type
+mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle );
 
 MX_API mx_status_type
 mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle );

@@ -195,29 +195,11 @@ mxd_daqmx_base_ainput_open( MX_RECORD *record )
 
 	/* Create a DAQmx Base task. */
 
-	daqmx_status = DAQmxBaseCreateTask( "", &(daqmx_base_ainput->handle) );
+	mx_status = mxi_daqmx_base_create_task( record,
+					&(daqmx_base_ainput->handle) );
 
-#if MXD_DAQMX_BASE_AINPUT_DEBUG
-	MX_DEBUG(-2,
-	("%s: DAQmxBaseCreateTask( &(daqmx_base_ainput->handle) ) = %d",
-		fname, (int) daqmx_status));
-
-	MX_DEBUG(-2,("%s:   daqmx_base_ainput->handle = %#lx",
-		fname, (unsigned long) daqmx_base_ainput->handle));
-#endif
-
-	if ( daqmx_status != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to create a DAQmx Base task failed for '%s'.  "
-		"DAQmx error code = %d",
-			record->name, (int) daqmx_status );
-	}
-
-	if ( daqmx_base_ainput->handle == 0 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to create a TaskHandle for '%s' failed.",
-			record->name );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Associate a analog input channel with this task. */
 

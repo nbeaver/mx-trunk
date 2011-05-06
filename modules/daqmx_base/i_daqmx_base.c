@@ -164,11 +164,102 @@ mxi_daqmx_base_close( MX_RECORD *record )
 /*--------------- Exported driver-specific functions ---------------*/
 
 MX_EXPORT mx_status_type
+mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
+{
+	static const char fname[] = "mxi_daqmx_base_create_task()";
+
+	int32 daqmx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	if ( task_handle == (TaskHandle *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The TaskHandle pointer passed was NULL." );
+	}
+
+	/* Create a DAQmx Base task. */
+
+	daqmx_status = DAQmxBaseCreateTask( "", task_handle );
+
+#if MXI_DAQMX_BASE_DEBUG
+	MX_DEBUG(-2,
+	("%s: DAQmxBaseCreateTask( &task_handle ) = %d",
+		fname, (int) daqmx_status ));
+
+	MX_DEBUG(-2,("%s:   record '%s', task_handle = %#lx",
+		fname, record->name, (unsigned long) *task_handle ));
+#endif
+
+	if ( daqmx_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to create a DAQmx Base task failed for '%s'.  "
+		"DAQmx error code = %d",
+			record->name, (int) daqmx_status );
+	}
+
+#if defined(OS_LINUX)
+	if ( (*task_handle) == 0 ) {
+
+		/* In case you care, National Instruments DAQmx Base is
+		 * implemented using a large LabVIEW system that runs 
+		 * in the background.  Apparently this system only works
+		 * if it can do some initialization steps before the
+		 * main() routine of your program is invoked.  If you
+		 * wait until dlopen() time, then it is too late.
+		 *
+		 * The only ways that I know of in Linux to work around
+		 * this are:
+		 *
+		 * 1.  Link the National Instruments libraries into your
+		 *     executable that runs main().  This is very _bad_
+		 *     for any plugin system like an MX module (or a
+		 *     Python module for that matter).
+		 *
+		 * 2.  Use LD_PRELOAD to load libnidaqmxbase.so before
+		 *     main is invoked.  This is the solution that I
+		 *     suggest in the error message below.
+		 *
+		 * If anyone can come up with a way around this, then
+		 * I would love to hear about it.  Apparently, National
+		 * Instruments's response to issues like this is to declare
+		 * that they do not support plugin architectures.
+		 */
+
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to create a TaskHandle for '%s' failed.  "
+		"On Linux it is necessary to prefix the shell command that "
+		"starts this program with the following environment variable "
+		"definition:\n"
+		"  LD_PRELOAD=/usr/local/lib/libnidaqmxbase.so\n"
+		"This is an unfortunate consequence of the way that "
+		"National Instruments has implemented DAQmx Base.",
+			record->name );
+	}
+#else
+	if ( (*task_handle) == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to create a TaskHandle for '%s' failed.",
+			record->name );
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 {
 	static const char fname[] = "mxi_daqmx_base_shutdown_task()";
 
 	int32 daqmx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
 
 	/* Stop the task. */
 
