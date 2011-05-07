@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003, 2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,8 @@
 /* 'linux_parport_flags' values. */
 
 #define MXF_LINUX_PARPORT_INVERT_INVERTED_BITS		0x1
-#define MXF_LINUX_PARPORT_DATA_PORT_REVERSE_MODE	0x2
+#define MXF_LINUX_PARPORT_PERIPHERAL_DRIVES_DATA_LINES	0x2
+#define MXF_LINUX_PARPORT_STATUS_PORT_SHIFT_BITS_DOWN	0x4
 
 typedef struct {
 	MX_RECORD *record;

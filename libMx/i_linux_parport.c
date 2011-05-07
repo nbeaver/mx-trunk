@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2006-2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -263,7 +263,7 @@ mxi_linux_parport_open( MX_RECORD *record )
 
 	parport_flags = linux_parport->parport_flags;
 
-	if ( parport_flags & MXF_LINUX_PARPORT_DATA_PORT_REVERSE_MODE ) {
+	if ( parport_flags & MXF_LINUX_PARPORT_PERIPHERAL_DRIVES_DATA_LINES ) {
 		data_port_direction = 1;
 	} else {
 		data_port_direction = 0;
@@ -354,7 +354,7 @@ mxi_linux_parport_read_port( MX_LINUX_PARPORT *linux_parport,
 	static const char fname[] = "mxi_linux_parport_read_port()";
 
 	int port_ioctl, status, saved_errno;
-	unsigned long invert_bits;
+	unsigned long invert_bits, shift_bits_down;
 	unsigned char value_read;
 
 	if ( linux_parport->parport_fd == -1 ) {
@@ -402,6 +402,9 @@ mxi_linux_parport_read_port( MX_LINUX_PARPORT *linux_parport,
 	invert_bits = linux_parport->parport_flags
 				& MXF_LINUX_PARPORT_INVERT_INVERTED_BITS;
 
+	shift_bits_down = linux_parport->parport_flags
+				& MXF_LINUX_PARPORT_STATUS_PORT_SHIFT_BITS_DOWN;
+
 	switch( port_number ) {
 	case MX_LINUX_PARPORT_DATA_PORT:
 		linux_parport->data_port_value = value_read;
@@ -413,9 +416,13 @@ mxi_linux_parport_read_port( MX_LINUX_PARPORT *linux_parport,
 			value_read ^= 0x80;
 		}
 
-		value_read >>= 3;
+		if ( shift_bits_down ) {
+			value_read >>= 3;
 
-		value_read &= 0x1F;
+			value_read &= 0x1F;
+		} else {
+			value_read &= 0xF8;
+		}
 
 		break;
 	case MX_LINUX_PARPORT_CONTROL_PORT:
