@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_DAQMX_BASE_DOUTPUT_DEBUG	TRUE
+#define MXD_DAQMX_BASE_DOUTPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,6 +162,7 @@ mxd_daqmx_base_doutput_open( MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_DAQMX_BASE_DOUTPUT *daqmx_base_doutput = NULL;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
 
@@ -201,12 +202,17 @@ mxd_daqmx_base_doutput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to associate digital output '%s' with "
-		"DAQmx Base task %#lx failed.  DAQmx error code = %d",
+		"DAQmx Base task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
 			record->name,
 			(unsigned long) daqmx_base_doutput->handle,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
@@ -220,12 +226,16 @@ mxd_daqmx_base_doutput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for digital output '%s' "
-		"failed.  DAQmx error code = %d",
+		"failed.  DAQmx error code = %d, error message = '%s'",
 			(unsigned long) daqmx_base_doutput->handle,
 			record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -267,6 +277,7 @@ mxd_daqmx_base_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_daqmx_base_doutput_write()";
 
 	MX_DAQMX_BASE_DOUTPUT *daqmx_base_doutput;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
 	bool32 autostart;
@@ -308,11 +319,15 @@ mxd_daqmx_base_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to write digital output '%s' failed.  "
-		"DAQmx error code = %d",
+		"DAQmx error code = %d, error message = '%s'",
 			doutput->record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 #if MXD_DAQMX_BASE_DOUTPUT_DEBUG

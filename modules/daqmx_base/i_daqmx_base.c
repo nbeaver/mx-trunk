@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_DAQMX_BASE_DEBUG		TRUE
+#define MXI_DAQMX_BASE_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -158,6 +158,9 @@ mxi_daqmx_base_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_warning( "Shutting down the National Instruments DAQmx Base "
+	"system.  This can take a _long_ time." );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -168,6 +171,7 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 {
 	static const char fname[] = "mxi_daqmx_base_create_task()";
 
+	char daqmx_error_message[80];
 	int32 daqmx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -194,10 +198,14 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to create a DAQmx Base task failed for '%s'.  "
-		"DAQmx error code = %d",
-			record->name, (int) daqmx_status );
+		"DAQmx error code = %d, error message = '%s'",
+			record->name, (int) daqmx_status, daqmx_error_message );
 	}
 
 #if defined(OS_LINUX)
@@ -254,6 +262,7 @@ mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 {
 	static const char fname[] = "mxi_daqmx_base_shutdown_task()";
 
+	char daqmx_error_message[80];
 	int32 daqmx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -271,6 +280,10 @@ mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to stop task %#lx for DAQmx Base device '%s' "
 		"failed.  DAQmx error code = %d",
@@ -289,6 +302,10 @@ mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 	daqmx_status = DAQmxBaseClearTask( task_handle );
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to clear task %#lx for DAQmx Base device '%s' "
 		"failed.  DAQmx error code = %d",

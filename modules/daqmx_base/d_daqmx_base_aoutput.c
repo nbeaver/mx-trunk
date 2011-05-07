@@ -144,6 +144,7 @@ mxd_daqmx_base_aoutput_open( MX_RECORD *record )
 
 	MX_ANALOG_OUTPUT *aoutput;
 	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput = NULL;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
 
@@ -185,12 +186,17 @@ mxd_daqmx_base_aoutput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to associate analog output '%s' with "
-		"DAQmx Base task %#lx failed.  DAQmx error code = %d",
+		"DAQmx Base task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
 			record->name,
 			(unsigned long) daqmx_base_aoutput->handle,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
@@ -204,12 +210,16 @@ mxd_daqmx_base_aoutput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for analog output '%s' "
-		"failed.  DAQmx error code = %d",
+		"failed.  DAQmx error code = %d, error message = '%s'",
 			(unsigned long) daqmx_base_aoutput->handle,
 			record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -251,6 +261,7 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	static const char fname[] = "mxd_daqmx_base_aoutput_write()";
 
 	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
 	bool32 autostart;
@@ -292,11 +303,15 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to write analog output '%s' failed.  "
-		"DAQmx error code = %d",
+		"DAQmx error code = %d, error message = '%s'",
 			aoutput->record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 #if MXD_DAQMX_BASE_AOUTPUT_DEBUG

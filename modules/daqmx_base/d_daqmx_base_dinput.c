@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_DAQMX_BASE_DINPUT_DEBUG	TRUE
+#define MXD_DAQMX_BASE_DINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,6 +160,7 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_DAQMX_BASE_DINPUT *daqmx_base_dinput = NULL;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
 
@@ -199,12 +200,17 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to associate digital input '%s' with "
-		"DAQmx Base task %#lx failed.  DAQmx error code = %d",
+		"DAQmx Base task %#lx failed.  "
+		"DAQmx error code = %d, error message = '%s'",
 			record->name,
 			(unsigned long) daqmx_base_dinput->handle,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
@@ -218,12 +224,16 @@ mxd_daqmx_base_dinput_open( MX_RECORD *record )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for digital input '%s' "
-		"failed.  DAQmx error code = %d",
+		"failed.  DAQmx error code = %d, error message = '%s'",
 			(unsigned long) daqmx_base_dinput->handle,
 			record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -265,6 +275,7 @@ mxd_daqmx_base_dinput_read( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_daqmx_base_dinput_read()";
 
 	MX_DAQMX_BASE_DINPUT *daqmx_base_dinput;
+	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
 	double timeout;
@@ -303,11 +314,15 @@ mxd_daqmx_base_dinput_read( MX_DIGITAL_INPUT *dinput )
 #endif
 
 	if ( daqmx_status != 0 ) {
+
+		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to read digital input '%s' failed.  "
-		"DAQmx error code = %d",
+		"DAQmx error code = %d, error message = '%s'",
 			dinput->record->name,
-			(int) daqmx_status );
+			(int) daqmx_status, daqmx_error_message );
 	}
 
 #if MXD_DAQMX_BASE_DINPUT_DEBUG
