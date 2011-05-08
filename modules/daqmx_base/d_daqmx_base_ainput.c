@@ -212,7 +212,8 @@ mxd_daqmx_base_ainput_open( MX_RECORD *record )
 					DAQmx_Val_Volts, NULL );
 
 #if MXD_DAQMX_BASE_AINPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseCreateDOChan( %#lx, '%s', NULL, %#lx ) = %d",
+	MX_DEBUG(-2,
+	("%s: DAQmxBaseCreateAIVoltageChan( %#lx, '%s', NULL, %#lx ) = %d",
 		fname, (unsigned long) daqmx_base_ainput->handle,
 		daqmx_base_ainput->channel_name,
 		(unsigned long) DAQmx_Val_ChanForAllLines,
