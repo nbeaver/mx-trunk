@@ -30,7 +30,7 @@ typedef struct {
 	char thermocouple_type[40];
 	char cold_junction[40];
 	double cold_junction_temperature;
-	char cold_junction_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
+	char cold_junction_channel_name[80];
 
 	TaskHandle handle;
 
@@ -95,10 +95,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_daqmx_base_thermocouple_rfield_def_ptr;
 	    offsetof(MX_DAQMX_BASE_THERMOCOUPLE, cold_junction_temperature), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "cold_junction_record_name", MXFT_STRING, \
+  {-1, -1, "cold_junction_channel_name", MXFT_STRING, \
 					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
-	    offsetof(MX_DAQMX_BASE_THERMOCOUPLE, cold_junction_record_name), \
+	    offsetof(MX_DAQMX_BASE_THERMOCOUPLE, cold_junction_channel_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_DAQMX_BASE_THERMOCOUPLE_H__ */

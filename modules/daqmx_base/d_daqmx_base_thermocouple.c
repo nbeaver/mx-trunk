@@ -148,7 +148,6 @@ mxd_daqmx_base_thermocouple_open( MX_RECORD *record )
 	char *units_name;
 	char *type_name;
 	char *cold_junction_type_name;
-	const char *cold_junction_channel_name;
 	size_t len;
 	int32 units;
 	int32 thermocouple_type;
@@ -263,7 +262,7 @@ mxd_daqmx_base_thermocouple_open( MX_RECORD *record )
 				daqmx_base_thermocouple->maximum_value,
 				units, thermocouple_type, cold_junction_type,
 			daqmx_base_thermocouple->cold_junction_temperature,
-				cold_junction_channel_name );
+			daqmx_base_thermocouple->cold_junction_channel_name );
 
 #if MXD_DAQMX_BASE_THERMOCOUPLE_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxBaseCreateDOChan( %#lx, '%s', NULL, %#lx ) = %d",
