@@ -1,3 +1,287 @@
+Version 1.5.4 (05/10/11):
+
+	Although the development leading up to this release called itself
+	MX 1.5.3, the stable release will be called MX 1.5.4.  The new
+	policy is that development releases will always end in odd numbers
+	while stable releases will end in even numbers.  This will make it
+	easier to distinguish stable releases from development versions
+	in the future.
+
+	Dynamically Loadable Module support:
+
+	    MX now has support for dynamically loading extension modules
+	    at runtime.  For MX 1.5.4, these modules can only contain sets
+	    of device drivers, but in future releases it will be possible
+	    to dynamically load extensions containing software packages
+	    that are not drivers, such as Python interpreters, specialized
+	    numerical processing packages, and so forth.
+
+	    The ultimate plan is to move all optionally compiled drivers
+	    that are currently selected using the libMx/mxconfig.h file
+	    into the new dynamically loaded modules and do away with the
+	    mxconfig.h file.
+
+	    MX 1.5.4 comes with four modules.  Two of these are currently
+	    being used in the testing of new area detectors, while the
+	    other two are at earlier stages of development.
+
+	    Area detector-related modules:
+
+		pleora_iport - This Windows C++ module contains a series of
+		    drivers for the Pleora iPORT family of streaming video
+		    capture devices.  The available drivers include:
+
+		    pleora_iport - Interface driver for communicating with
+			the iPORT software libraries.
+
+		    pleora_iport_vinput  - MX video input driver for capturing
+			frames from an iPORT IP engine.
+
+		    pleora_iport_dinput  - MX digital input driver for reading
+			the A0 through A3 inputs of an iPORT PLC.
+
+		    pleora_iport_doutput - MX digital output driver for
+			writing to the Q outputs of an iPORT PLC.
+
+		radicon_helios - This Windows C++ module contains drivers
+		    for controlling the Helios series of Rad-icon X-ray
+		    detectors which make use of the Pleora iPORT.  The
+		    available drivers include:
+
+		    radicon_helios - MX area detector driver for a Helios
+			detector.  This detector is either triggered by an
+			external trigger or by the 'radicon_helios_trigger'
+			driver described below.
+
+		    radicon_helios_trigger - This makes use of parts of
+			the Pleora iPORT PLC that are not used by the
+			'radicon_helios' to implement a self-contained
+			triggering system for the 'radicon_helios' so 
+			that it can work without external triggering.
+
+	    Work in progress modules:
+
+		daqmx_base - This C-based module provides interfaces to the
+		    National Instruments DAQmx Base data acquisition libraries.
+		    On Linux, the analog output and digital I/O drivers work
+		    with a USB-6009 module, but the analog input driver does
+		    not seem to detect supplied input voltages (for an unknown
+		    reason).  On Windows, the analog input driver sometimes
+		    can cause the MX server to hang.
+
+		    Work on the 'daqmx_base' module was put on hold for now,
+		    since it was holding up the release of MX 1.5.4.  It will
+		    be completed at a later date.
+
+		    Unfortunately, National Instruments only supports DAQmx
+		    Base on Linux for OpenSuse and Red Hat Enterprise Linux.
+		    I have not yet been able to get installation to work on
+		    Debian-based distributions.  In addition, due to the way
+		    that National Instruments has implemented DAQmx Base, it
+		    is necessary on Linux to prefix the command that starts
+		    your MX server with this
+
+			LD_PRELOAD=/usr/local/lib/libnidaqmxbase.so
+
+		    Otherwise, the DAQmx Base library does not work correctly.
+		    In addition, startup and shutdown of the 'daqmx_base'
+		    drivers is _very_ slow, since National Instruments's
+		    DAQmx Base is actually firing up a copy of the LabVIEW
+		    runtime in the background.
+
+		    Nevertheless, the available drivers and their status are:
+
+		    daqmx_base - Interface driver for communicating with the
+			DAQmx Base libraries. (works)
+
+		    daqmx_base_ainput  - Analog input driver, which does not
+			work on the USB-6009 as mentioned above.
+
+		    daqmx_base_aoutput - Analog output driver. (works)
+
+		    daqmx_base_dinput  - Digital input driver. (works)
+
+		    daqmx_base_doutput - Digital output driver. (works)
+
+		    daqmx_base_thermocouple - Analog input driver for use
+			with thermocouples.  Not tested, since the USB-6009
+			does not support thermocouple inputs.
+
+		bnc725_lib - Windows C++ module for the BNC725 digital delay
+		    generator from Berkeley Nucleonics Corporation.  This is
+		    intended to provide MX pulse generator drivers as well
+		    as other drivers.  However, the work has not yet
+		    progressed far enough for this module to be useful.
+
+	New Device Driver Support:
+
+	    digital_output_pulser - This is a driver that uses an MX digital
+		output as a "pulse generator" using operating system timers
+		to control the timing of the pulses.  You should only use
+		this driver in cases where the precise timing of the pulses
+		is not important.
+
+	    energy_mcs_qscan - This is an MX quick scan driver that is 
+		optimized for use with MX energy pseudomotors.  Restricting
+		this driver to only work with energy pseudomotors allows
+		this scan to run faster than the 'mcs_qscan' driver.
+
+	    epics_area_detector - This is an MX area detector driver for
+		communicating with the IOC-based EPICS Area Detector record.
+
+	    file_dinput - This driver uses values read from a file to
+		simulate a digital input.
+
+	    keyboard_dinput - This driver uses keypresses on a keyboard
+		to simulate a digital input.
+
+	    I404 - Drivers for the Pyramid Technical Consultants I404
+		digital electrometer.  The individual drivers are:
+
+		    i404      - Controller driver.
+
+		    i404_amp  - Amplifier driver to control gain, offset, etc.
+
+		    i404_mcai - Multichannel analog input driver.  This driver
+			reads the values from all 4 channels of the I404 as
+			a single operation.
+
+	    limited_move - This is an MX pseudomotor driver that limits
+		the magnitude of relative moves.
+
+	    Linkam T9x - Drivers for the Linkam T92, T93, T94, and T95 series
+		of temperature controllers.  The individual drivers are:
+
+		    linkam_t9x       - Controller driver.
+
+		    linkam_t9x_motor - This is a motor driver for controlling
+			the motion control part of the T9x controllers.
+
+		    linkam_t9x_pump  - Analog output driver for controlling
+			the pump speed.
+
+		    linkam_t9x_temp  - This is a motor driver for controlling
+			the temperature setpoint.
+
+	    Molecular Biology Consortium (Beamline 4.2.2 at the ALS) -
+		This is a series of drivers written to control beamline
+		specific components of the ALS 4.2.2 beamline.  The
+		individual drivers are:
+
+		    mbc_noir         - MX area detector driver for controlling
+			the MBC NOIR 1 detector.
+
+		    mbc_noir_trigger - Pulse generator driver that controls
+			the beamline trigger signal through the MBC:NOIR:
+			EPICS PVs.
+
+		    mbc_gsc_trigger  - Pulse generator driver that controls
+			the beamline trigger signal directly through the
+			MBC:gsc: EPICS PVs of the MBC GonioSync Controller.
+
+	    network_mcai - MX multichannel analog input driver for an MCAI
+		controlled by a remote MX server.
+
+	    Power PMAC - This is a set of drivers for controlling the new
+		Delta Tau Power PMAC series of motion controllers.  The
+		Power PMAC controller, as delivered, is based on a
+		PowerPC-based Linux computer running the Debian Lenny (5.0)
+		distribution with Xenomai patches.
+
+		The installed copy of Lenny comes complete with GCC, Make,
+		and other development tools.  This makes it straightforward
+		to build the MX server to run directly on the Power PMAC
+		controller itself, linking to the vendor-provided motion
+		control libraries.
+
+		The individual drivers are:
+
+		    powerpmac       - Controller driver.
+
+	    	    powerpmac_motor - Motor driver for controlling an
+			individual Power PMAC motor.
+
+		    powerpmac_ainput, powerpmac_aoutput,
+		    powerpmac_dinput, powerpmac_doutput - Drivers for
+			controlling Power PMAC variables as if they were
+			analog or digital I/O devices (which in some cases,
+			they are).
+
+		    powerpmac_long, powerpmac_ulong, powerpmac_double -
+			MX variable drivers for directly reading and writing
+			Power PMAC internal variables.
+
+	    SIM900 - A set of drivers for controlling modules installed in
+		a Stanford Research Systems SIM900 mainframe.  The currently
+		available drivers are:
+
+		    sim900      - Mainframe controller driver.
+
+		    sim900_port - MX RS-232 driver for communicating with
+				individual modules in the SIM900 mainframe.
+
+		    sim960 - MX motor driver for the SIM960 Analog PID
+				controller.
+
+		    sim980 - MX analog input driver for the SIM980 summing
+				amplifier.
+
+		    sim983 - MX amplifier driver for the SIM983 scaling
+				amplifier.
+
+	    telnet - This is an RS-232 driver for communicating with
+		Telnet-based terminal servers.  The primary difference
+		between the 'tcp232' driver and the 'telnet' driver is
+		that the 'telnet' driver knows how to handle Telnet
+		option negotiation.
+
+	MX now supports the 'win32' build target on Windows 7.  Note that
+	Windows Vista is _not_ supported, since I do not have access to
+	a Vista machine, but it will probably work anyway.
+
+	MX can now be built for the 'win32' build target using the Microsoft
+	Visual C++ 2010 Express compiler or using the Windows 7 SDK compilers.
+	Visual C++ 2010 Express does not include a compiler capable of 
+	creating 64-bit binaries, so you must use the Windows 7 SDK for that
+	or else use the full version of Visual Studio 2010.  Please note that
+	you use the 'win32' build target in the MX makefiles even if you are
+	building a 64-bit version of the code, since the Windows API is
+	actually essentially the same on 64-bit systems.
+
+	MX support for EPICS on Windows 7 has been tested using EPICS 3.14.12.
+
+	Changed the area detector code to use the term 'duration' mode 
+	rather than 'bulb' mode for exposures whose length depends on the
+        duration of an external trigger signal.  Although 'bulb' mode is
+	the term used in digital photography and by the PVCAM library,
+	I found that I was always having to explain what I meant by the
+	term.  Hopefully, 'duration' mode will be a more obvious description
+	of what the area detector mode is doing.
+
+	Added 'exposure_mode' infrastructure to area detector support do
+	distinguish (when necessary) between the following exposure types:
+	still, dark, and expose(oscillation).  This is currently only 
+	being used by MBC detectors.
+
+	The 'pccd_16080' driver for the Aviex PCCD-16080 detector at BioCAT
+	now can use binning of up to 128 in the horizontal direction and up
+	to 8 in the vertical direction.
+
+	EPICS support in libMx/Makehead.linux now contains examples of how
+	ot configure the makefile to use the NSLS-II EPICS Debian packages
+	at http://epics.nsls2.bnl.gov/debian/ instead of the IIT EPICS 
+	Debian packages at http://debian-xray.iit.edu/.  The behavior of
+	EPICS is essentially identical, regardless of which set of EPICS
+	Debian packages you use.
+
+	Minor 'win32' makefile changes for compatibility with very recent
+	versions of Gnu make from Cygwin.
+
+	Minor change to the 'linux_parport' series of drivers so that by
+	default they do _not_ shift the bits read from the parallel port
+	status ports.  This provides better compatibility with the pinout
+	descriptions on the Internet for PC-style parallel ports.
+
 Version 1.5.2 (03/30/10):
 	New Device Driver:
 
