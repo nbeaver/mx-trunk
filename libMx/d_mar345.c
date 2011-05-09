@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -713,7 +713,7 @@ mxd_mar345_trigger( MX_AREA_DETECTOR *ad )
 	 */
 
 	snprintf( command, sizeof(command),
-			"COMMAND EXPOSE 0 %lf 1", exposure_time );
+			"COMMAND EXPOSE 0 %f 1", exposure_time );
 
 	mx_status = mxd_mar345_command( mar345, command, MXD_MAR345_DEBUG );
 

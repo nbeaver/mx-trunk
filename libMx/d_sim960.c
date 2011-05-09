@@ -423,7 +423,7 @@ mxd_sim960_move_absolute( MX_MOTOR *motor )
 
 	if ( ( flags & MXF_SIM960_USE_EXTERNAL_SETPOINT ) == 0 ) {
 
-		snprintf( command, sizeof(command), "SETP %lf",
+		snprintf( command, sizeof(command), "SETP %f",
 					motor->raw_destination.analog );
 
 		mx_status = mxd_sim960_command( sim960, command,
@@ -686,7 +686,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 
 		snprintf( command, sizeof(command),
-			"RATE %lf", motor->raw_speed );
+			"RATE %f", motor->raw_speed );
 
 		mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );
@@ -719,7 +719,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 			 */
 
 			snprintf( command, sizeof(command),
-				"GAIN %lf", motor->proportional_gain );
+				"GAIN %f", motor->proportional_gain );
 
 			mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );
@@ -747,7 +747,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 			 */
 
 			snprintf( command, sizeof(command),
-				"INTG %lf", motor->integral_gain );
+				"INTG %f", motor->integral_gain );
 
 			mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );
@@ -775,7 +775,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 			 */
 
 			snprintf( command, sizeof(command),
-				"DERV %lf", motor->derivative_gain );
+				"DERV %f", motor->derivative_gain );
 
 			mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );
@@ -801,7 +801,7 @@ mxd_sim960_set_parameter( MX_MOTOR *motor )
 			/* Set and turn on the output offset. */
 
 			snprintf( command, sizeof(command),
-				"OFST %lf", motor->extra_gain );
+				"OFST %f", motor->extra_gain );
 
 			mx_status = mxd_sim960_command( sim960, command,
 						NULL, 0, MXD_SIM960_DEBUG );

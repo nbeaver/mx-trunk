@@ -382,7 +382,7 @@ mxd_sim983_set_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "GAIN %lf", amplifier->gain );
+	snprintf( command, sizeof(command), "GAIN %f", amplifier->gain );
 
 	mx_status = mxd_sim983_command( sim983, command,
 					NULL, 0, MXD_SIM983_DEBUG );
@@ -430,7 +430,7 @@ mxd_sim983_set_offset( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "OFST %lf", amplifier->offset );
+	snprintf( command, sizeof(command), "OFST %f", amplifier->offset );
 
 	mx_status = mxd_sim983_command( sim983, command,
 					NULL, 0, MXD_SIM983_DEBUG );
@@ -481,7 +481,7 @@ mxd_sim983_set_time_constant( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"BWTH %lf", amplifier->time_constant );
+		"BWTH %f", amplifier->time_constant );
 
 	mx_status = mxd_sim983_command( sim983, command,
 					NULL, 0, MXD_SIM983_DEBUG );

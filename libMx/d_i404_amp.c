@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -200,7 +200,7 @@ mxd_i404_amp_set_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	snprintf( command, sizeof(command), "CONF:RANGE %lg", amplifier->gain );
+	snprintf( command, sizeof(command), "CONF:RANGE %g", amplifier->gain );
 
 	mx_status = mxi_i404_command( i404, command,
 				NULL, 0, MXD_I404_AMP_DEBUG );
