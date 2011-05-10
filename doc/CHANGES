@@ -14,7 +14,8 @@ Version 1.5.4 (05/10/11):
 	    of device drivers, but in future releases it will be possible
 	    to dynamically load extensions containing software packages
 	    that are not drivers, such as Python interpreters, specialized
-	    numerical processing packages, and so forth.
+	    numerical processing packages, and so forth.  Modules are loaded
+	    using the new mx_load_module() function.
 
 	    The ultimate plan is to move all optionally compiled drivers
 	    that are currently selected using the libMx/mxconfig.h file
@@ -250,6 +251,17 @@ Version 1.5.4 (05/10/11):
 
 	MX support for EPICS on Windows 7 has been tested using EPICS 3.14.12.
 
+	On Linux platforms, 'make install' now copies scripts/mxsetup.sh
+	to /opt/mx/bin.  This is to make the example startup script easier
+	to find by new users.
+
+	Added new mx_rs232_get_configuration(), mx_rs232_set_configuration(),
+	and mx_rs232_send_break() functions for MX RS-232 drivers.  The
+	get and set configuration functions affect the speed, word size,
+	parity, stop bits, flow control, read terminators, and write
+	terminators for the port.  At present, these features are supported
+	by the 'network_rs232', 'tty', and 'win32_com' drivers.
+
 	Changed the area detector code to use the term 'duration' mode 
 	rather than 'bulb' mode for exposures whose length depends on the
         duration of an external trigger signal.  Although 'bulb' mode is
@@ -263,9 +275,40 @@ Version 1.5.4 (05/10/11):
 	still, dark, and expose(oscillation).  This is currently only 
 	being used by MBC detectors.
 
+	Added the MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION flag (0x8000)
+	to the 'area_detector_flags' field of area detectors.  If this flag
+	is set, mx_area_detector_default_datafile_management_handler() will
+	automatically save a copy of any newly acquired correction images
+	to disk.  The frames are saved as part of the normal numbering
+	sequence for saved images.  This feature is intended primarily 
+	for debugging the acquisition of correction frames.
+
 	The 'pccd_16080' driver for the Aviex PCCD-16080 detector at BioCAT
 	now can use binning of up to 128 in the horizontal direction and up
 	to 8 in the vertical direction.
+
+	The 'pccd_16080' driver now supports strobe mode sequences, where
+	the acquisition of each frame is started by an external trigger.
+
+	Updated the 'epics_mca' driver so that it can automatically compensate
+	for whether or not the version of dxp support is dxp3-0 or newer.
+
+	Added the MXF_EPICS_MCA_WAIT_ON_START bit (0x8) to 'epics_mca_flags'
+	to wait for a notification that the EPICS MCA record has started
+	counting.  This used to be the default behavior, but now is not
+	in order to speed up scanning.
+
+	The 'motor' program can now directly create and run area detector
+	scans of type 'wedge_scan'.  The 'wedge_scan' driver is designed
+	to emulate the behavior of Blu-Ice when acquiring CCD data.  The
+	underlying scanning code has existed for several years, but this
+	now provides a user interface for the feature.
+
+	The 'pmac_mce' driver can now directly modify the slaving of the
+	slave motor axis without needing to run a PLC program.  If you
+	specify a negative number for the 'plc_program_number' parameter,
+	the driver uses the absolute value of that as the slave motor
+	axis number.
 
 	EPICS support in libMx/Makehead.linux now contains examples of how
 	ot configure the makefile to use the NSLS-II EPICS Debian packages
@@ -274,13 +317,98 @@ Version 1.5.4 (05/10/11):
 	EPICS is essentially identical, regardless of which set of EPICS
 	Debian packages you use.
 
+	Tested linux-ppc EPICS support using a Power PMAC system as the
+	development platform.
+
 	Minor 'win32' makefile changes for compatibility with very recent
 	versions of Gnu make from Cygwin.
+
+	Minor 'solaris' makefile changes for compatibility with the
+	SunStudio 12.1 development system.
 
 	Minor change to the 'linux_parport' series of drivers so that by
 	default they do _not_ shift the bits read from the parallel port
 	status ports.  This provides better compatibility with the pinout
 	descriptions on the Internet for PC-style parallel ports.
+
+	'linux_parport_flags' in the 'linux_parport' driver now has
+	two new flag bits:
+
+	    MXF_LINUX_PARPORT_PERIPHERAL_DRIVES_DATA_LINES (0x2) tells
+		Linux to not have the parallel port itself drive the
+		data lins.
+	    MXF_LINUX_PARPORT_STATUS_PORT_SHIFT_BITS_DOWN (0x4) shifts
+		the status bits down by 3 bits to recover the old
+		behavior before this release, as described in the 
+		previous paragraph.
+
+	Changes have been made to the interactions between the motor
+	'position', 'status', and 'extended_status' to more reliably
+	send value changed updates when necessary.
+
+	Changes have been made to the interactions between the area
+	detector 'last_frame_number', 'total_num_frames', 'status', and
+	'extended_status' to more reliably send value changed updates
+	when necessary.
+
+	Modified the order in which SMV headers are written to disk files
+	for better compatibility with Fit2d.
+
+	Added new motor fields:
+
+	    'busy_start_interval_enabled'   MXFT_BOOL
+	    'busy_start_interval'           MXFT_DOUBLE (in seconds)
+	    'last_start_time'               MXFT_DOUBLE (in seconds)
+
+	If 'busy_start_interval_enabled' is set to a non-zero value,
+	then just after a move is commanded, motor drivers will 
+	unconditionally report the motor as moving for a period equal
+	to 'busy_start_interval', regardless of what the motor controller
+	itself says.  This is to work around motor controllers that have
+	the misfeature of reporting that the motor is not moving for
+	a short time after a motor move is commanded.  At present,
+	the 'pmac_motor' and 'powerpmac_motor' drivers set the busy
+	start interval to 0.01 seconds.
+
+	The 'pmac' driver now supports 5 different port connection types:
+
+	    rs232     - Connect using an MX RS-232 port.
+
+	    tcp       - Connect using the PMAC Ethernet Protocol described
+	                in the manual for the Delta Tau Accessory 54E UMAC
+	                module for Ethernet/USB communication.
+
+	    gpascii   - Telnet to a Power PMAC, login, and then run the
+	                vendor-provided 'gpascii' program.
+
+	    gplib     - When running on a Power PMAC CPU, use the vendor
+		        -provided gplib library.
+
+	    epics_ect - Connect using the StrCmd and StrRsp PVs of an
+	                Argonne ECT-style EPICS database for VME-based
+	                PMAC controllers.  Not recommended.
+
+	For Power PMAC controllers, you are better off using the
+	'powerpmac' series of MX drivers instead.
+
+	Added Linux support for the 'pmc_mcapi' series of drivers used by
+	Precision MicroControl motor controllers that use the MCAPI library.
+
+	Added better XMAP support for the XIA Handel drivers.
+
+	Added the new MXF_ISOBUS_RESYNCHRONIZE_DURING_OPEN (0x4) flag
+	to the 'isobus' driver.
+
+	High resolution timers should now work correctly on x86_64-based
+	Linux platforms.
+
+	Added support for briefer and more understandable network debugging
+	messages for MX clients.  For the 'motor' program, this can be
+	accessed by adding the '-a' command line argument when you start it.
+
+	The interface class 'generic' has been renamed to 'controller'
+	to more accurately reflect its purpose.  For the forseeable
+	future, the old name of 'generic' will still work.
 
 Version 1.5.2 (03/30/10):
 	New Device Driver:
