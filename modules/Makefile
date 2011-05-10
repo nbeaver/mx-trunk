@@ -10,7 +10,7 @@
 
 all: build
 
-MODULES += daqmx_base
+#MODULES += daqmx_base
 
 # Win32-only modules.
 
