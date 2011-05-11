@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@
 #   define MX_CFN_SCAN_DIR		"${HOME}"
 #   define MX_CFN_USER_DIR		"${HOME}/.mx"
 #   define MX_CFN_CWD_DIR		"."
+#   define MX_CFN_MODULE_DIR		"/usr/lib/mx/modules"
 
 #   define MX_CFN_DEFAULT_MXDIR		""
 
@@ -46,6 +47,7 @@
 #   define MX_CFN_SCAN_DIR		"${HOME}"
 #   define MX_CFN_USER_DIR		"${HOME}/.mx"
 #   define MX_CFN_CWD_DIR		"."
+#   define MX_CFN_MODULE_DIR		"${MXDIR}/lib/modules"
 
 #   define MX_CFN_DEFAULT_MXDIR		"/opt/mx"
 #endif

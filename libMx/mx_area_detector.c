@@ -445,10 +445,13 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 #endif
 
 	if ( strlen(ad->mask_filename) > 0 ) {
-		mx_construct_control_system_filename( MX_CFN_CONFIG,
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
 						ad->mask_filename,
 						correction_filename,
 						sizeof(correction_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
 		MX_DEBUG(-2,("%s: mask filename = '%s'",
@@ -467,10 +470,13 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->bias_filename) > 0 ) {
-		mx_construct_control_system_filename( MX_CFN_CONFIG,
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
 						ad->bias_filename,
 						correction_filename,
 						sizeof(correction_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
 		MX_DEBUG(-2,("%s: bias filename = '%s'",
@@ -489,10 +495,13 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->dark_current_filename) > 0 ) {
-		mx_construct_control_system_filename( MX_CFN_CONFIG,
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
 						ad->dark_current_filename,
 						correction_filename,
 						sizeof(correction_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
 		MX_DEBUG(-2,("%s: dark current filename = '%s'",
@@ -511,10 +520,13 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 	}
 
 	if ( strlen(ad->flood_field_filename) > 0 ) {
-		mx_construct_control_system_filename( MX_CFN_CONFIG,
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
 						ad->flood_field_filename,
 						correction_filename,
 						sizeof(correction_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES
 		MX_DEBUG(-2,("%s: flood field filename = '%s'",

@@ -506,9 +506,9 @@ mxserver_main( int argc, char *argv[] )
 
 	mxsrv_setup_output_functions();
 
-	mx_construct_config_filename( "mxserver.dat",
+	mx_cfn_construct_config_filename( "mxserver.dat",
 			mx_database_filename, MXU_FILENAME_LENGTH );
-	mx_construct_config_filename( "mxserver.acl",
+	mx_cfn_construct_config_filename( "mxserver.acl",
 			mx_connection_acl_filename, MXU_FILENAME_LENGTH );
 
 	strlcpy( mx_stderr_destination_filename,

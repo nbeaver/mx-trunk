@@ -192,7 +192,7 @@ mxp_setup_home_variable( void )
 /* Win32 filenames may or may not begin with a drive letter. */
 
 MX_EXPORT mx_bool_type
-mx_is_absolute_filename( char *filename )
+mx_is_absolute_filename( const char *filename )
 {
 	static const char fname[] = "mx_is_absolute_filename()";
 
@@ -243,7 +243,7 @@ mx_is_absolute_filename( char *filename )
 /* Ignore the issue and pretend that all filenames are absolute. */
 
 MX_EXPORT mx_bool_type
-mx_is_absolute_filename( char *filename )
+mx_is_absolute_filename( const char *filename )
 {
 	return TRUE;
 }
@@ -255,7 +255,7 @@ mx_is_absolute_filename( char *filename )
  */
 
 MX_EXPORT mx_bool_type
-mx_is_absolute_filename( char *filename )
+mx_is_absolute_filename( const char *filename )
 {
 	static const char fname[] = "mx_is_absolute_filename()";
 
@@ -287,7 +287,7 @@ mx_is_absolute_filename( char *filename )
  */
 
 MX_EXPORT char *
-mx_normalize_filename( char *original_filename,
+mx_normalize_filename( const char *original_filename,
 			char *new_filename,
 			size_t max_filename_length )
 {
@@ -322,7 +322,7 @@ mx_normalize_filename( char *original_filename,
 /* Posix and Win32 style normalization. */
 
 MX_EXPORT char *
-mx_normalize_filename( char *original_filename,
+mx_normalize_filename( const char *original_filename,
 			char *new_filename,
 			size_t max_filename_length )
 {
@@ -405,8 +405,8 @@ mx_normalize_filename( char *original_filename,
 /*--------------------------------------------------------------------------*/
 
 static char *
-mxp_search_path( char *original_filename,
-		char *extension,
+mxp_search_path( const char *original_filename,
+		const char *extension,
 		int argc, char **argv )
 {
 	char temp_filename[ MXU_FILENAME_LENGTH+1 ];
@@ -439,15 +439,15 @@ mxp_search_path( char *original_filename,
 /*-------*/
 
 MX_EXPORT char *
-mx_find_file_in_path( char *original_filename,
-			char *extension,
-			char *path_variable_name,
+mx_find_file_in_path( const char *original_filename,
+			const char *extension,
+			const char *path_variable_name,
 			unsigned long flags )
 {
 	static const char fname[] = "mx_find_file_in_path()";
 
 	size_t original_length, extension_length;
-	char *extension_ptr = NULL;
+	const char *extension_ptr = NULL;
 	int status, path_argc;
 	char **path_argv = NULL;
 	char *path_variable = NULL;
@@ -742,7 +742,7 @@ mx_path_variable_split( char *path_variable,
 #define MS_IN_MACRO		3
 
 MX_EXPORT char *
-mx_expand_filename_macros( char *original_filename,
+mx_expand_filename_macros( const char *original_filename,
 			char *new_filename,
 			size_t max_filename_length )
 {
@@ -926,32 +926,60 @@ mx_expand_filename_macros( char *original_filename,
 	return new_filename;
 }
 
-MX_EXPORT char *
-mx_construct_control_system_filename( int filename_type,
-					char *original_filename,
-					char *new_filename,
-					size_t max_filename_length )
+MX_EXPORT FILE *
+mx_cfn_fopen( int filename_type,
+		const char *filename,
+		const char *file_mode )
 {
-	static const char fname[] = "mx_construct_control_system_filename()";
+	mx_status_type mx_status;
+
+	char cfn_filename[ MXU_FILENAME_LENGTH + 50 ];
+	FILE *file;
+
+	if ( filename == NULL ) {
+		errno = EINVAL;
+		return NULL;
+	}
+	if ( file_mode == NULL ) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	mx_status = mx_cfn_construct_filename( filename_type, filename,
+					cfn_filename, sizeof(cfn_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	file = fopen( cfn_filename, file_mode );
+
+	return file;
+}
+
+MX_EXPORT mx_status_type
+mx_cfn_construct_filename( int filename_type,
+			const char *original_filename,
+			char *new_filename,
+			size_t max_filename_length )
+{
+	static const char fname[] = "mx_cfn_construct_filename()";
 
 	char filename_buffer1[MXU_FILENAME_LENGTH+20];
 	char filename_buffer2[MXU_FILENAME_LENGTH+20];
 	char *prefix;
 
 	if ( original_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'original_filename' argument is NULL." );
-
-		return NULL;
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'original_filename' argument is NULL." );
 	}
 	if ( new_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'new_filename' argument is NULL." );
-
-		return NULL;
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'new_filename' argument is NULL." );
 	}
 	if ( max_filename_length == 0 ) {
-		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The specified maximum filename length of %ld is too short "
 		"to fit even a 1 byte string into.",
 			(long) max_filename_length );
@@ -970,7 +998,18 @@ mx_construct_control_system_filename( int filename_type,
 	if ( mx_is_absolute_filename( original_filename ) ) {
 		strlcpy( new_filename, original_filename, max_filename_length );
 
-		return &new_filename[0];
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the original filename starts with a '.' character, then we
+	 * assume that it is relative to the current directory of the process
+	 * and leave it alone.
+	 */
+
+	if ( original_filename[0] == '.' ) {
+		strlcpy( new_filename, original_filename, max_filename_length );
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* Construct the new filename. */
@@ -1009,6 +1048,10 @@ mx_construct_control_system_filename( int filename_type,
 	case MX_CFN_CWD:
 		prefix = MX_CFN_CWD_DIR;
 		break;
+	case MX_CFN_MODULE:
+		prefix = MX_CFN_MODULE_DIR;
+		break;
+	case MX_CFN_ABSOLUTE:
 	default:
 		prefix = "";
 		break;
@@ -1049,6 +1092,6 @@ mx_construct_control_system_filename( int filename_type,
 
 	strlcpy( new_filename, filename_buffer1, max_filename_length );
 
-	return new_filename;
+	return MX_SUCCESSFUL_RESULT;
 }
 

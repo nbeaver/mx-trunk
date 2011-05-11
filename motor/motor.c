@@ -200,16 +200,16 @@ motor_main( int argc, char *argv[] )
 	unbuffered_io = FALSE;
 	init_hw_flags = FALSE;
 
-	mx_construct_config_filename( "motor.dat",
+	mx_cfn_construct_config_filename( "motor.dat",
 				motor_savefile, MXU_FILENAME_LENGTH );
 
-	mx_construct_scan_filename( "scan.dat",
+	mx_cfn_construct_scan_filename( "scan.dat",
 				scan_savefile, MXU_FILENAME_LENGTH );
 
-	mx_construct_config_filename( "startup/motor.startup",
+	mx_cfn_construct_config_filename( "startup/motor.startup",
 				global_motorrc, MXU_FILENAME_LENGTH );
 
-	mx_construct_user_filename( "motor.startup",
+	mx_cfn_construct_user_filename( "motor.startup",
 				user_motorrc, MXU_FILENAME_LENGTH );
 
 	allow_motor_database_updates = FALSE;

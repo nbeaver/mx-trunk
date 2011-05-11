@@ -2681,10 +2681,10 @@ mxd_aviex_pccd_save_raw_frame( uint16_t *image_data,
 		filename_type = MX_CFN_STATE;
 	}
 
-	mx_construct_control_system_filename( filename_type,
-						"aviex_raw_frame.bin",
-						raw_frame_filename,
-						sizeof(raw_frame_filename) );
+	mx_cfn_construct_filename( filename_type,
+				"aviex_raw_frame.bin",
+				raw_frame_filename,
+				sizeof(raw_frame_filename) );
 
 	MX_DEBUG(-2,("%s: Writing raw frame to '%s'",
 		fname, raw_frame_filename ));

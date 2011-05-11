@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,7 @@
 #include "mx_list_head.h"
 #include "mx_net.h"
 #include "mx_motor.h"
+#include "mx_cfn.h"
 #include "mx_export.h"
 #include "mx_module.h"
 
@@ -1147,9 +1148,10 @@ mxp_readline_from_array( MXP_DB_SOURCE *db_source,
 }
 
 static mx_status_type
-mxp_get_filename_for_read_database( char *line_buffer,
-				char *filename,
-				size_t max_filename_length )
+mxp_get_cfn_filename( int filename_type,
+			char *line_buffer,
+			char *filename,
+			size_t max_filename_length )
 {
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char token[ MXU_FILENAME_LENGTH + 1 ];
@@ -1173,7 +1175,15 @@ mxp_get_filename_for_read_database( char *line_buffer,
 	/* The next token should be the file name that we are looking for. */
 
 	mx_status = mx_get_next_record_token( &parse_status,
-					filename, max_filename_length );
+					token, sizeof(token) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct a control system filename from the supplied filename. */
+
+	mx_status = mx_cfn_construct_filename( filename_type, token,
+						filename, max_filename_length );
 
 	return mx_status;
 }
@@ -1277,41 +1287,11 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			 * here.
 			 */
 
-#if 0
-			/* Get ready to parse the first two tokens on
-			 * this line.
-			 */
-
-			mx_initialize_parse_status( &parse_status,
-					buffer, MX_RECORD_FIELD_SEPARATORS );
-
-
-			/* Skip the first token since we already know that
-			 * it is the !include statement.
-			 */
-
-			mx_status = mx_get_next_record_token( &parse_status,
-						token, sizeof( token ) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* The next token should be the include file name
-			 * that we are looking for.
-			 */
-
-			mx_status = mx_get_next_record_token( &parse_status,
-						filename, sizeof( filename ) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-#else
-			mx_status = mxp_get_filename_for_read_database(
+			mx_status = mxp_get_cfn_filename( MX_CFN_CONFIG,
 					buffer, filename, sizeof(filename) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-#endif
 
 			MX_DEBUG( 2,("%s: Trying to read include file '%s'",
 				fname, filename));
@@ -1337,7 +1317,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 		} else if ( strncmp( buffer, "!load ", 6 ) == 0 ) {
 
-			mx_status = mxp_get_filename_for_read_database(
+			mx_status = mxp_get_cfn_filename( MX_CFN_MODULE,
 					buffer, filename, sizeof(filename) );
 
 			if ( mx_status.code != MXE_SUCCESS )
