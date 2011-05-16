@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -5509,7 +5509,8 @@ mx_is_analog_motor_position_between_software_limits(
 	}
 
 	if ( (*result_flag != 0) && generate_error_message ) {
-		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname, message_buffer);
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+					"%s", message_buffer );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5575,7 +5576,8 @@ mx_is_stepper_motor_position_between_software_limits(
 	}
 
 	if ( (*result_flag != 0) && generate_error_message ) {
-		return mx_error(MXE_WOULD_EXCEED_LIMIT, fname, message_buffer);
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+					"%s", message_buffer );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

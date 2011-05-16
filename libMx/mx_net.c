@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1400,7 +1400,7 @@ mxp_restore_network_callback( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( status_code, fname, char_message );
+		return mx_error( status_code, fname, "%s", char_message );
 	}
 
 	/* If the header is not at least 28 bytes long, then the server
@@ -2998,7 +2998,7 @@ mx_get_array_ascii_error_message( uint32_t status_code,
 		"MX GET from server '%s', record field '%s'",
 		server_name, record_field_name );
 
-	return mx_error( (long) status_code, location, error_message );
+	return mx_error( (long) status_code, location, "%s", error_message );
 }
 
 static mx_status_type
@@ -3013,7 +3013,7 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 		"MX PUT to server '%s', record field '%s'",
 		server_name, record_field_name );
 
-	return mx_error( (long) status_code, location, error_message );
+	return mx_error( (long) status_code, location, "%s", error_message );
 }
 
 /* ====================================================================== */
@@ -4153,7 +4153,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	if ( message_length < (2 * sizeof(uint32_t)) ) {
@@ -4343,7 +4343,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	if ( message_length < (2 * sizeof(uint32_t)) ) {
@@ -4595,7 +4595,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -4770,7 +4770,7 @@ mx_network_get_option( MX_RECORD *server_record,
 			status_code |= MXE_QUIET;
 		}
 
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	if ( message_length < sizeof(uint32_t) ) {
@@ -4965,7 +4965,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -5153,7 +5153,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	if ( message_length < sizeof(double) ) {
@@ -5444,7 +5444,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( (long)status_code, fname, message );
+		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -6427,7 +6427,7 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 	/* If the server response is an error message, then return. */
 
 	if ( status_code != MXE_SUCCESS ) {
-		return mx_error( status_code, fname, char_message );
+		return mx_error( status_code, fname, "%s", char_message );
 	}
 
 	/* 'value_ptr' is the address at which the record field value

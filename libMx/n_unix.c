@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -484,7 +484,8 @@ mxn_unix_server_receive_message( MX_NETWORK_SERVER *network_server,
 						= MXCS_CONNECTION_LOST;
 		}
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -533,7 +534,8 @@ mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server,
 						= MXCS_CONNECTION_LOST;
 		}
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

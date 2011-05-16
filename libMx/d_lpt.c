@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2002, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -211,7 +211,7 @@ mxd_lpt_in_finish_record_initialization( MX_RECORD *record )
         lpt_in = (MX_LPT_IN *) record->record_type_struct;
 
         if ( lpt_in == (MX_LPT_IN *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_LPT_IN pointer for record '%s' is NULL.",
 			record->name);
         }
@@ -345,7 +345,7 @@ mxd_lpt_out_finish_record_initialization( MX_RECORD *record )
         lpt_out = (MX_LPT_OUT *) record->record_type_struct;
 
         if ( lpt_out == (MX_LPT_OUT *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_LPT_OUT pointer for record '%s' is NULL.",
 			record->name);
         }

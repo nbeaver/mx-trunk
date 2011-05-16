@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,7 +186,7 @@ mxd_spec_motor_finish_record_initialization( MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_MOTOR pointer for record '%s' is NULL.", record->name);
 	}
 
@@ -214,7 +214,7 @@ mxd_spec_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_MOTOR pointer for record '%s' is NULL.",
 			record->name);
 	}
@@ -222,7 +222,7 @@ mxd_spec_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	spec_motor = (MX_SPEC_MOTOR *) (record->record_type_struct);
 
 	if ( spec_motor == (MX_SPEC_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_SPEC_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}

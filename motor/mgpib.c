@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ motor_gpib_fn( int argc, char *argv[] )
 		"       gpib 'record_name' address cmd \"text to send\"\n\n";
 
 	if ( argc <= 4 ) {
-		fprintf( output, usage );
+		fputs( usage, output );
 		return FAILURE;
 	}
 
@@ -107,18 +107,18 @@ motor_gpib_fn( int argc, char *argv[] )
 		cmd_type = GPIB_COMMAND_CMD;
 
 	} else {
-		fprintf( output, usage );
+		fputs( usage, output );
 		return FAILURE;
 	}
 
 	if ( cmd_type == GPIB_GETLINE_CMD ) {
 		if ( argc != 5 ) {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 	} else {
 		if ( argc != 6 ) {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 	}

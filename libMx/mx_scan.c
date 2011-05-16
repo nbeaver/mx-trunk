@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2168,7 +2168,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 	/* Send the formatted progress string to the user. */
 
-	mx_scanlog_info(buffer);
+	mx_scanlog_info( "%s", buffer );
 
 	return MX_SUCCESSFUL_RESULT;
 }

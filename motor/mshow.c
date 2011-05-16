@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ motor_showall_fn( int argc, char *argv[] )
 	char usage[] = "Usage:  showall record 'name'\n";
 
 	if ( argc != 4 ) {
-		fprintf( output, usage );
+		fprintf(output, "%s", usage);
 		return FAILURE;
 	}
 
@@ -59,8 +59,8 @@ motor_showall_fn( int argc, char *argv[] )
 		length = 1;
 
 	if ( strncmp( "record", argv[2], length ) != 0 ) {
-		fprintf(output,"show: Unrecognized option '%s'\n\n", argv[2]);
-		fprintf(output, usage);
+		fprintf(output, "show: Unrecognized option '%s'\n\n", argv[2]);
+		fprintf(output, "%s", usage);
 		return FAILURE;
 	}
 

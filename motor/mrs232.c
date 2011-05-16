@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2008 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,7 +131,7 @@ motor_rs232_fn( int argc, char *argv[] )
 		"       rs232 'record_name' set signal_state 'value'\n\n";
 
 	if ( argc <= 3 ) {
-		fprintf( output, usage );
+		fputs( usage, output );
 		return FAILURE;
 	}
 
@@ -172,23 +172,23 @@ motor_rs232_fn( int argc, char *argv[] )
 		cmd_type = RS232_SET_CMD;
 
 	} else {
-		fprintf( output, usage );
+		fputs( usage, output );
 		return FAILURE;
 	}
 
 	if ( cmd_type == RS232_GETLINE_CMD ) {
 		if ( argc != 4 ) {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 	} else if ( cmd_type == RS232_SET_CMD ) {
 		if ( argc != 6 ) {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 	} else {
 		if ( argc != 5 ) {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 	}
@@ -256,7 +256,7 @@ motor_rs232_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 		break;
@@ -281,7 +281,7 @@ motor_rs232_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else {
-			fprintf( output, usage );
+			fputs( usage, output );
 			return FAILURE;
 		}
 		break;

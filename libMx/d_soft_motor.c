@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006-2007, 2009, 2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -240,7 +241,7 @@ mxd_soft_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_MOTOR pointer for record '%s' is NULL.", record->name);
 	}
 

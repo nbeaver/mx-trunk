@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004-2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -106,7 +106,7 @@ mxd_pulsed_relay_finish_record_initialization( MX_RECORD *record )
         pulsed_relay = (MX_PULSED_RELAY *) record->record_type_struct;
 
         if ( pulsed_relay == (MX_PULSED_RELAY *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_PULSED_RELAY pointer for record '%s' is NULL.",
 			record->name);
         }

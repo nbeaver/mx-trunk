@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -124,7 +124,7 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 	e500 = (MX_E500 *) record->record_type_struct;
 
 	if ( e500 == (MX_E500 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_E500 pointer for record '%s' is NULL.", record->name);
 	}
 
@@ -177,21 +177,21 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_MOTOR pointer for record '%s' is NULL.", record->name);
 	}
 
 	e500 = (MX_E500 *) (record->record_type_struct);
 
 	if ( e500 == (MX_E500 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_E500 pointer for record '%s' is NULL.", record->name);
 	}
 
 	crate  = (MX_CAMAC *) (e500->camac_record->record_class_struct);
 
 	if ( crate == (MX_CAMAC *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_CAMAC crate pointer for record '%s' is NULL.",
 			record->name);
 	}

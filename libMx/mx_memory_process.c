@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2005-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -865,6 +865,24 @@ mx_get_process_meminfo( unsigned long process_id,
 
 #elif defined(OS_MACOSX)
 
+#include "mx_private_version.h"
+
+#if ( MX_DARWIN_VERSION >= 10007000L )
+
+MX_EXPORT mx_status_type
+mx_get_process_meminfo( unsigned long process_id,
+			MX_PROCESS_MEMINFO *meminfo )
+{
+	static const char fname[] = "mx_get_process_meminfo()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Not yet implemented for recent versions of MacOS X." );
+}
+
+#else /* MX_DARWIN_VERSION < 10007000L */
+
+/* This is for older versions of Darwin. */
+
 #include <sys/sysctl.h>
 #include <mach/mach_port.h>
 #include <mach/mach_init.h>
@@ -1061,6 +1079,8 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* MX_DARWIN_VERSION */
 
 /***************************************************************************/
 

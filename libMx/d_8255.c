@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,7 +223,7 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
         i8255_in = (MX_8255_IN *) record->record_type_struct;
 
         if ( i8255_in == (MX_8255_IN *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_8255_IN pointer for record '%s' is NULL.",
 			record->name);
         }
@@ -467,7 +467,7 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
         i8255_out = (MX_8255_OUT *) record->record_type_struct;
 
         if ( i8255_out == (MX_8255_OUT *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_8255_OUT pointer for record '%s' is NULL.",
 			record->name);
         }

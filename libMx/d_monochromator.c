@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2351,7 +2351,7 @@ mxd_monochromator_get_double_crystal_parameters(
 				monochromator->record->record_class_struct;
 
 		if ( *monochromator_motor == (MX_MOTOR *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_MOTOR pointer for record '%s' is NULL.",
 				monochromator->record->name );
 		}

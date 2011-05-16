@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1955,7 +1955,7 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 		return;
 
 	if ( (message != NULL) && (strlen(message) > 0) ) {
-		mx_info( message );
+		mx_info( "%s", message );
 	}
 
 	mx_info( "  thread pointer         = %p", thread );

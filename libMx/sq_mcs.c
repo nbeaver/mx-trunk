@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3569,7 +3569,7 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			strncat( output_buffer, value_buffer, buffer_left );
 		}
 
-		mx_info( output_buffer );
+		mx_info( "%s", output_buffer );
 
 		MX_DEBUG( 8,("%s: Copying measurement %ld to data file.",
 				fname, i));

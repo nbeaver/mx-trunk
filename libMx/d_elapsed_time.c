@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2007-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -175,14 +175,14 @@ mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_MOTOR pointer for record '%s' is NULL.", record->name);
 	}
 
 	elapsed_time = (MX_ELAPSED_TIME_MOTOR *) (record->record_type_struct);
 
 	if ( elapsed_time == (MX_ELAPSED_TIME_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_ELAPSED_TIME_MOTOR pointer for record '%s' is NULL.",
 			record->name);
 	}

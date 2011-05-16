@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004-2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -105,7 +105,7 @@ mxd_generic_relay_finish_record_initialization( MX_RECORD *record )
         generic_relay = (MX_GENERIC_RELAY *) record->record_type_struct;
 
         if ( generic_relay == (MX_GENERIC_RELAY *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_GENERIC_RELAY pointer for record '%s' is NULL.",
 			record->name);
         }

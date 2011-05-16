@@ -288,7 +288,7 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_MACOSX)
 
 #include <sys/utsname.h>
 
@@ -297,6 +297,8 @@ mxp_generate_macros( FILE *version_file )
 {
 #if defined(OS_SOLARIS)
 	static char os_name[] = "MX_SOLARIS_VERSION";
+#elif defined(OS_MACOSX)
+	static char os_name[] = "MX_DARWIN_VERSION";
 #endif
 	struct utsname uname_struct;
 	int os_status, saved_errno;

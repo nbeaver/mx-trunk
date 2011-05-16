@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,7 +107,7 @@ mxd_ks3112_finish_record_initialization( MX_RECORD *record )
         ks3112 = (MX_KS3112 *) record->record_type_struct;
 
         if ( ks3112 == (MX_KS3112 *) NULL ) {
-                return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+                return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 	"MX_KS3112 pointer for record '%s' is NULL.",
 			record->name);
         }

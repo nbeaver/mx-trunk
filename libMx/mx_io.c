@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -707,7 +707,7 @@ mx_show_fd_names( unsigned long process_id )
 					buffer, sizeof(buffer) );
 
 		if ( ptr != NULL ) {
-			mx_info( ptr );
+			mx_info( "%s", ptr );
 		}
 	}
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -592,7 +592,7 @@ cmd_read_next_command_line( char *prompt )
 			ptr = &buffer[0];
 		}
 	} else {
-		fprintf( output, prompt );
+		fputs( prompt, output );
 		fflush( output );
 	
 		fgets( buffer, sizeof buffer, input );

@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -293,7 +293,7 @@ mx_list_head_show_cpu_type( MX_LIST_HEAD *list_head )
 		break;
 	}
 
-	mx_info( buffer );
+	mx_info( "%s", buffer );
 
 #if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP32 )
 		mx_info(

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1269,7 +1269,8 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 			 */
 
 			return mx_error( mx_status.code,
-				mx_status.location, mx_status.message );
+				mx_status.location,
+				"%s", mx_status.message );
 		} else {
 			return mx_status;
 		}

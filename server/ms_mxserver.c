@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -567,7 +567,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 
 			    		(void) mx_error( mx_status2.code,
 						mx_status2.location,
-						mx_status2.message );
+						"%s", mx_status2.message );
 				}
 				continue;    /* Skip this broken callback. */
 			    }
@@ -2541,7 +2541,8 @@ mxsrv_send_field_value_to_client(
 					record_field->name );
 		}
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -2944,7 +2945,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 				fname, mx_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -3132,7 +3134,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3238,7 +3241,8 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 				fname, mx_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -3419,7 +3423,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -3608,7 +3613,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG(-1,("***** %s successful *****", fname));
@@ -3800,7 +3806,8 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -3939,7 +3946,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
@@ -4110,7 +4118,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		sprintf( location, "%s to client socket %d",
 			fname, socket_handler->synchronous_socket->socket_fd );
 
-		return mx_error( mx_status.code, location, mx_status.message );
+		return mx_error( mx_status.code, location,
+					"%s", mx_status.message );
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));

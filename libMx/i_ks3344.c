@@ -8,7 +8,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -356,7 +357,8 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 
 			    (void) mxi_ks3344_reset_channel( rs232 );
 
-			    return mx_error(error_code, fname, error_message);
+			    return mx_error( error_code, fname,
+						"%s", error_message );
 
 			} else {
 			    /* If we get here, we have read a character

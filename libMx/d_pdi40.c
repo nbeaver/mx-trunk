@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -170,7 +170,7 @@ mxd_pdi40motor_open( MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}
@@ -178,7 +178,7 @@ mxd_pdi40motor_open( MX_RECORD *record )
 	pdi40_motor = (MX_PDI40_MOTOR *) (record->record_type_struct);
 
 	if ( pdi40_motor == (MX_PDI40_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_PDI40_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}
@@ -186,7 +186,7 @@ mxd_pdi40motor_open( MX_RECORD *record )
 	pdi40 = (MX_PDI40 *) pdi40_motor->pdi40_record->record_type_struct;
 
 	if ( pdi40 == (MX_PDI40 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_PDI40 pointer for record '%s' is NULL.",
 			record->name );
 	}
@@ -292,7 +292,7 @@ mxd_pdi40motor_close( MX_RECORD *record )
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
 	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}
@@ -300,7 +300,7 @@ mxd_pdi40motor_close( MX_RECORD *record )
 	pdi40_motor = (MX_PDI40_MOTOR *) (record->record_type_struct);
 
 	if ( pdi40_motor == (MX_PDI40_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_PDI40_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}
@@ -308,7 +308,7 @@ mxd_pdi40motor_close( MX_RECORD *record )
 	pdi40 = (MX_PDI40 *) pdi40_motor->pdi40_record->record_type_struct;
 
 	if ( pdi40 == (MX_PDI40 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_PDI40 pointer for record '%s' is NULL.",
 			record->name );
 	}
