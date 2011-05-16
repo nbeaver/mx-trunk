@@ -867,7 +867,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 #include "mx_private_version.h"
 
-#if ( MX_DARWIN_VERSION >= 10007000L )
+#if ( MX_DARWIN_VERSION >= 10000000L )
 
 MX_EXPORT mx_status_type
 mx_get_process_meminfo( unsigned long process_id,
@@ -876,10 +876,10 @@ mx_get_process_meminfo( unsigned long process_id,
 	static const char fname[] = "mx_get_process_meminfo()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Not yet implemented for recent versions of MacOS X." );
+		"Not yet implemented for MacOS X 10.6 and above." );
 }
 
-#else /* MX_DARWIN_VERSION < 10007000L */
+#else /* MX_DARWIN_VERSION < 10000000L */
 
 /* This is for older versions of Darwin. */
 
