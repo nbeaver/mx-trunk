@@ -867,7 +867,25 @@ mx_get_process_meminfo( unsigned long process_id,
 
 #include "mx_private_version.h"
 
-#if ( MX_DARWIN_VERSION >= 10000000L )
+/* We must be careful about how we test for the value of MX_DARWIN_VERSION
+ * for the sake of the 'make depend' procedure.  Most of the time, when we
+ * do 'make depend', 'mx_private_version.h' is an empty temporary file and
+ * MX_DARWIN_VERSION is not defined at all.  For that reason, 'make depend'
+ * can trigger the 
+ *
+ *   #warning "<mach/shared_memory_server.h> is deprecated.  Please use <mach/shared_region.h> instead."
+ *
+ * warning that we are trying to avoid here.  The way to avoid this is to
+ * use version number comparisons in all of the tests below.  The final
+ * #else case is present purely for the sake of 'make depend'.
+ */
+
+#if defined( MX_DARWIN_VERSION ) && ( MX_DARWIN_VERSION >= 10000000L )
+
+/* FIXME: We must figure out how to get memory information on MacOS X.
+ * There are certain parts of MX (mostly area detector related) that 
+ * assume that they can get real values from mx_get_process_meminfo().
+ */
 
 MX_EXPORT mx_status_type
 mx_get_process_meminfo( unsigned long process_id,
@@ -879,7 +897,7 @@ mx_get_process_meminfo( unsigned long process_id,
 		"Not yet implemented for MacOS X 10.6 and above." );
 }
 
-#else /* MX_DARWIN_VERSION < 10000000L */
+#elif defined( MX_DARWIN_VERSION ) && ( MX_DARWIN_VERSION < 10000000L )
 
 /* This is for older versions of Darwin. */
 
@@ -1079,6 +1097,10 @@ mx_get_process_meminfo( unsigned long process_id,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else  /* MX_DARWIN_VERSION is not defined. */
+
+/* We do nothing in this block since it is only used by 'make depend'. */
 
 #endif /* MX_DARWIN_VERSION */
 
