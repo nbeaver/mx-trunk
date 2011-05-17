@@ -273,7 +273,7 @@ mx_epics_printf_handler( const char *format, va_list args )
 
 	/* Print out the text. */
 
-	mx_info( buffer );
+	mx_info( "%s", buffer );
 
 	/* mx_info() returns void, but EPICS expects an int. */
 

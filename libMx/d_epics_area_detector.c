@@ -594,7 +594,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 	default:
 		return mx_error( mx_status.code,
 				mx_status.location,
-				mx_status.message );
+				"%s", mx_status.message );
 		break;
 	}
 
@@ -642,7 +642,7 @@ mxd_epics_ad_open( MX_RECORD *record )
 
 			return mx_error( mx_status.code,
 					mx_status.location,
-					mx_status.message );
+					"%s", mx_status.message );
 			break;
 		}
 	}
