@@ -16,7 +16,11 @@
 
 #define MXD_RADICON_HELIOS_DEBUG			FALSE
 
+#define MXD_RADICON_HELIOS_DEBUG_TRIGGER		FALSE
+
 #define MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS	FALSE
+
+#define MXD_RADICON_HELIOS_DEBUG_READOUT		FALSE
 
 #define MXD_RADICON_HELIOS_DEBUG_BYTESWAP		TRUE
 
@@ -325,10 +329,10 @@ mxd_radicon_helios_trigger_image_readout(
 			pleora_iport_vinput->record->name, cy_result );
 	}
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Grab() started.", fname));
 #endif
-		
+
 	/* Set the Helios EXSYNC signal to high to trigger image readout. */
 
 	char lut_program_high[] =
@@ -354,6 +358,10 @@ mxd_radicon_helios_trigger_image_readout(
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lut_program_low );
+
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: EXSYNC pulse sent.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1284,6 +1292,10 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 	mx_bool_type trigger_seen;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s invoked.",fname));
+#endif
+
 	/* FIXME: This is a poor way of waiting for the external trigger,
 	 * since it is guaranteed to have lots of timing jitter.  It should
 	 * be replaced by logic in the iPORT PLC.
@@ -1328,18 +1340,12 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 			"was interrupted.", ad->record->name );
 		}
 
-#if 0
-		mx_msleep(50);
-#elif 1
 		mx_msleep(10);
-#else
-		mx_usleep(500);
-#endif
 	}
 
 	radicon_helios->arm_signal_present = TRUE;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Arm signal present.",fname));
 #endif
 
@@ -1354,6 +1360,10 @@ mxd_radicon_helios_wait_for_external_trigger( MX_AREA_DETECTOR *ad,
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 							lookup_table_program );
+
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: Stopped sending pulses to EXSYNC.",fname));
+#endif
 
 #if MXD_RADICON_HELIOS_DEBUG_PARAMETER_VALUES
 	mxi_pleora_iport_display_all_parameters( pleora_iport_vinput->grabber );
@@ -1383,7 +1393,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 
 	sp = &(ad->sequence_parameters);
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -1452,7 +1462,7 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Arming area detector '%s', trigger_mode = %#lx",
 		fname, ad->record->name, ad->trigger_mode ));
 #endif
@@ -1463,6 +1473,11 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: Video card '%s' is now armed.",
+		fname, radicon_helios->video_input_record->name ));
+#endif
 
 	if ( (ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER) == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -1494,7 +1509,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -1568,6 +1583,11 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: Pulse generator '%s' started.",
+		fname, pulser_record->name));
+#endif
+
 	/* Wait for the pulse generator's pulse to arrive. */
 
 	mx_status = mxd_radicon_helios_wait_for_external_trigger( 
@@ -1576,7 +1596,7 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_TRIGGER
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -1735,8 +1755,16 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 
 			mxd_pleora_iport_vinput_send_lookup_table_program(
 					pleora_iport_vinput, lut_program );
+
+#if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
+			MX_DEBUG(-2,("%s: PLC program updated.", fname));
+#endif
 		}
 	}
+
+#if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return mx_status;
 }
@@ -1760,7 +1788,7 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG
+#if MXD_RADICON_HELIOS_DEBUG_READOUT
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
@@ -1978,6 +2006,10 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		MXIF_EXPOSURE_TIME_NSEC( ad->image_frame )
 						= exposure_timespec.tv_nsec;
 	}
+
+#if MXD_RADICON_HELIOS_DEBUG_READOUT
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
