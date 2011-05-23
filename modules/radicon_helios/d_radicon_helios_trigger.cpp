@@ -324,9 +324,9 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	/* The PLC is to be configured as follows:
 	 *
 	 * PC remote control bit 0 (I5) is connected to pulse generator 1's
-	 * trigger input (Q9) which is configured to run when the input 
+	 * trigger input (Q8) which is configured to run when the input 
 	 * is high.  The output of pulse generator 1 (I6) is connected to
-	 * the count up input (Q?) of the general purpose counter.  The
+	 * the count up input (Q17) of the general purpose counter.  The
 	 * general purpose counter is configured to generate the gate pulse
 	 * (I3) for Counter 0 greater than zero.  The gate pulse is sent
 	 * to Q1.  PC remote control bit 1 (I4) is used to clear the counter
@@ -418,15 +418,9 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG5, 0 );
 
-#if 1
 	/* Connect "Pulse generator 1 output" to I6. (counter up) */
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG6, 0 );
-#else
-	/* Connect "PLC control bit 2" to I6. (counter up) */
-
-	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG6, 10 );
-#endif
 
 	lut_extension->SaveToDevice();
 
