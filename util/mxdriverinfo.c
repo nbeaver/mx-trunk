@@ -748,8 +748,8 @@ show_latex_field_table( char *driver_name,
 	create_latex_command( macro_name, sizeof(macro_name),
 			"\\Mx%sDriverFields", capitalize_string(driver->name) );
 
-	printf( "  \\newcommand{%s}{\n", macro_name );
-	printf( "  \\begin{tabular}{|c|c|c|c|c|}\n" );
+	printf( "  \\newcommand{%s}[1]{\n", macro_name );
+	printf( "  \\begin{tabular}{|c|c|c|c|p{#1}|}\n" );
 	printf( "    \\hline\n" );
 	printf(
 	"    \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
@@ -902,7 +902,7 @@ show_latex_field( MX_DRIVER *driver,
 
 		printf(
 		" & $\\ifthenelse{\\isundefined{%s}}{\\relax}"
-		"{\\begin{varwidth}{0.5\\linewidth}"
+		"{\\begin{varwidth}{1.0\\linewidth}"
 			"\\raggedright"
 			"\\vspace*{1mm}%s\\vspace*{3mm}"
 		"\\end{varwidth}}$ \\\\\n",
