@@ -749,7 +749,7 @@ show_latex_field_table( char *driver_name,
 			"\\Mx%sDriverFields", capitalize_string(driver->name) );
 
 	printf( "  \\newcommand{%s}[1]{\n", macro_name );
-	printf( "  \\begin{tabular}{|c|c|c|c|p{#1}|}\n" );
+	printf( "  \\begin{tabularx}{1.0\\textwidth}{@{\\extracolsep{\\fill}} |c|c|c|c|X|}\n" );
 	printf( "    \\hline\n" );
 	printf(
 	"    \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
@@ -781,7 +781,7 @@ show_latex_field_table( char *driver_name,
 		}
 	}
 
-	printf( "  \\end{tabular}\n" );
+	printf( "  \\end{tabularx}\n" );
 	printf( "}\n" );
 
 	return SUCCESS;
