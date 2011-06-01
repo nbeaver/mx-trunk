@@ -748,8 +748,10 @@ show_latex_field_table( char *driver_name,
 	create_latex_command( macro_name, sizeof(macro_name),
 			"\\Mx%sDriverFields", capitalize_string(driver->name) );
 
+	/* Create the command to display the field table. */
+
 	printf( "  \\newcommand{%s}[1]{\n", macro_name );
-	printf( "  \\begin{tabularx}{1.0\\textwidth}{@{\\extracolsep{\\fill}} |c|c|c|c|X|}\n" );
+	printf( "    \\begin{tabularx}{1.0\\textwidth}{@{\\extracolsep{\\fill}} |c|c|c|c|X|}\n" );
 	printf( "    \\hline\n" );
 	printf(
 	"    \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
