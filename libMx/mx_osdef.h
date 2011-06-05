@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2008 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 #if defined(OS_LINUX) || defined(OS_AIX) || defined(OS_SOLARIS) \
  || defined(OS_SUNOS4) || defined(OS_IRIX) || defined(OS_HPUX) \
  || defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_QNX) \
- || defined(OS_TRU64)
+ || defined(OS_TRU64) || defined(OS_UNIXWARE)
 
 #  define OS_UNIX
 #endif

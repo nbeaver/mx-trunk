@@ -24,7 +24,8 @@
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(__OpenBSD__)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(__OpenBSD__) \
+	|| defined(OS_UNIXWARE)
 #   include "../tools/xdr/src/xdr_hyper.h"
 
 #elif defined(OS_VMS)

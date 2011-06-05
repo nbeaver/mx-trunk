@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@
    typedef unsigned __int64	u_quad_t;
 
 #elif defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_RTEMS) \
-	|| defined(OS_VXWORKS)
+	|| defined(OS_VXWORKS) || defined(OS_UNIXWARE)
 
    typedef long long		quad_t;
    typedef unsigned long long	u_quad_t;

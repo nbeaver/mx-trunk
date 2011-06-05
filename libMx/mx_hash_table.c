@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -343,7 +343,7 @@ mx_hash_table_delete_key( MX_HASH_TABLE *hash_table,
 		}
 	}
 
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 	/* Do nothing */
 #else
 	return MX_SUCCESSFUL_RESULT;
@@ -418,7 +418,7 @@ mx_hash_table_lookup_key( MX_HASH_TABLE *hash_table,
 		}
 	}
 
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_UNIXWARE)
 	/* Do nothing */
 #else
 	return MX_SUCCESSFUL_RESULT;

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009 Illinois Institute of Technology
+ * Copyright 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -654,7 +654,7 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  */
 
 #elif defined(__GNUC__) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_VMS)
+	|| defined(OS_VMS) || defined(OS_UNIXWARE)
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 

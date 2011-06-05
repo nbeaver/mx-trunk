@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -256,6 +256,11 @@ mx_get_cpu_architecture( char *architecture_type,
 #  elif defined(__vax__) || defined(__vax)
 
 		strlcpy( architecture_type, "vax",
+				max_architecture_type_length );
+
+#  elif defined(OS_UNIXWARE)
+
+		strlcpy( architecture_type, "i386",
 				max_architecture_type_length );
 
 #  else

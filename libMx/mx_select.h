@@ -7,7 +7,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006-2007, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +22,7 @@
 
 #   include <sys/select.h>
 
-#elif defined(OS_IRIX) || defined(OS_HPUX)
+#elif defined(OS_IRIX) || defined(OS_HPUX) || defined(OS_UNIXWARE)
 
 #   include <sys/time.h>
 

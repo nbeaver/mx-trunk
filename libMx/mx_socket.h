@@ -75,6 +75,10 @@
 
 #endif
 
+#if defined( OS_UNIXWARE )
+#  include <sys/filio.h>	/* We get FIONBIO from here. */
+#endif
+
 #if HAVE_UNIX_DOMAIN_SOCKETS
 #  include <sys/un.h>
 #endif

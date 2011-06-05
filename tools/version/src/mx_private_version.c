@@ -288,7 +288,7 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_SOLARIS) || defined(OS_MACOSX)
+#if defined(OS_SOLARIS) || defined(OS_MACOSX) || defined(OS_UNIXWARE)
 
 #include <sys/utsname.h>
 
@@ -299,6 +299,8 @@ mxp_generate_macros( FILE *version_file )
 	static char os_name[] = "MX_SOLARIS_VERSION";
 #elif defined(OS_MACOSX)
 	static char os_name[] = "MX_DARWIN_VERSION";
+#elif defined(OS_UNIXWARE)
+	static char os_name[] = "MX_UNIXWARE_VERSION";
 #endif
 	struct utsname uname_struct;
 	int os_status, saved_errno;
@@ -315,8 +317,13 @@ mxp_generate_macros( FILE *version_file )
 		exit(1);
 	}
 
+#if defined(OS_UNIXWARE)
+	num_items = sscanf( uname_struct.version, "%d.%d.%d",
+			&os_major, &os_minor, &os_update );
+#else
 	num_items = sscanf( uname_struct.release, "%d.%d.%d",
 			&os_major, &os_minor, &os_update );
+#endif
 
 	if ( num_items < 2 ) {
 		fprintf( stderr, "OS version not found in string '%s'\n",

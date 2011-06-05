@@ -1,0 +1,204 @@
+#
+# Name:    Makehead.unixware
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for Unixware.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+#
+
+#
+INCLUDES	= $(MX_INCLUDES)
+
+LIB_DIRS	= -L$(MX_LIB_DIR) 
+LIBRARIES	= -lxti -lsocket -lm
+
+#
+# Motor will be linked with the bundled copy of 'editline' if you use the
+# following definitions.
+#
+READLINE_LIB_DIRS = -L../tools/unix/src/editline
+READLINE_LIBRARIES = -ledit
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+CC              = cc
+
+CFLAGS		= -g $(INCLUDES) -DOS_UNIXWARE \
+				$(EXTRA_FLAGS) -DDEBUG
+
+LINKFLAGS	= $(CFLAGS)
+
+CFLAGS_EPICS	= $(CFLAGS)
+
+# Special cases for individual files.
+
+CFLAGS_MX_VERS  = -DOS_UNIXWARE -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
+
+CFLAGS_MAKEDEPEND = $(CFLAGS)
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+MAKEDEPEND      = touch Makefile.depend
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+#
+#---------------------------------------------------
+#
+
+MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
+
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o)
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
+SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.o)
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
+
+EXTRA_LIB_OBJS    = ../tools/xdr_hyper.o
+
+#
+#---------------------------------------------------
+#
+
+RM		= rm -f
+MAKE		= make
+TOUCH		= touch -a
+
+OBJ		= o
+
+EXEOUT		= -o
+DOTEXE		=
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_SONAME	= libMx.so.$(MX_MAJOR_VERSION)
+
+MX_LIBRARY_NAME	= $(MX_SONAME)
+
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS) $(EXTRA_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	ld -G -o $(MX_LIBRARY_NAME) $(LIB_DIRS) \
+		$(MX_LIB_OBJS) $(EXTRA_LIB_OBJS) $(LIBRARIES) -lc
+	ln -sf $(MX_LIBRARY_NAME) libMx.so
+	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS) $(EXTRA_LIB_OBJS)
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	/usr/ucb/install -m 644 mx*.h $(MX_INSTALL_DIR)/include 
+	/usr/ucb/install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
+	/usr/ucb/install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
+	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )
+	( cd $(MX_INSTALL_DIR)/lib ; ln -sf $(MX_LIBRARY_NAME) libMx.so )
+	touch $(MX_INSTALL_DIR)/etc/motor.dat
+	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	/usr/ucb/install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin 
+
+#
+#---------------------------------------------------
+#
+
+MOTOR_NAME	= motor
+MOTOR_NAME2	= motor.static
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			-lMx -Kpthread $(LIBRARIES) $(READLINE_LIBRARIES)
+	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			-Kpthread $(LIBRARIES) $(READLINE_LIBRARIES)
+
+motor_install:
+	/usr/ucb/install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 ../scripts/motor_xterm $(MX_INSTALL_DIR)/bin 
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+			$(LIB_DIRS) -lMx -Kpthread $(LIBRARIES)
+
+server_install:
+	/usr/ucb/install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin 
+	/usr/ucb/install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin 
+	/usr/ucb/install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin 
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
+			$(LIB_DIRS) -lMx -Kpthread $(LIBRARIES)
+
+update_install:
+	/usr/ucb/install -m 755 $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin 
+	/usr/ucb/install -m 755 ../scripts/startmxupdate $(MX_INSTALL_DIR)/sbin 
+	/usr/ucb/install -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
+	/usr/ucb/install -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
+	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
+		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx -Kpthread $(LIBRARIES)
+
+MXSERIAL_NAME        = mxserial
+
+$(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+				$(LIB_DIRS) -lMx -Kpthread $(LIBRARIES)
+
+mxserial.o: mxserial_fork.c
+	$(CC) $(CFLAGS) -c mxserial_fork.c -o mxserial.o
+
+util_install:
+	/usr/ucb/install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/ucb/install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+

@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@
 
 #  define MX_SLEEP_TYPE        USE_USLEEP_MX_SLEEP
 
-#elif defined(OS_SUNOS4)
+#elif defined(OS_SUNOS4) || defined(OS_UNIXWARE)
 
 #     define MX_SLEEP_TYPE     USE_SELECT_MX_SLEEP
 #else

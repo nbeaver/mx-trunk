@@ -422,7 +422,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #elif defined( OS_IRIX ) || defined( OS_SUNOS4 ) || defined( OS_SOLARIS ) \
    || defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_QNX ) \
-   || defined( OS_HPUX )
+   || defined( OS_HPUX ) || defined( OS_UNIXWARE )
 	{
 		/* This method is not reentrant. */
 

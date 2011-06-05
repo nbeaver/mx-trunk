@@ -1,0 +1,40 @@
+#
+# tools/Makefile.unixware
+#
+
+all: ../libMx/mx_private_version.h unix/src/editline/libedit.a xdr_hyper.o
+
+include ../libMx/Makefile.version
+
+include ../libMx/Makehead.unixware
+
+CC = cc
+
+EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
+		-DUSE_DIRENT -DSYS_UNIX
+
+EDITLINE_CC = "$(CC)"
+EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
+EDITLINE_RANLIB = touch
+
+EDITLINE_MAKECMD = \
+  make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
+
+mx_private_version: ../libMx/Makefile.version version/src/mx_private_version.c
+	$(CC) $(CFLAGS_MX_VERS) -o mx_private_version \
+		version/src/mx_private_version.c
+
+../libMx/mx_private_version.h: mx_private_version
+	./mx_private_version > ../libMx/mx_private_version.h
+
+unix/src/editline/libedit.a:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	$(CC) -c -I../libMx -DOS_UNIXWARE \
+		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+mx_clean:
+	-rm mx_private_version
+	( cd unix/src/editline ; make clean )
+

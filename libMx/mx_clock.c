@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -99,7 +99,7 @@ mx_current_cpu_tick( void )
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
     || defined(OS_HPUX) || defined(OS_DJGPP) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
-    || defined(OS_TRU64) || defined(OS_VMS)
+    || defined(OS_TRU64) || defined(OS_VMS) || defined(OS_UNIXWARE)
 
 	struct tms buf;
 
@@ -240,7 +240,7 @@ mx_clock_ticks_per_second( void )
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
     || defined(OS_HPUX) || defined(OS_VMS) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
-    || defined(OS_TRU64)
+    || defined(OS_TRU64) || defined(OS_UNIXWARE)
 
 #  if defined(_SC_CLK_TCK)
 	clock_ticks_per_second = (double) sysconf(_SC_CLK_TCK);

@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3333,7 +3333,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_DJGPP ) || defined( __OpenBSD__ )
+#elif defined( OS_DJGPP ) || defined( __OpenBSD__ ) || defined( OS_UNIXWARE )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their

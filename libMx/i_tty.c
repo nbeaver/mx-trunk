@@ -47,7 +47,7 @@
 	|| defined(OS_SUNOS4) || defined(OS_AIX) || defined(OS_HPUX) \
 	|| defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_CYGWIN) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_TRU64) \
-	|| defined(OS_ECOS)
+	|| defined(OS_ECOS) || defined(OS_UNIXWARE)
 #    define USE_POSIX_TERMIOS	TRUE
 #  else
 #    error "No Unix TTY handling interface has been defined."
@@ -1456,10 +1456,16 @@ mxi_tty_posix_termios_get_configuration( MX_RS232 *rs232 )
 	case B9600:	rs232->speed = 9600;	break;
 	case B19200:	rs232->speed = 19200;	break;
 	case B38400:	rs232->speed = 38400;	break;
-	case B57600:	rs232->speed = 57600;	break;
-	case B115200:	rs232->speed = 115200;	break;
 
-#ifdef B230400
+#if defined( B57600 )
+	case B57600:	rs232->speed = 57600;	break;
+#endif
+
+#if defined( B115200 )
+	case B115200:	rs232->speed = 115200;	break;
+#endif
+
+#if defined( B230400 )
 	case B230400:	rs232->speed = 230400;	break;
 #endif
 	default:
@@ -1822,12 +1828,19 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 	case 9600:	speed = B9600;		break;
 	case 19200:	speed = B19200;		break;
 	case 38400:	speed = B38400;		break;
-	case 57600:	speed = B57600;		break;
-	case 115200:	speed = B115200;	break;
 
-#ifdef B230400
+#if defined( B57600 )
+	case 57600:	speed = B57600;		break;
+#endif
+
+#if defined( B115200 )
+	case 115200:	speed = B115200;	break;
+#endif
+
+#if defined( B230400 )
 	case 230400:	speed = B230400;	break;
 #endif
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
     "Unsupported RS-232 port speed %ld requested for record '%s', tty '%s'.",
