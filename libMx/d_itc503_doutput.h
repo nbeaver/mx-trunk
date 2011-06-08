@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2008 Illinois Institute of Technology
+ * Copyright 2003, 2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 #include "mx_digital_output.h"
 
 typedef struct {
-	MX_RECORD *itc503_record;
+	MX_RECORD *controller_record;
 	char parameter_type;
 } MX_ITC503_DOUTPUT;
 
@@ -50,8 +50,8 @@ extern long mxd_itc503_doutput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_doutput_rfield_def_ptr;
 
 #define MXD_ITC503_DOUTPUT_STANDARD_FIELDS \
-  {-1, -1, "itc503_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_DOUTPUT, itc503_record), \
+  {-1, -1, "controller_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_DOUTPUT, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "parameter_type", MXFT_CHAR, NULL, 0, {0}, \

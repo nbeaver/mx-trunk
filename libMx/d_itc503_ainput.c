@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 	static const char fname[] = "mxd_itc503_ainput_get_pointers()";
 
 	MX_ITC503_AINPUT *itc503_ainput_ptr;
-	MX_RECORD *itc503_record, *isobus_record;
+	MX_RECORD *controller_record, *isobus_record;
 	MX_ITC503 *itc503_ptr;
 
 	if ( ainput == (MX_ANALOG_INPUT *) NULL ) {
@@ -101,35 +101,35 @@ mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 		*itc503_ainput = itc503_ainput_ptr;
 	}
 
-	itc503_record = itc503_ainput_ptr->itc503_record;
+	controller_record = itc503_ainput_ptr->controller_record;
 
-	if ( itc503_record == (MX_RECORD *) NULL ) {
+	if ( controller_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"itc503_record pointer for analog input '%s' is NULL.",
+		"controller_record pointer for analog input '%s' is NULL.",
 			ainput->record->name );
 	}
 
-	switch( itc503_record->mx_type ) {
+	switch( controller_record->mx_type ) {
 	case MXI_CTRL_ITC503:
 	case MXI_CTRL_CRYOJET:
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"itc503_record '%s' for ITC503 control record '%s' "
+		"controller_record '%s' for ITC503 control record '%s' "
 		"is not an 'itc503' or 'cryojet' record.  Instead, "
 		"it is of type '%s'.",
-			itc503_record->name, ainput->record->name,
-			mx_get_driver_name( itc503_record ) );
+			controller_record->name, ainput->record->name,
+			mx_get_driver_name( controller_record ) );
 		break;
 	}
 
-	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
+	itc503_ptr = (MX_ITC503 *) controller_record->record_type_struct;
 
 	if ( itc503_ptr == (MX_ITC503 *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_ITC503 pointer for ITC503 controller '%s' "
 		"used by ITC503 status record '%s' is NULL.",
-			itc503_record->name,
+			controller_record->name,
 			ainput->record->name );
 	}
 
@@ -145,7 +145,7 @@ mxd_itc503_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 			"The isobus_record pointer for %s "
 			"controller record '%s' is NULL.",
 				itc503_ptr->label,
-				itc503_record->name );
+				controller_record->name );
 		}
 
 		*isobus = isobus_record->record_type_struct;
@@ -308,7 +308,7 @@ mxd_itc503_ainput_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mx_resynchronize_record( itc503_ainput->itc503_record );
+	mx_status = mx_resynchronize_record( itc503_ainput->controller_record );
 
 	return mx_status;
 }

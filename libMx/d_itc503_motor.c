@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,7 +90,7 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 	static const char fname[] = "mxd_itc503_motor_get_pointers()";
 
 	MX_ITC503_MOTOR *itc503_motor_ptr;
-	MX_RECORD *itc503_record, *isobus_record;
+	MX_RECORD *controller_record, *isobus_record;
 	MX_ITC503 *itc503_ptr;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -116,34 +116,34 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 		*itc503_motor = itc503_motor_ptr;
 	}
 
-	itc503_record = itc503_motor_ptr->itc503_record;
+	controller_record = itc503_motor_ptr->controller_record;
 
-	if ( itc503_record == (MX_RECORD *) NULL ) {
+	if ( controller_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"itc503_record pointer for analog output '%s' is NULL.",
+		"controller_record pointer for analog output '%s' is NULL.",
 			motor->record->name );
 	}
 
-	switch( itc503_record->mx_type ) {
+	switch( controller_record->mx_type ) {
 	case MXI_CTRL_ITC503:
 	case MXI_CTRL_CRYOJET:
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"itc503_record '%s' for ITC503 control record '%s' "
+		"controller_record '%s' for ITC503 control record '%s' "
 		"is not an 'itc503' record.  Instead, it is of type '%s'.",
-			itc503_record->name, motor->record->name,
-			mx_get_driver_name( itc503_record ) );
+			controller_record->name, motor->record->name,
+			mx_get_driver_name( controller_record ) );
 		break;
 	}
 
-	itc503_ptr = (MX_ITC503 *) itc503_record->record_type_struct;
+	itc503_ptr = (MX_ITC503 *) controller_record->record_type_struct;
 
 	if ( itc503_ptr == (MX_ITC503 *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_ITC503 pointer for ITC503 controller '%s' "
 		"used by ITC503 status record '%s' is NULL.",
-			itc503_record->name,
+			controller_record->name,
 			motor->record->name );
 	}
 
@@ -158,7 +158,7 @@ mxd_itc503_motor_get_pointers( MX_MOTOR *motor,
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The isobus_record pointer for ITC503 "
 			"controller record '%s' is NULL.",
-				itc503_record->name );
+				controller_record->name );
 		}
 
 		*isobus = isobus_record->record_type_struct;
