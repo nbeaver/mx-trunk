@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@
 #include "mx_cfn.h"
 #include "mx_log.h"
 #include "mx_syslog.h"
+#include "mx_multi.h"
 #include "mx_thread.h"
 #include "mx_virtual_timer.h"
 #include "mx_process.h"
@@ -887,7 +888,11 @@ mxserver_main( int argc, char *argv[] )
 
 	/* Set the default network debugging flag. */
 
+#if 0
 	list_head_struct->network_debug_flags = network_debug_flags;
+#else
+	mx_multi_set_debug_flags( mx_record_list, network_debug_flags );
+#endif
 
 #if 0
 	fprintf(stderr, "%s: list_head_struct->network_debug = %d\n",

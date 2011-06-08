@@ -379,7 +379,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			datafile_type = MXT_IMAGE_FILE_SMV;
 			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
 		} else
-		if ( strcmp( argv[5], "raw" ) == 0 ) {
+		if ( strcmp( argv[4], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW;
 			strlcpy( filename_ext, "raw", sizeof(filename_ext) );
 		} else {
