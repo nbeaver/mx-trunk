@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,12 +18,12 @@
 #ifndef __I_ITC503_H__
 #define __I_ITC503_H__
 
-/* Values for 'itc503_flags' below */
+/* Values for 'controller_flags' below */
 
 #define MXF_ITC503_ENABLE_REMOTE_MODE	0x1
 #define MXF_ITC503_UNLOCK		0x2
 
-/* The two lowest order bits in 'itc503_flags' are used to
+/* The two lowest order bits in 'controller_flags' are used to
  * construct a 'Cn' control command.  The 'Cn' determines whether
  * or not the controller is in LOCAL or REMOTE mode and also
  * whether or not the LOC/REM button is locked or active.  The
@@ -41,7 +41,7 @@ typedef struct {
 	MX_RECORD *isobus_record;
 	long isobus_address;
 
-	unsigned long itc503_flags;
+	unsigned long controller_flags;
 
 	long maximum_retries;
 
@@ -61,8 +61,8 @@ typedef struct {
   	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503, isobus_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "itc503_flags", MXFT_HEX, NULL, 0, {0}, \
-  	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503, itc503_flags), \
+  {-1, -1, "controller_flags", MXFT_HEX, NULL, 0, {0}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503, controller_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "maximum_retries", MXFT_LONG, NULL, 0, {0}, \

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -179,7 +179,7 @@ mxi_itc503_open( MX_RECORD *record )
 	 * 'i_itc503.h' for a description of this command.
 	 */
 
-	c_command_value = (int) ( itc503->itc503_flags & 0x3 );
+	c_command_value = (int) ( itc503->controller_flags & 0x3 );
 
 	snprintf( command, sizeof(command), "C%d", c_command_value );
 
