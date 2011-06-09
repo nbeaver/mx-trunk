@@ -1625,6 +1625,8 @@ mxd_radicon_helios_abort( MX_AREA_DETECTOR *ad )
 	radicon_helios->arm_signal_present = FALSE;
 	radicon_helios->acquisition_in_progress = FALSE;
 
+	mx_status = mx_video_input_abort( radicon_helios->video_input_record );
+
 	return mx_status;
 }
 

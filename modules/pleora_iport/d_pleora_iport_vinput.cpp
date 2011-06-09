@@ -806,6 +806,10 @@ mxd_pleora_iport_vinput_abort( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
+	if ( pleora_iport_vinput->grab_in_progress ) {
+		pleora_iport_vinput->grab_in_progress = FALSE;
+	}
+
 	return mx_status;
 }
 
