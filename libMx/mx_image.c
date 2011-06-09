@@ -2087,8 +2087,14 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
-	case MXT_IMAGE_FILE_RAW:
-		mx_status = mx_image_read_raw_file( frame_ptr, datafile_name );
+	case MXT_IMAGE_FILE_RAW_GREY8:
+	case MXT_IMAGE_FILE_RAW_GREY16:
+	case MXT_IMAGE_FILE_RAW_GREY32:
+	case MXT_IMAGE_FILE_RAW_FLOAT:
+	case MXT_IMAGE_FILE_RAW_DOUBLE:
+		mx_status = mx_image_read_raw_file( frame_ptr,
+						datafile_type,
+						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
@@ -2144,8 +2150,14 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_write_pnm_file( frame, datafile_name );
 		break;
-	case MXT_IMAGE_FILE_RAW:
-		mx_status = mx_image_write_raw_file( frame, datafile_name );
+	case MXT_IMAGE_FILE_RAW_GREY8:
+	case MXT_IMAGE_FILE_RAW_GREY16:
+	case MXT_IMAGE_FILE_RAW_GREY32:
+	case MXT_IMAGE_FILE_RAW_FLOAT:
+	case MXT_IMAGE_FILE_RAW_DOUBLE:
+		mx_status = mx_image_write_raw_file( frame,
+						datafile_type,
+						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
 		mx_status = mx_image_write_smv_file( frame, datafile_name );
@@ -2662,7 +2674,9 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_image_read_raw_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
+			unsigned long datafile_type,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_read_raw_file()";
 
@@ -2728,9 +2742,30 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	} else {
 		/* If (*frame) is NULL, then we must guess. */
 
-		image_format = MXT_IMAGE_FORMAT_GREY16;
 		datafile_byteorder = mx_native_byteorder();
-		bytes_per_pixel = 2;
+
+		switch( datafile_type ) {
+		case MXT_IMAGE_FILE_RAW_GREY8:
+			image_format = MXT_IMAGE_FORMAT_GREY8;
+			bytes_per_pixel = 1;
+			break;
+		case MXT_IMAGE_FILE_RAW_GREY16:
+			image_format = MXT_IMAGE_FORMAT_GREY16;
+			bytes_per_pixel = 2;
+			break;
+		case MXT_IMAGE_FILE_RAW_GREY32:
+			image_format = MXT_IMAGE_FORMAT_GREY32;
+			bytes_per_pixel = 4;
+			break;
+		case MXT_IMAGE_FILE_RAW_FLOAT:
+			image_format = MXT_IMAGE_FORMAT_FLOAT;
+			bytes_per_pixel = 4;
+			break;
+		case MXT_IMAGE_FILE_RAW_DOUBLE:
+			image_format = MXT_IMAGE_FORMAT_DOUBLE;
+			bytes_per_pixel = 8;
+			break;
+		}
 
 		/* We attempt to infer the framesize by assuming that
 		 * the image frame is square.
@@ -2744,6 +2779,14 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 		framesize[0] = mx_round( sqrt_image_size );
 		framesize[1] = framesize[0];
+	}
+
+	if ( image_format != datafile_type ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The image format %lu of the supplied MX_IMAGE_FRAME "
+		"does not match the requested datafile format %lu for "
+		"the file '%s'.  This is not currently supported.",
+			image_format, datafile_type, datafile_name );
 	}
 
 	/* Open the data file. */
@@ -2820,11 +2863,14 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_image_write_raw_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
+			unsigned long datafile_type,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_write_raw_file()";
 
 	FILE *file;
+	unsigned long image_format;
 	int saved_errno;
 	size_t bytes_written;
 
@@ -2842,6 +2888,16 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_IMAGE_FRAME passed (%p) has a NULL image_data pointer.",
 			frame );
+	}
+
+	image_format = MXIF_IMAGE_FORMAT(frame);
+
+	if ( image_format != datafile_type ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The image format %lu of the supplied MX_IMAGE_FRAME "
+		"does not match the requested datafile format %lu for "
+		"the file '%s'.  This is not currently supported.",
+			image_format, datafile_type, datafile_name );
 	}
 
 	file = fopen( datafile_name, "wb" );

@@ -236,7 +236,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			datafile_type = MXT_IMAGE_FILE_SMV;
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_RAW;
+			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",
@@ -380,7 +380,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
 		} else
 		if ( strcmp( argv[4], "raw" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_RAW;
+			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 			strlcpy( filename_ext, "raw", sizeof(filename_ext) );
 		} else {
 			fprintf( output,
@@ -811,7 +811,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			datafile_type = MXT_IMAGE_FILE_SMV;
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_RAW;
+			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",

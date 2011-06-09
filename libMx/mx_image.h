@@ -30,12 +30,17 @@ extern "C" {
 
 #define MXT_IMAGE_FORMAT_DEFAULT		(-1)
 
-#define MXT_IMAGE_FORMAT_RGB			1
-#define MXT_IMAGE_FORMAT_GREY8			2
-#define MXT_IMAGE_FORMAT_GREY16			3
-#define MXT_IMAGE_FORMAT_GREY32			4
-#define MXT_IMAGE_FORMAT_FLOAT			5
-#define MXT_IMAGE_FORMAT_DOUBLE			6
+/* The first five image format numbers must match
+ * the first five datafile format numbers.
+ */
+
+#define MXT_IMAGE_FORMAT_GREY8			1
+#define MXT_IMAGE_FORMAT_GREY16			2
+#define MXT_IMAGE_FORMAT_GREY32			3
+#define MXT_IMAGE_FORMAT_FLOAT			4
+#define MXT_IMAGE_FORMAT_DOUBLE			5
+
+#define MXT_IMAGE_FORMAT_RGB			10
 
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
@@ -46,8 +51,17 @@ extern "C" {
 
 /*---- Datafile format definitions ----*/
 
-#define MXT_IMAGE_FILE_PNM			1
-#define MXT_IMAGE_FILE_RAW			2
+/* The first five datafile format numbers must match
+ * the first five image format numbers.
+ */
+
+#define MXT_IMAGE_FILE_RAW_GREY8		1
+#define MXT_IMAGE_FILE_RAW_GREY16		2
+#define MXT_IMAGE_FILE_RAW_GREY32		3
+#define MXT_IMAGE_FILE_RAW_FLOAT		4
+#define MXT_IMAGE_FILE_RAW_DOUBLE		5
+
+#define MXT_IMAGE_FILE_PNM			10
 
     /* The following are area detector file formats. */
 
@@ -58,7 +72,6 @@ extern "C" {
 #define MXU_IMAGE_SMV_HEADER_LENGTH		512
 
 /*---- Sequence type definitions ----*/
-
 
 #define MXT_SQ_ONE_SHOT				1
 #define MXT_SQ_CONTINUOUS			2
@@ -78,8 +91,7 @@ extern "C" {
 /* 'bytes per million pixel' is a way of representing an intrinsically
  * floating point value as a 32-bit integer with reasonable accuracy.
  *
- * Image formats with a non-integer number of bytes per pixel are not
- * unprecedented.
+ * Image formats with a non-integer number of bytes per pixel do exist.
  */
 
 #define MXT_IMAGE_HEADER_BYTES				0
@@ -354,9 +366,11 @@ MX_API mx_status_type mx_image_write_pnm_file( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_API mx_status_type mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
+						unsigned long datafile_type,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
+						unsigned long datafile_type,
 						char *datafile_name );
 
 /*----*/

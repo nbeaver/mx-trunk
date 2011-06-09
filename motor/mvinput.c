@@ -176,7 +176,7 @@ motor_vinput_fn( int argc, char *argv[] )
 			datafile_type = MXT_IMAGE_FILE_SMV;
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
-			datafile_type = MXT_IMAGE_FILE_RAW;
+			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",
