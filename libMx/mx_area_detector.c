@@ -4427,7 +4427,7 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 {
 	static const char fname[] = "mx_area_detector_get_correction_frame()";
 
-	MX_IMAGE_FRAME **rebinned_frame;
+	MX_IMAGE_FRAME **rebinned_frame = NULL;
 	unsigned long image_width, image_height;
 	unsigned long correction_width, correction_height;
 	unsigned long rebinned_width, rebinned_height;
@@ -4437,10 +4437,6 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING
 	MX_HRT_TIMING rebin_timing;
 #endif
-
-	/* Suppress stupid GCC uninitialized variable warning. */
-
-	rebinned_frame = NULL;
 
 #if MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME
 	MX_DEBUG(-2,("\n----------------------------------------------------"));
@@ -4461,6 +4457,18 @@ mx_area_detector_get_correction_frame( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The correction_frame pointer passed was NULL." );
 	}
+
+	/* If the requested type of correction is not currently enabled
+	 * for this area detector, then return a NULL correction frame.
+	 */
+
+	if ( ( ad->correction_flags & frame_type ) == 0 ) {
+		*correction_frame = NULL;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Get the requested correction frame. */
 
 	switch( frame_type ) {
 	case MXFT_AD_MASK_FRAME:
@@ -4686,57 +4694,37 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name, flags));
 #endif
 
-	if ( ( ad->correction_flags & MXFT_AD_MASK_FRAME ) == 0 ) {
-		mask_frame = NULL;
-	} else {
-		mx_status = mx_area_detector_get_correction_frame(
-							ad, image_frame,
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
 							MXFT_AD_MASK_FRAME,
 							"mask",
 							&mask_frame );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( ( ad->correction_flags & MXFT_AD_BIAS_FRAME ) == 0 ) {
-		bias_frame = NULL;
-	} else {
-		mx_status = mx_area_detector_get_correction_frame(
-							ad, image_frame,
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
 							MXFT_AD_BIAS_FRAME,
 							"bias",
 							&bias_frame );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( ( ad->correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) == 0 ) {
-		dark_current_frame = NULL;
-	} else {
-		mx_status = mx_area_detector_get_correction_frame(
-						ad, image_frame,
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
 						MXFT_AD_DARK_CURRENT_FRAME,
 						"dark current",
 						&dark_current_frame );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( ( ad->correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) == 0 ) {
-		flood_field_frame = NULL;
-	} else {
-		mx_status = mx_area_detector_get_correction_frame(
-						ad, image_frame,
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
 						MXFT_AD_FLOOD_FIELD_FRAME,
 						"flood field",
 						&flood_field_frame );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	mx_status = mx_area_detector_frame_correction( ad->record,
+	mx_status = mx_area_detector_classic_frame_correction( ad->record,
 				image_frame, mask_frame, bias_frame,
 				dark_current_frame, flood_field_frame );
 
@@ -9505,19 +9493,20 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 
 /*-----------------------------------------------------------------------*/
 
-/* mx_area_detector_frame_correction() requires that all of the frames have
- * the same framesize.
+/* mx_area_detector_classic_frame_correction() requires that all of the frames
+ * have the same framesize.
  */
 
 MX_EXPORT mx_status_type
-mx_area_detector_frame_correction( MX_RECORD *record,
+mx_area_detector_classic_frame_correction( MX_RECORD *record,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *dark_current_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
-	static const char fname[] = "mx_area_detector_frame_correction()";
+	static const char fname[] =
+		"mx_area_detector_classic_frame_correction()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;

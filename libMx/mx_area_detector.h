@@ -1460,7 +1460,8 @@ MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
+MX_API mx_status_type mx_area_detector_classic_frame_correction(
+					MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
