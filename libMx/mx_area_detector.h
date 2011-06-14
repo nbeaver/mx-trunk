@@ -1505,15 +1505,27 @@ MX_API mx_status_type mx_area_detector_default_geometrical_correction(
 
 /*---*/
 
-MX_API_PRIVATE mx_status_type mx_area_detector_compute_dark_current_offset(
+MX_API mx_status_type mx_area_detector_check_correction_framesize(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *test_frame,
+					const char *frame_name );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_compute_dark_current_offset(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame );
 
-MX_API_PRIVATE mx_status_type mx_area_detector_compute_flood_field_scale(
+MX_API mx_status_type mx_area_detector_compute_flood_field_scale(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_check_for_low_memory(
+					MX_AREA_DETECTOR *ad,
+					mx_bool_type *memory_is_low );
 
 /*---*/
 
@@ -1523,6 +1535,98 @@ MX_API mx_status_type mx_area_detector_classic_frame_correction(
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+/* Use precomputed dark_current_offset_array. */
+
+MX_API mx_status_type mx_area_detector_u16_precomp_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+MX_API mx_status_type mx_area_detector_s32_precomp_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+MX_API mx_status_type mx_area_detector_dbl_precomp_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+/* Compute the dark current offset on the fly. */
+
+MX_API mx_status_type mx_area_detector_u16_plain_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+MX_API mx_status_type mx_area_detector_s32_plain_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+MX_API mx_status_type mx_area_detector_dbl_plain_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+/* Use precomputed flood_field_scale_array. */
+
+MX_API mx_status_type mx_area_detector_u16_precomp_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_s32_precomp_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_dbl_precomp_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+/* Compute the flood field scale on the fly. */
+
+MX_API mx_status_type mx_area_detector_u16_plain_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_s32_plain_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_dbl_plain_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
 
 #ifdef __cplusplus

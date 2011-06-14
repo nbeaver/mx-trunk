@@ -1664,14 +1664,14 @@ mx_area_detector_default_geometrical_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_check_correction_framesize( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_check_correction_framesize( MX_AREA_DETECTOR *ad,
 						MX_IMAGE_FRAME *image_frame,
 						MX_IMAGE_FRAME *test_frame,
 						const char *frame_name )
 {
 	static const char fname[] =
-		"mxp_area_detector_check_correction_framesize()";
+		"mx_area_detector_check_correction_framesize()";
 
 	unsigned long image_row_framesize, image_column_framesize;
 	unsigned long test_row_framesize, test_column_framesize;
@@ -2139,13 +2139,13 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
-				mx_bool_type *use_low_memory_methods )
+MX_EXPORT mx_status_type
+mx_area_detector_check_for_low_memory( MX_AREA_DETECTOR *ad,
+				mx_bool_type *memory_is_low )
 {
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 	static const char fname[] =
-		"mxp_area_detector_use_low_memory_methods()";
+		"mx_area_detector_check_for_low_memory()";
 #endif
 
 	MX_SYSTEM_MEMINFO system_meminfo;
@@ -2186,9 +2186,9 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 		MX_DEBUG(-2,
-		("%s: forced *use_low_memory_methods to TRUE", fname));
+		("%s: forced *memory_is_low to TRUE", fname));
 #endif
-		*use_low_memory_methods = TRUE;
+		*memory_is_low = TRUE;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -2197,9 +2197,9 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
 		MX_DEBUG(-2,
-		("%s: forced *use_low_memory_methods to FALSE", fname));
+		("%s: forced *memory_is_low to FALSE", fname));
 #endif
-		*use_low_memory_methods = FALSE;
+		*memory_is_low = FALSE;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -2248,14 +2248,14 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 	/*---*/
 
 	if ( process_to_system_ratio < 0.8 ) {
-		*use_low_memory_methods = FALSE;
+		*memory_is_low = FALSE;
 	} else {
-		*use_low_memory_methods = TRUE;
+		*memory_is_low = TRUE;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD
-	MX_DEBUG(-2,("%s: *use_low_memory_methods = %d",
-		fname, (int) *use_low_memory_methods));
+	MX_DEBUG(-2,("%s: *memory_is_low = %d",
+		fname, (int) *memory_is_low));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2263,19 +2263,19 @@ mxp_area_detector_use_low_memory_methods( MX_AREA_DETECTOR *ad,
 
 /*=======================================================================*/
 
-/* mxp_area_detector_u16_highmem_dark_correction() is for use when enough
+/* mx_area_detector_u16_precomp_dark_correction() is for use when enough
  * free memory is available that page swapping will not be required.
  */
 
-static mx_status_type
-mxp_area_detector_u16_highmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_u16_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_u16_highmem_dark_correction()";
+		"mx_area_detector_u16_precomp_dark_correction()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, image_exposure_time;
@@ -2470,19 +2470,19 @@ mxp_area_detector_u16_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-/* mxp_area_detector_s32_highmem_dark_correction() is for use when enough
+/* mx_area_detector_s32_precomp_dark_correction() is for use when enough
  * free memory is available that page swapping will not be required.
  */
 
-static mx_status_type
-mxp_area_detector_s32_highmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_s32_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_u16_highmem_dark_correction()";
+		"mx_area_detector_s32_precomp_dark_correction()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, image_exposure_time;
@@ -2677,19 +2677,19 @@ mxp_area_detector_s32_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-/* mxp_area_detector_dbl_highmem_dark_correction() is for use when enough
+/* mx_area_detector_dbl_precomp_dark_correction() is for use when enough
  * free memory is available that page swapping will not be required.
  */
 
-static mx_status_type
-mxp_area_detector_dbl_highmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_dbl_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_dbl_highmem_dark_correction()";
+		"mx_area_detector_dbl_precomp_dark_correction()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, image_exposure_time;
@@ -2880,19 +2880,19 @@ mxp_area_detector_dbl_highmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*=======================================================================*/
 
-/* mxp_area_detector_lowmem_dark_correction() is for use to avoid
+/* mx_area_detector_u16_plain_dark_correction() is for use to avoid
  * swapping when the amount of free memory available is small.
  */
 
-static mx_status_type
-mxp_area_detector_u16_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_u16_plain_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_u16_lowmem_dark_correction()";
+		"mxp_area_detector_u16_plain_dark_correction()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array, *dark_current_data_array;
@@ -3148,19 +3148,19 @@ mxp_area_detector_u16_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-/* mxp_area_detector_lowmem_dark_correction() is for use to avoid
+/* mx_area_detector_s32_plain_dark_correction() is for use to avoid
  * swapping when the amount of free memory available is small.
  */
 
-static mx_status_type
-mxp_area_detector_s32_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_s32_plain_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_s32_lowmem_dark_correction()";
+		"mx_area_detector_s32_plain_dark_correction()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array, *dark_current_data_array;
@@ -3416,19 +3416,19 @@ mxp_area_detector_s32_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-/* mxp_area_detector_lowmem_dark_correction() is for use to avoid
+/* mx_area_detector_dbl_plain_dark_correction() is for use to avoid
  * swapping when the amount of free memory available is small.
  */
 
-static mx_status_type
-mxp_area_detector_dbl_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_dbl_plain_dark_correction( MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_dbl_lowmem_dark_correction()";
+		"mx_area_detector_dbl_plain_dark_correction()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array, *dark_current_data_array;
@@ -3680,15 +3680,15 @@ mxp_area_detector_dbl_lowmem_dark_correction( MX_AREA_DETECTOR *ad,
 
 /*=======================================================================*/
 
-static mx_status_type
-mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_u16_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_u16_highmem_flood_field()";
+		"mx_area_detector_u16_precomp_flood_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
@@ -3812,15 +3812,15 @@ mxp_area_detector_u16_highmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_s32_highmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_s32_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_s32_highmem_flood_field()";
+		"mx_area_detector_s32_precomp_flood_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
@@ -3944,15 +3944,15 @@ mxp_area_detector_s32_highmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_dbl_highmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_dbl_precomp_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
 	static const char fname[] =
-		"mxp_area_detector_dbl_highmem_flood_field()";
+		"mx_area_detector_dbl_precomp_flood_field()";
 
 	unsigned long i, num_pixels;
 	double image_pixel, bias_offset;
@@ -4072,15 +4072,14 @@ mxp_area_detector_dbl_highmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*=======================================================================*/
 
-static mx_status_type
-mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_u16_plain_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
-	static const char fname[] =
-		"mxp_area_detector_u16_lowmem_flood_field()";
+	static const char fname[] = "mx_area_detector_u16_plain_flood_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
@@ -4248,15 +4247,14 @@ mxp_area_detector_u16_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_s32_plain_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
-	static const char fname[] =
-		"mxp_area_detector_s32_lowmem_flood_field()";
+	static const char fname[] = "mx_area_detector_s32_plain_flood_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
@@ -4402,15 +4400,14 @@ mxp_area_detector_s32_lowmem_flood_field( MX_AREA_DETECTOR *ad,
 
 /*-----------------------------------------------------------------------*/
 
-static mx_status_type
-mxp_area_detector_dbl_lowmem_flood_field( MX_AREA_DETECTOR *ad,
+MX_EXPORT mx_status_type
+mx_area_detector_dbl_plain_flood_field( MX_AREA_DETECTOR *ad,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *mask_frame,
 				MX_IMAGE_FRAME *bias_frame,
 				MX_IMAGE_FRAME *flood_field_frame )
 {
-	static const char fname[] =
-		"mxp_area_detector_dbl_lowmem_flood_field()";
+	static const char fname[] = "mx_area_detector_dbl_plain_flood_field()";
 
 	unsigned long i, num_pixels;
 	uint16_t *mask_data_array, *bias_data_array;
@@ -4941,7 +4938,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	MX_IMAGE_FRAME *correction_calc_frame;
 	unsigned long flags;
 	unsigned long image_format, correction_format;
-	mx_bool_type use_low_memory_methods = FALSE;
+	mx_bool_type memory_is_low = FALSE;
 	mx_bool_type geom_corr_before_flood;
 	mx_bool_type geom_corr_after_flood;
 	mx_bool_type correction_measurement_in_progress;
@@ -5053,12 +5050,11 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 
 	/* If we have a lot of free memory available, then we can use
 	 * floating point arrays of correction values to speed up the
-	 * corrections.  We call mxp_area_detector_use_low_memory_methods()
+	 * corrections.  We call mx_area_detector_check_for_low_memory()
 	 * to see if enough memory is available.
 	 */
 
-	mx_status = mxp_area_detector_use_low_memory_methods( ad,
-						&use_low_memory_methods );
+	mx_status = mx_area_detector_check_for_low_memory( ad, &memory_is_low );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -5178,25 +5174,25 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 
 	/*---*/
 
-	mx_status = mxp_area_detector_check_correction_framesize( ad,
+	mx_status = mx_area_detector_check_correction_framesize( ad,
 					    image_frame, mask_frame, "mask" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxp_area_detector_check_correction_framesize( ad,
+	mx_status = mx_area_detector_check_correction_framesize( ad,
 					    image_frame, bias_frame, "bias" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxp_area_detector_check_correction_framesize( ad,
+	mx_status = mx_area_detector_check_correction_framesize( ad,
 			    image_frame, dark_current_frame, "dark current" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxp_area_detector_check_correction_framesize( ad,
+	mx_status = mx_area_detector_check_correction_framesize( ad,
 			    image_frame, flood_field_frame, "flood field" );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -5211,19 +5207,24 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	/******* Dark current correction *******/
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: use_low_memory_methods = %d",
-		fname, (int) use_low_memory_methods));
+	MX_DEBUG(-2,("%s: memory_is_low = %d", fname, (int) memory_is_low));
 #endif
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS
 	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
 #endif
 
-	if ( use_low_memory_methods ) {
+	if ( memory_is_low ) {
+
+		/* Do not use a precomputed dark current offset array.
+		 * Instead, save memory by computing the necessary
+		 * offset on the fly.
+		 */
+
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
 			mx_status =
-			    mxp_area_detector_u16_lowmem_dark_correction( ad,
+			    mx_area_detector_u16_plain_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5231,7 +5232,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
 			mx_status =
-			    mxp_area_detector_s32_lowmem_dark_correction( ad,
+			    mx_area_detector_s32_plain_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5239,7 +5240,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			mx_status =
-			    mxp_area_detector_dbl_lowmem_dark_correction( ad,
+			    mx_area_detector_dbl_plain_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5254,10 +5255,12 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		}
 	} else {
+		/* Use precomputed ad->dark_current_offset_array. */
+
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
 			mx_status =
-			    mxp_area_detector_u16_highmem_dark_correction( ad,
+			    mx_area_detector_u16_precomp_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5265,7 +5268,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
 			mx_status =
-			    mxp_area_detector_s32_highmem_dark_correction( ad,
+			    mx_area_detector_s32_precomp_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5273,7 +5276,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			mx_status =
-			    mxp_area_detector_dbl_highmem_dark_correction( ad,
+			    mx_area_detector_dbl_precomp_dark_correction( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5325,11 +5328,11 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 
 	/******* Flood field correction *******/
 
-	if ( use_low_memory_methods ) {
+	if ( memory_is_low ) {
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
 			mx_status =
-			    mxp_area_detector_u16_lowmem_flood_field( ad,
+			    mx_area_detector_u16_plain_flood_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5337,7 +5340,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
 			mx_status =
-			    mxp_area_detector_s32_lowmem_flood_field( ad,
+			    mx_area_detector_s32_plain_flood_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5345,7 +5348,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			mx_status =
-			    mxp_area_detector_dbl_lowmem_flood_field( ad,
+			    mx_area_detector_dbl_plain_flood_field( ad,
 							correction_calc_frame,
 							mask_frame,
 							bias_frame,
@@ -5362,7 +5365,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 	} else {
 		switch( correction_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
-			mx_status = mxp_area_detector_u16_highmem_flood_field(
+			mx_status = mx_area_detector_u16_precomp_flood_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
@@ -5370,7 +5373,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 							flood_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_INT32:
-			mx_status = mxp_area_detector_s32_highmem_flood_field(
+			mx_status = mx_area_detector_s32_precomp_flood_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
@@ -5378,7 +5381,7 @@ mx_area_detector_classic_frame_correction( MX_RECORD *record,
 							flood_field_frame );
 			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
-			mx_status = mxp_area_detector_dbl_highmem_flood_field(
+			mx_status = mx_area_detector_dbl_precomp_flood_field(
 							ad,
 							correction_calc_frame,
 							mask_frame,
