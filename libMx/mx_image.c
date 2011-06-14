@@ -2684,13 +2684,15 @@ mx_image_read_raw_file( MX_IMAGE_FRAME **frame,
 	struct stat file_stat;
 	int os_status, saved_errno;
 	long framesize[2];
-	long image_format, datafile_byteorder;
+	long datafile_byteorder;
 	long bytes_per_frame, bytes_read;
-	double bytes_per_pixel;
 	unsigned long image_size_in_bytes;
 	double image_size_in_pixels, sqrt_image_size;
 	struct timespec timestamp_timespec;
 	mx_status_type mx_status;
+
+	double bytes_per_pixel = 0; 
+	long image_format = 0;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
