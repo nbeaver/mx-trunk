@@ -40,12 +40,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_dirent.h"
+#include "mx_bit.h"
 #include "mx_array.h"
 #include "mx_motor.h"
 #include "mx_digital_output.h"

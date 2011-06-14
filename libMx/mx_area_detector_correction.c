@@ -39,6 +39,8 @@
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
