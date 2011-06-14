@@ -1081,9 +1081,6 @@ MX_API mx_status_type mx_area_detector_initialize_driver( MX_DRIVER *driver,
 MX_API mx_status_type mx_area_detector_finish_record_initialization(
 						MX_RECORD *record );
 
-MX_API mx_status_type mx_area_detector_load_correction_files(
-						MX_RECORD *record );
-
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_register( MX_RECORD *record,
@@ -1145,36 +1142,6 @@ MX_API mx_status_type mx_area_detector_get_bytes_per_pixel( MX_RECORD *record,
 
 MX_API mx_status_type mx_area_detector_get_bits_per_pixel( MX_RECORD *record,
 						long *bits_per_pixel );
-
-MX_API mx_status_type mx_area_detector_get_correction_flags( MX_RECORD *record,
-					unsigned long *correction_flags );
-
-MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
-					unsigned long correction_flags );
-
-MX_API mx_status_type mx_area_detector_measure_correction_frame(
-					MX_RECORD *record,
-					long correction_measurement_type,
-					double correction_measurement_time,
-					long num_correction_measurements );
-
-#define mx_area_detector_measure_dark_current_frame( r, t, n ) \
-	mx_area_detector_measure_correction_frame( (r), \
-						MXFT_AD_DARK_CURRENT_FRAME, \
-						(t), (n) )
-
-#define mx_area_detector_measure_flood_field_frame( r, t, n ) \
-	mx_area_detector_measure_correction_frame( (r), \
-						MXFT_AD_FLOOD_FIELD_FRAME, \
-						(t), (n) )
-
-MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current_flag(
-						MX_RECORD *ad_record,
-					mx_bool_type *use_scaled_dark_current );
-
-MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
-						MX_RECORD *ad_record,
-					mx_bool_type use_scaled_dark_current );
 
 /*---*/
 
@@ -1384,18 +1351,6 @@ MX_API mx_status_type mx_area_detector_set_parameter( MX_RECORD *ad_record,
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_get_correction_frame(
-					MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *image_frame,
-					unsigned long frame_type,
-					char *frame_name,
-					MX_IMAGE_FRAME **correction_frame );
-
-/*---*/
-
-MX_API mx_status_type mx_area_detector_default_correct_frame(
-                                                MX_AREA_DETECTOR *ad );
-
 MX_API mx_status_type mx_area_detector_default_transfer_frame(
                                                 MX_AREA_DETECTOR *ad );
 
@@ -1414,36 +1369,6 @@ MX_API mx_status_type mx_area_detector_default_get_parameter_handler(
 MX_API mx_status_type mx_area_detector_default_set_parameter_handler(
                                                 MX_AREA_DETECTOR *ad );
 
-MX_API mx_status_type mx_area_detector_default_measure_correction(
-                                                MX_AREA_DETECTOR *ad );
-
-MX_API mx_status_type mx_area_detector_default_dezinger_correction(
-                                                MX_AREA_DETECTOR *ad );
-
-MX_API mx_status_type mx_area_detector_default_geometrical_correction(
-						MX_AREA_DETECTOR *ad,
-						MX_IMAGE_FRAME *frame );
-
-/*---*/
-
-MX_API void mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
-				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr);
-
-MX_API mx_status_type mx_area_detector_prepare_for_correction(
-			MX_AREA_DETECTOR *ad,
-			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT **corr_ptr );
-
-MX_API mx_status_type mx_area_detector_process_correction_frame(
-					MX_AREA_DETECTOR *ad,
-					long frame_number,
-					unsigned long desired_correction_flags,
-					MX_IMAGE_FRAME **dezinger_frame_ptr,
-					double *sum_array );
-
-MX_API mx_status_type mx_area_detector_finish_correction_calculation(
-			MX_AREA_DETECTOR *ad,
-			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
-
 /*---*/
 
 MX_API mx_status_type mx_area_detector_default_get_register(
@@ -1457,16 +1382,6 @@ MX_API mx_status_type mx_area_detector_default_set_register(
 MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
 					MX_IMAGE_FRAME *source_frame,
 					MX_IMAGE_FRAME *destination_frame );
-
-/*---*/
-
-MX_API mx_status_type mx_area_detector_classic_frame_correction(
-					MX_RECORD *ad_record,
-					MX_IMAGE_FRAME *image_frame,
-					MX_IMAGE_FRAME *mask_frame,
-					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *dark_current_frame,
-					MX_IMAGE_FRAME *flood_field_frame );
 
 /*---*/
 
@@ -1509,6 +1424,87 @@ MX_API_PRIVATE mx_status_type mx_area_detector_compute_new_binning(
 						int num_allowed_binsizes,
 						long *allowed_binsize_array );
 
+/***************************************************************************
+ *  Area detector correction functions from mx_area_detector_correction.c  *
+ ***************************************************************************/
+
+MX_API mx_status_type mx_area_detector_load_correction_files(
+						MX_RECORD *record );
+
+MX_API mx_status_type mx_area_detector_get_correction_flags( MX_RECORD *record,
+					unsigned long *correction_flags );
+
+MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
+					unsigned long correction_flags );
+
+MX_API mx_status_type mx_area_detector_measure_correction_frame(
+					MX_RECORD *record,
+					long correction_measurement_type,
+					double correction_measurement_time,
+					long num_correction_measurements );
+
+#define mx_area_detector_measure_dark_current_frame( r, t, n ) \
+	mx_area_detector_measure_correction_frame( (r), \
+						MXFT_AD_DARK_CURRENT_FRAME, \
+						(t), (n) )
+
+#define mx_area_detector_measure_flood_field_frame( r, t, n ) \
+	mx_area_detector_measure_correction_frame( (r), \
+						MXFT_AD_FLOOD_FIELD_FRAME, \
+						(t), (n) )
+
+MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current_flag(
+						MX_RECORD *ad_record,
+					mx_bool_type *use_scaled_dark_current );
+
+MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
+						MX_RECORD *ad_record,
+					mx_bool_type use_scaled_dark_current );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_get_correction_frame(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					unsigned long frame_type,
+					char *frame_name,
+					MX_IMAGE_FRAME **correction_frame );
+
+MX_API mx_status_type mx_area_detector_default_correct_frame(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_measure_correction(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API void mx_area_detector_cleanup_after_correction( MX_AREA_DETECTOR *ad,
+				MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr);
+
+MX_API mx_status_type mx_area_detector_prepare_for_correction(
+			MX_AREA_DETECTOR *ad,
+			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT **corr_ptr );
+
+MX_API mx_status_type mx_area_detector_process_correction_frame(
+					MX_AREA_DETECTOR *ad,
+					long frame_number,
+					unsigned long desired_correction_flags,
+					MX_IMAGE_FRAME **dezinger_frame_ptr,
+					double *sum_array );
+
+MX_API mx_status_type mx_area_detector_finish_correction_calculation(
+			MX_AREA_DETECTOR *ad,
+			MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_default_dezinger_correction(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_geometrical_correction(
+						MX_AREA_DETECTOR *ad,
+						MX_IMAGE_FRAME *frame );
+
+/*---*/
+
 MX_API_PRIVATE mx_status_type mx_area_detector_compute_dark_current_offset(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
@@ -1517,6 +1513,16 @@ MX_API_PRIVATE mx_status_type mx_area_detector_compute_dark_current_offset(
 MX_API_PRIVATE mx_status_type mx_area_detector_compute_flood_field_scale(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+/*---*/
+
+MX_API mx_status_type mx_area_detector_classic_frame_correction(
+					MX_RECORD *ad_record,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
 
 #ifdef __cplusplus

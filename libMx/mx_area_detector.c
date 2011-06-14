@@ -18,25 +18,11 @@
 
 #define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
-
 #define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
-
-#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
 
 #define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
 
@@ -54,26 +40,16 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
-#include <time.h>
-#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_dirent.h"
-#include "mx_cfn.h"
-#include "mx_bit.h"
-#include "mx_hrt.h"
-#include "mx_hrt_debug.h"
-#include "mx_memory.h"
-#include "mx_key.h"
 #include "mx_array.h"
 #include "mx_motor.h"
 #include "mx_digital_output.h"
 #include "mx_relay.h"
-#include "mx_socket.h"
-#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -6373,218 +6349,6 @@ mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
 #else
 	ad->framesize[0] = ad->maximum_framesize[0] / ad->binsize[0];
 	ad->framesize[1] = ad->maximum_framesize[1] / ad->binsize[1];
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_area_detector_compute_dark_current_offset( MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *bias_frame,
-					MX_IMAGE_FRAME *dark_current_frame )
-{
-	static const char fname[] =
-		"mx_area_detector_compute_dark_current_offset()";
-
-	uint8_t  *dark_current_data8  = NULL;
-	uint16_t *dark_current_data16 = NULL;
-	uint32_t *dark_current_data32 = NULL;
-	uint8_t  *bias_data8  = NULL;
-	uint16_t *bias_data16 = NULL;
-	uint32_t *bias_data32 = NULL;
-	double raw_dark_current = 0.0;
-	double bias_offset      = 0.0;
-	unsigned long i, num_pixels, image_format;
-	double scaled_dark_current, exposure_time_ratio, exposure_time;
-	float *dark_current_offset_array;
-	MX_SEQUENCE_PARAMETERS *sp;
-	mx_status_type mx_status;
-
-#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_TIMING compute_dark_current_timing;
-#endif
-
-	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_AREA_DETECTOR pointer passed was NULL." );
-	}
-
-	/* If present, discard the old version
-	 * of the dark current offset array.
-	 */
-
-	if ( ad->dark_current_offset_array != NULL ) {
-		mx_free( ad->dark_current_offset_array );
-	}
-
-	/* If no dark current frame is currently loaded, then we just
-	 * skip over the computation of the dark current offset.
-	 */
-
-	if ( dark_current_frame == NULL ) {
-		MX_DEBUG(-2,
-		("%s: dark_current_frame is NULL.  Skipping...", fname));
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	image_format = MXIF_IMAGE_FORMAT(dark_current_frame);
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY8:
-		dark_current_data8 = dark_current_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_GREY16:
-		dark_current_data16 = dark_current_frame->image_data;
-		break;
-	case MXT_IMAGE_FORMAT_GREY32:
-		dark_current_data32 = dark_current_frame->image_data;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Dark current correction is not supported for image format %lu "
-		"used by area detector '%s'.", image_format, ad->record->name );
-	}
-
-	if ( bias_frame != NULL ) {
-		if ( image_format != MXIF_IMAGE_FORMAT(bias_frame) ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The bias frame image format %lu for area detector '%s'"
-			" does not match the dark current image format %lu.",
-				(unsigned long) MXIF_IMAGE_FORMAT(bias_frame),
-				ad->record->name,
-				image_format );
-		}
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY8:
-			bias_data8 = bias_frame->image_data;
-			break;
-		case MXT_IMAGE_FORMAT_GREY16:
-			bias_data16 = bias_frame->image_data;
-			break;
-		case MXT_IMAGE_FORMAT_GREY32:
-			bias_data32 = bias_frame->image_data;
-			break;
-		}
-	}
-
-	/* Compute the exposure time ratio. */
-
-	if ( ad->use_scaled_dark_current == FALSE ) {
-		exposure_time_ratio = 1.0;
-	} else {
-		/* Get the exposure time for the currently selected sequence. */
-
-		sp = &(ad->sequence_parameters);
-
-		mx_status = mx_sequence_get_exposure_time( sp, 0,
-							&exposure_time );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		exposure_time_ratio = mx_divide_safely( exposure_time,
-					ad->dark_current_exposure_time );
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s: exposure_time_ratio = %g",
-		fname, exposure_time_ratio));
-#endif
-
-	/* Allocate memory for the dark current offset array. */
-
-	num_pixels = MXIF_ROW_FRAMESIZE(dark_current_frame)
-			* MXIF_COLUMN_FRAMESIZE(dark_current_frame);
-	
-	dark_current_offset_array = malloc( num_pixels * sizeof(float) );
-
-	if ( dark_current_offset_array == (float *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu-element array "
-		"of dark current offset values for area detector '%s'.",
-			num_pixels, ad->record->name );
-	}
-
-	/* This loop _must_ _not_ invoke any functions.  Function calls
-	 * have too high an overhead to be used in a loop that may loop
-	 * 32 million times or more.
-	 */
-
-#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_START(compute_dark_current_timing);
-#endif
-
-	for ( i = 0; i < num_pixels; i++ ) {
-
-		switch( image_format ) {
-		case MXT_IMAGE_FORMAT_GREY8:
-			raw_dark_current = dark_current_data8[i];
-			break;
-		case MXT_IMAGE_FORMAT_GREY16:
-			raw_dark_current = dark_current_data16[i];
-			break;
-		case MXT_IMAGE_FORMAT_GREY32:
-			raw_dark_current = dark_current_data32[i];
-			break;
-		}
-
-		if ( ad->bias_corr_after_flood ) {
-			bias_offset = 0;
-		} else
-		if ( bias_frame == NULL ) {
-			bias_offset = 0;
-		} else {
-			switch( image_format ) {
-			case MXT_IMAGE_FORMAT_GREY8:
-				bias_offset = bias_data8[i];
-				break;
-			case MXT_IMAGE_FORMAT_GREY16:
-				bias_offset = bias_data16[i];
-				break;
-			case MXT_IMAGE_FORMAT_GREY32:
-				bias_offset = bias_data32[i];
-				break;
-			}
-		}
-
-		scaled_dark_current = exposure_time_ratio
-			* ( raw_dark_current - bias_offset ) + bias_offset;
-
-		dark_current_offset_array[i] =
-			bias_offset - scaled_dark_current;
-			
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-		if ( i < 10 ) {
-			fprintf( stderr,
-	    "i = %lu, scaled_dark_current = %g = %g * ( %g - %g ) + %g, ",
-		    		i, scaled_dark_current,
-				exposure_time_ratio, raw_dark_current,
-				bias_offset, bias_offset );
-			fprintf( stderr,
-			"dark_current_offset_array[%lu] = %g\n",
-				i, dark_current_offset_array[i] );
-		}
-#endif
-	}
-
-#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-	MX_HRT_END(compute_dark_current_timing);
-	MX_HRT_RESULTS(compute_dark_current_timing, fname,
-			"for computing new dark current offset array.");
-#endif
-
-	/* Save a pointer to the new dark current offset array. */
-
-	ad->dark_current_offset_array = dark_current_offset_array;
-
-#if MX_AREA_DETECTOR_DEBUG_CORRECTION
-	fprintf(stderr, "ad->dark_current_offset_array = ");
-
-	for ( i = 0; i < 10; i++ ) {
-		fprintf(stderr, "%g ", ad->dark_current_offset_array[i]);
-	}
-	fprintf(stderr, "\n");
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
