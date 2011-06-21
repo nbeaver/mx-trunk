@@ -878,6 +878,11 @@ static int img_conversion(IMWORK *imp)
 	/* re-generate the output values by dividing the weighted
 	 count values by the weights */
 	noreps = normalize(imp);
+#if 1
+	if ( noreps ) {
+		/* Suppress GCC 4.6 unused-but-set-variable warning. */
+	}
+#endif
 	/* phew. Now we can make an image out of this array. */
 	imerr = creat_undistor(imp);
 	return imerr;

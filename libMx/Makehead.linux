@@ -422,6 +422,24 @@ GCCFLAGS_C = \
 -Wmissing-prototypes \
 -Wnested-externs
 
+#--------------------------------------------------------------------------
+#
+# Modify GCCFLAGS depending on the version of GCC.
+#
+
+ifndef _MX_TOOLS
+_gccver := $(shell ../tools/mx_config gcc )
+
+_need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
+
+ifeq ($(_need_no_unused_but_set_variable),1)
+    GCCFLAGS += -Wno-unused-but-set-variable
+endif
+
+endif
+
+#--------------------------------------------------------------------------
+#
 # Intel x86/m68k/sparc with GCC under Linux.
 #
 CC      = gcc
