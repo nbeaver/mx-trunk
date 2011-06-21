@@ -4789,6 +4789,8 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	double bytes_per_frame;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	switch( ad->parameter_type ) {
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
@@ -4849,7 +4851,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*=======================================================================*/

@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -337,8 +337,10 @@ mxvp_file_variable_write( MX_FILE_VARIABLE *file_variable, char *buffer )
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Error writing string description '%s' to file variable '%s'.",
-			buffer, file_variable->record->name );
+		"Error writing string description '%s' to file variable '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			buffer, file_variable->record->name,
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

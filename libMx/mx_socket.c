@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1880,11 +1880,13 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 
 	char discard_buffer[ MXU_SOCKET_DISCARD_BUFFER_LENGTH ];
 	unsigned long i, max_attempts, wait_ms, num_chars;
-	unsigned long j, k, num_blocks, remainder;
+	unsigned long j, num_blocks, remainder;
 	long num_input_bytes_available;
 	mx_status_type mx_status;
 
-	k = 0;	/* To avoid an unused variable warning. */
+#if MX_SOCKET_DEBUG
+	unsigned long k;
+#endif
 
 	/* If input is available, read until there is no more input.
 	 * If we do this to a socket that is constantly generating

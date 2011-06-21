@@ -404,7 +404,6 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 #  define __USE_GNU
 #endif
 
-#include <errno.h>
 #include <dlfcn.h>
 
 MX_EXPORT mx_status_type
@@ -412,8 +411,6 @@ mx_dynamic_library_open( const char *filename,
 			MX_DYNAMIC_LIBRARY **library )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
-
-	int saved_errno;
 
 	if ( filename == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -436,20 +433,11 @@ mx_dynamic_library_open( const char *filename,
 
 	if ( (*library)->object == NULL ) {
 
-		saved_errno = errno;
-
 		mx_free( *library );
 
-#if 0
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to open dynamic library '%s'.  "
-			"Error code = %d, error message = '%s'.",
-			filename, saved_errno, strerror(saved_errno) );
-#else
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to open dynamic library '%s'.  "
 			"dlopen() error message = '%s'.", filename, dlerror() );
-#endif
 	}
 
 	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );
@@ -462,7 +450,7 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 {
 	static const char fname[] = "mx_dynamic_library_close()";
 
-	int os_status, saved_errno;
+	int os_status;
 	mx_status_type mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -483,13 +471,10 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 	os_status = dlclose( library->object );
 
 	if ( os_status != 0 ) {
-		saved_errno = errno;
-
 		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 				"Unable to close dynamic library '%s'.  "
-				"Error code = %d, error message = '%s'.",
-					library->filename,
-					saved_errno, strerror(saved_errno) );
+				"dlclose() error message = '%s'.",
+					library->filename, dlerror() );
 	}
 
 	mx_free( library );
@@ -505,7 +490,6 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 {
 	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
-	int saved_errno;
 	long error_code;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
@@ -531,8 +515,6 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 	if ( (*symbol_pointer) == NULL ) {
 
-		saved_errno = errno;
-		
 		if ( quiet_flag ) {
 			error_code = (MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
 		} else {
@@ -541,9 +523,8 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 		return mx_error( error_code, fname,
 			"Unable to find symbol '%s' in dynamic library '%s'.  "
-			"Error code = %d, error message = '%s'.",
-				symbol_name, library->filename,
-				saved_errno, strerror(saved_errno) );
+			"dlsym() error message = '%s'.",
+				symbol_name, library->filename, dlerror() );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
