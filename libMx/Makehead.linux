@@ -331,8 +331,8 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 # EPICS includes and libraries.
 #
 
-EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
-#EPICS_ARCH	= linux-x86		# For EPICS 3.14
+#EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+EPICS_ARCH	= linux-x86		# For EPICS 3.14
 #EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
@@ -357,10 +357,10 @@ EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
 # The NSLS-II Debian packages can be found at http://epics.nsls2.bnl.gov/debian/
 #     
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/lib/epics/include \
-			-I/usr/lib/epics/include/os/Linux
-EPICS_LIB_DIRS  = -L/usr/lib/epics/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/lib/epics/include \
+#			-I/usr/lib/epics/include/os/Linux
+#EPICS_LIB_DIRS  = -L/usr/lib/epics/lib/$(EPICS_ARCH)
+#EPICS_LIBRARIES = -lca -lCom
 
 # If you are using IIT's EPICS Debian packages, then use the following
 # definitions.
@@ -368,10 +368,10 @@ EPICS_LIBRARIES = -lca -lCom
 # IIT's Debian and Ubuntu packages can be found at http://debian-xray.iit.edu/
 #     
 
-#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-#			-I/usr/include/epics/os/Linux
-#EPICS_LIB_DIRS  = 
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+			-I/usr/include/epics/os/Linux
+EPICS_LIB_DIRS  = 
+EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
@@ -427,15 +427,16 @@ GCCFLAGS_C = \
 # Modify GCCFLAGS depending on the version of GCC.
 #
 
-ifndef _MX_TOOLS
-_gccver := $(shell ../tools/mx_config gcc )
+_have_mx_config := $(shell test -x ../tools/mx_config )
 
-_need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
+ifeq ($(_have_mx_config),0)
+  _gccver := $(shell ../tools/mx_config gcc )
 
-ifeq ($(_need_no_unused_but_set_variable),1)
-    GCCFLAGS += -Wno-unused-but-set-variable
-endif
+  _need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
 
+  ifeq ($(_need_no_unused_but_set_variable),1)
+      GCCFLAGS += -Wno-unused-but-set-variable
+  endif
 endif
 
 #--------------------------------------------------------------------------
