@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include "mx_osdef.h"
@@ -36,7 +37,7 @@ main( int argc, char **argv )
 	}
 
 	if ( strcmp( argv[1], "version" ) == 0 ) {
-		printf( "%d\n", MX_VERSION );
+		printf( "%ld\n", MX_VERSION );
 		exit(0);
 	}
 	if ( strcmp( argv[1], "major" ) == 0 ) {
@@ -54,18 +55,18 @@ main( int argc, char **argv )
 
 #if defined(MX_GNUC_VERSION)
 	if ( strcmp( argv[1], "gnuc" ) == 0 ) {
-		printf( "%d\n", MX_GNUC_VERSION );
+		printf( "%ld\n", MX_GNUC_VERSION );
 		exit(0);
 	}
 	if ( strcmp( argv[1], "gcc" ) == 0 ) {
-		printf( "%d\n", MX_GNUC_VERSION );
+		printf( "%ld\n", MX_GNUC_VERSION );
 		exit(0);
 	}
 #endif
 
 #if defined(MX_GLIBC_VERSION)
 	if ( strcmp( argv[1], "glibc" ) == 0 ) {
-		printf( "%d\n", MX_GLIBC_VERSION );
+		printf( "%ld\n", MX_GLIBC_VERSION );
 		exit(0);
 	}
 #endif
