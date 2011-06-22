@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,12 +204,14 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 	MX_RECORD *independent_variable_record, *motor_record_to_set;
 	MX_MOTOR *motor_to_set;
 	MX_ENERGY_MOTOR *energy_motor;
-	double start_position, end_position;
 	double old_speed, new_speed, measurement_time;
 	double d_spacing;
 	long num_elements;
 	void *pointer_to_value;
 	mx_status_type status;
+
+	double start_position = 0;
+	double end_position = 0;
 
 	if ( quick_scan == (MX_QUICK_SCAN *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
