@@ -39,6 +39,8 @@
 
 #if MX_NETBSD_ORIG_SRC
 #  include <sys/cdefs.h>
+#else
+#  include <stdio.h>
 #endif
 
 #if defined(LIBC_SCCS) && !defined(lint)
