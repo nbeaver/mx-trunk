@@ -17,6 +17,8 @@
 #ifndef __MX_UTIL_H__
 #define __MX_UTIL_H__
 
+#include "mx_private_version.h"
+
 #include <string.h>	/* We get 'size_t' from here. */
 #include <stdarg.h>	/* We get 'va_list' from here. */
 

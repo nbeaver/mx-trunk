@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(OS_BSD)
+#if defined(OS_LINUX) || defined(OS_BSD)
 #include <pthread.h>
 #endif
 

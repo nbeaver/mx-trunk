@@ -19,7 +19,9 @@
 
 #include <stdio.h>
 
-#if defined( OS_LINUX )
+#include "mx_util.h"
+
+#if defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2002000L )
 
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +33,6 @@
 #include <linux/parport.h>
 #include <linux/ppdev.h>
 
-#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_stdint.h"
 

@@ -1201,7 +1201,7 @@ MX_DRIVER mx_type_table[] = {
 #endif /* HAVE_EDT */
 
 
-#ifdef OS_LINUX
+#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
 {"linux_parport",  MXI_CTRL_LINUX_PARPORT, MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_linux_parport_record_function_list,
@@ -2173,7 +2173,7 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_file_dinput_num_record_fields,
 				&mxd_file_dinput_rfield_def_ptr},
 
-#ifdef OS_LINUX
+#if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
 {"linux_parport_in", MXT_DIN_LINUX_PARPORT, MXC_DIGITAL_INPUT, MXR_DEVICE,
 				&mxd_linux_parport_in_record_function_list,

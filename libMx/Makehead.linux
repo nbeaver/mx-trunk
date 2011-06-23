@@ -13,8 +13,8 @@
 #
 #OPTIMIZE = -O1
 #OPTIMIZE = -O2
-OPTIMIZE = -O3
-CFLAGS += $(OPTIMIZE)
+#OPTIMIZE = -O3
+#CFLAGS += $(OPTIMIZE)
 
 INCLUDES	= $(MX_INCLUDES)
 
@@ -313,7 +313,7 @@ LIBUSB_FLAGS     = -Wno-shadow
 VIDEO_4_LINUX_2_FLAGS = -DIS_MX_DRIVER
 
 #
-LINUX_IOPL_FLAGS = -Wno-missing-prototypes
+LINUX_IOPL_FLAGS = -Wno-missing-prototypes -O2
 
 #
 # Compiled with Handel 0.4.5 (May 2004)
@@ -383,7 +383,7 @@ EPIX_ARCH            = i386
 
 EPIX_XCLIB_DIR       = /usr/local/xclib
 EPIX_XCLIB_INCLUDES  = -I$(EPIX_XCLIB_DIR) -DIS_MX_DRIVER \
-				-Wno-strict-prototypes -Wno-unused-variable \
+				-Wno-strict-prototypes \
 				-Wno-shadow
 EPIX_XCLIB_LIB_DIRS  = -L$(EPIX_XCLIB_DIR)
 EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_$(EPIX_ARCH).a

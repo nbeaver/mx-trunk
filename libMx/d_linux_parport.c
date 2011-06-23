@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,13 +17,14 @@
 
 #include <stdio.h>
 
-#if defined( OS_LINUX )
+#include "mx_util.h"
+
+#if defined( OS_LINUX ) && ( MX_GLIBC_VERSION >= 2002000L )
 
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_stdint.h"
 #include "mx_driver.h"
