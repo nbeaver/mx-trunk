@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -336,7 +336,7 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 	char read_buffer[MX_PDI45_COMMAND_LENGTH+1];
 	char write_buffer[MX_PDI45_COMMAND_LENGTH+1];
 	char checksum[4];
-	int pdi45_error_code;
+	int pdi45_error_code = 0;
 	mx_status_type mx_status;
 
 	/* Construct checksum field for outgoing PDI45 command. */

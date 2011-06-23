@@ -1462,7 +1462,7 @@ mx_sysv_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 				strerror( saved_errno ) );
 	}
 
-	fgets( buffer, sizeof(buffer), semaphore_file );
+	mx_fgets( buffer, sizeof(buffer), semaphore_file );
 
 	if ( feof(semaphore_file) || ferror(semaphore_file) ) {
 		(void) fclose(semaphore_file);

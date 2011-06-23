@@ -1427,7 +1427,7 @@ mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
 		"mxd_aviex_pccd_finish_record_initialization()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_AVIEX_PCCD *aviex_pccd;
+	MX_AVIEX_PCCD *aviex_pccd = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

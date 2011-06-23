@@ -809,7 +809,7 @@ mx_high_resolution_time_init( void )
 	have_tsc = FALSE;
 	cpu_mhz = 0.0;
 
-	fgets( buffer, sizeof buffer, cpuinfo );
+	mx_fgets( buffer, sizeof buffer, cpuinfo );
 
 	while ( !feof(cpuinfo) && !ferror(cpuinfo) ) {
 
@@ -879,7 +879,7 @@ mx_high_resolution_time_init( void )
 			}
 		}
 
-		fgets( buffer, sizeof buffer, cpuinfo );
+		mx_fgets( buffer, sizeof buffer, cpuinfo );
 	}
 
 	fclose( cpuinfo );

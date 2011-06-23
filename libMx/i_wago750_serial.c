@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2008 Illinois Institute of Technology
+ * Copyright 2003-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -789,6 +789,8 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 
 		new_receive_acknowledge_bit = receive_request_bit;
 
+		control_byte = 0;
+
 		mx_status = mxi_wago750_serial_read_control_byte(wago750_serial,
 						&control_byte );
 
@@ -986,6 +988,8 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 			fname, transmit_acknowledge));
 
 		/* Get the old value of the control byte. */
+
+		old_control_byte = 0;
 
 		mx_status = mxi_wago750_serial_read_control_byte(wago750_serial,
 							&old_control_byte );
@@ -1298,6 +1302,8 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 	/* First, get the 'receive_acknowledge' bit from
 	 * the control byte.
 	 */
+
+	control_byte = 0;
 
 	mx_status = mxi_wago750_serial_read_control_byte( wago750_serial,
 							&control_byte );

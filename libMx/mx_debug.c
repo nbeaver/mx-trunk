@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2008-2009, 2011
+ *     Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,7 +88,7 @@ mx_debug_pause( const char *format, ... )
 
 	(*mx_debug_output_function)( buffer );
 
-	fgets( buffer, sizeof(buffer), stdin );
+	mx_fgets( buffer, sizeof(buffer), stdin );
 
 	return;
 }

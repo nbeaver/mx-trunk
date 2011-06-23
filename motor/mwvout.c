@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2009 Illinois Institute of Technology
+ * Copyright 2008-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -307,7 +307,7 @@ motor_wvout_fn( int argc, char *argv[] )
 		}
 
 		for ( i = 0; i < wvout->maximum_num_steps; i++ ) {
-			fgets( buffer, sizeof(buffer), savefile );
+			mx_fgets( buffer, sizeof(buffer), savefile );
 
 			if ( feof(savefile) || ferror(savefile) ) {
 				break;
@@ -366,7 +366,7 @@ motor_wvout_fn( int argc, char *argv[] )
 		wvout_data = wvout->data_array;
 
 		for ( i = 0; i < wvout->maximum_num_steps; i++ ) {
-			fgets( buffer, sizeof(buffer), savefile );
+			mx_fgets( buffer, sizeof(buffer), savefile );
 
 			if ( feof(savefile) || ferror(savefile) ) {
 				fprintf( output,

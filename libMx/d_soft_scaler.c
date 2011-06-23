@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -298,7 +299,7 @@ mxd_soft_scaler_open( MX_RECORD *record )
 
 	for ( i = 0; i < soft_scaler->num_datapoints; i++ ) {
 
-		fgets( buffer, sizeof buffer, datafile );
+		mx_fgets( buffer, sizeof buffer, datafile );
 
 		if ( feof( datafile ) || ferror( datafile ) ) {
 			fclose( datafile );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -371,27 +371,13 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 			fprintf( file, "%s", real_prompt );
 			fflush( file );
 
-			fgets( string, *string_length, stdin );
+			mx_fgets( string, *string_length, stdin );
 
 			if ( feof(input) || ferror(input) ) {
 				*string = '\0';
 				*string_length = 0;
 			} else {
-				/* Null terminate the string just in case
-				 * it isn't.
-				 */
-
-				string[ *string_length - 1 ] = '\0';
-
 				*string_length = (int) strlen(string);
-
-				/* Zap any trailing newline. */
-
-				if ( string[ *string_length - 1 ] == '\n' ) {
-					string[ *string_length - 1 ] = '\0';
-
-					*string_length = (int) strlen(string);
-				}
 			}
 		}
 	}

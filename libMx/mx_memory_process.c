@@ -161,7 +161,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	unsigned long field_value;
 	char proc_filename[ MXU_FILENAME_LENGTH+1 ];
 	FILE *procfile;
-	int current_process, saved_errno, length, num_items;
+	int current_process, saved_errno, num_items;
 
 	if ( meminfo == (MX_PROCESS_MEMINFO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -202,7 +202,7 @@ mx_get_process_meminfo( unsigned long process_id,
 	/* Loop over the lines of output from /proc/PID/status. */
 
 	while (1) {
-		fgets( buffer, sizeof(buffer), procfile );
+		mx_fgets( buffer, sizeof(buffer), procfile );
 
 		if ( feof(procfile) ) {
 			/* We have read the last line from /proc/PID/status,
@@ -220,14 +220,6 @@ mx_get_process_meminfo( unsigned long process_id,
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Error reading data from /proc/%lu/status.  Error = '%s'",
 					process_id, strerror( saved_errno ) );
-		}
-
-		/* Delete any trailing newline. */
-
-		length = strlen( buffer );
-
-		if ( buffer[length-1] == '\n' ) {
-			buffer[length-1] = '\0';
 		}
 
 		/* Attempt to parse output lines of the form

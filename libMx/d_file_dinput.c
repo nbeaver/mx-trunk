@@ -129,7 +129,7 @@ mxd_file_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_file_dinput_read()";
 
-	MX_FILE_DINPUT *file_dinput;
+	MX_FILE_DINPUT *file_dinput = NULL;
 	FILE *file;
 	int saved_errno, num_items;
 	char buffer[80];
@@ -163,7 +163,7 @@ mxd_file_dinput_read( MX_DIGITAL_INPUT *dinput )
 				saved_errno, strerror(saved_errno) );
 		}
 	} else {
-		fgets( buffer, sizeof(buffer), file );
+		mx_fgets( buffer, sizeof(buffer), file );
 
 		if ( ferror(file) ) {
 			fclose( file );
@@ -198,7 +198,7 @@ mxd_file_dinput_clear( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_file_dinput_clear()";
 
-	MX_FILE_DINPUT *file_dinput;
+	MX_FILE_DINPUT *file_dinput = NULL;
 	int os_status, saved_errno;
 	mx_status_type mx_status;
 

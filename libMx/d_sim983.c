@@ -347,7 +347,7 @@ mxd_sim983_get_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_get_gain()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char response[100];
 	mx_status_type mx_status;
 
@@ -373,7 +373,7 @@ mxd_sim983_set_gain( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_set_gain()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
@@ -395,7 +395,7 @@ mxd_sim983_get_offset( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_get_offset()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char response[100];
 	mx_status_type mx_status;
 
@@ -421,7 +421,7 @@ mxd_sim983_set_offset( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_set_offset()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 
@@ -445,7 +445,7 @@ mxd_sim983_get_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_get_time_constant()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char response[100];
 	mx_status_type mx_status;
 
@@ -471,7 +471,7 @@ mxd_sim983_set_time_constant( MX_AMPLIFIER *amplifier )
 {
 	static const char fname[] = "mxd_sim983_set_time_constant()";
 
-	MX_SIM983 *sim983;
+	MX_SIM983 *sim983 = NULL;
 	char command[100];
 	mx_status_type mx_status;
 

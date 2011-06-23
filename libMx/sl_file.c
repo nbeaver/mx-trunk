@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2007 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -262,7 +262,7 @@ mxs_file_list_scan_get_next_measurement_parameters( MX_SCAN *scan,
 		"motor_position array pointer is NULL." );
 	}
 
-	fgets( buffer, sizeof buffer, file );
+	mx_fgets( buffer, sizeof buffer, file );
 
 	saved_errno = errno;
 

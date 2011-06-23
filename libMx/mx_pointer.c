@@ -156,7 +156,7 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 
 		valid = FALSE;
 
-		fgets( buffer, sizeof(buffer), file );
+		mx_fgets( buffer, sizeof(buffer), file );
 
 		if ( feof(file) ) {
 			valid = FALSE;

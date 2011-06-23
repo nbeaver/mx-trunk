@@ -145,7 +145,7 @@ mxd_network_mcai_finish_record_initialization( MX_RECORD *record )
 		"mxd_network_mcai_finish_record_initialization()";
 
 	MX_MCAI *mcai;
-	MX_NETWORK_MCAI *network_mcai;
+	MX_NETWORK_MCAI *network_mcai = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -178,7 +178,7 @@ mxd_network_mcai_open( MX_RECORD *record )
 	static const char fname[] = "mxd_network_mcai_open()";
 
 	MX_MCAI *mcai;
-	MX_NETWORK_MCAI *network_mcai;
+	MX_NETWORK_MCAI *network_mcai = NULL;
 	char nfname[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 	long remote_maximum_num_channels;
 	mx_status_type mx_status;
@@ -223,7 +223,7 @@ mxd_network_mcai_read( MX_MCAI *mcai )
 {
 	static const char fname[] = "mxd_network_mcai_read()";
 
-	MX_NETWORK_MCAI *network_mcai;
+	MX_NETWORK_MCAI *network_mcai = NULL;
 	long dimension_array[1];
 	mx_status_type mx_status;
 

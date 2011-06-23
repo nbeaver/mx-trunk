@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -828,23 +828,11 @@ mx_kbhit( void )
 MX_EXPORT void
 mx_key_getline( char *buffer, size_t max_buffer_length )
 {
-	size_t length;
-
 	if ( ( buffer == NULL ) || ( max_buffer_length == 0 ) ) {
 		return;
 	}
 
-	fgets( buffer, (int) max_buffer_length, stdin );
-
-	/* Delete any trailing newline. */
-
-	length = strlen( buffer );
-
-	if ( length > 0 ) {
-		if ( buffer[length-1] == '\n' ) {
-			buffer[length-1] = '\0';
-		}
-	}
+	mx_fgets( buffer, (int) max_buffer_length, stdin );
 
 	return;
 }

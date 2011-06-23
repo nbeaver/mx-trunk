@@ -414,29 +414,16 @@ cmd_read_next_command_line( char *prompt )
 	static char *ptr;
 
 	static char buffer[250];
-	int length;
 
 	fprintf( output, prompt );
 	fflush( output );
 
-	fgets( buffer, sizeof buffer, input );
+	mx_fgets( buffer, sizeof buffer, input );
 
 	if ( feof(input) || ferror(input) ) {
 		ptr = NULL;
 	} else {
 		ptr = &buffer[0];
-
-		/* Null terminate the buffer just in case it isn't. */
-
-		buffer[ sizeof(buffer) - 1 ] = '\0';
-
-		/* Zap any trailing newline. */
-
-		length = strlen( buffer );
-
-		if ( buffer[ length-1 ] == '\n' ) {
-			buffer[ length-1 ] = '\0';
-		}
 	}
 
 	return ptr;
@@ -563,7 +550,6 @@ cmd_read_next_command_line( char *prompt )
 	static char *ptr;
 
 	static char buffer[250];
-	int length;
 
 	/* We only use readline() on TTY devices.  This way, if standard
 	 * input or output are redirected to pipes or some such, we will
@@ -595,7 +581,7 @@ cmd_read_next_command_line( char *prompt )
 		fputs( prompt, output );
 		fflush( output );
 	
-		fgets( buffer, sizeof buffer, input );
+		mx_fgets( buffer, sizeof buffer, input );
 	
 		if ( feof(input) || ferror(input) ) {
 			ptr = NULL;
@@ -605,14 +591,6 @@ cmd_read_next_command_line( char *prompt )
 			/* Null terminate the buffer just in case it isn't. */
 	
 			buffer[ sizeof(buffer) - 1 ] = '\0';
-
-			/* Zap any trailing newline. */
-
-			length = (int) strlen( buffer );
-
-			if ( buffer[ length-1 ] == '\n' ) {
-				buffer[ length-1 ] = '\0';
-			}
 		}
 	}
 

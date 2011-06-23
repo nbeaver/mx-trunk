@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -497,7 +497,7 @@ mxn_bluice_dcss_server_get_session_id(
 	session_id[0] = '\0';
 
 	for ( i = 0; ; i++ ) {
-		fgets( line, sizeof(line), auth_server_fp );
+		mx_fgets( line, sizeof(line), auth_server_fp );
 
 		/* Look for the line that sets a cookie. */
 

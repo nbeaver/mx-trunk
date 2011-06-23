@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -146,7 +146,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 	while ( status == SUCCESS && end_of_file == FALSE ) {
 		/* Read a line from the script. */
 
-		fgets( buffer, sizeof buffer, script_file );
+		mx_fgets( buffer, sizeof buffer, script_file );
 
 		if ( feof(script_file) ) {
 			end_of_file = TRUE;
@@ -158,16 +158,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 			continue;   /* cycle the while() loop. */
 		}
 
-		/* Zap any trailing newline in the buffer. */
-
 		buffer_length = (int) strlen( buffer );
-
-		if ( buffer_length > 0 ) {
-			if ( buffer[buffer_length - 1] == '\n' ) {
-				buffer[buffer_length - 1] = '\0';
-				buffer_length--;
-			}
-		}
 
 		if ( verbose_flag )
 			fprintf( output, "*** %s\n", buffer );

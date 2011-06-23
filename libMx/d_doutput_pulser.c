@@ -366,7 +366,7 @@ mxd_doutput_pulser_open( MX_RECORD *record )
 	static const char fname[] = "mxd_doutput_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulser;
-	MX_DOUTPUT_PULSER *doutput_pulser;
+	MX_DOUTPUT_PULSER *doutput_pulser = NULL;
 	MX_LIST_HEAD *list_head;
 	MX_VIRTUAL_TIMER *oneshot_timer;
 	mx_status_type mx_status;
@@ -492,7 +492,7 @@ mxd_doutput_pulser_is_busy( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_doutput_pulser_is_busy()";
 
-	MX_DOUTPUT_PULSER *doutput_pulser;
+	MX_DOUTPUT_PULSER *doutput_pulser = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_doutput_pulser_get_pointers( pulser,
@@ -539,7 +539,7 @@ mxd_doutput_pulser_start( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_doutput_pulser_start()";
 
-	MX_DOUTPUT_PULSER *doutput_pulser;
+	MX_DOUTPUT_PULSER *doutput_pulser = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_doutput_pulser_get_pointers( pulser,
@@ -576,7 +576,7 @@ mxd_doutput_pulser_stop( MX_PULSE_GENERATOR *pulser )
 {
 	static const char fname[] = "mxd_doutput_pulser_stop()";
 
-	MX_DOUTPUT_PULSER *doutput_pulser;
+	MX_DOUTPUT_PULSER *doutput_pulser = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxd_doutput_pulser_get_pointers( pulser,

@@ -60,7 +60,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 	static const char fname[] = "mx_get_system_meminfo()";
 
 	FILE *procfile;
-	int saved_errno, num_items, length;
+	int saved_errno, num_items;
 	unsigned long field_value;
 	char field_name[80];
 	char buffer[80];
@@ -87,7 +87,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 	while (1) {
 		/* Get a line of text from /proc/meminfo. */
 
-		fgets( buffer, sizeof(buffer), procfile );
+		mx_fgets( buffer, sizeof(buffer), procfile );
 
 		if ( feof(procfile) ) {
 			/* We have read the last line from /proc/meminfo,
@@ -104,14 +104,6 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Error reading data from /proc/meminfo.  Error = '%s'",
 						strerror( saved_errno ) );
-		}
-
-		/* Delete any trailing newline. */
-
-		length = strlen( buffer );
-
-		if ( buffer[length-1] == '\n' ) {
-			buffer[length-1] = '\0';
 		}
 
 		/* Attempt to parse output lines of the form

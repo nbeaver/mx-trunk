@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -176,7 +176,7 @@ mxi_telnet_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_telnet_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -222,7 +222,7 @@ mxi_telnet_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxi_telnet_finish_record_initialization()";
 
 	MX_RS232 *rs232;
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -259,7 +259,7 @@ mxi_telnet_open( MX_RECORD *record )
 	static const char fname[] = "mxi_telnet_open()";
 
 	MX_RS232 *rs232;
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	unsigned long socket_flags;
 	mx_status_type mx_status;
 
@@ -330,7 +330,7 @@ mxi_telnet_close( MX_RECORD *record )
 	static const char fname[] = "mxi_telnet_close()";
 
 	MX_RS232 *rs232;
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -366,7 +366,7 @@ mxi_telnet_raw_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_telnet_raw_getchar()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	struct timeval timeout;
 	int num_fds, saved_errno;
 	char *error_string;
@@ -493,7 +493,7 @@ mxi_telnet_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_telnet_getchar()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	unsigned char local_byte, command_byte, option_byte;
 	unsigned char option_response[3];
 	mx_bool_type send_option_response;
@@ -673,7 +673,7 @@ mxi_telnet_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_telnet_putchar()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -716,7 +716,7 @@ mxi_telnet_write( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_telnet_write()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_telnet_get_pointers( rs232, &telnet, fname );
@@ -758,7 +758,7 @@ mxi_telnet_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_telnet_putline()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_telnet_get_pointers( rs232, &telnet, fname );
@@ -788,7 +788,7 @@ mxi_telnet_num_input_bytes_available( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_telnet_num_input_bytes_available()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	int num_fds, select_status, saved_errno;
 	struct timeval timeout;
 	char *error_string;
@@ -959,7 +959,7 @@ mxi_telnet_send_break( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_telnet_send_break()";
 
-	MX_TELNET *telnet;
+	MX_TELNET *telnet = NULL;
 	char break_command[2];
 	mx_status_type mx_status;
 

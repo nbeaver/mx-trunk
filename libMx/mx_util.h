@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -510,6 +510,12 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
 #endif
+
+/* mx_fgets() is a replacement for fgets() that automatically trims off
+ * trailing newlines.
+ */
+
+MX_API char *mx_fgets( char *s, int size, FILE *stream );
 
 /*----------------------*/
 

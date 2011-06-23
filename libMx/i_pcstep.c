@@ -8,7 +8,8 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -823,6 +824,8 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 
 	/* Read the return packet ID word. */
 
+	return_packet_id = 0;
+
 	mx_status = mxi_pcstep_receive_word( pcstep, &return_packet_id );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -838,6 +841,8 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 	}
 
 	/* Read the low order word. */
+
+	received_word = 0;
 
 	mx_status = mxi_pcstep_receive_word( pcstep, &received_word );
 

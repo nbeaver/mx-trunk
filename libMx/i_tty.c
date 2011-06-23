@@ -226,7 +226,7 @@ mxi_tty_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_tty_create_record_structures()";
 
 	MX_RS232 *rs232;
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -262,7 +262,7 @@ mxi_tty_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_tty_finish_record_initialization()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -298,7 +298,7 @@ mxi_tty_open( MX_RECORD *record )
 	static const char fname[] = "mxi_tty_open()";
 
 	MX_RS232 *rs232;
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int status, flags, saved_errno;
 	unsigned long do_not_change_port_settings;
 	mx_status_type mx_status;
@@ -447,7 +447,7 @@ mxi_tty_close( MX_RECORD *record )
 	static const char fname[] = "mxi_tty_close()";
 
 	MX_RS232 *rs232;
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int result, saved_errno;
 	mx_status_type mx_status;
 
@@ -526,7 +526,7 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_tty_getchar()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int num_chars, saved_flags, new_flags, result, saved_errno;
 	char c_temp;
 	unsigned char c_mask;
@@ -613,7 +613,7 @@ mxi_tty_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_tty_putchar()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int num_chars;
 	mx_status_type mx_status;
 
@@ -1043,7 +1043,7 @@ mxi_tty_fionread_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_tty_fionread_num_input_bytes_available()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int tty_fd, num_chars_available, status, saved_errno;
 	mx_status_type mx_status;
 
@@ -1261,7 +1261,7 @@ mxi_tty_get_signal_state( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_get_signal_state()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int status_bits;
 	mx_status_type mx_status;
 
@@ -1314,7 +1314,7 @@ mxi_tty_set_signal_state( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_set_signal_state()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int status_bits;
 	mx_status_type mx_status;
 
@@ -2330,7 +2330,7 @@ mxi_tty_send_break( MX_RS232 *rs232 )
 {
 	static const char fname[] = "mxi_tty_send_break()";
 
-	MX_TTY *tty;
+	MX_TTY *tty = NULL;
 	int status, saved_errno;
 	mx_status_type mx_status;
 

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006, 2008, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -321,7 +322,7 @@ mxd_soft_mca_open( MX_RECORD *record )
 
 	for ( i = 0; i < mca->maximum_num_channels; i++ ) {
 
-		fgets( buffer, sizeof buffer, channel_file );
+		mx_fgets( buffer, sizeof buffer, channel_file );
 
 		if ( feof( channel_file ) || ferror( channel_file ) ) {
 			fclose( channel_file );

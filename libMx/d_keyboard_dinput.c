@@ -129,7 +129,7 @@ mxd_keyboard_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_keyboard_dinput_read()";
 
-	MX_KEYBOARD_DINPUT *keyboard_dinput;
+	MX_KEYBOARD_DINPUT *keyboard_dinput = NULL;
 	int c;
 	mx_status_type mx_status;
 

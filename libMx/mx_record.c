@@ -1091,9 +1091,9 @@ mxp_readline_from_file( MXP_DB_SOURCE *db_source,
 {
 	static const char fname[] = "mxp_readline_from_file()";
 
-	int saved_errno, length;
+	int saved_errno;
 
-	fgets( buffer, buffer_length, db_source->file );
+	mx_fgets( buffer, buffer_length, db_source->file );
 
 	if ( feof( db_source->file ) ) {
 		fclose( db_source->file );
@@ -1113,14 +1113,6 @@ mxp_readline_from_file( MXP_DB_SOURCE *db_source,
 			"Errno = %d, error message = '%s'.",
 			db_source->line_number, db_source->filename,
 			saved_errno, strerror( saved_errno ) );
-	}
-
-	/* Zap any trailing newline. */
-
-	length = strlen( buffer );
-
-	if ( buffer[ length - 1 ] == '\n' ) {
-		buffer[ length - 1 ] = '\0';
 	}
 
 	return MX_SUCCESSFUL_RESULT;

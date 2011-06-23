@@ -1251,6 +1251,43 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
+/* mx_fgets() is a replacement for fgets() that automatically trims off
+ * any trailing newline character.
+ *
+ * mx_fgets() also serves as a way of suppressing the warning in
+ * recent versions of Ubuntu about ignoring the return value of fgets().
+ */
+
+MX_EXPORT char *
+mx_fgets( char *buffer, int buffer_size, FILE *stream )
+{
+	char *ptr;
+	size_t length;
+
+	ptr = fgets( buffer, buffer_size, stream );
+
+	if ( ptr == NULL )
+		return ptr;
+
+	/* Make sure that the buffer is null terminated. */
+
+	ptr[ buffer_size - 1 ] = '\0';
+
+	/* Delete any trailing newline. */
+
+	length = strlen( ptr );
+
+	if ( length > 0 ) {
+		if ( ptr[ length - 1 ] == '\n' ) {
+			ptr[ length - 1 ] = '\0';
+		}
+	}
+
+	return ptr;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
 
 /* Visual C++ 6.0 SP 6 does not have a direct way of converting an

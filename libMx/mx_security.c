@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2006, 2009 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,7 +93,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 
 		num_addresses++;
 
-		fgets(buffer, sizeof buffer, connection_acl_file);
+		mx_fgets(buffer, sizeof buffer, connection_acl_file);
 	}
 
 	/* Allocate memory for the connection ACL structures. */
@@ -178,7 +178,7 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 	for ( i = 0; i < num_addresses; i++ ) {
 		address_string = connection_acl->address_string_array[i];
 
-		fgets( address_string, MXU_HOSTNAME_LENGTH,
+		mx_fgets( address_string, MXU_HOSTNAME_LENGTH,
 					connection_acl_file );
 
 		if ( ferror( connection_acl_file )
@@ -192,11 +192,6 @@ mx_setup_connection_acl( MX_RECORD *record_list,
 		}
 
 		length = strlen(address_string);
-
-		if ( address_string[length-1] == '\n' ) {
-			address_string[length-1] = '\0';
-			length--;
-		}
 
 		/* Is this a numerical address or not? */
 

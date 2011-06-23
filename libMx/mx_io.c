@@ -250,7 +250,6 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 	int saved_errno;
 	unsigned long current_pid, current_inode;
 	char current_command_name[MXU_FILENAME_LENGTH+1];
-	size_t length;
 	int max_fds;
 	mx_bool_type is_fifo;
 
@@ -275,7 +274,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 		return;
 	}
 
-	fgets( response, sizeof(response), file );
+	mx_fgets( response, sizeof(response), file );
 
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */
@@ -293,11 +292,6 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 	peer_command_name[0] = '\0';
 
 	while (1) {
-		length = strlen(response);
-
-		if ( response[length-1] == '\n' ) {
-			response[length-1] = '\0';
-		}
 
 #if 0
 		fprintf( stderr, "response = '%s'\n", response );
@@ -336,7 +330,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 			break;
 		}
 
-		fgets( response, sizeof(response), file );
+		mx_fgets( response, sizeof(response), file );
 
 		if ( feof(file) || ferror(file) ) {
 			/* End of lsof output, so give up. */
@@ -400,16 +394,10 @@ mxp_parse_lsof_output( FILE *file,
 	}
 
 	while (1) {
-		fgets( response, sizeof(response), file );
+		mx_fgets( response, sizeof(response), file );
 
 		if ( feof(file) || ferror(file) ) {
 			break;
-		}
-
-		length = strlen( response );
-
-		if ( response[length-1] == '\n' ) {
-			response[length-1] = '\0';
 		}
 
 #if 0
@@ -574,7 +562,7 @@ mxp_get_fd_name_from_lsof( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-	fgets( response, sizeof(response), file );
+	mx_fgets( response, sizeof(response), file );
 
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */
@@ -682,7 +670,7 @@ mx_show_fd_names( unsigned long process_id )
 		return;
 	}
 
-	fgets( response, sizeof(response), file );
+	mx_fgets( response, sizeof(response), file );
 
 	if ( feof(file) || ferror(file) ) {
 		/* Did not get any output from lsof. */

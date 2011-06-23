@@ -5002,8 +5002,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 				strcpy( units, " " );
-				strncat( units, motor->units,
-							sizeof(units) );
+				strlcat( units, motor->units, sizeof(units) );
 			} else {
 				strcpy( units, "" );
 			}
@@ -5022,8 +5021,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 				strcpy( units, " " );
-				strncat( units, motor->units,
-							sizeof(units) );
+				strlcat( units, motor->units, sizeof(units) );
 			} else {
 				strcpy( units, "" );
 			}
@@ -5148,7 +5146,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 		if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 			strcpy( units, " " );
-			strncat( units, motor->units, sizeof(units) );
+			strlcat( units, motor->units, sizeof(units) );
 		} else {
 			strcpy( units, "" );
 		}
@@ -5167,7 +5165,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 		if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 			strcpy( units, " " );
-			strncat( units, motor->units, sizeof(units) );
+			strlcat( units, motor->units, sizeof(units) );
 		} else {
 			strcpy( units, "" );
 		}
@@ -5469,8 +5467,7 @@ mx_is_analog_motor_position_between_software_limits(
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 				strcpy( units, " " );
-				strncat( units, motor->units,
-						sizeof(units) );
+				strlcat( units, motor->units, sizeof(units) );
 			} else {
 				strcpy( units, "" );
 			}
@@ -5492,8 +5489,7 @@ mx_is_analog_motor_position_between_software_limits(
 
 			if ( test_var < MX_MOTOR_ANALOG_FUZZ ) {
 				strcpy( units, " " );
-				strncat( units, motor->units,
-						sizeof(units) );
+				strlcat( units, motor->units, sizeof(units) );
 			} else {
 				strcpy( units, "" );
 			}

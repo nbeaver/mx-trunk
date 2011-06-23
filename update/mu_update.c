@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1374,7 +1374,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 	MX_DEBUG( 2,("%s: format = '%s'", fname, format));
 
 	for ( i = 0; ; i++ ) {
-		fgets(buffer, sizeof buffer, update_list_file);
+		mx_fgets(buffer, sizeof buffer, update_list_file);
 
 		if ( feof(update_list_file) ) {
 			break;		/* Exit the for loop. */
@@ -1814,7 +1814,7 @@ mxupd_choose_autosave_file_to_use(
 		 * in the file starting with an asterisk.
 		 */
 
-		fgets(buffer, sizeof buffer, newer_file);
+		mx_fgets(buffer, sizeof buffer, newer_file);
 
 		while ( ! feof( newer_file ) && ! ferror( newer_file ) ) {
 
@@ -1822,7 +1822,7 @@ mxupd_choose_autosave_file_to_use(
 				savefile_is_complete = TRUE;
 				break;     /* Exit the while() loop. */
 			}
-			fgets(buffer, sizeof buffer, newer_file);
+			mx_fgets(buffer, sizeof buffer, newer_file);
 		}
 
 		if ( savefile_is_complete ) {
@@ -1840,7 +1840,7 @@ mxupd_choose_autosave_file_to_use(
 		 * Look for a line in the file starting with an asterisk.
 		 */
 
-		fgets(buffer, sizeof buffer, autosave_to_use);
+		mx_fgets(buffer, sizeof buffer, autosave_to_use);
 
 		while (!feof(autosave_to_use) && !ferror(autosave_to_use)){
 
@@ -1848,7 +1848,7 @@ mxupd_choose_autosave_file_to_use(
 				savefile_is_complete = TRUE;
 				break;     /* Exit the while() loop. */
 			}
-			fgets(buffer, sizeof buffer, autosave_to_use);
+			mx_fgets(buffer, sizeof buffer, autosave_to_use);
 		}
 
 		if ( savefile_is_complete == FALSE ) {
@@ -1949,7 +1949,7 @@ mxupd_restore_fields_from_autosave_files(
 	for ( i = 0; i < update_list->num_entries; i++ ) {
 		update_list_entry = &(update_list->entry_array)[i];
 
-		fgets( buffer, sizeof buffer, autosave_to_use );
+		mx_fgets( buffer, sizeof buffer, autosave_to_use );
 
 		if ( feof( autosave_to_use ) || ferror( autosave_to_use )
 			  || (buffer[0] == '*') ) {
@@ -1964,13 +1964,7 @@ mxupd_restore_fields_from_autosave_files(
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		/* Zap any trailing newline. */
-
 		length = strlen( buffer );
-
-		if ( buffer[ length - 1 ] == '\n' ) {
-			buffer[ length - 1 ] = '\0';
-		}
 
 		buffer_ptr = buffer + strspn( buffer, SEPARATORS );
 

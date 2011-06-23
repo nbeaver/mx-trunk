@@ -329,7 +329,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	/* Read through the output from /proc/stat until we find a line that
 	 * begins with the word 'btime'. */
 
-	fgets( buffer, sizeof(buffer), proc_stat );
+	mx_fgets( buffer, sizeof(buffer), proc_stat );
 
 	for(;;) {
 		if ( feof(proc_stat) || ferror(proc_stat) ) {
@@ -348,7 +348,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 			break;			/* Exit the for(;;) loop. */
 		}
 
-		fgets( buffer, sizeof(buffer), proc_stat );
+		mx_fgets( buffer, sizeof(buffer), proc_stat );
 	}
 
 	/* Parse the line that contains the boot time. */

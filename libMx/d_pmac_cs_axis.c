@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2003, 2005-2007, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,8 +186,8 @@ mxd_pmac_cs_axis_finish_record_initialization( MX_RECORD *record )
 		"mxd_pmac_cs_axis_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
-	MX_PMAC *pmac;
+	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis = NULL;
+	MX_PMAC *pmac = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

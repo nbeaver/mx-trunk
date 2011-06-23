@@ -809,7 +809,7 @@ mxd_mar345_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_mar345_readout_frame()";
 
-	MX_MAR345 *mar345;
+	MX_MAR345 *mar345 = NULL;
 	char command[500];
 	mx_status_type mx_status;
 
