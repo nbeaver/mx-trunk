@@ -126,9 +126,7 @@ mx_signal_initialize( void )
 			case EINVAL:
 			case ENOSYS:
 			case ENOENT:
-#if defined(OS_IRIX)
 			case 0:
-#endif
 				/* There may be gaps in the supported
 				 * signal numbers, so mark this signal
 				 * number as in use and continue on to
