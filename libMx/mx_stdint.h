@@ -129,6 +129,43 @@ typedef uint64_t		uintmax_t;
 #  endif
 
 /*=======================================================================*/
+#elif ( defined(OS_LINUX) && (MX_GLIBC_VERSION < 2001000L) )
+
+   /* For very old Linux distributions, we must code this by hand. */
+
+#  if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP64 )
+
+      typedef char                 int8_t;
+      typedef short                int16_t;
+      typedef int                  int32_t;
+      typedef long                 int64_t;
+
+      typedef unsigned char        int8_t;
+      typedef unsigned short       int16_t;
+      typedef unsigned int         int32_t;
+      typedef unsigned long        int64_t;
+
+      typedef int32_t              intmax_t;
+      typedef uint32_t             uintmax_t;
+
+#  else
+
+      typedef char                 int8_t;
+      typedef short                int16_t;
+      typedef int                  int32_t;
+      typedef long long            int64_t;
+
+      typedef unsigned char        int8_t;
+      typedef unsigned short       int16_t;
+      typedef unsigned int         int32_t;
+      typedef unsigned long long   int64_t;
+
+      typedef int32_t              intmax_t;
+      typedef uint32_t             uintmax_t;
+
+#  endif
+
+/*=======================================================================*/
 #else
    /* Most build targets should be able to use a vendor provided <stdint.h>. */
 

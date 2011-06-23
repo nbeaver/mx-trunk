@@ -243,22 +243,18 @@ mxp_generate_gnuc_macros( FILE *version_file )
 
 #  if MXP_USE_GNU_GET_LIBC_VERSION
 #     include <gnu/libc-version.h>
-#  else
-      extern const char __libc_version[];
 #  endif
 
       static void
       mxp_generate_glibc_macros( FILE *version_file )
       {
-          const char *libc_version;
 	  unsigned long libc_major, libc_minor, libc_patchlevel;
-	  int num_items;
 
 #  if MXP_USE_GNU_GET_LIBC_VERSION
+          const char *libc_version;
+	  int num_items;
+
           libc_version = gnu_get_libc_version();
-#  else
-          libc_version = __libc_version[];
-#  endif
 
 	  num_items = sscanf( libc_version, "%lu.%lu.%lu",
 	  		&libc_major, &libc_minor, &libc_patchlevel );
@@ -275,6 +271,14 @@ mxp_generate_gnuc_macros( FILE *version_file )
 			libc_version );
 		exit(1);
 	  }
+
+#   else /* not MXP_USE_GNU_GET_LIBC_VERSION */
+
+          libc_major = __GLIBC__;
+          libc_minor = __GLIBC_MINOR__;
+          libc_patchlevel = 0;
+
+#   endif /* not MXP_USE_GNU_GET_LIBC_VERSION */
 
 	  fprintf( version_file, "#define MX_GLIBC_VERSION    %luL\n",
 		libc_major * 1000000L
