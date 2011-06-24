@@ -20,7 +20,9 @@
 
 #define MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS	FALSE
 
-#define MXD_RADICON_HELIOS_DEBUG_READOUT		FALSE
+#define MXD_RADICON_HELIOS_DEBUG_READOUT		TRUE
+
+#define MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION	TRUE
 
 #define MXD_RADICON_HELIOS_DEBUG_BYTESWAP		TRUE
 
@@ -32,10 +34,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_cfn.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_array.h"
@@ -931,6 +935,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	unsigned long ad_flags, helios_flags, mask;
 	long dmd, trigger;
+	int saved_errno;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1125,6 +1130,69 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If requested, load the flood_field_scale_array from
+	 * the specified gain array file.
+	 */
+
+	if ( strlen( radicon_helios->gain_array_filename ) > 0 ) {
+		FILE *gain_file;
+		unsigned long pixels_per_frame, bytes_per_frame;
+		unsigned long bytes_read;
+
+		gain_file = mx_cfn_fopen( MX_CFN_CONFIG,
+				radicon_helios->gain_array_filename, "r" );
+
+		if ( gain_file == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The gain file '%s' could not be opened.  "
+			"Errno = %d, error message = '%s'",
+				radicon_helios->gain_array_filename,
+				saved_errno, strerror( saved_errno ) );
+		}
+
+		pixels_per_frame = ad->framesize[0] * ad->framesize[1];
+
+		bytes_per_frame = mx_round( pixels_per_frame
+					* ad->bytes_per_pixel );
+
+		bytes_read = (long) fread( ad->flood_field_scale_array,
+					sizeof( float ),
+					pixels_per_frame,
+					gain_file );
+
+
+		if ( bytes_read < bytes_per_frame ) {
+		    if ( feof( gain_file ) ) {
+			fclose( gain_file );
+
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"End of file at byte %ld for gain file '%s'.",
+				bytes_read,
+				radicon_helios->gain_array_filename );
+		    }
+		    if ( ferror( gain_file ) ) {
+			fclose( gain_file );
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading pixel %ld "
+			"for gain file '%s'.",
+				bytes_read,
+				radicon_helios->gain_array_filename );
+		    }
+
+		    fclose( gain_file );
+
+		    return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Only %ld image bytes were read from "
+			"gain file '%s' when %ld bytes were expected.",
+				bytes_read,
+				radicon_helios->gain_array_filename,
+				bytes_per_frame );
+		}
+	}
 
 	/***********************************************
 	 * Configure the Pleora iPORT PLC to work with *
@@ -2022,6 +2090,18 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_helios_correct_frame()";
 
 	MX_RADICON_HELIOS *radicon_helios;
+	MX_IMAGE_FRAME *image_frame = NULL;
+	MX_IMAGE_FRAME *correction_calc_frame = NULL;
+	unsigned long flags, mask;
+	unsigned long i, num_pixels;
+	long row_framesize, column_framesize;
+	double corr_bytes_per_pixel;
+	size_t corr_image_length;
+	double dbl_image_pixel, bias_offset;
+	double *dbl_image_data_array;
+	int16_t *bias_data_array;
+	double flood_field_scale;
+	float *flood_field_scale_array;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -2034,7 +2114,144 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_area_detector_default_correct_frame( ad );
+	if ( radicon_helios->detector_type != MXT_RADICON_HELIOS_10x10 ) {
+		mx_status = mx_area_detector_default_correct_frame( ad );
+
+		return mx_status;
+	}
+
+	flags = ad->correction_flags;
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,
+	("%s: performing correction for the 10x10 detector.",fname));
+#endif
+	/* If no correction has been requested, then we just return here. */
+
+	mask = MXFT_AD_DARK_CURRENT_FRAME | MXFT_AD_FLOOD_FIELD_FRAME;
+
+	if ( ( flags & mask ) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+	    "Area detector '%s' has not yet read out its first image frame.",
+			ad->record->name );
+	}
+
+	if ( ad->bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = (int16_t *) ad->bias_frame->image_data;
+	}
+
+	/* Copy the image data to a double precision image frame. */
+
+	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
+
+	row_framesize    = MXIF_ROW_FRAMESIZE( image_frame );
+	column_framesize = MXIF_COLUMN_FRAMESIZE( image_frame );
+
+	mx_status = mx_image_format_get_bytes_per_pixel(
+					ad->correction_calc_format,
+					&corr_bytes_per_pixel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	corr_image_length = mx_round( corr_bytes_per_pixel
+		* (double)( row_framesize * column_framesize ) );
+
+	mx_status = mx_image_alloc( &correction_calc_frame,
+					row_framesize,
+					column_framesize,
+					ad->correction_calc_format,
+					MXIF_BYTE_ORDER(image_frame),
+					corr_bytes_per_pixel,
+					MXIF_HEADER_BYTES(image_frame),
+					corr_image_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If requested, perform the dark current correction. */
+
+	if ( ( flags & MXFT_AD_DARK_CURRENT_FRAME ) != 0 ) {
+
+		if ( ad->dark_current_offset_array == NULL ) {
+			mx_status =
+			    mx_area_detector_compute_dark_current_offset(
+				ad, ad->bias_frame, ad->dark_current_frame );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mx_area_detector_dbl_precomp_dark_correction(
+					ad,
+					correction_calc_frame,
+					ad->mask_frame,
+					ad->bias_frame,
+					ad->dark_current_frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* If requested, perform the flood field correction. */
+
+	if ( ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) != 0 ) {
+
+		if ( ad->flood_field_scale_array == NULL ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The flood field scale array has not been loaded." );
+		}
+
+		/* Loop over the pixels. */
+
+		dbl_image_data_array = (double *)
+				correction_calc_frame->image_data;
+
+		num_pixels = MXIF_ROW_FRAMESIZE( correction_calc_frame )
+				* MXIF_COLUMN_FRAMESIZE( correction_calc_frame);
+
+		flood_field_scale_array = ad->flood_field_scale_array;
+		
+		for ( i = 0; i < num_pixels; i++ ) {
+
+			flood_field_scale = flood_field_scale_array[i];
+
+			if ( flood_field_scale < 0.0 ) {
+				/* If the flood field scale is less than zero,
+				 * then this is a bad pixel.  If so, then we
+				 * write the scale value into the image array
+				 * and then go to the next pixel.
+				 */
+
+				dbl_image_data_array[i] = flood_field_scale;
+				continue;
+			}
+
+			if ( bias_data_array == NULL ) {
+				bias_offset = 0;
+			} else {
+				bias_offset = bias_data_array[i];
+			}
+
+			dbl_image_pixel = dbl_image_data_array[i];
+
+			dbl_image_pixel -= bias_offset;
+
+			dbl_image_pixel *= flood_field_scale;
+
+			dbl_image_pixel += bias_offset;
+
+			dbl_image_data_array[i] = dbl_image_pixel;
+		}
+	}
 
 	return mx_status;
 }

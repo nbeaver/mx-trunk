@@ -2441,16 +2441,23 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	if ( bytes_read < bytes_per_frame ) {
 		if ( feof(file) ) {
+			fclose( file );
+
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-			"End of file at pixel %ld for PNM image file '%s'.",
+			"End of file at byte %ld for PNM image file '%s'.",
 				bytes_read, datafile_name );
 		}
 		if ( ferror(file) ) {
+			fclose( file );
+
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An error occurred while reading pixel %ld "
 			"for PNM image file '%s'.",
 				bytes_read, datafile_name );
 		}
+
+		fclose( file );
+
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Only %ld image bytes were read from "
 			"PNM image file '%s' when %ld bytes were expected.",

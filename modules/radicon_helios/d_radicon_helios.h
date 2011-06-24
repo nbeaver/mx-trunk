@@ -43,6 +43,7 @@ typedef struct {
 	char pulse_generator_record_name[MXU_RECORD_NAME_LENGTH+1];
 	unsigned long helios_flags;
 	char helios_file_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
+	char gain_array_filename[MXU_FILENAME_LENGTH+1];
 
 	long detector_type;
 	MX_RECORD *pulse_generator_record;
@@ -79,9 +80,13 @@ typedef struct {
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "helios_file_format_name", MXFT_STRING, \
-				NULL, 1, {MXU_DETECTOR_TYPE_NAME_LENGTH}, \
+				NULL, 1, {MXU_IMAGE_FORMAT_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_RADICON_HELIOS, helios_file_format_name), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "gain_array_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, gain_array_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
   {-1, -1, "detector_type", MXFT_LONG, NULL, 0, {0}, \
