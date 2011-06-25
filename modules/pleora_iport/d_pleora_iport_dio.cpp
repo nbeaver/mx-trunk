@@ -15,7 +15,9 @@
  *
  */
 
-#define MXD_PLEORA_IPORT_DIO_DEBUG	TRUE
+#define MXD_PLEORA_IPORT_DIO_DEBUG		FALSE
+
+#define MXD_PLEORA_IPORT_DIO_DEBUG_READ		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -260,6 +262,8 @@ mxd_pleora_iport_dinput_create_record_structures( MX_RECORD *record )
         digital_input->record = record;
 	pleora_iport_dinput->record = record;
 
+	pleora_iport_dinput->old_raw_value = -1;
+
         return MX_SUCCESSFUL_RESULT;
 }
 
@@ -342,6 +346,15 @@ mxd_pleora_iport_dinput_read( MX_DIGITAL_INPUT *dinput )
 #if MXD_PLEORA_IPORT_DIO_DEBUG
 	MX_DEBUG(-2,("%s: raw_value = %#lI64x, dinput->value = %lu",
 		fname, raw_value, dinput->value));
+#endif
+
+#if MXD_PLEORA_IPORT_DIO_DEBUG_READ
+	if ( raw_value != pleora_iport_dinput->old_raw_value ) {
+		pleora_iport_dinput->old_raw_value = raw_value;
+
+		MX_DEBUG(-2,("%s: raw_value = %#lI64x, dinput->value = %lu",
+			fname, raw_value, dinput->value));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

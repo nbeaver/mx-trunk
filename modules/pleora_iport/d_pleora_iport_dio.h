@@ -30,6 +30,7 @@ typedef struct {
 
 	unsigned long line_id;
 
+	__int64 old_raw_value;
 } MX_PLEORA_IPORT_DIGITAL_INPUT;
 
 typedef struct {

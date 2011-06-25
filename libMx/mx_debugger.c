@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -401,7 +401,9 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 			/* Look for an appropriate terminal emulator. */
 
 			if ( mx_command_found( "konsole" ) ) {
-				strlcpy( terminal, "konsole --vt_sz 80x52 -e",
+				/* Yes, I prefer KDE. */
+
+				strlcpy( terminal, "konsole -e",
 					sizeof(terminal) );
 			} else {
 				strlcpy( terminal, "xterm -geometry 80x52 -e",

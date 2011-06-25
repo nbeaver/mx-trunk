@@ -1380,8 +1380,8 @@ MX_API mx_status_type mx_area_detector_default_set_register(
 /*---*/
 
 MX_API mx_status_type mx_area_detector_copy_and_convert_image_data(
-					MX_IMAGE_FRAME *source_frame,
-					MX_IMAGE_FRAME *destination_frame );
+					MX_IMAGE_FRAME *destination_frame,
+					MX_IMAGE_FRAME *source_frame );
 
 /*---*/
 
@@ -1553,6 +1553,13 @@ MX_API mx_status_type mx_area_detector_s32_precomp_dark_correction(
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *dark_current_frame );
 
+MX_API mx_status_type mx_area_detector_flt_precomp_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
 MX_API mx_status_type mx_area_detector_dbl_precomp_dark_correction(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
@@ -1570,6 +1577,13 @@ MX_API mx_status_type mx_area_detector_u16_plain_dark_correction(
 					MX_IMAGE_FRAME *dark_current_frame );
 
 MX_API mx_status_type mx_area_detector_s32_plain_dark_correction(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame );
+
+MX_API mx_status_type mx_area_detector_flt_plain_dark_correction(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,
@@ -1599,6 +1613,13 @@ MX_API mx_status_type mx_area_detector_s32_precomp_flood_field(
 					MX_IMAGE_FRAME *bias_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
 
+MX_API mx_status_type mx_area_detector_flt_precomp_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
 MX_API mx_status_type mx_area_detector_dbl_precomp_flood_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
@@ -1616,6 +1637,13 @@ MX_API mx_status_type mx_area_detector_u16_plain_flood_field(
 					MX_IMAGE_FRAME *flood_field_frame );
 
 MX_API mx_status_type mx_area_detector_s32_plain_flood_field(
+					MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *flood_field_frame );
+
+MX_API mx_status_type mx_area_detector_flt_plain_flood_field(
 					MX_AREA_DETECTOR *ad,
 					MX_IMAGE_FRAME *image_frame,
 					MX_IMAGE_FRAME *mask_frame,

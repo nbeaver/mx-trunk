@@ -400,6 +400,9 @@ mx_image_format_get_bytes_per_pixel( long image_format,
 		*bytes_per_pixel = 4.0;
 		break;
 
+	case MXT_IMAGE_FORMAT_FLOAT:
+		*bytes_per_pixel = 4.0;
+		break;
 	case MXT_IMAGE_FORMAT_DOUBLE:
 		*bytes_per_pixel = 8.0;
 		break;

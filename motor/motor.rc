@@ -17,8 +17,8 @@
 #include "windows.h"
 
 VS_VERSION_INFO VERSIONINFO
-  FILEVERSION    1,5,4,0
-  PRODUCTVERSION 1,5,4,0
+  FILEVERSION    1,5,5,0
+  PRODUCTVERSION 1,5,5,0
   FILEFLAGSMASK  0x3fL
 #ifdef _DEBUG
   FILEFLAGS 0x1L
@@ -35,12 +35,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Illinois Institute of Technology\0"
             VALUE "FileDescription", "MX Command Line Client\0"
-            VALUE "FileVersion", "1.5.4\0"
+            VALUE "FileVersion", "1.5.5\0"
             VALUE "InternalName", "motor\0"
             VALUE "LegalCopyright", "Copyright 2011 Illinois Institute of Technology\0"
             VALUE "OriginalFilename", "motor.exe\0"
             VALUE "ProductName", "MX Data Acquisition and Control System\0"
-            VALUE "ProductVersion", "1.5.4\0"
+            VALUE "ProductVersion", "1.5.5\0"
         END
     END
     BLOCK "VarFileInfo"

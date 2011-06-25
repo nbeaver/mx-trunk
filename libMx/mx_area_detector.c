@@ -4857,14 +4857,15 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
-						MX_IMAGE_FRAME *dest_frame )
+mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
+						MX_IMAGE_FRAME *src_frame )
 {
 	static const char fname[] =
 		"mx_area_detector_copy_and_convert_image_data()";
 
 	uint16_t *uint16_src, *uint16_dest;
 	int32_t *int32_src, *int32_dest;
+	float *float_src, *float_dest;
 	double *double_src, *double_dest;
 	int32_t s32_pixel;
 	double dbl_pixel;
@@ -4923,6 +4924,13 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 				int32_dest[i] = uint16_src[i];
 			}
 			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			float_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				float_dest[i] = uint16_src[i];
+			}
+			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			double_dest = dest_frame->image_data;
 
@@ -4963,11 +4971,65 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 
 			memcpy( int32_dest, int32_src, dest_size );
 			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			float_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				float_dest[i] = int32_src[i];
+			}
+			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			double_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
 				double_dest[i] = int32_src[i];
+			}
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Destination image frame format %ld is not "
+				"supported by this function.", dest_format );
+			break;
+		}
+		break;
+
+	case MXT_IMAGE_FORMAT_FLOAT:
+		float_src = src_frame->image_data;
+
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+			uint16_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				dbl_pixel = float_src[i];
+
+				if ( dbl_pixel < 0.0 ) {
+					uint16_dest[i] = 0;
+				} else
+				if ( dbl_pixel > 65535.0 ) {
+					uint16_dest[i] = 65535;
+				} else {
+					uint16_dest[i] = float_src[i];
+				}
+			}
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			int32_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				int32_dest[i] = float_src[i];
+			}
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			float_dest = dest_frame->image_data;
+
+			memcpy( float_dest, float_src, dest_size );
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			double_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				double_dest[i] = float_src[i];
 			}
 			break;
 		default:
@@ -5005,6 +5067,13 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 				int32_dest[i] = double_src[i];
 			}
 			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			float_dest = dest_frame->image_data;
+
+			for ( i = 0; i < dest_pixels; i++ ) {
+				float_dest[i] = double_src[i];
+			}
+			break;
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			double_dest = dest_frame->image_data;
 
@@ -5022,6 +5091,7 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *src_frame,
 		switch( dest_format ) {
 		case MXT_IMAGE_FORMAT_GREY16:
 		case MXT_IMAGE_FORMAT_INT32:
+		case MXT_IMAGE_FORMAT_FLOAT:
 		case MXT_IMAGE_FORMAT_DOUBLE:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"Source image frame format %ld is not "
