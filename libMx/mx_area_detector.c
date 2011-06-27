@@ -258,8 +258,11 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->rebinned_flood_field_frame = NULL;
 
 	ad->dark_current_offset_array = NULL;
-	ad->flood_field_scale_array = NULL;
+	ad->dark_current_offset_can_change = TRUE;
 	ad->old_exposure_time = -1.0;
+
+	ad->flood_field_scale_array = NULL;
+	ad->flood_field_scale_can_change = FALSE;
 
 	ad->correction_calc_frame = NULL;
 
@@ -4868,6 +4871,7 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 	float *float_src, *float_dest;
 	double *double_src, *double_dest;
 	int32_t s32_pixel;
+	float flt_pixel;
 	double dbl_pixel;
 	long i;
 	long src_format, dest_format;
@@ -5001,15 +5005,15 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 			uint16_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
-				dbl_pixel = float_src[i];
+				flt_pixel = float_src[i];
 
-				if ( dbl_pixel < 0.0 ) {
+				if ( flt_pixel < 0.0 ) {
 					uint16_dest[i] = 0;
 				} else
-				if ( dbl_pixel > 65535.0 ) {
+				if ( flt_pixel > 65535.0 ) {
 					uint16_dest[i] = 65535;
 				} else {
-					uint16_dest[i] = float_src[i];
+					uint16_dest[i] = mx_round( flt_pixel );
 				}
 			}
 			break;
@@ -5017,7 +5021,7 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 			int32_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
-				int32_dest[i] = float_src[i];
+				int32_dest[i] = mx_round( float_src[i] );
 			}
 			break;
 		case MXT_IMAGE_FORMAT_FLOAT:
@@ -5056,7 +5060,7 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 				if ( dbl_pixel > 65535.0 ) {
 					uint16_dest[i] = 65535;
 				} else {
-					uint16_dest[i] = double_src[i];
+					uint16_dest[i] = mx_round( dbl_pixel );
 				}
 			}
 			break;
@@ -5064,7 +5068,7 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 			int32_dest = dest_frame->image_data;
 
 			for ( i = 0; i < dest_pixels; i++ ) {
-				int32_dest[i] = double_src[i];
+				int32_dest[i] = mx_round( double_src[i] );
 			}
 			break;
 		case MXT_IMAGE_FORMAT_FLOAT:

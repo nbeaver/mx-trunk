@@ -244,8 +244,13 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	mx_free( ad->dark_current_offset_array );
-	mx_free( ad->flood_field_scale_array );
+	if ( ad->dark_current_offset_can_change ) {
+		mx_free( ad->dark_current_offset_array );
+	}
+
+	if ( ad->flood_field_scale_can_change ) {
+		mx_free( ad->flood_field_scale_array );
+	}
 
 	ad->parameter_type = MXLV_AD_CORRECTION_FLAGS;
 	ad->correction_flags = correction_flags;
@@ -273,6 +278,23 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		if ( ad->dark_current_offset_can_change == FALSE ) {
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"The dark current for detector '%s' cannot be changed.",
+				record->name );
+		}
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		if ( ad->flood_field_scale_can_change == FALSE ) {
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"The flood field for detector '%s' cannot be changed.",
+				record->name );
+		}
+		break;
+	}
 
 	measure_correction_fn = flist->measure_correction;
 

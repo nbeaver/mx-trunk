@@ -413,6 +413,8 @@ typedef struct mx_area_detector_type {
 
 	double old_exposure_time;
 
+	mx_bool_type dark_current_offset_can_change;
+
 	/* flood_field_scale_array is recomputed any time that the
 	 * bias frame is changed, the flood field frame is changed
 	 * or the correction flags are changed.
@@ -423,6 +425,8 @@ typedef struct mx_area_detector_type {
 	 */
 
 	float *flood_field_scale_array;
+
+	mx_bool_type flood_field_scale_can_change;
 
 	/* If correction calculations are performed in a format
 	 * other than the native format of the image frame, then
@@ -959,6 +963,16 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_AREA_DETECTOR, flood_field_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "dark_current_offset_can_change", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, dark_current_offset_can_change), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "flood_field_scale_can_change", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, flood_field_scale_can_change), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_DATAFILE_DIRECTORY, -1, "datafile_directory", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \

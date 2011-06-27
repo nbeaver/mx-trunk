@@ -883,6 +883,213 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
+					MX_RADICON_HELIOS *radicon_helios )
+{
+	static const char fname[] =
+		"mxp_radicon_helios_compute_flood_field_scale_array()";
+
+	FILE *gain_file;
+	unsigned long array_size_in_pixels, pixel_size_in_bytes;
+	unsigned long array_size_in_bytes;
+	unsigned long pixels_read;
+	double corr_bytes_per_pixel;
+	int saved_errno;
+
+	unsigned long i, num_flood_field_pixels;
+	double flood_field_sum, flood_field_pixel;
+	uint16_t *mask_data_array;
+	uint16_t *bias_data_array;
+	uint16_t bias_offset;
+
+	double flood_average, bias_average;
+	double ffs_numerator, ffs_denominator;
+	double flood_field_scale;
+
+	mx_status_type mx_status;
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	gain_file = mx_cfn_fopen( MX_CFN_CONFIG,
+			radicon_helios->gain_array_filename, "rb" );
+
+	if ( gain_file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The gain file '%s' could not be opened.  "
+		"Errno = %d, error message = '%s'",
+			radicon_helios->gain_array_filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	array_size_in_pixels = ad->framesize[0] * ad->framesize[1];
+
+	mx_status = mx_image_format_get_bytes_per_pixel(
+					ad->correction_calc_format,
+					&corr_bytes_per_pixel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pixel_size_in_bytes = mx_round( corr_bytes_per_pixel );
+
+	array_size_in_bytes =
+		array_size_in_pixels * pixel_size_in_bytes;
+
+	ad->flood_field_scale_array =
+		(float *) malloc( array_size_in_bytes );
+
+	if ( ad->flood_field_scale_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte "
+		"array of pixels for area detector '%s'.",
+			array_size_in_bytes, ad->record->name );
+	}
+
+	pixels_read = (long) fread( ad->flood_field_scale_array,
+				pixel_size_in_bytes,
+				array_size_in_pixels,
+				gain_file );
+
+
+	if ( pixels_read < array_size_in_pixels ) {
+	    if ( feof( gain_file ) ) {
+		fclose( gain_file );
+
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"End of file at pixel %ld for gain file '%s'.",
+			pixels_read,
+			radicon_helios->gain_array_filename );
+	    }
+	    if ( ferror( gain_file ) ) {
+		saved_errno = errno;
+
+		fclose( gain_file );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while reading pixel %ld "
+		"for gain file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			pixels_read,
+			radicon_helios->gain_array_filename,
+			saved_errno, strerror( saved_errno ) );
+	    }
+
+	    fclose( gain_file );
+
+	    return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Only %ld image pixels were read from "
+		"gain file '%s' when %ld pixels were expected.",
+			pixels_read,
+			radicon_helios->gain_array_filename,
+			array_size_in_pixels );
+	}
+
+	fclose( gain_file );
+
+	/* At this point, flood_field_scale_array actually contains
+	 * the raw flood field values.  We must convert this to
+	 * the flood field scale using the expression
+	 *
+	 *                   flood_field_average - bias_average
+	 *   pixel_scale = --------------------------------------
+	 *                  pixel_flood_field - pixel_bias_offset
+	 *
+	 * The bias average will have been computed when the bias
+	 * frame was loaded.  However, we now need to compute the
+	 * flood_field_average_intensity.  We begin by summing the
+	 * flood field values.
+	 */
+
+	num_flood_field_pixels = 0;
+	flood_field_sum = 0.0;
+
+	if ( ad->mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array =
+			(uint16_t *) ad->mask_frame->image_data;
+	}
+
+	for ( i = 0; i < array_size_in_pixels; i++ ) {
+		flood_field_pixel = ad->flood_field_scale_array[i];
+
+		if ( flood_field_pixel >= 0.0 ) {
+			flood_field_sum += flood_field_pixel;
+			num_flood_field_pixels++;
+		} else {
+			if ( mask_data_array != NULL ) {
+				mask_data_array[i] = 0;
+			}
+		}
+	}
+
+	ad->flood_field_average_intensity =
+	    mx_divide_safely( flood_field_sum, num_flood_field_pixels );
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,
+	("%s: flood field sum = %g, num pixels = %lu, flood field average = %g",
+		fname, flood_field_sum, num_flood_field_pixels,
+		ad->flood_field_average_intensity));
+#endif
+
+	/* Now that we have the average, go back and convert the
+	 * flood field intensities currently in flood_field_scale_array
+	 * into actual flood field scale values.
+	 */
+
+	if ( ad->bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array =
+			(uint16_t *) ad->bias_frame->image_data;
+	}
+
+	flood_average = ad->flood_field_average_intensity;
+	bias_average = ad->bias_average_intensity;
+
+	ffs_numerator = flood_average - bias_average;
+
+	for ( i = 0; i < array_size_in_pixels; i++ ) {
+
+		/* Set the flood field scale for bad pixels to 1. */
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+				ad->flood_field_scale_array[i] = 1.0;
+			}
+		}
+
+		if ( bias_data_array == NULL ) {
+			bias_offset = 0;
+		} else {
+			bias_offset = bias_data_array[i];
+		}
+
+		flood_field_pixel = ad->flood_field_scale_array[i];
+
+		ffs_denominator = flood_field_pixel - bias_offset;
+
+		flood_field_scale = mx_divide_safely( ffs_numerator,
+						ffs_denominator );
+
+		ad->flood_field_scale_array[i] = flood_field_scale;
+	}
+
+#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+	MX_DEBUG(-2,("%s complete for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /* NOTE:
  *
  * The necessary values of the second parameter (y) to calls like this
@@ -1136,90 +1343,12 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	 */
 
 	if ( strlen( radicon_helios->gain_array_filename ) > 0 ) {
-		FILE *gain_file;
-		unsigned long array_size_in_pixels, pixel_size_in_bytes;
-		unsigned long array_size_in_bytes;
-		unsigned long pixels_read;
-		double corr_bytes_per_pixel;
-		int saved_errno;
 
-		gain_file = mx_cfn_fopen( MX_CFN_CONFIG,
-				radicon_helios->gain_array_filename, "rb" );
-
-		if ( gain_file == NULL ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"The gain file '%s' could not be opened.  "
-			"Errno = %d, error message = '%s'",
-				radicon_helios->gain_array_filename,
-				saved_errno, strerror( saved_errno ) );
-		}
-
-		array_size_in_pixels = ad->framesize[0] * ad->framesize[1];
-
-		mx_status = mx_image_format_get_bytes_per_pixel(
-						ad->correction_calc_format,
-						&corr_bytes_per_pixel );
+		mx_status = mxp_radicon_helios_compute_flood_field_scale_array(
+					ad, radicon_helios );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		pixel_size_in_bytes = mx_round( corr_bytes_per_pixel );
-
-		array_size_in_bytes =
-			array_size_in_pixels * pixel_size_in_bytes;
-
-		ad->flood_field_scale_array =
-			(float *) malloc( array_size_in_bytes );
-
-		if ( ad->flood_field_scale_array == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate a %lu byte "
-			"array of pixels for area detector '%s'.",
-				array_size_in_bytes, record->name );
-		}
-
-		pixels_read = (long) fread( ad->flood_field_scale_array,
-					pixel_size_in_bytes,
-					array_size_in_pixels,
-					gain_file );
-
-
-		if ( pixels_read < array_size_in_pixels ) {
-		    if ( feof( gain_file ) ) {
-			fclose( gain_file );
-
-			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-			"End of file at pixel %ld for gain file '%s'.",
-				pixels_read,
-				radicon_helios->gain_array_filename );
-		    }
-		    if ( ferror( gain_file ) ) {
-			saved_errno = errno;
-
-			fclose( gain_file );
-
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An error occurred while reading pixel %ld "
-			"for gain file '%s'.  "
-			"Errno = %d, error message = '%s'",
-				pixels_read,
-				radicon_helios->gain_array_filename,
-				saved_errno, strerror( saved_errno ) );
-		    }
-
-		    fclose( gain_file );
-
-		    return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Only %ld image pixels were read from "
-			"gain file '%s' when %ld pixels were expected.",
-				pixels_read,
-				radicon_helios->gain_array_filename,
-				array_size_in_pixels );
-		}
-
-		fclose( gain_file );
 	}
 
 	/***********************************************
@@ -2130,8 +2259,6 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	float flood_field_scale;
 	float *flood_field_scale_array;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
 					&radicon_helios, NULL, NULL, fname );
