@@ -853,6 +853,8 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->flood_field_scale_can_change = FALSE;
+
 	dtname = radicon_helios->detector_type_name;
 
 	if ( mx_strcasecmp("10x10", radicon_helios->detector_type_name) == 0 ) {

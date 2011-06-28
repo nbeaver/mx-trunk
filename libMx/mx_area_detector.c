@@ -262,7 +262,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->old_exposure_time = -1.0;
 
 	ad->flood_field_scale_array = NULL;
-	ad->flood_field_scale_can_change = FALSE;
+	ad->flood_field_scale_can_change = TRUE;
 
 	ad->correction_calc_frame = NULL;
 

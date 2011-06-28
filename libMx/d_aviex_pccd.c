@@ -1674,8 +1674,6 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	ad->flood_field_scale_max = 10.0;
 	ad->flood_field_scale_min = 0.1;
 
-	ad->flood_field_scale_can_change = TRUE;
-
 	/* Set the step size in seconds per step
 	 * for the exposure time and the gap time.
 	 */
