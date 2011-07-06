@@ -400,15 +400,10 @@ mx_prepare_for_debugging( char *command, int just_in_time_debugging )
 
 			/* Look for an appropriate terminal emulator. */
 
-			if ( mx_command_found( "konsole" ) ) {
-				/* Yes, I prefer KDE. */
+			/* xterm is almost always available. */
 
-				strlcpy( terminal, "konsole -e",
+			strlcpy( terminal, "xterm -geometry 95x52 -e",
 					sizeof(terminal) );
-			} else {
-				strlcpy( terminal, "xterm -geometry 80x52 -e",
-					sizeof(terminal) );
-			}
 
 			/* Look for an appropriate debugger. */
 
