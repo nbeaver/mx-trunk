@@ -23,8 +23,9 @@
 
 /* --- Values for the 'helios_flags' field. --- */
 
-#define MXF_RADICON_HELIOS_FORCE_BYTESWAP	0x1
-#define MXF_RADICON_HELIOS_AUTODETECT_BYTESWAP	0x2
+#define MXF_RADICON_HELIOS_FORCE_BYTESWAP		0x1
+#define MXF_RADICON_HELIOS_AUTODETECT_BYTESWAP		0x2
+#define MXF_RADICON_HELIOS_SUPPRESS_RESET_PULSES	0x4
 
 /* --- Values for the 'detector_type' field. --- */
 

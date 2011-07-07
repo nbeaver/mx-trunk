@@ -1865,7 +1865,7 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_RADICON_HELIOS *radicon_helios = NULL;
 	MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput = NULL;
 	long last_frame_number, total_num_frames;
-	unsigned long trigger_value, status_flags;
+	unsigned long trigger_value, status_flags, helios_flags;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
@@ -1971,9 +1971,33 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 
 	if ( radicon_helios->acquisition_in_progress ) {
-		if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
+	    if ( (ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS) == 0 ) {
 
-			radicon_helios->acquisition_in_progress = FALSE;
+		radicon_helios->acquisition_in_progress = FALSE;
+
+		helios_flags = radicon_helios->helios_flags;
+
+		if ( helios_flags & MXF_RADICON_HELIOS_SUPPRESS_RESET_PULSES ) {
+
+			/* We do not want reset pulses in this situation,
+			 * so we force Q7 to be 0.
+			 */
+
+			char lut_program[] =
+				"Q0 = I2\r\n"
+				"Q4 = 0\r\n"
+				"Q5 = 1\r\n"
+				"Q6 = 1\r\n"
+				"Q7 = 0\r\n";
+
+			mxd_pleora_iport_vinput_send_lookup_table_program(
+					pleora_iport_vinput, lut_program );
+		} else {
+			/* We _do_ want reset pulses in this situation,
+			 * so we set Q7 to I7 & !I0, which has the effect
+			 * of sending the pulse generator output I7 to Q7,
+			 * but only when there is no trigger from I0.
+			 */
 
 			char lut_program[] =
 				"Q0 = I2\r\n"
@@ -1984,11 +2008,12 @@ mxd_radicon_helios_get_extended_status( MX_AREA_DETECTOR *ad )
 
 			mxd_pleora_iport_vinput_send_lookup_table_program(
 					pleora_iport_vinput, lut_program );
+		}
 
 #if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
-			MX_DEBUG(-2,("%s: PLC program updated.", fname));
+		MX_DEBUG(-2,("%s: PLC program updated.", fname));
 #endif
-		}
+	    }
 	}
 
 #if MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS
