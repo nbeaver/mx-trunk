@@ -399,13 +399,12 @@ mxd_epics_ad_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: CCD model = '%s'", fname, epics_string));
 #endif
 
-	/* Set the default file format.
-	 *
-	 * FIXME - Are both of these necessary?
-	 */
+	/* Set the default file formats. */
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-	ad->datafile_format = ad->frame_file_format;
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	ad->correction_frames_to_skip = 0;
 

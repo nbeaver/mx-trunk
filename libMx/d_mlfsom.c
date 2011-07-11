@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -334,8 +334,6 @@ mxd_mlfsom_open( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 
-	ad->datafile_format = MXT_IMAGE_FILE_SMV;
-
 	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
 	ad->sequence_parameters.num_parameters = 1;
 	ad->sequence_parameters.parameter_array[0] = 1.0;
@@ -362,7 +360,12 @@ mxd_mlfsom_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+	/* Set the default file formats. */
+
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	ad->byte_order = mx_native_byteorder();
 
@@ -754,7 +757,7 @@ mxd_mlfsom_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	mx_status = mx_image_read_file( &(ad->image_frame),
-					ad->datafile_format,
+					ad->datafile_load_format,
 					smv_filename );
 
 	return mx_status;
@@ -844,16 +847,25 @@ mxd_mlfsom_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SHUTTER_ENABLE:
 		break;
 
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+		break;
+
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
+		break;
+
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		break;
 
-	case MXLV_AD_DATAFILE_FORMAT:
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
 		break;
 
 	case MXLV_AD_DATAFILE_PATTERN:
+		break;
+
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		break;
 
 	case MXLV_AD_LAST_DATAFILE_NAME:
@@ -918,10 +930,16 @@ mxd_mlfsom_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_GEOM_CORR_AFTER_FLOOD:
 		break;
 
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+		break;
+
 	case MXLV_AD_CORRECTION_FRAME_GEOM_CORR_LAST:
 		break;
 
 	case MXLV_AD_CORRECTION_FRAME_NO_GEOM_CORR:
+		break;
+
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		break;
 
 	case MXLV_AD_SHUTTER_ENABLE:
@@ -930,13 +948,16 @@ mxd_mlfsom_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		break;
 
-	case MXLV_AD_DATAFILE_FORMAT:
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		break;
 
 	case MXLV_AD_DATAFILE_NAME:
 		break;
 
 	case MXLV_AD_DATAFILE_PATTERN:
+		break;
+
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		break;
 
 	case MXLV_AD_LAST_DATAFILE_NAME:

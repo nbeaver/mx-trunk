@@ -1464,8 +1464,6 @@ mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
 		break;
 	}
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-
 	return mx_status;
 }
 
@@ -1545,15 +1543,12 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-	/* Set the default file format. */
+	/* Set the default file formats. */
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-
-	/* Set the datafile format to the frame file format. */
-
-	/* FIXME: Are both of these necessary? */
-
-	ad->datafile_format = ad->frame_file_format;
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	ad_flags = ad->area_detector_flags;
 

@@ -251,6 +251,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
+		&(network_area_detector->correction_load_format_name_nf),
+		network_area_detector->server_record,
+			"%s.correction_load_format_name",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
 		&(network_area_detector->correction_measurement_time_nf),
 		network_area_detector->server_record,
 			"%s.correction_measurement_time",
@@ -260,6 +266,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		&(network_area_detector->correction_measurement_type_nf),
 		network_area_detector->server_record,
 			"%s.correction_measurement_type",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->correction_save_format_name_nf),
+		network_area_detector->server_record,
+			"%s.correction_save_format_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->current_num_rois_nf),
@@ -273,9 +285,9 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
-		&(network_area_detector->datafile_format_nf),
+		&(network_area_detector->datafile_load_format_name_nf),
 		network_area_detector->server_record,
-			"%s.datafile_format",
+			"%s.datafile_load_format_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
@@ -288,6 +300,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		&(network_area_detector->datafile_pattern_nf),
 		network_area_detector->server_record,
 			"%s.datafile_pattern",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->datafile_save_format_name_nf),
+		network_area_detector->server_record,
+			"%s.datafile_save_format_name",
 			network_area_detector->remote_record_name );
 
 	mx_network_field_init(
@@ -1683,16 +1701,76 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_get( &(network_area_detector->shutter_enable_nf),
 				MXFT_BOOL, &(ad->shutter_enable) );
 		break;
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_get_array(
+		    &(network_area_detector->correction_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_load_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+						ad->correction_load_format_name,
+						&(ad->correction_load_format) );
+		break;
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
+	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_get_array(
+		    &(network_area_detector->correction_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_save_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+						ad->correction_save_format_name,
+						&(ad->correction_save_format) );
+		break;
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
+	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->datafile_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_load_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+						ad->datafile_load_format_name,
+						&(ad->datafile_load_format) );
+		break;
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
+	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->datafile_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_save_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+						ad->datafile_save_format_name,
+						&(ad->datafile_save_format) );
+		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
 		mx_status = mx_get_array(
 			&(network_area_detector->datafile_directory_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_directory );
-		break;
-	case MXLV_AD_DATAFILE_FORMAT:
-		mx_status = mx_get(&(network_area_detector->datafile_format_nf),
-				MXFT_ULONG, &(ad->datafile_format) );
 		break;
 	case MXLV_AD_DATAFILE_NAME:
 		dimension[0] = MXU_FILENAME_LENGTH;
@@ -1894,16 +1972,136 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put( &(network_area_detector->shutter_enable_nf),
 				MXFT_BOOL, &(ad->shutter_enable) );
 		break;
+	case MXLV_AD_CORRECTION_LOAD_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->correction_load_format,
+					ad->correction_load_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->correction_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_load_format_name);
+		break;
+	case MXLV_AD_CORRECTION_LOAD_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->correction_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_load_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_load_format_name,
+					&(ad->correction_load_format) );
+		break;
+	case MXLV_AD_CORRECTION_SAVE_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->correction_save_format,
+					ad->correction_save_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->correction_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_save_format_name);
+		break;
+	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->correction_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->correction_save_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->correction_save_format_name,
+					&(ad->correction_save_format) );
+		break;
+	case MXLV_AD_DATAFILE_LOAD_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->datafile_load_format,
+					ad->datafile_load_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->datafile_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_load_format_name);
+		break;
+	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->datafile_load_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_load_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_load_format_name,
+					&(ad->datafile_load_format) );
+		break;
+	case MXLV_AD_DATAFILE_SAVE_FORMAT:
+		mx_status = mx_image_get_file_format_name_from_type(
+					ad->datafile_save_format,
+					ad->datafile_save_format_name,
+					MXU_AD_DATAFILE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->datafile_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_save_format_name);
+		break;
+	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
+		dimension[0] = MXU_AD_DATAFILE_FORMAT_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+		    &(network_area_detector->datafile_save_format_name_nf),
+			MXFT_STRING, 1, dimension,
+			ad->datafile_save_format_name);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_file_format_type_from_name(
+					ad->datafile_save_format_name,
+					&(ad->datafile_save_format) );
+		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;
 
 		mx_status = mx_put_array(
 			&(network_area_detector->datafile_directory_nf),
 			MXFT_STRING, 1, dimension, ad->datafile_directory );
-		break;
-	case MXLV_AD_DATAFILE_FORMAT:
-		mx_status = mx_put(&(network_area_detector->datafile_format_nf),
-				MXFT_ULONG, &(ad->datafile_format) );
 		break;
 	case MXLV_AD_DATAFILE_NAME:
 		dimension[0] = MXU_FILENAME_LENGTH;

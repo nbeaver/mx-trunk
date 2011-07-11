@@ -275,8 +275,16 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_autoselect_number = TRUE;
 
 	ad->last_datafile_name[0] = '\0';
-	ad->datafile_format = 0;
-	ad->frame_file_format = 0;
+
+	ad->datafile_load_format = 0;
+	ad->datafile_save_format = 0;
+	ad->correction_load_format = 0;
+	ad->correction_save_format = 0;
+
+	ad->datafile_load_format_name[0] = '\0';
+	ad->datafile_save_format_name[0] = '\0';
+	ad->correction_load_format_name[0] = '\0';
+	ad->correction_save_format_name[0] = '\0';
 
 	ad->datafile_total_num_frames = 0;
 	ad->datafile_last_frame_number = 0;
@@ -4109,6 +4117,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_load_frame()";
 
 	MX_IMAGE_FRAME **frame_ptr;
+	unsigned long file_format;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4158,9 +4167,14 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_image_read_file( frame_ptr,
-					ad->frame_file_format,
-					ad->frame_filename );
+	if ( ad->load_frame == MXFT_AD_IMAGE_FRAME ) {
+		file_format = ad->datafile_load_format;
+	} else {
+		file_format = ad->correction_load_format;
+	}
+
+	mx_status = mx_image_read_file( frame_ptr, file_format,
+						ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -4205,6 +4219,7 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_save_frame()";
 
 	MX_IMAGE_FRAME *frame;
+	unsigned long file_format;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4257,8 +4272,13 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 		"for area detector '%s'.", ad->save_frame, ad->record->name );
 	}
 
-	mx_status = mx_image_write_file( frame,
-					ad->frame_file_format,
+	if ( ad->save_frame == MXFT_AD_IMAGE_FRAME ) {
+		file_format = ad->datafile_save_format;
+	} else {
+		file_format = ad->correction_save_format;
+	}
+
+	mx_status = mx_image_write_file( frame, file_format,
 					ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )
@@ -5844,7 +5864,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #endif
 
 		mx_status = mx_image_read_file( &(ad->image_frame),
-						ad->datafile_format,
+						ad->datafile_load_format,
 						filename );
 	}
 
@@ -5924,7 +5944,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		/* Write out the image file. */
 
 		mx_status = mx_image_write_file( ad->image_frame,
-						ad->datafile_format,
+						ad->datafile_save_format,
 						filename );
 	}
 

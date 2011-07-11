@@ -880,8 +880,6 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 			radicon_helios->detector_type_name, record->name );
 	}
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1130,8 +1128,8 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
  *     show up in a list in the scrolling window at the bottom of the dialog
  *     listed under "Possible values:".
  *
- * Note that only particular combinations of Ix variables with possible inputs
- * can be done.  You do not have full flexibility over the choice.
+ * Note that individual Ix variables can be connected to only a subset of the
+ * possible inputs.  You do not have full flexibility over the choice.
  */
 
 MX_EXPORT mx_status_type
@@ -1173,23 +1171,12 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	radicon_helios->arm_signal_present = FALSE;
 	radicon_helios->acquisition_in_progress = FALSE;
 
-	/* Set the default file format.
-	 *
-	 * FIXME - Are both of these necessary?
-	 */
+	/* Set the default file formats. */
 
-#if 0
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-#else
-	mx_status = mx_image_get_file_format_type_from_name(
-			radicon_helios->helios_file_format_name,
-			&(ad->frame_file_format) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
-	ad->datafile_format = ad->frame_file_format;
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 

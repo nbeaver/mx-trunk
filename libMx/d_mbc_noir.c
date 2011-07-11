@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -388,13 +388,12 @@ mxd_mbc_noir_open( MX_RECORD *record )
 		}
 	}
 
-	/* Set the default file format.
-	 *
-	 * FIXME - Are both of these necessary?
-	 */
+	/* Set the default file formats. */
 
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-	ad->datafile_format = ad->frame_file_format;
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	ad->correction_frames_to_skip = 0;
 

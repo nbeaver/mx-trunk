@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2010 Illinois Institute of Technology
+ * Copyright 2006-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -205,11 +205,16 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	ad->header_length = 0;
 
-	ad->datafile_format = MXT_IMAGE_FILE_PNM;
-
 	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
 	ad->sequence_parameters.num_parameters = 1;
 	ad->sequence_parameters.parameter_array[0] = 1.0;
+
+	/* Set the default file formats. */
+
+	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
+	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
+	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
+	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
 	/* Set the maximum framesize to the initial framesize of the
 	 * video input.
@@ -244,8 +249,6 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 						sizeof(ad->image_format_name) );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;  /* Is this used? */
 
 	mx_status = mx_video_input_get_byte_order( video_input_record,
 							&(ad->byte_order) );

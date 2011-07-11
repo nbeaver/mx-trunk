@@ -287,6 +287,12 @@ mx_image_get_image_format_name_from_type( long type,
 
 static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
 {
+	{"RAW_GREY8",	MXT_IMAGE_FILE_RAW_GREY8},
+	{"RAW_GREY16",	MXT_IMAGE_FILE_RAW_GREY16},
+	{"RAW_GREY32",	MXT_IMAGE_FILE_RAW_GREY32},
+	{"RAW_FLOAT",	MXT_IMAGE_FILE_RAW_FLOAT},
+	{"RAW_DOUBLE",	MXT_IMAGE_FILE_RAW_DOUBLE},
+
 	{"PNM",    MXT_IMAGE_FILE_PNM},
 
 	{"SMV",    MXT_IMAGE_FILE_SMV},

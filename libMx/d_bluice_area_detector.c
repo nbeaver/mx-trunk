@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -938,7 +938,7 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	detector_type = bluice_area_detector->detector_type;
 
 	if ( detector_type[0] == '\0' ) {
-		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+		ad->datafile_load_format = MXT_IMAGE_FILE_SMV;
 
 		mx_warning( "No detector type was received from Blu-Ice "
 		"server '%s', so the image format is assumed to be SMV.",
@@ -949,9 +949,9 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 	} else
 	if ( strcmp(detector_type, "MAR345") == 0 ) {
 #if 0
-		ad->datafile_format = MXT_IMAGE_FILE_TIFF;
+		ad->datafile_load_format = MXT_IMAGE_FILE_TIFF;
 #else
-		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+		ad->datafile_load_format = MXT_IMAGE_FILE_SMV;
 
 		mx_info(
 		"%s: FIXME: MAR345 image type has been forced to SMV.", fname );
@@ -959,7 +959,7 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		ad->framesize[0] = 4096;
 		ad->framesize[1] = 4096;
 	} else {
-		ad->datafile_format = MXT_IMAGE_FILE_SMV;
+		ad->datafile_load_format = MXT_IMAGE_FILE_SMV;
 
 		mx_warning( "Unrecognized detector type '%s' was reported "
 		"by Blu-Ice area detector '%s'.  The image format is "
@@ -970,7 +970,7 @@ mxd_bluice_area_detector_finish_delayed_initialization( MX_RECORD *record )
 		ad->framesize[1] = 4096;
 	}
 
-	ad->image_format = (long) ad->datafile_format;
+	ad->image_format = MXT_IMAGE_FORMAT_GREY16;
 	ad->byte_order = (long) mx_native_byteorder();
 	ad->header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
 
@@ -1549,7 +1549,7 @@ mxd_bluice_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	mx_status = mx_image_read_file( &(ad->image_frame),
-					ad->datafile_format,
+					ad->datafile_load_format,
 					image_filename );
 
 	if ( mx_status.code != MXE_SUCCESS )

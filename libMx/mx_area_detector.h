@@ -28,6 +28,8 @@ extern "C" {
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
 
+#define MXU_AD_DATAFILE_FORMAT_NAME_LENGTH	20
+
 /* The datafile pattern char and the datafile pattern string
  * should be identical.
  */
@@ -285,12 +287,6 @@ typedef struct mx_area_detector_type {
 	long transfer_frame;
 	MX_IMAGE_FRAME *transfer_destination_frame;
 
-	/* 'frame_file_format' is the file format that is used for load and
-	 * save operations below.
-	 */
-
-	long frame_file_format;
-
 	/* 'load_frame' and 'save_frame' are used to tell the software
 	 * what kind of frame to load or save.  'frame_filename' specifies
 	 * the name of the file to load or save.  The specified file _must_
@@ -453,7 +449,20 @@ typedef struct mx_area_detector_type {
 	mx_bool_type construct_next_datafile_name;
 
 	char last_datafile_name[MXU_FILENAME_LENGTH+1];
-	unsigned long datafile_format;
+
+	unsigned long datafile_load_format;
+	unsigned long datafile_save_format;
+
+	char datafile_load_format_name[ MXU_AD_DATAFILE_FORMAT_NAME_LENGTH+1 ];
+	char datafile_save_format_name[ MXU_AD_DATAFILE_FORMAT_NAME_LENGTH+1 ];
+
+	unsigned long correction_load_format;
+	unsigned long correction_save_format;
+
+	char correction_load_format_name[
+				MXU_AD_DATAFILE_FORMAT_NAME_LENGTH+1 ];
+	char correction_save_format_name[
+				MXU_AD_DATAFILE_FORMAT_NAME_LENGTH+1 ];
 
 	long datafile_total_num_frames;
 	long datafile_last_frame_number;
@@ -569,7 +578,14 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DATAFILE_AUTOSELECT_NUMBER	12505
 #define MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME	12506
 #define MXLV_AD_LAST_DATAFILE_NAME		12507
-#define MXLV_AD_DATAFILE_FORMAT			12508
+#define MXLV_AD_DATAFILE_LOAD_FORMAT		12508
+#define MXLV_AD_DATAFILE_SAVE_FORMAT		12509
+#define MXLV_AD_DATAFILE_LOAD_FORMAT_NAME	12510
+#define MXLV_AD_DATAFILE_SAVE_FORMAT_NAME	12511
+#define MXLV_AD_CORRECTION_LOAD_FORMAT		12512
+#define MXLV_AD_CORRECTION_SAVE_FORMAT		12513
+#define MXLV_AD_CORRECTION_LOAD_FORMAT_NAME	12514
+#define MXLV_AD_CORRECTION_SAVE_FORMAT_NAME	12515
 
 #define MXLV_AD_EXPOSURE_MOTOR_NAME		12600
 #define MXLV_AD_SHUTTER_NAME			12601
@@ -979,9 +995,51 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_directory), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_DATAFILE_FORMAT, -1, "datafile_format", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_format), \
+  {MXLV_AD_DATAFILE_LOAD_FORMAT, -1, "datafile_load_format", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_load_format),\
 	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_SAVE_FORMAT, -1, "datafile_save_format", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, datafile_save_format),\
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_LOAD_FORMAT_NAME, -1, "datafile_load_format_name", \
+		MXFT_STRING, NULL, 1, {MXU_AD_DATAFILE_FORMAT_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, datafile_load_format_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_DATAFILE_SAVE_FORMAT_NAME, -1, "datafile_save_format_name", \
+		MXFT_STRING, NULL, 1, {MXU_AD_DATAFILE_FORMAT_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, datafile_save_format_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_LOAD_FORMAT, -1, "correction_load_format", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_load_format), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_SAVE_FORMAT, -1, "correction_save_format", \
+					MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_save_format), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_LOAD_FORMAT_NAME, -1, "correction_load_format_name", \
+		MXFT_STRING, NULL, 1, {MXU_AD_DATAFILE_FORMAT_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_load_format_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_SAVE_FORMAT_NAME, -1, "correction_save_format_name", \
+		MXFT_STRING, NULL, 1, {MXU_AD_DATAFILE_FORMAT_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_save_format_name), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_AD_DATAFILE_PATTERN, -1, "datafile_pattern", MXFT_STRING, \
 					NULL, 1, {MXU_FILENAME_LENGTH}, \

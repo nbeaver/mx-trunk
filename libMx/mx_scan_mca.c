@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2009 Illinois Institute of Technology
+ * Copyright 1999-2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -167,20 +167,16 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 
 		strlcat( filename, ".", max_filename_length );
 
-		if ( ad->datafile_format != 0 ) {
-			format = ad->datafile_format;
-		} else
-		if ( ad->frame_file_format != 0 ) {
-			format = ad->frame_file_format;
-		} else {
+		if ( ad->datafile_save_format == 0 ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"Neither the datafile format nor the frame file "
-			"format have been set for area detector '%s'.",
+			"The datafile save format "
+			"has not been set for area detector '%s'.",
 				ad->record->name );
 		}
 
 		mx_status = mx_image_get_file_format_name_from_type(
-						format, format_name,
+						ad->datafile_save_format,
+						format_name,
 						sizeof(format_name) );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -488,7 +484,7 @@ mx_scan_save_area_detector_image( MX_SCAN *scan,
 	/* Write the image to a file. */
 
 	mx_status = mx_image_write_file( ad->image_frame,
-					ad->datafile_format,
+					ad->datafile_save_format,
 					image_pathname );
 
 	return mx_status;
