@@ -1714,8 +1714,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		mx_status = mx_image_get_file_format_type_from_name(
-						ad->correction_load_format_name,
-						&(ad->correction_load_format) );
+					ad->correction_load_format_name,
+					(long *) &(ad->correction_load_format));
 		break;
 	case MXLV_AD_CORRECTION_SAVE_FORMAT:
 	case MXLV_AD_CORRECTION_SAVE_FORMAT_NAME:
@@ -1730,8 +1730,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		mx_status = mx_image_get_file_format_type_from_name(
-						ad->correction_save_format_name,
-						&(ad->correction_save_format) );
+					ad->correction_save_format_name,
+					(long *) &(ad->correction_save_format));
 		break;
 	case MXLV_AD_DATAFILE_LOAD_FORMAT:
 	case MXLV_AD_DATAFILE_LOAD_FORMAT_NAME:
@@ -1746,8 +1746,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		mx_status = mx_image_get_file_format_type_from_name(
-						ad->datafile_load_format_name,
-						&(ad->datafile_load_format) );
+					ad->datafile_load_format_name,
+					(long *) &(ad->datafile_load_format) );
 		break;
 	case MXLV_AD_DATAFILE_SAVE_FORMAT:
 	case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
@@ -1762,8 +1762,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		mx_status = mx_image_get_file_format_type_from_name(
-						ad->datafile_save_format_name,
-						&(ad->datafile_save_format) );
+					ad->datafile_save_format_name,
+					(long *) &(ad->datafile_save_format) );
 		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;
@@ -2001,7 +2001,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_image_get_file_format_type_from_name(
 					ad->correction_load_format_name,
-					&(ad->correction_load_format) );
+					(long *) &(ad->correction_load_format));
 		break;
 	case MXLV_AD_CORRECTION_SAVE_FORMAT:
 		mx_status = mx_image_get_file_format_name_from_type(
@@ -2032,7 +2032,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_image_get_file_format_type_from_name(
 					ad->correction_save_format_name,
-					&(ad->correction_save_format) );
+					(long *) &(ad->correction_save_format));
 		break;
 	case MXLV_AD_DATAFILE_LOAD_FORMAT:
 		mx_status = mx_image_get_file_format_name_from_type(
@@ -2063,7 +2063,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_image_get_file_format_type_from_name(
 					ad->datafile_load_format_name,
-					&(ad->datafile_load_format) );
+					(long *) &(ad->datafile_load_format) );
 		break;
 	case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		mx_status = mx_image_get_file_format_name_from_type(
@@ -2094,7 +2094,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_image_get_file_format_type_from_name(
 					ad->datafile_save_format_name,
-					&(ad->datafile_save_format) );
+					(long *) &(ad->datafile_save_format) );
 		break;
 	case MXLV_AD_DATAFILE_DIRECTORY:
 		dimension[0] = MXU_FILENAME_LENGTH;

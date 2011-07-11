@@ -52,7 +52,7 @@ mx_scan_get_subdirectory_and_filename( MX_SCAN *scan,
 	char *datafile_filename = NULL;
 	char *extension_ptr = NULL;
 	long *number_ptr = NULL;
-	long measurement_number, format;
+	long measurement_number;
 	mx_bool_type use_subdirectory;
 	int i, c;
 	char number_string[NUMBER_STRING_LENGTH+1];
