@@ -745,6 +745,10 @@ mxi_sim900_port_getn( MX_RS232 *rs232,
 
 #if MXI_SIM900_PORT_DEBUG_GETN
 	MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#else
+	if ( sim900->sim900_flags & MXF_SIM900_DEBUG ) {
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+	}
 #endif
 
 	/* Move the bytes after the prefix to their proper position at 

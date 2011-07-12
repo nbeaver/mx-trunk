@@ -245,6 +245,54 @@ mxi_sim900_open( MX_RECORD *record )
 
 /*---*/
 
+#if 1
+
+static mx_status_type
+mxi_sim900_rs232_getline( MX_RS232 *rs232,
+			char *response,
+			size_t max_response_length )
+{
+	char c;
+	unsigned long i;
+	mx_bool_type in_terminator;
+	mx_status_type mx_status;
+
+	in_terminator = FALSE;
+
+	for ( i = 0; i < max_response_length; i++ ) {
+		mx_status = mx_rs232_getchar_with_timeout( rs232->record,
+							&c, 0, rs232->timeout );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( in_terminator ) {
+			if ( c == MX_LF ) {
+				response[i-1] = '\0';
+				break;		/* Exit the for() loop. */
+			} else {
+				in_terminator = FALSE;
+			}
+		} else {
+			if ( c == MX_CR ) {
+				in_terminator = TRUE;
+			}
+		}
+
+		response[i] = c;
+	}
+
+	/* Make sure the string is null terminated. */
+
+	response[max_response_length - 1] = '\0';
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxi_sim900_command( MX_SIM900 *sim900,
 		char *command,
@@ -256,14 +304,23 @@ mxi_sim900_command( MX_SIM900 *sim900,
 
 	MX_RECORD *interface_record;
 	long gpib_address;
+	mx_bool_type debug;
 	mx_status_type mx_status;
 
 	MX_RS232 *rs232;
-	unsigned long num_bytes_available;
 
 	if ( sim900 == (MX_SIM900 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SIM900 pointer passed was NULL." );
+	}
+
+	if ( sim900_flags & MXF_SIM900_DEBUG ) {
+		debug = TRUE;
+	} else
+	if ( sim900->sim900_flags & MXF_SIM900_DEBUG ) {
+		debug = TRUE;
+	} else {
+		debug = FALSE;
 	}
 
 	interface_record = sim900->sim900_interface.record;
@@ -276,8 +333,7 @@ mxi_sim900_command( MX_SIM900 *sim900,
 
 	/* Send the command and get the response. */
 
-	if ( ( command != NULL ) && (sim900_flags & MXF_SIM900_DEBUG ) ) {
-
+	if ( ( command != NULL ) && debug ) {
 		MX_DEBUG(-2,("%s: sending command '%s' to '%s'.",
 		    fname, command, sim900->record->name));
 	}
@@ -300,6 +356,40 @@ mxi_sim900_command( MX_SIM900 *sim900,
 		}
 
 		if ( response != NULL ) {
+#if 1
+			unsigned long raw_status_code;
+
+			/* Use SIM900-specific getline method. */
+
+			if ( rs232->timeout < 0.0 ) {
+				mx_status = mx_rs232_getline(
+							interface_record,
+							response,
+							max_response_length,
+							NULL, 0 );
+			} else {
+				mx_status = mxi_sim900_rs232_getline(
+							rs232,
+							response,
+							max_response_length );
+			}
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				raw_status_code = mx_status.code & (~MXE_QUIET);
+
+				if ( raw_status_code != MXE_TIMED_OUT ) {
+					return mx_status;
+				} else {
+					return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out while waiting for a response to the "
+				"command '%s' sent to SIM900 '%s'.",
+						command, sim900->record->name );
+				}
+			}
+#else
+			unsigned long num_bytes_available;
+
+			/* Use generic RS-232 getline method. */
 
 			/* Wait until there are bytes available to be read. */
 
@@ -318,6 +408,7 @@ mxi_sim900_command( MX_SIM900 *sim900,
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+#endif
 		}
 
 	} else {	/* GPIB */
@@ -343,8 +434,7 @@ mxi_sim900_command( MX_SIM900 *sim900,
 		}
 	}
 
-	if ( ( response != NULL ) && (sim900_flags & MXF_SIM900_DEBUG ) ) {
-
+	if ( ( response != NULL ) && debug ) {
 		MX_DEBUG(-2,("%s: received response '%s' from '%s'.",
 			fname, response, sim900->record->name ));
 	}
