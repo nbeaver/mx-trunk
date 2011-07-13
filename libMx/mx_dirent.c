@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007 Illinois Institute of Technology
+ * Copyright 2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,7 +144,10 @@ closedir( DIR *dir )
 MX_EXPORT struct dirent *
 readdir( DIR *dir )
 {
+	static const char fname[] = "readdir()";
+
 	static struct dirent entry;
+	LPVOID message_buffer;
 	BOOL os_status;
 	DWORD last_error_code;
 
@@ -167,8 +170,29 @@ readdir( DIR *dir )
 		if ( os_status == 0 ) {
 			last_error_code = GetLastError();
 
-			MX_DEBUG(-2,("readdir(): last_error_code = %ld",
-				last_error_code));
+			if ( last_error_code == ERROR_NO_MORE_FILES ) {
+				errno = 0;
+
+				return NULL;
+			}
+
+			FormatMessage(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM |
+				FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL,
+				last_error_code,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR) &message_buffer,
+				0, NULL );
+
+			mx_error( MXE_FILE_IO_ERROR, fname,
+			"FindNextFile() failed with error %d: %s",
+				last_error_code, message_buffer );
+
+			mx_free( message_buffer );
+
+			errno = EIO;
 
 			return NULL;
 		}
