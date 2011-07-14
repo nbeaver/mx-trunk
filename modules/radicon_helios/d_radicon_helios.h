@@ -53,6 +53,9 @@ typedef struct {
 	mx_bool_type acquisition_in_progress;
 
 	mx_bool_type byteswap;
+
+	mx_bool_type frame_already_descrambled;
+	mx_bool_type frame_already_corrected;
 } MX_RADICON_HELIOS;
 
 #define MXD_RADICON_HELIOS_STANDARD_FIELDS \
@@ -92,6 +95,29 @@ typedef struct {
   \
   {-1, -1, "detector_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, detector_type), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "arm_signal_present", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, arm_signal_present), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "acquisition_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_HELIOS, acquisition_in_progress), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "byteswap", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_HELIOS, byteswap), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "frame_already_descrambled", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_HELIOS, frame_already_descrambled),\
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "frame_already_corrected", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_HELIOS, frame_already_corrected), \
 	{0}, NULL, 0 }
 
 #endif /* __cplusplus */

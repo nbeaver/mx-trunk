@@ -1171,6 +1171,9 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	radicon_helios->arm_signal_present = FALSE;
 	radicon_helios->acquisition_in_progress = FALSE;
 
+	radicon_helios->frame_already_descrambled = FALSE;
+	radicon_helios->frame_already_corrected = FALSE;
+
 	/* Set the default file formats. */
 
 	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;
@@ -1612,6 +1615,9 @@ mxd_radicon_helios_arm( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
+	radicon_helios->frame_already_descrambled = FALSE;
+	radicon_helios->frame_already_corrected = FALSE;
+
 	exposure_mode = MXF_AD_STILL_MODE;
 
 	if ( ( ad->correction_measurement_in_progress )
@@ -1727,6 +1733,9 @@ mxd_radicon_helios_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	radicon_helios->frame_already_descrambled = FALSE;
+	radicon_helios->frame_already_corrected = FALSE;
 
 	sp = &(ad->sequence_parameters);
 
@@ -2030,8 +2039,16 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_RADICON_HELIOS_DEBUG_READOUT
-	MX_DEBUG(-2,("%s invoked for area detector '%s'",
-		fname, ad->record->name ));
+	MX_DEBUG(-2,
+	("%s invoked for area detector '%s', frame_already_descrambled = %d",
+		fname, ad->record->name,
+		radicon_helios->frame_already_descrambled ));
+#endif
+
+#if 1
+	if ( radicon_helios->frame_already_descrambled ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 #endif
 
 	sp = &(ad->sequence_parameters);
@@ -2248,6 +2265,8 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 						= exposure_timespec.tv_nsec;
 	}
 
+	radicon_helios->frame_already_descrambled = TRUE;
+
 #if MXD_RADICON_HELIOS_DEBUG_READOUT
 	MX_DEBUG(-2,("%s complete.", fname));
 #endif
@@ -2280,17 +2299,26 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	flags = ad->correction_flags;
+
 #if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+	MX_DEBUG(-2,
+("%s invoked for area detector '%s', flags = %#x, frame_already_corrected = %d",
+		fname, ad->record->name, flags,
+		radicon_helios->frame_already_corrected ));
 #endif
+
+#if 1
+	if ( radicon_helios->frame_already_corrected ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
+
 	if ( radicon_helios->detector_type != MXT_RADICON_HELIOS_10x10 ) {
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
 		return mx_status;
 	}
-
-	flags = ad->correction_flags;
 
 #if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
 	MX_DEBUG(-2,
@@ -2420,7 +2448,12 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_area_detector_copy_and_convert_image_data(
 				ad->image_frame, ad->correction_calc_frame );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_helios->frame_already_corrected = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -2440,7 +2473,7 @@ mxd_radicon_helios_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION
+#if MXD_RADICON_HELIOS_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
