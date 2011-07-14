@@ -404,7 +404,7 @@ main( int argc, char *argv[] )
 
 	if ( update_list_file == NULL ) {
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Couldn't open the update list file '%s' for reading.",
+		"Could not open the update list file '%s' for reading.",
 			update_list_filename );
 
 		exit( MXE_FILE_IO_ERROR );
@@ -439,6 +439,8 @@ main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( (int) mx_status.code );
+
+	fclose( update_list_file );
 
 #if 0
 	/* Print out the list of records in the generated record list. */
@@ -1635,7 +1637,7 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Couldn't open the autosave file '%s' for writing.  "
+		"Could not open the autosave file '%s' for writing.  "
 		"Errno = %d, error string = '%s'",
 			autosave_filename, saved_errno,
 			strerror(saved_errno));
@@ -1684,8 +1686,12 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 					value_field,
 					update_list_entry->token_constructor );
 		}
-		if ( mx_status.code != MXE_SUCCESS )
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose( autosave_file );
+
 			return mx_status;
+		}
 
 		MX_DEBUG( 2,("%s: buffer = '%s'", fname, buffer));
 
@@ -1738,7 +1744,7 @@ mxupd_choose_autosave_file_to_use(
 		if ( autosave1 == NULL ) {
 			saved_errno = errno;
 			mx_info(
-"Warning: Couldn't open autosave file '%s' for reading.  Reason = '%s'",
+"Warning: Could not open autosave file '%s' for reading.  Reason = '%s'",
 				autosave1_filename, strerror(saved_errno) );
 		}
 	}
@@ -1751,7 +1757,7 @@ mxupd_choose_autosave_file_to_use(
 		if ( autosave2 == NULL ) {
 			saved_errno = errno;
 			mx_info( 
-"Warning: Couldn't open autosave file '%s' for reading.  Reason = '%s'",
+"Warning: Could not open autosave file '%s' for reading.  Reason = '%s'",
 				autosave2_filename, strerror(saved_errno) );
 		}
 	}
@@ -1786,7 +1792,7 @@ mxupd_choose_autosave_file_to_use(
 			CLOSE_AUTOSAVE_FILES;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Couldn't fstat() autosave file 1.  Reason = '%s'",
+			"Could not fstat() autosave file 1.  Reason = '%s'",
 				strerror( saved_errno ) );
 		}
 		if ( fstat( fileno(autosave2), &stat_struct2 ) != 0 ) {
@@ -1795,7 +1801,7 @@ mxupd_choose_autosave_file_to_use(
 			CLOSE_AUTOSAVE_FILES;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Couldn't fstat() autosave file 2.  Reason = '%s'",
+			"Could not fstat() autosave file 2.  Reason = '%s'",
 				strerror( saved_errno ) );
 		}
 		if ( stat_struct1.st_mtime >= stat_struct2.st_mtime ) {
@@ -1910,7 +1916,7 @@ mxupd_restore_fields_from_autosave_files(
 		sizeof(autosave_backup_filename),
 		"%s_bak", filename_to_use );
 
-	MX_DEBUG(-2,("%s: autosave_backup_filename = '%s'",
+	MX_DEBUG( 2,("%s: autosave_backup_filename = '%s'",
 		fname, autosave_backup_filename));
 
 	mx_status = mx_copy_file( filename_to_use,
@@ -1996,6 +2002,8 @@ mxupd_restore_fields_from_autosave_files(
 		if ( strcmp( autosave_record_field_name,
 				update_list_read_field_name ) != 0 ) {
 
+			fclose( autosave_to_use );
+
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
 	"Autosave file '%s' and the autosave update list are out of "
 	"synchronization at line %ld.  Autosave record field name = '%s', "
@@ -2041,8 +2049,11 @@ mxupd_restore_fields_from_autosave_files(
 			mx_status = mx_get_next_record_token( &parse_status,
 					token_buffer, sizeof(token_buffer) );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				fclose( autosave_to_use );
+
 				return MX_SUCCESSFUL_RESULT;
+			}
 
 			mx_status = (update_list_entry->token_parser) (
 					value_ptr,
@@ -2061,8 +2072,11 @@ mxupd_restore_fields_from_autosave_files(
 					&parse_status,
 					update_list_entry->token_parser );
 		}
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose( autosave_to_use );
+
 			return MX_SUCCESSFUL_RESULT;
+		}
 
 		if ( update_list_entry->write_function == NULL ) {
 			update_flags = update_list_entry->update_flags;
@@ -2083,6 +2097,9 @@ mxupd_restore_fields_from_autosave_files(
 						update_list_entry );
 		}
 	}
+
+	fclose( autosave_to_use );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
