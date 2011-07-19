@@ -728,7 +728,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 /*---*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_HURD)
 
 /* FIXME: For some future version of Linux, explicitly providing these
  *        definitions will not be necessary.  It might not be necessary

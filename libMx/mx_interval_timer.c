@@ -89,6 +89,9 @@
 #  if defined(OS_TRU64)
 #     define HAVE_POSIX_TIMERS	TRUE
 
+#  elif defined(OS_HURD)
+#     define HAVE_POSIX_TIMERS	FALSE
+
 #  elif ( _POSIX_TIMERS < 0 )
 #     define HAVE_POSIX_TIMERS	FALSE
 #  else

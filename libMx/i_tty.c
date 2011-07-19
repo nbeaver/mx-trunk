@@ -47,7 +47,7 @@
 	|| defined(OS_SUNOS4) || defined(OS_AIX) || defined(OS_HPUX) \
 	|| defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_CYGWIN) \
 	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_TRU64) \
-	|| defined(OS_ECOS) || defined(OS_UNIXWARE)
+	|| defined(OS_ECOS) || defined(OS_UNIXWARE) || defined(OS_HURD)
 #    define USE_POSIX_TERMIOS	TRUE
 #  else
 #    error "No Unix TTY handling interface has been defined."
@@ -87,7 +87,8 @@ static mx_status_type mxi_tty_posix_termios_print_configuration(
 /* Not everyone has a definition for ioctl(). */
 
 #if defined(TIOCMGET)
-#   if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_MACOSX)
+#   if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_MACOSX) \
+		|| defined(OS_HURD)
 #      include <sys/ioctl.h>
 #   else
        extern int ioctl( int fd, int request, ... );

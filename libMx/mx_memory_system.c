@@ -50,7 +50,7 @@ mx_display_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 /***************************************************************************/
 
-#if defined( OS_LINUX )
+#if defined( OS_LINUX ) || defined( OS_HURD )
 
 /* For system memory information, we read from /proc/meminfo. */
 

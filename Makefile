@@ -8,6 +8,7 @@
 #   ecos          - Compile for x86 with eCos
 #   hpux          - Compile for HP 9000/8xx with HP-UX 11v2
 #   hpux-gcc      - Compile for HP 9000/8xx with HP-UX 11v2 using GCC
+#   hurd          - Compile for GNU/Hurd
 #   irix          - Compile for SGI with Irix 6.3 or above
 #   irix-gcc      - Compile for SGI with Irix 6.5 using GCC
 #   linux         - Compile for Linux 2.2 or above using GCC
@@ -43,15 +44,15 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = hurd
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_07_11
+#MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_07_11
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 

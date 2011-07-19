@@ -333,7 +333,8 @@ mx_strncasecmp( const char *s1, const char *s2, size_t n )
 MX_EXPORT char *
 mx_username( char *buffer, size_t max_buffer_length )
 {
-#if defined( OS_WIN32 ) || defined( OS_LINUX ) || defined( OS_TRU64 )
+#if defined( OS_WIN32 ) || defined( OS_LINUX ) || defined( OS_TRU64 ) \
+    || defined( OS_HURD )
 	static const char fname[] = "mx_username()";
 #endif
 
@@ -353,7 +354,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 	 * extend getpwuid().
 	 */
 
-#if defined( OS_LINUX ) || defined( OS_TRU64 )
+#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD)
 	{
 		char scratch_buffer[ 1024 ];
 		struct passwd pw_buffer, *pw;
@@ -364,7 +365,16 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 		uid = getuid();
 
-#if defined( OS_LINUX ) || defined( OS_TRU64 )
+		/* FIXME: The apparent duplication of the #define below
+		 * reflects the fact that "once upon a time" the #define
+		 * that precedes this was supposed to include Solaris,
+		 * HP/UX, etc.  However, the proposed implementations
+		 * below did not work for some reason.  Rather than delete
+		 * them from the code altogether, we instead reduce the
+		 * number of OSes listed above.  Or something like that...
+		 */
+
+#if defined( OS_LINUX ) || defined( OS_TRU64 ) || defined(OS_HURD)
 
 		/* FIXME: Valgrind says that this call to getpwuid_r()
 		 * results in a memory leak.  However, the man page

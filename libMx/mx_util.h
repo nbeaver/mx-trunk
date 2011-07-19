@@ -178,7 +178,7 @@ struct timespec {
 #  include <limits.h>
 #  define MXU_FILENAME_LENGTH		PATH_MAX
 
-#elif defined( OS_ECOS )
+#elif defined( OS_ECOS ) || defined( OS_HURD )
 #  include <limits.h>
 #  define MXU_FILENAME_LENGTH		_POSIX_PATH_MAX
 
@@ -487,7 +487,7 @@ MX_API int mx_vsnprintf( char *dest, size_t maxlen, const char *format,
 #if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_IRIX) \
 	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_VMS) \
 	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_RTEMS) \
-	|| defined(OS_DJGPP) || defined(OS_ECOS)
+	|| defined(OS_DJGPP) || defined(OS_ECOS) || defined(OS_HURD)
 
 /* These prototypes provide definitions of strlcpy() and strlcat() for
  * systems that do not come with them.  For systems that do not come with

@@ -178,7 +178,7 @@ typedef struct {
 #  define mx_socklen_t		socklen_t
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_HPUX)
+	|| defined(OS_HPUX) || defined(OS_HURD)
 #  define mx_socklen_t		socklen_t
 
 #else

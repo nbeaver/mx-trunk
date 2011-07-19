@@ -544,7 +544,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 /*---------------------- Use clock ticks and time() ----------------------*/
 
 #elif defined(OS_ECOS) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
-	|| defined(OS_QNX) || defined(OS_DJGPP)
+	|| defined(OS_QNX) || defined(OS_DJGPP) || defined(OS_HURD)
 
 /* For platforms that return a valid value for time() and which also report
  * the number of clock ticks since boot, we can calculate the boot time.

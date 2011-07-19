@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,12 @@
 #define _MX_TIME_H_
 
 #include <time.h>
+
+#if defined(OS_HURD)
+  /* FIXME: Prototyping this here should not be necessary. */
+
+  MX_API char *strptime( const char *, const char *, struct tm * );
+#endif
 
 #if defined(OS_WIN32) || defined(OS_DJGPP)
 

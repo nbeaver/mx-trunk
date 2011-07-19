@@ -1,0 +1,275 @@
+#
+# Name:    Makehead.hurd
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for GNU/Hurd.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+#
+
+INCLUDES	= $(MX_INCLUDES)
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+
+#--------------------------------------------------------------------------
+#
+# Motor will be linked with the bundled copy of 'editline' if you use the
+# following definitions.
+#
+READLINE_LIB_DIRS = -L../tools/unix/src/editline
+READLINE_LIBRARIES = -ledit
+
+#
+# If you prefer to link motor to GNU Readline instead, uncomment the
+# following definitions.
+#
+#READLINE_LIB_DIRS =
+#READLINE_LIBRARIES = -lreadline -lncurses
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+#
+# gcc specific flags
+#
+GCCFLAGS = -Wall -Werror \
+-Wpointer-arith \
+-Wcast-align \
+-Wcast-qual \
+-Wshadow \
+-Winline \
+-Wno-format-security
+
+GCCFLAGS_C = \
+-Wstrict-prototypes \
+-Wmissing-prototypes \
+-Wnested-externs
+
+#--------------------------------------------------------------------------
+#
+# Modify GCCFLAGS depending on the version of GCC.
+#
+
+# For some reason, using 'test' here and then testing below for equality
+# with '0' does not work.
+#
+#    _have_mx_config := $(shell test -x ../tools/mx_config ; echo \$\? )
+#
+# However, using ../scripts/file_exists _does_ work.  Note that 
+# file_exists returns true or false rather than 0 or 1.
+#
+
+_have_mx_config := $(shell ../scripts/file_exists ../tools/mx_config )
+
+ifeq ($(_have_mx_config),true)
+  _gccver := $(shell ../tools/mx_config gcc )
+
+  _need_no_unused_but_set_variable := $(shell expr $(_gccver) \> 4006000 )
+
+  ifeq ($(_need_no_unused_but_set_variable),1)
+      GCCFLAGS += -Wno-unused-but-set-variable
+  endif
+endif
+
+#--------------------------------------------------------------------------
+#
+# Intel x86 with GCC under GNU/Hurd.
+#
+CC      = gcc
+
+CFLAGS  += -g -fPIC $(GCCFLAGS) $(GCCFLAGS_C) $(INCLUDES) -DOS_HURD \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+CXXFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_HURD \
+				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+LINKFLAGS = $(CFLAGS)
+
+LINKFLAGS += -rdynamic
+
+#---
+
+CFLAGS_EPICS = $(CFLAGS)
+
+#---
+
+# Special cases for individual files.
+
+#CFLAGS_MX_CFN   = -DHAVE_LSB
+
+CFLAGS_MX_VERS  = -DOS_HURD -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
+	*.c > Makefile.depend
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+#---------------------------------------------------
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
+SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/smvspatial.o
+
+#
+#---------------------------------------------------
+#
+
+##LN_SF		= $(PWD)/../scripts/ln_sf
+LN_SF		= ln -sf
+
+MAKE		= make
+MKDIR		= mkdir
+RM		= rm -f
+TOUCH		= touch -a
+
+OBJ		= o
+
+EXEOUT		= -o
+DOTEXE		=
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_SONAME	= libMx.so.$(MX_MAJOR_VERSION)
+
+MX_LIBRARY_NAME = $(MX_SONAME).$(MX_MINOR_VERSION).$(MX_UPDATE_VERSION)
+
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_PATH = $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_SONAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	$(CC) -shared -Wl,-soname,$(MX_SONAME) -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
+	$(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME)
+	$(LN_SF) $(MX_LIBRARY_NAME) libMx.so
+	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
+	ranlib $(MX_LIBRARY_STATIC_NAME)
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	install -m 644 mx*.h $(MX_INSTALL_DIR)/include
+	install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
+	install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) $(MX_SONAME) )
+	( cd $(MX_INSTALL_DIR)/lib ; $(LN_SF) $(MX_LIBRARY_NAME) libMx.so )
+	touch $(MX_INSTALL_DIR)/etc/motor.dat
+	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+MOTOR_NAME	= motor
+MOTOR_NAME2	= motor.static
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			 -lMx $(LIBRARIES) $(READLINE_LIBRARIES)
+	$(CC) $(LINKFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
+			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(LIBRARIES) $(READLINE_LIBRARIES)
+
+motor_install:
+	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/motor_xterm $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+server_install:
+	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+update_install:
+	install -m 755 $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxupdate $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin
+	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXDRIVERINFO_NAME) \
+		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#
+#---------------------------------------------------
+#
+
+MXSERIAL_NAME        = mxserial
+
+$(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
+	$(CC) $(LINKFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+				$(LIB_DIRS) -lMx $(LIBRARIES)
+
+mxserial.o: mxserial_fork.c
+	$(CC) $(LINKFLAGS) -c mxserial_fork.c -o mxserial.o
+
+util_install:
+	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
+

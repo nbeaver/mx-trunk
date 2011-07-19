@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -491,6 +491,10 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 #if defined(OS_SOLARIS)
 #  include <sys/filio.h>
+#endif
+
+#if defined(OS_HURD)
+#  define PIPE_BUF	_POSIX_PIPE_BUF
 #endif
 
 typedef struct {
