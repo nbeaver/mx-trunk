@@ -26,14 +26,12 @@ typedef struct {
 	unsigned long base;
 
 	unsigned long control;
-	unsigned long overscanned_pixels_per_line;
 	unsigned long physical_lines_in_quadrant;
-	unsigned long physical_pixels_in_quadrant;
+	unsigned long physical_pixels_per_line_in_quadrant;
 
 	unsigned long lines_read_in_quadrant;
 	unsigned long pixels_read_in_quadrant;
 
-	unsigned long initial_delay_time;
 	unsigned long exposure_time;
 	unsigned long readout_delay_time;
 	unsigned long frames_per_sequence;
@@ -46,10 +44,10 @@ typedef struct {
 	unsigned long subimages_per_read;
 	unsigned long streak_mode_lines;
 
-	unsigned long offset_w;
-	unsigned long offset_x;
-	unsigned long offset_y;
-	unsigned long offset_z;
+	unsigned long offset_w1;
+	unsigned long offset_x1;
+	unsigned long offset_y1;
+	unsigned long offset_z1;
 
 	unsigned long detector_readout_mode;
 	unsigned long readout_speed;
@@ -57,7 +55,8 @@ typedef struct {
 	unsigned long offset_correction;
 	unsigned long exposure_mode;
 	unsigned long linearization;
-	unsigned long dummy_frame_valid;
+	unsigned long horizontal_test_pattern;
+	unsigned long shutter_output_disabled;
 } MX_AVIEX_PCCD_9785_DETECTOR_HEAD;
 
 extern long mxd_aviex_pccd_9785_num_record_fields;
@@ -112,13 +111,17 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 
 /* Control register bit definitions. */
 
+/* Test mode uses bits 0 and 9. */
+
+#define MXF_AVIEX_PCCD_9785_TEST_MODE_MASK			0x201
+
 /* Test mode (bit 0) */
 
 #define MXF_AVIEX_PCCD_9785_TEST_MODE_ON			0x1
 
 /* Low noise-high speed (bit 1) */
 
-#define MXF_AVIEX_PCCD_9785_HIGH_SPEED			0x2
+#define MXF_AVIEX_PCCD_9785_HIGH_SPEED				0x2
 
 /* Automatic offset correction (bit 2) */
 
@@ -139,7 +142,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 /*---- Full frame is both bits 0. */
 
 #define MXF_AVIEX_PCCD_9785_SUBIMAGE_MODE			0x20
-#define MXF_AVIEX_PCCD_9785_STREAK_CAMERA_MODE		0x60
+#define MXF_AVIEX_PCCD_9785_STREAK_CAMERA_MODE			0x60
 
 /* Linearization (bit 7) */
 
@@ -147,28 +150,29 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 
 /* Offset correction mode (bit 8) */
 
-#define MXF_AVIEX_PCCD_9785_UNBINNED_PIXEL_AVERAGING		0x100
+#define MXF_AVIEX_PCCD_9785_CCD_POWER_OFF			0x100
 
-/* Dummy frame valid pulse (bit 9).
+/* Horizontal test pattern (bit 9).
  *
- * The dummy frame valid pulse is to work around a "feature"
- * of the EPIX XCLIB cameras which ignore the first Frame Valid
- * signal sent to them by default.
+ * If test mode is turned on by bit 0, then if bit 9
+ * is set, the detector head will generate a horizontal
+ * test pattern instead of a vertical one.
  */
 
-#define MXF_AVIEX_PCCD_9785_DUMMY_FRAME_VALID			0x200
+#define MXF_AVIEX_PCCD_9785_HORIZONTAL_TEST_PATTERN		0x200
+
+/* Dark image mode (bit 10) */
+
+#define MXF_AVIEX_PCCD_9785_SHUTTER_OUTPUT_DISABLED		0x400
 
 /*-------------------------------------------------------------*/
 
 #define MXLV_AVIEX_PCCD_9785_DH_CONTROL	(MXLV_AVIEX_PCCD_DH_BASE + 0)
 
-#define MXLV_AVIEX_PCCD_9785_DH_OVERSCANNED_PIXELS_PER_LINE \
-				 		(MXLV_AVIEX_PCCD_DH_BASE + 1)
-
 #define MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_LINES_IN_QUADRANT \
 				 		(MXLV_AVIEX_PCCD_DH_BASE + 2)
 
-#define MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_IN_QUADRANT \
+#define MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_PER_LINE_IN_QUADRANT \
 				 		(MXLV_AVIEX_PCCD_DH_BASE + 3)
 
 
@@ -179,7 +183,7 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 				 		(MXLV_AVIEX_PCCD_DH_BASE + 6)
 
 
-#define MXLV_AVIEX_PCCD_9785_DH_INITIAL_DELAY_TIME \
+#define MXLV_AVIEX_PCCD_9785_DH_SHUTTER_DELAY_TIME \
 						(MXLV_AVIEX_PCCD_DH_BASE + 9)
 
 #define MXLV_AVIEX_PCCD_9785_DH_EXPOSURE_TIME	\
@@ -214,10 +218,15 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 #define MXLV_AVIEX_PCCD_9785_DH_STREAK_MODE_LINES \
 						(MXLV_AVIEX_PCCD_DH_BASE + 22)
 
-#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_W	(MXLV_AVIEX_PCCD_DH_BASE + 24)
-#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_X	(MXLV_AVIEX_PCCD_DH_BASE + 25)
-#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y	(MXLV_AVIEX_PCCD_DH_BASE + 26)
-#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z	(MXLV_AVIEX_PCCD_DH_BASE + 27)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_W1	(MXLV_AVIEX_PCCD_DH_BASE + 24)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_X1	(MXLV_AVIEX_PCCD_DH_BASE + 25)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y1	(MXLV_AVIEX_PCCD_DH_BASE + 26)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z1	(MXLV_AVIEX_PCCD_DH_BASE + 27)
+
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_W2	(MXLV_AVIEX_PCCD_DH_BASE + 28)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_X2	(MXLV_AVIEX_PCCD_DH_BASE + 29)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y2	(MXLV_AVIEX_PCCD_DH_BASE + 30)
+#define MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2	(MXLV_AVIEX_PCCD_DH_BASE + 31)
 
 
 /* Define some pseudo registers to manipulate individual bits
@@ -230,7 +239,8 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 #define MXLV_AVIEX_PCCD_9785_DH_OFFSET_CORRECTION	200003
 #define MXLV_AVIEX_PCCD_9785_DH_EXPOSURE_MODE		200004
 #define MXLV_AVIEX_PCCD_9785_DH_LINEARIZATION		200005
-#define MXLV_AVIEX_PCCD_9785_DH_DUMMY_FRAME_VALID	200006
+#define MXLV_AVIEX_PCCD_9785_DH_HORIZONTAL_TEST_PATTERN 200006
+#define MXLV_AVIEX_PCCD_9785_DH_SHUTTER_OUTPUT_DISABLED	200007
 
 #define MXD_AVIEX_PCCD_9785_STANDARD_FIELDS \
   {-1, -1, "dh_base", MXFT_ULONG, NULL, 0, {0}, \
@@ -242,22 +252,16 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, u.dh_9785.control), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_OVERSCANNED_PIXELS_PER_LINE, \
-	    -1, "dh_overscanned_pixels_per_line", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-	    offsetof(MX_AVIEX_PCCD, u.dh_9785.overscanned_pixels_per_line), \
-	{0}, NULL, MXFF_READ_ONLY}, \
-  \
   {MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_LINES_IN_QUADRANT, \
 		-1, "dh_physical_lines_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
 	    offsetof(MX_AVIEX_PCCD, u.dh_9785.physical_lines_in_quadrant), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_IN_QUADRANT, \
-		-1, "dh_physical_pixels_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_PER_LINE_IN_QUADRANT, \
+      -1, "dh_physical_pixels_per_line_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
-	    offsetof(MX_AVIEX_PCCD, u.dh_9785.physical_pixels_in_quadrant), \
+    offsetof(MX_AVIEX_PCCD, u.dh_9785.physical_pixels_per_line_in_quadrant), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AVIEX_PCCD_9785_DH_LINES_READ_IN_QUADRANT, \
@@ -272,10 +276,10 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 		offsetof(MX_AVIEX_PCCD, u.dh_9785.pixels_read_in_quadrant), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_INITIAL_DELAY_TIME, \
-		-1, "dh_initial_delay_time", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_READOUT_DELAY_TIME, \
+		-1, "dh_readout_delay_time", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_AVIEX_PCCD, u.dh_9785.initial_delay_time), \
+		offsetof(MX_AVIEX_PCCD, u.dh_9785.readout_delay_time), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AVIEX_PCCD_9785_DH_EXPOSURE_TIME, \
@@ -338,28 +342,28 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 		offsetof(MX_AVIEX_PCCD, u.dh_9785.streak_mode_lines), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_W, \
-		-1, "dh_offset_w", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_W1, \
+		-1, "dh_offset_w1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_w), \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_w1), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_X, \
-		-1, "dh_offset_x", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_X1, \
+		-1, "dh_offset_x1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_x), \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_x1), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y, \
-		-1, "dh_offset_y", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y1, \
+		-1, "dh_offset_y1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_y), \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_y1), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z, \
-		-1, "dh_offset_z", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z1, \
+		-1, "dh_offset_z1", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_z), \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_z1), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   \
@@ -399,10 +403,16 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 			offsetof(MX_AVIEX_PCCD, u.dh_9785.linearization), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AVIEX_PCCD_9785_DH_DUMMY_FRAME_VALID, \
-  		-1, "dh_dummy_frame_valid", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_AVIEX_PCCD_9785_DH_HORIZONTAL_TEST_PATTERN, \
+  		-1, "dh_horizontal_test_pattern", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_AVIEX_PCCD, u.dh_9785.dummy_frame_valid), \
+		offsetof(MX_AVIEX_PCCD, u.dh_9785.horizontal_test_pattern), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AVIEX_PCCD_9785_DH_SHUTTER_OUTPUT_DISABLED, \
+ 	-1, "dh_shutter_output_disabled", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_AVIEX_PCCD, \
+				u.dh_9785.shutter_output_disabled), \
 	{0}, NULL, 0}
 
 #endif /* __D_AVIEX_PCCD_9785_H__ */

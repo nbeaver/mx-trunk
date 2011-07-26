@@ -96,7 +96,7 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	 */
 
 	aviex_pccd->num_registers =
-	    MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z - MXLV_AVIEX_PCCD_DH_BASE + 1;
+	    MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2 - MXLV_AVIEX_PCCD_DH_BASE + 1;
 
 	array_size = aviex_pccd->num_registers * sizeof(MX_AVIEX_PCCD_REGISTER);
 
@@ -123,23 +123,18 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_CONTROL,
 					2,  0x184, FALSE, FALSE, 0,  0xffff );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OVERSCANNED_PIXELS_PER_LINE,
-					2,  4,     FALSE, FALSE, 1,  2048 );
-
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_LINES_IN_QUADRANT,
-					2,  1046,  FALSE, FALSE, 1,  8192 );
+					2,  1046,  FALSE, FALSE, 1,  8191 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_IN_QUADRANT,
-					2,  1050,  FALSE, FALSE, 1,  8192 );
+	INIT_REGISTER(
+	    MXLV_AVIEX_PCCD_9785_DH_PHYSICAL_PIXELS_PER_LINE_IN_QUADRANT,
+					2,  1050,  FALSE, FALSE, 1,  8191 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_LINES_READ_IN_QUADRANT,
-					2,  1024,  FALSE, FALSE, 1,  8192 );
+					2,  1024,  FALSE, FALSE, 1,  8191 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_PIXELS_READ_IN_QUADRANT,
-					2,  1024,  FALSE, FALSE, 1,  8192 );
-
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_INITIAL_DELAY_TIME,
-					2,  0,     FALSE, FALSE, 0,  65535 );
+					2,  1024,  FALSE, FALSE, 1,  8191 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_EXPOSURE_TIME,
 					2,  0,     FALSE, FALSE, 0,  65535 );
@@ -148,40 +143,52 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 					2,  0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_FRAMES_PER_SEQUENCE,
-					2,  1,     FALSE, FALSE, 1,  69999 );
+					2,  1,     FALSE, FALSE, 1,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_GAP_TIME,
 					2,  1,     FALSE, FALSE, 1,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_CONTROLLER_FPGA_VERSION,
-					2,  17010, TRUE,  FALSE, 0,  65535 );
+					2,  0,     TRUE,  FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_LINE_BINNING,
-					2,  1,     FALSE, TRUE,  1,  128 );
+					2,  1,     FALSE, TRUE,  1,  4 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_PIXEL_BINNING,
-					2,  1,     FALSE, TRUE,  1,  128 );
+					2,  1,     FALSE, TRUE,  1,  4 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_SUBFRAME_SIZE,
 					2,  1024,  FALSE, TRUE,  16, 1024 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_SUBIMAGES_PER_READ,
-					2,  1,     FALSE, FALSE, 1,  128 );
+					2,  1,     FALSE, FALSE, 2,  128 );
 
 	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_STREAK_MODE_LINES,
 					2,  1,     FALSE, FALSE, 1,  65535 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_W,
-					2,  0,     FALSE, FALSE, 0,  65534 );
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_W1,
+					2,  0,     FALSE, FALSE, 0,  4095 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_X,
-					2,  0,     FALSE, FALSE, 0,  65534 );
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_X1,
+					2,  0,     FALSE, FALSE, 0,  4095 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y,
-					2,  0,     FALSE, FALSE, 0,  65534 );
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y1,
+					2,  0,     FALSE, FALSE, 0,  4095 );
 
-	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z,
-					2,  0,     FALSE, FALSE, 0,  65534 );
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z1,
+					2,  0,     FALSE, FALSE, 0,  4095 );
+
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_W2,
+					2,  0,     FALSE, FALSE, 0,  4095 );
+
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_X2,
+					2,  0,     FALSE, FALSE, 0,  4095 );
+
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y2,
+					2,  0,     FALSE, FALSE, 0,  4095 );
+
+	INIT_REGISTER( MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2,
+					2,  0,     FALSE, FALSE, 0,  4095 );
 
 	/* Check to find out the firmware versions that are being used by
 	 * the detector head.
@@ -273,6 +280,8 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	control_register_value
 		&= (~MXF_AVIEX_PCCD_9785_DETECTOR_READOUT_MASK);
 
+#if 0   /* Not used with the PCCD-9785 */
+
 	/* Turn on an initial runt Frame Valid pulse.  This is used to
 	 * work around a misfeature of the PIXCI E4 board.  The E4 board
 	 * always ignores the first frame sent by the camera after 
@@ -284,6 +293,7 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	 */
 
 	control_register_value |= MXF_AVIEX_PCCD_9785_DUMMY_FRAME_VALID;
+#endif
 
 	/* If requested, turn on the test mode pattern. */
 
@@ -354,7 +364,7 @@ mxd_aviex_pccd_9785_get_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 	case MXLV_AVIEX_PCCD_9785_DH_LINEARIZATION:
 		*pseudo_reg_value = (control_register >> 7) & 0x1;
 		break;
-	case MXLV_AVIEX_PCCD_9785_DH_DUMMY_FRAME_VALID:
+	case MXLV_AVIEX_PCCD_9785_DH_HORIZONTAL_TEST_PATTERN:
 		*pseudo_reg_value = (control_register >> 9) & 0x1;
 		break;
 	default:
@@ -431,10 +441,17 @@ mxd_aviex_pccd_9785_set_pseudo_register( MX_AVIEX_PCCD *aviex_pccd,
 
 		control_register |= pseudo_reg_value;
 		break;
-	case MXLV_AVIEX_PCCD_9785_DH_DUMMY_FRAME_VALID:
+	case MXLV_AVIEX_PCCD_9785_DH_HORIZONTAL_TEST_PATTERN:
 		pseudo_reg_value = ( register_value & 0x1 ) << 9;
 
 		control_register &= ~0x200;
+
+		control_register |= pseudo_reg_value;
+		break;
+	case MXLV_AVIEX_PCCD_9785_DH_SHUTTER_OUTPUT_DISABLED:
+		pseudo_reg_value = ( register_value & 0x1 ) << 10;
+
+		control_register &= ~0x400;
 
 		control_register |= pseudo_reg_value;
 		break;
@@ -681,7 +698,7 @@ mxd_aviex_pccd_9785_set_sequence_start_delay( MX_AVIEX_PCCD *aviex_pccd,
 	/* Tell the detector head to change its binsize. */
 
 	mx_status = mxd_aviex_pccd_write_register( aviex_pccd,
-				MXLV_AVIEX_PCCD_9785_DH_INITIAL_DELAY_TIME,
+				MXLV_AVIEX_PCCD_9785_DH_READOUT_DELAY_TIME,
 				new_delay_time );
 
 	return mx_status;
