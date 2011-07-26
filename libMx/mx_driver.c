@@ -118,7 +118,6 @@
 
 #include "i_camera_link_rs232.h"
 #include "i_spec_command.h"
-#include "i_epix_rs232.h"
 #include "i_edt_rs232.h"
 #include "i_u500_rs232.h"
 #include "i_sim900_port.h"
@@ -157,7 +156,6 @@
 
 #include "i_soft_camera_link.h"
 #include "i_camera_link_api.h"
-#include "i_epix_camera_link.h"
 
 #include "i_pdi40.h"
 #include "i_pdi45.h"
@@ -198,7 +196,6 @@
 #include "i_cm17a.h"
 #include "i_sony_visca.h"
 #include "i_panasonic_kx_dp702.h"
-#include "i_epix_xclib.h"
 #include "i_edt.h"
 #include "i_spellman_df3.h"
 #include "i_bkprecision_912x.h"
@@ -264,7 +261,6 @@
 #include "d_tpg262_pressure.h"
 #include "d_cm17a_doutput.h"
 #include "d_bluice_ion_chamber.h"
-#include "d_epix_xclib_dio.h"
 #include "d_u500_status.h"
 #include "d_spellman_df3_aio.h"
 #include "d_spellman_df3_dio.h"
@@ -474,7 +470,6 @@
 #include "d_network_vinput.h"
 #include "d_file_vinput.h"
 #include "d_v4l2_input.h"
-#include "d_epix_xclib.h"
 #include "d_edt.h"
 
 #include "d_soft_area_detector.h"
@@ -738,15 +733,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_spec_command_rs232_function_list,
 				&mxi_spec_command_num_record_fields,
 				&mxi_spec_command_rfield_def_ptr},
-
-#if HAVE_EPIX_XCLIB
-{"epix_rs232",     MXI_232_EPIX_XCLIB,   MXI_RS232,      MXR_INTERFACE,
-				&mxi_epix_rs232_record_function_list,
-				NULL,
-				&mxi_epix_rs232_rs232_function_list,
-				&mxi_epix_rs232_num_record_fields,
-				&mxi_epix_rs232_rfield_def_ptr},
-#endif /* HAVE_EPIX_XCLIB */
 
 #if HAVE_EDT
 {"edt_rs232",      MXI_232_EDT,          MXI_RS232,      MXR_INTERFACE,
@@ -1175,21 +1161,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_i404_num_record_fields,
 				&mxi_i404_rfield_def_ptr},
-
-#if HAVE_EPIX_XCLIB
-{"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
-				&mxi_epix_camera_link_record_function_list,
-				NULL,
-				NULL,
-				&mxi_epix_camera_link_num_record_fields,
-				&mxi_epix_camera_link_rfield_def_ptr},
-{"epix_xclib",     MXI_CTRL_EPIX_XCLIB,    MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_epix_xclib_record_function_list,
-				NULL,
-				NULL,
-				&mxi_epix_xclib_num_record_fields,
-				&mxi_epix_xclib_rfield_def_ptr},
-#endif /* HAVE_EPIX_XCLIB */
 
 #if HAVE_EDT
 {"edt",            MXI_CTRL_EDT,           MXI_CONTROLLER,       MXR_INTERFACE,
@@ -2190,24 +2161,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_linux_parport_out_rfield_def_ptr},
 
 #endif /* OS_LINUX */
-
-#if HAVE_EPIX_XCLIB
-
-{"epix_xclib_dinput",   MXT_DIN_EPIX_XCLIB,  MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_epix_xclib_dinput_record_function_list,
-				NULL,
-			  &mxd_epix_xclib_dinput_digital_input_function_list,
-				&mxd_epix_xclib_dinput_num_record_fields,
-				&mxd_epix_xclib_dinput_rfield_def_ptr},
-
-{"epix_xclib_doutput",  MXT_DOU_EPIX_XCLIB,  MXC_DIGITAL_OUTPUT, MXR_DEVICE,
-				&mxd_epix_xclib_doutput_record_function_list,
-				NULL,
-			  &mxd_epix_xclib_doutput_digital_output_function_list,
-				&mxd_epix_xclib_doutput_num_record_fields,
-				&mxd_epix_xclib_doutput_rfield_def_ptr},
-
-#endif /* HAVE_EPIX_XCLIB */
 
 #if HAVE_U500
 
@@ -3793,17 +3746,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_v4l2_input_rfield_def_ptr},
 
 #endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
-
-#if HAVE_EPIX_XCLIB
-
-{"epix_xclib_video_input", MXT_VIN_EPIX_XCLIB, MXC_VIDEO_INPUT,  MXR_DEVICE,
-				&mxd_epix_xclib_record_function_list,
-				NULL,
-				NULL,
-				&mxd_epix_xclib_num_record_fields,
-				&mxd_epix_xclib_rfield_def_ptr},
-
-#endif /* HAVE_EPIX_XCLIB */
 
 #if HAVE_EDT
 

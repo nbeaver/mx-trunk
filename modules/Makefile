@@ -4,19 +4,27 @@
 #          It also assumes the presence of a Unix-style Bash or Bourne
 #          shell.
 #
-# You configure the building of each module by editing the Makefile
-# in its subdirectory.
+# You enable the building of each module by uncommenting the "MODULES +="
+# line for that module below.
+#
+# You configure each module by editing the Makefile in its subdirectory.
 #
 
 all: build
 
-#MODULES += daqmx_base
+#-------------------------------------------------------------------
+# Multiplatform modules.
 
+#MODULES += daqmx_base		# linux, win32
+
+MODULES += epix_xclib		# linux, win32
+
+#-------------------------------------------------------------------
 # Win32-only modules.
 
-MODULES += pleora_iport
+#MODULES += pleora_iport
 
-MODULES += radicon_helios
+#MODULES += radicon_helios
 
 #MODULES += bnc725_lib
 

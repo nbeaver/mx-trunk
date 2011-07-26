@@ -28,8 +28,6 @@ MX_API mx_status_type mxi_epix_camera_link_close( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_epix_camera_link_record_function_list;
 
-#if defined(IS_MX_DRIVER)
-
 typedef struct {
 	MX_RECORD *record;
 	MX_CAMERA_LINK *camera_link;
@@ -77,8 +75,6 @@ MX_API INT32 MX_CLCALL mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 MX_API MX_EPIX_CAMERA_LINK_PORT *
 mxi_epix_camera_link_get_port_from_unit_number( long unit_number );
-
-#endif /* IS_MX_DRIVER */
 
 extern long mxi_epix_camera_link_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_epix_camera_link_rfield_def_ptr;

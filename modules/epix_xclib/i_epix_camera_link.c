@@ -21,11 +21,6 @@
 #define MXI_EPIX_CAMERA_LINK_DEBUG_GET_PORT	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPIX_XCLIB 
-
 #include <stdlib.h>
 
 #if defined(OS_WIN32)
@@ -1079,5 +1074,4 @@ mxi_epix_camera_link_get_port_from_unit_number( long unit_number )
 	return NULL;
 }
 
-#endif /* HAVE_EPIX_XCLIB */
 

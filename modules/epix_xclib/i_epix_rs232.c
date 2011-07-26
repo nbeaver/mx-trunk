@@ -18,11 +18,6 @@
 #define MXI_EPIX_RS232_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPIX_XCLIB
-
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -745,6 +740,4 @@ mxi_epix_rs232_discard_unread_input( MX_RS232 *rs232 )
 	}
 	return mx_status;
 }
-
-#endif /* HAVE_EPIX_XCLIB */
 

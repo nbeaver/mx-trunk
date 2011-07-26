@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,8 +80,6 @@ MX_API struct timespec mxi_epix_xclib_get_buffer_timestamp(
 					long unitmap,
 					long buffer_number );
 
-#ifdef IS_MX_DRIVER
-
 MX_API mx_status_type mxi_epix_xclib_get_pxvidstatus(
 					MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
@@ -93,7 +91,6 @@ MX_API mx_status_type mxi_epix_xclib_get_pxbufstatus(
 					long unitmap,
 					long buffer_number,
 					struct pxbufstatus *pxstatus );
-#endif /* IS_MX_DRIVER */
 
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 

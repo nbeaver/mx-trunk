@@ -13,9 +13,53 @@
 #ifndef _MXCONFIG_H_
 #define _MXCONFIG_H_
 
-/* ======== Optional software packages. ======== */
+/**************************************************************************
+ *                                                                        *
+ * NOTICE: MX 1.5.5 is in the process of moving all of the optionally     *
+ *         compiled drivers that traditionally are compiled into libMx    *
+ *         into separate dynamically loaded modules with their source     *
+ *         code in subdirectories of the mx/modules directory.  As each   *
+ *         set of drivers moves to the mx/modules directory, the matching * 
+ *         macros in mx/libMx/mxconfig.h and mx/libMx/Makehead.* are      *
+ *         deleted.                                                       *
+ *                                                                        *
+ *         Using the EPIX XCLIB drivers as an example, all of the files   *
+ *         in mx/libMx with *epix* in their names have now been moved to  *
+ *         the new mx/modules/epix_xclib directory.  The HAVE_EPIX_XCLIB  *
+ *         macro in mx/libMx/mxconfig.h has been deleted as well as all   *
+ *         references to EPIX in the files mx/libMx/Makehead.linux and    *
+ *         mx/libMx/Makehead.win32 have been deleted.                     *
+ *                                                                        *
+ *         In this new arrangement, you enable the EPIX XCLIB drivers by  *
+ *         uncommenting the references to them in mx/modules/Makefile and *
+ *         configure them in mx/modules/epix_xclib/Makefile.              *
+ *                                                                        *
+ *         You will also need to add a line that looks like this:         *
+ *                                                                        *
+ *             !include epix_xclib                                        *
+ *                                                                        *
+ *         to the top of any MX databases that make use of EPIX XCLIB     *
+ *         -related drivers.                                              *
+ *                                                                        *
+ *         In support of this, new Makefile targets have been added to    *
+ *         the top level makefile mx/Makefile.  These include             *
+ *                                                                        *
+ *             make modules-distclean                                     *
+ *             make modules                                               *
+ *             make modules-install                                       *
+ *                                                                        *
+ *         Commands like 'make' and 'make install' do _NOT_ automatically *
+ *         build the corresponding module related targets.  Instead, you  *
+ *         must build the modules after building the core libMx library.  *
+ *                                                                        *
+ **************************************************************************/
 
-/* None at present. */
+/**************************************************************************
+ * Sets of drivers that have been converted to modules include:           *
+ *                                                                        *
+ *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
+ *                                                                        *
+ **************************************************************************/
 
 /* ======== Optional hardware drivers. ======== */
 
@@ -35,19 +79,6 @@
  */
 
 #define HAVE_EPICS			0
-
-/*****************************************************************************
- *
- * Win32 and Linux library for using EPIX, Inc. video imaging boards.
- *
- * Website: http://www.epixinc.com/
- *
- * Note: EPIX and EPICS have absolutely nothing in common.  The naming is
- * just a coincidence.
- *
- */
-
-#define HAVE_EPIX_XCLIB			0
 
 /*****************************************************************************
  *

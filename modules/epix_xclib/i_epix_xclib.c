@@ -18,11 +18,6 @@
 #define MXI_EPIX_XCLIB_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPIX_XCLIB
-
 #include <stdlib.h>
 #include <errno.h>
 #include <math.h>
@@ -884,6 +879,4 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPIX_XCLIB */
 

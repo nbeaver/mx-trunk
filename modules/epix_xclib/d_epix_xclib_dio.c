@@ -18,11 +18,6 @@
 #define MXD_EPIX_XCLIB_DIO_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPIX_XCLIB
-
 #include <stdlib.h>
 
 #if defined(OS_WIN32)
@@ -457,6 +452,4 @@ mxd_epix_xclib_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPIX_XCLIB */
 

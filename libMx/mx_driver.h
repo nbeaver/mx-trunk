@@ -172,7 +172,7 @@ extern "C" {
 #define MXI_232_SIM900_PORT		114
 
 #define MXI_232_SPEC_COMMAND		150
-#define MXI_232_EPIX_XCLIB		151
+
 #define MXI_232_EDT			152
 #define MXI_232_U500			153
 
@@ -238,7 +238,7 @@ extern "C" {
 #define MXI_CTRL_CM17A			446
 #define MXI_CTRL_SONY_VISCA		447
 #define MXI_CTRL_PANASONIC_KX_DP702	448
-#define MXI_CTRL_EPIX_XCLIB		449
+
 #define MXI_CTRL_EDT			450
 #define MXI_CTRL_SPELLMAN_DF3		451
 #define MXI_CTRL_BKPRECISION_912X	452
@@ -275,7 +275,7 @@ extern "C" {
 #define MXI_CL_SOFTWARE			900
 #define MXI_CL_NETWORK			901
 #define MXI_CL_API			902
-#define MXI_CL_EPIX_XCLIB		903
+
 
 /* --- Analog input types --- */
 
@@ -398,7 +398,7 @@ extern "C" {
 #define MXT_DIN_PMC_MCAPI		30025
 #define MXT_DIN_PICOMOTOR		30026
 #define MXT_DIN_TRACKER			30027
-#define MXT_DIN_EPIX_XCLIB		30028
+
 #define MXT_DIN_SPELLMAN_DF3		30029
 #define MXT_DIN_BKPRECISION_912X	30030
 #define MXT_DIN_ILM			30031
@@ -442,7 +442,7 @@ extern "C" {
 #define MXT_DOU_TRACKER			40029
 #define MXT_DOU_TPG262			40030
 #define MXT_DOU_CM17A			40031
-#define MXT_DOU_EPIX_XCLIB		40032
+
 #define MXT_DOU_SPELLMAN_DF3		40033
 #define MXT_DOU_BKPRECISION_912X	40034
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
@@ -720,7 +720,7 @@ extern "C" {
 #define MXT_VIN_NETWORK			220002
 #define MXT_VIN_FILE			220003
 #define MXT_VIN_V4L2			220004
-#define MXT_VIN_EPIX_XCLIB		220005
+
 #define MXT_VIN_EDT			220006
 
 /* --- Video output types --- */

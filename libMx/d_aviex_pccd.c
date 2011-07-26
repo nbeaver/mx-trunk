@@ -78,8 +78,6 @@
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
 #include "mx_area_detector.h"
-#include "i_epix_xclib.h"
-#include "d_epix_xclib.h"
 #include "d_aviex_pccd.h"
 
 #if MXD_AVIEX_PCCD_DEBUG_TIMING
@@ -1108,60 +1106,6 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxp_aviex_pccd_epix_save_start_timespec( MX_AVIEX_PCCD *aviex_pccd )
-{
-	static const char fname[] = "mxp_aviex_pccd_epix_save_start_timespec()";
-
-	MX_EPIX_XCLIB *xclib;
-	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	struct timespec absolute_timespec, relative_timespec;
-
-	epix_xclib_vinput = aviex_pccd->video_input_record->record_type_struct;
-
-	if ( epix_xclib_vinput == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_EPIX_XCLIB_VIDEO_INPUT pointer "
-		"for record '%s' is NULL.",
-			aviex_pccd->video_input_record->name );
-	}
-	if ( epix_xclib_vinput->xclib_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The xclib_record pointer for record '%s' is NULL.",
-			epix_xclib_vinput->record->name );
-	}
-
-	xclib = epix_xclib_vinput->xclib_record->record_type_struct;
-
-	if ( xclib == (MX_EPIX_XCLIB *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_EPIX_XCLIB pointer for record '%s' is NULL.",
-			epix_xclib_vinput->xclib_record->name );
-	}
-
-	relative_timespec = mx_high_resolution_time();
-
-	absolute_timespec = mx_add_high_resolution_times(
-					xclib->system_boot_timespec,
-					relative_timespec );
-
-	xclib->sequence_start_timespec = absolute_timespec;
-
-#if MXD_AVIEX_PCCD_DEBUG
-	MX_DEBUG(-2,("%s:\n"
-		"sequence_start_timespec = (%ld,%ld),\n"
-		"system_boot_timespec    = (%ld,%ld),\n"
-		"relative_timespec       = (%ld,%ld)",
-			fname, (long) xclib->sequence_start_timespec.tv_sec,
-			xclib->sequence_start_timespec.tv_nsec,
-			(long) xclib->system_boot_timespec.tv_sec,
-			xclib->system_boot_timespec.tv_nsec,
-			(long) relative_timespec.tv_sec,
-			relative_timespec.tv_nsec));
-#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2214,14 +2158,6 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 					aviex_pccd->video_input_record );
 	}
 
-	/* If we are using an EPIX PIXCI imaging board, record the time
-	 * that the sequence started in the 'epix_xclib' record.
-	 */
-
-	if ( aviex_pccd->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
-	    mx_status = mxp_aviex_pccd_epix_save_start_timespec(aviex_pccd);
-	}
-
 	return mx_status;
 }
 
@@ -2450,21 +2386,7 @@ mxd_aviex_pccd_stop( MX_AREA_DETECTOR *ad )
 	 * of the current sequence before acknowledging the stop command.
 	 */
 
-#if 0
-	if ( ad->record->mx_type != MXT_AD_PCCD_16080 ) {
-#else
-	if ( 1 ) {
-#endif
-		if ( aviex_pccd->video_input_record->mx_type
-				== MXT_VIN_EPIX_XCLIB )
-		{
-			mx_status = mx_video_input_abort(
-				aviex_pccd->video_input_record );
-		} else {
-			mx_status = mx_video_input_stop(
-				aviex_pccd->video_input_record );
-		}
-	}
+	mx_status = mx_video_input_abort( aviex_pccd->video_input_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

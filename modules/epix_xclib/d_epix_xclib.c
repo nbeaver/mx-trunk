@@ -38,10 +38,6 @@
 
 #include <stdio.h>
 
-#include "mxconfig.h"
-
-#if HAVE_EPIX_XCLIB
-
 #include <stdlib.h>
 #include <math.h>
 
@@ -895,6 +891,38 @@ mxd_epix_xclib_send_test_image_to_device( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
+static mx_status_type
+mxd_epix_xclib_save_start_timespec( MX_EPIX_XCLIB *xclib )
+{
+	static const char fname[] = "mxd_epix_xclib_save_start_timespec()";
+
+	struct timespec absolute_timespec, relative_timespec;
+
+	relative_timespec = mx_high_resolution_time();
+
+	absolute_timespec = mx_add_high_resolution_times(
+					xclib->system_boot_timespec,
+					relative_timespec );
+
+	xclib->sequence_start_timespec = absolute_timespec;
+
+#if MXD_AVIEX_PCCD_DEBUG
+	MX_DEBUG(-2,("%s:\n"
+		"sequence_start_timespec = (%ld,%ld),\n"
+		"system_boot_timespec    = (%ld,%ld),\n"
+		"relative_timespec       = (%ld,%ld)",
+			fname, (long) xclib->sequence_start_timespec.tv_sec,
+			xclib->sequence_start_timespec.tv_nsec,
+			(long) xclib->system_boot_timespec.tv_sec,
+			xclib->system_boot_timespec.tv_nsec,
+			(long) relative_timespec.tv_sec,
+			relative_timespec.tv_nsec));
+#endif
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 {
@@ -1212,6 +1240,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_arm()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_EPIX_XCLIB *epix_xclib;
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
 	double trigger_time, frame_time;
@@ -1223,7 +1252,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-					&epix_xclib_vinput, NULL, fname );
+				&epix_xclib_vinput, &epix_xclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1473,6 +1502,11 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 #endif
 
 	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epix_xclib_save_start_timespec( epix_xclib );
 
 	return mx_status;
 }
@@ -1917,13 +1951,14 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_asynchronous_capture()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_EPIX_XCLIB *epix_xclib;
 	char error_message[80];
 	int epix_status;
 	long numbuf, requested_num_frames;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-					&epix_xclib_vinput, NULL, fname );
+				&epix_xclib_vinput, &epix_xclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2012,6 +2047,11 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	}
 
 	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epix_xclib_save_start_timespec( epix_xclib );
 
 	return mx_status;
 }
@@ -3090,6 +3130,4 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPIX_XCLIB */
 
