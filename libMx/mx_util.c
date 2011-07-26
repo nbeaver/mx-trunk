@@ -1261,6 +1261,33 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
+/* mx_strncmp_end() is analogous to strncmp(), but it compares its second
+ * argument to the _end_ of the first argument instead of the beginning.
+ */
+
+MX_EXPORT int
+mx_strncmp_end( const char *s1, const char *s2, size_t compare_length )
+{
+	const char *s1_offset;
+	size_t length1, length2;
+	int result;
+
+	length1 = strlen(s1);
+	length2 = strlen(s2);
+
+	if ( compare_length > length1 ) {
+		result = strcmp( s1, s2 );
+	} else {
+		s1_offset = s1 + ( length1 - compare_length );
+
+		result = strncmp( s1_offset, s2, compare_length );
+	}
+
+	return result;
+}
+
+/*-------------------------------------------------------------------------*/
+
 /* mx_fgets() is a replacement for fgets() that automatically trims off
  * any trailing newline character.
  *

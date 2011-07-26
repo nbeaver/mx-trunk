@@ -513,6 +513,14 @@ MX_API char *strptime( const char *s, const char *format, struct tm *tm );
 
 #endif
 
+/* mx_strncmp_end() is analogous to strncmp(), but it compares its second
+ * argument to the _end_ of the first argument instead of the beginning.
+ */
+
+MX_API int mx_strncmp_end( const char *s1, const char *s2, size_t n );
+
+#define mx_strcmp_end(s1,s2)  mx_strncmp_end( (s1), (s2), strlen((s2)) )
+
 /* mx_fgets() is a replacement for fgets() that automatically trims off
  * trailing newlines.
  */

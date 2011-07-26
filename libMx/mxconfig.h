@@ -23,6 +23,19 @@
  *         macros in mx/libMx/mxconfig.h and mx/libMx/Makehead.* are      *
  *         deleted.                                                       *
  *                                                                        *
+ *         In support of this, new Makefile targets have been added to    *
+ *         the top level makefile mx/Makefile.  These include             *
+ *                                                                        *
+ *             make modules-distclean                                     *
+ *             make modules                                               *
+ *             make modules-install                                       *
+ *                                                                        *
+ *         Commands like 'make' and 'make install' do _NOT_ automatically *
+ *         build the corresponding module related targets.  Instead, you  *
+ *         must build the modules after building the core libMx library.  *
+ *                                                                        *
+ *------------------------------------------------------------------------*
+ *                                                                        *
  *         Using the EPIX XCLIB drivers as an example, all of the files   *
  *         in mx/libMx with *epix* in their names have now been moved to  *
  *         the new mx/modules/epix_xclib directory.  The HAVE_EPIX_XCLIB  *
@@ -40,17 +53,6 @@
  *                                                                        *
  *         to the top of any MX databases that make use of EPIX XCLIB     *
  *         -related drivers.                                              *
- *                                                                        *
- *         In support of this, new Makefile targets have been added to    *
- *         the top level makefile mx/Makefile.  These include             *
- *                                                                        *
- *             make modules-distclean                                     *
- *             make modules                                               *
- *             make modules-install                                       *
- *                                                                        *
- *         Commands like 'make' and 'make install' do _NOT_ automatically *
- *         build the corresponding module related targets.  Instead, you  *
- *         must build the modules after building the core libMx library.  *
  *                                                                        *
  **************************************************************************/
 
@@ -78,7 +80,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			0
+#define HAVE_EPICS			1
 
 /*****************************************************************************
  *

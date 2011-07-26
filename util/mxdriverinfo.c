@@ -7,15 +7,18 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2010 Illinois Institute of Technology
+ * Copyright 2001, 2003-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define MXDRIVERINFO_DEBUG_MODULES	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <ctype.h>
 
 #define MX_DEFINE_DRIVER_LISTS
@@ -25,6 +28,10 @@
 #include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_module.h"
+#include "mx_dirent.h"
+#include "mx_cfn.h"
+#include "mx_cfn_defaults.h"
 #include "mx_version.h"
 
 #ifndef SUCCESS
@@ -60,6 +67,10 @@ static int show_field( MX_DRIVER *driver,
 			int field_number,
 			mx_bool_type show_handles,
 			mx_bool_type debug );
+
+static int load_module( char *module_name );
+
+static int load_all_modules( void );
 
 static int show_latex_field_table( char *item_name,
 				unsigned long structures_to_show,
@@ -103,6 +114,9 @@ main( int argc, char *argv[] ) {
 "\n"
 "    -v                  Display the version of MX in use\n"
 "\n"
+"    -m'module_name'     Load the MX module named 'module_name'\n"
+"    -M                  Load all MX modules in the default module directory\n"
+"\n"
 "    -h                  Display array handles\n"
 "    -d                  Turn on debugging output\n"
 "\n"
@@ -133,7 +147,7 @@ main( int argc, char *argv[] ) {
 	start_debugger = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:dDf:hlst:vA:F:LS:")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:dDf:hlm:Mst:vA:F:LS:")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -163,6 +177,12 @@ main( int argc, char *argv[] ) {
 			break;
 		case 'l':
 			items_to_show = MXDI_DRIVERS;
+			break;
+		case 'm':
+			load_module( optarg );
+			break;
+		case 'M':
+			load_all_modules();
 			break;
 		case 's':
 			items_to_show = MXDI_SUPERCLASSES;
@@ -633,6 +653,199 @@ show_field( MX_DRIVER *driver,
 
 
 	printf( "\n" );
+
+	return SUCCESS;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static int
+load_module( char *module_name )
+{
+	static const char fname[] = "load_module()";
+
+	char absolute_module_pathname[MXU_FILENAME_LENGTH+1];
+	char *filename_ptr;
+	mx_status_type mx_status;
+
+	if ( module_name == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The module name pointer passed was NULL." );
+
+		return FAILURE;
+	}
+
+#if MXDRIVERINFO_DEBUG_MODULES
+	MX_DEBUG(-2,("%s: module_name = '%s'", fname, module_name));
+#endif
+
+	if ( mx_is_absolute_filename( module_name ) ) {
+		/* We leave absolute filenames alone. */
+
+		filename_ptr = module_name;
+	} else
+	if ( strncmp( module_name, "./", 2 ) == 0 ) {
+		/* We leave filenames relative to the current directory
+		 * alone as well.
+		 */
+
+		filename_ptr = module_name;
+
+#if ( defined(OS_WIN32) || defined(OS_MSDOS) )
+	} else
+	if ( strncmp( module_name, ".\\", 2 ) == 0 ) {
+		/* Do the same thing for Windows and MSDOS based platforms. */
+
+		filename_ptr = module_name;
+#endif
+	} else {
+		/* Filenames that are not absolute or relative to the
+		 * current directory are expected to be in the default
+		 * module directory for this version of MX.
+		 */
+
+		mx_status = mx_cfn_construct_filename( MX_CFN_MODULE,
+					module_name,
+					absolute_module_pathname,
+					sizeof(absolute_module_pathname) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		/* Does the pathname end in '.mxo'?.  If not, then
+		 * append '.mxo' to the end of the name.
+		 */
+
+		if ( mx_strcmp_end( absolute_module_pathname, ".mxo" ) != 0 ) {
+			strlcat( absolute_module_pathname, ".mxo",
+					sizeof(absolute_module_pathname) );
+		}
+
+		filename_ptr = absolute_module_pathname;
+	}
+
+#if MXDRIVERINFO_DEBUG_MODULES
+	MX_DEBUG(-2,("%s: filename_ptr = '%s'", fname, filename_ptr));
+#endif
+
+	mx_status = mx_load_module( filename_ptr, NULL );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		return SUCCESS;
+	} else {
+		return FAILURE;
+	}
+}
+
+/*--------------------------------------------------------------------------*/
+
+static int
+load_all_modules( void )
+{
+	static const char fname[] = "load_all_modules():";
+
+	DIR *dir;
+	struct dirent *dirent_ptr;
+	char module_dir_name[MXU_FILENAME_LENGTH+1];
+	char module_filename[MXU_FILENAME_LENGTH+1];
+	char *name_ptr, *mxo_ptr, *expand_ptr;
+	int saved_errno;
+	mx_status_type mx_status;
+
+	/* We look for modules in the default module directory
+	 * found using the macro MX_CFN_MODULE_DIR.
+	 */
+
+	expand_ptr = mx_expand_filename_macros( MX_CFN_MODULE_DIR,
+				module_dir_name, sizeof(module_dir_name) );
+
+	if ( expand_ptr == NULL )
+		return FAILURE;
+
+#if MXDRIVERINFO_DEBUG_MODULES
+	MX_DEBUG(-2,("%s: module_dir_name = '%s'", fname, module_dir_name));
+#endif
+
+	dir = opendir( module_dir_name );
+
+	if ( dir == (DIR *) NULL ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot access the default module directory '%s'.  "
+		"Errno = %d, error message = '%s'",
+			module_dir_name, saved_errno, strerror(saved_errno) );
+
+		return FAILURE;
+	}
+
+	while (1) {
+		errno = 0;
+
+		dirent_ptr = readdir( dir );
+
+		if ( dirent_ptr != NULL ) {
+			name_ptr = dirent_ptr->d_name;
+
+#if MXDRIVERINFO_DEBUG_MODULES
+			MX_DEBUG(-2,("%s: name_ptr = '%s'", fname, name_ptr));
+#endif
+			/* Skip the . and .. entries. */
+
+			if ( strcmp( name_ptr, "." ) == 0 ) {
+				continue;
+			} else
+			if ( strcmp( name_ptr, ".." ) == 0 ) {
+				continue;
+			}
+
+			/* The modules name must end in .mxo */
+
+			mxo_ptr = strstr( name_ptr, ".mxo" );
+
+			if ( mxo_ptr == NULL ) {
+				continue;
+			}
+
+			/* Is the .mxo string at the _end_ of the filename? */
+
+			if ( mx_strcmp_end( name_ptr, ".mxo" ) != 0 ) {
+				continue;    /* No, .mxo is not at the end. */
+			}
+
+			/* Construct the module's full pathname. */
+
+			mx_status = mx_cfn_construct_filename( MX_CFN_MODULE,
+						name_ptr,
+						module_filename,
+						sizeof(module_filename) );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				continue;	/* Skip to the next filename. */
+			}
+
+#if MXDRIVERINFO_DEBUG_MODULES
+			MX_DEBUG(-2,("%s: module_filename = '%s'",
+				fname, module_filename));
+#endif
+
+			mx_status = mx_load_module( module_filename, NULL );
+
+		} else {
+			if ( errno == 0 ) {
+				break;		/* Exit the while() loop. */
+			} else {
+				saved_errno = errno;
+
+				(void) mx_error( MXE_FILE_IO_ERROR, fname,
+				"An error occurred while examining the "
+				"files in the modules directory '%s'.  "
+				"Errno = %d, error message = '%s'",
+					MX_CFN_MODULE_DIR,
+					saved_errno, strerror(saved_errno) );
+			}
+		}
+	}
 
 	return SUCCESS;
 }

@@ -20,14 +20,14 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
@@ -331,13 +331,13 @@ XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 # EPICS includes and libraries.
 #
 
-EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
-#EPICS_ARCH	= linux-x86		# For EPICS 3.14
+#EPICS_ARCH	= linux-x86_64		# For EPICS 3.14
+EPICS_ARCH	= linux-x86		# For EPICS 3.14
 #EPICS_ARCH	= linux-ppc		# For EPICS 3.14
 #EPICS_ARCH	= linux-x86-debug	# For EPICS 3.14
 #EPICS_ARCH	= linux-x86_64-debug	# For EPICS 3.14
 
-# For most EPICS installations, use the following definitions.
+# For sites that have built EPICS from source, use the following definitions.
 
 #EPICS_TOP	= /opt/epics
 #EPICS_TOP	= /opt/EPICS
@@ -357,10 +357,10 @@ EPICS_TOP	= /home/lavender/local/epics
 # The NSLS-II Debian packages can be found at http://epics.nsls2.bnl.gov/debian/
 #     
 
-EPICS_INCLUDES  = -Wno-shadow -I/usr/lib/epics/include \
-			-I/usr/lib/epics/include/os/Linux
-EPICS_LIB_DIRS  = -L/usr/lib/epics/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
+#EPICS_INCLUDES  = -Wno-shadow -I/usr/lib/epics/include \
+#			-I/usr/lib/epics/include/os/Linux
+#EPICS_LIB_DIRS  = -L/usr/lib/epics/lib/$(EPICS_ARCH)
+#EPICS_LIBRARIES = -lca -lCom
 
 # If you are using IIT's EPICS Debian packages, then use the following
 # definitions.
@@ -368,10 +368,10 @@ EPICS_LIBRARIES = -lca -lCom
 # IIT's Debian and Ubuntu packages can be found at http://debian-xray.iit.edu/
 #     
 
-#EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
-#			-I/usr/include/epics/os/Linux
-#EPICS_LIB_DIRS  = 
-#EPICS_LIBRARIES = -lca -lCom
+EPICS_INCLUDES  = -Wno-shadow -I/usr/include/epics \
+			-I/usr/include/epics/os/Linux
+EPICS_LIB_DIRS  = 
+EPICS_LIBRARIES = -lca -lCom
 
 #
 # EPICS and EPIX have nothing to do with each other.  The fact that they have
