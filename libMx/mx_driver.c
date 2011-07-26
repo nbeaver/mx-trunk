@@ -3793,6 +3793,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_aviex_pccd_16080_num_record_fields,
 				&mxd_aviex_pccd_16080_rfield_def_ptr},
 
+{"pccd_9785",      MXT_AD_PCCD_9785, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_aviex_pccd_record_function_list,
+				NULL,
+				&mxd_aviex_pccd_ad_function_list,
+				&mxd_aviex_pccd_9785_num_record_fields,
+				&mxd_aviex_pccd_9785_rfield_def_ptr},
+
 {"brandeis_biocat", MXT_AD_BRANDEIS_BIOCAT, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_brandeis_biocat_record_function_list,
 				NULL,

@@ -20,6 +20,7 @@
 #include "d_aviex_pccd_170170.h"
 #include "d_aviex_pccd_4824.h"
 #include "d_aviex_pccd_16080.h"
+#include "d_aviex_pccd_9785.h"
 
 /* Values for 'aviex_pccd_flags'. */
 
@@ -119,6 +120,7 @@ typedef struct mx_aviex_pccd {
 		MX_AVIEX_PCCD_170170_DETECTOR_HEAD dh_170170;
 		MX_AVIEX_PCCD_4824_DETECTOR_HEAD dh_4824;
 		MX_AVIEX_PCCD_16080_DETECTOR_HEAD dh_16080;
+		MX_AVIEX_PCCD_9785_DETECTOR_HEAD dh_9785;
 	} u;
 } MX_AVIEX_PCCD;
 
