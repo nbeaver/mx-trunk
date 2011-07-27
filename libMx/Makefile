@@ -277,12 +277,6 @@ include Makefile.depend
 d_edt.$(OBJ): d_edt.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
 
-d_epix_xclib.$(OBJ): d_epix_xclib.c
-	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) d_epix_xclib.c
-
-d_epix_xclib_dio.$(OBJ): d_epix_xclib_dio.c
-	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) d_epix_xclib_dio.c
-
 d_handel_mca.$(OBJ): d_handel_mca.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_mca.c
 
@@ -348,15 +342,6 @@ i_edt.$(OBJ): i_edt.c
 
 i_edt_rs232.$(OBJ): i_edt_rs232.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt_rs232.c
-
-i_epix_camera_link.$(OBJ): i_epix_camera_link.c
-	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) i_epix_camera_link.c
-
-i_epix_rs232.$(OBJ): i_epix_rs232.c
-	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) i_epix_rs232.c
-
-i_epix_xclib.$(OBJ): i_epix_xclib.c
-	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) i_epix_xclib.c
 
 i_esone_camac.$(OBJ): i_esone_camac.c
 	$(COMPILE) $(CFLAGS) $(ESONE_CAMAC_INCLUDES) i_esone_camac.c

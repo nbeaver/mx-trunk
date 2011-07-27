@@ -20,20 +20,14 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
-
-# Note: EPICS and EPIX are not related to each other.  The naming is just
-#       a coincidence.
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -68,14 +62,6 @@ LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_DAQMX_BASE_LIB_DIRS)
 #LIBRARIES	= $(NI_DAQMX_BASE_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EPICS_LIBRARIES) \
-#						-lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EDT_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EDT_LIBRARIES) \
-#						-lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -99,12 +85,12 @@ LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIBRARIES	= $(NI_VISA_LIBRARIES) $(EPICS_LIBRARIES) \
 #				$(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) $(EPIX_XCLIB_LIB_DIRS) \
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS) \
 #			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
 #			$(SIS3100_LIB_DIRS) $(LIBUSB_LIB_DIRS) \
 #			$(JORWAY_CAMAC_LIB_DIRS)
 #
-#LIBRARIES	= $(EPICS_LIBRARIES) $(EPIX_XCLIB_LIBRARIES) \
+#LIBRARIES	= $(EPICS_LIBRARIES) \
 #		$(NI488_LIBRARIES) $(NI_VISA_LIBRARIES) \
 #		$(SIS3100_LIBRARIES) $(LIBUSB_LIBRARIES) \
 #		$(JORWAY_CAMAC_LIBRARIES) \
@@ -374,21 +360,6 @@ EPICS_LIB_DIRS  =
 EPICS_LIBRARIES = -lca -lCom
 
 #
-# EPICS and EPIX have nothing to do with each other.  The fact that they have
-# similar names is a coincidence.
-#
-
-EPIX_ARCH            = i386
-#EPIX_ARCH            = x86_64_pic
-
-EPIX_XCLIB_DIR       = /usr/local/xclib
-EPIX_XCLIB_INCLUDES  = -I$(EPIX_XCLIB_DIR) -DIS_MX_DRIVER \
-				-Wno-strict-prototypes \
-				-Wno-shadow
-EPIX_XCLIB_LIB_DIRS  = -L$(EPIX_XCLIB_DIR)
-EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_$(EPIX_ARCH).a
-
-#
 
 #EDT_DIR		= /opt/EDTpdv
 #EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
@@ -481,8 +452,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
-	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
-	$(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
+	$(READLINE_INCLUDES) $(EDT_INCLUDES) $(EPICS_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
 	$(XIA_HANDEL_INCLUDES) $(POWERPMAC_INCLUDES) \
 	$(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
