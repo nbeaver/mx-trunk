@@ -291,6 +291,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_management_handler = NULL;
 	ad->datafile_management_callback = NULL;
 
+	ad->inhibit_autosave = FALSE;
+
 	ad->exposure_motor_name[0] = '\0';
 	ad->shutter_name[0] = '\0';
 
@@ -5774,6 +5776,9 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	flags = ad->area_detector_flags;
 
+	if ( ad->inhibit_autosave ) {
+		save_frame_after_acquisition = FALSE;
+	} else
 	if ( (flags & MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION)
 			  && ad->correction_measurement_in_progress )
 	{

@@ -20,9 +20,9 @@
 
 #define MXD_RADICON_HELIOS_DEBUG_EXTENDED_STATUS	FALSE
 
-#define MXD_RADICON_HELIOS_DEBUG_READOUT		TRUE
+#define MXD_RADICON_HELIOS_DEBUG_READOUT		FALSE
 
-#define MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION	TRUE
+#define MXD_RADICON_HELIOS_DEBUG_FRAME_CORRECTION	FALSE
 
 #define MXD_RADICON_HELIOS_DEBUG_BYTESWAP		TRUE
 
@@ -1183,7 +1183,13 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 
-	ad->correction_frames_to_skip = 0;
+	/* We _always_ skip the first correction frame.  These detectors may
+	 * not be doing a continuous reset, so in that case we do not know
+	 * what the exposure time for the first frame is.  But it _will_
+	 * be different from the requested exposure time.
+	 */
+
+	ad->correction_frames_to_skip = 1;
 
 	/* Do we need automatic saving and/or loading of image frames by MX? */
 

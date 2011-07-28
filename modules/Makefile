@@ -17,14 +17,14 @@ all: build
 
 #MODULES += daqmx_base		# linux, win32
 
-MODULES += epix_xclib		# linux, win32
+#MODULES += epix_xclib		# linux, win32
 
 #-------------------------------------------------------------------
 # Win32-only modules.
 
-#MODULES += pleora_iport
+MODULES += pleora_iport
 
-#MODULES += radicon_helios
+MODULES += radicon_helios
 
 #MODULES += bnc725_lib
 

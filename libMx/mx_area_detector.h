@@ -470,6 +470,8 @@ typedef struct mx_area_detector_type {
 
 	MX_CALLBACK *datafile_management_callback;
 
+	mx_bool_type inhibit_autosave;
+
 	/* The following entries are used for exposures that 
 	 * are synchronized with a motor and a shutter.
 	 */
@@ -1082,6 +1084,10 @@ typedef struct mx_area_detector_type {
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, datafile_total_num_frames), \
 	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "inhibit_autosave", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, inhibit_autosave), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_EXPOSURE_MOTOR_NAME, -1, "exposure_motor_name", MXFT_STRING, \
   					NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
