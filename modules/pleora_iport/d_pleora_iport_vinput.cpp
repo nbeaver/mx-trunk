@@ -939,6 +939,23 @@ mxd_pleora_iport_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 		}
 		break;
 
+	case CY_RESULT_MISSING_PACKETS:
+		if ( mx_debugger_is_present() ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"WaitUntilSignaled(%lu) returned a "
+			"CY_RESULT_MISSING_PACKETS (39) error.  "
+			"This is probably due to the fact that you are "
+			"running this program from within a debugger.",
+				timeout_ms );
+		} else {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"WaitUntilSignaled(%lu) returned a "
+			"CY_RESULT_MISSING_PACKETS (39) error.  "
+			"The reason for this is unknown.",
+				timeout_ms );
+		}
+		break;
+
 	default:
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"WaitUntilSignaled(%lu) returned an unexpected "

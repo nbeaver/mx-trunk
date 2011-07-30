@@ -51,8 +51,8 @@ mxp_area_detector_measure_correction_callback_function(
 	long pixels_per_frame;
 	long last_frame_number, total_num_frames, num_frames_difference;
 	long frame_number_to_read;
-	unsigned long ad_status;
-	mx_bool_type sequence_complete;
+	unsigned long ad_status, busy;
+	mx_bool_type sequence_complete, start_detector;
 	mx_status_type mx_status;
 
 #if 0 && PR_AREA_DETECTOR_DEBUG
@@ -184,17 +184,37 @@ mxp_area_detector_measure_correction_callback_function(
 		 */
 
 		corr->old_last_frame_number = last_frame_number;
-		corr->old_total_num_frames = total_num_frames;
 		corr->old_status = ad_status;
+
+		if ( total_num_frames >= corr->old_total_num_frames ) {
+			corr->old_total_num_frames = total_num_frames;
+		}
 
 		/* If the correction is done as a sequence of one-shot
 		 * frames and a new frame was received since the last
 		 * pass through this handler, then start the detector again.
 		 */
 
-		if ( ( ad->use_multiframe_correction == FALSE )
-		  && ( num_frames_difference > 0 ) )
-		{
+		busy = ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS;
+
+		start_detector = FALSE;
+
+		if ( ad->use_multiframe_correction == FALSE ) {
+			if ( num_frames_difference > 0 ) {
+				start_detector = TRUE;
+			} else
+			if ( busy == 0 ) {
+				start_detector = TRUE;
+			}
+		}
+
+#if PR_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: start_detector = %d, busy = %lu, total_num_frames = %lu",
+			fname, (int) start_detector, busy, total_num_frames));
+#endif
+
+		if ( start_detector ) {
 
 #if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,
