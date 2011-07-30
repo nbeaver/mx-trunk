@@ -5936,7 +5936,7 @@ mx_network_send_client_version( MX_RECORD *server_record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"This error occurs if you have an MX client that uses "
 		"MX Subversion revision 2140 (July 29, 2011) or newer, "
-		"but the MX server is an MX 1.5.5 server "
+		"but the MX server '%s' is an MX 1.5.5 server "
 		"from before that revision.  "
 		"If you update your MX server to a newer MX version, "
 		"then this message will go away.", server_record->name );
