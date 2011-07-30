@@ -5898,6 +5898,55 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 
 /* ====================================================================== */
 
+MX_EXPORT mx_status_type
+mx_network_send_client_version( MX_RECORD *server_record )
+{
+	static const char fname[] = "mx_network_send_client_version()";
+
+	MX_LIST_HEAD *list_head;
+	unsigned long client_mx_version;
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"server_record argument passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( server_record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer found for record '%s' is NULL.",
+			server_record->name );
+	}
+
+	client_mx_version = list_head->mx_version;
+
+#if 0
+	MX_DEBUG(-2,("%s: sending MX version %lu to server '%s'.",
+		fname, client_mx_version, server_record->name ));
+#endif
+
+	mx_status = mx_network_set_option( server_record,
+				MX_NETWORK_OPTION_CLIENT_VERSION,
+				client_mx_version );
+
+
+	if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"This error occurs if you have an MX client that uses "
+		"MX Subversion revision 2140 (July 29, 2011) or newer, "
+		"but the MX server is an MX 1.5.5 server "
+		"from before that revision.  "
+		"If you update your MX server to a newer MX version, "
+		"then this message will go away.", server_record->name );
+	}
+
+	return mx_status;
+}
+
+/* ====================================================================== */
+
 /* The most general form of an MX network field address is as follows:
  *
  *	server_name@server_arguments:record_name.field_name

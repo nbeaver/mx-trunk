@@ -348,6 +348,19 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	network_server->remote_mx_version = version;
 
+	/* If the remote MX server is version 1.5.5 or newer, then tell
+	 * it what our version is.
+	 */
+
+	if ( network_server->remote_mx_version >= 1005005L ) {
+		mx_status = mx_network_send_client_version( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Tell the server who we are in an insecure manner. */
+
 	mx_status = mx_set_client_info( record,
 				list_head->username, list_head->program_name );
 

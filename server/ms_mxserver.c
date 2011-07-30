@@ -1062,6 +1062,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 #endif
 	new_socket_handler->remote_header_length = 0;
 
+	new_socket_handler->remote_mx_version = 0;
+
 	new_socket_handler->last_rpc_message_id = 0;
 
 	new_socket_handler->authentication_type = MXF_SRVAUTH_NONE;
@@ -1836,7 +1838,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 			value_ptr += ( 2 * sizeof( uint32_t ) );
 		} else {
-			value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
+			if ( socket_handler->remote_mx_version < 1005005L ) {
+				value_ptr += 49;
+			} else {
+				value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
+			}
 		}
 
 		mx_status = mxsrv_handle_put_array( record_list, socket_handler,
@@ -4012,6 +4018,15 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 			fname, (int) option_value,
 			(int) socket_handler->truncate_64bit_longs ));
 		break;
+
+	case MX_NETWORK_OPTION_CLIENT_VERSION:
+		socket_handler->remote_mx_version = option_value;
+#if 0
+		MX_DEBUG(-2,("%s: remote_mx_version = %lu",
+			fname, socket_handler->remote_mx_version));
+#endif
+		break;
+
 	default:
 		illegal_option_number = TRUE;
 		break;

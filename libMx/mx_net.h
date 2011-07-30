@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2010 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -305,6 +305,7 @@ typedef struct {
 #define MX_NETWORK_OPTION_NATIVE_DATAFMT	2
 #define MX_NETWORK_OPTION_64BIT_LONG		3
 #define MX_NETWORK_OPTION_WORDSIZE		4
+#define MX_NETWORK_OPTION_CLIENT_VERSION	5
 
 /*---*/
 
@@ -533,6 +534,8 @@ MX_API mx_status_type mx_network_request_data_format(
 			unsigned long requested_format );
 
 MX_API mx_status_type mx_network_request_64bit_longs(MX_RECORD *server_record);
+
+MX_API mx_status_type mx_network_send_client_version(MX_RECORD *server_record);
 
 MX_API char *mx_network_get_nf_label( MX_RECORD *server_record,
 				char *remote_record_field_name,
