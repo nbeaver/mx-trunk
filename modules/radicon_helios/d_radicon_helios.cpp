@@ -900,11 +900,8 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	unsigned long i, num_flood_field_pixels;
 	double flood_field_sum, flood_field_pixel;
 	uint16_t *mask_data_array;
-	uint16_t *bias_data_array;
-	uint16_t bias_offset;
 
-	double flood_average, bias_average;
-	double ffs_numerator, ffs_denominator;
+	double flood_average;
 	double flood_field_scale;
 
 	mx_status_type mx_status;
@@ -996,14 +993,12 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	 * the raw flood field values.  We must convert this to
 	 * the flood field scale using the expression
 	 *
-	 *                   flood_field_average - bias_average
+	 *                   flood_field_average
 	 *   pixel_scale = --------------------------------------
-	 *                  pixel_flood_field - pixel_bias_offset
+	 *                    pixel_flood_field
 	 *
-	 * The bias average will have been computed when the bias
-	 * frame was loaded.  However, we now need to compute the
-	 * flood_field_average_intensity.  We begin by summing the
-	 * flood field values.
+	 * We begin by summing the flood field values to compute
+	 * the average intensity.
 	 */
 
 	num_flood_field_pixels = 0;
@@ -1044,17 +1039,7 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 	 * into actual flood field scale values.
 	 */
 
-	if ( ad->bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array =
-			(uint16_t *) ad->bias_frame->image_data;
-	}
-
 	flood_average = ad->flood_field_average_intensity;
-	bias_average = ad->bias_average_intensity;
-
-	ffs_numerator = flood_average - bias_average;
 
 	for ( i = 0; i < array_size_in_pixels; i++ ) {
 
@@ -1066,18 +1051,10 @@ mxp_radicon_helios_compute_flood_field_scale_array( MX_AREA_DETECTOR *ad,
 			}
 		}
 
-		if ( bias_data_array == NULL ) {
-			bias_offset = 0;
-		} else {
-			bias_offset = bias_data_array[i];
-		}
-
 		flood_field_pixel = ad->flood_field_scale_array[i];
 
-		ffs_denominator = flood_field_pixel - bias_offset;
-
-		flood_field_scale = mx_divide_safely( ffs_numerator,
-						ffs_denominator );
+		flood_field_scale = mx_divide_safely( flood_average,
+						flood_field_pixel );
 
 		ad->flood_field_scale_array[i] = flood_field_scale;
 	}
@@ -2304,11 +2281,11 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	long row_framesize, column_framesize;
 	double corr_bytes_per_pixel;
 	size_t corr_image_length;
-	float flt_image_pixel, bias_offset;
+	float flt_image_pixel;
 	float *flt_image_data_array;
-	int16_t *bias_data_array;
 	float flood_field_scale;
 	float *flood_field_scale_array;
+	float bias_offset;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -2358,12 +2335,6 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	if ( ad->bias_frame == NULL ) {
-		bias_data_array = NULL;
-	} else {
-		bias_data_array = (int16_t *) ad->bias_frame->image_data;
-	}
-
 	/* Copy the image data to a double precision image frame. */
 
 	row_framesize    = MXIF_ROW_FRAMESIZE( image_frame );
@@ -2402,7 +2373,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 					ad,
 					ad->correction_calc_frame,
 					ad->mask_frame,
-					ad->bias_frame,
+					NULL,
 					ad->dark_current_frame );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -2427,6 +2398,8 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 			* MXIF_COLUMN_FRAMESIZE( ad->correction_calc_frame);
 
 		flood_field_scale_array = ad->flood_field_scale_array;
+
+		bias_offset = 200.0;	/* Added at the end to each pixel. */
 		
 		for ( i = 0; i < num_pixels; i++ ) {
 
@@ -2443,15 +2416,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 				continue;
 			}
 
-			if ( bias_data_array == NULL ) {
-				bias_offset = 0;
-			} else {
-				bias_offset = bias_data_array[i];
-			}
-
 			flt_image_pixel = flt_image_data_array[i];
-
-			flt_image_pixel -= bias_offset;
 
 			flt_image_pixel *= flood_field_scale;
 
