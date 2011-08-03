@@ -1173,6 +1173,7 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	radicon_helios->frame_already_descrambled = FALSE;
 	radicon_helios->frame_already_corrected = FALSE;
+	radicon_helios->shift_from_14_to_16_bits = FALSE;
 
 	/* Set the default file formats. */
 
@@ -1499,6 +1500,12 @@ mxd_radicon_helios_open( MX_RECORD *record )
 	if ( radicon_helios->byteswap ) {
 		mx_warning( "Radicon Helios image data will be BYTESWAPPED." );
 	}
+
+	/* Turn on the shifting of pixel values from a 14 bit range (max 16383)
+	 * to a 16 bit range (max 65535).
+	 */
+
+	radicon_helios->shift_from_14_to_16_bits = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2036,6 +2043,10 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	uint16_t **source_2d_array, **dest_2d_array;
 	size_t element_size[2];
+	unsigned long i, num_pixels;
+	uint16_t *image_data;
+	uint16_t pixel_value;
+	double sum, average;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -2076,16 +2087,12 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, user_buffer->GetBufferSize() ));
 #endif
 
+	image_data = (uint16_t *) ad->image_frame->image_data;
+
+	num_pixels = ad->image_frame->image_length / 2;
+
 #if MXD_RADICON_HELIOS_DEBUG_STATISTICS
 	{
-		unsigned long i, num_pixels;
-		uint16_t *image_data;
-		double sum, average;
-
-		image_data = (uint16_t *) vinput->frame->image_data;
-
-		num_pixels = vinput->frame->image_length / 2;
-
 		sum = 0.0;
 
 		for ( i = 0; i < num_pixels; i++ ) {
@@ -2229,30 +2236,35 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	mx_array_free_overlay( source_2d_array, 2 );
 	mx_array_free_overlay( dest_2d_array, 2 );
 
-#if MXD_RADICON_HELIOS_DEBUG_STATISTICS
-	{
-		unsigned long i, num_pixels;
-		uint16_t *image_data;
-		double sum, average;
+	sum = 0.0;
 
-		image_data = (uint16_t *) ad->image_frame->image_data;
+	if ( radicon_helios->shift_from_14_to_16_bits ) {
+		for ( i = 0; i < num_pixels; i++ ) {
+			pixel_value = image_data[i];
 
-		num_pixels = ad->image_frame->image_length / 2;
+			pixel_value <<= 2L;
 
+			image_data[i] = pixel_value;
+
+			sum += (double) pixel_value;
+		}
+	} else {
 		sum = 0.0;
 
 		for ( i = 0; i < num_pixels; i++ ) {
 			sum += (double) image_data[i];
 		}
-
-		average = sum / num_pixels;
-
-		MX_DEBUG(-2,
-		("%s: AFTER: num_pixels = %lu, sum = %g, average = %g",
-			fname, num_pixels, sum, average));
-
-		mx_image_statistics( ad->image_frame );
 	}
+
+	average = sum / num_pixels;
+
+#if MXD_RADICON_HELIOS_DEBUG_STATISTICS
+	MX_DEBUG(-2,
+("%s: AFTER: num_pixels = %lu, sum = %g, average = %g, shift to 16bits = %d",
+			fname, num_pixels, sum, average,
+			(int) radicon_helios->shift_from_14_to_16_bits ));
+
+	mx_image_statistics( ad->image_frame );
 #endif
 
 	/* If known, update the image header with the requested exposure time.*/

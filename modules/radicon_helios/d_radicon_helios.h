@@ -56,6 +56,7 @@ typedef struct {
 
 	mx_bool_type frame_already_descrambled;
 	mx_bool_type frame_already_corrected;
+	mx_bool_type shift_from_14_to_16_bits;
 } MX_RADICON_HELIOS;
 
 #define MXD_RADICON_HELIOS_STANDARD_FIELDS \
@@ -118,6 +119,11 @@ typedef struct {
   {-1, -1, "frame_already_corrected", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_RADICON_HELIOS, frame_already_corrected), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "shift_from_14_to_16_bits", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_HELIOS, shift_from_14_to_16_bits), \
 	{0}, NULL, 0 }
 
 #endif /* __cplusplus */
