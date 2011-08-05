@@ -2303,7 +2303,11 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	if ( radicon_helios->detector_type != MXT_RADICON_HELIOS_10x10 ) {
+	switch( radicon_helios->detector_type ) {
+	case MXT_RADICON_HELIOS_10x10:
+	case MXT_RADICON_HELIOS_25x20:
+		break;
+	default:
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
 		return mx_status;
