@@ -22,7 +22,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_debug.c mx_debugger.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_dirent.c \
 	mx_driver_tables.c mx_dynamic_library.c \
-	mx_encoder.c mx_error.c mx_epics.c mx_export.c \
+	mx_encoder.c mx_error.c mx_export.c \
 	mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_hash_table.c mx_heap.c \
 	mx_hrt.c mx_hrt_debug.c \
@@ -44,7 +44,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_table.c mx_test.c mx_thread.c mx_time.c mx_timer.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c \
 	mx_util.c mx_util_cfaqs.c mx_util_file.c \
-	mx_variable.c mx_vepics.c mx_vfile.c mx_version.c \
+	mx_variable.c mx_vfile.c mx_version.c \
 	mx_video_input.c mx_vinline.c \
 	mx_virtual_timer.c mx_vme.c mx_vnet.c mx_warning.c \
 	mx_waveform_output.c \
@@ -62,13 +62,13 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	ph_aps_topup.c ph_simple.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
 	sa_wedge.c sl_file.c sxafs_std.c \
-	sq_aps_id.c sq_energy_mcs.c sq_joerger.c sq_mcs.c
+	sq_energy_mcs.c sq_mcs.c
 
 MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_aframe_detector_motor.c d_als_dewar_positioner.c \
-	d_am9513_motor.c d_am9513_scaler.c d_am9513_timer.c d_aps_18id.c \
-	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c d_aps_gap.c \
-	d_aps_quadem_amplifier.c d_area_detector_timer.c \
+	d_am9513_motor.c d_am9513_scaler.c d_am9513_timer.c \
+	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c \
+	d_area_detector_timer.c \
 	d_auto_amplifier.c d_auto_filter.c \
 	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c \
 	d_aviex_pccd.c d_aviex_pccd_170170.c d_aviex_pccd_16080.c \
@@ -86,9 +86,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_databox_scaler.c d_databox_timer.c \
 	d_delta_motor.c d_disabled_motor.c d_doutput_pulser.c d_e500.c \
 	d_e662.c d_edt.c d_elapsed_time.c d_energy.c \
-	d_epics_aio.c d_epics_area_detector.c d_epics_ccd.c \
-	d_epics_dio.c d_epics_mca.c \
-	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_fg_scaler.c d_file_dinput.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c \
@@ -110,7 +107,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_linux_parport.c d_lpt.c \
 	d_mar345.c d_marccd.c d_marccd_server_socket.c d_marccd_shutter.c \
 	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
-	d_mbc_gsc_trigger.c d_mbc_noir.c d_mbc_noir_trigger.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
 	d_mca_timer.c d_mca_value.c d_mca_weighted_sum.c d_mcai_function.c \
 	d_mclennan.c d_mclennan_aio.c d_mclennan_dio.c \
@@ -133,7 +129,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_phidget_old_stepper.c \
 	d_picomotor.c d_picomotor_aio.c d_picomotor_dio.c d_pm304.c \
 	d_pmac.c d_pmac_aio.c d_pmac_dio.c d_pmac_mce.c d_pmac_cs_axis.c \
-	d_pmactc.c d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
+	d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
 	d_polynomial_motor.c d_portio_dio.c \
 	d_powerpmac.c d_powerpmac_aio.c d_powerpmac_dio.c \
 	d_ptz_motor.c d_pulsed_relay.c \
@@ -168,7 +164,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \
 	i_edt.c i_edt_rs232.c \
-	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_esone_camac.c i_fossil.c i_handel.c i_handel_network.c i_hsc1.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
 	i_k500serial.c i_ks3344.c \
@@ -193,7 +188,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
 	n_spec.c n_tcpip.c n_unix.c \
-	u_xia_dxp.c v_aps_topup.c \
+	u_xia_dxp.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
 	v_mathop.c v_pmac.c v_position_select.c v_powerpmac.c v_spec.c v_u500.c
@@ -396,9 +391,6 @@ i_xia_xerxes.$(OBJ): i_xia_xerxes.c
 
 mx_cfn.$(OBJ): mx_cfn.c
 	$(COMPILE) $(CFLAGS) $(CFLAGS_MX_CFN) mx_cfn.c
-
-mx_epics.$(OBJ): mx_epics.c
-	$(COMPILE) $(CFLAGS_MX_EPICS) $(EPICS_INCLUDES) mx_epics.c
 
 mx_interval_timer.$(OBJ): mx_interval_timer.c
 	$(COMPILE) $(CFLAGS) mx_interval_timer.c

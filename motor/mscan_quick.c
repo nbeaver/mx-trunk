@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,8 +32,10 @@
 #include "mx_variable.h"
 #include "d_mcs_scaler.h"
 
+#if HAVE_EPICS
 #include "mx_epics.h"
 #include "sq_joerger.h"
+#endif
 
 #define FREE_MOTOR_NAME_ARRAY \
 	do { \

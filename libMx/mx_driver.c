@@ -46,7 +46,7 @@
 #endif
 
 #include "mx_net.h"
-#include "mx_epics.h"
+/* #include "mx_epics.h" */
 #include "mx_spec.h"
 
 #include "mx_callback.h"
@@ -85,7 +85,7 @@
 #include "mx_variable.h"
 #include "mx_vinline.h"
 #include "mx_vnet.h"
-#include "mx_vepics.h"
+/* #include "mx_vepics.h" */
 #include "mx_vfile.h"
 
 #include "mx_bluice.h"
@@ -284,7 +284,7 @@
 #include "d_newport.h"
 #include "d_pmac.h"
 #include "d_pmac_cs_axis.h"
-#include "d_pmactc.h"
+/* #include "d_pmactc.h" */
 #include "d_compumotor.h"
 #include "d_network_motor.h"
 #include "d_d8.h"
@@ -340,7 +340,7 @@
 #include "d_cubic_spline_motor.h"
 #include "d_limited_move.h"
 
-#include "d_aps_18id.h"
+/* #include "d_aps_18id.h" */
 
 #include "d_compumotor_linear.h"
 
@@ -395,7 +395,7 @@
 #include "d_aps_adcmod2_amplifier.h"
 #include "d_aps_adcmod2_ainput.h"
 
-#include "d_aps_quadem_amplifier.h"
+/* #include "d_aps_quadem_amplifier.h" */
 
 #include "d_icplus.h"
 #include "d_icplus_aio.h"
@@ -493,8 +493,9 @@
 #include "sl_file.h"
 #include "sxafs_std.h"
 #include "sq_mcs.h"
-#include "sq_joerger.h"
-#include "sq_aps_id.h"
+/* #include "sq_joerger.h"
+   #include "sq_aps_id.h"
+ */
 #include "sq_energy_mcs.h"
 #include "sa_wedge.h"
 
