@@ -17,7 +17,7 @@ all: build
 
 #MODULES += daqmx_base		# linux, win32
 
-#MODULES += epix_xclib		# linux, win32
+MODULES += epix_xclib		# linux, win32
 
 #-------------------------------------------------------------------
 # Win32-only modules.

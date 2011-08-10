@@ -4,8 +4,8 @@
 
 MX_ARCH = linux
 
-EPIX_ARCH = i386
-#EPIX_ARCH = x86_64_pic
+#EPIX_ARCH = i386
+EPIX_ARCH = x86_64_pic
 
 EPIX_XCLIB_DIR = /usr/local/xclib
 
