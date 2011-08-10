@@ -47,7 +47,12 @@ MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
 build:
 	for i in $(MODULES); do \
-		( cd $$i ; $(MAKECMD) ) \
+		cd $$i ; \
+		$(MAKECMD) ; \
+		if [ $$? != 0 ] ; then \
+			exit 1 ; \
+		fi ; \
+		cd .. ; \
 	done
 	
 clean:

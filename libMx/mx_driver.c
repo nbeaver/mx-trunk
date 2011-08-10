@@ -46,7 +46,6 @@
 #endif
 
 #include "mx_net.h"
-/* #include "mx_epics.h" */
 #include "mx_spec.h"
 
 #include "mx_callback.h"
@@ -85,7 +84,6 @@
 #include "mx_variable.h"
 #include "mx_vinline.h"
 #include "mx_vnet.h"
-/* #include "mx_vepics.h" */
 #include "mx_vfile.h"
 
 #include "mx_bluice.h"
@@ -284,7 +282,6 @@
 #include "d_newport.h"
 #include "d_pmac.h"
 #include "d_pmac_cs_axis.h"
-/* #include "d_pmactc.h" */
 #include "d_compumotor.h"
 #include "d_network_motor.h"
 #include "d_d8.h"
@@ -340,8 +337,6 @@
 #include "d_cubic_spline_motor.h"
 #include "d_limited_move.h"
 
-/* #include "d_aps_18id.h" */
-
 #include "d_compumotor_linear.h"
 
 #include "d_ks3640.h"
@@ -394,8 +389,6 @@
 
 #include "d_aps_adcmod2_amplifier.h"
 #include "d_aps_adcmod2_ainput.h"
-
-/* #include "d_aps_quadem_amplifier.h" */
 
 #include "d_icplus.h"
 #include "d_icplus_aio.h"
@@ -493,9 +486,6 @@
 #include "sl_file.h"
 #include "sxafs_std.h"
 #include "sq_mcs.h"
-/* #include "sq_joerger.h"
-   #include "sq_aps_id.h"
- */
 #include "sq_energy_mcs.h"
 #include "sa_wedge.h"
 
@@ -557,26 +547,6 @@
 #include "d_powerpmac_aio.h"
 #include "d_powerpmac_dio.h"
 #include "v_powerpmac.h"
-#endif
-
-#if HAVE_EPICS
-#include "i_epics_rs232.h"
-#include "i_epics_gpib.h"
-#include "i_epics_vme.h"
-#include "d_epics_aio.h"
-#include "d_epics_area_detector.h"
-#include "d_epics_ccd.h"
-#include "d_epics_dio.h"
-#include "d_epics_mca.h"
-#include "d_epics_mcs.h"
-#include "d_epics_motor.h"
-#include "d_epics_scaler.h"
-#include "d_epics_timer.h"
-#include "d_aps_gap.h"
-#include "v_aps_topup.h"
-#include "d_mbc_noir.h"
-#include "d_mbc_noir_trigger.h"
-#include "d_mbc_gsc_trigger.h"
 #endif
 
 #if HAVE_ORTEC_UMCBI
@@ -2700,142 +2670,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_limited_move_num_record_fields,
 				&mxd_limited_move_rfield_def_ptr},
 
-#if HAVE_EPICS
-{"aps_18id_motor", MXT_MTR_APS_18ID,     MXC_MOTOR,       MXR_DEVICE,
-				&mxd_aps_18id_motor_record_function_list,
-				NULL,
-				&mxd_aps_18id_motor_motor_function_list,
-				&mxd_aps_18id_motor_num_record_fields,
-				&mxd_aps_18id_motor_rfield_def_ptr},
-#endif
-
 {"compumotor_lin", MXT_MTR_COMPUMOTOR_LINEAR, MXC_MOTOR, MXR_DEVICE,
 				&mxd_compumotor_linear_record_function_list,
 				NULL,
 				&mxd_compumotor_linear_motor_function_list,
 				&mxd_compumotor_linear_num_record_fields,
 				&mxd_compumotor_linear_rfield_def_ptr},
-
-#if HAVE_EPICS
-
-{"epics_rs232",    MXI_232_EPICS,    MXI_RS232,          MXR_INTERFACE,
-				&mxi_epics_rs232_record_function_list,
-				NULL,
-				&mxi_epics_rs232_rs232_function_list,
-				&mxi_epics_rs232_num_record_fields,
-				&mxi_epics_rs232_rfield_def_ptr},
-{"epics_gpib",     MXI_GPIB_EPICS,   MXI_GPIB,           MXR_INTERFACE,
-				&mxi_epics_gpib_record_function_list,
-				NULL,
-				&mxi_epics_gpib_gpib_function_list,
-				&mxi_epics_gpib_num_record_fields,
-				&mxi_epics_gpib_rfield_def_ptr},
-{"epics_vme",      MXI_VME_EPICS,    MXI_VME,           MXR_INTERFACE,
-				&mxi_epics_vme_record_function_list,
-				NULL,
-				&mxi_epics_vme_vme_function_list,
-				&mxi_epics_vme_num_record_fields,
-				&mxi_epics_vme_rfield_def_ptr},
-{"epics_ainput",   MXT_AIN_EPICS,    MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_epics_ain_record_function_list,
-				NULL,
-				&mxd_epics_ain_analog_input_function_list,
-				&mxd_epics_ain_num_record_fields,
-				&mxd_epics_ain_rfield_def_ptr},
-{"epics_aoutput",  MXT_AOU_EPICS,    MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_epics_aout_record_function_list,
-				NULL,
-				&mxd_epics_aout_analog_output_function_list,
-				&mxd_epics_aout_num_record_fields,
-				&mxd_epics_aout_rfield_def_ptr},
-{"epics_ccd",      MXT_AD_EPICS_CCD, MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_epics_ccd_record_function_list,
-				NULL,
-				&mxd_epics_ccd_ad_function_list,
-				&mxd_epics_ccd_num_record_fields,
-				&mxd_epics_ccd_rfield_def_ptr},
-{"epics_area_detector", MXT_AD_EPICS_AREA_DETECTOR,
-					MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_epics_ad_record_function_list,
-				NULL,
-				&mxd_epics_ad_ad_function_list,
-				&mxd_epics_ad_num_record_fields,
-				&mxd_epics_ad_rfield_def_ptr},
-{"epics_dinput",   MXT_DIN_EPICS,    MXC_DIGITAL_INPUT,   MXR_DEVICE,
-				&mxd_epics_din_record_function_list,
-				NULL,
-				&mxd_epics_din_digital_input_function_list,
-				&mxd_epics_din_num_record_fields,
-				&mxd_epics_din_rfield_def_ptr},
-{"epics_doutput",  MXT_DOU_EPICS,    MXC_DIGITAL_OUTPUT,  MXR_DEVICE,
-				&mxd_epics_dout_record_function_list,
-				NULL,
-				&mxd_epics_dout_digital_output_function_list,
-				&mxd_epics_dout_num_record_fields,
-				&mxd_epics_dout_rfield_def_ptr},
-{"epics_motor",    MXT_MTR_EPICS,    MXC_MOTOR,          MXR_DEVICE,
-				&mxd_epics_motor_record_function_list,
-				NULL,
-				&mxd_epics_motor_motor_function_list,
-				&mxd_epics_motor_num_record_fields,
-				&mxd_epics_motor_rfield_def_ptr},
-{"epics_scaler",   MXT_SCL_EPICS,    MXC_SCALER,         MXR_DEVICE,
-				&mxd_epics_scaler_record_function_list,
-				NULL,
-				&mxd_epics_scaler_scaler_function_list,
-				&mxd_epics_scaler_num_record_fields,
-				&mxd_epics_scaler_rfield_def_ptr},
-{"epics_timer",    MXT_TIM_EPICS,    MXC_TIMER,          MXR_DEVICE,
-				&mxd_epics_timer_record_function_list,
-				NULL,
-				&mxd_epics_timer_timer_function_list,
-				&mxd_epics_timer_num_record_fields,
-				&mxd_epics_timer_rfield_def_ptr},
-
-/* pmac_tc_motor and pmac_bio_motor share the same driver. */
-
-{"pmac_tc_motor",  MXT_MTR_PMAC_EPICS_TC, MXC_MOTOR,      MXR_DEVICE,
-				&mxd_pmac_tc_motor_record_function_list,
-				NULL,
-				&mxd_pmac_tc_motor_motor_function_list,
-				&mxd_pmac_tc_motor_num_record_fields,
-				&mxd_pmac_tc_motor_rfield_def_ptr},
-{"pmac_bio_motor", MXT_MTR_PMAC_EPICS_BIO, MXC_MOTOR,      MXR_DEVICE,
-				&mxd_pmac_bio_motor_record_function_list,
-				NULL,
-				&mxd_pmac_bio_motor_motor_function_list,
-				&mxd_pmac_bio_motor_num_record_fields,
-				&mxd_pmac_bio_motor_rfield_def_ptr},
-
-{"aps_gap",        MXT_MTR_APS_GAP,   MXC_MOTOR,          MXR_DEVICE,
-				&mxd_aps_gap_record_function_list,
-				NULL,
-				&mxd_aps_gap_motor_function_list,
-				&mxd_aps_gap_num_record_fields,
-				&mxd_aps_gap_record_field_def_ptr},
-
-{"mbc_noir",       MXT_AD_MBC_NOIR,   MXC_AREA_DETECTOR,  MXR_DEVICE,
-				&mxd_mbc_noir_record_function_list,
-				NULL,
-				&mxd_mbc_noir_ad_function_list,
-				&mxd_mbc_noir_num_record_fields,
-				&mxd_mbc_noir_rfield_def_ptr},
-
-{"mbc_noir_trigger", MXT_PGN_MBC_NOIR_TRIGGER, MXC_PULSE_GENERATOR, MXR_DEVICE,
-				&mxd_mbc_noir_trigger_record_function_list,
-				NULL,
-				&mxd_mbc_noir_trigger_pulser_function_list,
-				&mxd_mbc_noir_trigger_num_record_fields,
-				&mxd_mbc_noir_trigger_rfield_def_ptr},
-
-{"mbc_gsc_trigger", MXT_PGN_MBC_GSC_TRIGGER, MXC_PULSE_GENERATOR, MXR_DEVICE,
-				&mxd_mbc_gsc_trigger_record_function_list,
-				NULL,
-				&mxd_mbc_gsc_trigger_pulser_function_list,
-				&mxd_mbc_gsc_trigger_num_record_fields,
-				&mxd_mbc_gsc_trigger_rfield_def_ptr},
-
-#endif /* HAVE_EPICS */
 
 #if HAVE_PCMOTION32
 
@@ -3256,17 +3096,6 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_aps_adcmod2_ainput_analog_input_function_list,
 				&mxd_aps_adcmod2_ainput_num_record_fields,
 				&mxd_aps_adcmod2_ainput_rfield_def_ptr},
-
-#if HAVE_EPICS
-
-{"aps_quadem_amplifier", MXT_AMP_APS_QUADEM, MXC_AMPLIFIER, MXR_DEVICE,
-				&mxd_aps_quadem_record_function_list,
-				NULL,
-				&mxd_aps_quadem_amplifier_function_list,
-				&mxd_aps_quadem_num_record_fields,
-				&mxd_aps_quadem_rfield_def_ptr},
-
-#endif /* HAVE_EPICS */
 
 {"icplus",         MXT_AMP_ICPLUS,      MXC_AMPLIFIER,    MXR_DEVICE,
 				&mxd_icplus_record_function_list,
@@ -3976,24 +3805,6 @@ MX_DRIVER mx_type_table[] = {
 
 #endif /* HAVE_ORTEC_UMCBI */
 
-#if HAVE_EPICS
-
-{"epics_mca",      MXT_MCA_EPICS,     MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
-				&mxd_epics_mca_record_function_list,
-				NULL,
-				&mxd_epics_mca_mca_function_list,
-				&mxd_epics_mca_num_record_fields,
-				&mxd_epics_mca_rfield_def_ptr},
-
-{"epics_mcs",      MXT_MCS_EPICS,     MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
-				&mxd_epics_mcs_record_function_list,
-				NULL,
-				&mxd_epics_mcs_mcs_function_list,
-				&mxd_epics_mcs_num_record_fields,
-				&mxd_epics_mcs_rfield_def_ptr},
-
-#endif /* HAVE_EPICS */
-
 {"network_wvout",  MXT_WVO_NETWORK,   MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
 			&mxd_network_wvout_record_function_list,
 			NULL,
@@ -4070,25 +3881,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxs_energy_mcs_quick_scan_num_record_fields,
 				&mxs_energy_mcs_quick_scan_def_ptr},
-
-#if HAVE_EPICS
-{"joerger_qscan",  MXS_QUI_JOERGER,   MXS_QUICK_SCAN,     MXR_SCAN,
-				&mxs_joerger_quick_scan_record_function_list,
-				&mxs_joerger_quick_scan_scan_function_list,
-				NULL,
-				&mxs_joerger_quick_scan_num_record_fields,
-				&mxs_joerger_quick_scan_def_ptr},
-
-{"aps_id_qscan",   MXS_QUI_APS_ID,    MXS_QUICK_SCAN,     MXR_SCAN,
-				&mxs_apsid_quick_scan_record_function_list,
-				&mxs_apsid_quick_scan_scan_function_list,
-				NULL,
-				&mxs_apsid_quick_scan_num_record_fields,
-				&mxs_apsid_quick_scan_def_ptr},
-
-/* aps_id_qscan is a variant of the mcs_qscan scan type. */
-
-#endif /* HAVE_EPICS */
 
 {"wedge_scan",     MXS_AD_WEDGE,      MXS_AREA_DETECTOR_SCAN, MXR_SCAN,
 				&mxs_area_detector_scan_record_function_list,
@@ -4242,60 +4034,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL, NULL,
 				&mxv_network_record_variable_num_record_fields,
 				&mxv_network_record_variable_dptr},
-
-#if HAVE_EPICS
-{"epics_string",   MXV_EPI_STRING,    MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_string_variable_num_record_fields,
-				&mxv_epics_string_variable_def_ptr},
-{"epics_char",     MXV_EPI_CHAR,      MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_char_variable_num_record_fields,
-				&mxv_epics_char_variable_def_ptr},
-{"epics_short",    MXV_EPI_SHORT,     MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_short_variable_num_record_fields,
-				&mxv_epics_short_variable_def_ptr},
-{"epics_long",     MXV_EPI_LONG,      MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_long_variable_num_record_fields,
-				&mxv_epics_long_variable_def_ptr},
-{"epics_float",    MXV_EPI_FLOAT,     MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_float_variable_num_record_fields,
-				&mxv_epics_float_variable_def_ptr},
-{"epics_double",   MXV_EPI_DOUBLE,    MXV_EPICS,         MXR_VARIABLE,
-				&mxv_epics_variable_record_function_list,
-				&mxv_epics_variable_variable_function_list,
-				NULL,
-				&mxv_epics_double_variable_num_record_fields,
-				&mxv_epics_double_variable_def_ptr},
-
-{"aps_topup_interlock", MXV_CAL_APS_TOPUP_INTERLOCK, MXV_CALC, MXR_VARIABLE,
-				&mxv_aps_topup_record_function_list,
-				&mxv_aps_topup_variable_function_list,
-				NULL,
-				&mxv_aps_topup_interlock_num_record_fields,
-				&mxv_aps_topup_interlock_field_def_ptr},
-
-{"aps_topup_time", MXV_CAL_APS_TOPUP_TIME_TO_INJECT, MXV_CALC, MXR_VARIABLE,
-				&mxv_aps_topup_record_function_list,
-				&mxv_aps_topup_variable_function_list,
-				NULL,
-				&mxv_aps_topup_time_to_inject_num_record_fields,
-				&mxv_aps_topup_time_to_inject_field_def_ptr},
-
-#endif /* HAVE_EPICS */
 
 {"mathop",         MXV_CAL_MATHOP,    MXV_CALC,          MXR_VARIABLE,
 				&mxv_mathop_record_function_list,

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2007-2008 Illinois Institute of Technology
+ * Copyright 2001, 2007-2008, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_driver.h"
 #include "mx_variable.h"
 #include "mx_mpermit.h"
 #include "mx_scan.h"
@@ -116,19 +115,6 @@ mxph_topup_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 		return mx_error( MXE_NOT_FOUND, fname,
 		"The topup time to inject record '%s' does not exist.",
 			description );
-	}
-
-	/* Is this the correct kind of record. */
-
-	if ( ( topup_time_to_inject_record->mx_superclass != MXR_VARIABLE )
-	  || ( topup_time_to_inject_record->mx_class != MXV_CALC )
-	  || ( topup_time_to_inject_record->mx_type
-			!= MXV_CAL_APS_TOPUP_TIME_TO_INJECT ) )
-	{
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Topup time to inject record '%s' is not the right type of record.  "
-	"It should be a variable record of type 'aps_topup_time'.",
-			topup_time_to_inject_record->name );
 	}
 
 	/* Create the permit handler. */

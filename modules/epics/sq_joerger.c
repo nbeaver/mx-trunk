@@ -219,6 +219,7 @@ mxs_joerger_quick_scan_finish_record_initialization( MX_RECORD *record )
 	MX_SCAN *scan;
 	MX_QUICK_SCAN *quick_scan;
 	MX_JOERGER_QUICK_SCAN *joerger_quick_scan;
+	MX_DRIVER *driver;
 	long i;
 	mx_status_type mx_status;
 
@@ -262,7 +263,46 @@ mxs_joerger_quick_scan_finish_record_initialization( MX_RECORD *record )
 	quick_scan->actual_num_measurements
 			= quick_scan->requested_num_measurements;
 
-	return mx_scan_finish_record_initialization( record );
+	/* Find the driver type numbers for the 'epics_motor', 'epics_scaler',
+	 * and 'epics_timer' drivers.
+	 */
+
+	driver = mx_get_driver_by_name( "epics_motor" );
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'epics_motor' driver is not loaded." );
+	}
+
+	joerger_quick_scan->epics_motor_type = driver->mx_type;
+
+	/*----*/
+
+	driver = mx_get_driver_by_name( "epics_scaler" );
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'epics_scaler' driver is not loaded." );
+	}
+
+	joerger_quick_scan->epics_scaler_type = driver->mx_type;
+
+	/*----*/
+
+	driver = mx_get_driver_by_name( "epics_timer" );
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'epics_timer' driver is not loaded." );
+	}
+
+	joerger_quick_scan->epics_timer_type = driver->mx_type;
+
+	/* Finish up with generic scan initialization. */
+
+	mx_status =  mx_scan_finish_record_initialization( record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -413,7 +453,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_EPICS_TIMER *epics_timer;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	mx_bool_type joerger_quick_scan_enabled;
-	long i, j, allowed_device;
+	long i, j, allowed_device, mx_type, epics_scaler_type, epics_timer_type;
 	int32_t timer_preset;
 	double scan_duration_seconds, scan_duration_ticks;
 	double epics_update_rate, measurement_time_per_point;
@@ -437,6 +477,10 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			"The scan '%s' has %ld input devices.",
 				scan->record->name, scan->num_input_devices );
 	}
+
+	epics_scaler_type = joerger_quick_scan->epics_scaler_type;
+
+	epics_timer_type = joerger_quick_scan->epics_timer_type;
 
 	/* Are Joerger quick scans permitted for this beamline? */
 
@@ -468,6 +512,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		input_device_record = ( scan->input_device_array )[i];
 
+		mx_type = input_device_record->mx_type;
+
 		allowed_device = FALSE;
 
 		if ( input_device_record->mx_superclass != MXR_DEVICE ) {
@@ -475,22 +521,22 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		} else {
 			switch( input_device_record->mx_class ) {
 			case MXC_SCALER:
-			    if (input_device_record->mx_type == MXT_SCL_EPICS){
-				allowed_device = TRUE;
-			    } else {
-				allowed_device = FALSE;
-			    }
-			    break;
+				if ( mx_type == epics_scaler_type ) {
+					allowed_device = TRUE;
+				} else {
+					allowed_device = FALSE;
+				}
+				break;
 			case MXC_TIMER:
-			    if (input_device_record->mx_type == MXT_TIM_EPICS){
-				allowed_device = TRUE;
-			    } else {
-				allowed_device = FALSE;
-			    }
-			    break;
+				if ( mx_type == epics_timer_type ) {
+					allowed_device = TRUE;
+				} else {
+					allowed_device = FALSE;
+				}
+				break;
 			default:
-			    allowed_device = FALSE;
-			    break;
+				allowed_device = FALSE;
+				break;
 			}
 		}
 
@@ -506,7 +552,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		 */
 
 		if ( i == 0 ) {
-			if ( input_device_record->mx_type != MXT_TIM_EPICS ) {
+			if ( mx_type != epics_timer_type ) {
 				return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The first input device channel for a Joerger quick scan "
 		"must always be the timer channel for that Joerger.  "
@@ -519,8 +565,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			timer_record = input_device_record;
 		}
 
-		switch( input_device_record->mx_type ) {
-		case MXT_SCL_EPICS:
+		if ( mx_type == epics_scaler_type ) {
 			epics_scaler = (MX_EPICS_SCALER *)
 				input_device_record->record_type_struct;
 
@@ -533,8 +578,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			joerger_quick_scan->scaler_number[i] =
 					epics_scaler->scaler_number;
 
-			break;
-		case MXT_TIM_EPICS:
+		} else
+		if ( mx_type == epics_timer_type ) {
 			epics_timer = (MX_EPICS_TIMER *)
 				input_device_record->record_type_struct;
 
@@ -545,8 +590,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			}
 
 			joerger_quick_scan->scaler_number[i] = 1;
-
-			break;
+		} else {
+			/* Do nothing. */
 		}
 	}
 
@@ -629,20 +674,20 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 				quick_scan->actual_num_measurements, i );
 		}
 
-		switch( scan->motor_record_array[i]->mx_type ) {
-		case MXT_MTR_EPICS:
+		mx_type = scan->motor_record_array[i]->mx_type;
+
+		if( mx_type == joerger_quick_scan->epics_motor_type ) {
+
 			epics_motor = (MX_EPICS_MOTOR *)
 			    scan->motor_record_array[i]->record_type_struct;
 
 			snprintf( joerger_quick_scan->motor_name_array[i],
 				sizeof(joerger_quick_scan->motor_name_array[0]),
 				"%s.RBV", epics_motor->epics_record_name );
-			break;
-		default:
+		} else {
 			strlcpy( joerger_quick_scan->motor_name_array[i],
 				scan->motor_record_array[i]->name,
 			    sizeof(joerger_quick_scan->motor_name_array[0]) );
-			break;
 		}
 	}
 
@@ -954,7 +999,7 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 	int direction;
 #endif
 	mx_bool_type limit_hit;
-	long i, j;
+	long i, j, mx_type;
 	unsigned long sleep_time;
 	int32_t count;
 	mx_bool_type fast_mode, start_fast_mode;
@@ -1088,28 +1133,24 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 		mx_info("%ld", i);
 
 		for ( j = 0; j < scan->num_motors; j++ ) {
-			switch( scan->motor_record_array[j]->mx_type ) {
-			case MXT_MTR_EPICS:
-			case MXT_MTR_PMAC_EPICS_TC:
-			case MXT_MTR_PMAC_EPICS_BIO:
+			mx_type = scan->motor_record_array[j]->mx_type;
+
+			if ( mx_type == joerger_quick_scan->epics_motor_type ) {
+
 				mx_status = mx_caget_by_name(
 					joerger_quick_scan->motor_name_array[j],
 					MX_CA_DOUBLE, 1, 
 			&(joerger_quick_scan->motor_position_array[j][i]) );
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-				break;
-			default:
+			} else {
 				mx_status = mx_motor_get_position(
 					scan->motor_record_array[j],
 			&(joerger_quick_scan->motor_position_array[j][i]) );
 
-				if ( mx_status.code != MXE_SUCCESS ) {
-					return mx_status;
-				}
-				break;
 			}
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 
 		mx_epics_start_group( &epics_group );

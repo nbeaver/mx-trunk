@@ -162,7 +162,7 @@ extern "C" {
 #define MXI_232_KS3344			104
 #define MXI_232_WIN32COM		105
 #define MXI_232_TCP232			106
-#define MXI_232_EPICS			107
+
 #define MXI_232_NETWORK			108
 #define MXI_232_VMS			109
 #define MXI_232_VXWORKS			110
@@ -180,7 +180,7 @@ extern "C" {
 #define MXI_GPIB_NI488			201
 #define MXI_GPIB_LINUX			202
 #define MXI_GPIB_K500SERIAL		203
-#define MXI_GPIB_EPICS			204
+
 #define MXI_GPIB_MICRO488EX		205
 #define MXI_GPIB_NETWORK		206
 #define MXI_GPIB_PROLOGIX		207
@@ -261,7 +261,7 @@ extern "C" {
 #define MXI_PIO_VXWORKS			505
 
 #define MXI_VME_VXI_MEMACC		600
-#define MXI_VME_EPICS			601
+
 #define MXI_VME_SIS3100			602
 #define MXI_VME_VXWORKS			603
 #define MXI_VME_MMAP			604
@@ -283,7 +283,6 @@ extern "C" {
 #define MXT_AIN_KS3512			10001
 #define MXT_AIN_PDI45			10002
 
-#define MXT_AIN_EPICS			10004
 #define MXT_AIN_NETWORK			10005
 #define MXT_AIN_PMAC			10006
 #define MXT_AIN_XIA_DXP			10007
@@ -338,7 +337,6 @@ extern "C" {
 #define MXT_AOU_KS3112			20001
 #define MXT_AOU_PDI45			20002
 
-#define MXT_AOU_EPICS			20004
 #define MXT_AOU_NETWORK			20005
 #define MXT_AOU_PMAC			20006
 #define MXT_AOU_SCIPE			20007
@@ -374,7 +372,6 @@ extern "C" {
 #define MXT_DIN_KS3063			30001
 #define MXT_DIN_PDI45			30002
 
-#define MXT_DIN_EPICS			30004
 #define MXT_DIN_NETWORK			30005
 #define MXT_DIN_8255			30006
 #define MXT_DIN_6821			30007
@@ -414,7 +411,6 @@ extern "C" {
 #define MXT_DOU_KS3063			40001
 #define MXT_DOU_PDI45			40002
 
-#define MXT_DOU_EPICS			40004
 #define MXT_DOU_NETWORK			40005
 #define MXT_DOU_8255			40006
 #define MXT_DOU_6821			40007
@@ -464,14 +460,12 @@ extern "C" {
 #define MXT_MTR_PANTHER_HE		50004
 #define MXT_MTR_MMC32			50005
 #define MXT_MTR_PM304			50006
-#define MXT_MTR_EPICS			50007
+
 #define MXT_MTR_MM3000			50008
 #define MXT_MTR_MM4000			50009
 #define MXT_MTR_ESP			50010
 #define MXT_MTR_PMAC			50011
-#define MXT_MTR_PMAC_EPICS_TC		50012
-#define MXT_MTR_PMAC_EPICS_BIO		50013
-#define MXT_MTR_APS_GAP			50014
+
 #define MXT_MTR_COMPUMOTOR		50015
 #define MXT_MTR_NETWORK			50016
 
@@ -542,7 +536,6 @@ extern "C" {
 #define MXT_MTR_CUBIC_SPLINE		55022
 #define MXT_MTR_LIMITED_MOVE		55023
 
-#define MXT_MTR_APS_18ID		55102
 #define MXT_MTR_ALS_DEWAR_POSITIONER	55103
 
 #define MXT_MTR_COMPUMOTOR_LINEAR	55501
@@ -558,7 +551,7 @@ extern "C" {
 #define MXT_SCL_QS450			70001
 #define MXT_SCL_KS3610			70002
 #define MXT_SCL_PDI45			70003
-#define MXT_SCL_EPICS			70004
+
 #define MXT_SCL_ORTEC974		70005
 #define MXT_SCL_NETWORK			70006
 #define MXT_SCL_AM9513			70007
@@ -581,7 +574,7 @@ extern "C" {
 #define MXT_TIM_SOFTWARE		80000
 #define MXT_TIM_RTC018			80001
 #define MXT_TIM_PDI45			80002
-#define MXT_TIM_EPICS			80003
+
 #define MXT_TIM_ORTEC974		80004
 #define MXT_TIM_NETWORK			80005
 #define MXT_TIM_AM9513			80006
@@ -613,7 +606,7 @@ extern "C" {
 #define MXT_AMP_QBPM			90006
 #define MXT_AMP_APS_ADCMOD2		90007
 #define MXT_AMP_UDT_TRAMP		90008
-#define MXT_AMP_APS_QUADEM		90009
+
 #define MXT_AMP_KEITHLEY2700		90010
 #define MXT_AMP_KEITHLEY2400		90011
 #define MXT_AMP_KEITHLEY2000		90012
@@ -638,7 +631,7 @@ extern "C" {
 
 #define MXT_MCA_SOFTWARE		110000
 #define MXT_MCA_NETWORK			110001
-#define MXT_MCA_EPICS			110002
+
 #define MXT_MCA_TRUMP			110003
 #define MXT_MCA_XIA_DXP			110004
 #define MXT_MCA_ROENTEC_RCL		110005
@@ -657,7 +650,7 @@ extern "C" {
 
 #define MXT_MCS_SOFTWARE		130000
 #define MXT_MCS_NETWORK			130001
-#define MXT_MCS_EPICS			130002
+
 #define MXT_MCS_DATABOX			130003
 #define MXT_MCS_SIS3801			130004
 #define MXT_MCS_XIA_DXP			130005
@@ -681,8 +674,7 @@ extern "C" {
 #define MXT_PGN_SIS3807			160003
 #define MXT_PGN_SIS3801			160004
 #define MXT_PGN_PDI45			160005
-#define MXT_PGN_MBC_NOIR_TRIGGER	160006
-#define MXT_PGN_MBC_GSC_TRIGGER		160007
+
 #define MXT_PGN_DIGITAL_OUTPUT		160008
 
 /* --- Single channel analyzer types --- */
@@ -743,11 +735,10 @@ extern "C" {
 #define MXT_AD_BLUICE_DCSS		240010
 #define MXT_AD_BLUICE_DHS		240011
 #define MXT_AD_MARCCD_SERVER_SOCKET	240012
-#define MXT_AD_EPICS_CCD		240013
+
 #define MXT_AD_MLFSOM			240014
-#define MXT_AD_EPICS_AREA_DETECTOR	240015
+
 #define MXT_AD_MAR345			240016
-#define MXT_AD_MBC_NOIR			240017
 
 /* --- Waveform output types --- */
 
@@ -771,8 +762,6 @@ extern "C" {
 
 #define MXS_QUI_MCS			407001
 
-#define MXS_QUI_JOERGER			407101
-#define MXS_QUI_APS_ID			407102
 #define MXS_QUI_ENERGY_MCS		407103
 
 #define MXS_AD_WEDGE			409001
@@ -817,9 +806,6 @@ extern "C" {
 
 #define MXV_CAL_MATHOP			503001
 #define MXV_CAL_POLYNOMIAL		503002
-
-#define MXV_CAL_APS_TOPUP_INTERLOCK	503501
-#define MXV_CAL_APS_TOPUP_TIME_TO_INJECT 503502
 
 #define MXV_CAL_POSITION_SELECT		503601
 

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -402,9 +402,7 @@ motor_prompt_for_input_devices(
 			    current_record = list_head->next_record;
 
 			    while ( current_record != list_head ) {
-				if ( (scan_type == MXS_QUI_MCS)
-				  || (scan_type == MXS_QUI_APS_ID) )
-				{
+				if ( scan_class == MXS_QUICK_SCAN ) {
 				    if ( current_record->mx_type
 						== MXT_SCL_MCS )
 				    {
@@ -450,9 +448,7 @@ motor_prompt_for_input_devices(
 				fprintf(output,
 				"Input device '%s' does not exist.\n", buffer );
 			    } else {
-				if ( (scan_type == MXS_QUI_MCS)
-				  || (scan_type == MXS_QUI_APS_ID) )
-				{
+				if ( scan_class == MXS_QUICK_SCAN ) {
 				    if ( record->mx_class == MXC_SCALER ) {
 					strlcpy( input_name_array[i],
 					    buffer,MXU_RECORD_NAME_LENGTH );

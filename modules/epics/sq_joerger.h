@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,6 +41,10 @@ typedef struct {
 	double acceleration_time;
 	double real_start_position[ MXS_JQ_MAX_MOTORS ];
 	double real_end_position[ MXS_JQ_MAX_MOTORS ];
+
+	long epics_motor_type;
+	long epics_scaler_type;
+	long epics_timer_type;
 } MX_JOERGER_QUICK_SCAN;
 
 MX_API mx_status_type mxs_joerger_quick_scan_initialize_driver(

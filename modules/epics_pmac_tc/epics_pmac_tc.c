@@ -32,13 +32,13 @@ MX_DRIVER epics_pmac_tc_driver_table[] = {
 
 /* pmac_tc_motor and pmac_bio_motor share the same driver. */
 
-{"pmac_tc_motor",  MXT_MTR_PMAC_EPICS_TC, MXC_MOTOR,      MXR_DEVICE,
+{"pmac_tc_motor",  -1, MXC_MOTOR, MXR_DEVICE,
 				&mxd_pmac_tc_motor_record_function_list,
 				NULL,
 				&mxd_pmac_tc_motor_motor_function_list,
 				&mxd_pmac_tc_motor_num_record_fields,
 				&mxd_pmac_tc_motor_rfield_def_ptr},
-{"pmac_bio_motor", MXT_MTR_PMAC_EPICS_BIO, MXC_MOTOR,      MXR_DEVICE,
+{"pmac_bio_motor", -1, MXC_MOTOR, MXR_DEVICE,
 				&mxd_pmac_bio_motor_record_function_list,
 				NULL,
 				&mxd_pmac_bio_motor_motor_function_list,

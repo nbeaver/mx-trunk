@@ -154,6 +154,7 @@ mxd_pmac_tc_motor_create_record_structures( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PMAC_TC_MOTOR *pmac_tc_motor;
+	MX_DRIVER *driver;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -176,7 +177,26 @@ mxd_pmac_tc_motor_create_record_structures( MX_RECORD *record )
 	record->record_class_struct = motor;
 	record->record_type_struct = pmac_tc_motor;
 
-	if ( record->mx_type == MXT_MTR_PMAC_EPICS_TC ) {
+	driver = mx_get_driver_for_record( record );
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Could not find the MX driver for record '%s'.", record->name );
+	}
+
+	if ( strcmp( driver->name, "pmac_tc_motor" ) == 0 ) {
+		pmac_tc_motor->database_type = MXT_EPICS_PMAC_TC;
+	} else
+	if ( strcmp( driver->name, "pmac_bio_motor" ) == 0 ) {
+		pmac_tc_motor->database_type = MXT_EPICS_PMAC_BIOCAT;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unrecognized EPICS PMAC type '%s' for record '%s'.  "
+		"The allowed types are 'pmac_tc_motor' and 'pamc_bio_motor'.",
+			driver->name, record->name );
+	}
+
+	if ( pmac_tc_motor->database_type == MXT_EPICS_PMAC_TC ) {
 		record->class_specific_function_list
 				= &mxd_pmac_tc_motor_motor_function_list;
 	} else {
@@ -246,8 +266,8 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 	mx_epics_pvname_init( &(pmac_tc_motor->abort_pv),
 				pmac_tc_motor->abort_record_name);
 
-	switch( record->mx_type ) {
-	case MXT_MTR_PMAC_EPICS_TC:
+	switch( pmac_tc_motor->database_type ) {
+	case MXT_EPICS_PMAC_TC:
 		mx_epics_pvname_init( &(pmac_tc_motor->strcmd_pv),
 				"%s:StrCmd.VAL", pmac_tc_motor->pmac_name);
 
@@ -255,7 +275,7 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 				"%s:StrRsp.VAL", pmac_tc_motor->pmac_name);
 		break;
 
-	case MXT_MTR_PMAC_EPICS_BIO:
+	case MXT_EPICS_PMAC_BIOCAT:
 		mx_epics_pvname_init( &(pmac_tc_motor->i16ai_pv),
 				"%s:Ix16:AI",
 				pmac_tc_motor->speed_record_name_prefix);
@@ -306,12 +326,12 @@ mxd_pmac_tc_motor_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
-	switch( record->mx_type ) {
-	case MXT_MTR_PMAC_EPICS_TC:
+	switch( pmac_tc_motor->database_type ) {
+	case MXT_EPICS_PMAC_TC:
 		fprintf(file,
 		      "  Motor type                = PMAC_TC_MOTOR.\n\n");
 		break;
-	case MXT_MTR_PMAC_EPICS_BIO:
+	case MXT_EPICS_PMAC_BIOCAT:
 		fprintf(file,
 		      "  Motor type                = PMAC_BIO_MOTOR.\n\n");
 		break;
@@ -332,7 +352,7 @@ mxd_pmac_tc_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  abort record              = %s\n",
 			pmac_tc_motor->abort_record_name);
 
-	if ( record->mx_type == MXT_MTR_PMAC_EPICS_BIO ) {
+	if ( pmac_tc_motor->database_type == MXT_EPICS_PMAC_BIOCAT ) {
 		fprintf(file,
 		      "  speed record name prefix  = %s\n",
 			pmac_tc_motor->speed_record_name_prefix);

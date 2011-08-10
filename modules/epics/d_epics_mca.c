@@ -84,16 +84,6 @@ mxd_epics_mca_get_pointers( MX_MCA *mca,
 			calling_fname );
 	}
 
-	if ( mca->record->mx_type != MXT_MCA_EPICS ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"The mca '%s' passed by '%s' is not an EPICS MCA.  "
-	"(superclass = %ld, class = %ld, type = %ld)",
-			mca->record->name, calling_fname,
-			mca->record->mx_superclass,
-			mca->record->mx_class,
-			mca->record->mx_type );
-	}
-
 	if ( epics_mca != (MX_EPICS_MCA **) NULL ) {
 
 		*epics_mca = (MX_EPICS_MCA *)
@@ -209,7 +199,8 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD *list_head_record, *current_record;
 	MX_EPICS_MCA *epics_mca, *current_epics_mca;
 	MX_RECORD_FIELD *field;
-	long i, num_mcas;
+	MX_DRIVER *our_driver;
+	long i, num_mcas, our_mx_type;
 	char *detector_name, *current_detector_name;
 	mx_status_type mx_status;
 
@@ -239,6 +230,17 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 
 	list_head_record = record->list_head;
 
+	/* Get the driver type for our driver. */
+
+	our_driver = mx_get_driver_for_record( record );
+
+	if ( our_driver == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Could not find the driver for record '%s'.", record->name );
+	}
+
+	our_mx_type = our_driver->mx_type;
+
 	/* On our first pass, we find out how many matching MCAs are present. */
 
 	num_mcas = 0;
@@ -246,7 +248,7 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 	current_record = list_head_record->next_record;
 
 	while ( current_record != list_head_record ) {
-		if ( current_record->mx_type == MXT_MCA_EPICS ) {
+		if ( current_record->mx_type == our_mx_type ) {
 			current_epics_mca = current_record->record_type_struct;
 
 			current_detector_name =
@@ -289,7 +291,7 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 	current_record = list_head_record->next_record;
 
 	while ( current_record != list_head_record ) {
-		if ( current_record->mx_type == MXT_MCA_EPICS ) {
+		if ( current_record->mx_type == our_mx_type ) {
 			current_epics_mca = current_record->record_type_struct;
 
 			current_detector_name =

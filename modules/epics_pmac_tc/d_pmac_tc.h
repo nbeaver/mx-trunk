@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2004, 2006, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,11 @@
 #define MXF_PTC_START_DELAY_IN_PROGRESS	2
 #define MXF_PTC_MOVE_IN_PROGRESS	3
 #define MXF_PTC_END_DELAY_IN_PROGRESS	4
+
+/* Values for the 'database_type' field below. */
+
+#define MXT_EPICS_PMAC_TC	1
+#define MXT_EPICS_PMAC_BIOCAT	2
 
 typedef struct {
 	char actual_position_record_name[MXU_EPICS_PVNAME_LENGTH+1];
@@ -59,6 +64,8 @@ typedef struct {
 	MX_EPICS_PV i16ao_pv;
 	MX_EPICS_PV i20fan_pv;
 	MX_EPICS_PV i20li_pv;
+
+	long database_type;
 } MX_PMAC_TC_MOTOR;
 
 /* Speeds and accelerations in the PMAC are expressed using milliseconds. */

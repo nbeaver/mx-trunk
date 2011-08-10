@@ -59,6 +59,7 @@
 /**************************************************************************
  * Sets of drivers that have been converted to modules include:           *
  *                                                                        *
+ *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
  *                                                                        *
  **************************************************************************/
@@ -71,16 +72,6 @@
  * distributed by someone else.  For each case, we indicate
  * where the driver may be obtained from.
  */
-
-/*****************************************************************************
- *
- * EPICS is a large experimental control system created originally
- * by Los Alamos National Laboratory and Argonne National Laboratory.
- * The EPICS home page may be found at http://www.aps.anl.gov/epics/.
- * If you do not know what it is, set HAVE_EPICS to 0.
- */
-
-#define HAVE_EPICS			0
 
 /*****************************************************************************
  *

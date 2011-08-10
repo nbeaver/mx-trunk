@@ -788,6 +788,8 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
 	MX_EPICS_MOTOR *epics_motor = NULL;
+	MX_DRIVER *our_driver;
+	long our_mx_type;
 	int i;
 	double raw_destination;
 	mx_status_type mx_status;
@@ -795,12 +797,24 @@ mxd_epics_motor_simultaneous_start( long num_motor_records,
 	if ( num_motor_records <= 0 )
 		return MX_SUCCESSFUL_RESULT;
 
+	/* Get the driver type for the first motor. */
+
+	our_driver = mx_get_driver_for_record( motor_record_array[0] );
+
+	if ( our_driver == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Could not find the driver for record '%s'.",
+			motor_record_array[0]->name );
+	}
+
+	our_mx_type = our_driver->mx_type;
+
 	for ( i = 0; i < num_motor_records; i++ ) {
 		motor_record = motor_record_array[i];
 
 		motor = (MX_MOTOR *) motor_record->record_class_struct;
 
-		if ( motor_record->mx_type != MXT_MTR_EPICS ) {
+		if ( motor_record->mx_type != our_mx_type ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"Cannot perform a simultaneous start since motors "
 			"'%s' and '%s' are not the same type of motors.",

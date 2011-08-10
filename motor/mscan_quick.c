@@ -250,11 +250,13 @@ motor_setup_quick_scan_parameters(
 		case 2:
 			scan_type = MXS_QUI_ENERGY_MCS;
 			break;
+#if 0
 		case 3:
 			scan_type = MXS_QUI_APS_ID;
 			break;
 		case 4:
 			scan_type = MXS_QUI_JOERGER;
+#endif
 			break;
 		default:
 			fprintf( output,
@@ -294,8 +296,10 @@ motor_setup_quick_scan_parameters(
 	switch( scan_type ) {
 	case MXS_QUI_MCS:
 	case MXS_QUI_ENERGY_MCS:
+#if 0
 	case MXS_QUI_JOERGER:
 	case MXS_QUI_APS_ID:
+#endif
 		scan_num_independent_variables = 1;
 		scan_num_motors = 1;
 		break;
@@ -323,6 +327,7 @@ motor_setup_quick_scan_parameters(
 				"energy_mcs_qscan \"\" \"\" ",
 				record_description_buffer_length );
 		break;
+#if 0
 	case MXS_QUI_JOERGER:
 		strlcat( record_description_buffer,
 				"joerger_qscan \"\" \"\" ",
@@ -333,6 +338,7 @@ motor_setup_quick_scan_parameters(
 				"aps_id_qscan \"\" \"\" ",
 				record_description_buffer_length );
 		break;
+#endif
 	default:
 		fprintf( output, "Unknown quick scan type = %ld\n",
 			scan_type );
@@ -688,12 +694,14 @@ motor_setup_quick_scan_parameters(
 	 * data files and plot types.
 	 */
 
+#if 0
 	if ( scan_type == MXS_QUI_JOERGER ) {
 		fprintf( output,
 "\n"
 "For Joerger quick scans, the first input device must be the Joerger timer,\n"
 "while the other input devices must be Joerger scalers.\n\n" );
 	}
+#endif
 
 	first_input_device_record = NULL;
 
@@ -732,7 +740,9 @@ motor_setup_quick_scan_parameters(
 	} else {
 	    switch ( scan_type ) {
 	    case MXS_QUI_MCS:
+#if 0
 	    case MXS_QUI_APS_ID:
+#endif
 		if ( first_input_device_record == NULL ) {
 			strlcpy( default_clock_name, "timer1",
 						sizeof(default_clock_name) );

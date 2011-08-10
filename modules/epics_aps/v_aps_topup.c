@@ -80,11 +80,17 @@ mxv_aps_topup_create_record_structures( MX_RECORD *record )
 
 	MX_VARIABLE *variable_struct;
 	MX_APS_TOPUP *aps_topup;
+	MX_DRIVER *interlock_driver;
 
-	if ( record->mx_type == MXV_CAL_APS_TOPUP_INTERLOCK ) {
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"The topup interlock variable type is not yet implemented.  "
-	"Use the topup time to inject variable type instead." );
+	interlock_driver = mx_get_driver_by_name( "aps_topup_interlock" );
+
+	if ( interlock_driver != (MX_DRIVER *) NULL ) {
+		if ( record->mx_type == interlock_driver->mx_type ) {
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"The topup interlock variable type is not yet "
+			"implemented.  Use the topup time to inject "
+			"variable type instead." );
+		}
 	}
 
 	/* Allocate memory for the necessary structures. */
