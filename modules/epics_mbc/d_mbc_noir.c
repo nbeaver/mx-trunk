@@ -19,10 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bit.h"
@@ -949,6 +945,4 @@ mxd_mbc_noir_set_parameter( MX_AREA_DETECTOR *ad )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

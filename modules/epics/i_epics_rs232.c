@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,11 +19,6 @@
 #define EPIC_RS232_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 
 #include "mx_util.h"
@@ -295,7 +290,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	/* Set the input format to binary. */
 
-	sprintf( pvname, "%s.IFMT", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.IFMT", epics_rs232->epics_record_name );
 
 	format = MXF_EPICS_RS232_BINARY_FORMAT;
 
@@ -306,7 +302,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	/* Set the output format to binary. */
 
-	sprintf( pvname, "%s.OFMT", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.OFMT", epics_rs232->epics_record_name );
 
 	format = MXF_EPICS_RS232_BINARY_FORMAT;
 
@@ -317,7 +314,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	/* Unconditionally turn off output delimiters. */
 
-	sprintf( pvname, "%s.OEOS", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.OEOS", epics_rs232->epics_record_name );
 
 	output_delimiter = '\0';
 
@@ -329,7 +327,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	/* Find out how big the input buffer is for the EPICS record. */
 
-	sprintf( pvname, "%s.IMAX", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.IMAX", epics_rs232->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1,
 				&(epics_rs232->max_input_length) );
@@ -353,7 +352,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 
 	/* Find out how big the output buffer is for the EPICS record. */
 
-	sprintf( pvname, "%s.OMAX", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.OMAX", epics_rs232->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1,
 				&(epics_rs232->max_output_length) );
@@ -416,7 +416,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 		break;
 	}
 
-	sprintf( pvname, "%s.BAUD", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.BAUD", epics_rs232->epics_record_name );
 
 	mx_status = mx_caput_nowait_by_name( pvname, MX_CA_LONG, 1, &speed );
 
@@ -438,7 +439,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 		break;
 	}
 
-	sprintf( pvname, "%s.DBIT", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.DBIT", epics_rs232->epics_record_name );
 
 	mx_status = mx_caput_nowait_by_name( pvname,
 						MX_CA_LONG, 1, &wordsize );
@@ -482,7 +484,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	}
 
 
-	sprintf( pvname, "%s.PRTY", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.PRTY", epics_rs232->epics_record_name );
 
 	mx_status = mx_caput_nowait_by_name( pvname, MX_CA_LONG, 1, &parity );
 
@@ -502,7 +505,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 		break;
 	}
 
-	sprintf( pvname, "%s.SBIT", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.SBIT", epics_rs232->epics_record_name );
 
 	mx_status = mx_caput_nowait_by_name( pvname,
 						MX_CA_LONG, 1, &stop_bits );
@@ -537,7 +541,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 		break;
 	}
 
-	sprintf( pvname, "%s.FCTL", epics_rs232->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.FCTL", epics_rs232->epics_record_name );
 
 	mx_status = mx_caput_nowait_by_name( pvname,
 					MX_CA_LONG, 1, &flow_control );
@@ -1096,6 +1101,4 @@ mxi_epics_rs232_write_buffer( MX_EPICS_RS232 *epics_rs232,
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPICS */
 

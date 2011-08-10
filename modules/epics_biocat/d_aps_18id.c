@@ -17,7 +17,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,79 +42,79 @@
 
 /* Initialize the motor driver jump table. */
 
-MX_RECORD_FUNCTION_LIST mxd_aps_18id_motor_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_aps_18id_record_function_list = {
 	NULL,
-	mxd_aps_18id_motor_create_record_structures,
-	mxd_aps_18id_motor_finish_record_initialization,
+	mxd_aps_18id_create_record_structures,
+	mxd_aps_18id_finish_record_initialization,
 	NULL,
-	mxd_aps_18id_motor_print_motor_structure
+	mxd_aps_18id_print_motor_structure
 };
 
-MX_MOTOR_FUNCTION_LIST mxd_aps_18id_motor_motor_function_list = {
-	mxd_aps_18id_motor_motor_is_busy,
-	mxd_aps_18id_motor_move_absolute,
-	mxd_aps_18id_motor_get_position,
-	mxd_aps_18id_motor_set_position,
-	mxd_aps_18id_motor_soft_abort,
-	mxd_aps_18id_motor_immediate_abort,
-	mxd_aps_18id_motor_positive_limit_hit,
-	mxd_aps_18id_motor_negative_limit_hit,
-	mxd_aps_18id_motor_find_home_position,
-	mxd_aps_18id_motor_constant_velocity_move,
-	mxd_aps_18id_motor_get_parameter,
-	mxd_aps_18id_motor_set_parameter
+MX_MOTOR_FUNCTION_LIST mxd_aps_18id_motor_function_list = {
+	mxd_aps_18id_motor_is_busy,
+	mxd_aps_18id_move_absolute,
+	mxd_aps_18id_get_position,
+	mxd_aps_18id_set_position,
+	mxd_aps_18id_soft_abort,
+	mxd_aps_18id_immediate_abort,
+	mxd_aps_18id_positive_limit_hit,
+	mxd_aps_18id_negative_limit_hit,
+	mxd_aps_18id_find_home_position,
+	mxd_aps_18id_constant_velocity_move,
+	mxd_aps_18id_get_parameter,
+	mxd_aps_18id_set_parameter
 };
 
 /* === */
 
 /* APS_18ID motor data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_aps_18id_motor_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_aps_18id_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_ANALOG_MOTOR_STANDARD_FIELDS,
 	MX_MOTOR_STANDARD_FIELDS,
 	MXD_APS_18ID_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_aps_18id_motor_num_record_fields
-		= sizeof( mxd_aps_18id_motor_record_field_defaults )
-			/ sizeof( mxd_aps_18id_motor_record_field_defaults[0] );
+long mxd_aps_18id_num_record_fields
+		= sizeof( mxd_aps_18id_record_field_defaults )
+			/ sizeof( mxd_aps_18id_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_aps_18id_motor_rfield_def_ptr
-			= &mxd_aps_18id_motor_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_aps_18id_rfield_def_ptr
+			= &mxd_aps_18id_record_field_defaults[0];
 
 /* === */
 
 static mx_status_type
-mxd_aps_18id_motor_get_pointers( MX_MOTOR *motor,
-				MX_APS_18ID_MOTOR **aps_18id_motor,
+mxd_aps_18id_get_pointers( MX_MOTOR *motor,
+				MX_APS_18ID_MOTOR **aps_18id,
 				MX_RECORD **bragg_motor_record,
 				MX_RECORD **tune_motor_record )
 {
-	static const char fname[] = "mxd_aps_18id_motor_find_home_position()";
+	static const char fname[] = "mxd_aps_18id_find_home_position()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor_ptr;
+	MX_APS_18ID_MOTOR *aps_18id_ptr;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_MOTOR pointer passed was NULL.");
 	}
 
-	aps_18id_motor_ptr = (MX_APS_18ID_MOTOR *)
+	aps_18id_ptr = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor_ptr == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id_ptr == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		    "MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	if ( aps_18id_motor != NULL ) {
-		*aps_18id_motor = aps_18id_motor_ptr;
+	if ( aps_18id != NULL ) {
+		*aps_18id = aps_18id_ptr;
 	}
 
 	if ( bragg_motor_record != NULL ) {
-		*bragg_motor_record = aps_18id_motor_ptr->bragg_motor_record;
+		*bragg_motor_record = aps_18id_ptr->bragg_motor_record;
 
 		if ( *bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -124,7 +124,7 @@ mxd_aps_18id_motor_get_pointers( MX_MOTOR *motor,
 	}
 
 	if ( tune_motor_record != NULL ) {
-		*tune_motor_record = aps_18id_motor_ptr->tune_motor_record;
+		*tune_motor_record = aps_18id_ptr->tune_motor_record;
 
 		if ( *tune_motor_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -139,13 +139,13 @@ mxd_aps_18id_motor_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
+mxd_aps_18id_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_aps_18id_motor_create_record_structures()";
+		"mxd_aps_18id_create_record_structures()";
 
 	MX_MOTOR *motor;
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -156,9 +156,9 @@ mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_MOTOR structure." );
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *) malloc( sizeof(MX_MOTOR) );
+	aps_18id = (MX_APS_18ID_MOTOR *) malloc( sizeof(MX_MOTOR) );
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Can't allocate memory for MX_APS_18ID_MOTOR structure." );
 	}
@@ -166,9 +166,9 @@ mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = motor;
-	record->record_type_struct = aps_18id_motor;
+	record->record_type_struct = aps_18id;
 	record->class_specific_function_list
-				= &mxd_aps_18id_motor_motor_function_list;
+				= &mxd_aps_18id_motor_function_list;
 
 	motor->record = record;
 
@@ -180,13 +180,13 @@ mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_finish_record_initialization( MX_RECORD *record )
+mxd_aps_18id_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_aps_18id_motor_finish_record_initialization()";
+		"mxd_aps_18id_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 
 	mx_status_type mx_status;
 
@@ -206,27 +206,27 @@ mxd_aps_18id_motor_finish_record_initialization( MX_RECORD *record )
 	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
 	motor->motor_flags |= MXF_MTR_PSEUDOMOTOR_RECURSION_IS_NOT_NECESSARY;
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *) record->record_type_struct;
+	aps_18id = (MX_APS_18ID_MOTOR *) record->record_type_struct;
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			record->name );
 	}
 
-	motor->real_motor_record = aps_18id_motor->bragg_motor_record;
+	motor->real_motor_record = aps_18id->bragg_motor_record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
+mxd_aps_18id_print_motor_structure( FILE *file, MX_RECORD *record )
 {
 	static const char fname[] =
-		"mxd_aps_18id_motor_print_motor_structure()";
+		"mxd_aps_18id_print_motor_structure()";
 
 	MX_MOTOR *motor;
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	double position;
 	mx_status_type mx_status;
 
@@ -242,9 +242,9 @@ mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		"MX_MOTOR pointer for record '%s' is NULL.", record->name );
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *) (record->record_type_struct);
+	aps_18id = (MX_APS_18ID_MOTOR *) (record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			record->name );
@@ -255,41 +255,41 @@ mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name                           = %s\n", record->name);
 	fprintf(file, "  bragg motor                    = %s\n",
-				aps_18id_motor->bragg_motor_record->name);
+				aps_18id->bragg_motor_record->name);
 	fprintf(file, "  trolleyY motor                 = %s\n",
-				aps_18id_motor->trolleyY_motor_record->name);
+				aps_18id->trolleyY_motor_record->name);
 	fprintf(file, "  trolleyY linked                = %s\n",
-				aps_18id_motor->trolleyY_linked_record->name);
+				aps_18id->trolleyY_linked_record->name);
 	fprintf(file, "  trolleyX motor                 = %s\n",
-				aps_18id_motor->trolleyX_motor_record->name);
+				aps_18id->trolleyX_motor_record->name);
 	fprintf(file, "  trolleyX linked                = %s\n",
-				aps_18id_motor->trolleyX_linked_record->name);
+				aps_18id->trolleyX_linked_record->name);
 	fprintf(file, "  trolley setup                  = %s\n",
-				aps_18id_motor->trolley_setup_record->name);
+				aps_18id->trolley_setup_record->name);
 	fprintf(file, "  gap energy motor               = %s\n",
-				aps_18id_motor->gap_energy_motor_record->name);
+				aps_18id->gap_energy_motor_record->name);
 	fprintf(file, "  gap linked                     = %s\n",
-				aps_18id_motor->gap_linked_record->name);
+				aps_18id->gap_linked_record->name);
 	fprintf(file, "  gap offset                     = %s\n",
-				aps_18id_motor->gap_offset_record->name);
+				aps_18id->gap_offset_record->name);
 	fprintf(file, "  gap harmonic                   = %s\n",
-				aps_18id_motor->gap_harmonic_record->name);
+				aps_18id->gap_harmonic_record->name);
 	fprintf(file, "  tune motor                     = %s\n",
-				aps_18id_motor->tune_motor_record->name);
+				aps_18id->tune_motor_record->name);
 	fprintf(file, "  tune linked record             = %s\n",
-				aps_18id_motor->tune_linked_record->name);
+				aps_18id->tune_linked_record->name);
 	fprintf(file, "  tune parameters record         = %s\n",
-				aps_18id_motor->tune_parameters_record->name);
+				aps_18id->tune_parameters_record->name);
 	fprintf(file, "  piezo_left motor               = %s\n",
-				aps_18id_motor->piezo_left_motor_record->name);
+				aps_18id->piezo_left_motor_record->name);
 	fprintf(file, "  piezo_right motor              = %s\n",
-				aps_18id_motor->piezo_right_motor_record->name);
+				aps_18id->piezo_right_motor_record->name);
 	fprintf(file, "  piezo enable record            = %s\n",
-				aps_18id_motor->piezo_enable_record->name);
+				aps_18id->piezo_enable_record->name);
 	fprintf(file, "  piezo parameters record        = %s\n",
-				aps_18id_motor->piezo_parameters_record->name);
+				aps_18id->piezo_parameters_record->name);
 	fprintf(file, "  d spacing                      = %s\n",
-				aps_18id_motor->d_spacing_record->name);
+				aps_18id->d_spacing_record->name);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -317,11 +317,11 @@ mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
+mxd_aps_18id_motor_is_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_motor_is_busy()";
+	static const char fname[] = "mxd_aps_18id_motor_is_busy()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *tune_motor_record;
@@ -335,10 +335,10 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
@@ -346,7 +346,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 
 	/* Check to see if bragg is busy. */
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -370,7 +370,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	/* If bragg was not busy, check to see if tune is busy
 		(trolleyX and Y motors use the same busy signals. */
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -393,7 +393,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 
 	/* If bragg and tune were not busy, check to see if piezo is busy. */
 
-	piezo_left_motor_record = aps_18id_motor->piezo_left_motor_record;
+	piezo_left_motor_record = aps_18id->piezo_left_motor_record;
 
 	if ( piezo_left_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -424,7 +424,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_get_long_variable_by_name( bragg_motor_record->list_head,
-				aps_18id_motor->gap_linked_record->name,
+				aps_18id->gap_linked_record->name,
 				&gap_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -432,7 +432,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 
 	if ( gap_linked != 0 ) {
 		gap_energy_motor_record =
-			aps_18id_motor->gap_energy_motor_record;
+			aps_18id->gap_energy_motor_record;
 
 		if ( gap_energy_motor_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -452,11 +452,11 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
+mxd_aps_18id_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_move_absolute()";
+	static const char fname[] = "mxd_aps_18id_move_absolute()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *list_head;
 	int num_motors;
 	MX_RECORD *motor_record_array[MXF_APS_18ID_NUM_REAL_MOTOR_RECORDS];
@@ -492,10 +492,10 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
@@ -518,7 +518,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	/* First bragg motor which is the first indexed motor   */
 	
 	motor_record_array[ bragg_motor_index ] 
-					= aps_18id_motor->bragg_motor_record;
+					= aps_18id->bragg_motor_record;
 					
 	if (motor_record_array[ bragg_motor_index ] == (MX_RECORD *)NULL){
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -531,7 +531,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_get_long_variable_by_name( list_head,
-				aps_18id_motor->trolleyY_linked_record->name,
+				aps_18id->trolleyY_linked_record->name,
 				&trolleyY_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -544,7 +544,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		tune_motor_index--;
 	} else {
 		motor_record_array[ trolleyY_motor_index ] 
-			= aps_18id_motor->trolleyY_motor_record;
+			= aps_18id->trolleyY_motor_record;
 						
 		if ( motor_record_array[ trolleyY_motor_index ]
 			== (MX_RECORD *)NULL )
@@ -558,7 +558,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 /* Next we do TrolleyX  */
 
 	mx_status = mx_get_long_variable_by_name( list_head,
-				aps_18id_motor->trolleyX_linked_record->name,
+				aps_18id->trolleyX_linked_record->name,
 				&trolleyX_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -570,7 +570,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		tune_motor_index--;
 	} else {
 		motor_record_array[ trolleyX_motor_index ] 
-				= aps_18id_motor->trolleyX_motor_record;
+				= aps_18id->trolleyX_motor_record;
 						
 		if ( motor_record_array[ trolleyX_motor_index ]
 			== (MX_RECORD *)NULL )
@@ -584,7 +584,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	/*  Now we do gap  */
 
 	mx_status = mx_get_long_variable_by_name( list_head,
-				aps_18id_motor->gap_linked_record->name,
+				aps_18id->gap_linked_record->name,
 				&gap_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -596,7 +596,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		tune_motor_index--;
 	} else {
 		motor_record_array[ gap_energy_motor_index ] 
-			= aps_18id_motor->gap_energy_motor_record;
+			= aps_18id->gap_energy_motor_record;
 						
 		if ( motor_record_array[ gap_energy_motor_index ]
 			== (MX_RECORD *)NULL)
@@ -610,7 +610,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	/* Next to last is tune  */
 
 	mx_status = mx_get_long_variable_by_name( list_head,
-			aps_18id_motor->tune_linked_record->name,
+			aps_18id->tune_linked_record->name,
 			&tune_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -620,7 +620,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		num_motors--;
 	} else {
 		motor_record_array[ tune_motor_index ]
-			= aps_18id_motor->tune_motor_record;
+			= aps_18id->tune_motor_record;
 
 		if ( motor_record_array[ tune_motor_index ]
 			== (MX_RECORD *) NULL)
@@ -634,10 +634,10 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	/* piezo motors are the last  */
 
 	mx_status = mx_get_long_variable_by_name( list_head,
-			aps_18id_motor->piezo_enable_record->name,
+			aps_18id->piezo_enable_record->name,
 			&piezo_enable );
 
-	piezo_left_motor_record = aps_18id_motor->piezo_left_motor_record;
+	piezo_left_motor_record = aps_18id->piezo_left_motor_record;
 
 	if ( piezo_left_motor_record == (MX_RECORD *) NULL) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -645,7 +645,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			motor->record->name );
 	}
 	
-	piezo_right_motor_record = aps_18id_motor->piezo_right_motor_record;
+	piezo_right_motor_record = aps_18id->piezo_right_motor_record;
 
 	if ( piezo_right_motor_record == (MX_RECORD *) NULL) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -662,20 +662,20 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_get_double_variable_by_name( list_head,
-			aps_18id_motor->d_spacing_record->name,
+			aps_18id->d_spacing_record->name,
 			&d_spacing );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	angle_in_radians = bragg * (aps_18id_motor->angle_scale);
+	angle_in_radians = bragg * (aps_18id->angle_scale);
 
 	mono_energy = MX_HC / ( 2.0 * d_spacing * sin(angle_in_radians));
 
 #if 0
 	MX_DEBUG( 2,
 		("%s: bragg = %g, angle_in_radians = %g, angle_scale = %g",
-		fname, bragg, angle_in_radians, aps_18id_motor->angle_scale));
+		fname, bragg, angle_in_radians, aps_18id->angle_scale));
 	MX_DEBUG( 2,
 		("%s: d_spacing = %g, MX_HC = %g, mono_energy = %g",
 		fname, d_spacing, MX_HC, mono_energy));
@@ -697,7 +697,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 * one dimensional array of doubles.
 	 */
 
-	mx_status = mx_find_record_field( aps_18id_motor->tune_parameters_record,
+	mx_status = mx_find_record_field( aps_18id->tune_parameters_record,
 				"value", &value_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -713,7 +713,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"A cubic polynomial fit requires 4 parameters.  "
 			"'%s' has only %ld parameters.",
-				aps_18id_motor->tune_parameters_record->name,
+				aps_18id->tune_parameters_record->name,
 				num_parameters );
 	}
 
@@ -736,7 +736,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		/* Get the fitting function type. */
 
 		mx_status = mx_get_long_variable_by_name( list_head,
-				aps_18id_motor->tune_linked_record->name,
+				aps_18id->tune_linked_record->name,
 				&tune_linked );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -747,7 +747,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		 */
 
 		mx_status = mx_find_record_field(
-				aps_18id_motor->tune_parameters_record,
+				aps_18id->tune_parameters_record,
 					"value", &value_field );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -775,7 +775,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"A cubic polynomial fit requires 4 parameters.  "
 			"'%s' has only %ld parameters.",
-				aps_18id_motor->tune_parameters_record->name,
+				aps_18id->tune_parameters_record->name,
 				num_parameters );
 		}
 		tune = parameter_array[0] + mono_energy * (
@@ -797,7 +797,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		/* Get the requested offset for the undulator gap. */
 
 		mx_status = mx_get_double_variable_by_name( list_head,
-				aps_18id_motor->gap_offset_record->name,
+				aps_18id->gap_offset_record->name,
 				&gap_offset );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -810,7 +810,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		 */
 
 		mx_status = mx_get_long_variable_by_name( list_head,
-				aps_18id_motor->gap_harmonic_record->name,
+				aps_18id->gap_harmonic_record->name,
 				&gap_harmonic );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -839,7 +839,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	/* making sure trolley motors are moved too */
 
 	mx_status = mx_set_long_variable(
-			aps_18id_motor->trolley_setup_record, 1L );
+			aps_18id->trolley_setup_record, 1L );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -855,7 +855,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		 */
 	
 		mx_status = mx_find_record_field(
-				aps_18id_motor->piezo_parameters_record,
+				aps_18id->piezo_parameters_record,
 					"value", &value_field );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -887,7 +887,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"A cubic polynomial fit requires 4 parameters.  "
 			"'%s' has only %ld parameters.",
-				aps_18id_motor->piezo_parameters_record->name,
+				aps_18id->piezo_parameters_record->name,
 				num_parameters );
 		}
 		piezo_scale = parameter_array[0] + mono_energy * (
@@ -897,7 +897,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	
 		/*  We need to read the BPMs to determine the piezo value */
 		
-		bpm_top_scaler_record = aps_18id_motor->bpm_top_scaler_record;
+		bpm_top_scaler_record = aps_18id->bpm_top_scaler_record;
 		
 		if ( bpm_top_scaler_record == (MX_RECORD *) NULL) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -906,7 +906,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		}
 
 		bpm_bottom_scaler_record
-				= aps_18id_motor->bpm_bottom_scaler_record;
+				= aps_18id->bpm_bottom_scaler_record;
 		
 		if ( bpm_bottom_scaler_record == (MX_RECORD *) NULL) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -914,7 +914,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 				motor->record->name );
 		}
 		
-		timer_record = aps_18id_motor->timer_record;
+		timer_record = aps_18id->timer_record;
 		
 		if ( timer_record == (MX_RECORD *) NULL) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1020,7 +1020,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			if ( tune_linked == 0 ) {
 			
 			    tune_motor_record =
-					aps_18id_motor->tune_motor_record;
+					aps_18id->tune_motor_record;
 
 			    if ( tune_motor_record == (MX_RECORD *) NULL ) {
 				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
@@ -1045,7 +1045,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			 */
 			
 			trolleyY_motor_record
-				= aps_18id_motor->trolleyY_motor_record;
+				= aps_18id->trolleyY_motor_record;
 
 			if (trolleyY_motor_record == (MX_RECORD *) NULL) {
 				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
@@ -1072,11 +1072,11 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
+mxd_aps_18id_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_get_position()";
+	static const char fname[] = "mxd_aps_18id_get_position()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	double bragg;
 	mx_status_type mx_status;
@@ -1086,16 +1086,16 @@ mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1120,11 +1120,11 @@ mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_set_position( MX_MOTOR *motor )
+mxd_aps_18id_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_set_position()";
+	static const char fname[] = "mxd_aps_18id_set_position()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	double bragg;
 	mx_status_type mx_status;
@@ -1134,16 +1134,16 @@ mxd_aps_18id_motor_set_position( MX_MOTOR *motor )
 			"MX_MOTOR pointer passed NULL." );
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1163,11 +1163,11 @@ mxd_aps_18id_motor_set_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
+mxd_aps_18id_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_soft_abort()";
+	static const char fname[] = "mxd_aps_18id_soft_abort()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *trolleyY_motor_record;
 	MX_RECORD *trolleyX_motor_record;
@@ -1183,16 +1183,16 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1200,7 +1200,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyY_motor_record = aps_18id_motor->trolleyY_motor_record;
+	trolleyY_motor_record = aps_18id->trolleyY_motor_record;
 
 	if ( trolleyY_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1208,7 +1208,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyX_motor_record = aps_18id_motor->trolleyX_motor_record;
+	trolleyX_motor_record = aps_18id->trolleyX_motor_record;
 
 	if ( trolleyX_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1216,7 +1216,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1224,7 +1224,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	gap_energy_motor_record = aps_18id_motor->gap_energy_motor_record;
+	gap_energy_motor_record = aps_18id->gap_energy_motor_record;
 
 	if ( gap_energy_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1233,7 +1233,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 	}
 
 	mx_status = mx_get_long_variable_by_name( motor->record->list_head,
-				aps_18id_motor->gap_linked_record->name,
+				aps_18id->gap_linked_record->name,
 				&gap_linked );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1262,11 +1262,11 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
+mxd_aps_18id_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_immediate_abort()";
+	static const char fname[] = "mxd_aps_18id_immediate_abort()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *trolleyY_motor_record;
 	MX_RECORD *trolleyX_motor_record;
@@ -1280,16 +1280,16 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1297,7 +1297,7 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyY_motor_record = aps_18id_motor->trolleyY_motor_record;
+	trolleyY_motor_record = aps_18id->trolleyY_motor_record;
 
 	if ( trolleyY_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1305,7 +1305,7 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyX_motor_record = aps_18id_motor->trolleyX_motor_record;
+	trolleyX_motor_record = aps_18id->trolleyX_motor_record;
 
 	if ( trolleyX_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1313,7 +1313,7 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1321,7 +1321,7 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	gap_energy_motor_record = aps_18id_motor->gap_energy_motor_record;
+	gap_energy_motor_record = aps_18id->gap_energy_motor_record;
 
 	if ( gap_energy_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1348,11 +1348,11 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
+mxd_aps_18id_positive_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_aps_18id_positive_limit_hit()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *trolleyY_motor_record;
 	MX_RECORD *trolleyX_motor_record;
@@ -1367,16 +1367,16 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1384,7 +1384,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyY_motor_record = aps_18id_motor->trolleyY_motor_record;
+	trolleyY_motor_record = aps_18id->trolleyY_motor_record;
 
 	if ( trolleyY_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1392,7 +1392,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyX_motor_record = aps_18id_motor->trolleyX_motor_record;
+	trolleyX_motor_record = aps_18id->trolleyX_motor_record;
 
 	if ( trolleyX_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1400,7 +1400,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1408,7 +1408,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	piezo_left_motor_record = aps_18id_motor->piezo_left_motor_record;
+	piezo_left_motor_record = aps_18id->piezo_left_motor_record;
 
 	if ( piezo_left_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1416,7 +1416,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	piezo_right_motor_record = aps_18id_motor->piezo_right_motor_record;
+	piezo_right_motor_record = aps_18id->piezo_right_motor_record;
 
 	if ( piezo_right_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1512,11 +1512,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
+mxd_aps_18id_negative_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_aps_18id_negative_limit_hit()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *trolleyY_motor_record;
 	MX_RECORD *trolleyX_motor_record;
@@ -1531,16 +1531,16 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1548,7 +1548,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyY_motor_record = aps_18id_motor->trolleyY_motor_record;
+	trolleyY_motor_record = aps_18id->trolleyY_motor_record;
 
 	if ( trolleyY_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1556,7 +1556,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	trolleyX_motor_record = aps_18id_motor->trolleyX_motor_record;
+	trolleyX_motor_record = aps_18id->trolleyX_motor_record;
 
 	if ( trolleyX_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1564,7 +1564,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1572,7 +1572,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	piezo_left_motor_record = aps_18id_motor->piezo_left_motor_record;
+	piezo_left_motor_record = aps_18id->piezo_left_motor_record;
 
 	if ( piezo_left_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1580,7 +1580,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	piezo_right_motor_record = aps_18id_motor->piezo_right_motor_record;
+	piezo_right_motor_record = aps_18id->piezo_right_motor_record;
 
 	if ( piezo_right_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1674,11 +1674,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
+mxd_aps_18id_find_home_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_find_home_position()";
+	static const char fname[] = "mxd_aps_18id_find_home_position()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *tune_motor_record;
 	long direction;
@@ -1689,16 +1689,16 @@ mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 		"MX_MOTOR pointer passed NULL.");
 	}
 
-	aps_18id_motor = (MX_APS_18ID_MOTOR *)
+	aps_18id = (MX_APS_18ID_MOTOR *)
 				(motor->record->record_type_struct);
 
-	if ( aps_18id_motor == (MX_APS_18ID_MOTOR *) NULL ) {
+	if ( aps_18id == (MX_APS_18ID_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_APS_18ID_MOTOR pointer for record '%s' is NULL.",
 			motor->record->name );
 	}
 
-	bragg_motor_record = aps_18id_motor->bragg_motor_record;
+	bragg_motor_record = aps_18id->bragg_motor_record;
 
 	if ( bragg_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1706,7 +1706,7 @@ mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	tune_motor_record = aps_18id_motor->tune_motor_record;
+	tune_motor_record = aps_18id->tune_motor_record;
 
 	if ( tune_motor_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1729,9 +1729,9 @@ mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_constant_velocity_move( MX_MOTOR *motor )
+mxd_aps_18id_constant_velocity_move( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_aps_18id_constant_velocity_move()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Constant velocity moves are not yet implemented for motor '%s'.",
@@ -1739,18 +1739,18 @@ mxd_aps_18id_motor_constant_velocity_move( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
+mxd_aps_18id_get_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_get_parameter()";
+	static const char fname[] = "mxd_aps_18id_get_parameter()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	double double_value;
 	double start_position, end_position;
 	double real_start_position, real_end_position;
 	mx_status_type mx_status;
 
-	mx_status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
+	mx_status = mxd_aps_18id_get_pointers( motor, &aps_18id,
 						&bragg_motor_record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1852,16 +1852,16 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
+mxd_aps_18id_set_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_aps_18id_motor_set_parameter()";
+	static const char fname[] = "mxd_aps_18id_set_parameter()";
 
-	MX_APS_18ID_MOTOR *aps_18id_motor;
+	MX_APS_18ID_MOTOR *aps_18id;
 	MX_RECORD *bragg_motor_record;
 	double start_position, end_position, time_for_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
+	mx_status = mxd_aps_18id_get_pointers( motor, &aps_18id,
 						&bragg_motor_record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )

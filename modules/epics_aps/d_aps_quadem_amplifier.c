@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -30,7 +25,6 @@
 #include "mx_record.h"
 #include "mx_epics.h"
 #include "mx_amplifier.h"
-
 #include "d_aps_quadem_amplifier.h"
 
 /* Initialize the amplifier driver jump table. */
@@ -397,6 +391,4 @@ mxd_aps_quadem_set_parameter( MX_AMPLIFIER *amplifier )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

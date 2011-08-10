@@ -10,7 +10,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006, 2008-2009, 2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,17 +23,12 @@
 #include <string.h>
 #include <math.h>
 
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include "mx_util.h"
+#include "mx_clock.h"
 #include "mx_driver.h"
 #include "mx_epics.h"
 #include "mx_motor.h"
 #include "d_epics_motor.h"
-
-#include "mx_clock.h"
 
 /* Initialize the motor driver jump table. */
 
@@ -872,7 +868,7 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 
 		/* See what the driver type is. */
 
-		sprintf( pvname, "%s.DTYP",
+		snprintf( pvname, sizeof(pvname), "%s.DTYP",
 				epics_motor->epics_record_name );
 
 		mx_status = mx_caget_by_name( pvname,
@@ -895,7 +891,7 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 		if ( epics_motor->driver_type == MXT_EPICS_MOTOR_TIEMAN ) {
 			epics_motor->epics_record_version = 0;
 		} else {
-			sprintf( pvname, "%s.VERS",
+			snprintf( pvname, sizeof(pvname), "%s.VERS",
 				epics_motor->epics_record_name );
 
 			mx_status = mx_caget_by_name( pvname,
@@ -1166,6 +1162,4 @@ mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPICS */
 

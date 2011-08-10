@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,11 +18,6 @@
 #define MX_EPICS_VME_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <limits.h>
 
@@ -34,6 +29,8 @@
 #include "mx_epics.h"
 #include "mx_vme.h"
 #include "i_epics_vme.h"
+
+#include "mx_poison.h"
 
 MX_RECORD_FUNCTION_LIST mxi_epics_vme_record_function_list = {
 	NULL,
@@ -794,7 +791,8 @@ mxi_epics_vme_open( MX_RECORD *record )
 	 * in one request.
 	 */
 
-	sprintf( pvname, "%s.NMAX", epics_vme->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.NMAX", epics_vme->epics_record_name );
 
 	MX_DEBUG( 2,("%s: about to read from '%s'", fname, pvname ));
 
@@ -820,7 +818,7 @@ mxi_epics_vme_open( MX_RECORD *record )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory allocating a %ld element "
 			"data transfer buffer for EPICS VME record '%s'.",
-				(long) epics_vme->max_epics_values, record->name );
+			(long) epics_vme->max_epics_values, record->name );
 	}
 
 	/* Allocate memory for the EPICS VME status array. */
@@ -938,4 +936,3 @@ mxi_epics_vme_set_parameter( MX_VME *vme )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_EPICS */

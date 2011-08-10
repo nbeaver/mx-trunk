@@ -30,7 +30,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,8 +40,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-#include "mxconfig.h"
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -56,8 +54,6 @@
 #include "sq_aps_id.h"
 #include "d_aps_gap.h"
 #include "d_mcs_scaler.h"
-
-#if HAVE_EPICS
 
 #if 0
 #define PRINT_SPEED( number ) \
@@ -1056,4 +1052,3 @@ mxs_apsid_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	return mx_status;
 }
 
-#endif /* HAVE_EPICS */

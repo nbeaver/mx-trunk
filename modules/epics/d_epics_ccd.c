@@ -1,7 +1,7 @@
 /*
  * Name:    d_epics_ccd.c
  *
- * Purpose: MX driver for the EPICS CCD record.
+ * Purpose: MX driver for the old EPICS CCD record.
  *
  * Author:  William Lavender
  *
@@ -18,10 +18,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -691,4 +687,3 @@ mxd_epics_ccd_set_parameter( MX_AREA_DETECTOR *ad )
 	return mx_status;
 }
 
-#endif /* HAVE_EPICS */

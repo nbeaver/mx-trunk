@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,6 @@
 #define EPICS_GPIB_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -296,7 +291,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	/* Send device clear to the bus. */
 
-	sprintf( pvname, "%s.UCMD", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.UCMD", epics_gpib->epics_record_name );
 
 	command = MXF_EPICS_GPIB_DEVICE_CLEAR;
 
@@ -307,7 +303,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	/* Set the input format to binary. */
 
-	sprintf( pvname, "%s.IFMT", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.IFMT", epics_gpib->epics_record_name );
 
 	format = MXF_EPICS_GPIB_BINARY_FORMAT;
 
@@ -318,7 +315,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	/* Set the output format to binary. */
 
-	sprintf( pvname, "%s.OFMT", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.OFMT", epics_gpib->epics_record_name );
 
 	format = MXF_EPICS_GPIB_BINARY_FORMAT;
 
@@ -329,7 +327,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	/* Find out how big the input buffer is for the EPICS record. */
 
-	sprintf( pvname, "%s.IMAX", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.IMAX", epics_gpib->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1,
 					&(epics_gpib->max_input_length) );
@@ -339,7 +338,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	/* Find out how big the output buffer is for the EPICS record. */
 
-	sprintf( pvname, "%s.OMAX", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.OMAX", epics_gpib->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1,
 					&(epics_gpib->max_output_length) );
@@ -359,7 +359,8 @@ mxi_epics_gpib_open( MX_RECORD *record )
 
 	epics_gpib->current_eos_char = (long) (gpib->default_read_terminator);
 
-	sprintf( pvname, "%s.EOS", epics_gpib->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.EOS", epics_gpib->epics_record_name );
 
 	mx_status = mx_caput_by_name( pvname, MX_CA_LONG,
 					1, &(epics_gpib->current_eos_char) );
@@ -885,4 +886,3 @@ mxi_epics_gpib_addressed_command( MX_EPICS_GPIB *epics_gpib,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_EPICS */

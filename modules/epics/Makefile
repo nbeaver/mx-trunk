@@ -1,11 +1,14 @@
 
 
-MX_ARCH = linux
+ifndef MX_ARCH
+    MX_ARCH = linux
+endif
 
 all: epics.mxo
 
 #
-# Customization of EPICS configuration is performed in Makehead.config
+# Customization of the EPICS configuration is performed in Makehead.config
+#
 
 include Makefile.config
 
@@ -19,9 +22,7 @@ EPICS_OBJS = epics.$(OBJ) \
 	d_epics_dio.$(OBJ) d_epics_mca.$(OBJ) d_epics_mcs.$(OBJ) \
 	d_epics_motor.$(OBJ) d_epics_scaler.$(OBJ) d_epics_timer.$(OBJ) \
 	i_epics_gpib.$(OBJ) i_epics_rs232.$(OBJ) i_epics_vme.$(OBJ) \
-	mx_epics.$(OBJ) mx_vepics.$(OBJ)
-
-#	sq_joerger.$(OBJ)
+	mx_epics.$(OBJ) mx_vepics.$(OBJ) sq_joerger.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -91,6 +92,7 @@ ifeq ($(MX_ARCH),win32)
 
 epics.mxo: $(EPICS_OBJS)
 	link /dll /debug /nologo /out:epics.mxo /nodefaultlib:libc \
+		$(EPICS_OBJS) ..\\..\\libMx/libMx.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 

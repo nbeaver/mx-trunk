@@ -18,11 +18,6 @@
 #define MXD_MBC_GSC_TRIGGER_DEBUG		FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -614,6 +609,4 @@ mxd_mbc_gsc_trigger_set_parameter( MX_PULSE_GENERATOR *pulser )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif  /* HAVE_EPICS */
 

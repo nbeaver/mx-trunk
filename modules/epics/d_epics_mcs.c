@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,10 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -911,6 +907,4 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPICS */
 

@@ -66,32 +66,32 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_aps_18id_motor_create_record_structures(
+MX_API mx_status_type mxd_aps_18id_create_record_structures(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_aps_18id_motor_finish_record_initialization(
+MX_API mx_status_type mxd_aps_18id_finish_record_initialization(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_aps_18id_motor_print_motor_structure(
+MX_API mx_status_type mxd_aps_18id_print_motor_structure(
 					FILE *file, MX_RECORD *record );
 
-MX_API mx_status_type mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_get_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_set_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_constant_velocity_move(
+MX_API mx_status_type mxd_aps_18id_motor_is_busy( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_move_absolute( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_get_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_set_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_immediate_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_positive_limit_hit( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_negative_limit_hit( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_find_home_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_constant_velocity_move(
 							MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_get_parameter( MX_MOTOR *motor );
+MX_API mx_status_type mxd_aps_18id_set_parameter( MX_MOTOR *motor );
 
-extern MX_RECORD_FUNCTION_LIST mxd_aps_18id_motor_record_function_list;
-extern MX_MOTOR_FUNCTION_LIST mxd_aps_18id_motor_motor_function_list;
+extern MX_RECORD_FUNCTION_LIST mxd_aps_18id_record_function_list;
+extern MX_MOTOR_FUNCTION_LIST mxd_aps_18id_motor_function_list;
 
-extern long mxd_aps_18id_motor_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_18id_motor_rfield_def_ptr;
+extern long mxd_aps_18id_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_18id_rfield_def_ptr;
 
 #define MXD_APS_18ID_MOTOR_STANDARD_FIELDS \
   {-1, -1, "bragg_motor_record", MXFT_RECORD, NULL, 0, {0}, \

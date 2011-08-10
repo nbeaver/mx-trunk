@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,11 +16,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -425,6 +420,4 @@ mxd_epics_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,10 +16,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -347,6 +343,4 @@ mxv_epics_variable_receive_variable( MX_VARIABLE *variable )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

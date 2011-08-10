@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,10 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -1439,4 +1435,3 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 	return mx_status;
 }
 
-#endif /* HAVE_EPICS */

@@ -8,7 +8,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006, 2008-2009, 2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,10 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_driver.h"
@@ -309,14 +306,14 @@ mxd_aps_gap_print_structure( FILE *file, MX_RECORD *record )
 	switch( aps_gap->motor_subtype ) {
 	case MXT_APS_GAP_MM:
 	case MXT_APS_TAPER_MM:
-		strcpy( raw_units, "mm" );
+		strlcpy( raw_units, "mm", sizeof(raw_units) );
 		break;
 	case MXT_APS_GAP_KEV:
 	case MXT_APS_TAPER_KEV:
-		strcpy( raw_units, "keV" );
+		strlcpy( raw_units, "keV", sizeof(raw_units) );
 		break;
 	default:
-		strcpy( raw_units, "??" );
+		strlcpy( raw_units, "??", sizeof(raw_units) );
 		break;
 	}
 
@@ -493,6 +490,4 @@ mxd_aps_gap_get_status( MX_MOTOR *motor )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPICS */
 

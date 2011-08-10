@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,10 +16,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -31,7 +27,6 @@
 #include "mx_scan_quick.h"
 #include "sq_joerger.h"
 #include "m_time.h"
-#include "d_pmactc.h"
 #include "d_epics_motor.h"
 #include "d_epics_scaler.h"
 #include "d_epics_timer.h"
@@ -413,7 +408,6 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_QUICK_SCAN *quick_scan;
 	MX_JOERGER_QUICK_SCAN *joerger_quick_scan;
 	MX_MOTOR *motor;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor;
 	MX_EPICS_MOTOR *epics_motor;
 	MX_EPICS_SCALER *epics_scaler;
 	MX_EPICS_TIMER *epics_timer;
@@ -583,7 +577,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	 * data while counting is in progress.
 	 */
 
-	sprintf( pvname, "%s.RATE", epics_timer->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.RATE", epics_timer->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname,
 				MX_CA_DOUBLE, 1,  &epics_update_rate );
@@ -639,20 +634,14 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			epics_motor = (MX_EPICS_MOTOR *)
 			    scan->motor_record_array[i]->record_type_struct;
 
-			sprintf( joerger_quick_scan->motor_name_array[i],
+			snprintf( joerger_quick_scan->motor_name_array[i],
+				sizeof(joerger_quick_scan->motor_name_array[0]),
 				"%s.RBV", epics_motor->epics_record_name );
 			break;
-		case MXT_MTR_PMAC_EPICS_TC:
-		case MXT_MTR_PMAC_EPICS_BIO:
-			pmac_tc_motor = (MX_PMAC_TC_MOTOR *)
-			    scan->motor_record_array[i]->record_type_struct;
-
-			strcpy( joerger_quick_scan->motor_name_array[i],
-				pmac_tc_motor->actual_position_record_name);
-			break;
 		default:
-			strcpy( joerger_quick_scan->motor_name_array[i],
-				scan->motor_record_array[i]->name );
+			strlcpy( joerger_quick_scan->motor_name_array[i],
+				scan->motor_record_array[i]->name,
+			    sizeof(joerger_quick_scan->motor_name_array[0]) );
 			break;
 		}
 	}
@@ -662,7 +651,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 
 		joerger_quick_scan->data_array[i] = (uint32_t *)
-			malloc( quick_scan->actual_num_measurements * sizeof(uint32_t) );
+	    malloc( quick_scan->actual_num_measurements * sizeof(uint32_t) );
 
 		if ( joerger_quick_scan->data_array[i] == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -672,10 +661,14 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		}
 
 		if ( scan->input_device_array[i] == timer_record ) {
-		    sprintf( joerger_quick_scan->data_name_array[i], "%s.S1",
+		    snprintf( joerger_quick_scan->data_name_array[i],
+				sizeof(joerger_quick_scan->data_name_array[0]),
+				"%s.S1",
 				joerger_quick_scan->epics_record_name );
 		} else {
-		    sprintf( joerger_quick_scan->data_name_array[i], "%s.S%d",
+		    snprintf( joerger_quick_scan->data_name_array[i],
+				sizeof(joerger_quick_scan->data_name_array[0]),
+				"%s.S%d",
 				joerger_quick_scan->epics_record_name,
 				joerger_quick_scan->scaler_number[i] );
 		}
@@ -750,7 +743,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Get the clock frequency for the timer. */
 
-	sprintf( pvname, "%s.FREQ", epics_timer->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.FREQ", epics_timer->epics_record_name );
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_DOUBLE, 1,
 					&(epics_timer->clock_frequency) );
@@ -802,7 +796,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	 * and 9.5 seconds if using the standard frequency of 1.0e7.
 	 */
 
-	sprintf( pvname, "%s.PR1", joerger_quick_scan->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.PR1", joerger_quick_scan->epics_record_name );
 
 	timer_preset = MXS_JQ_MAX_JOERGER_CLOCK_TICKS;
 
@@ -1057,7 +1052,8 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	/* Start the timer. */
 
-	sprintf( pvname, "%s.CNT", joerger_quick_scan->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.CNT", joerger_quick_scan->epics_record_name );
 
 	count = 1;
 
@@ -1187,7 +1183,8 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	/* Stop the timer. */
 
-	sprintf( pvname, "%s.CNT", joerger_quick_scan->epics_record_name );
+	snprintf( pvname, sizeof(pvname),
+		"%s.CNT", joerger_quick_scan->epics_record_name );
 
 	count = 0;
 
@@ -1380,6 +1377,4 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

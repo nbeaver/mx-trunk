@@ -34,12 +34,7 @@
 
 #define MX_EPICS_EXPORT_KLUDGE			TRUE
 
-#include "mxconfig.h"
-
 #include <stdio.h>
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <signal.h>
 
@@ -78,7 +73,7 @@
 #include "epicsVersion.h"
 
 #if !defined( EPICS_VERSION )
-#error Either EPICS is not installed or it is not installed at the location you configured in libMx/Makehead.$(MX_ARCH).
+#error Either EPICS is not installed or it is not installed at the location you configured in modules/epics/Makefile.config
 #endif
 
 #define MX_EPICS_VERSION  \
@@ -269,7 +264,7 @@ mx_epics_printf_handler( const char *format, va_list args )
 {
 	char buffer[1000];
 
-	vsprintf(buffer, format, args);
+	vsnprintf(buffer, sizeof(buffer), format, args);
 
 	/* Print out the text. */
 
@@ -611,7 +606,7 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 	}
 
 	va_start(args, name_format);
-	vsprintf(buffer, name_format, args);
+	vsnprintf(buffer, sizeof(buffer), name_format, args);
 	va_end(args);
 
 	/* Save the process variable name. */
@@ -3239,4 +3234,3 @@ mx_epics_convert_epics_type_to_mx_type( chtype epics_type,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_EPICS */

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006, 2010-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -15,11 +16,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 
 #include "mx_util.h"
@@ -164,6 +160,4 @@ mxv_aps_topup_receive_variable( MX_VARIABLE *variable )
 
 	return mx_status;
 }
-
-#endif /* HAVE_EPICS */
 

@@ -1,5 +1,5 @@
 /*
- * Name:    d_pmactc.c 
+ * Name:    d_pmac_tc.c 
  *
  * Purpose: MX motor driver for controlling a Delta Tau PMAC motor
  *          through Tom Coleman's EPICS PMAC dual-ported RAM interface.
@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006, 2008-2011
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,11 +19,6 @@
 #define MXD_PMACTC_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EPICS
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -32,9 +28,7 @@
 #include "mx_driver.h"
 #include "mx_epics.h"
 #include "mx_motor.h"
-#include "d_pmactc.h"
-
-/* SBC-CAT specific data structures. */
+#include "d_pmac_tc.h"
 
 MX_RECORD_FUNCTION_LIST mxd_pmac_tc_motor_record_function_list = {
 	NULL,
@@ -679,7 +673,8 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "I%ld16", pmac_tc_motor->motor_number );
+		snprintf( command, sizeof(command),
+			"I%ld16", pmac_tc_motor->motor_number );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -751,8 +746,9 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "I%ld16=%ld", pmac_tc_motor->motor_number,
-						mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command),
+			"I%ld16=%ld", pmac_tc_motor->motor_number,
+			mx_round( motor->raw_speed ) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -948,6 +944,4 @@ mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EPICS */
 
