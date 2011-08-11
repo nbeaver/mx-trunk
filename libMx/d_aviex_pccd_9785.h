@@ -48,6 +48,10 @@ typedef struct {
 	unsigned long offset_x1;
 	unsigned long offset_y1;
 	unsigned long offset_z1;
+	unsigned long offset_w2;
+	unsigned long offset_x2;
+	unsigned long offset_y2;
+	unsigned long offset_z2;
 
 	unsigned long detector_readout_mode;
 	unsigned long readout_speed;
@@ -366,6 +370,29 @@ mxd_aviex_pccd_9785_configure_for_sequence( MX_AREA_DETECTOR *,
 			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_z1), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_W2, \
+		-1, "dh_offset_w2", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_w2), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_X2, \
+		-1, "dh_offset_x2", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_x2), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Y2, \
+		-1, "dh_offset_y2", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_y2), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AVIEX_PCCD_9785_DH_OFFSET_Z2, \
+		-1, "dh_offset_z2", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_AVIEX_PCCD, u.dh_9785.offset_z2), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AVIEX_PCCD_9785_DH_DETECTOR_READOUT_MODE, \
   		-1, "dh_detector_readout_mode", MXFT_ULONG, NULL, 0, {0}, \

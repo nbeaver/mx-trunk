@@ -7,8 +7,9 @@
  *
  * Note:    Currently supported detectors include
  *              PCCD-170170   at SOLEIL SWING
- *              PCCD-4824     at ESRF (WAXS)
+ *              PCCD-4824     at ESRF (WAXS) and APS BioCAT
  *              PCCD-16080    at APS BioCAT
+ *              PCCD-9785     at APS BioCAT
  *
  *--------------------------------------------------------------------------
  *
@@ -19,37 +20,37 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_DEBUG				FALSE
+#define MXD_AVIEX_PCCD_DEBUG				TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION			TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_SERIAL			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_SERIAL			TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_BINNING			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_BINNING			TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_TIMING			FALSE
+#define MXD_AVIEX_PCCD_DEBUG_TIMING			TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_FRAME_CORRECTION		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
+#define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE		TRUE
 
 #define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		TRUE
 
-#define MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS		FALSE
+#define MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS		TRUE
 
 /* FIXME: Leave the geometrical mask kludge definition set to TRUE. */
 
@@ -622,6 +623,12 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 				"Aviex PCCD-16080 detectors.  "
 				"Use subimage mode instead." );
 			break;
+		case MXT_AD_PCCD_9785:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Streak camera mode is not yet implemented for "
+				"Dexela PCCD-9785 detectors.  "
+				"Use subimage mode instead." );
+			break;
 		}
 
 #if MXD_AVIEX_PCCD_DEBUG_DESCRAMBLING
@@ -704,6 +711,10 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		i_framesize = column_framesize / 2;
 		j_framesize = row_framesize / 4;
 		break;
+	case MXT_AD_PCCD_9785:
+		i_framesize = column_framesize / 4;
+		j_framesize = row_framesize / 2;
+		break;
 	}
 
 	if ( aviex_pccd->sector_array == NULL ) {
@@ -755,6 +766,12 @@ mxd_aviex_pccd_descramble_image( MX_AREA_DETECTOR *ad,
 		break;
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_descramble(
+					raw_frame->image_data,
+					aviex_pccd->sector_array,
+					i_framesize, j_framesize );
+		break;
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_9785_descramble(
 					raw_frame->image_data,
 					aviex_pccd->sector_array,
 					i_framesize, j_framesize );
@@ -1020,6 +1037,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 			break;
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_9785:
 			strlcpy( response, "E", max_response_length );
 			break;
 		default:
@@ -1053,6 +1071,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 			break;
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_9785:
 			snprintf( response, max_response_length,
 				"S%05lu", reg->value );
 			break;
@@ -1079,6 +1098,7 @@ mxd_aviex_pccd_simulated_cl_command( MX_AVIEX_PCCD *aviex_pccd,
 			break;
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_9785:
 			register_address = combined_value / 100000;
 			register_value   = combined_value % 100000;
 			break;
@@ -1402,6 +1422,10 @@ mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
 		aviex_pccd->horiz_descramble_factor = 2;
 		aviex_pccd->vert_descramble_factor = 2;
 		break;
+	case MXT_AD_PCCD_9785:
+		aviex_pccd->horiz_descramble_factor = 2;
+		aviex_pccd->vert_descramble_factor = 2;
+		break;
 	default:
 		aviex_pccd->horiz_descramble_factor = -1;
 		aviex_pccd->vert_descramble_factor = -1;
@@ -1593,6 +1617,10 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		aviex_pccd->num_sector_rows = 2;
 		aviex_pccd->num_sector_columns = 4;
 		break;
+	case MXT_AD_PCCD_9785:
+		aviex_pccd->num_sector_rows = 4;
+		aviex_pccd->num_sector_columns = 2;
+		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MX driver type '%s' passed for record '%s'.",
@@ -1620,6 +1648,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	switch( ad->record->mx_type ) {
 	case MXT_AD_PCCD_170170:
 	case MXT_AD_PCCD_4824:
+	case MXT_AD_PCCD_9785:
 		aviex_pccd->exposure_and_gap_step_size = 0.001;
 		break;
 	case MXT_AD_PCCD_16080:
@@ -1663,6 +1692,10 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		break;
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_initialize_detector(
+					    record, ad, aviex_pccd, vinput );
+		break;
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_9785_initialize_detector(
 					    record, ad, aviex_pccd, vinput );
 		break;
 	default:
@@ -2116,6 +2149,10 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 		mx_status = mxd_aviex_pccd_16080_set_trigger_mode( aviex_pccd,
 					external_trigger, edge_trigger );
 		break;
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_9785_set_trigger_mode( aviex_pccd,
+					external_trigger, edge_trigger );
+		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Attempted to set external trigger mode for unsupported "
@@ -2302,6 +2339,7 @@ mxd_aviex_pccd_trigger( MX_AREA_DETECTOR *ad )
 			switch( ad->record->mx_type ) {
 			case MXT_AD_PCCD_170170:
 			case MXT_AD_PCCD_4824:
+			case MXT_AD_PCCD_9785:
 				/* Send a 0.1 second pulse. */
 
 				mx_status = mx_digital_output_pulse_wait(
@@ -2925,6 +2963,7 @@ mxd_aviex_pccd_readout_frame( MX_AREA_DETECTOR *ad )
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_16080:
+		case MXT_AD_PCCD_9785:
 			mx_status = mxd_aviex_pccd_descramble_image( ad,
 							aviex_pccd,
 							ad->image_frame,
@@ -3365,6 +3404,7 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 		switch( aviex_pccd->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_9785:
 			mx_status = mxd_aviex_pccd_read_register(
 					aviex_pccd, parameter_type, value_ptr );
 			break;
@@ -3391,6 +3431,12 @@ mxd_aviex_pccd_get_register_value( MX_AREA_DETECTOR *ad,
 		break;
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_get_pseudo_register(
+							aviex_pccd,
+							parameter_type,
+							&pseudo_reg_value );
+		break;
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_9785_get_pseudo_register(
 							aviex_pccd,
 							parameter_type,
 							&pseudo_reg_value );
@@ -3451,6 +3497,7 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 		switch( aviex_pccd->record->mx_type ) {
 		case MXT_AD_PCCD_170170:
 		case MXT_AD_PCCD_4824:
+		case MXT_AD_PCCD_9785:
 			mx_status = mxd_aviex_pccd_write_register(
 				aviex_pccd, parameter_type, register_value );
 			break;
@@ -3477,6 +3524,12 @@ mxd_aviex_pccd_set_register_value( MX_AREA_DETECTOR *ad,
 		break;
 	case MXT_AD_PCCD_16080:
 		mx_status = mxd_aviex_pccd_16080_set_pseudo_register(
+							aviex_pccd,
+							parameter_type,
+							register_value );
+		break;
+	case MXT_AD_PCCD_9785:
+		mx_status = mxd_aviex_pccd_9785_set_pseudo_register(
 							aviex_pccd,
 							parameter_type,
 							register_value );
@@ -3636,6 +3689,7 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		case MXT_AD_PCCD_4824:
 		case MXT_AD_PCCD_16080:
+		case MXT_AD_PCCD_9785:
 			ad->sequence_start_delay = 0.0;
 			ad->total_acquisition_time = 0.0;
 			ad->detector_readout_time = 0.0;
@@ -3840,6 +3894,10 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			mx_status = mxd_aviex_pccd_16080_set_binsize( ad,
 								aviex_pccd );
 			break;
+		case MXT_AD_PCCD_9785:
+			mx_status = mxd_aviex_pccd_9785_set_binsize( ad,
+								aviex_pccd );
+			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
@@ -3999,6 +4057,11 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 			    mxd_aviex_pccd_16080_configure_for_sequence(
 							ad, aviex_pccd );
 			break;
+		case MXT_AD_PCCD_9785:
+			mx_status =
+			    mxd_aviex_pccd_9785_configure_for_sequence(
+							ad, aviex_pccd );
+			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported record type %lu for record '%s'.",
@@ -4074,6 +4137,11 @@ mxd_aviex_pccd_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_AD_PCCD_16080:
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Not yet implemented." );
+			break;
+		case MXT_AD_PCCD_9785:
+			mx_status =
+			    mxd_aviex_pccd_9785_set_sequence_start_delay(
+						aviex_pccd, new_delay_time );
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -4977,6 +5045,7 @@ mxd_aviex_pccd_read_register( MX_AVIEX_PCCD *aviex_pccd,
 		break;
 	case MXT_AD_PCCD_4824:
 	case MXT_AD_PCCD_16080:
+	case MXT_AD_PCCD_9785:
 		snprintf(command, sizeof(command), "R%02lu", register_address);
 		break;
 	}
@@ -5054,6 +5123,7 @@ mxd_aviex_pccd_write_register( MX_AVIEX_PCCD *aviex_pccd,
 			"W%03lu%05lu", register_address, register_value );
 		break;
 	case MXT_AD_PCCD_4824:
+	case MXT_AD_PCCD_9785:
 		snprintf( command, sizeof(command),
 			"W%02lu%05lu", register_address, register_value );
 		break;
