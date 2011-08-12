@@ -1792,8 +1792,16 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 
 	/* Configure the video input to use negative Camera Link pulses. */
 
+	long camera_trigger_polarity;
+
+	if ( record->mx_type == MXT_AD_PCCD_9785 ) {
+		camera_trigger_polarity = MXF_VIN_TRIGGER_HIGH;
+	} else {
+		camera_trigger_polarity = MXF_VIN_TRIGGER_LOW;
+	}
+
 	mx_status = mx_video_input_set_camera_trigger_polarity(
-				video_input_record, MXF_VIN_TRIGGER_LOW );
+				video_input_record, camera_trigger_polarity );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

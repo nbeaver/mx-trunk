@@ -18,23 +18,23 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG				FALSE
+#define MXD_EPIX_XCLIB_DEBUG				TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME			FALSE
+#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME			TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_TRIGGER			FALSE
+#define MXD_EPIX_XCLIB_DEBUG_TRIGGER			TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_STOP			FALSE
+#define MXD_EPIX_XCLIB_DEBUG_STOP			TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_SIGNALS			TRUE
+#define MXD_EPIX_XCLIB_DEBUG_SIGNALS			TRUE	/* Keep on */
 
-#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_EXTENDED_STATUS		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		FALSE
+#define MXD_EPIX_XCLIB_DEBUG_TERMINATE_SEQUENCE		TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	FALSE
+#define MXD_EPIX_XCLIB_DEBUG_SEQUENCE_IN_PROGRESS	TRUE
 
 #include <stdio.h>
 
@@ -56,6 +56,7 @@
 #include "mx_signal.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
+#include "mx_time.h"
 #include "mx_digital_output.h"
 #include "mx_image.h"
 #include "mx_camera_link.h"
@@ -1889,6 +1890,11 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 #endif
 
 	epix_status = pxd_goAbortLive( epix_xclib_vinput->unitmap );
+
+#if MXD_EPIX_XCLIB_DEBUG_STOP
+	MX_DEBUG(-2,("%s: pxd_goAbortLive(%ld) = %d",
+		fname, epix_xclib_vinput->unitmap, epix_status));
+#endif
 
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
