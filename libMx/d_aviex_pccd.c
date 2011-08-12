@@ -4752,6 +4752,9 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 	int comparison;
 	mx_status_type mx_status;
 
+	char *command_ptr;
+	char local_command[100];
+
 #if MXD_AVIEX_PCCD_DEBUG_SERIAL
 	debug_flag |= 1;
 #endif
@@ -4814,12 +4817,32 @@ mxd_aviex_pccd_camera_link_command( MX_AVIEX_PCCD *aviex_pccd,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( aviex_pccd->record->mx_type == MXT_AD_PCCD_9785 ) {
+
+			/* The PCCD-9785 will not work if serial commands
+			 * do not have a CR at the end.
+			 */
+
+			command_ptr = local_command;
+
+			strlcpy(local_command, command, sizeof(local_command));
+
+			command_length = strlen(local_command);
+
+			if ( local_command[command_length-1] != MX_CR ) {
+				strlcat( local_command, "\r",
+						sizeof(local_command) );
+			}
+		} else {
+			command_ptr = command;
+		}
+
 		/* Send the command. */
 
-		command_length = strlen(command);
+		command_length = strlen(command_ptr);
 
 		mx_status = mx_camera_link_serial_write( camera_link_record,
-						command, &command_length, -1 );
+					command_ptr, &command_length, -1 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
