@@ -43,7 +43,7 @@ ifeq ($(MX_ARCH),linux)
 
 epics_aps.mxo: $(EPICS_APS_OBJS)
 	gcc -shared -o epics_aps.mxo \
-		$(EPICS_APS_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_APS_OBJS) -L../../libMx -lMx ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
