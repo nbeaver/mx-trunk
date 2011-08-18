@@ -38,7 +38,10 @@
 #include "mx_rs232.h"
 #include "mx_vme.h"
 
+#include "mx_variable.h"
+
 #include "mx_epics.h"
+#include "mx_vepics.h"
 
 #include "d_epics_aio.h"
 #include "d_epics_area_detector.h"
@@ -152,6 +155,43 @@ MX_DRIVER epics_driver_table[] = {
 				&mxi_epics_vme_vme_function_list,
 				&mxi_epics_vme_num_record_fields,
 				&mxi_epics_vme_rfield_def_ptr},
+
+{"epics_string", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_string_variable_num_record_fields,
+				&mxv_epics_string_variable_def_ptr},
+{"epics_char", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_char_variable_num_record_fields,
+				&mxv_epics_char_variable_def_ptr},
+{"epics_short", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_short_variable_num_record_fields,
+				&mxv_epics_short_variable_def_ptr},
+{"epics_long", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_long_variable_num_record_fields,
+				&mxv_epics_long_variable_def_ptr},
+{"epics_float", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_float_variable_num_record_fields,
+				&mxv_epics_float_variable_def_ptr},
+{"epics_double", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_variable_record_function_list,
+				&mxv_epics_variable_variable_function_list,
+				NULL,
+				&mxv_epics_double_variable_num_record_fields,
+				&mxv_epics_double_variable_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

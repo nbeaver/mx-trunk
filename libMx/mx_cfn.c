@@ -1012,7 +1012,9 @@ mx_cfn_construct_filename( int filename_type,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Construct the new filename. */
+	/* Construct the new filename.  In some cases, we look for an
+	 * environment variable that overrides the CFN directory name.
+	 */
 
 	switch( filename_type ) {
 	case MX_CFN_PROGRAM:
@@ -1049,7 +1051,11 @@ mx_cfn_construct_filename( int filename_type,
 		prefix = MX_CFN_CWD_DIR;
 		break;
 	case MX_CFN_MODULE:
-		prefix = MX_CFN_MODULE_DIR;
+		prefix = getenv( "MX_MODULE_DIR" );
+
+		if ( prefix == NULL ) {
+			prefix = MX_CFN_MODULE_DIR;
+		}
 		break;
 	case MX_CFN_ABSOLUTE:
 	default:
