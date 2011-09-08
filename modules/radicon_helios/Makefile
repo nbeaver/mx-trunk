@@ -15,6 +15,7 @@ CFLAGS += -EHsc
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I../pleora_iport
 CFLAGS += -I$(PLEORA_IPORT_DIR)\\includes
+CFLAGS += -I../epics -I../epics_mbc
 
 RADICON_HELIOS_OBJS = radicon_helios.$(OBJ) d_radicon_helios.$(OBJ) \
 		d_radicon_helios_trigger.$(OBJ)

@@ -741,6 +741,7 @@ mxd_radicon_helios_set_exposure_mode( MX_AREA_DETECTOR *ad,
 
 	MX_RECORD *pulser_record;
 	MX_MBC_GSC_TRIGGER *mbc_gsc_trigger;
+	const char *pulser_driver_name;
 
 	pulser_record = radicon_helios->pulse_generator_record;
 
@@ -754,8 +755,9 @@ mxd_radicon_helios_set_exposure_mode( MX_AREA_DETECTOR *ad,
 	 * data structures.
 	 */
 
-	switch( pulser_record->mx_type ) {
-	case MXT_PGN_MBC_GSC_TRIGGER:
+	pulser_driver_name = mx_get_driver_name( pulser_record );
+
+	if ( strcmp( pulser_driver_name, "mbc_gsc_trigger" ) == 0 ) {
 		mbc_gsc_trigger = (MX_MBC_GSC_TRIGGER *)
 					pulser_record->record_type_struct;
 
@@ -769,10 +771,6 @@ mxd_radicon_helios_set_exposure_mode( MX_AREA_DETECTOR *ad,
 		}
 
 		mbc_gsc_trigger->area_detector_exposure_mode = exposure_mode;
-		break;
-	default:
-		return MX_SUCCESSFUL_RESULT;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

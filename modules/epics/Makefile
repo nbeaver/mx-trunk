@@ -92,7 +92,7 @@ ifeq ($(MX_ARCH),win32)
 
 epics.mxo: $(EPICS_OBJS)
 	link /dll /debug /nologo /out:epics.mxo /nodefaultlib:libc \
-		$(EPICS_OBJS) ..\\..\\libMx/libMx.lib
+		$(EPICS_OBJS) ..\\..\\libMx/libMx.lib $(EPICS_LIBS)
 
 	# For VC2005 or later, embed the manifest in the module.
 

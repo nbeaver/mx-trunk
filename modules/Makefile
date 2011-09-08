@@ -24,20 +24,20 @@ all: build
 
 #MODULES += bnc725_lib
 
-#MODULES += pleora_iport
+MODULES += pleora_iport
 
-#MODULES += radicon_helios
+MODULES += radicon_helios
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
 MODULES += epics
 
-MODULES += epics_aps
+#MODULES += epics_aps
 
 #MODULES += epics_biocat
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
 #MODULES += epics_pmac_tc
 
