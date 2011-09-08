@@ -1490,6 +1490,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	unsigned long ad_flags, pccd_flags;
 	long x_framesize, y_framesize;
 	long master_clock;
+	long camera_trigger_polarity;
 	struct timespec hrt;
 	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
@@ -1791,8 +1792,6 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 		return mx_status;
 
 	/* Configure the video input to use negative Camera Link pulses. */
-
-	long camera_trigger_polarity;
 
 	if ( record->mx_type == MXT_AD_PCCD_9785 ) {
 		camera_trigger_polarity = MXF_VIN_TRIGGER_HIGH;
