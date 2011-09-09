@@ -1436,15 +1436,15 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( ( last_image_collected_string != NULL )
 	  && ( last_image_collected_string->u.string.string_buffer != NULL ) )
 	{
-		strlcpy( ad->last_datafile_name,
+		strlcpy( bluice_area_detector->last_datafile_name,
 			last_image_collected_string->u.string.string_buffer,
-			sizeof(ad->last_datafile_name) );
+			sizeof(bluice_area_detector->last_datafile_name) );
 
 		MX_DEBUG(-2,("%s: string_buffer = '%s'",
 		fname, last_image_collected_string->u.string.string_buffer ));
 
 		MX_DEBUG(-2,("%s: last_datafile_name = '%s'",
-			fname, ad->last_datafile_name));
+			fname, bluice_area_detector->last_datafile_name));
 	}
 
 	return MX_SUCCESSFUL_RESULT;

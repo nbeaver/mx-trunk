@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,6 +61,8 @@ typedef struct {
 	mx_bool_type initialize_datafile_number;
 
 	char detector_type[MXU_BLUICE_NAME_LENGTH+1];
+
+	char last_datafile_name[MXU_FILENAME_LENGTH+1];
 } MX_BLUICE_AREA_DETECTOR;
 
 MX_API mx_status_type mxd_bluice_area_detector_initialize_driver(

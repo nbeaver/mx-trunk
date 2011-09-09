@@ -868,9 +868,6 @@ mxd_mlfsom_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_DATAFILE_SAVE_FORMAT:
 		break;
 
-	case MXLV_AD_LAST_DATAFILE_NAME:
-		break;
-
 	default:
 		mx_status =
 			mx_area_detector_default_get_parameter_handler( ad );
@@ -958,9 +955,6 @@ mxd_mlfsom_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DATAFILE_SAVE_FORMAT:
-		break;
-
-	case MXLV_AD_LAST_DATAFILE_NAME:
 		break;
 
 	case MXLV_AD_BYTES_PER_FRAME:

@@ -200,7 +200,6 @@ typedef struct mx_area_detector_type {
 	long last_frame_number_field_number;
 	long total_num_frames_field_number;
 	long status_field_number;
-	long last_datafile_name_field_number;
 
 	long subframe_size;	/* Not all detectors support this. */
 
@@ -448,8 +447,6 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type construct_next_datafile_name;
 
-	char last_datafile_name[MXU_FILENAME_LENGTH+1];
-
 	unsigned long datafile_load_format;
 	unsigned long datafile_save_format;
 
@@ -579,7 +576,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_DATAFILE_ALLOW_OVERWRITE	12504
 #define MXLV_AD_DATAFILE_AUTOSELECT_NUMBER	12505
 #define MXLV_AD_CONSTRUCT_NEXT_DATAFILE_NAME	12506
-#define MXLV_AD_LAST_DATAFILE_NAME		12507
+
 #define MXLV_AD_DATAFILE_LOAD_FORMAT		12508
 #define MXLV_AD_DATAFILE_SAVE_FORMAT		12509
 #define MXLV_AD_DATAFILE_LOAD_FORMAT_NAME	12510
@@ -1074,11 +1071,6 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, construct_next_datafile_name), \
 	{0}, NULL, 0}, \
-  \
-  {MXLV_AD_LAST_DATAFILE_NAME, -1, "last_datafile_name", MXFT_STRING, \
-					NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, last_datafile_name), \
-	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "datafile_total_num_frames", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \

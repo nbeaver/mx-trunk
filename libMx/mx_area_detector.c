@@ -274,8 +274,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->datafile_allow_overwrite = FALSE;
 	ad->datafile_autoselect_number = TRUE;
 
-	ad->last_datafile_name[0] = '\0';
-
 	ad->datafile_load_format = 0;
 	ad->datafile_save_format = 0;
 	ad->correction_load_format = 0;
@@ -348,22 +346,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	ad->status_field_number = status_field->field_number;
-
-	/*-------*/
-
-	/* 'last_datafile_name_field' is not present for all
-	 * area detector drivers.
-	 */
-
-	last_datafile_name_field = mx_get_record_field( record,
-						"last_datafile_name" );
-
-	if ( last_datafile_name_field == NULL ) {
-		ad->last_datafile_name_field_number = -1;
-	} else {
-		ad->last_datafile_name_field_number =
-			last_datafile_name_field->field_number;
-	}
 
 	/*-------*/
 
