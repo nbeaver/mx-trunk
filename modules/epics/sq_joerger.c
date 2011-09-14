@@ -1259,16 +1259,16 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_JOERGER_QUICK_SCAN *joerger_quick_scan;
-	MX_EPICS_TIMER *epics_timer;
 	double motor_positions[ MXS_JQ_MAX_MOTORS ];
 	long data_values[ MXS_JQ_MAX_JOERGER_SCALERS ];
 
 #if 0  /* WML */
+	MX_EPICS_TIMER *epics_timer;
 	MX_SCALER *scaler;
 	double dark_current[ MXS_JQ_MAX_JOERGER_SCALERS ];
+	double measurement_time;
 #endif /* WML */
 
-	double measurement_time;
 	long i, j;
 	mx_status_type mx_status;
 
@@ -1288,8 +1288,10 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	/* The first channel in Joerger quick scans is always the timer. */
 
+#if 0  /* WML */
 	epics_timer = (MX_EPICS_TIMER *)
 			(scan->input_device_array[0])->record_type_struct;
+#endif /* WML */
 
 	/* Restore the old motor speeds and synchronous motion mode
 	 * for this quick scan.
@@ -1346,6 +1348,8 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			continue;  /* Go back to the top of the for() loop. */
 		}
 
+#if 0  /* WML: Dark current subtraction has been moved to the scaler driver. */
+
 		/* Channel 0 should always be the timer count, so we 
 		 * multiply it by the clock frequency to get the measurement
 		 * time in seconds.
@@ -1355,8 +1359,6 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 					/ epics_timer->clock_frequency;
 
 		/* Subtract dark currents. */
-
-#if 0  /* WML: Dark current subtraction has been moved to the scaler driver. */
 
 		for ( j = 1; j < scan->num_input_devices; j++ ) {
 			data_values[j] -= mx_round( dark_current[j]

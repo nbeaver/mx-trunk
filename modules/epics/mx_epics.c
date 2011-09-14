@@ -1236,7 +1236,6 @@ mx_epics_ca_array_put_asynchronous_callback_handler(
 	MX_EPICS_CALLBACK *callback;
 	MX_EPICS_PV *pv;
 	mx_status_type (*callback_function)( MX_EPICS_CALLBACK *, void * );
-	mx_status_type mx_status;
 
 	LOCK_EPICS_MUTEX;
 
@@ -1275,7 +1274,7 @@ mx_epics_ca_array_put_asynchronous_callback_handler(
 	callback_function = callback->callback_function;
 
 	if ( callback_function != NULL ) {
-		mx_status = (*callback_function)( callback,
+		(void) (*callback_function)( callback,
 					callback->callback_argument );
 	}
 
@@ -2337,7 +2336,6 @@ mx_epics_subscription_callback_function( struct event_handler_args args )
 
 	MX_EPICS_CALLBACK *callback;
 	mx_status_type (*callback_function)( MX_EPICS_CALLBACK *, void * );
-	mx_status_type mx_status;
 
 	callback = args.usr;
 
@@ -2353,7 +2351,7 @@ mx_epics_subscription_callback_function( struct event_handler_args args )
 	callback_function = callback->callback_function;
 
 	if ( callback_function != NULL ) {
-		mx_status = (*callback_function)( callback,
+		(void) (*callback_function)( callback,
 						callback->callback_argument );
 	}
 

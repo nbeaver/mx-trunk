@@ -329,7 +329,6 @@ mxd_epics_ccd_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ccd_trigger()";
 
 	MX_EPICS_CCD *epics_ccd = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t acquire;
 	mx_status_type mx_status;
 
@@ -342,8 +341,6 @@ mxd_epics_ccd_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-
-	sp = &(ad->sequence_parameters);
 
 	acquire = 1;
 
@@ -462,7 +459,6 @@ mxd_epics_ccd_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ccd_correct_frame()";
 
 	MX_EPICS_CCD *epics_ccd;
-	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_ccd_get_pointers( ad, &epics_ccd, fname );
@@ -474,7 +470,6 @@ mxd_epics_ccd_correct_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	sp = &(ad->sequence_parameters);
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -668,7 +668,6 @@ mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_epics_ad_trigger()";
 
 	MX_EPICS_AREA_DETECTOR *epics_ad = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t acquire;
 	mx_status_type mx_status;
 
@@ -681,8 +680,6 @@ mxd_epics_ad_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-
-	sp = &(ad->sequence_parameters);
 
 	acquire = 1;
 

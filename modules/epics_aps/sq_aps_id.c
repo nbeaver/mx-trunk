@@ -322,17 +322,14 @@ mxs_apsid_quick_scan_compute_gap(
 {
 	static const char fname[] = "mxs_apsid_quick_scan_compute_gap()";
 
-	double energy, d_spacing, gap_calculated, gap_from_epics;
-	int sector_number;
+	double energy, d_spacing, gap_from_epics;
 	mx_status_type mx_status;
-
-	sector_number = apsid_quick_scan_extension->sector_number;
 
 	d_spacing = apsid_quick_scan_extension->d_spacing;
 
 	/* Keep the compiler from complaining about unused variables. */
 
-	gap_calculated = gap_from_epics = 0.0;
+	gap_from_epics = 0.0;
 
 	/* Convert the position into a monochromator X-ray energy. */
 
@@ -363,6 +360,11 @@ mxs_apsid_quick_scan_compute_gap(
 
 #if 0
 	{
+		int sector_number;
+		double gap_calculated;
+
+		sector_number = apsid_quick_scan_extension->sector_number;
+
 		/* One way is to calculate it approximately from first
 		 * principles.
 		 *
@@ -553,7 +555,7 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_APSID_QUICK_SCAN_EXTENSION *apsid_quick_scan_extension;
-	MX_RECORD *id_ev_record, *energy_record;
+	MX_RECORD *id_ev_record;
 	MX_MOTOR *id_ev_motor;
 	double id_ev_start_position, energy_start_position;
 	double id_ev_harmonic, id_ev_offset;
@@ -646,8 +648,6 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* The monochromator energy should be the first motor. */
 
-	energy_record = scan->motor_record_array[0];
-
 	/* Compute the start position of the insertion device. */
 
 	energy_start_position = quick_scan->start_position[0];
@@ -734,7 +734,6 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_APSID_QUICK_SCAN_EXTENSION *apsid_quick_scan_extension;
-	MX_RECORD *id_ev_record;
 	MX_RECORD *input_device_record;
 	MX_RECORD *mcs_record;
 	MX_MCS_SCALER *mcs_scaler;
@@ -773,8 +772,6 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	apsid_quick_scan_extension = (MX_APSID_QUICK_SCAN_EXTENSION *)
 					mcs_quick_scan->extension_ptr;
-
-	id_ev_record = apsid_quick_scan_extension->id_ev_record;
 
 	sector_number = apsid_quick_scan_extension->sector_number;
 

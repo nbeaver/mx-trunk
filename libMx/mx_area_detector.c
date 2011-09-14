@@ -168,7 +168,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
-	MX_RECORD_FIELD *last_datafile_name_field;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);

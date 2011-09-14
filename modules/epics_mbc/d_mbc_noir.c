@@ -467,7 +467,6 @@ mxd_mbc_noir_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mbc_noir_trigger()";
 
 	MX_MBC_NOIR *mbc_noir = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t trigger;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
@@ -481,8 +480,6 @@ mxd_mbc_noir_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-
-	sp = &(ad->sequence_parameters);
 
 	strlcpy( epics_string, "snap", sizeof(epics_string) );
 
@@ -617,7 +614,6 @@ mxd_mbc_noir_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_mbc_noir_readout_frame()";
 
 	MX_MBC_NOIR *mbc_noir = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
 	int32_t trigger;
 	char epics_string[ MXU_EPICS_STRING_LENGTH+1 ];
 	mx_status_type mx_status;
@@ -631,8 +627,6 @@ mxd_mbc_noir_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-
-	sp = &(ad->sequence_parameters);
 
 	strlcpy( epics_string, "store", sizeof(epics_string) );
 
