@@ -184,7 +184,9 @@ mx_get_field_type_string( long field_type )
 MX_EXPORT MX_RECORD_FIELD *
 mx_get_record_field( MX_RECORD *record, const char *field_name )
 {
-	MX_RECORD_FIELD *field_array;
+	static const char fname[] = "mx_get_record_field()";
+
+	MX_RECORD_FIELD *field_array, *field;
 	long i, num_record_fields;
 
 	if ( record == NULL ) {
@@ -198,20 +200,47 @@ mx_get_record_field( MX_RECORD *record, const char *field_name )
 	num_record_fields = record->num_record_fields;
 
 	if ( num_record_fields <= 0 ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"record->num_record_fields for record '%s' "
+		"has an illegal value of %ld.",
+			record->name, num_record_fields );
+
 		return NULL;
 	}
 
 	field_array = record->record_field_array;
 
 	if ( field_array == NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"record->record_field_array for record '%s' is NULL.",
+			record->name );
+
 		return NULL;
 	}
 
 	for ( i = 0; i < num_record_fields; i++ ) {
 
-		if ( strcmp( field_name, field_array[i].name ) == 0 ) {
+		field = &field_array[i];
 
-			return &field_array[i];
+		if ( field == NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"&field_array[%ld] == NULL for record '%s'.",
+			i, record->name );
+
+			return NULL;
+		}
+
+		if ( field->name == NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"field->name for field %ld (%p) is NULL for record '%s'.",
+			i, field, record->name );
+
+			return NULL;
+		}
+
+		if ( strcmp( field_name, field->name ) == 0 ) {
+
+			return field;
 		}
 	}
 
