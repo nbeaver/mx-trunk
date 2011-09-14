@@ -41,7 +41,7 @@ endif
 ifeq ($(MX_ARCH),linux)
 
 epics_mbc.mxo: $(EPICS_MBC_OBJS)
-	gcc -shared -o epics_mbc.mxo \
+	gcc -shared -rdynamic -Wl,-soname,epics_mbc.mxo -o epics_mbc.mxo \
 		$(EPICS_MBC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif

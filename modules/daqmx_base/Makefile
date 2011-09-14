@@ -47,7 +47,8 @@ ifeq ($(MX_ARCH),linux)
 #
 
 daqmx_base.mxo: $(DAQMX_BASE_OBJS)
-	$(CC) -shared -rdynamic -o daqmx_base.mxo $(DAQMX_BASE_OBJS) \
+	$(CC) -shared -rdynamic -Wl,-soname,daqmx_base.mxo \
+		-o daqmx_base.mxo $(DAQMX_BASE_OBJS) \
 		-lnidaqmxbase -lnidaqmxbaselv \
 		/usr/local/lib/liblvrtdark.so.10.0 \
 		/usr/local/lib/LabVIEW-2010/libniCPULib.so \

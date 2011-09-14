@@ -41,7 +41,7 @@ endif
 ifeq ($(MX_ARCH),linux)
 
 epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	gcc -shared -o epics_biocat.mxo \
+	gcc -shared -rdynamic -Wl,-soname,epics_biocat.mxo -o epics_biocat.mxo \
 		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif

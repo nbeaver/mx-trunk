@@ -2,7 +2,9 @@
 # This module can be used on the 'linux' and 'win32' platforms.
 #
 
-MX_ARCH = linux
+ifndef MX_ARCH
+  MX_ARCH = linux
+endif
 
 #EPIX_ARCH = i386
 EPIX_ARCH = x86_64_pic
@@ -33,7 +35,7 @@ CFLAGS += -Wno-strict-prototypes -Wno-shadow -Wno-unused-variable
 
 epix_xclib.mxo: $(EPIX_XCLIB_OBJS)
 	pwd
-	gcc -shared -o epix_xclib.mxo \
+	gcc -shared -rdynamic -Wl,-soname,epix_xclib.mxo -o epix_xclib.mxo \
 		$(EPIX_XCLIB_OBJS) ../../libMx/libMx.so \
 		$(EPIX_XCLIB_DIR)/xclib_$(EPIX_ARCH).a
 endif

@@ -19,8 +19,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 CFLAGS += $(EPICS_INCLUDES)
 CFLAGS += -I../epics/
 
-EPICS_BIOCAT_OBJS = epics_pmac_tc.$(OBJ) \
-		d_pmac_tc.$(OBJ)
+EPICS_TC_OBJS = epics_pmac_tc.$(OBJ) d_pmac_tc.$(OBJ)
 
 #--------------------------------------------------------------------------
 
@@ -28,9 +27,9 @@ EPICS_BIOCAT_OBJS = epics_pmac_tc.$(OBJ) \
 
 ifeq ($(MX_ARCH),cygwin)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
 	dllwrap -o epics_pmac_tc.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -40,9 +39,10 @@ endif
 
 ifeq ($(MX_ARCH),linux)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
-	gcc -shared -o epics_pmac_tc.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
+	gcc -shared -rdynamic -Wl,-soname,epics_pmac_tc.mxo \
+		-o epics_pmac_tc.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -52,9 +52,9 @@ endif
 
 ifeq ($(MX_ARCH),macosx)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
 	gcc -dynamiclib -o epics_pmac_tc.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -64,9 +64,9 @@ endif
 
 ifeq ($(MX_ARCH),solaris)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
 	ld -G -o epics_pmac_tc.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES) -lc
 endif
 
@@ -76,9 +76,9 @@ endif
 
 ifeq ($(MX_ARCH),solaris-gcc)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
 	ld -G -o epics_pmac_tc.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+		$(EPICS_TC_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES) -lc
 endif
 
@@ -88,9 +88,9 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-epics_pmac_tc.mxo: $(EPICS_BIOCAT_OBJS)
+epics_pmac_tc.mxo: $(EPICS_TC_OBJS)
 	link /dll /debug /nologo /out:epics_pmac_tc.mxo /nodefaultlib:libc \
-	    $(EPICS_BIOCAT_OBJS) ..\\epics\\epics.lib ..\\..\\libMx/libMx.lib
+	    $(EPICS_TC_OBJS) ..\\epics\\epics.lib ..\\..\\libMx/libMx.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
