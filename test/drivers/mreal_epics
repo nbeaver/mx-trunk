@@ -1,0 +1,8 @@
+#! /bin/sh
+
+export MX_MODULE_DIR=../../modules
+
+export LD_LIBRARY_PATH=../../libMx:../../modules/epics
+
+../../motor/motor -F ./mreal_epics.dat -s $HOME/scan.dat $*
+

@@ -1,0 +1,3 @@
+!load epics/epics.mxo
+!load epics_aps/epics_aps.mxo
+!include /opt/mx/etc/motor.dat
