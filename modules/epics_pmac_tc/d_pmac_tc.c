@@ -154,7 +154,6 @@ mxd_pmac_tc_motor_create_record_structures( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PMAC_TC_MOTOR *pmac_tc_motor;
-	MX_DRIVER *driver;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -176,6 +175,37 @@ mxd_pmac_tc_motor_create_record_structures( MX_RECORD *record )
 
 	record->record_class_struct = motor;
 	record->record_type_struct = pmac_tc_motor;
+
+	motor->record = record;
+
+	/* A PMAC TC motor is treated as an analog motor. */
+
+	motor->subclass = MXC_MTR_ANALOG;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_pmac_tc_motor_finish_record_initialization()";
+
+	MX_MOTOR *motor;
+	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
+	MX_DRIVER *driver;
+	MX_CLOCK_TICK current_tick;
+	mx_status_type mx_status;
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_pmac_tc_motor_get_pointers( motor,
+						&pmac_tc_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*--------*/
 
 	driver = mx_get_driver_for_record( record );
 
@@ -204,35 +234,9 @@ mxd_pmac_tc_motor_create_record_structures( MX_RECORD *record )
 				= &mxd_pmac_bio_motor_motor_function_list;
 	}
 
-	motor->record = record;
-
-	/* A PMAC TC motor is treated as an analog motor. */
-
-	motor->subclass = MXC_MTR_ANALOG;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
-{
-	static const char fname[] =
-		"mxd_pmac_tc_motor_finish_record_initialization()";
-
-	MX_MOTOR *motor;
-	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
-	MX_CLOCK_TICK current_tick;
-	mx_status_type mx_status;
+	/*--------*/
 
 	mx_status = mx_motor_finish_record_initialization( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_pmac_tc_motor_get_pointers( motor,
-						&pmac_tc_motor, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

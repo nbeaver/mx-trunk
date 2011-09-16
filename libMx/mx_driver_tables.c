@@ -268,8 +268,7 @@ mx_get_driver_for_record( MX_RECORD *record )
 
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
 		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Record '%s' does not have a 'mx_type' field.  "
-		"This should be impossible!", record->name );
+		"Record '%s' does not have a 'mx_type' field.", record->name );
 
 		return NULL;
 	}

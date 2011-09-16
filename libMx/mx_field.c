@@ -232,8 +232,14 @@ mx_get_record_field( MX_RECORD *record, const char *field_name )
 
 		if ( field->name == NULL ) {
 			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"field->name for field %ld (%p) is NULL for record '%s'.",
-			i, field, record->name );
+				"field->name for field %ld (%p) is NULL for "
+				"record '%s'.  This probably means that you "
+				"invoked this function from within the "
+				"create_record_structures function of the "
+				"driver.  This function cannot be invoked "
+				"before the finish_record_initialization step "
+				"of record setup.",
+					i, field, record->name );
 
 			return NULL;
 		}
