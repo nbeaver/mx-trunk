@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2005, 2007, 2009 Illinois Institute of Technology
+ * Copyright 1999-2005, 2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -108,6 +108,8 @@ MX_API mx_status_type mx_epics_pv_connect( MX_EPICS_PV *pv,
 				unsigned long connect_flags );
 
 MX_API mx_status_type mx_epics_pv_disconnect( MX_EPICS_PV *pv );
+
+MX_API mx_bool_type mx_epics_pv_is_connected( MX_EPICS_PV *pv );
 
 MX_API mx_status_type mx_epics_pend_io( double timeout );
 

@@ -18,17 +18,17 @@
  *
  */
 
-#define MX_EPICS_DEBUG_IO			TRUE
+#define MX_EPICS_DEBUG_IO			FALSE
 
-#define MX_EPICS_DEBUG_HANDLERS			TRUE
+#define MX_EPICS_DEBUG_HANDLERS			FALSE
 
-#define MX_EPICS_DEBUG_CA_POLL			TRUE
+#define MX_EPICS_DEBUG_CA_POLL			FALSE
 
-#define MX_EPICS_DEBUG_ATEXIT			TRUE
+#define MX_EPICS_DEBUG_ATEXIT			FALSE
 
-#define MX_EPICS_DEBUG_PERFORMANCE		TRUE
+#define MX_EPICS_DEBUG_PERFORMANCE		FALSE
 
-#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	TRUE
+#define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -858,6 +858,22 @@ mx_epics_pv_disconnect( MX_EPICS_PV *pv )
 	mx_status = mx_epics_poll();
 		
 	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_bool_type
+mx_epics_pv_is_connected( MX_EPICS_PV *pv )
+{
+	if ( pv == (MX_EPICS_PV *) NULL ) {
+		return FALSE;
+	}
+
+	if ( pv->connection_state == CA_OP_CONN_UP ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 /*--------------------------------------------------------------------------*/
