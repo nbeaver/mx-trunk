@@ -1620,7 +1620,14 @@ mx_thread_create( MX_THREAD **thread,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The thread attributes passed to "
 				"pthread_create() were invalid." );
-
+#if defined(OS_SOLARIS)
+		case -1:
+			return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR,fname,
+			"pthread_create() returned -1.  If this program "
+			"is running on Solaris 9 or before, a return value "
+			"of -1 means that you did not include -lpthread "
+			"in the linker command line used to build libMx." );
+#endif
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"pthread_create() returned an unknown error code %d.",
