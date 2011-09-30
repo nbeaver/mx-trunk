@@ -699,42 +699,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				fname, (unsigned long) received_message_id ));
 #endif
 
-#if NETWORK_DEBUG
-			if ( record_list_head->network_debug_flags
-				& MXF_NETDBG_SUMMARY )
-			{
-				unsigned long data_type, message_type;
-				unsigned long header_length, message_length;
-				char nf_label[100];
-
-				data_type = mx_ntohl(
-					header[ MX_NETWORK_DATA_TYPE ] );
-				message_type = mx_ntohl(
-					header[ MX_NETWORK_MESSAGE_TYPE ] );
-				header_length = mx_ntohl(
-					header[ MX_NETWORK_HEADER_LENGTH ] );
-				message_length = mx_ntohl(
-					header[ MX_NETWORK_MESSAGE_LENGTH ] );
-
-				mx_network_get_nf_label( server_record, NULL,
-						nf_label, sizeof(nf_label) );
-
-				fprintf( stderr,
-			"MX CALLBACK from '%s', callback id = %#lx, value = ",
-					nf_label,
-					(unsigned long) received_message_id );
-
-				mx_network_buffer_show_value(
-					buffer->u.char_buffer + header_length,
-					server->data_format,
-					data_type,
-					message_type,
-					message_length );
-
-				fprintf( stderr, "\n" );
-			}
-#endif /* NETWORK_DEBUG */
-
 			if ( server->callback_list == NULL ) {
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,
 				"Received callback %#lx from server '%s', "
@@ -785,6 +749,47 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			    list_entry = list_entry->next_list_entry;
 				
 			} while( list_entry != list_start );
+
+#if NETWORK_DEBUG
+			if ( record_list_head->network_debug_flags
+				& MXF_NETDBG_SUMMARY )
+			{
+				MX_NETWORK_FIELD *nf;
+				unsigned long data_type, message_type;
+				unsigned long header_length, message_length;
+				char nf_label[ 100 ];
+				char nf_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
+
+				data_type = mx_ntohl(
+					header[ MX_NETWORK_DATA_TYPE ] );
+				message_type = mx_ntohl(
+					header[ MX_NETWORK_MESSAGE_TYPE ] );
+				header_length = mx_ntohl(
+					header[ MX_NETWORK_HEADER_LENGTH ] );
+				message_length = mx_ntohl(
+					header[ MX_NETWORK_MESSAGE_LENGTH ] );
+
+				nf = callback->u.network_field;
+
+				mx_network_get_nf_label(
+					server_record, nf->nfname,
+					nf_label, sizeof(nf_label) );
+
+				fprintf( stderr,
+				"MX CALLBACK %#lx from '%s', value = ",
+					(unsigned long) received_message_id,
+					nf_label );
+
+				mx_network_buffer_show_value(
+					buffer->u.char_buffer + header_length,
+					server->data_format,
+					data_type,
+					message_type,
+					message_length );
+
+				fprintf( stderr, "\n" );
+			}
+#endif /* NETWORK_DEBUG */
 
 			/* If we have found the correct callback, then
 			 * invoke the callback.
