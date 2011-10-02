@@ -24,7 +24,9 @@
 
 #define MXD_PLEORA_IPORT_VINPUT_DEBUG_EXTENDED_STATUS	FALSE
 
-#define MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE	FALSE
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_LOOKUP_TABLE	TRUE
+
+#define MXD_PLEORA_IPORT_VINPUT_DEBUG_SET_RCBIT		TRUE
 
 #define MXD_PLEORA_IPORT_VINPUT_DEBUG_MX_PARAMETERS	FALSE
 
@@ -1380,5 +1382,64 @@ mxd_pleora_iport_vinput_send_lookup_table_program(
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mxd_pleora_iport_vinput_set_rcbit( MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput,
+					int bit_number,
+					int bit_value )
+{
+	__int64 old_value;
+	__int64 set_value, clear_value;
+	__int64 bit_mask;
+
+	CyGrabber *grabber = pleora_iport_vinput->grabber;
+
+	CyDevice &device = grabber->GetDevice();
+
+	CyDeviceExtension *extension =
+			&device.GetExtension( CY_DEVICE_EXT_GPIO_CONTROL_BITS );
+
+	extension->LoadFromDevice();
+
+	extension->GetParameter( CY_GPIO_CONTROL_BITS_CURRENT_VALUE,
+							old_value );
+
+	bit_mask = ( 1 << bit_number );
+
+	if ( bit_value == 0 ) {
+		set_value = 0;
+
+		clear_value = ( (~old_value) & 0xf ) | bit_mask;
+	} else {
+		set_value = old_value | bit_mask;
+
+		clear_value = 0;
+	}
+
+#if MXD_PLEORA_IPORT_VINPUT_DEBUG_SET_RCBIT
+	static const char fname[] = "mxd_pleora_iport_vinput_set_rcbit()";
+
+	MX_DEBUG(-2,("%s: bit_number = %d, bit_value = %d",
+			fname, bit_number, bit_value));
+#endif
+
+#if 0
+	MX_DEBUG(-2,("%s: old_value = %#x", fname, (unsigned long) old_value));
+	MX_DEBUG(-2,("%s: bit_mask = %#x", fname, (unsigned long) bit_mask));
+	MX_DEBUG(-2,("%s: set_value = %#x, clear_value = %#x",
+			fname, (unsigned long) set_value,
+			(unsigned long) clear_value));
+#endif
+
+	extension->SetParameter( CY_GPIO_CONTROL_BITS_SET, set_value );
+
+	extension->SetParameter( CY_GPIO_CONTROL_BITS_CLEAR, clear_value );
+
+	extension->SaveToDevice();
+
+	return;
 }
 

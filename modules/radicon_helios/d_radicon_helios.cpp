@@ -30,6 +30,8 @@
 
 #define MXD_RADICON_HELIOS_DEBUG_STATISTICS		FALSE
 
+#define MXD_RADICON_HELIOS_DEBUG_TIMESTAMP		TRUE
+
 #define MXD_RADICON_HELIOS_DEBUG_PARAMETER_VALUES	FALSE
 
 #include <stdio.h>
@@ -1373,6 +1375,40 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	CyDevice &device = grabber->GetDevice();
 
+	/*-----------------------------------------------------------------*/
+
+	/* Configure the timestamp counter.  It is used to generate 
+	 * timestamps for MX image headers.
+	 */
+
+	CyDeviceExtension *ts_extension = &device.GetExtension(
+					CY_DEVICE_EXT_TIMESTAMP_COUNTER );
+
+	/* Set the Timestamp counter granularity to 3, which corresponds
+	 * to the maximum granularity of 0.01 seconds.  With this setup,
+	 * the maximum timestamp value is 42949672.95 seconds, which is
+	 * 497.1027 days.
+	 */
+
+	ts_extension->SetParameter( CY_TIMESTAMP_PARAM_GRANULARITY, 3 );
+
+	/* Select the Timestamp counter rather than the general purpose counter.
+	 */
+
+	ts_extension->SetParameter( CY_TIMESTAMP_PARAM_COUNTER_SELECT, 0 );
+
+	/* Clear the counter on the rising edge of the input signal. */
+
+	ts_extension->SetParameter( CY_TIMESTAMP_PARAM_CLEAR_MODE, 2 );
+
+	/* The clear input signal source will be Q16. */
+
+	ts_extension->SetParameter( CY_TIMESTAMP_PARAM_CLEAR_INPUT, 6 );
+
+	ts_extension->SaveToDevice();
+
+	/*-----------------------------------------------------------------*/
+
 	/* Configure pulse generator 0 to generate a 20 Hz pulse train
 	 * that is used to do the CMOS equivalent of continuout clear.
 	 */
@@ -1403,6 +1439,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	pg_extension->SaveToDevice();
 
+	/*-----------------------------------------------------------------*/
+
 	/* Get the extension needed for controlling the PLC's
 	 * Signal Routing Block and the PLC's Lookup Table.
 	 */
@@ -1419,6 +1457,10 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG0, 0 );
 
+	/* Connect PLC Control Bit 3 to I1. (timestamp counter clear) */
+
+	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG1, 8 );
+
 	/* Connect Camera Frame Valid to I2. */
 
 	lut_extension->SetParameter( CY_GPIO_LUT_PARAM_INPUT_CONFIG2, 4 );
@@ -1431,22 +1473,102 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	lut_extension->SaveToDevice();
 
+	/*-----------------------------------------------------------------*/
+
 	/* Reprogram the PLC to generate a sync pulse for the camera
 	 * and to initialize control inputs.
 	 *
 	 * Initialize the PLC for SCAN mode (Q4=0) and EXSYNC modulated
-	 * by TTL_IN0 (aka A0 on I0).
+	 * by TTL_IN0 (aka A0 on I0).  In addition, Q16 (Timestamp counter
+	 * clear input) is connected to I1 (PLC Control Bit 3).
 	 */
 
 	char lut_program[] =
-                "Q0 = I2\r\n"
-                "Q4 = 0\r\n"
-                "Q5 = 1\r\n"
-                "Q6 = 1\r\n"
-                "Q7 = I7 & !I0\r\n";
+                "Q0  = I2\r\n"
+                "Q4  = 0\r\n"
+                "Q5  = 1\r\n"
+                "Q6  = 1\r\n"
+                "Q7  = I7 & !I0\r\n"
+		"Q16 = I1\r\n";
 
 	mxd_pleora_iport_vinput_send_lookup_table_program( pleora_iport_vinput,
 								lut_program );
+
+	/*-----------------------------------------------------------------*/
+
+	/* We need to initialize the PLC's timestamp counter so that
+	 * it can be used to compute the time when each area detector 
+	 * image frame was acquired.
+	 */
+
+	/* Send the clear signal to the Timestamp Counter. */
+
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 3, 0 );
+
+	mx_msleep(100);
+
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 3, 1 );
+
+	mx_msleep(100);
+
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 3, 0 );
+
+	mx_msleep(100);
+
+	/* Read the host computer's current time. */
+
+	struct timespec host_current_time, current_timestamp_timespec;
+	__int64 current_timestamp_value;
+
+	host_current_time.tv_sec = time(NULL);
+	host_current_time.tv_nsec = 0;
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: host_current_time = (%lu,%lu)",
+		fname, host_current_time.tv_sec,
+		host_current_time.tv_nsec ));
+#endif
+
+	/* Read the current value of the timestamp counter. */
+
+	ts_extension->LoadFromDevice();
+
+	ts_extension->GetParameter( CY_TIMESTAMP_PARAM_CURRENT_VALUE,
+						current_timestamp_value );
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: current_timestamp_value = %I64u",
+		fname, current_timestamp_value));
+#endif
+
+	/* Convert the 64-bit timestamp value (in hundredths of a second)
+	 * into a struct timespec.
+	 */
+
+	current_timestamp_timespec.tv_sec =
+		(time_t) ( current_timestamp_value / 100L );
+
+	current_timestamp_timespec.tv_nsec =
+		10000000L * (long) ( current_timestamp_value % 100L );
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: current_timestamp_timespec = (%lu,%lu)",
+		fname, current_timestamp_timespec.tv_sec,
+		current_timestamp_timespec.tv_nsec ));
+#endif
+
+	/* Save the difference as the new PLC timestamp base. */
+
+	radicon_helios->timestamp_base = mx_subtract_high_resolution_times(
+				host_current_time, current_timestamp_timespec );
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: timestamp_base = (%lu,%lu)",
+		fname, radicon_helios->timestamp_base.tv_sec,
+		radicon_helios->timestamp_base.tv_nsec));
+#endif
+
+	/*-----------------------------------------------------------------*/
 
 	/* End of the PLC reconfiguration. */
 
@@ -2042,20 +2164,6 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 	vinput = (MX_VIDEO_INPUT *)
 		pleora_iport_vinput->record->record_class_struct;
 
-#if 0
-
-	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
-
-	MX_DEBUG(-2,("%s: vinput->frame->image_data = %p",
-		fname, vinput->frame->image_data));
-
-	MX_DEBUG(-2,("%s: CyUserBuffer::GetBuffer() = %p",
-		fname, user_buffer->GetBuffer() ));
-
-	MX_DEBUG(-2,("%s: CyUserBuffer::GetBufferSize() = %lu",
-		fname, user_buffer->GetBufferSize() ));
-#endif
-
 	image_data = (uint16_t *) ad->image_frame->image_data;
 
 	num_pixels = ad->image_frame->image_length / 2;
@@ -2235,6 +2343,54 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 
 	mx_image_statistics( ad->image_frame );
 #endif
+	/*----------------------------------------------------------------*/
+
+	/* Get the PLC timestamp for this image.  The PLC timestamp
+	 * is configured to be in units of 0.01 seconds.
+	 */
+
+	CyUserBuffer *user_buffer = pleora_iport_vinput->user_buffer;
+
+	CyImageInfo &image_info = user_buffer->GetImageInfo();
+
+	unsigned long image_timestamp = image_info.GetTimestamp();
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: image_timestamp = %lu", fname, image_timestamp));
+#endif
+
+	/* Convert the PLC timestamp into a struct timespec and then
+	 * add it to the timestamp base to get an absolute time.
+	 */
+
+	struct timespec image_timestamp_timespec, absolute_timespec;
+
+	image_timestamp_timespec.tv_sec = image_timestamp / 100L;
+
+	image_timestamp_timespec.tv_nsec =
+		10000000L * (long) ( image_timestamp % 100L );
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: image_timestamp_timespec = (%lu,%lu)",
+		fname, image_timestamp_timespec.tv_sec,
+		image_timestamp_timespec.tv_nsec ));
+#endif
+
+	absolute_timespec = mx_add_high_resolution_times(
+		radicon_helios->timestamp_base, image_timestamp_timespec );
+
+#if MXD_RADICON_HELIOS_DEBUG_TIMESTAMP
+	MX_DEBUG(-2,("%s: absolute_timespec = (%lu,%lu)",
+		fname, absolute_timespec.tv_sec,
+		absolute_timespec.tv_nsec ));
+#endif
+
+	/* Write the absolute timestamp into the image header. */
+
+	MXIF_TIMESTAMP_SEC( ad->image_frame )  = absolute_timespec.tv_sec;
+	MXIF_TIMESTAMP_NSEC( ad->image_frame ) = absolute_timespec.tv_nsec;
+
+	/*----------------------------------------------------------------*/
 
 	/* If known, update the image header with the requested exposure time.*/
 

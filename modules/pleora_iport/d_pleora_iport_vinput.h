@@ -101,15 +101,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pleora_iport_vinput_rfield_def_ptr;
 
 #ifdef __cplusplus
 
-/* mxd_pleora_iport_vinput_send_lookup_table_program() is only available
- * for C++ code, since it makes use of the MX_PLEORA_IPORT_VINPUT structure
- * which makes use of C++ classes.
+/* The functions mxd_pleora_iport_vinput_send_lookup_table_program() and
+ * mxd_pleora_iport_vinput_set_rcbit() are only available for C++ code,
+ * since they make use of the MX_PLEORA_IPORT_VINPUT structure which makes
+ * use of C++ classes.
  */
 
 MX_API mx_status_type
 mxd_pleora_iport_vinput_send_lookup_table_program(
 				MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput,
 				char *mx_lookup_table_program );
+
+MX_API void
+mxd_pleora_iport_vinput_set_rcbit( MX_PLEORA_IPORT_VINPUT *pleora_iport_vinput,
+					int bit_number, int bit_value );
+
 #endif
 
 /*-----*/

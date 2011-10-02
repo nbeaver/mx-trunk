@@ -19,8 +19,6 @@
 
 #define MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY		FALSE
 
-#define MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT	FALSE
-
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -188,60 +186,6 @@ mxd_rh_trigger_get_pointers( MX_PULSE_GENERATOR *pulser,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-----*/
-
-static void
-mxd_rh_trigger_set_rcbit( CyGrabber *grabber, int bit_number, int bit_value )
-{
-	__int64 old_value;
-	__int64 set_value, clear_value;
-	__int64 bit_mask;
-
-	CyDevice &device = grabber->GetDevice();
-
-	CyDeviceExtension *extension =
-			&device.GetExtension( CY_DEVICE_EXT_GPIO_CONTROL_BITS );
-
-	extension->LoadFromDevice();
-
-	extension->GetParameter( CY_GPIO_CONTROL_BITS_CURRENT_VALUE,
-							old_value );
-
-	bit_mask = ( 1 << bit_number );
-
-	if ( bit_value == 0 ) {
-		set_value = 0;
-
-		clear_value = ( (~old_value) & 0xf ) | bit_mask;
-	} else {
-		set_value = old_value | bit_mask;
-
-		clear_value = 0;
-	}
-
-#if MXD_RADICON_HELIOS_TRIGGER_DEBUG_SET_RCBIT
-	static const char fname[] = "mxd_rh_trigger_set_rcbit()";
-
-	MX_DEBUG(-2,("%s: bit_number = %d, bit_value = %d",
-			fname, bit_number, bit_value));
-#endif
-
-#if 0
-	MX_DEBUG(-2,("%s: old_value = %#x", fname, (unsigned long) old_value));
-	MX_DEBUG(-2,("%s: bit_mask = %#x", fname, (unsigned long) bit_mask));
-	MX_DEBUG(-2,("%s: set_value = %#x, clear_value = %#x",
-			fname, (unsigned long) set_value,
-			(unsigned long) clear_value));
-#endif
-
-	extension->SetParameter( CY_GPIO_CONTROL_BITS_SET, set_value );
-
-	extension->SetParameter( CY_GPIO_CONTROL_BITS_CLEAR, clear_value );
-
-	extension->SaveToDevice();
-
-}
-
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
@@ -393,8 +337,8 @@ mxd_rh_trigger_open( MX_RECORD *record )
 	/*-------------------------------------------------------------------*/
 
 	/* Configure the Signal Routing Block and the PLC's Lookup Table
-	 * for the pulse generator.  Note that I0, I2, and I7 are already
-	 * in use by the 'radicon_helios' driver.
+	 * for the pulse generator.  Note that I0, I1, I2, and I7 are
+	 * already in use by the 'radicon_helios' driver.
 	 */
 
 	CyDeviceExtension *lut_extension =
@@ -428,7 +372,7 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	/* Set the trigger input low and the trigger output low. */
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 0, 0 );
 
 	char lut_program_low[] = 
 			"Q1=0\r\n"
@@ -450,11 +394,11 @@ mxd_rh_trigger_open( MX_RECORD *record )
 
 	/* Clear the counter. */
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 1 );
 
 	mx_msleep(1000);
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 0 );
 
 	/* Enable the trigger output by connecting it to the output of
 	 * the counter.
@@ -521,7 +465,7 @@ mxd_rh_trigger_is_busy( MX_PULSE_GENERATOR *pulser )
 
 		/* Deassert the input trigger for the pulse generator. */
 
-		mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
+		mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 0, 0 );
 	}
 
 #if MXD_RADICON_HELIOS_TRIGGER_DEBUG_BUSY
@@ -570,9 +514,9 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 			pleora_iport_vinput->record->name );
 	}
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 1 );
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 0 );
 
 	/* Update the counter compare value. */
 
@@ -588,7 +532,7 @@ mxd_rh_trigger_start( MX_PULSE_GENERATOR *pulser )
 
 	/* Assert the input trigger for the pulse generator. */
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 1 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 0, 1 );
 
 #if MXD_RADICON_HELIOS_TRIGGER_DEBUG
 	MX_DEBUG(-2,("%s: '%s' started with preset %lu",
@@ -631,17 +575,17 @@ mxd_rh_trigger_stop( MX_PULSE_GENERATOR *pulser )
 
 	/* Stop counting. */
 
-	mxd_rh_trigger_set_rcbit( grabber, 0, 0 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 0, 0 );
 
 	mx_msleep(500);
 
 	/* Clear the counter. */
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 1 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 1 );
 
 	mx_msleep(500);
 
-	mxd_rh_trigger_set_rcbit( grabber, 1, 0 );
+	mxd_pleora_iport_vinput_set_rcbit( pleora_iport_vinput, 1, 0 );
 
 	return MX_SUCCESSFUL_RESULT;
 }

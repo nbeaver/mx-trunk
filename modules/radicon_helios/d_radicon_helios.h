@@ -57,6 +57,8 @@ typedef struct {
 	mx_bool_type frame_already_descrambled;
 	mx_bool_type frame_already_corrected;
 	mx_bool_type shift_from_14_to_16_bits;
+
+	struct timespec timestamp_base;
 } MX_RADICON_HELIOS;
 
 #define MXD_RADICON_HELIOS_STANDARD_FIELDS \
