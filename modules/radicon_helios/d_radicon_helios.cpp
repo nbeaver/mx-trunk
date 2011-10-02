@@ -708,7 +708,27 @@ mxd_radicon_helios_descramble_25x20( MX_RADICON_HELIOS *radicon_helios,
 /*---*/
 
 static mx_status_type
-mxd_radicon_helios_descramble_test( MX_RADICON_HELIOS *radicon_helios,
+mxd_radicon_helios_descramble_test_10x10( MX_RADICON_HELIOS *radicon_helios,
+					uint16_t **source_2d_array,
+					uint16_t **dest_2d_array,
+					long *source_framesize,
+					long *dest_framesize )
+{
+	long i, j;
+
+	for ( i = 0; i < 1024; i++ ) {
+		for ( j = 0; j < 1024; j++ ) {
+			dest_2d_array[i][j] = source_2d_array[i][j];
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_radicon_helios_descramble_test_25x20( MX_RADICON_HELIOS *radicon_helios,
 					uint16_t **source_2d_array,
 					uint16_t **dest_2d_array,
 					long *source_framesize,
@@ -865,13 +885,15 @@ mxd_radicon_helios_finish_record_initialization( MX_RECORD *record )
 
 		radicon_helios->detector_type = MXT_RADICON_HELIOS_25x20;
 	} else
-	if ( mx_strcasecmp("30x30", radicon_helios->detector_type_name) == 0 ) {
-
-		radicon_helios->detector_type = MXT_RADICON_HELIOS_30x30;
+	if ( mx_strcasecmp("test_10x10", radicon_helios->detector_type_name)
+		== 0 )
+	{
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_TEST_10x10;
 	} else
-	if ( mx_strcasecmp("test", radicon_helios->detector_type_name) == 0 ) {
-
-		radicon_helios->detector_type = MXT_RADICON_HELIOS_TEST;
+	if ( mx_strcasecmp("test_25x20", radicon_helios->detector_type_name)
+		== 0 )
+	{
+		radicon_helios->detector_type = MXT_RADICON_HELIOS_TEST_25x20;
 	} else {
 		radicon_helios->detector_type = -1;
 
@@ -1202,12 +1224,13 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:
+	case MXT_RADICON_HELIOS_TEST_10x10:
 		ad->maximum_framesize[0] = 1024;
 		ad->maximum_framesize[1] = 1024;
 		break;
 
 	case MXT_RADICON_HELIOS_25x20:
-	case MXT_RADICON_HELIOS_TEST:
+	case MXT_RADICON_HELIOS_TEST_25x20:
 		ad->maximum_framesize[0] = 2560;
 		ad->maximum_framesize[1] = 2000;
 		break;
@@ -1348,16 +1371,12 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	switch( radicon_helios->detector_type ) {
 	case MXT_RADICON_HELIOS_10x10:
+	case MXT_RADICON_HELIOS_TEST_10x10:
 		offset_x = 8;
 		break;
 	case MXT_RADICON_HELIOS_25x20:
-	case MXT_RADICON_HELIOS_TEST:
+	case MXT_RADICON_HELIOS_TEST_25x20:
 		offset_x = 40;
-		break;
-	case MXT_RADICON_HELIOS_30x30:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"The value of CY_GRABBER_PARAM_OFFSET_X for the 30x30 "
-			"Rad-icon detector has not yet been specified." );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -2265,15 +2284,22 @@ mxd_radicon_helios_readout_frame( MX_AREA_DETECTOR *ad )
 						vinput->framesize,
 						ad->framesize );
 		break;
-	case MXT_RADICON_HELIOS_TEST:
-		mx_status = mxd_radicon_helios_descramble_test(
+	case MXT_RADICON_HELIOS_TEST_10x10:
+		mx_status = mxd_radicon_helios_descramble_test_10x10(
 						radicon_helios,
 						source_2d_array,
 						dest_2d_array,
 						vinput->framesize,
 						ad->framesize );
 		break;
-	case MXT_RADICON_HELIOS_30x30:
+	case MXT_RADICON_HELIOS_TEST_25x20:
+		mx_status = mxd_radicon_helios_descramble_test_25x20(
+						radicon_helios,
+						source_2d_array,
+						dest_2d_array,
+						vinput->framesize,
+						ad->framesize );
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Descrambling by record '%s' for detector type '%s' "
@@ -2675,7 +2701,7 @@ mxd_radicon_helios_get_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( radicon_helios->detector_type ) {
 		case MXT_RADICON_HELIOS_25x20:
-		case MXT_RADICON_HELIOS_TEST:
+		case MXT_RADICON_HELIOS_TEST_25x20:
 			ad->framesize[0] = vinput_horiz_framesize / 2L;
 			ad->framesize[1] = vinput_vert_framesize  * 2L;
 			break;
