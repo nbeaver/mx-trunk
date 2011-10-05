@@ -5,8 +5,8 @@
 
 MX_ARCH = win32
 
-#PLEORA_IPORT_DIR = c:\\progra~2\\pleora~1\\ebus-v~1
-PLEORA_IPORT_DIR = d:\\progra~1\\pleora~1\\ebus-v~1
+PLEORA_IPORT_DIR = c:\\progra~2\\pleora~1\\ebus-v~1
+#PLEORA_IPORT_DIR = d:\\progra~1\\pleora~1\\ebus-v~1
 
 all: radicon_helios.mxo
 
