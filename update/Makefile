@@ -45,13 +45,20 @@ mx_build: $(UPDATE_NAME)
 mx_clean:
 	-$(RM) *.$(OBJ)
 	-$(RM) *.bak
+	-$(RM) *.bin
+	-$(RM) *.bt
 	-$(RM) *.dbg
 	-$(RM) *.exe
 	-$(RM) *.ilk
 	-$(RM) *.manifest
 	-$(RM) *.map
+	-$(RM) *.num
+	-$(RM) *.nxe
+	-$(RM) *.obj
 	-$(RM) *.pdb
 	-$(RM) *.tds
+	-$(RM) *.res
+	-$(RM) *.RES
 	-$(RM) core*
 	-$(RM) $(UPDATE_NAME)
 

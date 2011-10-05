@@ -65,10 +65,15 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # The name specified for Gnu Make MUST NOT contain any spaces in it.  That
 # is why the examples below use short directory names like progra~1\micros~1 .
 #
+# In most cases, whatever directory you select for MXDEV_DIR should contain
+# a Lib subdirectory which in turn should contain all of the .lib files for
+# the Windows DLLs that you plan to use.  The only exception to this rule
+# is if you are using a separately downloaded copy of the Win32 Platform SDK.
+#
 # Visual C++ 2010 Express   (_MSC_VER == 1600)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
@@ -89,7 +94,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
+#MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
