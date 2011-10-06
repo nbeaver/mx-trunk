@@ -1,9 +1,9 @@
 #! /bin/sh
 #
-# Script to start the MX server and MX update processes at boot time.
+# Script to start the MX server and MX autosave processes at boot time.
 #
 # This version of the script runs as root, but starts up mxserver and
-# mxupdate under a non-root user account which is 'mx' by default.
+# mxautosave under a non-root user account which is 'mx' by default.
 #
 # The following is for the use of the Red Hat Linux chkconfig command:
 #
@@ -26,7 +26,7 @@ MXSBIN=${MXDIR}/sbin
 MX_LOCAL_CONFIG=${MXETC}/mx_local_config
 
 START_MXSERVER=${MXSBIN}/startmxserver
-START_MXUPDATE=${MXSBIN}/startmxupdate
+START_MXAUTOSAVE=${MXSBIN}/startmxautosave
 
 #---
 
@@ -41,7 +41,7 @@ export PATH
 
 SCRIPTUSER=`whoami`
 
-# Which user are the MX server and update processes to be run as?
+# Which user are the MX server and autosave processes to be run as?
 
 MXUSER_FILE=${MXDIR}/etc/mxuser.dat
 
@@ -75,13 +75,13 @@ START_MXSERVER_CMD="$START_MXSERVER ${MXSERVER_OPTIONS}"
 
 #---
 
-MXUPDATE_OPTIONS_FILE=${MXDIR}/etc/mxupdate.opt
+MXAUTOSAVE_OPTIONS_FILE=${MXDIR}/etc/mxautosave.opt
 
-if [ -f ${MXUPDATE_OPTIONS_FILE} ]; then
-	MXUPDATE_OPTIONS=`cat ${MXUPDATE_OPTIONS_FILE}`
+if [ -f ${MXAUTOSAVE_OPTIONS_FILE} ]; then
+	MXAUTOSAVE_OPTIONS=`cat ${MXAUTOSAVE_OPTIONS_FILE}`
 fi
 
-START_MXUPDATE_CMD="$START_MXUPDATE ${MXUPDATE_OPTIONS}"
+START_MXAUTOSAVE_CMD="$START_MXAUTOSAVE ${MXAUTOSAVE_OPTIONS}"
 
 #---
 
@@ -89,7 +89,7 @@ START_MXUPDATE_CMD="$START_MXUPDATE ${MXUPDATE_OPTIONS}"
 #echo "MXUSER=$MXUSER"
 #echo "PREFIX=$PREFIX"
 #echo "START_MXSERVER_CMD=$START_MXSERVER_CMD"
-#echo "START_MXUPDATE_CMD=$START_MXUPDATE_CMD"
+#echo "START_MXAUTOSAVE_CMD=$START_MXAUTOSAVE_CMD"
 
 case $1 in
     'start' )
@@ -121,15 +121,15 @@ case $1 in
 			( $START_MXSERVER_CMD < /dev/null >> ${MXLOG}/mxserver.log 2>&1 & )
 		fi
 
-		if [ -x $START_MXUPDATE ]; then
+		if [ -x $START_MXAUTOSAVE ]; then
 			if [ $SCRIPTUSER = "root" ]; then
-				$PREFIX "touch ${MXLOG}/mxupdate.log"
+				$PREFIX "touch ${MXLOG}/mxautosave.log"
 
-				( $PREFIX "$START_MXUPDATE_CMD" < /dev/null >> ${MXLOG}/mxupdate.log 2>&1 & )
+				( $PREFIX "$START_MXAUTOSAVE_CMD" < /dev/null >> ${MXLOG}/mxautosave.log 2>&1 & )
 			else
-				touch ${MXLOG}/mxupdate.log
+				touch ${MXLOG}/mxautosave.log
 
-				( $START_MXUPDATE_CMD < /dev/null >> ${MXLOG}/mxupdate.log 2>&1 & )
+				( $START_MXAUTOSAVE_CMD < /dev/null >> ${MXLOG}/mxautosave.log 2>&1 & )
 			fi
 		fi
 	fi
@@ -143,10 +143,10 @@ case $1 in
 		rm ${MXRUN}/mxserver.pid
 	fi
 
-	if [ -f ${MXRUN}/mxupdate.pid ]; then
-		MXUPDATE_PID=`cat ${MXRUN}/mxupdate.pid`
-		kill $MXUPDATE_PID
-		rm ${MXRUN}/mxupdate.pid
+	if [ -f ${MXRUN}/mxautosave.pid ]; then
+		MXAUTOSAVE_PID=`cat ${MXRUN}/mxautosave.pid`
+		kill $MXAUTOSAVE_PID
+		rm ${MXRUN}/mxautosave.pid
 	fi
 	;;
     'restart' )

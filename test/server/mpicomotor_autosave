@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../autosave/mxautosave mpicomotor_autosave.dat mpicomotor_autosave.1 mpicomotor_autosave.2
+

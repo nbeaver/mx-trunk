@@ -1,12 +1,12 @@
 .\" Process this man page with
-.\" groff -man -Tascii mxupdate.8
+.\" groff -man -Tascii mxautosave_fmt.5
 .\"
-.TH MXUPDATE_SAVE 5 "July 2005" "MX Administrator Manuals"
+.TH MXAUTOSAVE_FMT 5 "October 2011" "MX Administrator Manuals"
 .SH NAME
-mxupdate_save - mxupdate save/restore file format
+mxautosave_fmt - mxautosave save/restore file format
 .SH DESCRIPTION
 This man page describes the format of save/restore files used by the
-.B mxupdate
+.B mxautosave
 program.  The format is fairly simple and consists of two columns of text.
 The first column contains the name of the database variable while the second
 column contains the current value of the variable expressed in ASCII text.
@@ -47,7 +47,7 @@ conIo_params.value   100 1 0 0 0
 .fi
 
 .SH SEE ALSO
-.B mxupdate(8)
+.B mxautosave(8)
 
 .SH AUTHOR
 William Lavender <lavender@agni.phys.iit.edu>

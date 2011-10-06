@@ -1,3 +1,12 @@
+Version 1.5.5 (10/06/11):
+	The 'mxupdate' program has been renamed to 'mxautosave'.  The
+	immediate cause for doing this is the fact that Windows 7 seems
+	to insist on popping up a UAC dialog any time that you try to
+	run an EXE file with the string 'update' embedded in its name.
+	Changing the name to 'mxautosave' is probably just as well, since
+	the new name more directly describes what it does, namely, 
+	automatically saving and restoring MX variables.
+
 Version 1.5.4 (05/10/11):
 
 	Although the development leading up to this release called itself

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../autosave/mxautosave msoft_autosave.dat msoft_autosave.1 msoft_autosave.2 $*
+

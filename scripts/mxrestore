@@ -4,14 +4,14 @@
 #
 # Purpose: This script restores the values of a user-specified set of database
 #          parameters to one or more running servers.  Parameters from both MX
-#          and EPICS servers are supported.  See the man page mxupdate.dat(5)
+#          and EPICS servers are supported.  See the man page mxautosave.dat(5)
 #          for the format of the file used to specify the list of parameters.
 #
 # Author:  William Lavender
 #
 #--------------------------------------------------------------------------
 #
-# Copyright 2007 Illinois Institute of Technology
+# Copyright 2007, 2011 Illinois Institute of Technology
 #
 # See the file "LICENSE" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@ if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
 
-MXUPDATE=${MXDIR}/sbin/mxupdate
+MXAUTOSAVE=${MXDIR}/sbin/mxautosave
 
 if [ $# != 2 ]; then
 	echo ""
@@ -30,5 +30,5 @@ if [ $# != 2 ]; then
 	exit 1
 fi
 
-exec ${MXUPDATE} -r $1 $2
+exec ${MXAUTOSAVE} -r $1 $2
 

@@ -6350,8 +6350,8 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The timeout and retry loop are here mainly for the use of
-	 * the 'mxupdate' program.  'mxupdate' starts at approximately
+	/* The timeout and retry loop are here mainly for the use of the
+	 * 'mxautosave' program.  'mxautosave' starts at approximately
 	 * the same time as the 'mxserver' program, so we need to be
 	 * able to wait for 'mxserver'.
 	 *

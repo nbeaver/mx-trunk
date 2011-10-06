@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../autosave/mxautosave $* localhost 9827 msoftautosave.list msoftsav.1 msoftsav.2
+

@@ -86,7 +86,7 @@ MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o) ../tools/strlcpy.o ../tools/strlcat.o
 
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
-UPDATE_OBJS       = $(UPDATE_SRCS:.c=.o)
+AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 
 #
@@ -188,21 +188,21 @@ server_install:
 #
 #---------------------------------------------------
 #
-UPDATE_NAME	= mxupdate
+AUTOSAVE_NAME	= mxautosave
 
-$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) $(CFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
+$(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(AUTOSAVE_NAME) $(AUTOSAVE_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES)
 
-update_install:
-	/usr/bin/install -m 755 $(UPDATE_NAME) -f $(MX_INSTALL_DIR)/sbin 
-	/usr/bin/install -m 755 ../scripts/startmxupdate \
+autosave_install:
+	/usr/bin/install -m 755 $(AUTOSAVE_NAME) -f $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -m 755 ../scripts/startmxautosave \
 						-f $(MX_INSTALL_DIR)/sbin 
 	/usr/bin/install -m 755 ../scripts/mxsave \
 						-f $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -m 755 ../scripts/mxrestore \
 						-f $(MX_INSTALL_DIR)/bin 
-	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
 
 #
 #---------------------------------------------------

@@ -27,7 +27,7 @@ build: depend_files
 	$(MAKECMD)
 	cd ..\server
 	$(MAKECMD)
-	cd ..\update
+	cd ..\autosave
 	$(MAKECMD)
 	cd ..\util
 	$(MAKECMD)
@@ -41,7 +41,7 @@ clean: depend_files
 	$(MAKECMD) mx_clean
 	cd ..\server
 	$(MAKECMD) mx_clean
-	cd ..\update
+	cd ..\autosave
 	$(MAKECMD) mx_clean
 	cd ..\util
 	$(MAKECMD) mx_clean
@@ -55,7 +55,7 @@ distclean: depend_files
 	$(MAKECMD) mx_distclean
 	cd ..\server
 	$(MAKECMD) mx_distclean
-	cd ..\update
+	cd ..\autosave
 	$(MAKECMD) mx_distclean
 	cd ..\util
 	$(MAKECMD) mx_distclean
@@ -67,7 +67,7 @@ depend: depend_files
 	$(MAKECMD) mx_depend
 	cd ..\server
 	$(MAKECMD) mx_depend
-	cd ..\update
+	cd ..\autosave
 	$(MAKECMD) mx_depend
 	cd ..\util
 	$(MAKECMD) mx_depend
@@ -79,7 +79,7 @@ install: depend_files
 	$(MAKECMD) mx_install
 	cd ..\server
 	$(MAKECMD) mx_install
-	cd ..\update
+	cd ..\autosave
 	$(MAKECMD) mx_install
 	cd ..\util
 	$(MAKECMD) mx_install
@@ -88,7 +88,7 @@ install: depend_files
 
 MD = Makefile.depend
 
-depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) util/$(MD)
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) autosave/$(MD) util/$(MD)
 
 libMx/$(MD):
 	touch libMx/$(MD)
@@ -99,8 +99,8 @@ motor/$(MD):
 server/$(MD):
 	touch server/$(MD)
 
-update/$(MD):
-	touch update/$(MD)
+autosave/$(MD):
+	touch autosave/$(MD)
 
 util/$(MD):
 	touch util/$(MD)

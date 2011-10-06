@@ -10,10 +10,10 @@
 #
  
 #
-# List all of the source code files used to build mxupdate.
+# List all of the source code files used to build mxautosave.
 #
 
-UPDATE_SRCS = mu_update.c
+AUTOSAVE_SRCS = ms_autosave.c
 
 #
 #--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ include ../libMx/Makehead.$(MX_ARCH)
 # Makefile targets.
 #
 
-mx_build: $(UPDATE_NAME)
+mx_build: $(AUTOSAVE_NAME)
 
 mx_clean:
 	-$(RM) *.$(OBJ)
@@ -60,7 +60,7 @@ mx_clean:
 	-$(RM) *.res
 	-$(RM) *.RES
 	-$(RM) core*
-	-$(RM) $(UPDATE_NAME)
+	-$(RM) $(AUTOSAVE_NAME)
 
 mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)
@@ -68,7 +68,7 @@ mx_distclean: mx_clean
 mx_depend:
 	$(MAKEDEPEND)
 
-mx_install: update_install
+mx_install: autosave_install
 
 include Makefile.depend
 

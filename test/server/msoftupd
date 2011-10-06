@@ -1,4 +1,0 @@
-#! /bin/sh
-
-../update/mxupdate $* localhost 9827 msoftupd.lis msoftsav.1 msoftsav.2
-

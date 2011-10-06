@@ -149,7 +149,7 @@ MX_LIB_SRCS = mx_driver_vxworks.c $(MX_CORE_SRCS) $(MX_DRIVER_VXWORKS_SRCS)
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o)
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
-UPDATE_OBJS       = $(UPDATE_SRCS:.c=.o)
+AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.o)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.o)
 
 #----
@@ -239,14 +239,14 @@ server_install:
 #
 #---------------------------------------------------
 #
-UPDATE_NAME	= mxupdate.o
+AUTOSAVE_NAME	= mxautosave.o
 
-$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
-	$(LD) -o $(UPDATE_NAME) -r $(UPDATE_OBJS)
+$(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) $(MX_LIBRARY_PATH)
+	$(LD) -o $(AUTOSAVE_NAME) -r $(AUTOSAVE_OBJS)
 
-update_install:
-	$(INSTALL) -c -m 755 $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin 
-	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+autosave_install:
+	$(INSTALL) -c -m 755 $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin 
+	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
 
 #
 #---------------------------------------------------

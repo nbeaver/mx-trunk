@@ -180,7 +180,7 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
-UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
+AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
@@ -279,11 +279,11 @@ server_install:
 #
 #---------------------------------------------------
 #
-UPDATE_NAME	= mxupdate.exe
+AUTOSAVE_NAME	= mxautosave.exe
 
-$(UPDATE_NAME):
+$(AUTOSAVE_NAME):
 
-update_install:
+autosave_install:
 
 #
 #---------------------------------------------------

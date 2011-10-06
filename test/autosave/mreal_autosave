@@ -12,5 +12,5 @@ fi
 
 export MXDIR LD_LIBRARY_PATH
 
-../../update/mxupdate ${MXDIR}/etc/mxupdate.dat ${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2 
+../../autosave/mxautosave ${MXDIR}/etc/mxautosave.dat ${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2 
 

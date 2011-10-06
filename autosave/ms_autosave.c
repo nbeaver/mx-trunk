@@ -1,8 +1,8 @@
 /*
- * Name:    mu_update.c
+ * Name:    ms_autosave.c
  *
- * Purpose: main() routine for the MX auto save/restore and record polling
- *          utility.
+ * Purpose: main() routine for the MX automatic save/restore and
+ *          record polling utility.
  *
  * Author:  William Lavender
  *
@@ -36,22 +36,22 @@
 #include "mx_net.h"
 #include "mx_syslog.h"
 
-#include "mu_update.h"
+#include "ms_autosave.h"
 
-int mxupd_quiet_exit;
+int msauto_quiet_exit;
 
 #if ! defined( OS_WIN32 )
 
 static void
-mxupd_exit_handler( void )
+msauto_exit_handler( void )
 {
-	if ( mxupd_quiet_exit == FALSE ) {
-		mx_info( "*** MX update process exiting. ***" );
+	if ( msauto_quiet_exit == FALSE ) {
+		mx_info( "*** MX autosave process exiting. ***" );
 	}
 }
 
 static void
-mxupd_sigterm_handler( int signal_number )
+msauto_sigterm_handler( int signal_number )
 {
 	mx_info( "Received a request to shutdown via a SIGTERM signal." );
 
@@ -59,11 +59,11 @@ mxupd_sigterm_handler( int signal_number )
 }
 
 static void
-mxupd_install_signal_and_exit_handlers( void )
+msauto_install_signal_and_exit_handlers( void )
 {
-	atexit( mxupd_exit_handler );
+	atexit( msauto_exit_handler );
 
-	signal( SIGTERM, mxupd_sigterm_handler );
+	signal( SIGTERM, msauto_sigterm_handler );
 
 #ifdef SIGILL
 	signal( SIGILL, mx_standard_signal_error_handler );
@@ -91,7 +91,7 @@ mxupd_install_signal_and_exit_handlers( void )
 /*------------------------------------------------------------------*/
 
 static void
-mxupd_print_timestamp( void )
+msauto_print_timestamp( void )
 {
 	time_t time_struct;
 	struct tm current_time;
@@ -108,40 +108,40 @@ mxupd_print_timestamp( void )
 }
 
 static void
-mxupd_info_output_function( char *string )
+msauto_info_output_function( char *string )
 {
-	mxupd_print_timestamp();
+	msauto_print_timestamp();
 	fprintf( stderr, "%s\n", string );
 }
 
 static void
-mxupd_warning_output_function( char *string )
+msauto_warning_output_function( char *string )
 {
-	mxupd_print_timestamp();
+	msauto_print_timestamp();
 	fprintf( stderr, "Warning: %s\n", string );
 }
 
 static void
-mxupd_error_output_function( char *string )
+msauto_error_output_function( char *string )
 {
-	mxupd_print_timestamp();
+	msauto_print_timestamp();
 	fprintf( stderr, "%s\n", string );
 }
 
 static void
-mxupd_debug_output_function( char *string )
+msauto_debug_output_function( char *string )
 {
-	mxupd_print_timestamp();
+	msauto_print_timestamp();
 	fprintf( stderr, "%s\n", string );
 }
 
 static void
-mxupd_setup_output_functions( void )
+msauto_setup_output_functions( void )
 {
-	mx_set_info_output_function( mxupd_info_output_function );
-	mx_set_warning_output_function( mxupd_warning_output_function );
-	mx_set_error_output_function( mxupd_error_output_function );
-	mx_set_debug_output_function( mxupd_debug_output_function );
+	mx_set_info_output_function( msauto_info_output_function );
+	mx_set_warning_output_function( msauto_warning_output_function );
+	mx_set_error_output_function( msauto_error_output_function );
+	mx_set_debug_output_function( msauto_debug_output_function );
 }
 
 /*------------------------------------------------------------------*/
@@ -151,7 +151,7 @@ main( int argc, char *argv[] )
 {
 	static const char fname[] = "main()";
 
-	MXUPD_UPDATE_LIST update_list;
+	MX_AUTOSAVE_LIST autosave_list;
 
 	MX_RECORD *record_list;
 	MX_LIST_HEAD *list_head;
@@ -162,8 +162,8 @@ main( int argc, char *argv[] )
 
 	double update_interval_in_seconds = 30.0;
 
-	FILE *update_list_file;
-	char update_list_filename[MXU_FILENAME_LENGTH+1];
+	FILE *autosave_list_file;
+	char autosave_list_filename[MXU_FILENAME_LENGTH+1];
 	char autosave1_filename[MXU_FILENAME_LENGTH+1];
 	char autosave2_filename[MXU_FILENAME_LENGTH+1];
 	char *autosave_filename;
@@ -178,7 +178,7 @@ main( int argc, char *argv[] )
 	mx_status_type mx_status;
 
 	static char usage[] =
-"Usage: mxupdate [options] update_list_filename autosave_fn1 [ autosave_fn2 ]\n"
+"*          Usage: mxautosave [options] autosave_list_filename autosave_fn1 [ autosave_fn2 ]\n"
 "\n"
 "The available options are:\n"
 "       -a                   (enable network debugging summary)\n"
@@ -207,10 +207,10 @@ main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	mxupd_quiet_exit = FALSE;
+	msauto_quiet_exit = FALSE;
 
 #if ! defined( OS_WIN32 )
-	mxupd_install_signal_and_exit_handlers();
+	msauto_install_signal_and_exit_handlers();
 #endif
 	network_debug_flags = 0;
 
@@ -282,7 +282,7 @@ main( int argc, char *argv[] )
 
 		if ( error_flag == TRUE ) {
 			fputs( usage, stderr );
-			mxupd_quiet_exit = TRUE;
+			msauto_quiet_exit = TRUE;
 			exit(1);
 		}
 	}
@@ -308,7 +308,7 @@ main( int argc, char *argv[] )
 			"Error: You must not specify both the save '-s'\n"
 			"and restore '-r' command switches.\n" );
 		fputs( usage, stderr );
-		mxupd_quiet_exit = TRUE;
+		msauto_quiet_exit = TRUE;
 		exit(1);
 	}
 
@@ -317,7 +317,7 @@ main( int argc, char *argv[] )
 			"Error: You must not specify both the restore '-r'\n"
 			"and no restore '-R' command switches.\n" );
 		fputs( usage, stderr );
-		mxupd_quiet_exit = TRUE;
+		msauto_quiet_exit = TRUE;
 		exit(1);
 	}
 
@@ -326,7 +326,7 @@ main( int argc, char *argv[] )
 			fprintf(stderr,
 				"Error: incorrect number of arguments.\n\n");
 			fputs( usage, stderr );
-			mxupd_quiet_exit = TRUE;
+			msauto_quiet_exit = TRUE;
 			exit(1);
 		}
 	} else {
@@ -334,18 +334,18 @@ main( int argc, char *argv[] )
 			fprintf(stderr,
 				"Error: incorrect number of arguments.\n\n");
 			fputs( usage, stderr );
-			mxupd_quiet_exit = TRUE;
+			msauto_quiet_exit = TRUE;
 			exit(1);
 		}
 	}
 
 	if ( (save_only == FALSE) && (restore_only == FALSE) ) {
-		mxupd_setup_output_functions();
+		msauto_setup_output_functions();
 	}
 
 	/* Copy the other command line arguments. */
 
-	strlcpy( update_list_filename, argv[i], sizeof(update_list_filename) );
+	strlcpy( autosave_list_filename, argv[i], sizeof(autosave_list_filename) );
 
 	strlcpy( autosave1_filename, argv[i+1], sizeof(autosave1_filename) );
 
@@ -364,7 +364,7 @@ main( int argc, char *argv[] )
 		mx_gethostname( hostname, sizeof(hostname) - 1 );
 
 		snprintf( ident_string, sizeof(ident_string),
-			"mxupdate@%s", hostname );
+			"mxautosave@%s", hostname );
 
 		mx_status = mx_install_syslog_handler( ident_string,
 					syslog_number, syslog_options );
@@ -379,7 +379,7 @@ main( int argc, char *argv[] )
 					update_interval_in_seconds );
 
 	if ( (save_only == FALSE) && (restore_only == FALSE) ) {
-		mx_info( "*** MX update utility %s started ***",
+		mx_info( "*** MX autosave utility %s started ***",
 				mx_get_version_string() );
 
 		mx_info(
@@ -400,19 +400,19 @@ main( int argc, char *argv[] )
 	 * is it readable?
 	 */
 
-	update_list_file = fopen( update_list_filename, "r" );
+	autosave_list_file = fopen( autosave_list_filename, "r" );
 
-	if ( update_list_file == NULL ) {
+	if ( autosave_list_file == NULL ) {
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Could not open the update list file '%s' for reading.",
-			update_list_filename );
+		"Could not open the autosave list file '%s' for reading.",
+			autosave_list_filename );
 
 		exit( MXE_FILE_IO_ERROR );
 	}
 
 	/* Create an empty MX database. */
 
-	mx_status = mxupd_create_empty_mx_database( &record_list,
+	mx_status = msauto_create_empty_mx_database( &record_list,
 						default_display_precision );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -431,16 +431,16 @@ main( int argc, char *argv[] )
 
 	list_head->network_debug_flags = network_debug_flags;
 
-	/* Construct the update list data structure. */
+	/* Construct the autosave list data structure. */
 
-	mx_status = mxupd_construct_update_list( &update_list,
-				update_list_file, update_list_filename,
+	mx_status = msauto_construct_autosave_list( &autosave_list,
+				autosave_list_file, autosave_list_filename,
 				record_list );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( (int) mx_status.code );
 
-	fclose( update_list_file );
+	fclose( autosave_list_file );
 
 #if 0
 	/* Print out the list of records in the generated record list. */
@@ -464,31 +464,31 @@ main( int argc, char *argv[] )
 
 #if 0
 	{
-		/* Print out the contents of each update list. */
+		/* Print out the contents of each autosave list. */
 
-		MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
-		MXUPD_UPDATE_LIST_ENTRY *update_list_entry_array;
+		MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry;
+		MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry_array;
 
-		MX_DEBUG(-2,("*** Update list: (%ld entries)",
-				update_list.num_entries ));
+		MX_DEBUG(-2,("*** Autosave list: (%ld entries)",
+				autosave_list.num_entries ));
 
-		update_list_entry_array = update_list.entry_array;
+		autosave_list_entry_array = autosave_list.entry_array;
 
-		for ( i = 0; i < update_list.num_entries; i++ ) {
-			update_list_entry = &update_list_entry_array[i];
+		for ( i = 0; i < autosave_list.num_entries; i++ ) {
+			autosave_list_entry = &autosave_list_entry_array[i];
 
 			MX_DEBUG(-2,("        %s",
-			  update_list_entry->read_record->name));
+			  autosave_list_entry->read_record->name));
 		}
 	}
 #endif
 
-	/* Check to see if the update list is empty. */
+	/* Check to see if the autosave list is empty. */
 
-	if ( update_list.num_entries == 0 ) {
-		mx_warning( "The MX update list is empty." );
+	if ( autosave_list.num_entries == 0 ) {
+		mx_warning( "The MX autosave list is empty." );
 
-		mx_info("Mxupdate has nothing to do, so it will exit now.");
+		mx_info("mxautosave has nothing to do, so it will exit now.");
 
 		exit(0);
 	}
@@ -499,9 +499,9 @@ main( int argc, char *argv[] )
 
 	if ( ( save_only || no_restore ) == FALSE ) {
 
-		mx_status = mxupd_restore_fields_from_autosave_files(
+		mx_status = msauto_restore_fields_from_autosave_files(
 			autosave1_filename, autosave2_filename,
-			&update_list );
+			&autosave_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( (int) mx_status.code );
@@ -510,7 +510,7 @@ main( int argc, char *argv[] )
 	/* If we are _only_ restoring, then we are done. */
 
 	if ( restore_only ) {
-		mxupd_quiet_exit = TRUE;
+		msauto_quiet_exit = TRUE;
 		exit(0);
 	}
 
@@ -519,18 +519,18 @@ main( int argc, char *argv[] )
 	 */
 
 	if ( save_only ) {
-		mx_status = mxupd_poll_update_list( &update_list );
+		mx_status = msauto_poll_autosave_list( &autosave_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( (int) mx_status.code );
 
-		mx_status = mxupd_save_fields_to_autosave_file(
-					autosave1_filename, &update_list );
+		mx_status = msauto_save_fields_to_autosave_file(
+					autosave1_filename, &autosave_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( (int) mx_status.code );
 
-		mxupd_quiet_exit = TRUE;
+		msauto_quiet_exit = TRUE;
 		exit(0);
 	}
 
@@ -553,8 +553,8 @@ main( int argc, char *argv[] )
 				current_time.high_order,
 				current_time.low_order));
 
-			mx_status = mxupd_save_fields_to_autosave_file(
-					autosave_filename, &update_list );
+			mx_status = msauto_save_fields_to_autosave_file(
+					autosave_filename, &autosave_list );
 
 			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
 				exit( (int) mx_status.code );
@@ -584,7 +584,7 @@ main( int argc, char *argv[] )
 				current_time.high_order,
 				current_time.low_order));
 
-			mx_status = mxupd_poll_update_list( &update_list );
+			mx_status = msauto_poll_autosave_list( &autosave_list );
 
 			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
 				exit( (int) mx_status.code );
@@ -601,10 +601,10 @@ main( int argc, char *argv[] )
 }
 
 mx_status_type
-mxupd_create_empty_mx_database( MX_RECORD **record_list,
+msauto_create_empty_mx_database( MX_RECORD **record_list,
 				int default_display_precision )
 {
-	static const char fname[] = "mxupd_create_empty_mx_database()";
+	static const char fname[] = "msauto_create_empty_mx_database()";
 
 	MX_LIST_HEAD *list_head_struct;
 	mx_status_type mx_status;
@@ -640,7 +640,7 @@ mxupd_create_empty_mx_database( MX_RECORD **record_list,
 
 	/* Set the MX program name. */
 
-	strlcpy( list_head_struct->program_name, "mxupdate",
+	strlcpy( list_head_struct->program_name, "mxautosave",
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* Mark the record list as ready to be used. */
@@ -652,7 +652,7 @@ mxupd_create_empty_mx_database( MX_RECORD **record_list,
 }
 
 static mx_status_type
-mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
+msauto_add_mx_variable_to_database( MX_RECORD *record_list,
 				char *network_field_id,
 				long record_number,
 				MX_RECORD **created_record,
@@ -661,7 +661,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 				char *field_name,
 				size_t max_field_name_length )
 {
-	static const char fname[] = "mxupd_add_mx_variable_to_database()";
+	static const char fname[] = "msauto_add_mx_variable_to_database()";
 
 	MX_RECORD *server_record;
 	long i, num_elements;
@@ -866,7 +866,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 #if ( HAVE_EPICS == 0 )
 
 static mx_status_type
-mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
+msauto_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *epics_pv_name,
 				long record_number,
 				MX_RECORD **created_record,
@@ -875,10 +875,10 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *field_name,
 				size_t max_field_name_length )
 {
-	static const char fname[] = "mxupd_add_epics_variable_to_database()";
+	static const char fname[] = "msauto_add_epics_variable_to_database()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-	"Support for EPICS PVs is not compiled into this copy of mxupdate." );
+	"Support for EPICS PVs is not compiled into this copy of mxautosave." );
 }
 
 #else /* HAVE_EPICS */
@@ -886,7 +886,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 #include "mx_epics.h"
 
 static mx_status_type
-mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
+msauto_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *epics_pv_name,
 				long record_number,
 				MX_RECORD **created_record,
@@ -895,7 +895,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *field_name,
 				size_t max_field_name_length )
 {
-	static const char fname[] = "mxupd_add_epics_variable_to_database()";
+	static const char fname[] = "msauto_add_epics_variable_to_database()";
 
 	long i, length, string_length;
 	long epics_datatype, epics_array_length;
@@ -1031,14 +1031,14 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 }
 
 static mx_status_type
-mxupd_epics_motor_position_write_function( void *list_entry_ptr )
+msauto_epics_motor_position_write_function( void *list_entry_ptr )
 {
 	static const char fname[] =
-		"mxupd_epics_motor_position_write_function()";
+		"msauto_epics_motor_position_write_function()";
 
-	MXUPD_UPDATE_LIST_ENTRY *list_entry;
+	MX_AUTOSAVE_LIST_ENTRY *list_entry;
 	double motor_set_position;
-	char epics_motor_record_name[ MXUPD_FIELD_ID_NAME_LENGTH+1 ];
+	char epics_motor_record_name[ MXAUTO_FIELD_ID_NAME_LENGTH+1 ];
 	char *ptr;
 	int set_flag;
 	MX_EPICS_PV set_pv;
@@ -1052,7 +1052,7 @@ mxupd_epics_motor_position_write_function( void *list_entry_ptr )
 		"The list_entry_ptr passed was NULL." );
 	}
 
-	list_entry = (MXUPD_UPDATE_LIST_ENTRY *) list_entry_ptr;
+	list_entry = (MX_AUTOSAVE_LIST_ENTRY *) list_entry_ptr;
 
 	motor_set_position = *(double *) list_entry->read_value_pointer;
 
@@ -1118,11 +1118,11 @@ mxupd_epics_motor_position_write_function( void *list_entry_ptr )
 #endif /* HAVE_EPICS */
 
 static mx_status_type
-mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
+msauto_add_to_autosave_list( MX_AUTOSAVE_LIST *autosave_list,
 				char *protocol_id,
 				char *record_field_id,
 				char *extra_arguments,
-				unsigned long update_flags,
+				unsigned long autosave_flags,
 				char *read_record_name,
 				char *read_field_name,
 				MX_RECORD *read_record,
@@ -1131,10 +1131,10 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 				MX_RECORD *write_record,
 				mx_status_type (*write_function)(void *) )
 {
-	static const char fname[] = "mxupd_add_to_update_list()";
+	static const char fname[] = "msauto_add_to_autosave_list()";
 
-	MXUPD_UPDATE_LIST_ENTRY *update_list_entry_array;
-	MXUPD_UPDATE_LIST_ENTRY *update_list_entry, *ptr;
+	MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry_array;
+	MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry, *ptr;
 	MX_RECORD_FIELD *field;
 	mx_status_type (*constructor)( void *, char *, size_t,
 					MX_RECORD *, MX_RECORD_FIELD * );
@@ -1146,70 +1146,70 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 	size_t new_entry_array_size;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s: Adding record '%s' to update list.",
+	MX_DEBUG( 2,("%s: Adding record '%s' to autosave list.",
 		fname, read_record->name));
 
-	j = update_list->num_entries;
+	j = autosave_list->num_entries;
 
-	if ( (j + 1) % MXUPD_UPDATE_ARRAY_BLOCK_SIZE == 0 ) {
+	if ( (j + 1) % MX_AUTOSAVE_ARRAY_BLOCK_SIZE == 0 ) {
 		/* Need to increase the size of the entry_array. */
 
-		new_num_entries = (j + 1 + MXUPD_UPDATE_ARRAY_BLOCK_SIZE);
+		new_num_entries = (j + 1 + MX_AUTOSAVE_ARRAY_BLOCK_SIZE);
 
 		MX_DEBUG( 2,
-		("%s: Increasing size of update list to have %lu entries.",
+		("%s: Increasing size of autosave list to have %lu entries.",
 			fname, new_num_entries));
 
 		new_entry_array_size = new_num_entries
-					* sizeof( MXUPD_UPDATE_LIST_ENTRY );
+					* sizeof( MX_AUTOSAVE_LIST_ENTRY );
 
-		ptr = (MXUPD_UPDATE_LIST_ENTRY *) realloc(
-			update_list->entry_array, new_entry_array_size);
+		ptr = (MX_AUTOSAVE_LIST_ENTRY *) realloc(
+			autosave_list->entry_array, new_entry_array_size);
 
 		if ( ptr == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory reallocating the entry array "
-			"for the update list to have %lu elements.",
+			"for the autosave list to have %lu elements.",
 				new_num_entries );
 		}
 
-		update_list->entry_array = ptr;
+		autosave_list->entry_array = ptr;
 	}
 
-	update_list_entry_array = update_list->entry_array;
+	autosave_list_entry_array = autosave_list->entry_array;
 
-	update_list_entry = &update_list_entry_array[j];
+	autosave_list_entry = &autosave_list_entry_array[j];
 
-	/* Initialize the items in the update_list_entry structure. */
+	/* Initialize the items in the autosave_list_entry structure. */
 
-	strlcpy( update_list_entry->protocol_id, protocol_id,
-				MXUPD_PROTOCOL_ID_NAME_LENGTH );
-	strlcpy( update_list_entry->record_field_id, record_field_id,
-				MXUPD_FIELD_ID_NAME_LENGTH );
-	strlcpy( update_list_entry->extra_arguments, extra_arguments,
-				MXUPD_FIELD_ID_NAME_LENGTH );
+	strlcpy( autosave_list_entry->protocol_id, protocol_id,
+				MXAUTO_PROTOCOL_ID_NAME_LENGTH );
+	strlcpy( autosave_list_entry->record_field_id, record_field_id,
+				MXAUTO_FIELD_ID_NAME_LENGTH );
+	strlcpy( autosave_list_entry->extra_arguments, extra_arguments,
+				MXAUTO_FIELD_ID_NAME_LENGTH );
 
-	update_list_entry->update_flags = update_flags;
+	autosave_list_entry->autosave_flags = autosave_flags;
 
-	strlcpy( update_list_entry->read_record_name,
+	strlcpy( autosave_list_entry->read_record_name,
 				read_record_name, MXU_RECORD_NAME_LENGTH );
 
-	strlcpy( update_list_entry->read_field_name,
+	strlcpy( autosave_list_entry->read_field_name,
 				read_field_name, MXU_FIELD_NAME_LENGTH );
 
-	update_list_entry->read_record = read_record;
+	autosave_list_entry->read_record = read_record;
 
 	MX_DEBUG( 2,("%s: read_record_name = '%s'", fname, read_record_name));
 	MX_DEBUG( 2,("%s: read_field_name = '%s'", fname, read_field_name));
 	MX_DEBUG( 2,("%s: read_record = '%s'", fname, read_record->name));
 
-	strlcpy( update_list_entry->write_record_name,
+	strlcpy( autosave_list_entry->write_record_name,
 				write_record_name, MXU_RECORD_NAME_LENGTH );
 
-	strlcpy( update_list_entry->write_field_name,
+	strlcpy( autosave_list_entry->write_field_name,
 				write_field_name, MXU_FIELD_NAME_LENGTH );
 
-	update_list_entry->write_record = write_record;
+	autosave_list_entry->write_record = write_record;
 
 	MX_DEBUG( 2,("%s: write_record_name = '%s'", fname, write_record_name));
 	MX_DEBUG( 2,("%s: write_field_name = '%s'", fname, write_field_name));
@@ -1226,9 +1226,9 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	update_list_entry->read_value_field = field;
+	autosave_list_entry->read_value_field = field;
 
-	update_list_entry->read_value_pointer
+	autosave_list_entry->read_value_pointer
 					= mx_get_field_value_pointer( field );
 
 	mx_status = mx_get_token_constructor( field->datatype, &constructor );
@@ -1236,22 +1236,22 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	update_list_entry->token_constructor = constructor;
+	autosave_list_entry->token_constructor = constructor;
 
 	mx_status = mx_get_token_parser( field->datatype, &parser );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	update_list_entry->token_parser = parser;
+	autosave_list_entry->token_parser = parser;
 
 	/*---*/
 
-	update_list_entry->write_function = write_function;
+	autosave_list_entry->write_function = write_function;
 
 	if ( write_function != NULL ) {
-		update_list_entry->write_value_field = NULL;
-		update_list_entry->write_value_pointer = NULL;
+		autosave_list_entry->write_value_field = NULL;
+		autosave_list_entry->write_value_pointer = NULL;
 	} else {
 		mx_status = mx_find_record_field( write_record,
 						"value", &field );
@@ -1259,9 +1259,9 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		update_list_entry->write_value_field = field;
+		autosave_list_entry->write_value_field = field;
 
-		update_list_entry->write_value_pointer
+		autosave_list_entry->write_value_pointer
 					= mx_get_field_value_pointer( field );
 
 		mx_status = mx_get_token_constructor( field->datatype,
@@ -1270,7 +1270,7 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( constructor != update_list_entry->token_constructor ) {
+		if ( constructor != autosave_list_entry->token_constructor ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The write field '%s.%s' is not the same data type "
 			"as the read field '%s.%s'.",
@@ -1283,7 +1283,7 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( parser != update_list_entry->token_parser ) {
+		if ( parser != autosave_list_entry->token_parser ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The write field '%s.%s' is not the same data type "
 			"as the read field '%s.%s'.",
@@ -1294,18 +1294,18 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 
 	/* We're done so increment the number of entries in the list. */
 
-	update_list->num_entries = j + 1;
+	autosave_list->num_entries = j + 1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 mx_status_type
-mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
-                		FILE *update_list_file,
-				char *update_list_filename,
+msauto_construct_autosave_list( MX_AUTOSAVE_LIST *autosave_list,
+                		FILE *autosave_list_file,
+				char *autosave_list_filename,
 				MX_RECORD *record_list )
 {
-	static const char fname[] = "mxupd_construct_update_list()";
+	static const char fname[] = "msauto_construct_autosave_list()";
 
 	MX_RECORD *created_read_record, *created_write_record;
 	char read_record_name[MXU_RECORD_NAME_LENGTH+1];
@@ -1314,33 +1314,35 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 	char write_field_name[MXU_FIELD_NAME_LENGTH+1];
 	char format[50];
 	char buffer[350];
-	char protocol_id[MXUPD_PROTOCOL_ID_NAME_LENGTH+1];
-	char record_field_id[MXUPD_FIELD_ID_NAME_LENGTH+1];
-	char extra_arguments[MXUPD_FIELD_ID_NAME_LENGTH+1];
+	char protocol_id[MXAUTO_PROTOCOL_ID_NAME_LENGTH+1];
+	char record_field_id[MXAUTO_FIELD_ID_NAME_LENGTH+1];
+	char extra_arguments[MXAUTO_FIELD_ID_NAME_LENGTH+1];
 	char *ptr;
 	long i, num_items_read;
-	unsigned long update_flags;
+	unsigned long autosave_flags;
 	mx_status_type mx_status;
 	mx_status_type (*write_function)(void *);
 
-	MX_DEBUG( 2,("%s: update_list_filename = '%s'",
-			fname, update_list_filename));
+	MX_DEBUG( 2,("%s: autosave_list_filename = '%s'",
+			fname, autosave_list_filename));
 
-	/* Allocate initial blocks of space to store the update list entries.*/
+	/*
+	 * Allocate initial blocks of space to store the autosave list entries.
+	 */
 
-	update_list->num_entries = 0;
+	autosave_list->num_entries = 0;
 
-	update_list->entry_array = (MXUPD_UPDATE_LIST_ENTRY *)
-			malloc( MXUPD_UPDATE_ARRAY_BLOCK_SIZE
-				* sizeof(MXUPD_UPDATE_LIST_ENTRY) );
+	autosave_list->entry_array = (MX_AUTOSAVE_LIST_ENTRY *)
+			malloc( MX_AUTOSAVE_ARRAY_BLOCK_SIZE
+				* sizeof(MX_AUTOSAVE_LIST_ENTRY) );
 
-	if ( update_list->entry_array == NULL ) {
+	if ( autosave_list->entry_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate %d update list entries",
-				MXUPD_UPDATE_ARRAY_BLOCK_SIZE );
+		"Ran out of memory trying to allocate %d autosave list entries",
+				MX_AUTOSAVE_ARRAY_BLOCK_SIZE );
 	}
 
-	/* Now read in all of the items in the update list. */
+	/* Now read in all of the items in the autosave list. */
 
 	/* The format of each line is:
 	 *
@@ -1358,7 +1360,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 	 *
 	 *    mx 192.168.1.2:theta.position 0x1 192.168.1.2:theta.set_position
 	 *
-	 * where the flag value 0x1 is what tells mxupdate to restore
+	 * where the flag value 0x1 is what tells mxautosave to restore
 	 * to a different variable name.
 	 *
 	 * If the server is on nonstandard port 7890, you would use
@@ -1376,36 +1378,36 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 	MX_DEBUG( 2,("%s: format = '%s'", fname, format));
 
 	for ( i = 0; ; i++ ) {
-		mx_fgets(buffer, sizeof buffer, update_list_file);
+		mx_fgets(buffer, sizeof buffer, autosave_list_file);
 
-		if ( feof(update_list_file) ) {
+		if ( feof(autosave_list_file) ) {
 			break;		/* Exit the for loop. */
 		}
 
-		if ( ferror(update_list_file) ) {
+		if ( ferror(autosave_list_file) ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-	"Unexpected error reading line %ld of the update list file '%s'.",
-				i, update_list_filename );
+	"Unexpected error reading line %ld of the autosave list file '%s'.",
+				i, autosave_list_filename );
 		}
 
 		MX_DEBUG( 2,("%s: Line %ld = '%s'",fname,i,buffer));
 
 		num_items_read = sscanf( buffer, format, protocol_id,
-			record_field_id, &update_flags, extra_arguments );
+			record_field_id, &autosave_flags, extra_arguments );
 
 		if ( num_items_read < 3 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"Line %ld of update list file '%s' is incorrectly "
+			"Line %ld of autosave list file '%s' is incorrectly "
 			"formatted.  Contents = '%s'",
-				i, update_list_filename, buffer );
+				i, autosave_list_filename, buffer );
 		}
 		if ( num_items_read == 3 ) {
 			strlcpy( extra_arguments, "", sizeof(extra_arguments) );
 		}
 
 		MX_DEBUG( 2,("protocol_id = '%s', record_field_id = '%s', "
-				"update_flags = %#lx, extra_arguments = '%s'",
-			protocol_id, record_field_id, update_flags,
+				"autosave_flags = %#lx, extra_arguments = '%s'",
+			protocol_id, record_field_id, autosave_flags,
 			extra_arguments ));
 
 		write_function = NULL;
@@ -1417,7 +1419,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			("%s: *** add mx read variable for '%s' ***",
 			 	fname, record_field_id));
 
-			mx_status = mxupd_add_mx_variable_to_database(
+			mx_status = msauto_add_mx_variable_to_database(
 				record_list,
 				record_field_id, i, &created_read_record,
 				read_record_name, sizeof(read_record_name) - 1,
@@ -1428,7 +1430,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			("%s: *** add epics read variable for '%s' ***",
 			 	fname, record_field_id));
 
-			mx_status = mxupd_add_epics_variable_to_database(
+			mx_status = msauto_add_epics_variable_to_database(
 				record_list,
 				record_field_id, i, &created_read_record,
 				read_record_name, sizeof(read_record_name) - 1,
@@ -1439,7 +1441,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 		("%s: *** add epics motor position read variable for '%s' ***",
 			 	fname, record_field_id));
 
-			mx_status = mxupd_add_epics_variable_to_database(
+			mx_status = msauto_add_epics_variable_to_database(
 				record_list,
 				record_field_id, i, &created_read_record,
 				read_record_name, sizeof(read_record_name) - 1,
@@ -1449,10 +1451,10 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 
 			if ( ptr && (strcmp( ptr, ".value" ) == 0) ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
-		    "Update list file '%s' appears to be using the file "
+		    "Autosave list file '%s' appears to be using the file "
 		    "format used by MX 1.1 and before.  You must convert "
 		    "this file to the new format used by MX 1.2 and above.",
-					update_list_filename );
+					autosave_list_filename );
 			} else {
 				return mx_error( MXE_UNSUPPORTED, fname,
 		    "Unsupported protocol type '%s' requested for line '%s'",
@@ -1465,9 +1467,9 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 
 		/* If requested, add the record to write to. */
 
-		MX_DEBUG( 2,("%s: update_flags = %#lx", fname, update_flags));
+		MX_DEBUG( 2,("%s: autosave_flags = %#lx", fname, autosave_flags));
 
-		if ( ( update_flags & 0x1 ) == 0 ) {
+		if ( ( autosave_flags & 0x1 ) == 0 ) {
 			MX_DEBUG( 2,
 		("%s: *** created_write_record == created_read_record ***",
 		 		fname));
@@ -1486,7 +1488,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			("%s: *** add mx write variable for '%s' ***",
 			 	fname, extra_arguments));
 
-			    mx_status = mxupd_add_mx_variable_to_database(
+			    mx_status = msauto_add_mx_variable_to_database(
 					record_list, extra_arguments,
 					i, &created_write_record,
 				write_record_name, sizeof(write_record_name)-1,
@@ -1497,7 +1499,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			("%s: *** add epics write variable for '%s' ***",
 			 	fname, extra_arguments));
 
-			    mx_status = mxupd_add_epics_variable_to_database(
+			    mx_status = msauto_add_epics_variable_to_database(
 					record_list, extra_arguments,
 					i, &created_write_record,
 				write_record_name, sizeof(write_record_name)-1,
@@ -1515,10 +1517,10 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 
 #if HAVE_EPICS
 				write_function =
-				    mxupd_epics_motor_position_write_function;
+				    msauto_epics_motor_position_write_function;
 #else /* HAVE_EPICS */
 				return mx_error( MXE_UNSUPPORTED, fname,
-	    "Support for EPICS is not compiled into this copy of mxupdate." );
+	    "Support for EPICS is not compiled into this copy of mxautosave." );
 #endif /* HAVE_EPICS */
 
 			} else {
@@ -1528,10 +1530,10 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			}
 		}
 
-		/* Add the record(s) to the update list. */
+		/* Add the record(s) to the autosave list. */
 
 		MX_DEBUG( 2,
-		    ("%s: about to call mxupd_add_to_update_list()", fname));
+		    ("%s: about to call msauto_add_to_autosave_list()", fname));
 
 		MX_DEBUG( 2,("%s: read_record_name = '%s'",
 			fname, read_record_name));
@@ -1553,9 +1555,9 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 				fname, created_write_record->name));
 		}
 
-		mx_status = mxupd_add_to_update_list( update_list,
+		mx_status = msauto_add_to_autosave_list( autosave_list,
 				protocol_id, record_field_id, extra_arguments,
-				update_flags,
+				autosave_flags,
 				read_record_name, read_field_name,
 				created_read_record,
 				write_record_name, write_field_name,
@@ -1569,15 +1571,15 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 }
 
 mx_status_type
-mxupd_poll_update_list( MXUPD_UPDATE_LIST *update_list )
+msauto_poll_autosave_list( MX_AUTOSAVE_LIST *autosave_list )
 {
-	MXUPD_UPDATE_LIST_ENTRY *entry_array, *entry;
+	MX_AUTOSAVE_LIST_ENTRY *entry_array, *entry;
 	long i;
 	mx_status_type mx_status;
 
-	entry_array = update_list->entry_array;
+	entry_array = autosave_list->entry_array;
 
-	for ( i = 0; i < update_list->num_entries; i++ ) {
+	for ( i = 0; i < autosave_list->num_entries; i++ ) {
 
 		entry = &entry_array[i];
 
@@ -1590,12 +1592,12 @@ mxupd_poll_update_list( MXUPD_UPDATE_LIST *update_list )
 }
 
 mx_status_type
-mxupd_save_fields_to_autosave_file( char *autosave_filename,
-			MXUPD_UPDATE_LIST *update_list )
+msauto_save_fields_to_autosave_file( char *autosave_filename,
+			MX_AUTOSAVE_LIST *autosave_list )
 {
-	static const char fname[] = "mxupd_save_fields_to_autosave_file()";
+	static const char fname[] = "msauto_save_fields_to_autosave_file()";
 
-	MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
+	MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry;
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
 	FILE *autosave_file;
@@ -1607,7 +1609,7 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 	MX_DEBUG( 1,("%s: saving fields to autosave file '%s'",
 		fname, autosave_filename));
 
-	mx_status = mxupd_poll_update_list( update_list );
+	mx_status = msauto_poll_autosave_list( autosave_list );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1645,24 +1647,24 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 
 	/* Write out the new contents of the autosave file. */
 
-	for ( i = 0; i < update_list->num_entries; i++ ) {
-		update_list_entry = &(update_list->entry_array)[i];
+	for ( i = 0; i < autosave_list->num_entries; i++ ) {
+		autosave_list_entry = &(autosave_list->entry_array)[i];
 
 		snprintf( buffer, sizeof(buffer),
-				"%s.%s", update_list_entry->read_record_name,
-				update_list_entry->read_field_name );
+				"%s.%s", autosave_list_entry->read_record_name,
+				autosave_list_entry->read_field_name );
 
 		MX_DEBUG( 2,("%s: Saving value of '%s.%s'", fname,
-				update_list_entry->read_record_name,
-				update_list_entry->read_field_name ));
+				autosave_list_entry->read_record_name,
+				autosave_list_entry->read_field_name ));
 
 		fprintf( autosave_file, "%-s  ", buffer );
 
 		buffer[0] = '\0';
 
-		value_field = update_list_entry->read_value_field;
+		value_field = autosave_list_entry->read_value_field;
 
-		value_ptr = update_list_entry->read_value_pointer;
+		value_ptr = autosave_list_entry->read_value_pointer;
 
 		if ( (value_field->num_dimensions == 0)
 		  || ((value_field->datatype == MXFT_STRING)
@@ -1670,11 +1672,11 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 
 			/* Single token */
 
-			mx_status = ( update_list_entry->token_constructor ) (
+			mx_status = ( autosave_list_entry->token_constructor ) (
 					value_ptr,
 					buffer,
 					sizeof(buffer),
-					update_list_entry->read_record,
+					autosave_list_entry->read_record,
 					value_field );
 		} else {
 			mx_status = mx_create_array_description(
@@ -1682,9 +1684,9 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 					value_field->num_dimensions - 1,
 					buffer,
 					sizeof(buffer),
-					update_list_entry->read_record,
+					autosave_list_entry->read_record,
 					value_field,
-					update_list_entry->token_constructor );
+					autosave_list_entry->token_constructor );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -1717,12 +1719,12 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 		} while(0)
 
 static mx_status_type
-mxupd_choose_autosave_file_to_use(
+msauto_choose_autosave_file_to_use(
 		char *autosave1_filename,
 		char *autosave2_filename,
 		char **filename_to_use )
 {
-	static const char fname[] = "mxupd_choose_autosave_file_to_use()";
+	static const char fname[] = "msauto_choose_autosave_file_to_use()";
 
 	FILE *autosave1, *autosave2, *older_file, *newer_file;
 	FILE *autosave_to_use;
@@ -1870,14 +1872,14 @@ mxupd_choose_autosave_file_to_use(
 #define SEPARATORS " \t"
 
 mx_status_type
-mxupd_restore_fields_from_autosave_files(
+msauto_restore_fields_from_autosave_files(
 			char *autosave1_filename, char * autosave2_filename,
-			MXUPD_UPDATE_LIST *update_list )
+			MX_AUTOSAVE_LIST *autosave_list )
 {
 	static const char fname[] =
-			"mxupd_restore_fields_from_autosave_files()";
+			"msauto_restore_fields_from_autosave_files()";
 
-	MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
+	MX_AUTOSAVE_LIST_ENTRY *autosave_list_entry;
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
@@ -1887,17 +1889,17 @@ mxupd_restore_fields_from_autosave_files(
 	char buffer[500];
 	char *buffer_ptr;
 	char autosave_record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
-	char update_list_read_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
-	char update_list_write_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+	char autosave_list_read_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+	char autosave_list_write_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 	char autosave_backup_filename[ MXU_FILENAME_LENGTH + 1 ];
 	int saved_errno;
 	long i;
-	unsigned long update_flags;
+	unsigned long autosave_flags;
 	size_t length;
 	mx_status_type mx_status;
 
-	mx_status = mxupd_choose_autosave_file_to_use(
+	mx_status = msauto_choose_autosave_file_to_use(
 				autosave1_filename, autosave2_filename,
 				&filename_to_use );
 
@@ -1948,12 +1950,12 @@ mxupd_restore_fields_from_autosave_files(
 
 	/* Step through the lines in the autosave file and restore
 	 * parameters as we go.  Do _not_ return with an error status
-	 * code from here on.  To do so would cause the update process
+	 * code from here on.  To do so would cause the autosave process
 	 * to exit.
 	 */
 
-	for ( i = 0; i < update_list->num_entries; i++ ) {
-		update_list_entry = &(update_list->entry_array)[i];
+	for ( i = 0; i < autosave_list->num_entries; i++ ) {
+		autosave_list_entry = &(autosave_list->entry_array)[i];
 
 		mx_fgets( buffer, sizeof buffer, autosave_to_use );
 
@@ -1965,7 +1967,7 @@ mxupd_restore_fields_from_autosave_files(
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
 	"Only %ld autosave entries were read from autosave file '%s'.  "
 	"%lu entries were expected.",
-			i, filename_to_use, update_list->num_entries );
+			i, filename_to_use, autosave_list->num_entries );
 
 			return MX_SUCCESSFUL_RESULT;
 		}
@@ -1980,46 +1982,46 @@ mxupd_restore_fields_from_autosave_files(
 
 		buffer_ptr += strspn( buffer_ptr, SEPARATORS );
 
-		snprintf( update_list_read_field_name,
-			sizeof(update_list_read_field_name),
+		snprintf( autosave_list_read_field_name,
+			sizeof(autosave_list_read_field_name),
 			"%s.%s",
-			update_list_entry->read_record_name,
-			update_list_entry->read_field_name );
+			autosave_list_entry->read_record_name,
+			autosave_list_entry->read_field_name );
 
-		snprintf( update_list_write_field_name,
-			sizeof(update_list_write_field_name),
+		snprintf( autosave_list_write_field_name,
+			sizeof(autosave_list_write_field_name),
 			"%s.%s",
-			update_list_entry->write_record_name,
-			update_list_entry->write_field_name );
+			autosave_list_entry->write_record_name,
+			autosave_list_entry->write_field_name );
 
 		MX_DEBUG( 2,("%s: autosave_record_field_name = '%s'",
 			fname, autosave_record_field_name));
-		MX_DEBUG( 2,("%s: update_list_read_field_name = '%s'",
-			fname, update_list_read_field_name));
-		MX_DEBUG( 2,("%s: update_list_write_field_name = '%s'",
-			fname, update_list_write_field_name));
+		MX_DEBUG( 2,("%s: autosave_list_read_field_name = '%s'",
+			fname, autosave_list_read_field_name));
+		MX_DEBUG( 2,("%s: autosave_list_write_field_name = '%s'",
+			fname, autosave_list_write_field_name));
 
 		if ( strcmp( autosave_record_field_name,
-				update_list_read_field_name ) != 0 ) {
+				autosave_list_read_field_name ) != 0 ) {
 
 			fclose( autosave_to_use );
 
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
-	"Autosave file '%s' and the autosave update list are out of "
+	"Autosave file '%s' and the autosave list are out of "
 	"synchronization at line %ld.  Autosave record field name = '%s', "
-	"Update list read field name = '%s'", filename_to_use, i, 
+	"Autosave list read field name = '%s'", filename_to_use, i, 
 				autosave_record_field_name,
-				update_list_read_field_name );
+				autosave_list_read_field_name );
 
 			return MX_SUCCESSFUL_RESULT;
 		}
 		
-		if ( update_list_entry->write_value_field == NULL ) {
-			value_field = update_list_entry->read_value_field;
-			value_ptr = update_list_entry->read_value_pointer;
+		if ( autosave_list_entry->write_value_field == NULL ) {
+			value_field = autosave_list_entry->read_value_field;
+			value_ptr = autosave_list_entry->read_value_pointer;
 		} else {
-			value_field = update_list_entry->write_value_field;
-			value_ptr = update_list_entry->write_value_pointer;
+			value_field = autosave_list_entry->write_value_field;
+			value_ptr = autosave_list_entry->write_value_pointer;
 		}
 
 		/* Initialize the token parser. */
@@ -2055,10 +2057,10 @@ mxupd_restore_fields_from_autosave_files(
 				return MX_SUCCESSFUL_RESULT;
 			}
 
-			mx_status = (update_list_entry->token_parser) (
+			mx_status = (autosave_list_entry->token_parser) (
 					value_ptr,
 					token_buffer,
-					update_list_entry->write_record,
+					autosave_list_entry->write_record,
 					value_field,
 					&parse_status );
 		} else {
@@ -2067,10 +2069,10 @@ mxupd_restore_fields_from_autosave_files(
 			mx_status = mx_parse_array_description(
 					value_ptr,
 					value_field->num_dimensions - 1,
-					update_list_entry->write_record,
+					autosave_list_entry->write_record,
 					value_field,
 					&parse_status,
-					update_list_entry->token_parser );
+					autosave_list_entry->token_parser );
 		}
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fclose( autosave_to_use );
@@ -2078,23 +2080,23 @@ mxupd_restore_fields_from_autosave_files(
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		if ( update_list_entry->write_function == NULL ) {
-			update_flags = update_list_entry->update_flags;
+		if ( autosave_list_entry->write_function == NULL ) {
+			autosave_flags = autosave_list_entry->autosave_flags;
 
-			if ( update_flags & 0x1 ) {
+			if ( autosave_flags & 0x1 ) {
 				mx_info( "Restoring value of '%s' to '%s'.",
 					autosave_record_field_name,
-					update_list_write_field_name );
+					autosave_list_write_field_name );
 			} else {
 				mx_info( "Restoring value of '%s'.",
 					autosave_record_field_name );
 			}
 
 			(void) mx_send_variable(
-					update_list_entry->write_record );
+					autosave_list_entry->write_record );
 		} else {
-			mx_status = update_list_entry->write_function(
-						update_list_entry );
+			mx_status = autosave_list_entry->write_function(
+						autosave_list_entry );
 		}
 	}
 

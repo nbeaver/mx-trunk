@@ -4,7 +4,7 @@ if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
 
-MXUPDATE=${MXDIR}/sbin/mxupdate
+MXAUTOSAVE=${MXDIR}/sbin/mxautosave
 
 if [ x$LD_LIBRARY_PATH = x ]; then
 	LD_LIBRARY_PATH=${MXDIR}/lib
@@ -27,34 +27,34 @@ fi
 export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
 
 #
-# If mxupdate.dat exists and has a non-zero size, then we start mxupdate.
+# If mxautosave.dat exists and has a non-zero size, then we start mxautosave.
 #
 
-if [ -s ${MXDIR}/etc/mxupdate.dat ]; then
+if [ -s ${MXDIR}/etc/mxautosave.dat ]; then
 
-	if [ -x $MXUPDATE ]; then
+	if [ -x $MXAUTOSAVE ]; then
 		cd ${MXDIR}/run
 
-		echo $$ > ${MXDIR}/run/mxupdate.pid
+		echo $$ > ${MXDIR}/run/mxautosave.pid
 
-		exec $MXUPDATE $* ${MXDIR}/etc/mxupdate.dat \
+		exec $MXAUTOSAVE $* ${MXDIR}/etc/mxautosave.dat \
 			${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2
 	fi
 else
 	#
-	# Otherwise, announce that mxupdate was not started.
+	# Otherwise, announce that mxautosave was not started.
 	#
 
 	DATE=`date +'%b %d %H:%M:%S'`
 
 	echo \
-"${DATE} *** mxupdate was not started, since ${MXDIR}/etc/mxupdate.dat is empty or does not exist. ***"
+"${DATE} *** mxautosave was not started, since ${MXDIR}/etc/mxautosave.dat is empty or does not exist. ***"
 
 	#
-	# Make sure that mxupdate.pid does not exist.
+	# Make sure that mxautosave.pid does not exist.
 	#
-	if [ -f ${MXDIR}/run/mxupdate.pid ]; then
-		rm -f ${MXDIR}/run/mxupdate.pid
+	if [ -f ${MXDIR}/run/mxautosave.pid ]; then
+		rm -f ${MXDIR}/run/mxautosave.pid
 	fi
 fi
 

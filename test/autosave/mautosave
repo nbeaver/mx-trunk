@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../autosave/mxautosave mautosave.dat mautosave.1 mautosave.2
+

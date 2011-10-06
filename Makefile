@@ -52,7 +52,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.5-2011_10_05
+MX_INSTALL_DIR = c:/opt/mx-1.5.5-2011_10_06
 #MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_09_30
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
@@ -64,7 +64,7 @@ build: depend_files
 	( cd libMx ; $(MAKECMD) )
 	( cd motor ; $(MAKECMD) )
 	( cd server ; $(MAKECMD) )
-	( cd update ; $(MAKECMD) )
+	( cd autosave ; $(MAKECMD) )
 	( cd util ; $(MAKECMD) )
 
 clean: depend_files
@@ -72,7 +72,7 @@ clean: depend_files
 	( cd libMx ; $(MAKECMD) mx_clean )
 	( cd motor ; $(MAKECMD) mx_clean )
 	( cd server ; $(MAKECMD) mx_clean )
-	( cd update ; $(MAKECMD) mx_clean )
+	( cd autosave ; $(MAKECMD) mx_clean )
 	( cd util ; $(MAKECMD) mx_clean )
 
 distclean: depend_files
@@ -80,21 +80,21 @@ distclean: depend_files
 	( cd libMx ; $(MAKECMD) mx_distclean )
 	( cd motor ; $(MAKECMD) mx_distclean )
 	( cd server ; $(MAKECMD) mx_distclean )
-	( cd update ; $(MAKECMD) mx_distclean )
+	( cd autosave ; $(MAKECMD) mx_distclean )
 	( cd util ; $(MAKECMD) mx_distclean )
 
 depend: depend_files
 	( cd libMx ; $(MAKECMD) mx_depend )
 	( cd motor ; $(MAKECMD) mx_depend )
 	( cd server ; $(MAKECMD) mx_depend )
-	( cd update ; $(MAKECMD) mx_depend )
+	( cd autosave ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
 install: depend_files
 	( cd libMx ; $(MAKECMD) mx_install )
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )
-	( cd update ; $(MAKECMD) mx_install )
+	( cd autosave ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
 
 #------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ modules-install:
 
 MD = Makefile.depend
 
-depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) util/$(MD)
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) autosave/$(MD) util/$(MD)
 
 libMx/$(MD):
 	touch libMx/$(MD)
@@ -131,8 +131,8 @@ motor/$(MD):
 server/$(MD):
 	touch server/$(MD)
 
-update/$(MD):
-	touch update/$(MD)
+autosave/$(MD):
+	touch autosave/$(MD)
 
 util/$(MD):
 	touch util/$(MD)

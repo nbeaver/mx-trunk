@@ -358,7 +358,7 @@ MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
-UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
+AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
@@ -488,29 +488,29 @@ server_install:
 #
 #---------------------------------------------------
 #
-UPDATE_NAME	= mxupdate.exe
+AUTOSAVE_NAME	= mxautosave.exe
 
-$(UPDATE_NAME): $(UPDATE_OBJS) mxupdate.res \
+$(AUTOSAVE_NAME): $(AUTOSAVE_OBJS) mxautosave.res \
 		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
-	link /debug /nologo /out:mxupdate.exe *.obj mxupdate.res \
+	link /debug /nologo /out:mxautosave.exe *.obj mxautosave.res \
 		/nodefaultlib:libc $(DEBUG_OPTS) \
 		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
 
-	if test -f $(UPDATE_NAME).manifest; then \
-		$(MSMANIFEST_TOOL) -nologo -outputresource:$(UPDATE_NAME)\;1 \
-			-manifest $(UPDATE_NAME).manifest $(EXTRA_MANIFESTS) ; \
-		rm -f $(UPDATE_NAME).manifest; \
+	if test -f $(AUTOSAVE_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:$(AUTOSAVE_NAME)\;1 \
+			-manifest $(AUTOSAVE_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(AUTOSAVE_NAME).manifest; \
 	fi
 
-mxupdate.res: mxupdate.rc
-	rc -i$(MSDEV_DIR)/include mxupdate.rc
+mxautosave.res: mxautosave.rc
+	rc -i$(MSDEV_DIR)/include mxautosave.rc
 
-update_install:
-	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
-	cp ../scripts/startmxupdate.bat $(MX_INSTALL_DIR)/sbin
-	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+autosave_install:
+	cp $(AUTOSAVE_NAME) $(MX_INSTALL_DIR)/sbin
+	cp ../scripts/startmxautosave.bat $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxautosave.dat
 
 #
 #---------------------------------------------------

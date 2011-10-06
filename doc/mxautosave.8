@@ -1,67 +1,67 @@
 .\" Process this man page with
-.\" groff -man -Tascii mxupdate.8
+.\" groff -man -Tascii mxautosave.8
 .\"
-.TH MXUPDATE 8 "July 2005" "MX Administrator Manuals"
+.TH MXAUTOSAVE 8 "October 2011" "MX Administrator Manuals"
 .SH NAME
-mxupdate \- MX save/restore program
+mxautosave \- MX save/restore program
 .SH SYNOPSIS
-.B mxupdate [
+.B mxautosave [
 .I options
 .B ]
-.I update_list_fn savefile1 [ savefile2 ]
+.I mxautosave_dat_filename savefile1 [ savefile2 ]
 .SH DESCRIPTION
-.B mxupdate
+.B mxautosave
 is a save/restore utility which is normally started as a server by the
 .B mx(8)
 init script.
 However, it can also be directly invoked by users to manually save or restore
 individual sets of MX and/or EPICS database variables.
 
-.I update_list_fn
+.I mxautosave_dat_filename
 is a file listing the database variables that are to be saved or restored
 during this invocation of
-.B mxupdate.
+.B mxautosave.
 The format of this file is described further in the man page
-.B mxupdate.dat(5).
+.B mxautosave.dat(5).
 
 .I savefile1
 and the optional
 .I savefile2
 are the names of the files that database variables are saved to or
 restored from.  The format of this file is described in the man page
-.B mxupdate_save(5).
+.B mxautosave_format(5).
 If both filenames are specified on the command line and no option flags have
 been specified, then
-.B mxupdate
+.B mxautosave
 will look at the newer of the two files to see if the file is a complete
 save file with the last line containing the string "********".  If the last
 line with the string of asterisks is not present,
-.B mxupdate
+.B mxautosave
 assumes that a previous invocation of
-.B mxupdate
+.B mxautosave
 crashed while in the middle of writing out the save file.
 In this case,
-.B mxupdate
+.B mxautosave
 looks at the older of the two save files and looks to see if that file has
 the terminating string of asterisks.
 
 Once
-.B mxupdate
+.B mxautosave
 has found the newest available complete save file, it attempts to restore
 the values in it to the MX and/or EPICS database variables specified in
-.B mxupdate.dat.
+.B mxautosave.dat.
 If no complete save file is found, then 
-.B mxupdate
+.B mxautosave
 does not attempt to restore any values.
 
 If it is running as a server, periodically
-.B mxupdate
+.B mxautosave
 writes a snapshot of the current values
 of the variables specified
 in the file
-.B mxupdate.dat
+.B mxautosave.dat
 to one or the other of the two specified savefiles.
-.B mxupdate
+.B mxautosave
 alternates back and forth between the two savefiles, first overwriting one
 and the next overwriting the other.  The intention here is to maximize the
 chance that one of the two savefiles is a valid complete savefile.
@@ -83,16 +83,16 @@ specifys how many digits after the decimal point are to be displayed
 in values written to the save file.
 .IP -R
 tells 
-.B mxupdate
+.B mxautosave
 to start up without attempting to restore from a save file.
 .IP -r
 tells
-.B mxupdate
+.B mxautosave
 to restore a set of database variables from the specified file
 and then exit.  This is intended for use in manual restores of parameters.
 .IP -s
 tells
-.B mxupdate
+.B mxautosave
 to save a set of database variables to the requested file and then exit.
 This is intended for use in manual saves of parameters.
 .IP "-u update_interval"
@@ -105,19 +105,19 @@ Note that the normal value of the environment variable MXDIR in the following
 is /opt/mx.
 
 The conventional way to start
-.B mxupdate
+.B mxautosave
 is implicitly via the standard MX init script $MXDIR/sbin/mx with a
 command line like
 
 	/opt/mx/sbin/mx start
 
 If you want to directly start
-.B mxupdate
+.B mxautosave
 in the way that the
 .B mx(8)
 script does it, use a command like
 
-	/opt/mx/sbin/mxupdate /opt/mx/etc/mxupdate.dat \
+	/opt/mx/sbin/mxautosave /opt/mx/etc/mxautosave.dat \
 	  /opt/mx/state/mxsave.1 /opt/mx/state/mxsave.2
 
 If you want to manually save the database variables described in the file
@@ -126,7 +126,7 @@ to the save file
 .I mysave.dat,
 use a command line like
 
-	/opt/mx/sbin/mxupdate -s mylist.dat mysave.dat
+	/opt/mx/sbin/mxautosave -s mylist.dat mysave.dat
 
 If you want to manually restore the database variables described in the file
 .I mylist.dat
@@ -134,21 +134,21 @@ from the save file
 .I mysave.dat
 use a command line like
 
-	/opt/mx/sbin/mxupdate -r mylist.dat mysave.dat
+	/opt/mx/sbin/mxautosave -r mylist.dat mysave.dat
 
 .SH FILES
-.I $MXDIR/etc/mxupdate.dat
+.I $MXDIR/etc/mxautosave.dat
 - default configuration file that describes the set of variables to be
 saved or restored.
 .I $MXDIR/state/mxsave.1 and $MXDIR/state/mxsave.2
 - these are the save/restore files used by
-.B mxupdate
+.B mxautosave
 if started through the standard 
 .B mx(8)
 init script.
 
 .SH SEE ALSO
-.B mxupdate.dat(5), mxupdate_save(5), mx(8)
+.B mxautosave.dat(5), mxautosave_fmt(5), mx(8)
 
 .SH AUTHOR
 William Lavender <lavender@agni.phys.iit.edu>
