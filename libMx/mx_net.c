@@ -758,7 +758,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				unsigned long data_type, message_type;
 				unsigned long header_length, message_length;
 				char nf_label[ 100 ];
-				char nf_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
 
 				data_type = mx_ntohl(
 					header[ MX_NETWORK_DATA_TYPE ] );
