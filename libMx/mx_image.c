@@ -2083,6 +2083,117 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*--------------------------------------------------------------------------*/
 
+/* mx_image_display_ascii() displays the image on the 'output' FILE pointer
+ * using a 6-bit ASCII representation and rescales the image pixels to fit
+ * into the range from 'minimu' to 'maximum'..  The values used are as follows:
+ *
+ *  ' ' = 0
+ *  '.' = 1
+ *  '0' to '9' covers the range from 2 to 11.
+ *  'a' to 'z' covers the range from 12 to 37.
+ *  'A' to 'Z' covers the range from 38 to 63.
+ *
+ *  '-' means underflow.
+ *  '+' means overflow.
+ */
+
+MX_EXPORT mx_status_type
+mx_image_display_ascii( FILE *output,
+			MX_IMAGE_FRAME *image,
+			unsigned long minimum,
+			unsigned long maximum )
+{
+	static const char fname[] = "mx_image_display_ascii()";
+
+	double scale, offset;
+	unsigned long pixel_offset;
+	unsigned long i, j, row_framesize, column_framesize;
+	uint16_t *image_data;
+	unsigned long raw_value, rescaled_value;
+	char c;
+
+	if ( output == (FILE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+	if ( image == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( MXIF_BITS_PER_PIXEL(image) != 16 ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for %lu bit images is not yet implemented.",
+			(unsigned long) MXIF_BITS_PER_PIXEL(image) );
+	}
+
+	/* Compute the scale and offset for computing the 6-bit pixel values.
+	 * After rescaling, the 'maximum' above should be rescaled to 63
+	 * and the 'minimum' above should be rescaled to 0.
+	 */
+
+	scale = mx_divide_safely( 63.0, (maximum - minimum) );
+
+	offset = - minimum * scale;
+
+	row_framesize    = MXIF_ROW_FRAMESIZE( image );
+	column_framesize = MXIF_COLUMN_FRAMESIZE( image );
+
+	image_data = (uint16_t *) image->image_data;
+
+	for ( i = 0; i < 20; i++ ) {
+		fprintf( output, "%lu ", (unsigned long) image_data[i] );
+	}
+	fprintf( output, "\n" );
+
+	for ( i = 0; i < row_framesize; i++ ) {
+		for ( j = 0; j < column_framesize; j++ ) {
+			pixel_offset = i * row_framesize + j;
+
+			raw_value = image_data[ pixel_offset ];
+
+			/* Check for underflows. */
+
+			if ( raw_value < minimum ) {
+				fputc( '-', output );
+				continue;
+			}
+
+			/* Check for overflows. */
+
+			if ( raw_value > maximum ) {
+				fputc( '+', output );
+				continue;
+			}
+
+			rescaled_value = (unsigned long)
+						( scale * raw_value + offset );
+
+			if ( rescaled_value == 0 ) {
+				c = ' ';
+			} else
+			if ( rescaled_value == 1 ) {
+				c = '.';
+			} else
+			if ( rescaled_value <= 11 ) {
+				c = '0' + ( rescaled_value - 2 );
+			} else
+			if ( rescaled_value <= 37 ) {
+				c = 'a' + ( rescaled_value - 12 );
+			} else {
+				c = 'A' + ( rescaled_value - 38 );
+			}
+
+			fputc( c, output );
+		}
+		fputc( '\n', output );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 			unsigned long datafile_type,

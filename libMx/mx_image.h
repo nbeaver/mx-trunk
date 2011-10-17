@@ -347,6 +347,13 @@ MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 /*----*/
 
+MX_API mx_status_type mx_image_display_ascii( FILE *output_file,
+					MX_IMAGE_FRAME *frame,
+					unsigned long minimum,
+					unsigned long maximum );
+
+/*----*/
+
 MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 					unsigned long datafile_type,
 					char *datafile_name );

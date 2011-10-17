@@ -85,6 +85,13 @@ extern "C" {
 
 #define MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION	0x8000
 
+  /* The following flag requests that a 6-bit ASCII debugging image
+   * be written to the log at the end of each call to the function
+   * mx_area_detector_readout_frame().
+   */
+
+#define MXF_AD_DISPLAY_ASCII_DEBUGGING_IMAGE		0x40000000
+
   /* The following flag is intended for testing only. */
 
 #define MXF_AD_USE_UNSAFE_EXPOSURE		   	0x80000000

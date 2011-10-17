@@ -2970,6 +2970,103 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* FIXME: This function currently produces garbage results rather than
+ * the expected ASCII version of the image.
+ */
+
+static mx_status_type
+mxp_area_detector_display_ascii_debugging_image( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxp_area_detector_display_ascii_debugging_image()";
+
+	MX_IMAGE_FRAME *image;
+	MX_IMAGE_FRAME *rebinned_image;
+	unsigned long original_row_framesize, original_column_framesize;
+	unsigned long rebinned_row_framesize, rebinned_column_framesize;
+	double row_size_temp, rebinned_scale_factor;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	mx_warning( "The function %s is broken!", fname );
+
+	rebinned_image = NULL;
+
+	image = ad->image_frame;
+
+	if ( image == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No images have been taken yet by area detector '%s',.",
+			ad->record->name );
+	}
+
+#if 1
+	mx_image_statistics( image );
+#endif
+
+	/**********************************************************
+	 * Create a rebinned version of ad->image_frame that will *
+	 * fit into an 80 character wide terminal window.         *
+	 **********************************************************/
+
+	/* First compute the rebinning factor that we need to make
+	 * the width of the image fit.
+	 */
+
+	original_row_framesize = MXIF_ROW_FRAMESIZE( image );
+
+	if ( original_row_framesize < 80 ) {
+		mx_status = mx_image_copy_frame( image, &rebinned_image );
+	} else {
+		/* Keep dividing by 2 until we get a row framesize
+		 * that is less than 80.
+		 */
+
+		row_size_temp = original_row_framesize;
+
+		while ( row_size_temp >= 80.0 ) {
+			row_size_temp /= 2.0;
+		}
+
+		rebinned_row_framesize = mx_round_down( row_size_temp );
+
+		rebinned_scale_factor =
+			mx_divide_safely( rebinned_row_framesize,
+					original_row_framesize );
+
+		original_column_framesize = MXIF_COLUMN_FRAMESIZE( image );
+
+		rebinned_column_framesize = mx_round_down(
+			rebinned_scale_factor * original_column_framesize );
+
+		mx_status = mx_image_rebin( &rebinned_image, image,
+					rebinned_row_framesize,
+					rebinned_column_framesize );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/**********************************************************
+	 * We send to stderr an ASCII representation of the image *
+	 * that we just created.                                  *
+	 **********************************************************/
+
+#if 1
+	mx_image_statistics( rebinned_image );
+#endif
+
+	mx_status = mx_image_display_ascii( stderr, rebinned_image, 0, 65535 );
+
+	(void) mx_image_free( rebinned_image );
+
+	return mx_status;
+}
+	
 MX_EXPORT mx_status_type
 mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 {
@@ -3037,6 +3134,14 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 	MX_HRT_END(readout_frame_timing);
 	MX_HRT_RESULTS(readout_frame_timing, fname, "for frame readout");
 #endif
+
+	if ( ad->area_detector_flags & MXF_AD_DISPLAY_ASCII_DEBUGGING_IMAGE ) {
+		mx_status =
+			mxp_area_detector_display_ascii_debugging_image( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return mx_status;
 }
