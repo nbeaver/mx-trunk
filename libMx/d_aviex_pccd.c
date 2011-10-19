@@ -2171,6 +2171,21 @@ mxd_aviex_pccd_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* FIXME: For the PCCD-16080 we must reset the value of HBIN to 1
+	 * before starting the detector since, for some reason, it sometimes
+	 * changes to 3.  (WML - October 19, 2011)
+	 */
+
+#if 1
+	if ( ad->record->mx_type == MXT_AD_PCCD_16080 ) {
+		mx_status = mxd_aviex_pccd_16080_write_register( aviex_pccd,
+					MXLV_AVIEX_PCCD_16080_DH_HBIN, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
+
 	/* Prepare the video input for the next trigger. */
 
 	if ( camera_is_master && external_trigger ) {
