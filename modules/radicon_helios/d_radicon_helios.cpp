@@ -2596,6 +2596,8 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 
 			flt_image_pixel = flt_image_data_array[i];
 
+			flt_image_pixel -= bias_offset;
+
 			flt_image_pixel *= flood_field_scale;
 
 			flt_image_pixel += bias_offset;

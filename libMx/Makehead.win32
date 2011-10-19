@@ -74,7 +74,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
 # Visual C++ 2008 Express   (_MSC_VER == 1500)
@@ -94,7 +94,7 @@ MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-#MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
+MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
