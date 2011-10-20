@@ -2460,6 +2460,8 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 	float flood_field_scale;
 	float *flood_field_scale_array;
 	float bias_offset;
+	uint16_t *mask_data_u16, *bias_data_u16;
+	uint16_t mask_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_helios_get_pointers( ad,
@@ -2551,7 +2553,7 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 					ad,
 					ad->correction_calc_frame,
 					ad->mask_frame,
-					NULL,
+					ad->bias_frame,
 					ad->dark_current_frame );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -2567,6 +2569,22 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 			"The flood field scale array has not been loaded." );
 		}
 
+		/* Get a pointer to the mask data array. */
+
+		if ( ad->mask_frame == NULL ) {
+			mask_data_u16 = NULL;
+		} else {
+			mask_data_u16 = (uint16_t *) ad->mask_frame->image_data;
+		}
+
+		/* Get a pointer to the bias data array. */
+
+		if ( ad->bias_frame == NULL ) {
+			bias_data_u16 = NULL;
+		} else {
+			bias_data_u16 = (uint16_t *) ad->bias_frame->image_data;
+		}
+
 		/* Loop over the pixels. */
 
 		flt_image_data_array = (float *)
@@ -2577,9 +2595,22 @@ mxd_radicon_helios_correct_frame( MX_AREA_DETECTOR *ad )
 
 		flood_field_scale_array = ad->flood_field_scale_array;
 
-		bias_offset = 200.0;	/* Added at the end to each pixel. */
-		
 		for ( i = 0; i < num_pixels; i++ ) {
+
+			if ( mask_data_u16 != NULL ) {
+				mask_value = mask_data_u16[i];
+
+				if ( mask_value == 0 ) {
+					flt_image_data_array[i] = 0;
+					continue;
+				}
+			}
+
+			if ( bias_data_u16 == NULL ) {
+				bias_offset = 0;
+			} else {
+				bias_offset = bias_data_u16[i];
+			}
 
 			flood_field_scale = flood_field_scale_array[i];
 

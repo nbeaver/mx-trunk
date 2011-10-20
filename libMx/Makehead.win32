@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Microsoft Win32 (Windows 95/98/NT/2000/XP).
+#          for Microsoft Win32 (Windows 95/98/Me/NT/2000/XP/7).
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -73,6 +73,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # Visual C++ 2010 Express   (_MSC_VER == 1600)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
@@ -94,7 +95,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
+#MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
 # Visual C++ 5.0            (_MSC_VER == 1100)
 #
