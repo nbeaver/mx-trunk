@@ -17,7 +17,9 @@
 
 #define MX_IMAGE_DEBUG			FALSE
 
-#define MX_IMAGE_DEBUG_REBIN		TRUE
+#define MX_IMAGE_DEBUG_REBIN		FALSE
+
+#define MX_IMAGE_DEBUG_REBIN_DETAILS	FALSE
 
 #define MX_IMAGE_DEBUG_MARCCD		FALSE
 
@@ -1715,13 +1717,15 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			ocol_start = col * width_shrink_factor;
 			ocol_end = ocol_start + width_shrink_factor;
 
-#if 0 && MX_IMAGE_DEBUG_REBIN
-			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
-			orow_start, orow_end, ocol_start, ocol_end));
-#endif
 			for ( orow = orow_start; orow < orow_end; orow++ ) {
 			    for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
-			    	sum += (double) original_array_u16[orow][ocol];
+				opixel_u16 = original_array_u16[orow][ocol];
+
+			    	sum += (double) opixel_u16;
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+				MX_DEBUG(-2,("<< (%lu,%lu) = %lu",
+				    orow, ocol, (unsigned long) opixel_u16));
+#endif
 			    }
 			}
 
@@ -1730,7 +1734,11 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			/* Round to the nearest integer. */
 			pixel_average_u16 = (uint16_t) ( pixel_average + 0.5 );
 
-			rebinned_array_u16[row][col] = pixel_average + 0.5;
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			MX_DEBUG(-2,("----> (%lu,%lu) = %lu",
+				row, col, (unsigned long) pixel_average_u16 ));
+#endif
+			rebinned_array_u16[row][col] = pixel_average_u16;
 		    }
 		}
 
@@ -1738,7 +1746,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	    if ( (!shrink_width) & (!shrink_height) ) {
 
 	        for ( orow = 0; orow < original_height; orow++ ) {
-		    for ( ocol = 0; ocol < original_height; ocol++ ) {
+		    for ( ocol = 0; ocol < original_width; ocol++ ) {
 
 		    	row_start = orow * height_growth_factor;
 			row_end = row_start + height_growth_factor;
@@ -1746,15 +1754,23 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			col_start = ocol * width_growth_factor;
 			col_end = col_start + width_growth_factor;
 
-#if 0 && MX_IMAGE_DEBUG_REBIN
-			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
-			row_start, row_end, col_start, col_end));
-#endif
 			opixel_u16 = original_array_u16[orow][ocol];
+
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			MX_DEBUG(-2,(">> (%lu,%lu) = %lu",
+			    orow, ocol, (unsigned long) opixel_u16));
+#endif
 
 			for ( row = row_start; row < row_end; row++ ) {
 			    for ( col = col_start; col < col_end; col++ ) {
 			    	rebinned_array_u16[row][col] = opixel_u16;
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+				MX_DEBUG(-2,("----> (%lu,%lu) = %lu",
+				row, col, (unsigned long) opixel_u16));
+
+				MX_DEBUG(-2,("+++ (1,1) = %lu",
+				(unsigned long) rebinned_array_u16[1][1]));
+#endif
 			    }
 			}
 		    }
@@ -1774,7 +1790,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			ocol_start = col * width_shrink_factor;
 			ocol_end = ocol_start + width_shrink_factor;
 
-#if MX_IMAGE_DEBUG_REBIN
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
 			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
 			row_start, row_end, ocol_start, ocol_end));
 #endif
@@ -1809,7 +1825,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			col_start = ocol * width_growth_factor;
 			col_end = col_start + width_growth_factor;
 
-#if MX_IMAGE_DEBUG_REBIN
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
 			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
 			orow_start, orow_end, col_start, col_end));
 #endif
