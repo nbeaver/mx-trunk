@@ -17,7 +17,7 @@
 
 #define MX_IMAGE_DEBUG			FALSE
 
-#define MX_IMAGE_DEBUG_REBIN		FALSE
+#define MX_IMAGE_DEBUG_REBIN		TRUE
 
 #define MX_IMAGE_DEBUG_MARCCD		FALSE
 
@@ -1471,14 +1471,15 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	long original_dimensions[2], rebinned_dimensions[2];
 	size_t element_size[2];
 	void *original_array, *rebinned_array;
-	uint16_t **original_array_16, **rebinned_array_16;
+	uint16_t **original_array_u16, **rebinned_array_u16;
+	uint16_t pixel_average_u16;
 	double sum, pixels_per_bin, pixel_average;
 	unsigned long width_shrink_factor, width_growth_factor;
 	unsigned long height_shrink_factor, height_growth_factor;
 	unsigned long row, col, orow, ocol;
 	unsigned long row_start, row_end, col_start, col_end;
 	unsigned long orow_start, orow_end, ocol_start, ocol_end;
-	uint16_t opixel_16;
+	uint16_t opixel_u16;
 	mx_bool_type shrink_width, shrink_height;
 	mx_status_type mx_status, mx_status2;
 
@@ -1556,56 +1557,20 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	}
 
 	if ( original_width >= rebinned_width ) {
-#if 0
-		if ( (original_width % rebinned_width) != 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The rebinned width (%lu) of the image is not "
-			"an integer factor of the original width (%lu).",
-				rebinned_width, original_width );
-		}
-#endif
-
 		shrink_width = TRUE;
 
 		width_shrink_factor = original_width / rebinned_width;
 	} else {
-#if 0
-		if ( (rebinned_width % original_width) != 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The rebinned width (%lu) of the image is not "
-			"an integer multiple of the original width (%lu).",
-				rebinned_width, original_width );
-		}
-#endif
-
 		shrink_width = FALSE;
 
 		width_growth_factor = rebinned_width / original_width;
 	}
 
 	if ( original_height >= rebinned_height ) {
-#if 0
-		if ( (original_height % rebinned_height) != 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The rebinned height (%lu) of the image is not "
-			"an integer factor of the original height (%lu).",
-				rebinned_height, original_height );
-		}
-#endif
-
 		shrink_height = TRUE;
 
 		height_shrink_factor = original_height / rebinned_height;
 	} else {
-#if 0
-		if ( (rebinned_height % original_height) != 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The rebinned height (%lu) of the image is not "
-			"an integer multiple of the original height (%lu).",
-				rebinned_height, original_height );
-		}
-#endif
-
 		shrink_height = FALSE;
 
 		height_growth_factor = rebinned_height / original_height;
@@ -1728,8 +1693,8 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	    break;
 
 	case 2:
-	    original_array_16 = original_array;
-	    rebinned_array_16 = rebinned_array;
+	    original_array_u16 = original_array;
+	    rebinned_array_u16 = rebinned_array;
 
 #if MX_IMAGE_DEBUG_REBIN
 	    MX_DEBUG(-2,("%s: shrink_width = %d, shrink_height = %d",
@@ -1756,15 +1721,16 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 #endif
 			for ( orow = orow_start; orow < orow_end; orow++ ) {
 			    for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
-			    	sum += (double) original_array_16[orow][ocol];
+			    	sum += (double) original_array_u16[orow][ocol];
 			    }
 			}
 
 			pixel_average = sum / pixels_per_bin;
 
 			/* Round to the nearest integer. */
+			pixel_average_u16 = (uint16_t) ( pixel_average + 0.5 );
 
-			rebinned_array_16[row][col] = pixel_average + 0.5;
+			rebinned_array_u16[row][col] = pixel_average + 0.5;
 		    }
 		}
 
@@ -1784,21 +1750,85 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
 			row_start, row_end, col_start, col_end));
 #endif
-			opixel_16 = original_array_16[orow][ocol];
+			opixel_u16 = original_array_u16[orow][ocol];
 
 			for ( row = row_start; row < row_end; row++ ) {
 			    for ( col = col_start; col < col_end; col++ ) {
-			    	rebinned_array_16[row][col] = opixel_16;
+			    	rebinned_array_u16[row][col] = opixel_u16;
 			    }
 			}
 		    }
 		}
 
-	    } else {
-	    	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"The combination of shrink_width = %d and shrink_height = %d "
-		"has not yet been implemented.",
-			(int) shrink_width, (int) shrink_height );
+	    } else
+	    if ( shrink_width & (!shrink_height) ) {
+
+		pixels_per_bin = width_shrink_factor / height_growth_factor;
+
+		for ( orow = 0; orow < original_height; orow++ ) {
+		    for ( col = 0; col < rebinned_width; col++ ) {
+
+			row_start = orow * height_growth_factor;
+			row_end = row_start + height_growth_factor;
+
+			ocol_start = col * width_shrink_factor;
+			ocol_end = ocol_start + width_shrink_factor;
+
+#if MX_IMAGE_DEBUG_REBIN
+			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
+			row_start, row_end, ocol_start, ocol_end));
+#endif
+			sum = 0.0;
+
+			for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
+			    sum += (double) original_array_u16[orow][ocol];
+			}
+
+			pixel_average = sum / pixels_per_bin;
+
+			/* Round to the nearest integer. */
+			pixel_average_u16 = (uint16_t) ( pixel_average + 0.5 );
+
+			for ( row = row_start; row < row_end; row++ ) {
+			    rebinned_array_u16[row][col] = pixel_average_u16;
+			}
+		    }
+		}
+
+	    } else
+	    if ( (!shrink_width) & shrink_height ) {
+
+		pixels_per_bin = height_shrink_factor / width_growth_factor;
+
+		for ( row = 0; row < rebinned_height; row++ ) {
+		    for ( ocol = 0; ocol < original_width; ocol++ ) {
+
+			orow_start = row * height_shrink_factor;
+			orow_end = orow_start + height_shrink_factor;
+
+			col_start = ocol * width_growth_factor;
+			col_end = col_start + width_growth_factor;
+
+#if MX_IMAGE_DEBUG_REBIN
+			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
+			orow_start, orow_end, col_start, col_end));
+#endif
+			sum = 0.0;
+
+			for ( orow = orow_start; orow < orow_end; orow++ ) {
+			    sum += (double) original_array_u16[orow][ocol];
+			}
+
+			pixel_average = sum / pixels_per_bin;
+
+			/* Round to the nearest integer. */
+			pixel_average_u16 = (uint16_t) ( pixel_average + 0.5 );
+
+			for ( col = col_start; col < col_end; col++ ) {
+			    rebinned_array_u16[row][col] = pixel_average_u16;
+			}
+		    }
+		}
 	    }
 	    break;
 	}
