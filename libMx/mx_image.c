@@ -17,9 +17,9 @@
 
 #define MX_IMAGE_DEBUG			FALSE
 
-#define MX_IMAGE_DEBUG_REBIN		TRUE
+#define MX_IMAGE_DEBUG_REBIN		FALSE
 
-#define MX_IMAGE_DEBUG_REBIN_DETAILS	TRUE
+#define MX_IMAGE_DEBUG_REBIN_DETAILS	FALSE
 
 #define MX_IMAGE_DEBUG_MARCCD		FALSE
 
@@ -1776,7 +1776,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	    } else
 	    if ( shrink_width & (!shrink_height) ) {
 
-		pixels_per_bin = width_shrink_factor / height_growth_factor;
+		pixels_per_bin = width_shrink_factor;
 
 		for ( orow = 0; orow < original_height; orow++ ) {
 		    for ( col = 0; col < rebinned_width; col++ ) {
@@ -1787,14 +1787,17 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			ocol_start = col * width_shrink_factor;
 			ocol_end = ocol_start + width_shrink_factor;
 
-#if MX_IMAGE_DEBUG_REBIN_DETAILS
-			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
-			row_start, row_end, ocol_start, ocol_end));
-#endif
 			sum = 0.0;
 
 			for ( ocol = ocol_start; ocol < ocol_end; ocol++ ) {
-			    sum += (double) original_array_u16[orow][ocol];
+
+			    opixel_u16 = original_array_u16[orow][ocol];
+
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			    MX_DEBUG(-2,("<> (%lu,%lu) = %lu",
+			        orow, ocol, (unsigned long) opixel_u16));
+#endif
+			    sum += (double) opixel_u16;
 			}
 
 			pixel_average = sum / pixels_per_bin;
@@ -1804,6 +1807,11 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 			for ( row = row_start; row < row_end; row++ ) {
 			    rebinned_array_u16[row][col] = pixel_average_u16;
+
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			    MX_DEBUG(-2,("----> (%lu,%lu) = %lu",
+				row, col, (unsigned long) pixel_average_u16));
+#endif
 			}
 		    }
 		}
@@ -1811,7 +1819,7 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 	    } else
 	    if ( (!shrink_width) & shrink_height ) {
 
-		pixels_per_bin = height_shrink_factor / width_growth_factor;
+		pixels_per_bin = height_shrink_factor;
 
 		for ( row = 0; row < rebinned_height; row++ ) {
 		    for ( ocol = 0; ocol < original_width; ocol++ ) {
@@ -1822,14 +1830,17 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 			col_start = ocol * width_growth_factor;
 			col_end = col_start + width_growth_factor;
 
-#if MX_IMAGE_DEBUG_REBIN_DETAILS
-			MX_DEBUG(-2,("REBIN_loop: %lu %lu %lu %lu",
-			orow_start, orow_end, col_start, col_end));
-#endif
 			sum = 0.0;
 
 			for ( orow = orow_start; orow < orow_end; orow++ ) {
-			    sum += (double) original_array_u16[orow][ocol];
+
+			    opixel_u16 = original_array_u16[orow][ocol];
+
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			    MX_DEBUG(-2,(">< (%lu,%lu) = %lu",
+			        orow, ocol, (unsigned long) opixel_u16));
+#endif
+			    sum += (double) opixel_u16;
 			}
 
 			pixel_average = sum / pixels_per_bin;
@@ -1839,6 +1850,11 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 
 			for ( col = col_start; col < col_end; col++ ) {
 			    rebinned_array_u16[row][col] = pixel_average_u16;
+
+#if MX_IMAGE_DEBUG_REBIN_DETAILS
+			    MX_DEBUG(-2,("----> (%lu,%lu) = %lu",
+				row, col, (unsigned long) pixel_average_u16));
+#endif
 			}
 		    }
 		}
