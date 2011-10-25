@@ -2982,9 +2982,9 @@ mxp_area_detector_display_ascii_debugging_image( MX_AREA_DETECTOR *ad )
 
 	MX_IMAGE_FRAME *image;
 	MX_IMAGE_FRAME *rebinned_image;
-	unsigned long original_row_framesize, original_column_framesize;
-	unsigned long rebinned_row_framesize, rebinned_column_framesize;
-	double row_size_temp, rebinned_scale_factor;
+	unsigned long original_width, original_height;
+	unsigned long rebinned_width, rebinned_height;
+	double width_temp, rebinned_scale_factor;
 	mx_status_type mx_status;
 
 	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
@@ -3017,35 +3017,35 @@ mxp_area_detector_display_ascii_debugging_image( MX_AREA_DETECTOR *ad )
 	 * the width of the image fit.
 	 */
 
-	original_row_framesize = MXIF_ROW_FRAMESIZE( image );
+	original_width = MXIF_ROW_FRAMESIZE( image );
 
-	if ( original_row_framesize < 80 ) {
+	if ( original_width < 80 ) {
 		mx_status = mx_image_copy_frame( image, &rebinned_image );
 	} else {
-		/* Keep dividing by 2 until we get a row framesize
+		/* Keep dividing by 2 until we get a width
 		 * that is less than 80.
 		 */
 
-		row_size_temp = original_row_framesize;
+		width_temp = original_width;
 
-		while ( row_size_temp >= 80.0 ) {
-			row_size_temp /= 2.0;
+		while ( width_temp >= 80.0 ) {
+			width_temp /= 2.0;
 		}
 
-		rebinned_row_framesize = mx_round_down( row_size_temp );
+		rebinned_width = mx_round_down( width_temp );
 
 		rebinned_scale_factor =
-			mx_divide_safely( rebinned_row_framesize,
-					original_row_framesize );
+			mx_divide_safely( rebinned_width,
+					original_width );
 
-		original_column_framesize = MXIF_COLUMN_FRAMESIZE( image );
+		original_height = MXIF_COLUMN_FRAMESIZE( image );
 
-		rebinned_column_framesize = mx_round_down(
-			rebinned_scale_factor * original_column_framesize );
+		rebinned_height = mx_round_down(
+			rebinned_scale_factor * original_height );
 
 		mx_status = mx_image_rebin( &rebinned_image, image,
-					rebinned_row_framesize,
-					rebinned_column_framesize );
+					rebinned_width,
+					rebinned_height );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
