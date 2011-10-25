@@ -1767,9 +1767,6 @@ mx_image_rebin( MX_IMAGE_FRAME **rebinned_frame,
 #if MX_IMAGE_DEBUG_REBIN_DETAILS
 				MX_DEBUG(-2,("----> (%lu,%lu) = %lu",
 				row, col, (unsigned long) opixel_u16));
-
-				MX_DEBUG(-2,("+++ (1,1) = %lu",
-				(unsigned long) rebinned_array_u16[1][1]));
 #endif
 			    }
 			}

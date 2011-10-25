@@ -566,7 +566,7 @@ mx_array_add_overlay( void *vector_pointer,
 		upper_step_size = upper_pointer_size;
 
 		lower_step_size = lower_data_size
-				* dimension_array[num_dimensions - dim];
+				* dimension_array[num_dimensions - dim + 1];
 
 		num_pointers_in_this_level = num_pointers_in_previous_level
 				* dimension_array[num_dimensions - dim];
