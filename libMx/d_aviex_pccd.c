@@ -3678,11 +3678,29 @@ mxd_aviex_pccd_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-		mx_status = mx_video_input_get_image_format( video_input_record,
+		if ( ad->record->mx_type == MXT_AD_PCCD_9785 ) {
+
+			/* The PCCD-9785 returns 16-bit pixels.  However,
+			 * the PIXCI E4 capture card in Camera Link Medium 
+			 * configuration cannot handle 16-bit pixels.
+			 * Instead, we transfer the 16-bit image across
+			 * the bus as two 8-bit pixels.
+			 *
+			 * What this means is that the video card is
+	`		 * configured for MXT_IMAGE_FORMAT_GREY8, but
+			 * we must treat the area detector image as
+			 * MXT_IMAGE_FORMAT_GREY16.
+			 */
+
+			ad->image_format = MXT_IMAGE_FORMAT_GREY16;
+		} else {
+			mx_status = mx_video_input_get_image_format(
+						video_input_record,
 						&(ad->image_format) );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		mx_status = mx_image_get_image_format_name_from_type(
 				ad->image_format, ad->image_format_name,
