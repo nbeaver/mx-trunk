@@ -6,8 +6,8 @@ ifndef MX_ARCH
   MX_ARCH = linux
 endif
 
-EPIX_ARCH = i386
-#EPIX_ARCH = x86_64_pic
+#EPIX_ARCH = i386
+EPIX_ARCH = x86_64_pic
 
 EPIX_XCLIB_DIR = /usr/local/xclib
 
