@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +35,8 @@ typedef struct {
 
 	unsigned long epix_xclib_vinput_flags;
 	unsigned long write_test_value;
+
+	long raw_image_format;
 
 	long unitmap;
 	double default_trigger_time;
@@ -87,6 +89,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, write_test_value), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "raw_image_format", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, raw_image_format), \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "fake_frame_numbers", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_TYPE_STRUCT, \

@@ -924,6 +924,64 @@ mxd_epix_xclib_save_start_timespec( MX_EPIX_XCLIB *xclib )
 
 /*---*/
 
+static mx_status_type
+mxd_epix_xclib_get_raw_image_format( MX_VIDEO_INPUT *vinput,
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_get_raw_image_format()";
+
+	int bits_per_component, components_per_pixel;
+
+	bits_per_component = pxd_imageBdim();
+	components_per_pixel = pxd_imageCdim();
+
+	if ( bits_per_component <= 8 ) {
+		switch( components_per_pixel ) {
+		case 1:
+		    epix_xclib_vinput->raw_image_format =
+				MXT_IMAGE_FORMAT_GREY8;
+		    break;
+		case 3:
+		    epix_xclib_vinput->raw_image_format = MXT_IMAGE_FORMAT_RGB;
+		    break;
+		default:
+		    return mx_error( MXE_UNSUPPORTED, fname,
+			"%d-bit video input '%s' reports an "
+			"unsupported number of pixel components (%d).",
+				bits_per_component,
+				vinput->record->name,
+				components_per_pixel );
+		}
+	} else
+	if ( bits_per_component <= 16 ) {
+		switch( components_per_pixel ) {
+		case 1:
+		    epix_xclib_vinput->raw_image_format =
+				MXT_IMAGE_FORMAT_GREY16;
+		    break;
+		default:
+		    return mx_error( MXE_UNSUPPORTED, fname,
+			"%d-bit video input '%s' reports an "
+			"unsupported number of pixel components (%d).",
+				bits_per_component,
+				vinput->record->name,
+				components_per_pixel );
+		}
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Video input '%s' reports an unsupported "
+			"number of bits per component (%d) "
+			"and components per pixel (%d).",
+				vinput->record->name,
+				bits_per_component,
+				components_per_pixel );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 {
@@ -1098,10 +1156,29 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	epix_xclib_vinput->captured_field_signal = 0;
 #endif
 
-	mx_status = mx_video_input_get_image_format( record, NULL );
+	/*-----------------------------------------------------------*/
+
+	/* Get the capture card image format. */
+
+	mx_status = mxd_epix_xclib_get_raw_image_format( vinput,
+							epix_xclib_vinput );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Set the high level image format to GREY16. */
+
+	vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	mx_status = mx_image_get_image_format_name_from_type(
+					vinput->image_format,
+					vinput->image_format_name,
+					sizeof(vinput->image_format_name) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*-----------------------------------------------------------*/
 
 	mx_status = mx_video_input_get_bits_per_pixel( record, NULL );
 
@@ -2529,7 +2606,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			(long) epix_frame_number ));
 #endif
 
-	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( epix_xclib_vinput->raw_image_format == MXT_IMAGE_FORMAT_GREY16 ) {
 
 		words_to_read = (frame->image_length) / 2;
 		
@@ -2607,7 +2684,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	if ( result < frame->image_length ) {
 		/* Buffer underrun. */
 
-		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		(void) mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 			"Read only %ld bytes from video input '%s' when we "
 			"were expecting to read %lu bytes.",
 				result, vinput->record->name,
@@ -2680,7 +2757,6 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_get_parameter()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	int bits_per_component, components_per_pixel;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	uint16 CLCCSE;
 	int epix_status;
@@ -2747,65 +2823,8 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
-		bits_per_component = pxd_imageBdim();
-		components_per_pixel = pxd_imageCdim();
+		/* Just return the most recently set value. */
 
-		if ( bits_per_component <= 8 ) {
-			switch( components_per_pixel ) {
-			case 1:
-			    vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
-			    break;
-			case 3:
-			    vinput->image_format = MXT_IMAGE_FORMAT_RGB;
-			    break;
-			default:
-			    return mx_error( MXE_UNSUPPORTED, fname,
-				"%d-bit video input '%s' reports an "
-				"unsupported number of pixel components (%d).",
-					bits_per_component,
-					vinput->record->name,
-					components_per_pixel );
-			}
-		} else
-		if ( bits_per_component <= 16 ) {
-			switch( components_per_pixel ) {
-			case 1:
-			    vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
-			    break;
-			default:
-			    return mx_error( MXE_UNSUPPORTED, fname,
-				"%d-bit video input '%s' reports an "
-				"unsupported number of pixel components (%d).",
-					bits_per_component,
-					vinput->record->name,
-					components_per_pixel );
-			}
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-				"Video input '%s' reports an unsupported "
-				"number of bits per component (%d) "
-				"and components per pixel (%d).",
-					vinput->record->name,
-					bits_per_component,
-					components_per_pixel );
-		}
-
-		mx_status = mx_image_get_image_format_name_from_type(
-				vinput->image_format, vinput->image_format_name,
-				MXU_IMAGE_FORMAT_NAME_LENGTH );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,(
-		"%s: bits per component = %d, components per pixel = %d",
-			fname, bits_per_component, components_per_pixel));
-
-		MX_DEBUG(-2,("%s: video format = %ld '%s'",
-		    fname, vinput->image_format, vinput->image_format_name));
-		 	
-#endif
 		break;
 
 	case MXLV_VIN_MASTER_CLOCK:
