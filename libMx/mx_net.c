@@ -1791,13 +1791,13 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_LONG:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%ld ",
-					((long *) raw_buffer)[i] );
+				    (0xffffffff & ((long *) raw_buffer)[i]) );
 			}
 			break;
 		case MXFT_ULONG:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%lu ",
-					((unsigned long *) raw_buffer)[i] );
+			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
 			}
 			break;
 		case MXFT_FLOAT:
@@ -1815,7 +1815,7 @@ mx_network_buffer_show_value( void *buffer,
 		case MXFT_HEX:
 			for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%#lx ",
-					((unsigned long *) raw_buffer)[i] );
+			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
 			}
 			break;
 		case MXFT_INT64:
