@@ -1322,6 +1322,14 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
+		} else if ( strncmp( buffer, "!break", 6 ) == 0 ) {
+
+			mx_breakpoint();
+
+		} else if ( buffer[0] == '!' ) {
+			mx_warning( "Ignoring unrecognized directive: '%s'",
+				buffer );
+
 		} else {
 			/* Otherwise, we assume this line is just a
 			 * record description and try to parse it.
