@@ -1015,7 +1015,6 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_epics_mca_get_parameter()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	MX_EPICS_GROUP epics_group;
 	double preset_live_time, preset_real_time;
 	int32_t current_num_channels, preset_counts;
 	int32_t preset_count_region_low, preset_count_region_high;
@@ -1053,44 +1052,20 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 		 * the preset type.
 		 */
 
-		mx_status = mx_epics_start_group( &epics_group );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
-			return mx_status;
-		}
-
-		mx_status = mx_group_caget( &epics_group,
-					&(epics_mca->preset_live_pv),
+		mx_status = mx_caget( &(epics_mca->preset_live_pv),
 					MX_CA_DOUBLE, 1, &preset_live_time );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
 
-		mx_status = mx_group_caget( &epics_group,
-					&(epics_mca->preset_real_pv),
+		mx_status = mx_caget( &(epics_mca->preset_real_pv),
 					MX_CA_DOUBLE, 1, &preset_real_time );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
 
-		mx_status = mx_group_caget( &epics_group, &(epics_mca->pct_pv),
+		mx_status = mx_caget( &(epics_mca->pct_pv),
 					MX_CA_LONG, 1, &preset_counts );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
-			return mx_status;
-		}
-
-		mx_status = mx_epics_end_group( &epics_group );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1130,98 +1105,58 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
-		mx_status = mx_epics_start_group( &epics_group );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		for ( i = 0; i < mca->current_num_rois; i++ ) {
 
-			mx_status = mx_group_caget( &epics_group,
+			mx_status = mx_caget( 
 				&(epics_mca->roi_low_pv_array[i]),
 				MX_CA_LONG, 1, &roi_array_low );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 
-			mx_status = mx_group_caget( &epics_group,
+			mx_status = mx_caget(
 				&(epics_mca->roi_high_pv_array[i]),
 				MX_CA_LONG, 1, &roi_array_high );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 
 			mca->roi_array[i][0] = roi_array_low;
 			mca->roi_array[i][1] = roi_array_high;
 		}
-
-		mx_status = mx_epics_end_group( &epics_group );
-
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL_ARRAY ) {
 
-		mx_status = mx_epics_start_group( &epics_group );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		for ( i = 0; i < mca->current_num_rois; i++ ) {
 
-			mx_status = mx_group_caget( &epics_group,
+			mx_status = mx_caget(
 				&(epics_mca->roi_integral_pv_array[i]),
 				MX_CA_LONG, 1, &roi_integral );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 
 			mca->roi_integral_array[i] = roi_integral;
 		}
-
-		mx_status = mx_epics_end_group( &epics_group );
-
-
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
 
-		mx_status = mx_epics_start_group( &epics_group );
+		mx_status = mx_caget(
+			&(epics_mca->roi_low_pv_array[ mca->roi_number ]),
+				MX_CA_LONG, 1, &roi_low );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_group_caget( &epics_group,
-			&(epics_mca->roi_low_pv_array[ mca->roi_number ]),
-				MX_CA_LONG, 1, &roi_low );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
-			return mx_status;
-		}
-
-		mx_status = mx_group_caget( &epics_group,
+		mx_status = mx_caget(
 			&(epics_mca->roi_high_pv_array[ mca->roi_number ]),
 				MX_CA_LONG, 1, &roi_high );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
-
-		mx_status = mx_epics_end_group( &epics_group );
 
 		mca->roi[0] = roi_low;
 		mca->roi[1] = roi_high;
-
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
 
@@ -1275,7 +1210,6 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_epics_mca_set_parameter()";
 
 	MX_EPICS_MCA *epics_mca = NULL;
-	MX_EPICS_GROUP epics_group;
 	int32_t preset_count_region_low, preset_count_region_high;
 	int32_t roi_array_low, roi_array_high, roi_low, roi_high;
 	int32_t current_num_channels;
@@ -1328,11 +1262,6 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
-		mx_status = mx_epics_start_group( &epics_group );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		for ( i = 0; i < mca->current_num_rois; i++ ) {
 
 			/* Set the region boundaries for region i. */
@@ -1340,25 +1269,19 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 			roi_array_low  = mca->roi_array[i][0];
 			roi_array_high = mca->roi_array[i][1];
 
-			mx_status = mx_group_caput( &epics_group,
+			mx_status = mx_caput(
 				&(epics_mca->roi_low_pv_array[i]),
 					MX_CA_LONG, 1, &roi_array_low );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 
-			mx_status = mx_group_caput( &epics_group,
+			mx_status = mx_caput(
 				&(epics_mca->roi_high_pv_array[i]),
 					MX_CA_LONG, 1, &roi_array_high );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 
 			/* At present, we are not using the background
 			 * calculation.
@@ -1366,68 +1289,45 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 
 			no_background = -1;
 
-			mx_status = mx_group_caput( &epics_group,
+			mx_status = mx_caput(
 				&(epics_mca->roi_background_pv_array[i]),
 					MX_CA_SHORT, 1, &no_background );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
-				mx_epics_delete_group( &epics_group );
-
+			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-			}
 		}
-
-		mx_status = mx_epics_end_group( &epics_group );
-
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
-
-		mx_status = mx_epics_start_group( &epics_group );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 
 		/* Set the region boundaries. */
 
 		roi_low  = mca->roi[0];
 		roi_high = mca->roi[1];
 
-		mx_status = mx_group_caput( &epics_group,
+		mx_status = mx_caput_nowait(
 			&(epics_mca->roi_low_pv_array[ mca->roi_number ]),
 				MX_CA_LONG, 1, &roi_low );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
 
-		mx_status = mx_group_caput( &epics_group,
+		mx_status = mx_caput_nowait(
 			&(epics_mca->roi_high_pv_array[ mca->roi_number ]),
 				MX_CA_LONG, 1, &roi_high );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
 
 		/* At present, we are not using the background calculation. */
 
 		no_background = -1;
 
-		mx_status = mx_group_caput( &epics_group,
+		mx_status = mx_caput_nowait(
 		    &(epics_mca->roi_background_pv_array[ mca->roi_number ]),
 				MX_CA_SHORT, 1, &no_background );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_epics_delete_group( &epics_group );
-
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		}
-
-		mx_status = mx_epics_end_group( &epics_group );
-
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",

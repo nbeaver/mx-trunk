@@ -728,7 +728,7 @@ load_module( char *module_name )
 	MX_DEBUG(-2,("%s: filename_ptr = '%s'", fname, filename_ptr));
 #endif
 
-	mx_status = mx_load_module( filename_ptr, NULL );
+	mx_status = mx_load_module( filename_ptr, NULL, NULL );
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 		return SUCCESS;
@@ -829,7 +829,8 @@ load_all_modules( void )
 				fname, module_filename));
 #endif
 
-			mx_status = mx_load_module( module_filename, NULL );
+			mx_status = mx_load_module( module_filename,
+							NULL, NULL );
 
 		} else {
 			if ( errno == 0 ) {

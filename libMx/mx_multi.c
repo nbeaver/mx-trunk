@@ -7,14 +7,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_MULTI_DEBUG		TRUE
+#define MX_MULTI_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +25,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_net.h"
+#include "mx_module.h"
 #include "mx_multi.h"
 
 #if HAVE_EPICS
@@ -38,14 +39,31 @@ mx_multi_set_debug_flags( MX_RECORD *record_list,
 	static const char fname[] = "mx_multi_set_debug_flags()";
 
 	MX_LIST_HEAD *list_head;
-
-	/* First handle debug settings that do not require an MX record list. */
-#if HAVE_EPICS
-	mx_epics_set_debug_flag( flags );
+#if 0
+	MX_MODULE *epics_module;
+	void (*mx_epics_set_debug_flag_ptr)( int );
+	mx_status_type mx_status;
 #endif
 
 	if ( record_list == (MX_RECORD *) NULL )
 		return;
+
+#if 0
+	/* Check to see if EPICS is loaded and set its debug flag. */
+
+	mx_status = mx_get_module( "epics", record_list, &epics_module );
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		mx_epics_set_debug_flag_ptr =
+			mx_dynamic_library_get_symbol_pointer( 
+				epics_module->library,
+				"mx_epics_set_debug_flag" );
+
+		if ( mx_epics_set_debug_flag_ptr != NULL ) {
+			mx_epics_set_debug_flag_ptr( flags );
+		}
+	}
+#endif
 
 	/* Set the network debug flag for the MX database. */
 

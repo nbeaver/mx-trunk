@@ -444,6 +444,8 @@ typedef struct {
 	void *callback_pipe;
 
 	unsigned long num_poll_callbacks;
+
+	void *module_list;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

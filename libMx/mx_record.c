@@ -1317,7 +1317,8 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 			/* Try to read a dynamically loadable MX module. */
 
-			mx_status = mx_load_module( filename, NULL );
+			mx_status = mx_load_module( filename,
+						record_list_head, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
