@@ -4443,6 +4443,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	uint32_t header_length, message_length;
 	uint32_t message_type, status_code;
 	mx_bool_type connection_is_up;
+	long i, string_length;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4461,6 +4462,42 @@ mx_set_client_info( MX_RECORD *server_record,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
 	}
+
+	/*--------------------------------------------------------------*/
+
+	/* Change "illegal" characters in user names and program names
+	 * to underscore or null characters.
+	 */
+
+	string_length = strlen( username );
+
+	for ( i = 0; i < string_length; i++ ) {
+		if ( username[i] == ' ' ) {
+			username[i] = '_';
+		} else
+		if ( username[i] == '\t' ) {
+			username[i] = '_';
+		} else
+		if ( username[i] == '\n' ) {
+			username[i] = '\0';
+		}
+	}
+
+	string_length = strlen( program_name );
+
+	for ( i = 0; i < string_length; i++ ) {
+		if ( program_name[i] == ' ' ) {
+			program_name[i] = '_';
+		} else
+		if ( program_name[i] == '\t' ) {
+			program_name[i] = '_';
+		} else
+		if ( program_name[i] == '\n' ) {
+			program_name[i] = '\0';
+		}
+	}
+
+	/*--------------------------------------------------------------*/
 
 	list_head = mx_get_record_list_head_struct( server_record );
 
