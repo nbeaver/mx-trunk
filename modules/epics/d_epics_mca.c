@@ -408,9 +408,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_EPICS_MCA *epics_mca = NULL;
-	char pvname[120];
-	unsigned long i, flags;
-	double dummy;
+	unsigned long i, flags, connect_flags;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -610,7 +608,7 @@ mxd_epics_mca_open( MX_RECORD *record )
 					epics_mca->epics_mca_name, i );
 	}
 
-	/* See if this MCA is an XIA DXP MCA. */
+	/* Test to see if this MCA is an XIA DXP MCA. */
 
 	if ( strlen( epics_mca->epics_dxp_name ) == 0 ) {
 		epics_mca->have_dxp_record = FALSE;
@@ -618,19 +616,24 @@ mxd_epics_mca_open( MX_RECORD *record )
 		if ( flags & MXF_EPICS_MCA_DXP_RECORD_IS_NOT_USED ) {
 			epics_mca->have_dxp_record = FALSE;
 		} else {
-			snprintf( pvname, sizeof(pvname),
-				"%s%s:InputCountRate.VAL",
+			MX_EPICS_PV pv;
+
+			mx_epics_pvname_init( &pv, "%s%s:InputCountRate.VAL",
 					epics_mca->epics_detector_name,
 					epics_mca->epics_dxp_name );
 
-			mx_status = mx_caget_by_name( pvname,
-					MX_CA_DOUBLE, 1, &dummy );
+			connect_flags = MXF_EPVC_WAIT_FOR_CONNECTION
+							| MXF_EPVC_QUIET;
+
+			mx_status = mx_epics_pv_connect( &pv, connect_flags );
 
 			if ( mx_status.code == MXE_SUCCESS ) {
 				epics_mca->have_dxp_record = FALSE;
 			} else {
 				epics_mca->have_dxp_record = TRUE;
 			}
+
+			(void) mx_epics_pv_disconnect( &pv );
 		}
 	}
 

@@ -4822,6 +4822,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	char *buffer, *message;
 	uint32_t header_length, message_length, message_type;
 	long status_code;
+	mx_bool_type quiet;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -4835,6 +4836,14 @@ mx_network_set_option( MX_RECORD *server_record,
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"server_record argument passed was NULL." );
+	}
+
+	if ( option_number & MXE_QUIET ) {
+		quiet = TRUE;
+
+		option_number &= (~MXE_QUIET);
+	} else {
+		quiet = FALSE;
 	}
 
 	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
@@ -4969,6 +4978,11 @@ mx_network_set_option( MX_RECORD *server_record,
 	 */
 
 	if ( status_code != MXE_SUCCESS ) {
+
+		if ( quiet ) {
+			status_code |= MXE_QUIET;
+		}
+
 		return mx_error( (long)status_code, fname, "%s", message );
 	}
 
@@ -5932,20 +5946,8 @@ mx_network_send_client_version( MX_RECORD *server_record )
 #endif
 
 	mx_status = mx_network_set_option( server_record,
-				MX_NETWORK_OPTION_CLIENT_VERSION,
+				MX_NETWORK_OPTION_CLIENT_VERSION | MXE_QUIET,
 				client_mx_version );
-
-
-	if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"This error occurs if you have an MX client that uses "
-		"MX Subversion revision 2140 (July 29, 2011) or newer, "
-		"but the MX server '%s' is an MX 1.5.5 server "
-		"from before that revision.  "
-		"If you update your MX server to a newer MX version, "
-		"then this message will go away.", server_record->name );
-	}
-
 	return mx_status;
 }
 

@@ -15,7 +15,7 @@
  *
  */
 
-#define DEBUG_EPICS_INIT	TRUE
+#define DEBUG_EPICS_INIT	FALSE
 
 #include <stdio.h>
 
