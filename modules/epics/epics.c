@@ -15,6 +15,8 @@
  *
  */
 
+#define DEBUG_EPICS_INIT	TRUE
+
 #include <stdio.h>
 
 #include "mx_util.h"
@@ -196,6 +198,67 @@ MX_DRIVER epics_driver_table[] = {
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
+/*-----------------------------------------------------------------------*/
+
+/* The primary job of epics_driver_init() here is to see if network
+ * debugging is turned on in the running MX database.  If it is,
+ * then this function turns on EPICS network debugging.
+ */
+
+static mx_bool_type
+epics_driver_init( MX_MODULE *module )
+{
+	static const char fname[] = "epics_driver_init()";
+
+	MX_RECORD *record_list;
+	MX_LIST_HEAD *list_head;
+	int epics_debug_flag;
+
+#if DEBUG_EPICS_INIT
+	MX_DEBUG(-2,("%s invoked for '%s'", fname, module->name));
+#endif
+
+	record_list = module->record_list;
+
+#if DEBUG_EPICS_INIT
+	MX_DEBUG(-2,("%s: record_list = %p", fname, record_list));
+#endif
+	/* If the 'epics' module does not know about a record list,
+	 * then there is nothing further for it to do.
+	 */
+
+	if ( record_list == (MX_RECORD *) NULL )
+		return TRUE;
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the MX record list "
+		"used by module '%s' is NULL.", module->name );
+
+		return FALSE;
+	}
+
+	/* Use the network debug flags from the MX list head structure. */
+
+	if ( list_head->network_debug_flags == 0 ) {
+		epics_debug_flag = FALSE;
+	} else {
+		epics_debug_flag = TRUE;
+	}
+
+#if DEBUG_EPICS_INIT
+	MX_DEBUG(-2,("%s: epics_debug_flag = %d", fname, epics_debug_flag));
+#endif
+
+	mx_epics_set_debug_flag( epics_debug_flag );
+
+	return TRUE;
+}
+
+/*-----------------------------------------------------------------------*/
+
 MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
 	"epics",
@@ -204,4 +267,7 @@ MX_MODULE __MX_MODULE__ = {
 	NULL,
 	NULL
 };
+
+MX_EXPORT
+MX_MODULE_INIT __MX_MODULE_INIT__ = epics_driver_init;
 

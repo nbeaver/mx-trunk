@@ -30,10 +30,11 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 
 	MX_DYNAMIC_LIBRARY *library;
 	MX_MODULE *module_ptr;
-	void *void_ptr;
+	void *void_ptr, *init_ptr;
 	MX_LIST_HEAD *record_list_head;
 	MX_LIST *module_list;
 	MX_LIST_ENTRY *module_list_entry;
+	MX_MODULE_INIT *module_init_fn;
 	mx_status_type mx_status;
 
 	if ( filename == (char *) NULL ) {
@@ -86,10 +87,15 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	/*-----------------------------------------------------------------*/
 
 	/* If we have a pointer to the MX database, then add the module
-	 * to the MX database's module_list.
+	 * to the MX database's module_list and also save the pointer
+	 * in the module itself.
 	 */
 
+	module_ptr->record_list = NULL;
+
 	if ( record_list != NULL ) {
+
+		module_ptr->record_list = record_list;
 
 		record_list_head = mx_get_record_list_head_struct(record_list);
 
@@ -157,6 +163,24 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	}
 
 	/* FIXME: Currently we ignore the extensions table. */
+
+	/*-----------------------------------------------------------------*/
+
+	/* Does the module contain an MX_MODULE_INIT function? */
+
+	mx_status = mx_dynamic_library_find_symbol( library,
+				"__MX_MODULE_INIT__", &init_ptr, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return MX_SUCCESSFUL_RESULT;
+
+	module_init_fn = init_ptr;
+
+	if ( ( module_init_fn != NULL )
+	  && ( *module_init_fn != NULL ) )
+	{
+		(*module_init_fn)( module_ptr );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
