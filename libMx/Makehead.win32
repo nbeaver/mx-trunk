@@ -73,7 +73,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # Visual C++ 2010 Express   (_MSC_VER == 1600)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
@@ -121,7 +121,7 @@ MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 # which can be found below the normal definition of WIN32_LIBS.
 
 #PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
-#PLATFORM_SDK = c:\\progra~1\\micros~4\\windows\\v7.0
+PLATFORM_SDK = c:\\progra~1\\micros~4\\windows\\v7.0
 
 # Visual C++ 2005 Express
 #
@@ -131,19 +131,19 @@ MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 
 #---------------------------------------------------------------------------
 
-#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#MSDEV_DIR               = $(PLATFORM_SDK)
+RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+MSDEV_DIR               = $(PLATFORM_SDK)
 
 #---------------------------------------------------------------------------
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
 # are creative enough in how you define MSDEV_DIR.
 #
-WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
-	$(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
-	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
+#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
+#	$(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
+#	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
 
 #---------------------------------------------------------------------------
 #
@@ -151,12 +151,12 @@ WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
 # definitions.  These assume that you have installed the "Windows SDK" package
 # which includes the 64-bit compiler.
 # 
-#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
+WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
+	$(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
+	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
 
 #---------------------------------------------------------------------------
 #

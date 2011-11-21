@@ -1,0 +1,3 @@
+!load ../sapera_lt.mxo
+sapera interface controller sapera_lt "" "" 1 myserver
+cam1   device video_input sapera_lt_vinput "" "" 1300 1300 GREY16 -1 sapera myserver 1 mycamera
