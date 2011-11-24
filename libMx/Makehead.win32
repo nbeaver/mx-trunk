@@ -121,7 +121,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # which can be found below the normal definition of WIN32_LIBS.
 
 #PLATFORM_SDK = c:\\progra~1\\micros~2\\windows\\v7.0
-PLATFORM_SDK = c:\\progra~1\\micros~4\\windows\\v7.0
+#PLATFORM_SDK = c:\\progra~1\\micros~4\\windows\\v7.0
+PLATFORM_SDK = c:\\progra~1\\mia713~1\\windows\\v7.1
 
 # Visual C++ 2005 Express
 #
