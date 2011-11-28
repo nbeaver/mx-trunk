@@ -43,6 +43,8 @@ MODULES += epics_mbc
 
 MODULES += epics_pmac_tc
 
+MODULES += epics_pmac_biocat
+
 #---
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
