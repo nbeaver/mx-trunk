@@ -31,7 +31,6 @@
 /* Values for the 'database_type' field below. */
 
 #define MXT_EPICS_PMAC_TC	1
-#define MXT_EPICS_PMAC_BIOCAT	2
 
 typedef struct {
 	char actual_position_record_name[MXU_EPICS_PVNAME_LENGTH+1];
@@ -89,9 +88,6 @@ MX_API mx_status_type mxd_pmac_tc_motor_constant_velocity_move(MX_MOTOR *motor);
 MX_API mx_status_type mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor );
 
-MX_API mx_status_type mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor );
-
 /* SBC-CAT version */
 
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_tc_motor_record_function_list;
@@ -99,14 +95,6 @@ extern MX_MOTOR_FUNCTION_LIST mxd_pmac_tc_motor_motor_function_list;
 
 extern long mxd_pmac_tc_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_tc_motor_rfield_def_ptr;
-
-/* BioCAT version */
-
-extern MX_RECORD_FUNCTION_LIST mxd_pmac_bio_motor_record_function_list;
-extern MX_MOTOR_FUNCTION_LIST mxd_pmac_bio_motor_motor_function_list;
-
-extern long mxd_pmac_bio_motor_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_bio_motor_rfield_def_ptr;
 
 #define MXD_PMAC_TC_MOTOR_BASE_FIELDS \
   {-1, -1, "actual_position_record_name", MXFT_STRING, NULL, \
@@ -142,27 +130,6 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_bio_motor_rfield_def_ptr;
   {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, motor_number), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "speed_scale", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, speed_scale), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "start_delay", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, start_delay), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
-  \
-  {-1, -1, "end_delay", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, end_delay), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
-
-#define MXD_PMAC_BIO_MOTOR_STANDARD_FIELDS \
-  MXD_PMAC_TC_MOTOR_BASE_FIELDS, \
-  \
-  {-1, -1, "speed_record_name_prefix", MXFT_STRING, NULL, \
-					1, {MXU_EPICS_PVNAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_PMAC_TC_MOTOR, speed_record_name_prefix), \
-	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "speed_scale", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, speed_scale), \

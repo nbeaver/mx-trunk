@@ -38,12 +38,6 @@ MX_DRIVER epics_pmac_tc_driver_table[] = {
 				&mxd_pmac_tc_motor_motor_function_list,
 				&mxd_pmac_tc_motor_num_record_fields,
 				&mxd_pmac_tc_motor_rfield_def_ptr},
-{"pmac_bio_motor", -1, MXC_MOTOR, MXR_DEVICE,
-				&mxd_pmac_bio_motor_record_function_list,
-				NULL,
-				&mxd_pmac_bio_motor_motor_function_list,
-				&mxd_pmac_bio_motor_num_record_fields,
-				&mxd_pmac_bio_motor_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

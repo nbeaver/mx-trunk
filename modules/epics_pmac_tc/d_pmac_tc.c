@@ -67,45 +67,6 @@ long mxd_pmac_tc_motor_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_pmac_tc_motor_rfield_def_ptr
 			= &mxd_pmac_tc_motor_record_field_defaults[0];
 
-/* BioCAT specific data structures. */
-
-MX_RECORD_FUNCTION_LIST mxd_pmac_bio_motor_record_function_list = {
-	NULL,
-	mxd_pmac_tc_motor_create_record_structures,
-	mxd_pmac_tc_motor_finish_record_initialization,
-	NULL,
-	mxd_pmac_tc_motor_print_structure
-};
-
-MX_MOTOR_FUNCTION_LIST mxd_pmac_bio_motor_motor_function_list = {
-	mxd_pmac_tc_motor_motor_is_busy,
-	mxd_pmac_tc_motor_move_absolute,
-	mxd_pmac_tc_motor_get_position,
-	NULL,
-	mxd_pmac_tc_motor_soft_abort,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_pmac_tc_motor_constant_velocity_move,
-	mxd_pmac_bio_motor_get_parameter,
-	mxd_pmac_bio_motor_set_parameter
-};
-
-MX_RECORD_FIELD_DEFAULTS mxd_pmac_bio_motor_record_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_ANALOG_MOTOR_STANDARD_FIELDS,
-	MX_MOTOR_STANDARD_FIELDS,
-	MXD_PMAC_BIO_MOTOR_STANDARD_FIELDS
-};
-
-long mxd_pmac_bio_motor_num_record_fields
-		= sizeof( mxd_pmac_bio_motor_record_field_defaults )
-			/ sizeof( mxd_pmac_bio_motor_record_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxd_pmac_bio_motor_rfield_def_ptr
-			= &mxd_pmac_bio_motor_record_field_defaults[0];
-
 /* A private function for the use of the driver. */
 
 static mx_status_type
@@ -216,22 +177,16 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 
 	if ( strcmp( driver->name, "pmac_tc_motor" ) == 0 ) {
 		pmac_tc_motor->database_type = MXT_EPICS_PMAC_TC;
-	} else
-	if ( strcmp( driver->name, "pmac_bio_motor" ) == 0 ) {
-		pmac_tc_motor->database_type = MXT_EPICS_PMAC_BIOCAT;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized EPICS PMAC type '%s' for record '%s'.  "
-		"The allowed types are 'pmac_tc_motor' and 'pamc_bio_motor'.",
+		"The allowed types are 'pmac_tc_motor'.",
 			driver->name, record->name );
 	}
 
 	if ( pmac_tc_motor->database_type == MXT_EPICS_PMAC_TC ) {
 		record->class_specific_function_list
 				= &mxd_pmac_tc_motor_motor_function_list;
-	} else {
-		record->class_specific_function_list
-				= &mxd_pmac_bio_motor_motor_function_list;
 	}
 
 	/*--------*/
@@ -278,24 +233,6 @@ mxd_pmac_tc_motor_finish_record_initialization( MX_RECORD *record )
 		mx_epics_pvname_init( &(pmac_tc_motor->strrsp_pv),
 				"%s:StrRsp.VAL", pmac_tc_motor->pmac_name);
 		break;
-
-	case MXT_EPICS_PMAC_BIOCAT:
-		mx_epics_pvname_init( &(pmac_tc_motor->i16ai_pv),
-				"%s:Ix16:AI",
-				pmac_tc_motor->speed_record_name_prefix);
-
-		mx_epics_pvname_init( &(pmac_tc_motor->i16ao_pv),
-				"%s:Ix16:AO",
-				pmac_tc_motor->speed_record_name_prefix);
-
-		mx_epics_pvname_init( &(pmac_tc_motor->i20fan_pv),
-				"%s:Ix20:FAN.PROC",
-				pmac_tc_motor->speed_record_name_prefix);
-
-		mx_epics_pvname_init( &(pmac_tc_motor->i20li_pv),
-				"%s:Ix20:LI",
-				pmac_tc_motor->speed_record_name_prefix);
-		break;
 	}
 
 #if MXD_PMACTC_DEBUG
@@ -335,10 +272,6 @@ mxd_pmac_tc_motor_print_structure( FILE *file, MX_RECORD *record )
 		fprintf(file,
 		      "  Motor type                = PMAC_TC_MOTOR.\n\n");
 		break;
-	case MXT_EPICS_PMAC_BIOCAT:
-		fprintf(file,
-		      "  Motor type                = PMAC_BIO_MOTOR.\n\n");
-		break;
 	default:
 		fprintf(file,
 		      "  Motor type                = %ld (this is a bug).\n\n",
@@ -355,12 +288,6 @@ mxd_pmac_tc_motor_print_structure( FILE *file, MX_RECORD *record )
 			pmac_tc_motor->in_position_record_name);
 	fprintf(file, "  abort record              = %s\n",
 			pmac_tc_motor->abort_record_name);
-
-	if ( pmac_tc_motor->database_type == MXT_EPICS_PMAC_BIOCAT ) {
-		fprintf(file,
-		      "  speed record name prefix  = %s\n",
-			pmac_tc_motor->speed_record_name_prefix);
-	}
 
 	fprintf(file, "  speed scale               = %g\n",
 			pmac_tc_motor->speed_scale );
@@ -789,183 +716,5 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 #endif
 
 	return mx_status;
-}
-
-/* Get and set parameter for BioCAT's version of the code. */
-
-MX_EXPORT mx_status_type
-mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_pmac_bio_motor_get_parameter()";
-
-	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
-	double double_value;
-	int32_t int32_value;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pmac_tc_motor_get_pointers( motor,
-						&pmac_tc_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PMACTC_DEBUG
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
-		fname, motor->record->name,
-		mx_get_field_label_string( motor->record,
-			motor->parameter_type ),
-		motor->parameter_type));
-#endif
-
-	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-		if ( strlen(pmac_tc_motor->speed_record_name_prefix) <= 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Reading the motor speed is not configured for PMAC motor '%s'.",
-				motor->record->name );
-		}
-
-		/* Tell EPICS to update the current value of the speed
-		 * in its database.
-		 */
-
-		int32_value = 1;
-
-		mx_status = mx_caput( &(pmac_tc_motor->i20fan_pv),
-					MX_CA_LONG, 1, &int32_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Now read the speed. */
-
-		mx_status = mx_caget( &(pmac_tc_motor->i16ai_pv),
-					MX_CA_DOUBLE, 1, &double_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->raw_speed = mx_divide_safely(
-				pmac_tc_motor->speed_scale * double_value,
-				  MX_PMAC_TC_MOTOR_SECONDS_PER_MILLISECOND );
-
-		break;
-
-	case MXLV_MTR_BASE_SPEED:
-		motor->raw_base_speed = 0.0;
-		break;
-
-	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-
-		/* Tell EPICS to update the current value of the acceleration
-		 * time in its database.
-		 */
-
-		int32_value = 1;
-
-		mx_status = mx_caput( &(pmac_tc_motor->i20fan_pv),
-					MX_CA_LONG, 1, &int32_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Now read the acceleration time parameter. */
-
-		mx_status = mx_caget( &(pmac_tc_motor->i20li_pv),
-					MX_CA_DOUBLE, 1, &double_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->raw_acceleration_parameters[0] = double_value
-				* MX_PMAC_TC_MOTOR_SECONDS_PER_MILLISECOND;
-
-		motor->raw_acceleration_parameters[1] = 0.0;
-		motor->raw_acceleration_parameters[2] = 0.0;
-		motor->raw_acceleration_parameters[3] = 0.0;
-		break;
-
-	case MXLV_MTR_ACCELERATION_TIME:
-		mx_status = mx_motor_get_parameter( motor->record,
-					MXLV_MTR_RAW_ACCELERATION_PARAMETERS );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->acceleration_time =
-				motor->raw_acceleration_parameters[0];
-		break;
-
-	default:
-		return mx_motor_default_get_parameter_handler( motor );
-		break;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor )
-{
-	static const char fname[] = "mxd_pmac_bio_motor_set_parameter()";
-
-	MX_PMAC_TC_MOTOR *pmac_tc_motor = NULL;
-	double double_value;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pmac_tc_motor_get_pointers( motor,
-						&pmac_tc_motor, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_PMACTC_DEBUG
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
-		fname, motor->record->name,
-		mx_get_field_label_string( motor->record,
-			motor->parameter_type ),
-		motor->parameter_type));
-#endif
-
-	switch( motor->parameter_type ) {
-	case MXLV_MTR_SPEED:
-		if ( strlen(pmac_tc_motor->speed_record_name_prefix) <= 0 ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Setting the motor speed is not configured for PMAC motor '%s'.",
-				motor->record->name );
-		}
-
-		double_value = mx_divide_safely(
-		  motor->raw_speed * MX_PMAC_TC_MOTOR_SECONDS_PER_MILLISECOND,
-				pmac_tc_motor->speed_scale );
-
-		mx_status = mx_caput( &(pmac_tc_motor->i16ao_pv),
-					MX_CA_DOUBLE, 1, &double_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		break;
-
-	case MXLV_MTR_BASE_SPEED:
-		/* For BioCAT motors, setting the base speed is ignored. */
-
-		break;
-
-	case MXLV_MTR_SAVE_SPEED:
-		mx_status = mx_motor_get_speed( motor->record, &double_value );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		motor->raw_saved_speed = motor->raw_speed;
-		break;
-
-	default:
-		return mx_motor_default_set_parameter_handler( motor );
-		break;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
