@@ -5985,7 +5985,18 @@ mx_network_send_client_version( MX_RECORD *server_record )
 	mx_status = mx_network_set_option( server_record,
 				MX_NETWORK_OPTION_CLIENT_VERSION | MXE_QUIET,
 				client_mx_version );
-	return mx_status;
+
+	/* Do _NOT_ return an error if the MX server sent us
+	 * an MXE_ILLEGAL_ARGUMENT error code.  This just
+	 * means that this MX server does not know about the
+	 * MX_NETWORK_OPTION_CLIENT_VERSION option code.
+	 */
+
+	if ( mx_status.code == MXE_ILLEGAL_ARGUMENT ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		return mx_status;
+	}
 }
 
 /* ====================================================================== */
