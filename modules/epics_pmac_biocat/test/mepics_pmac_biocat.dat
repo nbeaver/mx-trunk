@@ -7,3 +7,12 @@ x_size   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1
 seg_x_center device motor segmented_move "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm x_center 0.1
 seg_x_size   device motor segmented_move "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm x_size 0.1
 #
+hs_shi   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 shi: 0.1 0.1
+hs_sho   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 sho: 0.1 0.1
+#
+hs_dhi   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 dhi: 0.1 0.1
+hs_dho   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 dho: 0.1 0.1
+#
+hs_mhi   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 cts 18ID: HS: Ah: HSAh 20XY4 mhi: 0.1 0.1
+hs_mho   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 cts 18ID: HS: Ah: HSAh 20XY4 mho: 0.1 0.1
+#
