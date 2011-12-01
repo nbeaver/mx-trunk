@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -38,7 +39,16 @@ MX_MOTOR_FUNCTION_LIST mxd_epics_pmac_biocat_motor_function_list = {
 	mxd_epics_pmac_biocat_move_absolute,
 	mxd_epics_pmac_biocat_get_position,
 	NULL,
-	mxd_epics_pmac_biocat_soft_abort
+	mxd_epics_pmac_biocat_soft_abort,
+	NULL,
+	mxd_epics_pmac_biocat_positive_limit_hit,
+	mxd_epics_pmac_biocat_negative_limit_hit,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_epics_pmac_biocat_get_status,
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_epics_pmac_biocat_record_field_defaults[] = {
@@ -193,6 +203,21 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 
 	mx_epics_pvname_init( &(epics_pmac_biocat->actpos_pv),
 		"%s%s%sActPos", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+	mx_epics_pvname_init( &(epics_pmac_biocat->ampena_pv),
+		"%s%s%sAmpEna", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+	mx_epics_pvname_init( &(epics_pmac_biocat->nglimset_pv),
+		"%s%s%sNgLimSet", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+	mx_epics_pvname_init( &(epics_pmac_biocat->pslimset_pv),
+		"%s%s%sPsLimSet", epics_pmac_biocat->beamline_name,
 				epics_pmac_biocat->component_name,
 				epics_pmac_biocat->device_name );
 
@@ -422,8 +447,6 @@ mxd_epics_pmac_biocat_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	actpos_value = motor->raw_destination.analog;
-
 	mx_status = mx_caget( &(epics_pmac_biocat->actpos_pv),
 				MX_CA_DOUBLE, 1, &actpos_value );
 
@@ -458,5 +481,133 @@ mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor )
 	epics_pmac_biocat->motion_state = MXF_EPB_MOVE_IN_PROGRESS;
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_pmac_biocat_positive_limit_hit( MX_MOTOR *motor )
+{
+	static const char fname[] =
+			"mxd_epics_pmac_biocat_positive_limit_hit()";
+
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	double pslimset_value;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_pmac_biocat_get_pointers( motor,
+						&epics_pmac_biocat, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caget( &(epics_pmac_biocat->pslimset_pv),
+				MX_CA_DOUBLE, 1, &pslimset_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( fabs(pslimset_value) < 0.1 ) {
+		motor->positive_limit_hit = FALSE;
+	} else {
+		motor->positive_limit_hit = TRUE;
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_pmac_biocat_negative_limit_hit( MX_MOTOR *motor )
+{
+	static const char fname[] =
+			"mxd_epics_pmac_biocat_negative_limit_hit()";
+
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	double nglimset_value;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_pmac_biocat_get_pointers( motor,
+						&epics_pmac_biocat, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_caget( &(epics_pmac_biocat->nglimset_pv),
+				MX_CA_DOUBLE, 1, &nglimset_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( fabs(nglimset_value) < 0.1 ) {
+		motor->negative_limit_hit = FALSE;
+	} else {
+		motor->negative_limit_hit = TRUE;
+	}
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_epics_pmac_biocat_get_status()";
+
+	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat;
+	double ampena_value;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epics_pmac_biocat_get_pointers( motor,
+						&epics_pmac_biocat, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPICS_PMAC_BIOCAT_DEBUG
+	MX_DEBUG(-2,("%s invoked for '%s'", fname, motor->record->name ));
+#endif
+
+	motor->status = 0;
+
+	mx_status = mxd_epics_pmac_biocat_motor_is_busy( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( motor->busy ) {
+		motor->status |= MXSF_MTR_IS_BUSY;
+	}
+
+	mx_status = mxd_epics_pmac_biocat_positive_limit_hit( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( motor->positive_limit_hit ) {
+		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+	}
+
+	mx_status = mxd_epics_pmac_biocat_negative_limit_hit( motor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( motor->negative_limit_hit ) {
+		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+	}
+
+	mx_status = mx_caget( &(epics_pmac_biocat->ampena_pv),
+				MX_CA_DOUBLE, 1, &ampena_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( fabs(ampena_value) < 0.1 ) {
+		motor->status |= MXSF_MTR_AXIS_DISABLED;
+	}
+
+#if MXD_EPICS_PMAC_BIOCAT_DEBUG
+	MX_DEBUG(-2,("%s complete for '%s': status = %#0lx",
+		fname, motor->record->name, motor->status ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -47,6 +47,9 @@ typedef struct {
 
 	MX_EPICS_PV abort_pv;
 	MX_EPICS_PV actpos_pv;
+	MX_EPICS_PV ampena_pv;
+	MX_EPICS_PV nglimset_pv;
+	MX_EPICS_PV pslimset_pv;
 	MX_EPICS_PV rqspos_pv;
 	MX_EPICS_PV runprg_pv;
 
@@ -63,6 +66,11 @@ MX_API mx_status_type mxd_epics_pmac_biocat_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_positive_limit_hit(
+							MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_negative_limit_hit(
+							MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor );
 
 /*----*/
 
