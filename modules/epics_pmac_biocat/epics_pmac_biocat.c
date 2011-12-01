@@ -30,7 +30,7 @@
 
 MX_DRIVER epics_pmac_biocat_driver_table[] = {
 
-{"epics_pmac_biocat_motor",  -1,  MXC_MOTOR,  MXR_DEVICE,
+{"epics_pmac_biocat",  -1,  MXC_MOTOR,  MXR_DEVICE,
 			&mxd_epics_pmac_biocat_record_function_list,
 			NULL,
 			&mxd_epics_pmac_biocat_motor_function_list,

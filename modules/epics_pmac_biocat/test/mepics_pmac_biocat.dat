@@ -1,1 +1,4 @@
+!load ../../epics/epics.mxo
 !load ../epics_pmac_biocat.mxo
+x_center device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 XC: 0.1 0.1
+x_size   device motor epics_pmac_biocat "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 18ID: HS: Ah: HSAh 20XY4 XS: 0.1 0.1
