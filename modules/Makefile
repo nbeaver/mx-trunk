@@ -28,7 +28,7 @@ all: build
 
 #MODULES += radicon_helios
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #-------------------------------------------------------------------
 # EPICS modules.

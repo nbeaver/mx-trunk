@@ -291,19 +291,6 @@ PCMOTION32_DIR      = c:\\ValueMotion
 PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\Include
 PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\lib\\Microsoft\\pcmotionMS.lib
 
-#---------------------------------------------------------------------------
-#
-# EPICS includes and libraries.
-#
-EPICS_ARCH	= win32-x86
-EPICS_BASE	= d:\\opt\\epics\\base-3.14.12
-#EPICS_BASE	= c:\\opt\\epics\\base-3-14-11
-
-EPICS_INCLUDES	= -I$(EPICS_BASE)\\include \
-			-I$(EPICS_BASE)\\include\\os\\WIN32
-EPICS_LIBS	= $(EPICS_BASE)\\lib\\$(EPICS_ARCH)\\ca.lib \
-			$(EPICS_BASE)\\lib\\$(EPICS_ARCH)\\Com.lib
-
 #
 #========================================================================
 #
@@ -322,11 +309,7 @@ EPICS_LIBS	= $(EPICS_BASE)\\lib\\$(EPICS_ARCH)\\ca.lib \
 CC		= cl
 CFLAGS		+= -nologo $(INCLUDES) $(RUN_TIME_LIBRARY_FLAGS) \
 			-Zi -WX -DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
-CFLAGS_EPICS	= $(CFLAGS)
-
 # Special cases for individual files.
-
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
 
 CFLAGS_MX_VERS  = -DOS_WIN32 -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
