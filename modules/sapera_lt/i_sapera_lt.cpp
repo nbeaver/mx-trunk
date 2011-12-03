@@ -25,7 +25,6 @@
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
-#include "d_sapera_lt_vinput.h"
 
 MX_RECORD_FUNCTION_LIST mxi_sapera_lt_record_function_list = {
 	NULL,

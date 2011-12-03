@@ -16,7 +16,7 @@ CFLAGS += -I$(SAPERA_LT_DIR)\\Classes\\Basic
 CFLAGS += -I$(SAPERA_LT_DIR)\\Include
 
 SAPERA_LT_OBJS = sapera_lt.$(OBJ) \
-	i_sapera_lt.$(OBJ) d_sapera_lt_vinput.$(OBJ)
+	i_sapera_lt.$(OBJ) d_sapera_lt_frame_grabber.$(OBJ)
 
 sapera_lt.mxo: $(SAPERA_LT_OBJS)
 	link /dll /debug /nologo /out:sapera_lt.mxo /nodefaultlib:libc \
@@ -32,15 +32,15 @@ sapera_lt.mxo: $(SAPERA_LT_OBJS)
 		rm -f sapera_lt.mxo.manifest; \
 	fi
 
-sapera_lt.$(OBJ): sapera_lt.c i_sapera_lt.h d_sapera_lt_vinput.h
+sapera_lt.$(OBJ): sapera_lt.c i_sapera_lt.h d_sapera_lt_frame_grabber.h
 	$(COMPILE) $(CFLAGS) sapera_lt.c
 
 i_sapera_lt.$(OBJ): i_sapera_lt.cpp i_sapera_lt.h
 	$(COMPILE) $(CFLAGS) i_sapera_lt.cpp
 
-d_sapera_lt_vinput.$(OBJ): d_sapera_lt_vinput.cpp \
-				d_sapera_lt_vinput.h i_sapera_lt.h
-	$(COMPILE) $(CFLAGS) d_sapera_lt_vinput.cpp
+d_sapera_lt_frame_grabber.$(OBJ): d_sapera_lt_frame_grabber.cpp \
+				d_sapera_lt_frame_grabber.h i_sapera_lt.h
+	$(COMPILE) $(CFLAGS) d_sapera_lt_frame_grabber.cpp
 
 install: sapera_lt.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

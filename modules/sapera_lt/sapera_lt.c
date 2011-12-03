@@ -26,23 +26,23 @@
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
 #include "i_sapera_lt.h"
-#include "d_sapera_lt_vinput.h"
+#include "d_sapera_lt_frame_grabber.h"
 
 MX_DRIVER sapera_lt_driver_table[] = {
 
-{"sapera_lt",	     -1,	MXI_CONTROLLER,	MXR_INTERFACE,
-				&mxi_sapera_lt_record_function_list,
-				NULL,
-				NULL,
-				&mxi_sapera_lt_num_record_fields,
-				&mxi_sapera_lt_rfield_def_ptr},
+{"sapera_lt", -1, MXI_CONTROLLER, MXR_INTERFACE,
+			&mxi_sapera_lt_record_function_list,
+			NULL,
+			NULL,
+			&mxi_sapera_lt_num_record_fields,
+			&mxi_sapera_lt_rfield_def_ptr},
 
-{"sapera_lt_vinput", -1,	MXC_VIDEO_INPUT, MXR_DEVICE,
-				&mxd_sapera_lt_vinput_record_function_list,
-				NULL,
-				NULL,
-				&mxd_sapera_lt_vinput_num_record_fields,
-				&mxd_sapera_lt_vinput_rfield_def_ptr},
+{"sapera_lt_frame_grabber", -1,	MXC_VIDEO_INPUT, MXR_DEVICE,
+			&mxd_sapera_lt_frame_grabber_record_function_list,
+			NULL,
+			NULL,
+			&mxd_sapera_lt_frame_grabber_num_record_fields,
+			&mxd_sapera_lt_frame_grabber_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
