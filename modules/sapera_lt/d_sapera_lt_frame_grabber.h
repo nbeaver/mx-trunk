@@ -1,7 +1,7 @@
 /*
  * Name:    d_sapera_lt_frame_grabber.h
  *
- * Purpose: MX video input driver for a DALSA Sapera LT video capture device.
+ * Purpose: MX video input driver for a DALSA Sapera LT frame grabber.
  *
  * Author:  William Lavender
  *
@@ -23,16 +23,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *sapera_lt_record;
-	char server_name[CORSERVER_MAX_STRLEN+1];
-	long device_number;
+	long frame_grabber_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 
 	mx_bool_type grab_in_progress;
 
-	SapAcquisition *acquisition_object;
-	SapBuffer      *buffer_object;
-	SapView        *view_object;
-	SapAcqToBuf    *transfer_object;
+	SapAcquisition *acquisition;
+	SapBuffer      *buffer;
+	SapAcqToBuf    *transfer;
 } MX_SAPERA_LT_FRAME_GRABBER;
 
 
@@ -42,14 +40,9 @@ typedef struct {
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, sapera_lt_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "server_name", MXFT_STRING, NULL, 1, {CORSERVER_MAX_STRLEN}, \
+  {-1, -1, "frame_grabber_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_FRAME_GRABBER, server_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
-  \
-  {-1, -1, "device_number", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_FRAME_GRABBER, device_number), \
+		offsetof(MX_SAPERA_LT_FRAME_GRABBER, frame_grabber_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \

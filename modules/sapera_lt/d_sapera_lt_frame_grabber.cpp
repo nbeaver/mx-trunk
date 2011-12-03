@@ -1,7 +1,7 @@
 /*
  * Name:    d_sapera_lt_frame_grabber.c
  *
- * Purpose: MX video input driver for a DALSA Sapera LT video capture device.
+ * Purpose: MX video input driver for a DALSA Sapera LT frame grabber.
  *
  * Author:  William Lavender
  *
@@ -51,7 +51,8 @@ MX_RECORD_FUNCTION_LIST mxd_sapera_lt_frame_grabber_record_function_list = {
 	mxd_sapera_lt_frame_grabber_close
 };
 
-MX_VIDEO_INPUT_FUNCTION_LIST mxd_sapera_lt_frame_grabber_video_input_function_list = {
+MX_VIDEO_INPUT_FUNCTION_LIST
+mxd_sapera_lt_frame_grabber_video_input_function_list = {
 	mxd_sapera_lt_frame_grabber_arm,
 	mxd_sapera_lt_frame_grabber_trigger,
 	mxd_sapera_lt_frame_grabber_stop,
@@ -87,7 +88,8 @@ mxd_sapera_lt_frame_grabber_get_pointers( MX_VIDEO_INPUT *vinput,
 			MX_SAPERA_LT **sapera_lt,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_sapera_lt_frame_grabber_get_pointers()";
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_get_pointers()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber_ptr;
 	MX_RECORD *sapera_lt_record;
@@ -101,10 +103,12 @@ mxd_sapera_lt_frame_grabber_get_pointers( MX_VIDEO_INPUT *vinput,
 	sapera_lt_frame_grabber_ptr = (MX_SAPERA_LT_FRAME_GRABBER *)
 				vinput->record->record_type_struct;
 
-	if ( sapera_lt_frame_grabber_ptr == (MX_SAPERA_LT_FRAME_GRABBER *) NULL ) {
+	if ( sapera_lt_frame_grabber_ptr
+		== (MX_SAPERA_LT_FRAME_GRABBER *) NULL )
+	{
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_SAPERA_LT_FRAME_GRABBER pointer for record '%s' "
-			"passed by '%s' is NULL.",
+			"The MX_SAPERA_LT_FRAME_GRABBER pointer for "
+			"record '%s' passed by '%s' is NULL.",
 			vinput->record->name, calling_fname );
 	}
 
@@ -177,12 +181,6 @@ mxd_sapera_lt_frame_grabber_create_record_structures( MX_RECORD *record )
 
 	vinput->trigger_mode = 0;
 
-#if 0
-	sapera_lt_frame_grabber->grabber = NULL;
-	sapera_lt_frame_grabber->grab_finished_event = NULL;
-
-	sapera_lt_frame_grabber->user_buffer = NULL;
-#endif
 	sapera_lt_frame_grabber->grab_in_progress = FALSE;
 
 	vinput->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
@@ -199,7 +197,6 @@ mxd_sapera_lt_frame_grabber_finish_record_initialization( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
-	long i;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -226,6 +223,21 @@ mxd_sapera_lt_frame_grabber_finish_record_initialization( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static void
+mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_acquisition_callback()";
+
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
+
+	sapera_lt_frame_grabber =
+		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
+
+	MX_DEBUG(-2,("%s invoked for frame grabber '%s'.",
+		fname, sapera_lt_frame_grabber->record->name ));
+}
+
 MX_EXPORT mx_status_type
 mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 {
@@ -234,6 +246,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -252,6 +265,102 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Create the Sapera objects necessary for controlling this camera. */
+
+	if ( sapera_lt->num_frame_grabbers <= 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Sapera server '%s' does not have any frame grabbers.",
+			sapera_lt->server_name );
+	} else
+	if ( sapera_lt_frame_grabber->frame_grabber_number
+			>= sapera_lt->num_frame_grabbers ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested frame grabber number %ld for record '%s' "
+		"is outside the allowed range of 0 to %ld for "
+		"Sapera server '%s'.",
+			sapera_lt_frame_grabber->frame_grabber_number,
+			record->name, sapera_lt->server_name );
+	}
+
+	/* Create the high level objects. */
+
+	SapLocation location( sapera_lt->server_name,
+				sapera_lt_frame_grabber->frame_grabber_number );
+
+	sapera_lt_frame_grabber->acquisition = new SapAcquisition( location,
+				sapera_lt_frame_grabber->config_filename );
+
+	if ( sapera_lt_frame_grabber->acquisition == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapAcquisition object for frame grabber '%s'.",
+			record->name );
+	}
+
+	sapera_lt_frame_grabber->buffer =
+		new SapBuffer( 1, sapera_lt_frame_grabber->acquisition );
+
+	if ( sapera_lt_frame_grabber->buffer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapBuffer object for frame grabber '%s'.",
+			record->name );
+	}
+
+	sapera_lt_frame_grabber->transfer =
+		new SapAcqToBuf( sapera_lt_frame_grabber->acquisition,
+				sapera_lt_frame_grabber->buffer,
+			mxd_sapera_lt_frame_grabber_acquisition_callback,
+				(void *) sapera_lt_frame_grabber );
+
+	if ( sapera_lt_frame_grabber->transfer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapAcqToBuf object for frame grabber '%s'.",
+			record->name );
+	}
+
+	/* Create the low level resources. */
+
+	sapera_status = sapera_lt_frame_grabber->acquisition->Create();
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_frame_grabber->acquisition->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"There is something wrong with the configuration file '%s' "
+		"used by frame grabber '%s'.",
+			sapera_lt_frame_grabber->config_filename,
+			record->name );
+	}
+
+	sapera_status = sapera_lt_frame_grabber->buffer->Create();
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_frame_grabber->buffer->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create the low-level resources used by the "
+		"SapBuffer object of frame grabber '%s'.",
+			record->name );
+	}
+
+	sapera_status = sapera_lt_frame_grabber->transfer->Create();
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_frame_grabber->transfer->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create the low-level resources used by the "
+		"SapAcqToBuf object of frame grabber '%s'.",
+			record->name );
+	}
 
 	/* Initialize the image properties. */
 
@@ -283,12 +392,6 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			vinput->image_format, vinput->record->name );
 		break;
 	}
-
-	/* Connect to the frame grabber. */
-
-#if 0 /* FIXME */
-	num_acquisition_resources = SapManager::GetResourceCount( );
-#endif
 
 	/* Initialize a bunch of MX driver parameters. */
 
