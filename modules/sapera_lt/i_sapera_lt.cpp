@@ -168,6 +168,89 @@ mxi_sapera_lt_open( MX_RECORD *record )
 	}
 #endif
 
+	/* Verify that this server is really present by using the
+	 * SapManager::GetServerIndex() call.  If the server does not
+	 * exist, then we should get an error.
+	 */
+
+	sapera_lt->server_index =
+		SapManager::GetServerIndex( sapera_lt->server_name );
+
+#if MXI_SAPERA_LT_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: server_index = %d", fname, sapera_lt->server_index ));
+#endif
+
+	if ( sapera_lt->server_index == SapLocation::ServerUnknown ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Sapera server '%s' could not be found.",
+			sapera_lt->server_name );
+	}
+
+	sapera_lt->num_frame_grabbers =
+		SapManager::GetResourceCount( sapera_lt->server_name,
+						SapManager::ResourceAcq );
+#if MXI_SAPERA_LT_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: server '%s' num_frame_grabbers = %ld",
+		fname, sapera_lt->server_name, sapera_lt->num_frame_grabbers));
+
+	char resource_name[80];
+
+	for ( i = 0; i < sapera_lt->num_frame_grabbers; i++ ) {
+		result = SapManager::GetResourceName( sapera_lt->server_index,
+						SapManager::ResourceAcq,
+						i, resource_name );
+		if ( result == FALSE ) {
+			MX_DEBUG(-2,
+			("%s: server '%s', frame grabber %d = Error",
+				fname, sapera_lt->server_name, i));
+		} else {
+			MX_DEBUG(-2,("%s: server '%s', frame grabber %d = '%s'",
+				fname, sapera_lt->server_name,
+				i, resource_name ));
+		}
+	}
+#endif
+
+	sapera_lt->num_cameras =
+		SapManager::GetResourceCount( sapera_lt->server_name,
+						SapManager::ResourceAcqDevice );
+#if MXI_SAPERA_LT_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: server '%s' num_cameras = %ld",
+		fname, sapera_lt->server_name, sapera_lt->num_cameras));
+
+	for ( i = 0; i < sapera_lt->num_cameras; i++ ) {
+		result = SapManager::GetResourceName( sapera_lt->server_index,
+						SapManager::ResourceAcqDevice,
+						i, resource_name );
+		if ( result == FALSE ) {
+			MX_DEBUG(-2,("%s: server '%s', camera %d = Error",
+				fname, sapera_lt->server_name, i));
+		} else {
+			MX_DEBUG(-2,("%s: server '%s', camera %d = '%s'",
+				fname, sapera_lt->server_name,
+				i, resource_name ));
+		}
+	}
+#endif
+
+	sapera_lt->max_devices =
+		sapera_lt->num_frame_grabbers + sapera_lt->num_cameras;
+
+	if ( sapera_lt->max_devices <= 0 ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"Sapera server '%s' does not have any acquisition devices!",
+			sapera_lt->server_name );
+	}
+
+	sapera_lt->device_record_array = (MX_RECORD **)
+			calloc( sapera_lt->max_devices, sizeof(MX_RECORD *) );
+
+	if ( sapera_lt->device_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of MX_RECORD pointers.", sapera_lt->max_devices );
+	}
+
 #if MXI_SAPERA_LT_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for '%s'.", fname, record->name));
 #endif

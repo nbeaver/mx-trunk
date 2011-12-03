@@ -31,7 +31,11 @@ typedef struct {
 	long max_devices;
 	MX_RECORD **device_record_array;
 
-	char acquisition_server_name[CORSERVER_MAX_STRLEN+1];
+	char server_name[CORSERVER_MAX_STRLEN+1];
+
+	long server_index;
+	long num_frame_grabbers;
+	long num_cameras;
 
 } MX_SAPERA_LT;
 
@@ -40,9 +44,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT, max_devices), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "acquisition_server_name", MXFT_STRING, \
-					NULL, 1, {CORSERVER_MAX_STRLEN}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT, acquisition_server_name), \
+  {-1, -1, "server_name", MXFT_STRING, NULL, 1, {CORSERVER_MAX_STRLEN}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT, server_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
 
 #endif /* __cplusplus */
