@@ -4,7 +4,7 @@ ifndef MX_ARCH
     MX_ARCH = linux
 endif
 
-all: epics_biocat.mxo
+all: epics_mono_18id.mxo
 
 #
 # Customization of the EPICS configuration is performed in the
@@ -19,7 +19,7 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__ -DIS_MX_DRIVER
 CFLAGS += $(EPICS_INCLUDES)
 CFLAGS += -I../epics/
 
-EPICS_BIOCAT_OBJS = epics_biocat.$(OBJ) \
+EPICS_MONO_18ID_OBJS = epics_mono_18id.$(OBJ) \
 		d_aps_18id.$(OBJ)
 
 #--------------------------------------------------------------------------
@@ -28,9 +28,10 @@ EPICS_BIOCAT_OBJS = epics_biocat.$(OBJ) \
 
 ifeq ($(MX_ARCH),cygwin)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	dllwrap -o epics_biocat.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	dllwrap -o epics_mono_18id.mxo \
+		$(EPICS_MONO_18ID_OBJS) \
+		../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -40,9 +41,11 @@ endif
 
 ifeq ($(MX_ARCH),linux)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	gcc -shared -rdynamic -Wl,-soname,epics_biocat.mxo -o epics_biocat.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	gcc -shared -o epics_mono_18id.mxo \
+		-rdynamic -Wl,-soname,epics_mono_18id.mxo\
+		$(EPICS_MONO_18ID_OBJS) \
+		../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -52,9 +55,10 @@ endif
 
 ifeq ($(MX_ARCH),macosx)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	gcc -dynamiclib -o epics_biocat.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	gcc -dynamiclib -o epics_mono_18id.mxo \
+		$(EPICS_MONO_18ID_OBJS) \
+		../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
@@ -64,9 +68,10 @@ endif
 
 ifeq ($(MX_ARCH),solaris)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	ld -G -o epics_biocat.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	ld -G -o epics_mono_18id.mxo \
+		$(EPICS_MONO_18ID_OBJS) \
+		../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES) -lc
 endif
 
@@ -76,9 +81,10 @@ endif
 
 ifeq ($(MX_ARCH),solaris-gcc)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	ld -G -o epics_biocat.mxo \
-		$(EPICS_BIOCAT_OBJS) ../../libMx/libMx.so ../epics/epics.mxo \
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	ld -G -o epics_mono_18id.mxo \
+		$(EPICS_MONO_18ID_OBJS) \
+		../../libMx/libMx.so ../epics/epics.mxo \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES) -lc
 endif
 
@@ -88,32 +94,34 @@ endif
 
 ifeq ($(MX_ARCH),win32)
 
-epics_biocat.mxo: $(EPICS_BIOCAT_OBJS)
-	link /dll /debug /nologo /out:epics_biocat.mxo /nodefaultlib:libc \
-	    $(EPICS_BIOCAT_OBJS) ..\\epics\\epics.lib ..\\..\\libMx/libMx.lib
+epics_mono_18id.mxo: $(EPICS_MONO_18ID_OBJS)
+	link /dll /debug /nologo /out:epics_mono_18id.mxo /nodefaultlib:libc \
+		$(EPICS_MONO_18ID_OBJS) \
+		..\\epics\\epics.lib ..\\..\\libMx/libMx.lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
-	if test -f epics_biocat.mxo.manifest; then \
-		$(MXMANIFEST_TOOL) -nologo -outputresource:epics_biocat.mxo\;2 \
-			-manifest epics_biocat.mxo.manifest; \
-		rm -f epics_biocat.mxo.manifest; \
+	if test -f epics_mono_18id.mxo.manifest; then \
+		$(MXMANIFEST_TOOL) -nologo \
+			-outputresource:epics_mono_18id.mxo\;2 \
+			-manifest epics_mono_18id.mxo.manifest; \
+		rm -f epics_mono_18id.mxo.manifest; \
 	fi
 endif
 
 #--------------------------------------------------------------------------
 
-epics_biocat.$(OBJ): epics_biocat.c 
-	$(COMPILE) $(CFLAGS) epics_biocat.c
+epics_mono_18id.$(OBJ): epics_mono_18id.c 
+	$(COMPILE) $(CFLAGS) epics_mono_18id.c
 
 d_aps_18id.$(OBJ): d_aps_18id.c
 	$(COMPILE) $(CFLAGS) d_aps_18id.c
 
 #--------------------------------------------------------------------------
 
-install: epics_biocat.mxo
+install: epics_mono_18id.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules
-	cp epics_biocat.mxo $(MX_INSTALL_DIR)/lib/modules
+	cp epics_mono_18id.mxo $(MX_INSTALL_DIR)/lib/modules
 
 clean:
 	-$(RM) *.mxo *.o *.obj *.exp *.ilk *.lib *.pdb *.manifest

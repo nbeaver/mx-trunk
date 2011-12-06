@@ -37,13 +37,13 @@ MODULES += epics
 
 MODULES += epics_aps
 
-MODULES += epics_biocat
-
 MODULES += epics_mbc
 
-MODULES += epics_pmac_tc
+MODULES += epics_mono_18id
 
 MODULES += epics_pmac_biocat
+
+MODULES += epics_pmac_tc
 
 #---
 

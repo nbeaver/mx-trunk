@@ -86,5 +86,5 @@ include Makefile.depend
 #
 
 ms_main.$(OBJ): ms_main.c
-	$(COMPILE) $(CFLAGS_EPICS) $(EPICS_INCLUDES) ms_main.c
+	$(COMPILE) $(CFLAGS) ms_main.c
 

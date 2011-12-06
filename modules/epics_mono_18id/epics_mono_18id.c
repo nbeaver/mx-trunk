@@ -1,8 +1,7 @@
 /*
- * Name:    epics_biocat.c
+ * Name:    epics_mono_18id.c
  *
- * Purpose: Module wrapper for EPICS drivers specific to BioCAT
- *          at the APS 18-ID beamline.
+ * Purpose: Module wrapper for a driver to control the APS 18-ID monochromators.
  *
  * Author:  William Lavender
  *
@@ -28,7 +27,7 @@
 
 #include "d_aps_18id.h"
 
-MX_DRIVER epics_biocat_driver_table[] = {
+MX_DRIVER epics_mono_18id_driver_table[] = {
 
 {"aps_18id", -1, MXC_MOTOR, MXR_DEVICE,
 				&mxd_aps_18id_record_function_list,
@@ -42,9 +41,9 @@ MX_DRIVER epics_biocat_driver_table[] = {
 
 MX_EXPORT
 MX_MODULE __MX_MODULE__ = {
-	"epics_biocat",
+	"epics_mono_18id",
 	MX_VERSION,
-	epics_biocat_driver_table,
+	epics_mono_18id_driver_table,
 	NULL,
 	NULL
 };
