@@ -26,7 +26,8 @@ typedef struct {
 	long frame_grabber_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
 
-	mx_bool_type grab_in_progress;
+	unsigned long total_num_frames_at_start;
+	unsigned long num_frames_left_to_acquire;
 
 	SapAcquisition *acquisition;
 	SapBuffer      *buffer;

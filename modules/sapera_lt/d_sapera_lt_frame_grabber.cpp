@@ -24,7 +24,9 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS	TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS	FALSE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,9 +57,9 @@ MX_VIDEO_INPUT_FUNCTION_LIST
 mxd_sapera_lt_frame_grabber_video_input_function_list = {
 	mxd_sapera_lt_frame_grabber_arm,
 	mxd_sapera_lt_frame_grabber_trigger,
-	mxd_sapera_lt_frame_grabber_stop,
+	NULL,
 	mxd_sapera_lt_frame_grabber_abort,
-	mxd_sapera_lt_frame_grabber_asynchronous_capture,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -74,8 +76,8 @@ MX_RECORD_FIELD_DEFAULTS mxd_sapera_lt_frame_grabber_record_field_defaults[] = {
 };
 
 long mxd_sapera_lt_frame_grabber_num_record_fields
-		= sizeof( mxd_sapera_lt_frame_grabber_record_field_defaults )
-		/ sizeof( mxd_sapera_lt_frame_grabber_record_field_defaults[0] );
+	= sizeof( mxd_sapera_lt_frame_grabber_record_field_defaults )
+	/ sizeof( mxd_sapera_lt_frame_grabber_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_sapera_lt_frame_grabber_rfield_def_ptr
 			= &mxd_sapera_lt_frame_grabber_record_field_defaults[0];
@@ -144,6 +146,198 @@ mxd_sapera_lt_frame_grabber_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
+static void
+mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_acquisition_callback()";
+
+	MX_RECORD *record;
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
+
+	sapera_lt_frame_grabber =
+		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
+
+	record = sapera_lt_frame_grabber->record;
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	MX_DEBUG(-2,("%s invoked for frame grabber '%s'.",
+		fname, sapera_lt_frame_grabber->record->name ));
+
+	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
+		sapera_lt_frame_grabber->num_frames_left_to_acquire--;
+		vinput->total_num_frames++;
+	}
+}
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_frame_grabber_setup_frame_counters( MX_VIDEO_INPUT *vinput,
+			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber )
+{
+	long num_frames_in_sequence;
+	mx_status_type mx_status;
+
+	/* Setup the Sapera frame counters. */
+
+	sapera_lt_frame_grabber->total_num_frames_at_start
+					= vinput->total_num_frames;
+
+	mx_status = mx_sequence_get_num_frames( &(vinput->sequence_parameters),
+						&num_frames_in_sequence );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sapera_lt_frame_grabber->num_frames_left_to_acquire
+					= num_frames_in_sequence;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+/* This version is for reading memory addresses. */
+
+static mx_status_type
+mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber,
+			int capability,
+			int parameter,
+			void *parameter_value )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_get_lowlevel_parameter()";
+
+	BOOL capability_valid, parameter_valid, get_parameter_status;
+
+	if ( sapera_lt_frame_grabber == ( MX_SAPERA_LT_FRAME_GRABBER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SAPERA_LT_FRAME_GRABBER pointer passed was NULL." );
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
+	MX_DEBUG(-2,("%s invoked by '%s' for reading a void pointer.",
+		fname, sapera_lt_frame_grabber->record->name));
+#endif
+
+	SapAcquisition *acq = sapera_lt_frame_grabber->acquisition;
+
+	if ( acq == (SapAcquisition *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The SapAcquisition pointer for frame grabber '%s' is NULL.",
+			sapera_lt_frame_grabber->record->name );
+	}
+
+	if ( capability >= 0 ) {
+	    capability_valid = acq->IsCapabilityValid( capability );
+
+	    if ( capability_valid == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		    "Capability %d is not available for frame grabber '%s'.",
+		    capability, sapera_lt_frame_grabber->record->name );
+	    }
+	}
+
+	parameter_valid = acq->IsParameterValid( parameter );
+
+	if ( parameter_valid == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Parameter %d is not available for frame grabber '%s'.",
+			parameter, sapera_lt_frame_grabber->record->name );
+	}
+
+	get_parameter_status = acq->GetParameter( parameter, parameter_value );
+
+	if ( get_parameter_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to read parameter %d from "
+			"frame grabber '%s' failed.",
+			parameter, sapera_lt_frame_grabber->record->name );
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %#0x",
+		fname, sapera_lt_frame_grabber->record->name,
+		parameter, parameter_value ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* This version is for reading 32-bit integers. */
+
+static mx_status_type
+mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber,
+			int capability,
+			int parameter,
+			UINT32 *parameter_value )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_get_lowlevel_parameter()";
+
+	BOOL capability_valid, parameter_valid, get_parameter_status;
+
+	if ( sapera_lt_frame_grabber == ( MX_SAPERA_LT_FRAME_GRABBER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SAPERA_LT_FRAME_GRABBER pointer passed was NULL." );
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
+	MX_DEBUG(-2,("%s invoked by '%s' for reading a UINT32 value.",
+		fname, sapera_lt_frame_grabber->record->name));
+#endif
+
+	SapAcquisition *acq = sapera_lt_frame_grabber->acquisition;
+
+	if ( acq == (SapAcquisition *) NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The SapAcquisition pointer for frame grabber '%s' is NULL.",
+			sapera_lt_frame_grabber->record->name );
+	}
+
+	if ( capability >= 0 ) {
+	    capability_valid = acq->IsCapabilityValid( capability );
+
+	    if ( capability_valid == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		    "Capability %d is not available for frame grabber '%s'.",
+		    capability, sapera_lt_frame_grabber->record->name );
+	    }
+	}
+
+	parameter_valid = acq->IsParameterValid( parameter );
+
+	if ( parameter_valid == FALSE ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Parameter %d is not available for frame grabber '%s'.",
+			parameter, sapera_lt_frame_grabber->record->name );
+	}
+
+	get_parameter_status = acq->GetParameter( parameter, parameter_value );
+
+	if ( get_parameter_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to read parameter %d from "
+			"frame grabber '%s' failed.",
+			parameter, sapera_lt_frame_grabber->record->name );
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %lu",
+		fname, sapera_lt_frame_grabber->record->name,
+		parameter, (unsigned long) *parameter_value ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_sapera_lt_frame_grabber_create_record_structures( MX_RECORD *record )
 {
@@ -178,12 +372,6 @@ mxd_sapera_lt_frame_grabber_create_record_structures( MX_RECORD *record )
 
 	vinput->record = record;
 	sapera_lt_frame_grabber->record = record;
-
-	vinput->trigger_mode = 0;
-
-	sapera_lt_frame_grabber->grab_in_progress = FALSE;
-
-	vinput->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -221,21 +409,6 @@ mxd_sapera_lt_frame_grabber_finish_record_initialization( MX_RECORD *record )
 		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-static void
-mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
-{
-	static const char fname[] =
-		"mxd_sapera_lt_frame_grabber_acquisition_callback()";
-
-	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
-
-	sapera_lt_frame_grabber =
-		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
-
-	MX_DEBUG(-2,("%s invoked for frame grabber '%s'.",
-		fname, sapera_lt_frame_grabber->record->name ));
 }
 
 MX_EXPORT mx_status_type
@@ -317,7 +490,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Create the low level resources. */
+	/* Create the low level Sapera resources. */
 
 	sapera_status = sapera_lt_frame_grabber->acquisition->Create();
 
@@ -362,36 +535,36 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Initialize the image properties. */
+	char label[129];
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+					sapera_lt_frame_grabber,
+					-1, CORACQ_PRM_LABEL, label );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: '%s' label = '%s'",
+		fname, sapera_lt_frame_grabber->record->name, label));
+#endif
+
+	/* Get the video parameters from the acquisition object. */
+
+	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( vinput->image_format ) {
-	case MXT_IMAGE_FORMAT_RGB:
-		vinput->bytes_per_pixel = 3;
-		vinput->bits_per_pixel  = 24;
-		break;
-	case MXT_IMAGE_FORMAT_GREY8:
-		vinput->bytes_per_pixel = 1;
-		vinput->bits_per_pixel  = 8;
-		break;
-	case MXT_IMAGE_FORMAT_GREY16:
-		vinput->bytes_per_pixel = 2;
-		vinput->bits_per_pixel  = 16;
-		break;
-	case MXT_IMAGE_FORMAT_GREY32:
-		vinput->bytes_per_pixel = 4;
-		vinput->bits_per_pixel  = 32;
-		break;
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported image format %ld for video input '%s'.",
-			vinput->image_format, vinput->record->name );
-		break;
-	}
+	mx_status = mx_video_input_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Initialize a bunch of MX driver parameters. */
 
@@ -401,7 +574,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = (long) mx_native_byteorder();
-	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+	vinput->trigger_mode   = MXT_IMAGE_INTERNAL_TRIGGER;
 
 	vinput->last_frame_number = -1;
 	vinput->total_num_frames = 0;
@@ -435,6 +608,11 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: vinput->bytes_per_frame = %ld",
 		fname, vinput->bytes_per_frame));
 #endif
+
+	sapera_lt_frame_grabber->total_num_frames_at_start
+					= vinput->total_num_frames;
+
+	sapera_lt_frame_grabber->num_frames_left_to_acquire = 0;
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -479,6 +657,8 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SEQUENCE_PARAMETERS *seq;
+	long num_frames_in_sequence;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -491,6 +671,17 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	/* Clear any existing frame data in the SapBuffer object. */
+
+	sapera_status = sapera_lt_frame_grabber->buffer->Clear();
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to clear the capture buffers for "
+		"frame grabber '%s' failed.",
+			vinput->record->name );
+	}
+
 	/* For this video input, the input frame buffer must be set up
 	 * before we can execute the grabber->Grab() method.  For that
 	 * reason, we do mx_image_alloc() here to make sure that the
@@ -508,32 +699,6 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Create a CyUserBuffer() structure to use in receiving frames. */
-
-#if 0
-	if ( sapera_lt_frame_grabber->user_buffer != NULL ) {
-		delete sapera_lt_frame_grabber->user_buffer;
-	}
-
-	sapera_lt_frame_grabber->user_buffer = new CyUserBuffer(
-				(unsigned char *) vinput->frame->image_data,
-				vinput->bytes_per_frame, 0 );
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
-	MX_DEBUG(-2,("%s: Created sapera_lt_frame_grabber->user_buffer = %p",
-			fname, sapera_lt_frame_grabber->user_buffer));
-
-	MX_DEBUG(-2,("%s:   This CyUserBuffer control buffer %p of length %lu.",
-		fname, vinput->frame->image_data, vinput->bytes_per_frame));
-
-	MX_DEBUG(-2,("%s:   CyUserBuffer::GetBuffer() = %p",
-		fname, sapera_lt_frame_grabber->user_buffer->GetBuffer() ));
-
-	MX_DEBUG(-2,("%s:   CyUserBuffer::GetBufferSize() = %lu",
-		fname, sapera_lt_frame_grabber->user_buffer->GetBufferSize() ));
-#endif
-#endif
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
 	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
@@ -563,9 +728,9 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		fname, seq->sequence_type));
 #endif
 
-	sapera_lt_frame_grabber->grab_in_progress = TRUE;
-
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
+					vinput, sapera_lt_frame_grabber );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -575,6 +740,7 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_IMAGE_FRAME *frame;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -616,51 +782,23 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 			vinput->record->name );
 	}
 
-#if 0
-	CyGrabber *grabber = sapera_lt_frame_grabber->grabber;
-
-	CyResult cy_result = grabber->Grab(
-				CyChannel(0),
-				(unsigned char *) frame->image_data,
-				vinput->bytes_per_frame,
-				sapera_lt_frame_grabber->grab_finished_event,
-				NULL,
-				CY_GRABBER_FLAG_NO_WAIT,
-				NULL );
-
-	if ( cy_result != CY_RESULT_OK ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to start acquiring a frame for '%s' failed.  "
-		"cy_result = %d",
-			vinput->record->name );
-	}
-#endif
-
-	sapera_lt_frame_grabber->grab_in_progress = TRUE;
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_sapera_lt_frame_grabber_stop( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] = "mxd_sapera_lt_frame_grabber_stop()";
-
-	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
-					&sapera_lt_frame_grabber, NULL, fname );
+	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
+					vinput, sapera_lt_frame_grabber );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
-#endif
+	int num_frames = 1;
 
-	return mx_status;
+	sapera_status = sapera_lt_frame_grabber->transfer->Snap( num_frames );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to trigger frame grabber '%s' failed.",
+			vinput->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -669,6 +807,7 @@ mxd_sapera_lt_frame_grabber_abort( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_sapera_lt_frame_grabber_abort()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -681,35 +820,19 @@ mxd_sapera_lt_frame_grabber_abort( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	sapera_status = sapera_lt_frame_grabber->transfer->Abort();
 
-	if ( sapera_lt_frame_grabber->grab_in_progress ) {
-		sapera_lt_frame_grabber->grab_in_progress = FALSE;
+	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
+		sapera_lt_frame_grabber->num_frames_left_to_acquire = 0;
 	}
 
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_sapera_lt_frame_grabber_asynchronous_capture( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] =
-			"mxd_sapera_lt_frame_grabber_asynchronous_capture()";
-
-	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
-					&sapera_lt_frame_grabber, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'",
-		fname, vinput->record->name ));
-#endif
-
-	return mx_status;
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to abort frame grabber '%s' failed.",
+			vinput->record->name );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
 }
 
 MX_EXPORT mx_status_type
@@ -728,119 +851,14 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	/* Poll for the event status. */
-
-	CyUserBuffer *user_buffer = sapera_lt_frame_grabber->user_buffer;
-
-	if ( user_buffer == NULL ) {
-
-		/* If we have never started an acquisition sequence, then
-		 * the detector is idle.
-		 */
-
-		vinput->status = 0;
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	CyResultEvent &grab_finished_event = user_buffer->GetCompletionEvent();
-
-	CyResult cy_result =
-		grab_finished_event.WaitUntilSignaled( timeout_ms );
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS
-	MX_DEBUG(-2,("%s: WaitUntilSignaled() returned %d",
-		fname, cy_result ));
-#endif
-
 	vinput->status = 0;
 
-	switch( cy_result ) {
-	case CY_RESULT_OK:
-	case CY_RESULT_IMAGE_ERROR:
-		if ( sapera_lt_frame_grabber->grab_in_progress ) {
-			vinput->last_frame_number = 0;
-			vinput->total_num_frames++;
-
-			sapera_lt_frame_grabber->grab_in_progress = FALSE;
-		}
-
-		if ( 0 ) {
-			CyImageInfo &image_info = user_buffer->GetImageInfo();
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS
-			MX_DEBUG(-2,("%s: image ID = %lu",
-				fname, image_info.GetImageID() ));
-			MX_DEBUG(-2,("%s: image size = %lu",
-				fname, image_info.GetSize() ));
-			MX_DEBUG(-2,("%s: image timestamp = %lu",
-				fname, image_info.GetTimestamp() ));
-#endif
-
-			CyBufferQueue::ImageStatus &image_status
-				= image_info.GetImageStatus();
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS
-			MX_DEBUG(-2,("%s: mFrameOverrun = %d",
-				fname, image_status.mFrameOverrun));
-			MX_DEBUG(-2,("%s: mGrabberFIFOOverrun = %d",
-				fname, image_status.mGrabberFIFOOverrun));
-			MX_DEBUG(-2,("%s: mImageDropped = %d",
-				fname, image_status.mImageDropped));
-			MX_DEBUG(-2,("%s: mPartialLineMissing = %d",
-				fname, image_status.mPartialLineMissing));
-			MX_DEBUG(-2,("%s: mFullLineMissing = %d",
-				fname, image_status.mFullLineMissing));
-			MX_DEBUG(-2,("%s: mInterlaced = %d",
-				fname, image_status.mInterlaced));
-			MX_DEBUG(-2,("%s: mFirstGrabbedField = %d",
-				fname, image_status.mFirstGrabbedField));
-			MX_DEBUG(-2,("%s: mFieldFirstLine = %d",
-				fname, image_status.mFieldFirstLine));
-			MX_DEBUG(-2,("%s: mHorizontalUnlocked = %d",
-				fname, image_status.mHorizontalUnlocked));
-			MX_DEBUG(-2,("%s: mVerticalUnlocked = %d",
-				fname, image_status.mVerticalUnlocked));
-			MX_DEBUG(-2,("%s: mEOFByLineCount = %d",
-				fname, image_status.mEOFByLineCount));
-#endif
-		}
-		break;
-
-	case CY_RESULT_TIMEOUT:
-		if ( sapera_lt_frame_grabber->grab_in_progress ) {
-			vinput->status |= MXSF_VIN_IS_BUSY;
-
-			vinput->last_frame_number = -1;
-		}
-		break;
-
-	case CY_RESULT_MISSING_PACKETS:
-		if ( mx_debugger_is_present() ) {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"WaitUntilSignaled(%lu) returned a "
-			"CY_RESULT_MISSING_PACKETS (39) error.  "
-			"This is probably due to the fact that you are "
-			"running this program from within a debugger.",
-				timeout_ms );
-		} else {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"WaitUntilSignaled(%lu) returned a "
-			"CY_RESULT_MISSING_PACKETS (39) error.  "
-			"The reason for this is unknown.",
-				timeout_ms );
-		}
-		break;
-
-	default:
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"WaitUntilSignaled(%lu) returned an unexpected "
-		"value (%d) for record '%s'.",
-			timeout_ms, cy_result, vinput->record->name );
-		break;
+	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
+		vinput->status |= MXSF_VIN_IS_BUSY;
 	}
-#endif
+
+	vinput->last_frame_number = vinput->total_num_frames
+		- sapera_lt_frame_grabber->total_num_frames_at_start - 1;
 
 	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
 		vinput->busy = TRUE;
@@ -865,6 +883,9 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_IMAGE_FRAME *frame;
+	void *mx_data_address;
+	void *sapera_data_address;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -884,6 +905,45 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
+	/* Get the address of the MX image frame buffer. */
+
+	if ( vinput->frame == (	MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image frames have been acquired yet "
+		"for frame grabber '%s'.",
+			vinput->record->name );
+	}
+
+	mx_data_address = vinput->frame->image_data;
+
+	/* Get the SapBuffer's address for the buffer data. */
+
+	sapera_status = sapera_lt_frame_grabber->buffer->GetAddress(
+							&sapera_data_address );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the buffer data address for "
+		"frame grabber '%s' failed.",
+			vinput->record->name );
+	}
+
+	/* Transfer the data from the Sapera buffer to the MX buffer. */
+
+	memcpy( mx_data_address, sapera_data_address,
+			vinput->frame->image_length );
+
+	/* Release the Sapera buffer address. */
+
+	sapera_status = sapera_lt_frame_grabber->buffer->ReleaseAddress(
+							&sapera_data_address );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the buffer data address for "
+		"frame grabber '%s' failed.",
+			vinput->record->name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -891,9 +951,11 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 MX_EXPORT mx_status_type
 mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_sapera_lt_frame_grabber_get_parameter()";
+	static const char fname[] =
+			"mxd_sapera_lt_frame_grabber_get_parameter()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
+	UINT32 pixels_per_line, lines_per_frame, output_format;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -909,10 +971,70 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
+		mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+						sapera_lt_frame_grabber,
+						-1,
+						CORACQ_PRM_CROP_WIDTH,
+						&pixels_per_line );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+						sapera_lt_frame_grabber,
+						-1,
+						CORACQ_PRM_CROP_HEIGHT,
+						&lines_per_frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		vinput->framesize[0] = pixels_per_line;
+		vinput->framesize[1] = lines_per_frame;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
+		MX_DEBUG(-2,("%s: frame grabber '%s' framesize = (%ld,%ld).",
+			fname, sapera_lt_frame_grabber->record->name,
+			vinput->framesize[0], vinput->framesize[1]));
+#endif
+
 		break;
 
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
+		mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
+						sapera_lt_frame_grabber,
+						-1, CORACQ_PRM_OUTPUT_FORMAT,
+						&output_format );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( output_format ) {
+		case CORACQ_VAL_OUTPUT_FORMAT_MONO8:
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
+			vinput->bytes_per_pixel = 1;
+			vinput->bits_per_pixel  = 8;
+			break;
+
+		case CORACQ_VAL_OUTPUT_FORMAT_MONO16:
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+			vinput->bytes_per_pixel = 2;
+			vinput->bits_per_pixel  = 16;
+			break;
+		
+		case CORACQ_VAL_OUTPUT_FORMAT_MONO32:
+			vinput->image_format = MXT_IMAGE_FORMAT_GREY32;
+			vinput->bytes_per_pixel = 4;
+			vinput->bits_per_pixel  = 32;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported output format %lu for video input '%s'.",
+				(unsigned long) output_format,
+				vinput->record->name );
+			break;
+		}
 
 		mx_status = mx_image_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
@@ -965,7 +1087,8 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 MX_EXPORT mx_status_type
 mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_sapera_lt_frame_grabber_set_parameter()";
+	static const char fname[] =
+			"mxd_sapera_lt_frame_grabber_set_parameter()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	unsigned long bytes_per_frame;

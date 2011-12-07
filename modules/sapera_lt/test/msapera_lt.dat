@@ -1,3 +1,6 @@
 !load ../sapera_lt.mxo
+#
 sapera interface controller sapera_lt "" "" 1 Xcelera-CL_PX4_1 
-cam1   device video_input sapera_lt_frame_grabber "" "" 1300 1300 GREY16 -1 sapera 0 C:\DALSA\Sapera\CamFiles\User\R_Prototype_13_Default_Default.ccf
+cam1   device video_input sapera_lt_frame_grabber "" "" -1 -1 GREY16 -1 sapera 0 C:\DALSA\Sapera\CamFiles\User\R_Prototype_13_Default_Default.ccf
+#
+ad device area_detector soft_area_detector "" "" 0 0x0 0x0 "" "" "" "" cam1 0x1
