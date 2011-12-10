@@ -794,6 +794,11 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 				video_input_record, &(ad->bytes_per_pixel) );
 		break;
 
+	case MXLV_AD_TRIGGER_MODE:
+		mx_status = mx_video_input_get_trigger_mode(
+				video_input_record, &(ad->trigger_mode) );
+		break;
+
 	case MXLV_AD_BITS_PER_PIXEL:
 		mx_status = mx_video_input_get_bits_per_pixel(
 				video_input_record, &(ad->bits_per_pixel) );
@@ -818,6 +823,7 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_set_parameter()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
+	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
@@ -837,6 +843,7 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, ad->record->name, ad->parameter_type));
 #endif
+	video_input_record = soft_area_detector->video_input_record;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -851,15 +858,20 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		/* Tell the video input to change its framesize. */
 
 		mx_status = mx_video_input_set_framesize(
-					soft_area_detector->video_input_record,
+					video_input_record,
 					ad->framesize[0], ad->framesize[1] );
+		break;
+
+	case MXLV_AD_TRIGGER_MODE:
+		mx_status = mx_video_input_set_trigger_mode(
+				video_input_record, ad->trigger_mode );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		mx_status = mx_video_input_set_sequence_parameters(
-					soft_area_detector->video_input_record,
+					video_input_record,
 					&(ad->sequence_parameters) );
 		break; 
 
