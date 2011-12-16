@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008-2011 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,8 +45,6 @@
 #include "mx_mca.h"
 
 #if HAVE_XIA_HANDEL
-
-#include <xia_version.h>
 
 #include <handel.h>
 #include <handel_errors.h>

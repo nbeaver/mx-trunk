@@ -554,32 +554,6 @@
 #include "d_trump.h"
 #endif
 
-#if HAVE_TCPIP
-#include "i_xia_network.h"
-#include "i_handel_network.h"
-#endif
-#if HAVE_XIA_HANDEL
-#include "i_xia_handel.h"
-#include "d_xia_handel_timer.h"
-#endif
-
-#if HAVE_XIA_XERXES
-#include "i_xia_xerxes.h"
-#endif
-
-#if HAVE_TCPIP || HAVE_XIA_HANDEL
-#include "d_xia_dxp_mca.h"
-#include "d_xia_dxp_var.h"
-#include "d_xia_dxp_sum.h"
-#include "d_xia_dxp_timer.h"
-
-#include "i_handel.h"
-#include "d_handel_mca.h"
-#include "d_handel_input.h"
-#include "d_handel_sum.h"
-#include "d_handel_timer.h"
-#endif
-
   /********************** Record Types **********************/
 
 MX_DRIVER mx_type_table[] = {
@@ -1153,47 +1127,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_linux_parport_rfield_def_ptr},
 
 #endif /* OS_LINUX */
-
-#if HAVE_TCPIP
-{"xia_network",    MXI_CTRL_XIA_NETWORK, MXI_CONTROLLER,      MXR_INTERFACE,
-				&mxi_xia_network_record_function_list,
-				NULL,
-				NULL,
-				&mxi_xia_network_num_record_fields,
-				&mxi_xia_network_rfield_def_ptr},
-
-{"handel_network", MXI_CTRL_HANDEL_NETWORK, MXI_CONTROLLER,   MXR_INTERFACE,
-				&mxi_handel_network_record_function_list,
-				NULL,
-				NULL,
-				&mxi_handel_network_num_record_fields,
-				&mxi_handel_network_rfield_def_ptr},
-#endif /* HAVE_TCPIP */
-
-#if HAVE_XIA_HANDEL
-{"xia_handel",     MXI_CTRL_XIA_HANDEL, MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_xia_handel_record_function_list,
-				NULL,
-				NULL,
-				&mxi_xia_handel_num_record_fields,
-				&mxi_xia_handel_rfield_def_ptr},
-
-{"handel",         MXI_CTRL_HANDEL,     MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_handel_record_function_list,
-				NULL,
-				NULL,
-				&mxi_handel_num_record_fields,
-				&mxi_handel_rfield_def_ptr},
-#endif /* HAVE_XIA_HANDEL */
-
-#if HAVE_XIA_XERXES
-{"xia_xerxes",     MXI_CTRL_XIA_XERXES, MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_xia_xerxes_record_function_list,
-				NULL,
-				NULL,
-				&mxi_xia_xerxes_num_record_fields,
-				&mxi_xia_xerxes_rfield_def_ptr},
-#endif /* HAVE_XIA_HANDEL */
 
 #if HAVE_ORTEC_UMCBI
 {"umcbi",          MXI_CTRL_UMCBI,     MXI_CONTROLLER,        MXR_INTERFACE,
@@ -3195,77 +3128,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_roentec_rcl_num_record_fields,
 				&mxd_roentec_rcl_rfield_def_ptr},
 
-#if HAVE_TCPIP || HAVE_XIA_HANDEL
-
-{"xia_dxp_mca",    MXT_MCA_XIA_DXP,   MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
-				&mxd_xia_dxp_record_function_list,
-				NULL,
-				&mxd_xia_dxp_mca_function_list,
-				&mxd_xia_dxp_num_record_fields,
-				&mxd_xia_dxp_rfield_def_ptr},
-
-{"xia_dxp_input",  MXT_AIN_XIA_DXP,   MXC_ANALOG_INPUT,        MXR_DEVICE,
-				&mxd_xia_dxp_input_record_function_list,
-				NULL,
-				&mxd_xia_dxp_input_analog_input_function_list,
-				&mxd_xia_dxp_input_num_record_fields,
-				&mxd_xia_dxp_input_rfield_def_ptr},
-
-{"xia_dxp_sum",    MXT_AIN_XIA_DXP_SUM, MXC_ANALOG_INPUT,      MXR_DEVICE,
-				&mxd_xia_dxp_sum_record_function_list,
-				NULL,
-				&mxd_xia_dxp_sum_analog_input_function_list,
-				&mxd_xia_dxp_sum_num_record_fields,
-				&mxd_xia_dxp_sum_rfield_def_ptr},
-
-{"xia_dxp_timer",  MXT_TIM_XIA_DXP,     MXC_TIMER,      MXR_DEVICE,
-				&mxd_xia_dxp_timer_record_function_list,
-				NULL,
-				&mxd_xia_dxp_timer_timer_function_list,
-				&mxd_xia_dxp_timer_num_record_fields,
-				&mxd_xia_dxp_timer_rfield_def_ptr},
-
-
-{"handel_mca",     MXT_MCA_HANDEL,    MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
-				&mxd_handel_mca_record_function_list,
-				NULL,
-				&mxd_handel_mca_mca_function_list,
-				&mxd_handel_mca_num_record_fields,
-				&mxd_handel_mca_rfield_def_ptr},
-
-{"handel_input",   MXT_AIN_HANDEL,   MXC_ANALOG_INPUT,        MXR_DEVICE,
-				&mxd_handel_input_record_function_list,
-				NULL,
-				&mxd_handel_input_analog_input_function_list,
-				&mxd_handel_input_num_record_fields,
-				&mxd_handel_input_rfield_def_ptr},
-
-{"handel_sum",     MXT_AIN_HANDEL_SUM, MXC_ANALOG_INPUT,      MXR_DEVICE,
-				&mxd_handel_sum_record_function_list,
-				NULL,
-				&mxd_handel_sum_analog_input_function_list,
-				&mxd_handel_sum_num_record_fields,
-				&mxd_handel_sum_rfield_def_ptr},
-
-#endif /* HAVE_TCPIP || HAVE_XIA_HANDEL */
-
-#if HAVE_XIA_HANDEL
-
-{"xia_handel_timer", MXT_TIM_XIA_HANDEL,  MXC_TIMER,          MXR_DEVICE,
-				&mxd_xia_handel_timer_record_function_list,
-				NULL,
-				&mxd_xia_handel_timer_timer_function_list,
-				&mxd_xia_handel_timer_num_record_fields,
-				&mxd_xia_handel_timer_rfield_def_ptr},
-
-{"handel_timer",     MXT_TIM_HANDEL,  MXC_TIMER,          MXR_DEVICE,
-				&mxd_handel_timer_record_function_list,
-				NULL,
-				&mxd_handel_timer_timer_function_list,
-				&mxd_handel_timer_num_record_fields,
-				&mxd_handel_timer_rfield_def_ptr},
-
-#endif /* HAVE_XIA_HANDEL */
 
 {"soft_mcs",       MXT_MCS_SOFTWARE,  MXC_MULTICHANNEL_SCALER, MXR_DEVICE,
 				&mxd_soft_mcs_record_function_list,

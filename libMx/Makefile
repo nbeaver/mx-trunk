@@ -89,7 +89,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_fg_scaler.c d_file_dinput.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c \
-	d_handel_input.c d_handel_mca.c d_handel_sum.c d_handel_timer.c \
 	d_hitachi_kp_d20.c d_hsc1.c \
 	d_i404_amp.c d_i404_mcai.c d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_ilm_ainput.c d_ilm_sample_rate.c d_ilm_status.c \
@@ -157,14 +156,12 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
-	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c d_xia_dxp_timer.c \
-	d_xia_handel_timer.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c \
 	i_bkprecision_912x.c i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \
 	i_edt.c i_edt_rs232.c \
-	i_esone_camac.c i_fossil.c i_handel.c i_handel_network.c i_hsc1.c \
+	i_esone_camac.c i_fossil.c i_hsc1.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
 	i_k500serial.c i_ks3344.c \
 	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
@@ -185,10 +182,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c i_vxi_memacc.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \
-	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
 	n_spec.c n_tcpip.c n_unix.c \
-	u_xia_dxp.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
 	v_mathop.c v_pmac.c v_position_select.c v_powerpmac.c v_spec.c v_u500.c
@@ -272,18 +267,6 @@ include Makefile.depend
 d_edt.$(OBJ): d_edt.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
 
-d_handel_mca.$(OBJ): d_handel_mca.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_mca.c
-
-d_handel_input.$(OBJ): d_handel_input.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_input.c
-
-d_handel_sum.$(OBJ): d_handel_sum.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_sum.c
-
-d_handel_timer.$(OBJ): d_handel_timer.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_handel_timer.c
-
 d_pcmotion32.$(OBJ): d_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c
 
@@ -311,15 +294,6 @@ d_u500_status.$(OBJ): d_u500_status.c
 d_v4l2_input.$(OBJ): d_v4l2_input.c
 	$(COMPILE) $(CFLAGS) $(VIDEO_4_LINUX_2_FLAGS) d_v4l2_input.c
 
-d_xia_dxp_mca.$(OBJ): d_xia_dxp_mca.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_dxp_mca.c
-
-d_xia_handel_timer.$(OBJ): d_xia_handel_timer.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_handel_timer.c
-
-d_xia_dxp_timer.$(OBJ): d_xia_dxp_timer.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_dxp_timer.c
-
 i_8255.$(OBJ): i_8255.c
 	$(COMPILE) $(CFLAGS) $(I8255_INCLUDES) i_8255.c
 
@@ -340,9 +314,6 @@ i_edt_rs232.$(OBJ): i_edt_rs232.c
 
 i_esone_camac.$(OBJ): i_esone_camac.c
 	$(COMPILE) $(CFLAGS) $(ESONE_CAMAC_INCLUDES) i_esone_camac.c
-
-i_handel.$(OBJ): i_handel.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) i_handel.c
 
 i_libusb.$(OBJ): i_libusb.c
 	$(COMPILE) $(CFLAGS) $(LIBUSB_FLAGS) i_libusb.c
@@ -383,12 +354,6 @@ i_umcbi.$(OBJ): i_umcbi.c
 i_vxi_memacc.$(OBJ): i_vxi_memacc.c
 	$(COMPILE) $(CFLAGS) $(NI_VISA_INCLUDES) i_vxi_memacc.c
 
-i_xia_handel.$(OBJ): i_xia_handel.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) i_xia_handel.c
-
-i_xia_xerxes.$(OBJ): i_xia_xerxes.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) i_xia_xerxes.c
-
 mx_cfn.$(OBJ): mx_cfn.c
 	$(COMPILE) $(CFLAGS) $(CFLAGS_MX_CFN) mx_cfn.c
 
@@ -398,9 +363,6 @@ mx_interval_timer.$(OBJ): mx_interval_timer.c
 mx_key.$(OBJ): mx_key.c mxconfig.h
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
-
-u_xia_dxp.$(OBJ): u_xia_dxp.c
-	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) u_xia_dxp.c
 
 v_u500.$(OBJ): v_u500.c
 	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) v_u500.c
