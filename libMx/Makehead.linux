@@ -47,9 +47,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
 #LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
-#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(JORWAY_CAMAC_LIB_DIRS)
 #LIBRARIES	= $(JORWAY_CAMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -65,19 +62,11 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
-#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(POWERPMAC_LIB_DIRS)
 #LIBRARIES	= $(POWERPMAC_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS) \
-#					$(XIA_HANDEL_LIB_DIRS)
-#LIBRARIES	= $(NI_VISA_LIBRARIES) \
-#				$(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) \
 #			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
@@ -294,19 +283,7 @@ VIDEO_4_LINUX_2_FLAGS = -DIS_MX_DRIVER
 #
 LINUX_IOPL_FLAGS = -Wno-missing-prototypes -O2
 
-#
-# Compiled with Handel 0.4.5 (May 2004)
-#
-# Note that support for Linux in Handel itself is not yet available.
-#
-XIA_HANDEL_DIR       = /opt/xia/handel
-#XIA_HANDEL_DIR       = /home/lavender/xia/handel
-XIA_HANDEL_INCLUDES  = -I$(XIA_HANDEL_DIR)/inc -DIS_MX_DRIVER \
-				-Wno-shadow -Wno-strict-prototypes
-XIA_HANDEL_LIB_DIRS  = -L$(XIA_HANDEL_DIR)/lib
-XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
-
-#
+#----
 
 #EDT_DIR		= /opt/EDTpdv
 #EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
@@ -401,8 +378,7 @@ DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
-	$(XIA_HANDEL_INCLUDES) $(POWERPMAC_INCLUDES) \
-	$(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
+	$(POWERPMAC_INCLUDES) $(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

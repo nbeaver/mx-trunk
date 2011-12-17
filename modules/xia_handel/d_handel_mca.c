@@ -700,12 +700,12 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Could not get the module number from the module alias '%s' "
 		"for MCA '%s'.",  handel_mca->module_alias,
-				handel_mca->module_number );
+				handel_mca->record->name );
 	}
 			
 	if ( display_config ) {
 		mx_info( "MCA '%s': module alias = '%s', module_number = %ld, "
-		"detector alias = '%s', detector channel = %d",
+		"detector alias = '%s', detector channel = %ld",
 			handel_mca->record->name,
 			handel_mca->module_alias,
 			handel_mca->module_number,
@@ -724,7 +724,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Cannot get the module type for module '%s', "
-		"detector '%s' channel %d used by MCA '%s'.  "
+		"detector '%s' channel %ld used by MCA '%s'.  "
 		"Error code = %d, '%s'",
 			handel_mca->module_alias,
 			handel_mca->detector_alias,
@@ -743,7 +743,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	module_channel = handel_mca->detector_channel % handel->mcas_per_module;
 
-	sprintf( item_name, "channel%d_alias", module_channel );
+	sprintf( item_name, "channel%ld_alias", module_channel );
 
 	xia_status = xiaGetModuleItem( handel_mca->module_alias,
 					item_name,
@@ -752,7 +752,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Cannot get the detector channel id for module '%s', "
-		"detector channel %d used by MCA '%s'.  Error code = %d, '%s'",
+		"detector channel %ld used by MCA '%s'.  Error code = %d, '%s'",
 			handel_mca->module_alias,
 			handel_mca->detector_channel,
 			mca->record->name, xia_status,
@@ -861,8 +861,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	  || ( handel_mca->module_number > handel->num_modules ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Module number %d for Handel MCA '%s' is outside "
-		"the allowed range of 1 to %d",
+		"Module number %lu for Handel MCA '%s' is outside "
+		"the allowed range of 1 to %lu",
 			handel_mca->module_number,
 			mca->record->name,
 			handel->num_modules );
@@ -885,8 +885,8 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	if ( j >= handel->mcas_per_module ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Handel record '%s', module number %ld has too many "
-		"records (%d).  The maximum allowed is %ld.",
+		"Handel record '%s', module number %lu has too many "
+		"records (%lu).  The maximum allowed is %ld.",
 			handel->record->name,
 			handel_mca->module_number, j,
 			handel->mcas_per_module );
@@ -978,7 +978,7 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 
 	if ( handel_mca->baseline_array == (unsigned long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate a DXP baseline array of %u unsigned longs",
+		"Cannot allocate a DXP baseline array of %lu unsigned longs",
 			handel_mca->baseline_length );
 	}
 
@@ -1011,7 +1011,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 #endif
 	MX_HANDEL_NETWORK *handel_network;
 	unsigned long i, mca_number;
-	int display_config;
+	int display_config = FALSE;
 #if 0
 	unsigned long codevar, coderev;
 #endif
@@ -1038,7 +1038,8 @@ mxd_handel_mca_open( MX_RECORD *record )
 			fname, record->name ));
 	}
 
-	display_config = FALSE;
+	/* Suppress GCC 'set but not used' warning. */
+	display_config = display_config;
 
 	handel_record = handel_mca->handel_record;
 

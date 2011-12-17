@@ -16,7 +16,7 @@
 
 #define MXD_HANDEL_TIMER_DEBUG		TRUE
 
-#define MXD_HANDEL_TIMER_DEBUG_TIMING	FALSE
+#define MXD_HANDEL_TIMER_DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 
@@ -298,7 +298,8 @@ mxd_handel_timer_open( MX_RECORD *record )
 		}
 
 #if MXD_HANDEL_TIMER_DEBUG
-		MX_DEBUG(-2,("%s: adding MCA #%d = '%s', detector_channel = %d",
+		MX_DEBUG(-2,
+		("%s: adding MCA #%lu = '%s', detector_channel = %d",
 			fname, i, mca_record->name, detector_channel ));
 #endif
 
@@ -435,6 +436,7 @@ mxd_handel_timer_start( MX_TIMER *timer )
 		"on behalf of MCA '%s'.  "
 		"Error code = %d, '%s'",
 			timer->record->name,
+			handel->record->name,
 			xia_status,
 			mxi_handel_strerror( xia_status ) );
 	}
@@ -535,7 +537,9 @@ mxd_handel_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_handel_timer_clear( MX_TIMER *timer )
 {
+#if 0
 	static const char fname[] = "mxd_handel_timer_clear()";
+#endif
 
 	/* There does not seem to be a way of doing this without
 	 * starting a new run.

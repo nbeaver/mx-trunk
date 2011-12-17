@@ -511,7 +511,6 @@ mxi_handel_save_config( MX_HANDEL *handel )
 	static const char fname[] = "mxi_handel_save_config()";
 
 	int xia_status;
-	mx_status_type mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
@@ -938,7 +937,6 @@ mxi_handel_get_run_data( MX_MCA *mca,
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	unsigned long run_active, mask;
 	int xia_status;
 	mx_status_type mx_status;
 
@@ -1065,7 +1063,7 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	int xia_status, ignored;
+	int xia_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_handel_get_pointers( mca,
@@ -1108,7 +1106,7 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 		"Error code = %d, '%s'", 
 					value_name,
 					mca->record->name,
-					value_ptr,
+					*value_ptr,
 					xia_status,
 					mxi_handel_strerror( xia_status ) );
 	}
@@ -1176,7 +1174,7 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 		"Error code = %d, '%s'", 
 					value_name,
 					mca->record->name,
-					value_ptr,
+					*value_ptr,
 					xia_status,
 					mxi_handel_strerror( xia_status ) );
 	}
@@ -1301,7 +1299,7 @@ mxi_handel_read_parameter( MX_MCA *mca,
 
 	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
-		("%s: Record '%s', channel %d, parameter '%s'.",
+		("%s: Record '%s', channel %ld, parameter '%s'.",
 			fname, mca->record->name,
 			handel_mca->detector_channel, parameter_name));
 	}
@@ -1317,7 +1315,7 @@ mxi_handel_read_parameter( MX_MCA *mca,
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname,
-		"for record '%s', channel %d, parameter '%s'",
+		"for record '%s', channel %ld, parameter '%s'",
 		mca->record->name,
 		handel_mca->detector_channel,
 		parameter_name);
@@ -1325,7 +1323,7 @@ mxi_handel_read_parameter( MX_MCA *mca,
 
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot read DXP parameter '%s' for detector channel %d "
+		"Cannot read DXP parameter '%s' for detector channel %ld "
 		"of XIA DXP interface '%s'.  "
 		"Error code = %d, '%s'",
 			parameter_name, handel_mca->detector_channel,
@@ -1367,7 +1365,7 @@ mxi_handel_write_parameter( MX_MCA *mca,
 
 	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,
-		("%s: Record '%s', channel %d, parameter '%s', value = %lu.",
+		("%s: Record '%s', channel %ld, parameter '%s', value = %lu.",
 			fname, mca->record->name, handel_mca->detector_channel,
 			parameter_name, (unsigned long) value));
 	}
@@ -1387,7 +1385,7 @@ mxi_handel_write_parameter( MX_MCA *mca,
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname,
-		"for record '%s', channel %d, parameter '%s'",
+		"for record '%s', channel %ld, parameter '%s'",
 		mca->record->name,
 		handel_mca->detector_channel,
 		parameter_name);
@@ -1396,7 +1394,7 @@ mxi_handel_write_parameter( MX_MCA *mca,
 	if ( xia_status != XIA_SUCCESS ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Cannot write the value %hu to DXP parameter '%s' "
-		"for detector channel %d of XIA DXP interface '%s'.  "
+		"for detector channel %ld of XIA DXP interface '%s'.  "
 		"Error code = %d, '%s'", short_value,
 			parameter_name, handel_mca->detector_channel,
 			mca->record->name, xia_status,
@@ -1467,7 +1465,7 @@ mxi_handel_write_parameter_to_all_channels( MX_MCA *mca,
 			local_dxp_mca = (MX_HANDEL_MCA *)
 					mca_record->record_type_struct;
 
-			MX_DEBUG( 2,("%s: writing to detector channel %d.",
+			MX_DEBUG( 2,("%s: writing to detector channel %ld.",
 				fname, local_dxp_mca->detector_channel));
 
 #if MXI_HANDEL_DEBUG_TIMING
@@ -1481,7 +1479,7 @@ mxi_handel_write_parameter_to_all_channels( MX_MCA *mca,
 			MX_HRT_END( measurement );
 
 			MX_HRT_RESULTS( measurement, fname,
-				"for record '%s', channel %d, parameter '%s'",
+				"for record '%s', channel %ld, parameter '%s'",
 				mca_record->name,
 				local_dxp_mca->detector_channel,
 				parameter_name );
@@ -1490,7 +1488,7 @@ mxi_handel_write_parameter_to_all_channels( MX_MCA *mca,
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error( MXE_DEVICE_ACTION_FAILED,fname,
 			"Cannot write the value %hu to DXP parameter '%s' "
-			"for detector channel %d of XIA DXP interface '%s'.  "
+			"for detector channel %ld of XIA DXP interface '%s'.  "
 			"Error code = %d, '%s'", short_value,
 				parameter_name, local_dxp_mca->detector_channel,
 				mca->record->name, xia_status,
@@ -1733,7 +1731,7 @@ mxi_handel_read_statistics( MX_MCA *mca )
 
 	if ( handel_mca->debug_flag ) {
 		MX_DEBUG(-2,(
-	"%s: Record '%s', channel %d, live_time = %g, real_time = %g, "
+	"%s: Record '%s', channel %ld, live_time = %g, real_time = %g, "
 	"icr = %g, ocr = %g, nevent = %lu", fname,
 			mca->record->name,
 			handel_mca->detector_channel,
@@ -1791,8 +1789,7 @@ mxi_handel_get_baseline_array( MX_MCA *mca )
 		"  This should not happen.", mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: baseline_length = %lu",
-			fname, baseline_length));
+	MX_DEBUG(-2,("%s: baseline_length = %u", fname, baseline_length));
 
 	/* Allocate or resize the baseline array as necessary. */
 
@@ -1806,7 +1803,7 @@ mxi_handel_get_baseline_array( MX_MCA *mca )
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory attempting to allocate a "
-			"%lu element baseline array for MCA '%s'.",
+			"%u element baseline array for MCA '%s'.",
 				baseline_length, mca->record->name );
 	    }
 
@@ -1823,7 +1820,7 @@ mxi_handel_get_baseline_array( MX_MCA *mca )
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory attempting to resize the baseline "
-			"array to %lu elements for MCA '%s'.",
+			"array to %u elements for MCA '%s'.",
 				baseline_length, mca->record->name );
 	    }
 
@@ -1996,7 +1993,7 @@ mxi_handel_get_adc_trace_array( MX_MCA *mca )
 		"  This should not happen.", mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: adc_trace_length = %lu", fname, adc_trace_length));
+	MX_DEBUG(-2,("%s: adc_trace_length = %u", fname, adc_trace_length));
 
 	/* Allocate or resize the ADC trace array as necessary. */
 
@@ -2009,7 +2006,7 @@ mxi_handel_get_adc_trace_array( MX_MCA *mca )
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory attempting to allocate a "
-			"%lu element ADC trace array for MCA '%s'.",
+			"%u element ADC trace array for MCA '%s'.",
 				adc_trace_length, mca->record->name );
 		}
 
@@ -2025,7 +2022,7 @@ mxi_handel_get_adc_trace_array( MX_MCA *mca )
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory attempting to resize the ADC trace "
-			"array to %lu elements for MCA '%s'.",
+			"array to %u elements for MCA '%s'.",
 				adc_trace_length, mca->record->name );
 		}
 
@@ -2175,7 +2172,7 @@ mxi_handel_get_baseline_history_array( MX_MCA *mca )
 		"  This should not happen.", mca->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: baseline_history_length = %lu",
+	MX_DEBUG(-2,("%s: baseline_history_length = %u",
 			fname, baseline_history_length));
 
 	/* Allocate or resize the baseline history array as necessary. */
@@ -2190,7 +2187,7 @@ mxi_handel_get_baseline_history_array( MX_MCA *mca )
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory attempting to allocate a "
-			"%lu element baseline history array for MCA '%s'.",
+			"%u element baseline history array for MCA '%s'.",
 				baseline_history_length, mca->record->name );
 	    }
 
@@ -2207,7 +2204,7 @@ mxi_handel_get_baseline_history_array( MX_MCA *mca )
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory attempting to resize the baseline history "
-			"array to %lu elements for MCA '%s'.",
+			"array to %u elements for MCA '%s'.",
 				baseline_history_length, mca->record->name );
 	    }
 
@@ -2307,7 +2304,7 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 		return mx_status;
 
 #if MXI_HANDEL_DEBUG		
-	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2809,7 +2806,7 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%d)",
+	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",
 		mx_get_field_label_string(mca->record, mca->parameter_type),
 		mca->parameter_type );
 #endif
@@ -2827,7 +2824,6 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 	char acquisition_value_name[MAXALIAS_LEN+1];
 	double acquisition_value;
 	long i, handel_preset_type;
-	int xia_status;
 	mx_status_type mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
@@ -2841,7 +2837,7 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 		return mx_status;
 
 #if MXI_HANDEL_DEBUG		
-	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -3019,7 +3015,7 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
-	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%d)",
+	MX_HRT_RESULTS( measurement, fname, "parameter type '%s' (%ld)",
 		mx_get_field_label_string(mca->record, mca->parameter_type),
 		mca->parameter_type );
 #endif
