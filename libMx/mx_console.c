@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2011 Illinois Institute of Technology
+ * Copyright 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,9 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
-#if !defined(OS_QNX)
+#if defined(__FreeBSD__)
+#include <termios.h>
+#elif !defined(OS_QNX)
 #include <sys/termios.h>
 #endif
 

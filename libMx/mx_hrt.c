@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006-2007, 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -936,7 +936,8 @@ mx_high_resolution_time_init( void )
 		return;
 	}
 
-	MX_DEBUG( 2,("%s: tsc_freq = %llu", fname, tsc_freq));
+	MX_DEBUG( 2,("%s: tsc_freq = %llu",
+		fname, (long long unsigned int) tsc_freq));
 
 	mx_hrt_counter_ticks_per_microsecond = tsc_freq / 1000000LU;
 
