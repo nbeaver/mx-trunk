@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,12 +27,16 @@
 #define MXF_EPB_END_DELAY_IN_PROGRESS	4
 
 typedef struct {
+	MX_RECORD *record;
+
 	char beamline_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char component_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char assembly_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char calib_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char dpram_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char device_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
+
+	long motor_number;
 
 	double start_delay;
 	double end_delay;
@@ -52,6 +56,8 @@ typedef struct {
 	MX_EPICS_PV pslimset_pv;
 	MX_EPICS_PV rqspos_pv;
 	MX_EPICS_PV runprg_pv;
+	MX_EPICS_PV strcmd_pv;
+	MX_EPICS_PV strrsp_pv;
 
 } MX_EPICS_PMAC_BIOCAT;
 
@@ -71,6 +77,36 @@ MX_API mx_status_type mxd_epics_pmac_biocat_positive_limit_hit(
 MX_API mx_status_type mxd_epics_pmac_biocat_negative_limit_hit(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor );
+
+MX_API mx_status_type mxd_epics_pmac_biocat_command(
+					MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
+					char *command,
+					char *response,
+					size_t max_response_length,
+					int debug_flag );
+
+MX_API mx_status_type mxd_epics_pmac_biocat_jog_command(
+					MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
+					char *command,
+					char *response,
+					size_t max_response_length,
+					int debug_flag );
+
+MX_API mx_status_type mxd_epics_pmac_biocat_get_motor_variable(
+					MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
+					long variable_number,
+					long variable_type,
+					double *double_ptr,
+					int debug_flag );
+
+MX_API mx_status_type mxd_epics_pmac_biocat_set_motor_variable(
+					MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
+					long variable_number,
+					long variable_type,
+					double double_value,
+					int debug_flag );
 
 /*----*/
 

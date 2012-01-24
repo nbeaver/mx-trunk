@@ -19,7 +19,7 @@ all: build
 
 #MODULES += epix_xclib		# linux, win32
 
-MODULES += xia_handel		# linux, win32
+#MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -35,15 +35,15 @@ MODULES += xia_handel		# linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
 #MODULES += epics_mbc
 
 #MODULES += epics_mono_18id
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_pmac_tc
 
