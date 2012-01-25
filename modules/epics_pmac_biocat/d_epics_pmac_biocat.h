@@ -36,10 +36,10 @@ typedef struct {
 	char dpram_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char device_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
 
-	long motor_number;
-
 	double start_delay;
 	double end_delay;
+
+	mx_bool_type is_raw_axis;
 
 	long motion_state;
 
@@ -53,11 +53,32 @@ typedef struct {
 	MX_EPICS_PV actpos_pv;
 	MX_EPICS_PV ampena_pv;
 	MX_EPICS_PV nglimset_pv;
+	MX_EPICS_PV opnlpmd_pv;
 	MX_EPICS_PV pslimset_pv;
 	MX_EPICS_PV rqspos_pv;
 	MX_EPICS_PV runprg_pv;
 	MX_EPICS_PV strcmd_pv;
 	MX_EPICS_PV strrsp_pv;
+
+	MX_EPICS_PV ix20_fan_pv;
+	MX_EPICS_PV ix30_fan_pv;
+
+	MX_EPICS_PV ix20_li_pv;
+	MX_EPICS_PV ix20_lo_pv;
+	MX_EPICS_PV ix22_ai_pv;
+	MX_EPICS_PV ix22_ao_pv;
+	MX_EPICS_PV ix30_li_pv;
+	MX_EPICS_PV ix30_lo_pv;
+	MX_EPICS_PV ix31_li_pv;
+	MX_EPICS_PV ix31_lo_pv;
+	MX_EPICS_PV ix32_li_pv;
+	MX_EPICS_PV ix32_lo_pv;
+	MX_EPICS_PV ix33_li_pv;
+	MX_EPICS_PV ix33_lo_pv;
+	MX_EPICS_PV ix34_bi_pv;
+	MX_EPICS_PV ix34_bo_pv;
+	MX_EPICS_PV ix35_li_pv;
+	MX_EPICS_PV ix35_lo_pv;
 
 } MX_EPICS_PMAC_BIOCAT;
 
@@ -107,6 +128,9 @@ MX_API mx_status_type mxd_epics_pmac_biocat_set_motor_variable(
 					long variable_type,
 					double double_value,
 					int debug_flag );
+
+MX_API mx_status_type mxd_epics_pmac_biocat_get_motor_number(
+				MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat );
 
 /*----*/
 

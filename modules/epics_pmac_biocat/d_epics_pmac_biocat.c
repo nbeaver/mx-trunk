@@ -102,7 +102,7 @@ mxd_epics_pmac_biocat_get_pointers( MX_MOTOR *motor,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* === */
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_create_record_structures( MX_RECORD *record )
@@ -144,12 +144,10 @@ mxd_epics_pmac_biocat_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
-	/* We express accelerations in terms of the acceleration time. */
-
-	motor->acceleration_type = MXF_MTR_ACCEL_TIME;
-
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
@@ -181,6 +179,23 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*---*/
+
+	/* FIXME: Surely there is a better way of determining whether
+	 * or not a given motor is a raw axis than by looking at the
+	 * first letter of its device name.
+	 *
+	 * Perhaps one could look at the DESC field for the motor,
+	 * but that would require Channel Access I/O, which we want
+	 * to avoid unless necessary.
+	 */
+
+	if ( epics_pmac_biocat->device_name[0] == 'm' ) {
+		epics_pmac_biocat->is_raw_axis = TRUE;
+	} else {
+		epics_pmac_biocat->is_raw_axis = FALSE;
+	}
 
 	/*---*/
 
@@ -246,10 +261,109 @@ mxd_epics_pmac_biocat_finish_record_initialization( MX_RECORD *record )
 				epics_pmac_biocat->component_name,
 				epics_pmac_biocat->assembly_name );
 
+	if ( epics_pmac_biocat->is_raw_axis ) {
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->opnlpmd_pv),
+		"%s%s%sOpnLpMd", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix20_fan_pv),
+		"%s%s%sIx20:FAN.PROC", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix30_fan_pv),
+		"%s%s%sIx30:FAN.PROC", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix20_li_pv),
+		"%s%s%sIx20:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix20_lo_pv),
+		"%s%s%sIx20:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix22_ai_pv),
+		"%s%s%sIx22:AI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix22_ao_pv),
+		"%s%s%sIx22:AO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix30_li_pv),
+		"%s%s%sIx30:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix30_lo_pv),
+		"%s%s%sIx30:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix31_li_pv),
+		"%s%s%sIx31:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix31_lo_pv),
+		"%s%s%sIx31:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix32_li_pv),
+		"%s%s%sIx32:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix32_lo_pv),
+		"%s%s%sIx32:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix33_li_pv),
+		"%s%s%sIx33:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix33_lo_pv),
+		"%s%s%sIx33:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix34_bi_pv),
+		"%s%s%sIx34:BI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix34_bo_pv),
+		"%s%s%sIx34:BO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix35_li_pv),
+		"%s%s%sIx35:LI", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+		mx_epics_pvname_init( &(epics_pmac_biocat->ix35_lo_pv),
+		"%s%s%sIx35:LO", epics_pmac_biocat->beamline_name,
+				epics_pmac_biocat->component_name,
+				epics_pmac_biocat->device_name );
+
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_motor_is_busy( MX_MOTOR *motor )
@@ -411,7 +525,7 @@ mxd_epics_pmac_biocat_motor_is_busy( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---*/
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_move_absolute( MX_MOTOR *motor )
@@ -447,6 +561,8 @@ mxd_epics_pmac_biocat_move_absolute( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_get_position( MX_MOTOR *motor )
 {
@@ -473,6 +589,8 @@ mxd_epics_pmac_biocat_get_position( MX_MOTOR *motor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor )
 {
@@ -497,6 +615,8 @@ mxd_epics_pmac_biocat_soft_abort( MX_MOTOR *motor )
 
 	return mx_status;
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_positive_limit_hit( MX_MOTOR *motor )
@@ -528,6 +648,8 @@ mxd_epics_pmac_biocat_positive_limit_hit( MX_MOTOR *motor )
 	
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_negative_limit_hit( MX_MOTOR *motor )
@@ -562,12 +684,35 @@ mxd_epics_pmac_biocat_negative_limit_hit( MX_MOTOR *motor )
 
 /*------------------------------------------------------------------------*/
 
+#define MXP_UPDATE_MOTOR_READBACKS(x) \
+	do {							\
+		int ix20_value = 1;				\
+								\
+		mx_status = mx_caput( &((x)->ix20_fan_pv),	\
+				MX_CA_LONG, 1, &ix20_value );	\
+								\
+		if ( mx_status.code != MXE_SUCCESS )		\
+			return mx_status;			\
+	} while (0)
+
+#define MXP_UPDATE_SERVO_READBACKS(x) \
+	do {							\
+		int ix30_value = 1;				\
+								\
+		mx_status = mx_caput( &((x)->ix30_fan_pv),	\
+				MX_CA_LONG, 1, &ix30_value );	\
+								\
+		if ( mx_status.code != MXE_SUCCESS )		\
+			return mx_status;			\
+	} while (0)
+
 MX_EXPORT mx_status_type
 mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 {
 	static const char fname[] = "mxd_epics_pmac_biocat_get_parameter()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
+	long long_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -577,12 +722,16 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( epics_pmac_biocat->is_raw_axis == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-				epics_pmac_biocat, 22,
-				MXFT_DOUBLE, &double_value,
-				MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_MOTOR_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix22_ai_pv),
+					MX_CA_DOUBLE, 1, &double_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -600,71 +749,116 @@ mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor )
 
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-						epics_pmac_biocat, 19,
-						MXFT_DOUBLE, &double_value,
-						MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_MOTOR_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix20_li_pv),
+					MX_CA_LONG, 1, &long_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		double_value = 1000000.0 * double_value;
-
-		motor->raw_acceleration_parameters[0] = double_value;
+		motor->raw_acceleration_parameters[0] = 
+					1000000.0 * (double) long_value;
 
 		motor->raw_acceleration_parameters[1] = 0.0;
 		motor->raw_acceleration_parameters[2] = 0.0;
 		motor->raw_acceleration_parameters[3] = 0.0;
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable( epics_pmac_biocat, 0,
-						MXFT_BOOL, &double_value,
-						MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		mx_status = mx_caget( &(epics_pmac_biocat->ampena_pv),
+					MX_CA_LONG, 1, &long_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( mx_round(double_value) != 0 ) {
+		if ( long_value != 0 ) {
 			motor->axis_enable = TRUE;
 		} else {
 			motor->axis_enable = FALSE;
 		}
 		break;
+	case MXLV_MTR_CLOSED_LOOP:
+		mx_status = mx_caget( &(epics_pmac_biocat->opnlpmd_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( long_value == 0 ) {
+			motor->closed_loop = TRUE;
+		} else {
+			motor->closed_loop = TRUE;
+		}
+		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 30, MXFT_LONG,
-					&(motor->proportional_gain),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix30_li_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->proportional_gain = (double) long_value;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 33, MXFT_LONG,
-					&(motor->integral_gain),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix33_li_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->integral_gain = (double) long_value;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 31, MXFT_LONG,
-					&(motor->derivative_gain),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix31_li_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->derivative_gain = (double) long_value;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 32, MXFT_LONG,
-					&(motor->velocity_feedforward_gain),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix32_li_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->velocity_feedforward_gain = (double) long_value;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 35, MXFT_LONG,
-					&(motor->acceleration_feedforward_gain),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix35_li_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		motor->acceleration_feedforward_gain = (double) long_value;
 		break;
-	case MXLV_MTR_INTEGRAL_LIMIT:
-		mx_status = mxd_epics_pmac_biocat_get_motor_variable(
-					epics_pmac_biocat, 34, MXFT_LONG,
-					&(motor->integral_limit),
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+	case MXLV_MTR_EXTRA_GAIN:
+		MXP_UPDATE_SERVO_READBACKS( epics_pmac_biocat );
+
+		mx_status = mx_caget( &(epics_pmac_biocat->ix34_bi_pv),
+					MX_CA_LONG, 1, &long_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( long_value == 0 ) {
+			motor->extra_gain = 0;
+		} else {
+			motor->extra_gain = 1;
+		}
 		break;
 	default:
 		mx_status = mx_motor_default_get_parameter_handler( motor );
@@ -682,6 +876,7 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_epics_pmac_biocat_set_parameter()";
 
 	MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat = NULL;
+	long long_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -691,14 +886,16 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( epics_pmac_biocat->is_raw_axis == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 		double_value = 0.001 * motor->raw_speed;
 
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 22,
-					MXFT_DOUBLE, double_value,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		mx_status = mx_caput( &(epics_pmac_biocat->ix22_ao_pv),
+				MXFT_DOUBLE, 1, &double_value );
 		break;
 	case MXLV_MTR_BASE_SPEED:
 		/* The PMAC doesn't seem to have the concept of a base speed,
@@ -707,115 +904,82 @@ mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor )
 
 		mx_status = MX_SUCCESSFUL_RESULT;
 		break;
-
-#if 0
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
-		/* These acceleration parameters are chosen such that the
-		 * value of Ixx19 is used as counts/msec**2.
-		 */
+		long_value = mx_round( motor->raw_acceleration_parameters[0] );
 
-		double_value = motor->raw_acceleration_parameters[0];
+		long_value = 1000000L * long_value;
 
-		double_value = 1.0e-6 * double_value;
-
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 19,
-					MXFT_DOUBLE, double_value,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Set Ixx20 (jog acceleration time) to 1.0 msec. */
-
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 20,
-					MXFT_DOUBLE, 1.0,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Set Ixx21 (jog acceleration S-curve time) to 0. */
-
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 21,
-					MXFT_DOUBLE, 0.0,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		mx_status = mx_caput( &(epics_pmac_biocat->ix20_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
-#endif
-
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
-			motor->axis_enable = TRUE;
+			long_value = 1;
+		} else {
+			long_value = 0;
 		}
 
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 0,
-					MXFT_BOOL, motor->axis_enable,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		mx_status = mx_caput( &(epics_pmac_biocat->ampena_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
 		if ( motor->closed_loop ) {
-			mx_status = mxd_epics_pmac_biocat_jog_command(
-					epics_pmac_biocat, "J/", NULL, 0,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+			long_value = 0;
 		} else {
-			mx_status = mxd_epics_pmac_biocat_jog_command(
-					epics_pmac_biocat, "K", NULL, 0,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+			long_value = 1;
 		}
+
+		mx_status = mx_caput( &(epics_pmac_biocat->opnlpmd_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_FAULT_RESET:
-		mx_status = mxd_epics_pmac_biocat_jog_command(
-					epics_pmac_biocat, "J/", NULL, 0,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		/* FIXME - The jog mode command would be J/  */
+
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Fault reset is not yet implemented for motor '%s'.",
+					motor->record->name );
 		break;
-#if 0
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 30, MXFT_LONG,
-					motor->proportional_gain,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		long_value = mx_round( motor->proportional_gain );
+
+		mx_status = mx_caput( &(epics_pmac_biocat->ix30_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 33, MXFT_LONG,
-					motor->integral_gain,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		long_value = mx_round( motor->integral_gain );
+
+		mx_status = mx_caput( &(epics_pmac_biocat->ix33_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 31, MXFT_LONG,
-					motor->derivative_gain,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		long_value = mx_round( motor->derivative_gain );
+
+		mx_status = mx_caput( &(epics_pmac_biocat->ix31_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 32, MXFT_LONG,
-					motor->velocity_feedforward_gain,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		long_value = mx_round( motor->velocity_feedforward_gain );
+
+		mx_status = mx_caput( &(epics_pmac_biocat->ix32_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 35, MXFT_LONG,
-					motor->acceleration_feedforward_gain,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		long_value = mx_round( motor->acceleration_feedforward_gain );
+
+		mx_status = mx_caput( &(epics_pmac_biocat->ix35_lo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
-	case MXLV_MTR_INTEGRAL_LIMIT:
-		long_value = mx_round( motor->integral_limit );
+	case MXLV_MTR_EXTRA_GAIN:
+		long_value = mx_round( motor->extra_gain );
 
 		if ( long_value ) {
 			long_value = 1;
 		}
 
-		mx_status = mxd_epics_pmac_biocat_set_motor_variable(
-					epics_pmac_biocat, 34, MXFT_LONG,
-					long_value,
-					MXD_EPICS_PMAC_BIOCAT_DEBUG );
+		mx_status = mx_caput( &(epics_pmac_biocat->ix34_bo_pv),
+					MXFT_LONG, 1, &long_value );
 		break;
-#endif
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
 		break;
@@ -893,231 +1057,4 @@ mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor )
 }
 
 /*------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_epics_pmac_biocat_command( MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
-				char *command,
-				char *response,
-				size_t max_response_length,
-				int debug_flag )
-{
-	static const char fname[] = "mxd_epics_pmac_biocat_command()";
-
-	mx_status_type mx_status;
-
-	if ( epics_pmac_biocat == (MX_EPICS_PMAC_BIOCAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EPICS_PMAC_BIOCAT pointer passed was NULL." );
-	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command string pointer passed for '%s' was NULL.",
-			epics_pmac_biocat->record->name );
-	}
-	if ( (response != (char *) NULL )
-	  && (max_response_length <= 40) )
-	{
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified length %lu of the response buffer for '%s' "
-		"is shorter than the minimum length of 41.",
-			(unsigned long) max_response_length,
-			epics_pmac_biocat->record->name );
-	}
-
-	mx_status = mx_caput( &(epics_pmac_biocat->strcmd_pv),
-				MX_CA_STRING, 1, command );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( response != (char *) NULL ) {
-		mx_status = mx_caget( &(epics_pmac_biocat->strrsp_pv),
-				MX_CA_STRING, 1, response );
-	}
-
-	return mx_status;
-}
-
-/*------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_epics_pmac_biocat_jog_command( MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
-				char *command,
-				char *response,
-				size_t response_buffer_length,
-				int debug_flag )
-{
-	static const char fname[] = "mxd_epics_pmac_biocat_jog_command()";
-
-	char command_buffer[100];
-	mx_status_type mx_status;
-
-	if ( epics_pmac_biocat == (MX_EPICS_PMAC_BIOCAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EPICS_PMAC_BIOCAT pointer passed was NULL." );
-	}
-	if ( command == (char *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The command string pointer passed for motor '%s' was NULL.",
-			epics_pmac_biocat->record->name );
-	}
-
-	snprintf( command_buffer, sizeof(command_buffer),
-			"#%ld%s", epics_pmac_biocat->motor_number, command );
-
-	mx_status = mxd_epics_pmac_biocat_command( epics_pmac_biocat,
-						command_buffer,
-						response,
-						response_buffer_length,
-						debug_flag );
-
-	return mx_status;
-}
-
-/*------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mxd_epics_pmac_biocat_get_motor_variable(
-				MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
-				long variable_number,
-				long variable_type,
-				double *double_ptr,
-				int debug_flag )
-{
-	static const char fname[] =
-			"mxd_epics_pmac_biocat_get_motor_variable()";
-
-	char command_buffer[100];
-	char response[100];
-	int num_items;
-	long long_value;
-	mx_status_type mx_status;
-
-	if ( epics_pmac_biocat == (MX_EPICS_PMAC_BIOCAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EPICS_PMAC_BIOCAT pointer passed was NULL." );
-	}
-	if ( double_ptr == (double *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The value pointer passed for motor '%s' was NULL.",
-			epics_pmac_biocat->record->name );
-	}
-
-	snprintf( command_buffer, sizeof(command_buffer),
-		"I%ld%02ld", epics_pmac_biocat->motor_number, variable_number );
-
-	mx_status = mxd_epics_pmac_biocat_command( epics_pmac_biocat,
-						command_buffer,
-						response,
-						sizeof(response),
-						debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Parse the returned value. */
-
-	switch( variable_type ) {
-	case MXFT_LONG:
-		num_items = sscanf( response, "%ld", &long_value );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Cannot parse response to command '%s' as a long integer.  Response = '%s'",
-				command_buffer, response );
-		}
-
-		*double_ptr = (double) long_value;
-		break;
-	case MXFT_BOOL:
-		num_items = sscanf( response, "%ld", &long_value );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Cannot parse response to command '%s' as a long integer.  Response = '%s'",
-				command_buffer, response );
-		}
-
-		if ( long_value != 0 ) {
-			*double_ptr = 1.0;
-		} else {
-			*double_ptr = 0.0;
-		}
-		break;
-	case MXFT_DOUBLE:
-		num_items = sscanf( response, "%lg", double_ptr );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Cannot parse response to command '%s' as a double.  Response = '%s'",
-				command_buffer, response );
-		}
-		break;
-
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG, MXFT_BOOL, and MXFT_DOUBLE are supported." );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_epics_pmac_biocat_set_motor_variable(
-				MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
-				long variable_number,
-				long variable_type,
-				double double_value,
-				int debug_flag )
-{
-	static const char fname[] =
-				"mxd_epics_pmac_biocat_set_motor_variable()";
-
-	char command_buffer[100];
-	char response[100];
-	long long_value;
-	mx_status_type mx_status;
-
-	if ( epics_pmac_biocat == (MX_EPICS_PMAC_BIOCAT *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_EPICS_PMAC_BIOCAT pointer passed was NULL." );
-	}
-
-	switch( variable_type ) {
-	case MXFT_LONG:
-	case MXFT_BOOL:
-		long_value = mx_round( double_value );
-
-		if ( (variable_type == MXFT_BOOL)
-		  && (long_value != 0) )
-		{
-			long_value = 1;
-		}
-
-		snprintf( command_buffer, sizeof(command_buffer),
-				"I%ld%02ld=%ld",
-				epics_pmac_biocat->motor_number,
-				variable_number,
-				long_value );
-		break;
-	case MXFT_DOUBLE:
-		snprintf( command_buffer, sizeof(command_buffer),
-				"I%ld%02ld=%f",
-				epics_pmac_biocat->motor_number,
-				variable_number,
-				double_value );
-		break;
-	default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG, MXFT_BOOL, and MXFT_DOUBLE are supported." );
-	}
-
-	mx_status = mxd_epics_pmac_biocat_command( epics_pmac_biocat,
-						command_buffer,
-						response,
-						sizeof(response),
-						debug_flag );
-
-	return mx_status;
-}
 
