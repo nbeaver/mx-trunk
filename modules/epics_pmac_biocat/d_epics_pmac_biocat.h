@@ -39,7 +39,7 @@ typedef struct {
 	double start_delay;
 	double end_delay;
 
-	mx_bool_type is_raw_axis;
+	mx_bool_type is_raw_motor;
 
 	long motion_state;
 
@@ -52,6 +52,7 @@ typedef struct {
 	MX_EPICS_PV abort_pv;
 	MX_EPICS_PV actpos_pv;
 	MX_EPICS_PV ampena_pv;
+	MX_EPICS_PV home_pv;
 	MX_EPICS_PV nglimset_pv;
 	MX_EPICS_PV opnlpmd_pv;
 	MX_EPICS_PV pslimset_pv;
@@ -97,9 +98,11 @@ MX_API mx_status_type mxd_epics_pmac_biocat_positive_limit_hit(
 							MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_negative_limit_hit(
 							MX_MOTOR *motor );
-MX_API mx_status_type mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_find_home_position(
+							MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_pmac_biocat_set_parameter( MX_MOTOR *motor );
+MX_API mx_status_type mxd_epics_pmac_biocat_get_status( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_epics_pmac_biocat_command(
 					MX_EPICS_PMAC_BIOCAT *epics_pmac_biocat,
