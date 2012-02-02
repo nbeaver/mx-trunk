@@ -2,13 +2,28 @@
 
 $os = $^O;
 
+# Get operating system-dependent information.
+
 if ( $os eq "MSWin32" ) {
-	$tempfile = $ENV{'TMP'} . "/plotgnu.tmp$$";
+	$gnuplot_command = "pgnuplot";
+	$tempfile        = $ENV{'TMP'} . "/plotgnu.tmp$$";
 } elsif ( $os eq "cygwin" ) {
-	$tempfile = "/tmp/plotgnu.tmp$$";
+	$gnuplot_command = "pgnuplot";
+	$tempfile        = "/tmp/plotgnu.tmp$$";
 } else {
-	$tempfile = "/tmp/plotgnu.tmp$$";
+	$gnuplot_command = "gnuplot";
+	$tempfile        = "/tmp/plotgnu.tmp$$";
 }
+
+# What version of Gnuplot are we using?
+
+open( VER, "$gnuplot_command -V |" );
+$input_line = <VER>;
+close( VER );
+
+@args = split(' ',$input_line);
+
+$gnuplot_version = @args[1];
 
 # Save and then redirect STDERR so that output to STDERR by gnuplot 
 # is discarded.
@@ -17,27 +32,26 @@ open(SAVEERR, ">&STDERR");
 
 open(STDERR, ">/dev/null");
 
-# Open the pipe to gnuplot.  On Win32, we use a proxy called mxgnuplt.
+# Open the pipe to Gnuplot.
 
-if ( $os eq "MSWin32" ) {
-	open(GNUPLOT, "| mxgnuplt") || die "Cannot open pipe to gnuplot";
-} elsif ( $os eq "cygwin" ) {
-	open(GNUPLOT, "| mxgnuplt") || die "Cannot open pipe to gnuplot";
-} else {
-	open(GNUPLOT, "| gnuplot") || die "Cannot open pipe to gnuplot";
-}
+open( GNUPLOT, "| $gnuplot_command" )
+	|| die "Cannot open pipe to " . $gnuplot_command;
 
 # Restore STDERR.
 
 open(STDERR, ">&SAVEERR");
 
-# Do not buffer the gnuplot pipe.
+# Do not buffer the Gnuplot pipe.
 
 $old_select = select(GNUPLOT);
 $| = 1;    
 select($old_select);
 
-print GNUPLOT "set data style linespoints\n";
+if ( $gnuplot_version > 3.999999 ) {
+	print GNUPLOT "set style data linespoints\n";
+} else {
+	print GNUPLOT "set data style linespoints\n";
+}
 
 # Handle commands from the parent program.
 
