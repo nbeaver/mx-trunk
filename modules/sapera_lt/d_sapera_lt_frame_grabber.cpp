@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -710,12 +710,14 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	}
 
 	sapera_lt_frame_grabber->buffer =
-		new SapBuffer( 1, sapera_lt_frame_grabber->acquisition );
+		new SapBuffer( sapera_lt_frame_grabber->max_frames,
+				sapera_lt_frame_grabber->acquisition );
 
 	if ( sapera_lt_frame_grabber->buffer == NULL ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	    "Unable to create a SapBuffer object for frame grabber '%s'.",
-			record->name );
+		"Unable to create a %ld frame SapBuffer object for "
+		"frame grabber '%s'.",
+			sapera_lt_frame_grabber->max_frames, record->name );
 	}
 
 	sapera_lt_frame_grabber->transfer =
@@ -1029,6 +1031,7 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 	MX_IMAGE_FRAME *frame;
 	double exposure_time;
 	unsigned long internal_frame_trigger_frequency_millihz;
+	int num_frames;
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
@@ -1077,13 +1080,35 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
 		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+
+		/* sp->parameter_array[2] contains a "frame time"
+		 * which is the time interval between the start
+		 * of two successive frames.  However, Sapera LT
+		 * does not seem to provide a way to use this,
+		 * so we just skip it here.
+		 */
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Sequence type %ld has not yet been implemented for '%s'.",
 			sp->sequence_type, vinput->record->name );
 		break;
+	}
+
+	if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The number of frames requested (%d) for this sequence "
+		"exceeds the maximum number of frames (%ld) allocated "
+		"for detector '%s'.",
+			num_frames,
+			sapera_lt_frame_grabber->max_frames,
+			vinput->record->name );
 	}
 
 	/* Set the exposure time per frame. */
@@ -1117,8 +1142,6 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	int num_frames = 1;
 
 	sapera_status = sapera_lt_frame_grabber->transfer->Snap( num_frames );
 
@@ -1249,6 +1272,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 	/* Get the SapBuffer's address for the buffer data. */
 
 	sapera_status = sapera_lt_frame_grabber->buffer->GetAddress(
+							vinput->frame_number,
 							&sapera_data_address );
 
 	if ( sapera_status == FALSE ) {

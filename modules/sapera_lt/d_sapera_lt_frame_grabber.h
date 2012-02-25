@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,6 +25,7 @@ typedef struct {
 	MX_RECORD *sapera_lt_record;
 	long frame_grabber_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
+	long max_frames;
 
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
@@ -52,7 +53,12 @@ typedef struct {
   {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, config_filename), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "max_frames", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_FRAME_GRABBER, max_frames), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	
 
 #endif /* __cplusplus */
 
