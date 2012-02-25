@@ -1547,7 +1547,7 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 					sapera_lt_frame_grabber,
 					CORACQ_CAP_EXT_FRAME_TRIGGER,
 					CORACQ_PRM_EXT_FRAME_TRIGGER_ENABLE,
-					internal_trigger_enabled );
+					external_trigger_enabled );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
