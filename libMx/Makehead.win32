@@ -64,45 +64,52 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # the Windows DLLs that you plan to use.  The only exception to this rule
 # is if you are using a separately downloaded copy of the Win32 Platform SDK.
 #
-# Visual C++ 2010 Express   (_MSC_VER == 1600)
+
+#MSDEV_ARCH	= x86
+#MSDEV_ARCH	= amd64
+MSDEV_ARCH	= x64
+
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1\\Windows\\v7.0A
+# Visual C++ 2010 Pro or Express (_MSC_VER == 1600)
+#
+#MSDEV_DIR	= c:\\progra~1\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
-# Visual C++ 2008 Express   (_MSC_VER == 1500)
+# Visual C++ 2008 Express        (_MSC_VER == 1500)
 #   (32-bit mode only)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
 #
-# Visual C++ 2005 Express   (_MSC_VER == 1400)
+# Visual C++ 2005 Express        (_MSC_VER == 1400)
 #  (See below at the definition of PLATFORM_SDK)
 #
-# Visual Studio.NET 2003    (_MSC_VER == 1310)
+# Visual Studio.NET 2003         (_MSC_VER == 1310)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #
-# Visual C++ 6.0            (_MSC_VER == 1200)
+# Visual C++ 6.0                 (_MSC_VER == 1200)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #
-# Visual C++ 5.0            (_MSC_VER == 1100)
+# Visual C++ 5.0                 (_MSC_VER == 1100)
 #
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #
-# Visual C++ 4.0            (_MSC_VER == 1000)
+# Visual C++ 4.0                 (_MSC_VER == 1000)
 #
 #MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 
-# Visual Studio.NET 2002    (_MSC_VER == 1300)  (Not tested)
+# Visual Studio.NET 2002         (_MSC_VER == 1300)  (Not tested)
 
 #---------------------------------------------------------------------------
 #
@@ -137,22 +144,25 @@ PLATFORM_SDK = c:\\progra~1\\mia713~1\\windows\\v7.1
 # The following definition of WIN32_LIBS can probably be left alone if you
 # are creative enough in how you define MSDEV_DIR.
 #
-WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
-	$(MSDEV_DIR)\\lib\\advapi32.lib $(MSDEV_DIR)\\lib\\user32.lib \
-	$(MSDEV_DIR)\\lib\\gdi32.lib $(MSDEV_DIR)\\lib\\uuid.lib
 
-#---------------------------------------------------------------------------
-#
-# Visual C++ 2008 Express in 64-bit mode requires that you use the following
-# definitions.  These assume that you have installed the "Windows SDK" package
-# which includes the 64-bit compiler.
-# 
-#WIN32_LIBS	= $(MSDEV_DIR)\\lib\\x64\\wsock32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\winmm.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\advapi32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\user32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\gdi32.lib \
-#	$(MSDEV_DIR)\\lib\\x64\\uuid.lib
+ifeq ($(MSDEV_ARCH),x86)
+	MSDEV_LIB_DIR = $(MSDEV_DIR)\\lib
+endif
+
+ifeq ($(MSDEV_ARCH),x64)
+	MSDEV_LIB_DIR = $(MSDEV_DIR)\\lib\\x64
+endif
+
+ifeq ($(MSDEV_ARCH),amd64)
+	MSDEV_LIB_DIR = $(MSDEV_DIR)\\lib\\x64
+endif
+
+WIN32_LIBS	= $(MSDEV_LIB_DIR)\\wsock32.lib \
+	$(MSDEV_LIB_DIR)\\winmm.lib \
+	$(MSDEV_LIB_DIR)\\advapi32.lib \
+	$(MSDEV_LIB_DIR)\\user32.lib \
+	$(MSDEV_LIB_DIR)\\gdi32.lib \
+	$(MSDEV_LIB_DIR)\\uuid.lib
 
 #---------------------------------------------------------------------------
 #

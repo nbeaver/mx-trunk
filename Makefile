@@ -12,7 +12,7 @@
 #   irix          - Compile for SGI with Irix 6.3 or above
 #   irix-gcc      - Compile for SGI with Irix 6.5 using GCC
 #   linux         - Compile for Linux 2.2 or above using GCC
-#   linux-icc     - Compile for Linux 2.6 using Intel C++.
+#   linux-icc     - Compile for Linux 2.6 or above using Intel C++.
 #   macosx        - Compile for x86/powerpc with MacOS X
 #   qnx           - Compile for x86 with QNX Neutrino
 #   rtems         - Compile for x86/m68k/powerpc with RTEMS
@@ -46,13 +46,13 @@
 
 MX_ARCH = win32
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-1.5.5-2011_12_16
+MX_INSTALL_DIR = c:/opt/mx-1.5.5-2012_03_05
 #MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_09_30
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
