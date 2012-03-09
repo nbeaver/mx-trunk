@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2008, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ typedef struct {
 	char program_name[MXU_PROGRAM_NAME_LENGTH + 1];
 	unsigned long process_id;
 	unsigned long data_format;
-	mx_bool_type truncate_64bit_longs;
+	mx_bool_type use_64bit_network_longs;
 	unsigned long network_debug_flags;
 	unsigned long last_rpc_message_id;
 	unsigned long remote_header_length;

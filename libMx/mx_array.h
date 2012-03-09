@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005-2007 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003, 2005-2007, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_API mx_status_type mx_get_array_size( long num_dimensions,
 					size_t *array_size );
 
 MX_API size_t mx_get_scalar_element_size( long mx_datatype,
-					mx_bool_type truncate_64bit_longs );
+					mx_bool_type use_64bit_network_longs );
 
 /*---*/
 
@@ -80,7 +80,7 @@ MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
 		size_t *num_bytes_copied,
-		mx_bool_type truncate_64bit_longs );
+		mx_bool_type use_64bit_network_longs );
 
 MX_API mx_status_type mx_copy_buffer_to_array(
 		void *source_buffer, size_t source_buffer_length,
@@ -89,7 +89,7 @@ MX_API mx_status_type mx_copy_buffer_to_array(
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		size_t *num_bytes_copied,
-		mx_bool_type truncate_64bit_longs );
+		mx_bool_type use_64bit_network_longs );
 
 #define MX_XDR_ENCODE	0
 #define MX_XDR_DECODE	1

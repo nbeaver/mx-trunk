@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -122,11 +122,8 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 	MX_DEBUG( 2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",
 		fname, MX_WORDSIZE, MX_PROGRAM_MODEL));
 
-#if ( MX_WORDSIZE == 64 )
-	network_server->truncate_64bit_longs = TRUE;
-#else
-	network_server->truncate_64bit_longs = FALSE;
-#endif
+	network_server->use_64bit_network_longs = FALSE;
+
 	network_server->connection_status = 0;
 
 	network_server->last_rpc_message_id = 0;
@@ -372,7 +369,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 	 */
 
 	if ( flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS ) {
-		mx_status = mx_network_request_64bit_longs( record );
+		mx_status = mx_network_request_64bit_longs( record, TRUE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

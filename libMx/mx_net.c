@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -313,7 +313,8 @@ mx_network_receive_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
-		mx_network_display_message( message_buffer, NULL );
+		mx_network_display_message( message_buffer, NULL,
+					server->use_64bit_network_longs );
 	}
 #endif
 
@@ -374,7 +375,8 @@ mx_network_send_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
-		mx_network_display_message( message_buffer, NULL );
+		mx_network_display_message( message_buffer, NULL,
+					server->use_64bit_network_longs );
 	}
 #endif
 	mx_status = ( *fptr ) ( server, message_buffer );
@@ -784,7 +786,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 					server->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					server->use_64bit_network_longs );
 
 				fprintf( stderr, "\n" );
 			}
@@ -1515,7 +1518,8 @@ mx_network_buffer_show_value( void *buffer,
 				unsigned long data_format,
 				uint32_t data_type,
 				uint32_t message_type,
-				uint32_t message_length )
+				uint32_t message_length,
+				mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_network_buffer_show_value()";
 
@@ -1789,15 +1793,29 @@ mx_network_buffer_show_value( void *buffer,
 			}
 			break;
 		case MXFT_LONG:
-			for ( i = 0; i < max_display_values; i++ ) {
+			if ( use_64bit_network_longs ) {
+			    for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRId64 " ",
+					((int64_t *) raw_buffer)[i] );
+			    }
+			} else {
+			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%ld ",
 				    (0xffffffff & ((long *) raw_buffer)[i]) );
+			    }
 			}
 			break;
 		case MXFT_ULONG:
-			for ( i = 0; i < max_display_values; i++ ) {
+			if ( use_64bit_network_longs ) {
+			    for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRIu64 " ",
+					((uint64_t *) raw_buffer)[i] );
+			    }
+			} else {
+			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%lu ",
 			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
+			    }
 			}
 			break;
 		case MXFT_FLOAT:
@@ -1813,9 +1831,21 @@ mx_network_buffer_show_value( void *buffer,
 			}
 			break;
 		case MXFT_HEX:
-			for ( i = 0; i < max_display_values; i++ ) {
+			if ( use_64bit_network_longs ) {
+			    for ( i = 0; i < max_display_values; i++ ) {
+				uint64_t hex_value;
+
+				hex_value = ((uint64_t *) raw_buffer)[i];
+
+				hex_value &= 0xffffffffffffffff;
+
+				fprintf( stderr, "%#" PRIx64 " ", hex_value );
+			    }
+			} else {
+			    for ( i = 0; i < max_display_values; i++ ) {
 				fprintf( stderr, "%#lx ",
 			    (0xffffffff & ((unsigned long *) raw_buffer)[i]) );
+			    }
 			}
 			break;
 		case MXFT_INT64:
@@ -1871,7 +1901,8 @@ mx_network_buffer_show_value( void *buffer,
 
 MX_EXPORT void
 mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
-				MX_RECORD_FIELD *record_field )
+				MX_RECORD_FIELD *record_field,
+				mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_network_display_message()";
 
@@ -1965,7 +1996,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -1986,7 +2018,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2001,7 +2034,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2017,7 +2051,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length - 2 * sizeof(uint32_t) );
+					message_length - 2 * sizeof(uint32_t),
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2243,7 +2278,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2262,14 +2298,15 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 #define NF_LABEL_LENGTH \
 	  ( MXU_HOSTNAME_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 8 )
 
-#if 0
+#if 1
 
 MX_EXPORT void
 mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				MX_NETWORK_FIELD *network_field,
 				MX_RECORD *server_record,
 				char *remote_record_field_name,
-				MX_RECORD_FIELD *record_field )
+		 		MX_RECORD_FIELD *record_field,
+				mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_network_display_summary()";
 
@@ -2350,7 +2387,8 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2371,7 +2409,8 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2386,7 +2425,8 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length,
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -2410,7 +2450,8 @@ mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length - 2 * sizeof(uint32_t) );
+					message_length - 2 * sizeof(uint32_t),
+					use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 		break;
 
@@ -3324,7 +3365,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		mx_network_buffer_show_value( message, server->data_format,
 					datatype, receive_message_type,
-					message_length );
+					message_length,
+					server->use_64bit_network_longs );
 		fprintf( stderr, "\n" );
 	}
 
@@ -3389,7 +3431,7 @@ mx_get_field_array( MX_RECORD *server_record,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				NULL,
-				server->truncate_64bit_longs );
+				server->use_64bit_network_longs );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -3711,7 +3753,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
 				&num_bytes,
-				server->truncate_64bit_longs );
+				server->use_64bit_network_longs );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -3868,7 +3910,8 @@ mx_put_field_array( MX_RECORD *server_record,
 		mx_network_buffer_show_value( message + handle_length,
 					server->data_format,
 					datatype, send_message_type,
-					message_length - handle_length );
+					message_length - handle_length,
+					server->use_64bit_network_longs );
 		fprintf( stderr, ")\n" );
 	}
 
@@ -5858,7 +5901,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_network_request_64bit_longs( MX_RECORD *server_record )
+mx_network_request_64bit_longs( MX_RECORD *server_record,
+				mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_network_request_64bit_longs()";
 
@@ -5880,19 +5924,24 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 			server_record->name );
 	}
 
-	MX_DEBUG( 2,("%s: requesting 64-bit longs for server '%s'",
-		fname, server_record->name ));
+	MX_DEBUG( 2,("%s: request 64-bit network longs = %d for server '%s'",
+		fname, (int) use_64bit_network_longs, server_record->name ));
 
-#if ( MX_WORDSIZE != 64 )
-	server->truncate_64bit_longs = FALSE;
+	server->use_64bit_network_longs = FALSE;
 
-	return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The client computer is not a 64-bit computer, so it "
-		"cannot request 64-bit longs for network communication." );
+#if ( MX_WORDSIZE < 64 )
+	/* On 32-bit computers, it is OK to turn off 64-bit network longs,
+	 * but it is not OK to try to turn them on.
+	 */
+
+	if ( use_64bit_network_longs ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"The client computer is not a 64-bit computer, "
+			"so it cannot request 64-bit longs for network "
+			"communication." );
+	}
 
 #else   /* MX_WORDSIZE == 64 */
-
-	server->truncate_64bit_longs = TRUE;
 
 	switch( server->data_format ) {
 	case MX_NETWORK_DATAFMT_RAW:
@@ -5931,20 +5980,21 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 	}
 
 	mx_status = mx_network_set_option( server_record,
-			MX_NETWORK_OPTION_64BIT_LONG, TRUE );
+					MX_NETWORK_OPTION_64BIT_LONG,
+					use_64bit_network_longs );
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
-		server->truncate_64bit_longs = FALSE;
+		server->use_64bit_network_longs = use_64bit_network_longs;
 		break;
 	default:
-		server->truncate_64bit_longs = TRUE;
+		server->use_64bit_network_longs = FALSE;
 
 		return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s: server->truncate_64bit_longs = %d",
-		fname, server->truncate_64bit_longs));
+	MX_DEBUG( 2,("%s: server->use_64bit_network_longs = %d",
+		fname, server->use_64bit_network_longs));
 
 	return MX_SUCCESSFUL_RESULT;
 
@@ -6565,7 +6615,7 @@ mx_network_copy_message_to_field( MX_RECORD *source_server_record,
 				destination_field->dimension,
 				destination_field->data_element_size,
 				NULL,
-				source_server->truncate_64bit_longs );
+				source_server->use_64bit_network_longs );
 		break;
 
 	case MX_NETWORK_DATAFMT_XDR:

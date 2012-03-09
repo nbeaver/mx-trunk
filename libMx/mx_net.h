@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2011 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -108,7 +108,7 @@ typedef struct {
 
 	mx_bool_type server_supports_network_handles;
 	mx_bool_type network_handles_are_valid;
-	mx_bool_type truncate_64bit_longs;
+	mx_bool_type use_64bit_network_longs;
 
 	unsigned long connection_status;
 
@@ -170,9 +170,9 @@ typedef struct {
 		offsetof(MX_NETWORK_SERVER, network_handles_are_valid), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "truncate_64bit_longs", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_64bit_network_longs", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
+		offsetof(MX_NETWORK_SERVER, use_64bit_network_longs), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
@@ -386,7 +386,8 @@ MX_API mx_status_type mx_network_restore_callbacks( MX_RECORD *server_record );
  */
 
 MX_API void mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *buffer,
-					MX_RECORD_FIELD *record_field );
+					MX_RECORD_FIELD *record_field,
+					mx_bool_type use_64bit_network_longs );
 
 /* mx_network_display_summary() gives a terser description of the message. */
 
@@ -394,7 +395,8 @@ MX_API void mx_network_display_summary( MX_NETWORK_MESSAGE_BUFFER *buffer,
 					MX_NETWORK_FIELD *network_field,
 					MX_RECORD *server_record,
 					char *remote_record_field_name,
-					MX_RECORD_FIELD *record_field );
+					MX_RECORD_FIELD *record_field,
+					mx_bool_type use_64bit_network_longs );
 
 /* mx_network_buffer_show_value() is a lower level function that only
  * shows the contents of the value array at the end of a network message.
@@ -404,7 +406,8 @@ MX_API void mx_network_buffer_show_value( void *value_buffer,
 					unsigned long data_format,
 					uint32_t datatype,
 					uint32_t message_type,
-					uint32_t message_length );
+					uint32_t message_length,
+					mx_bool_type use_64bit_network_longs );
 
 /*---*/
 
@@ -530,12 +533,15 @@ MX_API mx_status_type mx_network_field_get_attribute_number(
 					    unsigned long *attribute_number );
 
 MX_API mx_status_type mx_network_request_data_format(
-			MX_RECORD *server_record,
-			unsigned long requested_format );
+				MX_RECORD *server_record,
+				unsigned long requested_format );
 
-MX_API mx_status_type mx_network_request_64bit_longs(MX_RECORD *server_record);
+MX_API mx_status_type mx_network_request_64bit_longs(
+				MX_RECORD *server_record,
+				mx_bool_type use_64bit_network_longs );
 
-MX_API mx_status_type mx_network_send_client_version(MX_RECORD *server_record);
+MX_API mx_status_type mx_network_send_client_version(
+				MX_RECORD *server_record );
 
 MX_API char *mx_network_get_nf_label( MX_RECORD *server_record,
 				char *remote_record_field_name,

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1055,11 +1055,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	new_socket_handler->data_format = list_head->default_data_format;
 
-#if ( MX_WORDSIZE == 64 )
-	new_socket_handler->truncate_64bit_longs = TRUE;
-#else
-	new_socket_handler->truncate_64bit_longs = FALSE;
-#endif
+	new_socket_handler->use_64bit_network_longs = FALSE;
+
 	new_socket_handler->remote_header_length = 0;
 
 	new_socket_handler->remote_mx_version = 0;
@@ -1507,7 +1504,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
 				(int) client_socket->socket_fd );
 
-		mx_network_display_message( received_message, NULL );
+		mx_network_display_message( received_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -2346,7 +2344,7 @@ mxsrv_send_field_value_to_client(
 					send_buffer_message,
 					send_buffer_message_length,
 					&num_bytes,
-					socket_handler->truncate_64bit_longs );
+				    socket_handler->use_64bit_network_longs );
 
 			send_buffer_message_actual_length = (long) num_bytes;
 			break;
@@ -2527,7 +2525,8 @@ mxsrv_send_field_value_to_client(
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message, record_field );
+		mx_network_display_message( network_message, record_field,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -2781,7 +2780,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 					record_field->dimension,
 					record_field->data_element_size,
 					NULL,
-					socket_handler->truncate_64bit_longs );
+				    socket_handler->use_64bit_network_longs );
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
@@ -2940,7 +2939,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message, record_field );
+		mx_network_display_message( network_message, record_field,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3127,7 +3127,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3234,7 +3235,8 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3416,7 +3418,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3606,7 +3609,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3799,7 +3803,8 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -3861,7 +3866,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 #if ( MX_WORDSIZE != 64 )
 		option_value = FALSE;
 #else  /* MX_WORDSIZE == 64 */
-		if ( socket_handler->truncate_64bit_longs ) {
+		if ( socket_handler->use_64bit_network_longs ) {
 			option_value = FALSE;
 		} else {
 			option_value = TRUE;
@@ -3939,7 +3944,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -4008,15 +4014,16 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		}
 #else  /* MX_WORDSIZE == 64 */
 		if ( option_value == FALSE ) {
-			socket_handler->truncate_64bit_longs = TRUE;
+			socket_handler->use_64bit_network_longs = FALSE;
 		} else {
-			socket_handler->truncate_64bit_longs = FALSE;
+			socket_handler->use_64bit_network_longs = TRUE;
 		}
 #endif /* MX_WORDSIZE == 64 */
 
-		MX_DEBUG( 2,("%s: option_value = %d, truncate_64bit_longs = %d",
+		MX_DEBUG( 2,
+		("%s: option_value = %d, use_64bit_network_longs = %d",
 			fname, (int) option_value,
-			(int) socket_handler->truncate_64bit_longs ));
+			(int) socket_handler->use_64bit_network_longs ));
 		break;
 
 	case MX_NETWORK_OPTION_CLIENT_VERSION:
@@ -4120,7 +4127,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -4404,7 +4412,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
@@ -4774,7 +4783,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message( network_message, NULL );
+		mx_network_display_message( network_message, NULL,
+				socket_handler->use_64bit_network_longs );
 	}
 #endif
 
