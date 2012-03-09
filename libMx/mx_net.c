@@ -1570,8 +1570,8 @@ mx_network_buffer_show_value( void *buffer,
 		}
 	}
 
-	scalar_element_size =
-		mx_get_scalar_element_size( (long) data_type, FALSE);
+	scalar_element_size = mx_get_scalar_element_size( (long) data_type,
+						use_64bit_network_longs );
 
 	if ( scalar_element_size == 0 ) {
 		fprintf( stderr, "*** Unknown type %lu ***\n",
@@ -3554,7 +3554,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	uint32_t message_length, saved_message_length;
 	uint32_t send_message_type, receive_message_type;
 	uint32_t status_code;
-	size_t buffer_left, num_bytes;
+	size_t buffer_left, num_network_bytes;
 	size_t current_length, new_length;
 	mx_status_type mx_status;
 
@@ -3740,7 +3740,7 @@ mx_put_field_array( MX_RECORD *server_record,
 		 * an MXE_WOULD_EXCEED_LIMIT status code.
 		 */
 
-		num_bytes = 0;
+		num_network_bytes = 0;
 
 		if ( mx_status.code == MXE_WOULD_EXCEED_LIMIT )
 			return mx_status;
@@ -3752,7 +3752,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
-				&num_bytes,
+				&num_network_bytes,
 				server->use_64bit_network_longs );
 
 		switch( mx_status.code ) {
@@ -3771,7 +3771,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				remote_record_field_name, server_record->name );
 		}
 
-		message_length += num_bytes;
+		message_length += num_network_bytes;
 		break;
 
 	    case MX_NETWORK_DATAFMT_XDR:
@@ -3808,7 +3808,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
-				&num_bytes );
+				&num_network_bytes );
 
 		switch( mx_status.code ) {
 		case MXE_SUCCESS:
@@ -3826,7 +3826,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				remote_record_field_name, server_record->name );
 		}
 
-		message_length += num_bytes;
+		message_length += num_network_bytes;
 #else
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"XDR network data format is not supported "
@@ -3850,14 +3850,16 @@ mx_put_field_array( MX_RECORD *server_record,
 	    }
 
 	    /* The data does not fit into our existing buffer, so we must
-	     * try to make the buffer larger.  In this case, the variable
-	     * 'num_bytes' actually tells you how many bytes would not fit
-	     * in the existing buffer.
+	     * try to make the buffer larger.
+	     *
+	     * NOTE: In this situation, the variable 'num_network_bytes'
+	     * _actually_ tells you how many bytes would not fit in the
+	     * existing buffer.
 	     */
 
 	    current_length = aligned_buffer->buffer_length;
 
-	    new_length = current_length + num_bytes;
+	    new_length = current_length + num_network_bytes;
 
 	    mx_status = mx_reallocate_network_buffer(
 			    		aligned_buffer, new_length );

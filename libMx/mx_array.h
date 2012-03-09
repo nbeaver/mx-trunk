@@ -47,7 +47,7 @@ MX_API mx_status_type mx_get_array_size( long num_dimensions,
 					size_t *array_size );
 
 MX_API size_t mx_get_scalar_element_size( long mx_datatype,
-					mx_bool_type use_64bit_network_longs );
+					mx_bool_type longs_are_64bits );
 
 /*---*/
 
@@ -79,7 +79,7 @@ MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
-		size_t *num_bytes_copied,
+		size_t *num_network_bytes_copied,
 		mx_bool_type use_64bit_network_longs );
 
 MX_API mx_status_type mx_copy_buffer_to_array(
@@ -88,7 +88,7 @@ MX_API mx_status_type mx_copy_buffer_to_array(
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
-		size_t *num_bytes_copied,
+		size_t *num_native_bytes_copied,
 		mx_bool_type use_64bit_network_longs );
 
 #define MX_XDR_ENCODE	0

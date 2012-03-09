@@ -1,6 +1,6 @@
 #10id           server network tcpip_server "" "" 0x0 127.0.0.1 9827
 10id           server network tcpip_server "" "" 0x20000000 127.0.0.1 9827
-#10id           server network tcpip_server "" "" 0x0 192.168.137.103 9727
+#10id           server network tcpip_server "" "" 0x20010000 127.0.0.1 9827
 beamline_name  variable inline string "" "" 1 20 10-ID
 ring_energy    variable inline double "" "" 1 1 7
 keithley_gains variable inline long "" "" 1 7 1 2 3 4 5 6 7

@@ -2214,7 +2214,7 @@ mxsrv_send_field_value_to_client(
 	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;
 	long send_buffer_message_actual_length;
-	size_t num_bytes;
+	size_t num_network_bytes;
 
 	MX_SOCKET *mx_socket;
 	void *pointer_to_value;
@@ -2326,7 +2326,7 @@ mxsrv_send_field_value_to_client(
 			 * code.
 			 */
 
-			num_bytes = 0;
+			num_network_bytes = 0;
 
 			if ( mx_status.code == MXE_WOULD_EXCEED_LIMIT )
 				return mx_status;
@@ -2343,10 +2343,11 @@ mxsrv_send_field_value_to_client(
 					record_field->data_element_size,
 					send_buffer_message,
 					send_buffer_message_length,
-					&num_bytes,
+					&num_network_bytes,
 				    socket_handler->use_64bit_network_longs );
 
-			send_buffer_message_actual_length = (long) num_bytes;
+			send_buffer_message_actual_length
+				= (long) num_network_bytes;
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
@@ -2361,9 +2362,10 @@ mxsrv_send_field_value_to_client(
 					record_field->data_element_size,
 					send_buffer_message,
 					send_buffer_message_length,
-					&num_bytes );
+					&num_network_bytes );
 
-			send_buffer_message_actual_length = (long) num_bytes;
+			send_buffer_message_actual_length
+				= (long) num_network_bytes;
 #else
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 				"XDR network data format is not supported "
@@ -2387,14 +2389,16 @@ mxsrv_send_field_value_to_client(
 		}
 
 		/* The data does not fit into our existing buffer, so we must
-		 * try to make the buffer larger.  In this case, the variable
-		 * 'num_bytes' actually tells you how many bytes would not
-		 * fit in the existing buffer.
+		 * try to make the buffer larger.
+		 *
+		 * NOTE: In this situation, the variable 'num_network_bytes'
+		 * actually tells you how many bytes would not fit in the
+		 * existing buffer.
 		 */
 
 		current_length = network_message->buffer_length;
 
-		new_length = current_length + num_bytes;
+		new_length = current_length + num_network_bytes;
 
 		mx_status = mx_reallocate_network_buffer(
 						network_message, new_length );
@@ -2409,7 +2413,7 @@ mxsrv_send_field_value_to_client(
 		send_buffer_message = network_message->u.char_buffer
 						+ send_buffer_header_length;
 
-		send_buffer_message_length += num_bytes;
+		send_buffer_message_length += num_network_bytes;
 	    }
 
 	    if ( i >= max_attempts ) {

@@ -16,6 +16,8 @@
 
 #define MX_ARRAY_DEBUG_OVERLAY	FALSE
 
+#define MX_ARRAY_DEBUG_64BIT	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -380,7 +382,7 @@ mx_get_array_size( long num_dimensions,
 
 MX_EXPORT size_t
 mx_get_scalar_element_size( long mx_datatype,
-			mx_bool_type use_64bit_network_longs )
+			mx_bool_type longs_are_64bits )
 {
 	size_t element_size;
 
@@ -399,7 +401,7 @@ mx_get_scalar_element_size( long mx_datatype,
 	case MXFT_HEX:        element_size = sizeof(unsigned long);       break;
 
 	case MXFT_LONG:       
-		if ( use_64bit_network_longs ) {
+		if ( longs_are_64bits ) {
 		              element_size = 8;
 		} else {
 		              element_size = 4;
@@ -407,7 +409,7 @@ mx_get_scalar_element_size( long mx_datatype,
 		break;
 
 	case MXFT_ULONG:       
-		if ( use_64bit_network_longs ) {
+		if ( longs_are_64bits ) {
 		              element_size = 8;
 		} else {
 		              element_size = 4;
@@ -420,11 +422,12 @@ mx_get_scalar_element_size( long mx_datatype,
 	default:              element_size = 0;                           break;
 	}
 
-#if 0
-	if ( use_64bit_network_longs ) {
+#if 0 | MX_ARRAY_DEBUG_64BIT
+	if ( longs_are_64bits ) {
 		MX_DEBUG(-2,
-	    ("mxp_scaler_element_size(): mx_datatype = %ld, element_size = %ld",
-	    		mx_datatype, (long) element_size ));
+		("mxp_scaler_element_size(): longs_are_64bits = %d, "
+		"mx_datatype = %ld, element_size = %ld",
+	    		longs_are_64bits, mx_datatype, (long) element_size ));
 	}
 #endif
 
@@ -835,6 +838,17 @@ mx_get_network_bytes_from_native_bytes( long mx_datatype,
 {
 	size_t network_bytes_to_copy;
 
+#if MX_ARRAY_DEBUG_64BIT
+	static const char fname[] = "mx_get_network_bytes_from_native_bytes()";
+
+	MX_DEBUG(-2,("%s: mx_datatype = %ld, native_bytes_to_copy = %ld, "
+		"use_64bit_network_longs = %d, native_longs_are_64bits = %d",
+		fname, mx_datatype,
+		(long) native_bytes_to_copy,
+		(int) use_64bit_network_longs,
+		(int) native_longs_are_64bits ));
+#endif
+
 	switch( mx_datatype ) {
 	case MXFT_HEX:
 	case MXFT_LONG:
@@ -859,6 +873,11 @@ mx_get_network_bytes_from_native_bytes( long mx_datatype,
 		break;
 	}
 
+#if MX_ARRAY_DEBUG_64BIT
+	MX_DEBUG(-2,("%s: network_bytes_to_copy = %ld",
+		fname, (long) network_bytes_to_copy));
+#endif
+
 	return network_bytes_to_copy;
 }
 
@@ -868,7 +887,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
-		size_t *num_bytes_copied,
+		size_t *num_network_bytes_copied,
 		mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_copy_array_to_buffer()";
@@ -899,8 +918,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 		"is greater than 0.", num_dimensions );
 	}
 
-	if ( num_bytes_copied != NULL ) {
-		*num_bytes_copied = 0;
+	if ( num_network_bytes_copied != NULL ) {
+		*num_network_bytes_copied = 0;
 	}
 
 	if ( num_dimensions < 0 ) {
@@ -908,6 +927,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 		"The number of dimensions passed (%ld) is a negative number.",
 			num_dimensions );
 	}
+
+#if MX_ARRAY_DEBUG_64BIT
+	MX_DEBUG(-2,("%s: use_64bit_network_longs = %d",
+		fname, (int) use_64bit_network_longs));
+#endif
 
 	/* For datatypes that correspond to structures, we report the name
 	 * of the structure, for example record->name, rather than something
@@ -958,8 +982,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 						native_longs_are_64bits );
 
 		if ( network_bytes_to_copy > destination_buffer_length ) {
-			if ( num_bytes_copied != NULL ) {
-				*num_bytes_copied =
+			if ( num_network_bytes_copied != NULL ) {
+				*num_network_bytes_copied =
 			    network_bytes_to_copy - destination_buffer_length;
 			}
 			return mx_error(
@@ -1062,8 +1086,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 				mx_datatype );
 		}
 
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = native_bytes_to_copy;
+		if ( num_network_bytes_copied != NULL ) {
+			*num_network_bytes_copied = network_bytes_to_copy;
 		}
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1085,8 +1109,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 						native_longs_are_64bits );
 
 		if ( network_bytes_to_copy > destination_buffer_length ) {
-			if ( num_bytes_copied != NULL ) {
-				*num_bytes_copied =
+			if ( num_network_bytes_copied != NULL ) {
+				*num_network_bytes_copied =
 			    network_bytes_to_copy - destination_buffer_length;
 			}
 			return mx_error(
@@ -1144,8 +1168,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 				mx_datatype );
 		}
 
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = network_bytes_to_copy;
+		if ( num_network_bytes_copied != NULL ) {
+			*num_network_bytes_copied = network_bytes_to_copy;
 		}
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1186,8 +1210,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 #endif
 
 	if ( array_size > destination_buffer_length ) {
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied =
+		if ( num_network_bytes_copied != NULL ) {
+			*num_network_bytes_copied =
 				array_size - destination_buffer_length;
 		}
 		return mx_error( (MXE_WOULD_EXCEED_LIMIT | MXE_QUIET), fname,
@@ -1226,8 +1250,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 			return mx_status;
 	}
 
-	if ( num_bytes_copied != NULL ) {
-		*num_bytes_copied = array_size;
+	if ( num_network_bytes_copied != NULL ) {
+		*num_network_bytes_copied = array_size;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1239,7 +1263,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
-		size_t *num_bytes_copied,
+		size_t *num_native_bytes_copied,
 		mx_bool_type use_64bit_network_longs )
 {
 	static const char fname[] = "mx_copy_buffer_to_array()";
@@ -1264,6 +1288,11 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		"is greater than 0.", num_dimensions );
 	}
 
+#if MX_ARRAY_DEBUG_64BIT
+	MX_DEBUG(-2,("%s: use_64bit_network_longs = %d",
+		fname, (int) use_64bit_network_longs));
+#endif
+
 	/* Disallow writes to complex field types since correctly supporting
 	 * writes to these datatypes would be very difficult, especially for
 	 * MXFT_RECORDTYPE, and not worth the effort required to implement
@@ -1282,8 +1311,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 			"Writing to an MXFT_INTERFACE field is not allowed." );
 	}
 
-	if ( num_bytes_copied != NULL ) {
-		*num_bytes_copied = 0;
+	if ( num_native_bytes_copied != NULL ) {
+		*num_native_bytes_copied = 0;
 	}
 
 	if ( num_dimensions < 0 ) {
@@ -1378,8 +1407,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 				mx_datatype );
 		}
 
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = native_bytes_to_copy;
+		if ( num_native_bytes_copied != NULL ) {
+			*num_native_bytes_copied = native_bytes_to_copy;
 		}
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1453,8 +1482,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 				mx_datatype );
 		}
 
-		if ( num_bytes_copied != NULL ) {
-			*num_bytes_copied = native_bytes_to_copy;
+		if ( num_native_bytes_copied != NULL ) {
+			*num_native_bytes_copied = native_bytes_to_copy;
 		}
 
 		return MX_SUCCESSFUL_RESULT;
@@ -1510,8 +1539,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 			return mx_status;
 	}
 
-	if ( num_bytes_copied != NULL ) {
-		*num_bytes_copied = array_size;
+	if ( num_native_bytes_copied != NULL ) {
+		*num_native_bytes_copied = array_size;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
