@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -788,6 +788,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+		case MXLV_AD_MAXIMUM_FRAMESIZE:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_REGISTER_VALUE:
 		case MXLV_AD_ROI:

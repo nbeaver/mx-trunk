@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
 
@@ -580,6 +580,17 @@ mx_area_detector_get_maximum_framesize( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS
+	MX_DEBUG(-2,("%s: ad '%s' &maximum_framesize[0] = %p",
+		fname, record->name, &(ad->maximum_framesize)[0]));
+	MX_DEBUG(-2,("%s: ad '%s' &maximum_framesize[1] = %p",
+		fname, record->name, &(ad->maximum_framesize)[1]));
+
+	MX_DEBUG(-2,("%s: ad '%s' maximum_framesize = (%lu,%lu)",
+		fname, record->name,
+		ad->maximum_framesize[0], ad->maximum_framesize[1] ));
+#endif
+
 	if ( maximum_x_framesize != NULL ) {
 		*maximum_x_framesize = ad->maximum_framesize[0];
 	}
@@ -620,6 +631,16 @@ mx_area_detector_get_framesize( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS
+	MX_DEBUG(-2,("%s: ad '%s' &framesize[0] = %p",
+		fname, record->name, &(ad->framesize)[0]));
+	MX_DEBUG(-2,("%s: ad '%s' &framesize[1] = %p",
+		fname, record->name, &(ad->framesize)[1]));
+
+	MX_DEBUG(-2,("%s: ad '%s' framesize = (%lu,%lu)",
+		fname, record->name, ad->framesize[0], ad->framesize[1] ));
+#endif
 
 	if ( x_framesize != NULL ) {
 		*x_framesize = ad->framesize[0];
@@ -695,6 +716,16 @@ mx_area_detector_get_binsize( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS
+	MX_DEBUG(-2,("%s: ad '%s' &binsize[0] = %p",
+		fname, record->name, &(ad->binsize)[0]));
+	MX_DEBUG(-2,("%s: ad '%s' &binsize[1] = %p",
+		fname, record->name, &(ad->binsize)[1]));
+
+	MX_DEBUG(-2,("%s: ad '%s' binsize = (%lu,%lu)",
+		fname, record->name, ad->binsize[0], ad->binsize[1] ));
+#endif
 
 	if ( x_binsize != NULL ) {
 		*x_binsize = ad->binsize[0];

@@ -14,9 +14,11 @@
  *
  */
 
-#define MX_ARRAY_DEBUG_OVERLAY	FALSE
+#define MX_ARRAY_DEBUG_OVERLAY		FALSE
 
-#define MX_ARRAY_DEBUG_64BIT	FALSE
+#define MX_ARRAY_DEBUG_64BIT		FALSE
+
+#define MX_ARRAY_DEBUG_64BIT_COPY	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +27,7 @@
 #include "mx_record.h"
 #include "mx_osdef.h"
 #include "mx_stdint.h"
+#include "mx_inttypes.h"
 #include "mx_socket.h"
 #include "mx_array.h"
 
@@ -402,7 +405,7 @@ mx_get_scalar_element_size( long mx_datatype,
 
 	case MXFT_LONG:       
 		if ( longs_are_64bits ) {
-		              element_size = 8;
+		              element_size = sizeof(long);
 		} else {
 		              element_size = 4;
 		}
@@ -410,7 +413,7 @@ mx_get_scalar_element_size( long mx_datatype,
 
 	case MXFT_ULONG:       
 		if ( longs_are_64bits ) {
-		              element_size = 8;
+		              element_size = sizeof(long);
 		} else {
 		              element_size = 4;
 		}
@@ -789,44 +792,107 @@ mx_free_array_new( void *array_pointer,
 static void
 mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 {
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	static const char fname[] = "mx_copy_32bits_to_64bits()";
+
+	size_t max_elements;
+#endif
 	uint64_t *uint64_ptr;
 	uint32_t *uint32_ptr;
 	size_t i;
 
-#if 0
-	MX_DEBUG(-2,("mx_copy_32bits_to_64bits: num_elements = %ld",
-		(long) num_elements ));
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	MX_DEBUG(-2,("%s: num_elements = %ld", fname, (long) num_elements ));
 #endif
 
 	uint64_ptr = destination;
 	uint32_ptr = source;
 
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	MX_DEBUG(-2,("%s: uint64_ptr = %p, uint32_ptr = %p",
+		fname, uint64_ptr, uint32_ptr));
+
+	if ( num_elements > 10 ) {
+		max_elements = 10;
+	} else {
+		max_elements = num_elements;
+	}
+
+	for ( i = 0; i < max_elements; i++ ) {
+		fprintf( stderr, "&uint32_ptr[%d] = %p, ",
+			(int) i, &uint32_ptr[i] );
+
+		fprintf( stderr, "uint32_ptr[%d] = %" PRIu32 "\n",
+			(int) i, uint32_ptr[i] );
+	}
+#endif
 	for ( i = 0; i < num_elements; i++ ) {
 		uint64_ptr[i] = (uint64_t) uint32_ptr[i];
 	}
 
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	for ( i = 0; i < max_elements; i++ ) {
+		fprintf( stderr, "&uint64_ptr[%d] = %p, ",
+			(int) i, &uint64_ptr[i] );
+
+		fprintf( stderr, "uint64_ptr[%d] = %" PRIu64 "\n",
+			(int) i, uint64_ptr[i] );
+	}
+#endif
 	return;
 }
 
 static void
 mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
 {
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	static const char fname[] = "mx_copy_64bits_to_32bits()";
+
+	size_t max_elements;
+#endif
 	uint64_t *uint64_ptr;
 	uint32_t *uint32_ptr;
 	size_t i;
 
-#if 0
-	MX_DEBUG(-2,("mx_copy_64bits_to_32bits: num_elements = %ld",
-		(long) num_elements ));
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	MX_DEBUG(-2,("%s: num_elements = %ld", fname, (long) num_elements ));
 #endif
 
 	uint32_ptr = destination;
 	uint64_ptr = source;
 
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	MX_DEBUG(-2,("%s: uint32_ptr = %p, uint64_ptr = %p",
+		fname, uint32_ptr, uint64_ptr));
+
+	if ( num_elements > 10 ) {
+		max_elements = 10;
+	} else {
+		max_elements = num_elements;
+	}
+
+	for ( i = 0; i < max_elements; i++ ) {
+		fprintf( stderr, "&uint64_ptr[%d] = %p, ",
+			(int) i, &uint64_ptr[i] );
+
+		fprintf( stderr, "uint64_ptr[%d] = %" PRIu64 "\n",
+			(int) i, uint64_ptr[i] );
+	}
+#endif
+
 	for ( i = 0; i < num_elements; i++ ) {
 		uint32_ptr[i] = (uint32_t) uint64_ptr[i];
 	}
 
+#if MX_ARRAY_DEBUG_64BIT_COPY
+	for ( i = 0; i < max_elements; i++ ) {
+		fprintf( stderr, "&uint32_ptr[%d] = %p, ",
+			(int) i, &uint32_ptr[i] );
+
+		fprintf( stderr, "uint32_ptr[%d] = %" PRIu32 "\n",
+			(int) i, uint32_ptr[i] );
+	}
+#endif
 	return;
 }
 
@@ -1100,7 +1166,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 #endif
 	{ 
 		native_bytes_to_copy = dimension_array[0]
-					* data_element_size_array[0];
+				* mx_get_scalar_element_size( mx_datatype,
+						native_longs_are_64bits );
 
 		network_bytes_to_copy = mx_get_network_bytes_from_native_bytes(
 						mx_datatype,
@@ -1417,7 +1484,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	if ( num_dimensions == 1 ) {
 
 		native_bytes_to_copy = dimension_array[0]
-					* data_element_size_array[0];
+				* mx_get_scalar_element_size( mx_datatype,
+						native_longs_are_64bits );
 
 		network_bytes_to_copy = mx_get_network_bytes_from_native_bytes(
 						mx_datatype,
