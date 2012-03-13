@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2006, 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,8 @@
 #define MX_EPICS_DEBUG_PERFORMANCE		FALSE
 
 #define MX_EPICS_DEBUG_PUT_CALLBACK_STATUS	FALSE
+
+#define MX_EPICS_DEBUG_TIMEOUT_SETUP		FALSE
 
 /* MX_EPICS_EXPORT_KLUDGE should be left on. */
 
@@ -451,6 +453,55 @@ mx_epics_initialize( void )
 	mx_epics_is_initialized = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_epics_set_connection_timeout( double timeout_in_seconds )
+{
+	static const char fname[] = "mx_epics_set_connection_timeout()";
+
+#if MX_EPICS_DEBUG_TIMEOUT_SETUP
+	fprintf( stderr, "%s: timeout_in_seconds = %f, "
+		"mx_epics_is_initialized = %d\n",
+		fname, timeout_in_seconds, mx_epics_is_initialized );
+#endif
+
+	if ( mx_epics_is_initialized ) {
+		mx_warning( "%s invoked after an MX record has already "
+		"initialized EPICS.  Normally, you should make sure that "
+		"%s is invoked before any EPICS-related MX records are "
+		"set up.  Otherwise, some EPICS PVs may use the previous "
+		"connection timeout of %f seconds rather than the "
+		"requested value of %f seconds.", fname, fname,
+			mx_epics_connect_timeout_interval,
+			timeout_in_seconds );
+	}
+
+	mx_epics_connect_timeout_interval = timeout_in_seconds;
+
+	return;
+}
+
+MX_EXPORT double
+mx_epics_get_connection_timeout( void )
+{
+#if MX_EPICS_DEBUG_TIMEOUT_SETUP
+	static const char fname[] = "mx_epics_get_connection_timeout()";
+#endif
+
+	double timeout_in_seconds;
+
+	timeout_in_seconds = mx_epics_connect_timeout_interval;
+
+#if MX_EPICS_DEBUG_TIMEOUT_SETUP
+	fprintf( stderr, "%s: timeout_in_seconds = %f, "
+		"mx_epics_is_initialized = %d\n",
+		fname, timeout_in_seconds, mx_epics_is_initialized );
+#endif
+
+	return timeout_in_seconds;
 }
 
 /*--------------------------------------------------------------------------*/

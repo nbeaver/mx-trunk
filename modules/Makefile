@@ -30,14 +30,14 @@ all: build
 
 #MODULES += radicon_helios
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
 #MODULES += epics_mbc
 

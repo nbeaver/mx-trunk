@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,6 +57,7 @@
 #include "i_epics_gpib.h"
 #include "i_epics_rs232.h"
 #include "i_epics_vme.h"
+#include "v_epics_timeout.h"
 
 MX_DRIVER epics_driver_table[] = {
 
@@ -194,6 +195,13 @@ MX_DRIVER epics_driver_table[] = {
 				NULL,
 				&mxv_epics_double_variable_num_record_fields,
 				&mxv_epics_double_variable_def_ptr},
+
+{"epics_timeout", -1,	MXV_EPICS,  MXR_VARIABLE,
+				&mxv_epics_timeout_record_function_list,
+				&mxv_epics_timeout_variable_function_list,
+				NULL,
+				&mxv_epics_timeout_num_record_fields,
+				&mxv_epics_timeout_field_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

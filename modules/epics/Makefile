@@ -22,7 +22,8 @@ EPICS_OBJS = epics.$(OBJ) \
 	d_epics_dio.$(OBJ) d_epics_mca.$(OBJ) d_epics_mcs.$(OBJ) \
 	d_epics_motor.$(OBJ) d_epics_scaler.$(OBJ) d_epics_timer.$(OBJ) \
 	i_epics_gpib.$(OBJ) i_epics_rs232.$(OBJ) i_epics_vme.$(OBJ) \
-	mx_epics.$(OBJ) mx_vepics.$(OBJ) sq_joerger.$(OBJ)
+	mx_epics.$(OBJ) mx_vepics.$(OBJ) sq_joerger.$(OBJ) \
+	v_epics_timeout.$(OBJ)
 
 #--------------------------------------------------------------------------
 

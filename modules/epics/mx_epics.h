@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2005, 2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 1999-2005, 2007, 2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -218,9 +218,19 @@ MX_API mx_status_type mx_group_caput( MX_EPICS_GROUP *epics_group,
 
 MX_API mx_status_type mx_epics_initialize( void );
 
+/*----*/
+
+MX_API void mx_epics_set_connection_timeout( double timeout_in_seconds );
+
+MX_API double mx_epics_get_connection_timeout( void );
+
+/*----*/
+
 MX_API int  mx_epics_get_debug_flag( void );
 
 MX_API void mx_epics_set_debug_flag( int value );
+
+/*----*/
 
 MX_API mx_status_type mx_epics_get_pv_type( char *pvname,
 						long *epics_type,
