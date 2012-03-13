@@ -16,7 +16,7 @@
 
 #define MX_ARRAY_DEBUG_OVERLAY		FALSE
 
-#define MX_ARRAY_DEBUG_64BIT		FALSE
+#define MX_ARRAY_DEBUG_64BIT		TRUE
 
 #define MX_ARRAY_DEBUG_64BIT_COPY	TRUE
 
@@ -405,7 +405,7 @@ mx_get_scalar_element_size( long mx_datatype,
 
 	case MXFT_LONG:       
 		if ( longs_are_64bits ) {
-		              element_size = sizeof(long);
+		              element_size = 8;
 		} else {
 		              element_size = 4;
 		}
@@ -413,7 +413,7 @@ mx_get_scalar_element_size( long mx_datatype,
 
 	case MXFT_ULONG:       
 		if ( longs_are_64bits ) {
-		              element_size = sizeof(long);
+		              element_size = 8;
 		} else {
 		              element_size = 4;
 		}
@@ -1087,18 +1087,23 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_HEX:
 		case MXFT_LONG:
 		case MXFT_ULONG:
-			if ( native_bytes_to_copy > network_bytes_to_copy ) {
-
-				mx_copy_64bits_to_32bits( destination_buffer,
-					array_pointer, 1 );
-			} else
-			if ( native_bytes_to_copy == network_bytes_to_copy ) {
-
+			if ( native_longs_are_64bits ) {
+			    if ( use_64bit_network_longs ) {
 				memcpy( destination_buffer,
 					array_pointer, network_bytes_to_copy );
+			    } else {
+				mx_copy_64bits_to_32bits( destination_buffer,
+					array_pointer, 1 );
+			    }
 			} else {
+			    if ( use_64bit_network_longs ) {
+
 				mx_copy_32bits_to_64bits( destination_buffer,
 					array_pointer, 1 );
+			    } else {
+				memcpy( destination_buffer,
+					array_pointer, network_bytes_to_copy );
+			    }
 			}
 			break;
 
@@ -1215,18 +1220,25 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_HEX:
 		case MXFT_LONG:
 		case MXFT_ULONG:
-			if ( native_bytes_to_copy > network_bytes_to_copy ) {
-
-				mx_copy_64bits_to_32bits( destination_buffer,
-					array_pointer, dimension_array[0] );
-			} else
-			if ( native_bytes_to_copy == network_bytes_to_copy ) {
-
+			if ( native_longs_are_64bits ) {
+			    if ( use_64bit_network_longs ) {
 				memcpy( destination_buffer,
 					array_pointer, network_bytes_to_copy );
+			    } else {
+				mx_copy_64bits_to_32bits(
+				    destination_buffer, array_pointer,
+				    network_bytes_to_copy / sizeof(uint32_t) );
+			    }
 			} else {
-				mx_copy_32bits_to_64bits( destination_buffer,
-					array_pointer, dimension_array[0] );
+			    if ( use_64bit_network_longs ) {
+
+				mx_copy_32bits_to_64bits(
+				    destination_buffer, array_pointer,
+				    network_bytes_to_copy / sizeof(uint64_t) );
+			    } else {
+				memcpy( destination_buffer,
+					array_pointer, network_bytes_to_copy );
+			    }
 			}
 			break;
 		default:
@@ -1453,18 +1465,24 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_HEX:
 		case MXFT_LONG:
 		case MXFT_ULONG:
-			if ( network_bytes_to_copy > native_bytes_to_copy ) {
+			if ( native_longs_are_64bits ) {
+			    if ( use_64bit_network_longs ) {
+
+				memcpy( array_pointer,
+					source_buffer, network_bytes_to_copy );
+			    } else {
+				mx_copy_32bits_to_64bits( array_pointer,
+							source_buffer, 1 );
+			    }
+			} else {
+			    if ( use_64bit_network_longs ) {
 
 				mx_copy_64bits_to_32bits( array_pointer,
 							source_buffer, 1 );
-			} else
-			if ( network_bytes_to_copy == native_bytes_to_copy ) {
-
+			    } else {
 				memcpy( array_pointer,
-					source_buffer, native_bytes_to_copy );
-			} else {
-				mx_copy_32bits_to_64bits( array_pointer,
-							source_buffer, 1 );
+					source_buffer, network_bytes_to_copy );
+			    }
 			}
 			break;
 
@@ -1496,12 +1514,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		/* Check for buffer overread. */
 
 		if ( network_bytes_to_copy > source_buffer_length ) {
-			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-			"The size (%ld bytes) of the scalar value for this "
-			"array is larger than the source buffer length "
-			"of %ld bytes.",
-				(long) network_bytes_to_copy,
-				(long) source_buffer_length );
+			network_bytes_to_copy = source_buffer_length;
 		}
 			
 		switch( mx_datatype ) {
@@ -1529,18 +1542,26 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_HEX:
 		case MXFT_LONG:
 		case MXFT_ULONG:
-			if ( network_bytes_to_copy > native_bytes_to_copy ) {
-
-				mx_copy_64bits_to_32bits( array_pointer,
-					source_buffer, dimension_array[0] );
-			} else
-			if ( network_bytes_to_copy == native_bytes_to_copy ) {
+			if ( native_longs_are_64bits ) {
+			    if ( use_64bit_network_longs ) {
 
 				memcpy( array_pointer,
 					source_buffer, network_bytes_to_copy );
+			    } else {
+				mx_copy_32bits_to_64bits(
+				    array_pointer, source_buffer,
+				    network_bytes_to_copy / sizeof(uint32_t) );
+			    }
 			} else {
-				mx_copy_32bits_to_64bits( array_pointer,
-					source_buffer, dimension_array[0] );
+			    if ( use_64bit_network_longs ) {
+
+				mx_copy_64bits_to_32bits(
+				    array_pointer, source_buffer,
+				    network_bytes_to_copy / sizeof(uint64_t) );
+			    } else {
+				memcpy( array_pointer,
+					source_buffer, network_bytes_to_copy );
+			    }
 			}
 			break;
 

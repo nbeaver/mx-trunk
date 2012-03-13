@@ -5971,6 +5971,8 @@ mx_network_request_64bit_longs( MX_RECORD *server_record,
 			server_record->name, server->data_format );
 	}
 
+#endif  /* MX_WORDSIZE == 64 */
+
 	if ( server->remote_mx_version < 1002000 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The remote server cannot support 64-bit network longs since "
@@ -5999,8 +6001,6 @@ mx_network_request_64bit_longs( MX_RECORD *server_record,
 		fname, server->use_64bit_network_longs));
 
 	return MX_SUCCESSFUL_RESULT;
-
-#endif  /* MX_WORDSIZE == 64 */
 }
 
 /* ====================================================================== */
