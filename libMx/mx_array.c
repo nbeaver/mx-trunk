@@ -16,9 +16,9 @@
 
 #define MX_ARRAY_DEBUG_OVERLAY		FALSE
 
-#define MX_ARRAY_DEBUG_64BIT		TRUE
+#define MX_ARRAY_DEBUG_64BIT		FALSE
 
-#define MX_ARRAY_DEBUG_64BIT_COPY	TRUE
+#define MX_ARRAY_DEBUG_64BIT_COPY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
