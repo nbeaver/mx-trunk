@@ -1837,7 +1837,7 @@ mx_network_buffer_show_value( void *buffer,
 
 				hex_value = ((uint64_t *) raw_buffer)[i];
 
-				hex_value &= 0xffffffffffffffff;
+				hex_value &= UINT64_C( 0xffffffffffffffff );
 
 				fprintf( stderr, "%#" PRIx64 " ", hex_value );
 			    }

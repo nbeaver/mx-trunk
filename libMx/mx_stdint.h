@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,6 +80,17 @@ typedef uint64_t		uintmax_t;
 #  elif defined(__BORLANDC__)
      typedef __int32		intptr_t;
      typedef unsigned __int32	uintptr_t;
+#  endif
+
+#  if defined(_MSC_VER)
+#     if defined(INT64_C)
+#        undef(INT64_C)
+#        define INT64_C(x)	x ## LL		/* or i64? */
+#     endif
+#     if defined(UINT64_C)
+#        undef(UINT64_C)
+#        define UINT64_C(x)	x ## ULL	/* or ui64? */
+#     endif
 #  endif
 
 /*=======================================================================*/
