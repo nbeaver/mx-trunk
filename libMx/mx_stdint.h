@@ -82,16 +82,24 @@ typedef uint64_t		uintmax_t;
      typedef unsigned __int32	uintptr_t;
 #  endif
 
+/* Note: In some places, i64 and ui64 are suggested instead of LL and ULL
+ * for Visual C++.  I stick with LL and ULL since that is what is used
+ * on other build targets.
+ */
+
 #  if defined(_MSC_VER)
+
 #     if defined(INT64_C)
 #        undef(INT64_C)
-#        define INT64_C(x)	x ## LL		/* or i64? */
 #     endif
+#     define INT64_C(x)		x ## LL
+
 #     if defined(UINT64_C)
 #        undef(UINT64_C)
-#        define UINT64_C(x)	x ## ULL	/* or ui64? */
 #     endif
-#  endif
+#     define UINT64_C(x)	x ## ULL
+
+#  endif   /* _MSC_VER */
 
 /*=======================================================================*/
 #elif defined(OS_VXWORKS)
