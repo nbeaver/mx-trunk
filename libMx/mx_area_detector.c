@@ -14,27 +14,27 @@
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG    			FALSE
+#define MX_AREA_DETECTOR_DEBUG    			TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC		FALSE
+#define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		FALSE
+#define MX_AREA_DETECTOR_DEBUG_LOAD_SAVE_FRAMES		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_PARAMETERS		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_STATUS			FALSE
+#define MX_AREA_DETECTOR_DEBUG_STATUS			TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_VCTEST			FALSE
+#define MX_AREA_DETECTOR_DEBUG_VCTEST			TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION	FALSE
+#define MX_AREA_DETECTOR_DEBUG_FILENAME_CONSTRUCTION	TRUE
 
 /*---*/
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,6 +54,10 @@
 #include "mx_relay.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+#include "mx_hrt_debug.h"
+#endif
 
 /*=======================================================================*/
 
@@ -192,7 +196,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
-	ad->total_num_frames = -1;
+	ad->total_num_frames = 0;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
 
@@ -2398,7 +2402,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		}
 
 		if ( get_total_num_frames_fn == NULL ) {
-			ad->total_num_frames = -1;
+			ad->total_num_frames = 0;
 		} else {
 			mx_status = (*get_total_num_frames_fn)( ad );
 
@@ -4673,13 +4677,13 @@ mx_area_detector_default_set_register( MX_AREA_DETECTOR *ad )
 
 #if MX_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: register_name = '%s'",
-			fname, register_name ));
+			fname, ad->register_name ));
 #endif
 	/* We must copy the register value to the field. */
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: register_name = '%s', register_value = %ld",
-		fname, register_name, *register ));
+		fname, ad->register_name ));
 #endif
 
 	value_ptr = mx_get_field_value_pointer( field );

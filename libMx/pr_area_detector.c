@@ -14,7 +14,7 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	FALSE
+#define PR_AREA_DETECTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

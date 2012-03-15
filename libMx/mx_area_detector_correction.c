@@ -7,36 +7,36 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG    			FALSE
+#define MX_AREA_DETECTOR_DEBUG    			TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_DEZINGER			FALSE
+#define MX_AREA_DETECTOR_DEBUG_DEZINGER			TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		FALSE
+#define MX_AREA_DETECTOR_DEBUG_FRAME_TIMING		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION		FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_TIMING	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FLAGS		TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	FALSE
+#define MX_AREA_DETECTOR_DEBUG_GET_CORRECTION_FRAME	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	FALSE
+#define MX_AREA_DETECTOR_DEBUG_CORRECTION_FILENAMES	TRUE
 
-#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	FALSE
+#define MX_AREA_DETECTOR_DEBUG_USE_LOWMEM_METHOD	TRUE
 
 /*---*/
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +48,10 @@
 #include "mx_memory.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
+
+#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
+#include "mx_hrt_debug.h"
+#endif
 
 /*=======================================================================*/
 
@@ -2475,8 +2479,8 @@ mx_area_detector_u16_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 			if ( i < 10 ) {
 				fprintf( stderr,
-				"Final image_data_array[%lu] = %ld, ",
-					i, (long) s32_image_data_array[i]);
+				"Final u16_image_data_array[%lu] = %ld, ",
+					i, (long) u16_image_data_array[i]);
 			}
 #endif
 		}
@@ -2838,8 +2842,8 @@ mx_area_detector_flt_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 				if ( i < 10 ) {
 					fprintf(stderr,
-					"u16_image_data_array[%lu] = %ld\n",
-					i, (long) u16_image_data_array[i]);
+					"flt_image_data_array[%lu] = %f\n",
+					i, flt_image_data_array[i]);
 				}
 #endif
 				continue;
@@ -2886,8 +2890,8 @@ mx_area_detector_flt_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 			if ( i < 10 ) {
 				fprintf( stderr,
-				"Final image_data_array[%lu] = %ld, ",
-					i, (long) s32_image_data_array[i]);
+				"Final flt_image_data_array[%lu] = %f, ",
+					i, flt_image_data_array[i]);
 			}
 #endif
 		}
@@ -3041,8 +3045,8 @@ mx_area_detector_dbl_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 				if ( i < 10 ) {
 					fprintf(stderr,
-					"u16_image_data_array[%lu] = %ld\n",
-					i, (long) u16_image_data_array[i]);
+					"dbl_image_data_array[%lu] = %f\n",
+					i, dbl_image_data_array[i]);
 				}
 #endif
 				continue;
@@ -3089,8 +3093,8 @@ mx_area_detector_dbl_precomp_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 			if ( i < 10 ) {
 				fprintf( stderr,
-				"Final image_data_array[%lu] = %ld, ",
-					i, (long) s32_image_data_array[i]);
+				"Final dbl_image_data_array[%lu] = %f, ",
+					i, dbl_image_data_array[i]);
 			}
 #endif
 		}
@@ -3363,8 +3367,8 @@ mx_area_detector_u16_plain_dark_correction( MX_AREA_DETECTOR *ad,
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 		if ( i < 10 ) {
-			fprintf( stderr, "image_data_array[%lu] = %ld\n",
-				i, (long) s32_image_data_array[i] );
+			fprintf( stderr, "u16_image_data_array[%lu] = %ld\n",
+				i, (long) u16_image_data_array[i] );
 		}
 #endif
 	}
@@ -3539,8 +3543,8 @@ mx_area_detector_s32_plain_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 				if ( i < 10 ) {
 					fprintf(stderr,
-					"u16_image_data_array[%lu] = %d\n",
-					i, (int) u16_image_data_array[i]);
+					"s32_image_data_array[%lu] = %ld\n",
+					i, (long) s32_image_data_array[i]);
 				}
 #endif
 				continue;
@@ -3808,8 +3812,8 @@ mx_area_detector_flt_plain_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 				if ( i < 10 ) {
 					fprintf(stderr,
-					"u16_image_data_array[%lu] = %d\n",
-					i, (int) u16_image_data_array[i]);
+					"flt_image_data_array[%lu] = %f\n",
+					i, flt_image_data_array[i]);
 				}
 #endif
 				continue;
@@ -4072,8 +4076,8 @@ mx_area_detector_dbl_plain_dark_correction( MX_AREA_DETECTOR *ad,
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 				if ( i < 10 ) {
 					fprintf(stderr,
-					"u16_image_data_array[%lu] = %d\n",
-					i, (int) u16_image_data_array[i]);
+					"dbl_image_data_array[%lu] = %f\n",
+					i, dbl_image_data_array[i]);
 				}
 #endif
 				continue;
@@ -5526,8 +5530,8 @@ mxp_area_detector_s32_delayed_bias_offset( MX_IMAGE_FRAME *image_frame,
 
 #if MX_AREA_DETECTOR_DEBUG_CORRECTION
 		if ( i < 10 ) {
-			fprintf( stderr, "image_data_array[%lu] = %ld\n",
-				i, (long) u16_image_data_array[i] );
+			fprintf( stderr, "s32_image_data_array[%lu] = %ld\n",
+				i, (long) s32_image_data_array[i] );
 		}
 #endif
 	}
