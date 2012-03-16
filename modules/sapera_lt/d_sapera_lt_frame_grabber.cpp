@@ -1236,6 +1236,9 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_IMAGE_FRAME *frame;
+	unsigned long absolute_frame_number;
+	unsigned long modulo_frame_number;
+	int buffer_resource_index;
 	void *mx_data_address;
 	void *sapera_data_address;
 	BOOL sapera_status;
@@ -1271,8 +1274,36 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the SapBuffer's address for the buffer data. */
 
+	/* The SapBuffer appears to behave as a ring buffer (no surprise),
+	 * so the offset we pass to GetAddress must be the absolute frame
+	 * number modulo the maximum number of frames in the buffer.
+	 */
+
+	absolute_frame_number =
+		sapera_lt_frame_grabber->total_num_frames_at_start
+			+ vinput->frame_number;
+
+	modulo_frame_number =
+		absolute_frame_number % (sapera_lt_frame_grabber->max_frames);
+
+	buffer_resource_index = (int) modulo_frame_number;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
+	MX_DEBUG(-2,("%s: total_num_frames_at_start = %lu, frame_number = %ld",
+		fname, sapera_lt_frame_grabber->total_num_frames_at_start,
+		vinput->frame_number));
+
+	MX_DEBUG(-2,("%s: absolute_frame_number = %lu, max_frames = %ld",
+		fname, absolute_frame_number,
+		sapera_lt_frame_grabber->max_frames));
+
+	MX_DEBUG(-2,("%s: buffer_resource_index = %d",
+		fname, buffer_resource_index));
+#endif
+	/* Get the address. */
+
 	sapera_status = sapera_lt_frame_grabber->buffer->GetAddress(
-							vinput->frame_number,
+							buffer_resource_index,
 							&sapera_data_address );
 
 	if ( sapera_status == FALSE ) {
