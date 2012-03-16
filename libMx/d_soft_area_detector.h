@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,9 +23,6 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	unsigned long initial_trigger_mode;
-
-	MX_CLOCK_TICK start_time;
-	mx_bool_type sequence_in_progress;
 } MX_SOFT_AREA_DETECTOR;
 
 
@@ -45,10 +42,7 @@ MX_API mx_status_type mxd_soft_area_detector_initialize_driver(
 							MX_DRIVER *driver );
 MX_API mx_status_type mxd_soft_area_detector_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_soft_area_detector_finish_record_initialization(
-							MX_RECORD *record );
 MX_API mx_status_type mxd_soft_area_detector_open( MX_RECORD *record );
-MX_API mx_status_type mxd_soft_area_detector_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad );
