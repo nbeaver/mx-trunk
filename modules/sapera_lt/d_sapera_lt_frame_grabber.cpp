@@ -14,21 +14,21 @@
  *
  */
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG			FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM			FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS	FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,6 +42,7 @@
 #include "mx_record.h"
 #include "mx_array.h"
 #include "mx_bit.h"
+#include "mx_memory.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
@@ -658,8 +659,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
+	MX_SYSTEM_MEMINFO system_meminfo;
 	UINT32 min_freq_millihz, max_freq_millihz;
 	BOOL sapera_status;
+	long bytes_per_frame, max_image_frames, max_frames_threshold;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -678,8 +681,6 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-	/* Create the Sapera objects necessary for controlling this camera. */
-
 	if ( sapera_lt->num_frame_grabbers <= 0 ) {
 		return mx_error( MXE_NOT_FOUND, fname,
 		"Sapera server '%s' does not have any frame grabbers.",
@@ -695,7 +696,16 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name, sapera_lt->server_name );
 	}
 
-	/* Create the high level objects. */
+	/*---------------------------------------------------------------*/
+
+	/* Create the high level SapAcquisition object.
+	 * 
+	 * Soon we will call the functions mx_video_input_get_framesize()
+	 * and mx_video_input_get_bytes_per_frame().  Those two functions
+	 * depend on the presence of an initialized SapAcquisition object,
+	 * so we must create that object before calling the video input
+	 * functions below.
+	 */
 
 	SapLocation location( sapera_lt->server_name,
 				sapera_lt_frame_grabber->frame_grabber_number );
@@ -709,30 +719,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
-	sapera_lt_frame_grabber->buffer =
-		new SapBuffer( sapera_lt_frame_grabber->max_frames,
-				sapera_lt_frame_grabber->acquisition );
-
-	if ( sapera_lt_frame_grabber->buffer == NULL ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Unable to create a %ld frame SapBuffer object for "
-		"frame grabber '%s'.",
-			sapera_lt_frame_grabber->max_frames, record->name );
-	}
-
-	sapera_lt_frame_grabber->transfer =
-		new SapAcqToBuf( sapera_lt_frame_grabber->acquisition,
-				sapera_lt_frame_grabber->buffer,
-			mxd_sapera_lt_frame_grabber_acquisition_callback,
-				(void *) sapera_lt_frame_grabber );
-
-	if ( sapera_lt_frame_grabber->transfer == NULL ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	    "Unable to create a SapAcqToBuf object for frame grabber '%s'.",
-			record->name );
-	}
-
-	/* Create the low level Sapera resources. */
+	/* -------- */
 
 	sapera_status = sapera_lt_frame_grabber->acquisition->Create();
 
@@ -749,6 +736,86 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/*---------------------------------------------------------------*/
+
+	/* Check to see if enough free memory is available to allocate all
+	 * of the frame buffers that we have requested to use.
+	 */
+
+	mx_status = mx_get_system_meminfo( &system_meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 0
+	mx_display_system_meminfo( &system_meminfo );
+#endif
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: available free memory = %lu",
+		fname, system_meminfo.free_bytes));
+#endif
+	/* Invoke some video input initialization steps here that we
+	 * will need in order to compute the maximum allowed number of
+	 * image frames below.
+	 */
+
+	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( record,
+							&bytes_per_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, bytes_per_frame ));
+#endif
+
+	/* Approximately how many image frame buffers will fit into
+	 * the available free memory?
+	 */
+
+	max_image_frames = mx_round(
+		mx_divide_safely( system_meminfo.free_bytes, bytes_per_frame ));
+
+	max_frames_threshold = mx_round( 0.95 * max_image_frames );
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: max_image_frames = %lu, max_frames_threshold = %lu",
+			fname, max_image_frames, max_frames_threshold));
+#endif
+	if ( sapera_lt_frame_grabber->max_frames > max_frames_threshold ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The maximum number of frames (%ld) requested for "
+		"frame grabber '%s' is larger than the maximum number of "
+		"frames (%ld) that can fit in the available computer memory.",
+			sapera_lt_frame_grabber->max_frames,
+			record->name,
+			max_frames_threshold );
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Create the SapBuffer object which contains the raw image data
+	 * from all of the frames we take in a sequence.
+	 */
+
+	sapera_lt_frame_grabber->buffer =
+		new SapBuffer( sapera_lt_frame_grabber->max_frames,
+				sapera_lt_frame_grabber->acquisition );
+
+	if ( sapera_lt_frame_grabber->buffer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create a %ld frame SapBuffer object for "
+		"frame grabber '%s'.",
+			sapera_lt_frame_grabber->max_frames, record->name );
+	}
+
+	/* -------- */
+
 	sapera_status = sapera_lt_frame_grabber->buffer->Create();
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
@@ -763,6 +830,27 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
+	/*---------------------------------------------------------------*/
+
+	/* Create a SapAcqToBuf object.  This object manages the transfer
+	 * of data from the frame grabber to the SapBuffer object that
+	 * created just above.
+	 */
+
+	sapera_lt_frame_grabber->transfer =
+		new SapAcqToBuf( sapera_lt_frame_grabber->acquisition,
+				sapera_lt_frame_grabber->buffer,
+			mxd_sapera_lt_frame_grabber_acquisition_callback,
+				(void *) sapera_lt_frame_grabber );
+
+	if ( sapera_lt_frame_grabber->transfer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapAcqToBuf object for frame grabber '%s'.",
+			record->name );
+	}
+
+	/* -------- */
+
 	sapera_status = sapera_lt_frame_grabber->transfer->Create();
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
@@ -776,6 +864,8 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		"SapAcqToBuf object of frame grabber '%s'.",
 			record->name );
 	}
+
+	/*---------------------------------------------------------------*/
 
 	char label[129];
 
@@ -1475,11 +1565,13 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
+		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel = 16;
+
 		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
 			* vinput->framesize[0] * vinput->framesize[1] );
-		break;
-
-	case MXLV_VIN_BYTES_PER_PIXEL:
 		break;
 
 	case MXLV_VIN_BUSY:
