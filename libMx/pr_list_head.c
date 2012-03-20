@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006-2009, 2011 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -284,8 +284,14 @@ mx_list_head_show_cpu_type( MX_LIST_HEAD *list_head )
 			"  %d-bit big-endian computer", MX_WORDSIZE );
 		break;
 	case MX_DATAFMT_LITTLE_ENDIAN:
+
+#if ( defined(OS_WIN32) && (MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64) )
+		snprintf( buffer, sizeof(buffer),
+			"  64-bit little-endian computer" );
+#else
 		snprintf( buffer, sizeof(buffer),
 			"  %d-bit little-endian computer", MX_WORDSIZE );
+#endif
 		break;
 	default:
 		snprintf( buffer, sizeof(buffer),
