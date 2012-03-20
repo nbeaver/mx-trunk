@@ -22,6 +22,8 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		FALSE
 
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME		FALSE
+
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		FALSE
@@ -40,6 +42,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_memory.h"
@@ -830,6 +833,26 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
+#if ( 1 && MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN )
+	{
+		SapBuffer *buffer;
+		int pixel_depth, num_buffers, width, height;
+
+		buffer = sapera_lt_frame_grabber->buffer;
+
+		pixel_depth = buffer->GetPixelDepth();
+		num_buffers = buffer->GetCount();
+		width       = buffer->GetWidth();
+		height      = buffer->GetHeight();
+
+		MX_DEBUG(-2,("%s: SapBuffer pixel_depth = %d, num_buffers = %d",
+			fname, pixel_depth, num_buffers));
+
+		MX_DEBUG(-2,("%s: SapBuffer width = %d, height = %d",
+			fname, width, height));
+	}
+#endif
+
 	/*---------------------------------------------------------------*/
 
 	/* Create a SapAcqToBuf object.  This object manages the transfer
@@ -1347,7 +1370,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -1378,7 +1401,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	buffer_resource_index = (int) modulo_frame_number;
 
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
 	MX_DEBUG(-2,("%s: total_num_frames_at_start = %lu, frame_number = %ld",
 		fname, sapera_lt_frame_grabber->total_num_frames_at_start,
 		vinput->frame_number));
@@ -1389,6 +1412,9 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: buffer_resource_index = %d",
 		fname, buffer_resource_index));
+
+	MX_DEBUG(-2,("%s: image_length = %ld",
+		fname, vinput->frame->image_length));
 #endif
 	/* Get the address. */
 
@@ -1405,8 +1431,46 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Transfer the data from the Sapera buffer to the MX buffer. */
 
+#if ( 1 || MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME )
+	{
+		int valid_mx, valid_sapera, valid_sapera_short;
+
+		valid_mx = mx_pointer_is_valid( mx_data_address,
+						vinput->frame->image_length,
+						W_OK );
+
+		valid_sapera = mx_pointer_is_valid( sapera_data_address,
+						vinput->frame->image_length,
+						R_OK );
+
+		valid_sapera_short = mx_pointer_is_valid( sapera_data_address,
+						1, R_OK );
+
+		MX_DEBUG(-2,("%s: mx addr valid = %d, sapera addr valid = %d, "
+			"sapera addr valid (1 byte) = %d",
+			fname, valid_mx, valid_sapera, valid_sapera_short));
+
+		if ( valid_sapera == 0 ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The memory pointer returned by buffer->GetAddress() "
+			"is not valid for the full range (%ld) of bytes "
+			"needed by detector '%s'.",
+				vinput->frame->image_length,
+				vinput->record->name );
+		}
+	}
+#endif
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s: Before call to memcpy().", fname));
+#endif
+
 	memcpy( mx_data_address, sapera_data_address,
 			vinput->frame->image_length );
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s: After call to memcpy().", fname));
+#endif
 
 	/* Release the Sapera buffer address. */
 
@@ -1419,6 +1483,10 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		"frame grabber '%s' failed.",
 			vinput->record->name );
 	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
