@@ -1296,6 +1296,11 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 	internal_frame_trigger_frequency_millihz =
 		mx_round( mx_divide_safely( 1000.0, exposure_time ) );
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: exposure_time = %f, millihz = %ld",
+	    fname, exposure_time, internal_frame_trigger_frequency_millihz));
+#endif
+
 	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 				sapera_lt_frame_grabber,
 				-1, CORACQ_PRM_INT_FRAME_TRIGGER_FREQ,
@@ -1501,6 +1506,40 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		"frame grabber '%s' failed.",
 			vinput->record->name );
 	}
+
+	/* Update the exposure time in the image header. */
+
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		exposure_time = sp->parameter_array[1];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Sequence type %ld has not yet been implemented for '%s'.",
+			sp->sequence_type, vinput->record->name );
+		break;
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s: exposure_time = %f", fname, exposure_time));
+#endif
+
+	struct timespec exposure_timespec =
+	    mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC( vinput->frame )  = exposure_timespec.tv_sec;
+
+	MXIF_EXPOSURE_TIME_NSEC( vinput->frame ) = exposure_timespec.tv_nsec;
+
+	/*----*/
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
 	MX_DEBUG(-2,("%s complete.", fname));
