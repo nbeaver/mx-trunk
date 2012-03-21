@@ -1170,6 +1170,14 @@ mx_copy_array_to_buffer( void *array_pointer,
 	if ( num_dimensions == 1 )
 #endif
 	{ 
+		switch( mx_datatype ) {
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+			dimension_array[0] = 1;
+			break;
+		}
+
 		native_bytes_to_copy = dimension_array[0]
 				* mx_get_scalar_element_size( mx_datatype,
 						native_longs_are_64bits );
@@ -1209,11 +1217,9 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
-#if 1
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
-#endif
 			memcpy( destination_buffer,
 					array_pointer, network_bytes_to_copy );
 			break;
@@ -1500,6 +1506,14 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	}
 
 	if ( num_dimensions == 1 ) {
+
+		switch( mx_datatype ) {
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+			dimension_array[0] = 1;
+			break;
+		}
 
 		native_bytes_to_copy = dimension_array[0]
 				* mx_get_scalar_element_size( mx_datatype,
