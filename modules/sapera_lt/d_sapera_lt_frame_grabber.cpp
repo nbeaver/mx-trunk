@@ -853,6 +853,62 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	}
 #endif
 
+#if 1
+	/* Verify that the image buffers created by the SapBuffer object
+	 * are long enough to contain the MX images.
+	 */
+
+	{
+		int sapera_buffer_is_valid;
+		void *sapera_data_address;
+
+		mx_status = MX_SUCCESSFUL_RESULT;
+
+		/* Get the address of the first buffer. */
+
+		sapera_status = sapera_lt_frame_grabber->buffer->GetAddress(
+						0, &sapera_data_address );
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to get the buffer data address for "
+			"frame grabber '%s' failed.", record->name );
+		}
+
+		sapera_buffer_is_valid =
+			mx_pointer_is_valid( sapera_data_address,
+				bytes_per_frame, R_OK );
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN 
+		MX_DEBUG(-2,("%s: sapera_buffer_is_valid = %d",
+			fname, sapera_buffer_is_valid));
+#endif
+
+		if ( sapera_buffer_is_valid == FALSE ) {
+			mx_status = mx_error(
+				MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"The image buffer returned by buffer->GetAddress() "
+			"is not long enough to hold the number of bytes (%ld) "
+			"in an MX image for detector '%s'.",
+				bytes_per_frame, record->name );
+		}
+
+		/* Release the buffer. */
+
+		sapera_status = sapera_lt_frame_grabber->buffer->ReleaseAddress(
+							&sapera_data_address );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to release the Sapera data buffer "
+			"failed for detector '%s'.", record->name );
+		}
+	}
+#endif
+
 	/*---------------------------------------------------------------*/
 
 	/* Create a SapAcqToBuf object.  This object manages the transfer
@@ -1431,46 +1487,8 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Transfer the data from the Sapera buffer to the MX buffer. */
 
-#if ( 1 || MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME )
-	{
-		int valid_mx, valid_sapera, valid_sapera_short;
-
-		valid_mx = mx_pointer_is_valid( mx_data_address,
-						vinput->frame->image_length,
-						W_OK );
-
-		valid_sapera = mx_pointer_is_valid( sapera_data_address,
-						vinput->frame->image_length,
-						R_OK );
-
-		valid_sapera_short = mx_pointer_is_valid( sapera_data_address,
-						1, R_OK );
-
-		MX_DEBUG(-2,("%s: mx addr valid = %d, sapera addr valid = %d, "
-			"sapera addr valid (1 byte) = %d",
-			fname, valid_mx, valid_sapera, valid_sapera_short));
-
-		if ( valid_sapera == 0 ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The memory pointer returned by buffer->GetAddress() "
-			"is not valid for the full range (%ld) of bytes "
-			"needed by detector '%s'.",
-				vinput->frame->image_length,
-				vinput->record->name );
-		}
-	}
-#endif
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
-	MX_DEBUG(-2,("%s: Before call to memcpy().", fname));
-#endif
-
 	memcpy( mx_data_address, sapera_data_address,
 			vinput->frame->image_length );
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
-	MX_DEBUG(-2,("%s: After call to memcpy().", fname));
-#endif
 
 	/* Release the Sapera buffer address. */
 
