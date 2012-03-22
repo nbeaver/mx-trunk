@@ -162,12 +162,6 @@ mxd_soft_area_detector_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_area_detector_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_area_detector_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_area_detector_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_soft_area_detector_open()";
@@ -306,12 +300,6 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_area_detector_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
