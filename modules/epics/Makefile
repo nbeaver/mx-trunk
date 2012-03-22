@@ -57,7 +57,7 @@ ifeq ($(MX_ARCH),macosx)
 
 epics.mxo: $(EPICS_OBJS)
 	gcc -dynamiclib -o epics.mxo \
-		$(EPICS_OBJS) ../../libMx/libMx.so \
+		$(EPICS_OBJS) ../../libMx/libMx.dylib \
 		$(EPICS_LIB_DIRS) $(EPICS_LIBRARIES)
 endif
 
