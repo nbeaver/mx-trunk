@@ -66,7 +66,17 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #
 
 #MSDEV_ARCH	= x86
-MSDEV_ARCH	= x64
+#MSDEV_ARCH	= x64
+
+#MSDEV_ARCH	= x86_vs11
+MSDEV_ARCH	= x64_vs11
+
+#
+# Visual C++ 11 Pro (beta) (_MSC_VER == 1700)
+#
+# Full name: 'c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um'
+#
+MSDEV_DIR	= c:\\progra~2\\wi3cf2~1\\8.0\\Lib\\win8\\um
 
 #
 # Visual C++ 2010 Pro or Express (_MSC_VER == 1600)
@@ -75,7 +85,7 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
@@ -151,6 +161,18 @@ endif
 ifeq ($(MSDEV_ARCH),x64)
 	MSDEV_LIB_DIR = $(MSDEV_DIR)\\lib\\x64
 endif
+
+#--
+
+ifeq ($(MSDEV_ARCH),x86_vs11)
+	MSDEV_LIB_DIR = $(MSDEV_DIR)\\x86
+endif
+
+ifeq ($(MSDEV_ARCH),x64_vs11)
+	MSDEV_LIB_DIR = $(MSDEV_DIR)\\x64
+endif
+
+#--
 
 WIN32_LIBS	= $(MSDEV_LIB_DIR)\\wsock32.lib \
 	$(MSDEV_LIB_DIR)\\winmm.lib \

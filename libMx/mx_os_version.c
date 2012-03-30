@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005, 2009-2010 Illinois Institute of Technology
+ * Copyright 2005, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -242,6 +242,16 @@ mx_get_os_version_string( char *version_string,
 			} else {
 				strlcpy( version_string,
 					"Windows Server 2008 R2",
+					max_version_string_length );
+			}
+			break;
+		case 2:
+			if ( osvi.wProductType == VER_NT_WORKSTATION ) {
+				strlcpy( version_string, "Windows 8",
+					max_version_string_length );
+			} else {
+				strlcpy( version_string,
+					"Windows Server ??? (major=6, minor=2)",
 					max_version_string_length );
 			}
 			break;
