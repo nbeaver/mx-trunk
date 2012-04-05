@@ -16,13 +16,13 @@
  *
  */
 
-#define MXD_HANDEL_MCA_DEBUG			TRUE
+#define MXD_HANDEL_MCA_DEBUG			FALSE
 
 #define MXD_HANDEL_MCA_DEBUG_STATISTICS		TRUE
 
 #define MXD_HANDEL_MCA_DEBUG_TIMING		FALSE
 
-#define MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS	TRUE
+#define MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,7 +265,6 @@ mxd_handel_mca_finish_record_initialization( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
-	const char *handel_driver_name;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -312,24 +311,6 @@ mxd_handel_mca_finish_record_initialization( MX_RECORD *record )
 	handel_mca->new_statistics_available = TRUE;
 
 	HANDEL_MCA_DEBUG_STATISTICS( handel_mca );
-
-	/* Are we using a remote network Handel controller? */
-
-	handel_driver_name = mx_get_driver_name( handel_mca->handel_record );
-
-	MX_DEBUG(-2,("%s: record '%', handel_driver_name = '%s'",
-		fname, handel_driver_name ));
-
-	if ( strcmp( handel_driver_name, "handel_network" ) == 0 ) {
-		handel_mca->use_handel_network_driver = TRUE;
-	} else
-	if ( strcmp( handel_driver_name, "handel" ) == 0 ) {
-		handel_mca->use_handel_network_driver = FALSE;
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Record '%s' has illegal handel record type '%s'.",
-			record->name, handel_driver_name );
-	}
 
 	/* Do generic MCA record initialization. */
 
@@ -1033,6 +1014,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_HANDEL_NETWORK *handel_network;
 	unsigned long i, mca_number;
 	int display_config = FALSE;
+	const char *handel_driver_name;
 #if 0
 	unsigned long codevar, coderev;
 #endif
@@ -1041,7 +1023,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 #if ( HAVE_XIA_HANDEL && MXD_HANDEL_MCA_DEBUG_TIMING )
 	MX_HRT_TIMING measurement;
 #endif
-
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_RECORD pointer passed is NULL." );
@@ -1059,13 +1040,34 @@ mxd_handel_mca_open( MX_RECORD *record )
 			fname, record->name ));
 	}
 
-	/* Suppress GCC 'set but not used' warning. */
-	display_config = display_config;
-
 	handel_record = handel_mca->handel_record;
 
-	MX_DEBUG( 2,("%s invoked for interface '%s' type %ld",
-		fname, record->name, handel_record->mx_type));
+	if ( handel_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The handel_record pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* Are we using a remote network Handel controller? */
+
+	handel_driver_name = mx_get_driver_name( handel_record );
+
+	MX_DEBUG(-2,("%s: record '%s', interface '%s' driver = '%s'",
+		fname, record->name, handel_record->name, handel_driver_name ));
+
+	if ( strcmp( handel_driver_name, "handel_network" ) == 0 ) {
+		handel_mca->use_handel_network_driver = TRUE;
+	} else
+	if ( strcmp( handel_driver_name, "handel" ) == 0 ) {
+		handel_mca->use_handel_network_driver = FALSE;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record '%s' has illegal handel record type '%s'.",
+			record->name, handel_driver_name );
+	}
+
+	/* Suppress GCC 'set but not used' warning. */
+	display_config = display_config;
 
 	if ( handel_mca->use_handel_network_driver ) {
 		mx_status = mxd_handel_mca_network_open( mca,

@@ -7,14 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_HANDEL_SUM_DEBUG	TRUE
+#define MXD_HANDEL_SUM_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

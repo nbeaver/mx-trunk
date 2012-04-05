@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -515,7 +515,11 @@ mxserver_main( int argc, char *argv[] )
 	strlcpy( mx_stderr_destination_filename,
 					"", MXU_FILENAME_LENGTH );
 
+#if defined(OS_DJGPP)
 	enable_callbacks = FALSE;
+#else
+	enable_callbacks = TRUE;
+#endif
 
 	debug_level = 0;
 
