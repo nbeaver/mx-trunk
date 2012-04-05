@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -212,9 +212,6 @@ extern "C" {
 #define MXI_CTRL_6821			420
 #define MXI_CTRL_DATABOX		421
 
-#define MXI_CTRL_XIA_XERXES		423
-#define MXI_CTRL_XIA_NETWORK		424
-#define MXI_CTRL_XIA_HANDEL		425
 #define MXI_CTRL_LPT			426
 #define MXI_CTRL_SIS3807		427
 #define MXI_CTRL_MARDTB			428
@@ -246,8 +243,7 @@ extern "C" {
 #define MXI_CTRL_ILM			454
 #define MXI_CTRL_ITC503			455
 #define MXI_CTRL_CRYOJET		456
-#define MXI_CTRL_HANDEL			457
-#define MXI_CTRL_HANDEL_NETWORK		458
+
 #define MXI_CTRL_LINKAM_T9X		459
 #define MXI_CTRL_POWERPMAC		460
 #define MXI_CTRL_SIM900			461
@@ -285,8 +281,7 @@ extern "C" {
 
 #define MXT_AIN_NETWORK			10005
 #define MXT_AIN_PMAC			10006
-#define MXT_AIN_XIA_DXP			10007
-#define MXT_AIN_XIA_DXP_SUM		10008
+
 #define MXT_AIN_MCA_VALUE		10009
 #define MXT_AIN_MARDTB_STATUS		10010
 #define MXT_AIN_SCIPE			10011
@@ -321,8 +316,7 @@ extern "C" {
 #define MXT_AIN_ILM			10040
 #define MXT_AIN_CRYOJET			10041
 #define MXT_AIN_MCA_WEIGHTED_SUM	10042
-#define MXT_AIN_HANDEL			10043
-#define MXT_AIN_HANDEL_SUM		10044
+
 #define MXT_AIN_POWERPMAC		10045
 #define MXT_AIN_SIM980			10046
 
@@ -590,9 +584,7 @@ extern "C" {
 #define MXT_TIM_INTERVAL		80016
 #define MXT_TIM_BLUICE_DCSS		80017
 #define MXT_TIM_BLUICE_DHS		80018
-#define MXT_TIM_XIA_HANDEL		80019
-#define MXT_TIM_XIA_DXP			80020
-#define MXT_TIM_HANDEL			80021
+
 #define MXT_TIM_AREA_DETECTOR		80022
 
 /* --- Amplifier types --- */
@@ -633,9 +625,8 @@ extern "C" {
 #define MXT_MCA_NETWORK			110001
 
 #define MXT_MCA_TRUMP			110003
-#define MXT_MCA_XIA_DXP			110004
+
 #define MXT_MCA_ROENTEC_RCL		110005
-#define MXT_MCA_HANDEL			110006
 
 /* --- Multichannel encoder types --- */
 
@@ -653,7 +644,7 @@ extern "C" {
 
 #define MXT_MCS_DATABOX			130003
 #define MXT_MCS_SIS3801			130004
-#define MXT_MCS_XIA_DXP			130005
+
 #define MXT_MCS_SCALER_FUNCTION		130006
 
 /* --- Table types --- */

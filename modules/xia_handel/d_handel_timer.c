@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2009-2011 Illinois Institute of Technology
+ * Copyright 2005-2006, 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -103,16 +103,6 @@ mxd_handel_timer_get_pointers( MX_TIMER *timer,
 			calling_fname );
 	}
 
-	if ( timer->record->mx_type != MXT_TIM_HANDEL ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"The timer '%s' passed by '%s' is not an XIA Handel timer.  "
-	"(superclass = %ld, class = %ld, type = %ld)",
-			timer->record->name, calling_fname,
-			timer->record->mx_superclass,
-			timer->record->mx_class,
-			timer->record->mx_type );
-	}
-
 	handel_timer_ptr = (MX_HANDEL_TIMER *)
 				timer->record->record_type_struct;
 
@@ -135,19 +125,7 @@ mxd_handel_timer_get_pointers( MX_TIMER *timer,
 				timer->record->name );
 		}
 
-		if ( handel_record->mx_type != MXI_CTRL_HANDEL ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The handel_record '%s' passed by '%s' "
-			"is not an XIA Handel record.  "
-			"(superclass = %ld, class = %ld, type = %ld)",
-				handel_record->name, calling_fname,
-				handel_record->mx_superclass,
-				handel_record->mx_class,
-				handel_record->mx_type );
-		}
-
-		*handel = (MX_HANDEL *)
-				handel_record->record_type_struct;
+		*handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 		if ( (*handel) == (MX_HANDEL *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -207,6 +185,8 @@ mxd_handel_timer_finish_record_initialization( MX_RECORD *record )
 
 	MX_TIMER *timer;
 	MX_HANDEL_TIMER *handel_timer;
+	MX_RECORD *handel_record;
+	const char *handel_driver_name;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -229,6 +209,24 @@ mxd_handel_timer_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_HANDEL_TIMER pointer for record '%s' is NULL.",
 			record->name );
+	}
+
+	handel_record = handel_timer->handel_record;
+
+	if ( handel_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The handel_record pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	handel_driver_name = mx_get_driver_name( handel_record );
+
+	if ( strcmp( handel_driver_name, "handel" ) != 0 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Handel timer record '%s' can only be used with a "
+		"Handel record of type 'handel'.  Instead, Handel record '%s' "
+		"is of type '%s'.",
+			record->name, handel_record->name, handel_driver_name );
 	}
 
 	return mx_timer_finish_record_initialization( record );

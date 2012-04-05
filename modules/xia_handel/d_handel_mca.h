@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2001-2006, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -111,6 +111,7 @@ typedef struct {
 	double old_preset_time;
 
 	mx_bool_type debug_flag;
+	mx_bool_type use_handel_network_driver;
 
 	mx_status_type (*is_busy)( MX_MCA *mca, mx_bool_type *busy_flag );
 
@@ -346,6 +347,11 @@ typedef struct {
   \
   {-1, -1, "debug_flag", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, debug_flag ), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "use_handel_network_driver", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof( MX_HANDEL_MCA, use_handel_network_driver ), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "detector_alias", MXFT_STRING, NULL, 1, {200}, \
