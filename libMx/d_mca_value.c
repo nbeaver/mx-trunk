@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_MCA_VALUE_READ_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -292,10 +294,12 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,
+#if MXD_MCA_VALUE_READ_DEBUG
+	MX_DEBUG(-2,
 ("%s invoked for record '%s'. value_type = %ld, value_name = '%s'.",
 		fname, analog_input->record->name,
 		mca_value->value_type, mca_value->value_name ));
+#endif
 
 	/**** Handle the different value types. ****/
 
@@ -483,9 +487,11 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 			analog_input->record->name );
 	}
 
-	MX_DEBUG( 2,("%s: value_type = %ld, raw_value = %g",
+#if MXD_MCA_VALUE_READ_DEBUG
+	MX_DEBUG(-2,("%s: value_type = %ld, raw_value = %g",
 		fname, mca_value->value_type,
 		analog_input->raw_value.double_value ));
+#endif
 
 	return mx_status;
 }

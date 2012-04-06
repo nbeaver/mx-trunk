@@ -15,9 +15,9 @@
  *
  */
 
-#define MXI_HANDEL_DEBUG	FALSE
+#define MXI_HANDEL_DEBUG		FALSE
 
-#define MXI_HANDEL_DEBUG_TIMING	FALSE
+#define MXI_HANDEL_DEBUG_TIMING		FALSE
 
 #include <stdio.h>
 #include <limits.h>
@@ -2528,15 +2528,20 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
+	case MXLV_MCA_ROI_INTEGRAL:
 
 #if MXI_HANDEL_DEBUG
-		MX_DEBUG(-2,("%s: reading roi_integral_array", fname));
+		MX_DEBUG(-2,("%s: Reading roi_integral_array", fname));
 #endif
 		if ( handel_mca->hardware_scas_are_enabled ) {
 			/* This system supports SCA integrals computed
 			 * by the firmware.
 			 */
 
+#if MXI_HANDEL_DEBUG
+			MX_DEBUG(-2,("%s: use_double_roi_integral_array = %d",
+			  fname, (int) handel_mca->double_roi_integral_array));
+#endif
 			if ( handel_mca->use_double_roi_integral_array ) {
 				integral_array =
 					handel_mca->double_roi_integral_array;
@@ -2547,6 +2552,23 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 			xia_status = xiaGetRunData(
 				handel_mca->detector_channel,
 				"sca", integral_array );
+
+#if 0
+			{
+				mx_bool_type valid;
+
+				valid = mx_database_is_valid(
+						handel_mca->record, 0 );
+
+				if ( valid == FALSE ) {
+					return mx_error(
+						MXE_LIMIT_WAS_EXCEEDED, fname,
+					"A call to xiaGetRunData( ,sca, ) "
+					"has caused a buffer overrun.\n"
+					"   Alas, all is lost...\n" );
+				}
+			}
+#endif
 
 			if ( xia_status != XIA_SUCCESS ) {
 				return mx_error(
@@ -2570,6 +2592,15 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 							mx_round( dbl_value );
 					}
 				}
+			}
+
+			if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
+				mca->roi_integral =
+				    mca->roi_integral_array[ mca->roi_number ];
+#if MXI_HANDEL_DEBUG
+				MX_DEBUG(-2,("%s: mca->roi_integral = %lu",
+					fname, mca->roi_integral));
+#endif
 			}
 
 		} else {
@@ -2660,60 +2691,6 @@ mxi_handel_get_mx_parameter( MX_MCA *mca )
 #endif
 		break;
 	
-	case MXLV_MCA_ROI_INTEGRAL:
-		if ( handel_mca->hardware_scas_are_enabled ) {
-			/* This system supports SCA integrals computed
-			 * by the firmware.
-			 */
-
-			if ( handel_mca->use_double_roi_integral_array ) {
-				integral_array =
-					handel_mca->double_roi_integral_array;
-			} else {
-				integral_array = mca->roi_integral_array;
-			}
-
-			xia_status = xiaGetRunData(
-				handel_mca->detector_channel,
-				"sca", integral_array );
-
-			if ( xia_status != XIA_SUCCESS ) {
-				return mx_error(
-				    MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot read the region of interest integrals "
-			"from MCA '%s'.  Error code = %d, '%s'",
-					mca->record->name, xia_status,
-					mxi_handel_strerror( xia_status ) );
-			}
-
-			if ( handel_mca->use_double_roi_integral_array ) {
-				for ( i = 0; i < mca->maximum_num_rois; i++ ) {
-					dbl_value =
-				    handel_mca->double_roi_integral_array[i];
-
-					if ( dbl_value >= LONG_MAX ) {
-						mca->roi_integral_array[i] =
-							LONG_MAX;
-					} else {
-						mca->roi_integral_array[i] =
-							mx_round( dbl_value );
-					}
-				}
-			}
-
-			mca->roi_integral =
-				mca->roi_integral_array[ mca->roi_number ];
-#if MXI_HANDEL_DEBUG
-			MX_DEBUG(-2,("%s: mca->roi_integral = %lu",
-					fname, mca->roi_integral));
-#endif
-		} else {
-			/* Pass this on to the default code. */
-
-			return mxd_handel_mca_default_get_mx_parameter( mca );
-		}
-		break;
-
 	case MXLV_MCA_REAL_TIME:
 		xia_status = xiaGetRunData( handel_mca->detector_channel,
 			"runtime", (void *) &(mca->real_time) );

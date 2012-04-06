@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,8 @@
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_array.h"
+#include "mx_unistd.h"
+
 #include "mx_variable.h"
 
 #include "mx_scan.h"
@@ -3062,6 +3064,146 @@ mx_create_description_from_record(
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_bool_type
+mx_database_is_valid( MX_RECORD *record, unsigned long flags )
+{
+	static const char fname[] = "mx_database_is_valid()";
+
+	MX_RECORD *list_head_record, *current_record;
+	MX_RECORD *previous_record, *next_record;
+	int valid_pointer;
+
+	if ( flags & MXF_DATABASE_VALID_DEBUG ) {
+		MX_DEBUG(-2,("%s invoked for record pointer %p",
+			fname, record ));
+	}
+
+	valid_pointer = mx_pointer_is_valid( record, sizeof(MX_RECORD), R_OK );
+
+	if ( valid_pointer == FALSE ) {
+		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The MX_RECORD pointer (%p) passed to us "
+		"is not a valid pointer.",
+			record );
+
+		return FALSE;
+	}
+
+	list_head_record = record->list_head;
+
+	valid_pointer = mx_pointer_is_valid( record, sizeof(MX_RECORD), R_OK );
+
+	if ( valid_pointer == FALSE ) {
+		mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list_head pointer (%p) for record '%s' (%p) "
+		"passed to us is invalid.",
+			list_head_record,
+			record->name,
+			record );
+
+		return FALSE;
+	}
+
+	current_record = list_head_record;
+
+	while (1) {
+		if ( flags & MXF_DATABASE_VALID_DEBUG ) {
+			MX_DEBUG(-2,
+			("%s: current_record = %p", fname, current_record));
+
+			MX_DEBUG(-2,("%s:     current_record name = '%s'",
+				fname, current_record->name));
+		}
+
+		/* See if the next_record pointer is valid. */
+
+		next_record = current_record->next_record;
+
+		valid_pointer = mx_pointer_is_valid( record,
+						sizeof(record), R_OK );
+
+		if ( valid_pointer == FALSE ) {
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The next_record pointer (%p) for current record "
+			"'%s' (%p) is not a valid pointer.",
+				next_record, current_record->name,
+				current_record );
+
+			return FALSE;
+		}
+
+		/* Does the next record's previous_record pointer
+		 * point back to us?
+		 */
+
+		if ( current_record != next_record->previous_record ) {
+			if ( flags & MXF_DATABASE_VALID_DEBUG ) {
+				MX_DEBUG(-2,("%s: next_record = '%s' (%p)",
+				fname, next_record->name, next_record ));
+			}
+
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record list structure is broken, since "
+			"current_record '%s' = %p is not equal to "
+			"next_record->previous_record = %p.",
+				current_record->name, current_record,
+				next_record->previous_record );
+
+			return FALSE;
+		}
+
+		/* See if the previous_record pointer is valid. */
+
+		previous_record = current_record->previous_record;
+
+		valid_pointer = mx_pointer_is_valid( record,
+						sizeof(record), R_OK );
+
+		if ( valid_pointer == FALSE ) {
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The previous_record pointer (%p) for current record "
+			"'%s' (%p) is not a valid pointer.",
+				previous_record, current_record->name,
+				current_record );
+
+			return FALSE;
+		}
+
+		/* Does the previous record's next_record pointer
+		 * point back to us?
+		 */
+
+		if ( current_record != previous_record->next_record ) {
+			if ( flags & MXF_DATABASE_VALID_DEBUG ) {
+				MX_DEBUG(-2,("%s: previous_record = '%s' (%p)",
+				fname, previous_record->name, previous_record));
+			}
+
+			mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The record list structure is broken, since "
+			"current_record '%s' = %p is not equal to "
+			"previous_record->next_record = %p.",
+				current_record->name, current_record,
+				previous_record->next_record );
+
+			return FALSE;
+		}
+
+		/* Proceed on to the next record. */
+
+		current_record = current_record->next_record;
+
+		/* Exit the loop if we have returned to the list head record. */
+
+		if ( current_record == list_head_record )
+			break;
+	}
+
+	return TRUE;
 }
 
 /*=====================================================================*/

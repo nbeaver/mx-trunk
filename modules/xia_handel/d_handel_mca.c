@@ -1205,8 +1205,9 @@ mxd_handel_mca_open( MX_RECORD *record )
 #endif
 
 		if( handel_mca->use_double_roi_integral_array == TRUE ) {
-			handel_mca->double_roi_integral_array =
-				(double *) malloc( mca->maximum_num_rois );
+
+			handel_mca->double_roi_integral_array = (double *)
+			    malloc( mca->maximum_num_rois * sizeof(double) );
 
 			if ( handel_mca->double_roi_integral_array == NULL ) {
 				return mx_error( MXE_OUT_OF_MEMORY, fname,

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -611,6 +611,13 @@ MX_API mx_status_type  mx_create_record_from_description(
 MX_API mx_status_type  mx_create_description_from_record(
 			MX_RECORD *record, char *record_description_buffer,
 			size_t description_buffer_length );
+
+/* --- */
+
+#define MXF_DATABASE_VALID_DEBUG	0x1
+
+MX_API mx_bool_type    mx_database_is_valid( MX_RECORD *record_list,
+						unsigned long flags );
 
 /* --- */
 
