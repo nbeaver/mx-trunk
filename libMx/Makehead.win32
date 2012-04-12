@@ -65,18 +65,18 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # is if you are using a separately downloaded copy of the Win32 Platform SDK.
 #
 
-MSDEV_ARCH	= x86
+#MSDEV_ARCH	= x86
 #MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs11
-#MSDEV_ARCH	= x64_vs11
+MSDEV_ARCH	= x64_vs11
 
 #
 # Visual C++ 11 Pro (beta)       (_MSC_VER == 1700)
 #
 # Full name: 'c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um'
 #
-#MSDEV_DIR	= c:\\progra~2\\wi3cf2~1\\8.0\\Lib\\win8\\um
+MSDEV_DIR	= c:\\progra~2\\wi3cf2~1\\8.0\\Lib\\win8\\um
 
 #
 # Visual C++ 2010 Pro or Express (_MSC_VER == 1600)
@@ -92,7 +92,7 @@ MSDEV_ARCH	= x86
 # Visual C++ 2008 Express        (_MSC_VER == 1500)
 #   (32-bit mode only)
 #
-MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
 #
 # Visual C++ 2005 Express        (_MSC_VER == 1400)
 #  (See below at the definition of PLATFORM_SDK)

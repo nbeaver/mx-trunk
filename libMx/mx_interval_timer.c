@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 2004-2007, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -116,9 +116,9 @@ typedef struct {
 static void CALLBACK
 mx_interval_timer_thread_handler( UINT timer_id,
 				UINT reserved_msg,
-				DWORD user_data,
-				DWORD reserved1,
-				DWORD reserved2 )
+				DWORD_PTR user_data,
+				DWORD_PTR reserved1,
+				DWORD_PTR reserved2 )
 {
 	static const char fname[] = "mx_interval_timer_thread_handler()";
 
@@ -423,7 +423,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	win32_mmtimer_private->timer_id = timeSetEvent( event_delay_ms, 0,
 			(TIMECALLBACK *) mx_interval_timer_thread_handler,
-			(DWORD) itimer,
+			(DWORD_PTR) itimer,
 			timer_flags );
 
 	if ( win32_mmtimer_private->timer_id == 0 ) {
