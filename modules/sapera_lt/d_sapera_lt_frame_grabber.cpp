@@ -998,6 +998,43 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		fname, record->name,
 		sapera_lt_frame_grabber->maximum_exposure_time ));
 #endif
+	/*---------------------------------------------------------------*/
+
+	/* Does this frame grabber support internal triggers? */
+
+	UINT32 internal_trigger_available;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+						sapera_lt_frame_grabber,
+						CORACQ_CAP_INT_FRAME_TRIGGER,
+						&internal_trigger_available );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( internal_trigger_available ) {
+		sapera_lt_frame_grabber->internal_trigger_available = TRUE;
+	} else {
+		sapera_lt_frame_grabber->internal_trigger_available = FALSE;
+	}
+
+	/* Does this frame grabber support external triggers? */
+
+	UINT32 external_trigger_available;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+						sapera_lt_frame_grabber,
+						CORACQ_CAP_EXT_TRIGGER,
+						&external_trigger_available );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( external_trigger_available ) {
+		sapera_lt_frame_grabber->external_trigger_available = TRUE;
+	} else {
+		sapera_lt_frame_grabber->external_trigger_available = FALSE;
+	}
+
+	/*---------------------------------------------------------------*/
 
 	/* Initialize the video parameters. */
 
@@ -1556,7 +1593,6 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	UINT32 pixels_per_line, lines_per_frame, output_format;
-	UINT32 internal_trigger_enabled, external_trigger_enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1654,39 +1690,9 @@ mxd_sapera_lt_frame_grabber_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		/* Is internal trigger enabled? */
-
-		mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
-					sapera_lt_frame_grabber,
-					CORACQ_CAP_INT_FRAME_TRIGGER,
-					CORACQ_PRM_INT_FRAME_TRIGGER_ENABLE,
-					&internal_trigger_enabled );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
-					sapera_lt_frame_grabber,
-					CORACQ_CAP_EXT_FRAME_TRIGGER,
-					CORACQ_PRM_EXT_FRAME_TRIGGER_ENABLE,
-					&external_trigger_enabled );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( internal_trigger_enabled & external_trigger_enabled ) {
-			vinput->trigger_mode =
-		    MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
-		}
-
-		if ( internal_trigger_enabled ) {
-			vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
-		} else
-		if ( external_trigger_enabled ) {
-			vinput->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
-		} else {
-			vinput->trigger_mode = MXT_IMAGE_NO_TRIGGER;
-		}
+		/* For this, we just return the values set by an earlier
+		 * ..._set_parameter() call.
+		 */
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
@@ -1730,7 +1736,8 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	unsigned long bytes_per_frame;
-	UINT32 internal_trigger_enabled, external_trigger_enabled;
+	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
+	UINT32 external_trigger_setting;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1767,38 +1774,77 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		switch( vinput->trigger_mode ) {
-		case MXT_IMAGE_INTERNAL_TRIGGER:
+		if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 			internal_trigger_enabled = TRUE;
-			external_trigger_enabled = FALSE;
-			break;
-		case MXT_IMAGE_EXTERNAL_TRIGGER:
+		} else {
 			internal_trigger_enabled = FALSE;
-			external_trigger_enabled = TRUE;
-			break;
-		default:
-			internal_trigger_enabled = FALSE;
-			external_trigger_enabled = FALSE;
-			break;
 		}
 
-		mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+		if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			external_trigger_enabled = TRUE;
+		} else {
+			external_trigger_enabled = FALSE;
+		}
+
+		/* Configure internal triggering. */
+
+		if ( sapera_lt_frame_grabber->internal_trigger_available ) {
+			mx_status =
+			    mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 					sapera_lt_frame_grabber,
-					CORACQ_CAP_INT_FRAME_TRIGGER,
-					CORACQ_PRM_INT_FRAME_TRIGGER_ENABLE,
-					internal_trigger_enabled );
+					-1, CORACQ_PRM_INT_FRAME_TRIGGER_ENABLE,
+					(UINT32) internal_trigger_enabled );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else {
+			if ( internal_trigger_enabled ) {
+				mx_warning(
+				"Internal trigger mode was requested for "
+				"Sapera LT frame grabber '%s', but that frame "
+				"grabber does not support internal triggering.",
+					vinput->record->name );
 
-		mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+				vinput->trigger_mode
+					&= (~MXT_IMAGE_INTERNAL_TRIGGER);
+
+				internal_trigger_enabled = FALSE;
+			}
+		}
+
+		/* Configure external triggering. */
+
+		if ( sapera_lt_frame_grabber->external_trigger_available ) {
+			if ( external_trigger_enabled ) {
+				external_trigger_setting
+					= CORACQ_VAL_EXT_TRIGGER_ON;
+			} else {
+				external_trigger_setting
+					= CORACQ_VAL_EXT_TRIGGER_OFF;
+			}
+
+			mx_status =
+			    mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 					sapera_lt_frame_grabber,
-					CORACQ_CAP_EXT_FRAME_TRIGGER,
-					CORACQ_PRM_EXT_FRAME_TRIGGER_ENABLE,
-					external_trigger_enabled );
+					-1, CORACQ_PRM_EXT_TRIGGER_ENABLE,
+					external_trigger_setting );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else {
+			if ( external_trigger_enabled ) {
+				mx_warning(
+				"External trigger mode was requested for "
+				"Sapera LT frame grabber '%s', but that frame "
+				"grabber does not support external triggering.",
+					vinput->record->name );
+
+				vinput->trigger_mode
+					&= (~MXT_IMAGE_EXTERNAL_TRIGGER);
+
+				external_trigger_enabled = FALSE;
+			}
+		}
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
