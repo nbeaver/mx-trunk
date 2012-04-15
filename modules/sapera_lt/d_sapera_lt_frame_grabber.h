@@ -35,6 +35,10 @@ typedef struct {
 
 	mx_bool_type internal_trigger_available;
 	mx_bool_type external_trigger_available;
+	mx_bool_type software_trigger_available;
+	mx_bool_type multiframe_trigger_available;
+
+	mx_bool_type use_software_trigger;
 
 	SapAcquisition *acquisition;
 	SapBuffer      *buffer;

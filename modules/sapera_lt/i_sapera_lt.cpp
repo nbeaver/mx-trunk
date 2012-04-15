@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,6 +80,16 @@ mxi_sapera_lt_get_pointers( MX_RECORD *record,
 
 /*------*/
 
+void
+mxi_sapera_lt_error_callback( SapManCallbackInfo *info )
+{
+	const char *sapera_error_message = info->GetErrorMessage();
+
+	fprintf( stderr, "SAPERA LT ERROR: %s\n", sapera_error_message );
+}
+
+/*------*/
+
 MX_EXPORT mx_status_type
 mxi_sapera_lt_create_record_structures( MX_RECORD *record )
 {
@@ -116,12 +126,28 @@ mxi_sapera_lt_finish_record_initialization( MX_RECORD *record )
 			"mxi_sapera_lt_finish_record_initialization()";
 
 	MX_SAPERA_LT *sapera_lt;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sapera_lt_get_pointers( record, &sapera_lt, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Configure Sapera LT error reporting so that it invokes
+	 * a callback.
+	 */
+
+	sapera_status = SapManager::SetDisplayStatusMode(
+						SapManager::StatusCallback,
+						mxi_sapera_lt_error_callback,
+						record );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		"The attempt to set up a Sapera LT error reporting callback "
+		"for record '%s' failed.", record->name );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

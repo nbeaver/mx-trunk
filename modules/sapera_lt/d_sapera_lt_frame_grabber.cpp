@@ -18,15 +18,15 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM			FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME		FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME		TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS	FALSE
 
@@ -290,7 +290,7 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	    if ( capability_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		    "Capability %d is not available for frame grabber '%s'.",
+		    "Capability %#x is not available for frame grabber '%s'.",
 		    capability, sapera_lt_frame_grabber->record->name );
 	    }
 	}
@@ -299,7 +299,7 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	if ( parameter_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"Parameter %d is not available for frame grabber '%s'.",
+		"Parameter %#x is not available for frame grabber '%s'.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
@@ -307,13 +307,13 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	if ( get_parameter_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to read parameter %d from "
+			"The attempt to read parameter %#x from "
 			"frame grabber '%s' failed.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
-	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %#0x",
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %#x = %#0x",
 		fname, sapera_lt_frame_grabber->record->name,
 		parameter, parameter_value ));
 #endif
@@ -358,7 +358,7 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	    if ( capability_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		    "Capability %d is not available for frame grabber '%s'.",
+		    "Capability %#x is not available for frame grabber '%s'.",
 		    capability, sapera_lt_frame_grabber->record->name );
 	    }
 	}
@@ -367,7 +367,7 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	if ( parameter_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"Parameter %d is not available for frame grabber '%s'.",
+		"Parameter %#x is not available for frame grabber '%s'.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
@@ -375,13 +375,13 @@ mxd_sapera_lt_frame_grabber_get_lowlevel_parameter(
 
 	if ( get_parameter_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to read parameter %d from "
+			"The attempt to read parameter %#x from "
 			"frame grabber '%s' failed.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
-	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %lu",
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %#x = %lu",
 		fname, sapera_lt_frame_grabber->record->name,
 		parameter, (unsigned long) *parameter_value ));
 #endif
@@ -429,7 +429,7 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	    if ( capability_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		    "Capability %d is not available for frame grabber '%s'.",
+		    "Capability %#x is not available for frame grabber '%s'.",
 		    capability, sapera_lt_frame_grabber->record->name );
 	    }
 	}
@@ -438,7 +438,7 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	if ( parameter_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"Parameter %d is not available for frame grabber '%s'.",
+		"Parameter %#x is not available for frame grabber '%s'.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
@@ -447,14 +447,14 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	if ( set_parameter_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to write %p to parameter %d of "
+			"The attempt to write %p to parameter %#x of "
 			"frame grabber '%s' failed.",
 			parameter_value, parameter,
 			sapera_lt_frame_grabber->record->name );
 	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
-	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %#0x",
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %#x = %#0x",
 		fname, sapera_lt_frame_grabber->record->name,
 		parameter, parameter_value ));
 #endif
@@ -500,7 +500,7 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	    if ( capability_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		    "Capability %d is not available for frame grabber '%s'.",
+		    "Capability %#x is not available for frame grabber '%s'.",
 		    capability, sapera_lt_frame_grabber->record->name );
 	    }
 	}
@@ -509,7 +509,7 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	if ( parameter_valid == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"Parameter %d is not available for frame grabber '%s'.",
+		"Parameter %#x is not available for frame grabber '%s'.",
 			parameter, sapera_lt_frame_grabber->record->name );
 	}
 
@@ -518,16 +518,16 @@ mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 
 	if ( set_parameter_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"The attempt to write %lu to parameter %d of "
+			"The attempt to write %d to parameter %#x of "
 			"frame grabber '%s' failed.",
 			parameter_value, parameter,
 			sapera_lt_frame_grabber->record->name );
 	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS
-	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %d = %lu",
+	MX_DEBUG(-2,("%s: Frame grabber '%s', parameter %#x = %lu",
 		fname, sapera_lt_frame_grabber->record->name,
-		parameter, (unsigned long) *parameter_value ));
+		parameter, (unsigned long) parameter_value ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -572,7 +572,7 @@ mxd_sapera_lt_frame_grabber_get_capability(
 
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_NOT_AVAILABLE, fname,
-		    "Capability %d is not available for frame grabber '%s'.",
+		    "Capability %#x is not available for frame grabber '%s'.",
 		    capability, sapera_lt_frame_grabber->record->name );
 	}
 
@@ -1034,6 +1034,118 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		sapera_lt_frame_grabber->external_trigger_available = FALSE;
 	}
 
+	/* Does this frame grabber support software triggers? */
+
+	UINT32 software_trigger_available;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+						sapera_lt_frame_grabber,
+						CORACQ_CAP_SOFTWARE_TRIGGER,
+						&software_trigger_available );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( software_trigger_available ) {
+		sapera_lt_frame_grabber->software_trigger_available = TRUE;
+	} else {
+		sapera_lt_frame_grabber->software_trigger_available = FALSE;
+	}
+
+	/* Does this frame grabber support acquisition of multiple frames
+	 * on one external trigger?
+	 */
+
+	UINT32 multiframe_trigger_available;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+					sapera_lt_frame_grabber,
+					CORACQ_CAP_EXT_TRIGGER_FRAME_COUNT,
+					&multiframe_trigger_available );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( multiframe_trigger_available ) {
+		sapera_lt_frame_grabber->multiframe_trigger_available = TRUE;
+	} else {
+		sapera_lt_frame_grabber->multiframe_trigger_available = FALSE;
+	}
+
+#if 1
+	MX_DEBUG(-2,("%s: Sapera LT frame grabber '%s'.\n"
+			"    internal_trigger_available = %d\n"
+			"    external_trigger_available = %d\n"
+			"    software_trigger_available = %d\n"
+			"    multiframe_trigger_available = %d",
+		fname, record->name,
+		(int) sapera_lt_frame_grabber->internal_trigger_available,
+		(int) sapera_lt_frame_grabber->external_trigger_available,
+		(int) sapera_lt_frame_grabber->software_trigger_available,
+		(int) sapera_lt_frame_grabber->multiframe_trigger_available ));
+#endif
+
+#if 1
+	sapera_lt_frame_grabber->use_software_trigger = TRUE;
+#endif
+
+	/*---------------------------------------------------------------*/
+
+	UINT32 time_integrate_available;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+					sapera_lt_frame_grabber,
+					CORACQ_CAP_TIME_INTEGRATE,
+					&time_integrate_available );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: Time Integrate available = %d",
+		fname, time_integrate_available));
+#endif
+
+	/* Tell the frame grabber to use the Time Integrate
+	 * camera control method.
+	 */
+
+	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+				sapera_lt_frame_grabber,
+				-1, CORACQ_PRM_TIME_INTEGRATE_ENABLE,
+				(UINT32) TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---------------------------------------------------------------*/
+
+	UINT32 supported_methods;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
+					sapera_lt_frame_grabber,
+					CORACQ_CAP_TIME_INTEGRATE_METHOD,
+					&supported_methods );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: Time Integrate supported methods = %#lx",
+		fname, supported_methods ));
+#endif
+
+	/* Tell the frame grabber to use Time Integrate method 1.  For
+	 * this method the integration time lasts from the beginning 
+	 * of the pulse to the end of the pulse sent to the camera.
+	 */
+
+	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+				sapera_lt_frame_grabber,
+				-1, CORACQ_PRM_TIME_INTEGRATE_METHOD,
+				CORACQ_VAL_TIME_INTEGRATE_METHOD_1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/*---------------------------------------------------------------*/
 
 	/* Initialize the video parameters. */
@@ -1150,8 +1262,10 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_sapera_lt_frame_grabber_arm()";
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	MX_SEQUENCE_PARAMETERS *seq;
-	long num_frames_in_sequence;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	int num_frames;
+	UINT32 exposure_time_in_microsec;
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
@@ -1165,6 +1279,13 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+
+	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
+					vinput, sapera_lt_frame_grabber );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Clear any existing frame data in the SapBuffer object. */
 
 	sapera_status = sapera_lt_frame_grabber->buffer->Clear();
@@ -1194,93 +1315,9 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
-	MX_DEBUG(-2,("%s: Prepare for trigger mode %d",
-		fname, vinput->trigger_mode ));
-#endif
-
-	if ( (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
-
-		/* If external triggering is not enabled,
-		 * return without doing anything further.
-		 */
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
-		MX_DEBUG(-2,
-		("%s: external trigger disabled for video input '%s'",
-			fname, vinput->record->name));
-#endif
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, we are doing external triggering. */
-
-	seq = &(vinput->sequence_parameters);
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
-	MX_DEBUG(-2,("%s: Prepare for sequence type %d",
-		fname, seq->sequence_type));
-#endif
-
-	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
-					vinput, sapera_lt_frame_grabber );
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] = "mxd_sapera_lt_frame_grabber_trigger()";
-
-	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
-	MX_SEQUENCE_PARAMETERS *sp;
-	MX_IMAGE_FRAME *frame;
-	double exposure_time;
-	unsigned long internal_frame_trigger_frequency_millihz;
-	int num_frames;
-	BOOL sapera_status;
-	mx_status_type mx_status;
-
-	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
-					&sapera_lt_frame_grabber, NULL, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
-	MX_DEBUG(-2,("%s invoked for video input '%s'",
-		fname, vinput->record->name ));
-#endif
-
-	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
-
-		/* If internal triggering is not enabled,
-		 * return without doing anything.
-		 */
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
-		MX_DEBUG(-2,
-		("%s: internal trigger disabled for video input '%s'",
-			fname, vinput->record->name));
-#endif
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, we are doing internal triggering. */
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
-	MX_DEBUG(-2,("%s: Sending internal trigger for '%s'.",
-		fname, vinput->record->name));
-#endif
-	frame = vinput->frame;
-
-	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"No image frame has been allocated for video input '%s'.",
-			vinput->record->name );
-	}
-
-	/*--------*/
+	/* Figure out the number of frames and the exposure time
+	 * for the upcoming imaging sequence.
+	 */
 
 	sp = &(vinput->sequence_parameters);
 
@@ -1317,8 +1354,6 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 			vinput->record->name );
 	}
 
-	/* Set the exposure time per frame. */
-
 	if (( exposure_time < sapera_lt_frame_grabber->minimum_exposure_time )
 	 || ( exposure_time > sapera_lt_frame_grabber->maximum_exposure_time ))
 	{
@@ -1330,36 +1365,105 @@ mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
 			sapera_lt_frame_grabber->maximum_exposure_time );
 	}
 
-	internal_frame_trigger_frequency_millihz =
-		mx_round( mx_divide_safely( 1000.0, exposure_time ) );
+	/* Specify how long the integration time is supposed to be. */
 
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
-	MX_DEBUG(-2,("%s: exposure_time = %f, millihz = %ld",
-	    fname, exposure_time, internal_frame_trigger_frequency_millihz));
-#endif
+	exposure_time_in_microsec = mx_round( 1.0e6 * (double) exposure_time );
 
 	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_INT_FRAME_TRIGGER_FREQ,
-				internal_frame_trigger_frequency_millihz );
+				-1, CORACQ_PRM_TIME_INTEGRATE_DURATION,
+				exposure_time_in_microsec );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Specify the number of frames to acquire after a trigger. */
+
+	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+				sapera_lt_frame_grabber,
+				-1, CORACQ_PRM_EXT_TRIGGER_FRAME_COUNT,
+				(UINT32) num_frames );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/*--------*/
 
-	mx_status = mxd_sapera_lt_frame_grabber_setup_frame_counters(
-					vinput, sapera_lt_frame_grabber );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* Tell the frame grabber to wait for incoming image frames. */
 
 	sapera_status = sapera_lt_frame_grabber->transfer->Snap( num_frames );
 
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to trigger frame grabber '%s' failed.",
+		"The attempt to call Snap() for frame grabber '%s' failed.",
 			vinput->record->name );
+	}
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM
+	MX_DEBUG(-2,("%s complete for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_frame_grabber_trigger( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_frame_grabber_trigger()";
+
+	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
+					&sapera_lt_frame_grabber, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+
+	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+
+		/* If internal triggering is not enabled,
+		 * return without doing anything.
+		 */
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
+		MX_DEBUG(-2,
+		("%s: internal trigger disabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, we are doing internal triggering. */
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s: Sending internal trigger for '%s'.",
+		fname, vinput->record->name));
+#endif
+
+	if ( sapera_lt_frame_grabber->use_software_trigger ) {
+
+		SapAcquisition *acq = sapera_lt_frame_grabber->acquisition;
+
+		sapera_status = 
+		    acq->SoftwareTrigger( SapAcquisition::SoftwareTriggerExt );
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to send a software trigger to "
+			"frame grabber '%s' failed.",
+				vinput->record->name );
+		}
+	} else {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Internal triggering is not yet implemented." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1774,16 +1878,24 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-			internal_trigger_enabled = TRUE;
-		} else {
-			internal_trigger_enabled = FALSE;
-		}
+		if ( sapera_lt_frame_grabber->use_software_trigger ) {
 
-		if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			internal_trigger_enabled = FALSE;
 			external_trigger_enabled = TRUE;
 		} else {
-			external_trigger_enabled = FALSE;
+			if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
+			{
+				internal_trigger_enabled = TRUE;
+			} else {
+				internal_trigger_enabled = FALSE;
+			}
+
+			if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+			{
+				external_trigger_enabled = TRUE;
+			} else {
+				external_trigger_enabled = FALSE;
+			}
 		}
 
 		/* Configure internal triggering. */
