@@ -1070,7 +1070,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		sapera_lt_frame_grabber->multiframe_trigger_available = FALSE;
 	}
 
-#if 1
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Sapera LT frame grabber '%s'.\n"
 			"    internal_trigger_available = %d\n"
 			"    external_trigger_available = %d\n"
@@ -1084,6 +1084,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #endif
 
 #if 1
+	/* This tells the MX driver to handle "internal" triggers by
+	 * doing a software trigger of the external trigger interface.
+	 */
+
 	sapera_lt_frame_grabber->use_software_trigger = TRUE;
 #endif
 
@@ -1099,22 +1103,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Time Integrate available = %d",
 		fname, time_integrate_available));
 #endif
-
-	/* Tell the frame grabber to use the Time Integrate
-	 * camera control method.
-	 */
-
-	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
-				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_TIME_INTEGRATE_ENABLE,
-				(UINT32) TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/*---------------------------------------------------------------*/
 
@@ -1128,24 +1120,47 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Time Integrate supported methods = %#lx",
 		fname, supported_methods ));
 #endif
 
-	/* Tell the frame grabber to use Time Integrate method 1.  For
-	 * this method the integration time lasts from the beginning 
-	 * of the pulse to the end of the pulse sent to the camera.
+	/*---------------------------------------------------------------*/
+
+	/* Tell the frame grabber to use Time Integrate method 2.  For
+	 * this method, the integration time starts on the trailing edge
+	 * of a start trigger pulse and ends at the trailing edge of
+	 * an end trigger pulse.
 	 */
 
 	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 				sapera_lt_frame_grabber,
 				-1, CORACQ_PRM_TIME_INTEGRATE_METHOD,
-				CORACQ_VAL_TIME_INTEGRATE_METHOD_1 );
+				CORACQ_VAL_TIME_INTEGRATE_METHOD_2 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: Selected Time Integration method 2.", fname));
+#endif
+	/*---------------------------------------------------------------*/
+
+	/* Tell the frame grabber to use the Time Integrate
+	 * camera control method.
+	 */
+
+	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+				sapera_lt_frame_grabber,
+				-1, CORACQ_PRM_TIME_INTEGRATE_ENABLE,
+				(UINT32) TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: Time Integration enabled.", fname));
+#endif
 	/*---------------------------------------------------------------*/
 
 	/* Initialize the video parameters. */
