@@ -1,13 +1,13 @@
 /*
  * Name:    d_radicon_helios.cpp
  *
- * Purpose: MX driver for the Radicon Helios 20x25 CMOS detector.
+ * Purpose: MX driver for the Radicon Helios 20x25 and 10x10 CMOS detectors.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

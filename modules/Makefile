@@ -30,6 +30,8 @@ all: build
 
 #MODULES += radicon_helios
 
+MODULES += radicon_taurus
+
 MODULES += sapera_lt
 
 #-------------------------------------------------------------------
