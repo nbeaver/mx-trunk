@@ -1,21 +1,20 @@
 /*
  * Name:    d_radicon_taurus.c
  *
- * Purpose: MX driver for a software emulated area detector.  It uses an
- *          MX video input record as the source of the frame images.
+ * Purpose: MX driver for the Radicon Taurus series of CMOS detectors.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2012 Illinois Institute of Technology
+ * Copyright 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_RADICON_TAURUS_DEBUG	FALSE
+#define MXD_RADICON_TAURUS_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +24,7 @@
 #include "mx_hrt.h"
 #include "mx_motor.h"
 #include "mx_image.h"
+#include "mx_rs232.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_radicon_taurus.h"
@@ -147,7 +147,7 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Cannot allocate memory for an MX_RADICON_TAURUS structure." );
+		"Cannot allocate memory for an MX_RADICON_TAURUS structure." );
 	}
 
 	record->record_class_struct = ad;
@@ -168,9 +168,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
-	MX_RECORD *video_input_record;
+	MX_RECORD *video_input_record, *serial_port_record;
 	long i;
 	unsigned long mask;
+	char response[100];
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -189,8 +190,52 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-
 	video_input_record = radicon_taurus->video_input_record;
+
+	serial_port_record = radicon_taurus->serial_port_record;
+
+	/* Configure the serial port as needed by the Taurus driver. */
+
+	mx_status = mx_rs232_set_configuration( serial_port_record,
+						115200, 8, 'N', 1, 'S',
+						0x0d0a3e, 0x0d );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Send an empty command. */
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "", NULL, 0,
+						MXD_RADICON_TAURUS_DEBUG );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_msleep(100);
+
+	/* Discard any extraneous characters in the serial port buffers. */
+
+	mx_status = mx_rs232_discard_unwritten_output( serial_port_record,
+						MXD_RADICON_TAURUS_DEBUG );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_rs232_discard_unread_input( serial_port_record,
+						MXD_RADICON_TAURUS_DEBUG );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Verify that the Xineos camera head is present by asking it for
+	 * its version number.
+	 */
+	
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "gov",
+					response, sizeof(response),
+					MXD_RADICON_TAURUS_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	ad->header_length = 0;
 
@@ -625,5 +670,59 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 	}
 
 	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
+			char *response, size_t response_buffer_length,
+			mx_bool_type debug_flag )
+{
+	static const char fname[] = "mxd_radicon_taurus_command()";
+
+	MX_RECORD *serial_port_record;
+	mx_status_type mx_status;
+
+	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RADICON_TAURUS pointer passed was NULL." );
+	}
+
+	serial_port_record = radicon_taurus->serial_port_record;
+
+	if ( serial_port_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The serial_port_record pointer for record '%s' is NULL.",
+			radicon_taurus->record->name );
+	}
+
+	if ( debug_flag ) {
+		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+			fname, command, radicon_taurus->record->name ));
+	}
+
+	mx_status = mx_rs232_putline( serial_port_record, command, NULL, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (response == NULL) || (response_buffer_length == 0) ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		mx_status = mx_rs232_getline( serial_port_record,
+					response, response_buffer_length,
+					NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, response, radicon_taurus->record->name));
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

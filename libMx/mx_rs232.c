@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2007, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1596,7 +1596,11 @@ mx_rs232_set_configuration( MX_RECORD *record, long speed,
 			return mx_status;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Update the terminator characters. */
+
+	mx_status = mx_rs232_convert_terminator_characters( record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

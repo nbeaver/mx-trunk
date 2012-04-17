@@ -21,6 +21,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
+	MX_RECORD *serial_port_record;
 	unsigned long initial_trigger_mode;
 } MX_RADICON_TAURUS;
 
@@ -29,6 +30,11 @@ typedef struct {
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, video_input_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "serial_port_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, serial_port_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
@@ -61,6 +67,13 @@ extern MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list;
 
 extern long mxd_radicon_taurus_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_radicon_taurus_rfield_def_ptr;
+
+MX_API_PRIVATE
+mx_status_type mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus,
+						char *command,
+						char *response,
+						size_t max_response_length,
+						mx_bool_type debug_flag );
 
 #endif /* __D_RADICON_TAURUS_H__ */
 
