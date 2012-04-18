@@ -57,11 +57,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	NULL,
 	NULL,
 	mxd_radicon_taurus_get_parameter,
-	mxd_radicon_taurus_set_parameter,
-	NULL,
-	NULL,
-	NULL,
-	mx_area_detector_trigger_unsafe_exposure
+	mxd_radicon_taurus_set_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_radicon_taurus_rf_defaults[] = {
@@ -203,15 +199,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Send an empty command. */
-
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "", NULL, 0,
-						MXD_RADICON_TAURUS_DEBUG );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_msleep(100);
-
 	/* Discard any extraneous characters in the serial port buffers. */
 
 	mx_status = mx_rs232_discard_unwritten_output( serial_port_record,
@@ -228,7 +215,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * its version number.
 	 */
 	
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "gov",
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GOV",
 					response, sizeof(response),
 					MXD_RADICON_TAURUS_DEBUG );
 
@@ -267,6 +254,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->binsize[0] = 1;
 	ad->binsize[1] = 1;
 
+	radicon_taurus->sensor_readout_mode = -1;
+
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
 	 */
@@ -304,10 +293,13 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the video input's initial trigger mode (internal/external/etc) */
+	/* Turn off internal and external trigger for the video input.
+	 * 
+	 * This should cause the video card to switch to a 'free run' mode
+	 * which leaves the frame timing entirely up to the camera head.
+	 */
 
-	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-			(long) radicon_taurus->initial_trigger_mode );
+	mx_status = mx_video_input_set_trigger_mode( video_input_record, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -354,6 +346,9 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_arm()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	double exposure_time;
+	unsigned long exposure_time_in_milliseconds;
+	char command[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -366,8 +361,27 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	/* Set the exposure time for this sequence. */
 
-	mx_status = mx_video_input_arm(radicon_taurus->video_input_record);
+	mx_status = mx_sequence_get_exposure_time( &(ad->sequence_parameters),
+							0, &exposure_time );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	exposure_time_in_milliseconds = mx_round( 1000.0 * exposure_time );
+
+	snprintf( command, sizeof(command),
+		"SIT %lu", exposure_time_in_milliseconds );
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the video capture card to get ready for a frame. */
+
+	mx_status = mx_video_input_arm( radicon_taurus->video_input_record );
 
 	return mx_status;
 }
@@ -446,8 +460,7 @@ mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_abort(
-			radicon_taurus->video_input_record );
+	mx_status = mx_video_input_abort( radicon_taurus->video_input_record );
 
 	return mx_status;
 }
@@ -580,8 +593,9 @@ mxd_radicon_taurus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mx_status = mx_video_input_get_trigger_mode(
-				video_input_record, &(ad->trigger_mode) );
+		/* The video capture card should always be in 'free run'
+		 * mode, so we do not check its status here.
+		 */
 		break;
 
 	case MXLV_AD_BITS_PER_PIXEL:
@@ -609,9 +623,12 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record;
+	unsigned long sensor_readout_mode, trigger_mask;
+	char command[80];
+	char response[80];
 	mx_status_type mx_status;
 
-	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
+	static long allowed_binsize[] = { 1, 2 };
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
@@ -631,6 +648,19 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
+		/* For this detector, if you bin in one dimension, then
+		 * you must bin in _both_ dimensions.  The detector does
+		 * not allow you to specify them independently.
+		 */
+
+		if (( ad->binsize[0] > 1 ) || ( ad->binsize[1] > 1 )) {
+			ad->binsize[0] = 2;
+			ad->binsize[1] = 2;
+			sensor_readout_mode = 1;
+		} else {
+			sensor_readout_mode = 2;
+		}
+
 		mx_status = mx_area_detector_compute_new_binning( ad,
 							ad->parameter_type,
 							num_allowed_binsizes,
@@ -643,19 +673,46 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_video_input_set_framesize(
 					video_input_record,
 					ad->framesize[0], ad->framesize[1] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Tell the camera head to switch sensor readout modes. */
+
+		if (sensor_readout_mode != radicon_taurus->sensor_readout_mode)
+		{
+			if ( ad->binsize[0] == 1 ) {
+				strlcpy( command, "SVM 1", sizeof(command) );
+			} else {
+				strlcpy( command, "SVM 2", sizeof(command) );
+			}
+			mx_status = mxd_radicon_taurus_command( radicon_taurus,
+					command, response, sizeof(response),
+					MXD_RADICON_TAURUS_DEBUG );
+		}
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		mx_status = mx_video_input_set_trigger_mode(
-				video_input_record, ad->trigger_mode );
+		trigger_mask =
+			MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+
+		if ( (ad->trigger_mode & trigger_mask) == 0 ) {
+			/* FreeRunning mode */
+
+			strlcpy( command, "STM 64", sizeof(command) );
+		} else {
+			/* Snapshot mode */
+			strlcpy( command, "STM 2137", sizeof(command) );
+		}
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus,
+				command, response, sizeof(response),
+				MXD_RADICON_TAURUS_DEBUG );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
-		mx_status = mx_video_input_set_sequence_parameters(
-					video_input_record,
-					&(ad->sequence_parameters) );
 		break; 
 
 	case MXLV_AD_IMAGE_FORMAT:
@@ -711,8 +768,7 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		return MX_SUCCESSFUL_RESULT;
 	} else {
 		mx_status = mx_rs232_getline( serial_port_record,
-					response, response_buffer_length,
-					NULL, 0 );
+				response, response_buffer_length, NULL, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

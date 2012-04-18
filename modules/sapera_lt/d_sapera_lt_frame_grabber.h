@@ -30,9 +30,6 @@ typedef struct {
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
 
-	double minimum_exposure_time;
-	double maximum_exposure_time;
-
 	mx_bool_type internal_trigger_available;
 	mx_bool_type external_trigger_available;
 	mx_bool_type software_trigger_available;

@@ -663,7 +663,6 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SAPERA_LT *sapera_lt = NULL;
 	MX_SYSTEM_MEMINFO system_meminfo;
-	UINT32 min_freq_millihz, max_freq_millihz;
 	BOOL sapera_status;
 	long bytes_per_frame, max_image_frames, max_frames_threshold;
 	mx_status_type mx_status;
@@ -959,45 +958,6 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: '%s' label = '%s'",
 		fname, sapera_lt_frame_grabber->record->name, label));
 #endif
-	/* Get the minimum and maximum exposure_times. */
-
-	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
-					sapera_lt_frame_grabber,
-					CORACQ_CAP_INT_FRAME_TRIGGER_FREQ_MAX,
-					&max_freq_millihz );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	sapera_lt_frame_grabber->minimum_exposure_time =
-		mx_divide_safely( 1000.0, max_freq_millihz );
-
-	mx_status = mxd_sapera_lt_frame_grabber_get_capability(
-					sapera_lt_frame_grabber,
-					CORACQ_CAP_INT_FRAME_TRIGGER_FREQ_MIN,
-					&min_freq_millihz );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	sapera_lt_frame_grabber->maximum_exposure_time =
-		mx_divide_safely( 1000.0, min_freq_millihz );
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: frame grabber '%s' max_freq_millihz = %lu",
-		fname, record->name, (unsigned long) max_freq_millihz ));
-
-	MX_DEBUG(-2,("%s: frame grabber '%s' min_freq_millihz = %lu",
-		fname, record->name, (unsigned long) min_freq_millihz ));
-
-	MX_DEBUG(-2,("%s: frame grabber '%s' minimum exposure_time = %g",
-		fname, record->name,
-		sapera_lt_frame_grabber->minimum_exposure_time ));
-
-	MX_DEBUG(-2,("%s: frame grabber '%s' maximum exposure_time = %g",
-		fname, record->name,
-		sapera_lt_frame_grabber->maximum_exposure_time ));
-#endif
 	/*---------------------------------------------------------------*/
 
 	/* Does this frame grabber support internal triggers? */
@@ -1124,43 +1084,20 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: Time Integrate supported methods = %#lx",
 		fname, supported_methods ));
 #endif
-
 	/*---------------------------------------------------------------*/
 
-	/* Tell the frame grabber to use Time Integrate method 2.  For
-	 * this method, the integration time starts on the trailing edge
-	 * of a start trigger pulse and ends at the trailing edge of
-	 * an end trigger pulse.
-	 */
+#if 0
+	/* Tell time integration mode to default to Time Integrate method 1. */
 
 	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
 				sapera_lt_frame_grabber,
 				-1, CORACQ_PRM_TIME_INTEGRATE_METHOD,
-				CORACQ_VAL_TIME_INTEGRATE_METHOD_2 );
+				CORACQ_VAL_TIME_INTEGRATE_METHOD_1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: Selected Time Integration method 2.", fname));
 #endif
-	/*---------------------------------------------------------------*/
 
-	/* Tell the frame grabber to use the Time Integrate
-	 * camera control method.
-	 */
-
-	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
-				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_TIME_INTEGRATE_ENABLE,
-				(UINT32) TRUE );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
-	MX_DEBUG(-2,("%s: Time Integration enabled.", fname));
-#endif
 	/*---------------------------------------------------------------*/
 
 	/* Initialize the video parameters. */
@@ -1278,6 +1215,7 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
+	unsigned long trigger_mask;
 	double exposure_time;
 	int num_frames;
 	UINT32 exposure_time_in_microsec;
@@ -1330,77 +1268,76 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Figure out the number of frames and the exposure time
-	 * for the upcoming imaging sequence.
-	 */
+	trigger_mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
 
-	sp = &(vinput->sequence_parameters);
+	if ( (vinput->trigger_mode & trigger_mask) == 0 ) {
 
-	switch( sp->sequence_type ) {
-	case MXT_SQ_ONE_SHOT:
-		num_frames = 1;
-		exposure_time = sp->parameter_array[0];
-		break;
-	case MXT_SQ_MULTIFRAME:
-		num_frames = sp->parameter_array[0];
-		exposure_time = sp->parameter_array[1];
-
-		/* sp->parameter_array[2] contains a "frame time"
-		 * which is the time interval between the start
-		 * of two successive frames.  However, Sapera LT
-		 * does not seem to provide a way to use this,
-		 * so we just skip it here.
+		/* We are configured for 'free run' mode, so we
+		 * do not need to do anything here.
 		 */
-		break;
-	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Sequence type %ld has not yet been implemented for '%s'.",
-			sp->sequence_type, vinput->record->name );
-		break;
+	} else {
+		/* Figure out the number of frames and the exposure time
+		 * for the upcoming imaging sequence.
+		 */
+
+		sp = &(vinput->sequence_parameters);
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			num_frames = 1;
+			exposure_time = sp->parameter_array[0];
+			break;
+		case MXT_SQ_MULTIFRAME:
+			num_frames = sp->parameter_array[0];
+			exposure_time = sp->parameter_array[1];
+
+			/* sp->parameter_array[2] contains a "frame time"
+			 * which is the time interval between the start
+			 * of two successive frames.  However, Sapera LT
+			 * does not seem to provide a way to use this,
+			 * so we just skip it here.
+			 */
+			break;
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "Sequence type %ld has not yet been implemented for '%s'.",
+				sp->sequence_type, vinput->record->name );
+			break;
+		}
+	
+		if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The number of frames requested (%d) for this sequence "
+			"exceeds the maximum number of frames (%ld) allocated "
+			"for detector '%s'.",
+				num_frames,
+				sapera_lt_frame_grabber->max_frames,
+				vinput->record->name );
+		}
+	
+		/* Specify how long the integration time is supposed to be. */
+	
+		exposure_time_in_microsec =
+			mx_round( 1.0e6 * (double) exposure_time );
+	
+		mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+					sapera_lt_frame_grabber,
+					-1, CORACQ_PRM_TIME_INTEGRATE_DURATION,
+					exposure_time_in_microsec );
+	
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	
+		/* Specify the number of frames to acquire after a trigger. */
+	
+		mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
+					sapera_lt_frame_grabber,
+					-1, CORACQ_PRM_EXT_TRIGGER_FRAME_COUNT,
+					(UINT32) num_frames );
+	
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
-
-	if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The number of frames requested (%d) for this sequence "
-		"exceeds the maximum number of frames (%ld) allocated "
-		"for detector '%s'.",
-			num_frames,
-			sapera_lt_frame_grabber->max_frames,
-			vinput->record->name );
-	}
-
-	if (( exposure_time < sapera_lt_frame_grabber->minimum_exposure_time )
-	 || ( exposure_time > sapera_lt_frame_grabber->maximum_exposure_time ))
-	{
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested exposure time for frame grabber '%s' "
-		"is outside the allowed range of %g seconds to %g seconds.",
-			vinput->record->name,
-			sapera_lt_frame_grabber->minimum_exposure_time,
-			sapera_lt_frame_grabber->maximum_exposure_time );
-	}
-
-	/* Specify how long the integration time is supposed to be. */
-
-	exposure_time_in_microsec = mx_round( 1.0e6 * (double) exposure_time );
-
-	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
-				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_TIME_INTEGRATE_DURATION,
-				exposure_time_in_microsec );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Specify the number of frames to acquire after a trigger. */
-
-	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
-				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_EXT_TRIGGER_FRAME_COUNT,
-				(UINT32) num_frames );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	/*--------*/
 
@@ -1856,6 +1793,7 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	unsigned long bytes_per_frame;
 	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
+	unsigned long trigger_mask;
 	UINT32 external_trigger_setting;
 	mx_status_type mx_status;
 
@@ -1896,7 +1834,15 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 		if ( sapera_lt_frame_grabber->use_software_trigger ) {
 
 			internal_trigger_enabled = FALSE;
-			external_trigger_enabled = TRUE;
+
+			trigger_mask = MXT_IMAGE_INTERNAL_TRIGGER
+					| MXT_IMAGE_EXTERNAL_TRIGGER;
+
+			if ( (vinput->trigger_mode & trigger_mask) == 0 ) {
+				external_trigger_enabled = FALSE;
+			} else {
+				external_trigger_enabled = TRUE;
+			}
 		} else {
 			if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
 			{

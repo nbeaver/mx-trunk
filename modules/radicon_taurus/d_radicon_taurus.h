@@ -22,7 +22,8 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *serial_port_record;
-	unsigned long initial_trigger_mode;
+
+	unsigned long sensor_readout_mode;
 } MX_RADICON_TAURUS;
 
 
@@ -35,13 +36,7 @@ typedef struct {
   {-1, -1, "serial_port_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, serial_port_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_RADICON_TAURUS, initial_trigger_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
-
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );
