@@ -130,7 +130,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_pmac.c d_pmac_aio.c d_pmac_dio.c d_pmac_mce.c d_pmac_cs_axis.c \
 	d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
 	d_polynomial_motor.c d_portio_dio.c \
-	d_powerpmac.c d_powerpmac_aio.c d_powerpmac_dio.c \
 	d_ptz_motor.c d_pulsed_relay.c \
 	d_qbpm_mcai.c d_qmotor.c d_qs450.c d_record_field_motor.c \
 	d_roentec_rcl_mca.c \
@@ -172,7 +171,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c i_ni488.c i_ortec974.c \
 	i_panasonic_kx_dp702.c i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
-	i_pmac.c i_pmc_mcapi.c i_powerpmac.c \
+	i_pmac.c i_pmc_mcapi.c \
 	i_prologix.c i_rtems_vme.c \
 	i_scipe.c i_sim900.c i_sim900_port.c i_sis3100.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
@@ -186,7 +185,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	n_spec.c n_tcpip.c n_unix.c \
 	v_bluice_command.c v_bluice_master.c \
 	v_bluice_operation.c v_bluice_self_operation.c v_bluice_string.c \
-	v_mathop.c v_pmac.c v_position_select.c v_powerpmac.c v_spec.c v_u500.c
+	v_mathop.c v_pmac.c v_position_select.c v_spec.c v_u500.c
 
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 
@@ -279,9 +278,6 @@ d_pmc_mcapi_aio.$(OBJ): d_pmc_mcapi_aio.c
 d_pmc_mcapi_dio.$(OBJ): d_pmc_mcapi_dio.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) d_pmc_mcapi_dio.c
 
-d_powerpmac.$(OBJ): d_powerpmac.c d_powerpmac.h i_powerpmac.h
-	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) d_powerpmac.c
-
 d_trump.$(OBJ): d_trump.c
 	$(COMPILE) $(CFLAGS) $(UMCBI_INCLUDES) d_trump.c
 
@@ -332,9 +328,6 @@ i_pmac.$(OBJ): i_pmac.c i_pmac.h
 
 i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) i_pmc_mcapi.c
-
-i_powerpmac.$(OBJ): i_powerpmac.c i_powerpmac.h
-	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_powerpmac.c
 
 i_pcmotion32.$(OBJ): i_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) i_pcmotion32.c

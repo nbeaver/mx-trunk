@@ -22,6 +22,11 @@ all: build
 #MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
+# Linux-only modules.
+
+MODULES += powerpmac
+
+#-------------------------------------------------------------------
 # Win32-only modules.
 
 #MODULES += bnc725_lib
@@ -30,24 +35,24 @@ all: build
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps
 
-MODULES += epics_mbc
+#MODULES += epics_mbc
 
 #MODULES += epics_mono_18id
 
 #MODULES += epics_pmac_biocat
 
-MODULES += epics_pmac_tc
+#MODULES += epics_pmac_tc
 
 #---
 

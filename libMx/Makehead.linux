@@ -35,9 +35,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWERPMAC_LIB_DIRS)
-#LIBRARIES	= $(POWERPMAC_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -64,9 +61,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
 #LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(POWERPMAC_LIB_DIRS)
-#LIBRARIES	= $(POWERPMAC_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) \
 #			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
@@ -116,26 +110,6 @@ MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
 	d_pdi45_pulser.c v_mathop.c
 
 #--------
-
-#
-# MX_LINUX_BSP_POWERPMAC has been used successfully with a Delta Tau
-# Power PMAC motion controller.  This option uses cross-compiling
-# on Cygwin.  Look further down in the makefile for options for
-# native compilation using the copy of GCC that is already installed
-# on the Power PMAC controller itself out of the box.
-#
-
-####MX_LINUX_BSP = power_pmac
-###
-###POWERPMAC_DIR = /cygdrive/c/progra~1/deltat~1/2.0/powerp~1/powerpc-460-linux-gnu/usr/local
-###
-###POWERPMAC_GLIBC_DIR = $(POWERPMAC_DIR)/powerpc-405-linux-gnu/lib
-###
-#### MX drivers to load for the Power PMAC.
-###
-###MX_DRIVER_POWERPMAC_SRCS = i_tty.c \
-###	d_pmac.c d_pmac_aio.c d_pmac_dio.c i_pmac.c v_pmac.c
-###
 
 #--------------------------------------------------------------------------
 
@@ -188,48 +162,6 @@ LINUX_GPIB_LIBRARIES = -lgpib
 LIBUSB_INCLUDES   =
 LIBUSB_LIB_DIRS   =
 LIBUSB_LIBRARIES  = -lusb
-
-#
-# For use when compiling on the PowerPMAC
-#
-
-POWERPMAC_DIR = /opt/ppmac
-
-POWERPMAC_INCLUDES   = -I$(POWERPMAC_DIR)/libppmac \
-			-I$(POWERPMAC_DIR)/rtpmac \
-			-Wno-strict-prototypes
-
-POWERPMAC_LIB_DIRS   = -L$(POWERPMAC_DIR)/libppmac
-
-POWERPMAC_LIBRARIES  = -lppmac
-
-#
-# The following is for cross-compiling.
-#
-#POWERPMAC_INCLUDES   = -I$(POWERPMAC_DIR)/dtlibs/libppmac \
-#			-I$(POWERPMAC_DIR)/dtlibs/rtpmac \
-#			-Wno-strict-prototypes
-#
-#POWERPMAC_LIB_DIRS   = -B$(POWERPMAC_DIR)/bin \
-#			-L$(POWERPMAC_DIR)/powerpc-405-linux-gnu/lib-copy \
-#			-L$(POWERPMAC_DIR)/dtlibs/libppmac
-#
-#POWERPMAC_LIBRARIES  = $(POWERPMAC_DIR)/dtlibs/libppmac/libppmac.so \
-#			$(POWERPMAC_DIR)/xenomai-2.4.7/lib/libpthread_rt.so \
-#			$(POWERPMAC_GLIBC_DIR)/libpthread.a \
-#			$(POWERPMAC_GLIBC_DIR)/libdl.a \
-#			$(POWERPMAC_GLIBC_DIR)/librt.a \
-#			$(POWERPMAC_GLIBC_DIR)/libm.a \
-#			$(POWERPMAC_GLIBC_DIR)/libc.a \
-#			$(POWERPMAC_GLIBC_DIR)/libpthread.a \
-#
-
-#
-# For use with the fake_power_pmac library.
-#
-#POWERPMAC_INCLUDES   = -I/home/lavender/mxdev/fake_power_pmac
-#POWERPMAC_LIB_DIRS   = -L/home/lavender/mxdev/fake_power_pmac
-#POWERPMAC_LIBRARIES  = -lfake_power_pmac
 
 #
 NI_VISA_DIR       = /usr/local/vxipnp/linux
@@ -378,7 +310,7 @@ DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
-	$(POWERPMAC_INCLUDES) $(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
+	$(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 
@@ -393,13 +325,6 @@ endif
 ifeq ($(MX_LINUX_BSP),mvme162)
 	MX_LIB_SRCS = mx_driver_linux_mvme162.c \
 			$(MX_CORE_SRCS) $(MX_DRIVER_MVME162_SRCS)
-endif
-
-ifeq ($(MX_LINUX_BSP),power_pmac)
-	CC = $(POWERPMAC_DIR)/bin/powerpc-405-linux-gnu-gcc
-
-	MX_LIB_SRCS = mx_driver_linux_power_pmac.c \
-			$(MX_CORE_SRCS) $(MX_DRIVER_POWERPMAC_SRCS)
 endif
 
 #

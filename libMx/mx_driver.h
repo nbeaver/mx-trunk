@@ -245,7 +245,7 @@ extern "C" {
 #define MXI_CTRL_CRYOJET		456
 
 #define MXI_CTRL_LINKAM_T9X		459
-#define MXI_CTRL_POWERPMAC		460
+
 #define MXI_CTRL_SIM900			461
 #define MXI_CTRL_I404			462
 
@@ -317,7 +317,6 @@ extern "C" {
 #define MXT_AIN_CRYOJET			10041
 #define MXT_AIN_MCA_WEIGHTED_SUM	10042
 
-#define MXT_AIN_POWERPMAC		10045
 #define MXT_AIN_SIM980			10046
 
 /* --- Analog input subclasses -- */
@@ -353,7 +352,6 @@ extern "C" {
 #define MXT_AOU_CRYOJET			20024
 #define MXT_AOU_SYSTRON_DONNER_M107	20025
 #define MXT_AOU_LINKAM_T9X_PUMP		20026
-#define MXT_AOU_POWERPMAC		20027
 
 /* --- Analog output subclasses -- */
 
@@ -395,7 +393,7 @@ extern "C" {
 #define MXT_DIN_ILM			30031
 #define MXT_DIN_ITC503			30032
 #define MXT_DIN_CRYOJET			30033
-#define MXT_DIN_POWERPMAC		30034
+
 #define MXT_DIN_KEYBOARD		30035
 #define MXT_DIN_FILE			30036
 
@@ -438,7 +436,6 @@ extern "C" {
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
 #define MXT_DOU_ITC503			40036
 #define MXT_DOU_CRYOJET			40036
-#define MXT_DOU_POWERPMAC		40037
 
 /* --- Motor subclasses --- */
 
@@ -501,7 +498,7 @@ extern "C" {
 #define MXT_MTR_CRYOJET			50053
 #define MXT_MTR_LINKAM_T9X_TEMPERATURE	50054
 #define MXT_MTR_LINKAM_T9X_MOTOR	50055
-#define MXT_MTR_POWERPMAC		50056
+
 #define MXT_MTR_SIM960			50057
 
    /* Pseudomotors. */

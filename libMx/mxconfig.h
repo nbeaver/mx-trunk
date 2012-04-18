@@ -61,6 +61,7 @@
  *                                                                        *
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
+ *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
  *                                                                        *
  **************************************************************************/
@@ -149,15 +150,6 @@
  */
 
 #define HAVE_VIDEO_4_LINUX_2		0
-
-/*****************************************************************************
- * The Delta Tau Power PMAC is a PowerPC-based motion controller that uses a
- * Linux-based realtime operating system.  This definition enables support
- * for MX drivers running on the Power PMAC itself that communicate with the
- * Delta Tau motion control software there.
- */
-
-#define HAVE_POWERPMAC_LIBRARY		0
 
 /*****************************************************************************
  *

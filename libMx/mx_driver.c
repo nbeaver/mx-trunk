@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -539,14 +539,6 @@
 #include "n_bluice_dcss.h"
 #include "n_bluice_dhs.h"
 #include "n_bluice_dhs_manager.h"
-#endif
-
-#if HAVE_POWERPMAC_LIBRARY
-#include "i_powerpmac.h"
-#include "d_powerpmac.h"
-#include "d_powerpmac_aio.h"
-#include "d_powerpmac_dio.h"
-#include "v_powerpmac.h"
 #endif
 
 #if HAVE_ORTEC_UMCBI
@@ -2371,73 +2363,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim960_motor_function_list,
 				&mxd_sim960_num_record_fields,
 				&mxd_sim960_rfield_def_ptr},
-
-#if HAVE_POWERPMAC_LIBRARY
-
-{"powerpmac",     MXI_CTRL_POWERPMAC,     MXI_CONTROLLER,    MXR_INTERFACE,
-                                &mxi_powerpmac_record_function_list,
-                                NULL,
-                                NULL,
-				&mxi_powerpmac_num_record_fields,
-				&mxi_powerpmac_rfield_def_ptr},
-
-{"powerpmac_motor", MXT_MTR_POWERPMAC,  MXC_MOTOR,  MXR_DEVICE,
-				&mxd_powerpmac_record_function_list,
-				NULL,
-				&mxd_powerpmac_motor_function_list,
-				&mxd_powerpmac_num_record_fields,
-				&mxd_powerpmac_rfield_def_ptr},
-
-{"powerpmac_ainput", MXT_AIN_POWERPMAC, MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_powerpmac_ain_record_function_list,
-				NULL,
-				&mxd_powerpmac_ain_analog_input_function_list,
-				&mxd_powerpmac_ain_num_record_fields,
-				&mxd_powerpmac_ain_rfield_def_ptr},
-
-{"powerpmac_aoutput", MXT_AOU_POWERPMAC, MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_powerpmac_aout_record_function_list,
-				NULL,
-				&mxd_powerpmac_aout_analog_output_function_list,
-				&mxd_powerpmac_aout_num_record_fields,
-				&mxd_powerpmac_aout_rfield_def_ptr},
-
-{"powerpmac_dinput",    MXT_DIN_POWERPMAC, MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_powerpmac_din_record_function_list,
-				NULL,
-				&mxd_powerpmac_din_digital_input_function_list,
-				&mxd_powerpmac_din_num_record_fields,
-				&mxd_powerpmac_din_rfield_def_ptr},
-
-{"powerpmac_doutput",   MXT_DOU_POWERPMAC, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
-				&mxd_powerpmac_dout_record_function_list,
-				NULL,
-				&mxd_powerpmac_dout_digital_output_function_list,
-				&mxd_powerpmac_dout_num_record_fields,
-				&mxd_powerpmac_dout_rfield_def_ptr},
-
-{"powerpmac_long",      MXV_PMA_LONG, MXV_POWERPMAC,	  MXR_VARIABLE,
-				&mxv_powerpmac_record_function_list,
-				&mxv_powerpmac_variable_function_list,
-				NULL,
-				&mxv_powerpmac_long_num_record_fields,
-				&mxv_powerpmac_long_rfield_def_ptr},
-
-{"powerpmac_ulong",     MXV_PMA_ULONG, MXV_POWERPMAC,	  MXR_VARIABLE,
-				&mxv_powerpmac_record_function_list,
-				&mxv_powerpmac_variable_function_list,
-				NULL,
-				&mxv_powerpmac_ulong_num_record_fields,
-				&mxv_powerpmac_ulong_rfield_def_ptr},
-
-{"powerpmac_double",    MXV_PMA_DOUBLE, MXV_POWERPMAC,	  MXR_VARIABLE,
-				&mxv_powerpmac_record_function_list,
-				&mxv_powerpmac_variable_function_list,
-				NULL,
-				&mxv_powerpmac_double_num_record_fields,
-				&mxv_powerpmac_double_rfield_def_ptr},
-
-#endif /* HAVE_POWERPMAC_LIBRARY */
 
 #if HAVE_U500
 {"u500_motor",     MXT_MTR_U500,      MXC_MOTOR,          MXR_DEVICE,
