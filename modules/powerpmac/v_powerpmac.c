@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,10 +17,6 @@
 #define MXV_POWERPMAC_DEBUG	TRUE
 
 #include <stdio.h>
-#include "mxconfig.h"
-
-#if HAVE_POWERPMAC_LIBRARY
-
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -129,14 +125,6 @@ mxv_powerpmac_get_pointers( MX_VARIABLE *variable,
 			variable->record->name, calling_fname );
 	}
 
-	if ( powerpmac_record->mx_type != MXI_CTRL_POWERPMAC ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"powerpmac_record '%s' for Power PMAC variable '%s' is not "
-		"a Power PMAC record.  Instead, it is a '%s' record.",
-			powerpmac_record->name, variable->record->name,
-			mx_get_driver_name( powerpmac_record ) );
-	}
-
 	if ( powerpmac != (MX_POWERPMAC **) NULL ) {
 		*powerpmac = (MX_POWERPMAC *)
 				powerpmac_record->record_type_struct;
@@ -194,6 +182,7 @@ mxv_powerpmac_finish_record_initialization( MX_RECORD *record )
 			"mxv_powerpmac_finish_record_initialization()";
 
 	MX_POWERPMAC_VARIABLE *powerpmac_variable;
+	MX_RECORD_FIELD *value_field;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -208,6 +197,21 @@ mxv_powerpmac_finish_record_initialization( MX_RECORD *record )
 		"The MX_POWERPMAC_VARIABLE pointer for record '%s' is NULL.",
 			record->name );
 	}
+
+	value_field = mx_get_record_field( record, "value" );
+
+	if ( value_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The 'value' record field pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	powerpmac_variable->datatype = value_field->datatype;
+
+#if MXV_POWERPMAC_DEBUG
+	MX_DEBUG(-2,("%s: PowerPMAC variable '%s' datatype = %ld",
+		fname, record->name, powerpmac_variable->datatype));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -237,25 +241,28 @@ mxv_powerpmac_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
+	switch( powerpmac_variable->datatype ) {
+	case MXFT_LONG:
 		long_value = *((long *) value_ptr);
 
-		sprintf( command, "%s=%ld",
+		snprintf( command, sizeof(command),
+			"%s=%ld",
 			powerpmac_variable->powerpmac_variable_name,
 			long_value );
 		break;
-	case MXV_PMA_ULONG:
+	case MXFT_ULONG:
 		ulong_value = *((unsigned long *) value_ptr);
 
-		sprintf( command, "%s=%lu",
+		snprintf( command, sizeof(command),
+			"%s=%lu",
 			powerpmac_variable->powerpmac_variable_name,
 			ulong_value );
 		break;
-	case MXV_PMA_DOUBLE:
+	case MXFT_DOUBLE:
 		double_value = *((double *) value_ptr);
 
-		sprintf( command, "%s=%g",
+		snprintf( command, sizeof(command),
+			"%s=%g",
 			powerpmac_variable->powerpmac_variable_name,
 			double_value );
 		break;
@@ -325,14 +332,14 @@ mxv_powerpmac_receive_variable( MX_VARIABLE *variable )
 
 	num_items = 0;
 
-	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
+	switch( powerpmac_variable->datatype ) {
+	case MXFT_LONG:
 		num_items = sscanf( string_ptr, "%ld", &long_value );
 		break;
-	case MXV_PMA_ULONG:
+	case MXFT_ULONG:
 		num_items = sscanf( string_ptr, "%lu", &ulong_value );
 		break;
-	case MXV_PMA_DOUBLE:
+	case MXFT_DOUBLE:
 		num_items = sscanf( string_ptr, "%lg", &double_value );
 		break;
 	}
@@ -344,18 +351,18 @@ mxv_powerpmac_receive_variable( MX_VARIABLE *variable )
 			response, powerpmac->record->name, command );
 	}
 
-	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
+	switch( powerpmac_variable->datatype ) {
+	case MXFT_LONG:
 		long_ptr = (long *) value_ptr;
 
 		*long_ptr = long_value;
 		break;
-	case MXV_PMA_ULONG:
+	case MXFT_ULONG:
 		ulong_ptr = (unsigned long *) value_ptr;
 
 		*ulong_ptr = ulong_value;
 		break;
-	case MXV_PMA_DOUBLE:
+	case MXFT_DOUBLE:
 		double_ptr = (double *) value_ptr;
 
 		*double_ptr = double_value;
@@ -365,4 +372,3 @@ mxv_powerpmac_receive_variable( MX_VARIABLE *variable )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_POWERPMAC_LIBRARY */

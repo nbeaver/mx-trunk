@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,10 +18,6 @@
 #define MXD_POWERPMAC_DIO_DEBUG		TRUE
 
 #include <stdio.h>
-#include "mxconfig.h"
-
-#if HAVE_POWERPMAC_LIBRARY
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,15 +124,6 @@ mxd_powerpmac_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 				dinput->record->name, calling_fname );
 		}
 
-		if ( powerpmac_record->mx_type != MXI_CTRL_POWERPMAC ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"powerpmac_record '%s' for Power PMAC digital "
-			"input '%s' is not a Power PMAC record.  "
-			"Instead, it is a '%s' record.",
-				powerpmac_record->name, dinput->record->name,
-				mx_get_driver_name( powerpmac_record ) );
-		}
-
 		*powerpmac = (MX_POWERPMAC *)
 				powerpmac_record->record_type_struct;
 
@@ -198,15 +185,6 @@ mxd_powerpmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			"MX_POWERPMAC pointer for Power PMAC digital output "
 			"record '%s' passed by '%s' is NULL.",
 				doutput->record->name, calling_fname );
-		}
-
-		if ( powerpmac_record->mx_type != MXI_CTRL_POWERPMAC ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"powerpmac_record '%s' for Power PMAC digital "
-			"output '%s' is not a Power PMAC record.  "
-			"Instead, it is a '%s' record.",
-				powerpmac_record->name, doutput->record->name,
-				mx_get_driver_name( powerpmac_record ) );
 		}
 
 		*powerpmac = (MX_POWERPMAC *)
@@ -452,4 +430,3 @@ mxd_powerpmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	return mx_status;
 }
 
-#endif /* HAVE_POWERPMAC_LIBRARY */

@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,9 +23,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mxconfig.h"
-
-#if HAVE_POWERPMAC_LIBRARY
 
 #include "gplib.h"	/* Delta Tau-provided include file. */
 
@@ -417,6 +414,4 @@ mxi_powerpmac_process_function( void *record_ptr,
 
 	return mx_status;
 }
-
-#endif /* HAVE_POWERPMAC_LIBRARY */
 

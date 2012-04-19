@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,8 @@ typedef struct {
 
 	MX_RECORD *powerpmac_record;
 	char powerpmac_variable_name[ MXU_POWERPMAC_VARIABLE_NAME_LENGTH + 1 ];
+
+	long datatype;
 } MX_POWERPMAC_VARIABLE;
 
 #define MXV_POWERPMAC_VARIABLE_STANDARD_FIELDS \

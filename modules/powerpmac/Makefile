@@ -24,7 +24,7 @@ POWERPMAC_OBJS = powerpmac.$(OBJ) \
 	i_powerpmac.$(OBJ) v_powerpmac.$(OBJ)
 
 powerpmac.mxo: $(POWERPMAC_OBJS)
-	gcc -shared -rdynamic -Wl,soname,powerpmac.mxo \
+	gcc -shared -rdynamic -Wl,-soname,powerpmac.mxo \
 		-o powerpmac.mxo $(POWERPMAC_OBJS) \
 		-L$(POWERPMAC_DIR)/libppmac -lppmac
 

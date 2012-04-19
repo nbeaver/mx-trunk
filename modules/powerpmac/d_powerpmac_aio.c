@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,11 +18,6 @@
 #define MXD_POWERPMAC_AIO_DEBUG		TRUE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_POWERPMAC_LIBRARY
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -133,14 +128,6 @@ mxd_powerpmac_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			ainput->record->name, calling_fname );
 	}
 
-	if ( powerpmac_record->mx_type != MXI_CTRL_POWERPMAC ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-"powerpmac_record '%s' for POWERPMAC analog input '%s' is not a POWERPMAC record.  "
-"Instead, it is a '%s' record.",
-			powerpmac_record->name, ainput->record->name,
-			mx_get_driver_name( powerpmac_record ) );
-	}
-
 	*powerpmac = (MX_POWERPMAC *) powerpmac_record->record_type_struct;
 
 	if ( *powerpmac == (MX_POWERPMAC *) NULL ) {
@@ -200,14 +187,6 @@ mxd_powerpmac_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "MX_POWERPMAC pointer for POWERPMAC analog output record '%s' passed by '%s' is NULL.",
 			aoutput->record->name, calling_fname );
-	}
-
-	if ( powerpmac_record->mx_type != MXI_CTRL_POWERPMAC ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-"powerpmac_record '%s' for POWERPMAC analog output '%s' is not a POWERPMAC record.  "
-"Instead, it is a '%s' record.",
-			powerpmac_record->name, aoutput->record->name,
-			mx_get_driver_name( powerpmac_record ) );
 	}
 
 	*powerpmac = (MX_POWERPMAC *) powerpmac_record->record_type_struct;
@@ -461,4 +440,3 @@ mxd_powerpmac_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	return mx_status;
 }
 
-#endif /* HAVE_POWERPMAC_LIBRARY */

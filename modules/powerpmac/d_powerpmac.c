@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,10 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "mxconfig.h"
-
-#if HAVE_POWERPMAC_LIBRARY
 
 #include "gplib.h"	/* Delta Tau-provided include file. */
 
@@ -716,6 +712,7 @@ mxd_powerpmac_simultaneous_start( long num_motor_records,
 	MX_POWERPMAC *powerpmac = NULL;
 	char command_buffer[500];
 	char *ptr;
+	const char *driver_name;
 	double raw_position;
 	long i, raw_steps;
 	size_t length, buffer_left;
@@ -735,7 +732,9 @@ mxd_powerpmac_simultaneous_start( long num_motor_records,
 
 		motor = (MX_MOTOR *) motor_record->record_class_struct;
 
-		if ( motor_record->mx_type != MXT_MTR_POWERPMAC ) {
+		driver_name = mx_get_driver_name( motor_record );
+
+		if ( strcmp( driver_name, "powerpmac_motor" ) != 0 ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"Cannot perform a simultaneous start since motors "
 			"'%s' and '%s' are not the same type of motors.",
@@ -1139,6 +1138,4 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 
 	return mx_status;
 }
-
-#endif /* HAVE_POWERPMAC_LIBRARY */
 
