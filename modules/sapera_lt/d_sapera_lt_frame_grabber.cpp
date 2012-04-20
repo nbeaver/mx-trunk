@@ -852,7 +852,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	}
 #endif
 
-#if 1
+#if 0
 	/* Verify that the image buffers created by the SapBuffer object
 	 * are long enough to contain the MX images.
 	 */
@@ -1086,20 +1086,6 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 #endif
 	/*---------------------------------------------------------------*/
 
-#if 0
-	/* Tell time integration mode to default to Time Integrate method 1. */
-
-	mx_status = mxd_sapera_lt_frame_grabber_set_lowlevel_parameter(
-				sapera_lt_frame_grabber,
-				-1, CORACQ_PRM_TIME_INTEGRATE_METHOD,
-				CORACQ_VAL_TIME_INTEGRATE_METHOD_1 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
-
-	/*---------------------------------------------------------------*/
-
 	/* Initialize the video parameters. */
 
 	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
@@ -1268,6 +1254,45 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Figure out the number of frames and the exposure time
+	 * for the upcoming imaging sequence.
+	 */
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+
+		/* sp->parameter_array[2] contains a "frame time"
+		 * which is the time interval between the start
+		 * of two successive frames.  However, Sapera LT
+		 * does not seem to provide a way to use this,
+		 * so we just skip it here.
+		 */
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "Sequence type %ld has not yet been implemented for '%s'.",
+				sp->sequence_type, vinput->record->name );
+		break;
+	}
+	
+	if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The number of frames requested (%d) for this sequence "
+		"exceeds the maximum number of frames (%ld) allocated "
+		"for detector '%s'.",
+			num_frames,
+			sapera_lt_frame_grabber->max_frames,
+			vinput->record->name );
+	}
+	
 	trigger_mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
 
 	if ( (vinput->trigger_mode & trigger_mask) == 0 ) {
@@ -1276,45 +1301,6 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		 * do not need to do anything here.
 		 */
 	} else {
-		/* Figure out the number of frames and the exposure time
-		 * for the upcoming imaging sequence.
-		 */
-
-		sp = &(vinput->sequence_parameters);
-
-		switch( sp->sequence_type ) {
-		case MXT_SQ_ONE_SHOT:
-			num_frames = 1;
-			exposure_time = sp->parameter_array[0];
-			break;
-		case MXT_SQ_MULTIFRAME:
-			num_frames = sp->parameter_array[0];
-			exposure_time = sp->parameter_array[1];
-
-			/* sp->parameter_array[2] contains a "frame time"
-			 * which is the time interval between the start
-			 * of two successive frames.  However, Sapera LT
-			 * does not seem to provide a way to use this,
-			 * so we just skip it here.
-			 */
-			break;
-		default:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		    "Sequence type %ld has not yet been implemented for '%s'.",
-				sp->sequence_type, vinput->record->name );
-			break;
-		}
-	
-		if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The number of frames requested (%d) for this sequence "
-			"exceeds the maximum number of frames (%ld) allocated "
-			"for detector '%s'.",
-				num_frames,
-				sapera_lt_frame_grabber->max_frames,
-				vinput->record->name );
-		}
-	
 		/* Specify how long the integration time is supposed to be. */
 	
 		exposure_time_in_microsec =
@@ -1831,6 +1817,15 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
+
+#if 1
+		/* Bypass Sapera triggering infrastructure. */
+
+		vinput->trigger_mode = 0;
+
+		return MX_SUCCESSFUL_RESULT;
+
+#endif
 		if ( sapera_lt_frame_grabber->use_software_trigger ) {
 
 			internal_trigger_enabled = FALSE;

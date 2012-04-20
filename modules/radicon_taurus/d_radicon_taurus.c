@@ -347,7 +347,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	double exposure_time;
-	unsigned long exposure_time_in_milliseconds;
+	unsigned long raw_exposure_time;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -368,10 +368,9 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	exposure_time_in_milliseconds = mx_round( 1000.0 * exposure_time );
+	raw_exposure_time = mx_round( 40000.0 * exposure_time );
 
-	snprintf( command, sizeof(command),
-		"SIT %lu", exposure_time_in_milliseconds );
+	snprintf( command, sizeof(command), "SIT %lu", raw_exposure_time );
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
@@ -713,6 +712,9 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+		mx_status = mx_video_input_set_sequence_parameters(
+				video_input_record,
+				&(ad->sequence_parameters) );
 		break; 
 
 	case MXLV_AD_IMAGE_FORMAT:

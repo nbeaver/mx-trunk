@@ -76,7 +76,7 @@ MSDEV_ARCH	= x64
 #
 # Full name: 'c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um'
 #
-MSDEV_DIR	= c:\\progra~2\\wi3cf2~1\\8.0\\Lib\\win8\\um
+#MSDEV_DIR	= c:\\progra~2\\wi3cf2~1\\8.0\\Lib\\win8\\um
 
 #
 # Visual C++ 2010 Pro or Express (_MSC_VER == 1600)
