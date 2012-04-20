@@ -692,6 +692,9 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
+#if 1
+		ad->trigger_mode = 0;
+#else
 		trigger_mask =
 			MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
 
@@ -707,6 +710,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mxd_radicon_taurus_command( radicon_taurus,
 				command, response, sizeof(response),
 				MXD_RADICON_TAURUS_DEBUG );
+#endif
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
