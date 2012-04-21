@@ -25,7 +25,8 @@ typedef struct {
 MX_API_PRIVATE mx_status_type mxv_epics_timeout_create_record_structures(
 							MX_RECORD *record );
 
-MX_API_PRIVATE mx_status_type mxv_epics_timeout_open( MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxv_epics_timeout_finish_record_initialization(
+							MX_RECORD *record );
 
 MX_API_PRIVATE mx_status_type mxv_epics_timeout_send_variable(
 						MX_VARIABLE *variable );

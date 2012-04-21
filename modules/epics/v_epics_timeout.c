@@ -26,10 +26,7 @@
 MX_RECORD_FUNCTION_LIST mxv_epics_timeout_record_function_list = {
 	mx_variable_initialize_driver,
 	mxv_epics_timeout_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	mxv_epics_timeout_open
+	mxv_epics_timeout_finish_record_initialization
 };
 
 MX_VARIABLE_FUNCTION_LIST mxv_epics_timeout_variable_function_list = {
@@ -97,10 +94,18 @@ mxv_epics_timeout_create_record_structures( MX_RECORD *record )
         return MX_SUCCESSFUL_RESULT;
 }
 
+/* Some EPICS-related drivers invoke mx_epics_pvname_init() from
+ * their finish_record_initialization() routine.  That means that we
+ * have to set the timeout in _our_ finish_record_initialization()
+ * in order for it to happen before these other drivers call their
+ * routine.
+ */
+
 MX_EXPORT mx_status_type
-mxv_epics_timeout_open( MX_RECORD *record )
+mxv_epics_timeout_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxv_epics_timeout_open()";
+	static const char fname[] =
+		"mxv_epics_timeout_finish_record_initialization()";
 
 	MX_VARIABLE *variable;
 	mx_status_type mx_status;
