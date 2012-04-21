@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2011 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DEBUG_GATE_CONTROL_PV_ARRAY	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -324,6 +326,11 @@ mxd_epics_scaler_open( MX_RECORD *record )
 			epics_scaler->num_epics_counters, record->name );
 	}
 
+#if DEBUG_GATE_CONTROL_PV_ARRAY
+	MX_DEBUG(-2,("%s: scaler '%s' gate_control_pv_array = %p",
+		fname, record->name, epics_scaler->gate_control_pv_array));
+#endif
+
 	for ( i = 0; i < epics_scaler->num_epics_counters; i++ ) {
 		mx_epics_pvname_init( &(epics_scaler->gate_control_pv_array[i]),
 			"%s.G%ld", epics_scaler->epics_record_name, i+1 );
@@ -616,6 +623,18 @@ mxd_epics_scaler_get_mode( MX_SCALER *scaler )
 
 	offset = epics_scaler->scaler_number - 1;
 
+#if DEBUG_GATE_CONTROL_PV_ARRAY
+	MX_DEBUG(-2,("%s: scaler '%s' gate_control_pv_array = %p",
+		fname, scaler->record->name,
+		epics_scaler->gate_control_pv_array));
+#endif
+
+	if ( epics_scaler->gate_control_pv_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for scaler '%s' is NULL.",
+			scaler->record->name );
+	}
+
 	mx_status = mx_caget( &(epics_scaler->gate_control_pv_array[ offset ] ),
 				MX_CA_LONG, 1, &gate_control );
 
@@ -697,6 +716,18 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 
 	offset = epics_scaler->scaler_number - 1;
 
+#if DEBUG_GATE_CONTROL_PV_ARRAY
+	MX_DEBUG(-2,("%s: scaler '%s' gate_control_pv_array = %p",
+		fname, scaler->record->name,
+		epics_scaler->gate_control_pv_array));
+#endif
+
+	if ( epics_scaler->gate_control_pv_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for scaler '%s' is NULL.",
+			scaler->record->name );
+	}
+
 	mx_status = mx_caput( &(epics_scaler->gate_control_pv_array[ offset ] ),
 				MX_CA_LONG, 1, &gate_control );
 
@@ -771,6 +802,18 @@ mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 			} else {
 				gate_control = 1;	/* preset mode */
 			}
+		}
+
+#if DEBUG_GATE_CONTROL_PV_ARRAY
+		MX_DEBUG(-2,("%s: scaler '%s' gate_control_pv_array = %p",
+			fname, scaler->record->name,
+			epics_scaler->gate_control_pv_array));
+#endif
+
+		if ( epics_scaler->gate_control_pv_array == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for scaler '%s' is NULL.",
+				scaler->record->name );
 		}
 
 		mx_status = mx_group_caput( &epics_group,

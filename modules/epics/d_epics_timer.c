@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006, 2008-2011 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006, 2008-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -466,6 +466,12 @@ mxd_epics_timer_get_mode( MX_TIMER *timer )
 
 	/* Get the gate control field G1. */
 
+	if ( epics_timer->gate_control_pv_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for timer '%s' is NULL.",
+			timer->record->name );
+	}
+
 	mx_status = mx_caget( &(epics_timer->gate_control_pv_array[0]),
 				MX_CA_LONG, 1, &gate_control );
 
@@ -545,6 +551,12 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 
 	/* Set the gate control field G1. */
 
+	if ( epics_timer->gate_control_pv_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for timer '%s' is NULL.",
+			timer->record->name );
+	}
+
 	mx_status = mx_caput( &(epics_timer->gate_control_pv_array[0]),
 				MX_CA_LONG, 1, &gate_control );
 
@@ -587,6 +599,12 @@ mxd_epics_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 	for ( i = 2; i <= epics_timer->num_epics_counters; i++ ) {
 
 		gate_control = 0;
+
+		if ( epics_timer->gate_control_pv_array == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The gate_control_pv_array pointer for timer '%s' is NULL.",
+				timer->record->name );
+		}
 
 		mx_status = mx_group_caput( &epics_group,
 				&(epics_timer->gate_control_pv_array[i-1]),
