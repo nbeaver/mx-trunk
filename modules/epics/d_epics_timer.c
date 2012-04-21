@@ -145,6 +145,11 @@ mxd_epics_timer_finish_record_initialization( MX_RECORD *record )
 	return mx_timer_finish_record_initialization( record );
 }
 
+/* In mxd_epics_timer_open(), we must make sure that all MX_EPICS_PV
+ * structures get initialized and that internal variables get set to
+ * plausible values even if some of the caget()s time out.
+ */
+
 MX_EXPORT mx_status_type
 mxd_epics_timer_open( MX_RECORD *record )
 {
@@ -181,10 +186,11 @@ mxd_epics_timer_open( MX_RECORD *record )
 
 	mx_status = mx_caget_by_name(pvname, MX_CA_DOUBLE, 1, &version_number);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	epics_timer->epics_record_version = version_number;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_timer->epics_record_version = 3.0;
+	} else {
+		epics_timer->epics_record_version = version_number;
+	}
 
 	MX_DEBUG( 2,("%s: epics_timer->epics_record_version = %g",
 			fname, epics_timer->epics_record_version));
@@ -221,25 +227,27 @@ mxd_epics_timer_open( MX_RECORD *record )
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, driver_name );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_timer->driver_type = MXT_EPICS_SCALER_BCDA;
+	} else {
+		if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
+			epics_timer->driver_type = MXT_EPICS_SCALER_MX;
+		} else {
+			epics_timer->driver_type = MXT_EPICS_SCALER_BCDA;
+		}
+	}
 
 	MX_DEBUG( 2,("%s: record '%s' driver_name = '%s'",
 		fname, record->name, driver_name));
-
-	if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
-		epics_timer->driver_type = MXT_EPICS_SCALER_MX;
-	} else {
-		epics_timer->driver_type = MXT_EPICS_SCALER_BCDA;
-	}
 
 	/* Find out how many counter channels the EPICS scaler record has. */
 
 	mx_status = mx_caget( &(epics_timer->nch_pv),
 			MX_CA_SHORT, 1, &(epics_timer->num_epics_counters) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_timer->num_epics_counters = 16;
+	}
 
 	MX_DEBUG( 2,("%s: Record '%s' num_epics_counters = %hd",
 		fname, record->name, epics_timer->num_epics_counters));
@@ -264,10 +272,14 @@ mxd_epics_timer_open( MX_RECORD *record )
 	mx_status = mx_caget( &(epics_timer->freq_pv),
 			MX_CA_DOUBLE, 1, &(epics_timer->clock_frequency) );
 
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_timer->clock_frequency = 1.0e7;
+	}
+
 	MX_DEBUG( 2,("%s: epics_timer->clock_frequency = %g",
 			fname, epics_timer->clock_frequency));
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

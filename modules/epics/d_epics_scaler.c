@@ -210,6 +210,11 @@ mxd_epics_scaler_print_structure( FILE *file, MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* In mxd_epics_scaler_open(), we must make sure that all MX_EPICS_PV
+ * structures get initialized and that internal variables get set to
+ * plausible values even if some of the caget()s time out.
+ */
+
 MX_EXPORT mx_status_type
 mxd_epics_scaler_open( MX_RECORD *record )
 {
@@ -235,8 +240,8 @@ mxd_epics_scaler_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Find out if this EPICS record really exists in an IOC's database
-	 * by asking for the record's version number.
+	/* Get the record's version number, so that we know what
+	 * PV names to ask for.
 	 */
 
 	snprintf( pvname, sizeof(pvname),
@@ -244,10 +249,11 @@ mxd_epics_scaler_open( MX_RECORD *record )
 
 	mx_status = mx_caget_by_name(pvname, MX_CA_DOUBLE, 1, &version_number);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	epics_scaler->epics_record_version = version_number;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_scaler->epics_record_version = 3.0;
+	} else {
+		epics_scaler->epics_record_version = version_number;
+	}
 
 	MX_DEBUG( 2, ("%s: EPICS scaler '%s' version number = %g",
 		fname, epics_scaler->epics_record_name,
@@ -293,25 +299,27 @@ mxd_epics_scaler_open( MX_RECORD *record )
 
 	mx_status = mx_caget_by_name( pvname, MX_CA_STRING, 1, driver_name );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_scaler->driver_type = MXT_EPICS_SCALER_BCDA;
+	} else {
+		if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
+			epics_scaler->driver_type = MXT_EPICS_SCALER_MX;
+		} else {
+			epics_scaler->driver_type = MXT_EPICS_SCALER_BCDA;
+		}
+	}
 
 	MX_DEBUG( 2,("%s: record '%s' driver_name = '%s'",
 		fname, record->name, driver_name));
-
-	if ( strcmp( driver_name, "MxScaler" ) == 0 ) {
-		epics_scaler->driver_type = MXT_EPICS_SCALER_MX;
-	} else {
-		epics_scaler->driver_type = MXT_EPICS_SCALER_BCDA;
-	}
 
 	/* Find out how many counter channels the EPICS scaler record has. */
 
 	mx_status = mx_caget( &(epics_scaler->nch_pv),
 			MX_CA_SHORT, 1, &(epics_scaler->num_epics_counters) );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		epics_scaler->num_epics_counters = 16;
+	}
 
 	MX_DEBUG( 2,("%s: Record '%s' num_epics_counters = %hd",
 		fname, record->name, epics_scaler->num_epics_counters));
