@@ -30,13 +30,6 @@ typedef struct {
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
 
-	mx_bool_type internal_trigger_available;
-	mx_bool_type external_trigger_available;
-	mx_bool_type software_trigger_available;
-	mx_bool_type multiframe_trigger_available;
-
-	mx_bool_type use_software_trigger;
-
 	SapAcquisition *acquisition;
 	SapBuffer      *buffer;
 	SapAcqToBuf    *transfer;

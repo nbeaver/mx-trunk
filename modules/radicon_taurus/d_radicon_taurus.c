@@ -166,7 +166,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
 	long i;
-	unsigned long mask;
+	unsigned long mask, num_bytes_available;
 	char response[100];
 	mx_status_type mx_status;
 
@@ -211,16 +211,49 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Verify that the Xineos camera head is present by asking it for
-	 * its version number.
-	 */
-	
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GOV",
-					response, sizeof(response),
-					MXD_RADICON_TAURUS_DEBUG );
+	/* Request camera parameters from the detector. */
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_msleep(500);
+
+	/* Loop through the responses from the detector to the GCP command. */
+
+	while (1) {
+		mx_status = mx_rs232_num_input_bytes_available(
+					radicon_taurus->serial_port_record,
+					&num_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes_available == 0 ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		mx_status = mx_rs232_getline(radicon_taurus->serial_port_record,
+					response, sizeof(response), NULL,
+					MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 0
+		if ( strcmp( response,
+		"Detector Model                : TAURUS"
+		) == 0 )
+#endif
+
+		MX_DEBUG(-2,("%s", response));
+		MX_DEBUG(-2,(
+		"Detector Model                : TAURUS"));
+	}
+
+	exit(0);
 
 	/*---*/
 
