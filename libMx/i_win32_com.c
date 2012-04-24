@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_WIN32COM_DEBUG	TRUE
+#define MXI_WIN32COM_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

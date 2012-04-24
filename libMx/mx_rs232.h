@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -269,6 +269,17 @@ typedef struct {
 	mx_status_type ( *wait_for_input_available ) ( MX_RS232 *rs232,
 					double wait_timeout_in_seconds );
 } MX_RS232_FUNCTION_LIST;
+
+/* ============== Internal driver function prototypes. ============== */
+
+MX_API mx_status_type mx_rs232_unbuffered_getline( MX_RS232 *rs232,
+						char *buffer,
+						size_t max_bytes_to_read,
+						size_t *bytes_read );
+
+MX_API mx_status_type mx_rs232_unbuffered_putline( MX_RS232 *rs232,
+						char *buffer,
+						size_t *bytes_written );
 
 /* ============== Interface function prototypes. ============== */
 

@@ -166,6 +166,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
 	long i;
+	char c;
 	unsigned long mask, num_bytes_available;
 	char response[100];
 	mx_status_type mx_status;
@@ -194,7 +195,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	mx_status = mx_rs232_set_configuration( serial_port_record,
 						115200, 8, 'N', 1, 'S',
-						0x0d0a3e, 0x0d );
+						0x0d0a, 0x0d );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -231,7 +232,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( num_bytes_available == 0 ) {
+		if ( num_bytes_available <= 1 ) {
 			break;		/* Exit the while() loop. */
 		}
 
@@ -241,19 +242,18 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-#if 0
-		if ( strcmp( response,
-		"Detector Model                : TAURUS"
-		) == 0 )
-#endif
-
-		MX_DEBUG(-2,("%s", response));
-		MX_DEBUG(-2,(
-		"Detector Model                : TAURUS"));
 	}
 
-	exit(0);
+	/* If present, delete the camera's ">" prompt for the next command. */
+
+	if ( num_bytes_available == 1 ) {
+		mx_status = mx_rs232_getchar(
+				radicon_taurus->serial_port_record,
+				&c, MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/*---*/
 

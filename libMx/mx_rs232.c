@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_RS232_DEBUG_GETLINE_PUTLINE	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -21,6 +23,309 @@
 #include "mx_util.h"
 #include "mx_rs232.h"
 #include "mx_driver.h"
+
+/*-------------------------- Internal driver functions ----------------------*/
+
+MX_EXPORT mx_status_type
+mx_rs232_unbuffered_getline( MX_RS232 *rs232,
+			char *buffer,
+			size_t max_bytes_to_read,
+			size_t *bytes_read )
+{
+	static const char fname[] = "mx_rs232_unbuffered_getline()";
+
+	char *array;
+	mx_bool_type do_timeout;
+	int tick_comparison;
+	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
+	mx_bool_type terminators_seen;
+	int i, start_of_terminator;
+	char c;
+	long error_code;
+	unsigned long num_bytes_available;
+	mx_status_type mx_status;
+
+	/* Otherwise, handle input a character at a time. */
+
+	if ( rs232->timeout < 0.0 ) {
+		do_timeout = FALSE;
+	} else {
+		do_timeout = TRUE;
+
+		timeout_clock_ticks =
+		    mx_convert_seconds_to_clock_ticks( rs232->timeout );
+
+		current_tick = mx_current_clock_tick();
+
+		finish_tick = mx_add_clock_ticks( current_tick,
+						timeout_clock_ticks );
+	}
+
+	array = rs232->read_terminator_array;
+
+	terminators_seen = 0;
+	start_of_terminator = INT_MAX;
+
+#if MX_RS232_DEBUG_GETLINE_PUTLINE
+
+	MX_DEBUG(-2,("%s: do_timeout = %d, rs232->timeout = %g",
+		fname, do_timeout, rs232->timeout));
+#endif
+
+	for ( i = 0; i < max_bytes_to_read; i++ ) {
+
+		if ( do_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			tick_comparison = mx_compare_clock_ticks(
+					current_tick, finish_tick );
+
+			if ( tick_comparison > 0 ) {
+
+		    	    if ( rs232->rs232_flags &
+			      MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
+			    {
+				error_code = 
+					(MXE_TIMED_OUT | MXE_QUIET);
+			    } else {
+				error_code = MXE_TIMED_OUT;
+			    }
+
+			    return mx_error( error_code, fname,
+				"Read from RS-232 port '%s' timed out "
+				"after %g seconds.",
+					rs232->record->name, rs232->timeout );
+			}
+
+			mx_status = mx_rs232_num_input_bytes_available(
+					rs232->record, &num_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+#if MX_RS232_DEBUG_GETLINE_PUTLINE
+			MX_DEBUG(-2,("%s: num_bytes_available = %ld",
+				fname, num_bytes_available));
+#endif
+
+			if ( num_bytes_available < 1 ) {
+				/* The serial port says that it 
+				 * does not yet have a character
+				 * available.
+				 *
+				 * On the next read attempt, we
+				 * want to make sure that the
+				 * index variable 'i' has the
+				 * same value that it had this
+				 * time, so we decrement 'i'
+				 * by one and go back to the top
+				 * of the for loop.
+				 */
+
+				/* Back up */
+				i--;
+
+				mx_msleep(1);
+
+				/* Go to the top of the for loop. */
+				continue;
+			}
+		}
+
+		mx_status = mx_rs232_getchar( rs232->record,
+						&c, MXF_232_WAIT );
+
+#if MX_RS232_DEBUG_GETLINE_PUTLINE
+		MX_DEBUG(-2,("%s: c = %#x '%c'", fname, c, c));
+#endif
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+                        /* Make the buffer contents a valid C string
+			 * before returning.
+			 */
+
+			buffer[i] = '\0';
+
+			if ( mx_status.code == MXE_NOT_READY ) {
+				/* The serial port says that it 
+				 * does not yet have a character
+				 * available.
+				 *
+				 * On the next read attempt, we
+				 * want to make sure that the
+				 * index variable 'i' has the
+				 * same value that it had this
+				 * time, so we decrement 'i'
+				 * by one and go back to the top
+				 * of the for loop.
+				 */
+
+				/* Back up */
+				i--;
+
+				/* Go to the top of the for loop. */
+				continue;
+			} else {
+
+				if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
+
+					MX_DEBUG(-2,
+					("%s failed.\nbuffer = '%s'",
+						fname, buffer));
+
+					MX_DEBUG(-2,
+			("Failed with status = %ld, c = 0x%x '%c'",
+						mx_status.code, c, c));
+				}
+				return mx_status;
+			}
+		}
+
+#if MX_RS232_DEBUG_GETLINE_PUTLINE
+
+		if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
+			MX_DEBUG(-2,
+			("%s: received c = 0x%x '%c'", fname, c, c));
+		}
+#endif
+
+		buffer[i] = c;
+
+		/* If we receive a null byte, we have to decide
+		 * whether or not we will ignore it.  If we
+		 * do _not_ ignore it, then it will have the
+		 * effect of terminating the string returned
+		 * to the caller at this point.
+		 */
+
+		if ( c == '\0' ) {
+			if ( (rs232->transfer_flags) & MXF_232_IGNORE_NULLS ) {
+
+				/* Back up the loop one step
+				 * and then go back to the top
+				 * of the loop.  This will have
+				 * the effect of overwriting
+				 * the null with the next
+				 * character received.
+				 */
+
+				i--;
+
+				continue;
+
+			} else {
+				/* Do not ignore the null. */
+
+				start_of_terminator = i;
+
+				break;	/* Exit the for() loop. */
+			}
+		}
+
+		/* Check to see if we are in the middle of a 
+		 * line terminator sequence.
+		 */
+
+		if ( c != array[ terminators_seen ] ) {
+
+			terminators_seen = 0;
+			start_of_terminator = INT_MAX;
+		} else {
+			if ( terminators_seen == 0 ) {
+				start_of_terminator = i;
+			}
+			terminators_seen++;
+
+			/* Only allow up to four terminator characters.
+			 */
+
+			if ( (terminators_seen
+					>= MX_RS232_MAX_TERMINATORS)
+			  || (array[ terminators_seen ] == '\0') ) {
+
+				/* Since we have now seen the entire
+				 * terminator sequence, we know that
+				 * we are at the end of the line.
+				 * Thus, we break out of the loop here.
+				 */
+
+				break;	/* Exit the for() loop. */
+			}
+		}
+	}
+
+	if ( start_of_terminator < i ) {
+		buffer[ start_of_terminator ] = 0;
+	} else {
+		buffer[ i ] = 0;
+	}
+
+	if ( bytes_read != NULL ) {
+		*bytes_read = strlen( buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_rs232_unbuffered_putline( MX_RS232 *rs232,
+				char *buffer,
+				size_t *bytes_written )
+{
+	static const char fname[] = "mx_rs232_unbuffered_putline()";
+
+	char *array;
+	size_t i, length;
+	char c;
+	mx_status_type mx_status;
+
+	array = rs232->write_terminator_array;
+
+	length = strlen( buffer );
+
+	for ( i = 0; i < length; i++ ) {
+		c = buffer[i];
+
+#if MX_RS232_DEBUG_GETLINE_PUTLINE
+		MX_DEBUG(-2,("%s: sending '%c'", fname, c));
+#endif
+		mx_status = mx_rs232_putchar( rs232->record, c, MXF_232_WAIT );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Send the terminator characters. */
+
+	for ( i = 0; i < MX_RS232_MAX_TERMINATORS; i++ ) {
+
+		c = array[i];
+
+		if ( c == '\0' ) {
+			/* Have reached the end of the terminators,
+			 * so exit the loop.
+			 */
+
+			break;
+		}
+
+		if ( (rs232->transfer_flags) & MXF_232_DEBUG ) {
+			MX_DEBUG(-2,
+			("%s: sending write terminator 0x%x",
+				fname, c));
+		}
+
+		mx_status = mx_rs232_putchar( rs232->record, c, MXF_232_WAIT );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----------------------------- Public functions ----------------------------*/
 
 MX_EXPORT mx_status_type
 mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
@@ -714,13 +1019,7 @@ mx_rs232_getline( MX_RECORD *record,
 	MX_RS232 *rs232;
 	MX_RS232_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RS232 *, char *, size_t, size_t * );
-	char *array;
-	int i, terminators_seen, start_of_terminator, buffered_io;
-	char c;
-	int do_timeout, tick_comparison;
-	long error_code;
-	unsigned long num_bytes_available;
-	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
+	mx_bool_type buffered_io;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, &fl_ptr, fname );
@@ -758,224 +1057,10 @@ mx_rs232_getline( MX_RECORD *record,
 	} else {
 		/* Otherwise, handle input a character at a time. */
 
-		if ( rs232->timeout < 0.0 ) {
-			do_timeout = FALSE;
-		} else {
-			do_timeout = TRUE;
-
-			timeout_clock_ticks =
-			    mx_convert_seconds_to_clock_ticks( rs232->timeout );
-
-			current_tick = mx_current_clock_tick();
-
-			finish_tick = mx_add_clock_ticks( current_tick,
-							timeout_clock_ticks );
-		}
-
-		array = rs232->read_terminator_array;
-
-		terminators_seen = 0;
-		start_of_terminator = INT_MAX;
-
-#if 0
-		MX_DEBUG(-2,("%s: do_timeout = %d, rs232->timeout = %g",
-			fname, do_timeout, rs232->timeout));
-#endif
-
-		for ( i = 0; i < max_bytes_to_read; i++ ) {
-
-			if ( do_timeout ) {
-				current_tick = mx_current_clock_tick();
-
-				tick_comparison = mx_compare_clock_ticks(
-						current_tick, finish_tick );
-
-				if ( tick_comparison > 0 ) {
-
-			    	    if ( rs232->rs232_flags &
-				      MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
-				    {
-					error_code = 
-						(MXE_TIMED_OUT | MXE_QUIET);
-				    } else {
-					error_code = MXE_TIMED_OUT;
-				    }
-
-				    return mx_error( error_code, fname,
-					"Read from RS-232 port '%s' timed out "
-					"after %g seconds.",
-						record->name, rs232->timeout );
-				}
-
-				mx_status = mx_rs232_num_input_bytes_available(
-						record, &num_bytes_available );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-#if 0
-				MX_DEBUG(-2,("%s: num_bytes_available = %ld",
-					fname, num_bytes_available));
-#endif
-
-				if ( num_bytes_available < 1 ) {
-					/* The serial port says that it 
-					 * does not yet have a character
-					 * available.
-					 *
-					 * On the next read attempt, we
-					 * want to make sure that the
-					 * index variable 'i' has the
-					 * same value that it had this
-					 * time, so we decrement 'i'
-					 * by one and go back to the top
-					 * of the for loop.
-					 */
-
-					/* Back up */
-					i--;
-
-					mx_msleep(1);
-
-					/* Go to the top of the for loop. */
-					continue;
-				}
-			}
-
-			mx_status = mx_rs232_getchar(record, &c, MXF_232_WAIT);
-
-#if 0
-			MX_DEBUG(-2,("%s: c = %#x '%c'", fname, c, c));
-#endif
-
-			if ( mx_status.code != MXE_SUCCESS ) {
-	                        /* Make the buffer contents a valid C string
-				 * before returning.
-				 */
-
-				buffer[i] = '\0';
-
-#if 0	/* FIXME: Verify that the replacement works with all serial ports! */
-
-				if ( mx_status.code != MXE_NOT_READY ) {
-#else
-				if ( mx_status.code == MXE_NOT_READY ) {
-					/* The serial port says that it 
-					 * does not yet have a character
-					 * available.
-					 *
-					 * On the next read attempt, we
-					 * want to make sure that the
-					 * index variable 'i' has the
-					 * same value that it had this
-					 * time, so we decrement 'i'
-					 * by one and go back to the top
-					 * of the for loop.
-					 */
-
-					/* Back up */
-					i--;
-
-					/* Go to the top of the for loop. */
-					continue;
-				} else {
-#endif
-
-					if ( transfer_flags & MXF_232_DEBUG ) {
-
-						MX_DEBUG(-2,
-						("%s failed.\nbuffer = '%s'",
-							fname, buffer));
-
-						MX_DEBUG(-2,
-				("Failed with status = %ld, c = 0x%x '%c'",
-							mx_status.code, c, c));
-					}
-					return mx_status;
-				}
-			}
-#if 0
-			if ( transfer_flags & MXF_232_DEBUG ) {
-				MX_DEBUG(-2,
-				("%s: received c = 0x%x '%c'", fname, c, c));
-			}
-#endif
-
-			buffer[i] = c;
-
-			/* If we receive a null byte, we have to decide
-			 * whether or not we will ignore it.  If we
-			 * do _not_ ignore it, then it will have the
-			 * effect of terminating the string returned
-			 * to the caller at this point.
-			 */
-
-			if ( c == '\0' ) {
-				if ( transfer_flags & MXF_232_IGNORE_NULLS ) {
-
-					/* Back up the loop one step
-					 * and then go back to the top
-					 * of the loop.  This will have
-					 * the effect of overwriting
-					 * the null with the next
-					 * character received.
-					 */
-
-					i--;
-
-					continue;
-
-				} else {
-					/* Do not ignore the null. */
-
-					start_of_terminator = i;
-
-					break;	/* Exit the for() loop. */
-				}
-			}
-
-			/* Check to see if we are in the middle of a 
-			 * line terminator sequence.
-			 */
-
-			if ( c != array[ terminators_seen ] ) {
-
-				terminators_seen = 0;
-				start_of_terminator = INT_MAX;
-			} else {
-				if ( terminators_seen == 0 ) {
-					start_of_terminator = i;
-				}
-				terminators_seen++;
-
-				/* Only allow up to four terminator characters.
-				 */
-
-				if ( (terminators_seen
-						>= MX_RS232_MAX_TERMINATORS)
-				  || (array[ terminators_seen ] == '\0') ) {
-
-					/* Since we have now seen the entire
-					 * terminator sequence, we know that
-					 * we are at the end of the line.
-					 * Thus, we break out of the loop here.
-					 */
-
-					break;	/* Exit the for() loop. */
-				}
-			}
-		}
-
-		if ( start_of_terminator < i ) {
-			buffer[ start_of_terminator ] = 0;
-		} else {
-			buffer[ i ] = 0;
-		}
-
-		if ( bytes_read != NULL ) {
-			*bytes_read = strlen( buffer );
-		}
-
-		mx_status = MX_SUCCESSFUL_RESULT;
+		mx_status = mx_rs232_unbuffered_getline( rs232,
+							buffer,
+							max_bytes_to_read,
+							bytes_read );
 	}
 
 	if ( transfer_flags & MXF_232_DEBUG ) {
@@ -997,9 +1082,8 @@ mx_rs232_putline( MX_RECORD *record,
 	MX_RS232_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*putline_fn)( MX_RS232 *, char *, size_t * );
 	mx_status_type (*write_fn)( MX_RS232 *, char *, size_t, size_t * );
-	char *array;
-	int i, length, buffered_io;
-	char c;
+	size_t length;
+	mx_bool_type buffered_io;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, &fl_ptr, fname );
@@ -1029,9 +1113,6 @@ mx_rs232_putline( MX_RECORD *record,
 		/* If it has putline, invoke it. */
 
 		mx_status = (*putline_fn)( rs232, buffer, bytes_written );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 
 	} else
 	if ( buffered_io && ( write_fn != NULL ) ) {
@@ -1071,47 +1152,11 @@ mx_rs232_putline( MX_RECORD *record,
 	} else {
 		/* Otherwise, handle output a character at a time. */
 
-		array = rs232->write_terminator_array;
-
-		length = (int) strlen( buffer );
-
-		for ( i = 0; i < length; i++ ) {
-			c = buffer[i];
-
-			mx_status = mx_rs232_putchar(record, c, MXF_232_WAIT);
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-		/* Send the terminator characters. */
-
-		for ( i = 0; i < MX_RS232_MAX_TERMINATORS; i++ ) {
-
-			c = array[i];
-
-			if ( c == '\0' ) {
-				/* Have reached the end of the terminators,
-				 * so exit the loop.
-				 */
-
-				break;
-			}
-
-			if ( transfer_flags & MXF_232_DEBUG ) {
-				MX_DEBUG(-2,
-				("%s: sending write terminator 0x%x",
-					fname, c));
-			}
-
-			mx_status = mx_rs232_putchar(record, c, MXF_232_WAIT);
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
+		mx_status = mx_rs232_unbuffered_putline( rs232, buffer,
+							bytes_written );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;;
 }
 
 MX_EXPORT mx_status_type
