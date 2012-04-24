@@ -17,13 +17,20 @@
 #ifndef __D_RADICON_TAURUS_H__
 #define __D_RADICON_TAURUS_H__
 
+#define MXT_RADICON_TAURUS	1
+#define MXT_RADICON_XINEOS	2
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *serial_port_record;
 
-	unsigned long sensor_readout_mode;
+	unsigned long detector_model;
+	unsigned long serial_number;
+	unsigned long firmware_version;
+
+	unsigned long readout_mode;
 } MX_RADICON_TAURUS;
 
 
@@ -36,7 +43,19 @@ typedef struct {
   {-1, -1, "serial_port_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, serial_port_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, serial_number), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY }, 
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );

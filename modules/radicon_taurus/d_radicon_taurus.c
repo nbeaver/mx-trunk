@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
+#include "mx_ascii.h"
 #include "mx_motor.h"
 #include "mx_image.h"
 #include "mx_rs232.h"
@@ -169,6 +170,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char c;
 	unsigned long mask, num_bytes_available;
 	char response[100];
+	char *string_value_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -242,6 +244,74 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Discard any leading LF character. */
+
+		if ( response[0] == MX_LF ) {
+			size_t length = strlen( response );
+
+			memmove( response, response + 1, length );
+		}
+
+		string_value_ptr = strchr( response, ':' );
+
+		if ( string_value_ptr == NULL ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Did not find the value separator char ':' "
+			"in the response line '%s' for the detector '%s'.",
+				response, record->name );
+		}
+
+		/* Skip over the colon and a trailing blank. */
+
+		string_value_ptr++;
+		string_value_ptr++;
+
+		if ( strncmp( response, "Detector Model", 14 ) == 0 ) {
+			if ( strcmp( string_value_ptr, "TAURUS" ) == 0 ) {
+
+				radicon_taurus->detector_model
+					= MXT_RADICON_TAURUS;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Unrecognized detector model '%s' seen "
+				"for detector '%s'.",
+					string_value_ptr, record->name );
+			}
+		} else
+		if ( strncmp( response, "Camera Model", 12 ) == 0 ) {
+			if ( strncmp(string_value_ptr, "SkiaGraph", 9) == 0 ) {
+				radicon_taurus->detector_model
+					= MXT_RADICON_XINEOS;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Unrecognized camera model '%s' seen "
+				"for detector '%s'.",
+					string_value_ptr, record->name );
+			}
+		} else
+		if ( strncmp( response, "Detector S/N", 12 ) == 0 ) {
+			radicon_taurus->serial_number =
+				mx_string_to_unsigned_long( string_value_ptr );
+		} else
+		if ( strncmp( response, "Camera S/N", 10 ) == 0 ) {
+			radicon_taurus->serial_number =
+				mx_string_to_unsigned_long( string_value_ptr );
+		} else
+		if ( strncmp(response, "Detector FW Build Version", 25) == 0 ) {
+			radicon_taurus->firmware_version =
+				mx_string_to_unsigned_long( string_value_ptr );
+		} else
+		if ( strncmp( response, "Camera FW Build Version", 23 ) == 0 ) {
+			/* Skip over leading FW_ characters. */
+
+			string_value_ptr += 3;
+
+			radicon_taurus->firmware_version =
+				mx_string_to_unsigned_long( string_value_ptr );
+		} else {
+			/* Ignore this line. */
+		}
 	}
 
 	/* If present, delete the camera's ">" prompt for the next command. */
@@ -287,7 +357,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->binsize[0] = 1;
 	ad->binsize[1] = 1;
 
-	radicon_taurus->sensor_readout_mode = -1;
+	radicon_taurus->readout_mode = -1;
 
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
@@ -655,7 +725,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record;
-	unsigned long sensor_readout_mode, trigger_mask;
+	unsigned long readout_mode, trigger_mask;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
@@ -688,9 +758,9 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		if (( ad->binsize[0] > 1 ) || ( ad->binsize[1] > 1 )) {
 			ad->binsize[0] = 2;
 			ad->binsize[1] = 2;
-			sensor_readout_mode = 1;
+			readout_mode = 1;
 		} else {
-			sensor_readout_mode = 2;
+			readout_mode = 2;
 		}
 
 		mx_status = mx_area_detector_compute_new_binning( ad,
@@ -711,8 +781,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Tell the camera head to switch sensor readout modes. */
 
-		if (sensor_readout_mode != radicon_taurus->sensor_readout_mode)
-		{
+		if ( readout_mode != radicon_taurus->readout_mode ) {
 			if ( ad->binsize[0] == 1 ) {
 				strlcpy( command, "SVM 1", sizeof(command) );
 			} else {
