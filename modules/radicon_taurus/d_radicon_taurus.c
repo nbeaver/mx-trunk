@@ -788,8 +788,8 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 				strlcpy( command, "SVM 2", sizeof(command) );
 			}
 			mx_status = mxd_radicon_taurus_command( radicon_taurus,
-					command, response, sizeof(response),
-					MXD_RADICON_TAURUS_DEBUG );
+						command, NULL, 0,
+						MXD_RADICON_TAURUS_DEBUG );
 		}
 		break;
 
@@ -810,8 +810,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		}
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus,
-				command, response, sizeof(response),
-				MXD_RADICON_TAURUS_DEBUG );
+				command, NULL, 0, MXD_RADICON_TAURUS_DEBUG );
 #endif
 		break;
 
@@ -847,6 +846,8 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 	static const char fname[] = "mxd_radicon_taurus_command()";
 
 	MX_RECORD *serial_port_record;
+	unsigned long num_bytes_available;
+	char c;
 	mx_status_type mx_status;
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
@@ -884,6 +885,31 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",
 				fname, response, radicon_taurus->record->name));
+		}
+	}
+
+	/* If there is a single character left to be read from the
+	 * serial port, then that should be a LF character.  Read
+	 * that character out and discard it.
+	 */
+
+	mx_status = mx_rs232_num_input_bytes_available( serial_port_record,
+							&num_bytes_available );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_bytes_available == 1 ) {
+		mx_status = mx_rs232_getchar( serial_port_record,
+						&c, debug_flag );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( c != MX_LF ) {
+			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"A single character %#x was discarded for '%s', "
+			"but it was not a LF character.",
+				c, radicon_taurus->record->name );
 		}
 	}
 
