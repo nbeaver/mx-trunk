@@ -396,7 +396,15 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn off internal and external trigger for the video input.
+	/* The detector will default to internal triggering. */
+
+	mx_status = mx_area_detector_set_trigger_mode( record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Turn off the separate internal and external trigger features
+	 * for the video input.
 	 * 
 	 * This should cause the video card to switch to a 'free run' mode
 	 * which leaves the frame timing entirely up to the camera head.
@@ -471,9 +479,30 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	raw_exposure_time = mx_round( 40000.0 * exposure_time );
+	switch( radicon_taurus->detector_model ) {
+	case MXT_RADICON_TAURUS:
+		raw_exposure_time = mx_round( 40000.0 * exposure_time );
 
-	snprintf( command, sizeof(command), "SIT %lu", raw_exposure_time );
+#if 0
+		snprintf( command, sizeof(command),
+			"SIT %lu", raw_exposure_time );
+#else
+		strlcpy( command, "GCM", sizeof(command) );
+#endif
+		break;
+	case MXT_RADICON_XINEOS:
+		raw_exposure_time = mx_round( 40000.0 * exposure_time );
+
+		snprintf( command, sizeof(command),
+			"SIT %lu", raw_exposure_time );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported detector type %lu for detector '%s'",
+			radicon_taurus->detector_model,
+			ad->record->name );
+		break;
+	}
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
@@ -750,68 +779,128 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
-		/* For this detector, if you bin in one dimension, then
-		 * you must bin in _both_ dimensions.  The detector does
-		 * not allow you to specify them independently.
-		 */
+		switch( radicon_taurus->detector_model ) {
+		case MXT_RADICON_TAURUS:
+			/* The Taurus detector does not support binning. */
 
-		if (( ad->binsize[0] > 1 ) || ( ad->binsize[1] > 1 )) {
-			ad->binsize[0] = 2;
-			ad->binsize[1] = 2;
-			readout_mode = 1;
-		} else {
-			readout_mode = 2;
-		}
+			ad->binsize[0] = 1;
+			ad->binsize[1] = 1;
 
-		mx_status = mx_area_detector_compute_new_binning( ad,
+			mx_status = mx_area_detector_compute_new_binning( ad,
 							ad->parameter_type,
 							num_allowed_binsizes,
 							allowed_binsize );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			break;
 
-		/* Tell the video input to change its framesize. */
+		case MXT_RADICON_XINEOS:
+			/* For the Xineos detector, if you bin in one
+			 * dimension, then you must bin in _both_ dimensions.
+			 * The detector does not allow you to specify them
+			 * independently.
+			 */
 
-		mx_status = mx_video_input_set_framesize(
+			if (( ad->binsize[0] > 1 ) || ( ad->binsize[1] > 1 )) {
+				ad->binsize[0] = 2;
+				ad->binsize[1] = 2;
+				readout_mode = 1;
+			} else {
+				readout_mode = 2;
+			}
+
+			mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+	
+			/* Tell the video input to change its framesize. */
+	
+			mx_status = mx_video_input_set_framesize(
 					video_input_record,
 					ad->framesize[0], ad->framesize[1] );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Tell the camera head to switch sensor readout modes. */
-
-		if ( readout_mode != radicon_taurus->readout_mode ) {
-			if ( ad->binsize[0] == 1 ) {
-				strlcpy( command, "SVM 1", sizeof(command) );
-			} else {
-				strlcpy( command, "SVM 2", sizeof(command) );
-			}
-			mx_status = mxd_radicon_taurus_command( radicon_taurus,
+	
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+	
+			/* Tell the camera head to switch readout modes. */
+	
+			if ( readout_mode != radicon_taurus->readout_mode ) {
+				if ( ad->binsize[0] == 1 ) {
+					strlcpy( command, "SVM 1",
+							sizeof(command) );
+				} else {
+					strlcpy( command, "SVM 2",
+							sizeof(command) );
+				}
+				mx_status = mxd_radicon_taurus_command(
+						radicon_taurus,
 						command, NULL, 0,
 						MXD_RADICON_TAURUS_DEBUG );
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported detector model %lu for detector '%s'.",
+				radicon_taurus->detector_model,
+				ad->record->name );
+			break;
 		}
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-#if 1
-		ad->trigger_mode = 0;
-#else
-		trigger_mask =
-			MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+		switch( radicon_taurus->detector_model ) {
+		case MXT_RADICON_TAURUS:
+			if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 
-		if ( (ad->trigger_mode & trigger_mask) == 0 ) {
-			/* FreeRunning mode */
+				strlcpy( command, "SRO 2", sizeof(command) );
+			} else
+			if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 
-			strlcpy( command, "STM 64", sizeof(command) );
-		} else {
-			/* Snapshot mode */
-			strlcpy( command, "STM 2137", sizeof(command) );
+				strlcpy( command, "SRO 4", sizeof(command) );
+			} else {
+				mx_warning( "Unsupported trigger mode %#lx "
+				"requested for detector '%s'.  "
+				"Setting trigger to internal mode.",
+					ad->trigger_mode, ad->record->name );
+
+				strlcpy( command, "SRO 4", sizeof(command) );
+
+				ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			}
+			break;
+
+		case MXT_RADICON_XINEOS:
+			if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+
+				strlcpy( command, "STM 2137", sizeof(command) );
+			} else
+			if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+				strlcpy( command, "STM 64", sizeof(command) );
+			} else {
+				mx_warning( "Unsupported trigger mode %#lx "
+				"requested for detector '%s'.  "
+				"Setting trigger to internal mode.",
+					ad->trigger_mode, ad->record->name );
+
+				strlcpy( command, "STM 64", sizeof(command) );
+
+				ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported detector model %lu for detector '%s'.",
+				radicon_taurus->detector_model,
+				ad->record->name );
+			break;
 		}
-
+					
 		mx_status = mxd_radicon_taurus_command( radicon_taurus,
 				command, NULL, 0, MXD_RADICON_TAURUS_DEBUG );
-#endif
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

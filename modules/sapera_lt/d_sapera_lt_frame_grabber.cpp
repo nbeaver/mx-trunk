@@ -789,6 +789,9 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: max_image_frames = %lu, max_frames_threshold = %lu",
 			fname, max_image_frames, max_frames_threshold));
 #endif
+
+#if 0	/* FIXME */
+
 	if ( sapera_lt_frame_grabber->max_frames > max_frames_threshold ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The maximum number of frames (%ld) requested for "
@@ -798,6 +801,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name,
 			max_frames_threshold );
 	}
+#endif
 
 	/*---------------------------------------------------------------*/
 
