@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -685,6 +685,7 @@ mx_wait_for_debugger( void )
 "      to break out of the loop.\n"
 "  3.  Use the command 'finish' to run functions to completion.\n\n", pid );
 		
+#if defined(OS_SOLARIS) || defined(OS_HPUX) || defined(OS_IRIX)
 	fprintf( stderr,
 "If you are using DBX, follow this procedure:\n"
 "  1.  If not already attached, attach to the process with the command\n"
@@ -692,6 +693,7 @@ mx_wait_for_debugger( void )
 "  2.  Type 'assign loop=0' in the mx_wait_for_debugger() stack frame\n"
 "      to break out of the loop.\n"
 "  3.  Use the command 'step up' to run functions to completion.\n\n", pid );
+#endif
 		
 	fprintf( stderr, "Waiting...\n\n" );
 
