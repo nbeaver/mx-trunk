@@ -396,10 +396,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* The detector will default to internal triggering. */
+	/* The detector will default to external triggering. */
 
 	mx_status = mx_area_detector_set_trigger_mode( record,
-						MXT_IMAGE_INTERNAL_TRIGGER );
+						MXT_IMAGE_EXTERNAL_TRIGGER );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -509,7 +509,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		snprintf( command, sizeof(command),
 			"SI1 %lu %lu %lu",
-			low_order, middle_order, high_order );
+			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
@@ -534,7 +534,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		snprintf( command, sizeof(command),
 			"SI2 %lu %lu %lu",
-			low_order, middle_order, high_order );
+			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
@@ -629,7 +629,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Tell the video capture card to get ready for a frame. */
+	/* Tell the video capture card to get ready for frames. */
 
 	mx_status = mx_video_input_arm( radicon_taurus->video_input_record );
 
