@@ -981,6 +981,8 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	vinput->master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
+
 	vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_set_trigger_mode( record,
@@ -1154,6 +1156,14 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		 * so we just skip it here.
 		 */
 		break;
+	case MXT_SQ_STROBE:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+		break;
+	case MXT_SQ_DURATION:
+		num_frames = sp->parameter_array[0];
+		exposure_time = 1.0;		/* This will be ignored. */
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		    "Sequence type %ld has not yet been implemented for '%s'.",
@@ -1171,15 +1181,11 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 			vinput->record->name );
 	}
 	
-	trigger_mask = MXT_IMAGE_INTERNAL_TRIGGER | MXT_IMAGE_EXTERNAL_TRIGGER;
+	/* If the video board is in charge of timing, then we must set
+	 * the exposure time.
+	 */
 
-	if ( (vinput->trigger_mode & trigger_mask) == 0 ) {
-
-		/* We are configured for 'free run' mode, so we
-		 * do not need to do anything here.
-		 */
-	} else {
-		/* Specify how long the integration time is supposed to be. */
+	if ( vinput->master_clock == MXF_VIN_MASTER_VIDEO_BOARD ) {
 	
 		exposure_time_in_microsec =
 			mx_round( 1.0e6 * (double) exposure_time );
@@ -1458,7 +1464,11 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_STROBE:
 		exposure_time = sp->parameter_array[1];
+		break;
+	case MXT_SQ_DURATION:
+		exposure_time = 1.0;
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

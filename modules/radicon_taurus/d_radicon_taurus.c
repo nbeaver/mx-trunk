@@ -403,12 +403,13 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn off the separate internal and external trigger features
-	 * for the video input.
-	 * 
-	 * This should cause the video card to switch to a 'free run' mode
-	 * which leaves the frame timing entirely up to the camera head.
-	 */
+	/* Tell the video card that the camera head is in charge of timing. */
+
+	mx_status = mx_video_input_set_master_clock( video_input_record,
+							MXF_VIN_MASTER_CAMERA );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record, 0 );
 
@@ -451,14 +452,20 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#define TAURUS_MINIMUM_EXPOSURE_TIME	4
+#define TAURUS_SECONDS_PER_STEP		(33.0e-9)
+
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_radicon_taurus_arm()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
-	double exposure_time;
-	unsigned long raw_exposure_time;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time, exposure_time_offset;
+	unsigned long raw_exposure_time_32;
+	uint64_t raw_exposure_time_64;
+	unsigned long low_order, middle_order, high_order;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -474,27 +481,141 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 #endif
 	/* Set the exposure time for this sequence. */
 
-	mx_status = mx_sequence_get_exposure_time( &(ad->sequence_parameters),
-							0, &exposure_time );
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	switch( radicon_taurus->detector_model ) {
 	case MXT_RADICON_TAURUS:
-		raw_exposure_time = mx_round( 40000.0 * exposure_time );
+		/* Set the first integration time. */
 
-#if 0
+		if ( exposure_time < 0.0 ) {
+		    raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
+		} else {
+		    raw_exposure_time_64 = (uint64_t)( 0.5
+			+ (exposure_time / TAURUS_SECONDS_PER_STEP) );
+
+		    if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
+			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
+		    }
+		}
+
+		low_order    = raw_exposure_time_64 & 0xffff;
+		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;
+		high_order   = (raw_exposure_time_64 >> 32) & 0xf;
+
 		snprintf( command, sizeof(command),
-			"SIT %lu", raw_exposure_time );
-#else
-		strlcpy( command, "GCM", sizeof(command) );
-#endif
+			"SI1 %lu %lu %lu",
+			low_order, middle_order, high_order );
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the second integration time to a value
+		 * that is 8 times smaller to get the lower
+		 * order bits of the signal.
+		 */
+
+		raw_exposure_time_64 /= 8;
+
+		if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
+			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
+		}
+
+		low_order    = raw_exposure_time_64 & 0xffff;
+		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;
+		high_order   = (raw_exposure_time_64 >> 32) & 0xf;
+
+		snprintf( command, sizeof(command),
+			"SI2 %lu %lu %lu",
+			low_order, middle_order, high_order );
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/**** Set the Taurus Readout Mode. ****/
+		
+		/* The correct value for the readout mode depends on
+		 * the sequence type and the trigger type.
+		 */
+
+		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+			strlcpy( command, "SRO 4", sizeof(command) );
+		} else
+		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			switch( sp->sequence_type ) {
+			case MXT_SQ_ONE_SHOT:
+			case MXT_SQ_MULTIFRAME:
+			case MXT_SQ_STROBE:
+				strlcpy( command, "SRO 3", sizeof(command) );
+				break;
+			case MXT_SQ_DURATION:
+				strlcpy( command, "SRO 2", sizeof(command) );
+				break;
+			default:
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"MX imaging sequence type %lu is not "
+				"supported for external triggering with "
+				"detector '%s'.",
+					sp->sequence_type,
+					ad->record->name );
+				break;
+			}
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported trigger mode %#lx requested for "
+			"detector '%s'.",
+				ad->trigger_mode,
+				ad->record->name );
+				
+		}
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
 		break;
 	case MXT_RADICON_XINEOS:
-		raw_exposure_time = mx_round( 40000.0 * exposure_time );
+		/* FIXME: The scale factor is wrong for the Xineos. */
+
+		raw_exposure_time_32 = mx_round( 40000.0 * exposure_time );
 
 		snprintf( command, sizeof(command),
-			"SIT %lu", raw_exposure_time );
+			"SIT %lu", raw_exposure_time_32 );
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+
+			strlcpy( command, "STM 2137", sizeof(command) );
+		} else
+		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+			strlcpy( command, "STM 64", sizeof(command) );
+		} else {
+			mx_warning( "Unsupported trigger mode %#lx "
+			"requested for detector '%s'.  "
+			"Setting trigger to internal mode.",
+				ad->trigger_mode, ad->record->name );
+
+			strlcpy( command, "STM 64", sizeof(command) );
+
+			ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+		}
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -504,8 +625,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -850,57 +969,9 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
-		switch( radicon_taurus->detector_model ) {
-		case MXT_RADICON_TAURUS:
-			if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-
-				strlcpy( command, "SRO 2", sizeof(command) );
-			} else
-			if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-
-				strlcpy( command, "SRO 4", sizeof(command) );
-			} else {
-				mx_warning( "Unsupported trigger mode %#lx "
-				"requested for detector '%s'.  "
-				"Setting trigger to internal mode.",
-					ad->trigger_mode, ad->record->name );
-
-				strlcpy( command, "SRO 4", sizeof(command) );
-
-				ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
-			}
-			break;
-
-		case MXT_RADICON_XINEOS:
-			if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-
-				strlcpy( command, "STM 2137", sizeof(command) );
-			} else
-			if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-
-				strlcpy( command, "STM 64", sizeof(command) );
-			} else {
-				mx_warning( "Unsupported trigger mode %#lx "
-				"requested for detector '%s'.  "
-				"Setting trigger to internal mode.",
-					ad->trigger_mode, ad->record->name );
-
-				strlcpy( command, "STM 64", sizeof(command) );
-
-				ad->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
-			}
-			break;
-
-		default:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported detector model %lu for detector '%s'.",
-				radicon_taurus->detector_model,
-				ad->record->name );
-			break;
-		}
-					
-		mx_status = mxd_radicon_taurus_command( radicon_taurus,
-				command, NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+		/* All of the trigger mode handling logic is actually done
+		 * at 'arm' time.  Look in mxd_radicon_taurus_arm() for it.
+		 */
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
