@@ -171,6 +171,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	unsigned long mask, num_bytes_available;
 	char response[100];
 	char *string_value_ptr;
+	mx_bool_type response_seen;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -224,6 +225,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	mx_msleep(500);
 
+	radicon_taurus->detector_model = 0;
+	radicon_taurus->serial_number = 0;
+	radicon_taurus->firmware_version = 0;
+	response_seen = FALSE;
+
 	/* Loop through the responses from the detector to the GCP command. */
 
 	while (1) {
@@ -235,8 +241,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 
 		if ( num_bytes_available <= 1 ) {
+			if ( response_seen == FALSE ) {
+				return mx_error( MXE_NOT_READY, fname,
+				"Area detector '%s' did not respond to a 'GCP' "
+				"command.  Perhaps the detector is turned off?",
+					record->name );
+			}
+
 			break;		/* Exit the while() loop. */
 		}
+
+		response_seen = TRUE;
 
 		mx_status = mx_rs232_getline(radicon_taurus->serial_port_record,
 					response, sizeof(response), NULL,
@@ -311,6 +326,12 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 				mx_string_to_unsigned_long( string_value_ptr );
 		} else {
 			/* Ignore this line. */
+		}
+
+		if ( radicon_taurus->detector_model == 0 ) {
+			mx_warning( "Did not see the detector model in the "
+			"response to a GCP command sent to detector '%s'.",
+				record->name );
 		}
 	}
 
