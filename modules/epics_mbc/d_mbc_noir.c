@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -765,6 +765,7 @@ mxd_mbc_noir_transfer_frame( MX_AREA_DETECTOR *ad )
 	/* Now we can read in the MBC NOIR file. */
 
 	mx_status = mx_image_read_smv_file( &(ad->image_frame),
+					MXT_IMAGE_FILE_SMV,
 					local_mbc_noir_filename );
 
 	return mx_status;

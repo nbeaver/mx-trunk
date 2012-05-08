@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,8 +68,9 @@ extern "C" {
 #define MXT_IMAGE_FILE_SMV			101
 #define MXT_IMAGE_FILE_MARCCD			102
 #define MXT_IMAGE_FILE_EDF			103
+#define MXT_IMAGE_FILE_NOIR			104
 
-#define MXU_IMAGE_SMV_HEADER_LENGTH		512
+#define MXU_IMAGE_SMV_MAX_HEADER_LENGTH		2048
 
 /*---- Sequence type definitions ----*/
 
@@ -383,9 +384,11 @@ MX_API mx_status_type mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_API mx_status_type mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
+						unsigned long datafile_type,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
+						unsigned long datafile_type,
 						char *datafile_name );
 
 /*----*/

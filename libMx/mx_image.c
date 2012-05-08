@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,6 +45,7 @@
 #include "mx_stdint.h"
 #include "mx_bit.h"
 #include "mx_array.h"
+#include "mx_cfn.h"
 #include "mx_image.h"
 
 typedef struct {
@@ -299,7 +300,8 @@ static MX_IMAGE_FORMAT_ENTRY mxp_file_format_table[] =
 
 	{"SMV",    MXT_IMAGE_FILE_SMV},
 	{"MARCCD", MXT_IMAGE_FILE_MARCCD},
-	{"EDF",    MXT_IMAGE_FILE_EDF}
+	{"EDF",    MXT_IMAGE_FILE_EDF},
+	{"NOIR",   MXT_IMAGE_FILE_NOIR}
 };
 
 static size_t mxp_file_format_table_length
@@ -2276,7 +2278,10 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
-		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
+	case MXT_IMAGE_FILE_NOIR:
+		mx_status = mx_image_read_smv_file( frame_ptr,
+						datafile_type,
+						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_MARCCD:
 		mx_status = mx_image_read_marccd_file( frame_ptr,
@@ -2339,7 +2344,10 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_SMV:
-		mx_status = mx_image_write_smv_file( frame, datafile_name );
+	case MXT_IMAGE_FILE_NOIR:
+		mx_status = mx_image_write_smv_file( frame,
+						datafile_type,
+						datafile_name );
 		break;
 	case MXT_IMAGE_FILE_EDF:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
@@ -3284,8 +3292,62 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+/* FIXME: The following is inefficient and overly simplistic. */
+
+static mx_status_type
+mxp_write_noir_static_header( FILE * header_file )
+{
+	static const char fname[] = "mxp_write_noir_static_header()";
+
+	FILE *static_header_file;
+	char static_header_filename[MXU_FILENAME_LENGTH+1];
+	char static_header_contents[MXU_IMAGE_SMV_MAX_HEADER_LENGTH+1];
+	size_t bytes_read, bytes_written;
+	mx_status_type mx_status;
+
+	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+					"noir_header.dat",
+					static_header_filename,
+					sizeof(static_header_filename) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: static_header_filename = '%s'.",
+		fname, static_header_filename));
+
+	static_header_file = fopen( static_header_filename, "r" );
+
+	if ( static_header_file == NULL ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot not open static NOIR header file '%s'.",
+		static_header_filename );
+	}
+
+	bytes_read = fread( static_header_contents,
+				1, MXU_IMAGE_SMV_MAX_HEADER_LENGTH,
+				static_header_file );
+
+	MX_DEBUG(-4,("%s: bytes_read = %lu",
+		fname, (unsigned long) bytes_read));
+
+	bytes_written = fwrite( static_header_contents,
+				1, bytes_read, header_file );
+
+	MX_DEBUG(-4,("%s: bytes_written = %lu",
+		fname, (unsigned long) bytes_written));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
-mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
+			unsigned long datafile_type,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_read_smv_file()";
 
@@ -3527,6 +3589,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 			bias_offset_in_milli_adus = 
 				mx_round( 1000.0 * bias_offset_in_adus );
+		} else {
+			/* Other header values (including TYPE) are ignored. */
 		}
 	}
 
@@ -3591,11 +3655,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	/* Move to the first byte after the header. */
 
-#if 1
 	os_status = fseek( file, header_length, SEEK_SET );
-#else
-	os_status = fseek( file, MXU_IMAGE_SMV_HEADER_LENGTH, SEEK_SET );
-#endif
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -3662,7 +3722,9 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
+			unsigned long datafile_type,
+			char *datafile_name )
 {
 	static const char fname[] = "mx_image_write_smv_file()";
 
@@ -3673,14 +3735,15 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	unsigned char *src;
 	unsigned char dest[10];
 	int saved_errno, os_status, num_items_written;
-	unsigned long byteorder;
-	unsigned char null_header_bytes[MXU_IMAGE_SMV_HEADER_LENGTH] = { 0 };
+	unsigned long byteorder, header_length;
+	unsigned char null_header_bytes[MXU_IMAGE_SMV_MAX_HEADER_LENGTH] = {0};
 	long i;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	char timestamp[80];
 	struct timespec timestamp_timespec;
 	unsigned long bias_offset_milli_adus;
+	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3749,6 +3812,25 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 				dest_step );
 	}
 
+	/* The size of the datafile header depends on the datafile type. */
+
+	switch( datafile_type ) {
+	case MXT_IMAGE_FILE_SMV:
+		header_length = 512;
+		break;
+	case MXT_IMAGE_FILE_NOIR:
+		header_length = 2048;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported SMV-style datafile type %lu "
+			"requested for datafile '%s'.",
+			datafile_name );
+		break;
+	}
+
+	/* Open the new datafile. */
+
 	file = fopen( datafile_name, "wb" );
 
 	if ( file == NULL ) {
@@ -3763,10 +3845,9 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	/* Write the SMV header. */
 
-	/* First null out the first 512 bytes of the file. */
+	/* First null out the header bytes at the start of the file. */
 
-	num_items_written = fwrite( null_header_bytes,
-				sizeof(null_header_bytes), 1, file );
+	num_items_written = fwrite( null_header_bytes, header_length, 1, file );
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: num_items_written = %d", fname, num_items_written));
@@ -3811,12 +3892,21 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	 *
 	 * which somehow caused Fit2d to not correctly figure out what the
 	 * image dimensions were.
+	 *
+	 * NOTE: SMV and NOIR format headers disagree on the meaning
+	 *       of the TYPE header.  For SMV, this is the datatype of
+	 *       the image bits.  For NOIR, this is always 'mad', and
+	 *       the datatype is in Data_type instead.
 	 */
 
 	fprintf( file, "{\n" );
-	fprintf( file, "HEADER_BYTES=  512;\n" );
+	fprintf( file, "HEADER_BYTES= %4lu;\n", header_length );
 
 	fprintf( file, "DIM=2;\n" );
+
+	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+		fprintf( file, "TYPE=mad;\n" );
+	}
 
 	fprintf( file, "SIZE1=%lu;\n",
 				(unsigned long) MXIF_ROW_FRAMESIZE(frame) );
@@ -3837,7 +3927,11 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	}
 
 	if ( MXIF_IMAGE_FORMAT(frame) == MXT_IMAGE_FORMAT_GREY16 ) {
-		fprintf( file, "TYPE=unsigned_short;\n" );
+		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+			fprintf( file, "Data_type=unsigned short int;\n" );
+		} else {
+			fprintf( file, "TYPE=unsigned_short;\n" );
+		}
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"8-bit file formats are not supported by SMV format files." );
@@ -3880,13 +3974,24 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			((double) bias_offset_milli_adus) / 1000.0 );
 	}
 
+	/* If this is a NOIR header, then copy in the static part of
+	 * the header.
+	 */
+
+	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+		mx_status = mxp_write_noir_static_header( file );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/* Terminate the part of the header block that we are using. */
 
 	fprintf( file, "}\f" );
 
 	/* Move to the first byte after the header. */
 
-	os_status = fseek( file, MXU_IMAGE_SMV_HEADER_LENGTH, SEEK_SET );
+	os_status = fseek( file, header_length, SEEK_SET );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;

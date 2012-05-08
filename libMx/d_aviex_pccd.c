@@ -13,7 +13,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -4424,6 +4424,7 @@ mxd_aviex_pccd_setup_geometrical_mask_frame( MX_AREA_DETECTOR *ad,
 
 		mx_status = mx_image_read_smv_file(
 				&(aviex_pccd->geometrical_mask_frame),
+				MXT_IMAGE_FILE_SMV,
 				aviex_pccd->geometrical_mask_filename );
 
 		if ( mx_status.code != MXE_SUCCESS )
