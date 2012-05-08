@@ -747,13 +747,13 @@ mx_show_fd_names( unsigned long process_id )
 
 #  if ( MX_GLIBC_VERSION < 2003006L )
 
-#error use old polling method
+error_use_old_polling_method();
 
 #  else    /* Glibc > 2.3.6 */
 
 	/*** Use Linux inotify ***/
 
-#include <linux/inotify.h>
+#include <sys/inotify.h>
 
 #define MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH \
 			( 1024 * (sizeof(struct inotify_event) + 16) )
@@ -819,10 +819,11 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
 
+	flags = ( IN_CLOSE_WRITE | IN_MODIFY );
+
 	linux_monitor->inotify_watch_descriptor = inotify_add_watch(
 					linux_monitor->inotify_file_descriptor,
-					filename,
-					IN_CLOSE_WRITE | IN_MODIFY );
+					filename, flags );
 
 	if ( linux_monitor->inotify_watch_descriptor < 0 ) {
 		saved_errno = errno;
@@ -876,7 +877,9 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
 	struct inotify_event *inotify_event;
-	size_t num_bytes_available, event_length;
+	size_t num_bytes_available, read_length, event_length;
+	int saved_errno;
+	char *buffer_ptr, *end_of_buffer_ptr;
 	mx_status_type mx_status;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
@@ -914,11 +917,11 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	 * leave any not yet completed event structures in the fd buffer.
 	 */
 
-	length = read( linux_monitor->inotify_file_descriptor,
+	read_length = read( linux_monitor->inotify_file_descriptor,
 			linux_monitor->event_buffer,
 			num_bytes_available );
 
-	if ( length < 0 ) {
+	if ( read_length < 0 ) {
 		saved_errno = errno;
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
@@ -928,30 +931,30 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 			monitor->filename,
 			saved_errno, strerror(saved_errno) );
 	} else
-	if ( length < num_bytes_available ) {
+	if ( read_length < num_bytes_available ) {
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
 		"Short read of %lu bytes seen when %lu bytes were expected "
 		"from inotify fd %d for file '%s'",
-			length, num_bytes_available,
+			read_length, num_bytes_available,
 			linux_monitor->inotify_file_descriptor,
 			monitor->filename );
-
-		num_event_structures = length / sizeof(struct inotify_event);
 	}
 
 	end_of_buffer_ptr = linux_monitor->event_buffer
 				+ MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH;
 
-	inotify_event = linux_monitor->event_buffer;
+	buffer_ptr = linux_monitor->event_buffer;
 
-	while ( inotify_event < end_of_buffer_ptr ) { 
+	while ( buffer_ptr < end_of_buffer_ptr ) { 
+	    inotify_event = (struct inotify_event *) buffer_ptr;
+
 	    if ( linux_monitor->inotify_watch_descriptor == inotify_event->wd ){
 		return TRUE;
 	    }
 
 	    event_length = sizeof(struct inotify_event) + inotify_event->len;
 
-	    inotify_event += event_length;
+	    buffer_ptr += event_length;
 	}
 
 	return FALSE;

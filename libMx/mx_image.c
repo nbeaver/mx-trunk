@@ -3825,7 +3825,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported SMV-style datafile type %lu "
 			"requested for datafile '%s'.",
-			datafile_name );
+			datafile_type, datafile_name );
 		break;
 	}
 
