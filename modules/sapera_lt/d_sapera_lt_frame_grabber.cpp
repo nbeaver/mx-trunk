@@ -820,6 +820,22 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			sapera_lt_frame_grabber->max_frames, record->name );
 	}
 
+	/* Create an array of 'struct timespec' structures to hold the
+	 * wall clock time when each frame was acquired.
+	 */
+
+	sapera_lt_frame_grabber->hr_time = (struct timespec *)
+		calloc( sapera_lt_frame_grabber->max_frames,
+			sizeof(struct timespec) );
+
+	if ( sapera_lt_frame_grabber->hr_time == (struct timespec *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"array of 'struct timespec' for area detector '%s'.",
+			sapera_lt_frame_grabber->max_frames,
+			record->name );
+	}
+
 	/* -------- */
 
 	sapera_status = sapera_lt_frame_grabber->buffer->Create();
