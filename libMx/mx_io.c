@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
@@ -737,3 +738,409 @@ mx_show_fd_names( unsigned long process_id )
 }
 
 #endif
+
+/*=========================================================================*/
+
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_LINUX)
+
+#  if ( MX_GLIBC_VERSION < 2003006L )
+
+#error use old polling method
+
+#  else    /* Glibc > 2.3.6 */
+
+	/*** Use Linux inotify ***/
+
+#include <linux/inotify.h>
+
+#define MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH \
+			( 1024 * (sizeof(struct inotify_event) + 16) )
+
+typedef struct {
+	int inotify_file_descriptor;
+	int inotify_watch_descriptor;
+	char event_buffer[MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH];
+
+} MXP_LINUX_INOTIFY_MONITOR;
+
+MX_EXPORT mx_status_type
+mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
+			unsigned long access_type,
+			char *filename )
+{
+	static const char fname[] = "mx_create_file_monitor()";
+
+	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
+	unsigned long flags;
+	int saved_errno;
+
+	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	*monitor_ptr = (MX_FILE_MONITOR *) malloc( sizeof(MX_FILE_MONITOR) );
+
+	if ( (*monitor_ptr) == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_FILE_MONITOR structure." );
+	}
+
+	linux_monitor = (MXP_LINUX_INOTIFY_MONITOR *)
+				malloc( sizeof(MXP_LINUX_INOTIFY_MONITOR) );
+
+	if ( linux_monitor == (MXP_LINUX_INOTIFY_MONITOR *) NULL ) {
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MXP_LINUX_INOTIFY_MONITOR structure." );
+	}
+
+	(*monitor_ptr)->private_ptr = linux_monitor;
+
+
+	linux_monitor->inotify_file_descriptor = inotify_init();
+
+	if ( linux_monitor->inotify_file_descriptor < 0 ) {
+		saved_errno = errno;
+
+		mx_free( linux_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking inotify_init().  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* FIXME: For the moment we ignore the value of 'access_type'. */
+
+	linux_monitor->inotify_watch_descriptor = inotify_add_watch(
+					linux_monitor->inotify_file_descriptor,
+					filename,
+					IN_CLOSE_WRITE | IN_MODIFY );
+
+	if ( linux_monitor->inotify_watch_descriptor < 0 ) {
+		saved_errno = errno;
+
+		mx_free( linux_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking inotify_add_watch().  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_delete_file_monitor()";
+
+	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	linux_monitor = monitor->private_ptr;
+
+	if ( linux_monitor == (MXP_LINUX_INOTIFY_MONITOR *) NULL ) {
+		mx_free( monitor );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_LINUX_INOTIFY_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+	}
+
+	(void) close( linux_monitor->inotify_file_descriptor );
+
+	mx_free( linux_monitor );
+	mx_free( monitor );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_bool_type
+mx_file_has_changed( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_file_has_changed()";
+
+	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
+	struct inotify_event *inotify_event;
+	size_t num_bytes_available, event_length;
+	mx_status_type mx_status;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	linux_monitor = monitor->private_ptr;
+
+	if ( linux_monitor == (MXP_LINUX_INOTIFY_MONITOR *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_LINUX_INOTIFY_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+
+		return FALSE;
+	}
+
+	/* How many bytes have been sent to the inotify file descriptor? */
+
+	mx_status = mx_fd_num_input_bytes_available(
+				linux_monitor->inotify_file_descriptor,
+				&num_bytes_available );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return FALSE;
+	}
+
+	if ( num_bytes_available > MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH ) {
+		num_bytes_available = MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH;
+	}
+
+	/* We only want to read complete event structures here, so we
+	 * leave any not yet completed event structures in the fd buffer.
+	 */
+
+	length = read( linux_monitor->inotify_file_descriptor,
+			linux_monitor->event_buffer,
+			num_bytes_available );
+
+	if ( length < 0 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while reading from inotify fd %d "
+		"for filename '%s'.  Errno = %d, error message = '%s'.",
+			linux_monitor->inotify_file_descriptor,
+			monitor->filename,
+			saved_errno, strerror(saved_errno) );
+	} else
+	if ( length < num_bytes_available ) {
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Short read of %lu bytes seen when %lu bytes were expected "
+		"from inotify fd %d for file '%s'",
+			length, num_bytes_available,
+			linux_monitor->inotify_file_descriptor,
+			monitor->filename );
+
+		num_event_structures = length / sizeof(struct inotify_event);
+	}
+
+	end_of_buffer_ptr = linux_monitor->event_buffer
+				+ MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH;
+
+	inotify_event = linux_monitor->event_buffer;
+
+	while ( inotify_event < end_of_buffer_ptr ) { 
+	    if ( linux_monitor->inotify_watch_descriptor == inotify_event->wd ){
+		return TRUE;
+	    }
+
+	    event_length = sizeof(struct inotify_event) + inotify_event->len;
+
+	    inotify_event += event_length;
+	}
+
+	return FALSE;
+}
+
+#  endif
+
+#elif defined(OS_WIN32)
+
+	/*** Use Win32 FindFirstChangeNotification() ***/
+
+#include <windows.h>
+
+typedef struct {
+	HANDLE change_handle;
+} MXP_WIN32_FILE_MONITOR;
+
+MX_EXPORT mx_status_type
+mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
+			unsigned long access_type,
+			char *filename )
+{
+	static const char fname[] = "mx_create_file_monitor()";
+
+	MXP_WIN32_FILE_MONITOR *win32_monitor;
+	unsigned long flags;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	*monitor_ptr = (MX_FILE_MONITOR *) malloc( sizeof(MX_FILE_MONITOR) );
+
+	if ( (*monitor_ptr) == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_FILE_MONITOR structure." );
+	}
+
+	win32_monitor = (MXP_WIN32_FILE_MONITOR *)
+				malloc( sizeof(MXP_WIN32_FILE_MONITOR) );
+
+	if ( win32_monitor == (MXP_WIN32_FILE_MONITOR *) NULL ) {
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MXP_WIN32_FILE_MONITOR structure." );
+	}
+
+	(*monitor_ptr)->private_ptr = win32_monitor;
+
+	/* FIXME: For the moment we ignore the value of 'access_type'. */
+
+	flags = FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE;
+
+	win32_monitor->change_handle = FindFirstChangeNotification(
+					filename, FALSE, flags );
+
+	if ( win32_monitor->change_handle == INVALID_HANDLE_VALUE ) {
+		last_error_code = GetLastError();
+
+		mx_free( win32_monitor );
+		mx_free( *monitor_ptr );
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking "
+		"FindFirstChangeNotifcation() for file '%s'.  "
+		"Win32 error code = %ld, error message = '%s'",
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_delete_file_monitor()";
+
+	MXP_WIN32_FILE_MONITOR *win32_monitor;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	win32_monitor = monitor->private_ptr;
+
+	if ( win32_monitor == (MXP_WIN32_FILE_MONITOR *) NULL ) {
+		mx_free( monitor );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_WIN32_FILE_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+	}
+
+	(void) FindCloseChangeNotification( win32_monitor->change_handle );
+
+	mx_free( win32_monitor );
+	mx_free( monitor );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_bool_type
+mx_file_has_changed( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_file_has_changed()";
+
+	MXP_WIN32_FILE_MONITOR *win32_monitor;
+	BOOL os_status;
+	DWORD wait_status, last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	win32_monitor = monitor->private_ptr;
+
+	if ( win32_monitor == (MXP_WIN32_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_WIN32_FILE_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+
+		return FALSE;
+	}
+
+	/* Is a change notification available? */
+
+	wait_status = WaitForSingleObject( win32_monitor->change_handle, 0 );
+
+	switch( wait_status ) {
+	case WAIT_OBJECT_0:
+		/* Restart the notification. */
+
+		os_status =
+		    FindNextChangeNotification( win32_monitor->change_handle );
+
+		/* The file has changed, so return TRUE. */
+
+		return TRUE;
+		break;
+
+	case WAIT_TIMEOUT:
+		/* Restart the notification. */
+
+		os_status =
+		    FindNextChangeNotification( win32_monitor->change_handle );
+
+		/* The file has NOT changed, so return FALSE. */
+
+		return FALSE;
+		break;
+
+	default:
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"WaitForSingleObject( %#lx, 0 ) for file '%s' failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			win32_monitor->change_handle,
+			monitor->filename,
+			last_error_code, message_buffer );
+
+		return FALSE;
+		break;
+	}
+
+	return FALSE;
+}
+
+#else
+
+#error MX file monitors not yet implemented for this platform.
+
+#endif
+

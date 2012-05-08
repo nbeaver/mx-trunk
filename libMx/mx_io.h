@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,23 @@ MX_API char *mx_get_fd_name( unsigned long process_id, int fd,
 				char *buffer, size_t buffer_size );
 
 MX_API void mx_show_fd_names( unsigned long process_id );
+
+/*----*/
+
+typedef struct {
+	unsigned long access_type;
+	char filename[MXU_FILENAME_LENGTH+1];
+
+	void *private_ptr;
+} MX_FILE_MONITOR;
+
+MX_API mx_status_type mx_create_file_monitor( MX_FILE_MONITOR **ptr_address,
+						unsigned long access_type,
+						char *filename );
+
+MX_API mx_status_type mx_delete_file_monitor( MX_FILE_MONITOR *file_monitor );
+
+MX_API mx_bool_type mx_file_has_changed( MX_FILE_MONITOR *file_monitor );
 
 #endif /* _MX_IO_H_ */
 
