@@ -235,6 +235,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( strcmp( argv[5], "smv" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_SMV;
 		} else
+		if ( strcmp( argv[5], "noir" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NOIR;
+		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 		} else {
@@ -377,6 +380,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[4], "smv" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_SMV;
+			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
+		} else
+		if ( strcmp( argv[4], "noir" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NOIR;
 			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
 		} else
 		if ( strcmp( argv[4], "raw" ) == 0 ) {
@@ -809,6 +816,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[5], "smv" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_SMV;
+		} else
+		if ( strcmp( argv[5], "noir" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NOIR;
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
