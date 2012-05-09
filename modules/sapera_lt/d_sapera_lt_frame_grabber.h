@@ -34,7 +34,9 @@ typedef struct {
 	SapBuffer      *buffer;
 	SapAcqToBuf    *transfer;
 
-	struct timespec *hr_time;
+	struct timespec boot_time;
+
+	struct timespec *frame_time;
 } MX_SAPERA_LT_FRAME_GRABBER;
 
 

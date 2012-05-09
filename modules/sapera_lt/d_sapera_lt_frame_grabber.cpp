@@ -166,6 +166,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
 	long i;
+	struct timespec frame_time, time_offset;
 
 	sapera_lt_frame_grabber =
 		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
@@ -174,10 +175,20 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
+	/* Compute and save the time at which the frame was acquired. */
+
+	time_offset = mx_high_resolution_time();
+
+	frame_time = mx_add_high_resolution_times(
+			sapera_lt_frame_grabber->boot_time,
+			time_offset );
+
 	i = vinput->total_num_frames
 		% sapera_lt_frame_grabber->max_frames;
 
-	sapera_lt_frame_grabber->hr_time[i] = mx_high_resolution_time();
+	sapera_lt_frame_grabber->frame_time[i] = frame_time;
+
+	/* Update the frame counters. */
 
 	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
 		sapera_lt_frame_grabber->num_frames_left_to_acquire--;
@@ -712,6 +723,16 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			sapera_lt_frame_grabber->max_frames );
 	}
 
+	/* Get the time that the system booted.  This will be used later
+	 * to compute the time when each frame was acquired.
+	 */
+
+	mx_status = mx_get_system_boot_time(
+			&(sapera_lt_frame_grabber->boot_time) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/*---------------------------------------------------------------*/
 
 	/* Create the high level SapAcquisition object.
@@ -838,11 +859,11 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	 * wall clock time when each frame was acquired.
 	 */
 
-	sapera_lt_frame_grabber->hr_time = (struct timespec *)
+	sapera_lt_frame_grabber->frame_time = (struct timespec *)
 		calloc( sapera_lt_frame_grabber->max_frames,
 			sizeof(struct timespec) );
 
-	if ( sapera_lt_frame_grabber->hr_time == (struct timespec *) NULL ) {
+	if ( sapera_lt_frame_grabber->frame_time == (struct timespec *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
 		"array of 'struct timespec' for area detector '%s'.",
@@ -1391,6 +1412,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 	void *mx_data_address;
 	void *sapera_data_address;
 	BOOL sapera_status;
+	struct timespec acquisition_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sapera_lt_frame_grabber_get_pointers( vinput,
@@ -1481,6 +1503,18 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		"frame grabber '%s' failed.",
 			vinput->record->name );
 	}
+
+	/* Update the acquisition time in the image header. */
+
+	acquisition_time =
+		sapera_lt_frame_grabber->frame_time[ buffer_resource_index ];
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME
+	MX_DEBUG(-4,("%s: acquisition_time = (%lu,%lu)", fname,
+		acquisition_time.tv_sec, acquisition_time.tv_nsec));
+#endif
+	MXIF_TIMESTAMP_SEC( vinput->frame )  = acquisition_time.tv_sec;
+	MXIF_TIMESTAMP_NSEC( vinput->frame ) = acquisition_time.tv_nsec;
 
 	/* Update the exposure time in the image header. */
 
