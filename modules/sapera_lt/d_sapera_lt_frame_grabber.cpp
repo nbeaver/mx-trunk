@@ -165,6 +165,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	MX_RECORD *record;
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
+	long i;
 
 	sapera_lt_frame_grabber =
 		(MX_SAPERA_LT_FRAME_GRABBER *) info->GetContext();
@@ -172,6 +173,11 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	record = sapera_lt_frame_grabber->record;
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	i = vinput->total_num_frames
+		% sapera_lt_frame_grabber->max_frames;
+
+	sapera_lt_frame_grabber->hr_time[i] = mx_high_resolution_time();
 
 	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
 		sapera_lt_frame_grabber->num_frames_left_to_acquire--;
@@ -696,6 +702,14 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 		"Sapera server '%s'.",
 			sapera_lt_frame_grabber->frame_grabber_number,
 			record->name, sapera_lt->server_name );
+	}
+
+	if ( sapera_lt_frame_grabber->max_frames < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The maximum number of frames for Sapera LT frame grabber '%s' "
+		"must be greater than or equal to 1.  Instead, it was set "
+		"to %ld.",  record->name,
+			sapera_lt_frame_grabber->max_frames );
 	}
 
 	/*---------------------------------------------------------------*/

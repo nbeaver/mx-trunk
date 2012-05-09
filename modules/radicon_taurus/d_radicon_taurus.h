@@ -62,6 +62,7 @@ MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 MX_API mx_status_type mxd_radicon_taurus_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_radicon_taurus_open( MX_RECORD *record );
+MX_API mx_status_type mxd_radicon_taurus_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad );

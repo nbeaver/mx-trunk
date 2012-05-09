@@ -38,7 +38,10 @@ MX_RECORD_FUNCTION_LIST mxd_radicon_taurus_record_function_list = {
 	mx_area_detector_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_radicon_taurus_open
+	mxd_radicon_taurus_open,
+	NULL,
+	NULL,
+	mxd_radicon_taurus_resynchronize
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
@@ -346,6 +349,14 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
+	/* Initialize the detector by putting it into free-run mode. */
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/*---*/
 
 	ad->header_length = 0;
@@ -473,6 +484,43 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+MX_EXPORT mx_status_type
+mxd_radicon_taurus_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_radicon_taurus_resynchronize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_RADICON_TAURUS *radicon_taurus;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_radicon_taurus_get_pointers( ad,
+						&radicon_taurus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	/* Putting the detector back into free-run mode will reset it. */
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+	return mx_status;
+}
+
+/*----*/
+
 #define TAURUS_MINIMUM_EXPOSURE_TIME	4
 #define TAURUS_SECONDS_PER_STEP		(33.0e-9)
 
@@ -488,6 +536,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	uint64_t raw_exposure_time_64;
 	unsigned long low_order, middle_order, high_order;
 	char command[80];
+	mx_bool_type set_exposure_times;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -511,6 +560,63 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	switch( radicon_taurus->detector_model ) {
 	case MXT_RADICON_TAURUS:
+		/**** Set the Taurus Readout Mode. ****/
+		
+		/* The correct value for the readout mode depends on
+		 * the sequence type and the trigger type.
+		 */
+
+		set_exposure_times = FALSE;
+
+		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+			strlcpy( command, "SRO 4", sizeof(command) );
+		} else
+		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			switch( sp->sequence_type ) {
+			case MXT_SQ_ONE_SHOT:
+			case MXT_SQ_MULTIFRAME:
+			case MXT_SQ_STROBE:
+				strlcpy( command, "SRO 3", sizeof(command) );
+
+				set_exposure_times = TRUE;
+				break;
+			case MXT_SQ_DURATION:
+				strlcpy( command, "SRO 2", sizeof(command) );
+				break;
+			default:
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"MX imaging sequence type %lu is not "
+				"supported for external triggering with "
+				"detector '%s'.",
+					sp->sequence_type,
+					ad->record->name );
+				break;
+			}
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported trigger mode %#lx requested for "
+			"detector '%s'.",
+				ad->trigger_mode,
+				ad->record->name );
+				
+		}
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Do we need to set the exposure times?  If not, then
+		 * we can skip the rest of this case.
+		 */
+
+		if ( set_exposure_times == FALSE ) {
+			break;	/* Exit the switch() block. */
+		}
+
+		/* If we get here, we have to set up the exposure times. */
+
 		/* Set the first integration time. */
 
 		if ( exposure_time < 0.0 ) {
@@ -556,49 +662,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		snprintf( command, sizeof(command),
 			"SI2 %lu %lu %lu",
 			high_order, middle_order, low_order );
-
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/**** Set the Taurus Readout Mode. ****/
-		
-		/* The correct value for the readout mode depends on
-		 * the sequence type and the trigger type.
-		 */
-
-		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-			strlcpy( command, "SRO 4", sizeof(command) );
-		} else
-		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-			switch( sp->sequence_type ) {
-			case MXT_SQ_ONE_SHOT:
-			case MXT_SQ_MULTIFRAME:
-			case MXT_SQ_STROBE:
-				strlcpy( command, "SRO 3", sizeof(command) );
-				break;
-			case MXT_SQ_DURATION:
-				strlcpy( command, "SRO 2", sizeof(command) );
-				break;
-			default:
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"MX imaging sequence type %lu is not "
-				"supported for external triggering with "
-				"detector '%s'.",
-					sp->sequence_type,
-					ad->record->name );
-				break;
-			}
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported trigger mode %#lx requested for "
-			"detector '%s'.",
-				ad->trigger_mode,
-				ad->record->name );
-				
-		}
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
