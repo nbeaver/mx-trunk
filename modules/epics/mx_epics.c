@@ -704,8 +704,6 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 	struct timespec current_time, timeout_time;
 	int epics_status, time_comparison;
 	long error_code;
-	long attempt, max_attempts;
-	double timeout_in_seconds;
 	mx_status_type mx_status;
 
 #if MX_EPICS_DEBUG_PERFORMANCE
@@ -742,177 +740,109 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 	MX_HRT_START( measurement );
 #endif
 
-	timeout_in_seconds = mx_convert_high_resolution_time_to_seconds(
-					    pv->connect_timeout_interval );
-
 	/* Initialize the connection state variables. */
 
 	pv->connection_state_last_change_time = mx_high_resolution_time();
 
 	pv->connection_state = CA_OP_CONN_DOWN;
 
-	/*---- Start the connection process ----*/
-
-	/* If you want no heroic measures, then set max_attempts to 1. */
-
-	max_attempts = 3;
-
-	for ( attempt = 1; attempt <= max_attempts; attempt++ ) {
+	/* Start the connection process. */
 
 #if MX_EPICS_DEBUG_IO
-		MX_DEBUG(-2,("%s: About to create a channel for PV '%s'",
-			fname, pv->pvname));
+	MX_DEBUG(-2,("%s: About to create a channel for PV '%s'",
+		fname, pv->pvname));
 #endif
 
 #if ( MX_EPICS_VERSION < 3014000L )
-		epics_status = ca_search_and_connect(
-				pv->pvname, &new_channel_id,
+	epics_status = ca_search_and_connect( pv->pvname, &new_channel_id,
 				mx_epics_connection_state_change_handler, pv );
 #else
-		epics_status = ca_create_channel(
-				pv->pvname,
+	epics_status = ca_create_channel( pv->pvname,
 				mx_epics_connection_state_change_handler,
 				pv, 0, &new_channel_id );
 #endif
 
-		if ( epics_status != ECA_NORMAL ) {
-			return mx_error( MXE_NOT_FOUND, fname,
-				"Unable to connect to EPICS PV '%s'.  "
-				"EPICS status = %d, EPICS error = '%s'",
-					pv->pvname, epics_status,
-					ca_message( epics_status ) );
-		}
+	if ( epics_status != ECA_NORMAL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+			"Unable to connect to EPICS PV '%s'.  "
+			"EPICS status = %d, EPICS error = '%s'",
+			pv->pvname, epics_status, ca_message( epics_status ) );
+	}
 
-		pv->channel_id = new_channel_id;
+	pv->channel_id = new_channel_id;
 
 #if MX_EPICS_DEBUG_IO
-		MX_DEBUG(-2,("%s: pvname = '%s', channel_id = %p, "
-		"connect_timeout_interval = %g",
-			fname, pv->pvname, pv->channel_id,
-			mx_convert_high_resolution_time_to_seconds(
-				pv->connect_timeout_interval ) ));
+	MX_DEBUG(-2,(
+  "%s: pvname = '%s', channel_id = %p, connect_timeout_interval = %g",
+		fname, pv->pvname, pv->channel_id,
+  mx_convert_high_resolution_time_to_seconds(pv->connect_timeout_interval) ));
 #endif
 
-		/* Flush the connection request out to the server. */
+	/* If we are waiting for the connection to complete, then
+	 * flush outstanding I/O requests to the server.
+	 */
 
-		mx_status = mx_epics_pend_io(0.1);
+	mx_status = mx_epics_flush_io();
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		/* Return now if we are not waiting for the connection
-		 * to complete.
-		 */
+	/* Return now if we are not waiting for the connection to complete. */
 
-		if ( (connect_flags & MXF_EPVC_WAIT_FOR_CONNECTION) == 0 ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
+	if ( (connect_flags & MXF_EPVC_WAIT_FOR_CONNECTION) == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
-		/* When will the connection timeout interval expire? */
+	/* When will the connection timeout interval expire? */
 
-		timeout_time = mx_add_high_resolution_times(
+	timeout_time = mx_add_high_resolution_times(
 				pv->connection_state_last_change_time,
 				pv->connect_timeout_interval );
 
-		/* Wait for the search request to complete. */
+	/* Wait for the search request to complete. */
 
-		while (1) {
-			/* Has the connection request completed? */
+	while (1) {
+		/* Has the connection request completed? */
 
-			mx_status = mx_epics_poll();
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* If so, then break out of this while loop. */
-
-			if ( pv->connection_state == CA_OP_CONN_UP ) {
-
-#if MX_EPICS_DEBUG_IO
-				MX_DEBUG(-2,
-				("%s: successfully connected to PV '%s'.",
-					fname, pv->pvname ));
-#endif
-
-				break;		/* Exit the while() loop. */
-			}
-
-			/* If not, have we timed out yet? */
-
-			current_time = mx_high_resolution_time();
-
-			time_comparison = mx_compare_high_resolution_times(
-						current_time, timeout_time );
-
-			if ( time_comparison >= 0 ) {
-
-				break;	/* Timed out of the while() loop. */
-			}
-
-			mx_msleep(1);	/* Sleep for at least 1 millisecond. */
-		}
-
-		/* Do we need to go back for another attempt? */
-
-		if ( pv->connection_state == CA_OP_CONN_UP ) {
-			break;		/* Exit the retry for() loop. */
-		}
-
-		/* If we get here, our attempt to connect to the PV
-		 * has timed out.  If so, we abandon the existing
-		 * attempt to connect and start a new one.
-		 */
-
-		epics_status = ca_clear_channel( pv->channel_id );
-
-		pv->channel_id = NULL;
-
-		if ( epics_status != ECA_NORMAL ) {
-			(void) mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"The attempt to clear a timed out connection "
-			"for EPICS PV '%s' failed.  Discarding...",
-				pv->pvname );
-		}
-
-		/* Force the command out to the CA server. */
-
-		mx_status = mx_epics_pend_io(0.1);
+		mx_status = mx_epics_poll();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* If it is time for us to give up, then do so. */
+		/* If so, then break out of this while loop. */
 
-		if ( connect_flags & MXF_EPVC_QUIET ) {
-			error_code = MXE_TIMED_OUT | MXE_QUIET;
-		} else {
-			error_code = MXE_TIMED_OUT;
+		if ( pv->connection_state == CA_OP_CONN_UP ) {
+
+#if MX_EPICS_DEBUG_IO
+			MX_DEBUG(-2,("%s: successfully connected to PV '%s'.",
+				fname, pv->pvname ));
+#endif
+
+			break;			/* Exit the while() loop. */
 		}
 
-		if ( max_attempts <= 1 ) {
+		/* If not, have we timed out yet? */
+
+		current_time = mx_high_resolution_time();
+
+		time_comparison = mx_compare_high_resolution_times(
+						current_time, timeout_time );
+
+		if ( time_comparison >= 0 ) {
+			if ( connect_flags & MXF_EPVC_QUIET ) {
+				error_code = MXE_TIMED_OUT | MXE_QUIET;
+			} else {
+				error_code = MXE_TIMED_OUT;
+			}
+
 			return mx_error( error_code, fname,
-			"The attempt to connect to EPICS PV '%s' "
-			"has timed out after %g seconds.",
-				pv->pvname, timeout_in_seconds );
-		} else
-		if ( attempt >= max_attempts ) {
-			return mx_error( error_code, fname,
-			"The attempt to connect to EPICS PV '%s' "
-			"failed after %ld attempts of %g seconds each.",
-				pv->pvname, max_attempts, timeout_in_seconds );
+			"Initial connection to EPICS PV '%s' timed out "
+			"after %g seconds.", pv->pvname,
+				mx_convert_high_resolution_time_to_seconds(
+					pv->connect_timeout_interval ) );
 		}
 
-		/* Otherwise, tell the user that we are going back
-		 * for another attempt.
-		 */
-
-		mx_warning(
-		"Attempt %ld to connect to PV '%s' timed out.  Retrying...",
-			attempt, pv->pvname );
-
-		/* Wait a while first. */
-
-		mx_msleep(1000);
+		mx_msleep(1);	/* Sleep for at least 1 millisecond. */
 	}
 
 #if MX_EPICS_DEBUG_PERFORMANCE
