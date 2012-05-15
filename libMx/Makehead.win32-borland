@@ -11,11 +11,7 @@
 
 INCLUDES  = $(MX_INCLUDES)
 
-#INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
-
 LIBRARIES = $(WIN32_LIBS)
-
-#LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -33,14 +29,6 @@ BCC_DIR	= c:/borland/bcc55
 WIN32_LIBS	= import32.lib cw32mti.lib
 
 #
-
-#
-# Aerotech Unidex 500 includes and libraries.
-#
-
-U500_DIR      = c:\\U500\\mmi
-U500_INCLUDES = -I$(U500_DIR)\\include
-U500_LIBS     = $(U500_DIR)\\win32bc5.lib
 
 #
 #========================================================================
@@ -71,8 +59,6 @@ CFLAGS_EPICS	= $(CFLAGS)
 # Special cases for individual files.
 
 CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
-
-CFLAGS_MX_U500  = $(CFLAGS_U500)
 
 CFLAGS_MX_VERS  = -DOS_WIN32 -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \

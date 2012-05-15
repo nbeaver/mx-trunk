@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,7 +17,7 @@
 #ifndef __I_U500_H__
 #define __I_U500_H__
 
-#if defined(HAVE_U500) && defined(OS_WIN32)
+#if defined(OS_WIN32)
   /* Ignore old Win16 style defines. */
 #  define far
 #  define _huge

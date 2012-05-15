@@ -18,9 +18,6 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
-
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
 
@@ -28,9 +25,9 @@ LIBRARIES = $(WIN32_LIBS)
 #LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PCMOTION32_INCLUDES) \
-#		 $(PMC_MCAPI_INCLUDES) $(U500_INCLUDES) $(UMCBI_INCLUDES)
+#		 $(PMC_MCAPI_INCLUDES) $(UMCBI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PCMOTION32_LIBS) \
-#		$(PMC_MCAPI_LIBS) $(U500_LIBS) $(UMCBI_LIBS)
+#		$(PMC_MCAPI_LIBS) $(UMCBI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
@@ -65,8 +62,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # is if you are using a separately downloaded copy of the Win32 Platform SDK.
 #
 
-#MSDEV_ARCH	= x86
-MSDEV_ARCH	= x64
+MSDEV_ARCH	= x86
+#MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs11
 #MSDEV_ARCH	= x64_vs11
@@ -85,14 +82,14 @@ MSDEV_ARCH	= x64
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
 # Visual C++ 2008 Express        (_MSC_VER == 1500)
 #   (32-bit mode only)
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
+MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v6.0A
 #
 # Visual C++ 2005 Express        (_MSC_VER == 1400)
 #  (See below at the definition of PLATFORM_SDK)
@@ -237,16 +234,6 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 UMCBI_DIR	= c:\\Ortec
 UMCBI_INCLUDES	= -I$(UMCBI_DIR)\\lib
 UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
-
-#---------------------------------------------------------------------------
-#
-# Aerotech Unidex 500 motor controllers
-#
-U500_DIR             = c:\\U500\\toolkit
-#U500_DIR             = c:\\U500\\mmi
-
-U500_INCLUDES        = -I$(U500_DIR)\\include
-U500_LIBS            = $(U500_DIR)\\Win50032.lib
 
 #---------------------------------------------------------------------------
 #

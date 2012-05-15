@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008-2010 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,11 +19,6 @@
 #define MXI_U500_DEBUG_TIMING		FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_U500
-
 #include <stdarg.h>
 #include <string.h>
 
@@ -45,7 +40,7 @@
 #include "Aerqcode.h"
 
 MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list = {
-	mxi_u500_initialize_type,
+	mxi_u500_initialize_driver,
 	mxi_u500_create_record_structures,
 	NULL,
 	NULL,
@@ -107,9 +102,9 @@ mxi_u500_get_pointers( MX_RECORD *record,
 #define NUM_U500_FIELDS    5
 
 MX_EXPORT mx_status_type
-mxi_u500_initialize_type( long type )
+mxi_u500_initialize_driver( MX_DRIVER *driver )
 {
-        static const char fname[] = "mxi_u500_initialize_type()";
+        static const char fname[] = "mxi_u500_initialize_driver()";
 
 	static const char field_name[NUM_U500_FIELDS][MXU_FIELD_NAME_LENGTH+1]
 	    = {
@@ -119,7 +114,6 @@ mxi_u500_initialize_type( long type )
 		"calibration_filename",
 		"pso_firmware_filename" };
 
-        MX_DRIVER *driver;
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
@@ -129,11 +123,9 @@ mxi_u500_initialize_type( long type )
         long num_boards_varargs_cookie;
         mx_status_type status;
 
-        driver = mx_get_driver_by_type( type );
-
         if ( driver == (MX_DRIVER *) NULL ) {
-                return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                        "Record type %ld not found.", type );
+                return mx_error( MXE_NULL_ARGUMENT, fname,
+                        "The MX_DRIVER pointer passed was NULL." );
         }
 
         record_field_defaults_ptr = driver->record_field_defaults_ptr;
@@ -160,8 +152,7 @@ mxi_u500_initialize_type( long type )
 
 	num_record_fields = *(driver->num_record_fields);
 
-        status = mx_find_record_field_defaults_index(
-                        record_field_defaults, num_record_fields,
+        status = mx_find_record_field_defaults_index( driver,
                         "num_boards", &referenced_field_index );
 
         if ( status.code != MXE_SUCCESS )
@@ -174,9 +165,8 @@ mxi_u500_initialize_type( long type )
                 return status;
 
 	for ( i = 0; i < NUM_U500_FIELDS; i++ ) {
-		status = mx_find_record_field_defaults(
-			record_field_defaults, num_record_fields,
-			field_name[i], &field );
+		status = mx_find_record_field_defaults( driver,
+						field_name[i], &field );
 
 		if ( status.code != MXE_SUCCESS )
 			return status;
@@ -915,6 +905,4 @@ mxi_u500_process_function( void *record_ptr,
 
 	return mx_status;
 }
-
-#endif /* HAVE_U500 */
 

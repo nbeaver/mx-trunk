@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008-2010 Illinois Institute of Technology
+ * Copyright 2008-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,10 +18,6 @@
 #define U500_RS232_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_U500
 
 #if defined(OS_WIN32)
 #include <windows.h>
@@ -662,6 +658,4 @@ mxi_u500_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_U500 */
 

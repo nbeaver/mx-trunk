@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,10 +16,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_U500
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -192,6 +188,4 @@ mxd_u500_status_read( MX_DIGITAL_INPUT *dinput )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_U500 */
 

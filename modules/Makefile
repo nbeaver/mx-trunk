@@ -39,10 +39,12 @@ all: build
 
 #MODULES += sapera_lt
 
+MODULES += u500
+
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps
 

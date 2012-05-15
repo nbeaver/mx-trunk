@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -15,11 +15,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_U500
-
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -39,7 +34,7 @@
 #include "Wapi.h"
 
 MX_RECORD_FUNCTION_LIST mxv_u500_variable_record_function_list = {
-	mx_variable_initialize_type,
+	mx_variable_initialize_driver,
 	mxv_u500_create_record_structures,
 	NULL,
 	NULL,
@@ -105,14 +100,6 @@ mxv_u500_get_pointers( MX_VARIABLE *variable,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"u500_record pointer for record '%s' passed by '%s' is NULL.",
 			variable->record->name, calling_fname );
-	}
-
-	if ( u500_record->mx_type != MXI_CTRL_U500 ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-"u500_record '%s' for U500 variable '%s' is not a U500 controller.  "
-"Instead, it is a '%s' record.",
-			u500_record->name, variable->record->name,
-			mx_get_driver_name( u500_record ) );
 	}
 
 	if ( u500 != (MX_U500 **) NULL ) {
@@ -280,6 +267,4 @@ mxv_u500_receive_variable( MX_VARIABLE *variable )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_U500 */
 

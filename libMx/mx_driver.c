@@ -117,7 +117,6 @@
 #include "i_camera_link_rs232.h"
 #include "i_spec_command.h"
 #include "i_edt_rs232.h"
-#include "i_u500_rs232.h"
 #include "i_sim900_port.h"
 
 #if HAVE_TCPIP
@@ -185,7 +184,6 @@
 #include "i_keithley2700.h"
 #include "i_keithley2400.h"
 #include "i_keithley2000.h"
-#include "i_u500.h"
 #include "i_kohzu_sc.h"
 #include "i_picomotor.h"
 #include "i_pmc_mcapi.h"
@@ -259,7 +257,6 @@
 #include "d_tpg262_pressure.h"
 #include "d_cm17a_doutput.h"
 #include "d_bluice_ion_chamber.h"
-#include "d_u500_status.h"
 #include "d_spellman_df3_aio.h"
 #include "d_spellman_df3_dio.h"
 #include "d_bkprecision_912x_aio.h"
@@ -301,7 +298,6 @@
 #include "d_mdrive.h"
 #include "d_phidget_old_stepper.h"
 #include "d_spec_motor.h"
-#include "d_u500.h"
 #include "d_kohzu_sc.h"
 #include "d_picomotor.h"
 #include "d_pmc_mcapi.h"
@@ -524,7 +520,6 @@
 #include "v_bluice_string.h"
 #include "v_bluice_operation.h"
 #include "v_bluice_self_operation.h"
-#include "v_u500.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -679,15 +674,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_edt_rs232_num_record_fields,
 				&mxi_edt_rs232_rfield_def_ptr},
 #endif /* HAVE_EDT */
-
-#if HAVE_U500
-{"u500_rs232",     MXI_232_U500,         MXI_RS232,      MXR_INTERFACE,
-				&mxi_u500_rs232_record_function_list,
-				NULL,
-				&mxi_u500_rs232_rs232_function_list,
-				&mxi_u500_rs232_num_record_fields,
-				&mxi_u500_rs232_rfield_def_ptr},
-#endif /* HAVE_U500 */
 
 {"sim900_port",   MXI_232_SIM900_PORT,   MXI_RS232,      MXR_INTERFACE,
 				&mxi_sim900_port_record_function_list,
@@ -1128,15 +1114,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_umcbi_num_record_fields,
 				&mxi_umcbi_rfield_def_ptr},
 #endif /* HAVE_ORTEC_UMCBI */
-
-#if HAVE_U500
-{"u500",           MXI_CTRL_U500,      MXI_CONTROLLER,        MXR_INTERFACE,
-				&mxi_u500_record_function_list,
-				NULL,
-				NULL,
-				&mxi_u500_num_record_fields,
-				&mxi_u500_rfield_def_ptr},
-#endif /* HAVE_U500 */
 
 #if HAVE_PMC_MCAPI
 {"pmc_mcapi",      MXI_CTRL_PMC_MCAPI, MXI_CONTROLLER,        MXR_INTERFACE,
@@ -2058,16 +2035,6 @@ MX_DRIVER mx_type_table[] = {
 
 #endif /* OS_LINUX */
 
-#if HAVE_U500
-
-{"u500_status",    MXT_DIN_U500_STATUS,  MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_u500_status_record_function_list,
-				NULL,
-				&mxd_u500_status_digital_input_function_list,
-				&mxd_u500_status_num_record_fields,
-				&mxd_u500_status_rfield_def_ptr},
-
-#endif /* HAVE_U500 */
 
 {"soft_motor",     MXT_MTR_SOFTWARE,  MXC_MOTOR,          MXR_DEVICE,
 				&mxd_soft_motor_record_function_list,
@@ -2363,15 +2330,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_sim960_motor_function_list,
 				&mxd_sim960_num_record_fields,
 				&mxd_sim960_rfield_def_ptr},
-
-#if HAVE_U500
-{"u500_motor",     MXT_MTR_U500,      MXC_MOTOR,          MXR_DEVICE,
-				&mxd_u500_record_function_list,
-				NULL,
-				&mxd_u500_motor_function_list,
-				&mxd_u500_num_record_fields,
-				&mxd_u500_rfield_def_ptr},
-#endif /* HAVE_U500 */
 
 /* Pseudo motors. */
 
@@ -4011,17 +3969,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxv_file_double_variable_num_record_fields,
 				&mxv_file_double_variable_dptr},
-
-/*----*/
-
-#if HAVE_U500
-{"u500_variable",  MXV_U500_VARIABLE, MXV_U500,   MXR_VARIABLE,
-				&mxv_u500_variable_record_function_list,
-				&mxv_u500_variable_variable_function_list,
-				NULL,
-				&mxv_u500_variable_num_record_fields,
-				&mxv_u500_variable_rfield_def_ptr},
-#endif
 
   /* =================== Server types ================== */
 

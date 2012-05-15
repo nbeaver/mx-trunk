@@ -3,7 +3,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,6 +62,7 @@
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
+ *    u500                  Formerly enabled by HAVE_U500                 *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
  *                                                                        *
  **************************************************************************/
@@ -218,13 +219,6 @@
  */
 
 #define HAVE_PCMOTION32			0
-
-/*****************************************************************************
- *
- * Win32 driver for the Aerotech Unidex 500 series of motor controllers.
- */
-
-#define HAVE_U500			0
 
 /*****************************************************************************
  *
