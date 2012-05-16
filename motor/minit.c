@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2010 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -137,7 +137,7 @@ motor_init( char *motor_savefile_name,
 						motor_savefile_name, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		fprintf( output,"%s: Can't load database file '%s'\n",
+		fprintf( output,"%s: Cannot load database file '%s'\n",
 			fname, motor_savefile_name );
 		exit(1);
 	}

@@ -29,12 +29,13 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	static const char fname[] = "mx_load_module()";
 
 	MX_DYNAMIC_LIBRARY *library;
-	MX_MODULE *module_ptr;
+	MX_MODULE *module_ptr, *test_module;
 	void *void_ptr, *init_ptr;
 	MX_LIST_HEAD *record_list_head;
 	MX_LIST *module_list;
 	MX_LIST_ENTRY *module_list_entry;
 	MX_MODULE_INIT *module_init_fn;
+	unsigned long module_status_code;
 	mx_status_type mx_status;
 
 	if ( filename == (char *) NULL ) {
@@ -64,6 +65,38 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 		return mx_status;
 
 	module_ptr = (MX_MODULE *) void_ptr;
+
+	/* Is there a module with this name already loaded? */
+
+	mx_status = mx_get_module( module_ptr->name,
+				record_list, &test_module );
+
+	module_status_code = mx_status.code & (~MXE_QUIET);
+
+	/* MXE_NOT_FOUND means that the module has not yet been loaded. */
+
+	if ( module_status_code != MXE_NOT_FOUND ) {
+
+		char local_name[MXU_MODULE_NAME_LENGTH+1];
+
+		strlcpy( local_name, module_ptr->name, MXU_MODULE_NAME_LENGTH );
+
+		mx_status = mx_dynamic_library_close( library );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( module_status_code == MXE_SUCCESS ) {
+			/* This means a  module by this name
+			 * has been loaded already.
+			 */
+			return mx_error( MXE_ALREADY_EXISTS, fname,
+			"A module named '%s' has already been loaded "
+			"into the running database.", local_name );
+		} else {
+			return mx_status;
+		}
+	}
 
 	/* If requested, return a copy of the MX_MODULE pointer to the caller.*/
 
@@ -263,7 +296,15 @@ mx_get_module( char *module_name, MX_RECORD *record_list, MX_MODULE **module )
 #if MX_MODULE_DEBUG
 		MX_DEBUG(-2,("%s: No modules are loaded.", fname));
 #endif
-		return MX_SUCCESSFUL_RESULT;
+
+#if MX_MODULE_DEBUG
+		mx_status_code = MXE_NOT_FOUND;
+#else
+		mx_status_code = MXE_NOT_FOUND | MXE_QUIET;
+#endif
+		return mx_error( mx_status_code, fname,
+		"Did not find module '%s' since no modules "
+		"have been loaded yet.", module_name );
 	}
 
 	module_list = record_list_head->module_list;
