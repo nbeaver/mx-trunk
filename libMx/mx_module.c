@@ -68,33 +68,38 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 
 	/* Is there a module with this name already loaded? */
 
-	mx_status = mx_get_module( module_ptr->name,
+	if ( record_list != NULL ) {
+		mx_status = mx_get_module( module_ptr->name,
 				record_list, &test_module );
 
-	module_status_code = mx_status.code & (~MXE_QUIET);
+		module_status_code = mx_status.code & (~MXE_QUIET);
 
-	/* MXE_NOT_FOUND means that the module has not yet been loaded. */
+		/* A status code of MXE_NOT_FOUND means that the module
+		 * has not yet been loaded.
+		 */
 
-	if ( module_status_code != MXE_NOT_FOUND ) {
+		if ( module_status_code != MXE_NOT_FOUND ) {
 
-		char local_name[MXU_MODULE_NAME_LENGTH+1];
+			char local_name[MXU_MODULE_NAME_LENGTH+1];
 
-		strlcpy( local_name, module_ptr->name, MXU_MODULE_NAME_LENGTH );
+			strlcpy( local_name, module_ptr->name,
+					MXU_MODULE_NAME_LENGTH );
 
-		mx_status = mx_dynamic_library_close( library );
+			mx_status = mx_dynamic_library_close( library );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		if ( module_status_code == MXE_SUCCESS ) {
-			/* This means a  module by this name
-			 * has been loaded already.
-			 */
-			return mx_error( MXE_ALREADY_EXISTS, fname,
-			"A module named '%s' has already been loaded "
-			"into the running database.", local_name );
-		} else {
-			return mx_status;
+			if ( module_status_code == MXE_SUCCESS ) {
+				/* This means a  module by this name
+				 * has been loaded already.
+				 */
+				return mx_error( MXE_ALREADY_EXISTS, fname,
+				"A module named '%s' has already been loaded "
+				"into the running database.", local_name );
+			} else {
+				return mx_status;
+			}
 		}
 	}
 
