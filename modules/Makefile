@@ -46,7 +46,7 @@ all: build
 
 MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
 #MODULES += epics_mbc
 

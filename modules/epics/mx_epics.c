@@ -784,8 +784,11 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 
 	mx_status = mx_epics_flush_io();
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		(void) ca_clear_channel( new_channel_id );
+		pv->channel_id = NULL;
 		return mx_status;
+	}
 
 	/* Return now if we are not waiting for the connection to complete. */
 
@@ -806,8 +809,11 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 
 		mx_status = mx_epics_poll();
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			(void) ca_clear_channel( new_channel_id );
+			pv->channel_id = NULL;
 			return mx_status;
+		}
 
 		/* If so, then break out of this while loop. */
 
@@ -835,11 +841,15 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 				error_code = MXE_TIMED_OUT;
 			}
 
-			return mx_error( error_code, fname,
+			mx_status = mx_error( error_code, fname,
 			"Initial connection to EPICS PV '%s' timed out "
 			"after %g seconds.", pv->pvname,
 				mx_convert_high_resolution_time_to_seconds(
 					pv->connect_timeout_interval ) );
+
+			(void) ca_clear_channel( new_channel_id );
+			pv->channel_id = NULL;
+			return mx_status;
 		}
 
 		mx_msleep(1);	/* Sleep for at least 1 millisecond. */

@@ -935,7 +935,8 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
 		"Short read of %lu bytes seen when %lu bytes were expected "
 		"from inotify fd %d for file '%s'",
-			read_length, num_bytes_available,
+			(unsigned long) read_length,
+			(unsigned long) num_bytes_available,
 			linux_monitor->inotify_file_descriptor,
 			monitor->filename );
 	}
