@@ -391,6 +391,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->readout_mode = -1;
 
+	radicon_taurus->si1_register = 4;
+	radicon_taurus->si2_register = 4;
+
+	radicon_taurus->si1_si2_ratio = 8.0;
+
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
 	 */
@@ -531,12 +536,13 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
-	double exposure_time, exposure_time_offset;
+	double exposure_time, exposure_time_offset, raw_exposure_time;
 	unsigned long raw_exposure_time_32;
 	uint64_t raw_exposure_time_64;
 	unsigned long low_order, middle_order, high_order;
 	char command[80];
-	mx_bool_type set_exposure_times;
+	mx_bool_type set_exposure_times, use_external_trigger, use_dual_frames;
+	unsigned long rt_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -568,38 +574,114 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		set_exposure_times = FALSE;
 
-		if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-			strlcpy( command, "SRO 4", sizeof(command) );
-		} else
 		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-			switch( sp->sequence_type ) {
-			case MXT_SQ_ONE_SHOT:
-			case MXT_SQ_MULTIFRAME:
-			case MXT_SQ_STROBE:
-				strlcpy( command, "SRO 3", sizeof(command) );
-
-				set_exposure_times = TRUE;
-				break;
-			case MXT_SQ_DURATION:
-				strlcpy( command, "SRO 2", sizeof(command) );
-				break;
-			default:
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"MX imaging sequence type %lu is not "
-				"supported for external triggering with "
-				"detector '%s'.",
-					sp->sequence_type,
-					ad->record->name );
-				break;
-			}
+			use_external_trigger = TRUE;
 		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported trigger mode %#lx requested for "
-			"detector '%s'.",
-				ad->trigger_mode,
-				ad->record->name );
-				
+			use_external_trigger = FALSE;
 		}
+
+		rt_flags = radicon_taurus->radicon_taurus_flags;
+
+		if ( rt_flags & MXF_RADICON_TAURUS_ACQUIRE_DUAL_FRAMES ) {
+			use_dual_frames = TRUE;
+		} else {
+			use_dual_frames = FALSE;
+		}
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+			set_exposure_times = TRUE;
+
+			if ( use_external_trigger ) {
+				if ( use_dual_frames ) {
+					radicon_taurus->readout_mode = 1;
+				} else {
+					radicon_taurus->readout_mode = 3;
+				}
+			} else {
+				radicon_taurus->readout_mode = 4;
+
+				use_dual_frames = FALSE;
+			}
+			break;
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_MULTIFRAME:
+			set_exposure_times = TRUE;
+			use_dual_frames = FALSE;
+
+			if ( use_external_trigger ) {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Multiframe sequences with external triggers "
+				"are not supported for Radicon Taurus "
+				"detector '%s'.  Please consider 'strobe', "
+				"'duration', or 'gated' sequences instead.",
+					ad->record->name );
+			} else {
+				radicon_taurus->readout_mode = 4;
+			}
+			break;
+		case MXT_SQ_STROBE:
+			set_exposure_times = TRUE;
+
+			if ( use_external_trigger ) {
+				if ( use_dual_frames ) {
+					radicon_taurus->readout_mode = 1;
+				} else {
+					radicon_taurus->readout_mode = 3;
+				}
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Strobe sequences with internal triggers "
+				"are not supported for Radicon Taurus "
+				"detector '%s'.  Please consider using "
+				"an external trigger instead.",
+					ad->record->name );
+			}
+			break;
+		case MXT_SQ_DURATION:
+			set_exposure_times = FALSE;
+			use_dual_frames = FALSE;
+
+			if ( use_external_trigger ) {
+				radicon_taurus->readout_mode = 2;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Duration sequences with internal triggers "
+				"are not supported for Radicon Taurus "
+				"detector '%s'.  Please consider using "
+				"an external trigger instead.",
+					ad->record->name );
+			}
+			break;
+		case MXT_SQ_GATED:
+			if ( exposure_time <= 0.0 ) {
+				set_exposure_times = FALSE;
+			} else {
+				set_exposure_times = TRUE;
+			}
+
+			use_dual_frames = TRUE;
+
+			if ( use_external_trigger ) {
+				radicon_taurus->readout_mode = 0;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"Gated sequences with internal triggers "
+				"are not supported for Radicon Taurus "
+				"detector '%s'.  Please consider using "
+				"an external trigger instead.",
+					ad->record->name );
+			}
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"MX imaging sequence type %lu is not supported "
+			"for external triggering with detector '%s'.",
+				sp->sequence_type, ad->record->name );
+		}
+
+		snprintf( command, sizeof(command), "SRO %lu",
+			radicon_taurus->readout_mode );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
@@ -612,7 +694,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 */
 
 		if ( set_exposure_times == FALSE ) {
-			break;	/* Exit the switch() block. */
+			break;	/* Exit the switch() detector model block. */
 		}
 
 		/* If we get here, we have to set up the exposure times. */
@@ -630,6 +712,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		    }
 		}
 
+		radicon_taurus->si1_register = raw_exposure_time_64;
+
 		low_order    = raw_exposure_time_64 & 0xffff;
 		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;
 		high_order   = (raw_exposure_time_64 >> 32) & 0xf;
@@ -644,16 +728,29 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* If we are using dual frames, then we must set the second
+		 * exposure time.  Otherwise, break out of this switch() block.
+		 */
+
+		if ( use_dual_frames == FALSE ) {
+			break;	/* Exit the switch() detector model block. */
+		}
+
 		/* Set the second integration time to a value
 		 * that is 8 times smaller to get the lower
 		 * order bits of the signal.
 		 */
 
-		raw_exposure_time_64 /= 8;
+		raw_exposure_time = mx_divide_safely( raw_exposure_time_64,
+						radicon_taurus->si1_si2_ratio );
+
+		raw_exposure_time_64 = (uint64_t) (raw_exposure_time + 0.5);
 
 		if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
 			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
 		}
+
+		radicon_taurus->si2_register = raw_exposure_time_64;
 
 		low_order    = raw_exposure_time_64 & 0xffff;
 		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;

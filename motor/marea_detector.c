@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,7 +77,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	double exposure_time, frame_time, exposure_multiplier, gap_multiplier;
 	double exposure_time_per_line, total_time_per_line, subimage_time;
 	double bytes_per_pixel;
-	mx_bool_type busy;
+	mx_bool_type busy, ignore_num_frames;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -107,6 +107,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "                                                'exposure time' 'frame_time'\n"
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set duration_mode '# frames'\n"
+"  area_detector 'name' set gated_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
 "      'exposure time' 'frame_time' 'exposure multiplier' 'gap multiplier'\n"
 "  area_detector 'name' set streak_camera_mode '# lines'\n"
@@ -403,6 +404,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		ignore_num_frames = FALSE;
+
 		switch( sp.sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_STREAK_CAMERA:
@@ -419,8 +422,18 @@ motor_area_detector_fn( int argc, char *argv[] )
 			break;
 
 		case MXT_SQ_CONTINUOUS:
+			ignore_num_frames = TRUE;
 			num_frames = 0;
 			break;
+
+		case MXT_SQ_GATED:
+			num_frames = mx_round( sp.parameter_array[0] );
+
+			if ( num_frames <= 0 ) {
+				ignore_num_frames = TRUE;
+			}
+			break;
+
 		default:
 			num_frames = 0;
 			fprintf( output,
@@ -2022,6 +2035,40 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			mx_status = mx_area_detector_set_duration_mode(
 						ad_record, num_frames );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
+		} else
+		if ( strncmp("gated_mode", argv[4], strlen(argv[4])) == 0)
+		{
+			if ( argc != 7 ) {
+				fprintf( output,
+			"Wrong number of arguments specified for 'set %s'.\n",
+					argv[4] );
+				return FAILURE;
+			}
+
+			num_frames = strtol( argv[5], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+	"%s: Non-numeric characters found in the number of frames '%s'\n",
+					cname, argv[5] );
+
+				return FAILURE;
+			}
+
+			exposure_time = atof( argv[6] );
+
+			mx_status = mx_area_detector_set_gated_mode(
+				ad_record, num_frames, exposure_time );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

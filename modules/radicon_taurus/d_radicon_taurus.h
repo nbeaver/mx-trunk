@@ -17,6 +17,13 @@
 #ifndef __D_RADICON_TAURUS_H__
 #define __D_RADICON_TAURUS_H__
 
+/* Values for the 'radicon_taurus_flags' field. */
+
+#define MXF_RADICON_TAURUS_ACQUIRE_DUAL_FRAMES	0x1
+#define MXF_RADICON_TAURUS_MERGE_DUAL_FRAMES	0x2
+
+/* Values for the 'detector_model' field. */
+
 #define MXT_RADICON_TAURUS	1
 #define MXT_RADICON_XINEOS	2
 
@@ -25,12 +32,16 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *serial_port_record;
+	unsigned long radicon_taurus_flags;
 
 	unsigned long detector_model;
 	unsigned long serial_number;
 	unsigned long firmware_version;
 
 	unsigned long readout_mode;
+	uint64_t si1_register;
+	uint64_t si2_register;
+	double si1_si2_ratio;
 } MX_RADICON_TAURUS;
 
 
@@ -45,6 +56,11 @@ typedef struct {
 		offsetof(MX_RADICON_TAURUS, serial_port_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {-1, -1, "radicon_taurus_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, radicon_taurus_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
 	{0}, NULL, MXFF_READ_ONLY }, \
@@ -55,7 +71,23 @@ typedef struct {
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, firmware_version), \
-	{0}, NULL, MXFF_READ_ONLY }, 
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "readout_mode", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, readout_mode), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "si1_register", MXFT_UINT64, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1_register), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "si2_register", MXFT_UINT64, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si2_register), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "si1_si2_ratio", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1_si2_ratio), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );
