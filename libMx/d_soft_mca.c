@@ -37,8 +37,7 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mca_record_function_list = {
 	mxd_soft_mca_finish_record_initialization,
 	mxd_soft_mca_delete_record,
 	mxd_soft_mca_print_structure,
-	mxd_soft_mca_open,
-	mxd_soft_mca_close
+	mxd_soft_mca_open
 };
 
 MX_MCA_FUNCTION_LIST mxd_soft_mca_mca_function_list = {
@@ -48,7 +47,7 @@ MX_MCA_FUNCTION_LIST mxd_soft_mca_mca_function_list = {
 	mxd_soft_mca_clear,
 	mxd_soft_mca_busy,
 	mxd_soft_mca_get_parameter,
-	mxd_soft_mca_set_parameter,
+	mx_mca_default_set_parameter_handler
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_mca_record_field_defaults[] = {
@@ -167,7 +166,8 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_soft_mca_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_soft_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca = NULL;
@@ -383,12 +383,6 @@ mxd_soft_mca_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_mca_start( MX_MCA *mca )
 {
 	static const char fname[] = "mxd_soft_mca_start()";
@@ -396,27 +390,32 @@ mxd_soft_mca_start( MX_MCA *mca )
 	MX_SOFT_MCA *soft_mca = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
-	mx_status_type status;
+	double measurement_time;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( mca->preset_type ) {
+	case MXF_MCA_PRESET_LIVE_TIME:
+		measurement_time = mca->preset_live_time;
+		break;
+	case MXF_MCA_PRESET_REAL_TIME:
+		measurement_time = mca->preset_real_time;
+		break;
+	case MXF_MCA_PRESET_COUNT:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Preset count operation is not supported by the 'soft mca' "
+		"driver used for MCA '%s'.", mca->record->name );
+		break;
+	}
 
 	start_time_in_clock_ticks = mx_current_clock_tick();
 
-	if ( mca->preset_live_time > 0.0 ) {
-		measurement_time_in_clock_ticks
-			= mx_convert_seconds_to_clock_ticks(
-						mca->preset_live_time );
-	} else {
-		measurement_time_in_clock_ticks
-			= mx_convert_seconds_to_clock_ticks(
-						mca->preset_real_time );
-	}
-
-	mca->preset_live_time = 0.0;
-	mca->preset_real_time = 0.0;
+	measurement_time_in_clock_ticks = mx_convert_seconds_to_clock_ticks(
+							measurement_time );
 
 	soft_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
 				start_time_in_clock_ticks,
@@ -444,12 +443,12 @@ mxd_soft_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_soft_mca_stop()";
 
 	MX_SOFT_MCA *soft_mca = NULL;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_SOFT_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -468,12 +467,12 @@ mxd_soft_mca_read( MX_MCA *mca )
 	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i;
 	double double_value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if 0
 	if ( mca->busy ) {
@@ -506,12 +505,12 @@ mxd_soft_mca_clear( MX_MCA *mca )
 
 	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_SOFT_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -534,12 +533,12 @@ mxd_soft_mca_busy( MX_MCA *mca )
 	MX_SOFT_MCA *soft_mca = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	current_time_in_clock_ticks = mx_current_clock_tick();
 
@@ -570,12 +569,12 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 	MX_SOFT_MCA *soft_mca = NULL;
 	unsigned long i, j, channel_value, integral;
 	double double_value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_SOFT_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for parameter type %d.",
@@ -664,11 +663,5 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_mca_set_parameter( MX_MCA *mca )
-{
-	return mx_mca_default_set_parameter_handler( mca );
 }
 
