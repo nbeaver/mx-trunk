@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2008, 2010-2011
+ * Copyright 2000-2001, 2005-2006, 2008, 2010-2012
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -405,8 +405,18 @@ mxd_soft_mca_start( MX_MCA *mca )
 
 	start_time_in_clock_ticks = mx_current_clock_tick();
 
-	measurement_time_in_clock_ticks
-		= mx_convert_seconds_to_clock_ticks( mca->preset_live_time );
+	if ( mca->preset_live_time > 0.0 ) {
+		measurement_time_in_clock_ticks
+			= mx_convert_seconds_to_clock_ticks(
+						mca->preset_live_time );
+	} else {
+		measurement_time_in_clock_ticks
+			= mx_convert_seconds_to_clock_ticks(
+						mca->preset_real_time );
+	}
+
+	mca->preset_live_time = 0.0;
+	mca->preset_real_time = 0.0;
 
 	soft_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
 				start_time_in_clock_ticks,
