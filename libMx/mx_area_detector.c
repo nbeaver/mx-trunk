@@ -172,6 +172,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD_FIELD *last_frame_number_field;
 	MX_RECORD_FIELD *total_num_frames_field;
 	MX_RECORD_FIELD *status_field;
+	MX_LIST_HEAD *list_head;
+	unsigned long ad_flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
@@ -362,37 +364,68 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_calc_format = ad->image_format;
 
-	if ( ad->area_detector_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
+	ad_flags = ad->area_detector_flags;
+
+	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
 		ad->geom_corr_after_flood = TRUE;
 	} else {
 		ad->geom_corr_after_flood = FALSE;
 	}
 
-	if ( ad->area_detector_flags & MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST )
+	if ( ad_flags & MXF_AD_CORRECTION_FRAME_GEOM_CORR_LAST )
 	{
 		ad->correction_frame_geom_corr_last = TRUE;
 	} else {
 		ad->correction_frame_geom_corr_last = FALSE;
 	}
 
-	if ( ad->area_detector_flags & MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR )
+	if ( ad_flags & MXF_AD_CORRECTION_FRAME_NO_GEOM_CORR )
 	{
 		ad->correction_frame_no_geom_corr = TRUE;
 	} else {
 		ad->correction_frame_no_geom_corr = FALSE;
 	}
 
-	if ( ad->area_detector_flags & MXF_AD_BIAS_CORR_AFTER_FLOOD ) {
+	if ( ad_flags & MXF_AD_BIAS_CORR_AFTER_FLOOD ) {
 		ad->bias_corr_after_flood = TRUE;
 	} else {
 		ad->bias_corr_after_flood = FALSE;
 	}
 
-	if ( ad->area_detector_flags & MXF_AD_DEZINGER_CORRECTION_FRAME ) {
+	if ( ad_flags & MXF_AD_DEZINGER_CORRECTION_FRAME ) {
 		ad->dezinger_correction_frame = TRUE;
 	} else {
 		ad->dezinger_correction_frame = FALSE;
 	}
+
+	/*-------*/
+
+	/* If we are running in single-process mode (no client/server)
+	 * and the flag MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE is
+	 * set, then we force off the MXF_AD_SAVE_FRAME_AFTER_ACQUISITION
+	 * flag here.  This is done to make single process debugging easier.
+	 */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the running database is NULL." );
+	}
+
+	if ( list_head->is_server == FALSE ) {
+		if (ad_flags & MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE)
+		{
+			ad_flags &= ( ~ MXF_AD_SAVE_FRAME_AFTER_ACQUISITION );
+
+			ad->area_detector_flags = ad_flags;
+		}
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: ad->area_detector_flags = %#lx",
+		fname, ad->area_detector_flags));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

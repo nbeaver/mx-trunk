@@ -13,7 +13,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -132,7 +133,7 @@ mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_am9513_timer_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxd_am9513_timer_initialize_type()";
+	static const char fname[] = "mxd_am9513_timer_initialize_driver()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_counters_field_index;

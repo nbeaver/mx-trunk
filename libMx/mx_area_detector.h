@@ -85,6 +85,18 @@ extern "C" {
 
 #define MXF_AD_SAVE_CORRECTION_FRAME_AFTER_ACQUISITION	0x8000
 
+  /* If MX is running in a single process (list_head->is_server == FALSE)
+   * and the following flag is set, then the function
+   * mx_area_detector_finish_record_initialization() will force
+   * off the MXF_AD_SAVE_FRAME_AFTER_ACQUISITION flag.  This flag
+   * exists to make it easier to debug drivers when running in 
+   * single process mode by eliminating attempts to do server-style
+   * background frame saving.  This flag has no effect if you are
+   * running in real server (list_head->is_server == TRUE).
+   */
+
+#define MXF_AD_DO_NOT_SAVE_FRAME_IN_SINGLE_PROCESS_MODE	0x10000
+
   /* The following flag requests that a 6-bit ASCII debugging image
    * be written to the log at the end of each call to the function
    * mx_area_detector_readout_frame().

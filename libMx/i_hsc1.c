@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -100,7 +100,7 @@ mxi_hsc1_get_pointers( MX_RECORD *hsc1_interface_record,
 MX_EXPORT mx_status_type
 mxi_hsc1_initialize_driver( MX_DRIVER *driver )
 {
-	static const char fname[] = "mxi_hsc1_initialize_type()";
+	static const char fname[] = "mxi_hsc1_initialize_driver()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long num_modules_field_index;

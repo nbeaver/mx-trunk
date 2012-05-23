@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2000-2006, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,7 +91,7 @@ mx_mcs_initialize_driver( MX_DRIVER *driver,
 			long *maximum_num_scalers_varargs_cookie,
 			long *maximum_num_measurements_varargs_cookie )
 {
-	static const char fname[] = "mx_mcs_initialize_type()";
+	static const char fname[] = "mx_mcs_initialize_driver()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	long referenced_field_index;

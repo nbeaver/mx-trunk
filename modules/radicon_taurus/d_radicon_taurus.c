@@ -14,7 +14,11 @@
  *
  */
 
-#define MXD_RADICON_TAURUS_DEBUG	TRUE
+#define MXD_RADICON_TAURUS_DEBUG				TRUE
+
+#define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS		FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_BUSY	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,7 +199,19 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #endif
 	video_input_record = radicon_taurus->video_input_record;
 
+	if ( video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The video_input_record pointer for detector '%s' is NULL.",
+			record->name );
+	}
+
 	serial_port_record = radicon_taurus->serial_port_record;
+
+	if ( serial_port_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The serial_port_record pointer for detector '%s' is NULL.",
+			record->name );
+	}
 
 	/* Configure the serial port as needed by the Taurus driver. */
 
@@ -396,6 +412,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->si1_si2_ratio = 8.0;
 
+	radicon_taurus->bypass_arm = FALSE;
+
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
 	 */
@@ -535,6 +553,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_arm()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	MX_RECORD *video_input_record = NULL;
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time, exposure_time_offset, raw_exposure_time;
 	unsigned long raw_exposure_time_32;
@@ -555,6 +574,29 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+
+	video_input_record = radicon_taurus->video_input_record;
+
+	if ( video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The video_input_record pointer for detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+        /*****************************************************************
+	 * If the bypass_arm flag is set, we just tell the video capture *
+	 * card to get ready to receive frames and skip reprogramming of *
+	 * the detector head.                                            *
+         *****************************************************************/
+
+	if ( radicon_taurus->bypass_arm ) {
+		mx_status = mx_video_input_arm( video_input_record );
+
+		return mx_status;
+	}
+
+	/*--- Otherwise, we continue on to reprogram the detector head. ---*/
+
 	/* Set the exposure time for this sequence. */
 
 	sp = &(ad->sequence_parameters);
@@ -812,7 +854,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	/* Tell the video capture card to get ready for frames. */
 
-	mx_status = mx_video_input_arm( radicon_taurus->video_input_record );
+	mx_status = mx_video_input_arm( video_input_record );
 
 	return mx_status;
 }
@@ -914,11 +956,6 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_RADICON_TAURUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-
 	mx_status = mx_video_input_get_extended_status(
 				radicon_taurus->video_input_record,
 				&vinput_last_frame_number,
@@ -938,11 +975,23 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
-#if MXD_RADICON_TAURUS_DEBUG
+#if MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS
+
 	MX_DEBUG(-2,("%s: last_frame_number = %ld, "
-	"total_num_frames = %ld, status = %#lx",
-		fname, ad->last_frame_number,
-		ad->total_num_frames, ad->status));
+			"total_num_frames = %ld, status = %#lx",
+			fname, ad->last_frame_number,
+			ad->total_num_frames,
+			ad->status));
+
+#elif MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_BUSY
+
+	if ( ad->status & MXSF_AD_ACQUISITION_IN_PROGRESS ) {
+		MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, ad->last_frame_number,
+			ad->total_num_frames,
+			ad->status));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

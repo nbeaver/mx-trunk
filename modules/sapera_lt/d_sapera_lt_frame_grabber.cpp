@@ -14,23 +14,25 @@
  *
  */
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG			FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG				FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS	TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK		TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS_WHEN_BUSY	TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS	FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK			TRUE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS		FALSE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS		FALSE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1390,10 +1392,23 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS
-	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
-		fname, vinput->last_frame_number, vinput->total_num_frames,
-		vinput->status));
+
+	MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, vinput->last_frame_number,
+			vinput->total_num_frames,
+			vinput->status));
+
+#elif MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS_WHEN_BUSY
+
+	if ( vinput->busy ) {
+		MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, vinput->last_frame_number,
+			vinput->total_num_frames,
+			vinput->status));
+	}
+
 #endif
 
 	return mx_status;
