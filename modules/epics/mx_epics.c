@@ -216,7 +216,7 @@ mx_epics_atexit_handler( void )
 	 * for something to happen after the timeout.  However, the
 	 * event handler or thread never seems to execute.  Apparently,
 	 * atexit() handlers in a DLL are invoked after most of the
-	 * handles have already been destroy, which presumably has
+	 * handles have already been destroyed, which presumably has
 	 * something to do with the problem.
 	 *
 	 * For this reason, we skip trying to invoke ca_context_destroy()
@@ -348,6 +348,86 @@ mx_epics_connection_state_change_handler( struct connection_handler_args args )
 
 /*--------------------------------------------------------------------------*/
 
+static void
+mx_epics_show_caget_value( MX_EPICS_PV *pv,
+			long epics_type,
+			unsigned long num_elements,
+			void *data_buffer,
+			const char *calling_fname )
+{
+	if ( num_elements > 1 ) {
+		if ( epics_type == MX_CA_STRING ) {
+			MX_DEBUG(-2,("%s: '%s' value read = '%s'.",
+				calling_fname, pv->pvname,
+				(char *) data_buffer));
+		} else {
+			MX_DEBUG(-2,
+			("%s: multielement array read from '%s'.",
+				calling_fname, pv->pvname));
+		}
+	} else {
+		char byte_value;
+		short short_value;
+		int32_t int32_value;
+		float float_value;
+		double double_value;
+
+		switch( epics_type ) {
+		case MX_CA_CHAR:
+			byte_value = *((char *) data_buffer);
+
+			MX_DEBUG(-2,("%s: '%s' value read = %d.",
+				calling_fname, pv->pvname,
+				byte_value));
+			break;
+		case MX_CA_STRING:
+			MX_DEBUG(-2,("%s: '%s' value read = '%s'",
+				calling_fname, pv->pvname,
+				(char *) data_buffer));
+			break;
+		case MX_CA_SHORT:
+		case MX_CA_ENUM:
+			short_value = *((short *) data_buffer);
+
+			MX_DEBUG(-2,("%s: '%s' value read = %hd.",
+				calling_fname, pv->pvname,
+				short_value));
+			break;
+		case MX_CA_LONG:
+			int32_value = *((int32_t *) data_buffer);
+
+			MX_DEBUG(-2,("%s: '%s' value read = %ld.",
+				calling_fname, pv->pvname,
+				(long) int32_value));
+			break;
+		case MX_CA_FLOAT:
+			float_value = *((float *) data_buffer);
+
+			MX_DEBUG(-2,("%s: '%s' value read = %g.",
+				calling_fname, pv->pvname,
+				float_value));
+			break;
+		case MX_CA_DOUBLE:
+			double_value = *((double *) data_buffer);
+
+			MX_DEBUG(-2,("%s: '%s' value read = %g.",
+				calling_fname, pv->pvname,
+				double_value));
+			break;
+		default:
+			MX_DEBUG(-2,
+			("%s: '%s' has unsupported epics_type %ld",
+				calling_fname, pv->pvname,
+				epics_type));
+			break;
+		}
+	}
+
+	return;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_epics_initialize( void )
 {
@@ -355,8 +435,6 @@ mx_epics_initialize( void )
 
 	int status, epics_status;
 	mx_status_type mx_status;
-
-	MX_DEBUG( 2,("%s invoked.", fname));
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -664,8 +742,6 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	strlcpy( pv->pvname, buffer, MXU_EPICS_PVNAME_LENGTH );
 
-	MX_DEBUG( 2,("%s invoked for PV '%s'", fname, pv->pvname));
-
 	/* Initialize the data structure. */
 
 	pv->channel_id = NULL;
@@ -704,6 +780,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 	struct timespec current_time, timeout_time;
 	int epics_status, time_comparison;
 	long error_code;
+	mx_bool_type wait_for_connection;
 	mx_status_type mx_status;
 
 #if MX_EPICS_DEBUG_PERFORMANCE
@@ -739,6 +816,11 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_START( measurement );
 #endif
+	if ( connect_flags & MXF_EPVC_WAIT_FOR_CONNECTION ) {
+		wait_for_connection = TRUE;
+	} else {
+		wait_for_connection = FALSE;
+	}
 
 	/* Initialize the connection state variables. */
 
@@ -752,6 +834,14 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 	MX_DEBUG(-2,("%s: About to create a channel for PV '%s'",
 		fname, pv->pvname));
 #endif
+
+	if ( mx_epics_debug_flag ) {
+		if ( wait_for_connection == FALSE ) {
+			MX_DEBUG(-2,
+			("%s: searching for PV '%s' without waiting.",
+				fname, pv->pvname));
+		}
+	}
 
 #if ( MX_EPICS_VERSION < 3014000L )
 	epics_status = ca_search_and_connect( pv->pvname, &new_channel_id,
@@ -792,7 +882,7 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 
 	/* Return now if we are not waiting for the connection to complete. */
 
-	if ( (connect_flags & MXF_EPVC_WAIT_FOR_CONNECTION) == 0 ) {
+	if ( wait_for_connection == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -823,6 +913,12 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 			MX_DEBUG(-2,("%s: successfully connected to PV '%s'.",
 				fname, pv->pvname ));
 #endif
+			if ( mx_epics_debug_flag ) {
+				MX_DEBUG(-2,
+				("%s: connected to PV '%s', chid = %p",
+					fname, pv->pvname,
+					pv->channel_id ));
+			}
 
 			break;			/* Exit the while() loop. */
 		}
@@ -982,9 +1078,6 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 	epics_status = ca_array_get( epics_type, num_elements,
 					pv->channel_id, data_buffer );
 
-	MX_DEBUG( 2,("%s: PV '%s', epics_status = %d",
-		fname, pv->pvname, epics_status ));
-
 	switch( epics_status ) {
 	case ECA_NORMAL:
 		break;
@@ -1038,13 +1131,7 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 		break;
 	}
 
-	MX_DEBUG( 2,("%s: about to start ca_pend_io for PV '%s', timeout = %g",
-		fname, pv->pvname, timeout));
-
 	epics_status = ca_pend_io( timeout );
-
-	MX_DEBUG( 2,("%s: ca_pend_io() complete, epics_status = %d",
-		fname, epics_status));
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_END( measurement );
@@ -1071,73 +1158,8 @@ mx_epics_internal_caget( MX_EPICS_PV *pv,
 
 
 	if ( mx_epics_debug_flag ) {
-		if ( num_elements > 1 ) {
-			if ( epics_type == MX_CA_STRING ) {
-				MX_DEBUG(-2,("%s: '%s' value read = '%s'.",
-					fname, pv->pvname,
-					(char *) data_buffer));
-			} else {
-				MX_DEBUG(-2,
-				("%s: multielement array read from '%s'.",
-					fname, pv->pvname));
-			}
-		} else {
-			char byte_value;
-			short short_value;
-			int32_t int32_value;
-			float float_value;
-			double double_value;
-
-			switch( epics_type ) {
-			case MX_CA_CHAR:
-				byte_value = *((char *) data_buffer);
-
-				MX_DEBUG(-2,("%s: '%s' value read = %d.",
-					fname, pv->pvname,
-					byte_value));
-				break;
-			case MX_CA_STRING:
-				MX_DEBUG(-2,("%s: '%s' value read = '%s'",
-					fname, pv->pvname,
-					(char *) data_buffer));
-				break;
-			case MX_CA_SHORT:
-			case MX_CA_ENUM:
-				short_value = *((short *) data_buffer);
-	
-				MX_DEBUG(-2,("%s: '%s' value read = %hd.",
-					fname, pv->pvname,
-					short_value));
-				break;
-			case MX_CA_LONG:
-				int32_value = *((int32_t *) data_buffer);
-	
-				MX_DEBUG(-2,("%s: '%s' value read = %ld.",
-					fname, pv->pvname,
-					(long) int32_value));
-				break;
-			case MX_CA_FLOAT:
-				float_value = *((float *) data_buffer);
-
-				MX_DEBUG(-2,("%s: '%s' value read = %g.",
-					fname, pv->pvname,
-					float_value));
-				break;
-			case MX_CA_DOUBLE:
-				double_value = *((double *) data_buffer);
-
-				MX_DEBUG(-2,("%s: '%s' value read = %g.",
-					fname, pv->pvname,
-					double_value));
-				break;
-			default:
-				MX_DEBUG(-2,
-				("%s: '%s' has unsupported epics_type %ld",
-					fname, pv->pvname,
-					epics_type));
-				break;
-			}
-		}
+		mx_epics_show_caget_value( pv, epics_type,
+					num_elements, data_buffer, fname );
 	}
 
 	/* Allow background events to execute. */
@@ -1584,9 +1606,6 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 		break;
 	}
 
-	MX_DEBUG( 2,("%s: PV '%s', epics_status = %d",
-		fname, pv->pvname, epics_status ));
-
 	switch( epics_status ) {
 	case ECA_NORMAL:
 		break;
@@ -1667,9 +1686,6 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 	milliseconds_between_polls = 10;
 
-	MX_DEBUG( 2,("%s: About to wait for PV '%s' callback to complete.",
-		fname, pv->pvname ));
-
 	for (i = 0; i < milliseconds_to_wait; i += milliseconds_between_polls)
 	{
 		/* See if the callback has completed and allow other 
@@ -1689,10 +1705,6 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 #endif
 
 		if ( pv->put_callback_status == MXF_EPVH_IDLE ) {
-			MX_DEBUG( 2,(
-			"%s: Callback for EPICS PV '%s' has completed, i = %ld",
-				fname, pv->pvname, i ));
-
 			UNLOCK_EPICS_MUTEX;
 			break;		/* Exit the for() loop. */
 		} else
@@ -1709,8 +1721,6 @@ mx_epics_internal_caput( MX_EPICS_PV *pv,
 
 		mx_msleep( milliseconds_between_polls );
 	}
-
-	MX_DEBUG( 2,("%s: Wait for PV callback has ended.", fname));
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_END( measurement );
@@ -1996,9 +2006,6 @@ mx_epics_internal_caput_nowait( MX_EPICS_PV *pv,
 
 	epics_status = ca_array_put( epics_type, num_elements,
 					pv->channel_id, data_buffer );
-
-	MX_DEBUG( 2,("%s: PV '%s', epics_status = %d",
-		fname, pv->pvname, epics_status ));
 
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_END( measurement );
@@ -2646,6 +2653,40 @@ mx_epics_start_group( MX_EPICS_GROUP *epics_group )
 
 	epics_group->group_id = group_id;
 
+	epics_group->caget_pv_list = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+typedef struct {
+	MX_EPICS_PV *pv;
+	long epics_type;
+	unsigned long num_elements;
+	void *data_buffer;
+} mxp_epics_group_caget_entry;
+
+
+static mx_status_type
+mx_epics_group_caget_traverse_fn( MX_LIST_ENTRY *list_entry,
+				void *unused_ptr1,
+				void **unused_ptr2 )
+{
+	static const char fname[] = "group_caget";
+
+	mxp_epics_group_caget_entry *caget_entry;
+
+	caget_entry = list_entry->list_entry_data;
+
+	mx_epics_show_caget_value( caget_entry->pv,
+				caget_entry->epics_type,
+				caget_entry->num_elements,
+				caget_entry->data_buffer,
+				fname );
+
+	mx_free( caget_entry );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2734,6 +2775,19 @@ mx_epics_end_group( MX_EPICS_GROUP *epics_group )
 		}
 	}
 
+	if ( mx_epics_debug_flag ) {
+		if ( epics_group->caget_pv_list != NULL ) {
+
+			mx_status = mx_list_traverse(
+					epics_group->caget_pv_list,
+					mx_epics_group_caget_traverse_fn,
+					NULL, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
 #if MX_EPICS_DEBUG_PERFORMANCE
 	MX_HRT_END( measurement );
 
@@ -2776,6 +2830,11 @@ mx_epics_delete_group( MX_EPICS_GROUP *epics_group )
 
 	MX_HRT_RESULTS( measurement, fname, " " );
 #endif
+	if ( epics_group->caget_pv_list != NULL ) {
+		(void) mx_list_destroy( epics_group->caget_pv_list );
+
+		epics_group->caget_pv_list = NULL;
+	}
 
 	switch( epics_status ) {
 	case ECA_NORMAL:
@@ -2917,6 +2976,7 @@ mx_group_caget( MX_EPICS_GROUP *epics_group,
 {
 	static const char fname[] = "mx_group_caget()";
 
+	MX_LIST_ENTRY *list_entry;
 	mx_status_type mx_status;
 
 	if ( epics_group == (MX_EPICS_GROUP *) NULL ) {
@@ -2945,6 +3005,43 @@ mx_group_caget( MX_EPICS_GROUP *epics_group,
 		(void) ca_clear_channel( pv->channel_id );
 
 		pv->channel_id = NULL;
+	}
+
+	if ( mx_epics_debug_flag ) {
+		mxp_epics_group_caget_entry *caget_entry;
+
+		if ( epics_group->caget_pv_list == NULL ) {
+			mx_status = mx_list_create(
+					&(epics_group->caget_pv_list) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		caget_entry = malloc( sizeof(mxp_epics_group_caget_entry) );
+
+		if ( caget_entry == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate an "
+			"mxp_epics_group_caget_entry structure." );
+		}
+
+		caget_entry->pv = pv;
+		caget_entry->epics_type = epics_type;
+		caget_entry->num_elements = num_elements;
+		caget_entry->data_buffer = data_buffer;
+
+		mx_status = mx_list_entry_create( &list_entry,
+						caget_entry, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_list_add_entry( epics_group->caget_pv_list,
+						list_entry );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return mx_status;

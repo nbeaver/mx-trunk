@@ -23,6 +23,7 @@
 extern "C" {
 #endif
 
+#include "mx_list.h"
 #include "mx_hrt.h"
 
 /* We do not want to require including the EPICS include files tsDefs.h
@@ -79,6 +80,8 @@ typedef struct {
 
 typedef struct {
 	unsigned int group_id;	/* In EPICS this is a 'CA_SYNC_GID'. */
+
+	MX_LIST *caget_pv_list;
 } MX_EPICS_GROUP;
 
 typedef struct mx_epics_callback_type {
