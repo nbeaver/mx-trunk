@@ -437,7 +437,7 @@ mxd_network_mca_open( MX_RECORD *record )
 		mca->roi_array[i][1] = 0;
 	}
 
-	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
+	mca->preset_type = MXF_MCA_PRESET_REAL_TIME;
 	mca->parameter_type = 0;
 
 	mca->roi[0] = 0;
