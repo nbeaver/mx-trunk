@@ -545,7 +545,7 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 /*----*/
 
 #define TAURUS_MINIMUM_EXPOSURE_TIME	4
-#define TAURUS_SECONDS_PER_STEP		(33.0e-9)
+#define TAURUS_CLOCK_FREQUENCY_IN_HZ	(30.0e6)
 
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
@@ -747,7 +747,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		    raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
 		} else {
 		    raw_exposure_time_64 = (uint64_t)( 0.5
-			+ (exposure_time / TAURUS_SECONDS_PER_STEP) );
+			+ (exposure_time * TAURUS_CLOCK_FREQUENCY_IN_HZ) );
 
 		    if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
 			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;

@@ -786,7 +786,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if 1
 	mx_display_system_meminfo( &system_meminfo );
 #endif
 
@@ -827,10 +827,10 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			fname, max_image_frames, max_frames_threshold));
 #endif
 
-#if 0	/* FIXME */
+#if 1	/* FIXME */
 
 	if ( sapera_lt_frame_grabber->max_frames > max_frames_threshold ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The maximum number of frames (%ld) requested for "
 		"frame grabber '%s' is larger than the maximum number of "
 		"frames (%ld) that can fit in the available computer memory.",
