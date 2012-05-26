@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,6 +38,7 @@ typedef struct {
 	MX_NETWORK_FIELD live_time_nf;
 	MX_NETWORK_FIELD num_soft_rois_nf;
 	MX_NETWORK_FIELD output_count_rate_nf;
+	MX_NETWORK_FIELD preset_count_nf;
 	MX_NETWORK_FIELD preset_live_time_nf;
 	MX_NETWORK_FIELD preset_real_time_nf;
 	MX_NETWORK_FIELD preset_type_nf;

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2004, 2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,9 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 		case MXLV_MCA_CHANNEL_VALUE:
 		case MXLV_MCA_REAL_TIME:
 		case MXLV_MCA_LIVE_TIME:
+		case MXLV_MCA_PRESET_REAL_TIME:
+		case MXLV_MCA_PRESET_LIVE_TIME:
+		case MXLV_MCA_PRESET_COUNT:
 		case MXLV_MCA_SOFT_ROI:
 		case MXLV_MCA_SOFT_ROI_INTEGRAL:
 		case MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY:
@@ -140,6 +143,15 @@ mx_mca_process_function( void *record_ptr,
 		case MXLV_MCA_LIVE_TIME:
 			status = mx_mca_get_live_time( record, &double_value );
 			break;
+		case MXLV_MCA_PRESET_REAL_TIME:
+			status = mx_mca_get_preset_real_time( record, NULL );
+			break;
+		case MXLV_MCA_PRESET_LIVE_TIME:
+			status = mx_mca_get_preset_live_time( record, NULL );
+			break;
+		case MXLV_MCA_PRESET_COUNT:
+			status = mx_mca_get_preset_count( record, NULL );
+			break;
 		case MXLV_MCA_SOFT_ROI:
 			status = mx_mca_get_soft_roi(record,
 						mca->soft_roi_number, NULL );
@@ -212,6 +224,18 @@ mx_mca_process_function( void *record_ptr,
 			status = mx_mca_set_roi( record,
 						mca->roi_number,
 						mca->roi );
+			break;
+		case MXLV_MCA_PRESET_REAL_TIME:
+			status = mx_mca_set_preset_real_time( record,
+							mca->preset_real_time );
+			break;
+		case MXLV_MCA_PRESET_LIVE_TIME:
+			status = mx_mca_set_preset_live_time( record,
+							mca->preset_live_time );
+			break;
+		case MXLV_MCA_PRESET_COUNT:
+			status = mx_mca_set_preset_count( record,
+							mca->preset_count );
 			break;
 		case MXLV_MCA_SOFT_ROI:
 			status = mx_mca_set_soft_roi(record,

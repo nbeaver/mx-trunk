@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -255,6 +255,10 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mca->output_count_rate_nf),
 		network_mca->server_record,
 		"%s.output_count_rate", network_mca->remote_record_name );
+
+	mx_network_field_init( &(network_mca->preset_count_nf),
+		network_mca->server_record,
+		"%s.preset_count", network_mca->remote_record_name );
 
 	mx_network_field_init( &(network_mca->preset_live_time_nf),
 		network_mca->server_record,
@@ -709,6 +713,21 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 				mca->maximum_num_channels );
 		}
 	} else
+	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
+
+		mx_status = mx_get( &(network_mca->preset_count_nf),
+					MXFT_ULONG, &(mca->preset_count) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_PRESET_LIVE_TIME ) {
+
+		mx_status = mx_get( &(network_mca->preset_live_time_nf),
+					MXFT_DOUBLE, &(mca->preset_live_time) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_PRESET_REAL_TIME ) {
+
+		mx_status = mx_get( &(network_mca->preset_real_time_nf),
+					MXFT_DOUBLE, &(mca->preset_real_time) );
+	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_get( &(network_mca->preset_type_nf),
@@ -879,6 +898,21 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 			mca->parameter_type ),
 		mca->parameter_type));
 
+	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
+
+		mx_status = mx_put( &(network_mca->preset_count_nf),
+					MXFT_ULONG, &(mca->preset_count) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_PRESET_LIVE_TIME ) {
+
+		mx_status = mx_put( &(network_mca->preset_live_time_nf),
+					MXFT_DOUBLE, &(mca->preset_live_time) );
+	} else
+	if ( mca->parameter_type == MXLV_MCA_PRESET_REAL_TIME ) {
+
+		mx_status = mx_put( &(network_mca->preset_real_time_nf),
+					MXFT_DOUBLE, &(mca->preset_real_time) );
+	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_put( &(network_mca->preset_type_nf),

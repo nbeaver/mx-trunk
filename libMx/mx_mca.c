@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2007, 2010 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2007, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -812,6 +812,237 @@ mx_mca_set_preset_type( MX_RECORD *mca_record, long preset_type )
 	mca->parameter_type = MXLV_MCA_PRESET_TYPE;
 
 	mca->preset_type = preset_type;
+
+	mx_status = (*set_parameter)( mca );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_get_preset_real_time( MX_RECORD *mca_record,
+				double *preset_real_time )
+{
+	static const char fname[] = "mx_mca_set_preset_real_time()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_REAL_TIME;
+
+	mx_status = (*get_parameter)( mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( preset_real_time != (double *) NULL ) {
+		*preset_real_time = mca->preset_real_time;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_get_preset_live_time( MX_RECORD *mca_record,
+				double *preset_live_time )
+{
+	static const char fname[] = "mx_mca_set_preset_live_time()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_LIVE_TIME;
+
+	mx_status = (*get_parameter)( mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( preset_live_time != (double *) NULL ) {
+		*preset_live_time = mca->preset_live_time;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_get_preset_count( MX_RECORD *mca_record,
+				unsigned long *preset_count )
+{
+	static const char fname[] = "mx_mca_set_preset_count()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter = function_list->get_parameter;
+
+	if ( get_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"get_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_COUNT;
+
+	mx_status = (*get_parameter)( mca );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( preset_count != (unsigned long *) NULL ) {
+		*preset_count = mca->preset_count;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_set_preset_real_time( MX_RECORD *mca_record,
+				double preset_real_time )
+{
+	static const char fname[] = "mx_mca_set_preset_real_time()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"set_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_REAL_TIME;
+
+	mca->preset_real_time = preset_real_time;
+
+	mx_status = (*set_parameter)( mca );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_set_preset_live_time( MX_RECORD *mca_record,
+				double preset_live_time )
+{
+	static const char fname[] = "mx_mca_set_preset_live_time()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"set_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_LIVE_TIME;
+
+	mca->preset_live_time = preset_live_time;
+
+	mx_status = (*set_parameter)( mca );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_mca_set_preset_count( MX_RECORD *mca_record,
+				unsigned long preset_count )
+{
+	static const char fname[] = "mx_mca_set_preset_count()";
+
+	MX_MCA *mca;
+	MX_MCA_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter ) ( MX_MCA * );
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
+
+	mx_status = mx_mca_get_pointers( mca_record,
+					&mca, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter = function_list->set_parameter;
+
+	if ( set_parameter == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"set_parameter function ptr for record '%s' is NULL.",
+			mca_record->name);
+	}
+
+	mca->parameter_type = MXLV_MCA_PRESET_COUNT;
+
+	mca->preset_count = preset_count;
 
 	mx_status = (*set_parameter)( mca );
 
@@ -2062,6 +2293,9 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	case MXLV_MCA_LIVE_TIME:
 	case MXLV_MCA_COUNTS:
 	case MXLV_MCA_PRESET_TYPE:
+	case MXLV_MCA_PRESET_REAL_TIME:
+	case MXLV_MCA_PRESET_LIVE_TIME:
+	case MXLV_MCA_PRESET_COUNT:
 	case MXLV_MCA_ENERGY_SCALE:
 	case MXLV_MCA_ENERGY_OFFSET:
 
@@ -2200,6 +2434,9 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_PRESET_TYPE:
+	case MXLV_MCA_PRESET_REAL_TIME:
+	case MXLV_MCA_PRESET_LIVE_TIME:
+	case MXLV_MCA_PRESET_COUNT:
 	case MXLV_MCA_ENERGY_SCALE:
 	case MXLV_MCA_ENERGY_OFFSET:
 

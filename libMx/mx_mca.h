@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2008 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -366,10 +366,26 @@ MX_API mx_status_type mx_mca_get_preset_type( MX_RECORD *mca_record,
 						long *preset_type );
 MX_API mx_status_type mx_mca_set_preset_type( MX_RECORD *mca_record,
 						long preset_type );
+
+MX_API mx_status_type mx_mca_get_preset_real_time( MX_RECORD *mca_record,
+						double *preset_real_time );
+MX_API mx_status_type mx_mca_get_preset_live_time( MX_RECORD *mca_record,
+						double *preset_live_time );
+MX_API mx_status_type mx_mca_get_preset_count( MX_RECORD *mca_record,
+						unsigned long *preset_count );
+
+MX_API mx_status_type mx_mca_set_preset_real_time( MX_RECORD *mca_record,
+						double preset_real_time );
+MX_API mx_status_type mx_mca_set_preset_live_time( MX_RECORD *mca_record,
+						double preset_live_time );
+MX_API mx_status_type mx_mca_set_preset_count( MX_RECORD *mca_record,
+						unsigned long preset_count );
+
 MX_API mx_status_type mx_mca_get_preset_count_region( MX_RECORD *mca_record,
 					unsigned long *preset_count_region );
 MX_API mx_status_type mx_mca_set_preset_count_region( MX_RECORD *mca_record,
 					unsigned long *preset_count_region );
+
 MX_API mx_status_type mx_mca_get_roi( MX_RECORD *mca_record,
 					unsigned long roi_number,
 					unsigned long *roi );
