@@ -3344,6 +3344,10 @@ mxp_write_noir_static_header( FILE * header_file )
 
 /*----*/
 
+/* mx_image_read_smv_file() can read both the SMV headers used at BioCAT
+ * and the NOIR headers used at MBC.
+ */
+
 MX_EXPORT mx_status_type
 mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 			unsigned long datafile_type,
@@ -3721,6 +3725,10 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* mx_image_write_smv_file() can write both the SMV headers used at BioCAT
+ * and the NOIR headers used at MBC.
+ */
+
 MX_EXPORT mx_status_type
 mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,
@@ -3860,6 +3868,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	if ( os_status != 0 ) {
 		saved_errno = errno;
 
+		fclose( file );
+
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the end of the header block "
 		"in image file '%s' failed with errno = %d, "
@@ -3922,6 +3932,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		fprintf( file, "BYTE_ORDER=little_endian;\n" );
 		break;
 	default:
+		fclose( file );
+
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Byteorder %ld is not supported.", byteorder );
 	}
@@ -3933,6 +3945,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			fprintf( file, "TYPE=unsigned_short;\n" );
 		}
 	} else {
+		fclose( file );
+
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"8-bit file formats are not supported by SMV format files." );
 	}
@@ -3981,8 +3995,10 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
 		mx_status = mxp_write_noir_static_header( file );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			fclose( file );
 			return mx_status;
+		}
 	}
 
 	/* Terminate the part of the header block that we are using. */
@@ -3995,6 +4011,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
+
+		fclose( file );
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An attempt to seek to the end of the header block "

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,6 +55,12 @@
 
 /* For Visual C++, we define a custom invalid parameter handler that
  * generates a message and then attempts to continue execution.
+ *
+ * 2012-05-26 (WML) - We now suppress all output from the invalid parameter
+ * handler.  The reason for this is that there are occasions where we do
+ * want to pass potentially invalid parameters to the C runtime.  The case
+ * that prompted this change was using _get_osfhandle() to see if a C
+ * file descriptor is valid.
  */
 
 #if defined( _DEBUG )
@@ -68,6 +74,7 @@ mxp_msc_invalid_parameter_handler( const wchar_t* expression,
 				unsigned int line,
 				uintptr_t pReserved )
 {
+#if 0
 	wprintf(L"MX Visual C++ invalid parameter handler invoked.\n" );
 
 #if defined( _DEBUG )
@@ -80,7 +87,7 @@ mxp_msc_invalid_parameter_handler( const wchar_t* expression,
 
 	wprintf(L"  Warning: This program may behave strangely "
 		L"after this point.\n" );
-
+#endif
 }
 
 #endif

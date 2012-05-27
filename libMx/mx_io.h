@@ -29,6 +29,8 @@ MX_API int mx_get_max_file_descriptors( void );
 
 MX_API int mx_get_number_of_open_file_descriptors( void );
 
+MX_API mx_bool_type mx_fd_is_valid( int fd );
+
 MX_API char *mx_get_fd_name( unsigned long process_id, int fd,
 				char *buffer, size_t buffer_size );
 

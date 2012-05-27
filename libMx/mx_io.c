@@ -98,7 +98,12 @@ mx_fd_num_input_bytes_available( int fd, size_t *num_bytes_available )
 	}
 #else
 	{
-		/* Use select() instead. */
+		/* Use select() instead.
+		 *
+		 * select() does not give us a way of knowing how many
+		 * bytes are available, so we can only promise that there
+		 * is at least 1 byte available.
+		 */
 
 		fd_set mask;
 		struct timeval timeout;
@@ -154,7 +159,7 @@ mx_get_max_file_descriptors( void )
 
 #elif defined( OS_WIN32 )
 
-	result = FD_SETSIZE;
+	result = _getmaxstdio();
 
 #elif defined( OS_ECOS )
 
@@ -219,7 +224,22 @@ mx_get_number_of_open_file_descriptors( void )
 MX_EXPORT int
 mx_get_number_of_open_file_descriptors( void )
 {
-	return( -1 );	/* Not yet implemented. */
+	intptr_t handle;
+	int i, max_fds, used_fds;
+
+	max_fds = _getmaxstdio();
+
+	used_fds = 0;
+
+	for ( i = 0 ; i < max_fds ; i++ ) {
+		handle = _get_osfhandle( i );
+
+		if ( handle != (-1) ) {
+			used_fds++;
+		}
+	}
+
+	return used_fds;
 }
 
 #else
@@ -230,7 +250,47 @@ mx_get_number_of_open_file_descriptors( void )
 
 /*=========================================================================*/
 
-#if !defined(OS_VXWORKS)
+#if defined(OS_LINUX)
+
+MX_EXPORT mx_bool_type
+mx_fd_is_valid( int fd )
+{
+	int flags;
+
+	flags = fcntl( fd, F_GETFD );
+
+	if ( flags == -1 ) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
+
+#elif defined(OS_WIN32)
+
+MX_EXPORT mx_bool_type
+mx_fd_is_valid( int fd )
+{
+	intptr_t handle;
+
+	handle = _get_osfhandle( fd );
+
+	if ( handle == (-1) ) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
+
+#else
+
+#error mx_fd_is_valid() has not been implemented for this platform.
+
+#endif
+
+/*=========================================================================*/
+
+#if 0
 
 #define MXP_LSOF_FILE	1
 #define MXP_LSOF_PIPE	2
@@ -591,15 +651,19 @@ mxp_get_fd_name_from_lsof( unsigned long process_id, int fd,
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+/*=========================================================================*/
+
+#if defined(OS_LINUX)
+
+/* On Linux, use readlink() on the /proc/NNN/fd/NNN files. */
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
-		char *buffer, size_t buffer_size )
+			char *buffer, size_t buffer_size )
 {
 	static char fname[] = "mx_get_fd_name()";
 
-	char *ptr;
+	char fd_pathname[MXU_FILENAME_LENGTH+1];
 
 	if ( fd < 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -622,23 +686,190 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-#if 0
-	ptr = mxp_get_fd_name_from_linux_proc( process_id, fd,
-						buffer, buffer_size );
-#elif !defined(OS_VXWORKS)
-	ptr = mxp_get_fd_name_from_lsof( process_id, fd, buffer, buffer_size );
-#else
+	snprintf( fd_pathname, sizeof(fd_pathname),
+		"/proc/%lu/fd/%d",
+		process_id, fd );
+
+	os_status = readlink( fd_pathname, buffer, buffer_size );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Could not read the filename corresponding to "
+		"file descriptor %d from /proc directory entry '%s'.  "
+		"Errno = %d, error message = '%s'",
+			fd, fd_pathname,
+			saved_errno, strerror(saved_errno) );
+
+		return NULL;
+	}
+
+	return buffer;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_WIN32)
+
+MX_EXPORT char *
+mx_get_fd_name( unsigned long process_id, int fd,
+			char *buffer, size_t buffer_size )
+{
+	static char fname[] = "mx_get_fd_name()";
+
+	HANDLE fd_handle;
+	FILE_NAME_INFO *name_info;
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	size_t num_converted;
+	errno_t errno_status;
+
+	size_t name_info_length;
+
+	if ( fd < 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal file descriptor %d passed.", fd );
+
+		return NULL;
+	}
+	if ( buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL buffer pointer passed." );
+
+		return NULL;
+	}
+	if ( buffer_size < 1 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified buffer length of %ld is too short "
+		"for the file descriptor name to fit.",
+			(long) buffer_size );
+
+		return NULL;
+	}
+
+	fd_handle = (HANDLE) _get_osfhandle( fd );
+
+	if ( fd_handle == INVALID_HANDLE_VALUE ) {
+		return NULL;
+	}
+
+	/* The definition of FILE_NAME_INFO only contains enough space
+	 * for a single character filename, so we must allocate enough
+	 * space for the filename at the end of the structure.
+	 */
+
+	name_info_length = MXU_FILENAME_LENGTH + 50;
+
+	name_info = (FILE_NAME_INFO *) malloc( name_info_length );
+
+	if ( name_info == (FILE_NAME_INFO *) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte buffer "
+		"for a FILE_NAME_INFO structure.", name_info_length );
+
+		return NULL;
+	}
+
+	/* Now get information about this handle. */
+
+	os_status = GetFileInformationByHandleEx( fd_handle,
+						FileNameInfo,
+						name_info,
+						name_info_length );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get filename information for file descriptor %d.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd, last_error_code, message_buffer );
+
+		mx_free( name_info );
+
+		return NULL;
+	}
+
+	/* Convert the wide character filename into single-byte characters. */
+
+	errno_status = wcstombs_s( &num_converted,
+				buffer,
+				buffer_size,
+				name_info->FileName,
+				_TRUNCATE );
+
+	if ( errno_status != 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to convert wide character filename for "
+		"file descriptor %d.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+
+		mx_free( name_info );
+
+		return NULL;
+	}
+
+	mx_free( name_info );
+
+	return buffer;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif 0
+
+MX_EXPORT char *
+mx_get_fd_name( unsigned long process_id, int fd,
+		char *buffer, size_t buffer_size )
+{
+	static char fname[] = "mx_get_fd_name()";
+
+	if ( fd < 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal file descriptor %d passed.", fd );
+
+		return NULL;
+	}
+	if ( buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL buffer pointer passed." );
+
+		return NULL;
+	}
+	if ( buffer_size < 1 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified buffer length of %ld is too short "
+		"for the file descriptor name to fit.",
+			(long) buffer_size );
+
+		return NULL;
+	}
+
 	snprintf( buffer, buffer_size, "FD %d", fd );
 
-	ptr = buffer;
-#endif
-
-	return ptr;
+	return buffer;
 }
+
+#else
+
+#error mx_get_fd_name() has not yet been written for this platform.
+
+#endif
 
 /*=========================================================================*/
 
-#if !defined(OS_VXWORKS)
+#if 0
 
 MX_EXPORT void
 mx_show_fd_names( unsigned long process_id )

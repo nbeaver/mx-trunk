@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,8 @@
 int
 motor_test_fn( int argc, char *argv[] )
 {
+	int max_fds, num_open_fds;
+
 	if ( argc >= 3 ) {
 		if ( strcmp( argv[2], "stack" ) == 0 ) {
 			mx_stack_traceback();
@@ -38,7 +40,6 @@ motor_test_fn( int argc, char *argv[] )
 			return SUCCESS;
 		} else
 		if ( strcmp( argv[2], "num_open_fds" ) == 0 ) {
-			int max_fds, num_open_fds;
 
 			max_fds = mx_get_max_file_descriptors();
 
@@ -55,6 +56,22 @@ motor_test_fn( int argc, char *argv[] )
 
 			return SUCCESS;
 		}
+
+#if defined(OS_WIN32)
+		else
+		if ( strcmp( argv[2], "max_fds" ) == 0 ) {
+			if ( argc >= 4 ) {
+				max_fds = atoi( argv[3] );
+
+				_setmaxstdio( max_fds );
+			} else {
+				max_fds = _getmaxstdio();
+
+				mx_info( "max_fds = %d", max_fds );
+			}
+			return SUCCESS;
+		}
+#endif
 	}
 
 	mx_info( "Nothing happens." );
