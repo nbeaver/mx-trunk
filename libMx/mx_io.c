@@ -749,6 +749,21 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
+	if ( fd == fileno(stdin) ) {
+		strlcpy( buffer, "<standard input>", buffer_size );
+		return buffer;
+	}
+
+	if ( fd == fileno(stdout) ) {
+		strlcpy( buffer, "<standard output>", buffer_size );
+		return buffer;
+	}
+
+	if ( fd == fileno(stderr) ) {
+		strlcpy( buffer, "<standard error>", buffer_size );
+		return buffer;
+	}
+
 	fd_handle = (HANDLE) _get_osfhandle( fd );
 
 	if ( fd_handle == INVALID_HANDLE_VALUE ) {

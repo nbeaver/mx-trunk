@@ -25,6 +25,8 @@
 
 #define MX_IMAGE_DEBUG_TIMESTAMP	FALSE
 
+#define MX_IMAGE_DEBUG_NOIR_FD_LEAK	FALSE
+
 #define MX_IMAGE_TEST_DEZINGER		FALSE
 
 #include <stdio.h>
@@ -46,6 +48,7 @@
 #include "mx_bit.h"
 #include "mx_array.h"
 #include "mx_cfn.h"
+#include "mx_io.h"
 #include "mx_image.h"
 
 typedef struct {
@@ -3336,6 +3339,8 @@ mxp_write_noir_static_header( FILE * header_file )
 	bytes_written = fwrite( static_header_contents,
 				1, bytes_read, header_file );
 
+	fclose( static_header_file );
+
 	MX_DEBUG(-4,("%s: bytes_written = %lu",
 		fname, (unsigned long) bytes_written));
 
@@ -3837,10 +3842,18 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		break;
 	}
 
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+	MX_DEBUG(-2,("MARKER #1, num fds = %d",
+		mx_get_number_of_open_file_descriptors() ));
+#endif
 	/* Open the new datafile. */
 
 	file = fopen( datafile_name, "wb" );
 
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+	MX_DEBUG(-2,("MARKER #2, num fds = %d",
+		mx_get_number_of_open_file_descriptors() ));
+#endif
 	if ( file == NULL ) {
 		saved_errno = errno;
 
@@ -3993,12 +4006,22 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	 */
 
 	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+		MX_DEBUG(-2,("%s: Before write noir, num fds = %d",
+			fname, mx_get_number_of_open_file_descriptors() ));
+#endif
 		mx_status = mxp_write_noir_static_header( file );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fclose( file );
 			return mx_status;
 		}
+
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+		MX_DEBUG(-2,("%s: After write noir, num fds = %d",
+			fname, mx_get_number_of_open_file_descriptors() ));
+#endif
 	}
 
 	/* Terminate the part of the header block that we are using. */
@@ -4034,8 +4057,16 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		fwrite( dest, sizeof(unsigned char), dest_step, file );
 	}
 
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+	MX_DEBUG(-2,("MARKER #3, num fds = %d",
+		mx_get_number_of_open_file_descriptors() ));
+#endif
 	fclose( file );
 
+#if MX_IMAGE_DEBUG_NOIR_FD_LEAK
+	MX_DEBUG(-2,("MARKER #4, num fds = %d",
+		mx_get_number_of_open_file_descriptors() ));
+#endif
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
