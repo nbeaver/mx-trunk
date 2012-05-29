@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_stdint.h"
+#include "mx_socket.h"
 #include "mx_select.h"
 #include "mx_io.h"
 
@@ -664,6 +665,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	static char fname[] = "mx_get_fd_name()";
 
 	char fd_pathname[MXU_FILENAME_LENGTH+1];
+	int bytes_read, os_status, saved_errno;
 
 	if ( fd < 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -690,19 +692,82 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		"/proc/%lu/fd/%d",
 		process_id, fd );
 
-	os_status = readlink( fd_pathname, buffer, buffer_size );
+	bytes_read = readlink( fd_pathname, buffer, buffer_size );
 
-	if ( os_status == (-1) ) {
+	if ( bytes_read >= 0 ) {
+		buffer[bytes_read] = '\0';
+	} else {
 		saved_errno = errno;
 
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Could not read the filename corresponding to "
-		"file descriptor %d from /proc directory entry '%s'.  "
-		"Errno = %d, error message = '%s'",
-			fd, fd_pathname,
-			saved_errno, strerror(saved_errno) );
+		switch( saved_errno ) {
+		case ENOENT:
+			return NULL;
 
-		return NULL;
+		default:
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Could not read the filename corresponding to "
+			"file descriptor %d from /proc directory entry '%s'.  "
+			"Errno = %d, error message = '%s'",
+				fd, fd_pathname,
+				saved_errno, strerror(saved_errno) );
+			return NULL;
+		}
+	}
+
+	if ( strncmp( buffer, "socket:", 7 ) == 0 ) {
+		union {
+			struct sockaddr socket_address;
+			struct sockaddr_in ip_address;
+			struct sockaddr_in6 ipv6_address;
+			struct sockaddr_un unix_address;
+		} peer;
+
+		socklen_t peer_length;
+		char temp_string[100];
+
+		peer_length = sizeof(peer);
+
+		os_status = getpeername( fd,
+				(struct sockaddr *) &peer,
+				&peer_length );
+
+		if ( os_status == (-1) ) {
+			saved_errno = errno;
+
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Could not get address of remote socket peer "
+			"for socket %d.  Errno = %d, error message = '%s'",
+				fd, saved_errno, strerror(saved_errno) );
+
+			return NULL;
+		}
+
+		switch( peer.socket_address.sa_family ) {
+		case AF_INET:
+			snprintf( buffer, buffer_size, "socket: %s, port %d",
+				inet_ntoa( peer.ip_address.sin_addr ),
+				(int) ntohs( peer.ip_address.sin_port ) );
+			break;
+#if 1
+		case AF_INET6:
+			snprintf( buffer, buffer_size, "socket: %s",
+				inet_ntop( AF_INET6,
+					&(peer.ipv6_address.sin6_addr),
+					temp_string, sizeof(temp_string) ) );
+			break;
+#endif
+		case AF_UNIX:
+			snprintf( buffer, buffer_size, "socket: %s",
+					peer.unix_address.sun_path );
+			break;
+		default:
+			snprintf( temp_string, sizeof(temp_string),
+				" - unrecognized address family %d",
+				peer.socket_address.sa_family );
+
+			strlcat( buffer, temp_string, buffer_size );
+			break;
+		}
 	}
 
 	return buffer;
