@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,6 +36,7 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 	MX_LIST_ENTRY *module_list_entry;
 	MX_MODULE_INIT *module_init_fn;
 	unsigned long module_status_code;
+	char module_init_name[100];
 	mx_status_type mx_status;
 
 	if ( filename == (char *) NULL ) {
@@ -204,10 +205,30 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 
 	/*-----------------------------------------------------------------*/
 
-	/* Does the module contain an MX_MODULE_INIT function? */
+	/* Does the module contain module initialization function?
+	 * 
+	 * The name of the MX module init function is constructed from
+	 * the name of the module read out of the __MX_MODULE__ struct.
+	 *
+	 * On Unix-like platforms, if you pass a name to dlsym() that
+	 * is not actually present in the specified dynamic library,
+	 * dlsym() will go and look for that symbol in all other dynamic
+	 * libraries that it knows about.  In older versions of MX, all
+	 * modules used the name __MX_MODULE_INIT__, which meant that
+	 * all modules had to include this symbol, even if it was NULL,
+	 * to prevent dlsym() from finding the wrong symbol.
+	 *
+	 * The way around this is to use a module-specific name for the
+	 * init function.  By doing this, if a module does not have an
+	 * init function, dlsym() will not accidentally find the wrong
+	 * init function in a different module.
+	 */
+
+	snprintf( module_init_name, sizeof(module_init_name),
+		"__MX_MODULE_INIT_%s__", module_ptr->name );
 
 	mx_status = mx_dynamic_library_find_symbol( library,
-				"__MX_MODULE_INIT__", &init_ptr, FALSE );
+			module_init_name, &init_ptr, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return MX_SUCCESSFUL_RESULT;

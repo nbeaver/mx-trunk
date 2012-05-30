@@ -277,5 +277,5 @@ MX_MODULE __MX_MODULE__ = {
 };
 
 MX_EXPORT
-MX_MODULE_INIT __MX_MODULE_INIT__ = epics_driver_init;
+MX_MODULE_INIT __MX_MODULE_INIT_epics__ = epics_driver_init;
 
