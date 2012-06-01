@@ -130,6 +130,9 @@ mxv_epics_timeout_send_variable( MX_VARIABLE *variable )
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
 	double *double_ptr;
+	long num_variables;
+	double timeout;
+	long max_attempts, show_retry_warning;
 	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
@@ -143,11 +146,24 @@ mxv_epics_timeout_send_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	num_variables = value_field->dimension[0];
+
 	value_ptr = mx_get_field_value_pointer( value_field );
 
 	double_ptr = (double *) value_ptr;
 
-	mx_epics_set_connection_timeout( *double_ptr );
+	if ( num_variables >= 1 ) {
+		timeout = double_ptr[0];
+		mx_epics_set_connection_timeout( timeout );
+	}
+	if ( num_variables >= 2 ) {
+		max_attempts = mx_round( double_ptr[1] );
+		mx_epics_set_max_connection_attempts( max_attempts );
+	}
+	if ( num_variables >= 3 ) {
+		show_retry_warning = mx_round( double_ptr[2] );
+		mx_epics_set_connection_retry_warning( show_retry_warning );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -160,6 +176,8 @@ mxv_epics_timeout_receive_variable( MX_VARIABLE *variable )
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
 	double *double_ptr;
+	long num_variables;
+	double timeout, max_attempts, show_retry_warning;
 	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
@@ -173,11 +191,24 @@ mxv_epics_timeout_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	num_variables = value_field->dimension[0];
+
 	value_ptr = mx_get_field_value_pointer( value_field );
 
 	double_ptr = (double *) value_ptr;
 
-	*double_ptr = mx_epics_get_connection_timeout();
+	if ( num_variables >= 1 ) {
+		timeout = mx_epics_get_connection_timeout();
+		double_ptr[0] = timeout;
+	}
+	if ( num_variables >= 2 ) {
+		max_attempts = mx_epics_get_max_connection_attempts();
+		double_ptr[1] = max_attempts;
+	}
+	if ( num_variables >= 3 ) {
+		show_retry_warning = mx_epics_get_connection_retry_warning();
+		double_ptr[2] = show_retry_warning;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,6 +131,40 @@ int motor_default_precision;
 
 /* End of global variables. */
 
+/*------------------------------------------------------------------------*/
+
+static void
+timestamp_output( char *string )
+{
+	char timestamp_buffer[100];
+
+	mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer) );
+
+#if defined(OS_WIN32)
+	fprintf( stdout, "%s: %s\n", timestamp_buffer, string );
+	fflush( stdout );
+#else
+	fprintf( stderr, "%s: %s\n", timestamp_buffer, string );
+#endif
+}
+
+static void
+timestamp_warning_output( char *string )
+{
+	char timestamp_buffer[100];
+
+	mx_timestamp( timestamp_buffer, sizeof(timestamp_buffer) );
+
+#if defined(OS_WIN32)
+	fprintf( stdout, "%s: Warning: %s\n", timestamp_buffer, string );
+	fflush( stdout );
+#else
+	fprintf( stderr, "%s: Warning: %s\n", timestamp_buffer, string );
+#endif
+}
+
+/*------------------------------------------------------------------------*/
+
 #define MAX_SCAN_SAVEFILES	5
 
 #define EXIT_WITH_PROMPT		0
@@ -235,7 +269,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DF:f:Hg:iJNnP:p:S:s:tuwz")) != -1 )
+	while ((c = getopt(argc, argv, "aAd:DF:f:Hg:iJNnP:p:S:s:tT:uwz")) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -300,6 +334,21 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 't':
 			init_hw_flags |= MXF_INITHW_TRACE_OPENS;
+			break;
+		case 'T':
+			if ( strcmp( optarg, "error" ) == 0 ) {
+			    mx_set_error_output_function( timestamp_output );
+			} else
+			if ( strcmp( optarg, "debug" ) == 0 ) {
+			    mx_set_debug_output_function( timestamp_output );
+			} else
+			if ( strcmp( optarg, "warning" ) == 0 ) {
+				mx_set_warning_output_function(
+					timestamp_warning_output );
+			} else
+			if ( strcmp( optarg, "info" ) == 0 ) {
+			    mx_set_info_output_function( timestamp_output );
+			}
 			break;
 		case 'u':
 			unbuffered_io = TRUE;

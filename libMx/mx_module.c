@@ -228,7 +228,7 @@ mx_load_module( char *filename, MX_RECORD *record_list, MX_MODULE **module )
 		"__MX_MODULE_INIT_%s__", module_ptr->name );
 
 	mx_status = mx_dynamic_library_find_symbol( library,
-			module_init_name, &init_ptr, FALSE );
+			module_init_name, &init_ptr, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return MX_SUCCESSFUL_RESULT;

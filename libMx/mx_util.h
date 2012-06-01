@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -553,6 +553,8 @@ MX_API double mx_uint64_to_double( unsigned __int64 );
 #endif
 
 /* == Debugging functions. == */
+
+MX_API const char *mx_timestamp( char *buffer, size_t buffer_length );
 
 /* Note that in any call to MX_DEBUG(), _all_ the arguments together 
  * after the debug level are enclosed in _one_ extra set of parentheses.

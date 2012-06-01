@@ -875,6 +875,24 @@ mx_divide_safely( double numerator, double denominator )
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT const char *
+mx_timestamp( char *buffer, size_t buffer_length )
+{
+	time_t time_struct;
+	struct tm current_time;
+
+	time( &time_struct );
+
+	(void) localtime_r( &time_struct, &current_time );
+
+	strftime( buffer, buffer_length,
+		"%b %d %H:%M:%S", &current_time );
+
+	return buffer;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #define ARRAY_BLOCK_SIZE	100
 
 static int

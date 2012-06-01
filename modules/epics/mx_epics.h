@@ -229,6 +229,18 @@ MX_API double mx_epics_get_connection_timeout( void );
 
 /*----*/
 
+MX_API void mx_epics_set_max_connection_attempts( long max_attempts );
+
+MX_API long mx_epics_get_max_connection_attempts( void );
+
+/*----*/
+
+MX_API void mx_epics_set_connection_retry_warning( mx_bool_type show_it );
+
+MX_API mx_bool_type mx_epics_get_connection_retry_warning( void );
+
+/*----*/
+
 MX_API int  mx_epics_get_debug_flag( void );
 
 MX_API void mx_epics_set_debug_flag( int value );
