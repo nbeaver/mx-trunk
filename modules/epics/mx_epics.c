@@ -1052,9 +1052,11 @@ mx_epics_pv_connect( MX_EPICS_PV *pv, unsigned long connect_flags )
 		 * for another attempt.
 		 */
 
-		mx_warning(
-		"Attempt %ld to connect to PV '%s' timed out. Retrying...",
-			attempt, pv->pvname );
+		if ( mx_epics_connection_retry_warning ) {
+			mx_warning(
+		    "Attempt %ld to connect to PV '%s' timed out. Retrying...",
+				attempt, pv->pvname );
+		}
 
 		/* Wait a while first. */
 
