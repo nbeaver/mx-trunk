@@ -1056,15 +1056,16 @@ mx_show_fd_names( unsigned long process_id )
 
 #if defined(OS_LINUX)
 
-#  if ( MX_GLIBC_VERSION < 2003006L )
+#  if ( MX_GLIBC_VERSION >= 2003006L )
 
-error_use_old_polling_method();
-
-#  else    /* Glibc > 2.3.6 */
+	/* Glibc >= 2.3.6 */
 
 	/*** Use Linux inotify ***/
 
+/* WARNING: This is not yet tested, so it probably does not work. */
+
 #include <sys/inotify.h>
+#include <stddef.h>
 
 #define MXP_LINUX_INOTIFY_EVENT_BUFFER_LENGTH \
 			( 1024 * (sizeof(struct inotify_event) + 16) )
@@ -1181,16 +1182,32 @@ mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* The following was inspired by
+ *
+http://unix.derkeiler.com/Newsgroups/comp.unix.programmer/2011-03/msg00059.html
+ *
+ * but is structured differently.  Much of the complexity is to deal with
+ * pointer alignment issues on some platforms.
+ */
+
 MX_EXPORT mx_bool_type
 mx_file_has_changed( MX_FILE_MONITOR *monitor )
 {
 	static const char fname[] = "mx_file_has_changed()";
 
 	MXP_LINUX_INOTIFY_MONITOR *linux_monitor;
-	struct inotify_event *inotify_event;
-	size_t num_bytes_available, read_length, event_length;
+	size_t num_bytes_available, read_length;
 	int saved_errno;
 	char *buffer_ptr, *end_of_buffer_ptr;
+	union {
+		struct inotify_event event;
+		char padding[ roundup(
+				offsetof(struct inotify_event,name)
+				+ NAME_MAX + 1,
+					__alignof__(struct inotify_event) ) ];
+	} u;
+	uint32_t event_length;
+	char *len_ptr;
 	mx_status_type mx_status;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
@@ -1258,19 +1275,27 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	buffer_ptr = linux_monitor->event_buffer;
 
 	while ( buffer_ptr < end_of_buffer_ptr ) { 
-	    inotify_event = (struct inotify_event *) buffer_ptr;
+	    len_ptr = buffer_ptr + offsetof(struct inotify_event, len);
 
-	    if ( linux_monitor->inotify_watch_descriptor == inotify_event->wd ){
+	    memcpy( &event_length, len_ptr, sizeof(event_length) );
+
+	    event_length += offsetof( struct inotify_event, name );
+
+	    memcpy( &(u.event), buffer_ptr, event_length );
+
+	    if ( linux_monitor->inotify_watch_descriptor == u.event.wd ){
 		return TRUE;
 	    }
-
-	    event_length = sizeof(struct inotify_event) + inotify_event->len;
 
 	    buffer_ptr += event_length;
 	}
 
 	return FALSE;
 }
+
+#  else
+
+#error Glibc versions before 2.3.6 are not yet supported.
 
 #  endif
 
