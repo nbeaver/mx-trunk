@@ -398,6 +398,8 @@ mxd_soft_mca_start( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	measurement_time = 0;
+
 	switch( mca->preset_type ) {
 	case MXF_MCA_PRESET_LIVE_TIME:
 		measurement_time = mca->preset_live_time;
