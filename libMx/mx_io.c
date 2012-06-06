@@ -1295,7 +1295,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 #  else
 
-#error Glibc versions before 2.3.6 are not yet supported.
+error_not_yet_implemented();
 
 #  endif
 
