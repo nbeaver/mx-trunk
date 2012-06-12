@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,11 @@ MX_MOTOR_FUNCTION_LIST mxd_record_field_motor_motor_function_list = {
 	mxd_record_field_motor_soft_abort,
 	mxd_record_field_motor_immediate_abort,
 	mxd_record_field_motor_positive_limit_hit,
-	mxd_record_field_motor_negative_limit_hit
+	mxd_record_field_motor_negative_limit_hit,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* Picomotor motor data structures. */
