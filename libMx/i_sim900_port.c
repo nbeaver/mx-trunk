@@ -779,6 +779,10 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 	MX_SIM900 *sim900;
 	char *buffer_ptr, *terminators_ptr;
 	size_t bytes_left_in_buffer, bytes_read_so_far, bytes_read_by_getn;
+	mx_bool_type do_timeout;
+	int tick_comparison;
+	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
+	long mx_error_code;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sim900_port_get_pointers( rs232,
@@ -787,6 +791,20 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( rs232->timeout < 0.0 ) {
+		do_timeout = FALSE;
+	} else {
+		do_timeout = TRUE;
+
+		timeout_clock_ticks =
+		    mx_convert_seconds_to_clock_ticks( rs232->timeout );
+
+		current_tick = mx_current_clock_tick();
+
+		finish_tick = mx_add_clock_ticks( current_tick,
+						timeout_clock_ticks );
+	}
+
 	buffer_ptr = buffer;
 	bytes_left_in_buffer = max_bytes_to_read;
 	bytes_read_so_far = 0;
@@ -794,6 +812,29 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 	bytes_read_by_getn = 0;
 
 	while (1) {
+		if ( do_timeout ) {
+			current_tick = mx_current_clock_tick();
+
+			tick_comparison = mx_compare_clock_ticks(
+					current_tick, finish_tick );
+
+			if ( tick_comparison > 0 ) {
+				if ( rs232->rs232_flags &
+				    MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
+				{
+					mx_error_code =
+						(MXE_TIMED_OUT | MXE_QUIET);
+				} else {
+					mx_error_code = MXE_TIMED_OUT;
+				}
+
+				return mx_error( mx_error_code, fname,
+				    "Read from RS-232 port '%s' timed out "
+				    "after %g seconds.",
+					rs232->record->name, rs232->timeout );
+			}
+		}
+
 		mx_status = mxi_sim900_port_getn( rs232, sim900_port, sim900,
 						buffer_ptr,
 						bytes_left_in_buffer,
@@ -806,10 +847,19 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 
 		/* See if the read terminators are found in the data
 		 * returned by GETN.
+		 *
+		 * 2012-06-12 (WML):
+		 *   It is possible for line terminators to be split
+		 *   between two packets returned by getn(), so we
+		 *   must not assume that all of the line terminators
+		 *   are found in the same packet.  The safest way to
+		 *   deal with this is to start scanning for line
+		 *   terminators at the start of the buffer every
+		 *   time, instead of starting at buffer_ptr.
 		 */
 
-		terminators_ptr = mx_rs232_find_terminators( buffer_ptr,
-					bytes_left_in_buffer,
+		terminators_ptr = mx_rs232_find_terminators( buffer,
+					max_bytes_to_read,
 					rs232->num_read_terminator_chars,
 					rs232->read_terminator_array );
 
@@ -838,6 +888,8 @@ mxi_sim900_port_getline( MX_RS232 *rs232,
 
 		buffer_ptr += bytes_read_by_getn;
 		bytes_left_in_buffer -= bytes_read_by_getn;
+
+		mx_msleep(1);
 	}
 
 #if !defined(OS_SOLARIS)
