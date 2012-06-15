@@ -44,7 +44,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = macosx
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

@@ -680,10 +680,76 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			struct sockaddr_in ip_address;
 			struct sockaddr_in6 ipv6_address;
 			struct sockaddr_un unix_address;
+		} local;
+
+		union {
+			struct sockaddr socket_address;
+			struct sockaddr_in ip_address;
+			struct sockaddr_in6 ipv6_address;
+			struct sockaddr_un unix_address;
 		} peer;
 
-		socklen_t peer_length;
+		socklen_t local_length, peer_length;
+		int local_socket_type;
+		int option_length;
+		char socket_type_name[40];
 		char temp_string[100];
+		mx_bool_type socket_is_connected;
+
+		/*----*/
+
+		local_length = sizeof(local);
+
+		os_status = getsockname( fd,
+				(struct sockaddr *) &local,
+				&local_length );
+
+		if ( os_status == (-1) ) {
+			saved_errno = errno;
+
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Could not get address of local socket "
+			"for socket %d.  Errno = %d, error message = '%s'",
+				fd, saved_errno, strerror(saved_errno) );
+
+			return NULL;
+		}
+
+		/*----*/
+
+		option_length = sizeof(local_socket_type);
+
+		os_status = getsockopt( fd, SOL_SOCKET, SO_TYPE,
+					&local_socket_type,
+					(socklen_t *) &option_length );
+
+		if ( os_status == (-1) ) {
+			saved_errno = errno;
+
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Could not get local socket type for socket %d.  "
+			"Errno = %d, error message = '%s'",
+				fd, saved_errno, strerror(saved_errno) );
+
+			return NULL;
+		}
+
+		switch( local_socket_type ) {
+		case SOCK_STREAM:
+			strlcpy( socket_type_name, "tcp",
+				sizeof(socket_type_name) );
+			break;
+		case SOCK_DGRAM:
+			strlcpy( socket_type_name, "udp",
+				sizeof(socket_type_name) );
+			break;
+		case SOCK_RAW:
+			strlcpy( socket_type_name, "raw",
+				sizeof(socket_type_name) );
+			break;
+		}
+
+		/*----*/
 
 		peer_length = sizeof(peer);
 
@@ -694,21 +760,43 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		if ( os_status == (-1) ) {
 			saved_errno = errno;
 
-			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Could not get address of remote socket peer "
-			"for socket %d.  Errno = %d, error message = '%s'",
-				fd, saved_errno, strerror(saved_errno) );
+			if ( saved_errno == ENOTCONN ) {
+				socket_is_connected = FALSE;
+			} else {
+				(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"Could not get address of remote socket peer "
+				"for socket %d.  "
+				"Errno = %d, error message = '%s'",
+					fd, saved_errno, strerror(saved_errno));
 
-			return NULL;
+				return NULL;
+			}
+		} else {
+			socket_is_connected = TRUE;
 		}
 
-		switch( peer.socket_address.sa_family ) {
+		/*----*/
+
+		switch( local.socket_address.sa_family ) {
 		case AF_INET:
-			snprintf( buffer, buffer_size, "socket: %s, port %d",
+			if ( socket_is_connected ) {
+			    snprintf( buffer, buffer_size,
+				"%s: %s:%d -> %s:%d",
+				socket_type_name,
+				inet_ntoa( local.ip_address.sin_addr ),
+				(int) ntohs( local.ip_address.sin_port ),
 				inet_ntoa( peer.ip_address.sin_addr ),
 				(int) ntohs( peer.ip_address.sin_port ) );
+			} else {
+			    snprintf( buffer, buffer_size,
+				"%s: %s:%d",
+				socket_type_name,
+				inet_ntoa( local.ip_address.sin_addr ),
+				(int) ntohs( local.ip_address.sin_port ) );
+			}
 			break;
-#if 1
+
+#if 0
 		case AF_INET6:
 			snprintf( buffer, buffer_size, "socket: %s",
 				inet_ntop( AF_INET6,
@@ -716,13 +804,20 @@ mx_get_fd_name( unsigned long process_id, int fd,
 					temp_string, sizeof(temp_string) ) );
 			break;
 #endif
+
 		case AF_UNIX:
-			snprintf( buffer, buffer_size, "socket: %s",
+			if ( socket_is_connected ) {
+				snprintf( buffer, buffer_size, "unix: %s -> %s",
+					local.unix_address.sun_path,
 					peer.unix_address.sun_path );
+			} else {
+				snprintf( buffer, buffer_size, "unix: %s",
+					local.unix_address.sun_path );
+			}
 			break;
 		default:
 			snprintf( temp_string, sizeof(temp_string),
-				" - unrecognized address family %d",
+				"unrecognized address family %d",
 				peer.socket_address.sa_family );
 
 			strlcat( buffer, temp_string, buffer_size );
@@ -1668,6 +1763,12 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	return FALSE;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_LINUX)
+
+error_not_found();
 
 /*-------------------------------------------------------------------------*/
 
