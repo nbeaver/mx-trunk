@@ -414,6 +414,7 @@ typedef struct {
 	unsigned long show_callback_id;
 	mx_bool_type breakpoint;
 	mx_bool_type debugger_started;
+	mx_bool_type show_open_fds;
 
 	mx_bool_type is_server;
 	void *connection_acl;

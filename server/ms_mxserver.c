@@ -2614,7 +2614,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	uint32_t send_buffer_message_type;
 	long receive_datatype;
 
-	char *send_buffer_message, *value_buffer;
+	char *send_buffer_message;
+	char *value_buffer = NULL;
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length, send_buffer_message_length;
 	size_t num_value_bytes;
@@ -4582,7 +4583,7 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	MX_LIST *callback_socket_handler_list;
 	MX_LIST_ENTRY *callback_socket_handler_list_entry;
 	MX_CALLBACK_SOCKET_HANDLER_INFO *csh_info;
-	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field = NULL;
 	MX_LIST *rf_callback_list;
 	MX_LIST_ENTRY *rf_callback_list_entry;
 	uint32_t *uint32_header, *uint32_message;

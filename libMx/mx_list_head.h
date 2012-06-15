@@ -7,7 +7,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004, 2006-2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006-2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +36,7 @@ extern "C" {
 #define MXLV_LHD_SHOW_CALLBACK_ID	1010
 #define MXLV_LHD_BREAKPOINT		1011
 #define MXLV_LHD_DEBUGGER_STARTED	1012
+#define MXLV_LHD_SHOW_OPEN_FDS		1013
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -113,6 +115,10 @@ extern "C" {
   \
   {MXLV_LHD_DEBUGGER_STARTED, -1, "debugger_started", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, debugger_started), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_OPEN_FDS, -1, "show_open_fds", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_open_fds), \
 	{0}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );

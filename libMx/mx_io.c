@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_LSOF	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -251,7 +253,7 @@ mx_get_number_of_open_file_descriptors( void )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_MACOSX)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -291,7 +293,7 @@ mx_fd_is_valid( int fd )
 
 /*=========================================================================*/
 
-#if 0
+#if defined(OS_MACOSX)
 
 #define MXP_LSOF_FILE	1
 #define MXP_LSOF_PIPE	2
@@ -315,7 +317,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 	int max_fds;
 	mx_bool_type is_fifo;
 
-#if 0
+#if DEBUG_LSOF
 	fprintf( stderr, "Looking for pipe inode %d\n", inode );
 #endif
 
@@ -355,7 +357,7 @@ mxp_lsof_get_pipe_peer( unsigned long process_id,
 
 	while (1) {
 
-#if 0
+#if DEBUG_LSOF
 		fprintf( stderr, "response = '%s'\n", response );
 #endif
 		switch( response[0] ) {
@@ -426,6 +428,7 @@ mxp_parse_lsof_output( FILE *file,
 	char socket_protocol[20] = "";
 	char socket_state[40] = "";
 	unsigned long inode = 0;
+	mx_bool_type inode_found;
 	int fd_type = 0;
 
 	int c, i, response_fd;
@@ -455,6 +458,13 @@ mxp_parse_lsof_output( FILE *file,
 		return NULL;
 	}
 
+	fd_type = -1;
+	filename[0] = '\0';
+	inode_found = FALSE;
+	mode[0] = '\0';
+	response_fd = -1;
+	socket_protocol[0] = '\0';
+
 	while (1) {
 		mx_fgets( response, sizeof(response), file );
 
@@ -462,7 +472,7 @@ mxp_parse_lsof_output( FILE *file,
 			break;
 		}
 
-#if 0
+#if DEBUG_LSOF
 		fprintf(stderr, "response = '%s'\n", response);
 #endif
 
@@ -498,6 +508,7 @@ mxp_parse_lsof_output( FILE *file,
 			break;
 		case 'i':
 			inode = mx_string_to_long( response+1 );
+			inode_found = TRUE;
 			break;
 		case 'n':
 			strlcpy( filename, response+1, sizeof(filename) );
@@ -508,6 +519,9 @@ mxp_parse_lsof_output( FILE *file,
 			} else
 			if ( strcmp( response+1, "CHR" ) == 0 ) {
 				fd_type = MXP_LSOF_FILE;
+			} else
+			if ( strcmp( response+1, "PIPE" ) == 0 ) {
+				fd_type = MXP_LSOF_PIPE;
 			} else
 			if ( strcmp( response+1, "FIFO" ) == 0 ) {
 				fd_type = MXP_LSOF_PIPE;
@@ -569,21 +583,24 @@ mxp_parse_lsof_output( FILE *file,
 
 	switch( fd_type ) {
 	case MXP_LSOF_FILE:
-		snprintf( buffer, buffer_size,
-			"%d - (%s) file: %s", fd, mode, filename );
+		strlcpy( buffer, filename, buffer_size );
 		break;
 	case MXP_LSOF_PIPE:
-		mxp_lsof_get_pipe_peer( process_id, inode, &peer_pid,
+		if ( inode_found == FALSE ) {
+			strlcpy( buffer, "pipe:", buffer_size );
+		} else {
+			mxp_lsof_get_pipe_peer( process_id, inode, &peer_pid,
 				peer_command_name, sizeof(peer_command_name) );
 
-		snprintf( buffer, buffer_size,
-			"%d - (%s) pipe: connected to PID %lu '%s'",
-			fd, mode, peer_pid, peer_command_name );
+			snprintf( buffer, buffer_size,
+				"pipe: connected to PID %lu '%s'",
+				peer_pid, peer_command_name );
+		}
 		break;
 	case MXP_LSOF_SOCKET:
 		snprintf( buffer, buffer_size,
-			"%d - (%s) %s: %s %s",
-			fd, mode, socket_protocol, filename, socket_state );
+			"%s: %s %s",
+			socket_protocol, filename, socket_state );
 		break;
 	default:
 		strlcpy( buffer, "???:", buffer_size );
@@ -591,63 +608,6 @@ mxp_parse_lsof_output( FILE *file,
 	}
 
 	return buffer;
-}
-
-static char *
-mxp_get_fd_name_from_lsof( unsigned long process_id, int fd,
-			char *buffer, size_t buffer_size )
-{
-	static const char fname[] = "mxp_get_fd_name_from_lsof()";
-
-	FILE *file;
-	int saved_errno;
-	char command[ MXU_FILENAME_LENGTH + 20 ];
-	char response[80];
-	char *ptr;
-
-	fprintf(stderr, "START: fd = %d\n", fd );
-
-	snprintf( command, sizeof(command),
-		"lsof -a -p%lu -d%d -n -P -FfatDinPT",
-		process_id, fd );
-
-	file = popen( command, "r" );
-
-	if ( file == NULL ) {
-		saved_errno = errno;
-
-		(void) mx_error( MXE_IPC_IO_ERROR, fname,
-		"Unable to run the command '%s'.  "
-		"Errno = %d, error message = '%s'",
-			command, saved_errno, strerror(saved_errno) );
-
-		return NULL;
-	}
-
-	mx_fgets( response, sizeof(response), file );
-
-	if ( feof(file) || ferror(file) ) {
-		/* Did not get any output from lsof. */
-
-		pclose(file);
-		return NULL;
-	}
-
-	if ( response[0] != 'p' ) {
-		/* This file descriptor is not open. */
-
-		pclose(file);
-		return NULL;
-	}
-
-	ptr = mxp_parse_lsof_output( file, process_id, fd,
-					buffer, buffer_size );
-
-	pclose(file);
-
-	fprintf(stderr, "END: fd = %d\n", fd );
-
-	return ptr;
 }
 
 #endif
@@ -777,6 +737,8 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 #elif defined(OS_WIN32)
 
+/* On Windows, we use GetFileInformationByHandleEx(). */
+
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
 			char *buffer, size_t buffer_size )
@@ -903,6 +865,65 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	mx_free( name_info );
 
 	return buffer;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_MACOSX)
+
+/* Use the external 'lsof' program to get the fd name. */
+
+MX_EXPORT char *
+mx_get_fd_name( unsigned long process_id, int fd,
+		char *buffer, size_t buffer_size )
+{
+	static const char fname[] = "mxp_get_fd_name_from_lsof()";
+
+	FILE *file;
+	int saved_errno;
+	char command[ MXU_FILENAME_LENGTH + 20 ];
+	char response[80];
+	char *ptr;
+
+	snprintf( command, sizeof(command),
+		"lsof -a -p%lu -d%d -n -P -FfatDinPT",
+		process_id, fd );
+
+	file = popen( command, "r" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_IPC_IO_ERROR, fname,
+		"Unable to run the command '%s'.  "
+		"Errno = %d, error message = '%s'",
+			command, saved_errno, strerror(saved_errno) );
+
+		return NULL;
+	}
+
+	mx_fgets( response, sizeof(response), file );
+
+	if ( feof(file) || ferror(file) ) {
+		/* Did not get any output from lsof. */
+
+		pclose(file);
+		return NULL;
+	}
+
+	if ( response[0] != 'p' ) {
+		/* This file descriptor is not open. */
+
+		pclose(file);
+		return NULL;
+	}
+
+	ptr = mxp_parse_lsof_output( file, process_id, fd,
+					buffer, buffer_size );
+
+	pclose(file);
+
+	return ptr;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1052,15 +1073,9 @@ mx_show_fd_names( unsigned long process_id )
 
 /*=========================================================================*/
 
-/*-------------------------------------------------------------------------*/
+#if defined(OS_LINUX) && ( MX_GLIBC_VERSION >= 2003006L )
 
-#if defined(OS_LINUX)
-
-#  if ( MX_GLIBC_VERSION >= 2003006L )
-
-	/* Glibc >= 2.3.6 */
-
-	/*** Use Linux inotify ***/
+	/*** Use Linux inotify via Glibc >= 2.3.6 ***/
 
 /* WARNING: This is not yet tested, so it probably does not work. */
 
@@ -1293,11 +1308,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	return FALSE;
 }
 
-#  else
-
-error_not_yet_implemented();
-
-#  endif
+/*-------------------------------------------------------------------------*/
 
 #elif defined(OS_WIN32)
 
@@ -1477,6 +1488,188 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	return FALSE;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_MACOSX)
+
+#include <sys/event.h>
+#include <sys/time.h>
+
+typedef struct {
+	int kqueue_fd;
+	int file_fd;
+} MXP_KQUEUE_VNODE_MONITOR;
+
+MX_EXPORT mx_status_type
+mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
+			unsigned long access_type,
+			char *filename )
+{
+	static const char fname[] = "mx_create_file_monitor()";
+
+	MXP_KQUEUE_VNODE_MONITOR *kqueue_monitor;
+	int num_events, saved_errno;
+	struct kevent event;
+
+	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	*monitor_ptr = (MX_FILE_MONITOR *) malloc( sizeof(MX_FILE_MONITOR) );
+
+	if ( (*monitor_ptr) == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_FILE_MONITOR structure." );
+	}
+
+	kqueue_monitor = (MXP_KQUEUE_VNODE_MONITOR *)
+				malloc( sizeof(MXP_KQUEUE_VNODE_MONITOR) );
+
+	if ( kqueue_monitor == (MXP_KQUEUE_VNODE_MONITOR *) NULL ) {
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MXP_KQUEUE_VNODE_MONITOR structure." );
+	}
+
+	(*monitor_ptr)->private_ptr = kqueue_monitor;
+
+	kqueue_monitor->kqueue_fd = kqueue();
+
+	if ( kqueue_monitor->kqueue_fd < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Cannot create a new BSD kqueue event object.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	kqueue_monitor->file_fd = open( filename, O_RDONLY );
+
+	if ( kqueue_monitor->file_fd < 0 ) {
+		saved_errno = errno;
+
+		close( kqueue_monitor->kqueue_fd );
+		mx_free( kqueue_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot open file '%s'.  Errno = %d, error message = '%s'",
+			filename, saved_errno, strerror(saved_errno) );
+	}
+
+	/* FIXME: For the moment we ignore the value of 'access_type'. */
+
+	/* Add this event to the kqueue. */
+
+	event.ident = kqueue_monitor->file_fd;
+	event.filter = EVFILT_VNODE;
+	event.flags = EV_ADD | EV_ENABLE;
+	event.fflags = NOTE_DELETE | NOTE_WRITE | NOTE_EXTEND | NOTE_ATTRIB;
+	event.data = 0;
+	event.udata = 0;
+
+	num_events = kevent( kqueue_monitor->kqueue_fd,
+				&event, 1, NULL, 0, NULL );
+
+	if ( num_events < 0 ) {
+		saved_errno = errno;
+
+		close( kqueue_monitor->kqueue_fd );
+		mx_free( kqueue_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Cannot monitor changes to the file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				filename, saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_delete_file_monitor()";
+
+	MXP_KQUEUE_VNODE_MONITOR *kqueue_monitor;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	kqueue_monitor = monitor->private_ptr;
+
+	if ( kqueue_monitor == (MXP_KQUEUE_VNODE_MONITOR *) NULL ) {
+		mx_free( monitor );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_KQUEUE_VNODE_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+	}
+
+	close( kqueue_monitor->kqueue_fd );
+	close( kqueue_monitor->file_fd );
+
+	mx_free( kqueue_monitor );
+	mx_free( monitor );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_bool_type
+mx_file_has_changed( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_file_has_changed()";
+
+	MXP_KQUEUE_VNODE_MONITOR *kqueue_monitor;
+	struct kevent event;
+	int num_events, saved_errno;
+	struct timespec timeout;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	kqueue_monitor = monitor->private_ptr;
+
+	if ( kqueue_monitor == (MXP_KQUEUE_VNODE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_KQUEUE_VNODE_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+
+		return FALSE;
+	}
+
+	timeout.tv_sec = 0;
+	timeout.tv_nsec = 0;
+
+	num_events = kevent( kqueue_monitor->kqueue_fd,
+				NULL, 0,
+				&event, 1,
+				&timeout );
+
+	if ( num_events < 0 ) {
+		saved_errno = errno;
+	} else
+	if ( num_events > 0 ) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/*-------------------------------------------------------------------------*/
 
 #else
 

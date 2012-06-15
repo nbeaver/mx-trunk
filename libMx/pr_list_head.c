@@ -21,6 +21,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_socket.h"
+#include "mx_io.h"
 #include "mx_record.h"
 #include "mx_memory.h"
 #include "mx_bit.h"
@@ -57,6 +58,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_SHOW_CALLBACK_ID:
 		case MXLV_LHD_BREAKPOINT:
 		case MXLV_LHD_DEBUGGER_STARTED:
+		case MXLV_LHD_SHOW_OPEN_FDS:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -177,6 +179,10 @@ mx_list_head_process_function( void *record_ptr,
 			} else {
 				mx_set_debugger_started_flag( 0 );
 			}
+			break;
+		case MXLV_LHD_SHOW_OPEN_FDS:
+			mx_info( "Open file descriptors:" );
+			mx_show_fd_names( mx_process_id() );
 			break;
 		default:
 			MX_DEBUG( 1,(
