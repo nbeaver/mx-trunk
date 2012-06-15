@@ -84,6 +84,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.obj)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.obj)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.obj)
 
 #----
 
@@ -104,6 +105,7 @@ MOTOR_CM_OBJS        = $(subst $(space),$(comma),$(MOTOR_OBJS))
 SERVER_CM_OBJS       = $(subst $(space),$(comma),$(SERVER_OBJS))
 AUTOSAVE_CM_OBJS       = $(subst $(space),$(comma),$(AUTOSAVE_OBJS))
 MXDRIVERINFO_CM_OBJS = $(subst $(space),$(comma),$(MXDRIVERINFO_OBJS))
+MXMONITOR_CM_OBJS    = $(subst $(space),$(comma),$(MXMONITOR_OBJS))
 
 #
 #---------------------------------------------------
@@ -196,6 +198,13 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	dcl \
 "link /exe=mxdriverinfo.exe $(MXDRIVERINFO_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
 
+MXMONITOR_NAME    = mxmonitor.exe
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	link /exe=$(MXMONITOR_NAME) mxmonitor.obj, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
 util_install:
-	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	copy $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR).bin]
+	copy $(MXMONITOR_NAME) $(MX_INSTALL_DIR).bin]
 

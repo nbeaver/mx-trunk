@@ -109,6 +109,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -231,6 +232,16 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
+#---
+
+MXMONITOR_NAME       = mxmonitor
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
+		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+
+#---
+
 MXSERIAL_NAME        = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
@@ -242,5 +253,6 @@ mxserial.o: mxserial_fork.c
 
 util_install:
 	/usr/bin/install -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	/usr/bin/install -c -m 755 $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	/usr/bin/install -c -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 

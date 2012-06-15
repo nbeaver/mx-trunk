@@ -77,6 +77,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.obj)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.obj)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=..obj)
 
 #----
 
@@ -177,6 +178,13 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /exe=$(MXDRIVERINFO_NAME) mxdriverinfo.obj, \
     $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
 
+MXMONITOR_NAME    = mxmonitor.exe
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	link /exe=$(MXMONITOR_NAME) mxmonitor.obj, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
 util_install:
 	copy $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR).bin]
+	copy $(MXMONITOR_NAME) $(MX_INSTALL_DIR).bin]
 

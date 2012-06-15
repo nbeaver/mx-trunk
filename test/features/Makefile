@@ -13,7 +13,6 @@ endif
 all:
 	( cd attribute_test ; $(MAKECMD) )
 	( cd boot_test ; $(MAKECMD) )
-	( cd callback_test ; $(MAKECMD) )
 	( cd coprocess_test ; $(MAKECMD) )
 	( cd itimer_test ; $(MAKECMD) )
 	( cd math_test ; $(MAKECMD) )
@@ -27,7 +26,6 @@ all:
 clean:
 	( cd attribute_test ; $(MAKECMD) clean )
 	( cd boot_test ; $(MAKECMD) clean )
-	( cd callback_test ; $(MAKECMD) clean )
 	( cd coprocess_test ; $(MAKECMD) clean )
 	( cd cxx_test ; $(MAKECMD) clean )
 	( cd itimer_test ; $(MAKECMD) clean )

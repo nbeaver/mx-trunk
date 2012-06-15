@@ -330,6 +330,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
 #----
 
@@ -505,6 +506,31 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) mxdriverinfo.res \
 mxdriverinfo.res: mxdriverinfo.rc
 	rc -i$(MSDEV_DIR)/include mxdriverinfo.rc
 
+#----
+
+MXMONITOR_NAME    = mxmonitor.exe
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) mxmonitor.res \
+		  $(shell echo $(MX_LIBRARY_PATH) | tr \\\\ / )
+	link /debug /nologo /out:mxmonitor.exe *.obj \
+		/nodefaultlib:libc $(DEBUG_OPTS) \
+		$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(MXMONITOR_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo \
+				-outputresource:$(MXMONITOR_NAME)\;1 \
+		  -manifest $(MXMONITOR_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(MXMONITOR_NAME).manifest; \
+	fi
+
+mxmonitor.res: mxmonitor.rc
+	rc -i$(MSDEV_DIR)/include mxmonitor.rc
+
+#----
+
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	cp $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 

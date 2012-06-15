@@ -106,6 +106,7 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 
 #
 #---------------------------------------------------
@@ -236,6 +237,17 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 	chatr -s +s enable $(MXDRIVERINFO_NAME)
 
+#---
+
+MXMONITOR_NAME       = mxmonitor
+
+$(MXMONITOR_NAME): $(MXMONITOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXMONITOR_NAME) \
+		$(MXMONITOR_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
+	chatr -s +s enable $(MXMONITOR_NAME)
+
+#---
+
 MXSERIAL_NAME         = mxserial
 
 $(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
@@ -248,6 +260,7 @@ mxserial.o: mxserial_fork.c
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	cp $(MXMONITOR_NAME) $(MX_INSTALL_DIR)/bin
 	cp $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 	chmod 755 $(MX_INSTALL_DIR)/bin/*
 

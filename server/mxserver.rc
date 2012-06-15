@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2007-2011 Illinois Institute of Technology
+ * Copyright 2007-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ BEGIN
             VALUE "FileDescription", "MX Data Acquisition and Control Server\0"
             VALUE "FileVersion", "1.5.5\0"
             VALUE "InternalName", "mxserver\0"
-            VALUE "LegalCopyright", "Copyright 2011 Illinois Institute of Technology\0"
+            VALUE "LegalCopyright", "Copyright 2012 Illinois Institute of Technology\0"
             VALUE "OriginalFilename", "mxserver.exe\0"
             VALUE "ProductName", "MX Data Acquisition and Control System\0"
             VALUE "ProductVersion", "1.5.5\0"

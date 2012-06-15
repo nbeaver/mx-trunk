@@ -124,7 +124,7 @@ add_network_field( MX_RECORD **server_record,
 
 	record_list = (*server_record)->list_head;
 
-	mx_status = mx_set_program_name( record_list, "vcc_monitor" );
+	mx_status = mx_set_program_name( record_list, "mxmonitor" );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
