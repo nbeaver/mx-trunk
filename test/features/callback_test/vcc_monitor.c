@@ -211,6 +211,8 @@ callback_list_traverse( MX_RECORD *record_list,
 		"The MX_LIST_HEAD pointer is NULL!" );
 	}
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	callback_number = 0;
 
 	current_record = record_list->next_record;
@@ -254,6 +256,10 @@ callback_list_traverse( MX_RECORD *record_list,
 		current_record = current_record->next_record;
 	}
 
+	/* Suppress GCC set but not used error. */
+
+	mx_status = mx_status;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -266,6 +272,8 @@ add_new_callback( MX_RECORD *record_list )
 	MX_LIST_HEAD *list_head;
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	list_head = mx_get_record_list_head_struct( record_list );
 
 	mx_info_entry_dialog( "Enter new callback name --> ",
@@ -274,6 +282,10 @@ add_new_callback( MX_RECORD *record_list )
 	mx_status = add_network_field( &record_list,
 					network_field_id,
 					list_head->network_debug_flags );
+
+	/* Suppress GCC set but not used error. */
+
+	mx_status = mx_status;
 
 	return;
 }
@@ -292,6 +304,8 @@ scod_traverse_fn( MX_LIST *callback_list,
 	unsigned long callback_identifier;
 	mx_bool_type delete_callback, deleted_last_entry;
 	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	callback_identifier = *((unsigned long *) argument );
 
@@ -374,6 +388,10 @@ scod_traverse_fn( MX_LIST *callback_list,
 
 	} while ( list_entry != callback_list->list_start );
 
+	/* Suppress GCC set but not used error. */
+
+	mx_status = mx_status;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -448,12 +466,18 @@ list_callbacks_function( MX_RECORD *record_list )
 {
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	mx_info( "==== Current Callbacks ====" );
 
 	mx_status = callback_list_traverse( record_list, TRUE,
 						NULL, lc_traverse_fn );
 
 	mx_info( "===========================" );
+
+	/* Suppress GCC set but not used error. */
+
+	mx_status = mx_status;
 
 	return;
 }
