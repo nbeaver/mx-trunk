@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,10 @@
 #define MXD_SIM983_DEBUG	FALSE
 
 #define MXD_SIM983_ERROR_DEBUG	FALSE
+
+#define MXD_SIM983_CHECK_ESR	FALSE
+
+#define MXD_SIM983_SHOW_MARKERS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,99 +104,182 @@ mxd_sim983_command( MX_SIM983 *sim983,
 {
 	static const char fname[] = "mxd_sim983_command()";
 
-#if 0
+	long attempt, max_attempts;
+	mx_status_type mx_status;
+
+#if MXD_SIM983_CHECK_ESR
 	char esr_response[10];
 	unsigned char esr_byte;
-#endif
-	mx_status_type mx_status;
+#endif /* MXD_SIM983_CHECK_ESR */
 
 	if ( command == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The command buffer pointer passed was NULL." );
 	}
 
-	/* Send the command. */
+	max_attempts = 5;
 
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
-			fname, command, sim983->record->name));
-	}
+	for ( attempt = 1; attempt <= max_attempts; attempt++ ) {
 
-	mx_status = mx_rs232_putline( sim983->port_record, command, NULL, 0 );
+#if MXD_SIM983_SHOW_MARKERS
+		MX_DEBUG(-2,("%s: MARKER 1: attempt = %ld", fname, attempt));
+#endif
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		/* Send the command. */
 
-	if ( response != (char *) NULL ) {
-		/* If a response is expected, read back the response. */
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+				fname, command, sim983->record->name));
+		}
 
-		mx_status = mx_rs232_getline( sim983->port_record,
-					response, max_response_length,
-					NULL, 0 );
+		if ( attempt > 1 ) {
+			MX_DEBUG(-2,("%s:    Attempt %ld", fname, attempt));
+		}
+
+		mx_status = mx_rs232_putline( sim983->port_record,
+						command, NULL, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( debug_flag ) {
-			MX_DEBUG(-2,("%s: received '%s' from '%s'",
-			fname, response, sim983->record->name ));
-		}
-	}
-
-	/* Check for errors in the previous command. */
-#if 0
-
-#if MXD_SIM983_ERROR_DEBUG
-	MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
-		fname, sim983->record->name ));
+#if MXD_SIM983_SHOW_MARKERS
+		MX_DEBUG(-2,("%s: MARKER 2", fname));
 #endif
 
-	mx_status = mx_rs232_putline( sim983->port_record, "*ESR?", NULL, 0 );
+		if ( response != (char *) NULL ) {
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+#if MXD_SIM983_SHOW_MARKERS
+			MX_DEBUG(-2,("%s: MARKER 2.1", fname));
+#endif
 
-	mx_status = mx_rs232_getline( sim983->port_record,
+			/* If a response is expected, read back the response. */
+
+			mx_status = mx_rs232_getline( sim983->port_record,
+					response, max_response_length,
+					NULL, 0 );
+
+#if MXD_SIM983_SHOW_MARKERS
+			MX_DEBUG(-2,("%s: MARKER 2.2, mx_status.code = %ld",
+				fname, mx_status.code));
+#endif
+
+			if ( ( mx_status.code == MXE_TIMED_OUT )
+			  || ( mx_status.code == MXE_PROTOCOL_ERROR ) )
+			{
+				/* Go back to the top of the for() loop. */
+
+				continue;
+			} else
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return mx_status;
+			}
+
+#if MXD_SIM983_SHOW_MARKERS
+			MX_DEBUG(-2,("%s: MARKER 2.3", fname));
+#endif
+
+			if ( debug_flag ) {
+				MX_DEBUG(-2,("%s: received '%s' from '%s'",
+				fname, response, sim983->record->name ));
+			}
+		}
+
+#if MXD_SIM983_SHOW_MARKERS
+		MX_DEBUG(-2,("%s: MARKER 3", fname));
+#endif
+
+		break;	/* Exit the for() loop. */
+
+		/* Check for errors in the previous command. */
+#if MXD_SIM983_CHECK_ESR
+
+#if MXD_SIM983_ERROR_DEBUG
+		MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
+			fname, sim983->record->name ));
+#endif
+
+		mx_status = mx_rs232_putline( sim983->port_record,
+						"*ESR?", NULL, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_rs232_getline( sim983->port_record,
 					esr_response, sizeof(esr_response),
 					NULL, 0 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( ( mx_status.code == MXE_TIMED_OUT )
+		  || ( mx_status.code == MXE_PROTOCOL_ERROR ) )
+		{
+			/* Go back to the top of the for() loop. */
+
+			continue;
+		} else
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
+		}
 
 #if MXD_SIM983_ERROR_DEBUG
-	MX_DEBUG(-2,("%s: received '%s' from '%s'",
-		fname, esr_response, sim983->record->name ));
+		MX_DEBUG(-2,("%s: received '%s' from '%s'",
+			fname, esr_response, sim983->record->name ));
 #endif
 
-	esr_byte = atol( esr_response );
+		esr_byte = atol( esr_response );
 
-	if ( esr_byte & 0x20 ) {
-		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"Command error (CME) seen for command '%s' sent to '%s'.",
-			command, sim983->record->name );
-	} else
-	if ( esr_byte & 0x10 ) {
-		return mx_error( MXE_PROTOCOL_ERROR, fname,
-		"Execution error (EXE) seen for command '%s' sent to '%s'.",
-			command, sim983->record->name );
-	} else
-	if ( esr_byte & 0x08 ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	    "Device dependent error (DDE) seen for command '%s' sent to '%s'.",
-			command, sim983->record->name );
-	} else
-	if ( esr_byte & 0x02 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Input data lost (INP) for command '%s' sent to '%s'.",
-			command, sim983->record->name );
-	} else
-	if ( esr_byte & 0x04 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Output data lost (QYE) for command '%s' sent to '%s'.",
-			command, sim983->record->name );
+		if ( esr_byte & 0x20 ) {
+			mx_status = mx_rs232_putline( sim983->port_record,
+						"LCME?", NULL, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_rs232_getline( sim983->port_record,
+					esr_response, sizeof(esr_response),
+					NULL, 0 );
+
+			if ( ( mx_status.code == MXE_TIMED_OUT )
+			  || ( mx_status.code == MXE_PROTOCOL_ERROR ) )
+			{
+				/* Go back to the top of the for() loop. */
+
+				continue;
+			} else
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return mx_status;
+			}
+
+			MX_DEBUG(-2,("%s: LCME response = '%s'",
+				fname, esr_response));
+
+			mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
+		    "Command error (CME) seen for command '%s' sent to '%s'.",
+				command, sim983->record->name );
+		} else
+		if ( esr_byte & 0x10 ) {
+			mx_status = mx_error( MXE_PROTOCOL_ERROR, fname,
+		    "Execution error (EXE) seen for command '%s' sent to '%s'.",
+				command, sim983->record->name );
+		} else
+		if ( esr_byte & 0x08 ) {
+			mx_status = mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"Device dependent error (DDE) seen for "
+			"command '%s' sent to '%s'.",
+				command, sim983->record->name );
+		} else
+		if ( esr_byte & 0x02 ) {
+			mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Input data lost (INP) for command '%s' sent to '%s'.",
+				command, sim983->record->name );
+		} else
+		if ( esr_byte & 0x04 ) {
+			mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Output data lost (QYE) for command '%s' sent to '%s'.",
+				command, sim983->record->name );
+		}
+
+#endif /* MXD_SIM983_CHECK_ESR */
+
 	}
-
-#endif /* 0 */
 
 	return MX_SUCCESSFUL_RESULT;
 }
