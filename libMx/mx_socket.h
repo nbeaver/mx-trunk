@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2011 Illinois Institute of Technology
+ * Copyright 1999-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -177,8 +177,8 @@ typedef struct {
 #elif defined(__INTEL_COMPILER)
 #  define mx_socklen_t		socklen_t
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_BSD) \
-	|| defined(OS_HPUX) || defined(OS_HURD)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_BSD) || defined(OS_HPUX) || defined(OS_HURD)
 #  define mx_socklen_t		socklen_t
 
 #else

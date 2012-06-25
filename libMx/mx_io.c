@@ -253,7 +253,7 @@ mx_get_number_of_open_file_descriptors( void )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -614,9 +614,11 @@ mxp_parse_lsof_output( FILE *file,
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_SOLARIS)
 
-/* On Linux, use readlink() on the /proc/NNN/fd/NNN files. */
+/* On Linux, use readlink() on the /proc/NNN/fd/NNN files.
+ * On Solaris, use readline() on  the /proc/NNN/path/NNN files.
+ */
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
@@ -648,9 +650,19 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
+#  if defined(OS_LINUX)
 	snprintf( fd_pathname, sizeof(fd_pathname),
 		"/proc/%lu/fd/%d",
 		process_id, fd );
+
+#  elif defined(OS_SOLARIS)
+	snprintf( fd_pathname, sizeof(fd_pathname),
+		"/proc/%lu/path/%d",
+		process_id, fd );
+
+#  else
+#     error readlink() method not used for this build target.
+#  endif
 
 	bytes_read = readlink( fd_pathname, buffer, buffer_size );
 
@@ -673,6 +685,8 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			return NULL;
 		}
 	}
+
+#  if defined(OS_LINUX)
 
 	if ( strncmp( buffer, "socket:", 7 ) == 0 ) {
 		union {
@@ -824,6 +838,8 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			break;
 		}
 	}
+
+#  endif /* OS_LINUX */
 
 	return buffer;
 }
@@ -1297,7 +1313,7 @@ mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
 http://unix.derkeiler.com/Newsgroups/comp.unix.programmer/2011-03/msg00059.html
  *
  * but is structured differently.  Much of the complexity is to deal with
- * pointer alignment issues on some platforms.
+ * pointer alignment issues on some platforms like ARM.
  */
 
 MX_EXPORT mx_bool_type
@@ -1764,6 +1780,204 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	return FALSE;
 }
 
+/*-------------------------------------------------------------------------*/
+
+#elif defined(OS_SOLARIS)
+
+/*
+ * https://blogs.oracle.com/darren/entry/file_notification_in_opensolaris_and
+ * contains a basic description of how to use port_associate() and friends.
+ */
+
+#include <port.h>
+
+typedef struct {
+	int port;
+	file_obj_t file_object;
+	int events_to_monitor;
+} MXP_SOLARIS_PORT_MONITOR;
+
+static mx_status_type
+mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor )
+{
+	static const char fname[] = "mxp_solaris_port_associate()";
+
+	MXP_SOLARIS_PORT_MONITOR *port_monitor;
+	file_obj_t *file_object;
+	int os_status, saved_errno;
+
+	port_monitor = file_monitor->private_ptr;
+
+	file_object = &(port_monitor->file_object);
+
+	file_object->fo_name = file_monitor->filename;
+
+	os_status = port_associate( port_monitor->port,
+				PORT_SOURCE_FILE,
+				(uintptr_t) file_object,
+				port_monitor->events_to_monitor,
+				NULL );
+
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"A call to port_associate() for file '%s' failed.  "
+		"Errno = %d, error message = '%s'.",
+			file_monitor->filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
+			unsigned long access_type,
+			char *filename )
+{
+	static const char fname[] = "mx_create_file_monitor()";
+
+	MXP_SOLARIS_PORT_MONITOR *port_monitor;
+	int saved_errno;
+	mx_status_type mx_status;
+
+	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	*monitor_ptr = (MX_FILE_MONITOR *) malloc( sizeof(MX_FILE_MONITOR) );
+
+	if ( (*monitor_ptr) == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_FILE_MONITOR structure." );
+	}
+
+	port_monitor = (MXP_SOLARIS_PORT_MONITOR *)
+				malloc( sizeof(MXP_SOLARIS_PORT_MONITOR) );
+
+	if ( port_monitor == (MXP_SOLARIS_PORT_MONITOR *) NULL ) {
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MXP_SOLARIS_PORT_MONITOR structure." );
+	}
+
+	(*monitor_ptr)->private_ptr = port_monitor;
+
+	port_monitor->port = port_create();
+
+	if ( port_monitor->port == (-1) ) {
+		saved_errno = errno;
+
+		mx_free( port_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking port_create().  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	port_monitor->events_to_monitor = FILE_MODIFIED;
+
+	memset( &(port_monitor->file_object), 0, sizeof(file_obj_t) );
+
+	mx_status = mxp_solaris_port_associate( *monitor_ptr );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_delete_file_monitor()";
+
+	MXP_SOLARIS_PORT_MONITOR *port_monitor;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	port_monitor = monitor->private_ptr;
+
+	if ( port_monitor == (MXP_SOLARIS_PORT_MONITOR *) NULL ) {
+		mx_free( monitor );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_SOLARIS_PORT_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+	}
+
+	(void) close( port_monitor->port );
+
+	mx_free( port_monitor );
+	mx_free( monitor );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_bool_type
+mx_file_has_changed( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_file_has_changed()";
+
+	MXP_SOLARIS_PORT_MONITOR *port_monitor;
+	port_event_t port_event;
+	timespec_t timeout;
+	int os_status, saved_errno;
+	mx_status_type mx_status;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	port_monitor = monitor->private_ptr;
+
+	if ( port_monitor == (MXP_SOLARIS_PORT_MONITOR *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_SOLARIS_PORT_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+
+		return FALSE;
+	}
+
+	timeout.tv_sec = 0;
+	timeout.tv_nsec = 0;
+
+	os_status = port_get( port_monitor->port, &port_event, &timeout );
+
+	if ( os_status == 0 ) {
+		return TRUE;
+	} else
+	if ( os_status == (-1) ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ETIME:
+		case EINTR:
+			return FALSE;
+			break;
+		default:
+			(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		    "Checking for file status changes for file '%s' failed.  ",
+		    "Errno = %d, error message = '%s'.",
+				saved_errno, strerror(saved_errno) );
+
+			return FALSE;
+			break;
+		}
+	}
+
+	return FALSE;
+}
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX)

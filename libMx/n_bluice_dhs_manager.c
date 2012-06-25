@@ -13,7 +13,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -314,7 +314,7 @@ mxn_bluice_dhs_manager_thread( MX_THREAD *thread, void *args )
 
 		dhs_socket->socket_fd = accept( manager_socket_fd,
 					(struct sockaddr *) client_address_ptr,
-					&client_address_size );
+					(mx_socklen_t *) &client_address_size );
 
 		saved_errno = mx_socket_check_error_status(
 					&(dhs_socket->socket_fd),
