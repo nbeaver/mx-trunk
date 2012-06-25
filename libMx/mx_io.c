@@ -627,7 +627,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	static char fname[] = "mx_get_fd_name()";
 
 	char fd_pathname[MXU_FILENAME_LENGTH+1];
-	int bytes_read, os_status, saved_errno;
+	int bytes_read, saved_errno;
 
 	if ( fd < 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -704,6 +704,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		} peer;
 
 		socklen_t local_length, peer_length;
+		int os_status;
 		int local_socket_type;
 		int option_length;
 		char socket_type_name[40];
@@ -1930,7 +1931,6 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	port_event_t port_event;
 	timespec_t timeout;
 	int os_status, saved_errno;
-	mx_status_type mx_status;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1967,8 +1967,9 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 			break;
 		default:
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		    "Checking for file status changes for file '%s' failed.  ",
+		    "Checking for file status changes for file '%s' failed.  "
 		    "Errno = %d, error message = '%s'.",
+				monitor->filename,
 				saved_errno, strerror(saved_errno) );
 
 			return FALSE;

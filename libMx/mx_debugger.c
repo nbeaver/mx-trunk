@@ -228,7 +228,9 @@ mx_breakpoint( void )
 	DebugBreak();
 }
 
-#elif ( defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)) )
+#elif ( defined(__GNUC__) \
+	&& (defined(__i386__) || defined(__x86_64__)) \
+	&& (!defined(OS_SOLARIS)) )
 
 MX_EXPORT void
 mx_breakpoint( void )
