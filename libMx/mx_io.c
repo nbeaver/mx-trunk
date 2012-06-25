@@ -849,7 +849,104 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 #elif defined(OS_WIN32)
 
-/* On Windows, we use GetFileInformationByHandleEx(). */
+/* The method we use depends on which version of Windows we are running. */
+
+static mx_bool_type tested_for_mx_get_fd_name = FALSE;
+
+/* For Windows Vista and newer, we can use GetFileInformationByHandleEx(). */
+
+typedef BOOL (*GetFileInformationByHandleEx_type)( HANDLE,
+						FILE_INFO_BY_HANDLE_CLASS,
+						LPVOID, DWORD );
+
+static GetFileInformationByHandleEx_type
+	ptrGetFileInformationByHandleEx = NULL;
+
+static mx_status_type
+mxp_get_fd_name_gfi_by_handle_ex( HANDLE fd_handle, int fd,
+				char *buffer, size_t buffer_size )
+{
+	static const char fname[] = "mxp_get_fd_name_gfi_by_handle_ex()";
+
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	size_t num_converted;
+	errno_t errno_status;
+
+	FILE_NAME_INFO *name_info;
+	size_t name_info_length;
+	mx_status_type mx_status;
+
+	/* The definition of FILE_NAME_INFO only contains enough space
+	 * for a single character filename, so we must allocate enough
+	 * space for the filename at the end of the structure.
+	 */
+
+	name_info_length = MXU_FILENAME_LENGTH + 50;
+
+	name_info = (FILE_NAME_INFO *) malloc( name_info_length );
+
+	if ( name_info == (FILE_NAME_INFO *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte buffer "
+		"for a FILE_NAME_INFO structure.", name_info_length );
+	}
+
+	/* Now get information about this handle. */
+
+	os_status = ptrGetFileInformationByHandleEx( fd_handle,
+						FileNameInfo,
+						name_info,
+						name_info_length );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get filename information for file descriptor %d.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd, last_error_code, message_buffer );
+
+		mx_free( name_info );
+
+		return mx_status;
+	}
+
+	/* Convert the wide character filename into single-byte characters. */
+
+	errno_status = wcstombs_s( &num_converted,
+				buffer,
+				buffer_size,
+				name_info->FileName,
+				_TRUNCATE );
+
+	if ( errno_status != 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to convert wide character filename for "
+		"file descriptor %d.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+
+		mx_free( name_info );
+
+		return mx_status;
+	}
+
+	mx_free( name_info );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
@@ -858,14 +955,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	static char fname[] = "mx_get_fd_name()";
 
 	HANDLE fd_handle;
-	FILE_NAME_INFO *name_info;
-	BOOL os_status;
-	DWORD last_error_code;
-	TCHAR message_buffer[100];
-	size_t num_converted;
-	errno_t errno_status;
-
-	size_t name_info_length;
+	mx_status_type mx_status;
 
 	if ( fd < 0 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -909,72 +999,44 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-	/* The definition of FILE_NAME_INFO only contains enough space
-	 * for a single character filename, so we must allocate enough
-	 * space for the filename at the end of the structure.
-	 */
+	if ( tested_for_mx_get_fd_name == FALSE ) {
+		HMODULE hinst_kernel32;
 
-	name_info_length = MXU_FILENAME_LENGTH + 50;
+		tested_for_mx_get_fd_name = TRUE;
 
-	name_info = (FILE_NAME_INFO *) malloc( name_info_length );
+		hinst_kernel32 = GetModuleHandle(TEXT("kernel32.dll"));
 
-	if ( name_info == (FILE_NAME_INFO *) NULL ) {
-		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte buffer "
-		"for a FILE_NAME_INFO structure.", name_info_length );
+		if ( hinst_kernel32 == NULL ) {
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to get a module handle for KERNEL32.DLL failed.  "
+		"This should NEVER, EVER happen.  In fact, you should not be "
+		"reading this message, since the computer should have "
+		"crashed by now.  If you DO see this message, let "
+		"William Lavender know." );
+			return NULL;
+		}
 
-		return NULL;
+		ptrGetFileInformationByHandleEx =
+			(GetFileInformationByHandleEx_type)
+			GetProcAddress( hinst_kernel32,
+				TEXT("GetFileInformationByHandleEx") );
+
+		MX_DEBUG(-2,("%s: ptrGetFileInformationByHandleEx = %p",
+			fname, ptrGetFileInformationByHandleEx));
 	}
 
-	/* Now get information about this handle. */
+	/* Now we branch out to the various version specific methods. */
 
-	os_status = GetFileInformationByHandleEx( fd_handle,
-						FileNameInfo,
-						name_info,
-						name_info_length );
+	if ( ptrGetFileInformationByHandleEx != NULL ) {
+		mx_status = mxp_get_fd_name_gfi_by_handle_ex( fd_handle,
+						fd, buffer, buffer_size );
 
-	if ( os_status == 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to get filename information for file descriptor %d.  "
-		"Win32 error code = %ld, error message = '%s'.",
-			fd, last_error_code, message_buffer );
-
-		mx_free( name_info );
-
-		return NULL;
+		if ( mx_status.code != MXE_SUCCESS )
+			return NULL;
+	} else {
+		MX_DEBUG(-2,("%s is not yet implemented for this platform.",
+			fname));
 	}
-
-	/* Convert the wide character filename into single-byte characters. */
-
-	errno_status = wcstombs_s( &num_converted,
-				buffer,
-				buffer_size,
-				name_info->FileName,
-				_TRUNCATE );
-
-	if ( errno_status != 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to convert wide character filename for "
-		"file descriptor %d.  "
-		"Win32 error code = %ld, error message = '%s'.",
-			last_error_code, message_buffer );
-
-		mx_free( name_info );
-
-		return NULL;
-	}
-
-	mx_free( name_info );
 
 	return buffer;
 }

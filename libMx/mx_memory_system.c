@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2007, 2010-2011 Illinois Institute of Technology
+ * Copyright 2005-2007, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -255,22 +255,6 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 			if ( ptrGlobalMemoryStatusEx == NULL ) {
 				global_memory_status_ex_is_available = FALSE;
-			}
-
-			status = FreeLibrary( hinst_kernel32 );
-
-			if ( status == 0 ) {
-				last_error_code = GetLastError();
-
-				mx_win32_error_message( last_error_code,
-					message_buffer, sizeof(message_buffer));
-
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-				"The attempt to free a handle for KERNEL32.DLL "
-				"failed.  Win32 error code = %ld, "
-				"error_message = '%s'",
-					last_error_code, message_buffer );
 			}
 		}
 	}
