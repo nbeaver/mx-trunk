@@ -14,6 +14,8 @@
  *
  */
 
+#define DEBUG_MCA_NEW_DATA_AVAILABLE	FALSE
+
 #include <stdio.h>
 #include <limits.h>
 
@@ -244,6 +246,11 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	mca->new_data_available = TRUE;
 	mca->mca_flags = 0;
 
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
 	mca->last_measurement_interval = -1.0;
 
 	mca->channel_number = 0;
@@ -321,6 +328,11 @@ mx_mca_start( MX_RECORD *mca_record )
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
 
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
 	mx_status = (*start_fn)( mca );
 
 	return mx_status;
@@ -394,16 +406,28 @@ mx_mca_read( MX_RECORD *mca_record,
 	if ( mca->mca_flags & MXF_MCA_NO_READ_OPTIMIZATION ) {
 		read_new_data = TRUE;
 
-	} else if ( mca->new_data_available ) {
-		read_new_data = TRUE;
-
 	} else {
-		read_new_data = FALSE;
+#if 1
+		mx_status = mx_mca_is_new_data_available( mca->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
+		if ( mca->new_data_available ) {
+			read_new_data = TRUE;
+		} else {
+			read_new_data = FALSE;
+		}
 	}
 
-	MX_DEBUG( 2,
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,
 	("%s: (before read) mca->new_data_available = %d, mca->busy = %d",
 		fname, (int) mca->new_data_available, (int) mca->busy));
+
+	MX_DEBUG(-2,("%s: mca '%s' read_new_data = %d",
+		fname, mca_record->name, read_new_data));
+#endif
 
 	if ( read_new_data ) {
 
@@ -417,9 +441,11 @@ mx_mca_read( MX_RECORD *mca_record,
 		}
 	}
 
-	MX_DEBUG( 2,
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,
 	("%s: (after read) mca->new_data_available = %d, mca->busy = %d",
 		fname, (int) mca->new_data_available, (int) mca->busy));
+#endif
 
 	if ( num_channels != NULL ) {
 		*num_channels = mca->current_num_channels;
@@ -428,6 +454,7 @@ mx_mca_read( MX_RECORD *mca_record,
 	if ( channel_array != NULL ) {
 		*channel_array = mca->channel_array;
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -532,6 +559,11 @@ mx_mca_is_new_data_available( MX_RECORD *mca_record,
 		*new_data_available = mca->new_data_available;
 	}
 
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
 	return mx_status;
 }
 
@@ -563,6 +595,11 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
+
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
 
 	mca->preset_type = MXF_MCA_PRESET_NONE;
 
@@ -601,6 +638,11 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
+
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
 
 	mca->preset_type = preset_type;
 	mca->last_measurement_interval = preset_value;
@@ -656,6 +698,11 @@ mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
 
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
 	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
 	mca->last_measurement_interval = preset_seconds;
 
@@ -696,6 +743,11 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
 
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
+
 	mca->preset_type = MXF_MCA_PRESET_REAL_TIME;
 	mca->last_measurement_interval = preset_seconds;
 
@@ -735,6 +787,11 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 
 	mca->busy = TRUE;
 	mca->new_data_available = TRUE;
+
+#if DEBUG_MCA_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mca '%s' new_data_available = %d",
+		fname, mca_record->name, (int) mca->new_data_available));
+#endif
 
 	mca->preset_type = MXF_MCA_PRESET_COUNT;
 	mca->last_measurement_interval = (double) preset_count;
@@ -2298,6 +2355,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	case MXLV_MCA_PRESET_COUNT:
 	case MXLV_MCA_ENERGY_SCALE:
 	case MXLV_MCA_ENERGY_OFFSET:
+	case MXLV_MCA_NEW_DATA_AVAILABLE:
 
 		/* None of these cases require any action since the value
 		 * is already in the location it needs to be in.

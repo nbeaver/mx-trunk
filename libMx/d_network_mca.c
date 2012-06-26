@@ -248,6 +248,10 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 		network_mca->server_record,
 		"%s.live_time", network_mca->remote_record_name );
 
+	mx_network_field_init( &(network_mca->new_data_available_nf),
+		network_mca->server_record,
+		"%s.new_data_available", network_mca->remote_record_name );
+
 	mx_network_field_init( &(network_mca->num_soft_rois_nf),
 		network_mca->server_record,
 		"%s.num_soft_rois", network_mca->remote_record_name );
@@ -327,6 +331,10 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_mca->stop_nf),
 		network_mca->server_record,
 		"%s.stop", network_mca->remote_record_name );
+
+#if 0
+	mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -712,6 +720,11 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 				mca->record->name,
 				mca->maximum_num_channels );
 		}
+	} else
+	if ( mca->parameter_type == MXLV_MCA_NEW_DATA_AVAILABLE ) {
+
+		mx_status = mx_get( &(network_mca->new_data_available_nf),
+					MXFT_ULONG, &(mca->new_data_available));
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
 

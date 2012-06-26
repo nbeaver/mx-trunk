@@ -36,6 +36,7 @@ typedef struct {
 	MX_NETWORK_FIELD energy_scale_nf;
 	MX_NETWORK_FIELD input_count_rate_nf;
 	MX_NETWORK_FIELD live_time_nf;
+	MX_NETWORK_FIELD new_data_available_nf;
 	MX_NETWORK_FIELD num_soft_rois_nf;
 	MX_NETWORK_FIELD output_count_rate_nf;
 	MX_NETWORK_FIELD preset_count_nf;
