@@ -955,6 +955,9 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	static char fname[] = "mx_get_fd_name()";
 
 	HANDLE fd_handle;
+	BOOL status;
+	DWORD pipe_flags, last_error_code;
+	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
 	if ( fd < 0 ) {
@@ -978,26 +981,64 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-	if ( fd == fileno(stdin) ) {
-		strlcpy( buffer, "<standard input>", buffer_size );
-		return buffer;
-	}
-
-	if ( fd == fileno(stdout) ) {
-		strlcpy( buffer, "<standard output>", buffer_size );
-		return buffer;
-	}
-
-	if ( fd == fileno(stderr) ) {
-		strlcpy( buffer, "<standard error>", buffer_size );
-		return buffer;
-	}
-
 	fd_handle = (HANDLE) _get_osfhandle( fd );
 
 	if ( fd_handle == INVALID_HANDLE_VALUE ) {
 		return NULL;
 	}
+	if ( fd_handle == NULL ) {
+		return NULL;
+	}
+
+	/* Take care of standard I/O handles. */
+
+	if ( fd_handle == GetStdHandle( STD_INPUT_HANDLE ) ) {
+		strlcpy( buffer, "<standard input>", buffer_size );
+		return buffer;
+	}
+	if ( fd_handle == GetStdHandle( STD_OUTPUT_HANDLE ) ) {
+		strlcpy( buffer, "<standard output>", buffer_size );
+		return buffer;
+	}
+	if ( fd_handle == GetStdHandle( STD_ERROR_HANDLE ) ) {
+		strlcpy( buffer, "<standard error>", buffer_size );
+		return buffer;
+	}
+
+	/* Test for pipes. */
+
+	status = GetNamedPipeInfo(fd_handle, &pipe_flags, NULL, NULL, NULL);
+
+	if ( status != 0 ) {
+		snprintf( buffer, sizeof(buffer),
+				"Pipe handle %#lx (fd %d)", fd_handle, fd );
+		return buffer;
+	} else {
+		last_error_code = GetLastError();
+
+		/* A handle that does not belong to a pipe will give
+		 * an error code of ERROR_INVALID_PARAMETER (87).
+		 * If we get any other error code, then that is
+		 * a real error.
+		 */
+
+		if ( last_error_code != ERROR_INVALID_PARAMETER ) {
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"A call to GetNamedPipeInfo() for handle %#lx "
+			"(fd %d) failed.  "
+			"win32 error code = %ld, error message = '%s'.",
+				fd_handle, fd,
+				last_error_code, message_buffer );
+
+			return NULL;
+		}
+	}
+
+	/* Test for the existence of file information functions. */
 
 	if ( tested_for_mx_get_fd_name == FALSE ) {
 		HMODULE hinst_kernel32;
@@ -1021,8 +1062,10 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			GetProcAddress( hinst_kernel32,
 				TEXT("GetFileInformationByHandleEx") );
 
+#if 0
 		MX_DEBUG(-2,("%s: ptrGetFileInformationByHandleEx = %p",
 			fname, ptrGetFileInformationByHandleEx));
+#endif
 	}
 
 	/* Now we branch out to the various version specific methods. */
