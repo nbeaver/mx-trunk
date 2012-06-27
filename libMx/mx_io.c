@@ -1320,7 +1320,7 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
 
-	flags = ( IN_CLOSE_WRITE | IN_MODIFY );
+	flags = IN_CLOSE_WRITE | IN_DELETE_SELF | IN_MODIFY | IN_MOVE_SELF;
 
 	linux_monitor->inotify_watch_descriptor = inotify_add_watch(
 					linux_monitor->inotify_file_descriptor,
@@ -1333,9 +1333,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 		mx_free( *monitor_ptr );
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An error occurred while invoking inotify_add_watch().  "
-		"Errno = %d, error message = '%s'",
-			saved_errno, strerror( saved_errno ) );
+		"An error occurred while invoking inotify_add_watch() "
+		"for file '%s'.  Errno = %d, error message = '%s'",
+			filename, saved_errno, strerror( saved_errno ) );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1423,6 +1423,10 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 				&num_bytes_available );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
+		return FALSE;
+	}
+
+	if ( num_bytes_available == 0 ) {
 		return FALSE;
 	}
 

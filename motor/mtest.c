@@ -25,6 +25,12 @@ motor_test_fn( int argc, char *argv[] )
 {
 	int max_fds, num_open_fds;
 
+	static MX_FILE_MONITOR *monitor = NULL;
+	static char monitor_filename[MXU_FILENAME_LENGTH+1];
+	unsigned long monitor_access_type = 0;
+	mx_bool_type file_changed;
+	mx_status_type mx_status;
+
 	if ( argc >= 3 ) {
 		if ( strcmp( argv[2], "stack" ) == 0 ) {
 			mx_stack_traceback();
@@ -53,6 +59,42 @@ motor_test_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[2], "show_open_fds" ) == 0 ) {
 			mx_show_fd_names( mx_process_id() );
+
+			return SUCCESS;
+		}
+		if ( strcmp( argv[2], "monitor" ) == 0 ) {
+			if ( argc > 3 ) {
+				if ( monitor != NULL ) {
+					mx_status = mx_delete_file_monitor(
+							monitor );
+
+					if ( mx_status.code != MXE_SUCCESS )
+						return FAILURE;
+				}
+
+				strlcpy( monitor_filename, argv[3],
+					sizeof(monitor_filename) );
+
+				mx_status = mx_create_file_monitor(
+							&monitor,
+							monitor_access_type,
+							monitor_filename );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+			}
+
+			if ( monitor == NULL ) {
+				mx_info(
+				"A file monitor has not yet been set up.\n" );
+
+				return FAILURE;
+			}
+
+			file_changed = mx_file_has_changed( monitor );
+
+			mx_info( "monitor '%s', file_changed = %d",
+				monitor_filename, file_changed );
 
 			return SUCCESS;
 		}
