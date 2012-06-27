@@ -463,6 +463,8 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
+			    mxsrv_print_timestamp();
+
 			    fprintf( stderr,
 				"MX (socket %d) deleting callback %#lx "
 				"for newly disconnected client.\n",
@@ -2543,6 +2545,8 @@ mxsrv_send_field_value_to_client(
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
 
+		mxsrv_print_timestamp();
+
 		if ( message_id_for_client & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
 			fprintf( stderr,
 				"MX (socket %d) VC_CALLBACK('%s.%s') = ",
@@ -2987,6 +2991,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) PUT_ARRAY('%s.%s') = ",
 			socket_handler->synchronous_socket->socket_fd,
@@ -3193,6 +3199,8 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 		    "MX (socket %d) GET_NETWORK_HANDLE('%s.%s') = (%lu,%lu)\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -3311,6 +3319,8 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) GET_FIELD_TYPE('%s.%s') = "
 			"( 'datatype' = %lu, 'num_dimensions' = %lu )\n",
@@ -3505,6 +3515,8 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) GET_ATTRIBUTE('%s.%s', %lu) = %g\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -3706,6 +3718,8 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) SET_ATTRIBUTE('%s.%s', %lu) = %g\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -3910,6 +3924,8 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) SET_CLIENT_INFO(user = '%s', "
 				"program = '%s')\n",
@@ -4060,6 +4076,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) GET_OPTION( %lu ) = %lu\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -4251,6 +4269,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) SET_OPTION: Set option %lu to %lu\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -4544,6 +4564,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) ADD_CALLBACK('%s.%s') = %#lx\n",
 			socket_handler->synchronous_socket->socket_fd,
@@ -4924,6 +4946,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record,
 	}
 
 	if ( socket_handler->network_debug_flags & MXF_NETDBG_SUMMARY ) {
+		mxsrv_print_timestamp();
+
 		fprintf( stderr,
 			"MX (socket %d) DELETE_CALLBACK('%s.%s') = %#lx\n",
 			socket_handler->synchronous_socket->socket_fd,

@@ -200,7 +200,7 @@ mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 #  define MXSRV_USE_STDIO_OUTPUT	TRUE
 #endif
 
-static void
+void
 mxsrv_print_timestamp( void )
 {
 	time_t time_struct;

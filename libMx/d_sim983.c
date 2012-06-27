@@ -190,13 +190,13 @@ mxd_sim983_command( MX_SIM983 *sim983,
 
 		break;	/* Exit the for() loop. */
 
-		/* Check for errors in the previous command. */
 #if MXD_SIM983_CHECK_ESR
+		/* Check for errors in the previous command. */
 
-#if MXD_SIM983_ERROR_DEBUG
+#  if MXD_SIM983_ERROR_DEBUG
 		MX_DEBUG(-2,("%s: sending '*ESR?' to '%s'",
 			fname, sim983->record->name ));
-#endif
+#  endif
 
 		mx_status = mx_rs232_putline( sim983->port_record,
 						"*ESR?", NULL, 0 );
@@ -219,10 +219,10 @@ mxd_sim983_command( MX_SIM983 *sim983,
 			return mx_status;
 		}
 
-#if MXD_SIM983_ERROR_DEBUG
+#  if MXD_SIM983_ERROR_DEBUG
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
 			fname, esr_response, sim983->record->name ));
-#endif
+#  endif
 
 		esr_byte = atol( esr_response );
 
@@ -279,6 +279,13 @@ mxd_sim983_command( MX_SIM983 *sim983,
 
 #endif /* MXD_SIM983_CHECK_ESR */
 
+	}
+
+	if ( attempt > max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after %ld attempts to send the command '%s' "
+		"to SIM983 module '%s'.",
+			max_attempts, command, sim983->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006-2008 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2008 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,6 +49,8 @@ extern MXSRV_MX_SERVER_SOCKET mxsrv_tcp_server_socket_struct;
 #if HAVE_UNIX_DOMAIN_SOCKETS
 extern MXSRV_MX_SERVER_SOCKET mxsrv_unix_server_socket_struct;
 #endif
+
+extern void mxsrv_print_timestamp( void );
 
 extern int mxserver_main( int argc, char *argv[] );
 
