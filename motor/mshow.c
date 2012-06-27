@@ -795,6 +795,8 @@ motor_show_field( char *record_field_name )
 	return SUCCESS;
 }
 
+/*=========================================================================*/
+
 void
 motor_show_version( void )
 {
@@ -812,6 +814,23 @@ motor_show_version( void )
 		fprintf( output, "OS version: %s\n", os_version_string );
 	}
 
+/*-------------------------------------------------------------------------*/
+
+#if defined(OS_MACOSX)
+	fprintf( output, "MacOS X version: " );
+	fflush( output );
+
+	{
+		unsigned long process_id;
+
+		(void) mx_spawn( "sw_vers -productVersion", 0, &process_id );
+
+		(void) mx_wait_for_process_id( process_id, NULL );
+	}
+#endif
+
+/*-------------------------------------------------------------------------*/
+
 #if defined(__GNUC__)
 #  if !defined(__GNUC_PATCHLEVEL__)
 #    define __GNUC_PATCHLEVEL__ 0
@@ -820,6 +839,8 @@ motor_show_version( void )
 		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
 
 #endif /* __GNUC__ */
+
+/*-------------------------------------------------------------------------*/
 
 #if defined(__GLIBC__)
 
@@ -844,6 +865,8 @@ motor_show_version( void )
 				__GLIBC__, __GLIBC_MINOR__ );
 #  endif
 #endif /* __GLIBC__ */
+
+/*-------------------------------------------------------------------------*/
 
 	return;
 }
