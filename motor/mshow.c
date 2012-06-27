@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007, 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,6 +40,10 @@
 #ifndef max
 #define max(a,b) ((a) >= (b) ? (a) : (b))
 #endif
+
+void motor_show_version( void );
+
+/*---*/
 
 int
 motor_showall_fn( int argc, char *argv[] )
@@ -162,7 +166,7 @@ motor_show_fn( int argc, char *argv[] )
 		length = 1;
 
 	if ( strncmp( "version", argv[2], max(2,length) ) == 0 ) {
-		fprintf( output, "MX version %s\n", mx_get_version_string() );
+		motor_show_version();
 		return SUCCESS;
 
 	} else if ( strncmp( "help", argv[2], length ) == 0 ) {
@@ -791,3 +795,55 @@ motor_show_field( char *record_field_name )
 	return SUCCESS;
 }
 
+void
+motor_show_version( void )
+{
+	char os_version_string[80];
+	mx_status_type mx_status;
+
+	fprintf( output, "MX version: %s\n", mx_get_version_string() );
+
+	mx_status = mx_get_os_version_string( os_version_string,
+						sizeof( os_version_string ) );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fprintf( output, "Error: Could not get OS version string.\n" );
+	} else {
+		fprintf( output, "OS version: %s\n", os_version_string );
+	}
+
+#if defined(__GNUC__)
+#  if !defined(__GNUC_PATCHLEVEL__)
+#    define __GNUC_PATCHLEVEL__ 0
+#  endif
+	fprintf( output, "GCC version: %d.%d.%d\n",
+		__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ );
+
+#endif /* __GNUC__ */
+
+#if defined(__GLIBC__)
+
+#  if (__GLIBC__ < 2)
+#     define MXP_USE_GNU_GET_LIBC_VERSION   0
+#  elif (__GLIBC__ == 2)
+#     if (__GLIBC_MINOR__ < 1)
+#        define MXP_USE_GNU_GET_LIBC_VERSION   0
+#     else
+#        define MXP_USE_GNU_GET_LIBC_VERSION   1
+#     endif
+#  else
+#     define MXP_USE_GNU_GET_LIBC_VERSION   1
+#  endif
+
+#  if MXP_USE_GNU_GET_LIBC_VERSION
+#	include <gnu/libc-version.h>
+
+	fprintf( output, "GLIBC version: %s\n", gnu_get_libc_version() );
+#  else
+	fprintf( output, "GLIBC version: %d.%d.0\n",
+				__GLIBC__, __GLIBC_MINOR__ );
+#  endif
+#endif /* __GLIBC__ */
+
+	return;
+}
