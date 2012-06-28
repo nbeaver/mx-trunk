@@ -244,6 +244,14 @@ MX_API mx_status_type mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 MX_API mx_status_type mx_socket_close( MX_SOCKET *mx_socket );
 
+MX_API mx_status_type mx_get_socket_name( MX_SOCKET *mx_socket,
+						char *buffer,
+						size_t buffer_size );
+
+MX_API mx_status_type mx_get_socket_name_by_fd( MX_SOCKET_FD fd,
+						char *buffer,
+						size_t buffer_size );
+
 MX_API int mx_socket_ioctl( MX_SOCKET *mx_socket,
 					int ioctl_type,
 					void *ioctl_value );

@@ -17,6 +17,8 @@
 #ifndef _MX_IO_H_
 #define _MX_IO_H_
 
+#include "mx_socket.h"
+
 /* mx_fd_num_input_bytes_available() tells us how many bytes can be read
  * from a Unix-style file descriptor without blocking.
  */
@@ -35,6 +37,10 @@ MX_API char *mx_get_fd_name( unsigned long process_id, int fd,
 				char *buffer, size_t buffer_size );
 
 MX_API void mx_show_fd_names( unsigned long process_id );
+
+/*----*/
+
+MX_API void mx_win32_show_socket_names( void );
 
 /*----*/
 

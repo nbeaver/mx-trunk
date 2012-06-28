@@ -183,6 +183,10 @@ mx_list_head_process_function( void *record_ptr,
 		case MXLV_LHD_SHOW_OPEN_FDS:
 			mx_info( "Open file descriptors:" );
 			mx_show_fd_names( mx_process_id() );
+#if defined(OS_WIN32)
+			mx_info( "Open sockets:" );
+			mx_win32_show_socket_names();
+#endif
 			break;
 		default:
 			MX_DEBUG( 1,(

@@ -853,75 +853,59 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 static mx_bool_type tested_for_mx_get_fd_name = FALSE;
 
-/* For Windows Vista and newer, we can use GetFileInformationByHandleEx(). */
+/* For Windows Vista and newer, we can use GetFinalPathNameByHandle(). */
 
-typedef BOOL (*GetFileInformationByHandleEx_type)( HANDLE,
-						FILE_INFO_BY_HANDLE_CLASS,
-						LPVOID, DWORD );
+typedef BOOL (*GetFinalPathNameByHandle_type)( HANDLE, LPTSTR, DWORD, DWORD );
 
-static GetFileInformationByHandleEx_type
-	ptrGetFileInformationByHandleEx = NULL;
+static GetFinalPathNameByHandle_type
+	ptrGetFinalPathNameByHandle = NULL;
+
+#define GFPN_BY_HANDLE_BUFFER_SIZE	(MXU_FILENAME_LENGTH + 3)
 
 static mx_status_type
-mxp_get_fd_name_gfi_by_handle_ex( HANDLE fd_handle, int fd,
+mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
 				char *buffer, size_t buffer_size )
 {
-	static const char fname[] = "mxp_get_fd_name_gfi_by_handle_ex()";
+	static const char fname[] = "mxp_get_fd_name_gfpn_by_handle()";
 
-	BOOL os_status;
-	DWORD last_error_code;
+	DWORD filename_length, last_error_code;
 	TCHAR message_buffer[100];
-	size_t num_converted;
+	TCHAR tchar_filename_buffer[GFPN_BY_HANDLE_BUFFER_SIZE];
 	errno_t errno_status;
+	size_t num_converted;
 
-	FILE_NAME_INFO *name_info;
-	size_t name_info_length;
-	mx_status_type mx_status;
+	filename_length = ptrGetFinalPathNameByHandle( fd_handle,
+						tchar_filename_buffer,
+						GFPN_BY_HANDLE_BUFFER_SIZE,
+						0 );
 
-	/* The definition of FILE_NAME_INFO only contains enough space
-	 * for a single character filename, so we must allocate enough
-	 * space for the filename at the end of the structure.
-	 */
-
-	name_info_length = MXU_FILENAME_LENGTH + 50;
-
-	name_info = (FILE_NAME_INFO *) malloc( name_info_length );
-
-	if ( name_info == (FILE_NAME_INFO *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte buffer "
-		"for a FILE_NAME_INFO structure.", name_info_length );
-	}
-
-	/* Now get information about this handle. */
-
-	os_status = ptrGetFileInformationByHandleEx( fd_handle,
-						FileNameInfo,
-						name_info,
-						name_info_length );
-
-	if ( os_status == 0 ) {
+	if ( filename_length >= GFPN_BY_HANDLE_BUFFER_SIZE ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The filename corresponding to Win32 handle %#lx (fd %d) "
+		"is longer than the supplied buffer size %ld in TCHARs.  "
+		"Increase GFPN_BY_HANDLE_BUFFER_SIZE to %ld and recompile MX.",
+			fd_handle, fd, GFPN_BY_HANDLE_BUFFER_SIZE,
+			filename_length );
+	} else
+	if ( filename_length == 0 ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to get filename information for file descriptor %d.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd, last_error_code, message_buffer );
-
-		mx_free( name_info );
-
-		return mx_status;
 	}
 
 	/* Convert the wide character filename into single-byte characters. */
 
+#if defined(_UNICODE)
 	errno_status = wcstombs_s( &num_converted,
 				buffer,
 				buffer_size,
-				name_info->FileName,
+				tchar_filename_buffer,
 				_TRUNCATE );
 
 	if ( errno_status != 0 ) {
@@ -930,20 +914,23 @@ mxp_get_fd_name_gfi_by_handle_ex( HANDLE fd_handle, int fd,
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to convert wide character filename for "
 		"file descriptor %d.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			last_error_code, message_buffer );
-
-		mx_free( name_info );
-
-		return mx_status;
 	}
-
-	mx_free( name_info );
+#else
+	strlcpy( buffer, tchar_filename_buffer, buffer_size );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
+#if 1
+	/* FIXME: This function dies with an access violation upon returning
+	 * unless this "extra" return is here.  This should not be necessary.
+	 */
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 /*----*/
@@ -1005,39 +992,6 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return buffer;
 	}
 
-	/* Test for pipes. */
-
-	status = GetNamedPipeInfo(fd_handle, &pipe_flags, NULL, NULL, NULL);
-
-	if ( status != 0 ) {
-		snprintf( buffer, sizeof(buffer),
-				"Pipe handle %#lx (fd %d)", fd_handle, fd );
-		return buffer;
-	} else {
-		last_error_code = GetLastError();
-
-		/* A handle that does not belong to a pipe will give
-		 * an error code of ERROR_INVALID_PARAMETER (87).
-		 * If we get any other error code, then that is
-		 * a real error.
-		 */
-
-		if ( last_error_code != ERROR_INVALID_PARAMETER ) {
-
-			mx_win32_error_message( last_error_code,
-				message_buffer, sizeof(message_buffer) );
-
-			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"A call to GetNamedPipeInfo() for handle %#lx "
-			"(fd %d) failed.  "
-			"win32 error code = %ld, error message = '%s'.",
-				fd_handle, fd,
-				last_error_code, message_buffer );
-
-			return NULL;
-		}
-	}
-
 	/* Test for the existence of file information functions. */
 
 	if ( tested_for_mx_get_fd_name == FALSE ) {
@@ -1057,31 +1011,64 @@ mx_get_fd_name( unsigned long process_id, int fd,
 			return NULL;
 		}
 
-		ptrGetFileInformationByHandleEx =
-			(GetFileInformationByHandleEx_type)
+#if defined(_UNICODE)
+		ptrGetFinalPathNameByHandle =
+			(GetFinalPathNameByHandle_type)
 			GetProcAddress( hinst_kernel32,
-				TEXT("GetFileInformationByHandleEx") );
-
-#if 0
-		MX_DEBUG(-2,("%s: ptrGetFileInformationByHandleEx = %p",
-			fname, ptrGetFileInformationByHandleEx));
+				TEXT("GetFinalPathNameByHandleW") );
+#else
+		ptrGetFinalPathNameByHandle =
+			(GetFinalPathNameByHandle_type)
+			GetProcAddress( hinst_kernel32,
+				TEXT("GetFinalPathNameByHandleA") );
 #endif
 	}
 
 	/* Now we branch out to the various version specific methods. */
 
-	if ( ptrGetFileInformationByHandleEx != NULL ) {
-		mx_status = mxp_get_fd_name_gfi_by_handle_ex( fd_handle,
+	if ( ptrGetFinalPathNameByHandle != NULL ) {
+
+		mx_status = mxp_get_fd_name_gfpn_by_handle( fd_handle,
 						fd, buffer, buffer_size );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return NULL;
-	} else {
-		MX_DEBUG(-2,("%s is not yet implemented for this platform.",
-			fname));
+	} else
+	{
+		snprintf( buffer, buffer_size,
+			"%s is not yet implemented for this platform.", fname );
 	}
 
 	return buffer;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void
+mx_win32_show_socket_names( void )
+{
+	MX_SOCKET_FD i, max_sockets, num_open_sockets;
+	char buffer[MXU_FILENAME_LENGTH+20];
+	mx_status_type mx_status;
+
+	max_sockets = 65536;	/* FIXME: May require more investigation. */
+
+	num_open_sockets = 0;
+
+	for ( i = 0; i < max_sockets; i++ ) {
+		mx_status = mx_get_socket_name_by_fd(
+					i, buffer, sizeof(buffer) );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			num_open_sockets++;
+
+			mx_info( "%d - %s", i, buffer );
+		}
+	}
+
+	mx_info( "num_open_sockets = %d", num_open_sockets );
+
+	return;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1293,8 +1280,6 @@ mx_show_fd_names( unsigned long process_id )
 #if defined(OS_LINUX) && ( MX_GLIBC_VERSION >= 2003006L )
 
 	/*** Use Linux inotify via Glibc >= 2.3.6 ***/
-
-/* WARNING: This is not yet tested, so it probably does not work. */
 
 #include <sys/inotify.h>
 #include <stddef.h>
