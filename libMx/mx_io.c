@@ -705,7 +705,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 static mx_bool_type tested_for_mx_get_fd_name = FALSE;
 
-/* For Windows Vista and newer, we can use GetFinalPathNameByHandle(). */
+/*--- For Windows Vista and newer, we can use GetFinalPathNameByHandle(). ---*/
 
 typedef BOOL (*GetFinalPathNameByHandle_type)( HANDLE, LPTSTR, DWORD, DWORD );
 
@@ -783,6 +783,84 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
 	 */
 	return MX_SUCCESSFUL_RESULT;
 #endif
+}
+
+/*--- For Windows XP and before, we use file mapping objects. ---*/
+
+static mx_status_type
+mxp_get_fd_name_via_mapping( HANDLE fd_handle, int fd,
+				char *buffer, size_t buffer_size )
+{
+	static const char fname[] = "mxp_get_fd_name_via_mapping()";
+
+	HANDLE file_mapping_handle;
+	DWORD file_size_high;
+	DWORD file_size_low;
+	void *memory_ptr;
+
+	/* FIXME: check the following. */
+
+	DWORD os_status;
+	TCHAR tchar_filename[MXU_FILENAME_LENGTH];
+
+	file_size_high = 0;
+
+	file_size_low  = GetFileSize( fd_handle, &file_size_high );
+
+	if ( (file_size_high == 0) && (file_size_low == 0) ) {
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Handle %#lx (fd %d) has file size 0, "
+		"so we cannot get its name.",
+			fd_handle, fd );
+
+		*buffer = '\0';
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if 1
+	strlcpy( buffer, ">>> Placeholder <<<", buffer_size );
+#else
+	file_mapping_handle = CreateFileMapping( fd_handle,
+					NULL,
+					PAGE_READONLY,
+					0,
+					1,
+					NULL );
+
+	if ( file_mapping_handle != 0 ) {
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot create file mapping object for handle %#lx (fd %d).",
+			fd_handle, fd );
+		
+		*buffer = '\0';
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	memory_ptr = MapViewOfFile(file_mapping_handle, FILE_MAP_READ, 0, 0, 1);
+
+	if ( memory_ptr == NULL ) {
+		CloseHandle( file_mapping_handle );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot get pointer for file mapping of handle %#lx (fd %d).",
+			fd_handle, fd );
+		
+		*buffer = '\0';
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	os_status = GetMappedFileName( GetCurrentProcess(),
+					memory_ptr,
+					tchar_filename,
+					sizeof(tchar_filename) );
+
+	strlcpy( buffer, tchar_filename, buffer_size );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*----*/
@@ -880,15 +958,23 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 	if ( ptrGetFinalPathNameByHandle != NULL ) {
 
+		/* Windows Vista and above. */
+
 		mx_status = mxp_get_fd_name_gfpn_by_handle( fd_handle,
 						fd, buffer, buffer_size );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return NULL;
-	} else
-	{
+	} else {
+#if 0
 		snprintf( buffer, buffer_size,
 			"%s is not yet implemented for this platform.", fname );
+#else
+		/* Windows XP and below. */
+
+		mx_status = mxp_get_fd_name_via_mapping( fd_handle,
+						fd, buffer, buffer_size );
+#endif
 	}
 
 	return buffer;
