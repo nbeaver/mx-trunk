@@ -715,8 +715,8 @@ static GetFinalPathNameByHandle_type
 #define GFPN_BY_HANDLE_BUFFER_SIZE	(MXU_FILENAME_LENGTH + 3)
 
 static mx_status_type
-mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
-				char *buffer, size_t buffer_size )
+mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
+			char *buffer, size_t buffer_size )
 {
 	static const char fname[] = "mxp_get_fd_name_gfpn_by_handle()";
 
@@ -733,10 +733,10 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
 
 	if ( filename_length >= GFPN_BY_HANDLE_BUFFER_SIZE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The filename corresponding to Win32 handle %#lx (fd %d) "
+		"The filename corresponding to Win32 handle %#lx "
 		"is longer than the supplied buffer size %ld in TCHARs.  "
 		"Increase GFPN_BY_HANDLE_BUFFER_SIZE to %ld and recompile MX.",
-			fd_handle, fd, GFPN_BY_HANDLE_BUFFER_SIZE,
+			fd_handle, GFPN_BY_HANDLE_BUFFER_SIZE,
 			filename_length );
 	} else
 	if ( filename_length == 0 ) {
@@ -746,9 +746,9 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to get filename information for file descriptor %d.  "
+		"Unable to get filename information for Win32 handle %#lx.  "
 		"Win32 error code = %ld, error message = '%s'.",
-			fd, last_error_code, message_buffer );
+			fd_handle, last_error_code, message_buffer );
 	}
 
 	/* Convert the wide character filename into single-byte characters. */
@@ -788,20 +788,24 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle, int fd,
 /*--- For Windows XP and before, we use file mapping objects. ---*/
 
 static mx_status_type
-mxp_get_fd_name_via_mapping( HANDLE fd_handle, int fd,
-				char *buffer, size_t buffer_size )
+mxp_get_fd_name_via_mapping( HANDLE fd_handle,
+			char *buffer, size_t buffer_size )
 {
 	static const char fname[] = "mxp_get_fd_name_via_mapping()";
 
 	HANDLE file_mapping_handle;
-	DWORD file_size_high;
-	DWORD file_size_low;
+	DWORD file_size_high, file_size_low;
 	void *memory_ptr;
 
-	/* FIXME: check the following. */
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
 
 	DWORD os_status;
-	TCHAR tchar_filename[MXU_FILENAME_LENGTH];
+	TCHAR tchar_filename[MXU_FILENAME_LENGTH+1];
+
+	/* The GetMappedFileName function is  */
+
+	/* We may proceed now that we know that psapi.dll is available. */
 
 	file_size_high = 0;
 
@@ -809,18 +813,14 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle, int fd,
 
 	if ( (file_size_high == 0) && (file_size_low == 0) ) {
 		(void) mx_error( MXE_UNSUPPORTED, fname,
-		"Handle %#lx (fd %d) has file size 0, "
-		"so we cannot get its name.",
-			fd_handle, fd );
+		"Handle %#lx has file size 0, so we cannot get its name.",
+			fd_handle );
 
 		*buffer = '\0';
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-#if 1
-	strlcpy( buffer, ">>> Placeholder <<<", buffer_size );
-#else
 	file_mapping_handle = CreateFileMapping( fd_handle,
 					NULL,
 					PAGE_READONLY,
@@ -828,34 +828,83 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle, int fd,
 					1,
 					NULL );
 
-	if ( file_mapping_handle != 0 ) {
+	if ( file_mapping_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		if ( last_error_code == ERROR_ACCESS_DENIED ) {
+			strlcpy( buffer, ">>> Access Denied <<<", buffer_size );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot create file mapping object for handle %#lx (fd %d).",
-			fd_handle, fd );
+		"Cannot create file mapping object for handle %#lx.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd_handle, last_error_code, message_buffer );
 		
 		*buffer = '\0';
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	memory_ptr = MapViewOfFile(file_mapping_handle, FILE_MAP_READ, 0, 0, 1);
+	memory_ptr = MapViewOfFile( file_mapping_handle,
+					FILE_MAP_READ, 0, 0, 1 );
 
 	if ( memory_ptr == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
 		CloseHandle( file_mapping_handle );
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot get pointer for file mapping of handle %#lx (fd %d).",
-			fd_handle, fd );
+		"Cannot map the file corresponding to handle %#lx "
+		"into our address space.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd_handle, last_error_code, message_buffer );
 		
 		*buffer = '\0';
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+#if 1
+	/* FIXME: Need to load psapi.dll for this. */
+
+	strlcpy( buffer, ">>> psapi.dll handling not yet implemented <<<",
+		buffer_size );
+#else
 	os_status = GetMappedFileName( GetCurrentProcess(),
 					memory_ptr,
 					tchar_filename,
-					sizeof(tchar_filename) );
+					MXU_FILENAME_LENGTH );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		UnmapViewOfFile( memory_ptr );
+
+		CloseHandle( file_mapping_handle );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot the filename for the mapped file "
+		"corresponding to handle %#lx.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd_handle, last_error_code, message_buffer );
+		
+		*buffer = '\0';
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* FIXME: Unicode? */
 
 	strlcpy( buffer, tchar_filename, buffer_size );
 #endif
@@ -961,7 +1010,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		/* Windows Vista and above. */
 
 		mx_status = mxp_get_fd_name_gfpn_by_handle( fd_handle,
-						fd, buffer, buffer_size );
+						buffer, buffer_size );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return NULL;
@@ -973,7 +1022,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		/* Windows XP and below. */
 
 		mx_status = mxp_get_fd_name_via_mapping( fd_handle,
-						fd, buffer, buffer_size );
+						buffer, buffer_size );
 #endif
 	}
 
@@ -1502,6 +1551,10 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	(*monitor_ptr)->private_ptr = win32_monitor;
 
+	/* We must find the name of the directory that contains this file
+	 * and then canonicalize it for use by FindFirstChangeNotification().
+	 */
+
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
 
 	flags = FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE;
@@ -1522,7 +1575,7 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 		"An error occurred while invoking "
 		"FindFirstChangeNotifcation() for file '%s'.  "
 		"Win32 error code = %ld, error message = '%s'",
-			last_error_code, message_buffer );
+			filename, last_error_code, message_buffer );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
