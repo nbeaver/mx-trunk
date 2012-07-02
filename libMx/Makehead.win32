@@ -81,7 +81,7 @@ MSDEV_ARCH	= x86
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
@@ -102,7 +102,7 @@ MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 # Visual C++ 6.0                 (_MSC_VER == 1200)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
-#MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
 #

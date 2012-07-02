@@ -723,7 +723,7 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
 	DWORD filename_length, last_error_code;
 	TCHAR message_buffer[100];
 	TCHAR tchar_filename_buffer[GFPN_BY_HANDLE_BUFFER_SIZE];
-	errno_t errno_status;
+	int errno_status;
 	size_t num_converted;
 
 	filename_length = ptrGetFinalPathNameByHandle( fd_handle,

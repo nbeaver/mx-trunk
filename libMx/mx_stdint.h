@@ -85,6 +85,10 @@ typedef uint64_t		uintmax_t;
 /* Note: In some places, i64 and ui64 are suggested instead of LL and ULL
  * for Visual C++.  I stick with LL and ULL since that is what is used
  * on other build targets.
+ *
+ * Note (2012-07-02):
+ * It turns out that Visual C++ 6 supports i64 and ui64, but not LL and ULL.
+ * For that reason, we switch to using i64 and ui64 in the following macros.
  */
 
 #  if defined(_MSC_VER)
@@ -92,12 +96,12 @@ typedef uint64_t		uintmax_t;
 #     if defined(INT64_C)
 #        undef(INT64_C)
 #     endif
-#     define INT64_C(x)		x ## LL
+#     define INT64_C(x)		x ## i64
 
 #     if defined(UINT64_C)
 #        undef(UINT64_C)
 #     endif
-#     define UINT64_C(x)	x ## ULL
+#     define UINT64_C(x)	x ## ui64
 
 #  endif   /* _MSC_VER */
 

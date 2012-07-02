@@ -113,6 +113,15 @@ typedef struct {
 	UINT timer_resolution;
 } MX_WIN32_MMTIMER_PRIVATE;
 
+/* The prototypes for timeSetEvent() were rather sloppy in
+ * older Visual C++ versions, so we have to do the following
+ * definition of DWORD_PTR here.
+ */
+
+#if ( defined(_MSC_VER ) && (_MSC_VER < 1300) )
+#  define DWORD_PTR	DWORD
+#endif
+
 static void CALLBACK
 mx_interval_timer_thread_handler( UINT timer_id,
 				UINT reserved_msg,
