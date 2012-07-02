@@ -112,7 +112,7 @@ motor_test_fn( int argc, char *argv[] )
 
 				_setmaxstdio( max_fds );
 			} else {
-				max_fds = _getmaxstdio();
+				max_fds = mx_get_max_file_descriptors();
 
 				mx_info( "max_fds = %d", max_fds );
 			}

@@ -162,7 +162,11 @@ mx_get_max_file_descriptors( void )
 
 #elif defined( OS_WIN32 )
 
+#  if ( defined(_MSC_VER) && (_MSC_VER >= 1100) )
 	result = _getmaxstdio();
+#  else
+	result = 512;
+#  endif
 
 #elif defined( OS_ECOS )
 
@@ -230,7 +234,7 @@ mx_get_number_of_open_file_descriptors( void )
 	intptr_t handle;
 	int i, max_fds, used_fds;
 
-	max_fds = _getmaxstdio();
+	max_fds = mx_get_max_file_descriptors();
 
 	used_fds = 0;
 
