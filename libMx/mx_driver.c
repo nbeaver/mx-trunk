@@ -141,7 +141,6 @@
 #include "i_linux_portio.h"
 #include "i_linux_iopl.h"
 #include "i_dos_portio.h"
-#include "i_driverlinx_portio.h"
 
 #include "i_vxi_memacc.h"
 #include "i_sis3100.h"
@@ -1184,18 +1183,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_dos_portio_num_record_fields,
 				&mxi_dos_portio_rfield_def_ptr},
 #endif /* OS_MSDOS | OS_WIN32 */
-
-#ifdef OS_WIN32
-#if HAVE_DRIVERLINX_PORTIO
-
-{"dl_portio",      MXI_PIO_DRIVERLINX, MXI_PORTIO,     MXR_INTERFACE,
-				&mxi_driverlinx_portio_record_function_list,
-				NULL,
-				&mxi_driverlinx_portio_portio_function_list,
-				&mxi_driverlinx_portio_num_record_fields,
-				&mxi_driverlinx_portio_rfield_def_ptr},
-#endif /* HAVE_DRIVERLINX_PORTIO */
-#endif /* OS_WIN32 */
 
 #if HAVE_NI_VISA
 

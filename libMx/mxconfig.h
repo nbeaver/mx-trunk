@@ -59,9 +59,11 @@
 /**************************************************************************
  * Sets of drivers that have been converted to modules include:           *
  *                                                                        *
+ *    driverlinx_portio     Formerly enabled by HAVE_DRIVERLINX_PORTIO    *
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
  *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
+ *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
  *    u500                  Formerly enabled by HAVE_U500                 *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
@@ -168,18 +170,6 @@
 
 /*****************************************************************************
  *
- * The DriverLINX Port I/O driver allows a user mode program running under
- * Windows NT to access Intel x86 I/O ports from 0x0100 to 0xFFFF.  This
- * driver was written by Scientific Software Tools, Inc. and may be downloaded
- * from http://www.sstnet.com/dnload/dnload.htm.  This driver also works
- * under Windows 95/98, but on those machines it is probably simpler to
- * just use the 'dos_portio' driver.
- */
-
-#define HAVE_DRIVERLINX_PORTIO		0
-
-/*****************************************************************************
- *
  * m68k Linux MX driver for controlling Oregon Microsystems VME-58 motor
  * controllers from a VME crate running Linux 2.0 on its system controller.
  * This driver uses a Linux device driver that is available from ESRF at
@@ -209,16 +199,6 @@
  */
 
 #define HAVE_PMC_MCAPI			0
-
-/*****************************************************************************
- *
- * Win32 driver for the EG&G Ortec Unified MCB Interface for 32 Bits
- * programmer's toolkit (Part # A11-B32) under Microsoft Windows 95.
- * Note that this driver does not support the 16 bit version of the MCB
- * interface software.
- */
-
-#define HAVE_ORTEC_UMCBI		0
 
 #endif /* _MXCONFIG_H_ */
 

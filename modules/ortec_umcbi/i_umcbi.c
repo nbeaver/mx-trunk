@@ -16,6 +16,8 @@
  *
  */
 
+#define MXI_UMCBI_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,8 +65,6 @@ long mxi_umcbi_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_umcbi_rfield_def_ptr
 			= &mxi_umcbi_record_field_defaults[0];
-
-#define MXI_UMCBI_DEBUG		FALSE
 
 /*==========================*/
 

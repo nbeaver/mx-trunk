@@ -12,7 +12,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,12 +20,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#ifdef OS_WIN32
-
-#if HAVE_DRIVERLINX_PORTIO
 
 #include <windows.h>
 
@@ -162,6 +156,3 @@ mxi_driverlinx_portio_release_region( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_DRIVERLINX_PORTIO */
-
-#endif /* OS_WIN32 */

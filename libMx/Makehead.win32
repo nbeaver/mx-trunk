@@ -15,14 +15,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
-
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
-
-#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PMC_MCAPI_INCLUDES) 
-#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PMC_MCAPI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
@@ -239,15 +233,6 @@ PMC_MCAPI_LIBS       = $(PMC_MCAPI_DIR)\\mcapi32.lib \
 JORWAY_CAMAC_DIR     = c:\\camac\\jorway\\sjyWIN
 JORWAY_CAMAC_LIBS    = $(JORWAY_CAMAC_DIR)\\lib\\sjy73a.lib
 ESONE_CAMAC_INCLUDES = -I$(JORWAY_CAMAC_DIR)\\inc
-
-#---------------------------------------------------------------------------
-#
-# DriverLINX NT Port I/O driver.
-#
-
-DRIVERLINX_DIR      = c:\\progra~1\\DLPortIO
-DRIVERLINX_INCLUDES = -I$(DRIVERLINX_DIR)\\API
-DRIVERLINX_LIBS     = $(DRIVERLINX_DIR)\\API\\DLPORTIO.lib
 
 #
 #========================================================================

@@ -31,6 +31,8 @@ all: build
 
 #MODULES += bnc725_lib
 
+MODULES += driverlinx_portio
+
 #MODULES += ni_valuemotion
 
 MODULES += ortec_umcbi

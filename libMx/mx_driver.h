@@ -249,7 +249,7 @@ extern "C" {
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
-#define MXI_PIO_DRIVERLINX		502
+
 #define MXI_PIO_IOPL			503
 #define MXI_PIO_IOPERM			504
 #define MXI_PIO_VXWORKS			505

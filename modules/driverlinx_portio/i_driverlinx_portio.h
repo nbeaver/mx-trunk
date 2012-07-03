@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000, 2006 Illinois Institute of Technology
+ * Copyright 2000, 2006, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_API mx_status_type mxi_driverlinx_portio_release_region( MX_RECORD *record,
 					unsigned long length );
 
 typedef struct {
-	int dummy;
+	MX_RECORD *record;
 } MX_DRIVERLINX_PORTIO;
 
 extern MX_RECORD_FUNCTION_LIST mxi_driverlinx_portio_record_function_list;
