@@ -186,7 +186,6 @@ extern "C" {
 
 #define MXI_CAM_SOFTWARE		300
 #define MXI_CAM_DSP6001			301
-#define MXI_CAM_ESONE			302
 
 #define MXI_CTRL_MM3000			400
 #define MXI_CTRL_MM4000			401

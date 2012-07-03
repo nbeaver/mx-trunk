@@ -44,9 +44,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
 #LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(JORWAY_CAMAC_LIB_DIRS)
-#LIBRARIES	= $(JORWAY_CAMAC_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(PMC_MCAPI_LIB_DIRS)
 #LIBRARIES	= $(PMC_MCAPI_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -64,12 +61,10 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) \
 #			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
-#			$(SIS3100_LIB_DIRS) $(LIBUSB_LIB_DIRS) \
-#			$(JORWAY_CAMAC_LIB_DIRS)
+#			$(SIS3100_LIB_DIRS) $(LIBUSB_LIB_DIRS)
 #
 #LIBRARIES	= $(NI488_LIBRARIES) $(NI_VISA_LIBRARIES) \
 #		$(SIS3100_LIBRARIES) $(LIBUSB_LIBRARIES) \
-#		$(JORWAY_CAMAC_LIBRARIES) \
 #				-lpthread -lrt -ldl -lm
 
 #--------------------------------------------------------------------------
@@ -174,12 +169,6 @@ SIS3100_DIR       = /usr/local/src/sis1100/V2.02/sis3100_calls
 SIS3100_INCLUDES  = -I$(SIS3100_DIR) -DIS_MX_DRIVER
 SIS3100_LIB_DIRS  = -L$(SIS3100_DIR)
 SIS3100_LIBRARIES = -l_sis3100
-
-#
-JORWAY_CAMAC_DIR       = /usr/local/src/sjyLX-v2.2
-JORWAY_CAMAC_LIB_DIRS  = -L$(JORWAY_CAMAC_DIR)/lib
-JORWAY_CAMAC_LIBRARIES = -lsjy
-ESONE_CAMAC_INCLUDES   = -I$(JORWAY_CAMAC_DIR)/include
 
 #
 PMC_MCAPI_INCLUDES  = -I/usr/local/src/mcapi-4.1.2/src
@@ -309,7 +298,7 @@ COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
-	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
+	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) \
 	$(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend

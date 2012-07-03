@@ -19,6 +19,8 @@ all: build
 
 #MODULES += epix_xclib		# linux, win32
 
+#MODULES += esone_camac		# linux, win32
+
 #MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
@@ -32,6 +34,8 @@ all: build
 #MODULES += bnc725_lib
 
 MODULES += driverlinx_portio
+
+MODULES += esone_camac
 
 #MODULES += ni_valuemotion
 

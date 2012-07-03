@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,11 +18,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_JORWAY_CAMAC
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -142,6 +137,7 @@ mxi_esone_camac_create_record_structures( MX_RECORD *record )
 			&mxi_esone_camac_camac_function_list;
 
 	crate->record = record;
+	esone_camac->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -229,4 +225,3 @@ mxi_esone_camac( MX_CAMAC *camac, long slot, long subaddress,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_JORWAY_CAMAC */

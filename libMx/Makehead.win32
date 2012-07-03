@@ -12,9 +12,6 @@
 INCLUDES  = $(MX_INCLUDES)
 LIBRARIES = $(WIN32_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
-
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
 
@@ -224,15 +221,6 @@ PMC_MCAPI_DIR        = c:\\progra~1\\motion~1\\motion~1\\sources
 PMC_MCAPI_INCLUDES   = -I$(PMC_MCAPI_DIR)
 PMC_MCAPI_LIBS       = $(PMC_MCAPI_DIR)\\mcapi32.lib \
 			$(PMC_MCAPI_DIR)\\mcdlg32.lib
-
-#---------------------------------------------------------------------------
-#
-# Jorway CAMAC drivers from Fermilab
-#
-
-JORWAY_CAMAC_DIR     = c:\\camac\\jorway\\sjyWIN
-JORWAY_CAMAC_LIBS    = $(JORWAY_CAMAC_DIR)\\lib\\sjy73a.lib
-ESONE_CAMAC_INCLUDES = -I$(JORWAY_CAMAC_DIR)\\inc
 
 #
 #========================================================================

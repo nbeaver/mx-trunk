@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006, 2008 Illinois Institute of Technology
+ * Copyright 2004, 2006, 2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_API mx_status_type mxi_esone_camac( MX_CAMAC *crate,
 /* Define the data structures used by the ESONE CAMAC interface code. */
 
 typedef struct {
-	int dummy;
+	MX_RECORD *record;
 } MX_ESONE_CAMAC;
 
 extern MX_RECORD_FUNCTION_LIST mxi_esone_camac_record_function_list;
