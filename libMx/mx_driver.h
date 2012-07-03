@@ -206,7 +206,7 @@ extern "C" {
 #define MXI_CTRL_VME58			415
 #define MXI_CTRL_VSC16			416
 #define MXI_CTRL_SCIPE			417
-#define MXI_CTRL_PCMOTION32		418
+
 #define MXI_CTRL_PCSTEP			419
 #define MXI_CTRL_6821			420
 #define MXI_CTRL_DATABOX		421
@@ -467,7 +467,7 @@ extern "C" {
 #define MXT_MTR_PDI40			50024
 #define MXT_MTR_VME58			50025
 #define MXT_MTR_SCIPE			50026
-#define MXT_MTR_PCMOTION32		50027
+
 #define MXT_MTR_PCSTEP			50028
 #define MXT_MTR_DAC_MOTOR		50029
 #define MXT_MTR_LAKESHORE330		50030

@@ -61,6 +61,7 @@
  *                                                                        *
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
+ *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
  *    u500                  Formerly enabled by HAVE_U500                 *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
@@ -208,17 +209,6 @@
  */
 
 #define HAVE_PMC_MCAPI			0
-
-/*****************************************************************************
- *
- * Win32 driver for the National Instruments stepper and servo boards
- * that were originally made by nuLogic.  This includes the ValueMotion
- * series of motor controllers.  The PCMOTION32.DLL and PCMOTION32.LIB
- * files required are normally provided with the board at the time of
- * purchase.
- */
-
-#define HAVE_PCMOTION32			0
 
 /*****************************************************************************
  *

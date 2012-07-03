@@ -121,7 +121,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_network_scaler.c d_network_timer.c d_network_vinput.c \
 	d_network_wvout.c \
 	d_newport.c d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
-	d_panasonic_kx_dp702.c d_panther.c d_pcmotion32.c d_pcstep.c \
+	d_panasonic_kx_dp702.c d_panther.c d_pcstep.c \
 	d_pdi40.c d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
 	d_pdi45_scaler.c d_pdi45_timer.c \
 	d_pfcu.c d_pfcu_filter_summary.c d_pfcu_shutter_timer.c \
@@ -169,7 +169,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
 	i_modbus_serial_rtu.c i_modbus_tcp.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c i_ni488.c i_ortec974.c \
-	i_panasonic_kx_dp702.c i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
+	i_panasonic_kx_dp702.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
 	i_pmac.c i_pmc_mcapi.c \
 	i_prologix.c i_rtems_vme.c \
@@ -266,9 +266,6 @@ include Makefile.depend
 d_edt.$(OBJ): d_edt.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
 
-d_pcmotion32.$(OBJ): d_pcmotion32.c
-	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c
-
 d_pmc_mcapi.$(OBJ): d_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) d_pmc_mcapi.c
 
@@ -322,9 +319,6 @@ i_pmac.$(OBJ): i_pmac.c i_pmac.h
 
 i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) i_pmc_mcapi.c
-
-i_pcmotion32.$(OBJ): i_pcmotion32.c
-	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) i_pcmotion32.c
 
 i_sis3100.$(OBJ): i_sis3100.c
 	$(COMPILE) $(CFLAGS) $(SIS3100_INCLUDES) i_sis3100.c

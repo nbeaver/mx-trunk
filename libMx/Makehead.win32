@@ -24,9 +24,9 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PCMOTION32_INCLUDES) \
+#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) \
 #		 $(PMC_MCAPI_INCLUDES) $(UMCBI_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PCMOTION32_LIBS) \
+#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) \
 #		$(PMC_MCAPI_LIBS) $(UMCBI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
@@ -101,7 +101,7 @@ MSDEV_ARCH	= x86
 #
 # Visual C++ 6.0                 (_MSC_VER == 1200)
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= d:\\progra~1\\micros~2\\vc98
@@ -112,7 +112,7 @@ MSDEV_ARCH	= x86
 #
 # Visual C++ 4.0                 (_MSC_VER == 1000)
 #
-MSDEV_DIR	= c:\\msdevstd
+#MSDEV_DIR	= c:\\msdevstd
 #MSDEV_DIR	= c:\\msdev
 #
 
@@ -262,20 +262,6 @@ ESONE_CAMAC_INCLUDES = -I$(JORWAY_CAMAC_DIR)\\inc
 DRIVERLINX_DIR      = c:\\progra~1\\DLPortIO
 DRIVERLINX_INCLUDES = -I$(DRIVERLINX_DIR)\\API
 DRIVERLINX_LIBS     = $(DRIVERLINX_DIR)\\API\\DLPORTIO.lib
-
-#---------------------------------------------------------------------------
-#
-# Directory containing the National Instruments pcMotion32 DLL for the
-# ValueMotion series of motor controllers.
-#
-
-#PCMOTION32_DIR      = c:\\nuLogic\\pcMotion
-#PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\SUPPORT
-#PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\SUPPORT\\Microsoft\\pcmotionMS.lib
-
-PCMOTION32_DIR      = c:\\ValueMotion
-PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\Include
-PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\lib\\Microsoft\\pcmotionMS.lib
 
 #
 #========================================================================

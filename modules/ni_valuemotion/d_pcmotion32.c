@@ -9,7 +9,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006, 2008, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,15 +18,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_PCMOTION32
-
-#ifndef OS_WIN32
-#error "This driver is only supported under Win32 (Windows NT/98/95)."
-#endif
-
 #include <stdlib.h>
 #include <math.h>
 
@@ -1134,6 +1126,4 @@ mxd_pcmotion32_set_parameter( MX_MOTOR *motor )
 
 	return mx_status;
 }
-
-#endif /* HAVE_PCMOTION32 */
 

@@ -9,23 +9,16 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define MXI_PCMOTION32_DEBUG	FALSE
+
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_PCMOTION32
-
-#ifndef OS_WIN32
-#error "This driver is only supported under Win32 (Windows NT/98/95)."
-#endif
-
 #include <stdlib.h>
 
 #include <windows.h>
@@ -63,8 +56,6 @@ long mxi_pcmotion32_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_pcmotion32_rfield_def_ptr
 			= &mxi_pcmotion32_record_field_defaults[0];
-
-#define MXI_PCMOTION32_DEBUG	FALSE
 
 static mx_status_type
 mxi_pcmotion32_get_pointers( MX_RECORD *record,
@@ -301,6 +292,4 @@ mxi_pcmotion32_strerror( int status_code )
 
 	return &mxi_pcmotion32_error_message[ status_code ][0];
 }
-
-#endif /* HAVE_PCMOTION32 */
 

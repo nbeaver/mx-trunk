@@ -169,7 +169,6 @@
 #include "i_hsc1.h"
 #include "i_vme58.h"
 #include "i_vsc16.h"
-#include "i_pcmotion32.h"
 #include "i_pcstep.h"
 #include "i_databox.h"
 #include "i_sis3807.h"
@@ -287,7 +286,6 @@
 #include "d_hsc1.h"
 #include "d_stp100.h"
 #include "d_vme58.h"
-#include "d_pcmotion32.h"
 #include "d_pcstep.h"
 #include "d_dac_motor.h"
 #include "d_lakeshore330_motor.h"
@@ -2492,24 +2490,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_compumotor_linear_motor_function_list,
 				&mxd_compumotor_linear_num_record_fields,
 				&mxd_compumotor_linear_rfield_def_ptr},
-
-#if HAVE_PCMOTION32
-
-{"pcmotion32",      MXI_CTRL_PCMOTION32,  MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_pcmotion32_record_function_list,
-				NULL,
-				&mxi_pcmotion32_generic_function_list,
-				&mxi_pcmotion32_num_record_fields,
-				&mxi_pcmotion32_rfield_def_ptr},
-
-{"pcmotion32_motor", MXT_MTR_PCMOTION32, MXC_MOTOR,       MXR_DEVICE,
-				&mxd_pcmotion32_record_function_list,
-				NULL,
-				&mxd_pcmotion32_motor_function_list,
-				&mxd_pcmotion32_num_record_fields,
-				&mxd_pcmotion32_rfield_def_ptr},
-
-#endif /* HAVE_PCMOTION32 */
 
 #if 0
 {"encoder_soft",   MXT_ENC_SOFTWARE,  MXC_ENCODER,        MXR_DEVICE,

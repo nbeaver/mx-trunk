@@ -31,6 +31,8 @@ all: build
 
 #MODULES += bnc725_lib
 
+#MODULES += ni_valuemotion
+
 #MODULES += pleora_iport
 
 #MODULES += radicon_helios
