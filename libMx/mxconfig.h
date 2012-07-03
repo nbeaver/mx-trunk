@@ -61,7 +61,8 @@
  *                                                                        *
  *    driverlinx_portio     Formerly enabled by HAVE_DRIVERLINX_PORTIO    *
  *    epics                 Formerly enabled by HAVE_EPICS                *
- *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB.          *
+ *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB           *
+ *    esone_camac           Formerly enabled by HAVE_JORWAY_CAMAC         *
  *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
  *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
@@ -167,15 +168,6 @@
  */
 
 #define HAVE_LINUX_PORTIO		0
-
-/*****************************************************************************
- *
- * Linux and Win32 drivers (sjyLX and sjyWIN) written by Fermilab for Jorway
- * CAMAC controllers (Jorway 73A, etc.)
- *
- */
-
-#define HAVE_JORWAY_CAMAC		0
 
 /*****************************************************************************
  *
