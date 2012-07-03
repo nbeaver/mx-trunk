@@ -170,21 +170,6 @@
 
 /*****************************************************************************
  *
- * m68k Linux MX driver for controlling Oregon Microsystems VME-58 motor
- * controllers from a VME crate running Linux 2.0 on its system controller.
- * This driver uses a Linux device driver that is available from ESRF at
- * http://www.esrf.fr/computing/cs/sysadmin/rtk/emlinux/oregon.htm.
- * The ESRF driver is also supposed to support the PC-based OMS PC-58
- * and PC-68 motor controller cards, but I have not tested this yet.
- *
- * The source itself is at
- * ftp://ftp.esrf.fr/pub/cs/ess/linux/drivers/oms/oms-2.0.tgz
- */
-
-#define HAVE_VME58_ESRF			0
-
-/*****************************************************************************
- *
  * Linux and Win32 drivers (sjyLX and sjyWIN) written by Fermilab for Jorway
  * CAMAC controllers (Jorway 73A, etc.)
  *

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,23 +55,11 @@
 #define MX_VME58_STATUS_REGISTER	0xFE3
 
 typedef struct {
-	char device_name[MXU_FILENAME_LENGTH + 1];
-	int device_fd;		/* Unix file descriptor */
-} MX_VME58_ESRF;
+	MX_RECORD *record;
 
-typedef struct {
 	MX_RECORD *vme_record;
 	unsigned long crate_number;
 	unsigned long base_address;
-} MX_VME58_PORTIO;
-
-typedef struct {
-	MX_RECORD *record;
-
-	union {
-		MX_VME58_PORTIO portio;
-		MX_VME58_ESRF esrf;
-	} u;
 
 	long controller_type;
 	long num_axes;
@@ -85,7 +73,19 @@ typedef struct {
 
 } MX_VME58;
 
-#define MXI_VME58_COMMON_STANDARD_FIELDS \
+#define MXI_VME58_STANDARD_FIELDS \
+  {-1, -1, "vme_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, vme_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, crate_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "base_address", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, base_address), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {-1, -1, "controller_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, controller_type), \
 	{0}, NULL, 0}, \
@@ -94,23 +94,6 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, num_axes), \
 	{0}, NULL, 0}
 
-#define MXI_VME58_ESRF_STANDARD_FIELDS \
-  {-1, -1, "device_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.esrf.device_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
-
-#define MXI_VME58_PORTIO_STANDARD_FIELDS \
-  {-1, -1, "vme_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.vme_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.crate_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  \
-  {-1, -1, "base_address", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.base_address), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxi_vme58_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_vme58_finish_record_initialization(
@@ -123,13 +106,6 @@ extern MX_RECORD_FUNCTION_LIST mxi_vme58_record_function_list;
 
 extern long mxi_vme58_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vme58_rfield_def_ptr;
-
-#if HAVE_VME58_ESRF
-
-extern long mxi_vme58_esrf_num_record_fields;
-extern MX_RECORD_FIELD_DEFAULTS *mxi_vme58_esrf_rfield_def_ptr;
-
-#endif /* HAVE_VME58_ESRF */
 
 /* === Driver specific functions === */
 

@@ -3,23 +3,13 @@
  *
  * Purpose: MX driver for Oregon Microsystems VME58 motor controllers.
  *
- *          This driver can access the controller in either of two ways:
- *
- *          1.  An MX port I/O record.
- *                This is supported on any platform that implements
- *                MX port I/O records.
- *
- *          2.  An m68k Linux device driver written at the European
- *              Synchrotron Radiation Facility (ESRF).
- *                This is supported only on Linux 2.2.x.  Make sure to
- *                define HAVE_VME58_ESRF in "libMx/mxconfig.h" if you
- *                are planning to use this.
+ *          This driver accesses the controller via an MX port I/O record.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003, 2006-2007, 2010 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006-2007, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,17 +25,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#include "mxconfig.h"
-
-#if HAVE_VME58_ESRF
-#  if !defined( OS_LINUX )
-#     error "The ESRF VME58 driver can only be used under Linux."
-#  else
-#     include <sys/ioctl.h>
-#     include "omslib.h"
-#  endif
-#endif
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -73,8 +52,7 @@ MX_RECORD_FUNCTION_LIST mxi_vme58_record_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxi_vme58_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MXI_VME58_COMMON_STANDARD_FIELDS,
-	MXI_VME58_PORTIO_STANDARD_FIELDS
+	MXI_VME58_STANDARD_FIELDS
 };
 
 long mxi_vme58_num_record_fields
@@ -84,43 +62,14 @@ long mxi_vme58_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_vme58_rfield_def_ptr
 			= &mxi_vme58_record_field_defaults[0];
 
-static mx_status_type mxi_vme58_portio_open( MX_VME58 *vme58 );
+static mx_status_type mxi_vme58_putline( MX_VME58 *vme58,
+					char *command,
+					int debug_flag );
 
-static mx_status_type mxi_vme58_portio_command( MX_VME58 *vme58, char *command,
-				char *response, int response_buffer_length,
-				int debug_flag );
-
-static mx_status_type mxi_vme58_portio_putline( MX_VME58 *vme58, char *command,
-				int debug_flag );
-
-static mx_status_type mxi_vme58_portio_getline( MX_VME58 *vme58,
-				char *response, int response_buffer_length,
-				int debug_flag );
-
-/*----*/
-
-#if HAVE_VME58_ESRF
-
-MX_RECORD_FIELD_DEFAULTS mxi_vme58_esrf_record_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXI_VME58_COMMON_STANDARD_FIELDS,
-	MXI_VME58_ESRF_STANDARD_FIELDS
-};
-
-long mxi_vme58_esrf_num_record_fields
-		= sizeof( mxi_vme58_esrf_record_field_defaults )
-			/ sizeof( mxi_vme58_esrf_record_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxi_vme58_esrf_rfield_def_ptr
-			= &mxi_vme58_esrf_record_field_defaults[0];
-
-static mx_status_type mxi_vme58_esrf_command( MX_VME58 *vme58, char *command,
-				char *response, int response_buffer_length,
-				int debug_flag );
-
-#endif /* HAVE_VME58_ESRF */
-
-/*----*/
+static mx_status_type mxi_vme58_getline( MX_VME58 *vme58,
+					char *response,
+					int response_buffer_length,
+					int debug_flag );
 
 /* A private function for the use of the driver. */
 
@@ -200,12 +149,6 @@ mxi_vme58_finish_record_initialization( MX_RECORD *record )
 	vme58->event_interval
 		= mx_convert_seconds_to_clock_ticks( delay_seconds );
 
-	/* Mark the Linux device file as being closed. */
-
-	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
-		vme58->u.esrf.device_fd = -1;
-	}
-
 	/* Initialize the motor array. */
 
 	for ( i = 0; i < MX_MAX_VME58_AXES; i++ ) {
@@ -222,10 +165,13 @@ mxi_vme58_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vme58_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_vme58_open()";
+	static const char fname[] = "mxi_vme58_portio_open()";
 
+	MX_RECORD *vme_record;
 	MX_VME58 *vme58;
-	int saved_errno;
+	unsigned long crate, base;
+	unsigned long i, max_retries, sleep_ms;
+	uint8_t status_register;
 	mx_status_type mx_status;
 
 	vme58 = NULL;
@@ -235,42 +181,55 @@ mxi_vme58_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
+	MX_DEBUG( 2,("%s invoked for VME58 controller '%s'.",
+		fname, vme58->record->name ));
 
-#if defined( OS_LINUX )
+	vme_record = vme58->vme_record;
+	crate      = vme58->crate_number;
+	base       = vme58->base_address;
 
-		/* Try to open the ESRF device file. */
+	/* Wait for the board initialized flag to be set. */
 
-		vme58->u.esrf.device_fd
-			= open( vme58->u.esrf.device_name, O_RDWR );
+	max_retries = 10;
+	sleep_ms = 100;
 
-		if ( vme58->u.esrf.device_fd == -1 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Cannot open the VME58 device file '%s'.  Reason = '%s'.",
-			vme58->u.esrf.device_name, strerror( saved_errno ) );
-		}
-
-#else /* OS_LINUX */
-		/* Prevent the compiler from complaining about
-		 * an unused variable.
-		 */
-
-		saved_errno = 0;
-
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The 'vme58_esrf' driver can only be used under Linux." );
-#endif /* OS_LINUX */
-
-	} else {
-		/* Port I/O */
-
-		mx_status = mxi_vme58_portio_open( vme58 );
+	for ( i = 0; i < max_retries; i++ ) {
+		mx_status = mx_vme_in8( vme_record, crate, MXF_VME_A16,
+					base + MX_VME58_STATUS_REGISTER,
+					&status_register );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		MX_DEBUG( 2,("%s: status_register = %#x",
+					fname, status_register));
+
+		if ( status_register & 0x2 ) {
+
+			/* The board is initialized, so exit the for() loop. */
+
+			break;
+		}
+
+		mx_msleep( sleep_ms );
 	}
+
+	if ( i >= max_retries ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"VME58 controller '%s' has not finished initializing, "
+		"even after waiting for %lu milliseconds.",
+			vme58->record->name,
+			max_retries * sleep_ms );
+	}
+
+	/* This driver does not currently use interrupts, so turn them off. */
+
+	mx_status = mx_vme_out8( vme_record, crate, MXF_VME_A16,
+					base + MX_VME58_CONTROL_REGISTER,
+					0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Synchronize with the controller. */
 
@@ -285,7 +244,6 @@ mxi_vme58_close( MX_RECORD *record )
 	static const char fname[] = "mxi_vme58_close()";
 
 	MX_VME58 *vme58;
-	int close_status, saved_errno;
 	mx_status_type mx_status;
 
 	vme58 = NULL;
@@ -294,21 +252,6 @@ mxi_vme58_close( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( record->mx_type == MXI_CTRL_VME58_ESRF ) {
-
-		if ( vme58->u.esrf.device_fd >= 0 ) {
-			close_status = close( vme58->u.esrf.device_fd );
-
-			if ( close_status != 0 ) {
-				saved_errno = errno;
-
-				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Cannot close the VME58 device file '%s'.  Reason = '%s'.",
-			vme58->u.esrf.device_name, strerror( saved_errno ) );
-			}
-		}
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -451,25 +394,15 @@ mxi_vme58_command( MX_VME58 *vme58, char *command,
 	}
 #endif
 
-	if ( vme58->record->mx_type == MXI_CTRL_VME58_ESRF ) {
+	mx_status = mxi_vme58_putline( vme58, command, debug_flag );
 
-#if HAVE_VME58_ESRF
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		mx_status = mxi_vme58_esrf_command( vme58 , command,
-				response, response_buffer_length, debug_flag );
-#else /* HAVE_VME58_ESRF */
-
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"This copy of MX was not compiled with HAVE_VME58_ESRF "
-		"set to 1, so the 'vme58_esrf' record type is unavailable." );
-
-#endif /* HAVE_VME58_ESRF */
-
-	} else {
-		/* Port I/O */
-
-		mx_status = mxi_vme58_portio_command( vme58 , command,
-				response, response_buffer_length, debug_flag );
+	if ( response != NULL ) {
+		mx_status = mxi_vme58_getline( vme58,
+					response, response_buffer_length,
+					debug_flag );
 	}
 
 #if MXI_VME58_COMMAND_DELAY
@@ -481,184 +414,6 @@ mxi_vme58_command( MX_VME58 *vme58, char *command,
 }
 
 /*---------------------------------------------------------------------------*/
-
-#if HAVE_VME58_ESRF
-
-static char *OMS_Error_Strings[] = {
-	"No error!",
-	"Invalid function",
-	"Multiple axes specified",
-	"Axis is busy",
-	"Non-implemented function",
-	"Timeout",
-	"No axes specified",
-	"Bad axis specification",
-	"DONE interrupt pending",
-	"Response overload",
-	"String too long",
-	"Bad position data from board",
-	"Insufficient output buffer space",
-	"Interrupt queued",
-	"Bad response to status request",
-	"Slip detected",
-	"Limit detected",
-	"Command error",
-};
-
-static mx_status_type
-mxi_vme58_esrf_command( MX_VME58 *vme58, char *command,
-		char *response, int response_buffer_length,
-		int debug_flag )
-{
-	static const char fname[] = "mxi_vme58_esrf_command()";
-
-	int oms_status;
-	OMS_req_t request;
-
-	if ( command == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"'command' buffer pointer passed was NULL.  No command sent.");
-	}
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: sending '%s'", fname, command ));
-	}
-
-	/* Set up the request structure */
-
-	memset( &request, 0, sizeof(request) );
-
-	request.cmdstr = command;
-	request.cmdlen = strlen( command );
-
-	/* Send the command. */
-
-	if ( response == NULL ) {
-
-		/* No response is expected. */
-
-		oms_status = ioctl( vme58->u.esrf.device_fd,
-					OMS_CMD_RET, &request );
-
-	} else {
-
-		/* A response is expected. */
-
-		request.rspstr = response;
-		request.rsplen = response_buffer_length;
-
-		oms_status = ioctl( vme58->u.esrf.device_fd,
-					OMS_CMD_RESP, &request );
-	}
-
-	if ( oms_status != 0 ) {
-
-		if ( oms_status >= OMS_ERR_BASE_VALUE &&
-			oms_status <= OMS_ERR_BASE_VALUE + OMS_ERR_RANGE )
-		{
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-"An OMS error occurred for command '%s' to controller '%s'.  Error = '%s'.",
-				command, vme58->record->name,
-				OMS_Error_Strings[ oms_status
-						- OMS_ERR_BASE_VALUE ] );
-		} else {
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-"An operating system error occurred for command '%s' to controller '%s'.  "
-"Error = '%s'.", command, vme58->record->name, strerror( oms_status ) );
-		}
-	}
-
-	if ( response && debug_flag ) {
-		MX_DEBUG(-2,("%s: received '%s'", fname, response ));
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif /* HAVE_VME58_ESRF */
-
-/*---------------------------------------------------------------------------*/
-
-static mx_status_type
-mxi_vme58_portio_open( MX_VME58 *vme58 )
-{
-	static const char fname[] = "mxi_vme58_portio_open()";
-
-	MX_RECORD *vme_record;
-	unsigned long crate, base;
-	unsigned long i, max_retries, sleep_ms;
-	uint8_t status_register;
-	mx_status_type mx_status;
-
-	MX_DEBUG( 2,("%s invoked for VME58 controller '%s'.",
-		fname, vme58->record->name ));
-
-	vme_record = vme58->u.portio.vme_record;
-	crate      = vme58->u.portio.crate_number;
-	base       = vme58->u.portio.base_address;
-
-	/* Wait for the board initialized flag to be set. */
-
-	max_retries = 10;
-	sleep_ms = 100;
-
-	for ( i = 0; i < max_retries; i++ ) {
-		mx_status = mx_vme_in8( vme_record, crate, MXF_VME_A16,
-					base + MX_VME58_STATUS_REGISTER,
-					&status_register );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		MX_DEBUG( 2,("%s: status_register = %#x",
-					fname, status_register));
-
-		if ( status_register & 0x2 ) {
-
-			/* The board is initialized, so exit the for() loop. */
-
-			break;
-		}
-
-		mx_msleep( sleep_ms );
-	}
-
-	if ( i >= max_retries ) {
-		return mx_error( MXE_TIMED_OUT, fname,
-		"VME58 controller '%s' has not finished initializing, "
-		"even after waiting for %lu milliseconds.",
-			vme58->record->name,
-			max_retries * sleep_ms );
-	}
-
-	/* This driver does not currently use interrupts, so turn them off. */
-
-	mx_status = mx_vme_out8( vme_record, crate, MXF_VME_A16,
-					base + MX_VME58_CONTROL_REGISTER,
-					0 );
-
-	return mx_status;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static mx_status_type
-mxi_vme58_portio_command( MX_VME58 *vme58, char *command,
-		char *response, int response_buffer_length,
-		int debug_flag )
-{
-	mx_status_type mx_status;
-
-	mx_status = mxi_vme58_portio_putline( vme58, command, debug_flag );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( response != NULL ) {
-		mx_status = mxi_vme58_portio_getline( vme58,
-				response, response_buffer_length, debug_flag );
-	}
-
-	return mx_status;
-}
 
 /* The VME58 uses two circular buffers to manage serial communication I/O
  * with the host computer:
@@ -683,9 +438,9 @@ mxi_vme58_portio_command( MX_VME58 *vme58, char *command,
  */
 
 static mx_status_type
-mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
+mxi_vme58_putline( MX_VME58 *vme58, char *command, int debug_flag )
 {
-	static const char fname[] = "mxi_vme58_portio_putline()";
+	static const char fname[] = "mxi_vme58_putline()";
 
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
@@ -700,9 +455,9 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
 			fname, command, vme58->record->name));
 	}
 
-	vme_record = vme58->u.portio.vme_record;
-	crate      = vme58->u.portio.crate_number;
-	base       = vme58->u.portio.base_address;
+	vme_record = vme58->vme_record;
+	crate      = vme58->crate_number;
+	base       = vme58->base_address;
 
 	/* Read the output index pointers. */ 
 
@@ -819,11 +574,11 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
  */
 
 static mx_status_type
-mxi_vme58_portio_getline( MX_VME58 *vme58,
+mxi_vme58_getline( MX_VME58 *vme58,
 		char *response, int response_buffer_length,
 		int debug_flag )
 {
-	static const char fname[] = "mxi_vme58_portio_getline()";
+	static const char fname[] = "mxi_vme58_getline()";
 
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
@@ -837,9 +592,9 @@ mxi_vme58_portio_getline( MX_VME58 *vme58,
 	int end_of_message;
 	mx_status_type mx_status;
 
-	vme_record = vme58->u.portio.vme_record;
-	crate      = vme58->u.portio.crate_number;
-	base       = vme58->u.portio.base_address;
+	vme_record = vme58->vme_record;
+	crate      = vme58->crate_number;
+	base       = vme58->base_address;
 
 	/* Get the index of the next character to read. */
 

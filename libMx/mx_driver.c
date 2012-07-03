@@ -840,17 +840,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_vme58_num_record_fields,
 				&mxi_vme58_rfield_def_ptr},
 
-#if HAVE_VME58_ESRF
-
-{"vme58_esrf",      MXI_CTRL_VME58_ESRF,   MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_vme58_record_function_list,
-				NULL,
-				NULL,
-				&mxi_vme58_esrf_num_record_fields,
-				&mxi_vme58_esrf_rfield_def_ptr},
-
-#endif /* HAVE_VME58_ESRF */
-
 {"vsc16",           MXI_CTRL_VSC16,        MXI_CONTROLLER,       MXR_INTERFACE,
 				&mxi_vsc16_record_function_list,
 				NULL,
