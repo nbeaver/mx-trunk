@@ -8,7 +8,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005, 2008, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,15 +17,6 @@
  */
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_ORTEC_UMCBI
-
-#ifndef OS_WIN32
-#error "This driver is only supported under Win32 (Windows NT/95)."
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -182,6 +174,10 @@ mxi_umcbi_open( MX_RECORD *record )
 	umcbi->num_detectors = num_detectors;
 
 	MX_DEBUG( 2,("%s: num_detectors = %d", fname, (int) num_detectors ));
+
+	if ( num_detectors == 0 ) {
+		mx_warning( "No Ortec UMCBI-based devices were detected." );
+	}
 
 	detector_array = (MX_UMCBI_DETECTOR *)
 			malloc( num_detectors * sizeof(MX_UMCBI_DETECTOR) );
@@ -637,4 +633,3 @@ mxi_umcbi_strerror( void )
 	return &buffer[0];
 }
 
-#endif /* HAVE_ORTEC_UMCBI */

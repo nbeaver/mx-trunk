@@ -21,13 +21,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
-
-#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) \
-#		 $(PMC_MCAPI_INCLUDES) $(UMCBI_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) \
-#		$(PMC_MCAPI_LIBS) $(UMCBI_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PMC_MCAPI_INCLUDES) 
+#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PMC_MCAPI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
@@ -226,15 +221,6 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #CFLAGS += -DDEBUG_DUMA
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc.net\\dumalib\\Release\\dumalib.lib
 #DEBUG_OPTS = /force $(DUMA_LIB)
-
-#---------------------------------------------------------------------------
-#
-# Directory containing the EG&G Ortec UMCBI library and include file.
-#
-
-UMCBI_DIR	= c:\\Ortec
-UMCBI_INCLUDES	= -I$(UMCBI_DIR)\\lib
-UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 
 #---------------------------------------------------------------------------
 #

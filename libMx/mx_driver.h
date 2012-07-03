@@ -195,7 +195,6 @@ extern "C" {
 #define MXI_CTRL_COMPUMOTOR		404
 #define MXI_CTRL_ORTEC974		405
 
-#define MXI_CTRL_UMCBI			407
 #define MXI_CTRL_D8			408
 #define MXI_CTRL_PDI40			409
 #define MXI_CTRL_PDI45			410
@@ -618,8 +617,6 @@ extern "C" {
 
 #define MXT_MCA_SOFTWARE		110000
 #define MXT_MCA_NETWORK			110001
-
-#define MXT_MCA_TRUMP			110003
 
 #define MXT_MCA_ROENTEC_RCL		110005
 

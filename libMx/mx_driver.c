@@ -534,11 +534,6 @@
 #include "n_bluice_dhs_manager.h"
 #endif
 
-#if HAVE_ORTEC_UMCBI
-#include "i_umcbi.h"
-#include "d_trump.h"
-#endif
-
   /********************** Record Types **********************/
 
 MX_DRIVER mx_type_table[] = {
@@ -1103,15 +1098,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_linux_parport_rfield_def_ptr},
 
 #endif /* OS_LINUX */
-
-#if HAVE_ORTEC_UMCBI
-{"umcbi",          MXI_CTRL_UMCBI,     MXI_CONTROLLER,        MXR_INTERFACE,
-				&mxi_umcbi_record_function_list,
-				NULL,
-				&mxi_umcbi_generic_function_list,
-				&mxi_umcbi_num_record_fields,
-				&mxi_umcbi_rfield_def_ptr},
-#endif /* HAVE_ORTEC_UMCBI */
 
 #if HAVE_PMC_MCAPI
 {"pmc_mcapi",      MXI_CTRL_PMC_MCAPI, MXI_CONTROLLER,        MXR_INTERFACE,
@@ -3518,17 +3504,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_am9513_timer_timer_function_list,
 				&mxd_am9513_timer_num_record_fields,
 				&mxd_am9513_timer_rfield_def_ptr},
-
-#if HAVE_ORTEC_UMCBI
-
-{"trump_mca",      MXT_MCA_TRUMP,     MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
-				&mxd_trump_record_function_list,
-				NULL,
-				&mxd_trump_mca_function_list,
-				&mxd_trump_num_record_fields,
-				&mxd_trump_rfield_def_ptr},
-
-#endif /* HAVE_ORTEC_UMCBI */
 
 {"network_wvout",  MXT_WVO_NETWORK,   MXC_WAVEFORM_OUTPUT, MXR_DEVICE,
 			&mxd_network_wvout_record_function_list,

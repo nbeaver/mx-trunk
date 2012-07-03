@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005, 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,10 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "mxconfig.h"
-
-#if HAVE_ORTEC_UMCBI && defined(OS_WIN32)
 
 #include <windows.h>
 
@@ -39,7 +35,7 @@
 /* Initialize the MCA driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_trump_record_function_list = {
-	mxd_trump_initialize_type,
+	mxd_trump_initialize_driver,
 	mxd_trump_create_record_structures,
 	mxd_trump_finish_record_initialization,
 	NULL,
@@ -120,18 +116,14 @@ mxd_trump_get_pointers( MX_MCA *mca,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_trump_initialize_type( long record_type )
+mxd_trump_initialize_driver( MX_DRIVER *driver )
 {
-	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
 	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
-	mx_status = mx_mca_initialize_type( record_type,
-				&num_record_fields,
-				&record_field_defaults,
+	mx_status = mx_mca_initialize_driver( driver,
 				&maximum_num_channels_varargs_cookie,
 				&maximum_num_rois_varargs_cookie,
 				&num_soft_rois_varargs_cookie );
@@ -908,6 +900,4 @@ mxd_trump_set_parameter( MX_MCA *mca )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_ORTEC_UMCBI */
 

@@ -150,7 +150,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_src_mono.c d_stp100.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
-	d_trans_motor.c d_trump.c \
+	d_trans_motor.c \
 	d_udt_tramp.c d_uglide.c d_v4l2_input.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
@@ -177,7 +177,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
 	i_sr630.c i_tcp232.c i_telnet.c i_tpg262.c i_tty.c \
-	i_uglide.c i_umcbi.c \
+	i_uglide.c \
 	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c i_vxi_memacc.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \
@@ -275,9 +275,6 @@ d_pmc_mcapi_aio.$(OBJ): d_pmc_mcapi_aio.c
 d_pmc_mcapi_dio.$(OBJ): d_pmc_mcapi_dio.c
 	$(COMPILE) $(CFLAGS) $(PMC_MCAPI_INCLUDES) d_pmc_mcapi_dio.c
 
-d_trump.$(OBJ): d_trump.c
-	$(COMPILE) $(CFLAGS) $(UMCBI_INCLUDES) d_trump.c
-
 d_v4l2_input.$(OBJ): d_v4l2_input.c
 	$(COMPILE) $(CFLAGS) $(VIDEO_4_LINUX_2_FLAGS) d_v4l2_input.c
 
@@ -322,9 +319,6 @@ i_pmc_mcapi.$(OBJ): i_pmc_mcapi.c
 
 i_sis3100.$(OBJ): i_sis3100.c
 	$(COMPILE) $(CFLAGS) $(SIS3100_INCLUDES) i_sis3100.c
-
-i_umcbi.$(OBJ): i_umcbi.c
-	$(COMPILE) $(CFLAGS) $(UMCBI_INCLUDES) i_umcbi.c
 
 i_vxi_memacc.$(OBJ): i_vxi_memacc.c
 	$(COMPILE) $(CFLAGS) $(NI_VISA_INCLUDES) i_vxi_memacc.c
