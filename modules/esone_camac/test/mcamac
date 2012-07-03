@@ -1,0 +1,12 @@
+#! /bin/sh
+
+if [ x${LD_LIBRARY_PATH} = x ]; then
+	LD_LIBRARY_PATH="../../../libMx"
+else
+	LD_LIBRARY_PATH="../../../libMx:${LD_LIBRARY_PATH}"
+fi
+
+export LD_LIBRARY_PATH
+
+../../../motor/motor -F mcamac.dat -s scamac.dat $*
+

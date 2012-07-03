@@ -31,7 +31,7 @@ ifeq ($(CAMAC_TARGET),jorway_73a)
 
     ifeq ($(MX_ARCH),linux)
 
-	ESONE_CAMAC_DIR      = /usr/local/src/sjyLX-v2.2
+	ESONE_CAMAC_DIR      = /usr/local/src/sjyLX-v2.5
 	ESONE_CAMAC_INCLUDES = -I$(ESONE_CAMAC_DIR)/include
 	ESONE_CAMAC_LIBS     = -L$(ESONE_CAMAC_DIR)/lib -lsjy
 	

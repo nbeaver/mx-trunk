@@ -25,7 +25,7 @@
 
 MX_DRIVER esone_camac_driver_table[] = {
 
-{"esone_camac",  -1,    MXI_PORTIO,  MXR_INTERFACE,
+{"esone_camac",  -1,    MXI_CAMAC,  MXR_INTERFACE,
 				&mxi_esone_camac_record_function_list,
 				NULL,
 				&mxi_esone_camac_camac_function_list,

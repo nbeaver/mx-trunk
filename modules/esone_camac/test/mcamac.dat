@@ -1,2 +1,2 @@
 !load ../esone_camac.mxo
-cm interface camac esone_camac "" "" 1 1
+camac interface camac esone_camac "" "" 1 1
