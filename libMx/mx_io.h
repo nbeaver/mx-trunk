@@ -53,7 +53,7 @@ typedef struct {
 
 MX_API mx_status_type mx_create_file_monitor( MX_FILE_MONITOR **ptr_address,
 						unsigned long access_type,
-						char *filename );
+						const char *filename );
 
 MX_API mx_status_type mx_delete_file_monitor( MX_FILE_MONITOR *file_monitor );
 

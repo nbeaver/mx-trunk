@@ -35,6 +35,7 @@
 #  define pclose(x)  _pclose(x)
 
 #  include <aclapi.h>
+#  include <sys/stat.h>
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -1383,7 +1384,7 @@ typedef struct {
 MX_EXPORT mx_status_type
 mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 			unsigned long access_type,
-			char *filename )
+			const char *filename )
 {
 	static const char fname[] = "mx_create_file_monitor()";
 
@@ -1608,18 +1609,28 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 #include <windows.h>
 
+/* Note: We use a Unix-style 'struct _stat' structure here instead of a
+ * WIN32_FILE_ATTRIBUTE_DATA structure, because the _stat() function
+ * exists in all versions of Win32, but GetFileAttributesEx() only exists
+ * in Windows XP and later.
+ */
+
 typedef struct {
+	char *filename;
 	HANDLE change_handle;
+	struct _stat file_status;
 } MXP_WIN32_FILE_MONITOR;
 
 MX_EXPORT mx_status_type
 mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 			unsigned long access_type,
-			char *filename )
+			const char *filename )
 {
 	static const char fname[] = "mx_create_file_monitor()";
 
 	MXP_WIN32_FILE_MONITOR *win32_monitor;
+	char *directory_name, *separator_ptr;
+	int os_status, saved_errno;
 	unsigned long flags;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -1650,20 +1661,93 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	(*monitor_ptr)->private_ptr = win32_monitor;
 
-	/* We must find the name of the directory that contains this file
-	 * and then canonicalize it for use by FindFirstChangeNotification().
-	 */
+	win32_monitor->filename = strdup( filename );
+
+	if ( win32_monitor->filename == NULL ) {
+		mx_free( win32_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to save a copy of the filename '%s' "
+		"in the file monitor structure.", filename );
+	}
+
+	/* Create a directory name from the specified filename.  If the
+	 * filename contains a path separator, then we truncate it at
+	 * the last separator and call that the directory name.  If the
+	 * filename does _NOT_ contain a path separator, then we use
+	 * '.' as the directory name.
+	 */ 
+
+	directory_name = strdup( filename );
+
+	if ( directory_name == NULL ) {
+		mx_free( win32_monitor->filename );
+		mx_free( win32_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a copy of the "
+		"filename '%s'.", filename );
+	}
+
+	separator_ptr = strrchr( directory_name, '\\' );
+
+	if ( separator_ptr != NULL ) {
+		*separator_ptr = '\0';
+	} else {
+		separator_ptr = strrchr( directory_name, '/' );
+
+		if ( separator_ptr != NULL ) {
+			*separator_ptr = '\0';
+		} else {
+			mx_free( directory_name );
+
+			directory_name = strdup( "." );
+
+			if ( directory_name == NULL ) {
+				mx_free( win32_monitor->filename );
+				mx_free( win32_monitor );
+				mx_free( *monitor_ptr );
+
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Ran out of memory trying to allocate "
+				"memory for the string '.' to use as a "
+				"directory name." );
+			}
+		}
+	}
+
+	/* Save a copy of the initial file status for this filename. */
+
+	os_status = _stat( filename, &(win32_monitor->file_status) );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		mx_free( win32_monitor->filename );
+		mx_free( win32_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to get the current file status of file '%s' "
+		"failed with error = %d, error message = '%s'.",
+			filename, saved_errno, strerror(saved_errno) );
+	}
 
 	/* FIXME: For the moment we ignore the value of 'access_type'. */
 
-	flags = FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE;
+	flags = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME
+		| FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE
+		| FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_SECURITY;
 
 	win32_monitor->change_handle = FindFirstChangeNotification(
-					filename, FALSE, flags );
+					directory_name, FALSE, flags );
 
 	if ( win32_monitor->change_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
+		mx_free( win32_monitor->filename );
 		mx_free( win32_monitor );
 		mx_free( *monitor_ptr );
 
@@ -1672,9 +1756,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An error occurred while invoking "
-		"FindFirstChangeNotifcation() for file '%s'.  "
+		"FindFirstChangeNotifcation() for directory '%s'.  "
 		"Win32 error code = %ld, error message = '%s'",
-			filename, last_error_code, message_buffer );
+			directory_name, last_error_code, message_buffer );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1704,6 +1788,7 @@ mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
 
 	(void) FindCloseChangeNotification( win32_monitor->change_handle );
 
+	mx_free( win32_monitor->filename );
 	mx_free( win32_monitor );
 	mx_free( monitor );
 
@@ -1716,9 +1801,12 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 	static const char fname[] = "mx_file_has_changed()";
 
 	MXP_WIN32_FILE_MONITOR *win32_monitor;
-	BOOL os_status;
+	struct _stat current_file_status;
+	int os_status, saved_errno;
+	BOOL find_status;
 	DWORD wait_status, last_error_code;
 	TCHAR message_buffer[100];
+	mx_bool_type file_has_changed;
 	mx_status_type mx_status;
 
 	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
@@ -1744,25 +1832,50 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	switch( wait_status ) {
 	case WAIT_OBJECT_0:
-		/* Restart the notification. */
+		/* If we get here, then _some_ file changed in the directory
+		 * that contains our file, but it may not be our file.  Thus,
+		 * we need to get the file status, so that we can compare it
+		 * with our previously saved version of the status.
+		 */
 
-		os_status =
-		    FindNextChangeNotification( win32_monitor->change_handle );
+		os_status = _stat( win32_monitor->filename,
+				&current_file_status );
 
-		/* The file has changed, so return TRUE. */
+		if ( os_status != 0 ) {
+			saved_errno = errno;
 
-		return TRUE;
+			if ( saved_errno == ENOENT ) {
+				file_has_changed = TRUE;
+			} else {
+				file_has_changed = FALSE;
+
+				(void) mx_error( MXE_FILE_IO_ERROR, fname,
+				"An attempt to get the current file status "
+				"of file '%s' failed with error = %d, "
+				"error message = '%s'.",
+					win32_monitor->filename,
+					saved_errno, strerror(saved_errno) );
+			}
+		} else {
+
+			if ( current_file_status.st_mtime
+				!= (win32_monitor->file_status.st_mtime) )
+			{
+				file_has_changed = TRUE;
+			} else {
+				file_has_changed = FALSE;
+			}
+
+			/* Save a copy of the current file status. */
+
+			memcpy( &(win32_monitor->file_status),
+				&current_file_status,
+				sizeof(struct _stat) );
+		}
 		break;
 
 	case WAIT_TIMEOUT:
-		/* Restart the notification. */
-
-		os_status =
-		    FindNextChangeNotification( win32_monitor->change_handle );
-
-		/* The file has NOT changed, so return FALSE. */
-
-		return FALSE;
+		file_has_changed = FALSE;
 		break;
 
 	default:
@@ -1778,11 +1891,33 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 			monitor->filename,
 			last_error_code, message_buffer );
 
-		return FALSE;
+		file_has_changed = FALSE;
 		break;
 	}
 
-	return FALSE;
+	/* Restart the notification. */
+
+	find_status =
+	    FindNextChangeNotification( win32_monitor->change_handle );
+
+	if( find_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while invoking "
+			"FindNextChangeNotifcation() for the directory "
+			"containing file '%s'.  "
+			"Win32 error code = %ld, error message = '%s'",
+				win32_monitor->filename,
+				last_error_code, message_buffer );
+	}
+
+	/* Return the file change status. */
+
+	return file_has_changed;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1800,7 +1935,7 @@ typedef struct {
 MX_EXPORT mx_status_type
 mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 			unsigned long access_type,
-			char *filename )
+			const char *filename )
 {
 	static const char fname[] = "mx_create_file_monitor()";
 
@@ -2019,7 +2154,7 @@ mxp_solaris_port_associate( MX_FILE_MONITOR *file_monitor )
 MX_EXPORT mx_status_type
 mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 			unsigned long access_type,
-			char *filename )
+			const char *filename )
 {
 	static const char fname[] = "mx_create_file_monitor()";
 
