@@ -656,9 +656,6 @@ mx_dynamic_library_get_library_and_symbol( const char *filename,
 					MX_DYNAMIC_LIBRARY **library,
 					void **symbol )
 {
-	static const char fname[] =
-		"mx_dynamic_library_get_library_and_symbol()";
-
 	MX_DYNAMIC_LIBRARY *library_ptr;
 	void *symbol_ptr;
 	mx_status_type mx_status;
