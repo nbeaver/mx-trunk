@@ -1134,15 +1134,54 @@ mx_get_fd_name( unsigned long process_id, int fd,
 MX_EXPORT void
 mx_win32_show_socket_names( void )
 {
-	MX_SOCKET_FD i, max_sockets, num_open_sockets;
+	MX_SOCKET_FD i, max_sockets, num_open_sockets, increment;
 	char buffer[MXU_FILENAME_LENGTH+20];
+	int os_major, os_minor, os_update;
 	mx_status_type mx_status;
+
+	/*---*/
+
+	mx_status = mx_get_os_version( &os_major, &os_minor, &os_update );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	/* For most versions of Win32, socket descriptors are multiples
+	 * of 4, like 384 or 400.  However, if a socket descriptor has
+	 * (for example) a value like 384, then descriptor values like 385,
+	 * 386, and 387 will also appear to be active sockets, but with
+	 * the same parameters as socket 384.  To avoid these duplicates,
+	 * we only look at socket descriptors that are a multiple of 4,
+	 * except for platforms like Windows 95, where sockets can have
+	 * any value.
+	 */
+
+	increment = 4;
+
+	switch( os_major ) {
+	case 3:
+		increment = 1;
+		break;
+	case 4:
+		switch( os_minor ) {
+		case 0:
+		case 1:
+		case 3:
+			if ( os_update != VER_PLATFORM_WIN32_NT ) {
+				increment = 1;      /* Windows 95 */
+			}
+			break;
+		}
+		break;
+	}
+
+	/*---*/
 
 	max_sockets = 65536;	/* FIXME: May require more investigation. */
 
 	num_open_sockets = 0;
 
-	for ( i = 0; i < max_sockets; i++ ) {
+	for ( i = 0; i < max_sockets; i += increment ) {
 		mx_status = mx_get_socket_name_by_fd(
 					i, buffer, sizeof(buffer) );
 

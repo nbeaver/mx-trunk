@@ -214,7 +214,6 @@ mx_gethostname( char *name, size_t maximum_length )
 
 	int status, saved_errno;
 
-#if defined( OS_WIN32 )
 	if ( mx_sockets_are_initialized == FALSE ) {
 		mx_status_type mx_status;
 
@@ -225,7 +224,6 @@ mx_gethostname( char *name, size_t maximum_length )
 
 		mx_sockets_are_initialized = TRUE;
 	}
-#endif
 
 	status = gethostname( name, maximum_length );
 
@@ -1125,6 +1123,19 @@ mx_get_socket_name_by_fd( MX_SOCKET_FD socket_fd,
 	char socket_type_name[40];
 	char temp_string[100];
 	mx_bool_type socket_is_connected;
+
+	/*----*/
+
+	if ( mx_sockets_are_initialized == FALSE ) {
+		mx_status_type mx_status;
+
+		mx_status = mx_socket_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_sockets_are_initialized = TRUE;
+	}
 
 	/*----*/
 
