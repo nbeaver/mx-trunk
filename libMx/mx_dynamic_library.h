@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2007, 2009 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,6 +49,12 @@ MX_API mx_status_type mx_dynamic_library_get_function_name_from_address(
 						void *address,
 						char *function_name,
 						size_t max_name_length );
+
+MX_API mx_status_type mx_dynamic_library_get_library_and_symbol(
+						const char *filename,
+						const char *symbol_name,
+						MX_DYNAMIC_LIBRARY **library,
+						void **symbol );
 
 #ifdef __cplusplus
 }

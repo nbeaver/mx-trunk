@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2010 Illinois Institute of Technology
+ * Copyright 1999-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -267,6 +267,10 @@ MX_EXPORT long
 mx_win32_error_message( long error_code, char *buffer, size_t buffer_length )
 {
 	long num_chars, null_index;
+
+	if ( error_code < 0 ) {
+		error_code = GetLastError();
+	}
 
 	num_chars = FormatMessage(
 			FORMAT_MESSAGE_FROM_SYSTEM |

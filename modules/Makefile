@@ -19,7 +19,7 @@ all: build
 
 #MODULES += epix_xclib		# linux, win32
 
-MODULES += esone_camac		# linux, win32
+#MODULES += esone_camac		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 

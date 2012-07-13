@@ -27,11 +27,14 @@
 #include "mx_stdint.h"
 #include "mx_socket.h"
 #include "mx_select.h"
+#include "mx_dynamic_library.h"
 #include "mx_io.h"
 
 #if defined(OS_WIN32)
 #  define popen(x,p) _popen(x,p)
 #  define pclose(x)  _pclose(x)
+
+#  include <aclapi.h>
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -621,7 +624,7 @@ mxp_parse_lsof_output( FILE *file,
 #if defined(OS_LINUX) || defined(OS_SOLARIS)
 
 /* On Linux, use readlink() on the /proc/NNN/fd/NNN files.
- * On Solaris, use readline() on  the /proc/NNN/path/NNN files.
+ * On Solaris, use readlink() on  the /proc/NNN/path/NNN files.
  */
 
 MX_EXPORT char *
@@ -665,7 +668,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		process_id, fd );
 
 #  else
-#     error readlink() method not used for this build target.
+#     error readlink() method is not used for this build target.
 #  endif
 
 	bytes_read = readlink( fd_pathname, buffer, buffer_size );
@@ -711,12 +714,21 @@ static mx_bool_type tested_for_mx_get_fd_name = FALSE;
 
 /*--- For Windows Vista and newer, we can use GetFinalPathNameByHandle(). ---*/
 
-typedef BOOL (*GetFinalPathNameByHandle_type)( HANDLE, LPTSTR, DWORD, DWORD );
+typedef BOOL (*GetFinalPathNameByHandle_ptr)( HANDLE, LPTSTR, DWORD, DWORD );
 
-static GetFinalPathNameByHandle_type
+static GetFinalPathNameByHandle_ptr
 	ptrGetFinalPathNameByHandle = NULL;
 
 #define GFPN_BY_HANDLE_BUFFER_SIZE	(MXU_FILENAME_LENGTH + 3)
+
+/*--- For Windows XP and older, we use GetMappedFileName() from PSAPI.DLL. ---*/
+
+typedef DWORD (*GetMappedFileName_ptr)( HANDLE, LPVOID, LPTSTR, DWORD );
+
+static GetMappedFileName_ptr
+	ptrGetMappedFileName = NULL;
+
+/*------*/
 
 static mx_status_type
 mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
@@ -805,11 +817,13 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 	TCHAR message_buffer[100];
 
 	DWORD os_status;
+	int errno_status;
 	TCHAR tchar_filename[MXU_FILENAME_LENGTH+1];
+	TCHAR mapping_name[100];
 
-	/* The GetMappedFileName function is  */
-
-	/* We may proceed now that we know that psapi.dll is available. */
+	SECURITY_INFORMATION security_information;
+	SECURITY_DESCRIPTOR *security_descriptor;
+	SECURITY_ATTRIBUTES security_attributes;
 
 	file_size_high = 0;
 
@@ -825,12 +839,58 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* Get the security descriptor for this handle. */
+
+#if 0
+	security_information =
+		OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION
+		| DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION
+		| LABEL_SECURITY_INFORMATION;
+
+	os_status = GetSecurityInfo( fd_handle, SE_FILE_OBJECT,
+					security_information,
+					NULL, NULL, NULL, NULL,
+					&security_descriptor );
+
+	if ( os_status != ERROR_SUCCESS ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot get the security descriptor for handle %#lx.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			fd_handle, last_error_code, message_buffer );
+		
+		strlcpy( buffer, ">>> Access Denied <<<", buffer_size );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+	security_attributes.lpSecurityDescriptor = security_descriptor;
+	security_attributes.bInheritHandle = FALSE;
+#endif
+
+#if defined(_UNICODE)
+	_snwprintf_s( mapping_name, sizeof(mapping_name)/sizeof(TCHAR),
+		"Local\\mx_handle_%#lx", fd_handle );
+#else
+	snprintf( mapping_name, sizeof(mapping_name),
+		"Local\\mx_handle_%#lx", fd_handle );
+#endif
+
 	file_mapping_handle = CreateFileMapping( fd_handle,
+#if 0
 					NULL,
-					PAGE_READONLY,
+#else
+					&security_attributes,
+#endif
+					PAGE_READWRITE,
 					0,
 					1,
-					NULL );
+					mapping_name );
 
 	if ( file_mapping_handle == NULL ) {
 		last_error_code = GetLastError();
@@ -876,13 +936,7 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-#if 1
-	/* FIXME: Need to load psapi.dll for this. */
-
-	strlcpy( buffer, ">>> psapi.dll handling not yet implemented <<<",
-		buffer_size );
-#else
-	os_status = GetMappedFileName( GetCurrentProcess(),
+	os_status = ptrGetMappedFileName( GetCurrentProcess(),
 					memory_ptr,
 					tchar_filename,
 					MXU_FILENAME_LENGTH );
@@ -894,11 +948,10 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 			message_buffer, sizeof(message_buffer) );
 
 		UnmapViewOfFile( memory_ptr );
-
 		CloseHandle( file_mapping_handle );
 
 		(void) mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot the filename for the mapped file "
+		"Cannot get the filename for the mapped file "
 		"corresponding to handle %#lx.  "
 		"Win32 error code = %ld, error message = '%s'.",
 			fd_handle, last_error_code, message_buffer );
@@ -908,10 +961,34 @@ mxp_get_fd_name_via_mapping( HANDLE fd_handle,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* FIXME: Unicode? */
+#if defined(_UNICODE)
+	errno_status = wcstombs_s( &num_converted,
+				buffer,
+				buffer_size,
+				tchar_filename,
+				_TRUNCATE );
 
+	if ( errno_status != 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		UnmapViewOfFile( memory_ptr );
+		CloseHandle( file_mapping_handle );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to convert wide character filename for "
+		"file descriptor %d.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code , message_buffer );
+	}
+#else
 	strlcpy( buffer, tchar_filename, buffer_size );
 #endif
+
+	UnmapViewOfFile( memory_ptr );
+	CloseHandle( file_mapping_handle );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -978,6 +1055,9 @@ mx_get_fd_name( unsigned long process_id, int fd,
 	/* Test for the existence of file information functions. */
 
 	if ( tested_for_mx_get_fd_name == FALSE ) {
+
+		/* First, we look for GetFinalPathNameByHandle(). */
+
 		HMODULE hinst_kernel32;
 
 		tested_for_mx_get_fd_name = TRUE;
@@ -996,15 +1076,31 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 #if defined(_UNICODE)
 		ptrGetFinalPathNameByHandle =
-			(GetFinalPathNameByHandle_type)
+			(GetFinalPathNameByHandle_ptr)
 			GetProcAddress( hinst_kernel32,
 				TEXT("GetFinalPathNameByHandleW") );
 #else
 		ptrGetFinalPathNameByHandle =
-			(GetFinalPathNameByHandle_type)
+			(GetFinalPathNameByHandle_ptr)
 			GetProcAddress( hinst_kernel32,
 				TEXT("GetFinalPathNameByHandleA") );
 #endif
+
+		if ( ptrGetFinalPathNameByHandle == NULL ) {
+			/* Next, we try GetMappedFileName(). */
+
+#if defined(_UNICODE)
+			mx_status = mx_dynamic_library_get_library_and_symbol(
+					"psapi.dll", "GetMappedFileNameW",
+					NULL, (void **) &ptrGetMappedFileName );
+#else
+			mx_status = mx_dynamic_library_get_library_and_symbol(
+					"psapi.dll", "GetMappedFileNameA",
+					NULL, (void **) &ptrGetMappedFileName );
+#endif
+			if ( mx_status.code != MXE_SUCCESS )
+				return NULL;
+		}
 	}
 
 	/* Now we branch out to the various version specific methods. */
@@ -1015,22 +1111,21 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 		mx_status = mxp_get_fd_name_gfpn_by_handle( fd_handle,
 						buffer, buffer_size );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return NULL;
-	} else {
-#if 0
-		snprintf( buffer, buffer_size,
-			"%s is not yet implemented for this platform.", fname );
-#else
+	} else
+	if ( ptrGetMappedFileName != NULL ) {
 		/* Windows XP and below. */
 
 		mx_status = mxp_get_fd_name_via_mapping( fd_handle,
 						buffer, buffer_size );
-#endif
+	} else {
+		snprintf( buffer, buffer_size, "FD %d", fd );
 	}
 
-	return buffer;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return NULL;
+	} else {
+		return buffer;
+	}
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/

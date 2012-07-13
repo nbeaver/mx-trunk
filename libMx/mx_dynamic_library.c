@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 2007, 2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,12 @@ mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
 /************************ Microsoft Win32 ***********************/
 
 #if defined(OS_WIN32)
+
+/* Calls to LoadLibrary() are reference counted, so if you call
+ * LoadLibrary() multiple times on the same DLL, then you must
+ * call FreeLibrary() the same number of times before it is really
+ * unloaded.
+ */
 
 #include "windows.h"
 
@@ -401,6 +407,11 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 	|| defined(OS_QNX) || defined(OS_VMS) || defined(OS_UNIXWARE) \
 	|| defined(OS_HURD)
 
+/* Note: On most systems, calls to dlopen() are reference counted.  If you
+ * dlopen() a library multiple times, then you must dlclose() it the same
+ * number of times before it is really unloaded.
+ */
+
 #if defined(__GLIBC__)
 #  define __USE_GNU
 #endif
@@ -634,4 +645,46 @@ mx_dynamic_library_get_function_name_from_address( void *address,
 #error Dynamic loading of libraries has not been implemented for this platform.
 
 #endif
+
+/*=========================================================================*/
+
+                  /* Platform independent functions. */
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_get_library_and_symbol( const char *filename,
+					const char *symbol_name,
+					MX_DYNAMIC_LIBRARY **library,
+					void **symbol )
+{
+	static const char fname[] =
+		"mx_dynamic_library_get_library_and_symbol()";
+
+	MX_DYNAMIC_LIBRARY *library_ptr;
+	void *symbol_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_dynamic_library_open( filename, &library_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_dynamic_library_find_symbol( library_ptr,
+						symbol_name,
+						&symbol_ptr, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		(void) mx_dynamic_library_close( library_ptr );
+
+		return mx_status;
+	}
+
+	if ( library != (MX_DYNAMIC_LIBRARY **) NULL ) {
+		*library = library_ptr;
+	}
+	if ( symbol != (void **) NULL ) {
+		*symbol = symbol_ptr;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
