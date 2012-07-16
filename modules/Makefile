@@ -15,11 +15,11 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-#MODULES += daqmx_base		# linux, win32
-
 #MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
+
+#MODULES += ni_daqmx		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
