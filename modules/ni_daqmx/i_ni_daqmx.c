@@ -1,58 +1,58 @@
 /*
- * Name:    i_daqmx_base.c
+ * Name:    i_ni_daqmx.c
  *
- * Purpose: MX interface driver for the National Instruments DAQmx Base system.
+ * Purpose: MX interface driver for the National Instruments DAQmx system.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_DAQMX_BASE_DEBUG		FALSE
+#define MXI_NI_DAQMX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "i_daqmx_base.h"
+#include "i_ni_daqmx.h"
 
-MX_RECORD_FUNCTION_LIST mxi_daqmx_base_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxi_ni_daqmx_record_function_list = {
 	NULL,
-	mxi_daqmx_base_create_record_structures,
-	mxi_daqmx_base_finish_record_initialization,
+	mxi_ni_daqmx_create_record_structures,
+	mxi_ni_daqmx_finish_record_initialization,
 	NULL,
 	NULL,
-	mxi_daqmx_base_open,
-	mxi_daqmx_base_close
+	mxi_ni_daqmx_open,
+	mxi_ni_daqmx_close
 };
 
-MX_RECORD_FIELD_DEFAULTS mxi_daqmx_base_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxi_ni_daqmx_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MXI_DAQMX_BASE_STANDARD_FIELDS
+	MXI_NI_DAQMX_STANDARD_FIELDS
 };
 
-long mxi_daqmx_base_num_record_fields
-		= sizeof( mxi_daqmx_base_record_field_defaults )
-			/ sizeof( mxi_daqmx_base_record_field_defaults[0] );
+long mxi_ni_daqmx_num_record_fields
+		= sizeof( mxi_ni_daqmx_record_field_defaults )
+			/ sizeof( mxi_ni_daqmx_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxi_daqmx_base_rfield_def_ptr
-			= &mxi_daqmx_base_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxi_ni_daqmx_rfield_def_ptr
+			= &mxi_ni_daqmx_record_field_defaults[0];
 
 static mx_status_type
-mxi_daqmx_base_get_pointers( MX_RECORD *record,
-				MX_DAQMX_BASE **daqmx_base,
+mxi_ni_daqmx_get_pointers( MX_RECORD *record,
+				MX_NI_DAQMX **ni_daqmx,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxi_daqmx_base_get_pointers()";
+	static const char fname[] = "mxi_ni_daqmx_get_pointers()";
 
-	MX_DAQMX_BASE *daqmx_base_ptr;
+	MX_NI_DAQMX *ni_daqmx_ptr;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -60,16 +60,16 @@ mxi_daqmx_base_get_pointers( MX_RECORD *record,
 			calling_fname );
 	}
 
-	daqmx_base_ptr = (MX_DAQMX_BASE *) record->record_type_struct;
+	ni_daqmx_ptr = (MX_NI_DAQMX *) record->record_type_struct;
 
-	if ( daqmx_base_ptr == (MX_DAQMX_BASE *) NULL ) {
+	if ( ni_daqmx_ptr == (MX_NI_DAQMX *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_DAQMX_BASE pointer for record '%s' is NULL.",
+		"The MX_NI_DAQMX pointer for record '%s' is NULL.",
 			record->name );
 	}
 
-	if ( daqmx_base != (MX_DAQMX_BASE **) NULL ) {
-		*daqmx_base = daqmx_base_ptr;
+	if ( ni_daqmx != (MX_NI_DAQMX **) NULL ) {
+		*ni_daqmx = ni_daqmx_ptr;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -78,45 +78,45 @@ mxi_daqmx_base_get_pointers( MX_RECORD *record,
 /*------*/
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_create_record_structures( MX_RECORD *record )
+mxi_ni_daqmx_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxi_daqmx_base_create_record_structures()";
+			"mxi_ni_daqmx_create_record_structures()";
 
-	MX_DAQMX_BASE *daqmx_base;
+	MX_NI_DAQMX *ni_daqmx;
 
 	/* Allocate memory for the necessary structures. */
 
-	daqmx_base = (MX_DAQMX_BASE *) malloc( sizeof(MX_DAQMX_BASE) );
+	ni_daqmx = (MX_NI_DAQMX *) malloc( sizeof(MX_NI_DAQMX) );
 
-	if ( daqmx_base == (MX_DAQMX_BASE *) NULL ) {
+	if ( ni_daqmx == (MX_NI_DAQMX *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for an MX_DAQMX_BASE structure." );
+		"Cannot allocate memory for an MX_NI_DAQMX structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
-	record->record_type_struct = daqmx_base;
+	record->record_type_struct = ni_daqmx;
 
 	record->record_class_struct = NULL;
 	record->class_specific_function_list = NULL;
 
-	daqmx_base->record = record;
+	ni_daqmx->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_finish_record_initialization( MX_RECORD *record )
+mxi_ni_daqmx_finish_record_initialization( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxi_daqmx_base_finish_record_initialization()";
+			"mxi_ni_daqmx_finish_record_initialization()";
 
-	MX_DAQMX_BASE *daqmx_base;
+	MX_NI_DAQMX *ni_daqmx;
 	mx_status_type mx_status;
 
-	mx_status = mxi_daqmx_base_get_pointers( record,
-						&daqmx_base, fname );
+	mx_status = mxi_ni_daqmx_get_pointers( record,
+						&ni_daqmx, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -125,41 +125,45 @@ mxi_daqmx_base_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_open( MX_RECORD *record )
+mxi_ni_daqmx_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_daqmx_base_open()";
+	static const char fname[] = "mxi_ni_daqmx_open()";
 
-	MX_DAQMX_BASE *daqmx_base;
+	MX_NI_DAQMX *ni_daqmx;
 	mx_status_type mx_status;
 
-	mx_status = mxi_daqmx_base_get_pointers( record,
-						&daqmx_base, fname );
+	mx_status = mxi_ni_daqmx_get_pointers( record,
+						&ni_daqmx, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if defined(USE_DAQMX_BASE)
 	mx_warning( "The National Instruments DAQmx Base system "
 	"takes a _long_ time to initialize itself, so please be patient." );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_close( MX_RECORD *record )
+mxi_ni_daqmx_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_daqmx_base_close()";
+	static const char fname[] = "mxi_ni_daqmx_close()";
 
-	MX_DAQMX_BASE *daqmx_base;
+	MX_NI_DAQMX *ni_daqmx;
 	mx_status_type mx_status;
 
-	mx_status = mxi_daqmx_base_get_pointers( record,
-						&daqmx_base, fname );
+	mx_status = mxi_ni_daqmx_get_pointers( record,
+						&ni_daqmx, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if defined(USE_DAQMX_BASE)
 	mx_warning( "Shutting down the National Instruments DAQmx Base "
 	"system.  This can take a _long_ time." );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -167,9 +171,9 @@ mxi_daqmx_base_close( MX_RECORD *record )
 /*--------------- Exported driver-specific functions ---------------*/
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
+mxi_ni_daqmx_create_task( MX_RECORD *record, TaskHandle *task_handle )
 {
-	static const char fname[] = "mxi_daqmx_base_create_task()";
+	static const char fname[] = "mxi_ni_daqmx_create_task()";
 
 	char daqmx_error_message[80];
 	int32 daqmx_status;
@@ -184,13 +188,13 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 		"The TaskHandle pointer passed was NULL." );
 	}
 
-	/* Create a DAQmx Base task. */
+	/* Create a DAQmx task. */
 
-	daqmx_status = DAQmxBaseCreateTask( "", task_handle );
+	daqmx_status = DAQmxCreateTask( "", task_handle );
 
-#if MXI_DAQMX_BASE_DEBUG
+#if MXI_NI_DAQMX_DEBUG
 	MX_DEBUG(-2,
-	("%s: DAQmxBaseCreateTask( &task_handle ) = %d",
+	("%s: DAQmxCreateTask( &task_handle ) = %d",
 		fname, (int) daqmx_status ));
 
 	MX_DEBUG(-2,("%s:   record '%s', task_handle = %#lx",
@@ -199,11 +203,11 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to create a DAQmx Base task failed for '%s'.  "
+		"The attempt to create a DAQmx task failed for '%s'.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name, (int) daqmx_status, daqmx_error_message );
 	}
@@ -211,7 +215,7 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 #if defined(OS_LINUX)
 	if ( (*task_handle) == 0 ) {
 
-		/* In case you care, National Instruments DAQmx Base is
+		/* In case you care, National Instruments DAQmx is
 		 * implemented using a large LabVIEW system that runs 
 		 * in the background.  Apparently this system only works
 		 * if it can do some initialization steps before the
@@ -258,9 +262,9 @@ mxi_daqmx_base_create_task( MX_RECORD *record, TaskHandle *task_handle )
 }
 
 MX_EXPORT mx_status_type
-mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
+mxi_ni_daqmx_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 {
-	static const char fname[] = "mxi_daqmx_base_shutdown_task()";
+	static const char fname[] = "mxi_ni_daqmx_shutdown_task()";
 
 	char daqmx_error_message[80];
 	int32 daqmx_status;
@@ -272,42 +276,42 @@ mxi_daqmx_base_shutdown_task( MX_RECORD *record, TaskHandle task_handle )
 
 	/* Stop the task. */
 
-	daqmx_status = DAQmxBaseStopTask( task_handle );
+	daqmx_status = DAQmxStopTask( task_handle );
 
-#if MXI_DAQMX_BASE_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseStopTask( %#lx ) = %d",
+#if MXI_NI_DAQMX_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxStopTask( %#lx ) = %d",
 		fname, (unsigned long) task_handle, (int) daqmx_status));
 #endif
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to stop task %#lx for DAQmx Base device '%s' "
+		"The attempt to stop task %#lx for DAQmx device '%s' "
 		"failed.  DAQmx error code = %d",
 			(unsigned long) task_handle,
 			record->name,
 			(int) daqmx_status );
 	}
 
-#if MXI_DAQMX_BASE_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseClearTask( %#lx ) = %d",
+#if MXI_NI_DAQMX_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxClearTask( %#lx ) = %d",
 		fname, (unsigned long) task_handle, (int) daqmx_status));
 #endif
 
 	/* Release the resources used by this task. */
 
-	daqmx_status = DAQmxBaseClearTask( task_handle );
+	daqmx_status = DAQmxClearTask( task_handle );
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to clear task %#lx for DAQmx Base device '%s' "
+		"The attempt to clear task %#lx for DAQmx device '%s' "
 		"failed.  DAQmx error code = %d",
 			(unsigned long) task_handle,
 			record->name,

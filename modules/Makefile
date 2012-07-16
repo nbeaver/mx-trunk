@@ -19,7 +19,7 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 

@@ -18,16 +18,31 @@ ifndef MX_INSTALL_DIR
 endif
 
 ifeq ($(MX_ARCH),linux)
-	NI_DAQMX_DIR = /usr/local/natinst/nidaqmxbase
+	NI_DAQMX_ANSI_C_DIR = /usr/local/natinst/nidaqmxbase
 
-	CFLAGS += -I$(NI_DAQMX_DIR)/include
+	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)/include
 endif
 
 ifeq ($(MX_ARCH),win32)
-	NI_DAQMX_DIR = c:\\progra~1\\nation~1\\ni-daq~1
+	ifeq ($(USE_DAQMX_BASE),TRUE)
+		NI_DAQMX_ANSI_C_DIR = c:\\progra~1\\nation~1\\ni-daq~1
+	else
+		NI_DAQMX_ANSI_C_DIR = \
+		    c:\\progra~2\\nation~1\\Shared\\ExternalCompilerSupport\\C
+	endif
 
 	CFLAGS += -DWIN32
-	CFLAGS += -I$(NI_DAQMX_DIR)\\include
+	CFLAGS += -I$(NI_DAQMX_ANSI_C_DIR)\\include
+
+	ifeq ($(USE_DAQMX_BASE),TRUE)
+		NI_DAQMX_LIBRARY = $(NI_DAQMX_ANSI_C_DIR)\\lib\\nidaqmxbase.lib
+	else
+		#NI_DAQMX_LIBRARY = \
+		#	$(NI_DAQMX_ANSI_C_DIR)\\lib32\\msvc\\NIDAQmx.lib
+
+		NI_DAQMX_LIBRARY = \
+			$(NI_DAQMX_ANSI_C_DIR)\\lib64\\msvc\\NIDAQmx.lib
+	endif
 endif
 
 ifeq ($(USE_DAQMX_BASE),TRUE)
@@ -75,7 +90,7 @@ ni_daqmx.mxo: $(NI_DAQMX_OBJS)
 	link /dll /debug /nologo /out:ni_daqmx.mxo /nodefaultlib:libc \
 		$(NI_DAQMX_OBJS) \
 		..\\..\\libMx\\$(MX_LIBRARY_NAME) \
-		$(NI_DAQMX_DIR)\\Lib\\nidaqmxbase.lib
+		$(NI_DAQMX_LIBRARY)
 
 	# For VC2005 or later, embed the manifest in the module.
 

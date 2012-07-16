@@ -1,20 +1,20 @@
 /*
- * Name:    d_daqmx_base_aoutput.c
+ * Name:    d_ni_daqmx_aoutput.c
  *
- * Purpose: MX driver for NI-DAQmx Base analog output channels.
+ * Purpose: MX driver for NI-DAQmx analog output channels.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXD_DAQMX_BASE_AOUTPUT_DEBUG	FALSE
+#define MXD_NI_DAQMX_AOUTPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,70 +24,70 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_analog_output.h"
-#include "i_daqmx_base.h"
-#include "d_daqmx_base_aoutput.h"
+#include "i_ni_daqmx.h"
+#include "d_ni_daqmx_aoutput.h"
 
 /* Initialize the aoutput driver jump table. */
 
-MX_RECORD_FUNCTION_LIST mxd_daqmx_base_aoutput_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_ni_daqmx_aoutput_record_function_list = {
 	NULL,
-	mxd_daqmx_base_aoutput_create_record_structures,
+	mxd_ni_daqmx_aoutput_create_record_structures,
 	NULL,
 	NULL,
 	NULL,
-	mxd_daqmx_base_aoutput_open,
-	mxd_daqmx_base_aoutput_close
+	mxd_ni_daqmx_aoutput_open,
+	mxd_ni_daqmx_aoutput_close
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST
-		mxd_daqmx_base_aoutput_analog_output_function_list =
+		mxd_ni_daqmx_aoutput_analog_output_function_list =
 {
 	NULL,
-	mxd_daqmx_base_aoutput_write
+	mxd_ni_daqmx_aoutput_write
 };
 
-/* DAQmx Base analog output data structures. */
+/* DAQmx analog output data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_daqmx_base_aoutput_rf_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_ni_daqmx_aoutput_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DOUBLE_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
-	MXD_DAQMX_BASE_AOUTPUT_STANDARD_FIELDS
+	MXD_NI_DAQMX_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_daqmx_base_aoutput_num_record_fields
-		= sizeof( mxd_daqmx_base_aoutput_rf_defaults )
-		  / sizeof( mxd_daqmx_base_aoutput_rf_defaults[0] );
+long mxd_ni_daqmx_aoutput_num_record_fields
+		= sizeof( mxd_ni_daqmx_aoutput_rf_defaults )
+		  / sizeof( mxd_ni_daqmx_aoutput_rf_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_daqmx_base_aoutput_rfield_def_ptr
-			= &mxd_daqmx_base_aoutput_rf_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_ni_daqmx_aoutput_rfield_def_ptr
+			= &mxd_ni_daqmx_aoutput_rf_defaults[0];
 
 /* ===== */
 
 static mx_status_type
-mxd_daqmx_base_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
-			MX_DAQMX_BASE_AOUTPUT **daqmx_base_aoutput,
+mxd_ni_daqmx_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
+			MX_NI_DAQMX_AOUTPUT **ni_daqmx_aoutput,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_daqmx_base_aoutput_get_pointers()";
+	static const char fname[] = "mxd_ni_daqmx_aoutput_get_pointers()";
 
 	if ( aoutput == (MX_ANALOG_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_ANALOG_OUTPUT pointer passed by '%s' was NULL",
 			calling_fname );
 	}
-	if ( daqmx_base_aoutput == (MX_DAQMX_BASE_AOUTPUT **) NULL ) {
+	if ( ni_daqmx_aoutput == (MX_NI_DAQMX_AOUTPUT **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_DAQMX_BASE_AOUTPUT pointer passed by '%s' was NULL",
+		"The MX_NI_DAQMX_AOUTPUT pointer passed by '%s' was NULL",
 			calling_fname );
 	}
 
-	*daqmx_base_aoutput = (MX_DAQMX_BASE_AOUTPUT *)
+	*ni_daqmx_aoutput = (MX_NI_DAQMX_AOUTPUT *)
 				aoutput->record->record_type_struct;
 
-	if ( *daqmx_base_aoutput == (MX_DAQMX_BASE_AOUTPUT *) NULL ) {
+	if ( *ni_daqmx_aoutput == (MX_NI_DAQMX_AOUTPUT *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_DAQMX_BASE_AOUTPUT pointer for "
+			"The MX_NI_DAQMX_AOUTPUT pointer for "
 			"aoutput record '%s' passed by '%s' is NULL",
 				aoutput->record->name, calling_fname );
 	}
@@ -98,13 +98,13 @@ mxd_daqmx_base_aoutput_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 /* ===== */
 
 MX_EXPORT mx_status_type
-mxd_daqmx_base_aoutput_create_record_structures( MX_RECORD *record )
+mxd_ni_daqmx_aoutput_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] =
-			"mxd_daqmx_base_aoutput_create_record_structures()";
+			"mxd_ni_daqmx_aoutput_create_record_structures()";
 
 	MX_ANALOG_OUTPUT *aoutput;
-	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput;
+	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -115,20 +115,20 @@ mxd_daqmx_base_aoutput_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for MX_ANALOG_OUTPUT structure." );
 	}
 
-	daqmx_base_aoutput = (MX_DAQMX_BASE_AOUTPUT *)
-				malloc( sizeof(MX_DAQMX_BASE_AOUTPUT) );
+	ni_daqmx_aoutput = (MX_NI_DAQMX_AOUTPUT *)
+				malloc( sizeof(MX_NI_DAQMX_AOUTPUT) );
 
-	if ( daqmx_base_aoutput == NULL ) {
+	if ( ni_daqmx_aoutput == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocate memory for MX_DAQMX_BASE_AOUTPUT structure." );
+		"Cannot allocate memory for MX_NI_DAQMX_AOUTPUT structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = aoutput;
-	record->record_type_struct = daqmx_base_aoutput;
+	record->record_type_struct = ni_daqmx_aoutput;
 	record->class_specific_function_list
-			= &mxd_daqmx_base_aoutput_analog_output_function_list;
+			= &mxd_ni_daqmx_aoutput_analog_output_function_list;
 
 	aoutput->record = record;
 
@@ -138,12 +138,12 @@ mxd_daqmx_base_aoutput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_daqmx_base_aoutput_open( MX_RECORD *record )
+mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_daqmx_base_aoutput_open()";
+	static const char fname[] = "mxd_ni_daqmx_aoutput_open()";
 
 	MX_ANALOG_OUTPUT *aoutput;
-	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput = NULL;
+	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
@@ -155,69 +155,70 @@ mxd_daqmx_base_aoutput_open( MX_RECORD *record )
 
 	aoutput = (MX_ANALOG_OUTPUT *) record->record_class_struct;
 
-	mx_status = mxd_daqmx_base_aoutput_get_pointers(
-				aoutput, &daqmx_base_aoutput, fname);
+	mx_status = mxd_ni_daqmx_aoutput_get_pointers(
+				aoutput, &ni_daqmx_aoutput, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Create a DAQmx Base task. */
+	/* Create a DAQmx task. */
 
-	mx_status = mxi_daqmx_base_create_task( record,
-					&(daqmx_base_aoutput->handle) );
+	mx_status = mxi_ni_daqmx_create_task( record,
+					&(ni_daqmx_aoutput->handle) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Associate a analog output channel with this task. */
 
-	daqmx_status = DAQmxBaseCreateAOVoltageChan( daqmx_base_aoutput->handle,
-					daqmx_base_aoutput->channel_name, NULL,
-					daqmx_base_aoutput->minimum_value,
-					daqmx_base_aoutput->maximum_value,
+	daqmx_status = DAQmxCreateAOVoltageChan( ni_daqmx_aoutput->handle,
+					ni_daqmx_aoutput->channel_name, NULL,
+					ni_daqmx_aoutput->minimum_value,
+					ni_daqmx_aoutput->maximum_value,
 					DAQmx_Val_Volts, NULL );
 
-#if MXD_DAQMX_BASE_AOUTPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseCreateDOChan( %#lx, '%s', NULL, %#lx ) = %d",
-		fname, (unsigned long) daqmx_base_aoutput->handle,
-		daqmx_base_aoutput->channel_name,
+#if MXD_NI_DAQMX_AOUTPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: DAQmxCreateAOVoltageChan( %#lx, '%s', NULL, %#lx ) = %d",
+		fname, (unsigned long) ni_daqmx_aoutput->handle,
+		ni_daqmx_aoutput->channel_name,
 		(unsigned long) DAQmx_Val_ChanForAllLines,
 		(int) daqmx_status));
 #endif
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to associate analog output '%s' with "
-		"DAQmx Base task %#lx failed.  "
+		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) daqmx_base_aoutput->handle,
+			(unsigned long) ni_daqmx_aoutput->handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
 
-	daqmx_status = DAQmxBaseStartTask( daqmx_base_aoutput->handle );
+	daqmx_status = DAQmxStartTask( ni_daqmx_aoutput->handle );
 
-#if MXD_DAQMX_BASE_AOUTPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseStartTask( %#lx ) = %d",
-		fname, (unsigned long) daqmx_base_aoutput->handle,
+#if MXD_NI_DAQMX_AOUTPUT_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
+		fname, (unsigned long) ni_daqmx_aoutput->handle,
 		(int) daqmx_status));
 #endif
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for analog output '%s' "
 		"failed.  DAQmx error code = %d, error message = '%s'",
-			(unsigned long) daqmx_base_aoutput->handle,
+			(unsigned long) ni_daqmx_aoutput->handle,
 			record->name,
 			(int) daqmx_status, daqmx_error_message );
 	}
@@ -226,12 +227,12 @@ mxd_daqmx_base_aoutput_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_daqmx_base_aoutput_close( MX_RECORD *record )
+mxd_ni_daqmx_aoutput_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_daqmx_base_aoutput_close()";
+	static const char fname[] = "mxd_ni_daqmx_aoutput_close()";
 
 	MX_ANALOG_OUTPUT *aoutput;
-	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput = NULL;
+	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -241,26 +242,26 @@ mxd_daqmx_base_aoutput_close( MX_RECORD *record )
 
 	aoutput = (MX_ANALOG_OUTPUT *) record->record_class_struct;
 
-	mx_status = mxd_daqmx_base_aoutput_get_pointers(
-				aoutput, &daqmx_base_aoutput, fname);
+	mx_status = mxd_ni_daqmx_aoutput_get_pointers(
+				aoutput, &ni_daqmx_aoutput, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( daqmx_base_aoutput->handle != 0 ) {
-		mx_status = mxi_daqmx_base_shutdown_task( record,
-						daqmx_base_aoutput->handle );
+	if ( ni_daqmx_aoutput->handle != 0 ) {
+		mx_status = mxi_ni_daqmx_shutdown_task( record,
+						ni_daqmx_aoutput->handle );
 	}
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
+mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 {
-	static const char fname[] = "mxd_daqmx_base_aoutput_write()";
+	static const char fname[] = "mxd_ni_daqmx_aoutput_write()";
 
-	MX_DAQMX_BASE_AOUTPUT *daqmx_base_aoutput;
+	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
@@ -270,10 +271,10 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	int32 num_samples_written;
 	mx_status_type mx_status;
 
-	daqmx_base_aoutput = NULL;
+	ni_daqmx_aoutput = NULL;
 
-	mx_status = mxd_daqmx_base_aoutput_get_pointers(
-				aoutput, &daqmx_base_aoutput, fname);
+	mx_status = mxd_ni_daqmx_aoutput_get_pointers(
+				aoutput, &ni_daqmx_aoutput, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -284,16 +285,16 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	write_array[0] = aoutput->raw_value.double_value;
 
-	daqmx_status = DAQmxBaseWriteAnalogF64( daqmx_base_aoutput->handle,
+	daqmx_status = DAQmxWriteAnalogF64( ni_daqmx_aoutput->handle,
 					num_samples, autostart, timeout,
 					DAQmx_Val_GroupByChannel,
 					write_array, 
 					&num_samples_written, NULL );
 
-#if MXD_DAQMX_BASE_AOUTPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxBaseWriteDigitalU32( "
+#if MXD_NI_DAQMX_AOUTPUT_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxWriteAnalogF64( "
 	"%#lx, %lu, %lu, %f, %#x, {%f}, &num_samples, NULL ) = %d",
-		fname, (unsigned long) daqmx_base_aoutput->handle,
+		fname, (unsigned long) ni_daqmx_aoutput->handle,
 		num_samples,
 		autostart,
 		timeout,
@@ -304,7 +305,7 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	if ( daqmx_status != 0 ) {
 
-		DAQmxBaseGetExtendedErrorInfo( daqmx_error_message,
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
 					sizeof(daqmx_error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -314,7 +315,7 @@ mxd_daqmx_base_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-#if MXD_DAQMX_BASE_AOUTPUT_DEBUG
+#if MXD_NI_DAQMX_AOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s:   num_samples_written = %lu",
 		fname, num_samples_written));
 #endif

@@ -1,0 +1,1 @@
+timescan                                 scan linear_scan input_scan "" "" 1 1 0  4  port0 port1 ai0 ao0  0 0 preset_time "1 timer1" text timescan.005 none $f[0]  0  1  1000000
