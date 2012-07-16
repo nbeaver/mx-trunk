@@ -2,7 +2,7 @@
  * Name:    i_ni_daqmx_base.h
  *
  * Purpose: Header for compiling the MX 'ni_daqmx' module using the
- *          National Instruments DAQmx Base package.
+ *          National Instruments DAQmx Base package rather than DAQmx.
  *
  * Author:  William Lavender
  *
@@ -20,8 +20,8 @@
 
 #define DAQmxClearTask( a )		DAQmxBaseClearTask( a )
 
-#define DAQmxCreateAIVoltageChan( a, b, c, d, e, f, g, h, i, j )  \
-	DAQmxBaseCreateAIVoltageChan((a),(b),(c),(d),(e),(f),(g),(h),(i),(j))
+#define DAQmxCreateAIThrmcplChan( a, b, c, d, e, f, g, h, i, j )  \
+	DAQmxBaseCreateAIThrmcplChan((a),(b),(c),(d),(e),(f),(g),(h),(i),(j))
 
 #define DAQmxCreateAIVoltageChan( a, b, c, d, e, f, g, h )  \
 		DAQmxBaseCreateAIVoltageChan((a),(b),(c),(d),(e),(f),(g),(h))

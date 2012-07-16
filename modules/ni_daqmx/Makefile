@@ -1,9 +1,10 @@
 #
-# If you are building the software for National Instruments daqMx Base,
-# then set USE_DAQMX_BASE to TRUE below.  Otherwise, set it to FALSE.
+# If you are building the software for National Instruments DAQmx Base
+# rather than DAQmx, then set USE_DAQMX_BASE to TRUE below.  Otherwise,
+# set it to FALSE.
 #
 
-USE_DAQMX_BASE = FALSE
+USE_DAQMX_BASE = TRUE
 
 #
 # Supported values of MX_ARCH:  linux win32
