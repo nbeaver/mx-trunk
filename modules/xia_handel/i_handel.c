@@ -804,6 +804,8 @@ mxi_handel_open( MX_RECORD *record )
 		}
 	}
 
+	handel->use_module_statistics_2 = TRUE;
+
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -1687,7 +1689,7 @@ mxi_handel_read_statistics( MX_MCA *mca )
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	double module_statistics[28];	/* FIXME: 28 is for DXP-XMAP */
+	double module_statistics[36];	/* FIXME: 36 is for DXP-XMAP */
 	long channel_offset;
 	mx_status_type mx_status;
 
@@ -1697,8 +1699,15 @@ mxi_handel_read_statistics( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_handel_get_run_data( mca, "module_statistics",
+	if ( handel->use_module_statistics_2 ) {
+		mx_status = mxi_handel_get_run_data( mca,
+					"module_statistics_2",
 					(void *) module_statistics );
+	} else {
+		mx_status = mxi_handel_get_run_data( mca,
+					"module_statistics",
+					(void *) module_statistics );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1706,21 +1715,34 @@ mxi_handel_read_statistics( MX_MCA *mca )
 	if ( strcmp( handel_mca->module_type, "xmap" ) == 0 ) {
 		channel_offset = handel_mca->detector_channel % 4;
 
+		MX_DEBUG(-2,("%s: detector_channel = %ld, channel_offset = %ld",
+			fname, handel_mca->detector_channel, channel_offset));
+
 		mca->real_time = module_statistics[ channel_offset + 0 ];
 		mca->live_time = module_statistics[ channel_offset + 1 ];
 
-#if 0
 		handel_mca->energy_live_time
 				= module_statistics[ channel_offset + 2 ];
-#endif
-		handel_mca->num_triggers
-				= module_statistics[ channel_offset + 3 ];
-		handel_mca->num_events
-				= module_statistics[ channel_offset + 4 ];
+
+		handel_mca->num_triggers = mx_round(
+				module_statistics[ channel_offset + 3 ] );
+		handel_mca->num_events = mx_round(
+				module_statistics[ channel_offset + 4 ] );
+
 		handel_mca->input_count_rate
 				= module_statistics[ channel_offset + 5 ];
 		handel_mca->output_count_rate
 				= module_statistics[ channel_offset + 6 ];
+
+		if ( handel->use_module_statistics_2 ) {
+			handel_mca->num_underflows = mx_round(
+				module_statistics[ channel_offset + 7 ] );
+			handel_mca->num_overflows = mx_round(
+				module_statistics[ channel_offset + 8 ] );
+		} else {
+			handel_mca->num_underflows = 0;
+			handel_mca->num_overflows = 0;
+		}
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The reading of module statistics for module type '%s' "

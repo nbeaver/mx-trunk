@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2006, 2009-2010 Illinois Institute of Technology
+ * Copyright 2003-2006, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,6 +68,8 @@ typedef struct {
 	MX_RECORD ***module_array;
 
 	double last_measurement_interval;
+
+	mx_bool_type use_module_statistics_2;
 } MX_HANDEL;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */

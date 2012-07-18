@@ -19,9 +19,9 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-MODULES += ni_daqmx		# linux, win32
+#MODULES += ni_daqmx		# linux, win32
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -52,9 +52,9 @@ MODULES += ni_daqmx		# linux, win32
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
 #MODULES += epics_mbc
 

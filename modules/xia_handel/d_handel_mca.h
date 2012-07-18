@@ -101,14 +101,19 @@ typedef struct {
 
 	/* Clock tick intervals in seconds. */
 
-	double input_count_rate;
-	double output_count_rate;
+	double energy_live_time;
 
 	unsigned long num_triggers;
 	unsigned long num_events;
 
+	double input_count_rate;
+	double output_count_rate;
+
 	unsigned long old_preset_type;
 	double old_preset_time;
+
+	unsigned long num_underflows;
+	unsigned long num_overflows;
 
 	mx_bool_type debug_flag;
 	mx_bool_type use_handel_network_driver;
