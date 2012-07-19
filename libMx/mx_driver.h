@@ -614,10 +614,11 @@ extern "C" {
 
 /* --- Multichannel analyzer types --- */
 
-#define MXT_MCA_SOFTWARE		110000
+#define MXT_MCA_OLD_SOFTWARE		110000
 #define MXT_MCA_NETWORK			110001
 
 #define MXT_MCA_ROENTEC_RCL		110005
+#define MXT_MCA_SOFTWARE		110006
 
 /* --- Multichannel encoder types --- */
 
