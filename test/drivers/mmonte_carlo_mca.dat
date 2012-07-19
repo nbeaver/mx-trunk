@@ -1,0 +1,1 @@
+mca1  device mca monte_carlo_mca "" "" 1024 4 0 3 "1 alpha" "2 beta" "3 gamma"

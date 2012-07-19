@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mmonte_carlo_mca.dat -s ./smonte_carlo_mca.dat $*
+

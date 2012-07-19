@@ -84,16 +84,6 @@ mxd_old_soft_mca_get_pointers( MX_MCA *mca,
 			calling_fname );
 	}
 
-	if ( mca->record->mx_type != MXT_MCA_SOFTWARE ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"The mca '%s' passed by '%s' is not a soft mca.  "
-	"(superclass = %ld, class = %ld, type = %ld)",
-			mca->record->name, calling_fname,
-			mca->record->mx_superclass,
-			mca->record->mx_class,
-			mca->record->mx_type );
-	}
-
 	if ( old_soft_mca != (MX_OLD_SOFT_MCA **) NULL ) {
 
 		*old_soft_mca = (MX_OLD_SOFT_MCA *)

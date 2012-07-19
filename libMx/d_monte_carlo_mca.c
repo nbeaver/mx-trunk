@@ -1,5 +1,5 @@
 /*
- * Name:    d_soft_mca.c
+ * Name:    d_monte_carlo_mca.c
  *
  * Purpose: MX multichannel analyzer driver for software-emulated MCAs
  *          using simple Monte Carlo calculations.
@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_SOFT_MCA_DEBUG	TRUE
+#define MXD_MONTE_CARLO_MCA_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,50 +27,50 @@
 #include "mx_record.h"
 #include "mx_constants.h"
 #include "mx_mca.h"
-#include "d_soft_mca.h"
+#include "d_monte_carlo_mca.h"
 
 /* Initialize the MCA driver jump table. */
 
-MX_RECORD_FUNCTION_LIST mxd_soft_mca_record_function_list = {
-	mxd_soft_mca_initialize_driver,
-	mxd_soft_mca_create_record_structures,
-	mxd_soft_mca_finish_record_initialization,
-	mxd_soft_mca_delete_record,
-	mxd_soft_mca_print_structure,
-	mxd_soft_mca_open
+MX_RECORD_FUNCTION_LIST mxd_monte_carlo_mca_record_function_list = {
+	mxd_monte_carlo_mca_initialize_driver,
+	mxd_monte_carlo_mca_create_record_structures,
+	mxd_monte_carlo_mca_finish_record_initialization,
+	mxd_monte_carlo_mca_delete_record,
+	mxd_monte_carlo_mca_print_structure,
+	mxd_monte_carlo_mca_open
 };
 
-MX_MCA_FUNCTION_LIST mxd_soft_mca_mca_function_list = {
-	mxd_soft_mca_start,
-	mxd_soft_mca_stop,
-	mxd_soft_mca_read,
-	mxd_soft_mca_clear,
-	mxd_soft_mca_busy,
-	mxd_soft_mca_get_parameter,
+MX_MCA_FUNCTION_LIST mxd_monte_carlo_mca_mca_function_list = {
+	mxd_monte_carlo_mca_start,
+	mxd_monte_carlo_mca_stop,
+	mxd_monte_carlo_mca_read,
+	mxd_monte_carlo_mca_clear,
+	mxd_monte_carlo_mca_busy,
+	mxd_monte_carlo_mca_get_parameter,
 	mx_mca_default_set_parameter_handler
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_soft_mca_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_monte_carlo_mca_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_MCA_STANDARD_FIELDS,
-	MXD_SOFT_MCA_STANDARD_FIELDS
+	MXD_MONTE_CARLO_MCA_STANDARD_FIELDS
 };
 
-long mxd_soft_mca_num_record_fields
-		= sizeof( mxd_soft_mca_record_field_defaults )
-		  / sizeof( mxd_soft_mca_record_field_defaults[0] );
+long mxd_monte_carlo_mca_num_record_fields
+		= sizeof( mxd_monte_carlo_mca_record_field_defaults )
+		  / sizeof( mxd_monte_carlo_mca_record_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_soft_mca_rfield_def_ptr
-			= &mxd_soft_mca_record_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_monte_carlo_mca_rfield_def_ptr
+			= &mxd_monte_carlo_mca_record_field_defaults[0];
 
 /*--------*/
 
 static mx_status_type
-mxd_soft_mca_get_pointers( MX_MCA *mca,
-			MX_SOFT_MCA **soft_mca,
+mxd_monte_carlo_mca_get_pointers( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA **monte_carlo_mca,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_soft_mca_get_pointers()";
+	static const char fname[] = "mxd_monte_carlo_mca_get_pointers()";
 
 	MX_RECORD *mca_record;
 
@@ -79,9 +79,9 @@ mxd_soft_mca_get_pointers( MX_MCA *mca,
 			"The MX_MCA pointer passed by '%s' was NULL",
 			calling_fname );
 	}
-	if ( soft_mca == (MX_SOFT_MCA **) NULL ) {
+	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_SOFT_MCA pointer passed by '%s' was NULL",
+			"The MX_MONTE_CARLO_MCA pointer passed by '%s' was NULL",
 			calling_fname );
 	}
 
@@ -92,11 +92,11 @@ mxd_soft_mca_get_pointers( MX_MCA *mca,
 		"The MX_RECORD pointer for MX_MCA pointer %p is NULL.", mca );
 	}
 
-	*soft_mca = (MX_SOFT_MCA *) mca_record->record_type_struct;
+	*monte_carlo_mca = (MX_MONTE_CARLO_MCA *) mca_record->record_type_struct;
 
-	if ( *soft_mca == (MX_SOFT_MCA *) NULL ) {
+	if ( *monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_SOFT_MCA pointer for mca record '%s' passed by '%s' is NULL",
+	"The MX_MONTE_CARLO_MCA pointer for mca record '%s' passed by '%s' is NULL",
 				mca_record->name, calling_fname );
 	}
 
@@ -106,7 +106,7 @@ mxd_soft_mca_get_pointers( MX_MCA *mca,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_initialize_driver( MX_DRIVER *driver )
+mxd_monte_carlo_mca_initialize_driver( MX_DRIVER *driver )
 {
 	long maximum_num_channels_varargs_cookie;
 	long maximum_num_rois_varargs_cookie;
@@ -155,12 +155,12 @@ mxd_soft_mca_initialize_driver( MX_DRIVER *driver )
 
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_create_record_structures( MX_RECORD *record )
+mxd_monte_carlo_mca_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_soft_mca_create_record_structures()";
+	static const char fname[] = "mxd_monte_carlo_mca_create_record_structures()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -171,18 +171,18 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_MCA structure." );
 	}
 
-	soft_mca = (MX_SOFT_MCA *) malloc( sizeof(MX_SOFT_MCA) );
+	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) malloc( sizeof(MX_MONTE_CARLO_MCA) );
 
-	if ( soft_mca == (MX_SOFT_MCA *) NULL ) {
+	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_SOFT_MCA structure." );
+		"Can't allocate memory for MX_MONTE_CARLO_MCA structure." );
 	}
 
 	/* Now set up the necessary pointers. */
 
 	record->record_class_struct = mca;
-	record->record_type_struct = soft_mca;
-	record->class_specific_function_list = &mxd_soft_mca_mca_function_list;
+	record->record_type_struct = monte_carlo_mca;
+	record->class_specific_function_list = &mxd_monte_carlo_mca_mca_function_list;
 
 	mca->record = record;
 
@@ -190,15 +190,15 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
+mxd_monte_carlo_mca_finish_record_initialization( MX_RECORD *record )
 {
 #if 0
 	static const char fname[] =
-		"mxd_soft_mca_finish_record_initialization()";
+		"mxd_monte_carlo_mca_finish_record_initialization()";
 #endif
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
 	mca = (MX_MCA *) record->record_class_struct;
@@ -209,9 +209,9 @@ mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 
 	mca->current_num_rois = mca->maximum_num_rois;
 
-	soft_mca = (MX_SOFT_MCA *) record->record_type_struct;
+	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) record->record_type_struct;
 
-	/* Do soft_mca stuff here. */
+	/* Do monte_carlo_mca stuff here. */
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
@@ -219,20 +219,20 @@ mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_delete_record( MX_RECORD *record )
+mxd_monte_carlo_mca_delete_record( MX_RECORD *record )
 {
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	soft_mca = (MX_SOFT_MCA *) record->record_type_struct;
+	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) record->record_type_struct;
 
-	if ( soft_mca != (MX_SOFT_MCA *) NULL ) {
+	if ( monte_carlo_mca != (MX_MONTE_CARLO_MCA *) NULL ) {
 
-		/* Free soft_mca structures here. */
+		/* Free monte_carlo_mca structures here. */
 
 		mx_free( record->record_type_struct );
 
@@ -252,12 +252,12 @@ mxd_soft_mca_delete_record( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
+mxd_monte_carlo_mca_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_soft_mca_print_structure()";
+	static const char fname[] = "mxd_monte_carlo_mca_print_structure()";
 
 	MX_MCA *mca;
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -271,16 +271,16 @@ mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 	"MX_MCA pointer for record '%s' is NULL.", record->name);
 	}
 
-	soft_mca = (MX_SOFT_MCA *) (record->record_type_struct);
+	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) (record->record_type_struct);
 
-	if ( soft_mca == (MX_SOFT_MCA *) NULL ) {
+	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"MX_SOFT_MCA pointer for record '%s' is NULL.", record->name);
+	"MX_MONTE_CARLO_MCA pointer for record '%s' is NULL.", record->name);
 	}
 
 	fprintf(file, "MCA parameters for record '%s':\n", record->name);
 
-	fprintf(file, "  MCA type              = SOFT_MCA.\n\n");
+	fprintf(file, "  MCA type              = MONTE_CARLO_MCA.\n\n");
 	fprintf(file, "  maximum # of channels = %ld\n",
 					mca->maximum_num_channels);
 	fprintf(file, "  maximum # of ROIs     = %ld\n",
@@ -290,12 +290,12 @@ mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_open( MX_RECORD *record )
+mxd_monte_carlo_mca_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_soft_mca_open()";
+	static const char fname[] = "mxd_monte_carlo_mca_open()";
 
 	MX_MCA *mca = NULL;
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	long i;
 	mx_status_type mx_status;
 
@@ -306,12 +306,12 @@ mxd_soft_mca_open( MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	soft_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
+	monte_carlo_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
 
 	/* Set some reasonable defaults. */
 
@@ -341,17 +341,17 @@ mxd_soft_mca_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_start( MX_MCA *mca )
+mxd_monte_carlo_mca_start( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_start()";
+	static const char fname[] = "mxd_monte_carlo_mca_start()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
 	double measurement_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -377,11 +377,11 @@ mxd_soft_mca_start( MX_MCA *mca )
 	measurement_time_in_clock_ticks = mx_convert_seconds_to_clock_ticks(
 							measurement_time );
 
-	soft_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
+	monte_carlo_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
 				start_time_in_clock_ticks,
 				measurement_time_in_clock_ticks );
 
-#if MXD_SOFT_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s: counting for %g seconds, (%lu,%lu) in clock ticks.",
 		fname, mca->preset_live_time,
 		measurement_time_in_clock_ticks.high_order,
@@ -390,44 +390,44 @@ mxd_soft_mca_start( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: starting time = (%lu,%lu), finish time = (%lu,%lu)",
 		fname, start_time_in_clock_ticks.high_order,
 		(unsigned long) start_time_in_clock_ticks.low_order,
-		soft_mca->finish_time_in_clock_ticks.high_order,
-	(unsigned long) soft_mca->finish_time_in_clock_ticks.low_order));
+		monte_carlo_mca->finish_time_in_clock_ticks.high_order,
+	(unsigned long) monte_carlo_mca->finish_time_in_clock_ticks.low_order));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_stop( MX_MCA *mca )
+mxd_monte_carlo_mca_stop( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_stop()";
+	static const char fname[] = "mxd_monte_carlo_mca_stop()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SOFT_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	soft_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
+	monte_carlo_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_read( MX_MCA *mca )
+mxd_monte_carlo_mca_read( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_read()";
+	static const char fname[] = "mxd_monte_carlo_mca_read()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -436,20 +436,20 @@ mxd_soft_mca_read( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_clear( MX_MCA *mca )
+mxd_monte_carlo_mca_clear( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_clear()";
+	static const char fname[] = "mxd_monte_carlo_mca_clear()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	unsigned long i;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SOFT_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
@@ -461,16 +461,16 @@ mxd_soft_mca_clear( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_busy( MX_MCA *mca )
+mxd_monte_carlo_mca_busy( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_busy()";
+	static const char fname[] = "mxd_monte_carlo_mca_busy()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
 	int result;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -478,7 +478,7 @@ mxd_soft_mca_busy( MX_MCA *mca )
 	current_time_in_clock_ticks = mx_current_clock_tick();
 
 	result = mx_compare_clock_ticks( current_time_in_clock_ticks,
-				soft_mca->finish_time_in_clock_ticks );
+				monte_carlo_mca->finish_time_in_clock_ticks );
 
 	if ( result >= 0 ) {
 		mca->busy = FALSE;
@@ -486,7 +486,7 @@ mxd_soft_mca_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-#if MXD_SOFT_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s: current time = (%lu,%lu), busy = %d",
 		fname, current_time_in_clock_ticks.high_order,
 		(unsigned long) current_time_in_clock_ticks.low_order,
@@ -497,20 +497,20 @@ mxd_soft_mca_busy( MX_MCA *mca )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_get_parameter( MX_MCA *mca )
+mxd_monte_carlo_mca_get_parameter( MX_MCA *mca )
 {
-	static const char fname[] = "mxd_soft_mca_get_parameter()";
+	static const char fname[] = "mxd_monte_carlo_mca_get_parameter()";
 
-	MX_SOFT_MCA *soft_mca = NULL;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	unsigned long i, j, channel_value, integral;
 	mx_status_type mx_status;
 
-	mx_status = mxd_soft_mca_get_pointers( mca, &soft_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SOFT_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for parameter type %ld.",
 			fname, mca->parameter_type));
 #endif
