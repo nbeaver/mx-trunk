@@ -1716,7 +1716,6 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	directory_name = strdup( filename );
 
 	if ( directory_name == NULL ) {
-		mx_free( win32_monitor->filename );
 		mx_free( win32_monitor );
 		mx_free( *monitor_ptr );
 
@@ -1740,7 +1739,6 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 			directory_name = strdup( "." );
 
 			if ( directory_name == NULL ) {
-				mx_free( win32_monitor->filename );
 				mx_free( win32_monitor );
 				mx_free( *monitor_ptr );
 
@@ -1759,7 +1757,6 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	if ( os_status != 0 ) {
 		saved_errno = errno;
 
-		mx_free( win32_monitor->filename );
 		mx_free( win32_monitor );
 		mx_free( *monitor_ptr );
 
@@ -1781,7 +1778,6 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	if ( win32_monitor->change_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
-		mx_free( win32_monitor->filename );
 		mx_free( win32_monitor );
 		mx_free( *monitor_ptr );
 
@@ -1822,7 +1818,6 @@ mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
 
 	(void) FindCloseChangeNotification( win32_monitor->change_handle );
 
-	mx_free( win32_monitor->filename );
 	mx_free( win32_monitor );
 	mx_free( monitor );
 
@@ -1872,8 +1867,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 		 * with our previously saved version of the status.
 		 */
 
-		os_status = _stat( win32_monitor->filename,
-				&current_file_status );
+		os_status = _stat( monitor->filename, &current_file_status );
 
 		if ( os_status != 0 ) {
 			saved_errno = errno;
@@ -1887,7 +1881,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 				"An attempt to get the current file status "
 				"of file '%s' failed with error = %d, "
 				"error message = '%s'.",
-					win32_monitor->filename,
+					monitor->filename,
 					saved_errno, strerror(saved_errno) );
 			}
 		} else {
@@ -1945,7 +1939,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 			"FindNextChangeNotifcation() for the directory "
 			"containing file '%s'.  "
 			"Win32 error code = %ld, error message = '%s'",
-				win32_monitor->filename,
+				monitor->filename,
 				last_error_code, message_buffer );
 	}
 
