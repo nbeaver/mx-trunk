@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,15 +28,24 @@
 #endif
 
 #if defined(OS_WIN32) || defined(OS_DJGPP)
+#   define MXP_NEED_REENTRANT_ASCTIME_CTIME		TRUE
+#   define MXP_NEED_REENTRANT_GMTIME_LOCALTIME		TRUE
+#elif defined(OS_SOLARIS)
+#   if ( MX_SOLARIS_VERSION < 5010000L )
+#      define MXP_NEED_REENTRANT_GMTIME_LOCALTIME	TRUE
+#   endif
+#endif
 
+#if MXP_NEED_REENTRANT_ASCTIME_CTIME
   MX_API char *asctime_r( const struct tm *, char * );
 
   MX_API char *ctime_r( const time_t *, char * );
+#endif
 
+#if MXP_NEED_REENTRANT_GMTIME_LOCALTIME
   MX_API struct tm *gmtime_r( const time_t *, struct tm * );
 
   MX_API struct tm *localtime_r( const time_t *, struct tm * );
-
 #endif
 
 /*---- MX OS time reporting functions. ----*/

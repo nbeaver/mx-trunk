@@ -1457,6 +1457,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	(*monitor_ptr)->private_ptr = linux_monitor;
 
+	strlcpy( (*monitor_ptr)->filename, filename, MXU_FILENAME_LENGTH );
+
+	/*----*/
 
 	linux_monitor->inotify_file_descriptor = inotify_init();
 
@@ -1655,7 +1658,6 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
  */
 
 typedef struct {
-	char *filename;
 	HANDLE change_handle;
 	struct _stat file_status;
 } MXP_WIN32_FILE_MONITOR;
@@ -1700,16 +1702,9 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	(*monitor_ptr)->private_ptr = win32_monitor;
 
-	win32_monitor->filename = strdup( filename );
+	strlcpy( (*monitor_ptr)->filename, filename, MXU_FILENAME_LENGTH );
 
-	if ( win32_monitor->filename == NULL ) {
-		mx_free( win32_monitor );
-		mx_free( *monitor_ptr );
-
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to save a copy of the filename '%s' "
-		"in the file monitor structure.", filename );
-	}
+	/*----*/
 
 	/* Create a directory name from the specified filename.  If the
 	 * filename contains a path separator, then we truncate it at
@@ -2008,6 +2003,10 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	(*monitor_ptr)->private_ptr = kqueue_monitor;
 
+	strlcpy( (*monitor_ptr)->filename, filename, MXU_FILENAME_LENGTH );
+
+	/*----*/
+
 	kqueue_monitor->kqueue_fd = kqueue();
 
 	if ( kqueue_monitor->kqueue_fd < 0 ) {
@@ -2141,7 +2140,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_SOLARIS)
+#elif (defined(OS_SOLARIS) && (MX_SOLARIS_VERSION >= 5010000L ))
 
 /*
  * https://blogs.oracle.com/darren/entry/file_notification_in_opensolaris_and
@@ -2226,6 +2225,10 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	}
 
 	(*monitor_ptr)->private_ptr = port_monitor;
+
+	strlcpy( (*monitor_ptr)->filename, filename, MXU_FILENAME_LENGTH );
+
+	/*----*/
 
 	port_monitor->port = port_create();
 
@@ -2337,11 +2340,172 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 	return FALSE;
 }
+
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS)
 
-error_not_found();
+/*
+ * This is a generic stat()-based implementation that requires polling.
+ * It is used for the following platforms:
+ *
+ *   Linux with Glibc 2.3.5 and before.
+ *   Solaris 9 and before.
+ */
+
+typedef struct {
+	struct stat stat_buf;
+} MXP_STAT_MONITOR;
+
+MX_EXPORT mx_status_type
+mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
+			unsigned long access_type,
+			const char *filename )
+{
+	static const char fname[] = "mx_create_file_monitor()";
+
+	MXP_STAT_MONITOR *stat_monitor;
+	unsigned long flags;
+	int os_status, saved_errno;
+
+	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	*monitor_ptr = (MX_FILE_MONITOR *) malloc( sizeof(MX_FILE_MONITOR) );
+
+	if ( (*monitor_ptr) == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MX_FILE_MONITOR structure." );
+	}
+
+	stat_monitor = (MXP_STAT_MONITOR *)
+				malloc( sizeof(MXP_STAT_MONITOR) );
+
+	if ( stat_monitor == (MXP_STAT_MONITOR *) NULL ) {
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate an "
+		"MXP_STAT_MONITOR structure." );
+	}
+
+	(*monitor_ptr)->private_ptr = stat_monitor;
+
+	strlcpy( (*monitor_ptr)->filename, filename, MXU_FILENAME_LENGTH );
+
+	/*----*/
+
+	/* Save a copy of the initial status of the file. */
+
+	os_status = stat( filename, &(stat_monitor->stat_buf) );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		mx_free( stat_monitor );
+		mx_free( *monitor_ptr );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking stat() for file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			filename, saved_errno, strerror( saved_errno ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_delete_file_monitor( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_delete_file_monitor()";
+
+	MXP_STAT_MONITOR *stat_monitor;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+	}
+
+	stat_monitor = monitor->private_ptr;
+
+	if ( stat_monitor == (MXP_STAT_MONITOR *) NULL ) {
+		mx_free( monitor );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_STAT_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+	}
+
+	mx_free( stat_monitor );
+	mx_free( monitor );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_bool_type
+mx_file_has_changed( MX_FILE_MONITOR *monitor )
+{
+	static const char fname[] = "mx_file_has_changed()";
+
+	MXP_STAT_MONITOR *stat_monitor;
+	int os_status, saved_errno;
+	mx_bool_type result;
+	struct stat current_stat_buf;
+
+	if ( monitor == (MX_FILE_MONITOR *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_FILE_MONITOR pointer passed was NULL." );
+
+		return FALSE;
+	}
+
+	stat_monitor = monitor->private_ptr;
+
+	if ( stat_monitor == (MXP_STAT_MONITOR *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MXP_STAT_MONITOR pointer "
+			"for MX_FILE_MONITOR %p is NULL.", monitor );
+
+		return FALSE;
+	}
+
+	/* Get the current status of the file. */
+
+	os_status = stat( monitor->filename, &current_stat_buf );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno == ENOENT )
+			return TRUE;
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while invoking stat() for file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			monitor->filename,
+			saved_errno, strerror( saved_errno ) );
+
+		return FALSE;
+	}
+
+	/* Has the file been modified since the last time that we looked? */
+
+	if ( current_stat_buf.st_mtime != stat_monitor->stat_buf.st_mtime ) {
+		result = TRUE;
+	} else {
+		result = FALSE;
+	}
+
+	/* Save the new status. */
+
+	memcpy( &(stat_monitor->stat_buf), &current_stat_buf,
+			sizeof(struct stat) );
+
+	return result;
+}
 
 /*-------------------------------------------------------------------------*/
 
