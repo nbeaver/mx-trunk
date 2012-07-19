@@ -407,7 +407,7 @@
 #include "d_smartmotor_aio.h"
 #include "d_smartmotor_dio.h"
 
-#include "d_old_soft_mca.h"
+#include "d_soft_mca.h"
 #include "d_network_mca.h"
 #include "d_roentec_rcl_mca.h"
 #include "d_monte_carlo_mca.h"
@@ -2933,12 +2933,12 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_qbpm_mcai_num_record_fields,
 				&mxd_qbpm_mcai_rfield_def_ptr},
 
-{"old_soft_mca",   MXT_MCA_OLD_SOFTWARE,  MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
-				&mxd_old_soft_mca_record_function_list,
+{"soft_mca",       MXT_MCA_SOFTWARE,     MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
+				&mxd_soft_mca_record_function_list,
 				NULL,
-				&mxd_old_soft_mca_mca_function_list,
-				&mxd_old_soft_mca_num_record_fields,
-				&mxd_old_soft_mca_rfield_def_ptr},
+				&mxd_soft_mca_mca_function_list,
+				&mxd_soft_mca_num_record_fields,
+				&mxd_soft_mca_rfield_def_ptr},
 
 {"monte_carlo_mca", MXT_MCA_MONTE_CARLO,  MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_monte_carlo_mca_record_function_list,

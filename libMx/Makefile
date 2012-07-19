@@ -120,7 +120,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
 	d_network_scaler.c d_network_timer.c d_network_vinput.c \
 	d_network_wvout.c d_newport.c \
-	d_old_soft_mca.c d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
+	d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
 	d_panasonic_kx_dp702.c d_panther.c d_pcstep.c \
 	d_pdi40.c d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
 	d_pdi45_scaler.c d_pdi45_timer.c \
@@ -142,7 +142,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_smartmotor.c d_smartmotor_aio.c d_smartmotor_dio.c \
 	d_smc24.c d_soft_amplifier.c d_soft_ainput.c d_soft_aoutput.c \
 	d_soft_area_detector.c d_soft_dinput.c d_soft_doutput.c \
-	d_soft_mcs.c d_soft_motor.c d_soft_ptz.c \
+	d_soft_mca.c d_soft_mcs.c d_soft_motor.c d_soft_ptz.c \
 	d_soft_sample_changer.c d_soft_sca.c d_soft_scaler.c d_soft_timer.c \
 	d_soft_vinput.c \
 	d_sony_visca_ptz.c d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
