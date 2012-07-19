@@ -410,6 +410,7 @@
 #include "d_old_soft_mca.h"
 #include "d_network_mca.h"
 #include "d_roentec_rcl_mca.h"
+#include "d_soft_mca.h"
 
 #include "d_sis3801.h"
 
@@ -2938,6 +2939,13 @@ MX_DRIVER mx_type_table[] = {
 				&mxd_old_soft_mca_mca_function_list,
 				&mxd_old_soft_mca_num_record_fields,
 				&mxd_old_soft_mca_rfield_def_ptr},
+
+{"soft_mca",       MXT_MCA_SOFTWARE,  MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
+				&mxd_soft_mca_record_function_list,
+				NULL,
+				&mxd_soft_mca_mca_function_list,
+				&mxd_soft_mca_num_record_fields,
+				&mxd_soft_mca_rfield_def_ptr},
 
 {"network_mca",    MXT_MCA_NETWORK,   MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_network_mca_record_function_list,
