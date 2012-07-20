@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006, 2008-2011 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006, 2008-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1199,9 +1199,7 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 				MX_CA_DOUBLE, 1, &(mca->output_count_rate) );
 
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			mca->parameter_type );
+		return mx_mca_default_get_parameter_handler( mca );
 	}
 
 	return mx_status;
@@ -1332,9 +1330,7 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %ld is not supported by this driver.",
-			mca->parameter_type );
+		return mx_mca_default_set_parameter_handler( mca );
 	}
 
 	return mx_status;
