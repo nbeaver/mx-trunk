@@ -75,7 +75,7 @@ Istep                            device scaler function_generator_scaler "" "" 3
 Isine                            device scaler function_generator_scaler "" "" 395527 0 0 timer1 60000 0.1 2
 Isaw                             device scaler function_generator_scaler "" "" 395527 0 0 timer1 70000 0.15 3
 timer1                           device timer soft_timer "" ""
-mca1                             device mca old_soft_mca "" "" 1024 4 8 channels.dat
+mca1                             device mca soft_mca "" "" 1024 4 8 channels.dat
 roi0                             device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 roi_integral 0
 corr_roi0                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 corrected_roi_integral 0
 real_time                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 real_time ""

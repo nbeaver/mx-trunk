@@ -16,4 +16,4 @@ porta           device digital_output soft_doutput "" "" 0xd7
 filters         device digital_output bit_out "" "" 0xa 0 porta 3 4 porta 3 4
 filterstat      device digital_input bit_in "" "" 0xa 0 porta 3 4
 keithley1       device amplifier soft_amplifier "" "" 10000000 0 0
-mca1            device mca old_soft_mca "" "" 1024 1 0 channels.dat
+mca1            device mca soft_mca "" "" 1024 1 0 channels.dat

@@ -1,1 +1,1 @@
-mca1  device mca soft_mca "" "" 1024 4 0 3 "1 alpha" "2 beta" "3 gamma"
+mca1  device mca soft_mca "" "" 1024 4 8 channels.dat

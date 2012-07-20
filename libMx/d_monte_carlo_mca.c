@@ -16,16 +16,23 @@
  *
  */
 
-#define MXD_MONTE_CARLO_MCA_DEBUG	TRUE
+#define MXD_MONTE_CARLO_MCA_DEBUG		FALSE
+
+#define MXD_MONTE_CARLO_MCA_DEBUG_THREAD	FALSE
+
+#define MXD_MONTE_CARLO_MCA_DEBUG_SOURCES	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_constants.h"
+#include "mx_thread.h"
+#include "mx_mutex.h"
 #include "mx_mca.h"
 #include "d_monte_carlo_mca.h"
 
@@ -63,7 +70,7 @@ long mxd_monte_carlo_mca_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_monte_carlo_mca_rfield_def_ptr
 			= &mxd_monte_carlo_mca_record_field_defaults[0];
 
-/*--------*/
+/*-------------------------------------------------------------------------*/
 
 static mx_status_type
 mxd_monte_carlo_mca_get_pointers( MX_MCA *mca,
@@ -81,7 +88,7 @@ mxd_monte_carlo_mca_get_pointers( MX_MCA *mca,
 	}
 	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_MONTE_CARLO_MCA pointer passed by '%s' was NULL",
+		"The MX_MONTE_CARLO_MCA pointer passed by '%s' was NULL",
 			calling_fname );
 	}
 
@@ -92,18 +99,268 @@ mxd_monte_carlo_mca_get_pointers( MX_MCA *mca,
 		"The MX_RECORD pointer for MX_MCA pointer %p is NULL.", mca );
 	}
 
-	*monte_carlo_mca = (MX_MONTE_CARLO_MCA *) mca_record->record_type_struct;
+	*monte_carlo_mca =
+		(MX_MONTE_CARLO_MCA *) mca_record->record_type_struct;
 
 	if ( *monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The MX_MONTE_CARLO_MCA pointer for mca record '%s' passed by '%s' is NULL",
+		"The MX_MONTE_CARLO_MCA pointer for mca record '%s' "
+		"passed by '%s' is NULL",
 				mca_record->name, calling_fname );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* === */
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
+{
+	unsigned long i, num_channels;
+	unsigned long *private_array;
+
+	double events_per_second, seconds_per_call;
+	double events_per_call, events_per_call_per_channel;
+	double test_value;
+
+	num_channels = mca->maximum_num_channels;
+
+	private_array = monte_carlo_mca->private_array;
+
+	events_per_second = monte_carlo_mca_source->u.uniform.events_per_second;
+
+	seconds_per_call
+		= 1.0e-6 * (double) monte_carlo_mca->sleep_microseconds;
+
+	events_per_call = events_per_second * seconds_per_call;
+
+	events_per_call_per_channel =
+		mx_divide_safely( events_per_call, num_channels );
+
+	/* Walk through the channels to see whether each one had an event. */
+
+	for ( i = 0; i < num_channels; i++ ) {
+		test_value = (double) rand() / (double) RAND_MAX;
+
+		if ( test_value <= events_per_call_per_channel ) {
+			private_array[i]++;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_monte_carlo_mca_create_uniform( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source,
+			int argc, char **argv )
+{
+	static const char fname[] = "mxd_monte_carlo_mca_create_uniform()";
+
+	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_UNIFORM;
+
+	monte_carlo_mca_source->process = mxd_monte_carlo_mca_process_uniform;
+
+	if ( argc < 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Not enough arguments were specified for the 'uniform' source "
+		"type specified for MCA '%s'.", mca->record->name );
+	}
+
+	monte_carlo_mca_source->u.uniform.events_per_second = atof( argv[1] );
+
+	return MX_SUCCESSFUL_RESULT;
+};
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
+{
+	unsigned long i, num_channels;
+	unsigned long *private_array;
+
+	double events_per_second, seconds_per_call;
+	double events_per_call, events_per_call_per_channel;
+	double peak_mean, peak_width;
+	double test_value, exp_argument, threshold;
+
+	num_channels = mca->maximum_num_channels;
+
+	private_array = monte_carlo_mca->private_array;
+
+	events_per_second = monte_carlo_mca_source->u.peak.events_per_second;
+
+	peak_mean = monte_carlo_mca_source->u.peak.peak_mean;
+
+	peak_width = monte_carlo_mca_source->u.peak.peak_width;
+
+	seconds_per_call
+		= 1.0e-6 * (double) monte_carlo_mca->sleep_microseconds;
+
+	events_per_call = events_per_second * seconds_per_call;
+
+	events_per_call_per_channel =
+		mx_divide_safely( events_per_call, num_channels );
+
+	for ( i = 0; i < num_channels; i++ ) {
+		test_value = (double) rand() / (double) RAND_MAX;
+
+		exp_argument = mx_divide_safely(
+			- (( i - peak_mean ) * ( i - peak_mean )),
+				2.0 * peak_width * peak_width );
+
+		threshold = events_per_call_per_channel * exp( exp_argument );
+
+		if ( test_value <= threshold ) {
+			private_array[i]++;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_monte_carlo_mca_create_peak( MX_MCA *mca,
+			MX_MONTE_CARLO_MCA *monte_carlo_mca,
+			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source,
+			int argc, char **argv )
+{
+	static const char fname[] = "mxd_monte_carlo_mca_create_peak()";
+
+	monte_carlo_mca_source->type = MXT_MONTE_CARLO_MCA_SOURCE_PEAK;
+
+	monte_carlo_mca_source->process = mxd_monte_carlo_mca_process_peak;
+
+	if ( argc < 4 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Not enough arguments were specified for the 'peak' source "
+		"type specified for MCA '%s'.", mca->record->name );
+	}
+
+	monte_carlo_mca_source->u.peak.events_per_second = atof( argv[1] );
+
+	monte_carlo_mca_source->u.peak.peak_mean = atof( argv[2] );
+
+	monte_carlo_mca_source->u.peak.peak_width = atof( argv[3] );
+
+	return MX_SUCCESSFUL_RESULT;
+};
+
+/*-------------------------------------------------------------------------*/
+
+/* Macros for locking and unlocking the mutex. */
+
+#define MXD_LOCK( str ) \
+	do {                                                               \
+		unsigned long mx_status_code;                              \
+                                                                           \
+		mx_status_code = mx_mutex_lock( monte_carlo_mca->mutex );  \
+                                                                           \
+		if ( mx_status_code != MXE_SUCCESS ) {                     \
+			return mx_error( mx_status_code, fname,            \
+"The attempt to lock the mutex " str "for MCA '%s' failed.",               \
+				mca->record->name );                       \
+		}                                                          \
+	} while (0);
+
+#define MXD_UNLOCK( str ) \
+	do {                                                               \
+		unsigned long mx_status_code;                              \
+                                                                           \
+		mx_status_code = mx_mutex_unlock( monte_carlo_mca->mutex );\
+                                                                           \
+		if ( mx_status_code != MXE_SUCCESS ) {                     \
+			return mx_error( mx_status_code, fname,            \
+"The attempt to unlock the mutex " str "for MCA '%s' failed.",             \
+				mca->record->name );                       \
+		}                                                          \
+	} while (0);
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxd_monte_carlo_mca_event_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxd_monte_carlo_mca_event_thread()";
+
+	MX_MCA *mca;
+	MX_MONTE_CARLO_MCA *monte_carlo_mca;
+	MX_CLOCK_TICK current_time_in_clock_ticks;
+	int result;
+	unsigned long i;
+	MX_MONTE_CARLO_MCA_SOURCE *source;
+	mx_status_type mx_status;
+
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_MCA pointer passed was NULL." );
+	}
+
+	mca = (MX_MCA *) args;
+
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_MONTE_CARLO_MCA_DEBUG_THREAD
+	MX_DEBUG(-2,("%s invoked for MCA '%s'.", fname, mca->record->name));
+#endif
+
+	/* Enter an infinite loop that generates events when the value of
+	 * monte_carlo_mca->finish_time_in_clock_ticks is greater than
+	 * the current time measured in clock ticks.
+	 */
+
+	while (1) {
+		MXD_LOCK( "to compare times " );
+
+		current_time_in_clock_ticks = mx_current_clock_tick();
+
+		result = mx_compare_clock_ticks( current_time_in_clock_ticks,
+				monte_carlo_mca->finish_time_in_clock_ticks );
+
+		MXD_UNLOCK( "to compare times " );
+
+		if ( result >= 0 ) {
+			/* The current time is after the MCA measurement
+			 * finish time, so we do not generate events.
+			 */
+
+			mx_usleep( monte_carlo_mca->sleep_microseconds );
+
+			/* Go back to the top of the while() loop. */
+			continue;
+		}
+
+		/* If we get here. we attempt to generate events. */
+
+#if MXD_MONTE_CARLO_MCA_DEBUG_THREAD
+		MX_DEBUG(-2,("%s attempting to generate an event.", fname));
+#endif
+
+		for ( i = 0; i < monte_carlo_mca->num_sources; i++ ) {
+			source = &(monte_carlo_mca->source_array[i]);
+
+			mx_status = source->process( mca,
+						monte_carlo_mca, source );
+		}
+
+		mx_usleep( monte_carlo_mca->sleep_microseconds );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxd_monte_carlo_mca_initialize_driver( MX_DRIVER *driver )
@@ -157,7 +414,8 @@ mxd_monte_carlo_mca_initialize_driver( MX_DRIVER *driver )
 MX_EXPORT mx_status_type
 mxd_monte_carlo_mca_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_monte_carlo_mca_create_record_structures()";
+	static const char fname[] =
+		"mxd_monte_carlo_mca_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
@@ -171,7 +429,8 @@ mxd_monte_carlo_mca_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_MCA structure." );
 	}
 
-	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) malloc( sizeof(MX_MONTE_CARLO_MCA) );
+	monte_carlo_mca =
+		(MX_MONTE_CARLO_MCA *) malloc( sizeof(MX_MONTE_CARLO_MCA) );
 
 	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -182,9 +441,11 @@ mxd_monte_carlo_mca_create_record_structures( MX_RECORD *record )
 
 	record->record_class_struct = mca;
 	record->record_type_struct = monte_carlo_mca;
-	record->class_specific_function_list = &mxd_monte_carlo_mca_mca_function_list;
+	record->class_specific_function_list =
+				&mxd_monte_carlo_mca_mca_function_list;
 
 	mca->record = record;
+	monte_carlo_mca->record = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -192,24 +453,26 @@ mxd_monte_carlo_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_monte_carlo_mca_finish_record_initialization( MX_RECORD *record )
 {
-#if 0
 	static const char fname[] =
 		"mxd_monte_carlo_mca_finish_record_initialization()";
-#endif
 
-	MX_MCA *mca;
+	MX_MCA *mca = NULL;
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
 	mca = (MX_MCA *) record->record_class_struct;
+
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mca->current_num_channels = mca->maximum_num_channels;
 
 	mca->busy = FALSE;
 
 	mca->current_num_rois = mca->maximum_num_rois;
-
-	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) record->record_type_struct;
 
 	/* Do monte_carlo_mca stuff here. */
 
@@ -258,6 +521,7 @@ mxd_monte_carlo_mca_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -266,17 +530,11 @@ mxd_monte_carlo_mca_print_structure( FILE *file, MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	if ( mca == (MX_MCA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"MX_MCA pointer for record '%s' is NULL.", record->name);
-	}
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
-	monte_carlo_mca = (MX_MONTE_CARLO_MCA *) (record->record_type_struct);
-
-	if ( monte_carlo_mca == (MX_MONTE_CARLO_MCA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"MX_MONTE_CARLO_MCA pointer for record '%s' is NULL.", record->name);
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MCA parameters for record '%s':\n", record->name);
 
@@ -297,6 +555,8 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 	MX_MCA *mca = NULL;
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	long i;
+	char *source_dup;
+	int argc; char **argv;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -306,12 +566,11 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	monte_carlo_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
 
 	/* Set some reasonable defaults. */
 
@@ -337,7 +596,103 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 	mca->preset_real_time = 0.0;
 	mca->preset_live_time = 0.0;
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Seed the random number generator. */
+
+	srand( time(NULL) );
+
+	/* Create an array of event sources. */
+
+	monte_carlo_mca->source_array = ( MX_MONTE_CARLO_MCA_SOURCE *)
+		calloc( monte_carlo_mca->num_sources,
+			sizeof(MX_MONTE_CARLO_MCA_SOURCE) );
+
+	if ( monte_carlo_mca->source_array
+			== (MX_MONTE_CARLO_MCA_SOURCE *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array of "
+		"MX_MONTE_CARLO_MCA_SOURCE structures for MCA '%s'.",
+			monte_carlo_mca->num_sources, record->name );
+	}
+
+	/* Parse source_string_array to find all of the event sources. */
+
+	for ( i = 0; i < monte_carlo_mca->num_sources; i++ ) {
+
+		source_dup = strdup( monte_carlo_mca->source_string_array[i] );
+
+		mx_string_split( source_dup, " ", &argc, &argv );
+
+#if MXD_MONTE_CARLO_MCA_DEBUG
+		{
+			int j;
+			for ( j = 0; j < argc; j++ ) {
+				MX_DEBUG(-2,("%s: [%ld][%d] = '%s'",
+					fname, i, j, argv[j] ));
+			}
+		}
+#endif
+		/* What kind of event source is this? */
+
+		if ( strcmp( argv[0], "uniform" ) == 0 ) {
+			mx_status = mxd_monte_carlo_mca_create_uniform(
+					mca, monte_carlo_mca,
+					&(monte_carlo_mca->source_array[i]),
+					argc, argv );
+		} else
+		if ( strcmp( argv[0], "peak" ) == 0 ) {
+			mx_status = mxd_monte_carlo_mca_create_peak(
+					mca, monte_carlo_mca,
+					&(monte_carlo_mca->source_array[i]),
+					argc, argv );
+		} else {
+			mx_warning( "Unrecognized event type '%s' seen.  "
+				"Skipping...", argv[0] );
+		}
+
+		mx_free( argv );
+		mx_free( source_dup );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Initialize the finish time to the current time, so that the
+	 * event thread will not immediately start counting.
+	 */
+
+	monte_carlo_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
+
+	/* Create the mutex that will be used to control access to these:
+	 *     monte_carlo_mca->finish_time_in_clock_ticks
+	 *     monte_carlo_mca->private_array
+	 */
+
+	mx_status = mx_mutex_create( &(monte_carlo_mca->mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create the private array itself. */
+
+	monte_carlo_mca->private_array = (unsigned long *)
+		calloc( mca->maximum_num_channels, sizeof(unsigned long) );
+
+	if ( monte_carlo_mca->private_array == (unsigned long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of unsigned longs for the private array of record '%s'.",
+			mca->maximum_num_channels, record->name );
+	}
+
+	/* Start the event thread that will generate events
+	 * for the private array.
+	 */
+
+	mx_status = mx_thread_create( &(monte_carlo_mca->event_thread),
+				mxd_monte_carlo_mca_event_thread, mca );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -351,7 +706,8 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 	double measurement_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -372,6 +728,8 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 		break;
 	}
 
+	MXD_LOCK( "to set the finish time " );
+
 	start_time_in_clock_ticks = mx_current_clock_tick();
 
 	measurement_time_in_clock_ticks = mx_convert_seconds_to_clock_ticks(
@@ -380,6 +738,8 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 	monte_carlo_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
 				start_time_in_clock_ticks,
 				measurement_time_in_clock_ticks );
+
+	MXD_UNLOCK( "to set the finish time " );
 
 #if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s: counting for %g seconds, (%lu,%lu) in clock ticks.",
@@ -405,7 +765,8 @@ mxd_monte_carlo_mca_stop( MX_MCA *mca )
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -413,8 +774,11 @@ mxd_monte_carlo_mca_stop( MX_MCA *mca )
 #if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
+	MXD_LOCK( "to stop counting " );
 
 	monte_carlo_mca->finish_time_in_clock_ticks = mx_current_clock_tick();
+
+	MXD_UNLOCK( "to stop counting " );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -427,10 +791,18 @@ mxd_monte_carlo_mca_read( MX_MCA *mca )
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MXD_LOCK( "to read the spectrum " );
+
+	memcpy( mca->channel_array, monte_carlo_mca->private_array,
+		mca->maximum_num_channels * sizeof(unsigned long) );
+
+	MXD_UNLOCK( "to read the spectrum " );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -444,7 +816,8 @@ mxd_monte_carlo_mca_clear( MX_MCA *mca )
 	unsigned long i;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -452,6 +825,13 @@ mxd_monte_carlo_mca_clear( MX_MCA *mca )
 #if MXD_MONTE_CARLO_MCA_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
+
+	MXD_LOCK( "to clear the spectrum " );
+
+	memset( monte_carlo_mca->private_array, 0,
+		mca->maximum_num_channels * sizeof(unsigned long) );
+
+	MXD_UNLOCK( "to clear the spectrum " );
 
 	for ( i = 0; i < mca->maximum_num_channels; i++ ) {
 		mca->channel_array[i] = 0L;
@@ -470,15 +850,20 @@ mxd_monte_carlo_mca_busy( MX_MCA *mca )
 	int result;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MXD_LOCK( "to check for busy " );
 
 	current_time_in_clock_ticks = mx_current_clock_tick();
 
 	result = mx_compare_clock_ticks( current_time_in_clock_ticks,
 				monte_carlo_mca->finish_time_in_clock_ticks );
+
+	MXD_UNLOCK( "to check for busy " );
 
 	if ( result >= 0 ) {
 		mca->busy = FALSE;

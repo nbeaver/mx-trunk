@@ -18,18 +18,63 @@
 #ifndef __D_MONTE_CARLO_MCA_H__
 #define __D_MONTE_CARLO_MCA_H__
 
-#include "mx_mca.h"
+/*---*/
+
+#define MXT_MONTE_CARLO_MCA_SOURCE_UNIFORM	1
+#define MXT_MONTE_CARLO_MCA_SOURCE_PEAK		2
+
+/*---*/
+
+typedef struct {
+	double events_per_second;
+} MX_MONTE_CARLO_MCA_SOURCE_UNIFORM;
+
+typedef struct {
+	double events_per_second;
+	double peak_mean;
+	double peak_width;
+} MX_MONTE_CARLO_MCA_SOURCE_PEAK;
+
+/*---*/
+
+struct mx_monte_carlo_mca_type;
+
+typedef struct mx_monte_carlo_mca_source_type {
+	unsigned long type;
+	mx_status_type (*process)( MX_MCA *mca,
+			struct mx_monte_carlo_mca_type *monte_carlo_mca,
+			struct mx_monte_carlo_mca_source_type *source );
+	union {
+		MX_MONTE_CARLO_MCA_SOURCE_UNIFORM uniform;
+		MX_MONTE_CARLO_MCA_SOURCE_PEAK peak;
+	} u;
+} MX_MONTE_CARLO_MCA_SOURCE;
+
+/*---*/
 
 #define MXU_MONTE_CARLO_MCA_MAX_SOURCE_STRING_LENGTH	80
 
-typedef struct {
+typedef struct mx_monte_carlo_mca_type {
+	MX_RECORD *record;
+
+	unsigned long sleep_microseconds;
 	long num_sources;
 	char **source_string_array;
 
+	MX_MONTE_CARLO_MCA_SOURCE *source_array;
+
 	MX_CLOCK_TICK finish_time_in_clock_ticks;
+
+	MX_MUTEX *mutex;
+	MX_THREAD *event_thread;
+	unsigned long *private_array;
 } MX_MONTE_CARLO_MCA;
 
 #define MXD_MONTE_CARLO_MCA_STANDARD_FIELDS \
+  {-1, -1, "sleep_microseconds", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MONTE_CARLO_MCA, sleep_microseconds), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
   {-1, -1, "num_sources", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONTE_CARLO_MCA, num_sources), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \

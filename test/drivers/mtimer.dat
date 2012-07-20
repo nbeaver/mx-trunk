@@ -23,7 +23,7 @@ time           device motor elapsed_time "" "" -1818666.9 0 -2.1474836e+09 2.147
 I0             device scaler soft_scaler "" "" 0 0 0 "" energy 101 ./i0.dat 0 
 I              device scaler soft_scaler "" "" 0 0 0 "" energy 101 ./i.dat 0 
 xia_timer      device timer soft_timer "" ""
-mca1           device mca old_soft_mca "" "" 1024 4 0 channels.dat
+mca1           device mca soft_mca "" "" 1024 4 0 channels.dat
 mcs1           device mcs soft_mcs "" "" 2 512 "" 0 0 timer2 8950 1  I0 I
 Io             device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
 It             device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
