@@ -26,6 +26,7 @@
 #include "mx_driver.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"
+#include "i_handel.h"
 #include "d_handel_mca.h"
 #include "d_handel_input.h"
 
@@ -58,7 +59,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_handel_input_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_handel_input_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_handel_input_create_record_structures()";
+	static const char fname[] =
+		"mxd_handel_input_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_HANDEL_INPUT *handel_input;
@@ -174,13 +176,8 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 	switch( handel_input->value_type ) {
 
 	case MXT_HANDEL_INPUT_PARAMETER:
-		if ( handel_mca->read_parameter == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"Handel interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
 
-		mx_status = (handel_mca->read_parameter)( mca,
+		mx_status = mxi_handel_read_parameter( mca,
 					handel_input->value_parameters,
 					&parameter_value );
 
@@ -309,7 +306,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_ACQUISITION_VALUE:
-		mx_status = ( handel_mca->get_acquisition_values )( mca,
+		mx_status = mxi_handel_get_acquisition_values( mca,
 				handel_input->value_parameters,
 				&(analog_input->raw_value.double_value) );
 		break;

@@ -117,63 +117,6 @@ typedef struct {
 
 	mx_bool_type debug_flag;
 
-	mx_status_type (*is_busy)( MX_MCA *mca, mx_bool_type *busy_flag );
-
-	mx_status_type (*get_run_data)( MX_MCA *mca,
-					char *run_data_name,
-					void *value_ptr );
-
-	mx_status_type (*get_acquisition_values)( MX_MCA *mca,
-					char *value_name,
-					double *value_ptr );
-
-	mx_status_type (*set_acquisition_values)( MX_MCA *mca,
-					char *value_name,
-					double *value_ptr,
-					mx_bool_type apply_flag );
-
-	mx_status_type (*set_acquisition_values_for_all_channels)(
-					MX_MCA *mca,
-					char *value_name,
-					double *value_ptr,
-					mx_bool_type apply_flag );
-
-	mx_status_type (*apply)( MX_MCA *mca, mx_bool_type apply_to_all );
-
-	mx_status_type (*read_parameter)( MX_MCA *mca,
-					char *parameter_name,
-					unsigned long *value_ptr );
-
-	mx_status_type (*write_parameter)( MX_MCA *mca,
-					char *parameter_name,
-					unsigned long value );
-
-	mx_status_type (*write_parameter_to_all_channels)( MX_MCA *mca,
-					char *parameter_name,
-					unsigned long value );
-
-	mx_status_type (*start_run)( MX_MCA *mca, mx_bool_type clear_flag );
-
-	mx_status_type (*stop_run)( MX_MCA *mca );
-
-	mx_status_type (*read_spectrum)( MX_MCA *mca );
-
-	mx_status_type (*read_statistics)( MX_MCA *mca );
-
-	mx_status_type (*get_baseline_array)( MX_MCA *mca );
-
-	mx_status_type (*set_gain_change)( MX_MCA *mca );
-
-	mx_status_type (*set_gain_calibration)( MX_MCA *mca );
-
-	mx_status_type (*get_adc_trace_array)( MX_MCA *mca );
-
-	mx_status_type (*get_baseline_history_array)( MX_MCA *mca );
-
-	mx_status_type (*get_mx_parameter)( MX_MCA *mca );
-
-	mx_status_type (*set_mx_parameter)( MX_MCA *mca );
-
 	mx_bool_type use_mca_channel_array;
 
 	unsigned int num_spectrum_bins;

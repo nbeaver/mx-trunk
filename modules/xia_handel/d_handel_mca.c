@@ -105,32 +105,56 @@ static mx_status_type mxd_handel_mca_process_function( void *record_ptr,
 static mx_status_type
 mxd_handel_mca_get_pointers( MX_MCA *mca,
 			MX_HANDEL_MCA **handel_mca,
+			MX_HANDEL **handel,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_handel_mca_get_pointers()";
+
+	MX_RECORD *mca_record, *handel_record;
+	MX_HANDEL_MCA *handel_mca_ptr;
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The MX_MCA pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if ( handel_mca == (MX_HANDEL_MCA **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_HANDEL_MCA pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
-	if ( mca->record == (MX_RECORD *) NULL ) {
+
+	mca_record = mca->record;
+
+	if ( mca_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The MX_RECORD pointer for the MX_MCA pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
-	*handel_mca = (MX_HANDEL_MCA *) mca->record->record_type_struct;
+	handel_mca_ptr = (MX_HANDEL_MCA *) mca->record->record_type_struct;
 
-	if ( (*handel_mca)->handel_record == (MX_RECORD *) NULL ) {
+	if ( handel_mca_ptr == (MX_HANDEL_MCA *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The handel_record pointer for record '%s' is NULL.",
-			mca->record->name );
+		"The MX_HANDEL_MCA pointer for MCA record '%s' is NULL.",
+			mca_record->name );
+	}
+
+	if ( handel_mca != (MX_HANDEL_MCA **) NULL ) {
+		*handel_mca = handel_mca_ptr;
+	}
+
+	if ( handel != (MX_HANDEL **) NULL ) {
+		handel_record = handel_mca_ptr->handel_record;
+
+		if ( handel_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The handel_record pointer for record '%s' is NULL.",
+				mca_record->name );
+		}
+
+		*handel = (MX_HANDEL *) handel_record->record_type_struct;
+
+		if ( (*handel) == (MX_HANDEL *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL pointer for Handel record '%s' is NULL.",
+				handel_record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -190,26 +214,6 @@ mxd_handel_mca_create_record_structures( MX_RECORD *record )
 
 	mca->record = record;
 	handel_mca->record = record;
-
-	handel_mca->is_busy = NULL;
-	handel_mca->get_run_data = NULL;
-	handel_mca->get_acquisition_values = NULL;
-	handel_mca->set_acquisition_values_for_all_channels = NULL;
-	handel_mca->apply = NULL;
-	handel_mca->read_parameter = NULL;
-	handel_mca->write_parameter = NULL;
-	handel_mca->write_parameter_to_all_channels = NULL;
-	handel_mca->start_run = NULL;
-	handel_mca->stop_run = NULL;
-	handel_mca->read_spectrum = NULL;
-	handel_mca->read_statistics = NULL;
-	handel_mca->get_baseline_array = NULL;
-	handel_mca->set_gain_change = NULL;
-	handel_mca->set_gain_calibration = NULL;
-	handel_mca->get_adc_trace_array = NULL;
-	handel_mca->get_baseline_history_array = NULL;
-	handel_mca->get_mx_parameter = NULL;
-	handel_mca->set_mx_parameter = NULL;
 
 	handel_mca->adc_trace_step_size = 5000.0;	/* in nanoseconds */
 	handel_mca->adc_trace_length = 0;
@@ -315,6 +319,7 @@ mxd_handel_mca_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -324,7 +329,8 @@ mxd_handel_mca_print_structure( FILE *file, MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -590,36 +596,6 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 			xia_status, mxi_handel_strerror( xia_status ) );
 	}
 
-	/* Set up the interface function pointers. */
-
-	handel_mca->is_busy = mxi_handel_is_busy;
-	handel_mca->get_run_data = mxi_handel_get_run_data;
-	handel_mca->get_acquisition_values =
-					mxi_handel_get_acquisition_values;
-	handel_mca->set_acquisition_values =
-					mxi_handel_set_acquisition_values;
-	handel_mca->set_acquisition_values_for_all_channels =
-					mxi_handel_set_acq_for_all_channels;
-	handel_mca->apply = mxi_handel_apply;
-	handel_mca->read_parameter = mxi_handel_read_parameter;
-	handel_mca->write_parameter = mxi_handel_write_parameter;
-	handel_mca->write_parameter_to_all_channels
-			= mxi_handel_write_parameter_to_all_channels;
-	handel_mca->start_run = mxi_handel_start_run;
-	handel_mca->stop_run = mxi_handel_stop_run;
-	handel_mca->read_spectrum = mxi_handel_read_spectrum;
-	handel_mca->read_statistics = mxi_handel_read_statistics;
-	handel_mca->get_baseline_array = mxi_handel_get_baseline_array;
-
-	handel_mca->set_gain_change = mxi_handel_set_gain_change;
-	handel_mca->set_gain_calibration = mxi_handel_set_gain_calibration;
-	handel_mca->get_adc_trace_array = mxi_handel_get_adc_trace_array;
-	handel_mca->get_baseline_history_array =
-				mxi_handel_get_baseline_history_array;
-
-	handel_mca->get_mx_parameter = mxi_handel_get_mx_parameter;
-	handel_mca->set_mx_parameter = mxi_handel_set_mx_parameter;
-
 	handel_mca->hardware_scas_are_enabled = TRUE;
 
 	/* Search for an empty slot in the MCA array. */
@@ -801,8 +777,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
-	MX_RECORD *handel_record;
-	MX_HANDEL *handel;
+	MX_HANDEL *handel = NULL;
 	unsigned long i, mca_number;
 	int display_config = FALSE;
 #if 0
@@ -820,7 +795,8 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -830,23 +806,13 @@ mxd_handel_mca_open( MX_RECORD *record )
 			fname, record->name ));
 	}
 
-	handel_record = handel_mca->handel_record;
-
-	if ( handel_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The handel_record pointer for record '%s' is NULL.",
-			record->name );
-	}
-
 	/* Suppress GCC 'set but not used' warning. */
 	display_config = display_config;
 
-	mx_status = mxd_handel_mca_handel_open(mca, handel_mca, handel_record);
+	mx_status = mxd_handel_mca_handel_open(mca, handel_mca, handel->record);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 	display_config = handel->handel_flags &
 			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
@@ -854,14 +820,14 @@ mxd_handel_mca_open( MX_RECORD *record )
 #if 0
 	/* Find out what firmware variant and revision is used by this MCA. */
 
-	mx_status = (handel_mca->read_parameter)( mca, "CODEVAR", &codevar );
+	mx_status = mxi_handel_read_parameter( mca, "CODEVAR", &codevar );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	handel_mca->firmware_code_variant = (int) codevar;
 
-	mx_status = (handel_mca->read_parameter)( mca, "CODEREV", &coderev );
+	mx_status = mxi_handel_read_parameter( mca, "CODEREV", &coderev );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1028,8 +994,7 @@ mxd_handel_mca_close( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
-	MX_RECORD *handel_record;
-	MX_HANDEL *handel;
+	MX_HANDEL *handel = NULL;
 	MX_RECORD **mca_record_array;
 	unsigned long i, num_mcas;
 	mx_status_type mx_status;
@@ -1041,16 +1006,13 @@ mxd_handel_mca_close( MX_RECORD *record )
 
 	mca = (MX_MCA *) (record->record_class_struct);
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Delete our entry in mca_record_array. */
-
-	handel_record = handel_mca->handel_record;
-
-	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
 	num_mcas = handel->num_mcas;
 	mca_record_array = handel->mca_record_array;
@@ -1084,15 +1046,14 @@ mxd_handel_mca_start( MX_MCA *mca )
 	static const char fname[] = "mxd_handel_mca_start()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
 	unsigned long preset_type;
 	double preset_type_as_double;
 	double preset_time;
 	mx_status_type mx_status;
 
-	MX_RECORD *handel_record;
-	MX_HANDEL *handel;
-
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, &handel, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1126,10 +1087,6 @@ mxd_handel_mca_start( MX_MCA *mca )
 #endif
 	/* Save the preset value. */
 
-	handel_record = handel_mca->handel_record;
-
-	handel = (MX_HANDEL *) handel_record->record_type_struct;
-
 	handel->last_measurement_interval = preset_time;
 
 	MX_DEBUG( 2,("%s: preset_time = %g", fname, preset_time));
@@ -1145,13 +1102,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 	{
 		MX_DEBUG( 2,("%s: Presets will NOT be changed.", fname));
 
-		if ( handel_mca->start_run == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
-
-		mx_status = (handel_mca->start_run)( mca, TRUE );
+		mx_status = mxi_handel_start_run( mca, TRUE );
 
 		/* We are done, so return to the caller. */
 
@@ -1166,15 +1117,9 @@ mxd_handel_mca_start( MX_MCA *mca )
 
 	/******* Set the preset type. *******/
 
-	if ( handel_mca->set_acquisition_values_for_all_channels == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "Handel interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
 	preset_type_as_double = preset_type;
 
-	mx_status = (handel_mca->set_acquisition_values_for_all_channels)( mca,
+	mx_status = mxi_handel_set_acq_for_all_channels( mca,
 			"preset_type", &preset_type_as_double, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1184,7 +1129,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 
 	/******* Set the timer preset. *******/
 
-	mx_status = (handel_mca->set_acquisition_values_for_all_channels)( mca,
+	mx_status = mxi_handel_set_acq_for_all_channels( mca,
 			"preset_value", &preset_time, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1198,13 +1143,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 
 	/* Start the MCA. */
 
-	if ( handel_mca->start_run == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
-	mx_status = (handel_mca->start_run)( mca, 1 );
+	mx_status = mxi_handel_start_run( mca, 1 );
 
 	return mx_status;
 }
@@ -1217,20 +1156,15 @@ mxd_handel_mca_stop( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Stop the MCA. */
 
-	if ( handel_mca->stop_run == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
-	mx_status = (handel_mca->stop_run)( mca );
+	mx_status = mxi_handel_stop_run( mca );
 
 	return mx_status;
 }
@@ -1243,18 +1177,13 @@ mxd_handel_mca_read( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( handel_mca->read_spectrum == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
-	mx_status = (handel_mca->read_spectrum)( mca );
+	mx_status = mxi_handel_read_spectrum( mca );
 
 	return mx_status;
 }
@@ -1267,7 +1196,8 @@ mxd_handel_mca_clear( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1287,18 +1217,13 @@ mxd_handel_mca_busy( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( handel_mca->is_busy == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
-	mx_status = (handel_mca->is_busy)( mca, &(mca->busy) );
+	mx_status = mxi_handel_is_busy( mca, &(mca->busy) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1309,13 +1234,7 @@ mxd_handel_mca_busy( MX_MCA *mca )
 		 * in the DXP is cleared.
 		 */
 
-		if ( handel_mca->stop_run == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
-
-		mx_status = (handel_mca->stop_run)( mca );
+		mx_status = mxi_handel_stop_run( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1334,7 +1253,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1344,11 +1264,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
 
-	if ( handel_mca->get_mx_parameter != NULL ) {
-		mx_status = (handel_mca->get_mx_parameter)( mca );
-	} else {
-		mx_status = mxd_handel_mca_default_get_mx_parameter( mca );
-	}
+	mx_status = mxi_handel_get_mx_parameter( mca );
 
 	return mx_status;
 }
@@ -1361,7 +1277,8 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 	MX_HANDEL_MCA *handel_mca = NULL;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1371,11 +1288,7 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
 
-	if ( handel_mca->set_mx_parameter != NULL ) {
-		mx_status = (handel_mca->set_mx_parameter)( mca );
-	} else {
-		mx_status = mxd_handel_mca_default_set_mx_parameter( mca );
-	}
+	mx_status = mxi_handel_set_mx_parameter( mca );
 
 	return mx_status;
 }
@@ -1434,7 +1347,8 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 	double double_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1447,13 +1361,7 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 
-		if ( handel_mca->get_acquisition_values == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "Handel interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
-
-		mx_status = (handel_mca->get_acquisition_values)( mca,
+		mx_status = mxi_handel_get_acquisition_values( mca,
 				"number_mca_channels", &double_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1481,13 +1389,7 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 
 		sprintf( name, "sca%lu_lo", (unsigned long) i );
 
-		if ( handel_mca->get_acquisition_values == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "Handel interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
-
-		mx_status = (handel_mca->get_acquisition_values)( mca,
+		mx_status = mxi_handel_get_acquisition_values( mca,
 						name, &double_value );
 
 		mca->roi[0] = mx_round( double_value );
@@ -1497,7 +1399,7 @@ mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca )
 
 		sprintf( name, "sca%lu_hi", (unsigned long) i );
 
-		mx_status = (handel_mca->get_acquisition_values)( mca,
+		mx_status = mxi_handel_get_acquisition_values( mca,
 						name, &double_value );
 
 		mca->roi[1] = mx_round( double_value );
@@ -1567,7 +1469,8 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 	double double_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1577,24 +1480,11 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
 
-	if ( handel_mca->set_acquisition_values == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "Handel interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
-	if ( handel_mca->set_acquisition_values_for_all_channels == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-	    "Handel interface record '%s' has not been initialized properly.",
-			handel_mca->handel_record->name );
-	}
-
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 		double_value = mca->current_num_channels;
 
-		mx_status = 
-		    (handel_mca->set_acquisition_values_for_all_channels)( mca,
+		mx_status = mxi_handel_set_acq_for_all_channels( mca,
 				"number_mca_channels", &double_value, TRUE );
 
 	case MXLV_MCA_ROI:
@@ -1604,7 +1494,7 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 
 		double_value = mca->roi[0];
 
-		mx_status = (handel_mca->set_acquisition_values)( mca,
+		mx_status = mxi_handel_set_acquisition_values( mca,
 					name, &double_value, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1614,13 +1504,13 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 
 		double_value = mca->roi[1];
 
-		mx_status = (handel_mca->set_acquisition_values)( mca,
+		mx_status = mxi_handel_set_acquisition_values( mca,
 					name, &double_value, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = (handel_mca->apply)( mca, -1 );
+		mx_status = mxi_handel_apply( mca, -1 );
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:
@@ -1630,7 +1520,7 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 
 			double_value = mca->roi_array[i][0];
 
-			mx_status = (handel_mca->set_acquisition_values)(
+			mx_status = mxi_handel_set_acquisition_values(
 					mca, name, &double_value, FALSE );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -1640,7 +1530,7 @@ mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca )
 
 			double_value = mca->roi_array[i][1];
 
-			mx_status = (handel_mca->set_acquisition_values)(
+			mx_status = mxi_handel_set_acquisition_values(
 					mca, name, &double_value, FALSE );
 
 			if ( mx_status.code != MXE_SUCCESS )
@@ -1703,7 +1593,8 @@ mxd_handel_mca_get_rate_corrected_roi_integral( MX_MCA *mca,
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1748,7 +1639,8 @@ mxd_handel_mca_get_livetime_corrected_roi_integral( MX_MCA *mca,
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
 
-	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
+	mx_status = mxd_handel_mca_get_pointers( mca,
+						&handel_mca, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1811,13 +1703,7 @@ mxd_handel_mca_read_statistics( MX_MCA *mca,
 
 	if ( read_statistics ) {
 
-		if ( handel_mca->read_statistics == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"XIA interface record '%s' has not been initialized properly.",
-				handel_mca->handel_record->name );
-		}
-
-		mx_status = (handel_mca->read_statistics)( mca );
+		mx_status = mxi_handel_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1867,14 +1753,8 @@ mxd_handel_mca_process_function( void *record_ptr,
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_HANDEL_MCA_PARAMETER_VALUE:
-			if ( handel_mca->read_parameter == NULL ) {
-				return mx_error( MXE_INITIALIZATION_ERROR,
-					fname,
-		"XIA interface record '%s' has not been initialized properly.",
-					handel_mca->handel_record->name );
-			}
 
-			mx_status = (handel_mca->read_parameter)( mca,
+			mx_status = mxi_handel_read_parameter( mca,
 						handel_mca->parameter_name,
 						&parameter_value );
 
@@ -1919,13 +1799,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				fname, mca->record->name ));
 #endif
 
-			if ( handel_mca->get_baseline_array == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Getting the baseline array is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->get_baseline_array)( mca );
+			mx_status = mxi_handel_get_baseline_array( mca );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
 
@@ -1936,13 +1810,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				mca->record->name ));
 #endif
 
-			if ( handel_mca->get_acquisition_values == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Getting acquisition values is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->get_acquisition_values)( mca,
+			mx_status = mxi_handel_get_acquisition_values( mca,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value) );
 
@@ -1962,13 +1830,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				fname, mca->record->name ));
 #endif
 
-			if ( handel_mca->get_adc_trace_array == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Getting the adc trace array is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->get_adc_trace_array)( mca );
+			mx_status = mxi_handel_get_adc_trace_array( mca );
 			break;
 		case MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY:
 
@@ -1978,14 +1840,8 @@ mxd_handel_mca_process_function( void *record_ptr,
 				fname, mca->record->name ));
 #endif
 
-			if ( handel_mca->get_baseline_history_array == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-	"Getting the baseline history array is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
 			mx_status = 
-				(handel_mca->get_baseline_history_array)( mca );
+				mxi_handel_get_baseline_history_array( mca );
 			break;
 		default:
 			MX_DEBUG(-1,(
@@ -2004,14 +1860,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				handel_mca->parameter_name,
 				handel_mca->parameter_value));
 
-			if ( handel_mca->write_parameter == NULL ) {
-				return mx_error( MXE_INITIALIZATION_ERROR,
-					fname,
-		"XIA interface record '%s' has not been initialized properly.",
-					handel_mca->handel_record->name );
-			}
-
-			mx_status = (handel_mca->write_parameter)( mca,
+			mx_status = mxi_handel_write_parameter( mca,
 				handel_mca->parameter_name,
 				handel_mca->parameter_value );
 
@@ -2023,17 +1872,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				handel_mca->parameter_name,
 				handel_mca->param_value_to_all_channels));
 
-			if ( handel_mca->write_parameter_to_all_channels
-				== NULL )
-			{
-				return mx_error( MXE_INITIALIZATION_ERROR,
-					fname,
-		"XIA interface record '%s' has not been initialized properly.",
-					handel_mca->handel_record->name );
-			}
-
-			mx_status =
-			    (handel_mca->write_parameter_to_all_channels)(
+			mx_status = mxi_handel_write_parameter_to_all_channels(
 				mca,
 				handel_mca->parameter_name,
 				handel_mca->param_value_to_all_channels );
@@ -2048,13 +1887,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				handel_mca->gain_change ));
 #endif
 
-			if ( handel_mca->set_gain_change == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the gain is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->set_gain_change)( mca );
+			mx_status = mxi_handel_set_gain_change( mca );
 			break;
 		case MXLV_HANDEL_MCA_GAIN_CALIBRATION:
 
@@ -2064,14 +1897,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				fname, mca->record->name,
 				handel_mca->gain_calibration ));
 #endif
-
-			if ( handel_mca->set_gain_calibration == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Setting the gain calibration is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->set_gain_calibration)( mca );
+			mx_status = mxi_handel_set_gain_calibration( mca );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE:
 
@@ -2082,14 +1908,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				mca->record->name,
 				handel_mca->acquisition_value ));
 #endif
-
-			if ( handel_mca->set_acquisition_values == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Setting acquisition values is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->set_acquisition_values)( mca,
+			mx_status = mxi_handel_set_acquisition_values( mca,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value),
 					FALSE );
@@ -2102,15 +1921,7 @@ mxd_handel_mca_process_function( void *record_ptr,
 				fname, handel_mca->acquisition_value_name,
 				handel_mca->acquisition_value ));
 #endif
-
-			if ( handel_mca->set_acquisition_values == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Setting acquisition values is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = 
-			  (handel_mca->set_acquisition_values_for_all_channels)(
+			mx_status = mxi_handel_set_acq_for_all_channels(
 					mca,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value),
@@ -2122,28 +1933,14 @@ mxd_handel_mca_process_function( void *record_ptr,
 			MX_DEBUG(-2,("%s: apply for mca '%s'",
 				fname, mca->record->name ));
 #endif
-
-			if ( handel_mca->apply == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Apply is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->apply)( mca, FALSE );
+			mx_status = mxi_handel_apply( mca, FALSE );
 			break;
 		case MXLV_HANDEL_MCA_APPLY_TO_ALL:
 
 #if MXD_HANDEL_MCA_DEBUG
 			MX_DEBUG(-2,("%s: apply to all MCAs.", fname));
 #endif
-
-			if ( handel_mca->apply == NULL ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Apply is not supported for MCA '%s'.",
-					mca->record->name );
-			}
-
-			mx_status = (handel_mca->apply)( mca, TRUE );
+			mx_status = mxi_handel_apply( mca, TRUE );
 			break;
 		default:
 			MX_DEBUG( 1,(
