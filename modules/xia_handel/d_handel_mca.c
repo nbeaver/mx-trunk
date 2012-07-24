@@ -30,11 +30,6 @@
 #include <limits.h>
 #include <float.h>
 
-#include "mxconfig.h"
-#include "mx_osdef.h"
-
-#if HAVE_TCPIP || HAVE_XIA_HANDEL
-
 #include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
@@ -44,17 +39,11 @@
 #include "mx_net.h"
 #include "mx_mca.h"
 
-#if HAVE_XIA_HANDEL
-
 #include <handel.h>
 #include <handel_errors.h>
 #include <handel_generic.h>
 
 #include "i_handel.h"
-
-#endif /* HAVE_XIA_HANDEL */
-
-#include "i_handel_network.h"
 #include "d_handel_mca.h"
 
 #if MXD_HANDEL_MCA_DEBUG_TIMING
@@ -316,16 +305,7 @@ mxd_handel_mca_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* We do our own determination of when to read new data. */
-
-	if ( handel_mca->use_handel_network_driver ) {
-		mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -361,190 +341,6 @@ mxd_handel_mca_print_structure( FILE *file, MX_RECORD *record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#define MXD_HANDEL_NETWORK_NF_INIT( i, x, s ) \
-	do {								\
-		mx_network_field_init( &( (x)[(i)] ),			\
-			handel_network->server_record,			\
-			"%s." s, handel_mca->mca_label );		\
-	} while(0)
-
-/* The following routine does XIA network record specific initialization. */
-
-static mx_status_type
-mxd_handel_mca_network_open( MX_MCA *mca,
-			MX_HANDEL_MCA *handel_mca,
-			MX_RECORD *handel_record )
-{
-	static const char fname[] = "mxd_handel_mca_network_open()";
-
-	MX_HANDEL_NETWORK *handel_network;
-	unsigned long i;
-
-	handel_network = (MX_HANDEL_NETWORK *) handel_record->record_type_struct;
-
-	if ( handel_network->num_mcas == 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The record '%s' used by MCA '%s' has not yet been configured.  "
-	"You should verify that the entry for MCA '%s' is listed in the "
-	"MX database file _after_ the entry for '%s'.",
-			handel_record->name, mca->record->name,
-			mca->record->name, handel_record->name );
-	}
-
-#if HAVE_XIA_HANDEL
-	handel_mca->use_mca_channel_array = TRUE;
-#endif
-
-	/* Set up the interface function pointers. */
-
-	handel_mca->is_busy = mxi_handel_network_is_busy;
-	handel_mca->get_run_data = mxi_handel_network_get_run_data;
-	handel_mca->get_acquisition_values =
-				mxi_handel_network_get_acquisition_values;
-	handel_mca->set_acquisition_values =
-				mxi_handel_network_set_acquisition_values;
-	handel_mca->set_acquisition_values_for_all_channels =
-				mxi_handel_network_set_acq_for_all_channels;
-	handel_mca->apply = mxi_handel_network_apply;
-	handel_mca->read_parameter = mxi_handel_network_read_parameter;
-	handel_mca->write_parameter = mxi_handel_network_write_parameter;
-	handel_mca->write_parameter_to_all_channels
-			= mxi_handel_network_write_param_to_all_channels;
-	handel_mca->start_run = mxi_handel_network_start_run;
-	handel_mca->stop_run = mxi_handel_network_stop_run;
-	handel_mca->read_spectrum = mxi_handel_network_read_spectrum;
-	handel_mca->read_statistics = mxi_handel_network_read_statistics;
-	handel_mca->get_mx_parameter = mxi_handel_network_get_mx_parameter;
-	handel_mca->set_mx_parameter = mxi_handel_network_set_mx_parameter;
-
-	/* It does not matter which slot in mca_record_array that this
-	 * record is put into, so pick the first empty one.
-	 */
-
-	for ( i = 0; i < handel_network->num_mcas; i++ ) {
-
-		if ( handel_network->mca_record_array[i] == NULL ) {
-
-			handel_network->mca_record_array[i] = mca->record;
-
-			handel_mca->detector_channel = (int) i;
-
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->acquisition_value_name_nf,
-				"acquisition_value_name" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->acquisition_value_nf,
-				"acquisition_value" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->acquisition_value_to_all_nf,
-				"acquisition_value_to_all" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->apply_nf, "apply" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->apply_to_all_nf,
-				"apply_to_all" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->busy_nf, "busy" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->channel_array_nf,
-				"channel_array" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->channel_number_nf,
-				"channel_number" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->channel_value_nf,
-				"channel_value" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->current_num_channels_nf,
-				"current_num_channels" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->current_num_rois_nf,
-				"current_num_rois" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->hardware_scas_are_enabled_nf,
-				"hardware_scas_are_enabled" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->live_time_nf, "live_time" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->new_data_available_nf,
-				"new_data_available" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->new_statistics_available_nf,
-				"new_statistics_available" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->param_value_to_all_channels_nf,
-				"param_value_to_all_channels" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->parameter_name_nf,
-				"parameter_name" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->parameter_value_nf,
-				"parameter_value" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->preset_clock_tick_nf,
-				"preset_clock_tick" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->preset_type_nf,
-				"preset_type" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->real_time_nf, "real_time" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->roi_nf, "roi" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->roi_array_nf, "roi_array" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->roi_integral_nf,
-				"roi_integral" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->roi_integral_array_nf,
-				"roi_integral_array" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->roi_number_nf,
-				"roi_number" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->soft_roi_nf, "soft_roi" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->soft_roi_array_nf,
-				"soft_roi_array" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->soft_roi_integral_nf,
-				"soft_roi_integral" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->soft_roi_integral_array_nf,
-				"soft_roi_integral_array" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->soft_roi_number_nf,
-				"soft_roi_number" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->runtime_clock_tick_nf,
-				"runtime_clock_tick" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->start_with_preset_nf,
-				"start_with_preset" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->statistics_nf,
-				"statistics" );
-			MXD_HANDEL_NETWORK_NF_INIT( i,
-				handel_network->stop_nf, "stop" );
-
-			break;		/* Exit the for() loop. */
-		}
-	}
-
-	if ( i >= handel_network->num_mcas ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Error adding MCA '%s' to the list of MCAs controlled by "
-		"XIA network record '%s'.  This MCA would be record %lu "
-		"of the MCA record array, but that array only has room "
-		"for %lu records.", mca->record->name,
-			handel_record->name, i+1, handel_network->num_mcas );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#if HAVE_XIA_HANDEL
 
 /* The following routine does Handel specific initialization. */
 
@@ -998,8 +794,6 @@ mxd_handel_mca_handel_open( MX_MCA *mca,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_XIA_HANDEL */
-
 MX_EXPORT mx_status_type
 mxd_handel_mca_open( MX_RECORD *record )
 {
@@ -1008,19 +802,15 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_RECORD *handel_record;
-#if HAVE_XIA_HANDEL
 	MX_HANDEL *handel;
-#endif
-	MX_HANDEL_NETWORK *handel_network;
 	unsigned long i, mca_number;
 	int display_config = FALSE;
-	const char *handel_driver_name;
 #if 0
 	unsigned long codevar, coderev;
 #endif
 	mx_status_type mx_status;
 
-#if ( HAVE_XIA_HANDEL && MXD_HANDEL_MCA_DEBUG_TIMING )
+#if MXD_HANDEL_MCA_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 #endif
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1048,54 +838,18 @@ mxd_handel_mca_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* Are we using a remote network Handel controller? */
-
-	handel_driver_name = mx_get_driver_name( handel_record );
-
-	MX_DEBUG(-2,("%s: record '%s', interface '%s' driver = '%s'",
-		fname, record->name, handel_record->name, handel_driver_name ));
-
-	if ( strcmp( handel_driver_name, "handel_network" ) == 0 ) {
-		handel_mca->use_handel_network_driver = TRUE;
-	} else
-	if ( strcmp( handel_driver_name, "handel" ) == 0 ) {
-		handel_mca->use_handel_network_driver = FALSE;
-	} else {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Record '%s' has illegal handel record type '%s'.",
-			record->name, handel_driver_name );
-	}
-
 	/* Suppress GCC 'set but not used' warning. */
 	display_config = display_config;
 
-	if ( handel_mca->use_handel_network_driver ) {
-		mx_status = mxd_handel_mca_network_open( mca,
-					handel_mca, handel_record );
-
-		mca_number = handel_mca->detector_channel;
-
-#if HAVE_XIA_HANDEL
-	} else {
-		mx_status = mxd_handel_mca_handel_open( mca,
-					handel_mca, handel_record );
-
-		handel = (MX_HANDEL *) handel_record->record_type_struct;
-
-		display_config = handel->handel_flags &
-			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
-#else
-	} else {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"XIA Handel support is not compiled into this copy of MX.  "
-		"You will need to recompile MX including Handel support "
-		"to fix this." );
-
-#endif /* HAVE_XIA_HANDEL */
-	}
+	mx_status = mxd_handel_mca_handel_open(mca, handel_mca, handel_record);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	handel = (MX_HANDEL *) handel_record->record_type_struct;
+
+	display_config = handel->handel_flags &
+			MXF_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
 
 #if 0
 	/* Find out what firmware variant and revision is used by this MCA. */
@@ -1117,42 +871,24 @@ mxd_handel_mca_open( MX_RECORD *record )
 
 	/* Verify that the firmware version in use supports hardware SCAs. */
 
-	if ( handel_mca->use_handel_network_driver ) {
+	/* Use some heuristics based on the version of the firmware being run.*/
 
-		handel_network = ( MX_HANDEL_NETWORK *)
-					handel_record->record_type_struct;
-
-		mx_status = mx_get(
-		    &(handel_network->hardware_scas_are_enabled_nf[mca_number]),
-			MXFT_BOOL, &(handel_mca->hardware_scas_are_enabled) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	} else {
-		/* Otherwise, use some heuristics based on the version of
-		 * the firmware being run.
-		 */
-
-		if ( handel_mca->hardware_scas_are_enabled ) {
+	if ( handel_mca->hardware_scas_are_enabled ) {
 #if 0
-			if ( ( codevar == 0 ) && ( coderev >= 108 ) ) {
-				handel_mca->hardware_scas_are_enabled = TRUE;
-			} else {
-				handel_mca->hardware_scas_are_enabled = FALSE;
-			}
-#endif
+		if ( ( codevar == 0 ) && ( coderev >= 108 ) ) {
+			handel_mca->hardware_scas_are_enabled = TRUE;
+		} else {
+			handel_mca->hardware_scas_are_enabled = FALSE;
 		}
+#endif
 	}
 
 	/* If the MCA is controlled via Handel and hardware SCAs are enabled,
 	 * try to set the number of SCAs to the value of mca->maximum_num_rois.
 	 */
 
-#if HAVE_XIA_HANDEL
+	if ( handel_mca->hardware_scas_are_enabled ) {
 
-	if ( ( handel_mca->hardware_scas_are_enabled )
-	  && ( handel_mca->use_handel_network_driver == FALSE ) )
-	{
 		int xia_status;
 		double num_scas;
 
@@ -1226,8 +962,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 #endif
 	}
 
-#endif /* HAVE_XIA_HANDEL */
-
 #if 0
 	if ( display_config ) {
 		mx_info(
@@ -1239,12 +973,9 @@ mxd_handel_mca_open( MX_RECORD *record )
 	}
 #endif
 
-	/* Initialize the range of bin numbers used by the MCA
-	 * unless we are connected via a 'handel_network' record.
-	 */
+	/* Initialize the range of bin numbers used by the MCA. */
 
-#if HAVE_XIA_HANDEL
-	if ( handel_mca->use_handel_network_driver == FALSE ) {
+	if ( 1 ) {
 
 		int xia_status;
 		double num_mx_channels;
@@ -1263,7 +994,6 @@ mxd_handel_mca_open( MX_RECORD *record )
 			xia_status, mxi_handel_strerror( xia_status ) );
 		}
 	}
-#endif /* HAVE_XIA_HANDEL */
 
 	mca->current_num_channels = mca->maximum_num_channels;
 	mca->current_num_rois     = mca->maximum_num_rois;
@@ -1299,14 +1029,10 @@ mxd_handel_mca_close( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_RECORD *handel_record;
-	MX_HANDEL_NETWORK *handel_network;
+	MX_HANDEL *handel;
 	MX_RECORD **mca_record_array;
 	unsigned long i, num_mcas;
 	mx_status_type mx_status;
-
-#if HAVE_XIA_HANDEL
-	MX_HANDEL *handel;
-#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1324,36 +1050,16 @@ mxd_handel_mca_close( MX_RECORD *record )
 
 	handel_record = handel_mca->handel_record;
 
-	if ( handel_mca->use_handel_network_driver ) {
+	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
-		handel_network = (MX_HANDEL_NETWORK *)
-					handel_record->record_type_struct;
+	num_mcas = handel->num_mcas;
+	mca_record_array = handel->mca_record_array;
 
-		num_mcas = handel_network->num_mcas;
-		mca_record_array = handel_network->mca_record_array;
-	} else {
-
-#if HAVE_XIA_HANDEL
-		handel = (MX_HANDEL *) handel_record->record_type_struct;
-
-		num_mcas = handel->num_mcas;
-		mca_record_array = handel->mca_record_array;
-
-		if ( handel_mca->baseline_array != NULL ) {
-			mx_free( handel_mca->baseline_array );
-		}
-		if ( handel_mca->spectrum_array != NULL ) {
-			mx_free( handel_mca->spectrum_array );
-		}
-#else
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type 'handel'.  However, XIA Handel support is not compiled "
-"into this copy of MX.  This should never happen and is definitely a program "
-"bug that should be reported.", record->name, handel_record->name );
-
-#endif /* HAVE_XIA_HANDEL */
-
+	if ( handel_mca->baseline_array != NULL ) {
+		mx_free( handel_mca->baseline_array );
+	}
+	if ( handel_mca->spectrum_array != NULL ) {
+		mx_free( handel_mca->spectrum_array );
 	}
 
 	for ( i = 0; i < num_mcas; i++ ) {
@@ -1384,11 +1090,7 @@ mxd_handel_mca_start( MX_MCA *mca )
 	mx_status_type mx_status;
 
 	MX_RECORD *handel_record;
-	MX_HANDEL_NETWORK *handel_network;
-
-#if HAVE_XIA_HANDEL
 	MX_HANDEL *handel;
-#endif
 
 	mx_status = mxd_handel_mca_get_pointers( mca, &handel_mca, fname );
 
@@ -1426,21 +1128,9 @@ mxd_handel_mca_start( MX_MCA *mca )
 
 	handel_record = handel_mca->handel_record;
 
-	if ( handel_mca->use_handel_network_driver ) {
+	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
-		handel_network = (MX_HANDEL_NETWORK *)
-					handel_record->record_type_struct;
-
-		handel_network->last_measurement_interval = preset_time;
-
-#if HAVE_XIA_HANDEL
-	} else {
-		handel = (MX_HANDEL *) handel_record->record_type_struct;
-
-		handel->last_measurement_interval = preset_time;
-#endif
-	}
-
+	handel->last_measurement_interval = preset_time;
 
 	MX_DEBUG( 2,("%s: preset_time = %g", fname, preset_time));
 
@@ -1971,12 +1661,7 @@ mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 {
 	static const char fname[] = "mxd_handel_mca_get_mca_array()";
 
-	MX_HANDEL_NETWORK *handel_network;
-
-#if HAVE_XIA_HANDEL
 	MX_HANDEL *handel;
-#endif
-	const char *handel_driver_name;
 
 	if ( handel_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1991,36 +1676,16 @@ mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 		"The mca_record_array pointer passed was NULL." );
 	}
 
-	handel_driver_name = mx_get_driver_name( handel_record );
+	handel = (MX_HANDEL *) handel_record->record_type_struct;
 
-	if ( strcmp( handel_driver_name, "handel_network" ) == 0 ) {
-
-		handel_network = (MX_HANDEL_NETWORK *)
-					handel_record->record_type_struct;
-
-		if ( handel_network == (MX_HANDEL_NETWORK *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		    "The MX_HANDEL_NETWORK pointer for record '%s' is NULL.",
-				handel_record->name );
-		}
-
-		*num_mcas = handel_network->num_mcas;
-		*mca_record_array = handel_network->mca_record_array;
-
-#if HAVE_XIA_HANDEL
-	} else {
-		handel = (MX_HANDEL *) handel_record->record_type_struct;
-
-		if ( handel == (MX_HANDEL *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_HANDEL pointer for record '%s' is NULL.",
-				handel_record->name );
-		}
-
-		*num_mcas = handel->num_mcas;
-		*mca_record_array = handel->mca_record_array;
-#endif
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_HANDEL pointer for record '%s' is NULL.",
+			handel_record->name );
 	}
+
+	*num_mcas = handel->num_mcas;
+	*mca_record_array = handel->mca_record_array;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2494,6 +2159,4 @@ mxd_handel_mca_process_function( void *record_ptr,
 
 	return mx_status;
 }
-
-#endif /* HAVE_TCPIP || HAVE_XIA_HANDEL */
 

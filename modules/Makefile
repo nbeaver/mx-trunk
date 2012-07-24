@@ -21,7 +21,7 @@ all: build
 
 #MODULES += ni_daqmx		# linux, win32
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.

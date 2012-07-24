@@ -2,8 +2,6 @@
 # Supported values of MX_ARCH: linux win32
 #
 
-CFLAGS += -DHAVE_XIA_HANDEL
-
 ifndef MX_ARCH
   MX_ARCH = win32
 endif
@@ -34,7 +32,7 @@ include ../../libMx/Makehead.$(MX_ARCH)
 
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
-XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) i_handel_network.$(OBJ) \
+XIA_HANDEL_OBJS = xia_handel.$(OBJ) i_handel.$(OBJ) \
 		d_handel_input.$(OBJ) d_handel_mca.$(OBJ) \
 		d_handel_sum.$(OBJ) d_handel_timer.$(OBJ)
 
@@ -72,7 +70,7 @@ endif
 
 #--------------------------------------------------------------------------
 
-xia_handel.$(OBJ): xia_handel.c i_handel.h i_handel_network.h \
+xia_handel.$(OBJ): xia_handel.c i_handel.h \
 			d_handel_input.h d_handel_mca.h \
 			d_handel_sum.h d_handel_timer.h
 	$(COMPILE) $(CFLAGS) xia_handel.c
@@ -80,13 +78,10 @@ xia_handel.$(OBJ): xia_handel.c i_handel.h i_handel_network.h \
 i_handel.$(OBJ): i_handel.c i_handel.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) i_handel.c
 
-i_handel_network.$(OBJ): i_handel_network.c i_handel_network.h d_handel_mca.h
-	$(COMPILE) $(CFLAGS) i_handel_network.c
-
 d_handel_input.$(OBJ): d_handel_input.c d_handel_input.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_input.c
 
-d_handel_mca.$(OBJ): d_handel_mca.c i_handel.h i_handel_network.h d_handel_mca.h
+d_handel_mca.$(OBJ): d_handel_mca.c i_handel.h d_handel_mca.h
 	$(COMPILE) $(CFLAGS) d_handel_mca.c
 
 d_handel_sum.$(OBJ): d_handel_sum.c d_handel_sum.h d_handel_mca.h

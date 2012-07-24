@@ -116,7 +116,6 @@ typedef struct {
 	unsigned long num_overflows;
 
 	mx_bool_type debug_flag;
-	mx_bool_type use_handel_network_driver;
 
 	mx_status_type (*is_busy)( MX_MCA *mca, mx_bool_type *busy_flag );
 
@@ -352,11 +351,6 @@ typedef struct {
   \
   {-1, -1, "debug_flag", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, debug_flag ), \
-	{0}, NULL, 0}, \
-  \
-  {-1, -1, "use_handel_network_driver", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof( MX_HANDEL_MCA, use_handel_network_driver ), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "detector_alias", MXFT_STRING, NULL, 1, {200}, \

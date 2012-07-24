@@ -21,11 +21,6 @@
 
 #include <stdio.h>
 #include <limits.h>
-
-#include "mxconfig.h"
-
-#if HAVE_XIA_HANDEL
-
 #include <stdlib.h>
 #include <errno.h>
 
@@ -3320,4 +3315,3 @@ mxi_handel_process_function( void *record_ptr,
 	return mx_status;
 }
 
-#endif /* HAVE_XIA_HANDEL */

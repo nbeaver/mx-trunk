@@ -35,8 +35,6 @@
 
 /* Define the data structures used by the Handel driver. */
 
-#if ( HAVE_XIA_HANDEL && IS_MX_DRIVER )
-
 typedef struct {
 	MX_RECORD *record;
 
@@ -71,8 +69,6 @@ typedef struct {
 
 	mx_bool_type use_module_statistics_2;
 } MX_HANDEL;
-
-#endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */
 
 /* The following flags are used by the "PRESET" MCA parameter. */
 
@@ -225,11 +221,7 @@ MX_API mx_status_type mxi_handel_set_mx_parameter( MX_MCA *mca );
 
 MX_API const char *mxi_handel_strerror( int handel_status_code );
 
-#if ( HAVE_XIA_HANDEL && IS_MX_DRIVER )
-
 MX_API mx_status_type mxi_handel_set_data_available_flags(
 					MX_HANDEL *handel, int flag_value );
-
-#endif
 
 #endif /* __I_HANDEL_H__ */

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,12 +25,7 @@
 #include "mx_mca.h"
 #include "mx_analog_input.h"
 
-#if HAVE_XIA_HANDEL
 #include "i_handel.h"
-#endif
-
-#include "i_handel_network.h"
-
 #include "d_handel_input.h"
 #include "d_handel_mca.h"
 #include "d_handel_sum.h"
@@ -38,21 +33,12 @@
 
 MX_DRIVER xia_handel_driver_table[] = {
 
-#if HAVE_XIA_HANDEL
 {"handel",         -1, MXI_CONTROLLER, MXR_INTERFACE,
 				&mxi_handel_record_function_list,
 				NULL,
 				NULL,
 				&mxi_handel_num_record_fields,
 				&mxi_handel_rfield_def_ptr},
-#endif /* HAVE_XIA_HANDEL */
-
-{"handel_network", -1, MXI_CONTROLLER, MXR_INTERFACE,
-				&mxi_handel_network_record_function_list,
-				NULL,
-				NULL,
-				&mxi_handel_network_num_record_fields,
-				&mxi_handel_network_rfield_def_ptr},
 
 {"handel_mca",     -1, MXC_MULTICHANNEL_ANALYZER, MXR_DEVICE,
 				&mxd_handel_mca_record_function_list,
@@ -75,7 +61,6 @@ MX_DRIVER xia_handel_driver_table[] = {
 				&mxd_handel_sum_num_record_fields,
 				&mxd_handel_sum_rfield_def_ptr},
 
-#if HAVE_XIA_HANDEL
 {"handel_timer",   -1,  MXC_TIMER, MXR_DEVICE,
 				&mxd_handel_timer_record_function_list,
 				NULL,
@@ -83,7 +68,6 @@ MX_DRIVER xia_handel_driver_table[] = {
 				&mxd_handel_timer_num_record_fields,
 				&mxd_handel_timer_rfield_def_ptr},
 
-#endif /* HAVE_XIA_HANDEL */
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

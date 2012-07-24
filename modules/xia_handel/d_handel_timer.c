@@ -19,11 +19,6 @@
 #define MXD_HANDEL_TIMER_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_XIA_HANDEL
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -641,6 +636,4 @@ mxd_handel_timer_set_mode( MX_TIMER *timer )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif  /* HAVE_XIA_HANDEL */
 
