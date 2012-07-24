@@ -67,6 +67,8 @@ typedef struct {
 
 	double last_measurement_interval;
 
+	mx_bool_type debug_flag;
+
 	mx_bool_type use_module_statistics_2;
 } MX_HANDEL;
 
@@ -156,9 +158,6 @@ MX_API mx_status_type mxi_handel_restore_configuration( MX_RECORD *record,
 					char *configuration_filename,
 					int debug_flag );
 
-MX_API mx_status_type mxi_handel_is_busy( MX_MCA *mca,
-					mx_bool_type *busy_flag );
-
 MX_API mx_status_type mxi_handel_get_run_data( MX_MCA *mca,
 					char *name,
 					void *value_ptr );
@@ -178,8 +177,7 @@ MX_API mx_status_type mxi_handel_set_acq_for_all_channels(
 					double *value_ptr,
 					mx_bool_type apply_flag );
 
-MX_API mx_status_type mxi_handel_apply( MX_MCA *mca,
-					mx_bool_type apply_to_all );
+MX_API mx_status_type mxi_handel_apply_to_all( MX_HANDEL *handel );
 
 MX_API mx_status_type mxi_handel_read_parameter( MX_MCA *mca,
 					char *parameter_name,

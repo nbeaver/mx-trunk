@@ -214,6 +214,8 @@ mxi_handel_create_record_structures( MX_RECORD *record )
 
 	handel->last_measurement_interval = -1.0;
 
+	handel->debug_flag = FALSE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -865,67 +867,6 @@ mxi_handel_resynchronize( MX_RECORD *record )
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxi_handel_is_busy( MX_MCA *mca, mx_bool_type *busy_flag )
-{
-	static const char fname[] = "mxi_handel_is_busy()";
-
-	MX_HANDEL_MCA *handel_mca;
-	MX_HANDEL *handel;
-	unsigned long run_active, mask;
-	int xia_status;
-	mx_status_type mx_status;
-
-#if MXI_HANDEL_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
-
-	mx_status = mxi_handel_get_pointers( mca,
-					&handel_mca, &handel, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXI_HANDEL_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
-
-	xia_status = xiaGetRunData( handel_mca->detector_channel,
-					"run_active", &run_active );
-
-#if MXI_HANDEL_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"for record '%s'", mca->record->name );
-#endif
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot get DXP running status for MCA '%s'.  "
-		"Error code = %d, '%s'",
-			mca->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
-
-	if ( handel_mca->debug_flag ) {
-		MX_DEBUG(-2,("%s: run_active = %#lx", fname, run_active));
-	}
-
-#if 0
-	mask = XIA_RUN_HARDWARE | XIA_RUN_HANDEL | XIA_RUN_CT;
-#else
-	mask = XIA_RUN_HARDWARE;
-#endif
-
-	if ( run_active & mask ) {
-		*busy_flag = TRUE;
-	} else {
-		*busy_flag = FALSE;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_handel_get_run_data( MX_MCA *mca,
 			char *name,
 			void *value_ptr )
@@ -1109,7 +1050,7 @@ mxi_handel_set_acquisition_values( MX_MCA *mca,
 	}
 
 	if ( apply_flag ) {
-		mx_status = mxi_handel_apply( mca, TRUE );
+		mx_status = mxi_handel_apply_to_all( handel );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1177,7 +1118,7 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 	}
 
 	if ( apply_flag ) {
-		mx_status = mxi_handel_apply( mca, TRUE );
+		mx_status = mxi_handel_apply_to_all( handel );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1187,84 +1128,65 @@ mxi_handel_set_acq_for_all_channels( MX_MCA *mca,
 }
 
 MX_EXPORT mx_status_type
-mxi_handel_apply( MX_MCA *mca, mx_bool_type apply_to_all )
+mxi_handel_apply_to_all( MX_HANDEL *handel )
 {
-	static const char fname[] = "mxi_handel_apply()";
+	static const char fname[] = "mxi_handel_apply_to_all()";
 
-	MX_HANDEL_MCA *handel_mca;
-	MX_HANDEL *handel;
 	int m, xia_status, ignored;
 	MX_RECORD *first_mca_record;
 	MX_HANDEL_MCA *first_handel_mca;
 	mx_status_type mx_status;
 
-	mx_status = mxi_handel_get_pointers( mca,
-					&handel_mca, &handel, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( handel_mca->debug_flag ) {
-		MX_DEBUG(-2,("%s for MCA '%s', apply_to_all = %d",
-			fname, mca->record->name, (int) apply_to_all ));
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
 	}
 
-	if ( apply_to_all == FALSE ) {
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,("%s for Handel record '%s'",
+			fname, handel->record->name ));
+	}
+
+	for ( m = 0; m < handel->num_modules; m++ ) {
+		/* Find the first MCA for each module and then
+		 * do an apply to it.
+		 */
+
+		first_mca_record = handel->module_array[m][0];
+
+		if ( first_mca_record == NULL ) {
+			continue;  /* Go back to the top of the loop. */
+		}
+
+		first_handel_mca = first_mca_record->record_type_struct;
+
+		if ( first_handel_mca == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			fname, "The MX_HANDEL_MCA pointer for Handel "
+			"MCA '%s' is NULL.",
+				first_mca_record->name );
+		}
+
+		if ( handel->debug_flag ) {
+			MX_DEBUG(-2,("%s: applying to MCA '%s'",
+				fname, first_mca_record->name ));
+		}
+
 		ignored = 0;
 
-		xia_status = xiaBoardOperation( handel_mca->detector_channel,
-						"apply", (void *) &ignored );
+		xia_status = xiaBoardOperation(
+				first_handel_mca->detector_channel,
+				"apply", (void *) &ignored );
 
 		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot apply acquisition values for MCA '%s'.  "
-			"Error code = %d, '%s'", 
-				mca->record->name,
+			return mx_error( MXE_INTERFACE_ACTION_FAILED,
+			fname, "Cannot apply acquisition values for "
+			"MCA '%s' on behalf of Handel record '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
 				xia_status,
 				mxi_handel_strerror( xia_status ) );
-		}
-	} else {
-		for ( m = 0; m < handel->num_modules; m++ ) {
-			/* Find the first MCA for each module and then
-			 * do an apply to it.
-			 */
-
-			first_mca_record = handel->module_array[m][0];
-
-			if ( first_mca_record == NULL ) {
-				continue;  /* Go back to the top of the loop. */
-			}
-
-			first_handel_mca = first_mca_record->record_type_struct;
-
-			if ( first_handel_mca == NULL ) {
-				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-				fname, "The MX_HANDEL_MCA pointer for Handel "
-				"MCA '%s' is NULL.",
-					first_mca_record->name );
-			}
-
-			if ( handel_mca->debug_flag ) {
-				MX_DEBUG(-2,("%s: applying to MCA '%s'",
-					fname, first_mca_record->name ));
-			}
-
-			ignored = 0;
-
-			xia_status = xiaBoardOperation(
-					first_handel_mca->detector_channel,
-					"apply", (void *) &ignored );
-
-			if ( xia_status != XIA_SUCCESS ) {
-				return mx_error( MXE_INTERFACE_ACTION_FAILED,
-				fname, "Cannot apply acquisition values for "
-				"MCA '%s' on behalf of MCA '%s'.  "
-				"Error code = %d, '%s'",
-					first_mca_record->name,
-					mca->record->name,
-					xia_status,
-					mxi_handel_strerror( xia_status ) );
-			}
 		}
 	}
 
@@ -2952,7 +2874,7 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 			handel_mca->sca_has_been_initialized[i] = TRUE;
 		}
 
-		mx_status = mxi_handel_apply( mca, -1 );
+		mx_status = mxi_handel_apply_to_all( handel );
 
 		break;
 
@@ -2997,7 +2919,7 @@ mxi_handel_set_mx_parameter( MX_MCA *mca )
 
 		handel_mca->sca_has_been_initialized[i] = TRUE;
 
-		mx_status = mxi_handel_apply( mca, -1 );
+		mx_status = mxi_handel_apply_to_all( handel );
 
 		break;
 

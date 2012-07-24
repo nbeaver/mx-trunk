@@ -364,6 +364,8 @@ MX_API mx_status_type mxd_handel_mca_set_acquisition_value( MX_MCA *mca,
 MX_API mx_status_type mxd_handel_mca_get_adc_trace( MX_MCA *mca,
 						MX_HANDEL_MCA *handel_mca );
 
+MX_API mx_status_type mxd_handel_mca_apply( MX_MCA *mca );
+
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list;
 
