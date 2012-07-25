@@ -248,7 +248,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_REALTIME:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -257,7 +257,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_LIVETIME:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -266,7 +266,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_INPUT_COUNT_RATE:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -276,7 +276,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_OUTPUT_COUNT_RATE:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -286,7 +286,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_NUM_TRIGGERS:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -296,7 +296,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_NUM_EVENTS:
-		mx_status = mxd_handel_mca_read_statistics( mca, handel_mca );
+		mx_status = mxd_handel_mca_read_statistics( mca );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -306,7 +306,7 @@ mxd_handel_input_read( MX_ANALOG_INPUT *analog_input )
 		break;
 
 	case MXT_HANDEL_INPUT_ACQUISITION_VALUE:
-		mx_status = mxi_handel_get_acquisition_values( mca,
+		mx_status = mxd_handel_mca_get_acquisition_values( mca,
 				handel_input->value_parameters,
 				&(analog_input->raw_value.double_value) );
 		break;

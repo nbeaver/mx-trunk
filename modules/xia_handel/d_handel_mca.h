@@ -329,9 +329,6 @@ MX_API mx_status_type mxd_handel_mca_busy( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_get_parameter( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_set_parameter( MX_MCA *mca );
 
-MX_API mx_status_type mxd_handel_mca_default_get_mx_parameter( MX_MCA *mca );
-MX_API mx_status_type mxd_handel_mca_default_set_mx_parameter( MX_MCA *mca );
-
 MX_API mx_status_type mxd_handel_mca_get_mca_array( MX_RECORD *handel_record,
 					unsigned long *num_mcas,
 					MX_RECORD ***mca_record_array );
@@ -346,25 +343,37 @@ MX_API mx_status_type mxd_handel_mca_get_livetime_corrected_roi_integral(
 					unsigned long roi_number,
 					double *corrected_roi_value );
 
-MX_API mx_status_type mxd_handel_mca_read_statistics( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
+MX_API mx_status_type mxd_handel_mca_read_statistics( MX_MCA *mca );
 
-MX_API mx_status_type mxd_handel_mca_set_gain_change( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
+MX_API mx_status_type mxd_handel_mca_get_run_data( MX_MCA *mca,
+					char *name,
+					void *value_ptr );
 
-MX_API mx_status_type mxd_handel_mca_set_gain_calibration( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
+MX_API mx_status_type mxd_handel_mca_get_acquisition_values( MX_MCA *mca,
+					char *value_name,
+					double *value_ptr );
 
-MX_API mx_status_type mxd_handel_mca_get_acquisition_value( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
-
-MX_API mx_status_type mxd_handel_mca_set_acquisition_value( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
-
-MX_API mx_status_type mxd_handel_mca_get_adc_trace( MX_MCA *mca,
-						MX_HANDEL_MCA *handel_mca );
+MX_API mx_status_type mxd_handel_mca_set_acquisition_values( MX_MCA *mca,
+					char *value_name,
+					double *value_ptr,
+					mx_bool_type apply_flag );
 
 MX_API mx_status_type mxd_handel_mca_apply( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_start_run( MX_MCA *mca,
+					mx_bool_type clear_flag );
+
+MX_API mx_status_type mxd_handel_mca_stop_run( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_get_baseline_array( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_set_gain_change( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_set_gain_calibration( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_get_adc_trace_array( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_get_baseline_history_array( MX_MCA *mca );
 
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list;
