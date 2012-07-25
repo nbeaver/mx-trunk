@@ -778,7 +778,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	MX_MCA *mca;
 	MX_HANDEL_MCA *handel_mca = NULL;
 	MX_HANDEL *handel = NULL;
-	unsigned long i, mca_number;
+	unsigned long i;
 	int display_config = FALSE;
 #if 0
 	unsigned long codevar, coderev;

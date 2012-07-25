@@ -944,7 +944,6 @@ mxi_handel_apply_to_all_channels( MX_HANDEL *handel )
 	int m, xia_status, ignored;
 	MX_RECORD *first_mca_record;
 	MX_HANDEL_MCA *first_handel_mca;
-	mx_status_type mx_status;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1148,7 +1147,6 @@ mxi_handel_write_parameter_to_all_channels( MX_HANDEL *handel,
 
 	unsigned short short_value;
 	int xia_status;
-	mx_status_type mx_status;
 
 #if MXI_HANDEL_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
