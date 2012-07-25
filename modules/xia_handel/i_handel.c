@@ -214,7 +214,11 @@ mxi_handel_create_record_structures( MX_RECORD *record )
 
 	handel->last_measurement_interval = -1.0;
 
+#if MXI_HANDEL_DEBUG
+	handel->debug_flag = TRUE;
+#else
 	handel->debug_flag = FALSE;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1251,6 +1255,321 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 			break;
 		}
 	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_handel_start_run( MX_HANDEL *handel,
+			mx_bool_type resume_run )
+{
+	static const char fname[] = "mxi_handel_start_run()";
+
+	int m, xia_status;
+	unsigned short resume_flag;
+	MX_RECORD *first_mca_record;
+	MX_HANDEL_MCA *first_handel_mca;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,("%s for Handel interface '%s', resume_run = %d",
+			fname, handel->record->name, (int) resume_run));
+	}
+
+	/* Make sure that resume_flag can only have the values 0 or 1. */
+
+	if ( resume_run ) {
+		resume_flag = 1;
+	} else {
+		resume_flag = 0;
+	}
+
+	/* Walk through the modules to start the run. */
+
+	for ( m = 0; m < handel->num_modules; m++ ) {
+
+		first_mca_record = handel->module_array[m][0];
+
+		if ( first_mca_record == (MX_RECORD *) NULL ) {
+			/* Skip modules that are not installed. */
+
+			continue;
+		}
+
+		first_handel_mca = first_mca_record->record_type_struct;
+
+		if ( first_handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_HANDEL_MCA pointer for Handel MCA '%s' is NULL.",
+				first_mca_record->name );
+		}
+
+		if ( handel->debug_flag ) {
+			MX_DEBUG(-2,("%s: starting MCA '%s'.",
+				fname, first_mca_record->name ));
+		}
+
+		xia_status = xiaStartRun( first_handel_mca->detector_channel,
+						resume_flag );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot start a run for MCA '%s' on behalf of "
+			"Handel interface '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_stop_run( MX_HANDEL *handel )
+{
+	static const char fname[] = "mxi_handel_stop_run()";
+
+	int m, xia_status;
+	MX_RECORD *first_mca_record;
+	MX_HANDEL_MCA *first_handel_mca;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,("%s for Handel interface '%s'",
+			fname, handel->record->name ));
+	}
+
+	/* Walk through the modules to stop the run. */
+
+	for ( m = 0; m < handel->num_modules; m++ ) {
+
+		first_mca_record = handel->module_array[m][0];
+
+		if ( first_mca_record == (MX_RECORD *) NULL ) {
+			/* Skip modules that are not installed. */
+
+			continue;
+		}
+
+		first_handel_mca = first_mca_record->record_type_struct;
+
+		if ( first_handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_HANDEL_MCA pointer for Handel MCA '%s' is NULL.",
+				first_mca_record->name );
+		}
+
+		if ( handel->debug_flag ) {
+			MX_DEBUG(-2,("%s: stopping MCA '%s'.",
+				fname, first_mca_record->name ));
+		}
+
+		xia_status = xiaStopRun( first_handel_mca->detector_channel );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot stop a run for MCA '%s' on behalf of "
+			"Handel interface '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_is_busy( MX_HANDEL *handel,
+			mx_bool_type *busy )
+{
+	static const char fname[] = "mxi_handel_is_busy()";
+
+	int m, xia_status;
+	MX_RECORD *first_mca_record;
+	MX_HANDEL_MCA *first_handel_mca;
+	unsigned long run_active;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+	if ( busy == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy pointer passed was NULL." );
+	}
+
+	*busy = FALSE;
+
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,("%s for Handel interface '%s'",
+			fname, handel->record->name ));
+	}
+
+	/* Walk through the modules to see if they are busy. */
+
+	for ( m = 0; m < handel->num_modules; m++ ) {
+
+		first_mca_record = handel->module_array[m][0];
+
+		if ( first_mca_record == (MX_RECORD *) NULL ) {
+			/* Skip modules that are not installed. */
+
+			continue;
+		}
+
+		first_handel_mca = first_mca_record->record_type_struct;
+
+		if ( first_handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_HANDEL_MCA pointer for Handel MCA '%s' is NULL.",
+				first_mca_record->name );
+		}
+
+		if ( handel->debug_flag ) {
+			MX_DEBUG(-2,("%s: checking run_active for MCA '%s'.",
+				fname, first_mca_record->name ));
+		}
+
+		xia_status = xiaGetRunData( first_handel_mca->detector_channel,
+						"run_active", &run_active );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot stop a run for MCA '%s' on behalf of "
+			"Handel interface '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+
+		if ( run_active & XIA_RUN_HARDWARE ) {
+			/* If any of the modules are busy, then we consider
+			 * the Handel system as a whole to be busy, so there
+			 * is no need to check the state of the modules
+			 * after this one.
+			 */
+
+			*busy = TRUE;
+
+			if ( handel->debug_flag ) {
+				MX_DEBUG(-2,
+				("%s for Handel interface '%s', busy = %d",
+				fname, handel->record->name, *busy ));
+			}
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,("%s for Handel interface '%s', busy = %d",
+			fname, handel->record->name, *busy ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_handel_set_preset( MX_HANDEL *handel,
+			double preset_type,
+			double preset_value )
+{
+	static const char fname[] = "mxi_handel_set_preset()";
+
+	int m, xia_status;
+	MX_RECORD *first_mca_record;
+	MX_HANDEL_MCA *first_handel_mca;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	if ( handel->debug_flag ) {
+		MX_DEBUG(-2,
+		("%s for Handel interface '%s', "
+		"preset_type = %g, preset_value = %g",
+			fname, handel->record->name,
+			preset_type, preset_value ));
+	}
+
+	/* Walk through the modules to set the preset in each one. */
+
+	for ( m = 0; m < handel->num_modules; m++ ) {
+
+		first_mca_record = handel->module_array[m][0];
+
+		if ( first_mca_record == (MX_RECORD *) NULL ) {
+			/* Skip modules that are not installed. */
+
+			continue;
+		}
+
+		first_handel_mca = first_mca_record->record_type_struct;
+
+		if ( first_handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_HANDEL_MCA pointer for Handel MCA '%s' is NULL.",
+				first_mca_record->name );
+		}
+
+		if ( handel->debug_flag ) {
+			MX_DEBUG(-2,("%s: setting the preset for MCA '%s'.",
+				fname, first_mca_record->name ));
+		}
+
+		/* First set the preset type. */
+
+		xia_status = xiaSetAcquisitionValues(
+				first_handel_mca->detector_channel,
+				"preset_type", &preset_type );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot set the preset type for MCA '%s' on behalf of "
+			"Handel interface '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+
+		/* Then set the preset value. */
+
+		xia_status = xiaSetAcquisitionValues(
+				first_handel_mca->detector_channel,
+				"preset_value", &preset_value );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot set the preset value for MCA '%s' on behalf of "
+			"Handel interface '%s'.  "
+			"Error code = %d, '%s'",
+				first_mca_record->name,
+				handel->record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

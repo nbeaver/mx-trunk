@@ -181,6 +181,20 @@ MX_API mx_status_type mxi_handel_write_parameter_to_all_channels(
 
 /*------*/
 
+MX_API mx_status_type mxi_handel_start_run( MX_HANDEL *handel,
+					mx_bool_type resume_run );
+
+MX_API mx_status_type mxi_handel_stop_run( MX_HANDEL *handel );
+
+MX_API mx_status_type mxi_handel_is_busy( MX_HANDEL *handel,
+					mx_bool_type *busy );
+
+MX_API mx_status_type mxi_handel_set_preset( MX_HANDEL *handel,
+					double preset_type,
+					double preset_value );
+
+/*------*/
+
 MX_API const char *mxi_handel_strerror( int handel_status_code );
 
 MX_API mx_status_type mxi_handel_set_data_available_flags(

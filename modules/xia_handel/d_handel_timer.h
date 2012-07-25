@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2009 Illinois Institute of Technology
+ * Copyright 2005-2006, 2009, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,9 +26,6 @@ typedef struct {
 	MX_RECORD *handel_record;
 	mx_bool_type use_real_time;
 
-	unsigned int detector_channel_set;
-
-	unsigned int first_detector_channel;
 } MX_HANDEL_TIMER;
 
 /* Define all of the interface functions. */

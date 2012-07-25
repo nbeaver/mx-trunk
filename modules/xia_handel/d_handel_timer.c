@@ -25,6 +25,7 @@
 #include <handel.h>
 #include <handel_errors.h>
 #include <handel_generic.h>
+#include <handel_constants.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -152,8 +153,7 @@ mxd_handel_timer_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_TIMER structure." );
 	}
 
-	handel_timer = (MX_HANDEL_TIMER *)
-				malloc( sizeof(MX_HANDEL_TIMER) );
+	handel_timer = (MX_HANDEL_TIMER *) malloc( sizeof(MX_HANDEL_TIMER) );
 
 	if ( handel_timer == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -235,10 +235,6 @@ mxd_handel_timer_open( MX_RECORD *record )
 	MX_TIMER *timer;
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
-	MX_RECORD *mca_record;
-	MX_HANDEL_MCA *handel_mca;
-	unsigned long i;
-	int xia_status, detector_channel;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -254,62 +250,6 @@ mxd_handel_timer_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_warning( "The 'handel_timer' driver for timer record '%s' "
-	"does not yet work correctly.", record->name );
-
-	/* Choose a detector channel set number. */
-
-	handel_timer->detector_channel_set = 1000;
-
-	/* Add the detector channels for all the MCAs to
-	 * this detector channel set.
-	 */
-
-	for ( i = 0; i < handel->num_mcas; i++ ) {
-		mca_record = handel->mca_record_array[i];
-
-		if ( mca_record == (MX_RECORD *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"MCA record pointer %lu for XIA Handel record '%s' used by timer '%s' is NULL.",
-				i, handel->record->name,
-				record->name );
-		}
-
-		handel_mca = (MX_HANDEL_MCA *) mca_record->record_type_struct;
-
-		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-    "MX_HANDEL_MCA pointer for MCA '%s' used by timer record '%s' is NULL.",
-				mca_record->name, record->name );
-		}
-
-		detector_channel = handel_mca->detector_channel;
-
-		if ( i == 0 ) {
-			handel_timer->first_detector_channel
-				= detector_channel;
-		}
-
-#if MXD_HANDEL_TIMER_DEBUG
-		MX_DEBUG(-2,
-		("%s: adding MCA #%lu = '%s', detector_channel = %d",
-			fname, i, mca_record->name, detector_channel ));
-#endif
-
-		xia_status = xiaAddChannelSetElem(
-				handel_timer->detector_channel_set,
-				detector_channel );
-
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Unable to add detector channel %d for MCA '%s' "
-			"to detector channel set %d for timer '%s'.",
-				detector_channel, mca_record->name,
-				handel_timer->detector_channel_set,
-				record->name );
-		}
-	}
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -320,13 +260,7 @@ mxd_handel_timer_is_busy( MX_TIMER *timer )
 
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
-	unsigned long run_active;
-	int xia_status;
 	mx_status_type mx_status;
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
 
 	mx_status = mxd_handel_timer_get_pointers( timer,
 					&handel_timer, &handel, fname );
@@ -334,38 +268,10 @@ mxd_handel_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	mx_status = mxi_handel_is_busy( handel, &(timer->busy) );
 
-	xia_status = xiaGetRunData( handel_timer->first_detector_channel,
-					"run_active", &run_active );
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"for record '%s'", timer->record->name );
-#endif
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot get Handel running status for MCA timer '%s'.  "
-		"Error code = %d, error message = '%s'",
-			timer->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
-
-	if ( run_active & XIA_RUN_HARDWARE ) {
-		timer->busy = TRUE;
-	} else {
-		timer->busy = FALSE;
-	}
-
-#if MXD_HANDEL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: Timer '%s', run_active = %#lx, busy = %d",
-		fname, timer->record->name, run_active, timer->busy));
-#endif
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( timer->busy == FALSE ) {
 		mx_status = mxd_handel_timer_stop( timer );
@@ -381,13 +287,8 @@ mxd_handel_timer_start( MX_TIMER *timer )
 
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
-	double seconds_to_count;
-	int xia_status, ignored;
+	double seconds_to_count, preset_type;
 	mx_status_type mx_status;
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
 
 	mx_status = mxd_handel_timer_get_pointers( timer,
 					&handel_timer, &handel, fname );
@@ -402,75 +303,28 @@ mxd_handel_timer_start( MX_TIMER *timer )
 		fname, timer->record->name, seconds_to_count));
 #endif
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	/* Set preset. */
 
 	if ( handel_timer->use_real_time ) {
-		xia_status = xiaSetAcquisitionValues(
-				handel_timer->detector_channel_set,
-				"preset_value",
-				(void *) &seconds_to_count );
+		preset_type = XIA_PRESET_FIXED_REAL;
 	} else {
-		xia_status = xiaSetAcquisitionValues(
-				handel_timer->detector_channel_set,
-				"preset_value",
-				(void *) &seconds_to_count );
+		preset_type = XIA_PRESET_FIXED_LIVE;	/* energy livetime */
 	}
 
-	ignored = 0;
+	mx_status = mxi_handel_set_preset( handel,
+					preset_type, seconds_to_count );
 
-	xia_status = xiaBoardOperation( handel_timer->first_detector_channel,
-					"apply", (void *) &ignored );
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot apply acquisition values for Handel timer '%s' "
-		"on behalf of MCA '%s'.  "
-		"Error code = %d, '%s'",
-			timer->record->name,
-			handel->record->name,
-			xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"to set preset time for record '%s'", timer->record->name );
-#endif
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot set preset time for MCA timer '%s'.  "
-		"Error code = %d, error message = '%s'",
-			timer->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mxi_handel_set_data_available_flags( handel, TRUE );
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	/* Start run */
 
-	xia_status = xiaStartRun( handel_timer->detector_channel_set, 1 );
+	mx_status = mxi_handel_start_run( handel, FALSE );
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"to start the run for record '%s'", timer->record->name );
-#endif
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot start a run for MCA timer '%s'.  "
-		"Error code = %d, error message = '%s'",
-			timer->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	timer->last_measurement_time = seconds_to_count;
 
@@ -484,12 +338,7 @@ mxd_handel_timer_stop( MX_TIMER *timer )
 
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
-	int xia_status;
 	mx_status_type mx_status;
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
 
 	mx_status = mxd_handel_timer_get_pointers( timer,
 					&handel_timer, &handel, fname );
@@ -501,26 +350,14 @@ mxd_handel_timer_stop( MX_TIMER *timer )
 	MX_DEBUG(-2,("%s: Stopping timer '%s'.", fname, timer->record->name ));
 #endif
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	/* Stop run */
 
-	xia_status = xiaStopRun( handel_timer->detector_channel_set );
+	mx_status = mxi_handel_stop_run( handel );
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_END( measurement );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_HRT_RESULTS( measurement, fname,
-		"to stop the run for record '%s'", timer->record->name );
-#endif
-
-	if ( xia_status != XIA_SUCCESS ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Cannot stop a run for MCA timer '%s'.  "
-		"Error code = %d, error message = '%s'",
-			timer->record->name, xia_status,
-			mxi_handel_strerror( xia_status ) );
-	}
+	/* Read remaining time. */
 
 	timer->value = 0.0;
 
@@ -550,12 +387,7 @@ mxd_handel_timer_read( MX_TIMER *timer )
 
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
-	int xia_status;
 	mx_status_type mx_status;
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_TIMING measurement;
-#endif
 
 	mx_status = mxd_handel_timer_get_pointers( timer,
 					&handel_timer, &handel, fname );
@@ -563,43 +395,12 @@ mxd_handel_timer_read( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_START( measurement );
-#endif
+	/* Read out the runtime (real time) or trigger_lifetime (live time)
+	 * with xiaGetRunData().
+	 */
 
 	if ( handel_timer->use_real_time ) {
-		xia_status = xiaGetRunData(
-				handel_timer->detector_channel_set,
-				"runtime", &(timer->value) );
 	} else {
-		xia_status = xiaGetRunData(
-				handel_timer->detector_channel_set,
-				"trigger_livetime", &(timer->value) );
-	}
-
-#if MXD_HANDEL_TIMER_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"for record '%s'", timer->record->name );
-#endif
-
-	if ( handel_timer->use_real_time ) {
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"Cannot read the real time for MCA timer '%s'.  "
-			"Error code = %d, error message = '%s'",
-				timer->record->name, xia_status,
-				mxi_handel_strerror( xia_status ) );
-		}
-	} else {
-		if ( xia_status != XIA_SUCCESS ) {
-			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-			"Cannot read the live time for MCA timer '%s'.  "
-			"Error code = %d, error message = '%s'",
-				timer->record->name, xia_status,
-				mxi_handel_strerror( xia_status ) );
-		}
 	}
 
 #if MXD_HANDEL_TIMER_DEBUG
