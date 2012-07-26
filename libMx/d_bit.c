@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2010-2011 Illinois Institute of Technology
+ * Copyright 2001, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -242,7 +242,8 @@ mxd_bit_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_finish_record_initialization( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_bit_out_finish_record_initialization()";
+        static const char fname[] =
+			"mxd_bit_out_finish_record_initialization()";
 
         MX_BIT_OUT *bit_out;
 	int i;
@@ -365,8 +366,23 @@ mxd_bit_out_read( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name );
 	}
 
-	mx_status = mx_digital_input_read( bit_out->input_record,
-						&input_record_value );
+	switch( bit_out->input_record->mx_class ) {
+	case MXC_DIGITAL_INPUT:
+		mx_status = mx_digital_input_read( bit_out->input_record,
+							&input_record_value );
+		break;
+	case MXC_DIGITAL_OUTPUT:
+		mx_status = mx_digital_output_read( bit_out->input_record,
+							&input_record_value );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The input record '%s' for bit out record '%s' is not "
+		"a digital input record or a digital output record.",
+			bit_out->input_record->name,
+			doutput->record->name );
+		break;
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

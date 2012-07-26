@@ -4,7 +4,7 @@
 # set it to FALSE.
 #
 
-USE_DAQMX_BASE = TRUE
+USE_DAQMX_BASE = FALSE
 
 #
 # Supported values of MX_ARCH:  linux win32

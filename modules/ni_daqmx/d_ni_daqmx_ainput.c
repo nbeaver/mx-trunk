@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NI_DAQMX_AINPUT_DEBUG	FALSE
+#define MXD_NI_DAQMX_AINPUT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -212,11 +212,13 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 					DAQmx_Val_Volts, NULL );
 
 #if MXD_NI_DAQMX_AINPUT_DEBUG
-	MX_DEBUG(-2,
-	("%s: DAQmxCreateAIVoltageChan( %#lx, '%s', NULL, %#lx ) = %d",
+	MX_DEBUG(-2,("%s: DAQmxCreateAIVoltageChan( %#lx, "
+	"'%s', NULL, '%s', %g, %g, DAQmx_ValVolts, NULL ) = %d",
 		fname, (unsigned long) ni_daqmx_ainput->handle,
 		ni_daqmx_ainput->channel_name,
-		(unsigned long) DAQmx_Val_ChanForAllLines,
+		config_name,
+		ni_daqmx_ainput->minimum_value,
+		ni_daqmx_ainput->maximum_value,
 		(int) daqmx_status));
 #endif
 

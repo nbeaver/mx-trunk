@@ -212,10 +212,11 @@ mxi_ni_daqmx_create_task( MX_RECORD *record, TaskHandle *task_handle )
 			record->name, (int) daqmx_status, daqmx_error_message );
 	}
 
-#if defined(OS_LINUX)
+#if ( defined(OS_LINUX) && USE_DAQMX_BASE )
+
 	if ( (*task_handle) == 0 ) {
 
-		/* In case you care, National Instruments DAQmx is
+		/* In case you care, National Instruments DAQmx Base is
 		 * implemented using a large LabVIEW system that runs 
 		 * in the background.  Apparently this system only works
 		 * if it can do some initialization steps before the
@@ -237,7 +238,7 @@ mxi_ni_daqmx_create_task( MX_RECORD *record, TaskHandle *task_handle )
 		 * If anyone can come up with a way around this, then
 		 * I would love to hear about it.  Apparently, National
 		 * Instruments's response to issues like this is to declare
-		 * that they do not support plugin architectures.
+		 * that they do not support plugin architectures.  Swell.
 		 */
 
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,

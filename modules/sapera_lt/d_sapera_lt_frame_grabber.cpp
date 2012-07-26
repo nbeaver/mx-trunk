@@ -16,13 +16,13 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG				FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN				FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_ARM				FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_TRIGGER			FALSE
 
-#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME			TRUE
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_GET_FRAME			FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS		FALSE
 
@@ -786,7 +786,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
+#if 0
 	mx_display_system_meminfo( &system_meminfo );
 #endif
 
@@ -827,7 +827,7 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			fname, max_image_frames, max_frames_threshold));
 #endif
 
-#if 1	/* FIXME */
+#if 0	/* FIXME - The memory usage test does not work correctly. */
 
 	if ( sapera_lt_frame_grabber->max_frames > max_frames_threshold ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,

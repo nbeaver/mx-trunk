@@ -14,7 +14,9 @@
  *
  */
 
-#define MXD_RADICON_TAURUS_DEBUG				TRUE
+#define MXD_RADICON_TAURUS_DEBUG				FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS		FALSE
 
@@ -225,19 +227,21 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	/* Discard any extraneous characters in the serial port buffers. */
 
 	mx_status = mx_rs232_discard_unwritten_output( serial_port_record,
-						MXD_RADICON_TAURUS_DEBUG );
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mx_rs232_discard_unread_input( serial_port_record,
-						MXD_RADICON_TAURUS_DEBUG );
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Request camera parameters from the detector. */
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -274,7 +278,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 		mx_status = mx_rs232_getline(radicon_taurus->serial_port_record,
 					response, sizeof(response), NULL,
-					MXD_RADICON_TAURUS_DEBUG );
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -359,7 +363,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( num_bytes_available == 1 ) {
 		mx_status = mx_rs232_getchar(
 				radicon_taurus->serial_port_record,
-				&c, MXD_RADICON_TAURUS_DEBUG );
+				&c, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -368,7 +372,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	/* Initialize the detector by putting it into free-run mode. */
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -537,7 +541,7 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 	/* Putting the detector back into free-run mode will reset it. */
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	return mx_status;
 }
@@ -726,7 +730,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			radicon_taurus->readout_mode );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -765,7 +769,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -803,7 +807,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 		break;
 	case MXT_RADICON_XINEOS:
 		/* FIXME: The scale factor is wrong for the Xineos. */
@@ -814,7 +818,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			"SIT %lu", raw_exposure_time_32 );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -838,7 +842,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		}
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-					NULL, 0, MXD_RADICON_TAURUS_DEBUG );
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -1185,7 +1189,7 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 				mx_status = mxd_radicon_taurus_command(
 						radicon_taurus,
 						command, NULL, 0,
-						MXD_RADICON_TAURUS_DEBUG );
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
 			}
 			break;
 
