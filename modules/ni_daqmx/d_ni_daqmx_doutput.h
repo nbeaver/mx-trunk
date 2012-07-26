@@ -23,9 +23,10 @@ typedef struct {
 	MX_RECORD * record;
 
 	MX_RECORD *ni_daqmx_record;
+	char task_name[ MXU_NI_DAQMX_TASK_NAME_LENGTH+1 ];
 	char channel_name[ MXU_NI_DAQMX_CHANNEL_NAME_LENGTH+1 ];
 
-	TaskHandle handle;
+	MX_NI_DAQMX_TASK *task;
 
 } MX_NI_DAQMX_DOUTPUT;
 
@@ -52,6 +53,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ni_daqmx_doutput_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_NI_DAQMX_DOUTPUT, ni_daqmx_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "task_name", MXFT_STRING, \
+			NULL, 1, {MXU_NI_DAQMX_CHANNEL_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_NI_DAQMX_DOUTPUT, task_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "channel_name", MXFT_STRING, \
 			NULL, 1, {MXU_NI_DAQMX_CHANNEL_NAME_LENGTH}, \

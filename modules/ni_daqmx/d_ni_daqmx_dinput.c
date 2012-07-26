@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NI_DAQMX_DINPUT_DEBUG	FALSE
+#define MXD_NI_DAQMX_DINPUT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,29 +59,53 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ni_daqmx_dinput_rfield_def_ptr
 static mx_status_type
 mxd_ni_daqmx_dinput_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_NI_DAQMX_DINPUT **ni_daqmx_dinput,
+			MX_NI_DAQMX **ni_daqmx,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_ni_daqmx_dinput_get_pointers()";
+
+	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput_ptr;
+	MX_RECORD *ni_daqmx_record;
 
 	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DIGITAL_INPUT pointer passed by '%s' was NULL",
 			calling_fname );
 	}
-	if ( ni_daqmx_dinput == (MX_NI_DAQMX_DINPUT **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NI_DAQMX_DINPUT pointer passed by '%s' was NULL",
-			calling_fname );
-	}
 
-	*ni_daqmx_dinput = (MX_NI_DAQMX_DINPUT *)
+	ni_daqmx_dinput_ptr = (MX_NI_DAQMX_DINPUT *)
 				dinput->record->record_type_struct;
 
-	if ( *ni_daqmx_dinput == (MX_NI_DAQMX_DINPUT *) NULL ) {
+	if ( ni_daqmx_dinput_ptr == (MX_NI_DAQMX_DINPUT *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_NI_DAQMX_DINPUT pointer for "
-			"dinput record '%s' passed by '%s' is NULL",
+			"DAQmx digital input '%s' passed by '%s' is NULL",
 				dinput->record->name, calling_fname );
+	}
+
+	if ( ni_daqmx_dinput != (MX_NI_DAQMX_DINPUT **) NULL ) {
+		*ni_daqmx_dinput = ni_daqmx_dinput_ptr;
+	}
+
+	if ( ni_daqmx != (MX_NI_DAQMX **) NULL ) {
+		ni_daqmx_record = ni_daqmx_dinput_ptr->ni_daqmx_record;
+
+		if ( ni_daqmx_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The ni_daqmx_record pointer for "
+			"DAQmx digital input '%s' is NULL.",
+				dinput->record->name );
+		}
+
+		*ni_daqmx = (MX_NI_DAQMX *) ni_daqmx_record->record_type_struct;
+
+		if ( (*ni_daqmx) == (MX_NI_DAQMX *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_NI_DAQMX pointer for DAQmx record '%s' "
+			"used by digital input '%s' is NULL.",
+				ni_daqmx_record->name,
+				dinput->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -135,6 +159,7 @@ mxd_ni_daqmx_dinput_finish_record_initialization( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -145,7 +170,7 @@ mxd_ni_daqmx_dinput_finish_record_initialization( MX_RECORD *record )
 	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, fname);
+				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -160,6 +185,7 @@ mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
@@ -172,28 +198,29 @@ mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, fname);
+				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Create a DAQmx task. */
 
-	mx_status = mxi_ni_daqmx_create_task( record,
-					&(ni_daqmx_dinput->handle) );
+	mx_status = mxi_ni_daqmx_find_or_create_task( ni_daqmx,
+						ni_daqmx_dinput->task_name,
+						&(ni_daqmx_dinput->task) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Associate a digital input channel with this task. */
 
-	daqmx_status = DAQmxCreateDIChan( ni_daqmx_dinput->handle,
+	daqmx_status = DAQmxCreateDIChan( ni_daqmx_dinput->task->task_handle,
 					ni_daqmx_dinput->channel_name, NULL,
 					DAQmx_Val_ChanForAllLines );
 
 #if MXD_NI_DAQMX_DINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxCreateDIChan( %#lx, '%s', NULL, %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_dinput->handle,
+		fname, (unsigned long) ni_daqmx_dinput->task->task_handle,
 		ni_daqmx_dinput->channel_name,
 		(unsigned long) DAQmx_Val_ChanForAllLines,
 		(int) daqmx_status));
@@ -209,17 +236,17 @@ mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) ni_daqmx_dinput->handle,
+			(unsigned long) ni_daqmx_dinput->task->task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
 
-	daqmx_status = DAQmxStartTask( ni_daqmx_dinput->handle );
+	daqmx_status = DAQmxStartTask( ni_daqmx_dinput->task->task_handle );
 
 #if MXD_NI_DAQMX_DINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_dinput->handle,
+		fname, (unsigned long) ni_daqmx_dinput->task->task_handle,
 		(int) daqmx_status));
 #endif
 
@@ -231,7 +258,7 @@ mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for digital input '%s' "
 		"failed.  DAQmx error code = %d, error message = '%s'",
-			(unsigned long) ni_daqmx_dinput->handle,
+			(unsigned long) ni_daqmx_dinput->task->task_handle,
 			record->name,
 			(int) daqmx_status, daqmx_error_message );
 	}
@@ -246,6 +273,7 @@ mxd_ni_daqmx_dinput_close( MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -256,14 +284,14 @@ mxd_ni_daqmx_dinput_close( MX_RECORD *record )
 	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, fname);
+				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ni_daqmx_dinput->handle != 0 ) {
-		mx_status = mxi_ni_daqmx_shutdown_task( record,
-						ni_daqmx_dinput->handle );
+	if ( ni_daqmx_dinput->task != (MX_NI_DAQMX_TASK *) NULL ) {
+		mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx,
+						ni_daqmx_dinput->task );
 	}
 
 	return mx_status;
@@ -274,7 +302,8 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
 	static const char fname[] = "mxd_ni_daqmx_dinput_read()";
 
-	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput;
+	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
@@ -287,7 +316,7 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 	ni_daqmx_dinput = NULL;
 
 	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, fname);
+				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -296,7 +325,7 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 	timeout           = 10.0;    /* read timeout in seconds */
 	read_array_length = 1;
 
-	daqmx_status = DAQmxReadDigitalU32( ni_daqmx_dinput->handle,
+	daqmx_status = DAQmxReadDigitalU32( ni_daqmx_dinput->task->task_handle,
 					num_samples, timeout,
 					DAQmx_Val_GroupByChannel,
 					read_array, read_array_length,
@@ -305,7 +334,7 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 #if MXD_NI_DAQMX_DINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxReadDigitalU32( "
 	"%#lx, %lu, %f, %#x, read_array, %lu, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_dinput->handle,
+		fname, (unsigned long) ni_daqmx_dinput->task->task_handle,
 		num_samples,
 		timeout,
 		DAQmx_Val_GroupByChannel,

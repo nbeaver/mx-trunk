@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NI_DAQMX_DOUTPUT_DEBUG	FALSE
+#define MXD_NI_DAQMX_DOUTPUT_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,29 +60,53 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ni_daqmx_doutput_rfield_def_ptr
 static mx_status_type
 mxd_ni_daqmx_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_NI_DAQMX_DOUTPUT **ni_daqmx_doutput,
+			MX_NI_DAQMX **ni_daqmx,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_ni_daqmx_doutput_get_pointers()";
+
+	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput_ptr;
+	MX_RECORD *ni_daqmx_record;
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DIGITAL_OUTPUT pointer passed by '%s' was NULL",
 			calling_fname );
 	}
-	if ( ni_daqmx_doutput == (MX_NI_DAQMX_DOUTPUT **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NI_DAQMX_DOUTPUT pointer passed by '%s' was NULL",
-			calling_fname );
-	}
 
-	*ni_daqmx_doutput = (MX_NI_DAQMX_DOUTPUT *)
+	ni_daqmx_doutput_ptr = (MX_NI_DAQMX_DOUTPUT *)
 				doutput->record->record_type_struct;
 
-	if ( *ni_daqmx_doutput == (MX_NI_DAQMX_DOUTPUT *) NULL ) {
+	if ( ni_daqmx_doutput_ptr == (MX_NI_DAQMX_DOUTPUT *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_NI_DAQMX_DOUTPUT pointer for "
-			"doutput record '%s' passed by '%s' is NULL",
+			"DAQmx digital output '%s' passed by '%s' is NULL",
 				doutput->record->name, calling_fname );
+	}
+
+	if ( ni_daqmx_doutput != (MX_NI_DAQMX_DOUTPUT **) NULL ) {
+		*ni_daqmx_doutput = ni_daqmx_doutput_ptr;
+	}
+
+	if ( ni_daqmx != (MX_NI_DAQMX **) NULL ) {
+		ni_daqmx_record = ni_daqmx_doutput_ptr->ni_daqmx_record;
+
+		if ( ni_daqmx_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The ni_daqmx_record pointer for "
+			"DAQmx digital output '%s' is NULL.",
+				doutput->record->name );
+		}
+
+		*ni_daqmx = (MX_NI_DAQMX *) ni_daqmx_record->record_type_struct;
+
+		if ( (*ni_daqmx) == (MX_NI_DAQMX *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_NI_DAQMX pointer for DAQmx record '%s' "
+			"used by digital output '%s' is NULL.",
+				ni_daqmx_record->name,
+				doutput->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -137,6 +161,7 @@ mxd_ni_daqmx_doutput_finish_record_initialization( MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -147,7 +172,7 @@ mxd_ni_daqmx_doutput_finish_record_initialization( MX_RECORD *record )
 	doutput = (MX_DIGITAL_OUTPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_doutput_get_pointers(
-				doutput, &ni_daqmx_doutput, fname);
+				doutput, &ni_daqmx_doutput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -162,6 +187,7 @@ mxd_ni_daqmx_doutput_open( MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
@@ -174,28 +200,29 @@ mxd_ni_daqmx_doutput_open( MX_RECORD *record )
 	doutput = (MX_DIGITAL_OUTPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_doutput_get_pointers(
-				doutput, &ni_daqmx_doutput, fname);
+				doutput, &ni_daqmx_doutput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Create a DAQmx task. */
 
-	mx_status = mxi_ni_daqmx_create_task( record,
-					&(ni_daqmx_doutput->handle) );
+	mx_status = mxi_ni_daqmx_find_or_create_task( ni_daqmx,
+						ni_daqmx_doutput->task_name,
+						&(ni_daqmx_doutput->task) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Associate a digital output channel with this task. */
 
-	daqmx_status = DAQmxCreateDOChan( ni_daqmx_doutput->handle,
+	daqmx_status = DAQmxCreateDOChan( ni_daqmx_doutput->task->task_handle,
 					ni_daqmx_doutput->channel_name, NULL,
 					DAQmx_Val_ChanForAllLines );
 
 #if MXD_NI_DAQMX_DOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxCreateDOChan( %#lx, '%s', NULL, %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_doutput->handle,
+		fname, (unsigned long) ni_daqmx_doutput->task->task_handle,
 		ni_daqmx_doutput->channel_name,
 		(unsigned long) DAQmx_Val_ChanForAllLines,
 		(int) daqmx_status));
@@ -211,17 +238,17 @@ mxd_ni_daqmx_doutput_open( MX_RECORD *record )
 		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) ni_daqmx_doutput->handle,
+			(unsigned long) ni_daqmx_doutput->task->task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
 
-	daqmx_status = DAQmxStartTask( ni_daqmx_doutput->handle );
+	daqmx_status = DAQmxStartTask( ni_daqmx_doutput->task->task_handle );
 
 #if MXD_NI_DAQMX_DOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_doutput->handle,
+		fname, (unsigned long) ni_daqmx_doutput->task->task_handle,
 		(int) daqmx_status));
 #endif
 
@@ -233,7 +260,7 @@ mxd_ni_daqmx_doutput_open( MX_RECORD *record )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for digital output '%s' "
 		"failed.  DAQmx error code = %d, error message = '%s'",
-			(unsigned long) ni_daqmx_doutput->handle,
+			(unsigned long) ni_daqmx_doutput->task->task_handle,
 			record->name,
 			(int) daqmx_status, daqmx_error_message );
 	}
@@ -248,6 +275,7 @@ mxd_ni_daqmx_doutput_close( MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -258,14 +286,14 @@ mxd_ni_daqmx_doutput_close( MX_RECORD *record )
 	doutput = (MX_DIGITAL_OUTPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_doutput_get_pointers(
-				doutput, &ni_daqmx_doutput, fname);
+				doutput, &ni_daqmx_doutput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ni_daqmx_doutput->handle != 0 ) {
-		mx_status = mxi_ni_daqmx_shutdown_task( record,
-						ni_daqmx_doutput->handle );
+	if ( ni_daqmx_doutput->task != (MX_NI_DAQMX_TASK *) NULL ) {
+		mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx,
+						ni_daqmx_doutput->task );
 	}
 
 	return mx_status;
@@ -276,7 +304,8 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	static const char fname[] = "mxd_ni_daqmx_doutput_write()";
 
-	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput;
+	MX_NI_DAQMX_DOUTPUT *ni_daqmx_doutput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
@@ -286,10 +315,8 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	int32 num_samples_written;
 	mx_status_type mx_status;
 
-	ni_daqmx_doutput = NULL;
-
 	mx_status = mxd_ni_daqmx_doutput_get_pointers(
-				doutput, &ni_daqmx_doutput, fname);
+				doutput, &ni_daqmx_doutput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -300,7 +327,7 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	write_array[0] = doutput->value;
 
-	daqmx_status = DAQmxWriteDigitalU32( ni_daqmx_doutput->handle,
+	daqmx_status = DAQmxWriteDigitalU32(ni_daqmx_doutput->task->task_handle,
 					num_samples, autostart, timeout,
 					DAQmx_Val_GroupByChannel,
 					write_array, 
@@ -309,7 +336,7 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 #if MXD_NI_DAQMX_DOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxWriteDigitalU32( "
 	"%#lx, %lu, %lu, %f, %#x, {%lu}, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_doutput->handle,
+		fname, (unsigned long) ni_daqmx_doutput->task->task_handle,
 		num_samples,
 		autostart,
 		timeout,

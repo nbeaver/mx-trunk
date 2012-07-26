@@ -66,29 +66,53 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ni_daqmx_ainput_rfield_def_ptr
 static mx_status_type
 mxd_ni_daqmx_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 			MX_NI_DAQMX_AINPUT **ni_daqmx_ainput,
+			MX_NI_DAQMX **ni_daqmx,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_ni_daqmx_ainput_get_pointers()";
+
+	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput_ptr;
+	MX_RECORD *ni_daqmx_record;
 
 	if ( ainput == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_ANALOG_INPUT pointer passed by '%s' was NULL",
 			calling_fname );
 	}
-	if ( ni_daqmx_ainput == (MX_NI_DAQMX_AINPUT **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NI_DAQMX_AINPUT pointer passed by '%s' was NULL",
-			calling_fname );
-	}
 
-	*ni_daqmx_ainput = (MX_NI_DAQMX_AINPUT *)
+	ni_daqmx_ainput_ptr = (MX_NI_DAQMX_AINPUT *)
 				ainput->record->record_type_struct;
 
-	if ( *ni_daqmx_ainput == (MX_NI_DAQMX_AINPUT *) NULL ) {
+	if ( ni_daqmx_ainput_ptr == (MX_NI_DAQMX_AINPUT *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The MX_NI_DAQMX_AINPUT pointer for "
-			"ainput record '%s' passed by '%s' is NULL",
+			"DAQMX analog input '%s' passed by '%s' is NULL",
 				ainput->record->name, calling_fname );
+	}
+
+	if ( ni_daqmx_ainput != (MX_NI_DAQMX_AINPUT **) NULL ) {
+		*ni_daqmx_ainput = ni_daqmx_ainput_ptr;
+	}
+
+	if ( ni_daqmx != (MX_NI_DAQMX **) NULL ) {
+		ni_daqmx_record = ni_daqmx_ainput_ptr->ni_daqmx_record;
+
+		if ( ni_daqmx_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The ni_daqmx_record pointer for "
+			"DAQmx analog input '%s' is NULL.",
+				ainput->record->name );
+		}
+
+		*ni_daqmx = (MX_NI_DAQMX *) ni_daqmx_record->record_type_struct;
+
+		if ( (*ni_daqmx) == (MX_NI_DAQMX *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_NI_DAQMX pointer for DAQmx record '%s' "
+			"used by analog input '%s' is NULL.",
+				ni_daqmx_record->name,
+				ainput->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -143,6 +167,7 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 
 	MX_ANALOG_INPUT *ainput;
 	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	char *config_name;
@@ -158,7 +183,7 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 	ainput = (MX_ANALOG_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_ainput_get_pointers(
-				ainput, &ni_daqmx_ainput, fname);
+				ainput, &ni_daqmx_ainput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -194,17 +219,19 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 		"analog input '%s'.", config_name, record->name );
 	}
 
-	/* Create a DAQmx task. */
+	/* Find or create a DAQmx task. */
 
-	mx_status = mxi_ni_daqmx_create_task( record,
-					&(ni_daqmx_ainput->handle) );
+	mx_status = mxi_ni_daqmx_find_or_create_task( ni_daqmx,
+						ni_daqmx_ainput->task_name,
+						&(ni_daqmx_ainput->task) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Associate a analog input channel with this task. */
 
-	daqmx_status = DAQmxCreateAIVoltageChan( ni_daqmx_ainput->handle,
+	daqmx_status = DAQmxCreateAIVoltageChan(
+					ni_daqmx_ainput->task->task_handle,
 					ni_daqmx_ainput->channel_name, NULL,
 					terminal_config,
 					ni_daqmx_ainput->minimum_value,
@@ -214,7 +241,7 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxCreateAIVoltageChan( %#lx, "
 	"'%s', NULL, '%s', %g, %g, DAQmx_ValVolts, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_ainput->handle,
+		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
 		ni_daqmx_ainput->channel_name,
 		config_name,
 		ni_daqmx_ainput->minimum_value,
@@ -232,17 +259,17 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) ni_daqmx_ainput->handle,
+			(unsigned long) ni_daqmx_ainput->task->task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
 
 	/* Start the task. */
 
-	daqmx_status = DAQmxStartTask( ni_daqmx_ainput->handle );
+	daqmx_status = DAQmxStartTask( ni_daqmx_ainput->task->task_handle );
 
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_ainput->handle,
+		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
 		(int) daqmx_status));
 #endif
 
@@ -254,8 +281,8 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"The attempt to start task %#lx for analog input '%s' failed.  "
 		"DAQmx error code = %d, error message = '%s'",
-			(unsigned long) ni_daqmx_ainput->handle, record->name,
-			(int) daqmx_status, daqmx_error_message );
+			(unsigned long) ni_daqmx_ainput->task->task_handle,
+			record->name, (int) daqmx_status, daqmx_error_message );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -268,6 +295,7 @@ mxd_ni_daqmx_ainput_close( MX_RECORD *record )
 
 	MX_ANALOG_INPUT *ainput;
 	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput = NULL;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -278,14 +306,14 @@ mxd_ni_daqmx_ainput_close( MX_RECORD *record )
 	ainput = (MX_ANALOG_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_ni_daqmx_ainput_get_pointers(
-				ainput, &ni_daqmx_ainput, fname);
+				ainput, &ni_daqmx_ainput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( ni_daqmx_ainput->handle != 0 ) {
-		mx_status = mxi_ni_daqmx_shutdown_task( record,
-						ni_daqmx_ainput->handle );
+	if ( ni_daqmx_ainput->task != (MX_NI_DAQMX_TASK *) NULL ) {
+		mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx,
+						ni_daqmx_ainput->task );
 	}
 
 	return mx_status;
@@ -297,6 +325,7 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	static const char fname[] = "mxd_ni_daqmx_ainput_read()";
 
 	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput;
+	MX_NI_DAQMX *ni_daqmx = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
@@ -309,7 +338,7 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	ni_daqmx_ainput = NULL;
 
 	mx_status = mxd_ni_daqmx_ainput_get_pointers(
-				ainput, &ni_daqmx_ainput, fname);
+				ainput, &ni_daqmx_ainput, &ni_daqmx, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -318,7 +347,7 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	timeout           = 10.0;    /* read timeout in seconds */
 	read_array_length = 1;
 
-	daqmx_status = DAQmxReadAnalogF64( ni_daqmx_ainput->handle,
+	daqmx_status = DAQmxReadAnalogF64( ni_daqmx_ainput->task->task_handle,
 					num_samples, timeout,
 					DAQmx_Val_GroupByChannel,
 					read_array, read_array_length,
@@ -327,7 +356,7 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxReadAnalogF64( "
 	"%#lx, %lu, %f, %#x, read_array, %lu, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_ainput->handle,
+		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
 		num_samples,
 		timeout,
 		DAQmx_Val_GroupByChannel,

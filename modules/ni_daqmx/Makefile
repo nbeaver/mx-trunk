@@ -11,7 +11,7 @@ USE_DAQMX_BASE = FALSE
 #
 
 ifndef MX_ARCH
-  MX_ARCH = linux
+  MX_ARCH = win32
 endif
 
 ifndef MX_INSTALL_DIR
