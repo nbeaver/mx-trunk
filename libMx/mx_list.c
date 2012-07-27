@@ -236,7 +236,7 @@ mx_list_delete_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 MX_EXPORT mx_status_type
 mx_list_entry_create( MX_LIST_ENTRY **list_entry,
 			void *list_entry_data,
-			void (*destructor)( MX_LIST_ENTRY * ) )
+			void (*destructor)( void * ) )
 {
 	static const char fname[] = "mx_list_entry_create()";
 
@@ -265,7 +265,7 @@ mx_list_entry_create( MX_LIST_ENTRY **list_entry,
 MX_EXPORT void
 mx_list_entry_destroy( MX_LIST_ENTRY *list_entry )
 {
-	void (*destructor)( MX_LIST_ENTRY * );
+	void (*destructor)( void * );
 
 #if MX_LIST_DEBUG
 	static const char fname[] = "mx_list_entry_destroy()";
@@ -281,7 +281,7 @@ mx_list_entry_destroy( MX_LIST_ENTRY *list_entry )
 	destructor = list_entry->destructor;
 
 	if ( destructor != NULL ) {
-		(*destructor)( list_entry );
+		(*destructor)( list_entry->list_entry_data );
 	}
 
 	/* Free the list entry structure itself. */
@@ -420,5 +420,50 @@ mx_list_find_list_entry( MX_LIST *list,
 	return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
 	"The list entry containing object %p was not found in list %p.",
 		list_entry_data, list );
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_list_entry_create_and_add( MX_LIST *list,
+				void *list_entry_data,
+				void (*destructor)( void * ) )
+{
+	MX_LIST_ENTRY *list_entry;
+	mx_status_type mx_status;
+
+	mx_status = mx_list_entry_create( &list_entry,
+					list_entry_data,
+					destructor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_add_entry( list, list_entry );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_list_entry_find_and_destroy( MX_LIST *list,
+				void *list_entry_data )
+{
+	MX_LIST_ENTRY *list_entry;
+	mx_status_type mx_status;
+
+	mx_status = mx_list_find_list_entry( list,
+				list_entry_data, &list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_delete_entry( list, list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_list_entry_destroy( list_entry );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

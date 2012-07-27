@@ -29,11 +29,10 @@
 MX_RECORD_FUNCTION_LIST mxd_ni_daqmx_dinput_record_function_list = {
 	NULL,
 	mxd_ni_daqmx_dinput_create_record_structures,
-	mxd_ni_daqmx_dinput_finish_record_initialization,
 	NULL,
 	NULL,
-	mxd_ni_daqmx_dinput_open,
-	mxd_ni_daqmx_dinput_close,
+	NULL,
+	mxd_ni_daqmx_dinput_open
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST
@@ -152,33 +151,6 @@ mxd_ni_daqmx_dinput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ni_daqmx_dinput_finish_record_initialization( MX_RECORD *record )
-{
-	static const char fname[] =
-		"mxd_ni_daqmx_dinput_finish_record_initialization()";
-
-	MX_DIGITAL_INPUT *dinput;
-	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
-	MX_NI_DAQMX *ni_daqmx = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_RECORD pointer passed was NULL." );
-	}
-
-	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
-
-	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_ni_daqmx_dinput_open()";
@@ -240,61 +212,11 @@ mxd_ni_daqmx_dinput_open( MX_RECORD *record )
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* Start the task. */
-
-	daqmx_status = DAQmxStartTask( ni_daqmx_dinput->task->task_handle );
-
-#if MXD_NI_DAQMX_DINPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_dinput->task->task_handle,
-		(int) daqmx_status));
-#endif
-
-	if ( daqmx_status != 0 ) {
-
-		DAQmxGetExtendedErrorInfo( daqmx_error_message,
-					sizeof(daqmx_error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to start task %#lx for digital input '%s' "
-		"failed.  DAQmx error code = %d, error message = '%s'",
-			(unsigned long) ni_daqmx_dinput->task->task_handle,
-			record->name,
-			(int) daqmx_status, daqmx_error_message );
-	}
+	/* The task will be started in the "finish delayed initialization"
+	 * driver function of the "ni_daqmx" record.
+	 */
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ni_daqmx_dinput_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_ni_daqmx_dinput_close()";
-
-	MX_DIGITAL_INPUT *dinput;
-	MX_NI_DAQMX_DINPUT *ni_daqmx_dinput = NULL;
-	MX_NI_DAQMX *ni_daqmx = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_RECORD pointer passed was NULL." );
-	}
-
-	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
-
-	mx_status = mxd_ni_daqmx_dinput_get_pointers(
-				dinput, &ni_daqmx_dinput, &ni_daqmx, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( ni_daqmx_dinput->task != (MX_NI_DAQMX_TASK *) NULL ) {
-		mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx,
-						ni_daqmx_dinput->task );
-	}
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type

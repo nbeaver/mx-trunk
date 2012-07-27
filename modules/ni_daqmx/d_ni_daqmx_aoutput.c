@@ -35,8 +35,7 @@ MX_RECORD_FUNCTION_LIST mxd_ni_daqmx_aoutput_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_ni_daqmx_aoutput_open,
-	mxd_ni_daqmx_aoutput_close
+	mxd_ni_daqmx_aoutput_open
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST
@@ -227,61 +226,11 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 			(int) daqmx_status, daqmx_error_message );
 	}
 
-	/* Start the task. */
-
-	daqmx_status = DAQmxStartTask( ni_daqmx_aoutput->task->task_handle );
-
-#if MXD_NI_DAQMX_AOUTPUT_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_aoutput->task->task_handle,
-		(int) daqmx_status));
-#endif
-
-	if ( daqmx_status != 0 ) {
-
-		DAQmxGetExtendedErrorInfo( daqmx_error_message,
-					sizeof(daqmx_error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to start task %#lx for analog output '%s' "
-		"failed.  DAQmx error code = %d, error message = '%s'",
-			(unsigned long) ni_daqmx_aoutput->task->task_handle,
-			record->name,
-			(int) daqmx_status, daqmx_error_message );
-	}
+	/* The task will be started in the "finish delayed initialization"
+	 * driver function of the "ni_daqmx" record.
+	 */
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ni_daqmx_aoutput_close( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_ni_daqmx_aoutput_close()";
-
-	MX_ANALOG_OUTPUT *aoutput;
-	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput = NULL;
-	MX_NI_DAQMX *ni_daqmx = NULL;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_RECORD pointer passed was NULL." );
-	}
-
-	aoutput = (MX_ANALOG_OUTPUT *) record->record_class_struct;
-
-	mx_status = mxd_ni_daqmx_aoutput_get_pointers(
-				aoutput, &ni_daqmx_aoutput, &ni_daqmx, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( ni_daqmx_aoutput->task != (MX_NI_DAQMX_TASK *) NULL ) {
-		mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx,
-					ni_daqmx_aoutput->task->task_handle );
-	}
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type

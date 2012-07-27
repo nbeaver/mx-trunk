@@ -26,11 +26,12 @@
 MX_RECORD_FUNCTION_LIST mxi_ni_daqmx_record_function_list = {
 	NULL,
 	mxi_ni_daqmx_create_record_structures,
-	mxi_ni_daqmx_finish_record_initialization,
+	NULL,
 	NULL,
 	NULL,
 	mxi_ni_daqmx_open,
-	mxi_ni_daqmx_close
+	mxi_ni_daqmx_close,
+	mxi_ni_daqmx_finish_delayed_initialization
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_ni_daqmx_record_field_defaults[] = {
@@ -107,24 +108,6 @@ mxi_ni_daqmx_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni_daqmx_finish_record_initialization( MX_RECORD *record )
-{
-	static const char fname[] =
-			"mxi_ni_daqmx_finish_record_initialization()";
-
-	MX_NI_DAQMX *ni_daqmx;
-	mx_status_type mx_status;
-
-	mx_status = mxi_ni_daqmx_get_pointers( record,
-						&ni_daqmx, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_ni_daqmx_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_ni_daqmx_open()";
@@ -163,6 +146,26 @@ mxi_ni_daqmx_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_ni_daqmx_task_shutdown_traverse_fn( MX_LIST_ENTRY *list_entry,
+					void *ni_daqmx_ptr,
+					void **unused_output )
+{
+	MX_NI_DAQMX *ni_daqmx;
+	MX_NI_DAQMX_TASK *task;
+	mx_status_type mx_status;
+
+	ni_daqmx = ni_daqmx_ptr;
+
+	task = list_entry->list_entry_data;
+
+	mx_status = mxi_ni_daqmx_shutdown_task( ni_daqmx, task );
+
+	return mx_status;
+}
+
 MX_EXPORT mx_status_type
 mxi_ni_daqmx_close( MX_RECORD *record )
 {
@@ -182,7 +185,83 @@ mxi_ni_daqmx_close( MX_RECORD *record )
 	"system.  This can take a _long_ time." );
 #endif
 
+	/* Shutdown all of the DAQmx tasks that were registered with
+	 * this driver.
+	 */
+
+	mx_status = mx_list_traverse( ni_daqmx->task_list,
+					mxp_ni_daqmx_task_shutdown_traverse_fn,
+					NULL, NULL );
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_ni_daqmx_task_start_traverse_fn( MX_LIST_ENTRY *list_entry,
+					void *unused_input,
+					void **unused_output )
+{
+#if MXI_NI_DAQMX_DEBUG
+	static const char fname[] = "mxp_ni_daqmx_task_start_traverse_fn()";
+#endif
+	MX_NI_DAQMX_TASK *task;
+	char daqmx_error_message[400];
+	int32 daqmx_status;
+
+	task = list_entry->list_entry_data;
+
+#if MXI_NI_DAQMX_DEBUG
+	MX_DEBUG(-2,("%s: Starting task '%s' (handle %#lx)",
+		fname, task->task_name, task->task_handle ));
+#endif
+
+	daqmx_status = DAQmxStartTask( task->task_handle );
+
+#if MXI_NI_DAQMX_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
+		fname, (unsigned long) task->task_handle,
+		(int) daqmx_status ));
+#endif
+
+	if ( daqmx_status != 0 ) {
+		DAQmxGetExtendedErrorInfo( daqmx_error_message,
+					sizeof(daqmx_error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to start task '%s' (handle %#lx) failed.  "
+		"DAQmx error code = %d, error message = '%s'",
+			task->task_name, (unsigned long) task->task_handle,
+			(int) daqmx_status, daqmx_error_message );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_ni_daqmx_finish_delayed_initialization( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_ni_daqmx_close()";
+
+	MX_NI_DAQMX *ni_daqmx;
+	mx_status_type mx_status;
+
+	mx_status = mxi_ni_daqmx_get_pointers( record,
+						&ni_daqmx, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Start all of the DAQmx tasks that were created by the drivers
+	 * for the various DAQmx devices.
+	 */
+
+	mx_status = mx_list_traverse( ni_daqmx->task_list,
+					mxp_ni_daqmx_task_start_traverse_fn,
+					NULL, NULL );
+
+	return mx_status;
 }
 
 /*--------------- Exported driver-specific functions ---------------*/

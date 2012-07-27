@@ -51,12 +51,12 @@ typedef struct {
 MX_API mx_status_type mxi_ni_daqmx_create_record_structures(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxi_ni_daqmx_finish_record_initialization(
-							MX_RECORD *record );
-
 MX_API mx_status_type mxi_ni_daqmx_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_ni_daqmx_close( MX_RECORD *record );
+
+MX_API mx_status_type mxi_ni_daqmx_finish_delayed_initialization(
+							MX_RECORD *record );
 
 /*-----*/
 

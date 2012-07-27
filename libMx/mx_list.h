@@ -56,7 +56,7 @@ MX_API mx_status_type mx_list_delete_entry( MX_LIST *list,
 
 MX_API mx_status_type mx_list_entry_create( MX_LIST_ENTRY **,
 						void *list_entry_data,
-						void (*)( MX_LIST_ENTRY * ) );
+						void (*destructor)( void * ) );
 
 MX_API void           mx_list_entry_destroy( MX_LIST_ENTRY * );
 
@@ -69,6 +69,17 @@ MX_API mx_status_type mx_list_traverse(
 MX_API mx_status_type mx_list_find_list_entry( MX_LIST *list,
 					void *list_entry_data,
 					MX_LIST_ENTRY **list_entry );
+
+/*---*/
+
+MX_API mx_status_type mx_list_entry_create_and_add( MX_LIST *list,
+						void *list_entry_data,
+						void (*destructor)( void * ) );
+
+MX_API mx_status_type mx_list_entry_find_and_destroy( MX_LIST *list,
+						void *list_entry_data );
+
+/*---*/
 			
 #ifdef __cplusplus
 }

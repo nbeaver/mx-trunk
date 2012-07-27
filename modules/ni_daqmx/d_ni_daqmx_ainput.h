@@ -36,7 +36,6 @@ typedef struct {
 MX_API mx_status_type mxd_ni_daqmx_ainput_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_ni_daqmx_ainput_open( MX_RECORD *record );
-MX_API mx_status_type mxd_ni_daqmx_ainput_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_ni_daqmx_ainput_read(MX_ANALOG_INPUT *ainput);
 

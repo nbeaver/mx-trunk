@@ -34,10 +34,7 @@ typedef struct {
 
 MX_API mx_status_type mxd_ni_daqmx_dinput_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_ni_daqmx_dinput_finish_record_initialization(
-							MX_RECORD *record );
 MX_API mx_status_type mxd_ni_daqmx_dinput_open( MX_RECORD *record );
-MX_API mx_status_type mxd_ni_daqmx_dinput_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput );
 
