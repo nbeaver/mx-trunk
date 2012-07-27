@@ -34,6 +34,7 @@ typedef struct {
 	char cold_junction_channel_name[80];
 
 	MX_NI_DAQMX_TASK *task;
+	unsigned long channel_offset;
 
 } MX_NI_DAQMX_THERMOCOUPLE;
 

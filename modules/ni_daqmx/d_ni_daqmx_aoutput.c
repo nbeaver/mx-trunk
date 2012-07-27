@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NI_DAQMX_AOUTPUT_DEBUG	TRUE
+#define MXD_NI_DAQMX_AOUTPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,6 +168,7 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 	MX_ANALOG_OUTPUT *aoutput;
 	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput = NULL;
 	MX_NI_DAQMX *ni_daqmx = NULL;
+	MX_NI_DAQMX_TASK *task = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	mx_status_type mx_status;
@@ -189,7 +190,12 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 
 	mx_status = mxi_ni_daqmx_find_or_create_task( ni_daqmx,
 					ni_daqmx_aoutput->task_name,
-					&(ni_daqmx_aoutput->task) );
+					&task );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_ni_daqmx_set_task_datatype( task, MXFT_DOUBLE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -197,7 +203,7 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 	/* Associate a analog output channel with this task. */
 
 	daqmx_status = DAQmxCreateAOVoltageChan(
-					ni_daqmx_aoutput->task->task_handle,
+					task->task_handle,
 					ni_daqmx_aoutput->channel_name, NULL,
 					ni_daqmx_aoutput->minimum_value,
 					ni_daqmx_aoutput->maximum_value,
@@ -206,7 +212,7 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 #if MXD_NI_DAQMX_AOUTPUT_DEBUG
 	MX_DEBUG(-2,
 	("%s: DAQmxCreateAOVoltageChan( %#lx, '%s', NULL, %#lx ) = %d",
-		fname, (unsigned long) ni_daqmx_aoutput->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		ni_daqmx_aoutput->channel_name,
 		(unsigned long) DAQmx_Val_ChanForAllLines,
 		(int) daqmx_status));
@@ -222,9 +228,17 @@ mxd_ni_daqmx_aoutput_open( MX_RECORD *record )
 		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) ni_daqmx_aoutput->task->task_handle,
+			(unsigned long) task->task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
+
+	/* Save the channel offset in the task. */
+
+	ni_daqmx_aoutput->task = task;
+
+	ni_daqmx_aoutput->channel_offset = task->num_channels;
+
+	task->num_channels++;
 
 	/* The task will be started in the "finish delayed initialization"
 	 * driver function of the "ni_daqmx" record.
@@ -240,12 +254,14 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	MX_NI_DAQMX_AOUTPUT *ni_daqmx_aoutput = NULL;
 	MX_NI_DAQMX *ni_daqmx = NULL;
+	MX_NI_DAQMX_TASK *task = NULL;
+	unsigned long channel;
+	float64 *channel_buffer;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
 	bool32 autostart;
 	double timeout;
-	float64 write_array[1];
 	int32 num_samples_written;
 	mx_status_type mx_status;
 
@@ -257,16 +273,20 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	task           = ni_daqmx_aoutput->task;
+	channel        = ni_daqmx_aoutput->channel_offset;
+	channel_buffer = task->channel_buffer;
+
 	num_samples       = 1;
 	autostart         = FALSE;
 	timeout           = 10.0;    /* write timeout in seconds */
 
-	write_array[0] = aoutput->raw_value.double_value;
+	channel_buffer[channel] = aoutput->raw_value.double_value;
 
 	daqmx_status = DAQmxWriteAnalogF64( ni_daqmx_aoutput->task->task_handle,
 					num_samples, autostart, timeout,
 					DAQmx_Val_GroupByChannel,
-					write_array, 
+					channel_buffer, 
 					&num_samples_written, NULL );
 
 #if MXD_NI_DAQMX_AOUTPUT_DEBUG
@@ -277,7 +297,7 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		autostart,
 		timeout,
 		DAQmx_Val_GroupByChannel,
-		write_array[0],
+		channel_buffer[channel],
 		(int) daqmx_status));
 #endif
 

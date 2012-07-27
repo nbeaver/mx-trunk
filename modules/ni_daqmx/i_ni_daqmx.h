@@ -36,6 +36,9 @@
 typedef struct {
 	char task_name[MXU_NI_DAQMX_TASK_NAME_LENGTH+1];
 	TaskHandle task_handle;
+	long mx_datatype;
+	unsigned long num_channels;
+	void *channel_buffer;
 } MX_NI_DAQMX_TASK;
 
 typedef struct {
@@ -82,6 +85,11 @@ MX_API mx_status_type mxi_ni_daqmx_find_task_by_handle( MX_NI_DAQMX *ni_daqmx,
 MX_API mx_status_type mxi_ni_daqmx_find_or_create_task( MX_NI_DAQMX *ni_daqmx,
 						char *task_name,
 						MX_NI_DAQMX_TASK **task );
+
+/*-----*/
+
+MX_API mx_status_type mxi_ni_daqmx_set_task_datatype( MX_NI_DAQMX_TASK *task,
+							long mx_datatype );
 
 /*-----*/
 

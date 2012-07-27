@@ -30,6 +30,7 @@ typedef struct {
 	char terminal_config[40];
 
 	MX_NI_DAQMX_TASK *task;
+	unsigned long channel_offset;
 
 } MX_NI_DAQMX_AINPUT;
 

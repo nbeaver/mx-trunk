@@ -29,6 +29,7 @@ typedef struct {
 	double maximum_value;
 
 	MX_NI_DAQMX_TASK *task;
+	unsigned long channel_offset;
 
 } MX_NI_DAQMX_AOUTPUT;
 

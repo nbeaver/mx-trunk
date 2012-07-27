@@ -27,6 +27,7 @@ typedef struct {
 	char channel_name[ MXU_NI_DAQMX_CHANNEL_NAME_LENGTH+1 ];
 
 	MX_NI_DAQMX_TASK *task;
+	unsigned long channel_offset;
 
 } MX_NI_DAQMX_DOUTPUT;
 

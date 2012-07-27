@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_NI_DAQMX_DEBUG		TRUE
+#define MXI_NI_DAQMX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -199,29 +199,62 @@ mxi_ni_daqmx_close( MX_RECORD *record )
 /*--------------------------------------------------------------------------*/
 
 static mx_status_type
-mxp_ni_daqmx_task_start_traverse_fn( MX_LIST_ENTRY *list_entry,
+mxp_ni_daqmx_task_init_traverse_fn( MX_LIST_ENTRY *list_entry,
 					void *unused_input,
 					void **unused_output )
 {
-#if MXI_NI_DAQMX_DEBUG
 	static const char fname[] = "mxp_ni_daqmx_task_start_traverse_fn()";
-#endif
+
 	MX_NI_DAQMX_TASK *task;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 
 	task = list_entry->list_entry_data;
 
-#if MXI_NI_DAQMX_DEBUG
-	MX_DEBUG(-2,("%s: Starting task '%s' (handle %#lx)",
-		fname, task->task_name, task->task_handle ));
-#endif
+	/* Create a channel buffer for the task. */
+
+	switch( task->mx_datatype ) {
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+		task->channel_buffer =
+			malloc( task->num_channels * sizeof(int8) );
+		break;
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+		task->channel_buffer =
+			malloc( task->num_channels * sizeof(int16) );
+		break;
+	case MXFT_LONG:
+	case MXFT_ULONG:
+		task->channel_buffer =
+			malloc( task->num_channels * sizeof(int32) );
+		break;
+	case MXFT_DOUBLE:
+		task->channel_buffer =
+			malloc( task->num_channels * sizeof(float64) );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Attempted to allocate a channel buffer for DAQmx task '%s' "
+		"(handle %#lx) with unsupported MX datatype %ld.",
+			task->task_name, task->task_handle, task->mx_datatype );
+		break;
+	}
+
+	if ( task->channel_buffer == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The attempt to allocate a %ld element channel buffer "
+		"for DAQmx task '%s' (handle %#lx) failed.",
+			task->num_channels, task->task_name, task->task_handle);
+	}
+
+	/* Start the task. */
 
 	daqmx_status = DAQmxStartTask( task->task_handle );
 
 #if MXI_NI_DAQMX_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxStartTask( %#lx ) = %d",
-		fname, (unsigned long) task->task_handle,
+	MX_DEBUG(-2,("%s: Started task '%s' (handle %#lx), daqmx_status = %d",
+		fname, task->task_name, task->task_handle,
 		(int) daqmx_status ));
 #endif
 
@@ -253,12 +286,17 @@ mxi_ni_daqmx_finish_delayed_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Start all of the DAQmx tasks that were created by the drivers
-	 * for the various DAQmx devices.
+	/* Walk through all of the DAQmx tasks that were created
+	 * by the drivers for the various DAQmx devices.  For each
+	 * driver, we do this:
+	 *
+	 * 1. Create a datatype appropriate channel buffer for the task.
+	 *
+	 * 2. Start the task.
 	 */
 
 	mx_status = mx_list_traverse( ni_daqmx->task_list,
-					mxp_ni_daqmx_task_start_traverse_fn,
+					mxp_ni_daqmx_task_init_traverse_fn,
 					NULL, NULL );
 
 	return mx_status;
@@ -377,14 +415,16 @@ mxi_ni_daqmx_create_task( MX_NI_DAQMX *ni_daqmx,
 
 	(*task)->task_handle = task_handle;
 
+	(*task)->mx_datatype = 0;
+
+	(*task)->num_channels = 0;
+
+	(*task)->channel_buffer = NULL;
+
 	/* Add the task to the master list of tasks. */
 
-	mx_status = mx_list_entry_create( &task_list_entry, *task, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_list_add_entry( ni_daqmx->task_list, task_list_entry );
+	mx_status = mx_list_entry_create_and_add( ni_daqmx->task_list,
+							 *task, free );
 
 	return mx_status;
 }
@@ -462,22 +502,9 @@ mxi_ni_daqmx_shutdown_task( MX_NI_DAQMX *ni_daqmx, MX_NI_DAQMX_TASK *task )
 
 	/* Find the list entry in the master list. */
 
-	mx_status = mx_list_find_list_entry( ni_daqmx->task_list, task,
-						&task_list_entry );
+	mx_status = mx_list_entry_find_and_destroy( ni_daqmx->task_list, task );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_list_delete_entry( ni_daqmx->task_list, task_list_entry);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_free( task_list_entry->list_entry_data );
-
-	mx_list_entry_destroy( task_list_entry );
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*------------------------------------------------------------------*/
@@ -579,21 +606,53 @@ mxi_ni_daqmx_find_or_create_task( MX_NI_DAQMX *ni_daqmx,
 				char *task_name,
 				MX_NI_DAQMX_TASK **task )
 {
-	static const char fname[] = "mxi_ni_daqmx_find_or_create_task()";
-
 	mx_status_type mx_status;
 
 	mx_status = mxi_ni_daqmx_find_task( ni_daqmx, task_name, task );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( (*task) != NULL ) {
+	if ( mx_status.code == MXE_SUCCESS ) {
 		return MX_SUCCESSFUL_RESULT;
+	} else
+	if ( mx_status.code != MXE_NOT_FOUND ) {
+		return mx_status;
 	}
+
+	/* If we get here mxi_ni_daqmx_find_task() returned MXE_NOT_FOUND,
+	 * so we have to create the task ourself.
+	 */
 
 	mx_status = mxi_ni_daqmx_create_task( ni_daqmx, task_name, task );
 
 	return mx_status;
+}
+
+/*------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_ni_daqmx_set_task_datatype( MX_NI_DAQMX_TASK *task,
+				long mx_datatype )
+{
+	static const char fname[] = "mxi_ni_daqmx_set_task_datatype()";
+
+	if ( task == (MX_NI_DAQMX_TASK *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NI_DAQMX_TASK pointer passed was NULL." );
+	}
+
+	if ( task->mx_datatype <= 0 ) {
+		task->mx_datatype = mx_datatype;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( task->mx_datatype != mx_datatype ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The requested MX datatype %ld does not match the "
+		"existing datatype %ld for DAQmx task '%s' (handle %#lx).",
+			mx_datatype, task->mx_datatype,
+			task->task_name, task->task_handle );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

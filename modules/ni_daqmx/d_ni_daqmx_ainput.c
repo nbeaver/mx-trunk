@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NI_DAQMX_AINPUT_DEBUG	TRUE
+#define MXD_NI_DAQMX_AINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -167,6 +167,7 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 	MX_ANALOG_INPUT *ainput;
 	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput = NULL;
 	MX_NI_DAQMX *ni_daqmx = NULL;
+	MX_NI_DAQMX_TASK *task = NULL;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	char *config_name;
@@ -222,15 +223,19 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 
 	mx_status = mxi_ni_daqmx_find_or_create_task( ni_daqmx,
 						ni_daqmx_ainput->task_name,
-						&(ni_daqmx_ainput->task) );
+						&task );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_ni_daqmx_set_task_datatype( task, MXFT_DOUBLE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Associate a analog input channel with this task. */
 
-	daqmx_status = DAQmxCreateAIVoltageChan(
-					ni_daqmx_ainput->task->task_handle,
+	daqmx_status = DAQmxCreateAIVoltageChan( task->task_handle,
 					ni_daqmx_ainput->channel_name, NULL,
 					terminal_config,
 					ni_daqmx_ainput->minimum_value,
@@ -240,7 +245,7 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxCreateAIVoltageChan( %#lx, "
 	"'%s', NULL, '%s', %g, %g, DAQmx_ValVolts, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		ni_daqmx_ainput->channel_name,
 		config_name,
 		ni_daqmx_ainput->minimum_value,
@@ -258,9 +263,17 @@ mxd_ni_daqmx_ainput_open( MX_RECORD *record )
 		"DAQmx task %#lx failed.  "
 		"DAQmx error code = %d, error message = '%s'",
 			record->name,
-			(unsigned long) ni_daqmx_ainput->task->task_handle,
+			(unsigned long) task->task_handle,
 			(int) daqmx_status, daqmx_error_message );
 	}
+
+	/* Save the channel offset in the task. */
+
+	ni_daqmx_ainput->task = task;
+
+	ni_daqmx_ainput->channel_offset = task->num_channels;
+
+	task->num_channels++;
 
 	/* The task will be started in the "finish delayed initialization"
 	 * driver function of the "ni_daqmx" record.
@@ -274,18 +287,17 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_ni_daqmx_ainput_read()";
 
-	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput;
+	MX_NI_DAQMX_AINPUT *ni_daqmx_ainput = NULL;
 	MX_NI_DAQMX *ni_daqmx = NULL;
+	MX_NI_DAQMX_TASK *task = NULL;
+	unsigned long channel;
+	float64 *channel_buffer;
 	char daqmx_error_message[400];
 	int32 daqmx_status;
 	int32 num_samples;
 	double timeout;
-	float64 read_array[1];
-	int32 read_array_length;
 	int32 num_samples_read;
 	mx_status_type mx_status;
-
-	ni_daqmx_ainput = NULL;
 
 	mx_status = mxd_ni_daqmx_ainput_get_pointers(
 				ainput, &ni_daqmx_ainput, &ni_daqmx, fname);
@@ -293,24 +305,28 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	task           = ni_daqmx_ainput->task;
+	channel        = ni_daqmx_ainput->channel_offset;
+	channel_buffer = task->channel_buffer;
+
 	num_samples       = 1;
 	timeout           = 10.0;    /* read timeout in seconds */
-	read_array_length = 1;
 
-	daqmx_status = DAQmxReadAnalogF64( ni_daqmx_ainput->task->task_handle,
+	daqmx_status = DAQmxReadAnalogF64( task->task_handle,
 					num_samples, timeout,
 					DAQmx_Val_GroupByChannel,
-					read_array, read_array_length,
+					channel_buffer,
+					task->num_channels,
 					&num_samples_read, NULL );
 
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxReadAnalogF64( "
-	"%#lx, %lu, %f, %#x, read_array, %lu, &num_samples, NULL ) = %d",
+	"%#lx, %lu, %f, %#x, channel_buffer, %lu, &num_samples, NULL ) = %d",
 		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
 		num_samples,
 		timeout,
 		DAQmx_Val_GroupByChannel,
-		(unsigned long) read_array_length,
+		task->num_channels,
 		(int) daqmx_status));
 #endif
 
@@ -327,11 +343,12 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	}
 
 #if MXD_NI_DAQMX_AINPUT_DEBUG
-	MX_DEBUG(-2,("%s:   num_samples_read = %lu, read_array[0] = %lu",
-		fname, num_samples_read, read_array[0]));
+	MX_DEBUG(-2,("%s:   num_samples_read = %lu, channel_buffer[%lu] = %lu",
+		fname, num_samples_read,
+		channel, channel_buffer[channel] ));
 #endif
 
-	ainput->raw_value.double_value = read_array[0];
+	ainput->raw_value.double_value = channel_buffer[channel];
 
 	return mx_status;
 }
