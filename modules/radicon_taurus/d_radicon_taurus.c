@@ -249,7 +249,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	mx_msleep(500);
 
 	radicon_taurus->detector_model = 0;
-	radicon_taurus->serial_number = 0;
+	radicon_taurus->serial_number[0] = '\0';
 	radicon_taurus->firmware_version = 0;
 	response_seen = FALSE;
 
@@ -329,12 +329,14 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			}
 		} else
 		if ( strncmp( response, "Detector S/N", 12 ) == 0 ) {
-			radicon_taurus->serial_number =
-				mx_string_to_unsigned_long( string_value_ptr );
+			strlcpy( radicon_taurus->serial_number,
+				string_value_ptr,
+				MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH );
 		} else
 		if ( strncmp( response, "Camera S/N", 10 ) == 0 ) {
-			radicon_taurus->serial_number =
-				mx_string_to_unsigned_long( string_value_ptr );
+			strlcpy( radicon_taurus->serial_number,
+				string_value_ptr,
+				MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH );
 		} else
 		if ( strncmp(response, "Detector FW Build Version", 25) == 0 ) {
 			radicon_taurus->firmware_version =

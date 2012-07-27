@@ -27,6 +27,8 @@
 #define MXT_RADICON_TAURUS	1
 #define MXT_RADICON_XINEOS	2
 
+#define MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH		40
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -35,7 +37,7 @@ typedef struct {
 	unsigned long radicon_taurus_flags;
 
 	unsigned long detector_model;
-	unsigned long serial_number;
+	char serial_number[MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH+1];
 	unsigned long firmware_version;
 
 	unsigned long readout_mode;
@@ -67,9 +69,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "serial_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "serial_number", MXFT_STRING, \
+			NULL, 1, {MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, serial_number), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, firmware_version), \
