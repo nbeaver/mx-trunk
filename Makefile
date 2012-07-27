@@ -91,7 +91,7 @@ depend: depend_files
 	( cd autosave ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
-install: depend_files
+install: depend_files build
 	( cd libMx ; $(MAKECMD) mx_install )
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )

@@ -447,7 +447,7 @@ MX_API void mx_free_command_line( char **argv, char **envp );
  * FALSE if not.
  */
 
-MX_API int mx_free_pointer( void *pointer );
+MX_API void mx_free_pointer( void *pointer );
 
 /* mx_free() is a macro that checks to see if the pointer is NULL
  * before attempting to free it.  After the pointer is freed, the

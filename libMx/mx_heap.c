@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2005, 2007-2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -106,16 +106,16 @@ mx_heap_pointer_is_valid( void *pointer )
 
 /*-------------------------------------------------------------------------*/
 
-MX_EXPORT int
+MX_EXPORT void
 mx_free_pointer( void *pointer )
 {
 	if ( pointer == NULL ) {
-		return TRUE;
+		return;
 	}
 
 	if ( mx_heap_pointer_is_valid( pointer ) ) {
 		free( pointer );
-		return TRUE;
+		return;
 	} else {
 		/* Experimentation shows that freeing a pointer that fails
 		 * the mx_heap_pointer_is_valid() test usually causes a
@@ -127,7 +127,7 @@ mx_free_pointer( void *pointer )
 	"Pointer %p passed to mx_free_pointer() is not a valid heap pointer.",
 			pointer );
 
-		return FALSE;
+		return;
 	}
 }
 

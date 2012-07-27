@@ -122,7 +122,7 @@ mxi_ni_daqmx_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if defined(USE_DAQMX_BASE)
+#if USE_DAQMX_BASE
 	mx_warning( "The National Instruments DAQmx Base system "
 	"takes a _long_ time to initialize itself, so please be patient." );
 #endif
@@ -180,7 +180,7 @@ mxi_ni_daqmx_close( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if defined(USE_DAQMX_BASE)
+#if USE_DAQMX_BASE
 	mx_warning( "Shutting down the National Instruments DAQmx Base "
 	"system.  This can take a _long_ time." );
 #endif
@@ -191,7 +191,7 @@ mxi_ni_daqmx_close( MX_RECORD *record )
 
 	mx_status = mx_list_traverse( ni_daqmx->task_list,
 					mxp_ni_daqmx_task_shutdown_traverse_fn,
-					NULL, NULL );
+					ni_daqmx, NULL );
 
 	return mx_status;
 }
@@ -424,7 +424,7 @@ mxi_ni_daqmx_create_task( MX_NI_DAQMX *ni_daqmx,
 	/* Add the task to the master list of tasks. */
 
 	mx_status = mx_list_entry_create_and_add( ni_daqmx->task_list,
-							 *task, free );
+						 *task, mx_free_pointer );
 
 	return mx_status;
 }
@@ -476,16 +476,16 @@ mxi_ni_daqmx_shutdown_task( MX_NI_DAQMX *ni_daqmx, MX_NI_DAQMX_TASK *task )
 			(int) daqmx_status );
 	}
 
-#if MXI_NI_DAQMX_DEBUG
-	MX_DEBUG(-2,("%s: DAQmxClearTask( %#lx ) for task '%s' = %d",
-		fname, task->task_name,
-		(unsigned long) task->task_handle,
-		(int) daqmx_status));
-#endif
-
 	/* Release the resources used by this task. */
 
 	daqmx_status = DAQmxClearTask( task->task_handle );
+
+#if MXI_NI_DAQMX_DEBUG
+	MX_DEBUG(-2,("%s: DAQmxClearTask( %#lx ) for task '%s' = %d",
+		fname, (unsigned long) task->task_handle,
+		task->task_name,
+		(int) daqmx_status));
+#endif
 
 	if ( daqmx_status != 0 ) {
 

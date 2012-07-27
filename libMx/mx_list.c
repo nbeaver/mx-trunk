@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2008 Illinois Institute of Technology
+ * Copyright 2007-2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -303,8 +303,9 @@ mx_list_traverse( MX_LIST *list,
 	mx_status_type mx_status;
 
 #if MX_LIST_DEBUG
-	MX_DEBUG(-2,("%s invoked for list %p, function %p, argument %p",
-		fname, list, function, argument));
+	MX_DEBUG(-2,("%s invoked for list %p, function %p, "
+		"input_argument %p, output_argument %p",
+		fname, list, function, input_argument, output_argument));
 #endif
 
 	if ( list == (MX_LIST *) NULL ) {
@@ -329,18 +330,49 @@ mx_list_traverse( MX_LIST *list,
 	current_list_entry = list_start;
 
 	do {
+		/* Find the next list entry now, just in case the callback
+		 * deletes the current list entry.
+		 */
+
+		next_list_entry = current_list_entry->next_list_entry;
+
+#if MX_LIST_DEBUG
+		MX_DEBUG(-2,
+		("%s: current_list_entry = %p, next_list_entry = %p",
+			fname, current_list_entry, next_list_entry));
+#endif
+
+		if ( next_list_entry == (MX_LIST_ENTRY *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The next_list_entry pointer for list entry %p is NULL.",
+		    		current_list_entry );
+		}
+
+		/* Invoke the callback function for the current list entry. */
+
 		mx_status = (*function)( current_list_entry,
 				input_argument, output_argument );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		next_list_entry = current_list_entry->next_list_entry;
+		/* If the callback function is itself deleting entries
+		 * from this list, then we may return from the callback
+		 * to discover that the list is now empty.  We must check
+		 * for this.
+		 */
 
-		if ( next_list_entry == (MX_LIST_ENTRY *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		    "The next_list_entry pointer for list entry %p is NULL.",
-		    		current_list_entry );
+		if ( list->num_list_entries == 0 ) {
+#if MX_LIST_DEBUG
+			MX_DEBUG(-2,("%s: List %p is now empty.",
+				fname, list ));
+			MX_DEBUG(-2,("%s: list->num_list_entries = %lu",
+				fname, list->num_list_entries ));
+			MX_DEBUG(-2,("%s: list->list_start = %p",
+				fname, list->list_start ));
+			MX_DEBUG(-2,("%s: Ending the traverse.", fname));
+#endif
+			return MX_SUCCESSFUL_RESULT;
 		}
 
 		current_list_entry = next_list_entry;

@@ -19,9 +19,21 @@
 
 /*----*/
 
+#if !defined(USE_DAQMX_BASE)
+#  define USE_DAQMX_BASE	FALSE
+#endif
+
+#if USE_DAQMX_BASE
+#  define USE_DAQMX		FALSE
+#else
+#  define USE_DAQMX		TRUE
+#endif
+
+/*----*/
+
 #include "mx_list.h"
 
-#if defined(USE_DAQMX_BASE)
+#if USE_DAQMX_BASE
 #  include "i_ni_daqmx_base.h"
 #  include "NIDAQmxBase.h"	/* Vendor include file. */
 #else
