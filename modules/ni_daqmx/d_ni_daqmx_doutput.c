@@ -278,7 +278,7 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 #if MXD_NI_DAQMX_DOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxWriteDigitalU32( "
 	"%#lx, %lu, %lu, %f, %#x, {%lu}, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_doutput->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		num_samples,
 		autostart,
 		timeout,

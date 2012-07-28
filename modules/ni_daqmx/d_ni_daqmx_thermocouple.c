@@ -360,11 +360,10 @@ mxd_ni_daqmx_thermocouple_read( MX_ANALOG_INPUT *ainput )
 	channel        = ni_daqmx_thermocouple->channel_offset;
 	channel_buffer = task->channel_buffer;
 
-	num_samples       = 1;
-	timeout           = 10.0;    /* read timeout in seconds */
+	num_samples    = 1;
+	timeout        = 10.0;    /* read timeout in seconds */
 
-	daqmx_status = DAQmxReadAnalogF64(
-				ni_daqmx_thermocouple->task->task_handle,
+	daqmx_status = DAQmxReadAnalogF64( task->task_handle,
 					num_samples, timeout,
 					DAQmx_Val_GroupByChannel,
 					channel_buffer,
@@ -374,7 +373,7 @@ mxd_ni_daqmx_thermocouple_read( MX_ANALOG_INPUT *ainput )
 #if MXD_NI_DAQMX_THERMOCOUPLE_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxReadAnalogF64( "
 	"%#lx, %lu, %f, %#x, read_array, %lu, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_thermocouple->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		num_samples,
 		timeout,
 		DAQmx_Val_GroupByChannel,

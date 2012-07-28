@@ -309,8 +309,8 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 	channel        = ni_daqmx_ainput->channel_offset;
 	channel_buffer = task->channel_buffer;
 
-	num_samples       = 1;
-	timeout           = 10.0;    /* read timeout in seconds */
+	num_samples    = 1;
+	timeout        = 10.0;    /* read timeout in seconds */
 
 	daqmx_status = DAQmxReadAnalogF64( task->task_handle,
 					num_samples, timeout,
@@ -322,7 +322,7 @@ mxd_ni_daqmx_ainput_read( MX_ANALOG_INPUT *ainput )
 #if MXD_NI_DAQMX_AINPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxReadAnalogF64( "
 	"%#lx, %lu, %f, %#x, channel_buffer, %lu, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_ainput->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		num_samples,
 		timeout,
 		DAQmx_Val_GroupByChannel,

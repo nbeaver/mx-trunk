@@ -283,7 +283,7 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	channel_buffer[channel] = aoutput->raw_value.double_value;
 
-	daqmx_status = DAQmxWriteAnalogF64( ni_daqmx_aoutput->task->task_handle,
+	daqmx_status = DAQmxWriteAnalogF64( task->task_handle,
 					num_samples, autostart, timeout,
 					DAQmx_Val_GroupByChannel,
 					channel_buffer, 
@@ -292,7 +292,7 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 #if MXD_NI_DAQMX_AOUTPUT_DEBUG
 	MX_DEBUG(-2,("%s: DAQmxWriteAnalogF64( "
 	"%#lx, %lu, %lu, %f, %#x, {%f}, &num_samples, NULL ) = %d",
-		fname, (unsigned long) ni_daqmx_aoutput->task->task_handle,
+		fname, (unsigned long) task->task_handle,
 		num_samples,
 		autostart,
 		timeout,
