@@ -37,20 +37,6 @@ READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
 #READLINE_LIBRARIES = -lreadline -lcurses
 
 #
-# EPICS includes and libraries.
-#
-
-EPICS_ARCH	= darwin-x86
-#EPICS_ARCH	= darwin-ppc
-
-EPICS_TOP	= /opt/epics
-
-EPICS_INCLUDES	= -I$(EPICS_TOP)/base/include \
-			-I$(EPICS_TOP)/base/include/os/Darwin
-EPICS_LIB_DIRS	= -L$(EPICS_TOP)/base/lib/$(EPICS_ARCH)
-EPICS_LIBRARIES = -lca -lCom
-
-#
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.
@@ -71,8 +57,6 @@ GCCFLAGS = -Wall -Werror \
 -Wnested-externs \
 -Winline
 
-#
-# PPC Macintosh with GCC version 2.95.2 under Mac OS X.
 #
 CC		= cc
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \

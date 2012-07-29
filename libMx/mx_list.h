@@ -30,7 +30,7 @@ struct mx_list_entry_type {
 	struct mx_list_entry_type *previous_list_entry;
 
 	void *list_entry_data;
-	void (*destructor)( struct mx_list_entry_type * );
+	void (*destructor)( void * );
 };
 
 struct mx_list_type {

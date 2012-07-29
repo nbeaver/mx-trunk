@@ -59,7 +59,7 @@ mx_list_destroy( MX_LIST *list )
 #endif
 	MX_LIST_ENTRY *current_list_entry;
 	MX_LIST_ENTRY *next_list_entry;
-	void (*destructor)( MX_LIST_ENTRY * );
+	void (*destructor)( void * );
 
 #if MX_LIST_DEBUG
 	MX_DEBUG(-2,("%s: destroying list %p.", fname, list));
@@ -79,7 +79,7 @@ mx_list_destroy( MX_LIST *list )
 		destructor = current_list_entry->destructor;
 
 		if ( destructor != NULL ) {
-			(*destructor)( current_list_entry );
+			(*destructor)( current_list_entry->list_entry_data );
 		}
 
 		free( current_list_entry );
