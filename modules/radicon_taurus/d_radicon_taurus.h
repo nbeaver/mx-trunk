@@ -45,7 +45,10 @@ typedef struct {
 	uint64_t si2_register;
 	double si1_si2_ratio;
 
+	MX_IMAGE_FRAME *raw_frame;
+
 	mx_bool_type bypass_arm;
+	mx_bool_type use_raw_frames;
 } MX_RADICON_TAURUS;
 
 
@@ -96,6 +99,10 @@ typedef struct {
   \
   {-1, -1, "bypass_arm", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, bypass_arm), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "use_raw_frames", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, use_raw_frames), \
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(

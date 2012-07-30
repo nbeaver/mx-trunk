@@ -44,16 +44,16 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = macosx
+MX_ARCH = win32
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
 #MX_INSTALL_DIR = /mnt/mx
 #MX_INSTALL_DIR = /mnt/sdcard/opt/mx
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-#MX_INSTALL_DIR = c:/opt/mx-1.5.5-2012_07_25
+MX_INSTALL_DIR = c:/opt/mx-1.5.5-2012_07_30
 #MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_09_30
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
@@ -91,7 +91,7 @@ depend: depend_files
 	( cd autosave ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
-install: depend_files build
+install: depend_files
 	( cd libMx ; $(MAKECMD) mx_install )
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )

@@ -175,6 +175,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
+	long vinput_framesize[2];
 	long i;
 	char c;
 	unsigned long mask, num_bytes_available;
@@ -394,16 +395,18 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
-	/* Set the maximum framesize to the initial framesize of the
-	 * video input.
+	/* The maximum framesize is smaller than the raw frame from the
+	 * video card, since the outermost pixels in the raw image do not 
+	 * have real data in them.
 	 */
 
-	mx_status = mx_video_input_get_framesize( video_input_record,
-					&(ad->maximum_framesize[0]),
-					&(ad->maximum_framesize[1]) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( radicon_taurus->use_raw_frames ) {
+		ad->maximum_framesize[0] = 2848;
+		ad->maximum_framesize[1] = 2964;
+	} else {
+		ad->maximum_framesize[0] = 2820;
+		ad->maximum_framesize[1] = 2952;
+	}
 
 	ad->framesize[0] = ad->maximum_framesize[0];
 	ad->framesize[1] = ad->maximum_framesize[1];
@@ -476,6 +479,36 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* raw_frame is used to contain the data returned by
+	 * the video capture card, so raw_frame must have the
+	 * same dimensions as the video capture card's frame.
+	 */
+
+	mx_status = mx_video_input_get_framesize( video_input_record,
+						&vinput_framesize[0],
+						&vinput_framesize[1] );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Allocate space for the raw frame. */
+
+	mx_status = mx_image_alloc( &(radicon_taurus->raw_frame),
+					vinput_framesize[0],
+					vinput_framesize[1],
+					ad->image_format,
+					ad->byte_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MXIF_ROW_BINSIZE(radicon_taurus->raw_frame) = 1;
+	MXIF_COLUMN_BINSIZE(radicon_taurus->raw_frame) = 1;
+	MXIF_BITS_PER_PIXEL(radicon_taurus->raw_frame) = ad->bits_per_pixel;
 
 	/* Zero out the ROI boundaries. */
 
@@ -1022,9 +1055,78 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	mx_status = mx_video_input_get_frame(
-		radicon_taurus->video_input_record,
-		ad->readout_frame, &(ad->image_frame) );
+	if ( radicon_taurus->use_raw_frames ) {
+
+		/* If we get here, we will use the raw frames
+		 * from the capture card directly.
+		 */
+
+		mx_status = mx_video_input_get_frame(
+			radicon_taurus->video_input_record,
+			ad->readout_frame, &(ad->image_frame) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* We generate converted frames instead. */
+
+		uint16_t *raw_frame_buffer, *converted_frame_buffer;
+		uint16_t *raw_ptr, *converted_ptr;
+		long raw_row_framesize, raw_column_framesize;
+		long converted_row_framesize, converted_column_framesize;
+		long converted_row_bytesize;
+		long converted_row, row_offset, column_offset;
+
+		/*
+		 * First, read the video capture card's frame into
+		 * the raw_frame buffer.
+		 */
+
+		mx_status = mx_video_input_get_frame(
+			radicon_taurus->video_input_record,
+			ad->readout_frame, &(radicon_taurus->raw_frame) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		raw_row_framesize =
+			MXIF_ROW_FRAMESIZE(radicon_taurus->raw_frame);
+
+		raw_column_framesize =
+			MXIF_COLUMN_FRAMESIZE(radicon_taurus->raw_frame);
+
+		converted_row_framesize    = ad->framesize[0];
+		converted_column_framesize = ad->framesize[1];
+
+		converted_row_bytesize = mx_round( 
+			converted_row_framesize * ad->bytes_per_pixel );
+
+		column_offset =
+			(raw_row_framesize - converted_row_framesize) / 2;
+
+		row_offset =
+			(raw_column_framesize - converted_column_framesize) / 2;
+
+		raw_frame_buffer = radicon_taurus->raw_frame->image_data;
+
+		converted_frame_buffer = ad->image_frame->image_data;
+
+		for ( converted_row = 0;
+			converted_row < converted_column_framesize;
+			converted_row++ )
+		{
+			converted_ptr = converted_frame_buffer
+				+ converted_row * converted_row_framesize;
+			
+			raw_ptr = raw_frame_buffer
+				+ row_offset * raw_row_framesize
+				+ converted_row * raw_row_framesize
+				+ column_offset;
+
+			memcpy( converted_ptr, raw_ptr,
+				converted_row_bytesize );
+		}
+	}
 
 	return mx_status;
 }
@@ -1052,8 +1154,15 @@ mxd_radicon_taurus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		mx_status = mx_video_input_get_framesize( video_input_record,
-				&(ad->framesize[0]), &(ad->framesize[1]) );
+		if ( radicon_taurus->use_raw_frames ) {
+			mx_status = mx_video_input_get_framesize(
+				video_input_record,
+				&(ad->framesize[0]),
+				&(ad->framesize[1]) );
+		} else {
+			ad->framesize[0] = ad->maximum_framesize[0];
+			ad->framesize[1] = ad->maximum_framesize[1];
+		}
 		break;
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:

@@ -19,7 +19,7 @@ all: build
 
 #MODULES += esone_camac		# linux, win32
 
-#MODULES += ni_daqmx		# linux, win32
+MODULES += ni_daqmx		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
@@ -43,9 +43,9 @@ all: build
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #MODULES += u500
 
@@ -54,11 +54,11 @@ all: build
 
 MODULES += epics
 
-MODULES += epics_aps
+#MODULES += epics_aps
 
 MODULES += epics_mbc
 
-MODULES += epics_pmac_biocat
+#MODULES += epics_pmac_biocat
 
 MODULES += epics_pmac_tc
 
