@@ -19,8 +19,7 @@
 
 /* Values for the 'radicon_taurus_flags' field. */
 
-#define MXF_RADICON_TAURUS_ACQUIRE_DUAL_FRAMES	0x1
-#define MXF_RADICON_TAURUS_MERGE_DUAL_FRAMES	0x2
+#define MXF_RADICON_TAURUS_MERGE_DUAL_FRAMES	0x1
 
 /* Values for the 'detector_model' field. */
 
@@ -47,8 +46,14 @@ typedef struct {
 
 	MX_IMAGE_FRAME *raw_frame;
 
+	mx_bool_type use_different_si2_value;
+
 	mx_bool_type bypass_arm;
 	mx_bool_type use_raw_frames;
+	mx_bool_type have_get_commands;
+
+	long old_total_num_frames;
+	unsigned long old_status;
 } MX_RADICON_TAURUS;
 
 
@@ -97,13 +102,22 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, si1_si2_ratio), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
+  {-1, -1, "use_different_si2_value", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, use_different_si2_value), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
   {-1, -1, "bypass_arm", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, bypass_arm), \
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "use_raw_frames", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, use_raw_frames), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "have_get_commands", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, have_get_commands), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );
@@ -114,7 +128,6 @@ MX_API mx_status_type mxd_radicon_taurus_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_radicon_taurus_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_get_extended_status(
 						MX_AREA_DETECTOR *ad );

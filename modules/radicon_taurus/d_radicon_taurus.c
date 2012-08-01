@@ -20,7 +20,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_BUSY	TRUE
+#define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +55,7 @@ MX_RECORD_FUNCTION_LIST mxd_radicon_taurus_record_function_list = {
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	mxd_radicon_taurus_arm,
 	mxd_radicon_taurus_trigger,
-	mxd_radicon_taurus_stop,
+	NULL,
 	mxd_radicon_taurus_abort,
 	NULL,
 	NULL,
@@ -372,13 +374,25 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-	/* Initialize the detector by putting it into free-run mode. */
+	/*--- Initialize the detector by putting it into free-run mode. ---*/
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/*--- Set up things that depend on the firmware version. ---*/
+
+	/* Do this firmware have the getxxx commands for reading back
+	 * the sro, si1, and si2 settings?
+	 */
+
+	if ( radicon_taurus->firmware_version >= 105 ) {
+		radicon_taurus->have_get_commands = TRUE;
+	} else {
+		radicon_taurus->have_get_commands = FALSE;
+	}
 
 	/*---*/
 
@@ -418,10 +432,14 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->si1_register = 4;
 	radicon_taurus->si2_register = 4;
+	radicon_taurus->si1_si2_ratio = 0.125;
 
-	radicon_taurus->si1_si2_ratio = 8.0;
+	radicon_taurus->use_different_si2_value = FALSE;
 
 	radicon_taurus->bypass_arm = FALSE;
+
+	radicon_taurus->old_total_num_frames = -1;
+	radicon_taurus->old_status = 0xffffffff;
 
 	/* Copy other needed parameters from the video input record to
 	 * the area detector record.
@@ -596,11 +614,13 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time, exposure_time_offset, raw_exposure_time;
 	unsigned long raw_exposure_time_32;
-	uint64_t raw_exposure_time_64;
+	uint64_t long_exposure_time_64;
+	double short_exposure_time_as_double;
+	uint64_t si1_register, si2_register;
 	unsigned long low_order, middle_order, high_order;
 	char command[80];
-	mx_bool_type set_exposure_times, use_external_trigger, use_dual_frames;
-	unsigned long rt_flags;
+	mx_bool_type set_exposure_times, use_external_trigger;
+	mx_bool_type use_different_si2_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -647,6 +667,18 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	switch( radicon_taurus->detector_model ) {
 	case MXT_RADICON_TAURUS:
+
+		/* Generally it is required that you switch to
+		 * readout mode 4 _first_ and then switch to
+		 * the mode you really want.
+		 */
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		
 		/**** Set the Taurus Readout Mode. ****/
 		
 		/* The correct value for the readout mode depends on
@@ -661,34 +693,24 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			use_external_trigger = FALSE;
 		}
 
-		rt_flags = radicon_taurus->radicon_taurus_flags;
-
-		if ( rt_flags & MXF_RADICON_TAURUS_ACQUIRE_DUAL_FRAMES ) {
-			use_dual_frames = TRUE;
-		} else {
-			use_dual_frames = FALSE;
-		}
+		use_different_si2_value =
+			radicon_taurus->use_different_si2_value;
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 			set_exposure_times = TRUE;
+			use_different_si2_value = FALSE;
 
 			if ( use_external_trigger ) {
-				if ( use_dual_frames ) {
-					radicon_taurus->readout_mode = 1;
-				} else {
-					radicon_taurus->readout_mode = 3;
-				}
+				radicon_taurus->readout_mode = 3;
 			} else {
 				radicon_taurus->readout_mode = 4;
-
-				use_dual_frames = FALSE;
 			}
 			break;
 		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_MULTIFRAME:
 			set_exposure_times = TRUE;
-			use_dual_frames = FALSE;
+			use_different_si2_value = FALSE;
 
 			if ( use_external_trigger ) {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -705,10 +727,10 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			set_exposure_times = TRUE;
 
 			if ( use_external_trigger ) {
-				if ( use_dual_frames ) {
-					radicon_taurus->readout_mode = 1;
+				if ( use_different_si2_value ) {
+					radicon_taurus->readout_mode = 0;
 				} else {
-					radicon_taurus->readout_mode = 3;
+					radicon_taurus->readout_mode = 1;
 				}
 			} else {
 				return mx_error( MXE_UNSUPPORTED, fname,
@@ -721,7 +743,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			break;
 		case MXT_SQ_DURATION:
 			set_exposure_times = FALSE;
-			use_dual_frames = FALSE;
+			use_different_si2_value = FALSE;
 
 			if ( use_external_trigger ) {
 				radicon_taurus->readout_mode = 2;
@@ -735,13 +757,12 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			}
 			break;
 		case MXT_SQ_GATED:
-			if ( exposure_time <= 0.0 ) {
-				set_exposure_times = FALSE;
-			} else {
-				set_exposure_times = TRUE;
-			}
+			set_exposure_times = TRUE;
 
-			use_dual_frames = TRUE;
+			/* Note: This mode does not change the value of
+			 * the use_different_si2_value flag, since both
+			 * possible values are valid.
+			 */
 
 			if ( use_external_trigger ) {
 				radicon_taurus->readout_mode = 0;
@@ -780,24 +801,49 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		/* If we get here, we have to set up the exposure times. */
 
-		/* Set the first integration time. */
+		/* If use_different_si2_value is FALSE, then we compute
+		 * a single raw exposure time as a 64-bit integer which
+		 * is stored below in the variable long_exposure_time_64.
+		 *
+		 * If use_different_si2_value is TRUE, then we compute
+		 * both a long exposure time and a short exposure time
+		 * using a settable ratio of the two.  Then, we assign
+		 * the short exposure time to si1 and the long exposure
+		 * time to si2.
+		 */
 
 		if ( exposure_time < 0.0 ) {
-		    raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
+		    long_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
 		} else {
-		    raw_exposure_time_64 = (uint64_t)( 0.5
+		    long_exposure_time_64 = (uint64_t)( 0.5
 			+ (exposure_time * TAURUS_CLOCK_FREQUENCY_IN_HZ) );
 
-		    if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
-			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
+		    if ( long_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME )
+		    {
+			long_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
 		    }
 		}
 
-		radicon_taurus->si1_register = raw_exposure_time_64;
+		if ( use_different_si2_value ) {
+		    short_exposure_time_as_double =
+			radicon_taurus->si1_si2_ratio * long_exposure_time_64;
 
-		low_order    = raw_exposure_time_64 & 0xffff;
-		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;
-		high_order   = (raw_exposure_time_64 >> 32) & 0xf;
+		    si1_register =
+			(uint64_t)(short_exposure_time_as_double + 0.5);
+
+		    si2_register = long_exposure_time_64;
+		} else {
+		    si1_register = long_exposure_time_64;
+		    si2_register = long_exposure_time_64;
+		}
+
+		/* Set the value of the si1 register. */
+
+		radicon_taurus->si1_register = si1_register;
+
+		low_order    = si1_register & 0xffff;
+		middle_order = (si1_register >> 16) & 0xffff;
+		high_order   = (si1_register >> 32) & 0xf;
 
 		snprintf( command, sizeof(command),
 			"SI1 %lu %lu %lu",
@@ -809,33 +855,13 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* If we are using dual frames, then we must set the second
-		 * exposure time.  Otherwise, break out of this switch() block.
-		 */
+		/* Set the value of the si2 register. */
 
-		if ( use_dual_frames == FALSE ) {
-			break;	/* Exit the switch() detector model block. */
-		}
+		radicon_taurus->si2_register = si2_register;
 
-		/* Set the second integration time to a value
-		 * that is 8 times smaller to get the lower
-		 * order bits of the signal.
-		 */
-
-		raw_exposure_time = mx_divide_safely( raw_exposure_time_64,
-						radicon_taurus->si1_si2_ratio );
-
-		raw_exposure_time_64 = (uint64_t) (raw_exposure_time + 0.5);
-
-		if ( raw_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME ) {
-			raw_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
-		}
-
-		radicon_taurus->si2_register = raw_exposure_time_64;
-
-		low_order    = raw_exposure_time_64 & 0xffff;
-		middle_order = (raw_exposure_time_64 >> 16) & 0xffff;
-		high_order   = (raw_exposure_time_64 >> 32) & 0xf;
+		low_order    = si2_register & 0xffff;
+		middle_order = (si2_register >> 16) & 0xffff;
+		high_order   = (si2_register >> 32) & 0xf;
 
 		snprintf( command, sizeof(command),
 			"SI2 %lu %lu %lu",
@@ -932,29 +958,6 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_radicon_taurus_stop( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_radicon_taurus_stop()";
-
-	MX_RADICON_TAURUS *radicon_taurus = NULL;
-	mx_status_type mx_status;
-
-	mx_status = mxd_radicon_taurus_get_pointers( ad,
-						&radicon_taurus, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_TAURUS_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-	mx_status = mx_video_input_stop(radicon_taurus->video_input_record);
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_radicon_taurus_abort()";
@@ -973,6 +976,16 @@ mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	mx_status = mx_video_input_abort( radicon_taurus->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the detector readout mode to 4. */
+
+	radicon_taurus->readout_mode = 4;
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	return mx_status;
 }
@@ -1031,7 +1044,21 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 			ad->total_num_frames,
 			ad->status));
 	}
+#elif MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED
+
+	if ( (ad->total_num_frames != radicon_taurus->old_total_num_frames)
+	  || (ad->status           != radicon_taurus->old_status) )
+	{
+		MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, ad->last_frame_number,
+			ad->total_num_frames,
+			ad->status));
+	}
 #endif
+
+	radicon_taurus->old_total_num_frames = ad->total_num_frames;
+	radicon_taurus->old_status           = ad->status;
 
 	return MX_SUCCESSFUL_RESULT;
 }
