@@ -11,7 +11,8 @@ include ../../libMx/Makehead.$(MX_ARCH)
 CFLAGS += -EHsc
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 
-RADICON_TAURUS_OBJS = radicon_taurus.$(OBJ) d_radicon_taurus.$(OBJ)
+RADICON_TAURUS_OBJS = radicon_taurus.$(OBJ) d_radicon_taurus.$(OBJ) \
+		i_radicon_taurus_rs232.$(OBJ)
 
 radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 	link /dll /debug /nologo /out:radicon_taurus.mxo /nodefaultlib:libc \
@@ -27,13 +28,17 @@ radicon_taurus.mxo: $(RADICON_TAURUS_OBJS)
 		rm -f radicon_taurus.mxo.manifest; \
 	fi
 
-radicon_taurus.$(OBJ): radicon_taurus.c d_radicon_taurus.h
+radicon_taurus.$(OBJ): radicon_taurus.c d_radicon_taurus.h \
+						i_radicon_taurus_rs232.h
 	$(COMPILE) $(CFLAGS) radicon_taurus.c
 
 d_radicon_taurus.$(OBJ): d_radicon_taurus.c d_radicon_taurus.h \
 		..\pleora_iport\i_pleora_iport.h \
 		..\pleora_iport\d_pleora_iport_vinput.h
 	$(COMPILE) $(CFLAGS) d_radicon_taurus.c
+
+i_radicon_taurus_rs232.$(OBJ): i_radicon_taurus_rs232.c i_radicon_taurus_rs232.h
+	$(COMPILE) $(CFLAGS) i_radicon_taurus_rs232.c
 
 install: radicon_taurus.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

@@ -21,9 +21,11 @@
 #include "mx_driver.h"
 #include "mx_module.h"
 #include "mx_image.h"
+#include "mx_rs232.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_radicon_taurus.h"
+#include "i_radicon_taurus_rs232.h"
 
 MX_DRIVER radicon_taurus_driver_table[] = {
 
@@ -33,6 +35,13 @@ MX_DRIVER radicon_taurus_driver_table[] = {
 				NULL,
 				&mxd_radicon_taurus_num_record_fields,
 				&mxd_radicon_taurus_rfield_def_ptr},
+
+{"radicon_taurus_rs232", -1, MXI_RS232, MXR_INTERFACE,
+ 				&mxi_radicon_taurus_rs232_record_function_list,
+				NULL,
+				&mxi_radicon_taurus_rs232_rs232_function_list,
+				&mxi_radicon_taurus_rs232_num_record_fields,
+				&mxi_radicon_taurus_rs232_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
