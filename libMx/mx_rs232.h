@@ -100,6 +100,8 @@ extern "C" {
 
 #define MX_RS232_MAX_TERMINATORS	4
 
+#define MXU_RS232_BUFFER_LENGTH		250
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -116,13 +118,20 @@ typedef struct {
 	unsigned long transfer_flags;
 
 	/* We should not use the unadorned names getchar, putchar, read,
-	 * and write below since these are the names of functions in the
-	 * ANSI and POSIX libraries.  Some compilers may get unduly upset
-	 * if you try to use the names of run-time library functions here.
+	 * write, getline, and putline below since these are the names of
+	 * functions in the ANSI and POSIX libraries.  Some compilers may
+	 * get unduly upset if you try to use the names of run-time library
+	 * functions here.
 	 */
 
 	char getchar_value;
 	char putchar_value;
+
+	unsigned long bytes_read;
+	unsigned long bytes_written;
+
+	char getline_buffer[MXU_RS232_BUFFER_LENGTH+1];
+	char putline_buffer[MXU_RS232_BUFFER_LENGTH+1];
 
 	unsigned long num_input_bytes_available;
 
@@ -152,8 +161,8 @@ typedef struct {
 #define MXLV_232_DISCARD_UNREAD_INPUT		108
 #define MXLV_232_DISCARD_UNWRITTEN_OUTPUT	109
 #define MXLV_232_SIGNAL_STATE			110
-#define MXLV_232_GET_CONFIGURATION			111
-#define MXLV_232_SET_CONFIGURATION			112
+#define MXLV_232_GET_CONFIGURATION		111
+#define MXLV_232_SET_CONFIGURATION		112
 #define MXLV_232_SEND_BREAK			113
 
 #define MX_RS232_STANDARD_FIELDS \
@@ -200,6 +209,24 @@ typedef struct {
   {MXLV_232_PUTCHAR, -1, "putchar", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, putchar_value), \
 	{0}, NULL, 0}, \
+  \
+  {-1, -1, "bytes_read", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, bytes_read), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {-1, -1, "bytes_written", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, bytes_written), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_232_GETLINE, -1, "getline", \
+			MXFT_STRING, NULL, 1, {MXU_RS232_BUFFER_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, getline_buffer), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_232_PUTLINE, -1, "putline", \
+			MXFT_STRING, NULL, 1, {MXU_RS232_BUFFER_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, putline_buffer), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_232_NUM_INPUT_BYTES_AVAILABLE, -1, "num_input_bytes_available", \
 						MXFT_ULONG, NULL, 0, {0}, \

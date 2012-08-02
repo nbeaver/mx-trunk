@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2001-2006, 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,8 +45,8 @@ MX_RS232_FUNCTION_LIST mxi_network_rs232_rs232_function_list = {
 	mxi_network_rs232_putchar,
 	NULL,
 	NULL,
-	NULL,
-	NULL,
+	mxi_network_rs232_getline,
+	mxi_network_rs232_putline,
 	mxi_network_rs232_num_input_bytes_available,
 	mxi_network_rs232_discard_unread_input,
 	mxi_network_rs232_discard_unwritten_output,
@@ -222,6 +222,10 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 		network_rs232->server_record,
 		"%s.getchar", network_rs232->remote_record_name );
 
+	mx_network_field_init( &(network_rs232->getline_nf),
+		network_rs232->server_record,
+		"%s.getline", network_rs232->remote_record_name );
+
 	mx_network_field_init( &(network_rs232->get_configuration_nf),
 		network_rs232->server_record,
 		"%s.get_configuration", network_rs232->remote_record_name );
@@ -238,6 +242,10 @@ mxi_network_rs232_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_rs232->putchar_nf),
 		network_rs232->server_record,
 		"%s.putchar", network_rs232->remote_record_name );
+
+	mx_network_field_init( &(network_rs232->putline_nf),
+		network_rs232->server_record,
+		"%s.putline", network_rs232->remote_record_name );
 
 	mx_network_field_init( &(network_rs232->read_terminators_nf),
 		network_rs232->server_record,
@@ -610,6 +618,85 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 
 		mx_status = mx_put( &(network_rs232->putchar_nf),
 							datatype, &int_c );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_getline( MX_RS232 *rs232,
+				char *buffer,
+				size_t max_bytes_to_read,
+				size_t *bytes_read )
+{
+	static const char fname[] = "mxi_network_rs232_getline()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	long local_bytes_read;
+	long dimension_array[1];
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dimension_array[0] = max_bytes_to_read;
+
+	mx_status = mx_get_array( &(network_rs232->getline_nf),
+				MXFT_CHAR, 1, dimension_array, buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_read != (size_t *) NULL ) {
+		mx_status = mx_get( &(network_rs232->bytes_read_nf),
+				MXFT_ULONG, &local_bytes_read );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		*bytes_read = local_bytes_read;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_network_rs232_putline( MX_RS232 *rs232,
+				char *buffer,
+				size_t *bytes_written )
+{
+	static const char fname[] = "mxi_network_rs232_getline()";
+
+	MX_NETWORK_RS232 *network_rs232 = NULL;
+	long local_bytes_written;
+	long dimension_array[1];
+	mx_status_type mx_status;
+
+	mx_status = mxi_network_rs232_get_pointers( rs232,
+						&network_rs232, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dimension_array[0] = strlen(buffer) + 1;
+
+	mx_status = mx_put_array( &(network_rs232->putline_nf),
+				MXFT_CHAR, 1, dimension_array, buffer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_written != (size_t *) NULL ) {
+		mx_status = mx_get( &(network_rs232->bytes_written_nf),
+				MXFT_ULONG, &local_bytes_written );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		*bytes_written = local_bytes_written;
 	}
 
 	return mx_status;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005, 2010 Illinois Institute of Technology
+ * Copyright 2001-2005, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,9 +47,11 @@ mx_setup_rs232_process_functions( MX_RECORD *record )
 		case MXLV_232_DISCARD_UNREAD_INPUT:
 		case MXLV_232_DISCARD_UNWRITTEN_OUTPUT:
 		case MXLV_232_GETCHAR:
+		case MXLV_232_GETLINE:
 		case MXLV_232_GET_CONFIGURATION:
 		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
 		case MXLV_232_PUTCHAR:
+		case MXLV_232_PUTLINE:
 		case MXLV_232_SEND_BREAK:
 		case MXLV_232_SET_CONFIGURATION:
 		case MXLV_232_SIGNAL_STATE:
@@ -73,6 +75,7 @@ mx_rs232_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_RS232 *rs232;
 	unsigned long ulong_value;
+	size_t bytes_read, bytes_written;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -95,6 +98,17 @@ mx_rs232_process_function( void *record_ptr,
 		case MXLV_232_GETCHAR:
 			mx_status = mx_rs232_getchar( record,
 						&(rs232->getchar_value), 0 );
+			break;
+		case MXLV_232_GETLINE:
+			mx_status = mx_rs232_getline( record,
+						rs232->getline_buffer,
+						MXU_RS232_BUFFER_LENGTH,
+						&bytes_read, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			rs232->bytes_read = bytes_read;
 			break;
 		case MXLV_232_GET_CONFIGURATION:
 			mx_status = mx_rs232_get_configuration( record,
@@ -122,6 +136,16 @@ mx_rs232_process_function( void *record_ptr,
 		case MXLV_232_PUTCHAR:
 			mx_status = mx_rs232_putchar( record,
 						rs232->putchar_value, 0 );
+			break;
+		case MXLV_232_PUTLINE:
+			mx_status = mx_rs232_putline( record,
+						rs232->putline_buffer,
+						&bytes_written, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			rs232->bytes_written = bytes_written;
 			break;
 		case MXLV_232_DISCARD_UNREAD_INPUT:
 			mx_status = mx_rs232_discard_unread_input( record, 0 );

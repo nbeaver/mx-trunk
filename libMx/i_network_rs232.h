@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2006, 2010 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,14 +32,18 @@ typedef struct {
 	long remote_getline_buffer_length;
 	long remote_putline_buffer_length;
 
+	MX_NETWORK_FIELD bytes_read_nf;
+	MX_NETWORK_FIELD bytes_written_nf;
 	MX_NETWORK_FIELD discard_unread_input_nf;
 	MX_NETWORK_FIELD discard_unwritten_output_nf;
 	MX_NETWORK_FIELD flow_control_nf;
 	MX_NETWORK_FIELD getchar_nf;
+	MX_NETWORK_FIELD getline_nf;
 	MX_NETWORK_FIELD get_configuration_nf;
 	MX_NETWORK_FIELD num_input_bytes_available_nf;
 	MX_NETWORK_FIELD parity_nf;
 	MX_NETWORK_FIELD putchar_nf;
+	MX_NETWORK_FIELD putline_nf;
 	MX_NETWORK_FIELD read_terminators_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD send_break_nf;
