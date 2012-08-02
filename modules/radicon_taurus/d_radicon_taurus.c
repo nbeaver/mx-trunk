@@ -473,10 +473,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_video_input_get_bytes_per_frame( video_input_record,
-							&(ad->bytes_per_frame));
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	ad->bytes_per_frame = mx_round( ad->framesize[0] * ad->framesize[1]
+						* ad->bytes_per_pixel );
 
 	/* The detector will default to external triggering. */
 
@@ -1095,14 +1093,14 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	} else {
-		/* We generate converted frames instead. */
+		/* We generate trimmed frames instead. */
 
-		uint16_t *raw_frame_buffer, *converted_frame_buffer;
-		uint16_t *raw_ptr, *converted_ptr;
+		uint16_t *raw_frame_buffer, *trimmed_frame_buffer;
+		uint16_t *raw_ptr, *trimmed_ptr;
 		long raw_row_framesize, raw_column_framesize;
-		long converted_row_framesize, converted_column_framesize;
-		long converted_row_bytesize;
-		long converted_row, row_offset, column_offset;
+		long trimmed_row_framesize, trimmed_column_framesize;
+		long trimmed_row_bytesize;
+		long trimmed_row, row_offset, column_offset;
 
 		/*
 		 * First, read the video capture card's frame into
@@ -1122,38 +1120,42 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		raw_column_framesize =
 			MXIF_COLUMN_FRAMESIZE(radicon_taurus->raw_frame);
 
-		converted_row_framesize    = ad->framesize[0];
-		converted_column_framesize = ad->framesize[1];
+		trimmed_row_framesize    = ad->framesize[0];
+		trimmed_column_framesize = ad->framesize[1];
 
-		converted_row_bytesize = mx_round( 
-			converted_row_framesize * ad->bytes_per_pixel );
+		trimmed_row_bytesize = mx_round( 
+			trimmed_row_framesize * ad->bytes_per_pixel );
 
 		column_offset =
-			(raw_row_framesize - converted_row_framesize) / 2;
+			(raw_row_framesize - trimmed_row_framesize) / 2;
 
 		row_offset =
-			(raw_column_framesize - converted_column_framesize) / 2;
+			(raw_column_framesize - trimmed_column_framesize) / 2;
 
 		raw_frame_buffer = radicon_taurus->raw_frame->image_data;
 
-		converted_frame_buffer = ad->image_frame->image_data;
+		trimmed_frame_buffer = ad->image_frame->image_data;
 
-		for ( converted_row = 0;
-			converted_row < converted_column_framesize;
-			converted_row++ )
+		for ( trimmed_row = 0;
+			trimmed_row < trimmed_column_framesize;
+			trimmed_row++ )
 		{
-			converted_ptr = converted_frame_buffer
-				+ converted_row * converted_row_framesize;
+			trimmed_ptr = trimmed_frame_buffer
+				+ trimmed_row * trimmed_row_framesize;
 			
 			raw_ptr = raw_frame_buffer
 				+ row_offset * raw_row_framesize
-				+ converted_row * raw_row_framesize
+				+ trimmed_row * raw_row_framesize
 				+ column_offset;
 
-			memcpy( converted_ptr, raw_ptr,
-				converted_row_bytesize );
+			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
 		}
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG
+	MX_DEBUG(-2,("%s complete for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
 
 	return mx_status;
 }
@@ -1205,8 +1207,9 @@ mxd_radicon_taurus_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_BYTES_PER_FRAME:
-		mx_status = mx_video_input_get_bytes_per_frame(
-				video_input_record, &(ad->bytes_per_frame) );
+		ad->bytes_per_frame =
+			mx_round( ad->framesize[0] * ad->framesize[1]
+					* ad->bytes_per_pixel );
 		break;
 
 	case MXLV_AD_BYTES_PER_PIXEL:

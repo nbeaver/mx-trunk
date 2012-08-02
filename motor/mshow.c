@@ -48,9 +48,14 @@ void motor_show_version( void );
 int
 motor_showall_fn( int argc, char *argv[] )
 {
+	MX_RECORD *record;
 	int status;
 	size_t length;
-	char usage[] = "Usage:  showall record 'name'\n";
+	mx_status_type mx_status;
+
+	char usage[] = 
+		"Usage:  showall record 'record_name'\n"
+		"        showall fielddef 'record_name'\n";
 
 	if ( argc != 4 ) {
 		fprintf(output, "%s", usage);
@@ -62,14 +67,33 @@ motor_showall_fn( int argc, char *argv[] )
 	if ( length == 0 )
 		length = 1;
 
-	if ( strncmp( "record", argv[2], length ) != 0 ) {
-		fprintf(output, "show: Unrecognized option '%s'\n\n", argv[2]);
+	if ( strncmp( "record", argv[2], length ) == 0 ) {
+		status = motor_show_record(
+			MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE );
+	} else
+	if ( strncmp( "fielddef", argv[2], 6 ) == 0 ) {
+		record = mx_get_record( motor_record_list, argv[3] );
+
+		if ( record == (MX_RECORD *) NULL ) {
+			fprintf( output, "showall: record '%s' not found.\n",
+					argv[3] );
+			return FAILURE;
+		}
+
+		mx_status = mx_print_field_definitions( output, record );
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			return SUCCESS;
+		} else {
+			return FAILURE;
+		}
+	} else {
+		fprintf(output,
+			"showall: Unrecognized option '%s'\n\n", argv[2]);
+
 		fprintf(output, "%s", usage);
 		return FAILURE;
 	}
-
-	status = motor_show_record(
-			MXR_ANY, MXC_ANY, MXT_ANY, argv[2], argv[3], TRUE );
 
 	return status;
 }
