@@ -1210,6 +1210,7 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		 */
 		break;
 	case MXT_SQ_STROBE:
+	case MXT_SQ_GATED:
 		num_frames = sp->parameter_array[0];
 		exposure_time = sp->parameter_array[1];
 		break;
@@ -1544,6 +1545,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_STROBE:
+	case MXT_SQ_GATED:
 		exposure_time = sp->parameter_array[1];
 		break;
 	case MXT_SQ_DURATION:

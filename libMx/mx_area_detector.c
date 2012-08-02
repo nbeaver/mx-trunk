@@ -4927,6 +4927,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 						+ ad->total_acquisition_time;
 			break;
 		case MXT_SQ_STROBE:
+		case MXT_SQ_GATED:
 			num_frames = mx_round( seq.parameter_array[0] );
 			exposure_time = seq.parameter_array[1];
 
