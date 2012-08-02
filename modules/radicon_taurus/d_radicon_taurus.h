@@ -28,6 +28,10 @@
 
 #define MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH		40
 
+#define MXF_RADICON_TAURUS_MINIMUM_EXPOSURE_TIME	4
+
+#define MXF_RADICON_TAURUS_CLOCK_FREQUENCY_IN_HZ	(30.0e6)
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -38,6 +42,11 @@ typedef struct {
 	unsigned long detector_model;
 	char serial_number[MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH+1];
 	unsigned long firmware_version;
+
+	double clock_frequency;			/* in Hz */
+	unsigned long linetime;			/* in ticks */
+	double readout_time;			/* in seconds */
+	unsigned long minimum_exposure_ticks;	/* in ticks */
 
 	unsigned long readout_mode;
 	uint64_t si1_register;
@@ -54,6 +63,7 @@ typedef struct {
 
 	long old_total_num_frames;
 	unsigned long old_status;
+
 } MX_RADICON_TAURUS;
 
 
@@ -84,6 +94,23 @@ typedef struct {
   \
   {-1, -1, "firmware_version", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "clock_frequency", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, clock_frequency), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "linetime", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, linetime), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "readout_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, readout_time), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "minimum_exposure_ticks", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_TAURUS, minimum_exposure_ticks), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "readout_mode", MXFT_ULONG, NULL, 0, {0}, \

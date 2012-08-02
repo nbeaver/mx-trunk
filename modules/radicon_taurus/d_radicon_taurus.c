@@ -181,6 +181,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	long i;
 	char c;
 	unsigned long mask, num_bytes_available;
+	char command[100];
 	char response[100];
 	char *string_value_ptr;
 	mx_bool_type response_seen;
@@ -382,8 +383,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*--- Set up things that depend on the firmware version. ---*/
-
 	/* Do this firmware have the getxxx commands for reading back
 	 * the sro, si1, and si2 settings?
 	 */
@@ -428,11 +427,39 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->binsize[0] = 1;
 	ad->binsize[1] = 1;
 
+	/* Compute and set the linetime. */
+
+	mx_breakpoint();
+
+	if ( radicon_taurus->firmware_version >= 105 ) {
+		radicon_taurus->linetime = 677;
+	} else {
+		radicon_taurus->linetime = 946;
+	}
+
+	snprintf( command, sizeof(command),
+		"linetime %lu", radicon_taurus->linetime );
+
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the readout time from the linetime and the framesize. */
+
+	radicon_taurus->clock_frequency = 30.0e6;
+
+	radicon_taurus->readout_time = ( ad->framesize[1] / 2 )
+		* radicon_taurus->linetime / radicon_taurus->clock_frequency;
+
+	/*---*/
+
 	radicon_taurus->readout_mode = -1;
 
 	radicon_taurus->si1_register = 4;
 	radicon_taurus->si2_register = 4;
-	radicon_taurus->si1_si2_ratio = 0.125;
+	radicon_taurus->si1_si2_ratio = 0.1;
 
 	radicon_taurus->use_different_si2_value = FALSE;
 
@@ -599,9 +626,6 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 
 /*----*/
 
-#define TAURUS_MINIMUM_EXPOSURE_TIME	4
-#define TAURUS_CLOCK_FREQUENCY_IN_HZ	(30.0e6)
-
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 {
@@ -612,7 +636,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	double exposure_time, exposure_time_offset, raw_exposure_time;
 	unsigned long raw_exposure_time_32;
-	uint64_t long_exposure_time_64;
+	uint64_t long_exposure_time_as_uint64;
+	double long_exposure_time_as_double;
 	double short_exposure_time_as_double;
 	uint64_t si1_register, si2_register;
 	unsigned long low_order, middle_order, high_order;
@@ -651,6 +676,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		return mx_status;
 	}
+
+	mx_breakpoint();
 
 	/*--- Otherwise, we continue on to reprogram the detector head. ---*/
 
@@ -801,7 +828,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		/* If use_different_si2_value is FALSE, then we compute
 		 * a single raw exposure time as a 64-bit integer which
-		 * is stored below in the variable long_exposure_time_64.
+		 * is stored below in the variable long_exposure_time_as_uint64.
 		 *
 		 * If use_different_si2_value is TRUE, then we compute
 		 * both a long exposure time and a short exposure time
@@ -810,29 +837,32 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 * time to si2.
 		 */
 
-		if ( exposure_time < 0.0 ) {
-		    long_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
-		} else {
-		    long_exposure_time_64 = (uint64_t)( 0.5
-			+ (exposure_time * TAURUS_CLOCK_FREQUENCY_IN_HZ) );
+		long_exposure_time_as_double = 
+			(exposure_time - radicon_taurus->readout_time)
+				 * radicon_taurus->clock_frequency;
 
-		    if ( long_exposure_time_64 < TAURUS_MINIMUM_EXPOSURE_TIME )
-		    {
-			long_exposure_time_64 = TAURUS_MINIMUM_EXPOSURE_TIME;
-		    }
+		if ( long_exposure_time_as_double <
+			radicon_taurus->minimum_exposure_ticks )
+		{
+			long_exposure_time_as_double =
+				radicon_taurus->minimum_exposure_ticks;
 		}
 
+		long_exposure_time_as_uint64 =
+			(int64_t) ( 0.5 + long_exposure_time_as_double );
+
 		if ( use_different_si2_value ) {
-		    short_exposure_time_as_double =
-			radicon_taurus->si1_si2_ratio * long_exposure_time_64;
+			short_exposure_time_as_double =
+				radicon_taurus->si1_si2_ratio
+					* long_exposure_time_as_double;
 
-		    si1_register =
-			(uint64_t)(short_exposure_time_as_double + 0.5);
+			si1_register =
+				(uint64_t)(short_exposure_time_as_double + 0.5);
 
-		    si2_register = long_exposure_time_64;
+			si2_register = long_exposure_time_as_uint64;
 		} else {
-		    si1_register = long_exposure_time_64;
-		    si2_register = long_exposure_time_64;
+			si1_register = long_exposure_time_as_uint64;
+			si2_register = long_exposure_time_as_uint64;
 		}
 
 		/* Set the value of the si1 register. */
