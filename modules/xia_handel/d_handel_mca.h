@@ -82,6 +82,8 @@ typedef struct {
 	unsigned long baseline_history_length;
 	unsigned long *baseline_history_array;
 
+	unsigned long show_parameters;
+
 	mx_bool_type sca_has_been_initialized[ MX_HANDEL_MCA_MAX_SCAS ];
 
 	long mca_record_array_index;
@@ -152,6 +154,7 @@ typedef struct {
 #define MXLV_HANDEL_MCA_ADC_TRACE_ARRAY			2016
 #define MXLV_HANDEL_MCA_BASELINE_HISTORY_LENGTH		2017
 #define MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY		2018
+#define MXLV_HANDEL_MCA_SHOW_PARAMETERS			2019
 
 #define MXD_HANDEL_MCA_STANDARD_FIELDS \
   {-1, -1, "handel_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -257,6 +260,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, \
 			offsetof( MX_HANDEL_MCA, baseline_history_array ), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_HANDEL_MCA_SHOW_PARAMETERS, -1, "show_parameters", \
+			MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, show_parameters ), \
+	{0}, NULL, 0}, \
   \
   {-1, -1, "detector_channel", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, detector_channel ), \
@@ -374,6 +382,8 @@ MX_API mx_status_type mxd_handel_mca_set_gain_calibration( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_get_adc_trace_array( MX_MCA *mca );
 
 MX_API mx_status_type mxd_handel_mca_get_baseline_history_array( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_show_parameters( MX_MCA *mca );
 
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list;

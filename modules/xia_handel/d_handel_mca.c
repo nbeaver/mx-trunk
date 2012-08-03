@@ -35,6 +35,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_hrt.h"
+#include "mx_array.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_mca.h"
@@ -1069,6 +1070,7 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 		case MXLV_HANDEL_MCA_GAIN_CALIBRATION:
 		case MXLV_HANDEL_MCA_PARAMETER_VALUE:
 		case MXLV_HANDEL_MCA_PARAM_VALUE_TO_ALL_CHANNELS:
+		case MXLV_HANDEL_MCA_SHOW_PARAMETERS:
 		case MXLV_HANDEL_MCA_STATISTICS:
 			record_field->process_function
 					    = mxd_handel_mca_process_function;
@@ -3255,6 +3257,144 @@ mxd_handel_mca_get_baseline_history_array( MX_MCA *mca )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static int
+mxp_string_sort( const void *ptr1, const void *ptr2 )
+{
+	int result;
+	const char **string1 = (const char **) ptr1;
+	const char **string2 = (const char **) ptr2;
+
+	result = strcmp( *string1, *string2 );
+
+	return result;
+}
+
+#define MXP_HANDEL_PARAMETER_NAME_LENGTH	40
+
+MX_EXPORT mx_status_type
+mxd_handel_mca_show_parameters( MX_MCA *mca )
+{
+	static const char fname[] = "mxd_handel_mca_show_parameters()";
+
+	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
+	unsigned short num_parameters;
+	char parameter_name[200];
+	unsigned short *parameter_values = NULL;
+	unsigned short i, j;
+	char **string_array;
+	long dimension_array[2];
+	long size_array[2];
+	int xia_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mca_get_pointers( mca,
+					&handel_mca, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	xia_status = xiaGetNumParams( handel_mca->detector_channel,
+					&num_parameters );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot get the number of parameters for MCA '%s'.  "
+			"Error code = %d, '%s'", 
+					mca->record->name,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+	}
+
+	mx_info( "-------------------------------------------------------" );
+	mx_info( "Parameters for MCA '%s'   (%hu parameters)",
+		mca->record->name, num_parameters );
+	mx_info( "" );
+
+	/* Allocate memory for the string array. */
+
+	dimension_array[0] = num_parameters;
+	dimension_array[1] = MXP_HANDEL_PARAMETER_NAME_LENGTH+1;
+
+	size_array[0] = sizeof(char);
+	size_array[1] = sizeof(char *);
+
+	string_array = (char **)
+		mx_allocate_array( 2, dimension_array, size_array );
+
+	if ( string_array == (char **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate a %hu element array of strings for MCA '%s'.",
+			num_parameters, mca->record->name );
+	}
+
+	/* Allocate memory for the value array. */
+
+	parameter_values = (unsigned short *)
+			malloc( num_parameters * sizeof(unsigned short) );
+
+	if ( parameter_values == (unsigned short *) NULL ) {
+		mx_free_array( string_array, 2, dimension_array, size_array );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate a %hu element array "
+		"of parameter values for MCA '%s'.",
+			mca->record->name );
+	}
+
+	/* Read the values from Handel. */
+
+	xia_status = xiaGetParamData( handel_mca->detector_channel,
+					"values", (void *) parameter_values );
+
+	if ( xia_status != XIA_SUCCESS ) {
+		mx_free_array( string_array, 2, dimension_array, size_array );
+		mx_free( parameter_values );
+
+		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot get the parameter values for MCA '%s'.  "
+			"Error code = %d, '%s'", 
+					mca->record->name,
+					xia_status,
+					mxi_handel_strerror( xia_status ) );
+	}
+
+	/* Format the parameter information. */
+
+	for ( i = 0; i < num_parameters; i++ ) {
+		xia_status = xiaGetParamName( handel_mca->detector_channel,
+						i, parameter_name );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			snprintf( parameter_name, sizeof(parameter_name),
+				"< parameter %hu >", i );
+		}
+
+		snprintf( string_array[i], MXP_HANDEL_PARAMETER_NAME_LENGTH,
+			"%-16s = %hu", parameter_name, parameter_values[i] );
+	}
+
+	/* Discard the parameter_values array, since we no longer need it. */
+
+	mx_free( parameter_values );
+
+	/* Sort the string array. */
+
+	qsort( string_array, num_parameters, sizeof(char *), mxp_string_sort );
+
+	/* Display the sorted parameter information. */
+
+	for ( i = 0; i < num_parameters; i++ ) {
+		mx_info( string_array[i] );
+	}
+
+	/* We are done, so discard the string array. */
+
+	mx_free_array( string_array, 2, dimension_array, size_array );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*-------------------------------------------------------------------------*/
 
 #ifndef MX_PROCESS_GET
@@ -3483,6 +3623,14 @@ mxd_handel_mca_process_function( void *record_ptr,
 			MX_DEBUG(-2,("%s: apply to all MCAs.", fname));
 #endif
 			mx_status = mxi_handel_apply_to_all_channels( handel );
+			break;
+		case MXLV_HANDEL_MCA_SHOW_PARAMETERS:
+
+#if MXD_HANDEL_MCA_DEBUG
+			MX_DEBUG(-2,("%s: show all parameters for mca '%s'.",
+ 				fname, mca->record->name));
+#endif
+			mx_status = mxd_handel_mca_show_parameters( mca );
 			break;
 		default:
 			MX_DEBUG( 1,(
