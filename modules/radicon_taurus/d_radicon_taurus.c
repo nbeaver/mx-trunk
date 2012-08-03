@@ -696,6 +696,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 * the mode you really want.
 		 */
 
+		mx_msleep(500);
+
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
@@ -805,6 +807,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				sp->sequence_type, ad->record->name );
 		}
 
+		mx_msleep(500);
+
 		snprintf( command, sizeof(command), "SRO %lu",
 			radicon_taurus->readout_mode );
 
@@ -871,6 +875,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		middle_order = (si1_register >> 16) & 0xffff;
 		high_order   = (si1_register >> 32) & 0xf;
 
+		mx_msleep(500);
+
 		snprintf( command, sizeof(command),
 			"SI1 %lu %lu %lu",
 			high_order, middle_order, low_order );
@@ -889,12 +895,27 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		middle_order = (si2_register >> 16) & 0xffff;
 		high_order   = (si2_register >> 32) & 0xf;
 
+		mx_msleep(500);
+
 		snprintf( command, sizeof(command),
 			"SI2 %lu %lu %lu",
 			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep(500);
+
+#if 0
+		snprintf( command, sizeof(command), "SRO %lu",
+			radicon_taurus->readout_mode );
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+#endif
 		break;
 	case MXT_RADICON_XINEOS:
 		/* FIXME: The scale factor is wrong for the Xineos. */
@@ -979,6 +1000,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_msleep(1000);
 
 	return MX_SUCCESSFUL_RESULT;
 }
