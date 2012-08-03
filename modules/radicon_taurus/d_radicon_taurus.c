@@ -18,6 +18,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
 
+#define MXD_RADICON_TAURUS_DEBUG_RS232_DELAY			FALSE
+
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
@@ -180,6 +182,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	long vinput_framesize[2];
 	long i;
 	char c;
+	double serial_delay_in_seconds;
 	unsigned long mask, num_bytes_available;
 	char command[100];
 	char response[100];
@@ -242,6 +245,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Setup some variables to limit the rate at which commands are
+	 * sent to the Taurus serial port.
+	 */
+
+	serial_delay_in_seconds = 0.5;
+
+	radicon_taurus->serial_delay_ticks =
+		mx_convert_seconds_to_clock_ticks( serial_delay_in_seconds );
+
+	radicon_taurus->next_serial_command_tick = mx_current_clock_tick();
+
 	/* Request camera parameters from the detector. */
 
 	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
@@ -249,6 +263,8 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Give the detector a little while to respond to the GCP command. */
 
 	mx_msleep(500);
 
@@ -696,8 +712,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		 * the mode you really want.
 		 */
 
-		mx_msleep(500);
-
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
@@ -807,8 +821,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				sp->sequence_type, ad->record->name );
 		}
 
-		mx_msleep(500);
-
 		snprintf( command, sizeof(command), "SRO %lu",
 			radicon_taurus->readout_mode );
 
@@ -875,8 +887,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		middle_order = (si1_register >> 16) & 0xffff;
 		high_order   = (si1_register >> 32) & 0xf;
 
-		mx_msleep(500);
-
 		snprintf( command, sizeof(command),
 			"SI1 %lu %lu %lu",
 			high_order, middle_order, low_order );
@@ -895,8 +905,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		middle_order = (si2_register >> 16) & 0xffff;
 		high_order   = (si2_register >> 32) & 0xf;
 
-		mx_msleep(500);
-
 		snprintf( command, sizeof(command),
 			"SI2 %lu %lu %lu",
 			high_order, middle_order, low_order );
@@ -907,14 +915,28 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_msleep(500);
-
 #if 0
+		/* Send the SRO command a second time. */
+
 		snprintf( command, sizeof(command), "SRO %lu",
 			radicon_taurus->readout_mode );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+#endif
+
+#if 1
+		mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
+				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep(500);
+
+		mx_status = mx_rs232_discard_unread_input(
+					radicon_taurus->serial_port_record,
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
 #endif
 		break;
 	case MXT_RADICON_XINEOS:
@@ -1000,6 +1022,13 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* FIXME: The following sleep exists to insert a delay time
+	 * between the trigger call and the first get extended status.
+	 *
+	 * There should not be a need for such a delay, but it does
+	 * need to be there for some reason, at least on the new detector.
+	 */
+
 	mx_msleep(1000);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1433,6 +1462,8 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 	MX_RECORD *serial_port_record;
 	unsigned long num_bytes_available;
 	char c;
+	MX_CLOCK_TICK current_tick;
+	int comparison;
 	mx_status_type mx_status;
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
@@ -1447,6 +1478,54 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		"The serial_port_record pointer for record '%s' is NULL.",
 			radicon_taurus->record->name );
 	}
+
+	/* See if we need to wait before sending the next command. */
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_DELAY
+	MX_DEBUG(-2,("%s: next_serial_command_tick = (%lu,%lu)", fname,
+	  (unsigned long) radicon_taurus->next_serial_command_tick.high_order,
+	  (unsigned long) radicon_taurus->next_serial_command_tick.low_order));
+#endif
+
+	while (1) {
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks( current_tick,
+				radicon_taurus->next_serial_command_tick );
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_DELAY
+		MX_DEBUG(-2,
+		("%s: current_tick = (%lu,%lu), comparison = %d", fname,
+			(unsigned long) current_tick.high_order,
+			(unsigned long) current_tick.low_order,
+			comparison));
+#endif
+
+		if ( comparison >= 0 ) {
+
+			/* It is now time for the next command.  Before
+			 * breaking out of this while() loop, we must compute
+			 * the new value of next_serial_command_tick.
+			 */
+
+			radicon_taurus->next_serial_command_tick =
+				mx_add_clock_ticks( current_tick,
+				    radicon_taurus->serial_delay_ticks );
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_DELAY
+			MX_DEBUG(-2,
+			("%s: NEW next_serial_command_tick = (%lu,%lu)", fname,
+	  (unsigned long) radicon_taurus->next_serial_command_tick.high_order,
+	  (unsigned long) radicon_taurus->next_serial_command_tick.low_order));
+#endif
+
+			break;	/* Exit the while() loop. */
+		}
+
+		mx_msleep(10);
+	}
+
+	/* Now we can send the command. */
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: sending '%s' to '%s'",

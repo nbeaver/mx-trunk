@@ -64,6 +64,9 @@ typedef struct {
 	long old_total_num_frames;
 	unsigned long old_status;
 
+	MX_CLOCK_TICK serial_delay_ticks;
+	MX_CLOCK_TICK next_serial_command_tick;
+
 } MX_RADICON_TAURUS;
 
 

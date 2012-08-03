@@ -43,9 +43,9 @@ all: build
 
 #MODULES += radicon_helios
 
-#MODULES += radicon_taurus
+MODULES += radicon_taurus
 
-#MODULES += sapera_lt
+MODULES += sapera_lt
 
 #MODULES += u500
 
