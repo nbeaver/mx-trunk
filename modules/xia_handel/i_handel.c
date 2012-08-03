@@ -1399,9 +1399,9 @@ mxi_handel_is_busy( MX_HANDEL *handel,
 {
 	static const char fname[] = "mxi_handel_is_busy()";
 
-	int m, xia_status;
-	MX_RECORD *first_mca_record;
-	MX_HANDEL_MCA *first_handel_mca;
+	int i, xia_status;
+	MX_RECORD *mca_record;
+	MX_HANDEL_MCA *handel_mca;
 	unsigned long run_active;
 
 	if ( handel == (MX_HANDEL *) NULL ) {
@@ -1420,49 +1420,49 @@ mxi_handel_is_busy( MX_HANDEL *handel,
 			fname, handel->record->name ));
 	}
 
-	/* Walk through the modules to see if they are busy. */
+	/* Walk through the mca_channels to see if they are busy. */
 
-	for ( m = 0; m < handel->num_modules; m++ ) {
+	for ( i = 0; i < handel->num_mcas; i++ ) {
 
-		first_mca_record = handel->module_array[m][0];
+		mca_record = handel->mca_record_array[i];
 
-		if ( first_mca_record == (MX_RECORD *) NULL ) {
-			/* Skip modules that are not installed. */
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			/* Skip MCAs that are not installed. */
 
 			continue;
 		}
 
-		first_handel_mca = first_mca_record->record_type_struct;
+		handel_mca = mca_record->record_type_struct;
 
-		if ( first_handel_mca == (MX_HANDEL_MCA *) NULL ) {
+		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		    "The MX_HANDEL_MCA pointer for Handel MCA '%s' is NULL.",
-				first_mca_record->name );
+				mca_record->name );
 		}
 
 		if ( handel->debug_flag ) {
 			MX_DEBUG(-2,("%s: checking run_active for MCA '%s'.",
-				fname, first_mca_record->name ));
+				fname, mca_record->name ));
 		}
 
-		xia_status = xiaGetRunData( first_handel_mca->detector_channel,
+		xia_status = xiaGetRunData( handel_mca->detector_channel,
 						"run_active", &run_active );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-			"Cannot stop a run for MCA '%s' on behalf of "
+			"Cannot get 'run_active' for MCA '%s' on behalf of "
 			"Handel interface '%s'.  "
 			"Error code = %d, '%s'",
-				first_mca_record->name,
+				mca_record->name,
 				handel->record->name,
 				xia_status,
 				mxi_handel_strerror( xia_status ) );
 		}
 
 		if ( run_active & XIA_RUN_HARDWARE ) {
-			/* If any of the modules are busy, then we consider
+			/* If any of the channels are busy, then we consider
 			 * the Handel system as a whole to be busy, so there
-			 * is no need to check the state of the modules
+			 * is no need to check the state of the channels
 			 * after this one.
 			 */
 
