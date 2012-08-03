@@ -5,57 +5,112 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for Microsoft Win32 (Windows 95/98/Me/NT/2000/XP/7/8).
 #
-# Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+# Notes:
+#     This makefile assumes that you are using Gnu Make as well as a /bin/sh
+#     compatible shell such as Gnu Bash.  You will also need a few Unix shell
+#     utilities such as cp, rm, test, and touch.  This is most easily done
+#     with Cygwin, but other packages like Unxutils, Msys, or GnuWin32 may
+#     work.  Bear in mind that GnuWin32 does _not_ come with a /bin/sh
+#     compatible shell, so you must get that from somewhere else if you use
+#     GnuWin32.  The build system for Strawberry Perl might work, but I have
+#     not tried that.
 #
+#     Microsoft's Nmake will _not_ work, so do not waste your time trying to
+#     make it work.
+#
+#     You must also arrange to get the Microsoft Visual C++ build system
+#     environment variables into your environment.  This can be done by
+#     invoking one of the batch files that come with Visual C++ like
+#     vcvars32.bat, vcvarsx86_amd64.bat, and so forth.  For my own work,
+#     I typically translate the Windows batch files into Cygwin Bash script
+#     fragments, but that takes a bit of work, and many people will not
+#     want to do that.
+# 
+#     If you are using Cygwin, the Visual C++ directories _MUST_ appear in
+#     the PATH before any of the Cygwin directories.  If the Cygwin
+#     directories appear first, then the 'link' commands below will find
+#     the Cygwin /usr/bin/link program instead of the Visual C++ link
+#     program and things will break.
 
+#
+# For now the initial definitions of INCLUDES and LIBRARIES should be near
+# the top.
+#
 INCLUDES  = $(MX_INCLUDES)
 LIBRARIES = $(WIN32_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
-
-# *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
-# If you link to third party libraries, you _must_ make sure that you are
-# compiling MX to use the same run time libraries, e.g. MSVCRT versus LIBCMT,
-# as the third party library is using.  If you do not and there is a mismatch,
-# then at best linking your binaries will fail and alert you to the problem.
-# However, it is also possible that the executables will seem to build
-# correctly, but then occasionally fail in mysterious ways.  Thus, it is
-# very important to get this right!
+# Things you may need to change:
 #
-# Also, since MX uses threads in a number of places, -ML and -MLd are
-# not valid choices and must not be used.
+# 1.  If you will be compiling MX modules that link to third-party DLLs
+#     like for NI DAQmx, XIA Handel, EPICS, etc. then you must make sure
+#     to compile and link MX to the same versions of the run time libraries,
+#     e.g. MSVCRT versus LIBCMT, as the third party library is using.
+#
+#     If you do not and there is a mismatch, then at best linking your
+#     binaries will fail and alert you to the problem.  However, it is also
+#     possible that the executables will seem to build correctly, but then
+#     occasionally fail in mysterious ways.  Thus, it is very important to
+#     get this right!
+#
+#     Also, since MX uses threads in a number of places, -ML and -MLd are
+#     not valid choices and must not be used.
+#
+#     Fortunately, these days most libraries appear to be linked with -MD
+#     so you can probably leave the default value of RUN_TIME_LIBRARY_FLAGS
+#     alone.
+#
 
 RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
 #RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
-# # You may also need to modify some of the following definitions, depending
-# on the drivers you plan to use.
+#
+# 2.  Specify the architecture of the computer you are compiling on.  This is
+#     used mostly to find the directories where platform-specific .LIB files
+#     are located.  Unfortunately, Visual Studio 2012 has changed the way
+#     these directories are laid out, so it has its own special case below.
+#
+
+#MSDEV_ARCH	= x86
+MSDEV_ARCH	= x64
+
+#MSDEV_ARCH	= x86_vs2012
+#MSDEV_ARCH	= x64_vs2012
+
+#
+# 3.  You must specify the directory that the libraries for Microsoft
+#     Visual C++ were installed in.  The name specified for Gnu Make
+#     _MUST_ _NOT_ contain any spaces in it, since Gnu Make does not
+#     handle such directory names well.  That is why the examples below
+#     use short directory names like progra~1\micros~1 instead of things
+#     like "Program Files" or "Microsoft Visual Studio 10.0".
+#
+#     If you are running a recent version of Visual Studio, there may be
+#     an environment variable called "WindowsSdkDir" defined.  If so, and
+#     if you have Cygwin installed, then you can find the correct setting
+#     for MSDEV_DIR with a Cygwin command like this:
+#
+#       cygpath -d "$WindowsSdkDir"
+#
+#     However, you will need to replace the single backslash '\' characters
+#     in the output of cygpath with pairs of backslash characters '\\'.
+#
+#     In most cases, whatever directory you select for MXDEV_DIR should
+#     contain a Lib subdirectory which in turn should contain all of the
+#     .lib files for the Windows DLLs that you plan to use.  This should
+#     be true for both Express and Pro versions of Visual Studio.  The only
+#     exception to this rule is if you are using a separately downloaded
+#     copy of the Win32 Platform SDK.  Look further down in this makefile
+#     for more information about that.
+#
+#     I have included below a variety of examples for how to set up the
+#     MSDEV_DIR variable for different Visual C++ versions.
 #
 
 #
-# You must specify the directory that Microsoft Visual C++ was installed in.
-# The name specified for Gnu Make MUST NOT contain any spaces in it.  That
-# is why the examples below use short directory names like progra~1\micros~1 .
-#
-# In most cases, whatever directory you select for MXDEV_DIR should contain
-# a Lib subdirectory which in turn should contain all of the .lib files for
-# the Windows DLLs that you plan to use.  The only exception to this rule
-# is if you are using a separately downloaded copy of the Win32 Platform SDK.
-#
-
-MSDEV_ARCH	= x86
-#MSDEV_ARCH	= x64
-
-#MSDEV_ARCH	= x86_vs11
-#MSDEV_ARCH	= x64_vs11
-
-#
-# Visual C++ 11 Pro (beta)       (_MSC_VER == 1700)
+# Visual C++ 2012 Pro (beta)     (_MSC_VER == 1700)
 #
 # Full name: 'c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um'
 #
@@ -65,11 +120,11 @@ MSDEV_ARCH	= x86
 # Visual C++ 2010 Pro or Express (_MSC_VER == 1600)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #
@@ -148,11 +203,11 @@ endif
 
 #--
 
-ifeq ($(MSDEV_ARCH),x86_vs11)
+ifeq ($(MSDEV_ARCH),x86_vs2012)
 	MSDEV_LIB_DIR = $(MSDEV_DIR)\\x86
 endif
 
-ifeq ($(MSDEV_ARCH),x64_vs11)
+ifeq ($(MSDEV_ARCH),x64_vs2012)
 	MSDEV_LIB_DIR = $(MSDEV_DIR)\\x64
 endif
 
@@ -216,7 +271,9 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #---------------------------------------------------------------------------
 #
 # Precision MicroControl Motion Control API (MCAPI) interface.
-#
+#  
+# (This should move to a module soon, but it has not happened yet.)
+#  
 PMC_MCAPI_DIR        = c:\\progra~1\\motion~1\\motion~1\\sources
 PMC_MCAPI_INCLUDES   = -I$(PMC_MCAPI_DIR)
 PMC_MCAPI_LIBS       = $(PMC_MCAPI_DIR)\\mcapi32.lib \
@@ -274,7 +331,7 @@ MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
-AUTOSAVE_OBJS       = $(AUTOSAVE_SRCS:.c=.$(OBJ))
+AUTOSAVE_OBJS     = $(AUTOSAVE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 MXMONITOR_OBJS    = $(MXMONITOR_SRCS:.c=.$(OBJ))
 

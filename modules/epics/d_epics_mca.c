@@ -615,6 +615,9 @@ mxd_epics_mca_open( MX_RECORD *record )
 	} else {
 		if ( flags & MXF_EPICS_MCA_DXP_RECORD_IS_NOT_USED ) {
 			epics_mca->have_dxp_record = FALSE;
+		} else
+		if ( flags & MXF_EPICS_MCA_DXP_RECORD_IS_USED ) {
+			epics_mca->have_dxp_record = TRUE;
 		} else {
 			MX_EPICS_PV pv;
 

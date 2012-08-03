@@ -21,7 +21,7 @@ all: build
 
 #MODULES += ni_daqmx		# linux, win32
 
-MODULES += xia_handel		# linux, win32
+#MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -54,13 +54,13 @@ MODULES += xia_handel		# linux, win32
 
 MODULES += epics
 
-MODULES += epics_aps
+#MODULES += epics_aps
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
 #MODULES += epics_pmac_biocat
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #---
 

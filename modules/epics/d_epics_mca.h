@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2009-2010 Illinois Institute of Technology
+ * Copyright 2002-2003, 2009-2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,6 +65,7 @@ typedef struct {
 #define MXF_EPICS_MCA_DISABLE_READ_OPTIMIZATION		0x4
 #define MXF_EPICS_MCA_WAIT_ON_START			0x8
 #define MXF_EPICS_MCA_DXP_RECORD_IS_NOT_USED		0x10
+#define MXF_EPICS_MCA_DXP_RECORD_IS_USED		0x20
 
 /*---*/
 
