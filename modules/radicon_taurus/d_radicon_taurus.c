@@ -429,14 +429,13 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/* Compute and set the linetime. */
 
-	mx_breakpoint();
-
 	if ( radicon_taurus->firmware_version >= 105 ) {
 		radicon_taurus->linetime = 677;
 	} else {
 		radicon_taurus->linetime = 946;
 	}
 
+#if 0
 	snprintf( command, sizeof(command),
 		"linetime %lu", radicon_taurus->linetime );
 
@@ -445,6 +444,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	/* Compute the readout time from the linetime and the framesize. */
 
@@ -676,8 +676,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		return mx_status;
 	}
-
-	mx_breakpoint();
 
 	/*--- Otherwise, we continue on to reprogram the detector head. ---*/
 

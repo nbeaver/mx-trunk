@@ -4668,6 +4668,7 @@ mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
+	case MXT_SQ_GATED:
 		*exposure_time = sp->parameter_array[1];
 		break;
 	case MXT_SQ_STREAK_CAMERA:
