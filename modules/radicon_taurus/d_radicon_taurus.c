@@ -258,7 +258,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/* Request camera parameters from the detector. */
 
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "gcp",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -393,7 +393,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/*--- Initialize the detector by putting it into free-run mode. ---*/
 
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "sro 4",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -634,7 +634,7 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 #endif
 	/* Putting the detector back into free-run mode will reset it. */
 
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, "sro 4",
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	return mx_status;
@@ -660,6 +660,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	char command[80];
 	mx_bool_type set_exposure_times, use_external_trigger;
 	mx_bool_type use_different_si2_value;
+	unsigned long old_readout_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -707,16 +708,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	switch( radicon_taurus->detector_model ) {
 	case MXT_RADICON_TAURUS:
 
-		/* Generally it is required that you switch to
-		 * readout mode 4 _first_ and then switch to
-		 * the mode you really want.
-		 */
-
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		old_readout_mode = radicon_taurus->readout_mode;
 		
 		/**** Set the Taurus Readout Mode. ****/
 		
@@ -821,14 +813,17 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				sp->sequence_type, ad->record->name );
 		}
 
-		snprintf( command, sizeof(command), "SRO %lu",
-			radicon_taurus->readout_mode );
+		if ( radicon_taurus->readout_mode != old_readout_mode ) {
+			snprintf( command, sizeof(command), "sro %lu",
+				radicon_taurus->readout_mode );
 
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
+			mx_status = mxd_radicon_taurus_command(
+				radicon_taurus, command,
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		/* Do we need to set the exposure times?  If not, then
 		 * we can skip the rest of this case.
@@ -888,7 +883,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		high_order   = (si1_register >> 32) & 0xf;
 
 		snprintf( command, sizeof(command),
-			"SI1 %lu %lu %lu",
+			"si1 %lu %lu %lu",
 			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
@@ -906,39 +901,13 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		high_order   = (si2_register >> 32) & 0xf;
 
 		snprintf( command, sizeof(command),
-			"SI2 %lu %lu %lu",
+			"si2 %lu %lu %lu",
 			high_order, middle_order, low_order );
 
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
 				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if 0
-		/* Send the SRO command a second time. */
-
-		snprintf( command, sizeof(command), "SRO %lu",
-			radicon_taurus->readout_mode );
-
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-#endif
-
-#if 1
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, "GCP",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_msleep(500);
-
-		mx_status = mx_rs232_discard_unread_input(
-					radicon_taurus->serial_port_record,
-					MXD_RADICON_TAURUS_DEBUG_RS232 );
-#endif
 		break;
+
 	case MXT_RADICON_XINEOS:
 		/* FIXME: The scale factor is wrong for the Xineos. */
 
@@ -1053,16 +1022,6 @@ mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	mx_status = mx_video_input_abort( radicon_taurus->video_input_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the detector readout mode to 4. */
-
-	radicon_taurus->readout_mode = 4;
-
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "SRO 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 
 	return mx_status;
 }
