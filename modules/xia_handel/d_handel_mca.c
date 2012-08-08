@@ -1877,7 +1877,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mxi_handel_strerror( xia_status ) );
 		}
 #if MXI_HANDEL_DEBUG
-		MX_DEBUG(-2,("%s: mca->input_count_rate = %g",
+		MX_DEBUG(-2,("%s: $$$ mca->input_count_rate = %g",
 			fname, mca->input_count_rate));
 #endif
 		break;
@@ -1894,7 +1894,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 					mxi_handel_strerror( xia_status ) );
 		}
 #if MXI_HANDEL_DEBUG
-		MX_DEBUG(-2,("%s: mca->output_count_rate = %g",
+		MX_DEBUG(-2,("%s: $$$ mca->output_count_rate = %g",
 			fname, mca->output_count_rate));
 #endif
 		break;
@@ -2274,6 +2274,8 @@ mxd_handel_mca_get_livetime_corrected_roi_integral( MX_MCA *mca,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#define MXU_HANDEL_MCA_NUM_STATISTICS	36    /* FIXME: 36 is for DXP-XMAP */
+
 MX_EXPORT mx_status_type
 mxd_handel_mca_read_statistics( MX_MCA *mca )
 {
@@ -2281,7 +2283,7 @@ mxd_handel_mca_read_statistics( MX_MCA *mca )
 
 	MX_HANDEL_MCA *handel_mca;
 	MX_HANDEL *handel;
-	double module_statistics[36];	/* FIXME: 36 is for DXP-XMAP */
+	double module_statistics[MXU_HANDEL_MCA_NUM_STATISTICS];
 	long channel_offset;
 	mx_bool_type read_statistics;
 	mx_status_type mx_status;
@@ -2329,29 +2331,40 @@ mxd_handel_mca_read_statistics( MX_MCA *mca )
 		return mx_status;
 
 	if ( strcmp( handel_mca->module_type, "xmap" ) == 0 ) {
+
+		if ( handel_mca->debug_flag ) {
+			int i;
+
+			for ( i = 0; i < MXU_HANDEL_MCA_NUM_STATISTICS; i++ ) {
+				MX_DEBUG(-2,
+				("%s: statistics[%d] = %g",
+				fname, i, module_statistics[i] ));
+			}
+		}
+
 		channel_offset = handel_mca->detector_channel % 4;
 
-		mca->real_time = module_statistics[ channel_offset + 0 ];
-		mca->live_time = module_statistics[ channel_offset + 1 ];
+		mca->real_time = module_statistics[ 9*channel_offset + 0 ];
+		mca->live_time = module_statistics[ 9*channel_offset + 1 ];
 
 		handel_mca->energy_live_time
-				= module_statistics[ channel_offset + 2 ];
+				= module_statistics[ 9*channel_offset + 2 ];
 
 		handel_mca->num_triggers = mx_round(
-				module_statistics[ channel_offset + 3 ] );
+				module_statistics[ 9*channel_offset + 3 ] );
 		handel_mca->num_events = mx_round(
-				module_statistics[ channel_offset + 4 ] );
+				module_statistics[ 9*channel_offset + 4 ] );
 
 		handel_mca->input_count_rate
-				= module_statistics[ channel_offset + 5 ];
+				= module_statistics[ 9*channel_offset + 5 ];
 		handel_mca->output_count_rate
-				= module_statistics[ channel_offset + 6 ];
+				= module_statistics[ 9*channel_offset + 6 ];
 
 		if ( handel->use_module_statistics_2 ) {
 			handel_mca->num_underflows = mx_round(
-				module_statistics[ channel_offset + 7 ] );
+				module_statistics[ 9*channel_offset + 7 ] );
 			handel_mca->num_overflows = mx_round(
-				module_statistics[ channel_offset + 8 ] );
+				module_statistics[ 9*channel_offset + 8 ] );
 		} else {
 			handel_mca->num_underflows = 0;
 			handel_mca->num_overflows = 0;
