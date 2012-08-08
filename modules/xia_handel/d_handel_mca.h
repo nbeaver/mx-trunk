@@ -20,24 +20,22 @@
 
 #include "mx_mca.h"
 
-#define MXU_HANDEL_MCA_PARAMETER_NAME_LENGTH		80
-#define MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH	80
-
-#define MXU_HANDEL_MCA_LABEL_LENGTH			120
-
 #define MX_HANDEL_MCA_MAX_SCAS 				256
 #define MX_HANDEL_MCA_MAX_BINS				65536
 
 /* The following defines are used by the 'statistics' record field. */
 
-#define MX_HANDEL_MCA_NUM_STATISTICS	8
+#define MX_HANDEL_MCA_NUM_STATISTICS	9
 
 #define MX_HANDEL_MCA_REAL_TIME		0
 #define MX_HANDEL_MCA_LIVE_TIME		1
-#define MX_HANDEL_MCA_INPUT_COUNT_RATE	2
-#define MX_HANDEL_MCA_OUTPUT_COUNT_RATE	3
-#define MX_HANDEL_MCA_NUM_TRIGGERS	4
-#define MX_HANDEL_MCA_NUM_EVENTS	5
+#define MX_HANDEL_MCA_ENERGY_LIVE_TIME  2
+#define MX_HANDEL_MCA_NUM_TRIGGERS	3
+#define MX_HANDEL_MCA_NUM_EVENTS	4
+#define MX_HANDEL_MCA_INPUT_COUNT_RATE	5
+#define MX_HANDEL_MCA_OUTPUT_COUNT_RATE	6
+#define MX_HANDEL_MCA_NUM_UNDERFLOWS	7
+#define MX_HANDEL_MCA_NUM_OVERFLOWS	8
 
 /* The following flags are used by the "PRESET" MCA parameter. */
 
@@ -54,7 +52,7 @@ typedef struct {
 	char mca_label[MXU_HANDEL_MCA_LABEL_LENGTH + 1];
 
 	double statistics[ MX_HANDEL_MCA_NUM_STATISTICS ];
-	char parameter_name[ MXU_HANDEL_MCA_PARAMETER_NAME_LENGTH + 1 ];
+	char parameter_name[ MXU_HANDEL_PARAMETER_NAME_LENGTH + 1 ];
 	unsigned long parameter_value;
 	unsigned long param_value_to_all_channels;
 
@@ -65,9 +63,9 @@ typedef struct {
 	double gain_calibration;
 
 	char acquisition_value_name
-		[ MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
+		[ MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
 	char old_acquisition_value_name
-		[ MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
+		[ MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
 
 	double acquisition_value;
 	double acquisition_value_to_all;
@@ -83,6 +81,7 @@ typedef struct {
 	unsigned long *baseline_history_array;
 
 	unsigned long show_parameters;
+	unsigned long show_acquisition_values;
 
 	mx_bool_type sca_has_been_initialized[ MX_HANDEL_MCA_MAX_SCAS ];
 
@@ -155,6 +154,7 @@ typedef struct {
 #define MXLV_HANDEL_MCA_BASELINE_HISTORY_LENGTH		2017
 #define MXLV_HANDEL_MCA_BASELINE_HISTORY_ARRAY		2018
 #define MXLV_HANDEL_MCA_SHOW_PARAMETERS			2019
+#define MXLV_HANDEL_MCA_SHOW_ACQUISITION_VALUES		2020
 
 #define MXD_HANDEL_MCA_STANDARD_FIELDS \
   {-1, -1, "handel_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -171,7 +171,7 @@ typedef struct {
 	{sizeof(double)}, NULL, 0}, \
   \
   {MXLV_HANDEL_MCA_PARAMETER_NAME, -1, "parameter_name", \
-		MXFT_STRING, NULL, 1, {MXU_HANDEL_MCA_PARAMETER_NAME_LENGTH}, \
+		MXFT_STRING, NULL, 1, {MXU_HANDEL_PARAMETER_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, parameter_name ), \
 	{sizeof(char)}, NULL, 0}, \
   \
@@ -208,7 +208,7 @@ typedef struct {
   \
   {MXLV_HANDEL_MCA_ACQUISITION_VALUE_NAME, -1, "acquisition_value_name", \
 			MXFT_STRING, NULL, 1, \
-			{MXU_HANDEL_MCA_ACQUISITION_VALUE_NAME_LENGTH}, \
+			{MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof( MX_HANDEL_MCA, acquisition_value_name ), \
 	{sizeof(char)}, NULL, 0}, \
@@ -264,6 +264,12 @@ typedef struct {
   {MXLV_HANDEL_MCA_SHOW_PARAMETERS, -1, "show_parameters", \
 			MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_HANDEL_MCA, show_parameters ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_MCA_SHOW_ACQUISITION_VALUES, -1, "show_acquisition_values", \
+			MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof( MX_HANDEL_MCA, show_acquisition_values ), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "detector_channel", MXFT_LONG, NULL, 0, {0}, \
@@ -384,6 +390,8 @@ MX_API mx_status_type mxd_handel_mca_get_adc_trace_array( MX_MCA *mca );
 MX_API mx_status_type mxd_handel_mca_get_baseline_history_array( MX_MCA *mca );
 
 MX_API mx_status_type mxd_handel_mca_show_parameters( MX_MCA *mca );
+
+MX_API mx_status_type mxd_handel_mca_show_acquisition_values( MX_MCA *mca );
 
 extern MX_RECORD_FUNCTION_LIST mxd_handel_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_handel_mca_mca_function_list;

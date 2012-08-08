@@ -29,6 +29,7 @@
 #include "mx_variable.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"
+#include "i_handel.h"
 #include "d_handel_mca.h"
 #include "d_handel_sum.h"
 

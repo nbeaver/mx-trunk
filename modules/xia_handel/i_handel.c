@@ -726,6 +726,8 @@ mxi_handel_open( MX_RECORD *record )
 			xia_status, mxi_handel_strerror( xia_status ) );
 		}
 
+		num_mcas = 0;
+
 		void_ptr = (void *) &num_mcas;
 
 		xia_status = xiaGetDetectorItem( detector_alias,
@@ -1248,6 +1250,8 @@ mxi_handel_special_processing_setup( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_HANDEL_CONFIG_FILENAME:
 		case MXLV_HANDEL_SAVE_FILENAME:
+		case MXLV_HANDEL_PARAMETER_NAME:
+		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
 			record_field->process_function
 					    = mxi_handel_process_function;
 			break;
@@ -1575,6 +1579,121 @@ mxi_handel_set_preset( MX_HANDEL *handel,
 
 /*-------------------------------------------------------------------------*/
 
+MX_EXPORT mx_status_type
+mxi_handel_show_parameter( MX_HANDEL *handel )
+{
+	static const char fname[] = "mxi_handel_show_parameter()";
+
+	MX_RECORD *mca_record;
+	MX_HANDEL_MCA *handel_mca;
+	unsigned long i;
+	unsigned short parameter_value;
+	int xia_status;
+	mx_status_type mx_status;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	mx_info( "-------------------------------------------------------" );
+	mx_info( "Parameter '%s' values:", handel->parameter_name );
+	mx_info( "" );
+
+	for ( i = 0; i < handel->num_mcas; i++ ) {
+		mca_record = handel->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL )
+			continue;
+
+		handel_mca = (MX_HANDEL_MCA *) mca_record->record_type_struct;
+
+		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL_MCA pointer for MCA '%s' is NULL.",
+				mca_record->name );
+		}
+
+		xia_status = xiaGetParameter( handel_mca->detector_channel,
+						handel->parameter_name,
+						&parameter_value );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot get the value of parameter '%s' for MCA '%s'.  "
+			"Error code = %d, '%s'",
+				handel->parameter_name,
+				mca_record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+
+		mx_info( "  '%s' = %hu", mca_record->name, parameter_value );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_handel_show_acquisition_value( MX_HANDEL *handel )
+{
+	static const char fname[] = "mxi_handel_show_acquisition_value()";
+
+	MX_RECORD *mca_record;
+	MX_HANDEL_MCA *handel_mca;
+	unsigned long i;
+	double acquisition_value;
+	int xia_status;
+	mx_status_type mx_status;
+
+	if ( handel == (MX_HANDEL *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_HANDEL pointer passed was NULL." );
+	}
+
+	mx_info( "-------------------------------------------------------" );
+	mx_info( "Parameter '%s' values:", handel->parameter_name );
+	mx_info( "" );
+
+	for ( i = 0; i < handel->num_mcas; i++ ) {
+		mca_record = handel->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL )
+			continue;
+
+		handel_mca = (MX_HANDEL_MCA *) mca_record->record_type_struct;
+
+		if ( handel_mca == (MX_HANDEL_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_HANDEL_MCA pointer for MCA '%s' is NULL.",
+				mca_record->name );
+		}
+
+		xia_status = xiaGetAcquisitionValues(
+					handel_mca->detector_channel,
+					handel->acquisition_value_name,
+					(void *) &acquisition_value );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+			"Cannot get acquisition value '%s' for MCA '%s'.  "
+			"Error code = %d, '%s'",
+				handel->parameter_name,
+				mca_record->name,
+				xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+
+		mx_info( "  '%s' = %g", mca_record->name, acquisition_value );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 const char *
 mxi_handel_strerror( int handel_status )
 {
@@ -1818,12 +1937,18 @@ mxi_handel_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_HANDEL_CONFIG_FILENAME:
-			mx_status = mxi_handel_load_new_config(handel);
+			mx_status = mxi_handel_load_new_config( handel );
 
 			break;
 		case MXLV_HANDEL_SAVE_FILENAME:
-			mx_status = mxi_handel_save_config(handel);
+			mx_status = mxi_handel_save_config( handel );
 
+			break;
+		case MXLV_HANDEL_PARAMETER_NAME:
+			mx_status = mxi_handel_show_parameter( handel );
+			break;
+		case MXLV_HANDEL_ACQUISITION_VALUE_NAME:
+			mx_status = mxi_handel_show_acquisition_value(handel);
 			break;
 		default:
 			MX_DEBUG( 1,(

@@ -23,6 +23,11 @@
 
 #define MX_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET	(-2)
 
+#define MXU_HANDEL_PARAMETER_NAME_LENGTH		80
+#define MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH	80
+
+#define MXU_HANDEL_MCA_LABEL_LENGTH			120
+
 /* The following flags are used by the 'handel_flags' field. */
 
 #define MXF_HANDEL_IGNORE_HARDWARE_SCAS			0x1
@@ -52,6 +57,9 @@ typedef struct {
 	char log_filename[ MXU_FILENAME_LENGTH + 1 ];
 
 	char save_filename[ MXU_FILENAME_LENGTH + 1 ];
+
+	char parameter_name[MXU_HANDEL_PARAMETER_NAME_LENGTH+1];
+	char acquisition_value_name[MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH+1];
 
 	long num_active_detector_channels;
 	long *active_detector_channel_array;
@@ -84,6 +92,8 @@ typedef struct {
 
 #define MXLV_HANDEL_CONFIG_FILENAME		2001
 #define MXLV_HANDEL_SAVE_FILENAME		2002
+#define MXLV_HANDEL_PARAMETER_NAME		2003
+#define MXLV_HANDEL_ACQUISITION_VALUE_NAME	2004
 
 #define MXI_HANDEL_STANDARD_FIELDS \
   {-1, -1, "handel_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -106,6 +116,16 @@ typedef struct {
   {MXLV_HANDEL_SAVE_FILENAME, -1, "save_filename", \
 				MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, save_filename), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_PARAMETER_NAME, -1, "parameter_name", \
+		MXFT_STRING, NULL, 1, {MXU_HANDEL_PARAMETER_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, parameter_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_HANDEL_ACQUISITION_VALUE_NAME, -1, "acquisition_value_name", \
+	    MXFT_STRING, NULL, 1, {MXU_HANDEL_ACQUISITION_VALUE_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_HANDEL, acquisition_value_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "num_active_detector_channels", MXFT_LONG, NULL, 0, {0}, \
@@ -192,6 +212,12 @@ MX_API mx_status_type mxi_handel_is_busy( MX_HANDEL *handel,
 MX_API mx_status_type mxi_handel_set_preset( MX_HANDEL *handel,
 					double preset_type,
 					double preset_value );
+
+/*------*/
+
+MX_API mx_status_type mxi_handel_show_parameter( MX_HANDEL *handel );
+
+MX_API mx_status_type mxi_handel_show_acquisition_value( MX_HANDEL *handel );
 
 /*------*/
 

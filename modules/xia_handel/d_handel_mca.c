@@ -18,7 +18,7 @@
 
 #define MXD_HANDEL_MCA_DEBUG			FALSE
 
-#define MXD_HANDEL_MCA_DEBUG_STATISTICS		TRUE
+#define MXD_HANDEL_MCA_DEBUG_STATISTICS		FALSE
 
 #define MXD_HANDEL_MCA_DEBUG_TIMING		FALSE
 
@@ -82,7 +82,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_handel_mca_record_field_defaults[] = {
 	MXD_HANDEL_MCA_STANDARD_FIELDS
 };
 
-#if MX_HANDEL_MCA_DEBUG_STATISTICS
+#if MXD_HANDEL_MCA_DEBUG_STATISTICS
 #   define HANDEL_MCA_DEBUG_STATISTICS(x) \
 	MX_DEBUG(-2,("%s: MCA '%s', new_statistics_available = %d", \
 		fname, (x)->record->name, (x)->new_statistics_available));
@@ -1071,6 +1071,7 @@ mxd_handel_mca_special_processing_setup( MX_RECORD *record )
 		case MXLV_HANDEL_MCA_PARAMETER_VALUE:
 		case MXLV_HANDEL_MCA_PARAM_VALUE_TO_ALL_CHANNELS:
 		case MXLV_HANDEL_MCA_SHOW_PARAMETERS:
+		case MXLV_HANDEL_MCA_SHOW_ACQUISITION_VALUES:
 		case MXLV_HANDEL_MCA_STATISTICS:
 			record_field->process_function
 					    = mxd_handel_mca_process_function;
@@ -2303,9 +2304,6 @@ mxd_handel_mca_read_statistics( MX_MCA *mca )
 
 	HANDEL_MCA_DEBUG_STATISTICS( handel_mca );
 
-#if MXD_HANDEL_DEBUG_STATISTICS
-	MX_DEBUG(-2,("%s: read_statistics = %d", fname, read_statistics));
-#endif
 	if ( read_statistics == FALSE ) {
 
 		/* Return now if we will be returning cached values. */
@@ -2332,9 +2330,6 @@ mxd_handel_mca_read_statistics( MX_MCA *mca )
 
 	if ( strcmp( handel_mca->module_type, "xmap" ) == 0 ) {
 		channel_offset = handel_mca->detector_channel % 4;
-
-		MX_DEBUG(-2,("%s: detector_channel = %ld, channel_offset = %ld",
-			fname, handel_mca->detector_channel, channel_offset));
 
 		mca->real_time = module_statistics[ channel_offset + 0 ];
 		mca->live_time = module_statistics[ channel_offset + 1 ];
@@ -2369,17 +2364,26 @@ mxd_handel_mca_read_statistics( MX_MCA *mca )
 			mca->record->name );
 	}
 
+#if MXD_HANDEL_MCA_DEBUG_STATISTICS
+	if ( 1 ) {
+#else
 	if ( handel_mca->debug_flag ) {
+#endif
 		MX_DEBUG(-2,(
-	"%s: Record '%s', channel %ld, live_time = %g, real_time = %g, "
-	"icr = %g, ocr = %g, nevent = %lu", fname,
+	"%s: Record '%s', channel %ld, real_time = %g, live_time = %g, "
+	"e_live_time = %g, #trig = %lu, #event = %lu, "
+	"icr = %g, ocr = %g, #under = %lu, #over = %lu", fname,
 			mca->record->name,
 			handel_mca->detector_channel,
-			mca->live_time,
 			mca->real_time,
+			mca->live_time,
+			handel_mca->energy_live_time,
+			handel_mca->num_triggers,
+			handel_mca->num_events,
 			handel_mca->input_count_rate,
 			handel_mca->output_count_rate,
-			handel_mca->num_events ));
+			handel_mca->num_underflows,
+			handel_mca->num_overflows));
 	}
 
 	if ( mca->busy == FALSE ) {
@@ -3271,6 +3275,8 @@ mxp_string_sort( const void *ptr1, const void *ptr2 )
 
 #define MXP_HANDEL_PARAMETER_NAME_LENGTH	40
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mxd_handel_mca_show_parameters( MX_MCA *mca )
 {
@@ -3397,6 +3403,85 @@ mxd_handel_mca_show_parameters( MX_MCA *mca )
 
 /*-------------------------------------------------------------------------*/
 
+#define MXP_ACQ_VALUE_NAME_LENGTH	40
+
+/* Note: The following list was created on August 9, 2012 for the DXP-XMAP. */
+
+static char acquisition_value_name_array[][MXP_ACQ_VALUE_NAME_LENGTH+1] =
+{
+	"adc_percent_rule",
+	"baseline_average",
+	"baseline_threshold",
+	"calibration_energy",
+	"detector_polarity",
+	"dynamic_range",
+	"energy_threshold",
+	"gap_time",
+	"maxwidth",
+	"mca_bin_width",
+	"minimum_gap_time",
+	"number_mca_channels",
+	"number_of_scas",
+	"peaking_time",
+	"preamp_gain",
+	"preset_type",
+	"preset_value",
+	"reset_delay",
+	"trigger_gap_time",
+	"trigger_peaking_time",
+	"trigger_threshold",
+};
+
+static unsigned long num_acquisition_value_names
+	= sizeof(acquisition_value_name_array)
+	/ sizeof(acquisition_value_name_array[0]);
+
+MX_EXPORT mx_status_type
+mxd_handel_mca_show_acquisition_values( MX_MCA *mca )
+{
+	static const char fname[] = "mxd_handel_mca_show_acquisition_values()";
+
+	MX_HANDEL_MCA *handel_mca = NULL;
+	MX_HANDEL *handel = NULL;
+	unsigned long i;
+	double acquisition_value;
+	int xia_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_handel_mca_get_pointers( mca,
+					&handel_mca, &handel, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_info( "-------------------------------------------------------" );
+	mx_info( "Acquisition values for MCA '%s'   (%lu parameters)",
+		mca->record->name, num_acquisition_value_names );
+	mx_info( "" );
+
+	for ( i = 0; i < num_acquisition_value_names; i++ ) {
+		xia_status = xiaGetAcquisitionValues(
+				handel_mca->detector_channel,
+				acquisition_value_name_array[i],
+				(void *) &acquisition_value );
+
+		if ( xia_status != XIA_SUCCESS ) {
+			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
+		    "Cannot read the acquisition value '%s' from MCA '%s'.  "
+		    "Error code = %d, '%s'", acquisition_value_name_array[i],
+				mca->record->name, xia_status,
+				mxi_handel_strerror( xia_status ) );
+		}
+
+		mx_info( "%-20s = %g", acquisition_value_name_array[i],
+					acquisition_value );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #ifndef MX_PROCESS_GET
 
 #define MX_PROCESS_GET	1
@@ -3462,14 +3547,26 @@ mxd_handel_mca_process_function( void *record_ptr,
 			handel_mca->statistics[ MX_HANDEL_MCA_LIVE_TIME ]
 						= mca->live_time;
 
+			handel_mca->statistics[ MX_HANDEL_MCA_ENERGY_LIVE_TIME ]
+						= handel_mca->energy_live_time;
+
+			handel_mca->statistics[ MX_HANDEL_MCA_NUM_TRIGGERS ]
+					= (double) handel_mca->num_triggers;
+
+			handel_mca->statistics[ MX_HANDEL_MCA_NUM_EVENTS ]
+					= (double) handel_mca->num_events;
+
 			handel_mca->statistics[ MX_HANDEL_MCA_INPUT_COUNT_RATE ]
 						= handel_mca->input_count_rate;
 
 			handel_mca->statistics[ MX_HANDEL_MCA_OUTPUT_COUNT_RATE]
 					= handel_mca->output_count_rate;
 
-			handel_mca->statistics[ MX_HANDEL_MCA_NUM_EVENTS ]
-					= (double) handel_mca->num_events;
+			handel_mca->statistics[ MX_HANDEL_MCA_NUM_UNDERFLOWS ]
+					= (double) handel_mca->num_underflows;
+
+			handel_mca->statistics[ MX_HANDEL_MCA_NUM_OVERFLOWS ]
+					= (double) handel_mca->num_overflows;
 
 			break;
 		case MXLV_HANDEL_MCA_BASELINE_ARRAY:
@@ -3593,6 +3690,11 @@ mxd_handel_mca_process_function( void *record_ptr,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value),
 					FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxd_handel_mca_apply( mca );
 			break;
 		case MXLV_HANDEL_MCA_ACQUISITION_VALUE_TO_ALL:
 
@@ -3608,6 +3710,11 @@ mxd_handel_mca_process_function( void *record_ptr,
 					handel_mca->acquisition_value_name,
 					&(handel_mca->acquisition_value),
 					FALSE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxi_handel_apply_to_all_channels( handel );
 			break;
 		case MXLV_HANDEL_MCA_APPLY:
 
@@ -3631,6 +3738,15 @@ mxd_handel_mca_process_function( void *record_ptr,
  				fname, mca->record->name));
 #endif
 			mx_status = mxd_handel_mca_show_parameters( mca );
+			break;
+		case MXLV_HANDEL_MCA_SHOW_ACQUISITION_VALUES:
+
+#if MXD_HANDEL_MCA_DEBUG
+			MX_DEBUG(-2,
+			("%s: show all acquisition values for mca '%s'.",
+ 				fname, mca->record->name));
+#endif
+			mx_status = mxd_handel_mca_show_acquisition_values(mca);
 			break;
 		default:
 			MX_DEBUG( 1,(
