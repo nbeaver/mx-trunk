@@ -18,7 +18,7 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			FALSE
+#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232_DELAY			FALSE
 
@@ -33,6 +33,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_inttypes.h"
 #include "mx_hrt.h"
 #include "mx_ascii.h"
 #include "mx_motor.h"
@@ -240,7 +241,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Discard any extraneous characters in the serial port buffers. */
+	/* Discard any leftover garbage characters in the serial port buffers.*/
 
 	mx_status = mx_rs232_discard_unwritten_output( serial_port_record,
 					MXD_RADICON_TAURUS_DEBUG_RS232 );
@@ -295,7 +296,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		if ( num_bytes_available <= 1 ) {
 			if ( response_seen == FALSE ) {
 				return mx_error( MXE_NOT_READY, fname,
-				"Area detector '%s' did not respond to a 'GCP' "
+				"Area detector '%s' did not respond to a 'gcp' "
 				"command.  Perhaps the detector is turned off?",
 					record->name );
 			}
@@ -400,14 +401,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 			return mx_status;
 	}
 
-	/*--- Initialize the detector by putting it into free-run mode. ---*/
-
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "sro 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Do this firmware have the getxxx commands for reading back
 	 * the sro, si1, and si2 settings?
 	 */
@@ -417,6 +410,15 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	} else {
 		radicon_taurus->have_get_commands = FALSE;
 	}
+
+	/*--- Initialize the detector by putting it into free-run mode. ---*/
+
+	radicon_taurus->sro_mode = 4;
+
+	mx_status = mxd_radicon_taurus_set_sro( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*---*/
 
@@ -454,22 +456,23 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/* Compute and set the linetime. */
 
-	if ( radicon_taurus->firmware_version >= 105 ) {
-		radicon_taurus->linetime = 677;
-	} else {
+	if ( radicon_taurus->firmware_version < 105 ) {
 		radicon_taurus->linetime = 946;
+	} else {
+		/* 677 gives us a 30 Hz frame rate. */
+
+		radicon_taurus->linetime = 677;
+
+		snprintf( command, sizeof(command),
+			"linetime %lu", radicon_taurus->linetime );
+
+		mx_status = mxd_radicon_taurus_command( radicon_taurus,
+					command, NULL, 0,
+					MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
-
-#if 0
-	snprintf( command, sizeof(command),
-		"linetime %lu", radicon_taurus->linetime );
-
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#endif
 
 	/* Compute the readout time from the linetime and the framesize. */
 
@@ -480,13 +483,28 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/*---*/
 
-	radicon_taurus->sro_mode = -1;
-
-	radicon_taurus->si1_register = 4;
-	radicon_taurus->si2_register = 4;
 	radicon_taurus->si1_si2_ratio = 0.1;
 
 	radicon_taurus->use_different_si2_value = FALSE;
+
+	/* Seed the registers with the minimum legal values. */
+
+	radicon_taurus->si1_register = 4;
+	radicon_taurus->si2_register = 4;
+
+	/* If possible, fetch the current settings from the real registers. */
+
+	mx_status = mxd_radicon_taurus_get_si1( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_radicon_taurus_get_si2( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
 
 	radicon_taurus->bypass_arm = FALSE;
 
@@ -643,8 +661,9 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 #endif
 	/* Putting the detector back into free-run mode will reset it. */
 
-	mx_status = mxd_radicon_taurus_command( radicon_taurus, "sro 4",
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+	radicon_taurus->sro_mode = 4;
+
+	mx_status = mxd_radicon_taurus_set_sro( ad );
 
 	return mx_status;
 }
@@ -698,7 +717,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	double long_exposure_time_as_double;
 	double short_exposure_time_as_double;
 	uint64_t si1_register, si2_register;
-	unsigned long low_order, middle_order, high_order;
 	char command[80];
 	mx_bool_type set_exposure_times, use_external_trigger;
 	mx_bool_type use_different_si2_value;
@@ -856,12 +874,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		}
 
 		if ( radicon_taurus->sro_mode != old_sro_mode ) {
-			snprintf( command, sizeof(command), "sro %lu",
-				radicon_taurus->sro_mode );
 
-			mx_status = mxd_radicon_taurus_command(
-				radicon_taurus, command,
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+			mx_status = mxd_radicon_taurus_set_sro( ad );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -920,16 +934,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		radicon_taurus->si1_register = si1_register;
 
-		low_order    = si1_register & 0xffff;
-		middle_order = (si1_register >> 16) & 0xffff;
-		high_order   = (si1_register >> 32) & 0xf;
-
-		snprintf( command, sizeof(command),
-			"si1 %lu %lu %lu",
-			high_order, middle_order, low_order );
-
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
+		mx_status = mxd_radicon_taurus_set_si1( ad );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -938,16 +943,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		radicon_taurus->si2_register = si2_register;
 
-		low_order    = si2_register & 0xffff;
-		middle_order = (si2_register >> 16) & 0xffff;
-		high_order   = (si2_register >> 32) & 0xf;
+		mx_status = mxd_radicon_taurus_set_si2( ad );
 
-		snprintf( command, sizeof(command),
-			"si2 %lu %lu %lu",
-			high_order, middle_order, low_order );
-
-		mx_status = mxd_radicon_taurus_command( radicon_taurus, command,
-				NULL, 0, MXD_RADICON_TAURUS_DEBUG_RS232 );
 		break;
 
 	case MXT_RADICON_XINEOS:
@@ -1676,15 +1673,9 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad, long si_type )
 
 	for ( i = 0; i < 3; i++ ) {
 
-#if 0
-		mx_status = mx_rs232_getline( serial_port_record,
-					response, sizeof(response), NULL,
-					MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI );
-#else
 		mx_status = mxd_radicon_taurus_command( radicon_taurus, NULL,
 					response, sizeof(response),
 					MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI );
-#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1731,6 +1722,11 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad, long si_type )
 		break;
 	}
 
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI
+	MX_DEBUG(-2,("%s: SI value read = %" PRIu64,
+		fname, new_si_value));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1756,6 +1752,7 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad, long si_type )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
 	switch( si_type ) {
 	case MXLV_RADICON_TAURUS_SI1:
 		new_si_value = radicon_taurus->si1_register;
@@ -1768,6 +1765,11 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad, long si_type )
 		"Invoked with illegal si_type value %ld", si_type );
 		break;
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI
+	MX_DEBUG(-2,("%s: New SI value = %" PRIu64,
+		fname, new_si_value));
+#endif
 
 	/*---*/
 
