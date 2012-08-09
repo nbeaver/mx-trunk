@@ -21,7 +21,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *serial_port_record;
+	MX_RECORD *radicon_taurus_record;
 } MX_RADICON_TAURUS_RS232;
 
 /* Define all of the interface functions. */
@@ -62,9 +62,9 @@ extern long mxi_radicon_taurus_rs232_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_radicon_taurus_rs232_rfield_def_ptr;
 
 #define MXI_RADICON_TAURUS_RS232_STANDARD_FIELDS \
-  {-1, -1, "serial_port_record", MXFT_RECORD, NULL, 0, {0}, \
+  {-1, -1, "radicon_taurus_record", MXFT_RECORD, NULL, 0, {0}, \
       MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_RADICON_TAURUS_RS232, serial_port_record), \
+		offsetof(MX_RADICON_TAURUS_RS232, radicon_taurus_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __I_RADICON_TAURUS_RS232_H__ */

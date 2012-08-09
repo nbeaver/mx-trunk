@@ -24,7 +24,10 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_ascii.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_rs232.h"
+#include "d_radicon_taurus.h"
 #include "i_radicon_taurus_rs232.h"
 
 MX_RECORD_FUNCTION_LIST mxi_radicon_taurus_rs232_record_function_list = {
@@ -65,12 +68,15 @@ MX_RECORD_FIELD_DEFAULTS *mxi_radicon_taurus_rs232_rfield_def_ptr
 static mx_status_type
 mxi_radicon_taurus_rs232_get_pointers( MX_RS232 *rs232,
 			MX_RADICON_TAURUS_RS232 **radicon_taurus_rs232,
+			MX_RADICON_TAURUS **radicon_taurus,
+			MX_RECORD **serial_port_record,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxi_radicon_taurus_rs232_get_pointers()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232_ptr;
-	MX_RECORD *xclib_record;
+	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232_ptr = NULL;
+	MX_RECORD *radicon_taurus_record = NULL;
+	MX_RADICON_TAURUS *radicon_taurus_ptr = NULL;
 
 	if ( rs232 == (MX_RS232 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -89,6 +95,41 @@ mxi_radicon_taurus_rs232_get_pointers( MX_RS232 *rs232,
 
 	if ( radicon_taurus_rs232 != (MX_RADICON_TAURUS_RS232 **) NULL ) {
 		*radicon_taurus_rs232 = radicon_taurus_rs232_ptr;
+	}
+
+	radicon_taurus_record = radicon_taurus_rs232_ptr->radicon_taurus_record;
+
+	if ( radicon_taurus_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The radicon_taurus_record pointer for "
+		"RS232 record '%s' is NULL.", rs232->record->name );
+	}
+
+	radicon_taurus_ptr =
+		(MX_RADICON_TAURUS *) radicon_taurus_record->record_type_struct;
+
+	if ( radicon_taurus_ptr == (MX_RADICON_TAURUS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RADICON_TAURUS pointer for record '%s' "
+		"used by RS232 record '%s' is NULL.",
+			radicon_taurus_record->name,
+			rs232->record->name );
+	}
+
+	if ( radicon_taurus != (MX_RADICON_TAURUS **) NULL ) {
+		*radicon_taurus = radicon_taurus_ptr;
+	}
+
+	if ( serial_port_record != (MX_RECORD **) NULL ) {
+		*serial_port_record = radicon_taurus_ptr->serial_port_record;
+
+		if ( (*serial_port_record) == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The serial_port_record pointer for area detector '%s' "
+			"used by RS232 record '%s' is NULL.",
+				radicon_taurus_record->name,
+				rs232->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -172,10 +213,7 @@ mxi_radicon_taurus_rs232_open( MX_RECORD *record )
 	static const char fname[] = "mxi_radicon_taurus_rs232_open()";
 
 	MX_RS232 *rs232;
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232;
 	mx_status_type mx_status;
-
-	radicon_taurus_rs232 = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -189,10 +227,15 @@ mxi_radicon_taurus_rs232_open( MX_RECORD *record )
 	rs232 = (MX_RS232 *) record->record_class_struct;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+						NULL, NULL, NULL, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Remove any terminator characters specified in the database file. */
+
+	rs232->read_terminator_array[0] = '\0';
+	rs232->write_terminator_array[0] = '\0';
 
 	mx_status = mx_rs232_convert_terminator_characters( record );
 
@@ -207,16 +250,16 @@ mxi_radicon_taurus_rs232_getchar( MX_RS232 *rs232, char *c )
 {
 	static const char fname[] = "mxi_radicon_taurus_rs232_getchar()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232;
+	MX_RECORD *serial_port_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+					NULL, NULL, &serial_port_record, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_rs232_getchar( radicon_taurus_rs232->serial_port_record,
+	mx_status = mx_rs232_getchar( serial_port_record,
 					c, MXI_RADICON_TAURUS_RS232_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -235,11 +278,11 @@ mxi_radicon_taurus_rs232_putchar( MX_RS232 *rs232, char c )
 {
 	static const char fname[] = "mxi_radicon_taurus_rs232_putchar()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232;
+	MX_RECORD *serial_port_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+					NULL, NULL, &serial_port_record, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -249,7 +292,7 @@ mxi_radicon_taurus_rs232_putchar( MX_RS232 *rs232, char c )
 		fname, c, c, rs232->record->name));
 #endif
 
-	mx_status = mx_rs232_putchar( radicon_taurus_rs232->serial_port_record,
+	mx_status = mx_rs232_putchar( serial_port_record,
 					c, MXI_RADICON_TAURUS_RS232_DEBUG );
 
 	return mx_status;
@@ -263,85 +306,27 @@ mxi_radicon_taurus_rs232_getline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_radicon_taurus_rs232_getline()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232;
-	unsigned long num_bytes_available;
-	char c;
-	size_t bytes_to_delete;
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+					NULL, &radicon_taurus, NULL, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_rs232_getline( radicon_taurus_rs232->serial_port_record,
-				buffer, max_bytes_to_read, bytes_read,
-				MXI_RADICON_TAURUS_RS232_DEBUG );
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, NULL,
+					buffer, max_bytes_to_read,
+					MXI_RADICON_TAURUS_RS232_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	{
-		size_t i;
-
-		for ( i = 0; i < max_bytes_to_read; i++ ) {
-			MX_DEBUG(-2,("%s: buffer[%lu] = '%c' (%#x)",
-			fname, (unsigned long) i, buffer[i], buffer[i]));
-
-			if ( buffer[i] == '\0' )
-				break;
-		}
-	}
-#endif
-	/* If the first character read is the prompt character '>', then we
-	 * must delete that byte from the buffer.  If the second character
-	 * is a line feed (LF) character, then we must delete that too.
-	 */
-
-	if ( buffer[0] == '>' ) {
-		bytes_to_delete = 1;
-
-		if ( buffer[1] == MX_LF ) {
-			bytes_to_delete++;
-		}
-
-		memmove( buffer, buffer + bytes_to_delete,
-				max_bytes_to_read - bytes_to_delete );
+	if ( bytes_read != (size_t *) NULL ) {
+		*bytes_read = strlen( buffer ) + 1;
 	}
 
-	/* Is there a single remaining byte in the input buffer?  If so,
-	 * then this is probably a '>' character that is used as a prompt
-	 * by the Radicon Taurus command interpreter.  In that case, we
-	 * must read that single extra byte and throw it away.
-	 */
-
-	mx_status = mx_rs232_num_input_bytes_available(
-				radicon_taurus_rs232->serial_port_record,
-				&num_bytes_available );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( num_bytes_available == 1 ) {
-		mx_status = mx_rs232_getchar( 
-				radicon_taurus_rs232->serial_port_record,
-				&c, MXI_RADICON_TAURUS_RS232_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( c != '>' ) {
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Serial port '%s' had a single input byte available "
-			"that was not a '>' character.  Instead, it was "
-			"a '%c' (%#x) character.",
-				rs232->record->name, c, c );
-		}
-	}
-
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -351,20 +336,27 @@ mxi_radicon_taurus_rs232_putline( MX_RS232 *rs232,
 {
 	static const char fname[] = "mxi_radicon_taurus_rs232_putline()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232;
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+					NULL, &radicon_taurus, NULL, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_rs232_putline( radicon_taurus_rs232->serial_port_record,
-				buffer, bytes_written,
-				MXI_RADICON_TAURUS_RS232_DEBUG );
+	mx_status = mxd_radicon_taurus_command( radicon_taurus, buffer,
+					NULL, 0,
+					MXI_RADICON_TAURUS_RS232_DEBUG );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_written != (size_t *) NULL ) {
+		*bytes_written = strlen( buffer ) + 1;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -373,7 +365,7 @@ mxi_radicon_taurus_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	static const char fname[] =
 		"mxi_radicon_taurus_rs232_num_input_bytes_available()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232 = NULL;
+	MX_RECORD *serial_port_record = NULL;
 	mx_status_type mx_status;
 
 #if MXI_RADICON_TAURUS_RS232_DEBUG
@@ -382,16 +374,15 @@ mxi_radicon_taurus_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 #endif
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-						&radicon_taurus_rs232, fname);
+					NULL, NULL, &serial_port_record, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* How many bytes can be read without blocking? */
 
-	mx_status = mx_rs232_num_input_bytes_available(
-				radicon_taurus_rs232->serial_port_record,
-				&(rs232->num_input_bytes_available) );
+	mx_status = mx_rs232_num_input_bytes_available( serial_port_record,
+					&(rs232->num_input_bytes_available) );
 
 #if MXI_RADICON_TAURUS_RS232_DEBUG
 	fprintf( stderr, "*%ld*", (long) rs232->num_input_bytes_available );
@@ -405,18 +396,17 @@ mxi_radicon_taurus_rs232_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] =
 			"mxi_radicon_taurus_rs232_discard_unread_input()";
 
-	MX_RADICON_TAURUS_RS232 *radicon_taurus_rs232 = NULL;
+	MX_RECORD *serial_port_record = NULL;
 	mx_status_type mx_status;
 
 	mx_status = mxi_radicon_taurus_rs232_get_pointers( rs232,
-					&radicon_taurus_rs232, fname);
+					NULL, NULL, &serial_port_record, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_rs232_discard_unread_input(
-				radicon_taurus_rs232->serial_port_record,
-				MXI_RADICON_TAURUS_RS232_DEBUG );
+	mx_status = mx_rs232_discard_unread_input( serial_port_record,
+					MXI_RADICON_TAURUS_RS232_DEBUG );
 
 	return mx_status;
 }
