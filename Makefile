@@ -43,6 +43,17 @@
 #
 # More detailed instructions may be found in the file "mx/README.install".
 #
+# Some platform specific instructions and configuration variables can be
+# found in the mx/libMx/Makehead.$(MX_ARCH) file, where MX_ARCH is the
+# variable that you set below.
+#
+# Optional dynamically loaded MX modules are found in the mx/modules
+# directory tree.  You select the modules to compile by editing the file
+# mx/modules/Makefile.  The individual modules are configured by editing
+# the makefiles named mx/module/*/Makefile.  If you are using it, the
+# 'epics' module is a special case and requires some configuration in
+# mx/module/epics/Makefile.config.
+#
 
 MX_ARCH = win32
 
