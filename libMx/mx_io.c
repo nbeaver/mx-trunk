@@ -261,7 +261,8 @@ mx_get_number_of_open_file_descriptors( void )
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
+#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_HURD)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -1258,7 +1259,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 /*-------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined(OS_HURD)
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
@@ -2337,12 +2338,13 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX) || defined(OS_SOLARIS)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD)
 
 /*
  * This is a generic stat()-based implementation that requires polling.
  * It is used for the following platforms:
  *
+ *   Gnu Hurd
  *   Linux with Glibc 2.3.5 and before.
  *   Solaris 9 and before.
  */
@@ -2359,7 +2361,6 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 	static const char fname[] = "mx_create_file_monitor()";
 
 	MXP_STAT_MONITOR *stat_monitor;
-	unsigned long flags;
 	int os_status, saved_errno;
 
 	if ( monitor_ptr == (MX_FILE_MONITOR **) NULL ) {
