@@ -1,89 +1,98 @@
-beamline_name                    variable inline string "" "" 1  20 "APS Sector 17-ID"
-ring_energy                      variable inline double "" "" 1  1  7
-edge_energy                      variable inline double "" "" 1  1  8980
-d_spacing                        variable inline double "" "" 1  1  3.13555
-xoffset                          variable inline double "" "" 1  1  10
-scan_early_move                  variable inline ulong  "" "" 1  1  1
-xafs_header1                     variable inline string "" "" 1  81 "WML test XAFS scan"
-xafs_header2                     variable inline string "" "" 1  81 "Cu edge data"
-xafs_header3                     variable inline string "" "" 1  81 "Test line 3."
-sff_header1                      variable inline string "" "" 1  81 "Edge scan test"
-sff_header_fmt                   variable inline string "" "" 1  321 "beamline_name %date | edge_energy %scan.step_size %scan.name | sff_header1 | %motors %x_motors %inputs"
-sff_mca_fmt                      variable inline string "" "" 1  321 "beamline_name %date | edge_energy %scan.step_size %scan.name | sff_header1 | %motors %x_motors %inputs"
-##mx_log                           variable inline string "" "" 1  81 "file motortst.log"
+beamline_name   variable inline string "" "" 1  20 "APS Sector 17-ID"
+ring_energy     variable inline double "" "" 1  1  7
+edge_energy     variable inline double "" "" 1  1  8980
+d_spacing       variable inline double "" "" 1  1  3.13555
+xoffset         variable inline double "" "" 1  1  10
+scan_early_move variable inline ulong  "" "" 1  1  1
+xafs_header1    variable inline string "" "" 1  81 "WML test XAFS scan"
+xafs_header2    variable inline string "" "" 1  81 "Cu edge data"
+xafs_header3    variable inline string "" "" 1  81 "Test line 3."
+sff_header1     variable inline string "" "" 1  81 "Edge scan test"
+sff_header_fmt  variable inline string "" "" 1  321 "beamline_name %date | edge_energy %scan.step_size %scan.name | sff_header1 | %motors %x_motors %inputs"
+sff_mca_fmt     variable inline string "" "" 1  321 "beamline_name %date | edge_energy %scan.step_size %scan.name | sff_header1 | %motors %x_motors %inputs"
+##mx_log        variable inline string "" "" 1  81 "file motortst.log"
 debug_2d                         variable inline double "" "" 2  3 4  11 12 13 14 21 22 23 24 31 32 33 34
-debug_3d                         variable inline long "" "" 3  2 3 4  111 112 113 114 121 122 123 124 131 132 133 134 211 212 213 214 221 222 223 224 231 232 233 234
-debug_2d_str                     variable inline string "" "" 2  3 20  ABC DEF GHI
-debug_3d_str                     variable inline string "" "" 3  2 3 20  AAA BBB CCC aaa bbb ccc
-amplifier_list                   variable inline string "" "" 2  5 17  keithley1 keithley2 keithley3 keithley4 keithley5
-keithley1                        device amplifier soft_amplifier "" "" 10000000 0 0
-keithley2                        device amplifier soft_amplifier "" "" 100000000 0 0
-keithley3                        device amplifier soft_amplifier "" "" 100000000 0 0
-keithley4                        device amplifier soft_amplifier "" "" 1000000000 0 0
-keithley5                        device amplifier soft_amplifier "" "" 1000000000 0 0
-tty1                             interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0
-omega                            device motor soft_motor "" "" 500000 0 -20000000 20000000 0 -1 -1 0.0001 0 um 10000 0 5000
-theta                            device motor soft_motor "" "" 260048 0 -20000000 20000000 0 -1 -1 5e-05 0 deg 20000 0 10000
-2theta                           device motor soft_motor "" "" 12000 0 -200000 200000 0 -1 -1 0.005 0 deg 200 0 100
-energy                           device motor energy_motor "" "" 8787.5084 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
-lambda                           device motor wavelength_motor "" "" 1.4109233 0 0 1e+08 0 -1 -1 1 0 A theta d_spacing 0.01745329251994330
-wavenumber                       device motor wavenumber_motor "" "" 4.4532438 0 0 1e+08 0 -1 -1 1 0 A-1 theta d_spacing 0.01745329251994330
-k                                device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
-e_minus_e0                       device motor delta_motor "" "" -192.49164 0 -1e+08 1e+08 0 -1 -1 1 0 eV energy edge_energy
-time                             device motor elapsed_time "" "" 7072612.3 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 1832575.8
-z1                               device motor soft_motor "" "" 1750 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
-z2                               device motor soft_motor "" "" 2050 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
-z3                               device motor soft_motor "" "" 1650 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
-z_avg                            device motor translation_mtr "" "" 10.666667 0 -100000 100000 0 -1 -1 1 0 mm 0x1 3  z1 z2 z3
-z23                              device motor translation_mtr "" "" 18.5 0 -100000 100000 0 -1 -1 1 0 mm 0x1 2  z2 z3
-z_height1                        device motor linear_function "" "" 9.8125 0 -100000 100000 0 -1 -1 1 0 mm  0 2  z1 z23  0.25 0.75  0 0  0.25 0.75
-z_height2                        device motor linear_function "" "" 9.8125 0 -100000 100000 0 -1 -1 1 0 mm  0 3  z1 z2 z3  0.25 0.375 0.375  0 0 0  0.25 0.375 0.375
-z_pitch1                         device motor linear_function "" "" -10.25 0 -100000 100000 0 -1 -1 1 0 mm  0 2  z1 z23  -1 1  0 0  0.5 0.5
-z_pitch2                         device motor linear_function "" "" -10.25 0 -100000 100000 0 -1 -1 1 0 mm  0 3  z1 z2 z3  -1 0.5 0.5  0 0 0  0.5 0.25 0.25
-dz1                              device motor delta_motor "" "" 6.8333333 0 -100 100 0 -1 -1 1 0 mm z1 z_avg
-dz2                              device motor delta_motor "" "" -1.4166667 0 -100 100 0 -1 -1 1 0 mm z2 z_avg
-dz3                              device motor delta_motor "" "" -5.4166667 0 -100 100 0 -1 -1 1 0 mm z3 z_avg
-dz1000                           device motor delta_motor "" "" 6.8333333 0 -50 50 0 -1 -1 1000 0 um z1 z_avg
-x1                               device motor soft_motor "" "" 500 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
-x2                               device motor soft_motor "" "" -500 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
-rotation                         device motor linear_function "" "" 20 0 -500000 500000 0 -1 -1 1 0 mm  0 3  x1 x2 xoffset  1 -1 1  0 0 0  0.5 0.5 0
-translation                      device motor linear_function "" "" 0 0 -500000 500000 0 -1 -1 1 0 mm  0 2  x1 x2  1 1  0 0  0.5 0.5
-hslit_in                         device motor soft_motor "" "" -3200 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
-hslit_out                        device motor soft_motor "" "" 800 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
-vslit_top                        device motor soft_motor "" "" 5400 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
-vslit_bottom                     device motor soft_motor "" "" -20 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
-hslit_center                     device motor slit_motor "" "" -6 0 -200 200 0 -1 -1 1 0 mm 0x1 1 hslit_in hslit_out
-hslit_width                      device motor slit_motor "" "" 20 0 -200 200 0 -1 -1 1 0 mm 0x1 2 hslit_in hslit_out
-vslit_center                     device motor slit_motor "" "" 13.45 0 -200 200 0 -1 -1 1 0 mm 0x1 1 vslit_bottom vslit_top
-vslit_width                      device motor slit_motor "" "" 27.1 0 -200 200 0 -1 -1 1 0 mm 0x1 2 vslit_bottom vslit_top
-hdelta                           device motor soft_motor "" "" 700 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-htheta                           device motor soft_motor "" "" 626 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hchi                             device motor soft_motor "" "" 50000 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hphi                             device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hmu                              device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hnu                              device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hdettheta                        device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hdet2theta                       device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
-hth2th                           device motor theta_2theta "" "" 0.626 0 -1e+09 1e+09 0 -1 -1 1 0 deg htheta hdelta
-q                                device motor q_motor "" "" 0.10880874 0 -100000 100000 0 -1 -1 1 0 A-1 hdelta lambda 0.01745329251994330
-I0                               device scaler soft_scaler "" "" 157555 0 0 timer1 energy 101 ./i0.dat 0 
-I                                device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
-I1                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
-I2                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
-I3                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
-Istep                            device scaler function_generator_scaler "" "" 395527 0 0 timer1 50000 0.2 1
-Isine                            device scaler function_generator_scaler "" "" 395527 0 0 timer1 60000 0.1 2
-Isaw                             device scaler function_generator_scaler "" "" 395527 0 0 timer1 70000 0.15 3
-timer1                           device timer soft_timer "" ""
-mca1                             device mca soft_mca "" "" 1024 4 8 channels.dat
-roi0                             device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 roi_integral 0
-corr_roi0                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 corrected_roi_integral 0
-real_time                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 real_time ""
-live_time                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 live_time ""
-mca_timer                        device timer mca_timer "" "" mca1 1
-mcs1                             device mcs soft_mcs "" "" 3 512 "" 0 0 timer2 8950 1  I0 I I
-Io                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
-It                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
-If                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 2
-timer2                           device timer mcs_timer "" "" mcs1
-dark_timer                       device timer timer_fanout "" "" 2 timer1 timer2  
+debug_3d        variable inline long "" "" 3  2 3 4  111 112 113 114 121 122 123 124 131 132 133 134 211 212 213 214 221 222 223 224 231 232 233 234
+debug_2d_str    variable inline string "" "" 2  3 20  ABC DEF GHI
+debug_3d_str    variable inline string "" "" 3  2 3 20  AAA BBB CCC aaa bbb ccc
+amplifier_list  variable inline string "" "" 2  5 17  keithley1 keithley2 keithley3 keithley4 keithley5
+keithley1       device amplifier soft_amplifier "" "" 10000000 0 0
+keithley2       device amplifier soft_amplifier "" "" 100000000 0 0
+keithley3       device amplifier soft_amplifier "" "" 100000000 0 0
+keithley4       device amplifier soft_amplifier "" "" 1000000000 0 0
+keithley5       device amplifier soft_amplifier "" "" 1000000000 0 0
+tty1            interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0
+omega           device motor soft_motor "" "" 500000 0 -20000000 20000000 0 -1 -1 0.0001 0 um 10000 0 5000
+theta           device motor soft_motor "" "" 260048 0 -20000000 20000000 0 -1 -1 5e-05 0 deg 20000 0 10000
+2theta          device motor soft_motor "" "" 12000 0 -200000 200000 0 -1 -1 0.005 0 deg 200 0 100
+energy          device motor energy_motor "" "" 8787.5084 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
+lambda          device motor wavelength_motor "" "" 1.4109233 0 0 1e+08 0 -1 -1 1 0 A theta d_spacing 0.01745329251994330
+wavenumber      device motor wavenumber_motor "" "" 4.4532438 0 0 1e+08 0 -1 -1 1 0 A-1 theta d_spacing 0.01745329251994330
+k               device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
+e_minus_e0      device motor delta_motor "" "" -192.49164 0 -1e+08 1e+08 0 -1 -1 1 0 eV energy edge_energy
+time            device motor elapsed_time "" "" 7072612.3 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 1832575.8
+z1              device motor soft_motor "" "" 1750 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
+z2              device motor soft_motor "" "" 2050 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
+z3              device motor soft_motor "" "" 1650 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
+z_avg           device motor translation_mtr "" "" 10.666667 0 -100000 100000 0 -1 -1 1 0 mm 0x1 3  z1 z2 z3
+z23             device motor translation_mtr "" "" 18.5 0 -100000 100000 0 -1 -1 1 0 mm 0x1 2  z2 z3
+z_height1       device motor linear_function "" "" 9.8125 0 -100000 100000 0 -1 -1 1 0 mm  0 2  z1 z23  0.25 0.75  0 0  0.25 0.75
+z_height2       device motor linear_function "" "" 9.8125 0 -100000 100000 0 -1 -1 1 0 mm  0 3  z1 z2 z3  0.25 0.375 0.375  0 0 0  0.25 0.375 0.375
+z_pitch1        device motor linear_function "" "" -10.25 0 -100000 100000 0 -1 -1 1 0 mm  0 2  z1 z23  -1 1  0 0  0.5 0.5
+z_pitch2        device motor linear_function "" "" -10.25 0 -100000 100000 0 -1 -1 1 0 mm  0 3  z1 z2 z3  -1 0.5 0.5  0 0 0  0.5 0.25 0.25
+dz1             device motor delta_motor "" "" 6.8333333 0 -100 100 0 -1 -1 1 0 mm z1 z_avg
+dz2             device motor delta_motor "" "" -1.4166667 0 -100 100 0 -1 -1 1 0 mm z2 z_avg
+dz3             device motor delta_motor "" "" -5.4166667 0 -100 100 0 -1 -1 1 0 mm z3 z_avg
+dz1000          device motor delta_motor "" "" 6.8333333 0 -50 50 0 -1 -1 1000 0 um z1 z_avg
+x1              device motor soft_motor "" "" 500 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
+x2              device motor soft_motor "" "" -500 0 -100000 100000 0 -1 -1 0.01 0 mm 100 0 50
+rotation        device motor linear_function "" "" 20 0 -500000 500000 0 -1 -1 1 0 mm  0 3  x1 x2 xoffset  1 -1 1  0 0 0  0.5 0.5 0
+translation     device motor linear_function "" "" 0 0 -500000 500000 0 -1 -1 1 0 mm  0 2  x1 x2  1 1  0 0  0.5 0.5
+hslit_in        device motor soft_motor "" "" -3200 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
+hslit_out       device motor soft_motor "" "" 800 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
+vslit_top       device motor soft_motor "" "" 5400 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
+vslit_bottom    device motor soft_motor "" "" -20 0 -500000 500000 0 -1 -1 0.005 0 mm 200 0 100
+hslit_center    device motor slit_motor "" "" -6 0 -200 200 0 -1 -1 1 0 mm 0x1 1 hslit_in hslit_out
+hslit_width     device motor slit_motor "" "" 20 0 -200 200 0 -1 -1 1 0 mm 0x1 2 hslit_in hslit_out
+vslit_center    device motor slit_motor "" "" 13.45 0 -200 200 0 -1 -1 1 0 mm 0x1 1 vslit_bottom vslit_top
+vslit_width     device motor slit_motor "" "" 27.1 0 -200 200 0 -1 -1 1 0 mm 0x1 2 vslit_bottom vslit_top
+hdelta          device motor soft_motor "" "" 700 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+htheta          device motor soft_motor "" "" 626 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hchi            device motor soft_motor "" "" 50000 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hphi            device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hmu             device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hnu             device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hdettheta       device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hdet2theta      device motor soft_motor "" "" 0 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+hth2th          device motor theta_2theta "" "" 0.626 0 -1e+09 1e+09 0 -1 -1 1 0 deg htheta hdelta
+q               device motor q_motor "" "" 0.10880874 0 -100000 100000 0 -1 -1 1 0 A-1 hdelta lambda 0.01745329251994330
+I0              device scaler soft_scaler "" "" 157555 0 0 timer1 energy 101 ./i0.dat 0 
+I               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I1              device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I2              device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I3              device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+Istep           device scaler function_generator_scaler "" "" 395527 0 0 timer1 50000 0.2 1
+Isine           device scaler function_generator_scaler "" "" 395527 0 0 timer1 60000 0.1 2
+Isaw            device scaler function_generator_scaler "" "" 395527 0 0 timer1 70000 0.15 3
+timer1          device timer soft_timer "" ""
+#
+#
+mca1            device mca soft_mca "" "" 1024 4 8 channels.dat
+roi0            device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 roi_integral 0
+corr_roi0       device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 corrected_roi_integral 0
+real_time       device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 real_time ""
+live_time       device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 live_time ""
+mca_timer       device timer mca_timer "" "" mca1 1
+#
+#
+mcs1            device mcs soft_mcs "" "" 3 512 "" 0 0 timer2 8950 1  I0 I I
+Io              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
+It              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
+If              device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 2
+timer2          device timer mcs_timer "" "" mcs1
+dark_timer      device timer timer_fanout "" "" 2 timer1 timer2
+#
+#
+ain1            device analog_input soft_ainput "" "" 0 1 0 V 0x0 0 "" aout1
+aout1           device analog_output soft_aoutput "" "" 0 1 0 V 0x0
+din1            device digital_input ainput_as_dinput "" "" 0 ain1 0 5 2.5

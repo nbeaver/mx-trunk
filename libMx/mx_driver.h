@@ -392,6 +392,7 @@ extern "C" {
 
 #define MXT_DIN_KEYBOARD		30035
 #define MXT_DIN_FILE			30036
+#define MXT_DIN_AINPUT			30037
 
 /* --- Digital output types --- */
 
@@ -432,6 +433,7 @@ extern "C" {
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
 #define MXT_DOU_ITC503			40036
 #define MXT_DOU_CRYOJET			40036
+#define MXT_DOU_AOUTPUT			40037
 
 /* --- Motor subclasses --- */
 
