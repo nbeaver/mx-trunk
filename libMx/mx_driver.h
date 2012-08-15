@@ -432,8 +432,8 @@ extern "C" {
 #define MXT_DOU_BKPRECISION_912X	40034
 #define MXT_DOU_ILM_SAMPLE_RATE		40035
 #define MXT_DOU_ITC503			40036
-#define MXT_DOU_CRYOJET			40036
-#define MXT_DOU_AOUTPUT			40037
+#define MXT_DOU_CRYOJET			40037
+#define MXT_DOU_AOUTPUT			40038
 
 /* --- Motor subclasses --- */
 

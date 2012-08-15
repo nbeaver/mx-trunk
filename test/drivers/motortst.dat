@@ -96,3 +96,4 @@ dark_timer      device timer timer_fanout "" "" 2 timer1 timer2
 ain1            device analog_input soft_ainput "" "" 0 1 0 V 0x0 0 "" aout1
 aout1           device analog_output soft_aoutput "" "" 0 1 0 V 0x0
 din1            device digital_input ainput_as_dinput "" "" 0 ain1 0 5 2.5
+dout1           device digital_output aoutput_as_doutput "" "" 0 aout1 0 5 3.5

@@ -144,7 +144,7 @@ mxd_ainput_as_dinput_read( MX_DIGITAL_INPUT *dinput )
 
 	MX_AINPUT_AS_DINPUT *ainput_as_dinput = NULL;
 	MX_RECORD *analog_input_record = NULL;
-	double adc_value;
+	double adc_voltage;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ainput_as_dinput_get_pointers( dinput,
@@ -155,19 +155,19 @@ mxd_ainput_as_dinput_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_analog_input_read( analog_input_record, &adc_value );
+	mx_status = mx_analog_input_read( analog_input_record, &adc_voltage );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	if ( ainput_as_dinput->high_voltage >= ainput_as_dinput->low_voltage ) {
-		if ( adc_value >= ainput_as_dinput->threshold_voltage ) {
+		if ( adc_voltage >= ainput_as_dinput->threshold_voltage ) {
 			dinput->value = 1;
 		} else {
 			dinput->value = 0;
 		}
 	} else {
-		if ( adc_value <= ainput_as_dinput->threshold_voltage ) {
+		if ( adc_voltage <= ainput_as_dinput->threshold_voltage ) {
 			dinput->value = 1;
 		} else {
 			dinput->value = 0;

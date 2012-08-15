@@ -34,7 +34,7 @@ typedef struct {
   {-1, -1, "analog_input_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_AINPUT_AS_DINPUT, analog_input_record), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "low_voltage", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AINPUT_AS_DINPUT, low_voltage), \

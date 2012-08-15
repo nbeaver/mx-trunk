@@ -268,6 +268,7 @@
 #include "d_keyboard_dinput.h"
 #include "d_file_dinput.h"
 #include "d_ainput_as_dinput.h"
+#include "d_aoutput_as_doutput.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1985,6 +1986,13 @@ MX_DRIVER mx_type_table[] = {
 			&mxd_ainput_as_dinput_digital_input_function_list,
 				&mxd_ainput_as_dinput_num_record_fields,
 				&mxd_ainput_as_dinput_rfield_def_ptr},
+
+{"aoutput_as_doutput", MXT_DOU_AOUTPUT, MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_aoutput_as_doutput_record_function_list,
+				NULL,
+			&mxd_aoutput_as_doutput_digital_output_function_list,
+				&mxd_aoutput_as_doutput_num_record_fields,
+				&mxd_aoutput_as_doutput_rfield_def_ptr},
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
