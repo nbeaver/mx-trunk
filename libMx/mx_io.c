@@ -262,7 +262,7 @@ mx_get_number_of_open_file_descriptors( void )
 /*=========================================================================*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_HURD)
+	|| defined(OS_BSD) || defined(OS_HURD)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -302,7 +302,7 @@ mx_fd_is_valid( int fd )
 
 /*=========================================================================*/
 
-#if defined(OS_MACOSX)
+#if defined(OS_MACOSX) || defined(OS_BSD)
 
 #define MXP_LSOF_FILE	1
 #define MXP_LSOF_PIPE	2
@@ -1200,7 +1200,7 @@ mx_win32_show_socket_names( void )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
 /* Use the external 'lsof' program to get the fd name. */
 
@@ -1951,7 +1951,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
 #include <sys/event.h>
 #include <sys/time.h>
