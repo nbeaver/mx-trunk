@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006-2011 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -170,6 +170,7 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->callback_pipe = NULL;
 
 	list_head_struct->num_poll_callbacks = 0;
+	list_head_struct->poll_callback_interval = -1;
 
 	list_head_struct->module_list = NULL;
 

@@ -5,6 +5,8 @@
  *
  * Author:   William Lavender
  *
+ * NOTE:     The MX_LIST_HEAD structure itself is defined in mx_record.h
+ *
  *------------------------------------------------------------------------
  *
  * Copyright 2000-2001, 2003-2004, 2006-2010, 2012

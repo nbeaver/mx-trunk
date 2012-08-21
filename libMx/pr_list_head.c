@@ -131,6 +131,10 @@ mx_list_head_process_function( void *record_ptr,
 			if (strcmp("system_memory", list_head->status) == 0) {
 				mx_status =
 				  mx_list_head_show_system_memory( list_head );
+			} else
+			if (strcmp("clock", list_head->status) == 0) {
+				mx_info( "clock ticks per second = %g",
+					mx_clock_ticks_per_second() );
 			} else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT,
 						fname,

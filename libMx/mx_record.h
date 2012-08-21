@@ -445,6 +445,7 @@ typedef struct {
 	void *callback_pipe;
 
 	unsigned long num_poll_callbacks;
+	double poll_callback_interval;		/* in seconds */
 
 	void *module_list;
 } MX_LIST_HEAD;

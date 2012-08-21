@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2011 Illinois Institute of Technology
+ * Copyright 2007-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,6 +21,8 @@
 #define MX_CALLBACK_DEBUG_CALLBACK_POINTERS		FALSE
 
 #define MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING	FALSE
+
+#define MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL		FALSE
 
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
@@ -197,7 +199,7 @@ mxp_stop_master_timer( MX_INTERVAL_TIMER *itimer )
 /*** This is the normal callback setup that uses virtual timers. ***/
 
 /* NOTE: The only job of mx_request_value_changed_poll() is to send a message
- *       through the callback pipe to the main thread ask for the value
+ *       through the callback pipe to the main thread to ask for the value
  *       changed handlers to be polled.
  *
  *       On some platforms, this function will be invoked in a signal handler
@@ -221,7 +223,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	MX_LIST_HEAD *list_head;
 	MX_PIPE *mx_pipe;
 
-#if MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL
 	MX_CLOCK_TICK current_clock_tick;
 
 	current_clock_tick = mx_current_clock_tick();
@@ -246,7 +248,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	mx_pipe = list_head->callback_pipe;
 
 	if ( mx_pipe == NULL ) {
-#if MX_CALLBACK_DEBUG
+#if MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL
 		MX_DEBUG(-2,
 		("%s: callback_pipe == NULL.  Returning...", fname));
 #endif
@@ -379,7 +381,14 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		list_head->callback_timer = callback_timer;
 
-		callback_timer_interval = 0.1;	/* in seconds */
+		/* Set the poll callback timer interval (in seconds). */
+
+		if ( list_head->poll_callback_interval >= 0.0 ) {
+			callback_timer_interval
+				= list_head->poll_callback_interval;
+		} else {
+			callback_timer_interval = 0.1;
+		}
 
 		/* Start the callback virtual timer. */
 

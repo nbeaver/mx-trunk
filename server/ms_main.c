@@ -467,6 +467,7 @@ mxserver_main( int argc, char *argv[] )
 	mx_bool_type monitor_resources;
 	double resource_monitor_interval;
 	double master_timer_period;
+	double vc_poll_callback_interval;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -561,6 +562,8 @@ mxserver_main( int argc, char *argv[] )
 
 	master_timer_period = 0.1;		/* in seconds */
 
+	vc_poll_callback_interval = -1.0;	/* in seconds */
+
 	poll_all = FALSE;
 
 #if HAVE_GETOPT
@@ -569,7 +572,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:wZ")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wZ")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -682,6 +685,9 @@ mxserver_main( int argc, char *argv[] )
 "       on this system.\n" );
 			exit(1);
 #endif
+			break;
+		case 'v':
+			vc_poll_callback_interval = atof( optarg );
 			break;
 		case 'w':
 			wait_for_debugger = TRUE;
@@ -867,6 +873,10 @@ mxserver_main( int argc, char *argv[] )
 	/* Set the default floating point display precision. */
 
 	list_head_struct->default_precision = default_display_precision;
+ 
+	/* Set the time interval for value changed polls. */
+
+	list_head_struct->poll_callback_interval = vc_poll_callback_interval;
 
 	/* Save the 'enable_remote_breakpoint' flag in the list head. */
 
@@ -1280,6 +1290,8 @@ mxserver_main( int argc, char *argv[] )
 					dmalloc_message(
 						"*** Mark = %lu ***\n", mark);
 #endif
+					/* Process the event. */
+
 					(void) ( *process_event_fn )
 						( mx_record_list,
 						  socket_handler_list.array[i],
