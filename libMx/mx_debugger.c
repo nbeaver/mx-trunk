@@ -706,12 +706,7 @@ mx_wait_for_debugger( void )
 	loop = 1;
 
 	while ( loop ) {
-
-#ifdef OS_LINUX
-		/* Do nothing. */
-#else
-		mx_msleep(1000);
-#endif
+		mx_msleep(100);
 	}
 
 	return;

@@ -69,27 +69,27 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #--------------------------------------------------------------------------
 #
-# If you are compiling for an embedded Linux system, you may need to
-# change the value of MX_LINUX_BSP.  At present, the primary usage of this
+# If you are compiling for an embedded Linux system, you may need to change
+# the value of MX_LINUX_TARGET.  At present, the primary usage of this
 # definition is to select special subsets of MX drivers for small systems
 # that do not have enough memory to load all of the available MX drivers.
 # Unless you are working with embedded systems, you should probably leave
 # this at the default value of 'default'.
 #
-# If you have never heard of the term BSP (board support package), then
-# you should definitely leave this option alone.
+# If you have never heard of the term "target" in this context, then you
+# should definitely leave this option alone.
 #
 
-MX_LINUX_BSP = default
+MX_LINUX_TARGET = default
 
 #--------
 
 #
-# MX_LINUX_BSP_MVME162 has been used successfully with a 16 megabyte
+# MX_LINUX_TARGET_MVME162 has been used successfully with a 16 megabyte
 # MVME162-532A VME system controller.
 #
 
-#MX_LINUX_BSP = mvme162
+#MX_LINUX_TARGET = mvme162
 
 # MX drivers to load for the MVME162.
 
@@ -307,11 +307,11 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 #---------------------------------------------------
 #
 
-ifeq ($(MX_LINUX_BSP),default)
+ifeq ($(MX_LINUX_TARGET),default)
 	MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 endif
 
-ifeq ($(MX_LINUX_BSP),mvme162)
+ifeq ($(MX_LINUX_TARGET),mvme162)
 	MX_LIB_SRCS = mx_driver_linux_mvme162.c \
 			$(MX_CORE_SRCS) $(MX_DRIVER_MVME162_SRCS)
 endif

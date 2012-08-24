@@ -1,1 +1,1 @@
-mca1  device mca monte_carlo_mca "" "" 1024 4 0 100000 4 "uniform 50" "peak 1000 275 10" "peak 400 325 6" "peak 750 785 7.5"
+mca1  device mca monte_carlo_mca "" "" 1024 4 0 0.00001 4 "uniform 50" "peak 1000 275 10" "peak 400 325 6" "peak 750 785 7.5"

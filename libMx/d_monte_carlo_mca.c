@@ -8,8 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006, 2008, 2010-2012
- *    Illinois Institute of Technology
+ * Copyright 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -119,11 +118,12 @@ mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
 			MX_MONTE_CARLO_MCA *monte_carlo_mca,
 			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
 {
-	unsigned long i, num_channels;
+	unsigned long i, j, num_channels, num_tests_per_channel;
 	unsigned long *private_array;
 
 	double events_per_second, seconds_per_call;
-	double events_per_call, events_per_call_per_channel;
+	double events_per_call, events_per_call_per_channel, log_ecc;
+	long floor_log_ecc;
 	double test_value;
 
 	num_channels = mca->maximum_num_channels;
@@ -140,13 +140,43 @@ mxd_monte_carlo_mca_process_uniform( MX_MCA *mca,
 	events_per_call_per_channel =
 		mx_divide_safely( events_per_call, num_channels );
 
-	/* Walk through the channels to see whether each one had an event. */
+	/* If 'events_per_call_per_channel' ever is >= 1, then the expression
+	 * below ( test_value <= events_per_call_per_channel ) will always
+	 * evaluate to true.  To avoid this, we multiply the number of times
+	 * that we evaluate the test below by 'num_tests_per_channel' and
+	 * then divide 'events_per_call_per_channel' by the value of
+	 * 'num_tests_per_channel'.
+	 */
 
-	for ( i = 0; i < num_channels; i++ ) {
-		test_value = (double) rand() / (double) RAND_MAX;
+	if ( events_per_call_per_channel <= 1.0e-38 ) {
+		/* Assume that we never get events for this case. */
+		return MX_SUCCESSFUL_RESULT;
+	} else
+	if ( events_per_call_per_channel <= 0.2 ) {
+		num_tests_per_channel = 1;
+	} else {
+		log_ecc = log10( events_per_call_per_channel );
 
-		if ( test_value <= events_per_call_per_channel ) {
-			private_array[i]++;
+		floor_log_ecc = mx_round( floor(log_ecc) );
+
+		num_tests_per_channel = mx_round(
+				pow(10.0, 2.0 + floor_log_ecc) );
+
+		events_per_call_per_channel /= (double) num_tests_per_channel;
+	}
+
+	for ( i = 0; i < num_tests_per_channel; i++ ) {
+
+		/* Walk through the channels to see whether each one
+		 * had an event.
+		 */
+
+		for ( j = 0; j < num_channels; j++ ) {
+			test_value = (double) rand() / (double) RAND_MAX;
+
+			if ( test_value <= events_per_call_per_channel ) {
+				private_array[j]++;
+			}
 		}
 	}
 
@@ -189,7 +219,8 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	double events_per_second, seconds_per_call;
 	double events_per_call, events_per_call_per_channel;
 	double peak_mean, peak_width;
-	double test_value, exp_argument, threshold;
+	double gaussian, exp_argument, exp_coefficient;
+	double test_value, threshold;
 
 	num_channels = mca->maximum_num_channels;
 
@@ -209,14 +240,18 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	events_per_call_per_channel =
 		mx_divide_safely( events_per_call, num_channels );
 
+	exp_coefficient = mx_divide_safely(1.0, peak_width * sqrt(2.0 * MX_PI));
+
 	for ( i = 0; i < num_channels; i++ ) {
 		test_value = (double) rand() / (double) RAND_MAX;
 
 		exp_argument = mx_divide_safely(
-			- (( i - peak_mean ) * ( i - peak_mean )),
-				2.0 * peak_width * peak_width );
+				(( i - peak_mean ) * ( i - peak_mean )),
+				    2.0 * peak_width * peak_width );
 
-		threshold = events_per_call_per_channel * exp( exp_argument );
+		gaussian = exp_coefficient * exp( - exp_argument );
+
+		threshold = events_per_call_per_channel * gaussian;
 
 		if ( test_value <= threshold ) {
 			private_array[i]++;
@@ -571,6 +606,9 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	monte_carlo_mca->sleep_microseconds =
+		mx_round( 1000000.0 * monte_carlo_mca->time_step_size );
 
 	/* Set some reasonable defaults. */
 

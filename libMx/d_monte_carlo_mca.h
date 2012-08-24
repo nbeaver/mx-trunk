@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2010, 2012 Illinois Institute of Technology
+ * Copyright 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,9 +57,11 @@ typedef struct mx_monte_carlo_mca_source_type {
 typedef struct mx_monte_carlo_mca_type {
 	MX_RECORD *record;
 
-	unsigned long sleep_microseconds;
+	double time_step_size;			/* in seconds */
 	long num_sources;
 	char **source_string_array;
+
+	unsigned long sleep_microseconds;
 
 	MX_MONTE_CARLO_MCA_SOURCE *source_array;
 
@@ -71,8 +73,8 @@ typedef struct mx_monte_carlo_mca_type {
 } MX_MONTE_CARLO_MCA;
 
 #define MXD_MONTE_CARLO_MCA_STANDARD_FIELDS \
-  {-1, -1, "sleep_microseconds", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_MONTE_CARLO_MCA, sleep_microseconds), \
+  {-1, -1, "time_step_size", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_MONTE_CARLO_MCA, time_step_size), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "num_sources", MXFT_LONG, NULL, 0, {0}, \
