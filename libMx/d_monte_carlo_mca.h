@@ -65,6 +65,7 @@ typedef struct mx_monte_carlo_mca_type {
 
 	MX_MONTE_CARLO_MCA_SOURCE *source_array;
 
+	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK finish_time_in_clock_ticks;
 
 	MX_MUTEX *mutex;

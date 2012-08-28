@@ -15,7 +15,9 @@
  *
  */
 
-#define MXD_MONTE_CARLO_MCA_DEBUG		FALSE
+#define MXD_MONTE_CARLO_MCA_DEBUG		TRUE
+
+#define MXD_MONTE_CARLO_MCA_DEBUG_BUSY		FALSE
 
 #define MXD_MONTE_CARLO_MCA_DEBUG_THREAD	FALSE
 
@@ -493,6 +495,7 @@ mxd_monte_carlo_mca_finish_record_initialization( MX_RECORD *record )
 
 	MX_MCA *mca = NULL;
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
+	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
 
 	mca = (MX_MCA *) record->record_class_struct;
@@ -509,7 +512,10 @@ mxd_monte_carlo_mca_finish_record_initialization( MX_RECORD *record )
 
 	mca->current_num_rois = mca->maximum_num_rois;
 
-	/* Do monte_carlo_mca stuff here. */
+	current_tick = mx_current_clock_tick();
+
+	monte_carlo_mca->start_time_in_clock_ticks = current_tick;
+	monte_carlo_mca->finish_time_in_clock_ticks = current_tick;
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
@@ -739,7 +745,6 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 	static const char fname[] = "mxd_monte_carlo_mca_start()";
 
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
-	MX_CLOCK_TICK start_time_in_clock_ticks;
 	MX_CLOCK_TICK measurement_time_in_clock_ticks;
 	double measurement_time;
 	mx_status_type mx_status;
@@ -768,13 +773,13 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 
 	MXD_LOCK( "to set the finish time " );
 
-	start_time_in_clock_ticks = mx_current_clock_tick();
+	monte_carlo_mca->start_time_in_clock_ticks = mx_current_clock_tick();
 
 	measurement_time_in_clock_ticks = mx_convert_seconds_to_clock_ticks(
 							measurement_time );
 
 	monte_carlo_mca->finish_time_in_clock_ticks = mx_add_clock_ticks(
-				start_time_in_clock_ticks,
+				monte_carlo_mca->start_time_in_clock_ticks,
 				measurement_time_in_clock_ticks );
 
 	MXD_UNLOCK( "to set the finish time " );
@@ -786,8 +791,8 @@ mxd_monte_carlo_mca_start( MX_MCA *mca )
 		(unsigned long) measurement_time_in_clock_ticks.low_order));
 
 	MX_DEBUG(-2,("%s: starting time = (%lu,%lu), finish time = (%lu,%lu)",
-		fname, start_time_in_clock_ticks.high_order,
-		(unsigned long) start_time_in_clock_ticks.low_order,
+		fname, monte_carlo_mca->start_time_in_clock_ticks.high_order,
+	(unsigned long) monte_carlo_mca->start_time_in_clock_ticks.low_order,
 		monte_carlo_mca->finish_time_in_clock_ticks.high_order,
 	(unsigned long) monte_carlo_mca->finish_time_in_clock_ticks.low_order));
 #endif
@@ -909,7 +914,7 @@ mxd_monte_carlo_mca_busy( MX_MCA *mca )
 		mca->busy = TRUE;
 	}
 
-#if MXD_MONTE_CARLO_MCA_DEBUG
+#if MXD_MONTE_CARLO_MCA_DEBUG_BUSY
 	MX_DEBUG(-2,("%s: current time = (%lu,%lu), busy = %d",
 		fname, current_time_in_clock_ticks.high_order,
 		(unsigned long) current_time_in_clock_ticks.low_order,
@@ -925,6 +930,8 @@ mxd_monte_carlo_mca_get_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_monte_carlo_mca_get_parameter()";
 
 	MX_MONTE_CARLO_MCA *monte_carlo_mca = NULL;
+	MX_CLOCK_TICK current_tick, difference_in_ticks;
+	int comparison;
 	unsigned long i, j, channel_value, integral;
 	mx_status_type mx_status;
 
@@ -941,14 +948,58 @@ mxd_monte_carlo_mca_get_parameter( MX_MCA *mca )
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 	case MXLV_MCA_CHANNEL_NUMBER:
-	case MXLV_MCA_REAL_TIME:
-	case MXLV_MCA_LIVE_TIME:
 
 		/* None of these cases require any action since the 
 		 * simulated value is already in the location it needs
 		 * to be in.
 		 */
 
+		break;
+
+	case MXLV_MCA_REAL_TIME:
+	case MXLV_MCA_LIVE_TIME:
+		/* Has the finish time already arrived? */
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks( current_tick,
+				monte_carlo_mca->finish_time_in_clock_ticks );
+
+		if ( comparison < 0 ) {
+			difference_in_ticks = mx_subtract_clock_ticks(
+				current_tick,
+				monte_carlo_mca->start_time_in_clock_ticks );
+		} else {
+			difference_in_ticks = mx_subtract_clock_ticks(
+				monte_carlo_mca->finish_time_in_clock_ticks,
+				monte_carlo_mca->start_time_in_clock_ticks );
+		}
+
+		mca->real_time = mx_convert_clock_ticks_to_seconds(
+							difference_in_ticks );
+
+		mca->live_time = mca->real_time;
+
+#if MXD_MONTE_CARLO_MCA_DEBUG
+		MX_DEBUG(-2,("%s: start = (%lu,%lu), finish = (%lu,%lu)",
+			fname,
+			monte_carlo_mca->start_time_in_clock_ticks.high_order,
+			monte_carlo_mca->start_time_in_clock_ticks.low_order,
+			monte_carlo_mca->finish_time_in_clock_ticks.high_order,
+			monte_carlo_mca->finish_time_in_clock_ticks.low_order));
+
+		MX_DEBUG(-2,("%s: current_tick = (%lu,%lu), comparison = %d",
+			fname,
+			current_tick.high_order,
+			current_tick.low_order,
+			comparison));
+
+		MX_DEBUG(-2,("%s: difference = (%lu,%lu), real_time = %g",
+			fname,
+			difference_in_ticks.high_order,
+			difference_in_ticks.low_order,
+			mca->real_time));
+#endif
 		break;
 
 	case MXLV_MCA_ROI:
