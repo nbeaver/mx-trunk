@@ -667,7 +667,7 @@ mxd_monte_carlo_mca_open( MX_RECORD *record )
 
 		mx_string_split( source_dup, " ", &argc, &argv );
 
-#if MXD_MONTE_CARLO_MCA_DEBUG
+#if 0
 		{
 			int j;
 			for ( j = 0; j < argc; j++ ) {
