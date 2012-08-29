@@ -262,6 +262,15 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 	channel        = ni_daqmx_dinput->channel_offset;
 	channel_buffer = task->channel_buffer;
 
+	if ( channel_buffer == NULL ) {
+		mx_warning( "Task not yet started for NI-DAQmx device '%s'.  "
+			"The attempt to read from '%s' was ignored.",
+			dinput->record->name,
+			dinput->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	num_samples    = 1;
 	timeout        = 10.0;    /* read timeout in seconds */
 

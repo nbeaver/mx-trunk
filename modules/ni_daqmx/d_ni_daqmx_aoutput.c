@@ -277,6 +277,16 @@ mxd_ni_daqmx_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	channel        = ni_daqmx_aoutput->channel_offset;
 	channel_buffer = task->channel_buffer;
 
+	if ( channel_buffer == NULL ) {
+		mx_warning( "Task not yet started for NI-DAQmx device '%s'.  "
+			"The attempt to write %g to '%s' was ignored.",
+			aoutput->record->name,
+			aoutput->raw_value.double_value,
+			aoutput->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	num_samples       = 1;
 	autostart         = FALSE;
 	timeout           = 10.0;    /* write timeout in seconds */

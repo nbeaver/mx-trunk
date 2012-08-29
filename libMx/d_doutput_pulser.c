@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2011 Illinois Institute of Technology
+ * Copyright 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -654,7 +654,9 @@ mxd_doutput_pulser_get_parameter( MX_PULSE_GENERATOR *pulser )
 		    mx_pulse_generator_default_get_parameter_handler( pulser );
 	}
 
+#if MXD_DOUTPUT_PULSER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

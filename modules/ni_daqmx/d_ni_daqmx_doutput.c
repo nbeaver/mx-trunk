@@ -263,6 +263,16 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	channel        = ni_daqmx_doutput->channel_offset;
 	channel_buffer = task->channel_buffer;
 
+	if ( channel_buffer == NULL ) {
+		mx_warning( "Task not yet started for NI-DAQmx device '%s'.  "
+			"The attempt to write %lu to '%s' was ignored.",
+			doutput->record->name,
+			doutput->value,
+			doutput->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	num_samples       = 1;
 	autostart         = FALSE;
 	timeout           = 10.0;    /* write timeout in seconds */

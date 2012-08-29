@@ -38,6 +38,9 @@ typedef struct {
 	MX_RECORD *video_input_record;
 	MX_RECORD *serial_port_record;
 	unsigned long radicon_taurus_flags;
+	char pulser_record_name[MXU_RECORD_NAME_LENGTH+1];
+
+	MX_RECORD *pulser_record;
 
 	unsigned long detector_model;
 	char serial_number[MXU_RADICON_TAURUS_SERIAL_NUMBER_LENGTH+1];
@@ -87,6 +90,12 @@ typedef struct {
   {-1, -1, "radicon_taurus_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, radicon_taurus_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pulser_record_name", MXFT_STRING, \
+				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, pulser_record_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \

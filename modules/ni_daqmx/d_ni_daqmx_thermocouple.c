@@ -360,6 +360,15 @@ mxd_ni_daqmx_thermocouple_read( MX_ANALOG_INPUT *ainput )
 	channel        = ni_daqmx_thermocouple->channel_offset;
 	channel_buffer = task->channel_buffer;
 
+	if ( channel_buffer == NULL ) {
+		mx_warning( "Task not yet started for NI-DAQmx device '%s'.  "
+			"The attempt to read from '%s' was ignored.",
+			ainput->record->name,
+			ainput->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	num_samples    = 1;
 	timeout        = 10.0;    /* read timeout in seconds */
 
