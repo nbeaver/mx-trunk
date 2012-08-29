@@ -1024,10 +1024,11 @@ mx_network_wait_for_messages( MX_RECORD *record,
 	 * is no timeout.
 	 */
 
-	current_record = record_list->next_record;
+	while (1) {
 
-	do {
 		/* Walk through the record list looking for MX server records.*/
+
+		current_record = record_list->next_record;
 
 		while ( current_record != record_list ) {
 			if ( (current_record->mx_superclass == MXR_SERVER)
@@ -1065,14 +1066,20 @@ mx_network_wait_for_messages( MX_RECORD *record,
 			    mx_compare_clock_ticks( current_tick, end_tick );
 
 			if ( comparison >= 0 ) {
-				return mx_error(
-				(MXE_TIMED_OUT | MXE_QUIET), fname,
-				"Timed out after waiting %g seconds "
-				"for MX server messages.", timeout_in_seconds );
-			}
-		}
+				/* The timeout period has expired,
+				 * so return now.
+				 */
 
-	} while (0);
+				return MX_SUCCESSFUL_RESULT;
+			}
+		} else {
+			/* If no timeout interval was specified, then
+			 * return after the first pass.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
