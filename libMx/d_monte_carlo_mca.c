@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_MONTE_CARLO_MCA_DEBUG		TRUE
+#define MXD_MONTE_CARLO_MCA_DEBUG		FALSE
 
 #define MXD_MONTE_CARLO_MCA_DEBUG_BUSY		FALSE
 
@@ -935,7 +935,8 @@ mxd_monte_carlo_mca_get_parameter( MX_MCA *mca )
 	unsigned long i, j, channel_value, integral;
 	mx_status_type mx_status;
 
-	mx_status = mxd_monte_carlo_mca_get_pointers( mca, &monte_carlo_mca, fname );
+	mx_status = mxd_monte_carlo_mca_get_pointers( mca,
+						&monte_carlo_mca, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

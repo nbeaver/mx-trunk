@@ -236,15 +236,15 @@ typedef struct {
   \
   {MXLV_MCA_REAL_TIME, -1, "real_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, real_time), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MCA_LIVE_TIME, -1, "live_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, live_time), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MCA_COUNTS, -1, "counts", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, counts), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_POLL}, \
   \
   {MXLV_MCA_PRESET_REAL_TIME, -1, "preset_real_time", \
 					MXFT_DOUBLE, NULL, 0, {0}, \
