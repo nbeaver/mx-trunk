@@ -33,12 +33,14 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_inttypes.h"
 #include "mx_hrt.h"
 #include "mx_ascii.h"
 #include "mx_motor.h"
 #include "mx_image.h"
 #include "mx_rs232.h"
+#include "mx_pulse_generator.h"
 #include "mx_video_input.h"
 #include "mx_area_detector.h"
 #include "d_radicon_taurus.h"
@@ -216,6 +218,44 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* If a pulse generator record name has been specified in the 
+	 * record description, then try to get a pointer to that record.
+	 */
+
+	if ( strlen( radicon_taurus->pulser_record_name ) <= 0 ) {
+		radicon_taurus->pulser_record = NULL;
+	} else {
+		radicon_taurus->pulser_record = mx_get_record( ad->record,
+					radicon_taurus->pulser_record_name );
+
+		if ( radicon_taurus->pulser_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The pulse generator record '%s' specified for "
+			"area detector '%s' was not found in the database.",
+				radicon_taurus->pulser_record_name,
+				ad->record->name );
+		}
+
+		if ( radicon_taurus->pulser_record->mx_class
+			!= MXC_PULSE_GENERATOR )
+		{
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The record '%s' specified as a pulse generator "
+			"for area detector '%s' is not actually a "
+			"pulse generator.",
+				radicon_taurus->pulser_record->name,
+				ad->record->name );
+
+			radicon_taurus->pulser_record = NULL;
+
+			return mx_status;
+		}
+	}
+
+	/* Verify that the video input and serial port records
+	 * have been found.
+	 */
+
 	video_input_record = radicon_taurus->video_input_record;
 
 	if ( video_input_record == (MX_RECORD *) NULL ) {
@@ -718,7 +758,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	double short_exposure_time_as_double;
 	uint64_t si1_register, si2_register;
 	char command[80];
-	mx_bool_type set_exposure_times, use_external_trigger;
+	mx_bool_type set_exposure_times;
 	mx_bool_type use_different_si2_value;
 	unsigned long old_sro_mode;
 	mx_status_type mx_status;
@@ -773,16 +813,10 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		/**** Set the Taurus Readout Mode. ****/
 		
 		/* The correct value for the readout mode depends on
-		 * the sequence type and the trigger type.
+		 * the sequence type.
 		 */
 
 		set_exposure_times = FALSE;
-
-		if ( ad->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-			use_external_trigger = TRUE;
-		} else {
-			use_external_trigger = FALSE;
-		}
 
 		use_different_si2_value =
 			radicon_taurus->use_different_si2_value;
@@ -792,60 +826,28 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			set_exposure_times = TRUE;
 			use_different_si2_value = FALSE;
 
-			if ( use_external_trigger ) {
-				radicon_taurus->sro_mode = 3;
-			} else {
-				radicon_taurus->sro_mode = 4;
-			}
+			radicon_taurus->sro_mode = 3;
 			break;
-		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_MULTIFRAME:
 			set_exposure_times = TRUE;
 			use_different_si2_value = FALSE;
 
-			if ( use_external_trigger ) {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Multiframe sequences with external triggers "
-				"are not supported for Radicon Taurus "
-				"detector '%s'.  Please consider 'strobe', "
-				"'duration', or 'gated' sequences instead.",
-					ad->record->name );
-			} else {
-				radicon_taurus->sro_mode = 4;
-			}
+			radicon_taurus->sro_mode = 4;
 			break;
 		case MXT_SQ_STROBE:
 			set_exposure_times = TRUE;
 
-			if ( use_external_trigger ) {
-				if ( use_different_si2_value ) {
-					radicon_taurus->sro_mode = 0;
-				} else {
-					radicon_taurus->sro_mode = 1;
-				}
+			if ( use_different_si2_value ) {
+				radicon_taurus->sro_mode = 0;
 			} else {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Strobe sequences with internal triggers "
-				"are not supported for Radicon Taurus "
-				"detector '%s'.  Please consider using "
-				"an external trigger instead.",
-					ad->record->name );
+				radicon_taurus->sro_mode = 1;
 			}
 			break;
 		case MXT_SQ_DURATION:
 			set_exposure_times = FALSE;
 			use_different_si2_value = FALSE;
 
-			if ( use_external_trigger ) {
-				radicon_taurus->sro_mode = 2;
-			} else {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Duration sequences with internal triggers "
-				"are not supported for Radicon Taurus "
-				"detector '%s'.  Please consider using "
-				"an external trigger instead.",
-					ad->record->name );
-			}
+			radicon_taurus->sro_mode = 2;
 			break;
 		case MXT_SQ_GATED:
 			set_exposure_times = TRUE;
@@ -855,16 +857,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			 * possible values are valid.
 			 */
 
-			if ( use_external_trigger ) {
-				radicon_taurus->sro_mode = 0;
-			} else {
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"Gated sequences with internal triggers "
-				"are not supported for Radicon Taurus "
-				"detector '%s'.  Please consider using "
-				"an external trigger instead.",
-					ad->record->name );
-			}
+			radicon_taurus->sro_mode = 0;
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -1007,6 +1000,10 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_trigger()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+	double pulse_period, pulse_width;
+	unsigned long num_pulses;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -1020,16 +1017,6 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	mx_status = mx_video_input_trigger(
-			radicon_taurus->video_input_record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_TAURUS_DEBUG
-	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
-		fname, ad->record->name ));
-#endif
 	/* FIXME: The following sleep exists to insert a delay time
 	 * between the trigger call and the first get extended status.
 	 *
@@ -1039,6 +1026,129 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 
 	mx_msleep(1000);
 
+	if ( ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+
+		/* If internal triggering is not enabled,
+		 * return without doing anything.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We need to have a pulse generator to perform internal triggering. */
+
+	if ( radicon_taurus->pulser_record == (MX_RECORD *) NULL ) {
+
+		mx_warning( "Internal triggering was requested for "
+		"area detector '%s', but no pulse generator is configured "
+		"for it.", ad->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Get the exposure time for this sequence. */
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_exposure_time( sp, 0, &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Calculate the pulse width, pulse period, and number of pulses. */
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		/* sro 3 - single pulse */
+
+		pulse_width = exposure_time;
+		pulse_period = 1.1 * pulse_width;
+		num_pulses = 1;
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		/* sro 4 - this is a free run mode */
+
+		pulse_width = pulse_period = 0.0;
+		num_pulses = 0;
+		break;
+
+	case MXT_SQ_STROBE:
+		/* sro 1 - double pulses */
+
+		pulse_width = 0.1;
+		pulse_period = 1.1 * pulse_width;
+		num_pulses = sp->parameter_array[0] / 2L;
+		break;
+
+	case MXT_SQ_DURATION:
+		/* sro 2 - really intended for use with external triggers. */
+
+		/* We invent some parameters for the internal trigger
+		 * out of thin air.
+		 */
+
+		pulse_width = 1.0;
+		pulse_period = 2.0;
+
+		/* At least, we know the number of pulses to send. */
+
+		num_pulses = sp->parameter_array[0];
+		break;
+
+	case MXT_SQ_GATED:
+		/* sro 0 - one long gate pulse for all of the frames */
+
+		pulse_width = exposure_time;
+		pulse_period = 1.1 * pulse_width;
+		num_pulses = 1;
+		break;
+	}
+
+	/* If num_pulses is 0, then we will not need to start
+	 * the pulse generator.
+	 */
+
+	if ( num_pulses == 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Configure the pulse generator for this sequence. */
+
+	mx_status = mx_pulse_generator_set_mode( radicon_taurus->pulser_record,
+							MXF_PGN_PULSE );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period(
+						radicon_taurus->pulser_record,
+						pulse_period );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_width(
+						radicon_taurus->pulser_record,
+						pulse_width );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_num_pulses(
+						radicon_taurus->pulser_record,
+						num_pulses );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now start the pulse generator to start the imaging sequence. */
+
+	mx_status = mx_pulse_generator_start( radicon_taurus->pulser_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
+		fname, ad->record->name ));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1061,6 +1171,14 @@ mxd_radicon_taurus_abort( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	mx_status = mx_video_input_abort( radicon_taurus->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( radicon_taurus->pulser_record != (MX_RECORD *) NULL ) {
+		mx_status = mx_pulse_generator_stop(
+				radicon_taurus->pulser_record );
+	}
 
 	return mx_status;
 }
@@ -1134,6 +1252,22 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	radicon_taurus->old_total_num_frames = ad->total_num_frames;
 	radicon_taurus->old_status           = ad->status;
+
+	/* If a pulse generator is in use, then poll its status.  For some
+	 * pulse generator drivers, this is necessary for the driver to
+	 * operate correctly.
+	 */
+
+	if ( radicon_taurus->pulser_record != (MX_RECORD *) NULL ) {
+		mx_bool_type pulser_busy;
+
+		mx_status = mx_pulse_generator_is_busy(
+						radicon_taurus->pulser_record,
+						&pulser_busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
