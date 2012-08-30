@@ -12,9 +12,6 @@
 #include "n_tcpip.h"
 #include "n_unix.h"
 
-MX_API char *optarg;
-MX_API int optind;
-
 /*-------------------------------------------------------------------------*/
 
 static mx_status_type

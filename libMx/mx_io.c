@@ -262,7 +262,7 @@ mx_get_number_of_open_file_descriptors( void )
 /*=========================================================================*/
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_BSD) || defined(OS_HURD)
+	|| defined(OS_BSD) || defined(OS_HURD) || defined(OS_CYGWIN)
 
 MX_EXPORT mx_bool_type
 mx_fd_is_valid( int fd )
@@ -623,9 +623,10 @@ mxp_parse_lsof_output( FILE *file,
 
 /*=========================================================================*/
 
-#if defined(OS_LINUX) || defined(OS_SOLARIS)
+#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_CYGWIN)
 
-/* On Linux, use readlink() on the /proc/NNN/fd/NNN files.
+/* On Cygwin, use readlink() on the /proc/NNN/fd/NNN files.
+ * On Linux, use readlink() on the /proc/NNN/fd/NNN files.
  * On Solaris, use readlink() on  the /proc/NNN/path/NNN files.
  */
 
@@ -659,7 +660,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 		return NULL;
 	}
 
-#  if defined(OS_LINUX)
+#  if defined(OS_LINUX) || defined(OS_CYGWIN)
 	snprintf( fd_pathname, sizeof(fd_pathname),
 		"/proc/%lu/fd/%d",
 		process_id, fd );
@@ -804,6 +805,8 @@ mxp_get_fd_name_gfpn_by_handle( HANDLE fd_handle,
 }
 
 /*--- For Windows XP and before, we use file mapping objects. ---*/
+
+/* FIXME: For some reason, this code fails with permission errors. */
 
 static mx_status_type
 mxp_get_fd_name_via_mapping( HANDLE fd_handle,
@@ -2338,15 +2341,17 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD) \
+	|| defined(OS_CYGWIN)
 
 /*
  * This is a generic stat()-based implementation that requires polling.
  * It is used for the following platforms:
  *
- *   Gnu Hurd
+ *   Gnu Hurd.
  *   Linux with Glibc 2.3.5 and before.
  *   Solaris 9 and before.
+ *   Other Unix-like platforms.
  */
 
 typedef struct {
