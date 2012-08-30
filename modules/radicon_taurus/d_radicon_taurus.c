@@ -222,8 +222,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * record description, then try to get a pointer to that record.
 	 */
 
+	radicon_taurus->poll_pulser_status = FALSE;
+
 	if ( strlen( radicon_taurus->pulser_record_name ) <= 0 ) {
 		radicon_taurus->pulser_record = NULL;
+
 	} else {
 		radicon_taurus->pulser_record = mx_get_record( ad->record,
 					radicon_taurus->pulser_record_name );
@@ -250,7 +253,52 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 			return mx_status;
 		}
+
+		radicon_taurus->poll_pulser_status = TRUE;
 	}
+
+	if ( radicon_taurus->pulser_record == (MX_RECORD *) NULL ) {
+		/* If there is no pulser record, then we must set the
+		 * poll_pulser_status field to read only.  If we allowed
+		 * the field to be writeable and someone set the field
+		 * to TRUE, then the MX process would crash the next time
+		 * the get_extended_status field was read.
+		 */
+
+		MX_RECORD_FIELD *poll_field;
+
+		mx_status = mx_find_record_field( record,
+					"poll_pulser_status", &poll_field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_record_field_set_read_only_flag( poll_field,
+								TRUE );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* If there _is_ a pulser record, but we are running in
+		 * an MX server, then we turn off the poll_pulser_status
+		 * flag because the pulse generator record should provide
+		 * a callback (if needed) that handles any necessary
+		 * background processing.  The most relevant example of this
+		 * is the 'digital_output_pulser' driver, which provides a
+		 * callback to perform background processing that turns on
+		 * or off the digital output value as necessary.
+		 */
+
+		MX_LIST_HEAD *list_head;
+
+		list_head = mx_get_record_list_head_struct( record );
+
+		if ( list_head->is_server == TRUE ) {
+			radicon_taurus->poll_pulser_status = FALSE;
+		}
+	}
+
+	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
+		fname, (int) radicon_taurus->poll_pulser_status ));
 
 	/* Verify that the video input and serial port records
 	 * have been found.
@@ -1082,16 +1130,18 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXT_SQ_DURATION:
-		/* sro 2 - really intended for use with external triggers. */
+		/* sro 2 - duration depends on width of external trigger. */
 
-		/* We invent some parameters for the internal trigger
-		 * out of thin air.
+		/* Since duration mode scans are intended for use with
+		 * external triggers, specifying the pulse width and
+		 * period are not really provided for.  However, if you
+		 * set the necessary pulse width and period parameters
+		 * directly using the pulse generator record, then you
+		 * can effectively generate an "external" trigger using
+		 * the internal trigger hardware.
 		 */
 
-		pulse_width = 1.0;
-		pulse_period = 2.0;
-
-		/* At least, we know the number of pulses to send. */
+		/* The sequence does give us the number of pulses to send. */
 
 		num_pulses = sp->parameter_array[0];
 		break;
@@ -1120,17 +1170,21 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_pulse_generator_set_pulse_period(
+	if( sp->sequence_type != MXT_SQ_DURATION ) {
+		mx_status = mx_pulse_generator_set_pulse_period(
 						radicon_taurus->pulser_record,
 						pulse_period );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
-	mx_status = mx_pulse_generator_set_pulse_width(
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_pulse_generator_set_pulse_width(
 						radicon_taurus->pulser_record,
 						pulse_width );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	mx_status = mx_pulse_generator_set_num_pulses(
 						radicon_taurus->pulser_record,
@@ -1220,6 +1274,27 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
+	/* If a pulse generator is in use and we are _not_ in an MX server,
+	 * then poll its status.  For some pulse generator drivers, this is
+	 * necessary for the driver to operate correctly, since otherwise
+	 * their background processing doesn't get to happen.
+	 */
+
+	if ( radicon_taurus->poll_pulser_status ) {
+		mx_bool_type pulser_busy;
+
+		mx_status = mx_pulse_generator_is_busy(
+						radicon_taurus->pulser_record,
+						&pulser_busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( pulser_busy ) {
+			ad->status |= MXSF_AD_CONTROLLER_ACTION_IN_PROGRESS;
+		}
+	}
+
 #if MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS
 
 	MX_DEBUG(-2,("%s: last_frame_number = %ld, "
@@ -1252,22 +1327,6 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	radicon_taurus->old_total_num_frames = ad->total_num_frames;
 	radicon_taurus->old_status           = ad->status;
-
-	/* If a pulse generator is in use, then poll its status.  For some
-	 * pulse generator drivers, this is necessary for the driver to
-	 * operate correctly.
-	 */
-
-	if ( radicon_taurus->pulser_record != (MX_RECORD *) NULL ) {
-		mx_bool_type pulser_busy;
-
-		mx_status = mx_pulse_generator_is_busy(
-						radicon_taurus->pulser_record,
-						&pulser_busy );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

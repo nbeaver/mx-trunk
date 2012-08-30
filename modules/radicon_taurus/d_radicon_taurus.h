@@ -63,6 +63,7 @@ typedef struct {
 	mx_bool_type bypass_arm;
 	mx_bool_type use_raw_frames;
 	mx_bool_type have_get_commands;
+	mx_bool_type poll_pulser_status;
 
 	long old_total_num_frames;
 	unsigned long old_status;
@@ -96,7 +97,7 @@ typedef struct {
 				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, pulser_record_name), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
@@ -159,7 +160,11 @@ typedef struct {
   \
   {-1, -1, "have_get_commands", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, have_get_commands), \
-	{0}, NULL, MXFF_READ_ONLY }
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "poll_pulser_status", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, poll_pulser_status), \
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );

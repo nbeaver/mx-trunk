@@ -642,6 +642,16 @@ MX_API mx_status_type  mx_construct_ptr_to_field_value(
 
 /* --- */
 
+MX_API mx_status_type mx_record_field_get_read_only_flag(
+					MX_RECORD_FIELD *record_field,
+					mx_bool_type *field_is_read_only );
+
+MX_API mx_status_type mx_record_field_set_read_only_flag(
+					MX_RECORD_FIELD *record_field,
+					mx_bool_type field_is_read_only );
+
+/* --- */
+
 MX_API_PRIVATE mx_status_type  mx_create_field_from_description(
 			MX_RECORD *record, MX_RECORD_FIELD *record_field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status,

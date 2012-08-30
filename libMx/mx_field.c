@@ -578,6 +578,52 @@ mx_set_1d_field_array_length_by_name( MX_RECORD *record,
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
+mx_record_field_get_read_only_flag( MX_RECORD_FIELD *field,
+				mx_bool_type *field_is_read_only )
+{
+	static const char fname[] = "mx_record_field_get_read_only_flag()";
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( field_is_read_only == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The field_is_read_only pointer passed was NULL." );
+	}
+
+	if ( (field->flags) & MXFF_READ_ONLY ) {
+		*field_is_read_only = TRUE;
+	} else {
+		*field_is_read_only = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_record_field_set_read_only_flag( MX_RECORD_FIELD *field,
+				mx_bool_type field_is_read_only )
+{
+	static const char fname[] = "mx_record_field_set_read_only_flag()";
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	if ( field_is_read_only ) {
+		field->flags |= MXFF_READ_ONLY;
+	} else {
+		field->flags &= (~MXFF_READ_ONLY);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
 mx_create_record_from_description(
 		MX_RECORD *record_list,
 		char *description,
