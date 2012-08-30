@@ -1288,7 +1288,8 @@ MX_API mx_status_type mx_area_detector_set_duration_mode( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_set_gated_mode( MX_RECORD *ad_record,
 							long num_frames,
-							double exposure_time );
+							double exposure_time,
+							double gate_time );
 
 /*---*/
 

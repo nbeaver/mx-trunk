@@ -1654,7 +1654,8 @@ mx_area_detector_set_duration_mode( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_set_gated_mode( MX_RECORD *record,
 				long num_frames,
-				double exposure_time )
+				double exposure_time,
+				double gate_time )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
 	mx_status_type mx_status;
@@ -1663,6 +1664,7 @@ mx_area_detector_set_gated_mode( MX_RECORD *record,
 	seq_params.num_parameters = 2;
 	seq_params.parameter_array[0] = num_frames;
 	seq_params.parameter_array[1] = exposure_time;
+	seq_params.parameter_array[2] = gate_time;
 
 	mx_status = mx_area_detector_set_sequence_parameters( record,
 								&seq_params );

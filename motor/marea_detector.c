@@ -75,6 +75,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long saved_correction_flags;
 	double measurement_time, total_sequence_time;
 	double exposure_time, frame_time, exposure_multiplier, gap_multiplier;
+	double gate_time;
 	double exposure_time_per_line, total_time_per_line, subimage_time;
 	double bytes_per_pixel;
 	mx_bool_type busy, ignore_num_frames;
@@ -107,7 +108,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "                                                'exposure time' 'frame_time'\n"
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set duration_mode '# frames'\n"
-"  area_detector 'name' set gated_mode '# frames' 'exposure time'\n"
+"  area_detector 'name' set gated_mode '# frames' 'exposure time' 'gate_time'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
 "      'exposure time' 'frame_time' 'exposure multiplier' 'gap multiplier'\n"
 "  area_detector 'name' set streak_camera_mode '# lines'\n"
@@ -2048,7 +2049,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strncmp("gated_mode", argv[4], strlen(argv[4])) == 0)
 		{
-			if ( argc != 7 ) {
+			if ( argc != 8 ) {
 				fprintf( output,
 			"Wrong number of arguments specified for 'set %s'.\n",
 					argv[4] );
@@ -2067,8 +2068,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time = atof( argv[6] );
 
+			gate_time = atof( argv[7] );
+
 			mx_status = mx_area_detector_set_gated_mode(
-				ad_record, num_frames, exposure_time );
+				ad_record, num_frames, exposure_time,
+				gate_time );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

@@ -1109,7 +1109,7 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_ONE_SHOT:
 		/* sro 3 - single pulse */
 
-		pulse_width = exposure_time;
+		pulse_width = 1.05 * exposure_time;
 		pulse_period = 1.1 * pulse_width;
 		num_pulses = 1;
 		break;
@@ -1149,8 +1149,8 @@ mxd_radicon_taurus_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_GATED:
 		/* sro 0 - one long gate pulse for all of the frames */
 
-		pulse_width = exposure_time;
-		pulse_period = 1.1 * pulse_width;
+		pulse_width = sp->parameter_array[2];
+		pulse_period = 1.001 * pulse_width;
 		num_pulses = 1;
 		break;
 	}
