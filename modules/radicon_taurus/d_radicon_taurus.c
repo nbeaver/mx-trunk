@@ -791,6 +791,95 @@ mxd_radicon_taurus_special_processing_setup( MX_RECORD *record )
 
 /*----*/
 
+static mx_status_type
+mxd_radicon_taurus_generate_throwaway_frame( MX_AREA_DETECTOR *ad,
+					MX_RADICON_TAURUS *radicon_taurus )
+{
+	static const char fname[] =
+			"mxd_radicon_taurus_generate_throwaway_frame()";
+
+	unsigned long i, max_number_of_loops, sleep_milliseconds;
+	mx_bool_type busy;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	/* This function should only be called in internal trigger mode. */
+
+	/* Reprogram SI1 and SI2 to generate a short frame. */
+
+	radicon_taurus->si1_register = 500;
+
+	mx_status = mxd_radicon_taurus_set_si1( ad ); 
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	radicon_taurus->si2_register = 500;
+
+	mx_status = mxd_radicon_taurus_set_si2( ad ); 
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Program the pulse generator to send a short pulse. */
+
+	mx_status = mx_pulse_generator_set_mode( radicon_taurus->pulser_record,
+							MXF_PGN_PULSE );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_period(
+					radicon_taurus->pulser_record, 0.1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_pulse_generator_set_pulse_width(
+					radicon_taurus->pulser_record, 0.05 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Send the pulse. */
+
+	mx_status = mx_pulse_generator_start( radicon_taurus->pulser_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for the pulse to complete. */
+
+	max_number_of_loops = 100;
+	sleep_milliseconds = 10;
+
+	for ( i = 0; i < max_number_of_loops; i++ ) {
+
+		mx_status = mx_pulse_generator_is_busy(
+						radicon_taurus->pulser_record,
+						&busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy == FALSE )
+			break;		/* Exit the for() loop. */
+
+		mx_msleep( sleep_milliseconds );
+	}
+
+	mx_status = mx_pulse_generator_stop( radicon_taurus->pulser_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_stop( ad->record );
+
+	return mx_status;
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 {
@@ -920,6 +1009,25 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			/* When you change SRO modes, the first sequence
+			 * after the change sometimes does not operate
+			 * correctly.  With an external trigger, there
+			 * is little that we can do to fix this.  However,
+			 * with an internal trigger, we can generate a
+			 * throwaway frame that we can then discard.
+			 */
+
+#if 1
+			if ( ad->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+				mx_status =
+				    mxd_radicon_taurus_generate_throwaway_frame(
+					ad, radicon_taurus );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+#endif
 		}
 
 		/* Do we need to set the exposure times?  If not, then
