@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -229,22 +229,22 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 	switch( record->mx_type ) {
 	case MXT_AD_PCCD_9785:
 
-		/* The PCCD-9785 camera is similar to the PCCD-9785 above,
-		 * but it only has a single CCD chip which has a maximum
-		 * image size of 3584 by 2048.  Each line from the detector
-		 * contains 1792 groups of pixels with 4 pixels per group.
+		/* The PCCD-9785 camera is similar to the PCCD-4824, but it
+		 * has a pair of CCD chips which together have a maximum image
+		 * image size of 3584 by 4096.  Each line from the detector
+		 * contains 1792 groups of pixels with 8 pixels per group.
 		 * A full frame image has 1024 lines.  This means that the
-		 * maximum resolution of the video card should be 7168 by 1024
-		 * and that the descramble factors should be 2.
+		 * maximum resolution of the video card should be 14336 by 1024
+		 * and that the descramble factors should be 4.
 		 */
 
 		ad->maximum_framesize[0] = 3584;
-		ad->maximum_framesize[1] = 2048;
+		ad->maximum_framesize[1] = 4096;
 
 		ad->use_multiframe_correction = TRUE;
 
-		aviex_pccd->horiz_descramble_factor = 2;
-		aviex_pccd->vert_descramble_factor  = 2;
+		aviex_pccd->horiz_descramble_factor = 4;
+		aviex_pccd->vert_descramble_factor  = 4;
 
 		/* For the real detector. */
 

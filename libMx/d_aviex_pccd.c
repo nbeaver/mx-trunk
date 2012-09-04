@@ -1423,8 +1423,8 @@ mxd_aviex_pccd_finish_record_initialization( MX_RECORD *record )
 		aviex_pccd->vert_descramble_factor = 2;
 		break;
 	case MXT_AD_PCCD_9785:
-		aviex_pccd->horiz_descramble_factor = 2;
-		aviex_pccd->vert_descramble_factor = 2;
+		aviex_pccd->horiz_descramble_factor = 4;
+		aviex_pccd->vert_descramble_factor = 4;
 		break;
 	default:
 		aviex_pccd->horiz_descramble_factor = -1;
@@ -1512,6 +1512,7 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 #if MXD_AVIEX_PCCD_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
 	/* Set the default file formats. */
 
 	ad->datafile_load_format   = MXT_IMAGE_FILE_SMV;

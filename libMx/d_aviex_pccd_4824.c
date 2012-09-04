@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -222,13 +222,12 @@ mxd_aviex_pccd_4824_initialize_detector( MX_RECORD *record,
 	switch( record->mx_type ) {
 	case MXT_AD_PCCD_4824:
 
-		/* The PCCD-4824 camera is similar to the PCCD-4824 above,
-		 * but it only has a single CCD chip which has a maximum
-		 * image size of 3584 by 2048.  Each line from the detector
-		 * contains 1792 groups of pixels with 4 pixels per group.
-		 * A full frame image has 1024 lines.  This means that the
-		 * maximum resolution of the video card should be 7168 by 1024
-		 * and that the descramble factors should be 2.
+		/* The PCCD-4824 camera has a single CCD chip which has a
+		 * maximum image size of 3584 by 2048.  Each line from the
+		 * detector contains 1792 groups of pixels with 4 pixels per
+		 * group.  A full frame image has 1024 lines.  This means
+		 * that the maximum resolution of the video card should be
+		 * 7168 by 1024 and that the descramble factors should be 2.
 		 */
 
 		ad->maximum_framesize[0] = 3584;

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2011 Illinois Institute of Technology
+ * Copyright 2006-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2894,8 +2894,15 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_FRAMESIZE:
-		vinput->framesize[0] = pxd_imageXdim();
-		vinput->framesize[1] = pxd_imageYdim();
+		if ( epix_xclib_vinput->raw_image_format
+				== MXT_IMAGE_FORMAT_GREY8 )
+		{
+			vinput->framesize[0] = pxd_imageXdim() / 2L;
+			vinput->framesize[1] = pxd_imageYdim();
+		} else {
+			vinput->framesize[0] = pxd_imageXdim();
+			vinput->framesize[1] = pxd_imageYdim();
+		}
 		break;
 	default:
 		return mx_video_input_default_get_parameter_handler( vinput );
@@ -2913,6 +2920,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	uint16 CLCCSE;
 	int epix_status, mesg_status;
 	long saved_trigger_mode;
+	long raw_x_dimension, raw_y_dimension;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	char error_message[100];
 	mx_status_type mx_status;
@@ -3068,6 +3076,18 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 			fname, vinput->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
 #endif
+		/* Compute the framesize in raw video_card units. */
+
+		if ( epix_xclib_vinput->raw_image_format
+				== MXT_IMAGE_FORMAT_GREY8 )
+		{
+			raw_x_dimension = 2L * vinput->framesize[0];
+			raw_y_dimension = vinput->framesize[1];
+		} else {
+			raw_x_dimension = vinput->framesize[0];
+			raw_y_dimension = vinput->framesize[1];
+		}
+
 		/* Escape to the Structured Style Interface. */
 
 		xc = pxd_xclibEscape(0, 0, 0);
@@ -3094,15 +3114,15 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		/* Change the necessary parameters. */
 
-		vidstate.vidres->x.datsamples = vinput->framesize[0];
-		vidstate.vidres->x.vidsamples = vinput->framesize[0];
+		vidstate.vidres->x.datsamples = raw_x_dimension;
+		vidstate.vidres->x.vidsamples = raw_x_dimension;
 		vidstate.vidres->x.setmidvidoffset = 0;
 		vidstate.vidres->x.vidoffset = 0;
 		vidstate.vidres->x.setmaxdatsamples = 0;
 		vidstate.vidres->x.setmaxvidsamples = 0;
 
-		vidstate.vidres->y.datsamples = vinput->framesize[1];
-		vidstate.vidres->y.vidsamples = vinput->framesize[1];
+		vidstate.vidres->y.datsamples = raw_y_dimension;
+		vidstate.vidres->y.vidsamples = raw_y_dimension;
 		vidstate.vidres->y.setmidvidoffset = 0;
 		vidstate.vidres->y.vidoffset = 0;
 		vidstate.vidres->y.setmaxdatsamples = 0;
