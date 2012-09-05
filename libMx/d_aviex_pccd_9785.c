@@ -550,7 +550,16 @@ mxd_aviex_pccd_9785_descramble( uint16_t *raw_frame_data,
 
 		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[0];
-		raw_frame_data += 4;
+
+		image_sector_array[4][i][j] = raw_frame_data[6];
+
+		image_sector_array[5][i][j_framesize-j-1] = raw_frame_data[7];
+
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[5];
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[4];
+		raw_frame_data += 8;
 	    }
 	}
 
@@ -600,7 +609,19 @@ mxd_aviex_pccd_9785_linearity_descramble( uint16_t *raw_frame_data,
 		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
 		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 0 );
 
-		raw_frame_data += 4;
+		image_sector_array[4][i][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 6 );
+
+		image_sector_array[5][i][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 7 );
+
+		image_sector_array[6][i_framesize-i-1][j]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 5 );
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+		    = MXD_AVIEX_PCCD_LOOKUP( lookup_table, raw_frame_data, 4 );
+
+		raw_frame_data += 8;
 	    }
 	}
 
