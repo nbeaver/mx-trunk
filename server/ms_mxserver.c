@@ -463,13 +463,17 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
-			    mxsrv_print_timestamp();
+			    if ( socket_handler->network_debug_flags
+					& MXF_NETDBG_VERBOSE)
+			    {
+				mxsrv_print_timestamp();
 
-			    fprintf( stderr,
+				fprintf( stderr,
 				"MX (socket %d) deleting callback %#lx "
 				"for newly disconnected client.\n",
 				socket_handler->synchronous_socket->socket_fd,
 				(unsigned long) callback_ptr->callback_id );
+			    }
 #endif
 			    /* If we get here, then the socket handler _IS_
 			     * on this callback's socket handler list.
