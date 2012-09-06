@@ -892,5 +892,15 @@ motor_show_version( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(_MSC_VER)
+
+	fprintf( output, "Microsoft Visual C/C++ version: %d.%d\n",
+		(_MSC_VER / 100), (_MSC_VER % 100) );
+
+#endif /* _MSC_VER */
+
+/*-------------------------------------------------------------------------*/
+
 	return;
 }
+

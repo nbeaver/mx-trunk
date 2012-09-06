@@ -28,6 +28,8 @@
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_EXTENDED_STATUS_WHEN_BUSY	FALSE
 
+#define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
+
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK			TRUE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS		FALSE
@@ -241,6 +243,15 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	}
 #endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK */
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_frame_grabber->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
 	return;
 }
 
@@ -250,6 +261,11 @@ static mx_status_type
 mxd_sapera_lt_frame_grabber_setup_frame_counters( MX_VIDEO_INPUT *vinput,
 			MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber )
 {
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+	static const char fname[] =
+		"mxd_sapera_lt_frame_grabber_setup_frame_counters()";
+#endif
+
 	long num_frames_in_sequence;
 	mx_status_type mx_status;
 
@@ -266,6 +282,15 @@ mxd_sapera_lt_frame_grabber_setup_frame_counters( MX_VIDEO_INPUT *vinput,
 
 	sapera_lt_frame_grabber->num_frames_left_to_acquire
 					= num_frames_in_sequence;
+
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_frame_grabber->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1352,6 +1377,15 @@ mxd_sapera_lt_frame_grabber_abort( MX_VIDEO_INPUT *vinput )
 		sapera_lt_frame_grabber->num_frames_left_to_acquire = 0;
 	}
 
+#if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_frame_grabber->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"The attempt to abort frame grabber '%s' failed.",
@@ -1411,7 +1445,6 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #endif
-
 	return mx_status;
 }
 

@@ -4884,6 +4884,7 @@ mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_DURATION:
+	case MXT_SQ_GATED:
 	case MXT_SQ_GEOMETRICAL:
 		*num_frames = mx_round( sp->parameter_array[0] );
 		break;
