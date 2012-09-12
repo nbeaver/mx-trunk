@@ -723,8 +723,31 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_NEW_DATA_AVAILABLE ) {
 
+		/* FIXME: This is probably an expensive way to determine
+		 * whether or not new data is available.  For low count
+		 * rates, it will have some false positives as well.
+		 * However, it is probably less expensive than calculating
+		 * a spectrum integral every time a client wants to know if
+		 * there is new data.  This should really be checked.
+		 */
+
 		mx_status = mx_get( &(network_mca->new_data_available_nf),
 					MXFT_ULONG, &(mca->new_data_available));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mca->new_data_available == FALSE ) {
+			mx_status = mx_get( &(network_mca->busy_nf),
+					MXFT_BOOL, &(mca->busy) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( mca->busy ) {
+				mca->new_data_available = TRUE;
+			}
+		}
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
 

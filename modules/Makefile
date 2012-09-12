@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-MODULES += epix_xclib		# linux, win32
+#MODULES += epix_xclib		# linux, win32
 
 #MODULES += esone_camac		# linux, win32
 
@@ -56,11 +56,11 @@ MODULES += epics
 
 MODULES += epics_aps
 
-#MODULES += epics_mbc
+MODULES += epics_mbc
 
 MODULES += epics_pmac_biocat
 
-#MODULES += epics_pmac_tc
+MODULES += epics_pmac_tc
 
 #---
 
