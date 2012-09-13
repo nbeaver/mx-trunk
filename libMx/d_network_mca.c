@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
+#include "mx_callback.h"
 #include "mx_mca.h"
 #include "mx_net.h"
 #include "d_network_mca.h"
