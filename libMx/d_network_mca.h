@@ -57,6 +57,8 @@ typedef struct {
 	MX_NETWORK_FIELD soft_roi_number_nf;
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
+
+	MX_CALLBACK *new_data_available_callback;
 } MX_NETWORK_MCA;
 
 #define MXD_NETWORK_MCA_STANDARD_FIELDS \
