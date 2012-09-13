@@ -391,6 +391,8 @@ mxd_monte_carlo_mca_event_thread( MX_THREAD *thread, void *args )
 						monte_carlo_mca, source );
 		}
 
+		mca->new_data_available = TRUE;
+
 		mx_usleep( monte_carlo_mca->sleep_microseconds );
 	}
 

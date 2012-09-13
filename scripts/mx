@@ -151,8 +151,8 @@ case $1 in
 	;;
     'restart' )
 	$0 stop
-	echo "Waiting 5 seconds for the servers to shut down."
-	sleep 5
+	echo "Waiting 2 seconds for the servers to shut down."
+	sleep 2
 	$0 start
 	;;
     *)

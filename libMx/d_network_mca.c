@@ -34,7 +34,7 @@ MX_RECORD_FUNCTION_LIST mxd_network_mca_record_function_list = {
 	mxd_network_mca_delete_record,
 	mxd_network_mca_print_structure,
 	mxd_network_mca_open,
-	mxd_network_mca_close,
+	NULL,
 	NULL,
 	mxd_network_mca_resynchronize
 };
@@ -410,6 +410,23 @@ mxd_network_mca_print_structure( FILE *file, MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_new_data_available_callback_function( MX_CALLBACK *callback,
+					void *callback_args )
+{
+	MX_DEBUG(-2,("mxp_new_data_available_callback_function() invoked."));
+
+	mx_stack_traceback();
+
+	/* We do not really need this function, since mx_invoke_callback()
+	 * will have already copied the field value from the network buffer
+	 * to our local buffer.  It only exists for debugging to verify
+	 * that the callback has been invoked.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxd_network_mca_open( MX_RECORD *record )
 {
@@ -493,13 +510,40 @@ mxd_network_mca_open( MX_RECORD *record )
 		mca->num_soft_rois = remote_num_soft_rois;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
+	/* Does the server support callbacks?  If it does, then we can use
+	 * them to get more timely updates of 'new_data_available'.
+	 */
 
-MX_EXPORT mx_status_type
-mxd_network_mca_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_get_by_name( network_mca->server_record,
+					"mx_database.callbacks_enabled",
+					MXFT_BOOL,
+					&(network_mca->callbacks_enabled) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If callbacks are not supported, then we are done. */
+
+	if ( network_mca->callbacks_enabled == FALSE ) {
+
+		mx_warning( "No value changed callback was created for "
+			"'%s.new_data_available' since the MX server "
+			"for MCA '%s' does not support callbacks.",
+				mca->record->name, mca->record->name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Create a value changed callback for 'new_data_available'. */
+
+	mx_status = mx_remote_field_add_callback(
+				&(network_mca->new_data_available_nf),
+				MXCBT_VALUE_CHANGED,
+				mxp_new_data_available_callback_function,
+				NULL,
+				&(network_mca->new_data_available_callback) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -724,31 +768,30 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	} else
 	if ( mca->parameter_type == MXLV_MCA_NEW_DATA_AVAILABLE ) {
 
-		/* FIXME: This is probably an expensive way to determine
-		 * whether or not new data is available.  For low count
-		 * rates, it will have some false positives as well.
-		 * However, it is probably less expensive than calculating
-		 * a spectrum integral every time a client wants to know if
-		 * there is new data.  This should really be checked.
+		/* If the server implements callbacks, then we will have
+		 * set up a value changed callback for new_data_available_nf,
+		 * which will have automatically updated the variable
+		 * mca->new_data_available for us.  If so, then we do not
+		 * need to do anything further here, since the correct
+		 * value will already be in the variable.
+		 */
+
+		if ( network_mca->callbacks_enabled ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Otherwise, we have to poll for the value.
+		 *
+		 * WARNING: In this case, polling the value of the variable
+		 * is not very reliable, since we can easily miss changes
+		 * to the value of 'new_data_available' since it is 
+		 * automatically reset in the server after the first read
+		 * of the channel array.  That is why callbacks are strongly
+		 * preferred for this case.
 		 */
 
 		mx_status = mx_get( &(network_mca->new_data_available_nf),
 					MXFT_ULONG, &(mca->new_data_available));
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( mca->new_data_available == FALSE ) {
-			mx_status = mx_get( &(network_mca->busy_nf),
-					MXFT_BOOL, &(mca->busy) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( mca->busy ) {
-				mca->new_data_available = TRUE;
-			}
-		}
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_COUNT ) {
 

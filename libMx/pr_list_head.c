@@ -59,6 +59,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_BREAKPOINT:
 		case MXLV_LHD_DEBUGGER_STARTED:
 		case MXLV_LHD_SHOW_OPEN_FDS:
+		case MXLV_LHD_CALLBACKS_ENABLED:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -191,6 +192,9 @@ mx_list_head_process_function( void *record_ptr,
 			mx_info( "Open sockets:" );
 			mx_win32_show_socket_names();
 #endif
+			break;
+		case MXLV_LHD_CALLBACKS_ENABLED:
+			/* Nothing to do here. */
 			break;
 		default:
 			MX_DEBUG( 1,(

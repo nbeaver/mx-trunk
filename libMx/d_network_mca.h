@@ -22,6 +22,8 @@
 #define MXD_NMCA_TICKS_PER_SECOND	(50.0)
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
@@ -58,6 +60,7 @@ typedef struct {
 	MX_NETWORK_FIELD start_nf;
 	MX_NETWORK_FIELD stop_nf;
 
+	mx_bool_type callbacks_enabled;
 	MX_CALLBACK *new_data_available_callback;
 } MX_NETWORK_MCA;
 
@@ -80,7 +83,6 @@ MX_API mx_status_type mxd_network_mca_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_print_structure( FILE *file,
 							MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_open( MX_RECORD *record );
-MX_API mx_status_type mxd_network_mca_close( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_mca_start( MX_MCA *mca );

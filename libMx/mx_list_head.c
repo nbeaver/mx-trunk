@@ -142,6 +142,7 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->network_debug_flags = 0;
 	list_head_struct->breakpoint = FALSE;
 	list_head_struct->debugger_started = FALSE;
+	list_head_struct->callbacks_enabled = FALSE;
 
 	list_head_struct->is_server = FALSE;
 	list_head_struct->connection_acl = NULL;

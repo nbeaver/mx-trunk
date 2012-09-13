@@ -983,6 +983,8 @@ mxserver_main( int argc, char *argv[] )
 			exit( mx_status.code );
 
 		list_head_struct->master_timer = master_timer;
+
+		list_head_struct->callbacks_enabled = TRUE;
 	}
 
 	/* Read the database description file and add the records therein
