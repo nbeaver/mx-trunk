@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -410,6 +412,8 @@ mxd_network_mca_print_structure( FILE *file, MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE
+
 static mx_status_type
 mxp_new_data_available_callback_function( MX_CALLBACK *callback,
 					void *callback_args )
@@ -426,6 +430,8 @@ mxp_new_data_available_callback_function( MX_CALLBACK *callback,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE */
 
 MX_EXPORT mx_status_type
 mxd_network_mca_open( MX_RECORD *record )
@@ -536,12 +542,21 @@ mxd_network_mca_open( MX_RECORD *record )
 
 	/* Create a value changed callback for 'new_data_available'. */
 
+#if MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE
 	mx_status = mx_remote_field_add_callback(
 				&(network_mca->new_data_available_nf),
 				MXCBT_VALUE_CHANGED,
 				mxp_new_data_available_callback_function,
 				NULL,
 				&(network_mca->new_data_available_callback) );
+#else
+	mx_status = mx_remote_field_add_callback(
+				&(network_mca->new_data_available_nf),
+				MXCBT_VALUE_CHANGED,
+				NULL,
+				NULL,
+				&(network_mca->new_data_available_callback) );
+#endif
 
 	return mx_status;
 }
