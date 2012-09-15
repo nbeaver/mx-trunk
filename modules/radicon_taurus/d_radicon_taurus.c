@@ -493,15 +493,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * the sro, si1, and si2 settings?
 	 */
 
-#if 0
 	if ( radicon_taurus->firmware_version >= 105 ) {
 		radicon_taurus->have_get_commands = TRUE;
 	} else {
 		radicon_taurus->have_get_commands = FALSE;
 	}
-#else
-	radicon_taurus->have_get_commands = FALSE;
-#endif
 
 	/*--- Initialize the detector by putting it into free-run mode. ---*/
 
@@ -2412,7 +2408,7 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		if ( ( c != MX_LF )
 		  && ( c != '>' ) )
 		{
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			(void) mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"A single character %#x was discarded for '%s', "
 			"but it was not a LF character or a '>' character.",
 				c, radicon_taurus->record->name );
