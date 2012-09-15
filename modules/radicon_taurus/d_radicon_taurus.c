@@ -493,11 +493,15 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * the sro, si1, and si2 settings?
 	 */
 
+#if 0
 	if ( radicon_taurus->firmware_version >= 105 ) {
 		radicon_taurus->have_get_commands = TRUE;
 	} else {
 		radicon_taurus->have_get_commands = FALSE;
 	}
+#else
+	radicon_taurus->have_get_commands = FALSE;
+#endif
 
 	/*--- Initialize the detector by putting it into free-run mode. ---*/
 
