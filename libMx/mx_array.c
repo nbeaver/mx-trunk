@@ -1064,7 +1064,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 		MX_DEBUG(-2,("%s: num_dimensions = 0, mx_datatype = %ld, "
 		"native_bytes_to_copy = %d, network_bytes_to_copy = %d",
 			fname, mx_datatype,
-			native_bytes_to_copy, network_bytes_to_copy));
+			(int) native_bytes_to_copy,
+			(int) network_bytes_to_copy));
 #endif
 
 		switch( mx_datatype ) {
