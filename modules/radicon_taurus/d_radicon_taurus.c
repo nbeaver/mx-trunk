@@ -478,6 +478,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		}
 	}
 
+#if 0
 	/* If present, delete the camera's ">" prompt for the next command. */
 
 	if ( num_bytes_available == 1 ) {
@@ -488,6 +489,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#endif
 
 	/* Do this firmware have the getxxx commands for reading back
 	 * the sro, si1, and si2 settings?
@@ -2444,6 +2446,7 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 		}
 	}
 
+#if 0
 	/* If there is a single character left to be read from the
 	 * serial port, then that should be a LF character or a '>'
 	 * character.  Read that character out and discard it.
@@ -2470,6 +2473,7 @@ mxd_radicon_taurus_command( MX_RADICON_TAURUS *radicon_taurus, char *command,
 				c, radicon_taurus->record->name );
 		}
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
