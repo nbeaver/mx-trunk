@@ -19,7 +19,7 @@
 
 /* Values for the 'radicon_taurus_flags' field. */
 
-#define MXF_RADICON_TAURUS_MERGE_DUAL_FRAMES	0x1
+#define MXF_RADICON_TAURUS_FLIP_IMAGE	0x1
 
 /* Values for the 'detector_model' field. */
 
@@ -64,6 +64,7 @@ typedef struct {
 	mx_bool_type use_raw_frames;
 	mx_bool_type have_get_commands;
 	mx_bool_type poll_pulser_status;
+	mx_bool_type flip_image;
 
 	long old_total_num_frames;
 	unsigned long old_status;
@@ -164,6 +165,10 @@ typedef struct {
   \
   {-1, -1, "poll_pulser_status", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, poll_pulser_status), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "flip_image", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, flip_image), \
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(

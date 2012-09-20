@@ -164,8 +164,7 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	radicon_taurus = (MX_RADICON_TAURUS *)
-				calloc( 1, sizeof(MX_RADICON_TAURUS) );
+	radicon_taurus = (MX_RADICON_TAURUS *) calloc( 1, sizeof(MX_RADICON_TAURUS) );
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -199,6 +198,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	char command[100];
 	char response[100];
 	char *string_value_ptr;
+	unsigned long flags;
 	mx_bool_type response_seen;
 	mx_status_type mx_status;
 
@@ -499,6 +499,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		radicon_taurus->have_get_commands = FALSE;
 	}
 
+	/* Set the detector gain to 1. */
+
+	if ( radicon_taurus->firmware_version >= 105 ) {
+		mx_status = mxd_radicon_taurus_command( radicon_taurus,
+				"i2caw 72 1 0", NULL, 0, 
+				MXD_RADICON_TAURUS_DEBUG_RS232 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/*--- Initialize the detector by putting it into free-run mode. ---*/
 
 	radicon_taurus->sro_mode = 4;
@@ -507,6 +518,16 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Turn off vertical flipping of the image by default. */
+
+	flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( flags & MXF_RADICON_TAURUS_FLIP_IMAGE ) {
+		radicon_taurus->flip_image = TRUE;
+	} else {
+		radicon_taurus->flip_image = FALSE;
+	}
 
 	/*---*/
 
@@ -1479,6 +1500,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		long trimmed_row_framesize, trimmed_column_framesize;
 		long trimmed_row_bytesize;
 		long trimmed_row, row_offset, column_offset;
+		long flipped_trimmed_row;
 
 		/*
 		 * First, read the video capture card's frame into
@@ -1514,19 +1536,53 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		trimmed_frame_buffer = ad->image_frame->image_data;
 
-		for ( trimmed_row = 0;
-			trimmed_row < trimmed_column_framesize;
-			trimmed_row++ )
-		{
-			trimmed_ptr = trimmed_frame_buffer
-				+ trimmed_row * trimmed_row_framesize;
-			
-			raw_ptr = raw_frame_buffer
-				+ row_offset * raw_row_framesize
-				+ trimmed_row * raw_row_framesize
-				+ column_offset;
+		/* Note: In the following section, we have two slightly different
+		 * versions of the code inside the for() loops, depending on whether
+		 * or not we want to flip the image.  We have written the code this
+		 * way since putting an if() test in the body of a loop can be
+		 * a performance killer.
+		 */
 
-			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+		if ( radicon_taurus->flip_image ) {
+
+			/* While copying the image to the trimmed frame buffer,
+			 * we _flip_ the image vertically.
+			 */
+
+			for ( trimmed_row = 0;
+				trimmed_row < trimmed_column_framesize;
+				trimmed_row++ )
+			{
+				trimmed_ptr = trimmed_frame_buffer
+					+ trimmed_row * trimmed_row_framesize;
+
+				flipped_trimmed_row = trimmed_column_framesize
+							- trimmed_row - 1;
+			
+				raw_ptr = raw_frame_buffer
+					+ row_offset * raw_row_framesize
+					+ flipped_trimmed_row * raw_row_framesize
+					+ column_offset;
+
+				memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+			}
+		} else {
+			/* Do _not_ flip the image vertically. */
+
+			for ( trimmed_row = 0;
+				trimmed_row < trimmed_column_framesize;
+				trimmed_row++ )
+			{
+				trimmed_ptr = trimmed_frame_buffer
+					+ trimmed_row * trimmed_row_framesize;
+			
+				raw_ptr = raw_frame_buffer
+					+ row_offset * raw_row_framesize
+					+ trimmed_row * raw_row_framesize
+					+ column_offset;
+
+				memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+			}
 		}
 	}
 
