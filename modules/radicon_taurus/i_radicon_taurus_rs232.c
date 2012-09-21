@@ -366,6 +366,8 @@ mxi_radicon_taurus_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 		"mxi_radicon_taurus_rs232_num_input_bytes_available()";
 
 	MX_RECORD *serial_port_record = NULL;
+	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
+	int comparison;
 	mx_status_type mx_status;
 
 #if MXI_RADICON_TAURUS_RS232_DEBUG
@@ -379,10 +381,49 @@ mxi_radicon_taurus_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* How many bytes can be read without blocking? */
+	/* The detector often sends bare '>' or LF characters without any normal
+	 * line termination after the end of responses.  This makes parsing the
+	 * responses a bit more difficult.  What we do here to deal with this is
+	 * to loop for up to timeout time from 'rs232->timeout'.  If the timeout
+	 * time is reached, but there is still only 1 character in the read
+	 * buffer, then we assume that this is just a bare '>' or LF and tell
+	 * the caller that no bytes are available.
+	 */
 
-	mx_status = mx_rs232_num_input_bytes_available( serial_port_record,
-					&(rs232->num_input_bytes_available) );
+	timeout_in_ticks = mx_convert_seconds_to_clock_ticks( rs232->timeout );
+
+	current_tick = mx_current_clock_tick();
+
+	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+
+	while (1) {
+		/* How many bytes can be read without blocking? */
+
+		mx_status = mx_rs232_num_input_bytes_available( serial_port_record,
+						&(rs232->num_input_bytes_available) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If more than 1 byte is available, then break out of the while() loop. */
+
+		if ( rs232->num_input_bytes_available > 1 ) {
+			break;
+		}
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks( current_tick, finish_tick );
+
+		if ( comparison >= 0 ) {
+			/* We hae timed out, so set num_input_bytes_available to 0
+			 * and then break out of the while() loop.
+			 */
+
+			rs232->num_input_bytes_available = 0;
+			break;
+		}
+	}
 
 #if MXI_RADICON_TAURUS_RS232_DEBUG
 	fprintf( stderr, "*%ld*", (long) rs232->num_input_bytes_available );
