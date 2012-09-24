@@ -242,9 +242,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
+		} else
+		if ( strcmp( argv[5], "none" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NONE;
 		} else {
 			fprintf( output,
-				"%s: Unrecognized datafile type '%s'\n",
+				"%s: Unsupported datafile type '%s'\n",
 				cname, argv[5] );
 
 			return FAILURE;
@@ -386,11 +389,15 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[4], "noir" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_NOIR;
-			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
+			strlcpy( filename_ext, "noir", sizeof(filename_ext) );
 		} else
 		if ( strcmp( argv[4], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
 			strlcpy( filename_ext, "raw", sizeof(filename_ext) );
+		} else
+		if ( strcmp( argv[4], "none" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NONE;
+			strlcpy( filename_ext, "none", sizeof(filename_ext) );
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",
@@ -836,6 +843,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[5], "raw" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_RAW_GREY16;
+		} else
+		if ( strcmp( argv[5], "none" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_NONE;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",

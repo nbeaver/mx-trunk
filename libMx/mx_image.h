@@ -65,6 +65,8 @@ extern "C" {
 
     /* The following are area detector file formats. */
 
+#define MXT_IMAGE_FILE_NONE			100
+
 #define MXT_IMAGE_FILE_SMV			101
 #define MXT_IMAGE_FILE_MARCCD			102
 #define MXT_IMAGE_FILE_EDF			103
