@@ -166,6 +166,7 @@ library_install:
 	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin/showdata.pl
 	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin/showplot.pl
 	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
+	install -m 755 ../scripts/mxsetup.sh $(MX_INSTALL_DIR)/bin/mxsetup.sh
 	install -m 755 libMx.dll $(MX_INSTALL_DIR)/bin
 	install -m 644 libMx.dll.a $(MX_INSTALL_DIR)/lib
 
