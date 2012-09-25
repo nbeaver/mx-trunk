@@ -337,6 +337,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		if ( datafile_type == MXT_IMAGE_FILE_NONE ) {
+			/* If we do not actually want a file, then we
+			 * return here.
+			 */
+
+			fprintf( output,
+			"Transfer complete.\nNo file written.\n" );
+			fflush ( output );
+			return SUCCESS;
+		}
+
+		/* We are writing out a real file. */
+
 		fprintf( output,
 		"Transfer complete.\nNow writing image file '%s'.\n",
 			filename );
@@ -613,7 +626,32 @@ motor_area_detector_fn( int argc, char *argv[] )
 				cname, num_unread_frames));
 #endif
 
-			if ( num_unread_frames > 0 ) {
+			if ( datafile_type == MXT_IMAGE_FILE_NONE ) {
+			    /* If there are any unread frames, let the
+			     * user know that the next one has appeared.
+			     */
+
+			    if ( num_unread_frames > 0 ) {
+				fprintf( output, "Frame %ld acquired.\n", n );
+
+				/* Increment the frame number. */
+
+				n++;
+				num_unread_frames--;
+
+				if ( ( sp.sequence_type != MXT_SQ_CONTINUOUS )
+				  && ( n >= num_frames ) )
+				{
+					break;	/* Exit the for() loop. */
+				}
+			    }
+
+			} else {
+			    /* If there are any unread frames, write the
+			     * next one in the sequence.
+			     */
+
+			    if ( num_unread_frames > 0 ) {
 
 				fprintf( output, "Reading frame %ld.\n", n );
 
@@ -655,6 +693,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				{
 					break;	/* Exit the for() loop. */
 				}
+			    }
 			}
 
 			old_last_frame_number = last_frame_number;
