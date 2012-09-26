@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2010-2011 Illinois Institute of Technology
+ * Copyright 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,9 +31,10 @@ extern "C" {
 typedef struct {
 	char name[MXU_EXTENSION_NAME_LENGTH+1];
 	unsigned long mx_version;
+	struct mx_module_type *module;
 } MX_EXTENSION;
 
-typedef struct {
+typedef struct mx_module_type {
 	char name[MXU_MODULE_NAME_LENGTH+1];
 	unsigned long mx_version;
 
@@ -53,6 +54,10 @@ MX_API mx_status_type mx_load_module( char *filename,
 MX_API mx_status_type mx_get_module( char *module_name,
 					MX_RECORD *record_list,
 					MX_MODULE **module );
+
+MX_API mx_status_type mx_get_extension( char *extension_name,
+					MX_RECORD *record_list,
+					MX_EXTENSION **extension );
 
 #ifdef __cplusplus
 }

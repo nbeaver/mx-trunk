@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_MODULE_DEBUG		FALSE
+#define MX_MODULE_DEBUG			FALSE
+
+#define MX_MODULE_DEBUG_EXTENSION	TRUE
 
 #include <stdio.h>
 
@@ -276,6 +278,8 @@ mxp_module_list_traverse_fn( MX_LIST_ENTRY *list_entry,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
 MX_EXPORT mx_status_type
 mx_get_module( char *module_name, MX_RECORD *record_list, MX_MODULE **module )
 {
@@ -375,4 +379,185 @@ mx_get_module( char *module_name, MX_RECORD *record_list, MX_MODULE **module )
 		return mx_status;
 	}
 }
+
+/*-------------------------------------------------------------------------*/
+
+static mx_status_type
+mxp_extension_traverse_fn( MX_LIST_ENTRY *list_entry,
+				void *extension_name_ptr,
+				void **extension_ptr )
+{
+#if MX_MODULE_DEBUG_EXTENSION
+	static const char fname[] = "mxp_extension_traverse_fn()";
+#endif
+
+	MX_EXTENSION *extension, *extension_table;
+	char *extension_name;
+
+	MX_MODULE *module;
+	unsigned long i;
+
+	extension_name = extension_name_ptr;
+
+	module = list_entry->list_entry_data;
+
+#if MX_MODULE_DEBUG_EXTENSION
+	MX_DEBUG(-2,("%s: Checking module '%s' for extension '%s'.",
+		fname, module->name, extension_name ));
+#endif
+
+	extension_table = module->extension_table;
+
+	if ( extension_table == (MX_EXTENSION *) NULL ) {
+		/* This module does not have any extensions. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Walk through the extensions. */
+
+	for ( i = 0; ; i++ ) {
+		extension = &extension_table[i];
+
+		if ( extension->name[0] == '\0' ) {
+
+			/* We have reached the end of the extension table
+			 * without finding the extension, so return.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		if ( strcmp( extension->name, extension_name ) == 0 ) {
+
+			/* We have _found_ the extension. */
+
+			/* If the extension has not set a pointer back to
+			 * the enclosing module, then add that pointer now.
+			 */
+
+			if ( extension->module == (MX_MODULE *) NULL ) {
+				extension->module = module;
+			}
+
+			/* Return the extension pointer. */
+
+			*extension_ptr = (void *) extension;
+
+			return mx_error( MXE_EARLY_EXIT | MXE_QUIET, "", " " );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+/* mx_get_extension() walks through all of the loaded modules looking for
+ * the requested extension.
+ */
+
+MX_EXPORT mx_status_type
+mx_get_extension( char *extension_name, MX_RECORD *record_list,
+					MX_EXTENSION **extension )
+{
+	static const char fname[] = "mx_get_extension()";
+
+	MX_LIST_HEAD *record_list_head;
+	MX_LIST *module_list;
+	void *extension_ptr;
+	unsigned long mx_status_code;
+	mx_status_type mx_status;
+
+	if ( extension_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The extension_name pointer passed was NULL." );
+	}
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD list pointer passed was NULL." );
+	}
+	if ( extension == (MX_EXTENSION **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The pointer to the MX_EXTENSION pointer is NULL." );
+	}
+
+#if MX_MODULE_DEBUG_EXTENSION
+	MX_DEBUG(-2,("%s: Looking for extension '%s'.",
+		fname, extension_name ));
+#endif
+
+	record_list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( record_list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record_list->name );
+	}
+
+	/* If the module_list pointer is NULL, then
+	 * no modules have been loaded.
+	 */
+
+	if ( record_list_head->module_list == NULL ) {
+		*extension = NULL;
+
+#if MX_MODULE_DEBUG_EXTENSION
+		MX_DEBUG(-2,("%s: No modules are loaded.", fname));
+#endif
+
+#if MX_MODULE_DEBUG_EXTENSION
+		mx_status_code = MXE_NOT_FOUND;
+#else
+		mx_status_code = MXE_NOT_FOUND | MXE_QUIET;
+#endif
+		return mx_error( mx_status_code, fname,
+		"Did not find extension '%s' since no modules "
+		"have been loaded yet.", extension_name );
+	}
+
+	module_list = record_list_head->module_list;
+
+	mx_status = mx_list_traverse( module_list,
+					mxp_extension_traverse_fn,
+					extension_name,
+					&extension_ptr );
+#if MX_MODULE_DEBUG_EXTENSION
+	MX_DEBUG(-2,("%s: mx_list_traverse() returned status code %lu",
+		fname, mx_status.code ));
+#endif
+
+	switch( mx_status.code ) {
+	case MXE_EARLY_EXIT:
+		/* We found the extension. */
+
+		*extension = extension_ptr;
+
+		return MX_SUCCESSFUL_RESULT;
+		break;
+
+	case MXE_SUCCESS:
+		/* In this case, MXE_SUCCESS actually means we did _not_
+		 * find the extension.
+		 */
+
+		*extension = NULL;
+
+#if MX_MODULE_DEBUG_EXTENSION
+		mx_status_code = MXE_NOT_FOUND;
+#else
+		mx_status_code = MXE_NOT_FOUND | MXE_QUIET;
+#endif
+		return mx_error( mx_status_code, fname,
+		"Extension '%s' is not loaded for the current database.",
+			extension_name );
+		break;
+	default:
+		*extension = NULL;
+
+		return mx_status;
+	}
+}
+
+/*-------------------------------------------------------------------------*/
 
