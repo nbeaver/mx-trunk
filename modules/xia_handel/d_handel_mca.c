@@ -1298,6 +1298,7 @@ mxd_handel_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_handel_mca_clear()";
 
 	MX_HANDEL_MCA *handel_mca = NULL;
+	size_t num_longs_to_zero, num_bytes_to_zero;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_mca_get_pointers( mca,
@@ -1306,9 +1307,28 @@ mxd_handel_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* There doesn't appear to be a way of doing this without
-	 * starting a run.
+	/* There doesn't appear to be a way of doing this in the MCA
+	 * using Handel without starting a run.  However, we _can_
+	 * clear our local copy of the spectrum data.
 	 */
+
+	if ( mca->channel_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MCA channel array has not been allocated for MCA '%s'.",
+			mca->record->name );
+	}
+
+	num_longs_to_zero = mca->current_num_channels;
+
+	if ( num_longs_to_zero > mca->maximum_num_channels ) {
+		num_longs_to_zero = mca->maximum_num_channels;
+	}
+
+	num_bytes_to_zero = num_longs_to_zero * sizeof( unsigned long );
+
+	memset( mca->channel_array, 0, num_bytes_to_zero );
+
+	mca->new_data_available = TRUE;
 
 	return mx_status;
 }
