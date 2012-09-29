@@ -591,9 +591,11 @@ mxn_tcpip_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 	flags = network_server->server_flags;
 
 	if ( flags & MXF_NETWORK_SERVER_DISABLED ) {
-		return mx_error( MXE_RECORD_DISABLED_BY_USER, fname,
-	"Connections to MX server '%s' have been disabled in the MX database.",
-			network_server->record->name );
+		/* If the server is disabled in the database, then
+		 * do not try to reconnect.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	if ( flags & MXF_NETWORK_SERVER_QUIET_RECONNECTION ) {
