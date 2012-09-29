@@ -1120,6 +1120,12 @@ mxd_handel_mca_start( MX_MCA *mca )
 		preset_type = MXF_HANDEL_MCA_PRESET_REAL_TIME;
 		preset_time = mca->preset_real_time;
 		break;
+
+	case MXF_MCA_PRESET_COUNT:
+		preset_type = MXF_HANDEL_MCA_PRESET_OUTPUT_EVENTS;
+		preset_time = mca->preset_count;
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Preset type %ld is not supported for record '%s'",
@@ -1467,6 +1473,8 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 			mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
 			break;
 		case MXF_HANDEL_MCA_PRESET_OUTPUT_EVENTS:
+			mca->preset_type = MXF_MCA_PRESET_COUNT;
+			break;
 		case MXF_HANDEL_MCA_PRESET_INPUT_COUNTS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"Handel preset type %ld is not currently "
@@ -1983,6 +1991,10 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 			break;
 		case MXF_MCA_PRESET_LIVE_TIME:
 			handel_preset_type = MXF_HANDEL_MCA_PRESET_LIVE_TIME;
+			break;
+		case MXF_MCA_PRESET_COUNT:
+			handel_preset_type =
+					MXF_HANDEL_MCA_PRESET_OUTPUT_EVENTS;
 			break;
 		default:
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
