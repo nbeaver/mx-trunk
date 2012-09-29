@@ -289,6 +289,12 @@ mx_network_receive_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		return mx_error( MXE_RECORD_DISABLED_BY_USER, fname,
+		"Connections to MX server '%s' are disabled.",
+			server_record->name );
+	}
+
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
 			(server_record->class_specific_function_list);
 
@@ -353,6 +359,12 @@ mx_network_send_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		return mx_error( MXE_RECORD_DISABLED_BY_USER, fname,
+		"Connections to MX server '%s' are disabled.",
+			server_record->name );
+	}
+
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
 			(server_record->class_specific_function_list);
 
@@ -407,6 +419,12 @@ mx_network_server_discover_header_length( MX_RECORD *server_record )
 	if ( server == (MX_NETWORK_SERVER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_NETWORK_SERVER pointer for record '%s' is NULL.",
+			server_record->name );
+	}
+
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		return mx_error( MXE_RECORD_DISABLED_BY_USER, fname,
+		"Connections to MX server '%s' are disabled.",
 			server_record->name );
 	}
 
@@ -543,6 +561,16 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	if ( server == (MX_NETWORK_SERVER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		/* If an MX server is disabled in the database, then no
+		 * messages will ever arrive from it.
+		 */
+
+		return mx_error( (MXE_NOT_AVAILABLE | MXE_QUIET), fname,
+		"MX server '%s' is disabled in the MX database.",
 			server_record->name );
 	}
 
@@ -1114,6 +1142,14 @@ mx_network_connection_is_up( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		/* A disabled server is never up. */
+
+		*connection_is_up = FALSE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
 			(server_record->class_specific_function_list);
 
@@ -1159,6 +1195,12 @@ mx_network_reconnect_if_down( MX_RECORD *server_record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		/* You cannot reconnect to a disabled server. */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
@@ -1213,6 +1255,14 @@ mx_network_message_is_available( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		/* Disabled servers _never_ have messages available. */
+
+		*message_is_available = FALSE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
 			(server_record->class_specific_function_list);
 
@@ -1257,6 +1307,13 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	/* If the server is disabled, then it will not have any handles. */
+
+	if ( server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		server->network_handles_are_valid = FALSE;
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* See if the handles have already been marked invalid. */
@@ -1467,6 +1524,12 @@ mx_network_restore_callbacks( MX_RECORD *server_record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	if ( network_server->server_flags & MXF_NETWORK_SERVER_DISABLED ) {
+		/* You cannot restore callbacks for a disabled server. */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	callback_list = network_server->callback_list;
