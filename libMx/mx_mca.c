@@ -1398,18 +1398,13 @@ mx_mca_get_roi_array( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	if ( roi_array == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"roi_array pointer passed is NULL." );
-	}
-
 	mx_status = mx_mca_get_pointers( mca_record,
 					&mca, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( num_rois >= mca->maximum_num_rois ) {
+	if ( num_rois > mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
 		"of (0-%ld) for MCA '%s'.", num_rois,
@@ -1527,18 +1522,13 @@ mx_mca_get_roi_integral_array( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
 
-	if ( roi_integral_array == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"roi_integral_array pointer passed is NULL." );
-	}
-
 	mx_status = mx_mca_get_pointers( mca_record,
 					&mca, &function_list, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( num_rois >= mca->maximum_num_rois ) {
+	if ( num_rois > mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
 		"of (0-%ld) for MCA '%s'.", num_rois,
