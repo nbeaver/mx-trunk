@@ -130,26 +130,27 @@ motor_show_fn( int argc, char *argv[] )
 "\n"
 "Commands to show record details:\n"
 "\n"
-"        show records       <or>  show record 'name'\n"
-"        show interfaces    <or>  show interface 'name'\n"
-"        show devices       <or>  show device 'name'\n"
-"        show servers       <or>  show server 'name'\n"
+"        show records        <or>  show record 'name'\n"
+"        show interfaces     <or>  show interface 'name'\n"
+"        show devices        <or>  show device 'name'\n"
+"        show servers        <or>  show server 'name'\n"
 "\n"
-"        show adcs          <or>  show adc 'name'\n"
-"        show amplifiers    <or>  show amplifier 'name'\n"
-"        show dacs          <or>  show dac 'name'\n"
-"        show dinputs       <or>  show dinput 'name'\n"
-"        show doutputs      <or>  show doutput 'name'\n"
-"        show mcas          <or>  show mca 'name'\n"
-"        show mcses         <or>  show mcs 'name'\n"
-"        show motors        <or>  show motor 'name'\n"
-"        show pulsers       <or>  show pulser 'name'\n"
-"        show relays        <or>  show relay 'name'\n"
-"        show scas          <or>  show sca 'name'\n"
-"        show scalers       <or>  show scaler 'name'\n"
-"        show timers        <or>  show timer 'name'\n"
-"        show scans         <or>  show scan 'name'\n"
-"        show variables     <or>  show variable 'name'\n"
+"        show adcs           <or>  show adc 'name'\n"
+"        show amplifiers     <or>  show amplifier 'name'\n"
+"        show area_detectors <or>  show area_detector 'name'\n"
+"        show dacs           <or>  show dac 'name'\n"
+"        show dinputs        <or>  show dinput 'name'\n"
+"        show doutputs       <or>  show doutput 'name'\n"
+"        show mcas           <or>  show mca 'name'\n"
+"        show mcses          <or>  show mcs 'name'\n"
+"        show motors         <or>  show motor 'name'\n"
+"        show pulsers        <or>  show pulser 'name'\n"
+"        show relays         <or>  show relay 'name'\n"
+"        show scas           <or>  show sca 'name'\n"
+"        show scalers        <or>  show scaler 'name'\n"
+"        show timers         <or>  show timer 'name'\n"
+"        show scans          <or>  show scan 'name'\n"
+"        show variables      <or>  show variable 'name'\n"
 "\n"
 "        show field 'recordname.fieldname'\n";
 
@@ -339,6 +340,14 @@ motor_show_fn( int argc, char *argv[] )
 		record_type = MXT_ANY;
 
 		strlcpy( record_type_phrase, "an amplifier",
+					sizeof(record_type_phrase) );
+
+	} else if ( strncmp( "area_detectors", argv[2], length ) == 0 ) {
+		record_superclass = MXR_DEVICE;
+		record_class = MXC_AREA_DETECTOR;
+		record_type = MXT_ANY;
+
+		strlcpy( record_type_phrase, "an area detector",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "dacs", argv[2], max(2,length) ) == 0 ) {

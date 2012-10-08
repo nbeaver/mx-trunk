@@ -35,7 +35,7 @@ all: build
 
 #MODULES += driverlinx_portio
 
-MODULES += fastcam_pcclib
+#MODULES += fastcam_pcclib
 
 #MODULES += ni_valuemotion
 
@@ -54,11 +54,11 @@ MODULES += fastcam_pcclib
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 #MODULES += epics_mbc
 
