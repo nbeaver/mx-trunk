@@ -73,8 +73,8 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #     these directories are laid out, so it has its own special case below.
 #
 
-MSDEV_ARCH	= x86
-#MSDEV_ARCH	= x64
+#MSDEV_ARCH	= x86
+MSDEV_ARCH	= x64
 
 #MSDEV_ARCH	= x86_vs2012
 #MSDEV_ARCH	= x64_vs2012
@@ -122,9 +122,9 @@ MSDEV_ARCH	= x86
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\Windows\\v7.0A
-MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
+#MSDEV_DIR	= c:\\progra~1\\micros~4\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\micros~1\\Windows\\v7.0A
-#MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
+MSDEV_DIR	= c:\\progra~2\\micros~3\\Windows\\v7.0A
 #MSDEV_DIR	= c:\\progra~2\\mia713~1\\Windows\\v7.0A
 #MSDEV_DIR	= d:\\progra~1\\micros~3\\Windows\\v7.0A
 #

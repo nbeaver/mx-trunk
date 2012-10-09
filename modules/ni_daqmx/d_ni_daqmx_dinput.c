@@ -258,7 +258,14 @@ mxd_ni_daqmx_dinput_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	task           = ni_daqmx_dinput->task;
+	task = ni_daqmx_dinput->task;
+
+	if ( task == NULL ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"Could not find the hardware for National Instruments device '%s'.",
+			dinput->record->name );
+	}
+
 	channel        = ni_daqmx_dinput->channel_offset;
 	channel_buffer = task->channel_buffer;
 

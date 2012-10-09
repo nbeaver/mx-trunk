@@ -356,7 +356,14 @@ mxd_ni_daqmx_thermocouple_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	task           = ni_daqmx_thermocouple->task;
+	task = ni_daqmx_thermocouple->task;
+
+	if ( task == NULL ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"Could not find the hardware for National Instruments device '%s'.",
+			ainput->record->name );
+	}
+
 	channel        = ni_daqmx_thermocouple->channel_offset;
 	channel_buffer = task->channel_buffer;
 

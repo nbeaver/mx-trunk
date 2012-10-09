@@ -259,7 +259,14 @@ mxd_ni_daqmx_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	task           = ni_daqmx_doutput->task;
+	task = ni_daqmx_doutput->task;
+
+	if ( task == NULL ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"Could not find the hardware for National Instruments device '%s'.",
+			doutput->record->name );
+	}
+
 	channel        = ni_daqmx_doutput->channel_offset;
 	channel_buffer = task->channel_buffer;
 
