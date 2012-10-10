@@ -191,6 +191,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
 	long vinput_framesize[2];
+	long raw_framesize[2];
 	long i;
 	char c;
 	double serial_delay_in_seconds;
@@ -551,9 +552,12 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	 * have real data in them.
 	 */
 
+	raw_framesize[0] = 2848;
+	raw_framesize[1] = 2964;
+
 	if ( radicon_taurus->use_raw_frames ) {
-		ad->maximum_framesize[0] = 2848;
-		ad->maximum_framesize[1] = 2964;
+		ad->maximum_framesize[0] = raw_framesize[0];
+		ad->maximum_framesize[1] = raw_framesize[1];
 	} else {
 		ad->maximum_framesize[0] = 2820;
 		ad->maximum_framesize[1] = 2952;
@@ -589,7 +593,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->clock_frequency = 30.0e6;
 
-	radicon_taurus->readout_time = ( ad->framesize[1] / 2 )
+	radicon_taurus->readout_time = ( raw_framesize[1] / 2 )
 		* radicon_taurus->linetime / radicon_taurus->clock_frequency;
 
 	/*---*/
