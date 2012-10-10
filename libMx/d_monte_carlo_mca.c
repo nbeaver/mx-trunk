@@ -215,11 +215,13 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 			MX_MONTE_CARLO_MCA *monte_carlo_mca,
 			MX_MONTE_CARLO_MCA_SOURCE *monte_carlo_mca_source )
 {
-	unsigned long i, num_channels;
+	unsigned long i, j, num_channels, num_tests_per_channel;
 	unsigned long *private_array;
 
 	double events_per_second, seconds_per_call;
 	double events_per_call, events_per_call_per_channel;
+	double log_threshold;
+	long floor_log_threshold;
 	double peak_mean, peak_width;
 	double gaussian, exp_argument, exp_coefficient;
 	double test_value, threshold;
@@ -245,7 +247,6 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 	exp_coefficient = mx_divide_safely(1.0, peak_width * sqrt(2.0 * MX_PI));
 
 	for ( i = 0; i < num_channels; i++ ) {
-		test_value = (double) rand() / (double) RAND_MAX;
 
 		exp_argument = mx_divide_safely(
 				(( i - peak_mean ) * ( i - peak_mean )),
@@ -255,8 +256,35 @@ mxd_monte_carlo_mca_process_peak( MX_MCA *mca,
 
 		threshold = events_per_call_per_channel * gaussian;
 
-		if ( test_value <= threshold ) {
-			private_array[i]++;
+		/* If 'threshold' is ever >= 1, then the expression
+		 * below ( test_value <= threshold) will always
+		 * evaluate to true.  To avoid this, we set the
+		 * number of times that we evaluate the test below
+		 * to 'num_tests_per_channel' and then divide the
+		 * value of 'threshold' by the value of
+		 * 'num_tests_per_channel'.
+		 */
+
+		if ( threshold <= 0.2 ) {
+			num_tests_per_channel = 1;
+		} else {
+			log_threshold = log10( threshold );
+
+			floor_log_threshold = mx_round( floor(log_threshold) );
+
+			num_tests_per_channel = mx_round(
+				pow(10.0, 2.0 + floor_log_threshold) );
+
+			threshold /= (double) num_tests_per_channel;
+		}
+
+		for ( j = 0; j < num_tests_per_channel; j++ )  {
+
+			test_value = (double) rand() / (double) RAND_MAX;
+
+			if ( test_value <= threshold ) {
+				private_array[i]++;
+			}
 		}
 	}
 
