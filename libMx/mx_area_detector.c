@@ -36,6 +36,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -6117,7 +6119,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			}
 		}
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE
 		MX_DEBUG(-2,("%s: Saving '%s' image frame to '%s'.",
 			fname, record->name, filename));
 #endif

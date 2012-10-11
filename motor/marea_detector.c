@@ -253,6 +253,16 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		if ( ( argc < 7 ) && ( datafile_type != MXT_IMAGE_FILE_NONE ) )
+		{
+			fprintf( output,
+			"%s: not enough arguments to 'snap' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
 		filename = argv[6];
 
 		mx_status = mx_area_detector_set_one_shot_mode( ad_record,
@@ -320,6 +330,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		if ( datafile_type == MXT_IMAGE_FILE_NONE ) {
+			/* If we do not actually want a file, then we
+			 * return here.
+			 */
+
+			fprintf( output,
+			"\nAcquisition complete.  No file written.\n" );
+			fflush ( output );
+			return SUCCESS;
+		}
+
 		fprintf( output,
 		"Exposure complete.\nNow transferring the frame.  " );
 
@@ -336,17 +357,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 #endif
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
-
-		if ( datafile_type == MXT_IMAGE_FILE_NONE ) {
-			/* If we do not actually want a file, then we
-			 * return here.
-			 */
-
-			fprintf( output,
-			"Transfer complete.\nNo file written.\n" );
-			fflush ( output );
-			return SUCCESS;
-		}
 
 		/* We are writing out a real file. */
 
