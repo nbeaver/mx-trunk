@@ -1250,6 +1250,7 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 		break;
 	}
 	
+#if 0
 	if ( num_frames > sapera_lt_frame_grabber->max_frames ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The number of frames requested (%d) for this sequence "
@@ -1259,6 +1260,7 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 			sapera_lt_frame_grabber->max_frames,
 			vinput->record->name );
 	}
+#endif
 	
 	/* If the video board is in charge of timing, then we must set
 	 * the exposure time.
