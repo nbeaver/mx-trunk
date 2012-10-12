@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2005-2008 Illinois Institute of Technology
+ * Copyright 2005-2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,6 +26,7 @@ extern "C" {
 
 #include "mx_socket.h"
 #include "mx_mutex.h"
+#include "mx_atomic.h"
 #include "mx_thread.h"
 #include "mx_motor.h"
 #include "mx_analog_input.h"
@@ -117,7 +118,7 @@ typedef struct {
 	MX_RECORD *mx_record;
 
 	unsigned long client_number;
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 	int operation_state;
 } MX_BLUICE_FOREIGN_OPERATION;
 
@@ -262,7 +263,7 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
 MX_API unsigned long
 mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server );
 
-MX_API unsigned long
+MX_API uint32_t
 mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server );
 
 /* ----- */

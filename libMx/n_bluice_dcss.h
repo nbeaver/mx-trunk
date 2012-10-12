@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006, 2008 Illinois Institute of Technology
+ * Copyright 2005-2006, 2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ typedef struct {
 	mx_bool_type is_master;
 	char bluice_username[MXU_USERNAME_LENGTH+1];
 
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 } MX_BLUICE_DCSS_SERVER;
 
 /* Define all of the client interface functions. */

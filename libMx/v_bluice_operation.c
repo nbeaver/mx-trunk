@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008, 2010 Illinois Institute of Technology
+ * Copyright 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -360,7 +360,7 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
 	void *value_ptr;
 	char command[500];
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 	mx_status_type mx_status;
 
 	mx_status = mxv_bluice_operation_get_pointers(

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2008, 2010-2011 Illinois Institute of Technology
+ * Copyright 2005-2008, 2010-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -999,11 +999,7 @@ mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server )
 
 /* ====================================================================== */
 
-/* FIXME: We need a _real_ version of atomic increment. */
-
-#define mx_atomic_increment(x) ((x)++)
-
-MX_EXPORT unsigned long
+MX_EXPORT uint32_t
 mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 {
 	static const char fname[] = "mx_bluice_update_operation_counter()";
@@ -1013,7 +1009,7 @@ mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
 	MX_RECORD *dhs_manager_record;
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1044,8 +1040,8 @@ mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 	case MXN_BLUICE_DCSS_SERVER:
 		bluice_dcss_server = record->record_type_struct;
 
-		operation_counter = mx_atomic_increment(
-				bluice_dcss_server->operation_counter );
+		operation_counter = mx_atomic_increment32(
+				&(bluice_dcss_server->operation_counter) );
 		break;
 
 	case MXN_BLUICE_DHS_SERVER:
@@ -1071,8 +1067,8 @@ mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 			return 0L;
 		}
 
-		operation_counter = mx_atomic_increment(
-				bluice_dhs_manager->operation_counter );
+		operation_counter = mx_atomic_increment32(
+				&(bluice_dhs_manager->operation_counter) );
 		break;
 
 	default:
@@ -1311,7 +1307,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	char *ptr, *command_ptr, *new_buffer;
 	int num_items;
 	unsigned long client_number;
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 	int operation_state;
 	unsigned long arguments_length, old_arguments_length;
 	char format[20], completion_status[40];

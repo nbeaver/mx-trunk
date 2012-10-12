@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008 Illinois Institute of Technology
+ * Copyright 2008, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ typedef struct {
 	unsigned long num_dhs_records;
 	MX_RECORD **dhs_record_array;
 
-	unsigned long operation_counter;
+	uint32_t operation_counter;
 } MX_BLUICE_DHS_MANAGER;
 
 /* Define all of the client interface functions. */

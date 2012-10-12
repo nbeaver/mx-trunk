@@ -49,16 +49,14 @@ mx_atomic_initialize( void )
 MX_EXPORT int32_t
 mx_atomic_add32( int32_t *value_ptr, int32_t increment )
 {
-	volatile long *long_ptr;
-	long long_result;
+	volatile LONG *long_ptr;
+	LONG long_result, original_value;
 
-	long_ptr = (volatile long *) value_ptr;
+	long_ptr = (volatile LONG *) value_ptr;
 
-#if defined(_M_IA64)	/* Only on Itanium */
-	long_result = InterlockedAdd( long_ptr, (long) increment );
-#else
-	long_result = (*long_ptr)++;		/* FIXME */
-#endif
+	original_value = InterlockedExchangeAdd( long_ptr, (LONG) increment );
+
+	long_result = original_value + increment;
 
 	return long_result;
 }

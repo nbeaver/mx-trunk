@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2008-2011 Illinois Institute of Technology
+ * Copyright 2008-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -230,7 +230,8 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 	char request_name[40];
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	double oscillation_time, new_motor_position;
-	unsigned long client_number, operation_counter;
+	unsigned long client_number;
+	uint32_t operation_counter;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -1089,7 +1090,8 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char *ptr;
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	unsigned long dark_current_fu;
-	unsigned long client_number, operation_counter;
+	unsigned long client_number;
+	uint32_t operation_counter;
 	unsigned long flags;
 	double detector_distance, wavelength;
 	double detector_x, detector_y;
@@ -1274,7 +1276,8 @@ mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
 	char command[200];
-	unsigned long client_number, operation_counter;
+	unsigned long client_number;
+	uint32_t operation_counter;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_area_detector_get_pointers( ad,
@@ -1457,7 +1460,8 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
-	unsigned long client_number, operation_counter;
+	unsigned long client_number;
+	uint32_t operation_counter;
 	char command[200];
 	mx_status_type mx_status;
 
