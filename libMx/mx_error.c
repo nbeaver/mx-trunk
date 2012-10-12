@@ -81,6 +81,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_INVALID_CALLBACK,			"MXE_INVALID_CALLBACK" },
 { MXE_EARLY_EXIT,			"MXE_EARLY_EXIT" },
 { MXE_PROTOCOL_ERROR,			"MXE_PROTOCOL_ERROR" },
+{ MXE_DISK_FULL,			"MXE_DISK_FULL" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

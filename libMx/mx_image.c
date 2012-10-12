@@ -3070,8 +3070,10 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 
 	FILE *file;
 	unsigned long image_format;
-	int saved_errno;
+	int saved_errno, fclose_status;
 	size_t bytes_written;
+	char username_buffer[80];
+	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3099,29 +3101,73 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 			image_format, datafile_type, datafile_name );
 	}
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	file = fopen( datafile_name, "wb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot open SMV image file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			datafile_name,
-			saved_errno, strerror(saved_errno) );
+		switch( saved_errno ) {
+		case EACCES:
+			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+			"MX user '%s' does not have permission to write "
+			"to image file '%s'.",
+				mx_username( username_buffer,
+						sizeof(username_buffer) ),
+				datafile_name );
+			break;
+
+		default:
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot open RAW image file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				datafile_name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	bytes_written = fwrite(frame->image_data, 1, frame->image_length, file);
 
-	fclose( file );
-
 	if ( bytes_written < frame->image_length ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOSPC:
+			mx_status = mx_error( MXE_DISK_FULL, fname,
+			"The disk used by file '%s' is full.",
+				datafile_name );
+			break;
+
+		default:
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"Fewer bytes were written (%lu) to RAW image file '%s' "
+			"than the number (%lu) in the original image.  "
+			"Errno = %d, error message = '%s'",
+				(unsigned long) bytes_written,
+				datafile_name,
+				(unsigned long) frame->image_length,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	fclose_status = fclose( file );
+
+	if ( fclose_status != 0 ) {
+		saved_errno = errno;
+
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Fewer bytes were written (%lu) to RAW image file '%s' "
-		"than the number (%lu) in the original image.",
-			(unsigned long) bytes_written,
+		"An error occurred while trying to close RAW image file '%s'.  "
+		"Errno = %d, error message = '%s'.",
 			datafile_name,
-			(unsigned long) frame->image_length );
+			saved_errno, strerror(saved_errno) );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -3734,6 +3780,31 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
  * and the NOIR headers used at MBC.
  */
 
+#define MXP_SMV_CHECK_FPRINTF( a ) \
+    do { \
+        int fprintf_rc;							\
+        fprintf_rc = (a);						\
+									\
+        if ( fprintf_rc < 0 ) {						\
+            saved_errno = errno;					\
+            switch( saved_errno ) {					\
+            case ENOSPC:						\
+                mx_status = mx_error( MXE_DISK_FULL, fname,		\
+                "The disk used by file '%s' is full.",			\
+                    datafile_name );					\
+                break;							\
+            default:							\
+                mx_status = mx_error( MXE_FILE_IO_ERROR, fname,		\
+                "An error occurred while writing to SMV file '%s'.  "	\
+                "Errno = %d, error message = '%s'",			\
+                    datafile_name,					\
+                    saved_errno, strerror(saved_errno) );		\
+                break;							\
+            }								\
+            return mx_status;						\
+        }								\
+    } while (0)
+
 MX_EXPORT mx_status_type
 mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,
@@ -3747,13 +3818,14 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	int src_step, dest_step;
 	unsigned char *src;
 	unsigned char dest[10];
-	int saved_errno, os_status, num_items_written;
+	int saved_errno, os_status, num_items_written, fclose_status;
 	unsigned long byteorder, header_length;
 	unsigned char null_header_bytes[MXU_IMAGE_SMV_MAX_HEADER_LENGTH] = {0};
 	long i;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	char timestamp[80];
+	char username_buffer[80];
 	struct timespec timestamp_timespec;
 	unsigned long bias_offset_milli_adus;
 	mx_status_type mx_status;
@@ -3857,11 +3929,25 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	if ( file == NULL ) {
 		saved_errno = errno;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot open SMV image file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			datafile_name,
-			saved_errno, strerror(saved_errno) );
+		switch( saved_errno ) {
+		case EACCES:
+			mx_status = mx_error( MXE_PERMISSION_DENIED, fname,
+			"MX user '%s' does not have permission to write "
+			"to image file '%s'.",
+				mx_username( username_buffer,
+						sizeof(username_buffer) ) );
+			break;
+
+		default:
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot open SMV image file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				datafile_name,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+
+		return mx_status;
 	}
 
 	/* Write the SMV header. */
@@ -3869,6 +3955,29 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	/* First null out the header bytes at the start of the file. */
 
 	num_items_written = fwrite( null_header_bytes, header_length, 1, file );
+
+	if ( num_items_written < header_length ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case ENOSPC:
+			mx_status = mx_error( MXE_DISK_FULL, fname,
+			"The disk used by file '%s' is full.",
+				datafile_name );
+			break;
+
+		default:
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"Fewer bytes were written (%lu) to the header of "
+			"SMV image file '%s' than the expected length (%lu).  "
+			"Errno = %d, error message = '%s'.",
+				(unsigned long) num_items_written,
+				datafile_name,
+				(unsigned long) header_length,
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: num_items_written = %d", fname, num_items_written));
@@ -3884,8 +3993,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		fclose( file );
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An attempt to seek to the end of the header block "
-		"in image file '%s' failed with errno = %d, "
+		"An attempt to seek to the start of the header block "
+		"for image file '%s' failed with errno = %d, "
 		"error message = '%s'", datafile_name,
 			saved_errno, strerror( saved_errno ) );
 	}
@@ -3922,27 +4031,31 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	 *       the datatype is in Data_type instead.
 	 */
 
-	fprintf( file, "{\n" );
-	fprintf( file, "HEADER_BYTES= %4lu;\n", header_length );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "{\n" ) );
 
-	fprintf( file, "DIM=2;\n" );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file,
+			"HEADER_BYTES= %4lu;\n", header_length ) );
+
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "DIM=2;\n" ) );
 
 	if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
-		fprintf( file, "TYPE=mad;\n" );
+		MXP_SMV_CHECK_FPRINTF( fprintf( file, "TYPE=mad;\n" ) );
 	}
 
-	fprintf( file, "SIZE1=%lu;\n",
-				(unsigned long) MXIF_ROW_FRAMESIZE(frame) );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "SIZE1=%lu;\n",
+				(unsigned long) MXIF_ROW_FRAMESIZE(frame) ) );
 
-	fprintf( file, "SIZE2=%lu;\n",
-				(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "SIZE2=%lu;\n",
+			(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) ) );
 
 	switch( byteorder ) {
 	case MX_DATAFMT_BIG_ENDIAN:
-		fprintf( file, "BYTE_ORDER=big_endian;\n" );
+		MXP_SMV_CHECK_FPRINTF( fprintf( file,
+					"BYTE_ORDER=big_endian;\n" ) );
 		break;
 	case MX_DATAFMT_LITTLE_ENDIAN:
-		fprintf( file, "BYTE_ORDER=little_endian;\n" );
+		MXP_SMV_CHECK_FPRINTF( fprintf( file,
+					"BYTE_ORDER=little_endian;\n" ) );
 		break;
 	default:
 		fclose( file );
@@ -3952,10 +4065,14 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	}
 
 	if ( MXIF_IMAGE_FORMAT(frame) == MXT_IMAGE_FORMAT_GREY16 ) {
+
 		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
-			fprintf( file, "Data_type=unsigned short int;\n" );
+
+			MXP_SMV_CHECK_FPRINTF( fprintf( file,
+				"Data_type=unsigned short int;\n" ) );
 		} else {
-			fprintf( file, "TYPE=unsigned_short;\n" );
+			MXP_SMV_CHECK_FPRINTF( fprintf( file,
+				"TYPE=unsigned_short;\n" ) );
 		}
 	} else {
 		fclose( file );
@@ -3964,9 +4081,9 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		"8-bit file formats are not supported by SMV format files." );
 	}
 
-	fprintf( file, "BIN=%lux%lu;\n",
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "BIN=%lux%lu;\n",
 				(unsigned long) MXIF_ROW_BINSIZE(frame),
-				(unsigned long) MXIF_COLUMN_BINSIZE(frame) );
+				(unsigned long) MXIF_COLUMN_BINSIZE(frame) ) );
 
 	exposure_timespec.tv_sec  = (long) MXIF_EXPOSURE_TIME_SEC(frame);
 	exposure_timespec.tv_nsec = (long) MXIF_EXPOSURE_TIME_NSEC(frame);
@@ -3974,7 +4091,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	exposure_time =
 		mx_convert_high_resolution_time_to_seconds( exposure_timespec );
 
-	fprintf( file, "TIME=%.6f;\n", exposure_time );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "TIME=%.6f;\n", exposure_time ) );
 
 	/* Write the time of frame acquisition to the header. */
 
@@ -3983,7 +4100,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	mx_os_time_string( timestamp_timespec, timestamp, sizeof(timestamp) );
 
-	fprintf( file, "DATE=%s;\n", timestamp );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "DATE=%s;\n", timestamp ) );
 
 	/* If present, write the bias offset to the file. */
 
@@ -3994,11 +4111,11 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		 * it to the header as an integer.
 		 */
 
-		fprintf( file, "ZEROOFFSET=%lu\n",
-			bias_offset_milli_adus / 1000 );
+		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%lu\n",
+					bias_offset_milli_adus / 1000 ) );
 	} else {
-		fprintf( file, "ZEROOFFSET=%f\n",
-			((double) bias_offset_milli_adus) / 1000.0 );
+		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%f\n",
+			((double) bias_offset_milli_adus) / 1000.0 ) );
 	}
 
 	/* If this is a NOIR header, then copy in the static part of
@@ -4026,7 +4143,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	/* Terminate the part of the header block that we are using. */
 
-	fprintf( file, "}\f" );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "}\f" ) );
 
 	/* Move to the first byte after the header. */
 
@@ -4054,14 +4171,50 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 		converter_fn( &src[i], dest );
 
-		fwrite( dest, sizeof(unsigned char), dest_step, file );
+		num_items_written = fwrite( dest, sizeof(unsigned char),
+						dest_step, file );
+
+		if ( num_items_written < dest_step ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case ENOSPC:
+				mx_status = mx_error( MXE_DISK_FULL, fname,
+				"The disk used by file '%s' is full.",
+					datafile_name );
+				break;
+
+			default:
+				mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+				"Fewer bytes were written (%lu) to SMV "
+				"image file '%s' than the number (%lu) "
+				"that were supposed to be written in "
+				"this block.  Errno = %d, error message = '%s'",
+					(unsigned long) num_items_written,
+					datafile_name,
+					(unsigned long) dest_step,
+					saved_errno, strerror(saved_errno) );
+				break;
+			}
+			return mx_status;
+		}
 	}
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
 	MX_DEBUG(-2,("MARKER #3, num fds = %d",
 		mx_get_number_of_open_file_descriptors() ));
 #endif
-	fclose( file );
+	fclose_status = fclose( file );
+
+	if ( fclose_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while trying to close SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'.",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
 	MX_DEBUG(-2,("MARKER #4, num fds = %d",

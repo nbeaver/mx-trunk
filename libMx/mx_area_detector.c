@@ -38,6 +38,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	TRUE
 
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -6128,6 +6130,15 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		mx_status = mx_image_write_file( ad->image_frame,
 						ad->datafile_save_format,
 						filename );
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE
+		if ( mx_status.code != MXE_SUCCESS ) {
+			MX_DEBUG(-2,("%s: Autosave of '%s' by '%s' failed "
+			"with MX error code %ld.",
+			filename, ad->record->name,
+			mx_status.code ));
+		}
+#endif
 	}
 
 	ad->datafile_total_num_frames++;
