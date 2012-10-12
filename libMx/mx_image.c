@@ -3155,9 +3155,6 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 		}
 	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	fclose_status = fclose( file );
 
 	if ( fclose_status != 0 ) {
@@ -3169,6 +3166,9 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 			datafile_name,
 			saved_errno, strerror(saved_errno) );
 	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
@@ -3801,6 +3801,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
                     saved_errno, strerror(saved_errno) );		\
                 break;							\
             }								\
+            (void) fclose( file );					\
             return mx_status;						\
         }								\
     } while (0)
@@ -3960,6 +3961,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	if ( num_items_written < header_length ) {
 		saved_errno = errno;
 
+		(void) fclose( file );
+
 		switch( saved_errno ) {
 		case ENOSPC:
 			mx_status = mx_error( MXE_DISK_FULL, fname,
@@ -3978,6 +3981,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
+
+		return mx_status;
 	}
 
 #if MX_IMAGE_DEBUG
@@ -4177,6 +4182,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 		if ( num_items_written < dest_step ) {
 			saved_errno = errno;
+
+			(void) fclose( file );
 
 			switch( saved_errno ) {
 			case ENOSPC:

@@ -36,9 +36,9 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,6 +205,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->total_num_frames = 0;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
+	ad->latched_status = 0;
 
 	ad->arm     = FALSE;
 	ad->trigger = FALSE;
@@ -1976,6 +1977,8 @@ mx_area_detector_arm( MX_RECORD *record )
 	ad->stop = FALSE;
 	ad->abort = FALSE;
 
+	ad->latched_status = 0;
+
 #if MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE
 
 	/* If automatic saving or loading of datafiles has been 
@@ -2403,6 +2406,10 @@ mx_area_detector_get_status( MX_RECORD *record,
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
 
+	/* Set the bits from the latched status word in the main status word. */
+
+	ad->status |= ad->latched_status;
+
 #if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx, "
@@ -2484,6 +2491,10 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	{
 		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
 	}
+
+	/* Set the bits from the latched status word in the main status word. */
+
+	ad->status |= ad->latched_status;
 
 #if MX_AREA_DETECTOR_DEBUG_STATUS
 	MX_DEBUG(-2,
@@ -6131,14 +6142,34 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 						ad->datafile_save_format,
 						filename );
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE
 		if ( mx_status.code != MXE_SUCCESS ) {
+
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE
 			MX_DEBUG(-2,("%s: Autosave of '%s' by '%s' failed "
 			"with MX error code %ld.", fname,
 			filename, ad->record->name,
 			mx_status.code ));
-		}
 #endif
+			switch ( mx_status.code ) {
+			case MXE_FILE_IO_ERROR:
+				ad->latched_status |= MXSF_AD_FILE_IO_ERROR;
+				break;
+			case MXE_PERMISSION_DENIED:
+				ad->latched_status |= MXSF_AD_PERMISSION_DENIED;
+				break;
+			case MXE_DISK_FULL:
+				ad->latched_status |= MXSF_AD_DISK_FULL;
+				break;
+			default:
+				break;
+			}
+
+			ad->latched_status |= MXSF_AD_ERROR;
+
+			/* Abort the running sequence. */
+
+			(void) mx_area_detector_abort( record );
+		}
 	}
 
 	ad->datafile_total_num_frames++;
