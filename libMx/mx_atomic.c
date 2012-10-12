@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009, 2011 Illinois Institute of Technology
+ * Copyright 2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +35,8 @@
 /*------------------------------------------------------------------------*/
 
 #if defined(OS_WIN32)
+
+#define MXP_NEED_GENERIC_WRITE32	FALSE
 
 #include <windows.h>
 
@@ -156,12 +158,16 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 /* For MacOS X 10.4 and above. */
 
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
+
 #include <libkern/OSAtomic.h>
 
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
-	return;
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
 }
 
 /*---*/
@@ -190,52 +196,22 @@ mx_atomic_read32( int32_t *value_ptr )
 	return OSAtomicAdd32Barrier( 0, value_ptr );
 }
 
-MX_EXPORT void
-mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
-{
-	/* FIXME - There is no guarantee that the loop will ever succeed. */
-
-	int32_t old_value;
-	int status;
-	unsigned long i, loop_max;
-
-	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
-
-	for( i = 0; i < loop_max; i++ ) {
-
-		old_value = OSAtomicAdd32Barrier( 0, value_ptr );
-
-		status = OSAtomicCompareAndSwap32Barrier(
-					old_value, new_value, value_ptr );
-
-		/* If the swap succeeded, then we are done. */
-
-		if ( status ) {
-			break;
-		}
-	}
-
-	if ( i >= loop_max ) {
-		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
-	} else {
-#if 1
-		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
-#endif
-	}
-}
-
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_SOLARIS) && ( MX_SOLARIS_VERSION >= 5010000L )
 
 /* For Solaris 10 and above. */
 
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
+
 #include <atomic.h>
 
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
-	return;
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
 }
 
 /*---*/
@@ -280,48 +256,11 @@ mx_atomic_read32( int32_t *value_ptr )
 	return result;
 }
 
-MX_EXPORT void
-mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
-{
-	/* FIXME - There is no guarantee that the loop will ever succeed. */
-
-	uint32_t new_value_2;
-	unsigned long i, loop_max;
-
-	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
-
-	for( i = 0; i < loop_max; i++ ) {
-
-		atomic_and_32( (uint32_t *) value_ptr, 0 );
-
-		/* Somebody else may have changed the value after our
-		 * atomic "and", so we must check the value returned
-		 * by the atomic "add" to see that we got the expected
-		 * value.
-		 */
-
-		new_value_2 =
-			atomic_add_32_nv( (uint32_t *) value_ptr, new_value );
-
-		/* If the swap succeeded, then we are done. */
-
-		if ( new_value_2 == new_value ) {
-			break;
-		}
-	}
-
-	if ( i >= loop_max ) {
-		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
-	} else {
-#if 1
-		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
-#endif
-	}
-}
-
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_IRIX)
+
+#define MXP_NEED_GENERIC_WRITE32	FALSE
 
 #include <sgidefs.h>
 #include <mutex.h>
@@ -385,12 +324,16 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 #elif defined(OS_QNX)
 
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
+
 #include <atomic.h>
 
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
-	return;
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
 }
 
 /*---*/
@@ -435,55 +378,20 @@ mx_atomic_read32( int32_t *value_ptr )
 	return result;
 }
 
-MX_EXPORT void
-mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
-{
-	/* FIXME - There is no guarantee that the loop will ever succeed. */
-
-	uint32_t new_value_2;
-	unsigned long i, loop_max;
-
-	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
-
-	for( i = 0; i < loop_max; i++ ) {
-
-		atomic_clr( (uint32_t *) value_ptr, ~0 );
-
-		/* Somebody else may have changed the value after our
-		 * atomic "clr", so we must check the value returned
-		 * by the atomic "add" to see that we got the expected
-		 * value.
-		 */
-
-		new_value_2 =
-			atomic_add_value( (uint32_t *) value_ptr, new_value );
-
-		/* If the swap succeeded, then we are done. */
-
-		if ( new_value_2 == new_value ) {
-			break;
-		}
-	}
-
-	if ( i >= loop_max ) {
-		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
-	} else {
-#if 1
-		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
-#endif
-	}
-}
-
 /*------------------------------------------------------------------------*/
 
 #elif defined(OS_VMS) && !defined(__VAX)
+
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
 
 #include <builtins.h>
 
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
-	return;
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
 }
 
 /*---*/
@@ -520,47 +428,6 @@ mx_atomic_read32( int32_t *value_ptr )
 	return *value_ptr;
 }
 
-MX_EXPORT void
-mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
-{
-#if 0
-	/* FIXME - There is no guarantee that the loop will ever succeed. */
-
-	uint32_t new_value_2;
-	unsigned long i, loop_max;
-
-	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
-
-	for( i = 0; i < loop_max; i++ ) {
-
-		atomic_clr( (uint32_t *) value_ptr, ~0 );
-
-		/* Somebody else may have changed the value after our
-		 * atomic "clr", so we must check the value returned
-		 * by the atomic "add" to see that we got the expected
-		 * value.
-		 */
-
-		new_value_2 =
-			atomic_add_value( (uint32_t *) value_ptr, new_value );
-
-		/* If the swap succeeded, then we are done. */
-
-		if ( new_value_2 == new_value ) {
-			break;
-		}
-	}
-
-	if ( i >= loop_max ) {
-		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
-	} else {
-#if 1
-		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
-#endif
-	}
-#endif
-}
-
 /*------------------------------------------------------------------------*/
 
 #elif defined(__GNUC__) && (MX_GNUC_VERSION >= 4001000L) && \
@@ -572,10 +439,14 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
  * On x86, the atomic builtins are not available if we use march=i386.
  */
 
+#define MXP_NEED_GENERIC_WRITE32	TRUE
+
+static MX_MUTEX *mxp_atomic_write32_mutex = NULL;
+
 MX_EXPORT void
 mx_atomic_initialize( void )
 {
-	return;
+	(void) mx_mutex_create( &mxp_atomic_write32_mutex );
 }
 
 /*---*/
@@ -604,40 +475,6 @@ mx_atomic_read32( int32_t *value_ptr )
 	return __sync_add_and_fetch( value_ptr, 0 );
 }
 
-MX_EXPORT void
-mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
-{
-	/* FIXME - There is no guarantee that the loop will ever succeed. */
-
-	int32_t old_value;
-	int status;
-	unsigned long i, loop_max;
-
-	loop_max = 1000000L;	/* FIXME - An arbitrarily chosen limit. */
-
-	for( i = 0; i < loop_max; i++ ) {
-
-		old_value = __sync_add_and_fetch( value_ptr, 0 );
-
-		status = __sync_bool_compare_and_swap( value_ptr,
-						old_value, new_value );
-
-		/* If the swap succeeded, then we are done. */
-
-		if ( status ) {
-			break;
-		}
-	}
-
-	if ( i >= loop_max ) {
-		fprintf( stderr, "mx_atomic_write() FAILED, i = %lu\n", i );
-#if 0
-	} else {
-		fprintf( stderr, "mx_atomic_write(): i = %lu\n", i );
-#endif
-	}
-}
-
 /*------------------------------------------------------------------------*/
 
 /* This is an implementation using a mutex that is intended for build targets
@@ -653,6 +490,8 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 
 #elif defined(__GNUC__) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_VMS) || defined(OS_UNIXWARE)
+
+#define MXP_NEED_GENERIC_WRITE32	FALSE
 
 static MX_MUTEX *mxp_atomic_mutex = NULL;
 
@@ -742,4 +581,26 @@ mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
 #error MX atomic operations have not been defined for this platform.
 
 #endif
+
+/*------------------------------------------------------------------------*/
+
+/* The following is a lock-based version of mx_atomic_write32() for platforms
+ * that do not have an intrinsic version of this.
+ */
+
+#if MXP_NEED_GENERIC_WRITE32
+
+MX_EXPORT void
+mx_atomic_write32( int32_t *value_ptr, int32_t new_value )
+{
+	mx_mutex_lock( mxp_atomic_write32_mutex );
+
+	*value_ptr = new_value;
+
+	mx_mutex_unlock( mxp_atomic_write32_mutex );
+
+	return;
+}
+
+#endif /* MXP_NEED_GENERIC_WRITE32 */
 
