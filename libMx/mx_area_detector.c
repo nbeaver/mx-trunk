@@ -6134,7 +6134,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE
 		if ( mx_status.code != MXE_SUCCESS ) {
 			MX_DEBUG(-2,("%s: Autosave of '%s' by '%s' failed "
-			"with MX error code %ld.",
+			"with MX error code %ld.", fname,
 			filename, ad->record->name,
 			mx_status.code ));
 		}
