@@ -55,7 +55,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = win32
+MX_ARCH = cygwin
 
 #MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx
@@ -64,7 +64,7 @@ MX_ARCH = win32
 #MX_INSTALL_DIR = $(HOME)/local/mx
 #MX_INSTALL_DIR = $(HOME)/mxtest
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
-MX_INSTALL_DIR = c:/opt/mx-1.5.5-2012_10_09
+MX_INSTALL_DIR = c:/opt/mx_cygwin-1.5.5-2012_10_11
 #MX_INSTALL_DIR = d:/opt/mx-1.5.5-2011_09_30
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)

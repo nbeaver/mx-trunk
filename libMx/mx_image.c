@@ -3935,7 +3935,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			"MX user '%s' does not have permission to write "
 			"to image file '%s'.",
 				mx_username( username_buffer,
-						sizeof(username_buffer) ) );
+						sizeof(username_buffer) ),
+				datafile_name );
 			break;
 
 		default:
