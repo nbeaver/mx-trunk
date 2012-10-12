@@ -231,7 +231,7 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	double oscillation_time, new_motor_position;
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	mx_status_type mx_status;
 
 	if ( args == NULL ) {
@@ -404,7 +404,7 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 
 		snprintf( command, sizeof(command),
 			"stoh_start_operation detector_transfer_image %lu.%lu",
-			client_number, operation_counter );
+			client_number, (unsigned long) operation_counter );
 
 		mx_bluice_set_operation_state( transfer_operation,
 						MXSF_BLUICE_OPERATION_STARTED );
@@ -549,7 +549,7 @@ mxd_bluice_area_detector_collect_thread( MX_THREAD *thread, void *args )
 
 		snprintf( command, sizeof(command),
 		"stoh_start_operation detector_oscillation_ready %lu.%lu",
-			client_number, operation_counter );
+			client_number, (unsigned long) operation_counter );
 
 		mx_bluice_set_operation_state( oscillation_ready_operation,
 						MXSF_BLUICE_OPERATION_STARTED );
@@ -1091,7 +1091,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	char motor_name[MXU_BLUICE_NAME_LENGTH+1];
 	unsigned long dark_current_fu;
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	unsigned long flags;
 	double detector_distance, wavelength;
 	double detector_x, detector_y;
@@ -1188,7 +1188,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		"gtos_start_operation collectFrame %lu.%lu %lu %s %s %s "
 			"NULL NULL 0 %f 0 1 %d",
 			client_number,
-			operation_counter,
+			(unsigned long) operation_counter,
 			dark_current_fu,
 			datafile_name,
 			datafile_directory,
@@ -1219,7 +1219,7 @@ mxd_bluice_area_detector_trigger( MX_AREA_DETECTOR *ad )
 		"stoh_start_operation detector_collect_image %lu.%lu %lu "
 		"%s %s %s %s %f 0.0 0.0 %f %f %f %f 0 %d",
 			client_number,
-			operation_counter,
+			(unsigned long) operation_counter,
 			dark_current_fu,
 			datafile_name,
 			ad->datafile_directory,
@@ -1277,7 +1277,7 @@ mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_SERVER *bluice_server;
 	char command[200];
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_area_detector_get_pointers( ad,
@@ -1299,12 +1299,12 @@ mxd_bluice_area_detector_stop( MX_AREA_DETECTOR *ad )
 	case MXT_AD_BLUICE_DCSS:
 		snprintf( command, sizeof(command),
 		"gtos_start_operation detector_stop %lu.%lu",
-			client_number, operation_counter );
+			client_number, (unsigned long) operation_counter );
 		break;
 	case MXT_AD_BLUICE_DHS:
 		snprintf( command, sizeof(command),
 		"stoh_start_operation detector_stop %lu.%lu",
-			client_number, operation_counter );
+			client_number, (unsigned long) operation_counter );
 		break;
 	}
 
@@ -1354,8 +1354,8 @@ mxd_bluice_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 #if MXD_BLUICE_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: client_number = %lu, operation_counter = %lu",
-		fname, collect_operation->u.operation.client_number,
-		collect_operation->u.operation.operation_counter));
+	    fname, collect_operation->u.operation.client_number,
+	    (unsigned long) collect_operation->u.operation.operation_counter));
 
 	switch( operation_state ) {
 	case MXSF_BLUICE_OPERATION_ERROR:
@@ -1461,7 +1461,7 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_BLUICE_AREA_DETECTOR *bluice_area_detector;
 	MX_BLUICE_SERVER *bluice_server;
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	char command[200];
 	mx_status_type mx_status;
 
@@ -1493,7 +1493,7 @@ mxd_bluice_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 		snprintf( command, sizeof(command),
 			"stoh_start_operation detector_transfer_image %lu.%lu",
 			client_number,
-			operation_counter );
+			(unsigned long) operation_counter );
 
 		mx_status = mx_bluice_check_for_master( bluice_server );
 

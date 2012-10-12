@@ -45,7 +45,7 @@ typedef struct {
 	mx_bool_type is_master;
 	char bluice_username[MXU_USERNAME_LENGTH+1];
 
-	uint32_t operation_counter;
+	int32_t operation_counter;
 } MX_BLUICE_DCSS_SERVER;
 
 /* Define all of the client interface functions. */

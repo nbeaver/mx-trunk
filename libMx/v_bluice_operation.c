@@ -360,7 +360,7 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 	MX_BLUICE_FOREIGN_DEVICE *foreign_operation;
 	void *value_ptr;
 	char command[500];
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	mx_status_type mx_status;
 
 	mx_status = mxv_bluice_operation_get_pointers(
@@ -392,7 +392,7 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 			"gtos_start_operation %s %lu.%lu %s",
 			foreign_operation->name,
 			bluice_dcss_server->client_number,
-			operation_counter,
+			(unsigned long) operation_counter,
 			(char *) value_ptr );
 		break;
 
@@ -401,7 +401,7 @@ mxv_bluice_operation_send_variable( MX_VARIABLE *variable )
 			"stoh_start_operation %s %lu.%lu %s",
 			foreign_operation->name,
 			1L,			/* DCSS is always client 1. */
-			operation_counter,
+			(unsigned long) operation_counter,
 			(char *) value_ptr );
 		break;
 	}

@@ -118,7 +118,7 @@ typedef struct {
 	MX_RECORD *mx_record;
 
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 	int operation_state;
 } MX_BLUICE_FOREIGN_OPERATION;
 
@@ -263,7 +263,7 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
 MX_API unsigned long
 mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server );
 
-MX_API uint32_t
+MX_API int32_t
 mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server );
 
 /* ----- */

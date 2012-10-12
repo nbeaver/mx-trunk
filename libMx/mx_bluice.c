@@ -999,7 +999,7 @@ mx_bluice_get_client_number( MX_BLUICE_SERVER *bluice_server )
 
 /* ====================================================================== */
 
-MX_EXPORT uint32_t
+MX_EXPORT int32_t
 mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 {
 	static const char fname[] = "mx_bluice_update_operation_counter()";
@@ -1009,7 +1009,7 @@ mx_bluice_update_operation_counter( MX_BLUICE_SERVER *bluice_server )
 	MX_BLUICE_DHS_SERVER *bluice_dhs_server;
 	MX_BLUICE_DHS_MANAGER *bluice_dhs_manager;
 	MX_RECORD *dhs_manager_record;
-	uint32_t operation_counter;
+	int32_t operation_counter;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1307,7 +1307,8 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	char *ptr, *command_ptr, *new_buffer;
 	int num_items;
 	unsigned long client_number;
-	uint32_t operation_counter;
+	int32_t operation_counter;
+	unsigned long operation_counter_temp;
 	int operation_state;
 	unsigned long arguments_length, old_arguments_length;
 	char format[20], completion_status[40];
@@ -1357,7 +1358,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 	}
 
 	num_items = sscanf( operation_handle, "%lu.%lu",
-				&client_number, &operation_counter );
+				&client_number, &operation_counter_temp );
 
 	if ( num_items != 2 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1365,6 +1366,8 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 		"is not a valid operation handle.",
 			operation_handle, bluice_server->record->name );
 	}
+
+	operation_counter = operation_counter_temp;
 
 	/* Treat the rest of the receive buffer as the arguments buffer. */
 
@@ -1404,8 +1407,8 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"There was no text found after the operation handle "
 			"%lu.%lu for operation '%s' from Blu-Ice server '%s'.",
-				client_number, operation_counter,
-				operation_name, bluice_server->record->name );
+			    client_number, (unsigned long) operation_counter,
+			    operation_name, bluice_server->record->name );
 		} else {
 			if ( strcmp( completion_status, "normal" ) == 0 ) {
 			    operation_state = MXSF_BLUICE_OPERATION_COMPLETED;
@@ -1515,7 +1518,7 @@ mx_bluice_update_operation_status( MX_BLUICE_SERVER *bluice_server,
 #if BLUICE_DEBUG_OPERATION
 	MX_DEBUG(-2,("%s: Command '%s', operation '%s', handle '%lu.%lu'",
 		fname, command_name, operation_name,
-		client_number, operation_counter));
+		client_number, (unsigned long) operation_counter));
 
 	switch( operation_state ) {
 	case MXSF_BLUICE_OPERATION_ERROR:
