@@ -7,9 +7,12 @@ ifndef MX_ARCH
 endif
 
 #EPIX_ARCH = i386
-EPIX_ARCH = x86_64_pic
+#EPIX_ARCH = x86_64_pic
+EPIX_ARCH = w64
 
-EPIX_XCLIB_DIR = /usr/local/xclib
+#EPIX_XCLIB_DIR = /usr/local/xclib
+
+EPIX_XCLIB_DIR = c:\\progra~1\\EPIX\\XCLIB
 
 #--------------------------------------------------------------------------
 
@@ -48,8 +51,8 @@ ifeq ($(MX_ARCH),win32)
 
 epix_xclib.mxo: $(EPIX_XCLIB_OBJS)
 	link /dll /debug /nologo /out:epix_xclib.mxo /nodefaultlib:libc \
-		$(EPIX_XCLIB_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME)
-		$(EPIX_XCLIB_DIR)\\xclib.lib
+		$(EPIX_XCLIB_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(EPIX_XCLIB_DIR)\\xclib$(EPIX_ARCH).lib
 
 	# For VC2005 or later, embed the manifest in the module.
 
