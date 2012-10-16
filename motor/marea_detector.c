@@ -336,7 +336,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			 */
 
 			fprintf( output,
-			"\nAcquisition complete.  No file written.\n" );
+			"\nAcquisition complete.  No local copy saved.\n" );
 			fflush ( output );
 			return SUCCESS;
 		}

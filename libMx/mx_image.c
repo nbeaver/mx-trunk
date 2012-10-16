@@ -3956,7 +3956,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	/* First null out the header bytes at the start of the file. */
 
-	num_items_written = fwrite( null_header_bytes, header_length, 1, file );
+	num_items_written = fwrite( null_header_bytes, 1, header_length, file );
 
 	if ( num_items_written < header_length ) {
 		saved_errno = errno;

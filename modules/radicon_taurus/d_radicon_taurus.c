@@ -164,7 +164,8 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 		"Cannot allocate memory for an MX_AREA_DETECTOR structure." );
 	}
 
-	radicon_taurus = (MX_RADICON_TAURUS *) calloc( 1, sizeof(MX_RADICON_TAURUS) );
+	radicon_taurus = (MX_RADICON_TAURUS *)
+				calloc( 1, sizeof(MX_RADICON_TAURUS) );
 
 	if ( radicon_taurus == (MX_RADICON_TAURUS *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1542,54 +1543,68 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		trimmed_frame_buffer = ad->image_frame->image_data;
 
-		/* Note: In the following section, we have two slightly different
-		 * versions of the code inside the for() loops, depending on whether
-		 * or not we want to flip the image.  We have written the code this
-		 * way since putting an if() test in the body of a loop can be
-		 * a performance killer.
+		/* Note: In the following section, we have two slightly
+		 * different versions of the code inside the for() loops,
+		 * depending on whether or not we want to flip the image.
+		 * We have written the code this way since putting an if()
+		 * test in the body of a loop can be a performance killer.
 		 */
 
 		if ( radicon_taurus->flip_image ) {
 
-			/* While copying the image to the trimmed frame buffer,
-			 * we _flip_ the image vertically.
-			 */
+		    /* While copying the image to the trimmed frame buffer,
+		     * we _flip_ the image vertically.
+		     */
 
-			for ( trimmed_row = 0;
-				trimmed_row < trimmed_column_framesize;
-				trimmed_row++ )
-			{
-				trimmed_ptr = trimmed_frame_buffer
-					+ trimmed_row * trimmed_row_framesize;
+		    for ( trimmed_row = 0;
+			trimmed_row < trimmed_column_framesize;
+			trimmed_row++ )
+		    {
+			trimmed_ptr = trimmed_frame_buffer
+				+ trimmed_row * trimmed_row_framesize;
 
-				flipped_trimmed_row = trimmed_column_framesize
+			flipped_trimmed_row = trimmed_column_framesize
 							- trimmed_row - 1;
 			
-				raw_ptr = raw_frame_buffer
-					+ row_offset * raw_row_framesize
-					+ flipped_trimmed_row * raw_row_framesize
-					+ column_offset;
+			raw_ptr = raw_frame_buffer
+				+ row_offset * raw_row_framesize
+				+ flipped_trimmed_row * raw_row_framesize
+				+ column_offset;
 
-				memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
-			}
+			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+		    }
 		} else {
-			/* Do _not_ flip the image vertically. */
+		    /* Do _not_ flip the image vertically. */
 
-			for ( trimmed_row = 0;
-				trimmed_row < trimmed_column_framesize;
-				trimmed_row++ )
-			{
-				trimmed_ptr = trimmed_frame_buffer
-					+ trimmed_row * trimmed_row_framesize;
+		    for ( trimmed_row = 0;
+			trimmed_row < trimmed_column_framesize;
+			trimmed_row++ )
+		    {
+			trimmed_ptr = trimmed_frame_buffer
+				+ trimmed_row * trimmed_row_framesize;
 			
-				raw_ptr = raw_frame_buffer
-					+ row_offset * raw_row_framesize
-					+ trimmed_row * raw_row_framesize
-					+ column_offset;
+			raw_ptr = raw_frame_buffer
+				+ row_offset * raw_row_framesize
+				+ trimmed_row * raw_row_framesize
+				+ column_offset;
 
-				memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
-			}
+			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+		    }
 		}
+
+		/* Copy the exposure time and timestamp from the raw frame. */
+
+		MXIF_EXPOSURE_TIME_SEC( ad->image_frame )
+			= MXIF_EXPOSURE_TIME_SEC( radicon_taurus->raw_frame );
+
+		MXIF_EXPOSURE_TIME_NSEC( ad->image_frame )
+			= MXIF_EXPOSURE_TIME_NSEC( radicon_taurus->raw_frame );
+
+		MXIF_TIMESTAMP_SEC( ad->image_frame )
+			= MXIF_TIMESTAMP_SEC( radicon_taurus->raw_frame );
+
+		MXIF_TIMESTAMP_NSEC( ad->image_frame )
+			= MXIF_TIMESTAMP_NSEC( radicon_taurus->raw_frame );
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG
