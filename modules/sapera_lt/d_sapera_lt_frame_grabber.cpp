@@ -188,7 +188,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 			time_offset );
 
 	i = vinput->total_num_frames
-		% sapera_lt_frame_grabber->max_frames;
+		% sapera_lt_frame_grabber->num_frame_buffers;
 
 	sapera_lt_frame_grabber->frame_time[i] = frame_time;
 
@@ -742,12 +742,13 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name, sapera_lt->server_name );
 	}
 
-	if ( sapera_lt_frame_grabber->max_frames < 1 ) {
+	if ( sapera_lt_frame_grabber->num_frame_buffers < 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The maximum number of frames for Sapera LT frame grabber '%s' "
-		"must be greater than or equal to 1.  Instead, it was set "
-		"to %ld.",  record->name,
-			sapera_lt_frame_grabber->max_frames );
+		"The number of allocated frame buffers for Sapera LT "
+		"frame grabber '%s' must be greater than or equal to 1.  "
+		"Instead, it was set to %ld.",
+			record->name,
+			sapera_lt_frame_grabber->num_frame_buffers );
 	}
 
 	/* Get the time that the system booted.  This will be used later
@@ -872,14 +873,15 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	 */
 
 	sapera_lt_frame_grabber->buffer =
-		new SapBuffer( sapera_lt_frame_grabber->max_frames,
+		new SapBuffer( sapera_lt_frame_grabber->num_frame_buffers,
 				sapera_lt_frame_grabber->acquisition );
 
 	if ( sapera_lt_frame_grabber->buffer == NULL ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create a %ld frame SapBuffer object for "
 		"frame grabber '%s'.",
-			sapera_lt_frame_grabber->max_frames, record->name );
+			sapera_lt_frame_grabber->num_frame_buffers,
+			record->name );
 	}
 
 	/* Create an array of 'struct timespec' structures to hold the
@@ -887,14 +889,14 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	 */
 
 	sapera_lt_frame_grabber->frame_time = (struct timespec *)
-		calloc( sapera_lt_frame_grabber->max_frames,
+		calloc( sapera_lt_frame_grabber->num_frame_buffers,
 			sizeof(struct timespec) );
 
 	if ( sapera_lt_frame_grabber->frame_time == (struct timespec *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
 		"array of 'struct timespec' for area detector '%s'.",
-			sapera_lt_frame_grabber->max_frames,
+			sapera_lt_frame_grabber->num_frame_buffers,
 			record->name );
 	}
 
@@ -1078,11 +1080,23 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = (long) mx_native_byteorder();
 
+	/* The allocated Sapera LT frame buffers form a circular ring buffer.
+	 * Thus, if you go beyond the last allocated buffer, the Sapera LT
+	 * software wraps back to the first buffer.  For that reason, we
+	 * set vinput->maximum_frame_number to ULONG_MAX, since the ring
+	 * buffer can wrap indefinitely.
+	 *
+	 * FIXME?: Bad things may happen if vinput->total_num_frames
+	 * exceeds LONG_MAX.  However, if you take frames at 30 Hz,
+	 * it will take over 27 months of absolutely continuous running
+	 * before you reach LONG_MAX.
+	 */
+
+	vinput->maximum_frame_number = ULONG_MAX;
+
 	vinput->last_frame_number = -1;
 	vinput->total_num_frames = 0;
 	vinput->status = 0x0;
-
-	vinput->maximum_frame_number = 0;
 
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_OPEN
 	MX_DEBUG(-2,
@@ -1498,7 +1512,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* The SapBuffer appears to behave as a ring buffer (no surprise),
 	 * so the offset we pass to GetAddress must be the absolute frame
-	 * number modulo the maximum number of frames in the buffer.
+	 * number modulo the allocated number of frame buffers.
 	 */
 
 	absolute_frame_number =
@@ -1506,7 +1520,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 			+ vinput->frame_number;
 
 	modulo_frame_number =
-		absolute_frame_number % (sapera_lt_frame_grabber->max_frames);
+	  absolute_frame_number % (sapera_lt_frame_grabber->num_frame_buffers);
 
 	buffer_resource_index = (int) modulo_frame_number;
 

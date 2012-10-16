@@ -25,7 +25,7 @@ typedef struct {
 	MX_RECORD *sapera_lt_record;
 	long frame_grabber_number;
 	char config_filename[MXU_FILENAME_LENGTH+1];
-	long max_frames;
+	long num_frame_buffers;
 
 	unsigned long total_num_frames_at_start;
 	unsigned long num_frames_left_to_acquire;
@@ -56,8 +56,9 @@ typedef struct {
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, config_filename), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "max_frames", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_FRAME_GRABBER, max_frames), \
+  {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SAPERA_LT_FRAME_GRABBER, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 	
 
