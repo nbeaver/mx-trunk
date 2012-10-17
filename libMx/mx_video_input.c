@@ -101,6 +101,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	vinput->total_num_frames = -1;
 	vinput->status = 0;
 	vinput->extended_status[0] = '\0';
+	vinput->check_for_buffer_overrun = FALSE;
 
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
@@ -1423,7 +1424,75 @@ mx_video_input_set_master_clock( MX_RECORD *record, long master_clock )
 	return mx_status;
 }
 
-/*---*/
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_video_input_mark_frame_as_saved( MX_RECORD *record,
+					long frame_number )
+{
+	static const char fname[] = "mx_video_input_mark_frame_as_saved()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers( record,
+						&vinput, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->mark_frame_as_saved = frame_number;
+
+	vinput->parameter_type = MXLV_VIN_MARK_FRAME_AS_SAVED;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_video_input_check_for_buffer_overrun( MX_RECORD *record,
+					mx_bool_type enable_checking )
+{
+	static const char fname[] = "mx_video_input_check_for_buffer_overrun()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers( record,
+						&vinput, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->check_for_buffer_overrun = enable_checking;
+
+	vinput->parameter_type = MXLV_VIN_CHECK_FOR_BUFFER_OVERRUN;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_video_input_get_frame( MX_RECORD *record,
@@ -1606,6 +1675,8 @@ mx_video_input_default_set_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_VIN_TRIGGER_MODE:
+	case MXLV_VIN_MARK_FRAME_AS_SAVED:
+	case MXLV_VIN_CHECK_FOR_BUFFER_OVERRUN:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

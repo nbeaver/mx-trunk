@@ -38,7 +38,7 @@
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	FALSE
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  FALSE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FAILURE  TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -4188,6 +4188,41 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_mark_frame_as_saved( MX_RECORD *ad_record,
+					long frame_number )
+{
+	static const char fname[] = "mx_area_detector_mark_frame_as_saved()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *fl_ptr;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( ad_record,
+						&ad, &fl_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = fl_ptr->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->mark_frame_as_saved = frame_number;
+
+	ad->parameter_type = MXLV_AD_MARK_FRAME_AS_SAVED;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_parameter( MX_RECORD *ad_record, long parameter_type )
 {
 	static const char fname[] = "mx_area_detector_get_parameter()";
@@ -5022,6 +5057,14 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_MARK_FRAME_AS_SAVED:
+
+		/* By default, 'mark_frame_as_saved' does nothing.  Only
+		 * drivers for detectors with actual circular buffers should
+		 * do anything with this field.
+		 */
 		break;
 
 	case MXLV_AD_FRAMESIZE:
@@ -6170,6 +6213,17 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 			(void) mx_area_detector_abort( record );
 		}
+
+		/* For area detectors that read their frames into a
+		 * circular buffer, we must indicate that this frame
+		 * has been saved.  Note that datafile_last_frame_number
+		 * has already been incremented above, so we must 
+		 * subtract 1 from it in our call to the function
+		 * mx_area_detector_mark_frame_as_saved().
+		 */
+
+		mx_status = mx_area_detector_mark_frame_as_saved( record,
+					ad->datafile_last_frame_number - 1 );
 	}
 
 	ad->datafile_total_num_frames++;

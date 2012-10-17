@@ -37,6 +37,10 @@ typedef struct {
 	struct timespec boot_time;
 
 	struct timespec *frame_time;
+	mx_bool_type    *frame_buffer_is_unsaved;
+
+	mx_bool_type buffer_overrun_occurred;
+
 } MX_SAPERA_LT_FRAME_GRABBER;
 
 

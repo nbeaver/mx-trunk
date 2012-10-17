@@ -82,6 +82,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_EARLY_EXIT,			"MXE_EARLY_EXIT" },
 { MXE_PROTOCOL_ERROR,			"MXE_PROTOCOL_ERROR" },
 { MXE_DISK_FULL,			"MXE_DISK_FULL" },
+{ MXE_DATA_WAS_LOST,			"MXE_DATA_WAS_LOST" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

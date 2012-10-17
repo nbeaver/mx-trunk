@@ -884,6 +884,7 @@ MX_API int mx_string_split( char *original_string, const char *delim,
 #define MXE_EARLY_EXIT				1051
 #define MXE_PROTOCOL_ERROR			1052
 #define MXE_DISK_FULL				1053
+#define MXE_DATA_WAS_LOST			1054
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.

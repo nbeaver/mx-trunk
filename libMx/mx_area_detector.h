@@ -369,6 +369,19 @@ typedef struct mx_area_detector_type {
 
 	mx_bool_type transfer_image_during_scan;
 
+	/* 'mark_frame_as_saved' is used to indicate that the specified
+	 * frame number has been saved by some unspecified archival system.
+	 * The specified frame number is an absolute frame number that is
+	 * compatible with the value of 'total_num_frames'.
+	 *
+	 * It is intended to be used by buffer overrun detection logic
+	 * for area detector devices that maintain the image frames in
+	 * some sort of circular buffer.  For other area detector types,
+	 * it is probably of no use.
+	 */
+
+	long mark_frame_as_saved;
+
 	/* 'area_detector_flags' is used to initialize various features
 	 * of the area detector.
 	 */
@@ -584,6 +597,7 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_REGISTER_VALUE			12060
 #define MXLV_AD_SHUTTER_ENABLE			12061
 #define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12062
+#define MXLV_AD_MARK_FRAME_AS_SAVED		12063
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -971,7 +985,13 @@ typedef struct mx_area_detector_type {
   					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof( MX_AREA_DETECTOR, transfer_image_during_scan ),\
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_MARK_FRAME_AS_SAVED, -1, "mark_frame_as_saved", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof( MX_AREA_DETECTOR, mark_frame_as_saved ), \
+	{0}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
   {MXLV_AD_AREA_DETECTOR_FLAGS, -1, "area_detector_flags", \
@@ -1446,6 +1466,10 @@ MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME *frame,
 						unsigned long roi_number,
 						MX_IMAGE_FRAME **roi_frame );
+
+MX_API mx_status_type mx_area_detector_mark_frame_as_saved(
+						MX_RECORD *ad_record,
+						long frame_number );
 
 MX_API mx_status_type mx_area_detector_get_parameter( MX_RECORD *ad_record,
 						long parameter_type );

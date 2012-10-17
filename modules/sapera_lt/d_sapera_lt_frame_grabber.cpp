@@ -170,6 +170,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber;
 	long i;
+	mx_bool_type old_frame_buffer_was_unsaved;
 	struct timespec frame_time, time_offset;
 
 	sapera_lt_frame_grabber =
@@ -192,6 +193,13 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 
 	sapera_lt_frame_grabber->frame_time[i] = frame_time;
 
+	/* Remember whether or not the frame buffer that was just 
+	 * overwritten had unsaved data in it.
+	 */
+
+	old_frame_buffer_was_unsaved =
+		sapera_lt_frame_grabber->frame_buffer_is_unsaved[i];
+
 	/* Update the frame counters. */
 
 	if ( sapera_lt_frame_grabber->num_frames_left_to_acquire > 0 ) {
@@ -199,8 +207,12 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 		vinput->total_num_frames++;
 	}
 
+	sapera_lt_frame_grabber->frame_buffer_is_unsaved[i] = TRUE;
+
 #if MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_CALLBACK
 	{
+		/* Display the fact that a frame has been captured. */
+
 		uint32_t divisor, remainder, result;
 		char ascii_digit;
 		mx_bool_type suppress_output;
@@ -251,6 +263,49 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 		sapera_lt_frame_grabber->num_frames_left_to_acquire ));
 
 #endif /* MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+	/* Did we have a buffer overrun? */
+
+	if ( vinput->check_for_buffer_overrun == FALSE ) {
+		return;
+	}
+
+	if ( old_frame_buffer_was_unsaved ) {
+
+		/*!!!!! We had a buffer overrun !!!!!*/
+
+		sapera_lt_frame_grabber->buffer_overrun_occurred = TRUE;
+
+#if 1
+		/* Stop writing out image files, since any new ones
+		 * after this point will be overwrites of unsaved frames.
+		 *
+		 * FIXME: Is this the right thing to do?
+		 */
+
+		sapera_lt_frame_grabber->num_frames_left_to_acquire = 0;
+#endif
+
+		/* Display error messages and abort the sequence. */
+
+		(void) mx_error( MXE_DATA_WAS_LOST, fname,
+		"Buffer overrun detected at frame %ld for video input '%s'.",
+			vinput->total_num_frames, record->name );
+
+		mx_warning( "Aborting the running sequence for '%s'.",
+				record->name );
+
+		(void) mx_video_input_abort( record );
+
+		/* Clear out the 'frame_buffer_is_unsaved' array, so that
+		 * its contents will not confuse the software later.
+		 *
+		 * FIXME: Is this the right thing to do?
+		 */
+
+		memset( sapera_lt_frame_grabber->frame_buffer_is_unsaved,
+			0, sapera_lt_frame_grabber->num_frame_buffers );
+	}
 
 	return;
 }
@@ -895,7 +950,26 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 	if ( sapera_lt_frame_grabber->frame_time == (struct timespec *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element "
-		"array of 'struct timespec' for area detector '%s'.",
+		"frame time array for area detector '%s'.",
+			sapera_lt_frame_grabber->num_frame_buffers,
+			record->name );
+	}
+
+	/* Create the 'unsaved_frame_buffer_index' array.  This array
+	 * contains the absolute frame number for the image frame most
+	 * recently acquired.
+	 */
+
+	sapera_lt_frame_grabber->frame_buffer_is_unsaved = (mx_bool_type *)
+		calloc( sapera_lt_frame_grabber->num_frame_buffers,
+			sizeof(mx_bool_type) );
+
+	if ( sapera_lt_frame_grabber->frame_buffer_is_unsaved
+						== (mx_bool_type *) NULL ) 
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"'unsaved_frame_buffer_index' array for area detector '%s'.",
 			sapera_lt_frame_grabber->num_frame_buffers,
 			record->name );
 	}
@@ -1197,6 +1271,10 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Clear the buffer overrun flag. */
+
+	sapera_lt_frame_grabber->buffer_overrun_occurred = FALSE;
+
 	/* Clear any existing frame data in the SapBuffer object. */
 
 	sapera_status = sapera_lt_frame_grabber->buffer->Clear();
@@ -1433,6 +1511,10 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 		vinput->status |= MXSF_VIN_IS_BUSY;
 	}
 
+	if ( sapera_lt_frame_grabber->buffer_overrun_occurred ) {
+		vinput->status |= MXSF_VIN_OVERRUN;
+	}
+
 	vinput->last_frame_number = vinput->total_num_frames
 		- sapera_lt_frame_grabber->total_num_frames_at_start - 1;
 
@@ -1564,7 +1646,7 @@ mxd_sapera_lt_frame_grabber_get_frame( MX_VIDEO_INPUT *vinput )
 
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"The attempt to get the buffer data address for "
+		"The attempt to release the buffer data address for "
 		"frame grabber '%s' failed.",
 			vinput->record->name );
 	}
@@ -1778,6 +1860,7 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_SAPERA_LT_FRAME_GRABBER *sapera_lt_frame_grabber = NULL;
 	unsigned long bytes_per_frame;
+	unsigned long i, absolute_frame_number, num_frame_buffers;
 	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
 	unsigned long trigger_mask;
 	UINT32 external_trigger_setting;
@@ -1797,6 +1880,36 @@ mxd_sapera_lt_frame_grabber_set_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_MARK_FRAME_AS_SAVED:
+
+#if 0
+		MX_DEBUG(-2,("%s: mark_frame_as_saved = %lu",
+			fname, vinput->mark_frame_as_saved));
+#endif
+
+		if ( sapera_lt_frame_grabber->num_frame_buffers <= 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The sapera_lt_frame_grabber '%s' must have at least "
+			"1 frame buffer, but the driver says it has (%ld).",
+				vinput->record->name );
+		}
+		if ( sapera_lt_frame_grabber->frame_buffer_is_unsaved == NULL )
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The frame_buffer_is_unsaved pointer for "
+			"area detector '%s' is NULL.",
+				vinput->record->name );
+		}
+
+		absolute_frame_number = vinput->mark_frame_as_saved;
+
+		num_frame_buffers = sapera_lt_frame_grabber->num_frame_buffers;
+
+		i = absolute_frame_number % num_frame_buffers;
+
+		sapera_lt_frame_grabber->frame_buffer_is_unsaved[i] = FALSE;
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Changing the framesize is not yet implemented for '%s'.",

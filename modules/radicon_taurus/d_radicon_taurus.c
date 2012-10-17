@@ -926,6 +926,8 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	mx_bool_type set_exposure_times;
 	mx_bool_type use_different_si2_value;
 	unsigned long old_sro_mode;
+	unsigned long ad_flags;
+	mx_bool_type enable_overrun_checking;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -946,6 +948,27 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 		"The video_input_record pointer for detector '%s' is NULL.",
 			ad->record->name );
 	}
+
+	/* First see if we need to turn on buffer overrun checking.  We
+	 * only do this if this is a server that is automatically saving
+	 * files to disk, since otherwise it is impossible to guarantee
+	 * saving of the files on a timely basis.
+	 */
+
+	ad_flags = ad->area_detector_flags;
+
+	if ( ad_flags & MXF_AD_SAVE_FRAME_AFTER_ACQUISITION ) {
+		enable_overrun_checking = TRUE;
+	} else {
+		enable_overrun_checking = FALSE;
+	}
+
+	mx_status = mx_video_input_check_for_buffer_overrun(
+						video_input_record,
+						enable_overrun_checking );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
         /*****************************************************************
 	 * If the bypass_arm flag is set, we just tell the video capture *
@@ -1410,6 +1433,10 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
+	if ( vinput_status & MXSF_VIN_OVERRUN ) {
+		ad->latched_status |= MXSF_AD_BUFFER_OVERRUN;
+	}
+
 	/* If a pulse generator is in use and we are _not_ in an MX server,
 	 * then poll its status.  For some pulse generator drivers, this is
 	 * necessary for the driver to operate correctly, since otherwise
@@ -1812,12 +1839,20 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 				&(ad->sequence_parameters) );
 		break; 
 
+	case MXLV_AD_MARK_FRAME_AS_SAVED:
+		mx_status = mx_video_input_mark_frame_as_saved(
+				video_input_record,
+				ad->mark_frame_as_saved );
+		break;
+
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Changing parameter '%s' for area detector '%s' is not supported.",
 			mx_get_field_label_string( ad->record,
 				ad->parameter_type ), ad->record->name );
+		break;
+
 	default:
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
