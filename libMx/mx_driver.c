@@ -125,10 +125,6 @@
 #include "i_telnet.h"
 #endif
 
-#if HAVE_LIBUSB
-#include "i_libusb.h"
-#endif
-
 #include "i_network_gpib.h"
 #include "i_ni488.h"
 #include "i_k500serial.h"
@@ -1247,16 +1243,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_modbus_serial_rtu_modbus_function_list,
 				&mxi_modbus_serial_rtu_num_record_fields,
 				&mxi_modbus_serial_rtu_rfield_def_ptr},
-
-#if HAVE_LIBUSB
-
-{"libusb",         MXI_USB_LIBUSB,    MXI_USB,        MXR_INTERFACE,
-				&mxi_libusb_record_function_list,
-				NULL,
-				&mxi_libusb_usb_function_list,
-				&mxi_libusb_num_record_fields,
-				&mxi_libusb_rfield_def_ptr},
-#endif /* HAVE_LIBUSB */
 
 {"soft_camera_link", MXI_CL_SOFTWARE, MXI_CAMERA_LINK,  MXR_INTERFACE,
 				&mxi_soft_camera_link_record_function_list,

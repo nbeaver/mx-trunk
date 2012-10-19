@@ -63,6 +63,7 @@
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB           *
  *    esone_camac           Formerly enabled by HAVE_JORWAY_CAMAC         *
+ *    libusb-0.1            Formerly enabled by HAVE_LIBUSB               *
  *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
  *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
@@ -133,18 +134,6 @@
  */
 
 #define HAVE_SIS3100			0
- 
-/*****************************************************************************
- *
- * Libusb is a low level library for accessing USB devices.  It is currently
- * available on Linux, MacOS X, FreeBSD, NetBSD, OpenBSD, and Microsoft
- * Windows.  I am not sure that you can always depend on it being present
- * on those platforms, which is the reason for making this configurable.
- * More information may be found at http://libusb.sourceforge.net/ and,
- * for the Win32 version, at http://libusb-win32.sourceforge.net/.
- */
-
-#define HAVE_LIBUSB			0
  
 /*****************************************************************************
  *

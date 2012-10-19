@@ -165,7 +165,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_fossil.c i_hsc1.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
 	i_k500serial.c i_ks3344.c \
-	i_libusb.c i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
+	i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
 	i_kohzu_sc.c i_linkam_t9x.c i_lpt.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
@@ -297,9 +297,6 @@ i_edt_rs232.$(OBJ): i_edt_rs232.c
 
 i_esone_camac.$(OBJ): i_esone_camac.c
 	$(COMPILE) $(CFLAGS) $(ESONE_CAMAC_INCLUDES) i_esone_camac.c
-
-i_libusb.$(OBJ): i_libusb.c
-	$(COMPILE) $(CFLAGS) $(LIBUSB_FLAGS) i_libusb.c
 
 i_linux_iopl.$(OBJ): i_linux_iopl.c
 	$(COMPILE) $(CFLAGS) $(LINUX_IOPL_FLAGS) i_linux_iopl.c

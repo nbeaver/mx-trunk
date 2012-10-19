@@ -32,9 +32,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
-#LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -56,16 +53,12 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
 #LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(LIBUSB_LIB_DIRS)
-#LIBRARIES	= $(LIBUSB_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) \
 #			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
-#			$(SIS3100_LIB_DIRS) $(LIBUSB_LIB_DIRS)
+#			$(SIS3100_LIB_DIRS) 
 #
 #LIBRARIES	= $(NI488_LIBRARIES) $(NI_VISA_LIBRARIES) \
-#		$(SIS3100_LIBRARIES) $(LIBUSB_LIBRARIES) \
-#				-lpthread -lrt -ldl -lm
+#		$(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #--------------------------------------------------------------------------
 #
@@ -154,11 +147,6 @@ LINUX_GPIB_LIB_DIRS  =
 LINUX_GPIB_LIBRARIES = -lgpib
 
 #
-LIBUSB_INCLUDES   =
-LIBUSB_LIB_DIRS   =
-LIBUSB_LIBRARIES  = -lusb
-
-#
 NI_VISA_DIR       = /usr/local/vxipnp/linux
 NI_VISA_INCLUDES  = -I$(NI_VISA_DIR)/include -DIS_MX_DRIVER
 NI_VISA_LIB_DIRS  = -L$(NI_VISA_DIR)/lib
@@ -176,17 +164,6 @@ PMC_MCAPI_LIB_DIRS  = -L/usr/local/lib
 PMC_MCAPI_LIBRARIES = -lmcapi
 
 #
-# Note: The wierd stuff below with -rpath is only necessary for distributions
-#       derived from Red Hat Enterprise Linux 5.  You should probably remove
-#       it for other distributions.  The reason for it is explained here:
-#
-# http://decibel.ni.com/content/thread/5902?decorator=print&displayFullThread=true
-#
-NI_DAQMX_BASE_LIB_DIRS  = -L/usr/local/lib
-NI_DAQMX_BASE_LIBRARIES = -lnidaqmxbase \
-     -Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
-
-#
 I8255_INCLUDES  =
 
 #
@@ -194,9 +171,6 @@ AM9513_INCLUDES =
 
 #
 LINUX_PORTIO_INCLUDES =
-
-#
-LIBUSB_FLAGS     = -Wno-shadow
 
 #
 VIDEO_4_LINUX_2_FLAGS = -DIS_MX_DRIVER
