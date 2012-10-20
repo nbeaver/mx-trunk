@@ -41,12 +41,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
 #LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(PMC_MCAPI_LIB_DIRS)
-#LIBRARIES	= $(PMC_MCAPI_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_DAQMX_BASE_LIB_DIRS)
-#LIBRARIES	= $(NI_DAQMX_BASE_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -159,11 +153,6 @@ SIS3100_LIB_DIRS  = -L$(SIS3100_DIR)
 SIS3100_LIBRARIES = -l_sis3100
 
 #
-PMC_MCAPI_INCLUDES  = -I/usr/local/src/mcapi-4.1.2/src
-PMC_MCAPI_LIB_DIRS  = -L/usr/local/lib
-PMC_MCAPI_LIBRARIES = -lmcapi
-
-#
 I8255_INCLUDES  =
 
 #
@@ -273,7 +262,7 @@ DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
 	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) \
-	$(PMC_MCAPI_INCLUDES) *.c > Makefile.depend
+	*.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

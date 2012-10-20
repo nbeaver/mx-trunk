@@ -268,17 +268,6 @@ MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 #DUMA_LIB = $(DUMA_DIR)\\win32-msvc.net\\dumalib\\Release\\dumalib.lib
 #DEBUG_OPTS = /force $(DUMA_LIB)
 
-#---------------------------------------------------------------------------
-#
-# Precision MicroControl Motion Control API (MCAPI) interface.
-#  
-# (This should move to a module soon, but it has not happened yet.)
-#  
-PMC_MCAPI_DIR        = c:\\progra~1\\motion~1\\motion~1\\sources
-PMC_MCAPI_INCLUDES   = -I$(PMC_MCAPI_DIR)
-PMC_MCAPI_LIBS       = $(PMC_MCAPI_DIR)\\mcapi32.lib \
-			$(PMC_MCAPI_DIR)\\mcdlg32.lib
-
 #
 #========================================================================
 #

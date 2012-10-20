@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2005, 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,10 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-
-#include "mxconfig.h"
-
-#if HAVE_PMC_MCAPI
 
 #if defined(OS_WIN32)
   #include "windows.h"
@@ -1776,5 +1772,4 @@ mxi_pmc_mcapi_download_file( MX_PMC_MCAPI *pmc_mcapi, char *filename )
 
 #endif /* MCDLG_ code. */
 
-#endif /* HAVE_PMC_MCAPI */
 

@@ -66,6 +66,7 @@
  *    libusb-0.1            Formerly enabled by HAVE_LIBUSB               *
  *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
  *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
+ *    pmc_mcapi             Formerly enabled by HAVE_PMC_MCAPI            *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
  *    u500                  Formerly enabled by HAVE_U500                 *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
@@ -157,14 +158,6 @@
  */
 
 #define HAVE_LINUX_PORTIO		0
-
-/*****************************************************************************
- *
- * Linux and Win32 drivers for the Precision MicroControl Motion Control API
- * (MCAPI) for their series of motor controllers.
- */
-
-#define HAVE_PMC_MCAPI			0
 
 #endif /* _MXCONFIG_H_ */
 

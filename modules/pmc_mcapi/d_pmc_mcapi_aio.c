@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2004-2006, 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,10 +18,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "mxconfig.h"
-
-#if HAVE_PMC_MCAPI
 
 #if defined(OS_LINUX)
   #include "mcapi.h"
@@ -428,4 +424,3 @@ mxd_pmc_mcapi_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_PMC_MCAPI && defined(OS_WIN32) */
