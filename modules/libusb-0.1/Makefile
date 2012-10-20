@@ -1,4 +1,12 @@
 #
+# Module: libusb-0.1
+#
+# This module supports the USB interface provided by the old, deprecated
+# libusb-0.1 API that is described at the http://www.libusb.org/ website.
+#
+# Note that libusb-0.1 itself supports a variety of operating systems,
+# but the MX libusb-0.1 module has only been built on Linux so far.
+#
 # Supported values of MX_ARCH: linux
 #
 
