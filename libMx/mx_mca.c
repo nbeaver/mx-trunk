@@ -379,7 +379,7 @@ mx_mca_read( MX_RECORD *mca_record,
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_MCA * );
-	int read_new_data;
+	mx_bool_type read_new_data;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));

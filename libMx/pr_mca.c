@@ -44,31 +44,31 @@ mx_setup_mca_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_MCA_START:
-		case MXLV_MCA_STOP:
-		case MXLV_MCA_CLEAR:
 		case MXLV_MCA_BUSY:
-		case MXLV_MCA_PRESET_TYPE:
-		case MXLV_MCA_START_WITH_PRESET:
 		case MXLV_MCA_CHANNEL_ARRAY:
-		case MXLV_MCA_CURRENT_NUM_CHANNELS:
-		case MXLV_MCA_ROI_ARRAY:
-		case MXLV_MCA_ROI_INTEGRAL_ARRAY:
-		case MXLV_MCA_ROI:
-		case MXLV_MCA_ROI_INTEGRAL:
 		case MXLV_MCA_CHANNEL_VALUE:
-		case MXLV_MCA_REAL_TIME:
+		case MXLV_MCA_CLEAR:
+		case MXLV_MCA_CURRENT_NUM_CHANNELS:
+		case MXLV_MCA_ENERGY_OFFSET:
+		case MXLV_MCA_ENERGY_SCALE:
+		case MXLV_MCA_INPUT_COUNT_RATE:
 		case MXLV_MCA_LIVE_TIME:
-		case MXLV_MCA_PRESET_REAL_TIME:
-		case MXLV_MCA_PRESET_LIVE_TIME:
+		case MXLV_MCA_OUTPUT_COUNT_RATE:
 		case MXLV_MCA_PRESET_COUNT:
+		case MXLV_MCA_PRESET_LIVE_TIME:
+		case MXLV_MCA_PRESET_REAL_TIME:
+		case MXLV_MCA_PRESET_TYPE:
+		case MXLV_MCA_REAL_TIME:
+		case MXLV_MCA_ROI:
+		case MXLV_MCA_ROI_ARRAY:
+		case MXLV_MCA_ROI_INTEGRAL:
+		case MXLV_MCA_ROI_INTEGRAL_ARRAY:
 		case MXLV_MCA_SOFT_ROI:
 		case MXLV_MCA_SOFT_ROI_INTEGRAL:
 		case MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY:
-		case MXLV_MCA_ENERGY_SCALE:
-		case MXLV_MCA_ENERGY_OFFSET:
-		case MXLV_MCA_INPUT_COUNT_RATE:
-		case MXLV_MCA_OUTPUT_COUNT_RATE:
+		case MXLV_MCA_START:
+		case MXLV_MCA_START_WITH_PRESET:
+		case MXLV_MCA_STOP:
 			record_field->process_function
 					    = mx_mca_process_function;
 			break;

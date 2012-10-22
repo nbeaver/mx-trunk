@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	FALSE
+#define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -418,15 +418,21 @@ static mx_status_type
 mxp_new_data_available_callback_function( MX_CALLBACK *callback,
 					void *callback_args )
 {
-	MX_DEBUG(-2,("mxp_new_data_available_callback_function() invoked."));
+	static const char fname[] =
+		"mxp_new_data_available_callback_function()";
 
-	mx_stack_traceback();
+	MX_MCA *mca;
 
 	/* We do not really need this function, since mx_invoke_callback()
 	 * will have already copied the field value from the network buffer
 	 * to our local buffer.  It only exists for debugging to verify
 	 * that the callback has been invoked.
 	 */
+
+	mca = (MX_MCA *) callback_args;
+
+	MX_DEBUG(-2,("%s: MCA '%s' new_data_available = %d",
+		fname, mca->record->name, mca->new_data_available));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -543,18 +549,21 @@ mxd_network_mca_open( MX_RECORD *record )
 	/* Create a value changed callback for 'new_data_available'. */
 
 #if MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE
+	MX_DEBUG(-2,("%s: mx_remote_field_add_callback() invoked for '%s'",
+		fname, network_mca->new_data_available_nf.nfname));
+
 	mx_status = mx_remote_field_add_callback(
 				&(network_mca->new_data_available_nf),
 				MXCBT_VALUE_CHANGED,
 				mxp_new_data_available_callback_function,
-				NULL,
+				mca,
 				&(network_mca->new_data_available_callback) );
 #else
 	mx_status = mx_remote_field_add_callback(
 				&(network_mca->new_data_available_nf),
 				MXCBT_VALUE_CHANGED,
 				NULL,
-				NULL,
+				mca,
 				&(network_mca->new_data_available_callback) );
 #endif
 

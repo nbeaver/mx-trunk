@@ -71,7 +71,7 @@ install: libusb-0.1.mxo
 	cp libusb-0.1.mxo $(MX_INSTALL_DIR)/lib/modules
 
 clean:
-	-$(RM) *.mxo *.obj *.exp *.ilk *.lib *.pdb *.manifest
+	-$(RM) *.o *.mxo *.obj *.exp *.ilk *.lib *.pdb *.manifest
 
 distclean: clean
 

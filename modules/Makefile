@@ -58,7 +58,7 @@ MODULES += libusb-0.1		# linux,
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
 #MODULES += epics_aps
 
