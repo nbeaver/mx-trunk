@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2011 Illinois Institute of Technology
+ * Copyright 2001, 2003-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,7 +147,7 @@ main( int argc, char *argv[] ) {
 	start_debugger = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:dDf:hlm:Mst:vA:F:LS:")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:dDf:hlm:Mst:vA:F:LS:x")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -194,6 +194,9 @@ main( int argc, char *argv[] ) {
 			break;
 		case 'v':
 			items_to_show = MXDI_VERSION;
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		case 'A':
 			items_to_show = MXDI_LATEX_FIELDS;

@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_callback.h"
 #include "mx_mca.h"
 
 /*=======================================================================*/
@@ -270,6 +271,17 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 
 	channel_array_field->dimension[0] = (long) mca->maximum_num_channels;
 
+	/* Save a direct pointer to the 'new_data_available' field.
+	 * This will be used by mx_mca_is_busy() if it decides that
+	 * it needs to force a callback for 'new_data_available'.
+	 */
+
+	mx_status = mx_find_record_field( mca_record, "new_data_available",
+					&(mca->new_data_available_field_ptr) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Initialize regions of interest. */
 
 	mca->roi[0] = 0;
@@ -497,6 +509,8 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCA * );
+	mx_bool_type old_busy;
+	MX_RECORD_FIELD *new_data_available_field;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCA '%s'", fname, mca_record->name));
@@ -515,10 +529,50 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 			mca_record->name );
 	}
 
+	old_busy = mca->busy;
+
 	mx_status = (*busy_fn)( mca );
 
 	if ( busy != NULL ) {
 		*busy = mca->busy;
+	}
+
+	/* If the MCA has just transitioned from 'busy' to 'not busy' and
+	 * there is a callback list installed for the 'new_data_available'
+	 * field, then we must set the value of 'new_data_available' to
+	 * TRUE, set the field's 'value_has_changed_manual_override' flag
+	 * to TRUE, and then force value changed callbacks for all clients
+	 * that are monitoring this field.
+	 */
+
+	if ( (old_busy == TRUE) && (mca->busy == FALSE) ) {
+
+#if 0
+		MX_DEBUG(-2,("%s: MCA '%s' busy just went from TRUE to FALSE.",
+			fname, mca_record->name));
+#endif
+
+		new_data_available_field = mca->new_data_available_field_ptr;
+
+		if ( new_data_available_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The new_data_available_field_ptr for MCA '%s' is NULL",
+				mca_record->name );
+		}
+
+		if ( new_data_available_field->callback_list != NULL ) {
+		    mca->new_data_available = TRUE;
+
+		    new_data_available_field->value_has_changed_manual_override
+			= TRUE;
+
+		    mx_status = mx_local_field_invoke_callback_list(
+						new_data_available_field,
+						MXCBT_VALUE_CHANGED );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
 	}
 
 	return mx_status;

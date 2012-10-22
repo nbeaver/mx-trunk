@@ -270,7 +270,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:DF:f:Hg:iJNnP:p:S:s:tT:uwz")) != -1)
+	while ((c = getopt(argc,argv,"aAd:DF:f:Hg:iJNnP:p:S:s:tT:uwxz")) != -1)
 	{
 		switch (c) {
 		case 'a':
@@ -356,6 +356,9 @@ motor_main( int argc, char *argv[] )
 			break;
 		case 'w':
 			wait_for_debugger = TRUE;
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		case 'z':
 			ignore_scan_savefiles = TRUE;

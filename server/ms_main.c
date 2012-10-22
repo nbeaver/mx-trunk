@@ -572,7 +572,7 @@ mxserver_main( int argc, char *argv[] )
         error_flag = FALSE;
 
         while ((c = getopt(argc, argv,
-		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wZ")) != -1)
+		"aAab:BcC:d:De:E:f:Jkl:L:m:M:n:p:P:rsStu:v:wxZ")) != -1)
 	{
                 switch (c) {
 		case 'a':
@@ -691,6 +691,9 @@ mxserver_main( int argc, char *argv[] )
 			break;
 		case 'w':
 			wait_for_debugger = TRUE;
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		case 'Z':
 			bypass_signal_handlers = TRUE;

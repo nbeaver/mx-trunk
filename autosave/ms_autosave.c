@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2007, 2009-2011 Illinois Institute of Technology
+ * Copyright 1999-2007, 2009-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -234,7 +234,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "aAd:Dl:L:P:Rrsu:")) != -1 ) {
+	while ((c = getopt(argc, argv, "aAd:Dl:L:P:Rrsu:x")) != -1 ) {
 		switch(c) {
 		case 'a':
 			network_debug_flags |= MXF_NETDBG_SUMMARY;
@@ -274,6 +274,9 @@ main( int argc, char *argv[] )
 			break;
 		case 'u':
 			update_interval_in_seconds = atof( optarg );
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		case '?':
 			error_flag = TRUE;

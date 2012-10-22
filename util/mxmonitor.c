@@ -1,3 +1,19 @@
+/*
+ * Name:    mxmonitor.c
+ *
+ * Purpose: MX utility for monitoring MX server value changed callbacks.
+ *
+ * Author:  William Lavender
+ *
+ *---------------------------------------------------------------------------
+ *
+ * Copyright 2007-2012 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -555,7 +571,7 @@ main( int argc, char *argv[] )
 	interactive = TRUE;
 	show_timestamp = FALSE;
 
-	while ( (c = getopt(argc, argv, "aADit")) != -1 )
+	while ( (c = getopt(argc, argv, "aADitx")) != -1 )
 	{
 		switch (c) {
 		case 'a':
@@ -572,6 +588,9 @@ main( int argc, char *argv[] )
 			break;
 		case 't':
 			show_timestamp = TRUE;
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		}
 	}

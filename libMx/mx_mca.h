@@ -88,6 +88,8 @@ typedef struct {
 
 	double input_count_rate;
 	double output_count_rate;
+
+	MX_RECORD_FIELD *new_data_available_field_ptr;
 } MX_MCA;
 
 /* Preset types */

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	TRUE
+#define MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -547,6 +547,11 @@ mxd_network_mca_open( MX_RECORD *record )
 	}
 
 	/* Create a value changed callback for 'new_data_available'. */
+
+#if 1
+	network_mca->new_data_available_nf.local_field
+		= mca->new_data_available_field_ptr;
+#endif
 
 #if MXD_NETWORK_MCA_DEBUG_NEW_DATA_AVAILABLE
 	MX_DEBUG(-2,("%s: mx_remote_field_add_callback() invoked for '%s'",

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2006, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -209,7 +209,7 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:Df:n:s:")) != -1 ) {
+	while ((c = getopt(argc, argv, "d:Df:n:s:x")) != -1 ) {
 		switch(c) {
 		case 'd':
 			debug_level = atoi( optarg );
@@ -231,6 +231,9 @@ main( int argc, char *argv[] )
 			break;
 		case 's':
 			max_receive_speed = atoi( optarg );
+			break;
+		case 'x':
+			putenv("MX_DEBUGGER=xterm -e gdbtui -p %lu");
 			break;
 		case '?':
 			error_flag = TRUE;
