@@ -22,18 +22,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mx_util.h"
+#include "mx_unistd.h"
+#include "mx_driver.h"
+#include "mx_callback.h"
+#include "mx_measurement.h"
+#include "mx_hrt_debug.h"
+#include "mx_timer.h"
+#include "mx_mca.h"
+
 #include <handel.h>
 #include <handel_errors.h>
 #include <handel_generic.h>
 #include <handel_constants.h>
 
-#include "mx_util.h"
-#include "mx_unistd.h"
-#include "mx_driver.h"
-#include "mx_measurement.h"
-#include "mx_hrt_debug.h"
-#include "mx_timer.h"
-#include "mx_mca.h"
 #include "i_handel.h"
 #include "d_handel_mca.h"
 #include "d_handel_timer.h"
@@ -253,6 +255,72 @@ mxd_handel_timer_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_handel_timer_send_value_changed_callbacks( MX_TIMER *timer,
+						MX_HANDEL_TIMER *handel_timer,
+						MX_HANDEL *handel )
+{
+	static const char fname[] =
+		"mxp_handel_timer_send_value_changed_callbacks()";
+
+	MX_RECORD *mca_record;
+	MX_MCA *mca;
+	MX_RECORD_FIELD *new_data_available_field;
+	unsigned long i;
+	mx_status_type mx_status;
+
+#if 0
+	MX_DEBUG(-2,("%s: Handel timer '%s' busy just went from TRUE to FALSE.",
+		fname, timer->record->name ));
+#endif
+
+	if ( handel->mca_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The mca_record_array pointer for Handel interface '%s' is NULL.",
+			handel->record->name );
+	}
+
+	for ( i = 0; i < handel->num_mcas; i++ ) {
+		mca_record = handel->mca_record_array[i];
+
+		if ( mca_record == (MX_RECORD *) NULL ) {
+			continue;	/* Skip this MCA slot */
+		}
+
+		mca = (MX_MCA *) mca_record->record_class_struct;
+
+		if ( mca == (MX_MCA *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MCA pointer for MCA record '%s' is NULL.",
+				mca_record->name );
+		}
+
+		new_data_available_field = mca->new_data_available_field_ptr;
+
+		if ( new_data_available_field == (MX_RECORD_FIELD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The 'new_data_available_field' pointer for "
+			"MCA '%s' is NULL.", mca_record->name );
+		}
+
+		if ( new_data_available_field->callback_list != NULL ) {
+		    mca->new_data_available = TRUE;
+
+		    new_data_available_field->value_has_changed_manual_override
+			= TRUE;
+
+		    mx_status = mx_local_field_invoke_callback_list(
+						new_data_available_field,
+						MXCBT_VALUE_CHANGED );
+
+		    if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxd_handel_timer_is_busy( MX_TIMER *timer )
 {
@@ -260,6 +328,7 @@ mxd_handel_timer_is_busy( MX_TIMER *timer )
 
 	MX_HANDEL_TIMER *handel_timer;
 	MX_HANDEL *handel;
+	mx_bool_type old_busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_handel_timer_get_pointers( timer,
@@ -268,6 +337,8 @@ mxd_handel_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	old_busy = timer->busy;
+
 	mx_status = mxi_handel_is_busy( handel, &(timer->busy) );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -275,6 +346,16 @@ mxd_handel_timer_is_busy( MX_TIMER *timer )
 
 	if ( timer->busy == FALSE ) {
 		mx_status = mxd_handel_timer_stop( timer );
+	}
+
+	/* If the Handel timer has just transitioned from 'busy' to 'not busy',
+	 * then we must check each of the associated MCA channels to see if
+	 * value changed callbacks must be sent out.
+	 */
+
+	if ( (old_busy == TRUE) && (timer->busy == FALSE) ) {
+		mx_status = mxp_handel_timer_send_value_changed_callbacks(
+						timer, handel_timer, handel );
 	}
 
 	return mx_status;
