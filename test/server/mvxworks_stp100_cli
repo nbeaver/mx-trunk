@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mvxworks_stp100_cli.dat -s ./svxworks_stp100_cli.dat $*
+../../motor/mxmotor.static -F ./mvxworks_stp100_cli.dat -s ./svxworks_stp100_cli.dat $*
 

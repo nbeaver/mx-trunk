@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./mblueberry.dat -s ./sblueberry.dat $*
+../../motor/mxmotor.static -i -F ./mblueberry.dat -s ./sblueberry.dat $*
 

@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./miseries_tty.dat -s ./siseries_tty.dat $*
+../../motor/mxmotor.static -i -F ./miseries_tty.dat -s ./siseries_tty.dat $*
 

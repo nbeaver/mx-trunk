@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mxerxes.dat -s ./sxerxes.dat $*
+../../motor/mxmotor.static -F ./mxerxes.dat -s ./sxerxes.dat $*
 

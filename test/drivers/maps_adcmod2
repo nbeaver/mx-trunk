@@ -2,5 +2,5 @@
 
 export LD_LIBRARY_PATH
 
-../../motor/motor.static -F ./maps_adcmod2.dat -s ./saps_adcmod2.dat $*
+../../motor/mxmotor.static -F ./maps_adcmod2.dat -s ./saps_adcmod2.dat $*
 

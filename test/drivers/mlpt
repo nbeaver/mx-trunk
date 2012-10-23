@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mlpt.dat -s ./slpt.dat -i $*
+../../motor/mxmotor.static -F ./mlpt.dat -s ./slpt.dat -i $*
 

@@ -12,5 +12,5 @@ fi
 
 export MXDIR LD_LIBRARY_PATH
 
-../../motor/motor.static -F ${MXDIR}/etc/mxserver_new.dat -S /dev/null $*
+../../motor/mxmotor.static -F ${MXDIR}/etc/mxserver_new.dat -S /dev/null $*
 

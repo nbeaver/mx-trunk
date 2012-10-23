@@ -2,5 +2,5 @@
 
 export LD_LIBRARY_PATH="../../libMx:/usr/local/epics/extensions/lib/Linux:/usr/local/epics/base/lib/Linux"
 
-../../motor/motor.static -i -F /usr/local/mx/etc/motor.dat -s ./scan5id.dat $*
+../../motor/mxmotor.static -i -F /usr/local/mx/etc/motor.dat -s ./scan5id.dat $*
 

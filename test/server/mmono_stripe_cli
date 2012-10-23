@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mmono_stripe_cli.dat -s ./smono_stripe_cli.dat $*
+../../motor/mxmotor.static -F ./mmono_stripe_cli.dat -s ./smono_stripe_cli.dat $*
 

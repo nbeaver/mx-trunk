@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./maps_adcmod2_cli.dat -s ./saps_adcmod2_cli.dat $*
+../../motor/mxmotor.static -F ./maps_adcmod2_cli.dat -s ./saps_adcmod2_cli.dat $*
 

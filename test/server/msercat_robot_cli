@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./msercat_robot_cli.dat -s ./ssercat_robot_cli.dat $*
+../../motor/mxmotor.static -F ./msercat_robot_cli.dat -s ./ssercat_robot_cli.dat $*
 

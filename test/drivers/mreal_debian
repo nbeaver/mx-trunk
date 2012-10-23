@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F /etc/mx/motor.dat -s $HOME/scan.dat $*
+../../motor/mxmotor.static -F /etc/mx/motor.dat -s $HOME/scan.dat $*
 

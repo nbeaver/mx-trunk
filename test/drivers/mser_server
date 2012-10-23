@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ../testserv/mser_server.dat -s ./sser_server.dat $*
+../../motor/mxmotor.static -F ../testserv/mser_server.dat -s ./sser_server.dat $*
 

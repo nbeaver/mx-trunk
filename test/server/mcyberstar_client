@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mcyberstar_client.dat -s ./scyberstar_client.dat $*
+../../motor/mxmotor.static -F ./mcyberstar_client.dat -s ./scyberstar_client.dat $*
 

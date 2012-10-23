@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./motornet.dat -s ./scannet.dat $*
+../../motor/mxmotor.static -i -F ./motornet.dat -s ./scannet.dat $*
 

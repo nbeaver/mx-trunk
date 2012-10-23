@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mpleora_iport.dat -s ./spleora_iport.dat -i $*
+../../motor/mxmotor.static -F ./mpleora_iport.dat -s ./spleora_iport.dat -i $*
 

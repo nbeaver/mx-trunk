@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mscipe.dat -s ./sscipe.dat $*
+../../motor/mxmotor.static -F ./mscipe.dat -s ./sscipe.dat $*
 

@@ -2,5 +2,5 @@
 
 export LD_LIBRARY_PATH=../../../libMx
 
-../../../motor/motor -Fmxia_handel.dat -s sxia_handel.dat $*
+../../../motor/mxmotor -Fmxia_handel.dat -s sxia_handel.dat $*
 

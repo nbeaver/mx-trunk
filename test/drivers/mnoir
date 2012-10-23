@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mnoir.dat -s ./snoir.dat $*
+../../motor/mxmotor.static -F ./mnoir.dat -s ./snoir.dat $*
 

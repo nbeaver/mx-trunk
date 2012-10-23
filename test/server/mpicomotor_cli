@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mpicomotor_cli.dat -s ./spicomotor_cli.dat -i $*
+../../motor/mxmotor.static -F ./mpicomotor_cli.dat -s ./spicomotor_cli.dat -i $*
 

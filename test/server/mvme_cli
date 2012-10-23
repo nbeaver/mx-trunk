@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mvme_cli.dat -s ./svme_cli.dat $*
+../../motor/mxmotor.static -F ./mvme_cli.dat -s ./svme_cli.dat $*
 

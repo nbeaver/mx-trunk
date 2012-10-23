@@ -2,5 +2,5 @@
 
 export LD_LIBRARY_PATH=../../libMx
 
-../../motor/motor.static -i -F ./mmmap_vme.dat -s ./smmap_vme.dat $*
+../../motor/mxmotor.static -i -F ./mmmap_vme.dat -s ./smmap_vme.dat $*
 

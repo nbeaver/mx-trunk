@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../../motor/motor.static -i -F ./mepics_pmac_biocat.dat -s ./sepics_pmac_biocat.dat $*
+../../../motor/mxmotor.static -i -F ./mepics_pmac_biocat.dat -s ./sepics_pmac_biocat.dat $*
 

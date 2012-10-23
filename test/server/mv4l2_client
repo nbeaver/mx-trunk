@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mv4l2_client.dat -s ./sv4l2_client.dat -i $*
+../../motor/mxmotor.static -F ./mv4l2_client.dat -s ./sv4l2_client.dat -i $*
 

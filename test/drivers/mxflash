@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mxflash.dat -s ./sxflash.dat $*
+../../motor/mxmotor.static -F ./mxflash.dat -s ./sxflash.dat $*
 

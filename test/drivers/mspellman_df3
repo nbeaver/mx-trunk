@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mspellman_df3.dat -s ./sspellman_df3.dat $*
+../../motor/mxmotor.static -F ./mspellman_df3.dat -s ./sspellman_df3.dat $*
 

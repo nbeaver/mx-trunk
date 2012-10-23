@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mqbpm.dat -s ./sqbpm.dat $*
+../../motor/mxmotor.static -F ./mqbpm.dat -s ./sqbpm.dat $*
 

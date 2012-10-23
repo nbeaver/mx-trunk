@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./msoftad_client.dat -s ./ssoftad_client.dat -i $*
+../../motor/mxmotor.static -F ./msoftad_client.dat -s ./ssoftad_client.dat -i $*
 

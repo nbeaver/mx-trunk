@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./m6000e.dat -s ./s6000e.dat $*
+../../motor/mxmotor.static -F ./m6000e.dat -s ./s6000e.dat $*
 

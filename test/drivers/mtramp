@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mtramp.dat -s ./stramp.dat $*
+../../motor/mxmotor.static -F ./mtramp.dat -s ./stramp.dat $*
 

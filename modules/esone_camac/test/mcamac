@@ -8,5 +8,5 @@ fi
 
 export LD_LIBRARY_PATH
 
-../../../motor/motor -F mcamac.dat -s scamac.dat $*
+../../../motor/mxmotor.static -F mcamac.dat -s scamac.dat $*
 

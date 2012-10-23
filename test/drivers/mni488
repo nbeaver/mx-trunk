@@ -4,5 +4,5 @@ LD_LIBRARY_PATH=/usr/local/lib
 
 export LD_LIBRARY_PATH
 
-../../motor/motor.static -i -F ./mni488.dat -s ./sni488.dat $*
+../../motor/mxmotor.static -i -F ./mni488.dat -s ./sni488.dat $*
 

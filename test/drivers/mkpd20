@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./mkpd20.dat -s ./skpd20.dat $*
+../../motor/mxmotor.static -i -F ./mkpd20.dat -s ./skpd20.dat $*
 

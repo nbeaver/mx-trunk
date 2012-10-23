@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./msoft_sca_client.dat -s ./ssoft_sca_client.dat $*
+../../motor/mxmotor.static -F ./msoft_sca_client.dat -s ./ssoft_sca_client.dat $*
 

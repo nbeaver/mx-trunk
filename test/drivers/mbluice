@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mbluice.dat -s ./sbluice.dat -i $*
+../../motor/mxmotor.static -F ./mbluice.dat -s ./sbluice.dat -i $*
 

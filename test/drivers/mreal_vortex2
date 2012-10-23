@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -p mvortex2 -F /etc/mx/mvortex2.dat -s $HOME/.mx/id1_vortex2.dat $*
+../../motor/mxmotor.static -p mvortex2 -F /etc/mx/mvortex2.dat -s $HOME/.mx/id1_vortex2.dat $*
 

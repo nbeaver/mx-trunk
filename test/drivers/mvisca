@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./mvisca.dat -s ./svisca.dat $*
+../../motor/mxmotor.static -i -F ./mvisca.dat -s ./svisca.dat $*
 

@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -i -F ./msis3100.dat -s ./ssis3100.dat $*
+../../motor/mxmotor.static -i -F ./msis3100.dat -s ./ssis3100.dat $*
 

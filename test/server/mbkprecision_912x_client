@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mbkprecision_912x_client.dat -s ./sbkprecision_912x_client.dat -i $*
+../../motor/mxmotor.static -F ./mbkprecision_912x_client.dat -s ./sbkprecision_912x_client.dat -i $*
 

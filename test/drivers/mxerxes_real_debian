@@ -6,5 +6,5 @@ fi
 
 export MXDIR
 
-../../motor/motor.static -p mxerxes -F /etc/mx/mxerxes.dat -s $HOME/sxerxes.dat $*
+../../motor/mxmotor.static -p mxerxes -F /etc/mx/mxerxes.dat -s $HOME/sxerxes.dat $*
 

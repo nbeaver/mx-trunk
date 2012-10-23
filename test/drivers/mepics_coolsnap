@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../../motor/motor.static -F ./mepics_coolsnap.dat -s ./sepics_coolsnap.dat $*
+../../motor/mxmotor.static -F ./mepics_coolsnap.dat -s ./sepics_coolsnap.dat $*
 
