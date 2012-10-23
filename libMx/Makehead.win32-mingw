@@ -132,7 +132,7 @@ library_install:
 #
 #---------------------------------------------------
 #
-MOTOR_NAME	= motor
+MOTOR_NAME	= mxmotor
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \

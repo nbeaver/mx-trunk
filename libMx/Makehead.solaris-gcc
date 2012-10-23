@@ -178,8 +178,8 @@ library_install:
 #---------------------------------------------------
 #
 
-MOTOR_NAME	= motor
-MOTOR_NAME2	= motor.static
+MOTOR_NAME	= mxmotor
+MOTOR_NAME2	= mxmotor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
@@ -193,7 +193,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 motor_install:
 	/usr/ucb/install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
 	/usr/ucb/install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
-	/usr/ucb/install -m 755 ../scripts/motor_xterm $(MX_INSTALL_DIR)/bin 
 
 #
 #---------------------------------------------------

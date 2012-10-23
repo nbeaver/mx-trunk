@@ -155,11 +155,11 @@ library_install:
 #---------------------------------------------------
 #
 
-MOTOR_NAME	= motor.exe
+MOTOR_NAME	= mxmotor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	dcl \
-"link /exe=motor.exe $(MOTOR_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
+"link /exe=$(MOTOR_NAME) $(MOTOR_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
 
 
 motor_install:

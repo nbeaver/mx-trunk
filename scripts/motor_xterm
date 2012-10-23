@@ -1,8 +1,0 @@
-#! /bin/sh
-
-motor
-
-echo "Hit <Return> to close this window."
-
-read foo
-

@@ -160,7 +160,7 @@ library_install:
 #
 #---------------------------------------------------
 #
-MOTOR_NAME	= motor.exe
+MOTOR_NAME	= mxmotor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) -v -lv -M -e$(MOTOR_NAME) \

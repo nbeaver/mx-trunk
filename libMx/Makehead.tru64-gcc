@@ -152,8 +152,8 @@ mx_library_install:
 #---------------------------------------------------
 #
 
-MOTOR_NAME	= motor
-MOTOR_NAME2	= motor.static
+MOTOR_NAME	= mxmotor
+MOTOR_NAME2	= mxmotor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
@@ -167,7 +167,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 motor_install:
 	/usr/bin/install -m 755 $(MOTOR_NAME) -f $(MX_INSTALL_DIR)/bin 
 	/usr/bin/install -m 755 $(MOTOR_NAME2) -f $(MX_INSTALL_DIR)/bin 
-	/usr/bin/install -m 755 ../scripts/motor_xterm -f $(MX_INSTALL_DIR)/bin 
 
 #
 #---------------------------------------------------
