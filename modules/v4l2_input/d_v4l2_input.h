@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,7 +17,7 @@
 #ifndef __D_V4L2_INPUT_H__
 #define __D_V4L2_INPUT_H__
 
-#if ( HAVE_VIDEO_4_LINUX_2 && IS_MX_DRIVER )
+#if defined(DEFINE_MX_V4L2_INPUT_STRUCT)
 
 typedef struct {
 	MX_RECORD *record;
@@ -35,8 +35,7 @@ typedef struct {
 	void *v4l2_frame_buffer;
 } MX_V4L2_INPUT;
 
-#endif /* HAVE_VIDEO_4_LINUX_2 && IS_MX_DRIVER */
-
+#endif /* DEFINE_MX_V4L2_INPUT_STRUCT */
 
 #define MXD_V4L2_INPUT_STANDARD_FIELDS \
   {-1, -1, "device_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \

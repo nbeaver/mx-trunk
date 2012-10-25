@@ -450,7 +450,6 @@
 #include "d_soft_vinput.h"
 #include "d_network_vinput.h"
 #include "d_file_vinput.h"
-#include "d_v4l2_input.h"
 #include "d_edt.h"
 
 #include "d_soft_area_detector.h"
@@ -3213,17 +3212,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxd_file_vinput_num_record_fields,
 				&mxd_file_vinput_rfield_def_ptr},
-
-#if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
-
-{"v4l2_input",      MXT_VIN_V4L2,      MXC_VIDEO_INPUT,  MXR_DEVICE,
-				&mxd_v4l2_input_record_function_list,
-				NULL,
-				NULL,
-				&mxd_v4l2_input_num_record_fields,
-				&mxd_v4l2_input_rfield_def_ptr},
-
-#endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
 
 #if HAVE_EDT
 

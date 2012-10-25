@@ -151,8 +151,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_src_mono.c d_stp100.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
-	d_trans_motor.c \
-	d_udt_tramp.c d_uglide.c d_v4l2_input.c \
+	d_trans_motor.c d_udt_tramp.c d_uglide.c \
 	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
@@ -266,9 +265,6 @@ include Makefile.depend
 d_edt.$(OBJ): d_edt.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
 
-d_v4l2_input.$(OBJ): d_v4l2_input.c
-	$(COMPILE) $(CFLAGS) $(VIDEO_4_LINUX_2_FLAGS) d_v4l2_input.c
-
 i_8255.$(OBJ): i_8255.c
 	$(COMPILE) $(CFLAGS) $(I8255_INCLUDES) i_8255.c
 
@@ -283,9 +279,6 @@ i_edt.$(OBJ): i_edt.c
 
 i_edt_rs232.$(OBJ): i_edt_rs232.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt_rs232.c
-
-i_esone_camac.$(OBJ): i_esone_camac.c
-	$(COMPILE) $(CFLAGS) $(ESONE_CAMAC_INCLUDES) i_esone_camac.c
 
 i_linux_iopl.$(OBJ): i_linux_iopl.c
 	$(COMPILE) $(CFLAGS) $(LINUX_IOPL_FLAGS) i_linux_iopl.c

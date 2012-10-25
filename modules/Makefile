@@ -23,7 +23,7 @@ all: build
 
 #MODULES += ni_daqmx		# linux, win32
 
-MODULES += pmc_mcapi		# linux, win32
+#MODULES += pmc_mcapi		# linux, win32
 
 #MODULES += xia_handel		# linux, win32
 
@@ -31,6 +31,8 @@ MODULES += pmc_mcapi		# linux, win32
 # Linux-only modules.
 
 #MODULES += powerpmac
+
+MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.

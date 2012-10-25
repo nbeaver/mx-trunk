@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,6 @@
 #define MXD_V4L2_INPUT_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -39,6 +34,9 @@
 #include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
+
+#define DEFINE_MX_V4L2_INPUT_STRUCT	TRUE
+
 #include "d_v4l2_input.h"
 
 /* The following defines are used for detecting a V4L version 1 device.
@@ -1111,6 +1109,4 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
 
