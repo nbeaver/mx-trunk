@@ -9,7 +9,7 @@
 #--------------------------------------------------------------------------
 
 ifeq ($(MX_ARCH),linux)
-	SIS3100_DIR       = /usr/local/mx/sis1100-2.13-6/sis3100_calls
+	SIS3100_DIR       = /usr/local/sis1100-2.13-6/sis3100_calls
 	SIS3100_INCLUDES  = $(SIS3100_DIR)
 	SIS3100_LIB_DIRS  = $(SIS3100_DIR)
 	SIS3100_LIBRARIES = -l_sis3100

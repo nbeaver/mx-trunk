@@ -116,7 +116,6 @@
 
 #include "i_camera_link_rs232.h"
 #include "i_spec_command.h"
-#include "i_edt_rs232.h"
 #include "i_sim900_port.h"
 
 #if HAVE_TCPIP
@@ -184,7 +183,6 @@
 #include "i_cm17a.h"
 #include "i_sony_visca.h"
 #include "i_panasonic_kx_dp702.h"
-#include "i_edt.h"
 #include "i_spellman_df3.h"
 #include "i_bkprecision_912x.h"
 #include "i_isobus.h"
@@ -449,7 +447,6 @@
 #include "d_soft_vinput.h"
 #include "d_network_vinput.h"
 #include "d_file_vinput.h"
-#include "d_edt.h"
 
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
@@ -650,15 +647,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_spec_command_rs232_function_list,
 				&mxi_spec_command_num_record_fields,
 				&mxi_spec_command_rfield_def_ptr},
-
-#if HAVE_EDT
-{"edt_rs232",      MXI_232_EDT,          MXI_RS232,      MXR_INTERFACE,
-				&mxi_edt_rs232_record_function_list,
-				NULL,
-				&mxi_edt_rs232_rs232_function_list,
-				&mxi_edt_rs232_num_record_fields,
-				&mxi_edt_rs232_rfield_def_ptr},
-#endif /* HAVE_EDT */
 
 {"sim900_port",   MXI_232_SIM900_PORT,   MXI_RS232,      MXR_INTERFACE,
 				&mxi_sim900_port_record_function_list,
@@ -1058,16 +1046,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxi_i404_num_record_fields,
 				&mxi_i404_rfield_def_ptr},
-
-#if HAVE_EDT
-{"edt",            MXI_CTRL_EDT,           MXI_CONTROLLER,       MXR_INTERFACE,
-				&mxi_edt_record_function_list,
-				NULL,
-				NULL,
-				&mxi_edt_num_record_fields,
-				&mxi_edt_rfield_def_ptr},
-#endif /* HAVE_EDT */
-
 
 #if ( defined(OS_LINUX) && (MX_GLIBC_VERSION >= 2002000L) )
 
@@ -3200,17 +3178,6 @@ MX_DRIVER mx_type_table[] = {
 				NULL,
 				&mxd_file_vinput_num_record_fields,
 				&mxd_file_vinput_rfield_def_ptr},
-
-#if HAVE_EDT
-
-{"edt_video_input",        MXT_VIN_EDT,        MXC_VIDEO_INPUT,  MXR_DEVICE,
-				&mxd_edt_record_function_list,
-				NULL,
-				NULL,
-				&mxd_edt_num_record_fields,
-				&mxd_edt_rfield_def_ptr},
-
-#endif /* HAVE_EDT */
 
 {"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_soft_area_detector_record_function_list,

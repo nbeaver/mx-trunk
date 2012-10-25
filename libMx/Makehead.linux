@@ -26,9 +26,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
-#LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -ldl -lm
 
@@ -147,18 +144,6 @@ LINUX_PORTIO_INCLUDES =
 #
 LINUX_IOPL_FLAGS = -Wno-missing-prototypes -O2
 
-#----
-
-#EDT_DIR		= /opt/EDTpdv
-#EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
-#EDT_LIB_DIRS	= -L$(EDT_DIR)
-#EDT_LIBRARIES	= $(EDT_DIR)/libpdv.a
-
-#EDT_DIR	= /home/lavender/EDTpdv
-#EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
-#EDT_LIB_DIRS	= -L$(EDT_DIR)
-#EDT_LIBRARIES	= $(EDT_DIR)/libpdv.a
-
 #
 #========================================================================
 #
@@ -240,7 +225,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
-	$(READLINE_INCLUDES) $(EDT_INCLUDES) $(NI_VISA_INCLUDES) \
+	$(READLINE_INCLUDES) $(NI_VISA_INCLUDES) \
 	*.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend

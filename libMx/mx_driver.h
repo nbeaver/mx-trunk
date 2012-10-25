@@ -173,8 +173,6 @@ extern "C" {
 
 #define MXI_232_SPEC_COMMAND		150
 
-#define MXI_232_EDT			152
-
 #define MXI_GPIB_SOFTWARE		200
 #define MXI_GPIB_NI488			201
 #define MXI_GPIB_LINUX			202
@@ -233,7 +231,6 @@ extern "C" {
 #define MXI_CTRL_SONY_VISCA		447
 #define MXI_CTRL_PANASONIC_KX_DP702	448
 
-#define MXI_CTRL_EDT			450
 #define MXI_CTRL_SPELLMAN_DF3		451
 #define MXI_CTRL_BKPRECISION_912X	452
 #define MXI_CTRL_ISOBUS			453
@@ -690,8 +687,6 @@ extern "C" {
 #define MXT_VIN_SOFTWARE		220001
 #define MXT_VIN_NETWORK			220002
 #define MXT_VIN_FILE			220003
-
-#define MXT_VIN_EDT			220006
 
 /* --- Video output types --- */
 

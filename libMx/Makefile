@@ -87,7 +87,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_d8.c d_dac_motor.c d_databox_mce.c d_databox_mcs.c d_databox_motor.c \
 	d_databox_scaler.c d_databox_timer.c \
 	d_delta_motor.c d_disabled_motor.c d_doutput_pulser.c d_e500.c \
-	d_e662.c d_edt.c d_elapsed_time.c d_energy.c \
+	d_e662.c d_elapsed_time.c d_energy.c \
 	d_fg_scaler.c d_file_dinput.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c \
 	d_gm10_scaler.c d_gm10_timer.c \
@@ -159,7 +159,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_bkprecision_912x.c i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_dsp6001.c \
-	i_edt.c i_edt_rs232.c \
 	i_fossil.c i_hsc1.c \
 	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
 	i_k500serial.c i_ks3344.c \
@@ -262,9 +261,6 @@ include Makefile.depend
 # Now, list targets with non-standard rules or dependencies.
 #
 
-d_edt.$(OBJ): d_edt.c
-	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
-
 i_8255.$(OBJ): i_8255.c
 	$(COMPILE) $(CFLAGS) $(I8255_INCLUDES) i_8255.c
 
@@ -273,12 +269,6 @@ i_am9513.$(OBJ): i_am9513.c
 
 i_camera_link_api.$(OBJ): i_camera_link_api.c
 	$(COMPILE) $(CFLAGS) i_camera_link_api.c
-
-i_edt.$(OBJ): i_edt.c
-	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt.c
-
-i_edt_rs232.$(OBJ): i_edt_rs232.c
-	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt_rs232.c
 
 i_linux_iopl.$(OBJ): i_linux_iopl.c
 	$(COMPILE) $(CFLAGS) $(LINUX_IOPL_FLAGS) i_linux_iopl.c

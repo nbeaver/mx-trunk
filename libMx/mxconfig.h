@@ -60,6 +60,7 @@
  * Sets of drivers that have been converted to modules include:           *
  *                                                                        *
  *    driverlinx_portio     Formerly enabled by HAVE_DRIVERLINX_PORTIO    *
+ *    edt                   Formerly enabled by HAVE_EDT                  *
  *    epics                 Formerly enabled by HAVE_EPICS                *
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB           *
  *    esone_camac           Formerly enabled by HAVE_JORWAY_CAMAC         *
@@ -83,16 +84,6 @@
  * distributed by someone else.  For each case, we indicate
  * where the driver may be obtained from.
  */
-
-/*****************************************************************************
- *
- * Win32, Linux, and Solaris library for using EDT video imaging boards.
- *
- * Website: http://www.edt.com/
- *
- */
-
-#define HAVE_EDT			0
 
 /*****************************************************************************
  *
