@@ -155,16 +155,7 @@ mxd_pmc_mcapi_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			dinput->record->name, calling_fname );
 	}
 
-	if ( pmc_mcapi_record->mx_type != MXI_CTRL_PMC_MCAPI ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"pmc_mcapi_record '%s' for PMC MCAPI digital input '%s' "
-		"is not a PMC MCAPI record.  Instead, it is a '%s' record.",
-			pmc_mcapi_record->name, dinput->record->name,
-			mx_get_driver_name( pmc_mcapi_record ) );
-	}
-
-	*pmc_mcapi = (MX_PMC_MCAPI *)
-				pmc_mcapi_record->record_type_struct;
+	*pmc_mcapi = (MX_PMC_MCAPI *) pmc_mcapi_record->record_type_struct;
 
 	if ( *pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -227,16 +218,7 @@ mxd_pmc_mcapi_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			doutput->record->name, calling_fname );
 	}
 
-	if ( pmc_mcapi_record->mx_type != MXI_CTRL_PMC_MCAPI ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"pmc_mcapi_record '%s' for PMC MCAPI digital input '%s' "
-		"is not a PMC MCAPI record.  Instead, it is a '%s' record.",
-			pmc_mcapi_record->name, doutput->record->name,
-			mx_get_driver_name( pmc_mcapi_record ) );
-	}
-
-	*pmc_mcapi = (MX_PMC_MCAPI *)
-				pmc_mcapi_record->record_type_struct;
+	*pmc_mcapi = (MX_PMC_MCAPI *) pmc_mcapi_record->record_type_struct;
 
 	if ( *pmc_mcapi == (MX_PMC_MCAPI *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

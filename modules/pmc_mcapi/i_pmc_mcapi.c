@@ -881,7 +881,7 @@ mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 			"controller '%s' for command '%s' than were "
 			"supposed to be written (%d).",
 				num_chars_written, pmc_mcapi->record->name,
-				command, command_length+1 );
+				command, (int)command_length+1 );
 
 			break;	/* Exit the do...while(0) loop. */
 		}
@@ -898,6 +898,10 @@ mxi_pmc_mccl_command( MX_PMC_MCAPI *pmc_mcapi,
 
 		num_chars_read = pmcgets( pmc_mcapi->ascii_handle,
 				response_buffer, sizeof(response_buffer) );
+
+		/* Suppress GCC set but not used error. */
+
+		num_chars_read = num_chars_read;
 
 #if MXI_PMC_MCAPI_DEBUG_TIMING
 		MX_HRT_RS232_END_RESPONSE( response_timing, strlen(response) );

@@ -2,6 +2,9 @@
 # Linux and Win32 drivers for the Precision MicroControl Motion Control API
 # (MCAPI) for their series of motor controllers.
 #
+# The vendor's software and drivers may be downloaded from
+#   http://www.pmccorp.com/support/downloads.php
+#
 
 #
 # Supported values of MX_ARCH:  linux win32
@@ -12,14 +15,14 @@ ifndef MX_ARCH
 endif
 
 ifeq ($(MX_ARCH),linux)
-	PMC_MCAPI_INCLUDES  = -I/usr/local/src/mcapi-4.1.2/src
-	PMC_MCAPI_LIB_DIRS  = -L/usr/local/lib
+	PMC_MCAPI_INCLUDES  = /usr/local/mcapi-4.1.2/src
+	PMC_MCAPI_LIB_DIRS  = /usr/local/lib
 	PMC_MCAPI_LIBRARIES = -lmcapi
 endif
 
 ifeq ($(MX_ARCH),win32)
 	PMC_MCAPI_DIR       = c:\\progra~1\\motion~1\motion~1\\sources
-	PMC_MCAPI_INCLUDES  = -I$(PMC_MCAPI_DIR)
+	PMC_MCAPI_INCLUDES  = $(PMC_MCAPI_DIR)
 	PMC_MCAPI_LIBS      = $(PMC_MCAPI_DIR)\\mcapi32.lib \
 				$(PMC_MCAPI_DIR)\\mcdlg32.lib
 endif
@@ -30,7 +33,7 @@ all: pmc_mcapi.mxo
 
 include ../../libMx/Makehead.$(MX_ARCH)
 
-CFLAGS += -I../../libMx -D__MX_LIBRARY__
+CFLAGS += -I../../libMx -D__MX_LIBRARY__ -I$(PMC_MCAPI_INCLUDES)
 
 PMC_MCAPI_OBJS = pmc_mcapi.$(OBJ) i_pmc_mcapi.$(OBJ) \
 		d_pmc_mcapi.$(OBJ) d_pmc_mcapi_aio.$(OBJ) \
@@ -43,10 +46,7 @@ ifeq ($(MX_ARCH),linux)
 pmc_mcapi.mxo: $(PMC_MCAPI_OBJS)
 	$(CC) -shared -rdynamic -Wl,-soname,pmc_mcapi.mxo \
 		-o pmc_mcapi.mxo $(PMC_MCAPI_OBJS) \
-		-lnidaqmxbase -lnidaqmxbaselv \
-		/usr/local/lib/liblvrtdark.so.10.0 \
-		/usr/local/lib/LabVIEW-2010/libniCPULib.so \
-	-Wl,-rpath,'$$ORIGIN',-rpath,'/usr/local/lib/LabVIEW-2010/patchlib'
+		-L$(PMC_MCAPI_LIB_DIRS) $(PMC_MCAPI_LIBRARIES)
 
 endif
 
