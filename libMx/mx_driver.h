@@ -255,7 +255,6 @@ extern "C" {
 
 #define MXI_VME_VXI_MEMACC		600
 
-#define MXI_VME_SIS3100			602
 #define MXI_VME_VXWORKS			603
 #define MXI_VME_MMAP			604
 #define MXI_VME_RTEMS			605
@@ -691,7 +690,6 @@ extern "C" {
 #define MXT_VIN_SOFTWARE		220001
 #define MXT_VIN_NETWORK			220002
 #define MXT_VIN_FILE			220003
-#define MXT_VIN_V4L2			220004
 
 #define MXT_VIN_EDT			220006
 
@@ -699,7 +697,6 @@ extern "C" {
 
 #define MXT_VOU_SOFTWARE		230001
 #define MXT_VOU_NETWORK			230002
-#define MXT_VOU_V4L2			230003
 
 /* --- Area detector types --- */
 

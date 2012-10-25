@@ -25,6 +25,8 @@ all: build
 
 #MODULES += pmc_mcapi		# linux, win32
 
+MODULES += sis3100		# linux,
+
 #MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
@@ -32,7 +34,7 @@ all: build
 
 #MODULES += powerpmac
 
-MODULES += v4l2_input
+#MODULES += v4l2_input
 
 #-------------------------------------------------------------------
 # Win32-only modules.
@@ -60,7 +62,7 @@ MODULES += v4l2_input
 #-------------------------------------------------------------------
 # EPICS modules.
 
-MODULES += epics
+#MODULES += epics
 
 #MODULES += epics_aps
 

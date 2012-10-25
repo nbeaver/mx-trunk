@@ -68,6 +68,7 @@
  *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
  *    pmc_mcapi             Formerly enabled by HAVE_PMC_MCAPI            *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
+ *    sis3100               Formerly enabled by HAVE_SIS3100              *
  *    u500                  Formerly enabled by HAVE_U500                 *
  *    v4l2_input            Formerly enabled by HAVE_VIDEO_4_LINUX_2      *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
@@ -128,15 +129,6 @@
 
 #define HAVE_NI_VISA			0
 
-/*****************************************************************************
- *
- * Driver for the Struck SIS1100/3100 PCI-to-VME bus interface.
- *
- * Thus far, only the Linux version of this driver has been tested.
- */
-
-#define HAVE_SIS3100			0
- 
 /*****************************************************************************
  *
  * Linux driver for performing hardware port I/O from user mode to

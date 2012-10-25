@@ -139,7 +139,6 @@
 #include "i_dos_portio.h"
 
 #include "i_vxi_memacc.h"
-#include "i_sis3100.h"
 #include "i_vxworks_vme.h"
 #include "i_mmap_vme.h"
 #include "i_rtems_vme.h"
@@ -1132,17 +1131,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_vxi_memacc_rfield_def_ptr},
 
 #endif /* HAVE_NI_VISA */
-
-#if HAVE_SIS3100
-
-{"sis3100",        MXI_VME_SIS3100,    MXI_VME,        MXR_INTERFACE,
-				&mxi_sis3100_record_function_list,
-				NULL,
-				&mxi_sis3100_vme_function_list,
-				&mxi_sis3100_num_record_fields,
-				&mxi_sis3100_rfield_def_ptr},
-
-#endif /* HAVE_SIS3100 */
 
 #if defined(OS_VXWORKS)
 

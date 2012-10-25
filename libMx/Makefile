@@ -172,7 +172,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_panasonic_kx_dp702.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
 	i_pmac.c i_prologix.c i_rtems_vme.c \
-	i_scipe.c i_sim900.c i_sim900_port.c i_sis3100.c i_sis3807.c \
+	i_scipe.c i_sim900.c i_sim900_port.c i_sis3807.c \
 	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
 	i_sr630.c i_tcp232.c i_telnet.c i_tpg262.c i_tty.c \
@@ -291,9 +291,6 @@ i_ni488.$(OBJ): i_ni488.c
 
 i_pmac.$(OBJ): i_pmac.c i_pmac.h
 	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_pmac.c
-
-i_sis3100.$(OBJ): i_sis3100.c
-	$(COMPILE) $(CFLAGS) $(SIS3100_INCLUDES) i_sis3100.c
 
 i_vxi_memacc.$(OBJ): i_vxi_memacc.c
 	$(COMPILE) $(CFLAGS) $(NI_VISA_INCLUDES) i_vxi_memacc.c

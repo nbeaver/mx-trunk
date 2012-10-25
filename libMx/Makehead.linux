@@ -32,27 +32,16 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
-#LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
 #LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
-#LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
-#LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) \
-#			$(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS) \
-#			$(SIS3100_LIB_DIRS) 
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS)
 #
 #LIBRARIES	= $(NI488_LIBRARIES) $(NI_VISA_LIBRARIES) \
-#		$(SIS3100_LIBRARIES) -lpthread -lrt -ldl -lm
+#			-lpthread -lrt -ldl -lm
 
 #--------------------------------------------------------------------------
 #
@@ -145,12 +134,6 @@ NI_VISA_DIR       = /usr/local/vxipnp/linux
 NI_VISA_INCLUDES  = -I$(NI_VISA_DIR)/include -DIS_MX_DRIVER
 NI_VISA_LIB_DIRS  = -L$(NI_VISA_DIR)/lib
 NI_VISA_LIBRARIES = -lvisa
-
-#
-SIS3100_DIR       = /usr/local/src/sis1100/V2.02/sis3100_calls
-SIS3100_INCLUDES  = -I$(SIS3100_DIR) -DIS_MX_DRIVER
-SIS3100_LIB_DIRS  = -L$(SIS3100_DIR)
-SIS3100_LIBRARIES = -l_sis3100
 
 #
 I8255_INCLUDES  =
@@ -257,8 +240,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
-	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
-	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) \
+	$(READLINE_INCLUDES) $(EDT_INCLUDES) $(NI_VISA_INCLUDES) \
 	*.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
