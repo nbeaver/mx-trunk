@@ -19,7 +19,7 @@
 
 #define MXU_NI_VISA_ERROR_MESSAGE_LENGTH	256
 
-#if ( HAVE_NI_VISA && IS_MX_DRIVER )
+#if IS_MX_DRIVER
 
 typedef struct {
 	ViSession session;
@@ -37,7 +37,7 @@ typedef struct {
 
 } MX_VXI_MEMACC;
 
-#endif /* HAVE_NI_VISA && IS_MX_DRIVER */
+#endif /* IS_MX_DRIVER */
 
 MX_API mx_status_type mxi_vxi_memacc_create_record_structures(
 							MX_RECORD *record );

@@ -15,7 +15,7 @@ ifndef MX_ARCH
 endif
 
 ifeq ($(MX_ARCH),win32)
-	LIBUSB-0.1_DIR = c:\\docume~1\\lavender\\archives\\photron\\PFV2452\\SDK\\VC
+	LIBUSB-0.1_DIR = c:\\docume~1\\lavender\\libusb-0.1
 	CFLAGS += -EHsc
 	CFLAGS += -I$(LIBUSB-0.1_DIR)\\Include
 endif

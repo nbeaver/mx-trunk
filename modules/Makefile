@@ -15,7 +15,7 @@ all: build
 #-------------------------------------------------------------------
 # Multiplatform modules.
 
-MODULES += edt			# linux,
+#MODULES += edt			# linux,
 
 #MODULES += epix_xclib		# linux, win32
 
@@ -28,6 +28,8 @@ MODULES += edt			# linux,
 #MODULES += pmc_mcapi		# linux, win32
 
 #MODULES += sis3100		# linux,
+
+MODULES += vxi_memacc		# linux,
 
 #MODULES += xia_handel		# linux, win32
 

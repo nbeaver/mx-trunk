@@ -72,6 +72,7 @@
  *    sis3100               Formerly enabled by HAVE_SIS3100              *
  *    u500                  Formerly enabled by HAVE_U500                 *
  *    v4l2_input            Formerly enabled by HAVE_VIDEO_4_LINUX_2      *
+ *    vxi_memacc            Formerly enabled by HAVE_NI_VISA              *
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
  *                                                                        *
  **************************************************************************/
@@ -107,18 +108,6 @@
  */
 
 #define HAVE_LINUX_GPIB			0
-
-/*****************************************************************************
- *
- * Drivers for the National Instruments implementation of the Virtual
- * Instrument System Architecture (VISA).  The NI-VISA package must
- * be purchased from National Instruments in order to use this driver.
- *
- * Thus far, this driver has only been tested with the Linux version of
- * NI-VISA, so I don't know if it works on other operating systems.
- */
-
-#define HAVE_NI_VISA			0
 
 /*****************************************************************************
  *

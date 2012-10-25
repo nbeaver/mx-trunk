@@ -137,7 +137,6 @@
 #include "i_linux_iopl.h"
 #include "i_dos_portio.h"
 
-#include "i_vxi_memacc.h"
 #include "i_vxworks_vme.h"
 #include "i_mmap_vme.h"
 #include "i_rtems_vme.h"
@@ -1098,17 +1097,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_dos_portio_num_record_fields,
 				&mxi_dos_portio_rfield_def_ptr},
 #endif /* OS_MSDOS | OS_WIN32 */
-
-#if HAVE_NI_VISA
-
-{"vxi_memacc",     MXI_VME_VXI_MEMACC, MXI_VME,        MXR_INTERFACE,
-				&mxi_vxi_memacc_record_function_list,
-				NULL,
-				&mxi_vxi_memacc_vme_function_list,
-				&mxi_vxi_memacc_num_record_fields,
-				&mxi_vxi_memacc_rfield_def_ptr},
-
-#endif /* HAVE_NI_VISA */
 
 #if defined(OS_VXWORKS)
 

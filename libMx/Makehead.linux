@@ -18,27 +18,17 @@
 
 INCLUDES	= $(MX_INCLUDES)
 
-#INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
-
 LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
 LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
-#LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
 #LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(NI_VISA_LIB_DIRS)
-#
-#LIBRARIES	= $(NI488_LIBRARIES) $(NI_VISA_LIBRARIES) \
-#			-lpthread -lrt -ldl -lm
 
 #--------------------------------------------------------------------------
 #
@@ -125,12 +115,6 @@ NI488_LIBRARIES = -lgpib
 #
 LINUX_GPIB_LIB_DIRS  =
 LINUX_GPIB_LIBRARIES = -lgpib
-
-#
-NI_VISA_DIR       = /usr/local/vxipnp/linux
-NI_VISA_INCLUDES  = -I$(NI_VISA_DIR)/include -DIS_MX_DRIVER
-NI_VISA_LIB_DIRS  = -L$(NI_VISA_DIR)/lib
-NI_VISA_LIBRARIES = -lvisa
 
 #
 I8255_INCLUDES  =
@@ -225,8 +209,7 @@ CFLAGS_MX_VERS  = -DOS_LINUX -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS) -D__MX_MAKEDEPEND__ \
-	$(READLINE_INCLUDES) $(NI_VISA_INCLUDES) \
-	*.c > Makefile.depend
+	$(READLINE_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

@@ -250,8 +250,6 @@ extern "C" {
 #define MXI_PIO_IOPERM			504
 #define MXI_PIO_VXWORKS			505
 
-#define MXI_VME_VXI_MEMACC		600
-
 #define MXI_VME_VXWORKS			603
 #define MXI_VME_MMAP			604
 #define MXI_VME_RTEMS			605

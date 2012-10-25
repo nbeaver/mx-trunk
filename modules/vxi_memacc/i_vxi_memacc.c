@@ -7,7 +7,8 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006, 2008, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +18,6 @@
 #define MX_VXI_MEMACC_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_NI_VISA
-
 #include <stdlib.h>
 
 #include "visa.h"	/* Header file provided by the NI-VISA package. */
@@ -1031,4 +1027,3 @@ mxi_vxi_memacc_set_parameter( MX_VME *vme )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_NI_VISA */

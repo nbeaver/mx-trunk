@@ -176,7 +176,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_sony_visca.c i_spec_command.c i_spellman_df3.c \
 	i_sr630.c i_tcp232.c i_telnet.c i_tpg262.c i_tty.c \
 	i_uglide.c \
-	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c i_vxi_memacc.c \
+	i_vme58.c i_vms_terminal.c i_vp9000.c i_vsc16.c \
 	i_vxworks_rs232.c i_vxworks_vme.c \
 	i_wago750_serial.c i_win32_com.c \
 	n_bluice_dcss.c n_bluice_dhs.c n_bluice_dhs_manager.c \
@@ -281,9 +281,6 @@ i_ni488.$(OBJ): i_ni488.c
 
 i_pmac.$(OBJ): i_pmac.c i_pmac.h
 	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_pmac.c
-
-i_vxi_memacc.$(OBJ): i_vxi_memacc.c
-	$(COMPILE) $(CFLAGS) $(NI_VISA_INCLUDES) i_vxi_memacc.c
 
 mx_cfn.$(OBJ): mx_cfn.c
 	$(COMPILE) $(CFLAGS) $(CFLAGS_MX_CFN) mx_cfn.c
