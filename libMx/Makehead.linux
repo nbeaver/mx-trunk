@@ -24,12 +24,6 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -ldl -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
-#LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
-
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
-#LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
-
 #--------------------------------------------------------------------------
 #
 # If you are compiling for an embedded Linux system, you may need to change
@@ -106,15 +100,6 @@ READLINE_LIBRARIES = -ledit
 # You may also need to modify some of the following definitions, depending
 # on the drivers you plan to use.
 #
-
-#
-NI488_LIB_DIRS  = -L/usr/local/lib
-NI488_LIBRARIES = -lgpib
-#NI488_LIBRARIES = -lgpibenet
-
-#
-LINUX_GPIB_LIB_DIRS  =
-LINUX_GPIB_LIBRARIES = -lgpib
 
 #
 I8255_INCLUDES  =

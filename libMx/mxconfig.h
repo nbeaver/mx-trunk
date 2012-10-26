@@ -65,7 +65,9 @@
  *    epix_xclib            Formerly enabled by HAVE_EPIX_XCLIB           *
  *    esone_camac           Formerly enabled by HAVE_JORWAY_CAMAC         *
  *    libusb-0.1            Formerly enabled by HAVE_LIBUSB               *
+ *    linux_gpib            Formerly enabled by HAVE_LINUX_GPIB           *
  *    ni_valuemotion        Formerly enabled by HAVE_PCMOTION32           *
+ *    ni488                 Formerly enabled by HAVE_NI488                *
  *    ortec_umcbi           Formerly enabled by HAVE_ORTEC_UMCBI          *
  *    pmc_mcapi             Formerly enabled by HAVE_PMC_MCAPI            *
  *    powerpmac             Formerly enabled by HAVE_POWERPMAC_LIBRARY    *
@@ -85,29 +87,6 @@
  * distributed by someone else.  For each case, we indicate
  * where the driver may be obtained from.
  */
-
-/*****************************************************************************
- *
- * Driver for National Intruments GPIB interface cards.
- *
- * The Linux version of this driver is downloadable from
- * http://www.ni.com/linux/
- */
-
-#define HAVE_NI488			0
-
-/*****************************************************************************
- *
- * Driver for the Linux GPIB driver which is available from
- * http://linux-gpib.sourceforge.net/.
- *
- * The Linux GPIB driver uses function names that are the same as many of
- * the functions in the National Instruments driver.  Because of this,
- * setting both HAVE_NI488 and HAVE_LINUX_GPIB to 1 is not allowed since
- * this would lead to name conflicts at link time.
- */
-
-#define HAVE_LINUX_GPIB			0
 
 /*****************************************************************************
  *

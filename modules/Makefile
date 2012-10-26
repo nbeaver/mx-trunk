@@ -23,13 +23,15 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
+MODULES += ni488		# linux,
+
 #MODULES += ni_daqmx		# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
 #MODULES += sis3100		# linux,
 
-MODULES += vxi_memacc		# linux,
+#MODULES += vxi_memacc		# linux,
 
 #MODULES += xia_handel		# linux, win32
 

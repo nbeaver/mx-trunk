@@ -16,9 +16,6 @@ INCLUDES	= $(MX_INCLUDES)
 LIB_DIRS	= -L$(MX_LIB_DIR)
 LIBRARIES	= -lpthread -lrt -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
-#LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -lm
-
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.

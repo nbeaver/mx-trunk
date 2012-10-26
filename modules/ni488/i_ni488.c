@@ -32,17 +32,12 @@
 
 #define MXI_NI488_THREAD_SAFE	FALSE
 
-#include <stdio.h>
-#include <math.h>
-
-#include "mxconfig.h"
-
 #if HAVE_NI488 && HAVE_LINUX_GPIB
 #error You must not set both HAVE_NI488 and HAVE_LINUX_GPIB to non-zero values.  They are incompatible since the National Instruments library and the Linux-GPIB library both export functions and variables with the same names.
 #endif
 
-#if HAVE_NI488 || HAVE_LINUX_GPIB
-
+#include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -1321,4 +1316,3 @@ mxi_ni488_serial_poll_disable( MX_GPIB *gpib )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_NI488 || HAVE_LINUX_GPIB */
