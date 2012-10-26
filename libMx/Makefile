@@ -160,14 +160,13 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_dsp6001.c \
 	i_fossil.c i_hsc1.c \
-	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c \
-	i_k500serial.c i_ks3344.c \
-	i_linux_iopl.c i_linux_parport.c i_linux_portio.c \
+	i_i404.c i_ilm.c i_iseries.c i_isobus.c i_itc503.c i_k500serial.c \
 	i_keithley.c i_keithley2000.c i_keithley2400.c i_keithley2700.c \
-	i_kohzu_sc.c i_linkam_t9x.c i_lpt.c \
+	i_kohzu_sc.c i_ks3344.c \
+	i_linkam_t9x.c i_linux_iopl.c i_linux_parport.c i_lpt.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
 	i_modbus_serial_rtu.c i_modbus_tcp.c \
-	i_network_gpib.c i_network_rs232.c i_newport.c i_ni488.c i_ortec974.c \
+	i_network_gpib.c i_network_rs232.c i_newport.c i_ortec974.c \
 	i_panasonic_kx_dp702.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c \
 	i_pmac.c i_prologix.c i_rtems_vme.c \
@@ -272,12 +271,6 @@ i_camera_link_api.$(OBJ): i_camera_link_api.c
 
 i_linux_iopl.$(OBJ): i_linux_iopl.c
 	$(COMPILE) $(CFLAGS) $(LINUX_IOPL_FLAGS) i_linux_iopl.c
-
-i_linux_portio.$(OBJ): i_linux_portio.c
-	$(COMPILE) $(CFLAGS) $(LINUX_PORTIO_INCLUDES) i_linux_portio.c
-
-i_ni488.$(OBJ): i_ni488.c
-	$(COMPILE) $(CFLAGS) $(NI488_INCLUDES) i_ni488.c
 
 i_pmac.$(OBJ): i_pmac.c i_pmac.h
 	$(COMPILE) $(CFLAGS) $(POWERPMAC_INCLUDES) i_pmac.c

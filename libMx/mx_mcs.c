@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_array.h"

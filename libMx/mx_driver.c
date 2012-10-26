@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 
-#include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_stdint.h"
 

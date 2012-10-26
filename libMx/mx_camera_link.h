@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2007 Illinois Institute of Technology
+ * Copyright 2006-2007, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "mxconfig.h"
 
 /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
 

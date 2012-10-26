@@ -22,8 +22,6 @@
 #include <errno.h>
 #include <math.h>
 
-#include "mxconfig.h"
-
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_inttypes.h"

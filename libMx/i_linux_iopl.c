@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006, 2010 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,8 +17,6 @@
 #define MXI_LINUX_IOPL_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
 
 #if defined(OS_LINUX) && defined(__i386__) && defined(__GNUC__)
 

@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006, 2008-2009 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006, 2008-2009, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,7 +19,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"

@@ -23,7 +23,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_time.h"

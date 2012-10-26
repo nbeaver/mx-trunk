@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_inttypes.h"
 #include "mx_driver.h"

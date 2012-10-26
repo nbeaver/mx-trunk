@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2010-2011
+ * Copyright 2000-2001, 2003, 2006-2007, 2010-2012
  *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -19,9 +19,6 @@
 #define MXI_PCSTEP_DEBUG	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>

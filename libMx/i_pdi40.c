@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_rs232.h"

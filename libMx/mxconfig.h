@@ -10,18 +10,15 @@
  *
  */
 
-#ifndef _MXCONFIG_H_
-#define _MXCONFIG_H_
+#error mxconfig.h is obsolete
 
 /**************************************************************************
  *                                                                        *
- * NOTICE: MX 1.5.5 is in the process of moving all of the optionally     *
- *         compiled drivers that traditionally are compiled into libMx    *
- *         into separate dynamically loaded modules with their source     *
- *         code in subdirectories of the mx/modules directory.  As each   *
- *         set of drivers moves to the mx/modules directory, the matching * 
- *         macros in mx/libMx/mxconfig.h and mx/libMx/Makehead.* are      *
- *         deleted.                                                       *
+ * NOTICE: MX 1.6.0 has moved all of the optionally compiled drivers that *
+ *         traditionally are compiled into libMx into separate dynamically*
+ *         loaded modules with their source code in subdirectories of the *
+ *         mx/modules directory.  The matching macros in libMx/mxconfig.h *
+ *         and mx/libMx/Makehead.* have been deleted.                     *
  *                                                                        *
  *         In support of this, new Makefile targets have been added to    *
  *         the top level makefile mx/Makefile.  These include             *
@@ -78,28 +75,4 @@
  *    xia_handel            Formerly enabled by HAVE_XIA_HANDEL           *
  *                                                                        *
  **************************************************************************/
-
-/* ======== Optional hardware drivers. ======== */
-
-/* The following devices use, in part, drivers that do not
- * come with the basic MX package, either because the
- * drivers are proprietary or because the drivers are
- * distributed by someone else.  For each case, we indicate
- * where the driver may be obtained from.
- */
-
-/*****************************************************************************
- *
- * Linux driver for performing hardware port I/O from user mode to
- * a restricted range of ports without requiring that the user mode
- * program be setuid root or setgid kmem.  The current version (2.0)
- * of this driver runs under Linux 2.2.x and 2.4.x.  Use the older
- * version 0.3 if you need to run under Linux 2.0.x.
- *
- * Available at the MX web site as portio-2.0.tar.gz
- */
-
-#define HAVE_LINUX_PORTIO		0
-
-#endif /* _MXCONFIG_H_ */
 

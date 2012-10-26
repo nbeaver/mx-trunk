@@ -44,7 +44,6 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_stdint.h"

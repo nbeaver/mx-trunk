@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <limits.h>
 
-#include "mxconfig.h"
 #include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"

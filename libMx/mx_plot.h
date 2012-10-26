@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2008, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,7 +18,6 @@
 #ifndef __MX_PLOT_H__
 #define __MX_PLOT_H__
 
-#include "mxconfig.h"
 #include "mx_util.h"
 
 /* Make the header file C++ safe. */

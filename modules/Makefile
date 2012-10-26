@@ -38,7 +38,7 @@ all: build
 #-------------------------------------------------------------------
 # Linux-only modules.
 
-MODULES += linux_portio
+#MODULES += linux_portio
 
 #MODULES += powerpmac
 
