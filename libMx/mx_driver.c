@@ -125,7 +125,6 @@
 #endif
 
 #include "i_network_gpib.h"
-#include "i_ni488.h"
 #include "i_k500serial.h"
 #include "i_micro488ex.h"
 #include "i_prologix.h"
@@ -133,7 +132,6 @@
 #include "i_soft_camac.h"
 #include "i_dsp6001.h"
 
-#include "i_linux_portio.h"
 #include "i_linux_iopl.h"
 #include "i_dos_portio.h"
 
@@ -661,24 +659,6 @@ MX_DRIVER mx_type_table[] = {
 				&mxi_network_gpib_num_record_fields,
 				&mxi_network_gpib_rfield_def_ptr},
 
-#if HAVE_NI488
-{"ni488",          MXI_GPIB_NI488,   MXI_GPIB,           MXR_INTERFACE,
-				&mxi_ni488_record_function_list,
-				NULL,
-				&mxi_ni488_gpib_function_list,
-				&mxi_ni488_num_record_fields,
-				&mxi_ni488_rfield_def_ptr},
-#endif /* HAVE_NI488 */
-
-#if HAVE_LINUX_GPIB
-{"linux_gpib",     MXI_GPIB_LINUX,     MXI_GPIB,           MXR_INTERFACE,
-				&mxi_ni488_record_function_list,
-				NULL,
-				&mxi_ni488_gpib_function_list,
-				&mxi_ni488_num_record_fields,
-				&mxi_ni488_rfield_def_ptr},
-#endif /* HAVE_LINUX_GPIB */
-
 {"k500serial",     MXI_GPIB_K500SERIAL, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_k500serial_record_function_list,
 				NULL,
@@ -1058,15 +1038,6 @@ MX_DRIVER mx_type_table[] = {
 #endif /* OS_LINUX */
 
 #ifdef OS_LINUX
-#if HAVE_LINUX_PORTIO
-
-{"linux_portio",   MXI_PIO_PORTIO,    MXI_PORTIO,         MXR_INTERFACE,
-				&mxi_linux_portio_record_function_list,
-				NULL,
-				&mxi_linux_portio_portio_function_list,
-				&mxi_linux_portio_num_record_fields,
-				&mxi_linux_portio_rfield_def_ptr},
-#endif /* HAVE_LINUX_PORTIO */
 
 #if defined(__i386__) && defined(__GNUC__)
 

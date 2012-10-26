@@ -23,11 +23,11 @@ CFLAGS += -EHsc
 CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += $(DRIVERLINX_INCLUDES)
 
-ORTEC_DRIVERLINX_OBJS = driverlinx_portio.$(OBJ) i_driverlinx_portio.$(OBJ)
+DRIVERLINX_OBJS = driverlinx_portio.$(OBJ) i_driverlinx_portio.$(OBJ)
 
-driverlinx_portio.mxo: $(ORTEC_DRIVERLINX_OBJS)
+driverlinx_portio.mxo: $(DRIVERLINX_OBJS)
 	link /dll /debug /nologo /out:driverlinx_portio.mxo /nodefaultlib:libc \
-		$(ORTEC_DRIVERLINX_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
+		$(DRIVERLINX_OBJS) ..\\..\\libMx\\$(MX_LIBRARY_NAME) \
 		$(DRIVERLINX_LIBS)
 
 	# For VC2005 or later, embed the manifest in the module.

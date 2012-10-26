@@ -7,7 +7,8 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006, 2008, 2010, 2012
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,12 +18,6 @@
 #define MXI_LINUX_PORTIO_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#ifdef OS_LINUX
-
-#if HAVE_LINUX_PORTIO
 
 #if defined(__BORLANDC__)
 #define __signed__ signed
@@ -420,6 +415,3 @@ mxi_linux_portio_release_region( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_LINUX_PORTIO */
-
-#endif /* OS_LINUX */

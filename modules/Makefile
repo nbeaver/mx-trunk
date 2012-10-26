@@ -23,7 +23,7 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-MODULES += ni488		# linux,
+#MODULES += ni488		# linux,
 
 #MODULES += ni_daqmx		# linux, win32
 
@@ -37,6 +37,8 @@ MODULES += ni488		# linux,
 
 #-------------------------------------------------------------------
 # Linux-only modules.
+
+MODULES += linux_portio
 
 #MODULES += powerpmac
 
