@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2006, 2008, 2010 Illinois Institute of Technology
+ * Copyright 2002-2006, 2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,16 +18,11 @@
 
 #define MX_SIS3100_DEBUG_TIMING	FALSE
 
-#include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_SIS3100
-
 #if !defined( OS_LINUX )
 #error This driver is currently only supported on Linux platforms.
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -1565,4 +1560,3 @@ mxi_sis3100_set_parameter( MX_VME *vme )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_SIS3100 */

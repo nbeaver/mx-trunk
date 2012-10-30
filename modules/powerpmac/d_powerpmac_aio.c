@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"

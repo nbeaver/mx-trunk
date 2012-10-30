@@ -19,11 +19,6 @@
 #define MXI_LIBUSB_01_DEBUG_TIMING		FALSE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_LIBUSB_01
-
 #include <errno.h>
 
 #include "mx_util.h"
@@ -971,6 +966,4 @@ mxi_libusb_01_bulk_write( MX_USB_DEVICE *usb_device,
 
 	return mx_status;
 }
-
-#endif /* HAVE_LIBUSB_01 */
 

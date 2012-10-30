@@ -281,8 +281,6 @@ mx_cfn.$(OBJ): mx_cfn.c
 mx_interval_timer.$(OBJ): mx_interval_timer.c
 	$(COMPILE) $(CFLAGS) mx_interval_timer.c
 
-mx_key.$(OBJ): mx_key.c mxconfig.h
-
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c mx_version.h
 
 #---

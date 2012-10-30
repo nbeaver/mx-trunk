@@ -33,7 +33,7 @@ all: build
 
 #MODULES += vxi_memacc		# linux,
 
-#MODULES += xia_handel		# linux, win32
+MODULES += xia_handel		# linux, win32
 
 #-------------------------------------------------------------------
 # Linux-only modules.
@@ -70,9 +70,9 @@ all: build
 #-------------------------------------------------------------------
 # EPICS modules.
 
-#MODULES += epics
+MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
 #MODULES += epics_pmac_biocat
 

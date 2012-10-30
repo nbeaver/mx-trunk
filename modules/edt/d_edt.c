@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006-2008, 2010 Illinois Institute of Technology
+ * Copyright 2006-2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,6 @@
 #define MXD_EDT_DEBUG	TRUE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EDT
-
 #include <stdlib.h>
 
 #include "mx_util.h"
@@ -1060,6 +1055,4 @@ mxd_edt_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#endif /* HAVE_EDT */
 

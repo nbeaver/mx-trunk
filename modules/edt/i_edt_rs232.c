@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2007-2008, 2010 Illinois Institute of Technology
+ * Copyright 2007-2008, 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,10 +18,6 @@
 #define MXI_EDT_RS232_DEBUG	TRUE
 
 #include <stdio.h>
-
-#include "mxconfig.h"
-
-#if HAVE_EDT
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -630,6 +626,4 @@ mxi_edt_rs232_discard_unread_input( MX_RS232 *rs232 )
 	}
 	return mx_status;
 }
-
-#endif /* HAVE_EDT */
 
