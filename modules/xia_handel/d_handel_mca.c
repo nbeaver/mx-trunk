@@ -24,6 +24,8 @@
 
 #define MXD_HANDEL_MCA_DEBUG_DOUBLE_ROIS	FALSE
 
+#define MXD_HANDEL_MCA_DEBUG_GET_PRESETS	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -808,6 +810,7 @@ mxd_handel_mca_open( MX_RECORD *record )
 	}
 
 	/* Suppress GCC 'set but not used' warning. */
+
 	display_config = display_config;
 
 	mx_status = mxd_handel_mca_handel_open(mca, handel_mca, handel->record);
@@ -1434,7 +1437,7 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_HANDEL_DEBUG		
+#if MXI_HANDEL_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
@@ -1518,66 +1521,164 @@ mxd_handel_mca_get_parameter( MX_MCA *mca )
 		break;
 
 	case MXLV_MCA_PRESET_REAL_TIME:
-		if ( mca->preset_type != MXLV_MCA_PRESET_REAL_TIME ) {
+		if ( mca->preset_type != MXF_MCA_PRESET_REAL_TIME ) {
 
-			mca->preset_type    = MXF_MCA_PRESET_REAL_TIME;
-			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+			/* We want the preset value for a preset type
+			 * that is not the _current_ preset type.
+			 * This requires changing the preset type.
+			 */
 
-			mx_status = mxd_handel_mca_set_parameter( mca );
+			mx_status = mxd_handel_mca_busy( mca );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			if ( mca->busy ) {
+				/* The MCA is currently acquiring a spectrum,
+				 * so it is not possible to change the preset
+				 * type right now.  Instead, we will return
+				 * the cached value for this preset.
+				 */
+			} else {
+				/* The MCA is _not_ acquiring a spectrum, so
+				 * change the preset type.
+				 */
+
+				mca->preset_type    = MXF_MCA_PRESET_REAL_TIME;
+				mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+				mx_status = mxd_handel_mca_set_parameter( mca );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* It is safe to read the acquisition value. */
+
+				mx_status =
+				    mxd_handel_mca_get_acquisition_values( mca,
+				    "preset_value", &(mca->preset_real_time) );
+			}
+		} else {
+			/* We are already set for the correct preset type,
+			 * so just read the acquisition value.
+			 */
+
+			mx_status = mxd_handel_mca_get_acquisition_values( mca,
+				"preset_value", &(mca->preset_real_time) );
 		}
 
-		mx_status = mxd_handel_mca_get_acquisition_values( mca,
-				"preset_value", &(mca->preset_real_time) );
-
-#if MXI_HANDEL_DEBUG
+#if MXI_HANDEL_DEBUG_GET_PRESETS
 		MX_DEBUG(-2,("%s: mca->preset_real_time = %g",
 			fname, mca->preset_real_time));
 #endif
 		break;
 
 	case MXLV_MCA_PRESET_LIVE_TIME:
-		if ( mca->preset_type != MXLV_MCA_PRESET_LIVE_TIME ) {
+		if ( mca->preset_type != MXF_MCA_PRESET_LIVE_TIME ) {
 
-			mca->preset_type    = MXF_MCA_PRESET_LIVE_TIME;
-			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+			/* We want the preset value for a preset type
+			 * that is not the _current_ preset type.
+			 * This requires changing the preset type.
+			 */
 
-			mx_status = mxd_handel_mca_set_parameter( mca );
+			mx_status = mxd_handel_mca_busy( mca );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			if ( mca->busy ) {
+				/* The MCA is currently acquiring a spectrum,
+				 * so it is not possible to change the preset
+				 * type right now.  Instead, we will return
+				 * the cached value for this preset.
+				 */
+			} else {
+				/* The MCA is _not_ acquiring a spectrum, so
+				 * change the preset type.
+				 */
+
+				mca->preset_type    = MXF_MCA_PRESET_LIVE_TIME;
+				mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+				mx_status = mxd_handel_mca_set_parameter( mca );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* It is safe to read the acquisition value. */
+
+				mx_status =
+				    mxd_handel_mca_get_acquisition_values( mca,
+				    "preset_value", &(mca->preset_live_time) );
+			}
+		} else {
+			/* We are already set for the correct preset type,
+			 * so just read the acquisition value.
+			 */
+
+			mx_status = mxd_handel_mca_get_acquisition_values( mca,
+				"preset_value", &(mca->preset_live_time) );
 		}
 
-		mx_status = mxd_handel_mca_get_acquisition_values( mca,
-				"preset_value", &(mca->preset_live_time) );
-
-#if MXI_HANDEL_DEBUG
+#if MXI_HANDEL_DEBUG_GET_PRESETS
 		MX_DEBUG(-2,("%s: mca->preset_live_time = %g",
 			fname, mca->preset_live_time));
 #endif
 		break;
 
 	case MXLV_MCA_PRESET_COUNT:
-		if ( mca->preset_type != MXLV_MCA_PRESET_COUNT ) {
+		if ( mca->preset_type != MXF_MCA_PRESET_COUNT ) {
 
-			mca->preset_type    = MXF_MCA_PRESET_COUNT;
-			mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+			/* We want the preset value for a preset type
+			 * that is not the _current_ preset type.
+			 * This requires changing the preset type.
+			 */
 
-			mx_status = mxd_handel_mca_set_parameter( mca );
+			mx_status = mxd_handel_mca_busy( mca );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-		}
 
-		mx_status = mxd_handel_mca_get_acquisition_values( mca,
+			if ( mca->busy ) {
+				/* The MCA is currently acquiring a spectrum,
+				 * so it is not possible to change the preset
+				 * type right now.  Instead, we will return
+				 * the cached value for this preset.
+				 */
+			} else {
+				/* The MCA is _not_ acquiring a spectrum, so
+				 * change the preset type.
+				 */
+
+				mca->preset_type    = MXF_MCA_PRESET_COUNT;
+				mca->parameter_type = MXLV_MCA_PRESET_TYPE;
+
+				mx_status = mxd_handel_mca_set_parameter( mca );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* It is safe to read the acquisition value. */
+
+				mx_status =
+				    mxd_handel_mca_get_acquisition_values( mca,
+				    "preset_value", &acquisition_value );
+
+				mca->preset_count = mx_round(acquisition_value);
+			}
+		} else {
+			/* We are already set for the correct preset type,
+			 * so just read the acquisition value.
+			 */
+
+			mx_status = mxd_handel_mca_get_acquisition_values( mca,
 				"preset_value", &acquisition_value );
 
-		mca->preset_count = mx_round( acquisition_value );
+			mca->preset_count = mx_round( acquisition_value );
+		}
 
-#if MXI_HANDEL_DEBUG
-		MX_DEBUG(-2,("%s: mca->preset_count = %lu",
+#if MXI_HANDEL_DEBUG_GET_PRESETS
+		MX_DEBUG(-2,("%s: mca->preset_count = %g",
 			fname, mca->preset_count));
 #endif
 		break;
@@ -1981,7 +2082,7 @@ mxd_handel_mca_set_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXI_HANDEL_DEBUG		
+#if MXI_HANDEL_DEBUG
 	MX_DEBUG(-2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
