@@ -28,6 +28,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION			TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -70,7 +72,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	NULL,
 	mxd_radicon_taurus_get_extended_status,
 	mxd_radicon_taurus_readout_frame,
-	NULL,
+	mxd_radicon_taurus_correct_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -1640,6 +1642,37 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_taurus_correct_frame()";
+
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_taurus_get_pointers( ad,
+						&radicon_taurus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+#if 1
+	{
+		mx_status = mx_area_detector_default_correct_frame( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

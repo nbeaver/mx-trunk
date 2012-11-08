@@ -187,6 +187,8 @@ MX_API mx_status_type mxd_radicon_taurus_get_extended_status(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_readout_frame(
 						MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_taurus_correct_frame(
+						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_get_parameter(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_set_parameter(
