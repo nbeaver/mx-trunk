@@ -39,6 +39,7 @@ typedef struct {
 	MX_RECORD *serial_port_record;
 	unsigned long radicon_taurus_flags;
 	char pulser_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char non_uniformity_filename[MXU_FILENAME_LENGTH+1];
 
 	MX_RECORD *pulser_record;
 
@@ -72,6 +73,8 @@ typedef struct {
 	MX_CLOCK_TICK serial_delay_ticks;
 	MX_CLOCK_TICK next_serial_command_tick;
 
+	MX_IMAGE_FRAME *non_uniformity_frame;
+
 } MX_RADICON_TAURUS;
 
 #define MXLV_RADICON_TAURUS_SRO		80000
@@ -98,6 +101,12 @@ typedef struct {
 				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_RADICON_TAURUS, pulser_record_name), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "non_uniformity_filename", MXFT_STRING, \
+				NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, non_uniformity_filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \

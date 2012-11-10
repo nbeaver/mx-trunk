@@ -41,6 +41,7 @@
 #include "mx_inttypes.h"
 #include "mx_hrt.h"
 #include "mx_ascii.h"
+#include "mx_cfn.h"
 #include "mx_motor.h"
 #include "mx_image.h"
 #include "mx_rs232.h"
@@ -195,6 +196,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
+	char non_uniformity_filename[MXU_FILENAME_LENGTH+1];
 	long vinput_framesize[2];
 	long video_framesize[2];
 	long i;
@@ -305,6 +307,39 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
 		fname, (int) radicon_taurus->poll_pulser_status ));
+
+	/* If the 'non_uniformity_filename' field has a non-zero length,
+	 * then load the contents of that file into the non_uniformity_frame
+	 * object.  Otherwise, we set the non_uniformity_frame pointer to
+	 * NULL, to indicate that we do not have one.
+	 */
+
+	radicon_taurus->non_uniformity_frame = NULL;
+
+	if ( strlen( radicon_taurus->non_uniformity_filename ) > 0 ) {
+
+		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+				radicon_taurus->non_uniformity_filename,
+				non_uniformity_filename,
+				sizeof(non_uniformity_filename) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_read_smv_file(
+				&(radicon_taurus->non_uniformity_frame),
+				MXT_IMAGE_FILE_SMV,
+				non_uniformity_filename );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+		MX_DEBUG(-2,("%s: non-uniformity file '%s':",
+			fname, radicon_taurus->non_uniformity_filename ));
+		mx_image_statistics( radicon_taurus->non_uniformity_frame );
+#endif
+	}
 
 	/* Verify that the video input and serial port records
 	 * have been found.
