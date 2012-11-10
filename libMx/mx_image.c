@@ -3433,8 +3433,56 @@ mxp_write_noir_static_header( FILE * header_file )
 
 /*----*/
 
-/* mx_image_read_smv_file() can read both the SMV headers used at BioCAT
- * and the NOIR headers used at MBC.
+static mx_status_type
+mxp_image_smv_find_header_value( char *buffer, char **header_ptr )
+{
+	static const char fname[] = "mxp_image_smv_find_header_value()";
+
+	char *ptr;
+	long num_whitespace_chars;
+
+	if ( buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The buffer pointer passed was NULL." );
+	}
+	if ( header_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The header_ptr pointer passed was NULL." );
+	}
+
+	/* Look for the first non-whitespace character
+	 * after the equals sign.
+	 */
+
+	ptr = strchr( buffer, '=' );
+
+	if ( ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Apparently the buffer '%s' does not containa '=' character.  "
+		"However, a previous statement said that it _did_ contain "
+		"a '=' character.  This is inconsistent.", buffer );
+	}
+
+	ptr++;	/* Step over the '=' character. */
+
+	num_whitespace_chars = (long) strspn( ptr, " \t" );
+
+	ptr += num_whitespace_chars;
+
+	*header_ptr = ptr;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* mx_image_read_smv_file() can read several variants of the SMV header
+ * as produced by the following detectors:
+ *
+ *  1. Dexela/Aviex PCCD detectors as used at BioCAT.
+ *  2. The NOIR-1 detector used at MBC.
+ *  3. RDI non-uniformity files.
+ *
+ * It probably works with other detectors that produce SMV-like files,
+ * since it ignores headers it does not understand.
  */
 
 MX_EXPORT mx_status_type
@@ -3451,7 +3499,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	int saved_errno, os_status, num_items;
 	long framesize[2], binsize[2];
 	long bytes_per_pixel, bytes_per_frame, bytes_read, image_format;
-	long header_length, datafile_byteorder, num_whitespace_chars;
+	long header_length, datafile_byteorder;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	struct timespec timestamp_timespec;
@@ -3506,7 +3554,9 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 	if ( ( buffer[0] != '{' ) || ( buffer[1] != '\n' ) ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"Data file '%s' does not appear to be an SMV file.",
+		"Data file '%s' does not appear to be an SMV file "
+		"since it does not start with '{\\n', namely, "
+		"a left brace followed by a newline.",
 			datafile_name );
 	}
 
@@ -3537,7 +3587,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	MX_DEBUG(-2,("%s: HEADER_BYTES = %ld", fname, header_length));
 #endif
 
-	/* Read in the rest of the header. */
+	/* Set some defaults. */
 
 	datafile_byteorder = -1;
 	framesize[0] = -1;
@@ -3549,6 +3599,10 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	memset( &timestamp_timespec, 0, sizeof(timestamp_timespec) );
 	bias_offset_in_adus = 0.0;
 	bias_offset_in_milli_adus = 0;
+
+	image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	/* Read in the rest of the header. */
 
 	for (;;)  {
 		ptr = fgets( buffer, sizeof(buffer), file );
@@ -3581,21 +3635,11 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 			 * after the equals sign.
 			 */
 
-			ptr = strchr( buffer, '=' );
+			mx_status =
+			    mxp_image_smv_find_header_value( buffer, &ptr );
 
-			if ( ptr == NULL ) {
-				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-				fname, "Apparently the buffer '%s' does not "
-				"contain a '=' character.  However a previous "
-				"statement said that it _did_ contain a '=' "
-				"character.  This is inconsistent.", buffer );
-			}
-
-			ptr++;	/* Step over the '=' character. */
-
-			num_whitespace_chars = (long) strspn( ptr, " \t" );
-
-			ptr += num_whitespace_chars;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			if ( strncmp(ptr, "little_endian", 13 ) == 0 ) {
 				datafile_byteorder = MX_DATAFMT_LITTLE_ENDIAN;
@@ -3609,6 +3653,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 				"byte order has the unrecognized value '%s'.",
 					datafile_name, byte_order_buffer );
 			}
+
 		} else
 		if ( strncmp( buffer, "SIZE1=", 6 ) == 0 ) {
 			num_items = sscanf(buffer, "SIZE1=%lu", &framesize[0]);
@@ -3682,8 +3727,44 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 			bias_offset_in_milli_adus = 
 				mx_round( 1000.0 * bias_offset_in_adus );
+
+		} else
+		if ( ( strncmp( buffer, "Data_type=", 10 ) == 0 )
+		  || ( strncmp( buffer, "TYPE=", 5 ) == 0 ) )
+		{
+
+			/* NOIR-style TYPE=mad; entries are ignored, since
+			 * they do not contain datatype information.
+			 */
+
+			if ( strncmp( buffer, "TYPE=mad", 8 ) == 0 ) {
+				/* Skip this line and go back to the top
+				 * of the for() loop for the next line.
+				 */
+				continue;
+			}
+
+			/* Otherwise, a data type should be present. */
+
+			mx_status = mxp_image_smv_find_header_value(
+							buffer, &ptr );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( strncmp( ptr, "unsigned_short", 14 ) == 0 ) {
+				image_format = MXT_IMAGE_FORMAT_GREY16;
+			} else
+			if ( strncmp( ptr, "float IEEE", 10 ) == 0 ) {
+				image_format = MXT_IMAGE_FORMAT_FLOAT;
+			} else {
+				mx_warning( "Unrecognized data type seen "
+				"in line '%s' of the header of SMV file '%s'.",
+					buffer, datafile_name );
+			}
+
 		} else {
-			/* Other header values (including TYPE) are ignored. */
+			/* Other header values are ignored. */
 		}
 	}
 
@@ -3710,9 +3791,29 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 	/* --- */
 
-	image_format = MXT_IMAGE_FORMAT_GREY16;
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: image_format = %ld", fname, image_format));
+#endif
 
-	bytes_per_pixel = 2;
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		bytes_per_pixel = 2;
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		bytes_per_pixel = 4;
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		bytes_per_pixel = 4;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		bytes_per_pixel = 8;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image format %ld was requested for "
+		"SMV data file '%s'.", datafile_name );
+		break;
+	}
 
 	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
 
@@ -3792,21 +3893,45 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	 * byteswap the bytes in the image.
 	 */
 
-	if ( mx_native_byteorder() != datafile_byteorder ) {
-		uint16_t *uint16_array;
-		long i, words_per_frame;
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		if ( mx_native_byteorder() != datafile_byteorder ) {
+			uint16_t *uint16_array;
+			long i, words_per_frame;
 
-		/* Byteswap the 16-bit integers. */
+			/* Byteswap the 16-bit integers. */
 
-		uint16_array = (*frame)->image_data;
+			uint16_array = (*frame)->image_data;
 
-		words_per_frame = framesize[0] * framesize[1];
+			words_per_frame = framesize[0] * framesize[1];
 
-		for ( i = 0; i < words_per_frame; i++ ) {
-			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+			for ( i = 0; i < words_per_frame; i++ ) {
+				uint16_array[i] =
+					mx_16bit_byteswap( uint16_array[i] );
+			}
+
+			MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
 		}
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		if ( mx_native_byteorder() != datafile_byteorder ) {
+			uint32_t *uint32_array;
+			long i, words_per_frame;
 
-		MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
+			/* Byteswap the 32-bit integers. */
+
+			uint32_array = (*frame)->image_data;
+
+			words_per_frame = framesize[0] * framesize[1];
+
+			for ( i = 0; i < words_per_frame; i++ ) {
+				uint32_array[i] =
+					mx_32bit_byteswap( uint32_array[i] );
+			}
+
+			MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
+		}
+		break;
 	}
 
 	/* We are done, so return. */

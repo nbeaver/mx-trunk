@@ -1696,6 +1696,11 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: raw image frame statistics:", fname));
+	mx_image_statistics( image_frame );
+#endif
+
 	correction_measurement_in_progress =
 		ad->correction_measurement_in_progress;
 
