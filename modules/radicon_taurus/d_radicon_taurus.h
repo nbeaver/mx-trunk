@@ -56,12 +56,12 @@ typedef struct {
 	uint64_t si2_register;
 	double si1_si2_ratio;
 
-	MX_IMAGE_FRAME *raw_frame;
+	MX_IMAGE_FRAME *video_frame;
 
 	mx_bool_type use_different_si2_value;
 
 	mx_bool_type bypass_arm;
-	mx_bool_type use_raw_frames;
+	mx_bool_type use_video_frames;
 	mx_bool_type have_get_commands;
 	mx_bool_type poll_pulser_status;
 	mx_bool_type flip_image;
@@ -155,8 +155,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, bypass_arm), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "use_raw_frames", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, use_raw_frames), \
+  {-1, -1, "use_video_frames", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, use_video_frames),\
 	{0}, NULL, 0 }, \
   \
   {-1, -1, "have_get_commands", MXFT_BOOL, NULL, 0, {0}, \

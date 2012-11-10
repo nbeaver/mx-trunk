@@ -196,7 +196,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_RECORD *video_input_record, *serial_port_record;
 	long vinput_framesize[2];
-	long raw_framesize[2];
+	long video_framesize[2];
 	long i;
 	char c;
 	double serial_delay_in_seconds;
@@ -556,17 +556,17 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
 #endif
 
-	/* The maximum framesize is smaller than the raw frame from the
-	 * video card, since the outermost pixels in the raw image do not 
+	/* The maximum framesize is smaller than the video image from the
+	 * video card, since the outermost pixels in the video image do not 
 	 * have real data in them.
 	 */
 
-	raw_framesize[0] = 2848;
-	raw_framesize[1] = 2964;
+	video_framesize[0] = 2848;
+	video_framesize[1] = 2964;
 
-	if ( radicon_taurus->use_raw_frames ) {
-		ad->maximum_framesize[0] = raw_framesize[0];
-		ad->maximum_framesize[1] = raw_framesize[1];
+	if ( radicon_taurus->use_video_frames ) {
+		ad->maximum_framesize[0] = video_framesize[0];
+		ad->maximum_framesize[1] = video_framesize[1];
 	} else {
 		ad->maximum_framesize[0] = 2820;
 		ad->maximum_framesize[1] = 2952;
@@ -602,7 +602,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	radicon_taurus->clock_frequency = 30.0e6;
 
-	radicon_taurus->readout_time = ( raw_framesize[1] / 2 )
+	radicon_taurus->readout_time = ( video_framesize[1] / 2 )
 		* radicon_taurus->linetime / radicon_taurus->clock_frequency;
 
 	/*---*/
@@ -702,9 +702,9 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Allocate space for the raw frame. */
+	/* Allocate space for the video frame. */
 
-	mx_status = mx_image_alloc( &(radicon_taurus->raw_frame),
+	mx_status = mx_image_alloc( &(radicon_taurus->video_frame),
 					vinput_framesize[0],
 					vinput_framesize[1],
 					ad->image_format,
@@ -716,9 +716,9 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MXIF_ROW_BINSIZE(radicon_taurus->raw_frame) = 1;
-	MXIF_COLUMN_BINSIZE(radicon_taurus->raw_frame) = 1;
-	MXIF_BITS_PER_PIXEL(radicon_taurus->raw_frame) = ad->bits_per_pixel;
+	MXIF_ROW_BINSIZE(radicon_taurus->video_frame) = 1;
+	MXIF_COLUMN_BINSIZE(radicon_taurus->video_frame) = 1;
+	MXIF_BITS_PER_PIXEL(radicon_taurus->video_frame) = ad->bits_per_pixel;
 
 	/* Zero out the ROI boundaries. */
 
@@ -1521,9 +1521,9 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	if ( radicon_taurus->use_raw_frames ) {
+	if ( radicon_taurus->use_video_frames ) {
 
-		/* If we get here, we will use the raw frames
+		/* If we get here, we will use the video frames
 		 * from the capture card directly.
 		 */
 
@@ -1536,9 +1536,9 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* We generate trimmed frames instead. */
 
-		uint16_t *raw_frame_buffer, *trimmed_frame_buffer;
-		uint16_t *raw_ptr, *trimmed_ptr;
-		long raw_row_framesize, raw_column_framesize;
+		uint16_t *video_frame_buffer, *trimmed_frame_buffer;
+		uint16_t *video_ptr, *trimmed_ptr;
+		long video_row_framesize, video_column_framesize;
 		long trimmed_row_framesize, trimmed_column_framesize;
 		long trimmed_row_bytesize;
 		long trimmed_row, row_offset, column_offset;
@@ -1551,16 +1551,16 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_video_input_get_frame(
 			radicon_taurus->video_input_record,
-			ad->readout_frame, &(radicon_taurus->raw_frame) );
+			ad->readout_frame, &(radicon_taurus->video_frame) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		raw_row_framesize =
-			MXIF_ROW_FRAMESIZE(radicon_taurus->raw_frame);
+		video_row_framesize =
+			MXIF_ROW_FRAMESIZE(radicon_taurus->video_frame);
 
-		raw_column_framesize =
-			MXIF_COLUMN_FRAMESIZE(radicon_taurus->raw_frame);
+		video_column_framesize =
+			MXIF_COLUMN_FRAMESIZE(radicon_taurus->video_frame);
 
 		trimmed_row_framesize    = ad->framesize[0];
 		trimmed_column_framesize = ad->framesize[1];
@@ -1569,12 +1569,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			trimmed_row_framesize * ad->bytes_per_pixel );
 
 		column_offset =
-			(raw_row_framesize - trimmed_row_framesize) / 2;
+		    (video_row_framesize - trimmed_row_framesize) / 2;
 
 		row_offset =
-			(raw_column_framesize - trimmed_column_framesize) / 2;
+		    (video_column_framesize - trimmed_column_framesize) / 2;
 
-		raw_frame_buffer = radicon_taurus->raw_frame->image_data;
+		video_frame_buffer = radicon_taurus->video_frame->image_data;
 
 		trimmed_frame_buffer = ad->image_frame->image_data;
 
@@ -1601,12 +1601,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			flipped_trimmed_row = trimmed_column_framesize
 							- trimmed_row - 1;
 			
-			raw_ptr = raw_frame_buffer
-				+ row_offset * raw_row_framesize
-				+ flipped_trimmed_row * raw_row_framesize
+			video_ptr = video_frame_buffer
+				+ row_offset * video_row_framesize
+				+ flipped_trimmed_row * video_row_framesize
 				+ column_offset;
 
-			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+			memcpy( trimmed_ptr, video_ptr, trimmed_row_bytesize );
 		    }
 		} else {
 		    /* Do _not_ flip the image vertically. */
@@ -1618,28 +1618,28 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 			trimmed_ptr = trimmed_frame_buffer
 				+ trimmed_row * trimmed_row_framesize;
 			
-			raw_ptr = raw_frame_buffer
-				+ row_offset * raw_row_framesize
-				+ trimmed_row * raw_row_framesize
+			video_ptr = video_frame_buffer
+				+ row_offset * video_row_framesize
+				+ trimmed_row * video_row_framesize
 				+ column_offset;
 
-			memcpy( trimmed_ptr, raw_ptr, trimmed_row_bytesize );
+			memcpy( trimmed_ptr, video_ptr, trimmed_row_bytesize );
 		    }
 		}
 
-		/* Copy the exposure time and timestamp from the raw frame. */
+		/* Copy the exposure time and timestamp from the video frame. */
 
 		MXIF_EXPOSURE_TIME_SEC( ad->image_frame )
-			= MXIF_EXPOSURE_TIME_SEC( radicon_taurus->raw_frame );
+			= MXIF_EXPOSURE_TIME_SEC( radicon_taurus->video_frame );
 
 		MXIF_EXPOSURE_TIME_NSEC( ad->image_frame )
-			= MXIF_EXPOSURE_TIME_NSEC( radicon_taurus->raw_frame );
+			= MXIF_EXPOSURE_TIME_NSEC( radicon_taurus->video_frame);
 
 		MXIF_TIMESTAMP_SEC( ad->image_frame )
-			= MXIF_TIMESTAMP_SEC( radicon_taurus->raw_frame );
+			= MXIF_TIMESTAMP_SEC( radicon_taurus->video_frame );
 
 		MXIF_TIMESTAMP_NSEC( ad->image_frame )
-			= MXIF_TIMESTAMP_NSEC( radicon_taurus->raw_frame );
+			= MXIF_TIMESTAMP_NSEC( radicon_taurus->video_frame );
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG
@@ -1952,7 +1952,7 @@ mxd_radicon_taurus_get_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		if ( radicon_taurus->use_raw_frames ) {
+		if ( radicon_taurus->use_video_frames ) {
 			mx_status = mx_video_input_get_framesize(
 				video_input_record,
 				&(ad->framesize[0]),
