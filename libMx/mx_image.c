@@ -1117,8 +1117,11 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 {
 	static const char fname[] = "mx_image_statistics()";
 
-	uint8_t *uint8_array;
-	uint16_t *uint16_array;
+	uint8_t  *uint8_array  = NULL;
+	uint16_t *uint16_array = NULL;
+	int32_t  *int32_array  = NULL;
+	float    *float_array  = NULL;
+	double   *double_array = NULL;
 	unsigned long i, num_pixels, image_format;
 	unsigned long row_framesize, column_framesize;
 	double sum, sum_of_squares, mean, standard_deviation;
@@ -1138,8 +1141,6 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
-	uint8_array = NULL;
-	uint16_array = NULL;
 	pixel = 0.0;
 
 	row_framesize = MXIF_ROW_FRAMESIZE(frame);
@@ -1151,9 +1152,28 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	switch( image_format ) {
 	case MXT_IMAGE_FORMAT_GREY8:
 		uint8_array = frame->image_data;
+
+		first_pixel = uint8_array[0];
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
 		uint16_array = frame->image_data;
+
+		first_pixel = uint16_array[0];
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		int32_array = frame->image_data;
+
+		first_pixel = int32_array[0];
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		float_array = frame->image_data;
+
+		first_pixel = float_array[0];
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		double_array = frame->image_data;
+
+		first_pixel = double_array[0];
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -1162,15 +1182,6 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	}
 
 	/* First compute the mean. */
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_GREY8:
-		first_pixel = uint8_array[0];
-		break;
-	case MXT_IMAGE_FORMAT_GREY16:
-		first_pixel = uint16_array[0];
-		break;
-	}
 
 	sum = 0.0;
 	pixels_are_all_equal = TRUE;
@@ -1185,6 +1196,15 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
 			pixel = uint16_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			pixel = int32_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			pixel = float_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			pixel = double_array[i];
 			break;
 		}
 
@@ -1224,6 +1244,15 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 		case MXT_IMAGE_FORMAT_GREY16:
 			pixel = uint16_array[i];
 			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			pixel = int32_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			pixel = float_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			pixel = double_array[i];
+			break;
 		}
 
 		diff = pixel - mean;
@@ -1247,6 +1276,15 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
 			pixel = uint16_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_INT32:
+			pixel = int32_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			pixel = float_array[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			pixel = double_array[i];
 			break;
 		}
 

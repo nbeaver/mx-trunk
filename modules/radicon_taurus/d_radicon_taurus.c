@@ -30,6 +30,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION			TRUE
 
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -549,6 +551,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->datafile_save_format   = MXT_IMAGE_FILE_SMV;
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
+
+#if 1
+	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
+#endif
 
 	/* The maximum framesize is smaller than the raw frame from the
 	 * video card, since the outermost pixels in the raw image do not 
@@ -1650,6 +1656,12 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_radicon_taurus_correct_frame()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
+	MX_IMAGE_FRAME *dark_current_frame;
+	MX_IMAGE_FRAME *correction_calc_frame;
+	unsigned long flags;
+	unsigned long image_format, correction_format;
+	mx_bool_type correction_measurement_in_progress;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -1658,19 +1670,256 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	flags = ad->correction_flags;
+
 #if MXD_RADICON_TAURUS_DEBUG_CORRECTION
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+	MX_DEBUG(-2,("%s invoked for area detector '%s', flags = %#lx",
 		fname, ad->record->name ));
 #endif
 
-#if 1
+	if ( flags == 0 ) {
+		/* If there is no correction to be done, then just return. */
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION
+		MX_DEBUG(-2,(
+		"%s returning, since no correction is needed for '%s'",
+			fname, ad->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+	    "Area detector '%s' has not yet read out its first image frame.",
+			ad->record->name );
+	}
+
+	correction_measurement_in_progress =
+		ad->correction_measurement_in_progress;
+
+#if 0
 	{
+		/* Test code that bypasses the custom correction code. */
+
 		mx_status = mx_area_detector_default_correct_frame( ad );
+
+		return mx_status;
+	}
+#endif
+	/*--- Find the frame pointers for the image frames to be used. ---*/
+
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
+							MXFT_AD_MASK_FRAME,
+							"mask",
+							&mask_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: mask frame statistics:", fname));
+	mx_image_statistics( mask_frame );
+#endif
+
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
+							MXFT_AD_BIAS_FRAME,
+							"bias",
+							&bias_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: bias frame statistics:", fname));
+	mx_image_statistics( bias_frame );
+#endif
+
+	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
+						MXFT_AD_DARK_CURRENT_FRAME,
+						"dark current",
+						&dark_current_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: dark current frame statistics:", fname));
+	mx_image_statistics( dark_current_frame );
+#endif
+
+	/* FIXME: We load the non-uniformity file here instead
+	 *        of a flood field frame.
+	 */
+
+	/* Area detector image correction is currently only supported
+	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
+	 */
+
+	image_format = MXIF_IMAGE_FORMAT(image_frame);
+
+	if ( image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"the primary image frame is not a 16-bit greyscale image." );
+	}
+
+	if ( ad->correction_calc_format == MXT_IMAGE_FORMAT_DEFAULT ) {
+		ad->correction_calc_format = image_format;
+	}
+
+	/*---*/
+
+	/* If the correction calculation format is not the same as the
+	 * native image format, then we must create an image frame to
+	 * contain the intermediate results of the correction calculation.
+	 */
+
+	if ( image_format == ad->correction_calc_format ) {
+		correction_calc_frame = image_frame;
+	} else {
+		double corr_bytes_per_pixel;
+		size_t corr_image_length;
+		long row_framesize, column_framesize;
+
+		row_framesize    = MXIF_ROW_FRAMESIZE(image_frame);
+		column_framesize = MXIF_COLUMN_FRAMESIZE(image_frame);
+
+		mx_status = mx_image_format_get_bytes_per_pixel(
+					ad->correction_calc_format,
+					&corr_bytes_per_pixel );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		corr_image_length = mx_round( corr_bytes_per_pixel
+			* (double)( row_framesize * column_framesize ) );
+
+		mx_status = mx_image_alloc( &(ad->correction_calc_frame),
+					row_framesize,
+					column_framesize,
+					ad->correction_calc_format,
+					MXIF_BYTE_ORDER(image_frame),
+					corr_bytes_per_pixel,
+					MXIF_HEADER_BYTES(image_frame),
+					corr_image_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_copy_and_convert_image_data(
+					ad->correction_calc_frame, image_frame);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		correction_calc_frame = ad->correction_calc_frame;
+	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: correction_calc_frame before dark",fname));
+	mx_image_statistics(correction_calc_frame);
+#endif
+
+	correction_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
+
+	/*---*/
+
+	mx_status = mx_area_detector_check_correction_framesize( ad,
+					image_frame, mask_frame, "mask" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_check_correction_framesize( ad,
+					image_frame, bias_frame, "bias" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_check_correction_framesize( ad,
+			image_frame, dark_current_frame, "dark current" );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME? Do something to test the nonuniformity file here? */
+
+	/*--- Perform dark correction ---*/
+
+	/* We use the precomputed ad->dark_current_offset_array here. */
+
+	switch( correction_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
+		mx_status = mx_area_detector_u16_precomp_dark_correction( ad,
+							correction_calc_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+		break;
+	case MXT_IMAGE_FORMAT_INT32:
+		mx_status = mx_area_detector_s32_precomp_dark_correction( ad,
+							correction_calc_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		mx_status = mx_area_detector_flt_precomp_dark_correction( ad,
+							correction_calc_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		mx_status = mx_area_detector_dbl_precomp_dark_correction( ad,
+							correction_calc_frame,
+							mask_frame,
+							bias_frame,
+							dark_current_frame );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Dark current correction requested for illegal correction "
+		"calculation frame format %ld  for area detector '%s'.",
+			correction_format, ad->record->name );
+		break;
+	}
+
+	/*--- Perform non-uniformity correction ---*/
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: correction_calc_frame before nonuniformity",fname));
+	mx_image_statistics(correction_calc_frame);
+#endif
+
+	/* FIXME: Not yet implemented. */
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: final correction_calc_frame", fname));
+	mx_image_statistics(correction_calc_frame);
+#endif
+
+	/*--- If needed, convert the data back to the native format ---*/
+
+	if ( correction_calc_frame != image_frame ) {
+		mx_status = mx_area_detector_copy_and_convert_image_data(
+					image_frame, ad->correction_calc_frame);
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: final image_frame", fname));
+	mx_image_statistics(image_frame);
 #endif
+
+	/*--- Write the bias offset to the header. ---*/
+
+	if ( bias_frame == NULL ) {
+		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) = 0;
+	} else {
+		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) =
+			mx_round( 1000.0 * ad->bias_average_intensity );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
