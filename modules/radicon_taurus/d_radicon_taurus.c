@@ -18,7 +18,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232				TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			TRUE
+#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI			FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY		TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_RS232_DELAY			FALSE
 
@@ -28,9 +30,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_EXTENDED_STATUS_WHEN_CHANGED	TRUE
 
-#define MXD_RADICON_TAURUS_DEBUG_CORRECTION			TRUE
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION			FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		TRUE
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -334,7 +336,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+#if 0
 		MX_DEBUG(-2,("%s: non-uniformity file '%s':",
 			fname, radicon_taurus->non_uniformity_filename ));
 		mx_image_statistics( radicon_taurus->non_uniformity_frame );
@@ -1688,75 +1690,49 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 /*----*/
 
 static mx_status_type
-mxp_radicon_taurus_dbl_nonuniformity_correction( MX_AREA_DETECTOR *ad,
-					MX_IMAGE_FRAME *image_frame,
+mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
+					MX_IMAGE_FRAME *correction_calc_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					MX_IMAGE_FRAME *bias_frame,
+					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *non_uniformity_frame )
 {
-	static const char fname[] =
-		"mxp_radicon_taurus_dbl_nonuniformity_correction()";
+	static const char fname[] = "mxp_radicon_taurus_dbl_image_correction()";
 
-	unsigned long i, num_pixels_per_frame, num_non_uniformity_pixels;
+	unsigned long correction_flags;
+	unsigned long i, num_pixels_per_frame;
+	unsigned long num_mask_pixels, num_bias_pixels;
+	unsigned long num_dark_current_pixels, num_non_uniformity_pixels;
 	double *dbl_image_data_array;
 	double image_pixel;
+	uint16_t *u16_mask_data_array;
+	uint16_t *u16_bias_data_array;
+	uint16_t *u16_dark_current_data_array;
 	float *flt_non_uniformity_data_array;
-	double non_uniformity_pixel;
-	long image_format, non_uniformity_format;
+	uint16_t mask_pixel;
+	double bias_pixel, dark_current_pixel, non_uniformity_pixel;
+	long correction_calc_format, mask_format, bias_format;
+	long dark_current_format, non_uniformity_format;
+	double image_exposure_time, dark_current_exposure_time;
+	mx_status_type mx_status;
 
-	if ( image_frame == NULL ) {
+	if ( correction_calc_frame == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The image_frame pointer passed was NULL." );
-	}
-	if ( non_uniformity_frame == NULL ) {
-		mx_warning( "The non_uniformity_frame pointer for "
-		"detector '%s' is NULL.  Skipping this correction.",
-			ad->record->name );
-
-		return MX_SUCCESSFUL_RESULT;
+		"The correction_calc_frame pointer passed was NULL." );
 	}
 
-	/*----*/
+	correction_flags = ad->correction_flags;
 
-	image_format = MXIF_IMAGE_FORMAT(image_frame);
+	correction_calc_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
 
-	if ( image_format != MXT_IMAGE_FORMAT_DOUBLE ) {
+	if ( correction_calc_format != MXT_IMAGE_FORMAT_DOUBLE ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Image correction calculation format %ld is not supported "
 		"by this function for area detector '%s'.",
-			image_format, ad->record->name );
+			correction_calc_format, ad->record->name );
 	}
 
-	non_uniformity_format = MXIF_IMAGE_FORMAT(non_uniformity_frame);
-
-	if ( non_uniformity_format != MXT_IMAGE_FORMAT_FLOAT ) {
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Non-uniformity correction format %ld is not supported "
-		"by this function for area detector '%s'.",
-			non_uniformity_format, ad->record->name );
-	}
-
-	/*----*/
-
-	num_pixels_per_frame = MXIF_ROW_FRAMESIZE(image_frame)
-				* MXIF_COLUMN_FRAMESIZE(image_frame);
-
-	num_non_uniformity_pixels = MXIF_ROW_FRAMESIZE(non_uniformity_frame)
-				* MXIF_COLUMN_FRAMESIZE(non_uniformity_frame);
-
-	if ( num_pixels_per_frame != num_non_uniformity_pixels ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The number of pixels in the image frame (%lu) is not "
-		"the same as the number of pixels in the non-uniformity frame "
-		"(%lu) for area detector '%s'.",
-			num_pixels_per_frame,
-			num_non_uniformity_pixels );
-	}
-
-	MX_DEBUG(-2,("%s: num_pixels_per_frame = %lu",
-		fname, num_pixels_per_frame ));
-
-	/*----*/
-
-	dbl_image_data_array = image_frame->image_data;
+	dbl_image_data_array = correction_calc_frame->image_data;
 
 	if ( dbl_image_data_array == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1764,25 +1740,256 @@ mxp_radicon_taurus_dbl_nonuniformity_correction( MX_AREA_DETECTOR *ad,
 		"is NULL for detector '%s'", ad->record->name );
 	}
 
-	flt_non_uniformity_data_array = non_uniformity_frame->image_data;
+	num_pixels_per_frame = MXIF_ROW_FRAMESIZE(correction_calc_frame)
+				* MXIF_COLUMN_FRAMESIZE(correction_calc_frame);
 
-	if ( flt_non_uniformity_data_array == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The image_data array pointer for the non-uniformity frame "
-		"is NULL for detector '%s'", ad->record->name );
+	/*--- Check that the mask frame is set up correctly ---*/
+
+	if ( correction_flags & MXFT_AD_MASK_FRAME ) {
+
+	    if ( mask_frame == NULL ) {
+		mx_warning( "Mask correction skipped, since no mask frame "
+			"is loaded for detector '%s'.", ad->record->name );
+
+		correction_flags |= (~MXFT_AD_MASK_FRAME);
+	    } else {
+	    	mask_format = MXIF_IMAGE_FORMAT(mask_frame);
+
+		if ( mask_format != MXT_IMAGE_FORMAT_GREY16 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Mask correction format %ld is not supported "
+			"by this function for area detector '%s'.",
+				mask_format, ad->record->name );
+		} else {
+		    num_mask_pixels = MXIF_ROW_FRAMESIZE(mask_frame)
+				* MXIF_COLUMN_FRAMESIZE(mask_frame);
+
+		    if ( num_pixels_per_frame != num_mask_pixels ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of pixels in the image frame (%lu) is not "
+			"the same as the number of pixels in the mask frame "
+			"(%lu) for area detector '%s'.",
+				num_pixels_per_frame, num_mask_pixels );
+		    } else {
+			u16_mask_data_array = mask_frame->image_data;
+
+			if ( u16_mask_data_array == NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The image_data pointer for the mask frame "
+				"is NULL for detector '%s'.", ad->record->name);
+			}
+		    }
+		}
+	    }
+	}
+
+	/*--- Check that the bias frame is set up correctly ---*/
+
+	if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
+
+	    if ( bias_frame == NULL ) {
+		mx_warning( "Bias correction skipped, since no bias frame "
+			"is loaded for detector '%s'.", ad->record->name );
+
+		correction_flags |= (~MXFT_AD_BIAS_FRAME);
+	    } else {
+	    	bias_format = MXIF_IMAGE_FORMAT(bias_frame);
+
+		if ( bias_format != MXT_IMAGE_FORMAT_GREY16 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Bias correction format %ld is not supported "
+			"by this function for area detector '%s'.",
+				bias_format, ad->record->name );
+		} else {
+		    num_bias_pixels = MXIF_ROW_FRAMESIZE(bias_frame)
+				* MXIF_COLUMN_FRAMESIZE(bias_frame);
+
+		    if ( num_pixels_per_frame != num_bias_pixels ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of pixels in the image frame (%lu) is not "
+			"the same as the number of pixels in the bias frame "
+			"(%lu) for area detector '%s'.",
+				num_pixels_per_frame, num_bias_pixels );
+		    } else {
+			u16_bias_data_array = bias_frame->image_data;
+
+			if ( u16_bias_data_array == NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The image_data pointer for the bias frame "
+				"is NULL for detector '%s'.", ad->record->name);
+			}
+		    }
+		}
+	    }
+	}
+
+	/*--- Check that the dark current frame is set up correctly ---*/
+
+	if ( correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) {
+
+	    if ( dark_current_frame == NULL ) {
+		mx_warning( "Dark current correction skipped, since "
+			"no dark current frame is loaded for detector '%s'.",
+			ad->record->name );
+
+		correction_flags |= (~MXFT_AD_DARK_CURRENT_FRAME);
+	    } else {
+		/* Abort if the image frame was taken for a different
+		 * exposure time than the dark current frame.
+		 */
+
+		mx_status = mx_image_get_exposure_time( correction_calc_frame,
+							&image_exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_exposure_time( dark_current_frame,
+						&dark_current_exposure_time );
+
+		if ( mx_difference( image_exposure_time,
+				dark_current_exposure_time ) > 0.001 )
+		{
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The image frame for detector '%s' was taken for "
+			"a different exposure time (%g seconds) than the "
+			"exposure time for the dark current image "
+			"(%g seconds).", ad->record->name,
+				image_exposure_time,
+				dark_current_exposure_time );
+		}
+
+		/*---*/
+
+	    	dark_current_format = MXIF_IMAGE_FORMAT(dark_current_frame);
+
+		if ( dark_current_format != MXT_IMAGE_FORMAT_GREY16 ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Dark current correction format %ld is not supported "
+			"by this function for area detector '%s'.",
+				dark_current_format, ad->record->name );
+		} else {
+		    num_dark_current_pixels =
+				MXIF_ROW_FRAMESIZE(dark_current_frame)
+				* MXIF_COLUMN_FRAMESIZE(dark_current_frame);
+
+		    if ( num_pixels_per_frame != num_dark_current_pixels ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of pixels in the image frame (%lu) "
+			"is not " "the same as the number of pixels in "
+			"the dark current frame (%lu) for area detector '%s'.",
+				num_pixels_per_frame, num_dark_current_pixels );
+		    } else {
+			u16_dark_current_data_array =
+					dark_current_frame->image_data;
+
+			if ( u16_dark_current_data_array == NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The image_data pointer for the dark current "
+				"frame is NULL for detector '%s'.",
+				ad->record->name);
+			}
+		    }
+		}
+	    }
+	}
+
+	/*--- Check that the non uniformity frame is set up correctly ---*/
+
+	if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+
+	    if ( non_uniformity_frame == NULL ) {
+		mx_warning( "Non-uniformity correction skipped, since "
+			"no non-uniformity frame is loaded for detector '%s'.",
+			ad->record->name );
+
+		correction_flags |= (~MXFT_AD_FLOOD_FIELD_FRAME);
+	    } else {
+	    	non_uniformity_format = MXIF_IMAGE_FORMAT(non_uniformity_frame);
+
+		if ( non_uniformity_format != MXT_IMAGE_FORMAT_FLOAT ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Non-uniformity correction format %ld is not supported "
+			"by this function for area detector '%s'.",
+				non_uniformity_format, ad->record->name );
+		} else {
+		    num_non_uniformity_pixels =
+				MXIF_ROW_FRAMESIZE(non_uniformity_frame)
+				* MXIF_COLUMN_FRAMESIZE(non_uniformity_frame);
+
+		    if ( num_pixels_per_frame != num_non_uniformity_pixels ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The number of pixels in the image frame (%lu) "
+			"is not " "the same as the number of pixels in "
+			"the dark current frame (%lu) for area detector '%s'.",
+			    num_pixels_per_frame, num_non_uniformity_pixels );
+		    } else {
+			flt_non_uniformity_data_array =
+					non_uniformity_frame->image_data;
+
+			if ( flt_non_uniformity_data_array == NULL ) {
+			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The image_data pointer for the dark current "
+				"frame is NULL for detector '%s'.",
+				ad->record->name);
+			}
+		    }
+		}
+	    }
+	}
+
+	/* If no dark current correction is supposed to be performed, then
+	 * turn of the bias offset.
+	 */
+
+	if ( (correction_flags & MXFT_AD_DARK_CURRENT_FRAME) == 0 ) {
+		correction_flags &= (~MXFT_AD_BIAS_FRAME);
 	}
 
 	/*----*/
 
-	/* Loop over all of the pixels. */
+	/* Loop over all of the pixels and apply the requested corrections. */
 
 	for ( i = 0; i < num_pixels_per_frame; i++ ) {
 
 		image_pixel = dbl_image_data_array[i];
 
-		non_uniformity_pixel = flt_non_uniformity_data_array[i];
+		if ( correction_flags & MXFT_AD_MASK_FRAME ) {
+			mask_pixel = u16_mask_data_array[i];
 
-		image_pixel *= ( non_uniformity_pixel / 10000.0 );
+			if ( mask_pixel == 0 ) {
+				/* If this pixel is masked off, then set
+				 * the pixel value to 0 and skip the rest
+				 * of this pass through the loop.
+				 */
+
+				dbl_image_data_array[i] = 0.0;
+				continue;  /* Go back to the top of the loop. */
+			}
+		}
+
+		if ( correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) {
+			dark_current_pixel = u16_dark_current_data_array[i];
+
+			image_pixel = image_pixel - dark_current_pixel;
+		}
+
+		if ( correction_flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
+			non_uniformity_pixel = flt_non_uniformity_data_array[i];
+
+			image_pixel = image_pixel
+				* ( non_uniformity_pixel / 10000.0 );
+		}
+
+		if ( correction_flags & MXFT_AD_BIAS_FRAME ) {
+			bias_pixel = u16_bias_data_array[i];
+
+			image_pixel = image_pixel + bias_pixel;
+		}
+
+		if ( image_pixel > 14000.0 ) {
+			image_pixel = 65535.0;
+		}
 
 		dbl_image_data_array[i] = image_pixel;
 	}
@@ -1799,7 +2006,7 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
 	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
-	MX_IMAGE_FRAME *dark_current_frame;
+	MX_IMAGE_FRAME *dark_current_frame, *non_uniformity_frame;
 	MX_IMAGE_FRAME *correction_calc_frame;
 	unsigned long flags;
 	unsigned long image_format, correction_format;
@@ -1843,60 +2050,15 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_image_statistics( image_frame );
 #endif
 
-	correction_measurement_in_progress =
-		ad->correction_measurement_in_progress;
-
 #if 0
 	{
-		/* Test code that bypasses the custom correction code. */
+		/* Uncomment this to bypass the custom correction code. */
 
 		mx_status = mx_area_detector_default_correct_frame( ad );
 
 		return mx_status;
 	}
 #endif
-	/*--- Find the frame pointers for the image frames to be used. ---*/
-
-	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
-							MXFT_AD_MASK_FRAME,
-							"mask",
-							&mask_frame );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
-	MX_DEBUG(-2,("%s: mask frame statistics:", fname));
-	mx_image_statistics( mask_frame );
-#endif
-
-	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
-							MXFT_AD_BIAS_FRAME,
-							"bias",
-							&bias_frame );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
-	MX_DEBUG(-2,("%s: bias frame statistics:", fname));
-	mx_image_statistics( bias_frame );
-#endif
-
-	mx_status = mx_area_detector_get_correction_frame( ad, image_frame,
-						MXFT_AD_DARK_CURRENT_FRAME,
-						"dark current",
-						&dark_current_frame );
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
-	MX_DEBUG(-2,("%s: dark current frame statistics:", fname));
-	mx_image_statistics( dark_current_frame );
-#endif
-
-	/* FIXME: We load the non-uniformity file here instead
-	 *        of a flood field frame.
-	 */
-
 	/* Area detector image correction is currently only supported
 	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
 	 */
@@ -1907,6 +2069,57 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"the primary image frame is not a 16-bit greyscale image." );
 	}
+
+	/*--- Find the frame pointers for the image frames to be used. ---*/
+
+	mask_frame = ad->mask_frame;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: mask frame statistics:", fname));
+	if ( mask_frame == NULL ) {
+		MX_DEBUG(-2,("%s:    No mask frame loaded.", fname));
+	} else {
+		mx_image_statistics( mask_frame );
+	}
+#endif
+
+	bias_frame = ad->bias_frame;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: bias frame statistics:", fname));
+	if ( bias_frame == NULL ) {
+		MX_DEBUG(-2,("%s:    No bias frame loaded.", fname));
+	} else {
+		mx_image_statistics( bias_frame );
+	}
+#endif
+
+	dark_current_frame = ad->dark_current_frame;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: dark current frame statistics:", fname));
+	if ( dark_current_frame == NULL ) {
+		MX_DEBUG(-2,("%s:    No dark current frame loaded.", fname));
+	} else {
+		mx_image_statistics( dark_current_frame );
+	}
+#endif
+
+	non_uniformity_frame = radicon_taurus->non_uniformity_frame;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
+	MX_DEBUG(-2,("%s: non-uniformity frame statistics:", fname));
+	if ( non_uniformity_frame == NULL ) {
+		MX_DEBUG(-2,("%s:    No non-uniformity frame loaded.", fname));
+	} else {
+		mx_image_statistics( non_uniformity_frame );
+	}
+#endif
+
+	/*---*/
+
+	correction_measurement_in_progress =
+		ad->correction_measurement_in_progress;
 
 	if ( ad->correction_calc_format == MXT_IMAGE_FORMAT_DEFAULT ) {
 		ad->correction_calc_format = image_format;
@@ -1961,100 +2174,29 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
-	MX_DEBUG(-2,("%s: correction_calc_frame before dark",fname));
+	MX_DEBUG(-2,
+		("%s: correction_calc_frame before image correction",fname));
 	mx_image_statistics(correction_calc_frame);
 #endif
 
 	correction_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
 
-	/*---*/
-
-	mx_status = mx_area_detector_check_correction_framesize( ad,
-					image_frame, mask_frame, "mask" );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_check_correction_framesize( ad,
-					image_frame, bias_frame, "bias" );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_check_correction_framesize( ad,
-			image_frame, dark_current_frame, "dark current" );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* FIXME? Do something to test the nonuniformity file here? */
-
-	/*--- Perform dark correction ---*/
-
-	if ( flags & MXFT_AD_DARK_CURRENT_FRAME ) {
-	    /* We use the precomputed ad->dark_current_offset_array here. */
-
-	    switch( correction_format ) {
-	    case MXT_IMAGE_FORMAT_GREY16:
-		mx_status = mx_area_detector_u16_precomp_dark_correction( ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
-		break;
-	    case MXT_IMAGE_FORMAT_INT32:
-		mx_status = mx_area_detector_s32_precomp_dark_correction( ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
-		break;
-	    case MXT_IMAGE_FORMAT_FLOAT:
-		mx_status = mx_area_detector_flt_precomp_dark_correction( ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
-		break;
-	    case MXT_IMAGE_FORMAT_DOUBLE:
-		mx_status = mx_area_detector_dbl_precomp_dark_correction( ad,
-							correction_calc_frame,
-							mask_frame,
-							bias_frame,
-							dark_current_frame );
-		break;
-	    default:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Dark current correction requested for illegal correction "
-		"calculation frame format %ld  for area detector '%s'.",
-			correction_format, ad->record->name );
-		break;
-	    }
-	}
-
-	/*--- Perform non-uniformity correction ---*/
-
-#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
-	MX_DEBUG(-2,("%s: correction_calc_frame before nonuniformity",fname));
-	mx_image_statistics(correction_calc_frame);
-#endif
-
-	if ( flags & MXFT_AD_FLOOD_FIELD_FRAME ) {
-	    switch( correction_format ) {
-	    case MXT_IMAGE_FORMAT_DOUBLE:
-		mx_status = mxp_radicon_taurus_dbl_nonuniformity_correction( ad,
+	switch( correction_format ) {
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		mx_status = mxp_radicon_taurus_dbl_image_correction( ad,
 					correction_calc_frame,
-					radicon_taurus->non_uniformity_frame );
+					mask_frame,
+					bias_frame,
+					dark_current_frame,
+					non_uniformity_frame );
 		break;
 	    default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Support for correction format %ld using non-uniformity "
-		"file '%s' for detector '%s' is not yet implemented.",
+		"Support for image correction using correction format %ld "
+		"for detector '%s' is not yet implemented.",
 			correction_format,
-			radicon_taurus->non_uniformity_filename,
 			ad->record->name );
 		break;
-	    }
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
@@ -2365,6 +2507,11 @@ mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad )
 
 	radicon_taurus->sro_mode = mx_string_to_unsigned_long( response_ptr );
 
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
+	MX_DEBUG(-2,("%s: SRO value read = %lu",
+		fname, radicon_taurus->sro_mode));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2390,6 +2537,10 @@ mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 	new_sro_mode = radicon_taurus->sro_mode;
+
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
+	MX_DEBUG(-2,("%s: New SRO value = %lu", fname, new_sro_mode));
+#endif
 
 	/* If our caller has asked for an illegal SRO mode, then
 	 * we must send back an error.
@@ -2582,7 +2733,7 @@ mxd_radicon_taurus_get_si_register( MX_AREA_DETECTOR *ad, long si_type )
 		break;
 	}
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
 	MX_DEBUG(-2,("%s: SI value read = %" PRIu64,
 		fname, new_si_value));
 #endif
@@ -2626,7 +2777,7 @@ mxd_radicon_taurus_set_si_register( MX_AREA_DETECTOR *ad, long si_type )
 		break;
 	}
 
-#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI
+#if MXD_RADICON_TAURUS_DEBUG_RS232_SRO_SI_SUMMARY
 	MX_DEBUG(-2,("%s: New SI value = %" PRIu64,
 		fname, new_si_value));
 #endif
