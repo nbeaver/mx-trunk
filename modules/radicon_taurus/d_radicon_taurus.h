@@ -189,7 +189,15 @@ typedef struct {
   \
   {-1, -1, "flip_image", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, flip_image), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "raw_file_directory", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_directory), \
+	{sizeof(char)}, NULL, 0 }, \
+  \
+  {-1, -1, "raw_file_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, raw_file_name), \
+	{sizeof(char)}, NULL, MXFF_READ_ONLY}
 
 MX_API mx_status_type mxd_radicon_taurus_initialize_driver(
 							MX_DRIVER *driver );

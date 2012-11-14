@@ -1586,6 +1586,14 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info;
 	long frame_number;
+	char filename_temp[MXU_FILENAME_LENGTH+1];
+	char raw_image_pathname[MXU_FILENAME_LENGTH+1];
+	unsigned long next_datafile_number;
+	char format_string[20];
+	char next_datafile_number_as_string[20];
+	char *datafile_pattern_copy, *ptr;
+	int num_hash_marks;
+	mx_status_type mx_status;
 
 	frame_number = ad->readout_frame;
 
@@ -1608,8 +1616,95 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* Copy the existing datafile pattern to a temporary filename
+	 * buffer and then replace the # marks with the next datafile
+	 * number.
+	 */
+
+	datafile_pattern_copy = strdup( ad->datafile_pattern );
+
+	if ( datafile_pattern_copy == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to make a copy of the detector "
+		"datafile pattern." );
+	}
+
+	ptr = strchr( datafile_pattern_copy, '#' );
+
+	if ( ptr == NULL ) {
+		strlcpy( filename_temp,
+			datafile_pattern_copy,
+			sizeof(filename_temp) );
+	} else {
+		/* Find out how many hash marks there are.  We will need
+		 * this to format the numerical part of the filename.
+		 */
+
+		num_hash_marks = strspn( ptr, "#" );
+
+		/* Null terminate the pre-# part of the datafile pattern. */
+
+		*ptr = '\0';
+
+		strlcpy( filename_temp,
+			datafile_pattern_copy,
+			sizeof(filename_temp) );
+
+		/* Construct the next datafile number as a string. */
+
+		snprintf( format_string, sizeof(format_string),
+			"%%0%dlu", num_hash_marks );
+
+		next_datafile_number = ad->datafile_number + 1;
+
+		snprintf( next_datafile_number_as_string,
+			sizeof(next_datafile_number_as_string),
+			format_string, next_datafile_number );
+
+		strlcat( filename_temp,
+			next_datafile_number_as_string,
+			sizeof(filename_temp) );
+
+		ptr += num_hash_marks;
+
+		strlcat( filename_temp, ptr, sizeof(filename_temp) );
+	}
+
+	mx_free( datafile_pattern_copy );
+
+	/* See if there is a filename extension in the name.  If there is,
+	 * replace it with .raw.  Otherwise, just append .raw to the end
+	 * of the name.
+	 */
+
+	ptr = strrchr( filename_temp, '.' );
+
+	if ( ptr != NULL ) {
+		*ptr = '\0';
+	}
+
+	strlcat( filename_temp, ".raw", sizeof(filename_temp) );
+
+	snprintf( raw_image_pathname, sizeof(raw_image_pathname),
+		"%s/%s",
+		radicon_taurus->raw_file_directory,
+		filename_temp );
+
+	strlcpy( radicon_taurus->raw_file_name, filename_temp,
+		sizeof(radicon_taurus->raw_file_name) );
+
+	/* Now write the raw file (with a header!). */
+		
+	mx_status = mx_image_write_file( ad->image_frame,
+					ad->datafile_save_format,
+					raw_image_pathname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
-	MX_DEBUG(-2,("%s: frame will be saved.", fname));
+	MX_DEBUG(-2,("%s: frame was saved to '%s'.",
+		fname, raw_image_pathname));
 #endif
 
 	buffer_info->raw_frame_is_saved = TRUE;
