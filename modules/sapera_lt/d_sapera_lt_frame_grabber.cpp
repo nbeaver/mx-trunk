@@ -296,15 +296,6 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 				record->name );
 
 		(void) mx_video_input_abort( record );
-
-		/* Clear out the 'frame_buffer_is_unsaved' array, so that
-		 * its contents will not confuse the software later.
-		 *
-		 * FIXME: Is this the right thing to do?
-		 */
-
-		memset( sapera_lt_frame_grabber->frame_buffer_is_unsaved,
-			0, sapera_lt_frame_grabber->num_frame_buffers );
 	}
 
 	return;
@@ -939,6 +930,9 @@ mxd_sapera_lt_frame_grabber_open( MX_RECORD *record )
 			record->name );
 	}
 
+	vinput->num_capture_buffers =
+		sapera_lt_frame_grabber->num_frame_buffers;
+
 	/* Create an array of 'struct timespec' structures to hold the
 	 * wall clock time when each frame was acquired.
 	 */
@@ -1274,6 +1268,11 @@ mxd_sapera_lt_frame_grabber_arm( MX_VIDEO_INPUT *vinput )
 	/* Clear the buffer overrun flag. */
 
 	sapera_lt_frame_grabber->buffer_overrun_occurred = FALSE;
+
+	/* Clear out the frame_buffer_is_unsaved array. */
+
+	memset( sapera_lt_frame_grabber->frame_buffer_is_unsaved, 0,
+	    sapera_lt_frame_grabber->num_frame_buffers * sizeof(mx_bool_type) );
 
 	/* Clear any existing frame data in the SapBuffer object. */
 

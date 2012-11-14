@@ -120,6 +120,14 @@ typedef struct {
 
 	mx_bool_type check_for_buffer_overrun;
 
+	/* 'num_capture_buffers' is intended to be used by area detector
+	 * drivers that are recording things tied to individual detector
+	 * frames.  This quantity is read only.  Only the video input
+	 * driver itself can modify it.
+	 */
+
+	unsigned long num_capture_buffers;
+
 } MX_VIDEO_INPUT;
 
 #define MXLV_VIN_FRAMESIZE			11001
@@ -153,6 +161,7 @@ typedef struct {
 #define MXLV_VIN_FRAME_BUFFER			11029
 #define MXLV_VIN_MARK_FRAME_AS_SAVED		11030
 #define MXLV_VIN_CHECK_FOR_BUFFER_OVERRUN	11031
+#define MXLV_VIN_NUM_CAPTURE_BUFFERS		11032
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -297,7 +306,12 @@ typedef struct {
 						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_VIDEO_INPUT, check_for_buffer_overrun), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_NUM_CAPTURE_BUFFERS, -1, "num_capture_buffers", \
+						MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, num_capture_buffers), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 typedef struct {
 	mx_status_type ( *arm ) ( MX_VIDEO_INPUT *vinput );
@@ -449,8 +463,12 @@ MX_API mx_status_type mx_video_input_mark_frame_as_saved( MX_RECORD *record,
 							long frame_number );
 
 MX_API mx_status_type mx_video_input_check_for_buffer_overrun(
-						MX_RECORD *record,
-						mx_bool_type enable );
+					MX_RECORD *record,
+					mx_bool_type enable );
+
+MX_API mx_status_type mx_video_input_get_num_capture_buffers(
+					MX_RECORD *record,
+					unsigned long *num_capture_buffers );
 
 /*---*/
 

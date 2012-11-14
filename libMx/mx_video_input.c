@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-2007, 2009, 2011 Illinois Institute of Technology
+ * Copyright 2006-2007, 2009, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -102,6 +102,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	vinput->status = 0;
 	vinput->extended_status[0] = '\0';
 	vinput->check_for_buffer_overrun = FALSE;
+	vinput->num_capture_buffers = 1;
 
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
@@ -1495,6 +1496,45 @@ mx_video_input_check_for_buffer_overrun( MX_RECORD *record,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mx_video_input_get_num_capture_buffers( MX_RECORD *record,
+					unsigned long *num_capture_buffers )
+{
+	static const char fname[] = "mx_video_input_get_num_capture_buffers()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers( record,
+						&vinput, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_NUM_CAPTURE_BUFFERS;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_capture_buffers != (unsigned long *) NULL ) {
+		*num_capture_buffers = vinput->num_capture_buffers;
+	}
+
+	return mx_status;
+}
+
+/*-----------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
 mx_video_input_get_frame( MX_RECORD *record,
 			long frame_number,
 			MX_IMAGE_FRAME **frame )
@@ -1635,6 +1675,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_VIN_TRIGGER_MODE:
+	case MXLV_VIN_NUM_CAPTURE_BUFFERS:
 
 		/* We just return the value that is already in the 
 		 * data structure.

@@ -34,6 +34,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		FALSE
 
+#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -228,6 +230,7 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
 	/* If a pulse generator record name has been specified in the 
 	 * record description, then try to get a pointer to that record.
 	 */
@@ -564,14 +567,14 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Turn off vertical flipping of the image by default. */
+	/* Turn on vertical flipping of the image by default. */
 
 	flags = radicon_taurus->radicon_taurus_flags;
 
-	if ( flags & MXF_RADICON_TAURUS_FLIP_IMAGE ) {
-		radicon_taurus->flip_image = TRUE;
-	} else {
+	if ( flags & MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE ) {
 		radicon_taurus->flip_image = FALSE;
+	} else {
+		radicon_taurus->flip_image = TRUE;
 	}
 
 	/*---*/
@@ -726,6 +729,36 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* buffer_info_array is used to contain frame-specific information
+	 * for each frame in the most recently started imaging sequence.
+	 */
+
+	mx_status = mx_video_input_get_num_capture_buffers(
+					video_input_record,
+					&(radicon_taurus->num_capture_buffers));
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: '%s' num_capture_buffers = %lu",
+		fname, video_input_record->name,
+		radicon_taurus->num_capture_buffers));
+#endif
+
+	radicon_taurus->buffer_info_array = (MX_RADICON_TAURUS_BUFFER_INFO *)
+		calloc( radicon_taurus->num_capture_buffers,
+			sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+
+	if ( radicon_taurus->buffer_info_array ==
+		(MX_RADICON_TAURUS_BUFFER_INFO *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of MX_RADICON_TAURUS_BUFFER_INFO structures.",
+			radicon_taurus->num_capture_buffers );
+	}
 
 	/* raw_frame is used to contain the data returned by
 	 * the video capture card, so raw_frame must have the
@@ -1014,6 +1047,12 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Zero out the contents of the Taurus buffer_info_array. */
+
+	memset( radicon_taurus->buffer_info_array, 0,
+		radicon_taurus->num_capture_buffers
+			  * sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
 
         /*****************************************************************
 	 * If the bypass_arm flag is set, we just tell the video capture *
@@ -1539,12 +1578,52 @@ mxd_radicon_taurus_get_extended_status( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
+				MX_RADICON_TAURUS *radicon_taurus )
+{
+	static const char fname[] = "mxp_radicon_taurus_save_raw_image()";
+
+	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info;
+	long frame_number;
+
+	frame_number = ad->readout_frame;
+
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
+	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld",
+		fname, ad->record->name, frame_number));
+#endif
+
+	buffer_info = &(radicon_taurus->buffer_info_array[ frame_number ]);
+
+	if ( buffer_info->raw_frame_is_saved ) {
+
+		/* If this frame has alreay been saved, then we do not
+		 * need to do it again.
+		 */
+
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
+		MX_DEBUG(-2,("%s: frame already saved.", fname));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
+	MX_DEBUG(-2,("%s: frame will be saved.", fname));
+#endif
+
+	buffer_info->raw_frame_is_saved = TRUE;
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_radicon_taurus_readout_frame()";
 
 	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
@@ -1677,6 +1756,14 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		MXIF_TIMESTAMP_NSEC( ad->image_frame )
 			= MXIF_TIMESTAMP_NSEC( radicon_taurus->video_frame );
+	}
+
+	flags = radicon_taurus->radicon_taurus_flags;
+
+	if ( flags & MXF_RADICON_TAURUS_SAVE_RAW_IMAGES ) {
+
+		mx_status = mxp_radicon_taurus_save_raw_image( ad,
+							radicon_taurus );
 	}
 
 #if MXD_RADICON_TAURUS_DEBUG

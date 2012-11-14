@@ -19,7 +19,8 @@
 
 /* Values for the 'radicon_taurus_flags' field. */
 
-#define MXF_RADICON_TAURUS_FLIP_IMAGE	0x1
+#define MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE	0x1
+#define MXF_RADICON_TAURUS_SAVE_RAW_IMAGES	0x2
 
 /* Values for the 'detector_model' field. */
 
@@ -31,6 +32,10 @@
 #define MXF_RADICON_TAURUS_MINIMUM_EXPOSURE_TIME	4
 
 #define MXF_RADICON_TAURUS_CLOCK_FREQUENCY_IN_HZ	(30.0e6)
+
+typedef struct {
+	mx_bool_type raw_frame_is_saved;
+} MX_RADICON_TAURUS_BUFFER_INFO;
 
 typedef struct {
 	MX_RECORD *record;
@@ -74,6 +79,12 @@ typedef struct {
 	MX_CLOCK_TICK next_serial_command_tick;
 
 	MX_IMAGE_FRAME *non_uniformity_frame;
+
+	char raw_file_directory[MXU_FILENAME_LENGTH+1];
+	char raw_file_name[MXU_FILENAME_LENGTH+1];
+
+	unsigned long num_capture_buffers;
+	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info_array;
 
 } MX_RADICON_TAURUS;
 
