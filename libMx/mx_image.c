@@ -4280,10 +4280,10 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		 * it to the header as an integer.
 		 */
 
-		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%lu\n",
+		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%lu;\n",
 					bias_offset_milli_adus / 1000 ) );
 	} else {
-		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%f\n",
+		MXP_SMV_CHECK_FPRINTF( fprintf( file, "ZEROOFFSET=%f;\n",
 			((double) bias_offset_milli_adus) / 1000.0 ) );
 	}
 
