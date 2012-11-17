@@ -3811,7 +3811,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld was requested for "
-		"SMV data file '%s'.", datafile_name );
+		"SMV data file '%s'.",
+			image_format, datafile_name );
 		break;
 	}
 
