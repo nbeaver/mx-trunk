@@ -1087,9 +1087,6 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		ad->image_frame->application_ptr =
-			radicon_taurus->image_noir_info;
 	}
 
         /*****************************************************************
@@ -1890,6 +1887,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		MXIF_TIMESTAMP_NSEC( ad->image_frame )
 			= MXIF_TIMESTAMP_NSEC( radicon_taurus->video_frame );
 	}
+
+	ad->image_frame->application_ptr = radicon_taurus->image_noir_info;
+
+	/*---*/
 
 	flags = radicon_taurus->radicon_taurus_flags;
 

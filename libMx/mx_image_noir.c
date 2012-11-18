@@ -57,8 +57,6 @@ mx_image_noir_setup( MX_RECORD *record_list,
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
-	mx_breakpoint();
-
 	if ( record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The record_list pointer passed was NULL." );
@@ -200,7 +198,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	/* Look for the 'wavelength' record. */
 
 	image_noir_info->wavelength_motor_record =
-			mx_get_record( record_list, argv[0] );
+			mx_get_record( record_list, argv[1] );
 
 	if ( image_noir_info->wavelength_motor_record == (MX_RECORD *) NULL ) {
 		mx_free( duplicate );
@@ -208,7 +206,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"The record name '%s' specified by '%s' was not found.",
-			argv[0], image_noir_string_record->name );
+			argv[1], image_noir_string_record->name );
 	}
 
 	if ( image_noir_info->wavelength_motor_record->mx_class != MXC_MOTOR ) {
@@ -217,13 +215,13 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The record '%s' specified by '%s' is not a motor record.",
-			argv[0], image_noir_string_record->name );
+			argv[1], image_noir_string_record->name );
 	}
 
 	/* Look for the 'beam_x' record. */
 
 	image_noir_info->beam_x_motor_record =
-			mx_get_record( record_list, argv[0] );
+			mx_get_record( record_list, argv[2] );
 
 	if ( image_noir_info->beam_x_motor_record == (MX_RECORD *) NULL ) {
 		mx_free( duplicate );
@@ -231,7 +229,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"The record name '%s' specified by '%s' was not found.",
-			argv[0], image_noir_string_record->name );
+			argv[2], image_noir_string_record->name );
 	}
 
 	if ( image_noir_info->beam_x_motor_record->mx_class != MXC_MOTOR ) {
@@ -240,13 +238,13 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The record '%s' specified by '%s' is not a motor record.",
-			argv[0], image_noir_string_record->name );
+			argv[2], image_noir_string_record->name );
 	}
 
 	/* Look for the 'beam_y' record. */
 
 	image_noir_info->beam_y_motor_record =
-			mx_get_record( record_list, argv[0] );
+			mx_get_record( record_list, argv[3] );
 
 	if ( image_noir_info->beam_y_motor_record == (MX_RECORD *) NULL ) {
 		mx_free( duplicate );
@@ -254,7 +252,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"The record name '%s' specified by '%s' was not found.",
-			argv[0], image_noir_string_record->name );
+			argv[3], image_noir_string_record->name );
 	}
 
 	if ( image_noir_info->beam_y_motor_record->mx_class != MXC_MOTOR ) {
@@ -263,13 +261,13 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The record '%s' specified by '%s' is not a motor record.",
-			argv[0], image_noir_string_record->name );
+			argv[3], image_noir_string_record->name );
 	}
 
 	/* Look for the 'oscillation_distance' record. */
 
 	image_noir_info->oscillation_distance_record =
-			mx_get_record( record_list, argv[0] );
+			mx_get_record( record_list, argv[4] );
 
 	if ( image_noir_info->oscillation_distance_record
 			== (MX_RECORD *) NULL )
@@ -279,18 +277,18 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 		return mx_error( MXE_NOT_FOUND, fname,
 		"The record name '%s' specified by '%s' was not found.",
-			argv[0], image_noir_string_record->name );
+			argv[4], image_noir_string_record->name );
 	}
 
 	if ( image_noir_info->oscillation_distance_record->mx_superclass
-			!= MXC_MOTOR )
+			!= MXR_VARIABLE )
 	{
 		mx_free( duplicate );
 		mx_free( argv );
 
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The record '%s' specified by '%s' is not a variable record.",
-			argv[0], image_noir_string_record->name );
+			argv[4], image_noir_string_record->name );
 	}
 
 	mx_free( duplicate );
@@ -336,8 +334,6 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	size_t noir_header_file_size;
 	size_t bytes_read;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 	/* See if we need to update the contents of the static header. */
 
@@ -480,8 +476,6 @@ mx_image_noir_write_header( FILE *file,
 	static const char fname[] = "mx_image_noir_write_header()";
 
 	int fputs_status, saved_errno;
-
-	mx_breakpoint();
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

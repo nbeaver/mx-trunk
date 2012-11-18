@@ -3384,6 +3384,7 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 
 /* FIXME: The following is inefficient and overly simplistic. */
 
+#if 0
 static mx_status_type
 mxp_write_noir_static_header( FILE * header_file )
 {
@@ -3431,6 +3432,7 @@ mxp_write_noir_static_header( FILE * header_file )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 /*----*/
 
