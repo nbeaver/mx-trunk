@@ -50,6 +50,7 @@
 #include "mx_cfn.h"
 #include "mx_io.h"
 #include "mx_image.h"
+#include "mx_image_noir.h"
 
 typedef struct {
 	int num_source_bytes;
@@ -4298,7 +4299,13 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		MX_DEBUG(-2,("%s: Before write noir, num fds = %d",
 			fname, mx_get_number_of_open_file_descriptors() ));
 #endif
+
+#if 0
 		mx_status = mxp_write_noir_static_header( file );
+#else
+		mx_status = mx_image_noir_write_header( file,
+						frame->application_ptr );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fclose( file );

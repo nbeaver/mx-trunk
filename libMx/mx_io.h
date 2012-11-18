@@ -17,6 +17,12 @@
 #ifndef _MX_IO_H_
 #define _MX_IO_H_
 
+/* Make the header file C++ safe. */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mx_socket.h"
 
 /* mx_fd_num_input_bytes_available() tells us how many bytes can be read
@@ -58,6 +64,10 @@ MX_API mx_status_type mx_create_file_monitor( MX_FILE_MONITOR **ptr_address,
 MX_API mx_status_type mx_delete_file_monitor( MX_FILE_MONITOR *file_monitor );
 
 MX_API mx_bool_type mx_file_has_changed( MX_FILE_MONITOR *file_monitor );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MX_IO_H_ */
 

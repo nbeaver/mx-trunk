@@ -181,6 +181,8 @@ typedef struct {
 	size_t image_length;
 	void *image_data;
 
+	void *application_ptr;
+
 } MX_IMAGE_FRAME;
 
 typedef struct {

@@ -189,6 +189,8 @@ mxd_radicon_taurus_create_record_structures( MX_RECORD *record )
 	ad->record = record;
 	radicon_taurus->record = record;
 
+	radicon_taurus->image_noir_info = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1053,6 +1055,42 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 	memset( radicon_taurus->buffer_info_array, 0,
 		radicon_taurus->num_capture_buffers
 			  * sizeof(MX_RADICON_TAURUS_BUFFER_INFO) );
+
+	/* If we are currently configured to save files using NOIR format,
+	 * then make sure we have updated the information needed by the
+	 * header of those files.
+	 */
+
+	if ( ad->datafile_save_format == MXT_IMAGE_FILE_NOIR ) {
+
+		if ( radicon_taurus->image_noir_info == NULL ) {
+			char static_header_filename[MXU_FILENAME_LENGTH+1];
+
+			mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
+						"noir_header.dat",
+						static_header_filename,
+						sizeof(static_header_filename));
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_image_noir_setup( ad->record->list_head,
+					static_header_filename,
+					&(radicon_taurus->image_noir_info) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mx_image_noir_update(
+				radicon_taurus->image_noir_info );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		ad->image_frame->application_ptr =
+			radicon_taurus->image_noir_info;
+	}
 
         /*****************************************************************
 	 * If the bypass_arm flag is set, we just tell the video capture *

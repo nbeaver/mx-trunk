@@ -17,6 +17,8 @@
 #ifndef __D_RADICON_TAURUS_H__
 #define __D_RADICON_TAURUS_H__
 
+#include "mx_image_noir.h"
+
 /* Values for the 'radicon_taurus_flags' field. */
 
 #define MXF_RADICON_TAURUS_DO_NOT_FLIP_IMAGE	0x1
@@ -85,6 +87,8 @@ typedef struct {
 
 	unsigned long num_capture_buffers;
 	MX_RADICON_TAURUS_BUFFER_INFO *buffer_info_array;
+
+	MX_IMAGE_NOIR_INFO *image_noir_info;
 
 } MX_RADICON_TAURUS;
 
