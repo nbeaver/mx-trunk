@@ -1520,6 +1520,26 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
+	mx_breakpoint();
+
+	MX_DEBUG(-2,
+	("%s: FIXME - verify that bias_corr_after_flood works correctly.",
+		fname));
+
+	if ( ad->bias_corr_after_flood ) {
+		ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;
+
+		ad->measure_flood_field_correction_flags =
+				MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
+	} else {
+		ad->measure_dark_current_correction_flags =
+				MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME;
+
+		ad->measure_flood_field_correction_flags =
+				MXFT_AD_MASK_FRAME | MXFT_AD_BIAS_FRAME
+				| MXFT_AD_DARK_CURRENT_FRAME;
+	}
+
 	ad_flags = ad->area_detector_flags;
 
 	pccd_flags = aviex_pccd->aviex_pccd_flags;

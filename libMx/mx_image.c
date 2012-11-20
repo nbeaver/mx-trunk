@@ -1007,8 +1007,6 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 	int32_t *i32_image_data;
 	unsigned long mask_format, image_format;
 
-	mx_breakpoint();
-
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The image_frame pointer passed was NULL." );

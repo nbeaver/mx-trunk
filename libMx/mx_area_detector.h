@@ -207,6 +207,9 @@ typedef struct mx_area_detector_type {
 	long dark_current_image_format;
 	long flood_field_image_format;
 
+	unsigned long measure_dark_current_correction_flags;
+	unsigned long measure_flood_field_correction_flags;
+
 	mx_bool_type arm;
 	mx_bool_type trigger;
 	mx_bool_type stop;

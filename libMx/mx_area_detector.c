@@ -374,6 +374,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->dark_current_image_format = ad->image_format;
 	ad->flood_field_image_format = ad->image_format;
 
+	ad->measure_dark_current_correction_flags = 0x3;
+	ad->measure_flood_field_correction_flags  = 0x7;
+
 	ad_flags = ad->area_detector_flags;
 
 	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
@@ -4349,6 +4352,8 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 
 	MX_IMAGE_FRAME **frame_ptr;
 	unsigned long file_format, image_format, expected_image_format;
+	double bytes_per_pixel;
+	unsigned long bytes_per_frame;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4387,6 +4392,15 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
+	mx_status = mx_image_format_get_bytes_per_pixel( expected_image_format,
+							&bytes_per_pixel );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	bytes_per_frame =
+	    mx_round( bytes_per_pixel * ad->framesize[0] * ad->framesize[1] );
+
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
 	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for frame_ptr = %p",
 		fname, frame_ptr));
@@ -4397,9 +4411,9 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 					ad->framesize[1],
 					expected_image_format,
 					ad->byte_order,
-					ad->bytes_per_pixel,
+					bytes_per_pixel,
 					ad->header_length,
-					ad->bytes_per_frame );
+					bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -808,6 +808,10 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->dark_current_image_format = MXT_IMAGE_FORMAT_FLOAT;
 	ad->flood_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
 
+	ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;
+	ad->measure_flood_field_correction_flags =
+			MXFT_AD_MASK_FRAME | MXFT_AD_DARK_CURRENT_FRAME;
+
 	mx_status = mx_area_detector_load_correction_files( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1933,7 +1937,7 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 	double image_pixel;
 	uint16_t *u16_mask_data_array;
 	uint16_t *u16_bias_data_array;
-	uint16_t *u16_dark_current_data_array;
+	float *flt_dark_current_data_array;
 	float *flt_non_uniformity_data_array;
 	uint16_t mask_pixel;
 	double bias_pixel, dark_current_pixel, non_uniformity_pixel;
@@ -2089,7 +2093,7 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 
 	    	dark_current_format = MXIF_IMAGE_FORMAT(dark_current_frame);
 
-		if ( dark_current_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		if ( dark_current_format != MXT_IMAGE_FORMAT_FLOAT ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Dark current correction format %ld is not supported "
 			"by this function for area detector '%s'.",
@@ -2106,10 +2110,10 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			"the dark current frame (%lu) for area detector '%s'.",
 				num_pixels_per_frame, num_dark_current_pixels );
 		    } else {
-			u16_dark_current_data_array =
+			flt_dark_current_data_array =
 					dark_current_frame->image_data;
 
-			if ( u16_dark_current_data_array == NULL ) {
+			if ( flt_dark_current_data_array == NULL ) {
 			    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 				"The image_data pointer for the dark current "
 				"frame is NULL for detector '%s'.",
@@ -2164,14 +2168,6 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 	    }
 	}
 
-	/* If no dark current correction is supposed to be performed, then
-	 * turn of the bias offset.
-	 */
-
-	if ( (correction_flags & MXFT_AD_DARK_CURRENT_FRAME) == 0 ) {
-		correction_flags &= (~MXFT_AD_BIAS_FRAME);
-	}
-
 	/*----*/
 
 	/* Loop over all of the pixels and apply the requested corrections. */
@@ -2195,7 +2191,7 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 		}
 
 		if ( correction_flags & MXFT_AD_DARK_CURRENT_FRAME ) {
-			dark_current_pixel = u16_dark_current_data_array[i];
+			dark_current_pixel = flt_dark_current_data_array[i];
 
 			image_pixel = image_pixel - dark_current_pixel;
 		}
@@ -2244,6 +2240,8 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	mx_breakpoint();
 
 	flags = ad->correction_flags;
 
@@ -2448,6 +2446,9 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	/*--- Write the bias offset to the header. ---*/
 
 	if ( bias_frame == NULL ) {
+		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) = 0;
+	} else
+	if ( (ad->correction_flags & MXFT_AD_BIAS_FRAME) == 0 ) {
 		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) = 0;
 	} else {
 		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) =
