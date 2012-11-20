@@ -315,39 +315,6 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: radicon_taurus->poll_pulser_status = %d",
 		fname, (int) radicon_taurus->poll_pulser_status ));
 
-	/* If the 'non_uniformity_filename' field has a non-zero length,
-	 * then load the contents of that file into the non_uniformity_frame
-	 * object.  Otherwise, we set the non_uniformity_frame pointer to
-	 * NULL, to indicate that we do not have one.
-	 */
-
-	radicon_taurus->non_uniformity_frame = NULL;
-
-	if ( strlen( radicon_taurus->non_uniformity_filename ) > 0 ) {
-
-		mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
-				radicon_taurus->non_uniformity_filename,
-				non_uniformity_filename,
-				sizeof(non_uniformity_filename) );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mx_image_read_smv_file(
-				&(radicon_taurus->non_uniformity_frame),
-				MXT_IMAGE_FILE_SMV,
-				non_uniformity_filename );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-#if 0
-		MX_DEBUG(-2,("%s: non-uniformity file '%s':",
-			fname, radicon_taurus->non_uniformity_filename ));
-		mx_image_statistics( radicon_taurus->non_uniformity_frame );
-#endif
-	}
-
 	/* Verify that the video input and serial port records
 	 * have been found.
 	 */
@@ -2329,7 +2296,7 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	non_uniformity_frame = radicon_taurus->non_uniformity_frame;
+	non_uniformity_frame = ad->flood_field_frame;
 
 #if MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS
 	MX_DEBUG(-2,("%s: non-uniformity frame statistics:", fname));
