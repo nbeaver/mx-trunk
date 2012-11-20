@@ -803,6 +803,11 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	/* Load the image correction files. */
 
+	ad->mask_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->bias_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->dark_current_image_format = MXT_IMAGE_FORMAT_FLOAT;
+	ad->flood_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
+
 	mx_status = mx_area_detector_load_correction_files( record );
 
 	if ( mx_status.code != MXE_SUCCESS )

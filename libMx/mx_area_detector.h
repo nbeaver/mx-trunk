@@ -202,6 +202,11 @@ typedef struct mx_area_detector_type {
 	double bytes_per_pixel;
 	long bits_per_pixel;
 
+	long mask_image_format;
+	long bias_image_format;
+	long dark_current_image_format;
+	long flood_field_image_format;
+
 	mx_bool_type arm;
 	mx_bool_type trigger;
 	mx_bool_type stop;

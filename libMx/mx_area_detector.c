@@ -369,6 +369,11 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_calc_format = ad->image_format;
 
+	ad->mask_image_format = ad->image_format;
+	ad->bias_image_format = ad->image_format;
+	ad->dark_current_image_format = ad->image_format;
+	ad->flood_field_image_format = ad->image_format;
+
 	ad_flags = ad->area_detector_flags;
 
 	if ( ad_flags & MXF_AD_GEOM_CORR_AFTER_FLOOD ) {
@@ -4343,7 +4348,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mx_area_detector_default_load_frame()";
 
 	MX_IMAGE_FRAME **frame_ptr;
-	unsigned long file_format;
+	unsigned long file_format, image_format, expected_image_format;
 	mx_status_type mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4357,23 +4362,29 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	switch( ad->load_frame ) {
 	case MXFT_AD_IMAGE_FRAME:
 		frame_ptr = &(ad->image_frame);
+		expected_image_format = ad->image_format;
 		break;
 	case MXFT_AD_MASK_FRAME:
 		frame_ptr = &(ad->mask_frame);
+		expected_image_format = ad->mask_image_format;
 		break;
 	case MXFT_AD_BIAS_FRAME:
 		frame_ptr = &(ad->bias_frame);
+		expected_image_format = ad->bias_image_format;
 		break;
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		frame_ptr = &(ad->dark_current_frame);
+		expected_image_format = ad->dark_current_image_format;
 		break;
 	case MXFT_AD_FLOOD_FIELD_FRAME:
 		frame_ptr = &(ad->flood_field_frame);
+		expected_image_format = ad->flood_field_image_format;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported frame type %ld requested for area detector '%s'.",
 			ad->load_frame, ad->record->name );
+		break;
 	}
 
 #if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
@@ -4384,7 +4395,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_image_alloc( frame_ptr,
 					ad->framesize[0],
 					ad->framesize[1],
-					ad->image_format,
+					expected_image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
@@ -4407,12 +4418,29 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 
 	/* Does the frame we just loaded have the expected image format? */
 
-	if ( MXIF_IMAGE_FORMAT(*frame_ptr) != ad->image_format ) {
+	image_format = MXIF_IMAGE_FORMAT(*frame_ptr);
+
+	if ( expected_image_format != image_format ) {
+		char image_format_name[20];
+		char expected_image_format_name[20];
+
+		(void) mx_image_get_image_format_name_from_type(
+						image_format,
+						image_format_name,
+						sizeof(image_format_name) );
+
+
+		(void) mx_image_get_image_format_name_from_type(
+						expected_image_format,
+						expected_image_format_name,
+					sizeof(expected_image_format_name) );
+
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
-		"The image format %ld for file '%s' does not match "
-		"the expected image format %ld for area detector '%s'.",
-			(long) MXIF_IMAGE_FORMAT(*frame_ptr),
-			ad->frame_filename, ad->image_format,
+		"The image format '%s' for file '%s' does not match "
+		"the expected image format '%s' for area detector '%s'.",
+			image_format_name,
+			ad->frame_filename,
+			expected_image_format_name,
 			ad->record->name );
 	}
 

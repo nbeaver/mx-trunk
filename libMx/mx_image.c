@@ -206,18 +206,23 @@ static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
 {
 	{"DEFAULT", MXT_IMAGE_FORMAT_DEFAULT},
 
-	{"RGB565",  MXT_IMAGE_FORMAT_RGB565},
-	{"YUYV",    MXT_IMAGE_FORMAT_YUYV},
-
-	{"RGB",     MXT_IMAGE_FORMAT_RGB},
 	{"GREY8",   MXT_IMAGE_FORMAT_GREY8},
 	{"GREY16",  MXT_IMAGE_FORMAT_GREY16},
+	{"GREY32",  MXT_IMAGE_FORMAT_GREY32},
 
 	{"GRAY8",   MXT_IMAGE_FORMAT_GREY8},
 	{"GRAY16",  MXT_IMAGE_FORMAT_GREY16},
+	{"GRAY32",  MXT_IMAGE_FORMAT_GREY32},
+
+	{"FLOAT",   MXT_IMAGE_FORMAT_FLOAT},
+	{"DOUBLE",  MXT_IMAGE_FORMAT_DOUBLE},
+
+	{"RGB",     MXT_IMAGE_FORMAT_RGB},
+
+	{"RGB565",  MXT_IMAGE_FORMAT_RGB565},
+	{"YUYV",    MXT_IMAGE_FORMAT_YUYV},
 
 	{"INT32",   MXT_IMAGE_FORMAT_INT32},
-	{"DOUBLE",  MXT_IMAGE_FORMAT_DOUBLE},
 };
 
 static size_t mxp_image_format_table_length
@@ -991,9 +996,18 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 {
 	static const char fname[] = "mx_image_get_average_intensity()";
 
-	uint16_t *image_data, *mask_data;
+	uint16_t *u16_mask_data;
 	unsigned long i, num_pixels, num_unmasked_pixels;
-	double intensity_sum, diff;
+	double intensity_sum;
+	uint8_t *u8_image_data;
+	uint16_t *u16_image_data;
+	uint32_t *u32_image_data;
+	float *flt_image_data;
+	double *dbl_image_data;
+	int32_t *i32_image_data;
+	unsigned long mask_format, image_format;
+
+	mx_breakpoint();
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1023,15 +1037,6 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 				(long) MXIF_ROW_FRAMESIZE(image_frame),
 				(long) MXIF_COLUMN_FRAMESIZE(image_frame) );
 		}
-		if ( MXIF_IMAGE_FORMAT(mask_frame)
-			!= MXIF_IMAGE_FORMAT(image_frame) )
-		{
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The mask frame has a different image format (%ld) "
-			"than the image frame (%ld).",
-				(long) MXIF_IMAGE_FORMAT(mask_frame),
-				(long) MXIF_IMAGE_FORMAT(image_frame) );	
-		}
 		if ( MXIF_BYTE_ORDER(mask_frame)
 			!= MXIF_BYTE_ORDER(image_frame) )
 		{
@@ -1041,19 +1046,9 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 				(long) MXIF_BYTE_ORDER(mask_frame),
 				(long) MXIF_BYTE_ORDER(image_frame) );
 		}
-
-		diff = mx_difference( MXIF_BYTES_PER_MILLION_PIXELS(mask_frame),
-				MXIF_BYTES_PER_MILLION_PIXELS(image_frame) );
-
-		if ( diff > 10.0 ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The mask frame has a different number "
-			"of bytes per pixel (%g) "
-			"than the image frame (%g).",
-				MXIF_BYTES_PER_PIXEL(mask_frame),
-				MXIF_BYTES_PER_PIXEL(image_frame) );	
-		}
 	}
+
+	image_format = MXIF_IMAGE_FORMAT(image_frame);
 
 	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
 			* MXIF_COLUMN_FRAMESIZE(image_frame);
@@ -1062,35 +1057,138 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 
 	num_unmasked_pixels = 0L;
 
-	image_data = image_frame->image_data;
-
-	if ( image_data == (uint16_t *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The image_data pointer for the specified image frame is NULL.");
-	}
-
 	if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
 
-		for ( i = 0; i < num_pixels; i++ ) {
-			intensity_sum += (double) image_data[i];
-		}
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+		    u8_image_data = (uint8_t *) image_frame->image_data;
 
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) u8_image_data[i];
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_GREY16:
+		    u16_image_data = (uint16_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) u16_image_data[i];
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_GREY32:
+		    u32_image_data = (uint32_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) u32_image_data[i];
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+		    flt_image_data = (float *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) flt_image_data[i];
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+		    dbl_image_data = (double *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) dbl_image_data[i];
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_INT32:
+		    i32_image_data = (int32_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) i32_image_data[i];
+		    }
+		    break;
+		}
 		num_unmasked_pixels = num_pixels;
 	} else {
-		mask_data = mask_frame->image_data;
+		mask_format = MXIF_IMAGE_FORMAT( mask_frame );
 
-		if ( mask_data == (uint16_t *) NULL ) {
+		if ( mask_format != MXT_IMAGE_FORMAT_GREY16 ) {
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Support for %lu format mask images is not yet "
+			"implemented.  Only GREY16 is currently implemented.",
+				mask_format );
+		}
+
+		u16_mask_data = mask_frame->image_data;
+
+		if ( u16_mask_data == (uint16_t *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The image_data pointer for the specified "
 			"mask frame is NULL." );
 		}
 
-		for ( i = 0; i < num_pixels; i++ ) {
-			if ( mask_data[i] != 0 ) {
-				intensity_sum += (double) image_data[i];
+		switch( image_format ) {
+		case MXT_IMAGE_FORMAT_GREY8:
+		    u8_image_data = (uint8_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) u8_image_data[i];
 
 				num_unmasked_pixels++;
 			}
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_GREY16:
+		    u16_image_data = (uint16_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) u16_image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_GREY32:
+		    u32_image_data = (uint32_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) u32_image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+		    flt_image_data = (float *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) flt_image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+		    dbl_image_data = (double *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) dbl_image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		    }
+		    break;
+		case MXT_IMAGE_FORMAT_INT32:
+		    i32_image_data = (int32_t *) image_frame->image_data;
+
+		    for ( i = 0; i < num_pixels; i++ ) {
+			if ( u16_mask_data[i] != 0 ) {
+				intensity_sum += (double) i32_image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		    }
+		    break;
 		}
 	}
 
