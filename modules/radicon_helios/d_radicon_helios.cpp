@@ -1183,6 +1183,8 @@ mxd_radicon_helios_open( MX_RECORD *record )
 
 	ad->trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
 
+	ad->correction_measurement_sequence_type = MXT_SQ_ONE_SHOT;
+
 	ad->correction_frames_to_skip = 0;
 
 	/* Do we need automatic saving and/or loading of image frames by MX? */

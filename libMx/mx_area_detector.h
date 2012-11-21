@@ -257,7 +257,7 @@ typedef struct mx_area_detector_type {
 	double detector_readout_time;
 	double total_sequence_time;
 
-	mx_bool_type use_multiframe_correction;
+	mx_bool_type correction_measurement_sequence_type;
 
 	mx_bool_type correction_measurement_in_progress;
 

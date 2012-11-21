@@ -1101,38 +1101,14 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
-#if 0
-		/* WARNING: mx_area_detector_setup_frame() gives the file
-		 * the same datatype as ad->image_frame.  Sometimes, this
-		 * is the wrong thing to do.
-		 */
-
-		mx_status = mx_area_detector_setup_frame( ad->record,
-						&(ad->dark_current_frame) );
-#endif
 
 		corr->destination_frame = ad->dark_current_frame;
-
-#if 1
-		MX_DEBUG(-2,("%s: dark_current_frame = %p, image_format = %lu",
-			fname, ad->dark_current_frame,
-			MXIF_IMAGE_FORMAT(ad->dark_current_frame) ));
-#endif
 
 		corr->desired_correction_flags =
 			ad->measure_dark_current_correction_flags;
 		break;
 	
 	case MXFT_AD_FLOOD_FIELD_FRAME:
-#if 0
-		/* WARNING: mx_area_detector_setup_frame() gives the file
-		 * the same datatype as ad->image_frame.  Sometimes, this
-		 * is the wrong thing to do.
-		 */
-
-		mx_status = mx_area_detector_setup_frame( ad->record,
-						&(ad->flood_field_frame) );
-#endif
 
 		corr->destination_frame = ad->flood_field_frame;
 
@@ -1183,26 +1159,6 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 		}
 	} else {
 		/* Do not dezinger */
-
-		/* Get a pointer to the destination array. */
-
-		MX_DEBUG(-2,("%s: destination_frame = %p, image_format = %lu",
-			fname, corr->destination_frame,
-			MXIF_IMAGE_FORMAT(corr->destination_frame) ));
-
-#if 0
-		mx_status = mx_image_get_image_data_pointer(
-						corr->destination_frame,
-						&image_length,
-						&void_image_data_pointer );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			mx_area_detector_cleanup_after_correction( NULL, corr );
-			return mx_status;
-		}
-
-		corr->destination_array = void_image_data_pointer;
-#endif
 
 		/* Allocate a double precision array to store
 		 * intermediate sums.

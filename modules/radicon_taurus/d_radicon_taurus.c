@@ -564,9 +564,9 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
-#if 1
 	ad->correction_calc_format = MXT_IMAGE_FORMAT_DOUBLE;
-#endif
+
+	ad->correction_measurement_sequence_type = MXT_SQ_GATED;
 
 	/* The maximum framesize is smaller than the video image from the
 	 * video card, since the outermost pixels in the video image do not 

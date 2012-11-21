@@ -39,10 +39,8 @@ static mx_status_type
 mxp_area_detector_measure_correction_callback_function(
 				MX_CALLBACK_MESSAGE *callback_message )
 {
-#if PR_AREA_DETECTOR_DEBUG
 	static const char fname[] =
 		"mxp_area_detector_measure_correction_callback_function()";
-#endif
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_AREA_DETECTOR *ad;
@@ -58,6 +56,8 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_HRT_TIMING measurement;
 #endif
 
+	mx_breakpoint();
+
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for callback message %p",
@@ -67,6 +67,11 @@ mxp_area_detector_measure_correction_callback_function(
 	corr = callback_message->u.function.callback_args;
 
 	ad = corr->area_detector;
+
+#if 1
+	MX_DEBUG(-2,("%s (at beginning): framesize = (%lu,%lu)",
+		fname, ad->framesize[0], ad->framesize[1] ));
+#endif
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
@@ -141,10 +146,20 @@ mxp_area_detector_measure_correction_callback_function(
 		    dezinger_frame_ptr = NULL;
 		}
 
-		if ( ad->use_multiframe_correction ) {
+		switch( ad->correction_measurement_sequence_type ) {
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_GATED:
 			frame_number_to_read = corr->num_frames_read;
-		} else {
+			break;
+		case MXT_SQ_ONE_SHOT:
 			frame_number_to_read = 0;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported correction measurement sequence type %lu "
+			"requested for area detector '%s'.",
+				ad->correction_measurement_sequence_type,
+				ad->record->name );
 		}
 
 		mx_status = mx_area_detector_process_correction_frame(
@@ -198,7 +213,8 @@ mxp_area_detector_measure_correction_callback_function(
 
 		start_detector = FALSE;
 
-		if ( ad->use_multiframe_correction == FALSE ) {
+		if (ad->correction_measurement_sequence_type == MXT_SQ_ONE_SHOT)
+		{
 			if ( num_frames_difference > 0 ) {
 				start_detector = TRUE;
 			} else
@@ -323,9 +339,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_LIST_HEAD *list_head;
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	double frame_time, modified_frame_time;
+	double frame_time, modified_frame_time, gate_time;
 	double detector_readout_time;
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -418,7 +436,17 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 * the frames needed to compute the correction frame.
 	 */
 
-	if ( ad->use_multiframe_correction ) {
+	switch( ad->correction_measurement_sequence_type ) {
+	case MXT_SQ_GATED:
+		gate_time = 5.0 + corr->raw_num_exposures * corr->exposure_time;
+
+		mx_status = mx_area_detector_set_gated_mode( record,
+							corr->raw_num_exposures,
+							corr->exposure_time,
+							gate_time );
+		break;
+
+	case MXT_SQ_MULTIFRAME:
 
 #if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,
@@ -431,13 +459,24 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 							corr->raw_num_exposures,
 							corr->exposure_time,
 							modified_frame_time );
-	} else {
+		break;
+
+	case MXT_SQ_ONE_SHOT:
 #if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Setting one-shot mode: exposure_time = %f",
 			fname, corr->exposure_time));
 #endif
 		mx_status = mx_area_detector_set_one_shot_mode( record,
 							corr->exposure_time );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported correction measurement sequence type %lu "
+		"requested for area detector '%s'.",
+			ad->correction_measurement_sequence_type,
+			ad->record->name );
+		break;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -446,6 +485,8 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	}
 
 	/* Put the detector into internal trigger mode. */
+
+	MX_DEBUG(-2,("%s: FIXME - This assumes internal trigger mode.", fname));
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Switching to internal trigger mode.", fname));
@@ -610,6 +651,11 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Callback virtual timer started.", fname));
 	MX_DEBUG(-2,("******************************************************"));
+#endif
+
+#if 1
+	MX_DEBUG(-2,("%s (at end): framesize = (%lu,%lu)",
+		fname, ad->framesize[0], ad->framesize[1] ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
