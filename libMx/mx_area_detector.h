@@ -171,7 +171,9 @@ typedef struct {
 	MX_IMAGE_FRAME **dezinger_frame_array;
 
 	double *sum_array;
+#if 0
 	uint16_t *destination_array;
+#endif
 
 	long num_unread_frames;
 	long old_last_frame_number;
@@ -390,6 +392,14 @@ typedef struct mx_area_detector_type {
 
 	long mark_frame_as_saved;
 
+	/* 'show_image_frame' and 'show_image_statistics' are used to
+	 * display what is currently in the particular image buffer
+	 * specified by the value passed to the fields.
+	 */
+
+	long show_image_frame;
+	long show_image_statistics;
+
 	/* 'area_detector_flags' is used to initialize various features
 	 * of the area detector.
 	 */
@@ -606,6 +616,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_SHUTTER_ENABLE			12061
 #define MXLV_AD_TRANSFER_IMAGE_DURING_SCAN	12062
 #define MXLV_AD_MARK_FRAME_AS_SAVED		12063
+#define MXLV_AD_SHOW_IMAGE_FRAME		12064
+#define MXLV_AD_SHOW_IMAGE_STATISTICS		12065
 
 #define MXLV_AD_AREA_DETECTOR_FLAGS		12100
 #define MXLV_AD_INITIAL_CORRECTION_FLAGS	12101
@@ -999,6 +1011,16 @@ typedef struct mx_area_detector_type {
 					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof( MX_AREA_DETECTOR, mark_frame_as_saved ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_SHOW_IMAGE_FRAME, -1, "show_image_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof( MX_AREA_DETECTOR, show_image_frame ), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_SHOW_IMAGE_STATISTICS, -1, "show_image_statistics", \
+				MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof( MX_AREA_DETECTOR, show_image_statistics ), \
 	{0}, NULL, 0}
 
 #define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \

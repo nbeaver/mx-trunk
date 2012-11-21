@@ -216,6 +216,8 @@ MX_API mx_status_type mxd_radicon_taurus_get_parameter(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_set_parameter(
 						MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_radicon_taurus_measure_correction(
+						MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mxd_radicon_taurus_get_sro( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_radicon_taurus_set_sro( MX_AREA_DETECTOR *ad );

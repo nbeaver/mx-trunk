@@ -794,6 +794,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_SEQUENCE_START_DELAY:
+		case MXLV_AD_SHOW_IMAGE_FRAME:
+		case MXLV_AD_SHOW_IMAGE_STATISTICS:
 		case MXLV_AD_SHUTTER_ENABLE:
 		case MXLV_AD_SHUTTER_NAME:
 		case MXLV_AD_SETUP_EXPOSURE:
@@ -833,6 +835,7 @@ mx_area_detector_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_AREA_DETECTOR *ad;
+	MX_IMAGE_FRAME *frame;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -1385,6 +1388,76 @@ mx_area_detector_process_function( void *record_ptr,
 #endif
 			mx_status = mx_area_detector_set_sequence_parameters(
 								record, NULL );
+			break;
+		case MXLV_AD_SHOW_IMAGE_FRAME:
+			switch( ad->show_image_frame) {
+			case MXFT_AD_IMAGE_FRAME:
+				frame = ad->image_frame;
+				break;
+			case MXFT_AD_MASK_FRAME:
+				frame = ad->mask_frame;
+				break;
+			case MXFT_AD_BIAS_FRAME:
+				frame = ad->bias_frame;
+				break;
+			case MXFT_AD_DARK_CURRENT_FRAME:
+				frame = ad->dark_current_frame;
+				break;
+			case MXFT_AD_FLOOD_FIELD_FRAME:
+				frame = ad->flood_field_frame;
+				break;
+			default:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Illegal frame type %ld requested for "
+				"detector '%s'", ad->show_image_frame,
+					ad->record->name );
+				break;
+			}
+			if ( frame == NULL ) {
+				return mx_error( MXE_NOT_READY, fname,
+				"Frame type %ld has not yet been used "
+				"by detector '%s'", ad->show_image_frame,
+					ad->record->name );
+			}
+#if 0
+			mx_image_display_ascii( stderr, frame, 0, 65535 );
+#endif
+			break;
+		case MXLV_AD_SHOW_IMAGE_STATISTICS:
+			switch( ad->show_image_statistics) {
+			case MXFT_AD_IMAGE_FRAME:
+				frame = ad->image_frame;
+				break;
+			case MXFT_AD_MASK_FRAME:
+				frame = ad->mask_frame;
+				break;
+			case MXFT_AD_BIAS_FRAME:
+				frame = ad->bias_frame;
+				break;
+			case MXFT_AD_DARK_CURRENT_FRAME:
+				frame = ad->dark_current_frame;
+				break;
+			case MXFT_AD_FLOOD_FIELD_FRAME:
+				frame = ad->flood_field_frame;
+				break;
+			default:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Illegal frame type %ld requested for "
+				"detector '%s'", ad->show_image_statistics,
+					ad->record->name );
+				break;
+			}
+			if ( frame == NULL ) {
+				return mx_error( MXE_NOT_READY, fname,
+				"Frame type %ld has not yet been used "
+				"by detector '%s'", ad->show_image_statistics,
+					ad->record->name );
+			}
+#if 1
+			MX_DEBUG(-2,("%s: frame = %p, format = %lu",
+			fname, frame, MXIF_IMAGE_FORMAT(frame) ));
+#endif
+			mx_image_statistics( frame );
 			break;
 		default:
 			MX_DEBUG( 1,(

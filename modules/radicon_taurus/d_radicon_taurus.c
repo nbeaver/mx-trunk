@@ -34,7 +34,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		TRUE
+#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
+
+#define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,7 +88,8 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_radicon_taurus_ad_function_list = {
 	NULL,
 	NULL,
 	mxd_radicon_taurus_get_parameter,
-	mxd_radicon_taurus_set_parameter
+	mxd_radicon_taurus_set_parameter,
+	mxd_radicon_taurus_measure_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_radicon_taurus_rf_defaults[] = {
@@ -831,6 +834,17 @@ mxd_radicon_taurus_resynchronize( MX_RECORD *record )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Stop the pulse generator. */
+
+	if ( radicon_taurus->pulser_record != NULL ) {
+		mx_status = mx_pulse_generator_stop(
+				radicon_taurus->pulser_record );
+	}
+
+	/* Abort image acquisition. */
+
+	mx_status = mxd_radicon_taurus_abort( ad );
+
 	/* Putting the detector back into free-run mode will reset it. */
 
 	radicon_taurus->sro_mode = 4;
@@ -2208,8 +2222,6 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_breakpoint();
-
 	flags = ad->correction_flags;
 
 #if MXD_RADICON_TAURUS_DEBUG_CORRECTION
@@ -2640,6 +2652,132 @@ mxd_radicon_taurus_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
+
+	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_radicon_taurus_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_radicon_taurus_measure_correction()";
+
+	MX_RADICON_TAURUS *radicon_taurus = NULL;
+	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr = NULL;
+	double gate_time;
+	long last_frame_number, old_last_frame_number;
+	unsigned long i, total_num_frames, ad_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_radicon_taurus_get_pointers( ad,
+						&radicon_taurus, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION
+	MX_DEBUG(-2,("%s invoked for detector '%s'", fname, ad->record->name ));
+#endif
+
+	if ( ad->correction_measurement_type == MXFT_AD_FLOOD_FIELD_FRAME ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Direct measurement of the non-uniformity frame "
+		"for detector '%s' is not supported.", ad->record->name );
+	}
+
+	/* Setup a correction measurement structure to contain the
+	 * correction information.
+	 */
+
+	mx_status = mx_area_detector_prepare_for_correction( ad, &corr );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
+		return mx_status;
+	}
+
+	/* Put the area detector in Gated mode. */
+
+	gate_time = 5.0 + ( corr->num_exposures * corr->exposure_time );
+
+	mx_status = mx_area_detector_set_gated_mode( ad->record,
+						corr->num_exposures,
+						corr->exposure_time,
+						gate_time );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
+		return mx_status;
+	}
+
+	/* Since this is a dark current correction, we must disable
+	 * the shutter.
+	 */
+
+	mx_status = mx_area_detector_set_shutter_enable( ad->record, FALSE );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
+		return mx_status;
+	}
+
+	/* Start the gated sequence. */
+
+	mx_status = mx_area_detector_start( ad->record );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_area_detector_cleanup_after_correction( ad, NULL );
+		return mx_status;
+	}
+
+	/* Readout the frames as they appear. */
+
+	old_last_frame_number = -1;
+
+	for(;;) {
+		mx_status = mx_area_detector_get_extended_status( ad->record,
+							&last_frame_number,
+							&total_num_frames,
+							&ad_status );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( ad, NULL );
+			return mx_status;
+		}
+
+		if ( last_frame_number > old_last_frame_number ) {
+			for ( i = (old_last_frame_number + 1);
+				i <= last_frame_number;
+				i++ )
+			{
+				mx_status =
+				    mx_area_detector_process_correction_frame(
+					ad, i,
+					corr->desired_correction_flags,
+					0,
+					corr->sum_array );
+
+				if ( mx_status.code != MXE_SUCCESS ) {
+			mx_area_detector_cleanup_after_correction( ad, NULL );
+					return mx_status;
+				}
+
+			}
+
+			if ( (last_frame_number + 1) >= corr->num_exposures ) {
+
+				break;    /* Exit the outer for() loop. */
+
+			}
+
+			old_last_frame_number = last_frame_number;
+		}
+
+		mx_msleep(10);
+	}
+
+	mx_status = mx_area_detector_finish_correction_calculation( ad, corr );
 
 	return mx_status;
 }

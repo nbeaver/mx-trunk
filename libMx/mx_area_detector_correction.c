@@ -283,7 +283,7 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	switch( ad->correction_measurement_type ) {
+	switch( correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
 		if ( ad->dark_current_offset_can_change == FALSE ) {
 			return mx_error( MXE_PERMISSION_DENIED, fname,
@@ -297,6 +297,12 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 			"The flood field for detector '%s' cannot be changed.",
 				record->name );
 		}
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal measurement type %ld requested for detector '%s'",
+			ad->correction_measurement_type,
+			record->name );
 		break;
 	}
 
@@ -1095,18 +1101,38 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
+#if 0
+		/* WARNING: mx_area_detector_setup_frame() gives the file
+		 * the same datatype as ad->image_frame.  Sometimes, this
+		 * is the wrong thing to do.
+		 */
+
 		mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->dark_current_frame) );
+#endif
 
 		corr->destination_frame = ad->dark_current_frame;
+
+#if 1
+		MX_DEBUG(-2,("%s: dark_current_frame = %p, image_format = %lu",
+			fname, ad->dark_current_frame,
+			MXIF_IMAGE_FORMAT(ad->dark_current_frame) ));
+#endif
 
 		corr->desired_correction_flags =
 			ad->measure_dark_current_correction_flags;
 		break;
 	
 	case MXFT_AD_FLOOD_FIELD_FRAME:
+#if 0
+		/* WARNING: mx_area_detector_setup_frame() gives the file
+		 * the same datatype as ad->image_frame.  Sometimes, this
+		 * is the wrong thing to do.
+		 */
+
 		mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->flood_field_frame) );
+#endif
 
 		corr->destination_frame = ad->flood_field_frame;
 
@@ -1160,6 +1186,11 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 		/* Get a pointer to the destination array. */
 
+		MX_DEBUG(-2,("%s: destination_frame = %p, image_format = %lu",
+			fname, corr->destination_frame,
+			MXIF_IMAGE_FORMAT(corr->destination_frame) ));
+
+#if 0
 		mx_status = mx_image_get_image_data_pointer(
 						corr->destination_frame,
 						&image_length,
@@ -1171,6 +1202,7 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 		}
 
 		corr->destination_array = void_image_data_pointer;
+#endif
 
 		/* Allocate a double precision array to store
 		 * intermediate sums.
@@ -1302,7 +1334,9 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *geometrical_correction_fn ) ( MX_AREA_DETECTOR *,
 							MX_IMAGE_FRAME * );
-	uint16_t *dest_array;
+	uint16_t *u16_dest_array;
+	float *flt_dest_array;
+	unsigned long dest_format;
 	struct timespec exposure_timespec;
 	time_t time_buffer;
 	long i, pixels_per_frame;
@@ -1357,12 +1391,34 @@ mx_area_detector_finish_correction_calculation( MX_AREA_DETECTOR *ad,
 
 		pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
-		dest_array = corr->destination_array;
+		dest_format = MXIF_IMAGE_FORMAT(corr->destination_frame);
 
-		for ( i = 0; i < pixels_per_frame; i++ ) {
+		switch( dest_format ) {
+		case MXT_IMAGE_FORMAT_GREY16:
+		    u16_dest_array = corr->destination_frame->image_data;
+
+		    for ( i = 0; i < pixels_per_frame; i++ ) {
 			temp_double = corr->sum_array[i] / corr->num_exposures;
 
-			dest_array[i] = (uint16_t) mx_round( temp_double );
+			u16_dest_array[i] = (uint16_t) mx_round( temp_double );
+		    }
+		    break;
+
+		case MXT_IMAGE_FORMAT_FLOAT:
+		    flt_dest_array = corr->destination_frame->image_data;
+
+		    for ( i = 0; i < pixels_per_frame; i++ ) {
+			temp_double = corr->sum_array[i] / corr->num_exposures;
+
+			flt_dest_array[i] = (uint16_t) mx_round( temp_double );
+		    }
+		    break;
+
+		default:
+		    return mx_error( MXE_UNSUPPORTED, fname,
+			"Correction image format %lu is not supported "
+			"for detector '%s'", dest_format, ad->record->name );
+		    break;
 		}
 	}
 

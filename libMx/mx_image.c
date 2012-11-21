@@ -173,6 +173,8 @@ mxp_rgb_converter_fn( unsigned char *src, unsigned char *dest )
 static pixel_converter_t
 mxp_rgb_converter = { 3, 3, mxp_rgb_converter_fn };
 
+/*----*/
+
 static void
 mxp_grey8_converter_fn( unsigned char *src, unsigned char *dest )
 {
@@ -184,6 +186,8 @@ mxp_grey8_converter_fn( unsigned char *src, unsigned char *dest )
 static pixel_converter_t
 mxp_grey8_converter = { 1, 1, mxp_grey8_converter_fn };
 
+/*----*/
+
 static void
 mxp_grey16_converter_fn( unsigned char *src, unsigned char *dest )
 {
@@ -194,6 +198,32 @@ mxp_grey16_converter_fn( unsigned char *src, unsigned char *dest )
 
 static pixel_converter_t
 mxp_grey16_converter = { 2, 2, mxp_grey16_converter_fn };
+
+/*----*/
+
+static void
+mxp_float_converter_fn( unsigned char *src, unsigned char *dest )
+{
+	/* Move four bytes from the source to the destination. */
+
+	memcpy( dest, src, 4 );
+}
+
+static pixel_converter_t
+mxp_float_converter = { 4, 4, mxp_float_converter_fn };
+
+/*----*/
+
+static void
+mxp_double_converter_fn( unsigned char *src, unsigned char *dest )
+{
+	/* Move eight bytes from the source to the destination. */
+
+	memcpy( dest, src, 8 );
+}
+
+static pixel_converter_t
+mxp_double_converter = { 8, 8, mxp_double_converter_fn };
 
 /*----*/
 
@@ -1219,6 +1249,7 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	int32_t  *int32_array  = NULL;
 	float    *float_array  = NULL;
 	double   *double_array = NULL;
+	char image_format_name[20];
 	unsigned long i, num_pixels, image_format;
 	unsigned long row_framesize, column_framesize;
 	double sum, sum_of_squares, mean, standard_deviation;
@@ -1230,6 +1261,7 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	mx_bool_type pixels_are_all_equal;
 	long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
+	mx_status_type mx_status;
 
 	first_pixel = 0;
 
@@ -1243,6 +1275,13 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	row_framesize = MXIF_ROW_FRAMESIZE(frame);
 	column_framesize = MXIF_COLUMN_FRAMESIZE(frame);
 	image_format = MXIF_IMAGE_FORMAT(frame);
+
+	mx_status = mx_image_get_image_format_name_from_type(
+						image_format,
+						image_format_name,
+						sizeof(image_format_name) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_pixels = row_framesize * column_framesize;
 
@@ -1321,6 +1360,10 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	}
 
 	if ( pixels_are_all_equal ) {
+		mx_info( "(%lux%lu) %s image frame",
+			row_framesize, column_framesize,
+			image_format_name );
+
 		mx_warning(
 		"All of the pixels in the image have the same value %g",
 			first_pixel );
@@ -1401,9 +1444,9 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 
 	/* Show the results. */
 
-	mx_info( "(%lux%lu) %lu-bit image frame",
+	mx_info( "(%lux%lu) %s image frame",
 		row_framesize, column_framesize,
-		(unsigned long) MXIF_BITS_PER_PIXEL(frame) );
+		image_format_name );
 
 	mx_info( "  mean = %g, standard deviation = %g",
 		mean, standard_deviation );
@@ -2429,6 +2472,7 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 		mx_status = mx_image_read_edf_file( frame_ptr, datafile_name );
 		break;
 	default:
+		mx_stack_traceback();
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
 			datafile_type, datafile_name );
@@ -4077,6 +4121,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	static const char fname[] = "mx_image_write_smv_file()";
 
 	FILE *file;
+	unsigned long image_format;
 	pixel_converter_t converter;
 	void (*converter_fn)( unsigned char *, unsigned char * );
 	int src_step, dest_step;
@@ -4104,6 +4149,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		"The datafile_name pointer passed was NULL." );
 	}
 
+	image_format = MXIF_IMAGE_FORMAT(frame);
+
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
@@ -4113,7 +4160,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
 
 	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld", fname,
-		(long) MXIF_IMAGE_FORMAT(frame),
+		(long) image_format,
 		(long) MXIF_BYTE_ORDER(frame)));
 
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
@@ -4122,7 +4169,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	byteorder = mx_native_byteorder();
 
-	switch( MXIF_IMAGE_FORMAT(frame) ) {
+	switch( image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
 		converter = mxp_rgb565_converter;
 		break;
@@ -4139,10 +4186,16 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	case MXT_IMAGE_FORMAT_GREY16:
 		converter = mxp_grey16_converter;
 		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		converter = mxp_float_converter;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		converter = mxp_double_converter;
+		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported image format %ld requested for datafile '%s'.",
-			(long) MXIF_IMAGE_FORMAT(frame), datafile_name );
+		"Unsupported image format %lu requested for datafile '%s'.",
+			image_format, datafile_name );
 	}
 
 	src_step     = converter.num_source_bytes;
@@ -4333,7 +4386,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		"Byteorder %ld is not supported.", byteorder );
 	}
 
-	if ( MXIF_IMAGE_FORMAT(frame) == MXT_IMAGE_FORMAT_GREY16 ) {
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_GREY16:
 
 		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
 
@@ -4343,11 +4397,25 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			MXP_SMV_CHECK_FPRINTF( fprintf( file,
 				"TYPE=unsigned_short;\n" ) );
 		}
-	} else {
+		break;
+
+	case MXT_IMAGE_FORMAT_FLOAT:
+
+		if ( datafile_type == MXT_IMAGE_FILE_NOIR ) {
+
+			MXP_SMV_CHECK_FPRINTF( fprintf( file,
+				"Data_type=float IEEE;\n" ) );
+		} else {
+			MXP_SMV_CHECK_FPRINTF( fprintf( file,
+				"TYPE=float;\n" ) );
+		}
+		break;
+	default:
 		fclose( file );
 
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"8-bit file formats are not supported by SMV format files." );
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for image format %lu is not available "
+		"for SMV format files." );
 	}
 
 	MXP_SMV_CHECK_FPRINTF( fprintf( file, "BIN=%lux%lu;\n",
