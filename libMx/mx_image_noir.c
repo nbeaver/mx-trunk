@@ -18,6 +18,8 @@
 
 #define MX_IMAGE_NOIR_DEBUG_UPDATE	TRUE
 
+#define MX_IMAGE_NOIR_ENABLE_UPDATE	TRUE
+
 #if defined(OS_WIN32)
 #  include <windows.h>
 #endif
@@ -302,6 +304,8 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	/* Setup the file monitor for the static part of the NOIR header. */
 
+#if MX_IMAGE_NOIR_ENABLE_UPDATE
+
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,
 	("%s: Setting up a file monitor for the static NOIR header file '%s'.",
@@ -313,6 +317,18 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#else /* not MX_IMAGE_NOIR_ENABLE_UPDATE */
+
+	image_noir_info->file_monitor = calloc( 1, sizeof(MX_FILE_MONITOR) );
+
+	image_noir_info->file_monitor->private_ptr = NULL;
+
+	strlcpy( image_noir_info->file_monitor->filename,
+			static_noir_header_name,
+			sizeof(image_noir_info->file_monitor->filename) );
+
+#endif /* not MX_IMAGE_NOIR_ENABLE_UPDATE */
 
 	image_noir_info->static_header_text = NULL;
 
@@ -337,8 +353,12 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 
 	/* See if we need to update the contents of the static header. */
 
+#if MX_IMAGE_NOIR_ENABLE_UPDATE
 	static_header_file_has_changed = mx_file_has_changed(
 					image_noir_info->file_monitor );
+#else
+	static_header_file_has_changed = FALSE;
+#endif
 
 	if ( image_noir_info->static_header_text == NULL ) {
 		read_static_header_file = TRUE;
@@ -497,15 +517,17 @@ mx_image_noir_write_header( FILE *file,
 
 	/* Write out the static header text. */
 
-	fputs_status = fputs( image_noir_info->static_header_text, file );
+	if ( image_noir_info->static_header_text != NULL ) {
+	    fputs_status = fputs( image_noir_info->static_header_text, file );
 
-	if ( fputs_status < 0 ) {
+	    if ( fputs_status < 0 ) {
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"An error occurred while writing the NOIR static header "
 		"to the file.  Errno = %d, error message = '%s'",
 			saved_errno, strerror(saved_errno) );
+	    }
 	}
 
 	return MX_SUCCESSFUL_RESULT;

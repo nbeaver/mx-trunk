@@ -4124,9 +4124,6 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	unsigned long image_format;
 	pixel_converter_t converter;
 	void (*converter_fn)( unsigned char *, unsigned char * );
-	int src_step, dest_step;
-	unsigned char *src;
-	unsigned char dest[10];
 	int saved_errno, os_status, num_items_written, fclose_status;
 	unsigned long byteorder, header_length;
 	unsigned char null_header_bytes[MXU_IMAGE_SMV_MAX_HEADER_LENGTH] = {0};
@@ -4170,48 +4167,16 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 	byteorder = mx_native_byteorder();
 
 	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_RGB565:
-		converter = mxp_rgb565_converter;
-		break;
-	case MXT_IMAGE_FORMAT_YUYV:
-		converter = mxp_yuyv_converter;
-		break;
-
 	case MXT_IMAGE_FORMAT_RGB:
-		converter = mxp_rgb_converter;
-		break;
 	case MXT_IMAGE_FORMAT_GREY8:
-		converter = mxp_grey8_converter;
-		break;
 	case MXT_IMAGE_FORMAT_GREY16:
-		converter = mxp_grey16_converter;
-		break;
 	case MXT_IMAGE_FORMAT_FLOAT:
-		converter = mxp_float_converter;
-		break;
 	case MXT_IMAGE_FORMAT_DOUBLE:
-		converter = mxp_double_converter;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %lu requested for datafile '%s'.",
 			image_format, datafile_name );
-	}
-
-	src_step     = converter.num_source_bytes;
-	dest_step    = converter.num_destination_bytes;
-	converter_fn = converter.converter_fn;
-
-#if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s: src_step = %d, dest_step = %d, converter_fn = %p",
-		fname, src_step, dest_step, converter_fn));
-#endif
-
-	if ( dest_step > sizeof(dest) ) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-			"You must increase the size of the dest array "
-			"to %d and then recompile MX.",
-				dest_step );
 	}
 
 	/* The size of the datafile header depends on the datafile type. */
@@ -4504,45 +4469,36 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			saved_errno, strerror( saved_errno ) );
 	}
 
-	/* Loop through the image file. */
+	/* Write out the image data. */
 
-	src = frame->image_data;
+	num_items_written = fwrite( frame->image_data,
+				1, frame->image_length, file );
 
-	for ( i = 0; i < frame->image_length; i += src_step ) {
+	if ( num_items_written < frame->image_length ) {
+		saved_errno = errno;
 
-		/* Convert and write out the pixels. */
+		(void) fclose( file );
 
-		converter_fn( &src[i], dest );
+		switch( saved_errno ) {
+		case ENOSPC:
+			mx_status = mx_error( MXE_DISK_FULL, fname,
+			"The disk used by file '%s' is full.",
+				datafile_name );
+			break;
 
-		num_items_written = fwrite( dest, sizeof(unsigned char),
-						dest_step, file );
-
-		if ( num_items_written < dest_step ) {
-			saved_errno = errno;
-
-			(void) fclose( file );
-
-			switch( saved_errno ) {
-			case ENOSPC:
-				mx_status = mx_error( MXE_DISK_FULL, fname,
-				"The disk used by file '%s' is full.",
-					datafile_name );
-				break;
-
-			default:
-				mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
-				"Fewer bytes were written (%lu) to SMV "
-				"image file '%s' than the number (%lu) "
-				"that were supposed to be written in "
-				"this block.  Errno = %d, error message = '%s'",
-					(unsigned long) num_items_written,
-					datafile_name,
-					(unsigned long) dest_step,
-					saved_errno, strerror(saved_errno) );
-				break;
-			}
-			return mx_status;
+		default:
+			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+			"Fewer bytes were written (%lu) to SMV "
+			"image file '%s' than the number (%lu) "
+			"that were supposed to be written in "
+			"this block.  Errno = %d, error message = '%s'",
+				(unsigned long) num_items_written,
+				datafile_name,
+				(unsigned long) frame->image_length,
+				saved_errno, strerror(saved_errno) );
+			break;
 		}
+		return mx_status;
 	}
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK
