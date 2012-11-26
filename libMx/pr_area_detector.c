@@ -158,7 +158,7 @@ mxp_area_detector_measure_correction_callback_function(
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported correction measurement sequence type %lu "
 			"requested for area detector '%s'.",
-				ad->correction_measurement_sequence_type,
+		    (unsigned long) ad->correction_measurement_sequence_type,
 				ad->record->name );
 		}
 
@@ -474,7 +474,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported correction measurement sequence type %lu "
 		"requested for area detector '%s'.",
-			ad->correction_measurement_sequence_type,
+			(unsigned long)ad->correction_measurement_sequence_type,
 			ad->record->name );
 		break;
 	}
@@ -1501,7 +1501,8 @@ mx_area_detector_process_function( void *record_ptr,
 			}
 #if 1
 			MX_DEBUG(-2,("%s: frame = %p, format = %lu",
-			fname, frame, MXIF_IMAGE_FORMAT(frame) ));
+				fname, frame,
+				(unsigned long)MXIF_IMAGE_FORMAT(frame) ));
 #endif
 			mx_image_statistics( frame );
 			break;

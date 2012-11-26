@@ -70,7 +70,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	if ( (*image_noir_info_ptr) != (MX_IMAGE_NOIR_INFO *) NULL ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The value of *image_noir_info_ptr passed was not NULL.  "
-		"Instead, it had the value %#p", *image_noir_info_ptr );
+		"Instead, it had the value %p", *image_noir_info_ptr );
 	}
 
 	image_noir_info = calloc( 1, sizeof(MX_IMAGE_NOIR_INFO) );
@@ -160,7 +160,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"An unexpected errno value %d was returned when "
-			"trying to parse image_noir_string." );
+			"trying to parse image_noir_string.", saved_errno );
 			break;
 		}
 	}

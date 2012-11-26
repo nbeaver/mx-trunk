@@ -7,12 +7,12 @@ ifndef MX_ARCH
 endif
 
 #EPIX_ARCH = i386
-#EPIX_ARCH = x86_64_pic
-EPIX_ARCH = w64
+EPIX_ARCH = x86_64_pic
+#EPIX_ARCH = w64
 
-#EPIX_XCLIB_DIR = /usr/local/xclib
+EPIX_XCLIB_DIR = /usr/local/xclib
 
-EPIX_XCLIB_DIR = c:\\progra~1\\EPIX\\XCLIB
+#EPIX_XCLIB_DIR = c:\\progra~1\\EPIX\\XCLIB
 
 #--------------------------------------------------------------------------
 

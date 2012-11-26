@@ -201,6 +201,8 @@ mxp_grey16_converter = { 2, 2, mxp_grey16_converter_fn };
 
 /*----*/
 
+#if 0
+
 static void
 mxp_float_converter_fn( unsigned char *src, unsigned char *dest )
 {
@@ -224,6 +226,8 @@ mxp_double_converter_fn( unsigned char *src, unsigned char *dest )
 
 static pixel_converter_t
 mxp_double_converter = { 8, 8, mxp_double_converter_fn };
+
+#endif /* 0 */
 
 /*----*/
 
@@ -4122,12 +4126,9 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	FILE *file;
 	unsigned long image_format;
-	pixel_converter_t converter;
-	void (*converter_fn)( unsigned char *, unsigned char * );
 	int saved_errno, os_status, num_items_written, fclose_status;
 	unsigned long byteorder, header_length;
 	unsigned char null_header_bytes[MXU_IMAGE_SMV_MAX_HEADER_LENGTH] = {0};
-	long i;
 	double exposure_time;
 	struct timespec exposure_timespec;
 	char timestamp[80];
@@ -4380,7 +4381,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Support for image format %lu is not available "
-		"for SMV format files." );
+		"for SMV format files.", image_format );
 	}
 
 	MXP_SMV_CHECK_FPRINTF( fprintf( file, "BIN=%lux%lu;\n",

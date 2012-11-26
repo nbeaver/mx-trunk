@@ -1017,8 +1017,6 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mx_area_detector_prepare_for_correction()";
 
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
-	void *void_image_data_pointer;
-	size_t image_length;
 	long pixels_per_frame;
 	mx_status_type mx_status;
 
