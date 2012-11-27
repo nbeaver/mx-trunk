@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007, 2011 Illinois Institute of Technology
+ * Copyright 2007, 2011-2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,8 +39,11 @@
 MX_EXPORT DIR *
 opendir( const char *name )
 {
+	static const char fname[] = "opendir()";
+
 	DIR *dir;
 	DWORD last_error_code;
+	TCHAR message_buffer[100];
 
 	errno = 0;
 
@@ -64,7 +67,6 @@ opendir( const char *name )
 
 	if ( dir == NULL ) {
 		errno = ENOMEM;
-
 		return NULL;
 	}
 
@@ -79,8 +81,27 @@ opendir( const char *name )
 	if ( dir->find_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
-		MX_DEBUG(-2,("opendir(): last_error_code = %ld",
-				last_error_code));
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		switch( last_error_code ) {
+		case ERROR_FILE_NOT_FOUND:
+			mx_error( MXE_NOT_FOUND, fname,
+			"The requested directory '%s' does not exist.", name );
+
+			errno = ENOENT;
+			break;
+
+		default:
+			mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while trying to use "
+			"directory '%s'.  "
+			"Win32 error code = %ld, error message = '%s'",
+				name, last_error_code, message_buffer );
+
+			errno = EIO;
+			break;
+		}
 
 		free(dir);
 
@@ -88,6 +109,8 @@ opendir( const char *name )
 	}
 
 	dir->file_number = 0;
+
+	errno = 0;
 
 	return dir;
 }
@@ -101,8 +124,11 @@ opendir( const char *name )
 MX_EXPORT int
 closedir( DIR *dir )
 {
+	static const char fname[] = "closedir()";
+
 	BOOL os_status;
 	DWORD last_error_code;
+	TCHAR message_buffer[100];
 
 	errno = 0;
 
@@ -120,8 +146,25 @@ closedir( DIR *dir )
 	if ( os_status == 0 ) {
 		last_error_code = GetLastError();
 
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
 		MX_DEBUG(-2,("closedir(): last_error_code = %ld",
 				last_error_code));
+
+		switch( last_error_code ) {
+		default:
+			mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occured while trying to close "
+			"directory '%s'.  "
+			"Win32 error code = %ld, error message = '%s'",
+				dir->directory_name,
+				last_error_code,
+				message_buffer );
+
+			errno = EIO;
+			break;
+		}
 
 		free(dir);
 
@@ -129,6 +172,8 @@ closedir( DIR *dir )
 	}
 
 	free(dir);
+
+	errno = 0;
 
 	return 0;
 }
@@ -201,6 +246,8 @@ readdir( DIR *dir )
 	strlcpy(entry.d_name, dir->find_data.cFileName, sizeof(entry.d_name));
 
 	dir->file_number++;
+
+	errno = 0;
 
 	return &entry;
 }

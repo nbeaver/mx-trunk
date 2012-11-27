@@ -37,6 +37,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#if defined(OS_WIN32)
+#  include <windows.h>
+#endif
+
 #if defined(__GNUC__)
 #  define __USE_XOPEN		/* For strptime() */
 #endif
@@ -3289,6 +3293,22 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 	file = fopen( datafile_name, "wb" );
 
 	if ( file == NULL ) {
+
+#if defined(OS_WIN32)
+		DWORD last_error_code;
+		TCHAR message_buffer[100];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+				"Opening file '%s' failed with "
+				"Win32 error code %ld, error message = '%s'.",
+				datafile_name,
+				last_error_code, message_buffer );
+#else
 		saved_errno = errno;
 
 		switch( saved_errno ) {
@@ -3301,6 +3321,12 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 				datafile_name );
 			break;
 
+		case EPERM:
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Writing an image to file '%s' is not supported "
+			"by the operating system.", datafile_name );
+			break;
+
 		default:
 			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 			"Cannot open RAW image file '%s'.  "
@@ -3309,6 +3335,7 @@ mx_image_write_raw_file( MX_IMAGE_FRAME *frame,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
+#endif
 
 		return mx_status;
 	}
@@ -4210,6 +4237,22 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		mx_get_number_of_open_file_descriptors() ));
 #endif
 	if ( file == NULL ) {
+
+#if defined(OS_WIN32)
+		DWORD last_error_code;
+		TCHAR message_buffer[100];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
+				"Opening file '%s' failed with "
+				"Win32 error code %ld, error message = '%s'.",
+				datafile_name,
+				last_error_code, message_buffer );
+#else
 		saved_errno = errno;
 
 		switch( saved_errno ) {
@@ -4222,6 +4265,12 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 				datafile_name );
 			break;
 
+		case EPERM:
+			mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"Writing an image to file '%s' is not supported "
+			"by the operating system.", datafile_name );
+			break;
+
 		default:
 			mx_status = mx_error( MXE_FILE_IO_ERROR, fname,
 			"Cannot open SMV image file '%s'.  "
@@ -4230,6 +4279,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 				saved_errno, strerror(saved_errno) );
 			break;
 		}
+#endif
 
 		return mx_status;
 	}
