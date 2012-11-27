@@ -20,7 +20,7 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_DEBUG				TRUE
+#define MXD_AVIEX_PCCD_DEBUG				FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_LINEARITY_LOOKUP		FALSE
 
@@ -30,7 +30,7 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_ALLOCATION_DETAILS		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_SERIAL			TRUE
+#define MXD_AVIEX_PCCD_DEBUG_SERIAL			FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_MX_IMAGE_ALLOC		FALSE
 
@@ -42,13 +42,13 @@
 
 #define MXD_AVIEX_PCCD_DEBUG_SETUP_GEOMETRICAL_MASK	FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		TRUE
+#define MXD_AVIEX_PCCD_DEBUG_EXTENDED_STATUS		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE		TRUE
+#define MXD_AVIEX_PCCD_DEBUG_TERMINATE_SEQUENCE		FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_MEMORY_LEAK		FALSE
 
-#define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		TRUE
+#define MXD_AVIEX_PCCD_DEBUG_CONTROL_REGISTER		FALSE
 
 #define MXD_AVIEX_PCCD_DEBUG_MONITOR_CALLBACKS		FALSE
 
@@ -1520,9 +1520,10 @@ mxd_aviex_pccd_open( MX_RECORD *record )
 	ad->correction_load_format = MXT_IMAGE_FILE_SMV;
 	ad->correction_save_format = MXT_IMAGE_FILE_SMV;
 
-	MX_DEBUG(-2,
-	("%s: FIXME - verify that bias_corr_after_flood works correctly.",
-		fname));
+	ad->mask_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->bias_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->dark_current_image_format = MXT_IMAGE_FORMAT_GREY16;
+	ad->flood_field_image_format = MXT_IMAGE_FORMAT_GREY16;
 
 	if ( ad->bias_corr_after_flood ) {
 		ad->measure_dark_current_correction_flags = MXFT_AD_MASK_FRAME;

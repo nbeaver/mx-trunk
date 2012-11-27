@@ -1143,6 +1143,15 @@ mx_area_detector_prepare_for_correction( MX_AREA_DETECTOR *ad,
 
 	if ( ad->dezinger_correction_frame ) {
 
+		if ( corr->num_exposures < 2 ) {
+			mx_area_detector_cleanup_after_correction( NULL, corr );
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Area detector '%s' cannot perform dezingering "
+			"of correction frames if only 1 measurement "
+			"is to be performed.", ad->record->name );
+		}
+
 		corr->dezinger_frame_array =
 		    calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
 
@@ -1958,15 +1967,17 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 	static const char fname[] =
 		"mx_area_detector_compute_flood_field_scale()";
 
-	uint8_t  *flood_field_data8  = NULL;
-	uint16_t *flood_field_data16 = NULL;
-	uint32_t *flood_field_data32 = NULL;
-	uint8_t  *bias_data8  = NULL;
-	uint16_t *bias_data16 = NULL;
-	uint32_t *bias_data32 = NULL;
+	uint8_t  *flood_field_data_u8  = NULL;
+	uint16_t *flood_field_data_u16 = NULL;
+	uint32_t *flood_field_data_u32 = NULL;
+	float    *flood_field_data_flt = NULL;
+	double   *flood_field_data_dbl = NULL;
+	uint8_t  *bias_data_u8  = NULL;
+	uint16_t *bias_data_u16 = NULL;
+	uint32_t *bias_data_u32 = NULL;
 	double raw_flood_field = 0.0;
 	double bias_offset     = 0.0;
-	unsigned long i, num_pixels, image_format;
+	unsigned long i, num_pixels, flood_image_format, bias_image_format;
 	double ffs_numerator, ffs_denominator, bias_average;
 	float *flood_field_scale_array;
 	mx_bool_type all_pixels_underflowed;
@@ -1999,48 +2010,55 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	image_format = MXIF_IMAGE_FORMAT(flood_field_frame);
+	flood_image_format = MXIF_IMAGE_FORMAT(flood_field_frame);
 
-	switch( image_format ) {
+	switch( flood_image_format ) {
 	case MXT_IMAGE_FORMAT_GREY8:
-		flood_field_data8 = flood_field_frame->image_data;
+		flood_field_data_u8 = flood_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
-		flood_field_data16 = flood_field_frame->image_data;
+		flood_field_data_u16 = flood_field_frame->image_data;
 		break;
 	case MXT_IMAGE_FORMAT_GREY32:
-		flood_field_data32 = flood_field_frame->image_data;
+		flood_field_data_u32 = flood_field_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_FLOAT:
+		flood_field_data_flt = flood_field_frame->image_data;
+		break;
+	case MXT_IMAGE_FORMAT_DOUBLE:
+		flood_field_data_dbl = flood_field_frame->image_data;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Flood field correction is not supported for image format %lu "
-		"used by area detector '%s'.", image_format, ad->record->name );
+		"used by area detector '%s'.",
+			flood_image_format, ad->record->name );
 	}
+
+	bias_image_format = 0;
 
 	if ( bias_frame == NULL ) {
 		all_pixels_underflowed = FALSE;
 	} else {
 		all_pixels_underflowed = TRUE;
 
-		if ( image_format != MXIF_IMAGE_FORMAT(bias_frame) ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The bias frame image format %lu for area detector "
-			"'%s' does not match the flood field image format %lu.",
-				(unsigned long) MXIF_IMAGE_FORMAT(bias_frame),
-				ad->record->name,
-				image_format );
-		}
+		bias_image_format = MXIF_IMAGE_FORMAT(bias_frame);
 
-		switch( image_format ) {
+		switch( bias_image_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
-			bias_data8 = bias_frame->image_data;
+			bias_data_u8 = bias_frame->image_data;
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
-			bias_data16 = bias_frame->image_data;
+			bias_data_u16 = bias_frame->image_data;
 			break;
 		case MXT_IMAGE_FORMAT_GREY32:
-			bias_data32 = bias_frame->image_data;
+			bias_data_u32 = bias_frame->image_data;
 			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Bias offset correction is not supported for "
+			"image format %lu used by area detector '%s'.",
+				bias_image_format, ad->record->name );
 		}
 	}
 
@@ -2067,15 +2085,21 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
-		switch( image_format ) {
+		switch( flood_image_format ) {
 		case MXT_IMAGE_FORMAT_GREY8:
-			raw_flood_field = flood_field_data8[i];
+			raw_flood_field = flood_field_data_u8[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY16:
-			raw_flood_field = flood_field_data16[i];
+			raw_flood_field = flood_field_data_u16[i];
 			break;
 		case MXT_IMAGE_FORMAT_GREY32:
-			raw_flood_field = flood_field_data32[i];
+			raw_flood_field = flood_field_data_u32[i];
+			break;
+		case MXT_IMAGE_FORMAT_FLOAT:
+			raw_flood_field = flood_field_data_flt[i];
+			break;
+		case MXT_IMAGE_FORMAT_DOUBLE:
+			raw_flood_field = flood_field_data_dbl[i];
 			break;
 		}
 
@@ -2083,15 +2107,15 @@ mx_area_detector_compute_flood_field_scale( MX_AREA_DETECTOR *ad,
 			bias_offset = 0;
 			bias_average = 0;
 		} else {
-			switch( image_format ) {
+			switch( bias_image_format ) {
 			case MXT_IMAGE_FORMAT_GREY8:
-				bias_offset = bias_data8[i];
+				bias_offset = bias_data_u8[i];
 				break;
 			case MXT_IMAGE_FORMAT_GREY16:
-				bias_offset = bias_data16[i];
+				bias_offset = bias_data_u16[i];
 				break;
 			case MXT_IMAGE_FORMAT_GREY32:
-				bias_offset = bias_data32[i];
+				bias_offset = bias_data_u32[i];
 				break;
 			}
 

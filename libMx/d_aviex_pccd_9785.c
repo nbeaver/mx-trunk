@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_9785_DEBUG			TRUE
+#define MXD_AVIEX_PCCD_9785_DEBUG			FALSE
 #define MXD_AVIEX_PCCD_9785_DEBUG_DESCRAMBLING_TIMES	FALSE
 #define MXD_AVIEX_PCCD_9785_DEBUG_SEQUENCE_TIMES	FALSE
 
@@ -241,8 +241,6 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 		ad->maximum_framesize[0] = 3584;
 		ad->maximum_framesize[1] = 4096;
 
-		ad->correction_measurement_sequence_type = MXT_SQ_MULTIFRAME;
-
 		aviex_pccd->horiz_descramble_factor = 4;
 		aviex_pccd->vert_descramble_factor  = 4;
 
@@ -251,6 +249,30 @@ mxd_aviex_pccd_9785_initialize_detector( MX_RECORD *record,
 		aviex_pccd->pixel_clock_frequency = 45.4545e6;
 
 		aviex_pccd->num_ccd_taps = 8;
+
+		/* We use the float format used by the Dexela SCap program. */
+
+		ad->flood_field_image_format = MXT_IMAGE_FORMAT_FLOAT;
+
+		/* Figure out what kind of correction measurement sequence
+		 * type to use.  If the video card is not configured for
+		 * multiframe sequences, then we must use one shot sequences.
+		 */
+
+		ad->parameter_type = MXLV_AD_MAXIMUM_FRAME_NUMBER;
+
+		mx_status = mxd_aviex_pccd_get_parameter( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( ad->maximum_frame_number > 0 ) {
+			ad->correction_measurement_sequence_type
+						= MXT_SQ_MULTIFRAME;
+		} else {
+			ad->correction_measurement_sequence_type
+						= MXT_SQ_ONE_SHOT;
+		}
 		break;
 
 	default:

@@ -56,7 +56,9 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_HRT_TIMING measurement;
 #endif
 
+#if defined(OS_WIN32)
 	mx_breakpoint();
+#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
@@ -67,11 +69,6 @@ mxp_area_detector_measure_correction_callback_function(
 	corr = callback_message->u.function.callback_args;
 
 	ad = corr->area_detector;
-
-#if 1
-	MX_DEBUG(-2,("%s (at beginning): framesize = (%lu,%lu)",
-		fname, ad->framesize[0], ad->framesize[1] ));
-#endif
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
 
@@ -343,7 +340,9 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	double detector_readout_time;
 	mx_status_type mx_status;
 
+#if defined(OS_WIN32)
 	mx_breakpoint();
+#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -651,11 +650,6 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Callback virtual timer started.", fname));
 	MX_DEBUG(-2,("******************************************************"));
-#endif
-
-#if 1
-	MX_DEBUG(-2,("%s (at end): framesize = (%lu,%lu)",
-		fname, ad->framesize[0], ad->framesize[1] ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

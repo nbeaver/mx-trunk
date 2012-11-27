@@ -3902,7 +3902,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 			if ( strncmp( ptr, "unsigned_short", 14 ) == 0 ) {
 				image_format = MXT_IMAGE_FORMAT_GREY16;
 			} else
-			if ( strncmp( ptr, "float IEEE", 10 ) == 0 ) {
+			if ( strncmp( ptr, "float", 5 ) == 0 ) {
 				image_format = MXT_IMAGE_FORMAT_FLOAT;
 			} else {
 				mx_warning( "Unrecognized data type seen "
