@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_AVIEX_PCCD_9785_DEBUG			FALSE
+#define MXD_AVIEX_PCCD_9785_DEBUG			TRUE
 #define MXD_AVIEX_PCCD_9785_DEBUG_DESCRAMBLING_TIMES	FALSE
 #define MXD_AVIEX_PCCD_9785_DEBUG_SEQUENCE_TIMES	FALSE
 
@@ -542,23 +542,24 @@ mxd_aviex_pccd_9785_descramble( uint16_t *raw_frame_data,
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
 
-		image_sector_array[0][i][j] = raw_frame_data[2];
+		image_sector_array[0][i][j] = raw_frame_data[4];
 
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[5];
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[6];
 
-		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[3];
+		image_sector_array[2][i_framesize-i-1][j] = raw_frame_data[2];
 
 		image_sector_array[3][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[4];
+							= raw_frame_data[0];
 
 		image_sector_array[4][i][j] = raw_frame_data[1];
 
-		image_sector_array[5][i][j_framesize-j-1] = raw_frame_data[6];
+		image_sector_array[5][i][j_framesize-j-1] = raw_frame_data[3];
 
-		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[0];
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[7];
 
 		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[7];
+							= raw_frame_data[5];
+
 		raw_frame_data += 8;
 	    }
 	}
