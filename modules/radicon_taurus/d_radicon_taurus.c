@@ -971,7 +971,17 @@ mxd_radicon_taurus_generate_throwaway_frame( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* We cannot call mx_area_detector_abort() here, since doing that
+	 * will cause all of the MX_AREA_DETECTOR_CORRECTION_MEASUREMENT
+	 * related data structures to be thrown away.  Instead, we call
+	 * the low level driver call directly.
+	 */
+
+#if 0
 	mx_status = mx_area_detector_stop( ad->record );
+#else
+	mx_status = mxd_radicon_taurus_abort( ad );
+#endif
 
 	return mx_status;
 }

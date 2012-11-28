@@ -56,10 +56,6 @@ mxp_area_detector_measure_correction_callback_function(
 	MX_HRT_TIMING measurement;
 #endif
 
-#if defined(OS_WIN32)
-	mx_breakpoint();
-#endif
-
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for callback message %p",
@@ -339,10 +335,6 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	double frame_time, modified_frame_time, gate_time;
 	double detector_readout_time;
 	mx_status_type mx_status;
-
-#if defined(OS_WIN32)
-	mx_breakpoint();
-#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
