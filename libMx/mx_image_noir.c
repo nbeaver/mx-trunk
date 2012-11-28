@@ -33,6 +33,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_unistd.h"
+#include "mx_array.h"
 #include "mx_motor.h"
 #include "mx_variable.h"
 #include "mx_image_noir.h"
@@ -54,6 +55,15 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	int split_status, saved_errno;
 	int argc;
 	char **argv;
+	int i, num_aliases, max_aliases;
+	int string_length, local_max_string_length, max_string_length;
+	char *ptr, *new_ptr;
+	long temp_dimension_array[3];
+	long *alias_dimension_array;
+	char ***alias_array;
+	size_t char_sizeof[3] =
+		{ sizeof(char), sizeof(char *), sizeof(char **) };
+	size_t ulong_sizeof[1] = { sizeof(unsigned long) };
 	mx_status_type mx_status;
 
 #if MX_IMAGE_NOIR_DEBUG
@@ -165,142 +175,132 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		}
 	}
 
-	if ( argc != 5 ) {
-		mx_free( duplicate );
-		mx_free( argv );
+#if MX_IMAGE_NOIR_DEBUG
+	MX_DEBUG(-2,("%s: argc = %d", fname, argc));
+#endif
 
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"%d arguments were specified for '%s', but 5 are required.",
-			argc, image_noir_string_record->name );
-	}
+	image_noir_info->mx_noir_header_num_records = argc;
 
-	/* Look for the 'energy' record. */
+	image_noir_info->mx_noir_header_record_array
+			= (MX_RECORD **) calloc( argc, sizeof(MX_RECORD *) );
 
-	image_noir_info->energy_motor_record =
-			mx_get_record( record_list, argv[0] );
-
-	if ( image_noir_info->energy_motor_record == (MX_RECORD *) NULL ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The record name '%s' specified by '%s' was not found.",
-			argv[0], image_noir_string_record->name );
-	}
-
-	if ( image_noir_info->energy_motor_record->mx_class != MXC_MOTOR ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record '%s' specified by '%s' is not a motor record.",
-			argv[0], image_noir_string_record->name );
-	}
-
-	/* Look for the 'wavelength' record. */
-
-	image_noir_info->wavelength_motor_record =
-			mx_get_record( record_list, argv[1] );
-
-	if ( image_noir_info->wavelength_motor_record == (MX_RECORD *) NULL ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The record name '%s' specified by '%s' was not found.",
-			argv[1], image_noir_string_record->name );
-	}
-
-	if ( image_noir_info->wavelength_motor_record->mx_class != MXC_MOTOR ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record '%s' specified by '%s' is not a motor record.",
-			argv[1], image_noir_string_record->name );
-	}
-
-	/* Look for the 'beam_x' record. */
-
-	image_noir_info->beam_x_motor_record =
-			mx_get_record( record_list, argv[2] );
-
-	if ( image_noir_info->beam_x_motor_record == (MX_RECORD *) NULL ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The record name '%s' specified by '%s' was not found.",
-			argv[2], image_noir_string_record->name );
-	}
-
-	if ( image_noir_info->beam_x_motor_record->mx_class != MXC_MOTOR ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record '%s' specified by '%s' is not a motor record.",
-			argv[2], image_noir_string_record->name );
-	}
-
-	/* Look for the 'beam_y' record. */
-
-	image_noir_info->beam_y_motor_record =
-			mx_get_record( record_list, argv[3] );
-
-	if ( image_noir_info->beam_y_motor_record == (MX_RECORD *) NULL ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The record name '%s' specified by '%s' was not found.",
-			argv[3], image_noir_string_record->name );
-	}
-
-	if ( image_noir_info->beam_y_motor_record->mx_class != MXC_MOTOR ) {
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record '%s' specified by '%s' is not a motor record.",
-			argv[3], image_noir_string_record->name );
-	}
-
-	/* Look for the 'oscillation_distance' record. */
-
-	image_noir_info->oscillation_distance_record =
-			mx_get_record( record_list, argv[4] );
-
-	if ( image_noir_info->oscillation_distance_record
-			== (MX_RECORD *) NULL )
+	if ( image_noir_info->mx_noir_header_record_array
+			== (MX_RECORD **) NULL )
 	{
-		mx_free( duplicate );
-		mx_free( argv );
-
-		return mx_error( MXE_NOT_FOUND, fname,
-		"The record name '%s' specified by '%s' was not found.",
-			argv[4], image_noir_string_record->name );
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d element "
+		"array of MX_RECORD * pointers.", argc );
 	}
 
-	if ( image_noir_info->oscillation_distance_record->mx_superclass
-			!= MXR_VARIABLE )
+	/* What is the maximum number of aliases for a given header value?
+	 * We find that out by counting the number of occurrences of the ':'
+	 * each of the argv strings above and then use the maximum of those.
+	 */
+
+	max_aliases = 0;
+	max_string_length = 0;
+
+	for ( i = 0; i < argc; i++ ) {
+
+		num_aliases = 0;
+
+		ptr = argv[i];
+
+		new_ptr = strchr( ptr, ':' );
+
+		while ( new_ptr != NULL ) {
+
+			num_aliases++;
+
+			ptr = new_ptr;
+
+			ptr++;
+
+			new_ptr = strchr( ptr, ':' );
+
+			if ( new_ptr == NULL ) {
+				string_length = strlen(ptr) + 1;
+			} else {
+				string_length = new_ptr - ptr + 1;
+			}
+
+			if ( string_length > local_max_string_length ) {
+				local_max_string_length = string_length;
+			}
+		}
+
+		if ( num_aliases > max_aliases ) {
+			max_aliases = num_aliases;
+		}
+
+		if ( local_max_string_length > max_string_length ) {
+			max_string_length = local_max_string_length;
+		}
+	}
+
+#if MX_IMAGE_NOIR_DEBUG
+	MX_DEBUG(-2,("%s: max_aliases = %d", fname, max_aliases));
+#endif
+
+	/* Create an array to store the header alias strings in. */
+
+	if ( ( image_noir_info->mx_noir_header_alias_array != NULL )
+	  && ( image_noir_info->mx_noir_header_alias_dimension_array != NULL ) )
 	{
-		mx_free( duplicate );
-		mx_free( argv );
+		/* If present, destroy the old one. */
 
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The record '%s' specified by '%s' is not a variable record.",
-			argv[4], image_noir_string_record->name );
+		mx_status = mx_free_array(
+		    image_noir_info->mx_noir_header_alias_array,
+		    3, image_noir_info->mx_noir_header_alias_dimension_array,
+		    char_sizeof );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
+
+	if ( image_noir_info->mx_noir_header_alias_dimension_array != NULL ) {
+		mx_free(image_noir_info->mx_noir_header_alias_dimension_array);
+	}
+
+	temp_dimension_array[0] = 3;
+
+	alias_dimension_array = mx_allocate_array( 1,
+				temp_dimension_array, ulong_sizeof );
+
+	if ( alias_dimension_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu element array "
+		"of NOIR header alias dimensions.", temp_dimension_array[0] );
+	}
+
+	image_noir_info->mx_noir_header_alias_dimension_array
+						= alias_dimension_array;
+
+	alias_dimension_array[0] = argc;
+	alias_dimension_array[1] = max_aliases;
+	alias_dimension_array[2] = max_string_length;
+
+	alias_array = mx_allocate_array( 3,
+				alias_dimension_array, char_sizeof );
+
+	if ( alias_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a (%lu,%lu,%lu) array "
+		"of NOIR header aliases.",
+			alias_dimension_array[0],
+			alias_dimension_array[1],
+			alias_dimension_array[2] );
+	}
+
+	image_noir_info->mx_noir_header_alias_array = alias_array;
+
+	MX_DEBUG(2,
+	("%s: FIXME! This function is not fully implemented.",fname));
+
+	/* Discard some temporary data structures. */
 
 	mx_free( duplicate );
 	mx_free( argv );
-
-	image_noir_info->energy = 0;
-	image_noir_info->wavelength = 0;
-	image_noir_info->beam_x = 0;
-	image_noir_info->beam_y = 0;
-	image_noir_info->oscillation_distance = 0;
 
 	/* Setup the file monitor for the static part of the NOIR header. */
 

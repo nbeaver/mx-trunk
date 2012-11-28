@@ -34,17 +34,14 @@ typedef struct {
 
 	MX_RECORD *mx_noir_records_list;
 
-	MX_RECORD *energy_motor_record;
-	MX_RECORD *wavelength_motor_record;
-	MX_RECORD *beam_x_motor_record;
-	MX_RECORD *beam_y_motor_record;
-	MX_RECORD *oscillation_distance_record;
+	unsigned long mx_noir_header_num_records;
+	MX_RECORD **mx_noir_header_record_array;
+	double *mx_noir_header_value_array;
+	
 
-	double energy;
-	double wavelength;
-	double beam_x;
-	double beam_y;
-	double oscillation_distance;
+	unsigned long *mx_noir_header_alias_dimension_array;
+	char ***mx_noir_header_alias_array;
+
 } MX_IMAGE_NOIR_INFO;
 
 MX_API mx_status_type mx_image_noir_setup( MX_RECORD *record_list,
