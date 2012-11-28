@@ -34,6 +34,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		FALSE
 
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		TRUE
+
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
 
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
@@ -46,6 +48,7 @@
 #include "mx_driver.h"
 #include "mx_inttypes.h"
 #include "mx_hrt.h"
+#include "mx_hrt_debug.h"
 #include "mx_ascii.h"
 #include "mx_cfn.h"
 #include "mx_motor.h"
@@ -1756,6 +1759,15 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 	unsigned long flags;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING readout_measurement;
+	MX_HRT_TIMING trim_measurement;
+	MX_HRT_TIMING save_raw_measurement;
+	MX_HRT_TIMING total_measurement;
+
+	MX_HRT_START(total_measurement);
+#endif
+
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
 						&radicon_taurus, fname );
 
@@ -1769,6 +1781,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 	if ( radicon_taurus->use_video_frames ) {
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+		MX_HRT_START(readout_measurement);
+#endif
+
 		/* If we get here, we will use the video frames
 		 * from the capture card directly.
 		 */
@@ -1779,6 +1795,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+		MX_HRT_END(readout_measurement);
+#endif
 	} else {
 		/* We generate trimmed frames instead. */
 
@@ -1789,6 +1809,10 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		long trimmed_row_bytesize;
 		long trimmed_row, row_offset, column_offset;
 		long flipped_trimmed_row;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+		MX_HRT_START(readout_measurement);
+#endif
 
 		/*
 		 * First, read the video capture card's frame into
@@ -1802,6 +1826,12 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+		MX_HRT_END(readout_measurement);
+
+		MX_HRT_START(trim_measurement);
+#endif
 		video_row_framesize =
 			MXIF_ROW_FRAMESIZE(radicon_taurus->video_frame);
 
@@ -1886,7 +1916,15 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 		MXIF_TIMESTAMP_NSEC( ad->image_frame )
 			= MXIF_TIMESTAMP_NSEC( radicon_taurus->video_frame );
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+		MX_HRT_END(trim_measurement);
+#endif
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_START(save_raw_measurement);
+#endif
 
 	ad->image_frame->application_ptr = radicon_taurus->image_noir_info;
 
@@ -1903,6 +1941,20 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 #if MXD_RADICON_TAURUS_DEBUG
 	MX_DEBUG(-2,("%s complete for area detector '%s'.",
 		fname, ad->record->name ));
+#endif
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(save_raw_measurement);
+	MX_HRT_END(total_measurement);
+
+	MX_HRT_RESULTS( readout_measurement, fname, "for readout." );
+
+	if ( radicon_taurus->use_video_frames == FALSE ) {
+		MX_HRT_RESULTS( trim_measurement, fname, "for trim." );
+	}
+
+	MX_HRT_RESULTS( save_raw_measurement, fname, "for save raw frames." );
+	MX_HRT_RESULTS( total_measurement, fname, "for total readout." );
 #endif
 
 	return mx_status;
@@ -2226,6 +2278,15 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_bool_type correction_measurement_in_progress;
 	mx_status_type mx_status;
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_TIMING setup_measurement;
+	MX_HRT_TIMING alloc_measurement;
+	MX_HRT_TIMING correction_measurement;
+	MX_HRT_TIMING convert_measurement;
+	MX_HRT_TIMING header_measurement;
+	MX_HRT_TIMING total_measurement;
+#endif
+
 	mx_status = mxd_radicon_taurus_get_pointers( ad,
 						&radicon_taurus, fname );
 
@@ -2249,6 +2310,11 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 #endif
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_START(total_measurement);
+	MX_HRT_START(setup_measurement);
+#endif
 
 	image_frame = ad->image_frame;
 
@@ -2329,10 +2395,18 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	/*---*/
-
 	correction_measurement_in_progress =
 		ad->correction_measurement_in_progress;
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(setup_measurement);
+#endif
+
+	/*---*/
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_START(alloc_measurement);
+#endif
 
 	if ( ad->correction_calc_format == MXT_IMAGE_FORMAT_DEFAULT ) {
 		ad->correction_calc_format = image_format;
@@ -2392,6 +2466,12 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_image_statistics(correction_calc_frame);
 #endif
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(alloc_measurement);
+
+	MX_HRT_START(correction_measurement);
+#endif
+
 	correction_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
 
 	switch( correction_format ) {
@@ -2417,6 +2497,12 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_image_statistics(correction_calc_frame);
 #endif
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(correction_measurement);
+
+	MX_HRT_START(convert_measurement);
+#endif
+
 	/*--- If needed, convert the data back to the native format ---*/
 
 	if ( correction_calc_frame != image_frame ) {
@@ -2432,6 +2518,12 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_image_statistics(image_frame);
 #endif
 
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(convert_measurement);
+
+	MX_HRT_START(header_measurement);
+#endif
+
 	/*--- Write the bias offset to the header. ---*/
 
 	if ( bias_frame == NULL ) {
@@ -2443,6 +2535,18 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 		MXIF_BIAS_OFFSET_MILLI_ADUS(image_frame) =
 			mx_round( 1000.0 * ad->bias_average_intensity );
 	}
+
+#if MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING
+	MX_HRT_END(header_measurement);
+	MX_HRT_END(total_measurement);
+
+	MX_HRT_RESULTS( setup_measurement, fname, "for setup." );
+	MX_HRT_RESULTS( alloc_measurement, fname, "for alloc." );
+	MX_HRT_RESULTS( correction_measurement, fname, "for correction." );
+	MX_HRT_RESULTS( convert_measurement, fname, "for convert." );
+	MX_HRT_RESULTS( header_measurement, fname, "for header." );
+	MX_HRT_RESULTS( total_measurement, fname, "for total correction." );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
