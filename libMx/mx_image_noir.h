@@ -39,7 +39,7 @@ typedef struct {
 	double *mx_noir_header_value_array;
 	
 
-	unsigned long *mx_noir_header_alias_dimension_array;
+	unsigned long mx_noir_header_alias_dimension_array[3];
 	char ***mx_noir_header_alias_array;
 
 } MX_IMAGE_NOIR_INFO;

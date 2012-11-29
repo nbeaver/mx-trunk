@@ -14,15 +14,15 @@
  *
  */
 
-#define MX_IMAGE_NOIR_DEBUG		TRUE
+#define MX_IMAGE_NOIR_DEBUG		FALSE
 
-#define MX_IMAGE_NOIR_DEBUG_STRINGS	TRUE
+#define MX_IMAGE_NOIR_DEBUG_STRINGS	FALSE
 
-#define MX_IMAGE_NOIR_DEBUG_UPDATE	TRUE
+#define MX_IMAGE_NOIR_DEBUG_UPDATE	FALSE
 
-#define MX_IMAGE_NOIR_DEBUG_WRITE	TRUE
+#define MX_IMAGE_NOIR_DEBUG_READ	FALSE
 
-#define MX_IMAGE_NOIR_ENABLE_UPDATE	TRUE
+#define MX_IMAGE_NOIR_DEBUG_WRITE	FALSE
 
 #if defined(OS_WIN32)
 #  include <windows.h>
@@ -63,15 +63,12 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	int i, j, num_aliases, max_aliases;
 	int string_length, local_max_string_length, max_string_length;
 	char *ptr, *new_ptr;
-	long temp_dimension_array[3];
 	long *alias_dimension_array;
 	char ***alias_array;
+	double *value_array;
 	size_t char_sizeof[3] =
 		{ sizeof(char), sizeof(char *), sizeof(char **) };
-	size_t ulong_sizeof[1] = { sizeof(unsigned long) };
 	mx_status_type mx_status;
-
-	mx_breakpoint();
 
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -198,6 +195,16 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	image_noir_info->mx_noir_header_record_array = record_array;
 
+	value_array = (double *) calloc( argc, sizeof(double) );
+
+	if ( value_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d element "
+		"array of double precision values.", argc );
+	}
+
+	image_noir_info->mx_noir_header_value_array = value_array;
+
 	/* What is the maximum number of aliases for a given header value?
 	 * We find that out by counting the number of occurrences of the ':'
 	 * each of the argv strings above and then use the maximum of those.
@@ -251,37 +258,21 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	/* Create an array to store the header alias strings in. */
 
+	alias_dimension_array =
+		image_noir_info->mx_noir_header_alias_dimension_array;
+
 	if ( ( image_noir_info->mx_noir_header_alias_array != NULL )
-	  && ( image_noir_info->mx_noir_header_alias_dimension_array != NULL ) )
+	  && ( alias_dimension_array[0] != 0 ) )
 	{
 		/* If present, destroy the old one. */
 
 		mx_status = mx_free_array(
 		    image_noir_info->mx_noir_header_alias_array,
-		    3, image_noir_info->mx_noir_header_alias_dimension_array,
-		    char_sizeof );
+		    3, alias_dimension_array, char_sizeof );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-
-	if ( image_noir_info->mx_noir_header_alias_dimension_array != NULL ) {
-		mx_free(image_noir_info->mx_noir_header_alias_dimension_array);
-	}
-
-	temp_dimension_array[0] = 3;
-
-	alias_dimension_array = mx_allocate_array( 1,
-				temp_dimension_array, ulong_sizeof );
-
-	if ( alias_dimension_array == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu element array "
-		"of NOIR header alias dimensions.", temp_dimension_array[0] );
-	}
-
-	image_noir_info->mx_noir_header_alias_dimension_array
-						= alias_dimension_array;
 
 	alias_dimension_array[0] = argc;
 	alias_dimension_array[1] = max_aliases;
@@ -378,18 +369,18 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		 * in the NOIR header for this MX record.
 		 */
 
-		for ( j = 1; j < max_aliases; j++ ) {
+		for ( j = 0; j < max_aliases; j++ ) {
 
-			if ( j >= item_argc ) {
-				alias_array[i][j-1][0] = '\0';
+			if ( j >= (item_argc - 1) ) {
+				alias_array[i][j][0] = '\0';
 			} else {
-				strlcpy( alias_array[i][j-1],
-					item_argv[j],
+				strlcpy( alias_array[i][j],
+					item_argv[j+1],
 					max_string_length );
 			}
 #if MX_IMAGE_NOIR_DEBUG_STRINGS
 			fprintf(stderr, ", alias(%d) = '%s'",
-				j-1, alias_array[i][j-1] );
+				j, alias_array[i][j] );
 #endif
 		}
 
@@ -407,8 +398,6 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	/* Setup the file monitor for the static part of the NOIR header. */
 
-#if MX_IMAGE_NOIR_ENABLE_UPDATE
-
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,
 	("%s: Setting up a file monitor for the static NOIR header file '%s'.",
@@ -420,18 +409,6 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#else /* not MX_IMAGE_NOIR_ENABLE_UPDATE */
-
-	image_noir_info->file_monitor = calloc( 1, sizeof(MX_FILE_MONITOR) );
-
-	image_noir_info->file_monitor->private_ptr = NULL;
-
-	strlcpy( image_noir_info->file_monitor->filename,
-			static_noir_header_name,
-			sizeof(image_noir_info->file_monitor->filename) );
-
-#endif /* not MX_IMAGE_NOIR_ENABLE_UPDATE */
 
 	image_noir_info->static_header_text = NULL;
 
@@ -456,9 +433,6 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	unsigned long i;
 	double double_value;
 	mx_status_type mx_status;
-
-	mx_breakpoint();
-	mx_status = MX_SUCCESSFUL_RESULT;
 
 	/* See if we need to update the contents of the static header. */
 
@@ -566,7 +540,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 		record = image_noir_info->mx_noir_header_record_array[i];
 
 		/* FIXME: The following code might be best handled by
-		 * an upgraded version of mx_update_record_values().
+		 * an enhanced version of mx_update_record_values().
 		 */
 
 		switch( record->mx_superclass ) {
@@ -618,7 +592,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 			break;
 		}
 
-#if MX_IMAGE_NOIR_DEBUG_UPDATE
+#if MX_IMAGE_NOIR_DEBUG_READ
 		MX_DEBUG(-2,("%s: record '%s' value read = %f",
 			fname, record->name, double_value ));
 #endif
@@ -639,8 +613,6 @@ mx_image_noir_write_header( FILE *file,
 	int i, j, num_records, max_aliases;
 	char *alias_name;
 	double alias_value;
-
-	mx_breakpoint();
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -664,11 +636,20 @@ mx_image_noir_write_header( FILE *file,
 			alias_name =
 			    image_noir_info->mx_noir_header_alias_array[i][j];
 
+			if ( strlen( alias_name ) < 1 ) {
+				/* If the alias name is empty, then we
+				 * skip this alias and go back to the
+				 * top of the loop for the next one.
+				 */
+				continue;
+			}
+
 			alias_value =
 			    image_noir_info->mx_noir_header_value_array[i];
 
 #if MX_IMAGE_NOIR_DEBUG_WRITE
-			MX_DEBUG(-2,("%s: %s=%f;", alias_name, alias_value));
+			MX_DEBUG(-2,("%s: %s=%f;",
+				fname, alias_name, alias_value));
 #endif
 
 			fprintf( file, "%s=%f;\n", alias_name, alias_value );
