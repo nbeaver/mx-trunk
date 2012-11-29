@@ -16,7 +16,11 @@
 
 #define MX_IMAGE_NOIR_DEBUG		TRUE
 
+#define MX_IMAGE_NOIR_DEBUG_STRINGS	TRUE
+
 #define MX_IMAGE_NOIR_DEBUG_UPDATE	TRUE
+
+#define MX_IMAGE_NOIR_DEBUG_WRITE	TRUE
 
 #define MX_IMAGE_NOIR_ENABLE_UPDATE	TRUE
 
@@ -48,14 +52,15 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	static const char fname[] = "mx_image_noir_setup()";
 
 	MX_IMAGE_NOIR_INFO *image_noir_info;
+	MX_RECORD **record_array;
 	MX_RECORD *image_noir_string_record;
 	MX_RECORD_FIELD *value_field;
 	char *image_noir_string;
 	char *duplicate;
 	int split_status, saved_errno;
-	int argc;
-	char **argv;
-	int i, num_aliases, max_aliases;
+	int argc, item_argc;
+	char **argv, **item_argv;
+	int i, j, num_aliases, max_aliases;
 	int string_length, local_max_string_length, max_string_length;
 	char *ptr, *new_ptr;
 	long temp_dimension_array[3];
@@ -65,6 +70,8 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		{ sizeof(char), sizeof(char *), sizeof(char **) };
 	size_t ulong_sizeof[1] = { sizeof(unsigned long) };
 	mx_status_type mx_status;
+
+	mx_breakpoint();
 
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -181,16 +188,15 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	image_noir_info->mx_noir_header_num_records = argc;
 
-	image_noir_info->mx_noir_header_record_array
-			= (MX_RECORD **) calloc( argc, sizeof(MX_RECORD *) );
+	record_array = (MX_RECORD **) calloc( argc, sizeof(MX_RECORD *) );
 
-	if ( image_noir_info->mx_noir_header_record_array
-			== (MX_RECORD **) NULL )
-	{
+	if ( record_array == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %d element "
 		"array of MX_RECORD * pointers.", argc );
 	}
+
+	image_noir_info->mx_noir_header_record_array = record_array;
 
 	/* What is the maximum number of aliases for a given header value?
 	 * We find that out by counting the number of occurrences of the ':'
@@ -203,6 +209,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	for ( i = 0; i < argc; i++ ) {
 
 		num_aliases = 0;
+		local_max_string_length = 0;
 
 		ptr = argv[i];
 
@@ -278,7 +285,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	alias_dimension_array[0] = argc;
 	alias_dimension_array[1] = max_aliases;
-	alias_dimension_array[2] = max_string_length;
+	alias_dimension_array[2] = max_string_length + 1;
 
 	alias_array = mx_allocate_array( 3,
 				alias_dimension_array, char_sizeof );
@@ -294,13 +301,109 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	image_noir_info->mx_noir_header_alias_array = alias_array;
 
-	MX_DEBUG(2,
-	("%s: FIXME! This function is not fully implemented.",fname));
+	/* Fill in the contents of mx_noir_header_record_array
+	 * and mx_noir_header_alias_array.
+	 */
+
+	for ( i = 0; i < argc; i++ ) {
+
+		split_status = mx_string_split( argv[i], ":",
+					&item_argc, &item_argv );
+
+		if ( split_status != 0 ) {
+			saved_errno = errno;
+
+			mx_status = mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Unexpected errno value %d was returned when "
+				"trying to parse argv[%d] = '%s'.",
+					saved_errno, i, argv[i] );
+
+			mx_free( argv );
+			mx_free( duplicate );
+
+			return mx_status;
+		}
+
+		if ( item_argc < 1 ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Entry %d in the 'mx_noir_records_list' variable "
+			"is empty.", i );
+
+			mx_free( item_argv );
+			mx_free( argv );
+			mx_free( duplicate );
+
+			return mx_status;
+		}
+		if ( item_argc < 2 ) {
+			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Entry %d '%s' in the 'mx_noir_records_list' "
+			"only contains the name of an MX record.  "
+			"It does not contain any alias values to be used "
+			"to show the value of this record in an "
+			"MX NOIR image header.", 0, item_argv[0] );
+
+			mx_free( item_argv );
+			mx_free( argv );
+			mx_free( duplicate );
+
+			return mx_status;
+		}
+
+		/* The first item should be the name of an MX record in
+		 * the local MX database.
+		 */
+
+		record_array[i] = mx_get_record( record_list, item_argv[0] );
+
+		if ( record_array[i] == (MX_RECORD *) NULL ) {
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"MX record '%s' for 'mx_noir_record_list entry' %d "
+			"was not found in the MX database.",
+				item_argv[0], i );
+
+			mx_free( item_argv );
+			mx_free( argv );
+			mx_free( duplicate );
+
+			return mx_status;
+		}
+
+#if MX_IMAGE_NOIR_DEBUG_STRINGS
+		fprintf(stderr, "%s: record[%d] = '%s'",
+			fname, i, record_array[i]->name);
+#endif
+
+		/* The subsequent items are the various aliases to be used
+		 * in the NOIR header for this MX record.
+		 */
+
+		for ( j = 1; j < max_aliases; j++ ) {
+
+			if ( j >= item_argc ) {
+				alias_array[i][j-1][0] = '\0';
+			} else {
+				strlcpy( alias_array[i][j-1],
+					item_argv[j],
+					max_string_length );
+			}
+#if MX_IMAGE_NOIR_DEBUG_STRINGS
+			fprintf(stderr, ", alias(%d) = '%s'",
+				j-1, alias_array[i][j-1] );
+#endif
+		}
+
+#if MX_IMAGE_NOIR_DEBUG_STRINGS
+		fprintf(stderr,"\n");
+#endif
+
+		mx_free( item_argv );
+	}
 
 	/* Discard some temporary data structures. */
 
-	mx_free( duplicate );
 	mx_free( argv );
+	mx_free( duplicate );
 
 	/* Setup the file monitor for the static part of the NOIR header. */
 
@@ -342,14 +445,20 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 {
 	static const char fname[] = "mx_image_noir_update()";
 
+	MX_RECORD *record;
 	struct stat noir_header_stat_buf;
 	int os_status, saved_errno;
 	mx_bool_type read_static_header_file;
 	mx_bool_type static_header_file_has_changed;
-	FILE *noir_header_file;
-	size_t noir_header_file_size;
+	FILE *noir_static_header_file;
+	size_t noir_static_header_file_size;
 	size_t bytes_read;
+	unsigned long i;
+	double double_value;
 	mx_status_type mx_status;
+
+	mx_breakpoint();
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	/* See if we need to update the contents of the static header. */
 
@@ -399,28 +508,28 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 
 		/* How big is the file? */
 
-		noir_header_file_size = noir_header_stat_buf.st_size;
+		noir_static_header_file_size = noir_header_stat_buf.st_size;
 
 		/* Allocate a buffer big enough to read the file into. */
 
 		image_noir_info->static_header_text =
-				malloc( noir_header_file_size );
+				malloc( noir_static_header_file_size );
 
 		if ( image_noir_info->static_header_text == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a %lu byte "
 			"buffer to contain the contents of NOIR static "
 			"header file '%s'.",
-				noir_header_file_size,
+				noir_static_header_file_size,
 				image_noir_info->file_monitor->filename );
 		}
 
 		/* Read in the contents of the NOIR static file header. */
 
-		noir_header_file =
+		noir_static_header_file =
 			fopen( image_noir_info->file_monitor->filename, "r" );
 
-		if ( noir_header_file == (FILE *) NULL ) {
+		if ( noir_static_header_file == (FILE *) NULL ) {
 			saved_errno = errno;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
@@ -432,19 +541,19 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 		}
 
 		bytes_read = fread( image_noir_info->static_header_text,
-					1, noir_header_file_size,
-					noir_header_file );
+					1, noir_static_header_file_size,
+					noir_static_header_file );
 
-		fclose( noir_header_file );
+		fclose( noir_static_header_file );
 
-		if ( bytes_read != noir_header_file_size ) {
+		if ( bytes_read != noir_static_header_file_size ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"The number of bytes read (%lu) from NOIR static "
 			"header file '%s' was different than the reported "
 			"file size of %lu bytes.",
 				bytes_read,
 				image_noir_info->file_monitor->filename,
-				noir_header_file_size );
+				noir_static_header_file_size );
 		}
 	}
 
@@ -452,37 +561,68 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	 * by the NOIR header.
 	 */
 
-	mx_status = mx_motor_get_position(
-			image_noir_info->energy_motor_record,
-			&(image_noir_info->energy) );
+	for ( i = 0; i < image_noir_info->mx_noir_header_num_records; i++ ) {
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		record = image_noir_info->mx_noir_header_record_array[i];
 
-	mx_status = mx_motor_get_position(
-			image_noir_info->wavelength_motor_record,
-			&(image_noir_info->wavelength) );
+		/* FIXME: The following code might be best handled by
+		 * an upgraded version of mx_update_record_values().
+		 */
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		switch( record->mx_superclass ) {
+		case MXR_DEVICE:
+			switch( record->mx_class ) {
+			case MXC_MOTOR:
+				mx_status = mx_motor_get_position( record,
+								&double_value );
 
-	mx_status = mx_motor_get_position(
-			image_noir_info->beam_x_motor_record,
-			&(image_noir_info->beam_x) );
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+				image_noir_info->mx_noir_header_value_array[i]
+					= double_value;
+				break;
+			default:
+				return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Support for MX device class %lu used by "
+				"record '%s' is not yet implemented.",
+					record->mx_class, record->name );
+				break;
+			}
+			break;
+		case MXR_VARIABLE:
+			/* Cause the variable's value to be updated. */
 
-	mx_status = mx_motor_get_position(
-			image_noir_info->beam_y_motor_record,
-			&(image_noir_info->beam_y) );
+			mx_status = mx_receive_variable( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-	mx_status = mx_get_double_variable(
-			image_noir_info->oscillation_distance_record,
-			&(image_noir_info->oscillation_distance) );
+			/* Get that value (if it is a double). */
+
+			mx_status = mx_get_double_variable( record,
+							&double_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			image_noir_info->mx_noir_header_value_array[i]
+				= double_value;
+			break;
+
+		default:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Support for MX superclass %lu used by "
+			"record '%s' is not yet implemented.",
+				record->mx_superclass, record->name );
+			break;
+		}
+
+#if MX_IMAGE_NOIR_DEBUG_UPDATE
+		MX_DEBUG(-2,("%s: record '%s' value read = %f",
+			fname, record->name, double_value ));
+#endif
+	}
 
 	return mx_status;
 }
@@ -496,6 +636,11 @@ mx_image_noir_write_header( FILE *file,
 	static const char fname[] = "mx_image_noir_write_header()";
 
 	int fputs_status, saved_errno;
+	int i, j, num_records, max_aliases;
+	char *alias_name;
+	double alias_value;
+
+	mx_breakpoint();
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -506,14 +651,29 @@ mx_image_noir_write_header( FILE *file,
 		"The MX_IMAGE_NOIR_INFO pointer passed was NULL." );
 	}
 
-	/* Write out the special values. */
+	/* Write out the dynamic header values. */
 
-	fprintf( file, "ENERGY=%f;\n", image_noir_info->energy );
-	fprintf( file, "WAVELENGTH=%f;\n", image_noir_info->wavelength );
-	fprintf( file, "BEAM_X=%f;\n", image_noir_info->beam_x );
-	fprintf( file, "BEAM_Y=%f;\n", image_noir_info->beam_y );
-	fprintf( file, "OSCILLATION_DISTANCE=%f;\n",
-				image_noir_info->oscillation_distance );
+	num_records = image_noir_info->mx_noir_header_num_records;
+
+	max_aliases = image_noir_info->mx_noir_header_alias_dimension_array[1];
+
+	for ( i = 0; i < num_records; i++ ) {
+
+		for( j = 0; j < max_aliases; j++ ) {
+
+			alias_name =
+			    image_noir_info->mx_noir_header_alias_array[i][j];
+
+			alias_value =
+			    image_noir_info->mx_noir_header_value_array[i];
+
+#if MX_IMAGE_NOIR_DEBUG_WRITE
+			MX_DEBUG(-2,("%s: %s=%f;", alias_name, alias_value));
+#endif
+
+			fprintf( file, "%s=%f;\n", alias_name, alias_value );
+		}
+	}
 
 	/* Write out the static header text. */
 
