@@ -27,25 +27,33 @@ extern "C" {
 #include "mx_io.h"
 
 typedef struct {
+	MX_RECORD *mx_imaging_device_record;
+
+	char detector_name_for_header[MXU_RECORD_NAME_LENGTH+1];
+
+	/*---*/
+
 	MX_FILE_MONITOR *file_monitor;
 
 	unsigned long static_header_length;
 	char *static_header_text;
 
-	MX_RECORD *mx_noir_records_list;
+	/*---*/
 
-	unsigned long mx_noir_header_num_records;
-	MX_RECORD **mx_noir_header_record_array;
-	double *mx_noir_header_value_array;
+	unsigned long dynamic_header_num_records;
+	MX_RECORD **dynamic_header_record_array;
+	double *dynamic_header_value_array;
 	
 
-	unsigned long mx_noir_header_alias_dimension_array[3];
-	char ***mx_noir_header_alias_array;
+	unsigned long dynamic_header_alias_dimension_array[3];
+	char ***dynamic_header_alias_array;
 
 } MX_IMAGE_NOIR_INFO;
 
-MX_API mx_status_type mx_image_noir_setup( MX_RECORD *record_list,
-				char *static_file_header_name,
+MX_API mx_status_type mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
+				char *detector_name_for_header,
+				char *dynamic_header_template_name,
+				char *static_header_file_name,
 				MX_IMAGE_NOIR_INFO **image_noir_info_ptr );
 
 MX_API mx_status_type mx_image_noir_update(

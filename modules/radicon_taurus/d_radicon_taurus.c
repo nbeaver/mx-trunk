@@ -1077,7 +1077,9 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_image_noir_setup( ad->record->list_head,
+			mx_status = mx_image_noir_setup( ad->record,
+					"RDI",
+					"mx_image_noir_records",
 					static_header_filename,
 					&(radicon_taurus->image_noir_info) );
 

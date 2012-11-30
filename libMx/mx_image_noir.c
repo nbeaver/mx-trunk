@@ -14,15 +14,15 @@
  *
  */
 
-#define MX_IMAGE_NOIR_DEBUG		FALSE
+#define MX_IMAGE_NOIR_DEBUG		TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_STRINGS	FALSE
+#define MX_IMAGE_NOIR_DEBUG_STRINGS	TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_UPDATE	FALSE
+#define MX_IMAGE_NOIR_DEBUG_UPDATE	TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_READ	FALSE
+#define MX_IMAGE_NOIR_DEBUG_READ	TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_WRITE	FALSE
+#define MX_IMAGE_NOIR_DEBUG_WRITE	TRUE
 
 #if defined(OS_WIN32)
 #  include <windows.h>
@@ -45,17 +45,19 @@
 /*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_image_noir_setup( MX_RECORD *record_list,
-		char *static_noir_header_name,
+mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
+		char *detector_name_for_header,
+		char *dynamic_header_template_name,
+		char *static_header_file_name,
 		MX_IMAGE_NOIR_INFO **image_noir_info_ptr )
 {
 	static const char fname[] = "mx_image_noir_setup()";
 
 	MX_IMAGE_NOIR_INFO *image_noir_info;
 	MX_RECORD **record_array;
-	MX_RECORD *image_noir_string_record;
+	MX_RECORD *dynamic_header_string_record;
 	MX_RECORD_FIELD *value_field;
-	char *image_noir_string;
+	char *dynamic_header_string;
 	char *duplicate;
 	int split_status, saved_errno;
 	int argc, item_argc;
@@ -73,9 +75,9 @@ mx_image_noir_setup( MX_RECORD *record_list,
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
-	if ( record_list == (MX_RECORD *) NULL ) {
+	if ( mx_imaging_device_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The record_list pointer passed was NULL." );
+		"The mx_imaging_device_record pointer passed was NULL." );
 	}
 	if ( image_noir_info_ptr == (MX_IMAGE_NOIR_INFO **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -97,27 +99,83 @@ mx_image_noir_setup( MX_RECORD *record_list,
 
 	*image_noir_info_ptr = image_noir_info;
 
-	/* Look for a string variable record in the database called
-	 * 'mx_image_noir_records'.  It should contain a list of the
-	 * records used to generate the information used by NOIR
-	 * image headers.
+	image_noir_info->mx_imaging_device_record = mx_imaging_device_record;
+
+	if ( detector_name_for_header == NULL ) {
+		image_noir_info->detector_name_for_header[0] = '\0';
+	} else {
+		strlcpy( image_noir_info->detector_name_for_header,
+			detector_name_for_header,
+			sizeof( image_noir_info->detector_name_for_header ) );
+	}
+
+	/*========= Setup static header information =========*/
+
+	if ( ( static_header_file_name == NULL )
+	  || ( strlen(static_header_file_name) == 0 ) )
+	{
+		image_noir_info->file_monitor = NULL;
+
+		mx_warning( "No static NOIR header file was specified "
+		"for record '%s'.", mx_imaging_device_record->name );
+	} else {
+		/* Setup a file monitor for the static part
+		 * of the NOIR header.
+		 */
+
+#if MX_IMAGE_NOIR_DEBUG
+		MX_DEBUG(-2,
+			("%s: Setting up a file monitor for the static NOIR "
+			"header file '%s'.",
+			fname, static_header_file_name));
+#endif
+
+		mx_status = mx_create_file_monitor(
+				&(image_noir_info->file_monitor),
+				R_OK, static_header_file_name );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	image_noir_info->static_header_text = NULL;
+
+	/*========= Setup dynamic header information =========*/
+
+	image_noir_info->dynamic_header_num_records = 0;
+
+	/* Look for a string variable record in the database whose name
+	 * is given by the string 'dynamic_header_template_name'.  It
+	 * should contain a list of the records used to generate the
+	 * dynamic information used by NOIR image headers.
 	 */
 
-	image_noir_string_record = mx_get_record( record_list,
-						"mx_image_noir_records" );
+	if ( ( dynamic_header_template_name == NULL )
+	  || ( strlen(dynamic_header_template_name) == 0 ) )
+	{
+		mx_warning( "Cannot setup dynamic NOIR header information, "
+		"since no dynamic header template name record was specified." );
 
-	if ( image_noir_string_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NOT_FOUND, fname,
-		"Cannot setup NOIR header information, since the MX database "
-		"does not contain a record called 'mx_image_noir_records'." );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	dynamic_header_string_record = mx_get_record( mx_imaging_device_record,
+						dynamic_header_template_name );
+
+	if ( dynamic_header_string_record == (MX_RECORD *) NULL ) {
+		mx_warning( "Cannot setup NOIR dynamic header information, "
+		"since the MX database does not contain a record called '%s'.",
+		dynamic_header_template_name );
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* Is this a string variable?  If so, it should have a 1-dimensional
 	 * 'value' field with a type of MXFT_STRING.
 	 */
 
-	mx_status = mx_find_record_field( image_noir_string_record,
-					"value", &value_field );
+	mx_status = mx_find_record_field( dynamic_header_string_record,
+						"value", &value_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -128,29 +186,29 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The 'value' field of record '%s' used to generate "
 		"NOIR image headers is NULL.",
-			image_noir_string_record->name );
+			dynamic_header_string_record->name );
 	}
 
-	image_noir_string = mx_get_field_value_pointer( value_field );
+	dynamic_header_string = mx_get_field_value_pointer( value_field );
 
-	if ( image_noir_string == (char *) NULL ) {
+	if ( dynamic_header_string == (char *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The field value pointer for field '%s.%s' is NULL.",
-			image_noir_string_record->name,
+			dynamic_header_string_record->name,
 			value_field->name );
 	}
 
 #if MX_IMAGE_NOIR_DEBUG
 	MX_DEBUG(-2,("%s: '%s' string = '%s'", fname, 
-		image_noir_string_record->name,
-		image_noir_string ));
+		dynamic_header_string_record->name,
+		dynamic_header_string ));
 #endif
 
-	duplicate = strdup( image_noir_string );
+	duplicate = strdup( dynamic_header_string );
 
 	if ( duplicate == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	    "Ran out of memory trying to make a copy of image_noir_string.");
+	  "Ran out of memory trying to make a copy of dynamic_header_string.");
 	}
 
 	split_status = mx_string_split( duplicate, " ", &argc, &argv );
@@ -183,7 +241,11 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	MX_DEBUG(-2,("%s: argc = %d", fname, argc));
 #endif
 
-	image_noir_info->mx_noir_header_num_records = argc;
+	image_noir_info->dynamic_header_num_records = argc;
+
+	if ( argc == 0 ) {
+		mx_warning( "" );
+	}
 
 	record_array = (MX_RECORD **) calloc( argc, sizeof(MX_RECORD *) );
 
@@ -193,7 +255,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		"array of MX_RECORD * pointers.", argc );
 	}
 
-	image_noir_info->mx_noir_header_record_array = record_array;
+	image_noir_info->dynamic_header_record_array = record_array;
 
 	value_array = (double *) calloc( argc, sizeof(double) );
 
@@ -203,7 +265,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		"array of double precision values.", argc );
 	}
 
-	image_noir_info->mx_noir_header_value_array = value_array;
+	image_noir_info->dynamic_header_value_array = value_array;
 
 	/* What is the maximum number of aliases for a given header value?
 	 * We find that out by counting the number of occurrences of the ':'
@@ -259,15 +321,15 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	/* Create an array to store the header alias strings in. */
 
 	alias_dimension_array =
-		image_noir_info->mx_noir_header_alias_dimension_array;
+		image_noir_info->dynamic_header_alias_dimension_array;
 
-	if ( ( image_noir_info->mx_noir_header_alias_array != NULL )
+	if ( ( image_noir_info->dynamic_header_alias_array != NULL )
 	  && ( alias_dimension_array[0] != 0 ) )
 	{
 		/* If present, destroy the old one. */
 
 		mx_status = mx_free_array(
-		    image_noir_info->mx_noir_header_alias_array,
+		    image_noir_info->dynamic_header_alias_array,
 		    3, alias_dimension_array, char_sizeof );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -290,7 +352,7 @@ mx_image_noir_setup( MX_RECORD *record_list,
 			alias_dimension_array[2] );
 	}
 
-	image_noir_info->mx_noir_header_alias_array = alias_array;
+	image_noir_info->dynamic_header_alias_array = alias_array;
 
 	/* Fill in the contents of mx_noir_header_record_array
 	 * and mx_noir_header_alias_array.
@@ -345,7 +407,8 @@ mx_image_noir_setup( MX_RECORD *record_list,
 		 * the local MX database.
 		 */
 
-		record_array[i] = mx_get_record( record_list, item_argv[0] );
+		record_array[i] = mx_get_record( mx_imaging_device_record,
+							item_argv[0] );
 
 		if ( record_array[i] == (MX_RECORD *) NULL ) {
 			mx_status = mx_error( MXE_NOT_FOUND, fname,
@@ -396,22 +459,6 @@ mx_image_noir_setup( MX_RECORD *record_list,
 	mx_free( argv );
 	mx_free( duplicate );
 
-	/* Setup the file monitor for the static part of the NOIR header. */
-
-#if MX_IMAGE_NOIR_DEBUG
-	MX_DEBUG(-2,
-	("%s: Setting up a file monitor for the static NOIR header file '%s'.",
-		fname, static_noir_header_name));
-#endif
-
-	mx_status = mx_create_file_monitor( &(image_noir_info->file_monitor),
-						R_OK, static_noir_header_name );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	image_noir_info->static_header_text = NULL;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -436,12 +483,8 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 
 	/* See if we need to update the contents of the static header. */
 
-#if MX_IMAGE_NOIR_ENABLE_UPDATE
 	static_header_file_has_changed = mx_file_has_changed(
 					image_noir_info->file_monitor );
-#else
-	static_header_file_has_changed = FALSE;
-#endif
 
 	if ( image_noir_info->static_header_text == NULL ) {
 		read_static_header_file = TRUE;
@@ -487,7 +530,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 		/* Allocate a buffer big enough to read the file into. */
 
 		image_noir_info->static_header_text =
-				malloc( noir_static_header_file_size );
+				malloc( noir_static_header_file_size + 1 );
 
 		if ( image_noir_info->static_header_text == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -529,15 +572,19 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 				image_noir_info->file_monitor->filename,
 				noir_static_header_file_size );
 		}
+
+		/* Make sure the text is null terminated. */
+
+		image_noir_info->static_header_text[bytes_read] = '\0';
 	}
 
 	/* Now update the motor positions and other values used
 	 * by the NOIR header.
 	 */
 
-	for ( i = 0; i < image_noir_info->mx_noir_header_num_records; i++ ) {
+	for ( i = 0; i < image_noir_info->dynamic_header_num_records; i++ ) {
 
-		record = image_noir_info->mx_noir_header_record_array[i];
+		record = image_noir_info->dynamic_header_record_array[i];
 
 		/* FIXME: The following code might be best handled by
 		 * an enhanced version of mx_update_record_values().
@@ -553,7 +600,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
-				image_noir_info->mx_noir_header_value_array[i]
+				image_noir_info->dynamic_header_value_array[i]
 					= double_value;
 				break;
 			default:
@@ -580,7 +627,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			image_noir_info->mx_noir_header_value_array[i]
+			image_noir_info->dynamic_header_value_array[i]
 				= double_value;
 			break;
 
@@ -623,39 +670,6 @@ mx_image_noir_write_header( FILE *file,
 		"The MX_IMAGE_NOIR_INFO pointer passed was NULL." );
 	}
 
-	/* Write out the dynamic header values. */
-
-	num_records = image_noir_info->mx_noir_header_num_records;
-
-	max_aliases = image_noir_info->mx_noir_header_alias_dimension_array[1];
-
-	for ( i = 0; i < num_records; i++ ) {
-
-		for( j = 0; j < max_aliases; j++ ) {
-
-			alias_name =
-			    image_noir_info->mx_noir_header_alias_array[i][j];
-
-			if ( strlen( alias_name ) < 1 ) {
-				/* If the alias name is empty, then we
-				 * skip this alias and go back to the
-				 * top of the loop for the next one.
-				 */
-				continue;
-			}
-
-			alias_value =
-			    image_noir_info->mx_noir_header_value_array[i];
-
-#if MX_IMAGE_NOIR_DEBUG_WRITE
-			MX_DEBUG(-2,("%s: %s=%f;",
-				fname, alias_name, alias_value));
-#endif
-
-			fprintf( file, "%s=%f;\n", alias_name, alias_value );
-		}
-	}
-
 	/* Write out the static header text. */
 
 	if ( image_noir_info->static_header_text != NULL ) {
@@ -669,6 +683,39 @@ mx_image_noir_write_header( FILE *file,
 		"to the file.  Errno = %d, error message = '%s'",
 			saved_errno, strerror(saved_errno) );
 	    }
+	}
+
+	/* Write out the dynamic header values. */
+
+	num_records = image_noir_info->dynamic_header_num_records;
+
+	max_aliases = image_noir_info->dynamic_header_alias_dimension_array[1];
+
+	for ( i = 0; i < num_records; i++ ) {
+
+		for( j = 0; j < max_aliases; j++ ) {
+
+			alias_name =
+			    image_noir_info->dynamic_header_alias_array[i][j];
+
+			if ( strlen( alias_name ) < 1 ) {
+				/* If the alias name is empty, then we
+				 * skip this alias and go back to the
+				 * top of the loop for the next one.
+				 */
+				continue;
+			}
+
+			alias_value =
+			    image_noir_info->dynamic_header_value_array[i];
+
+#if MX_IMAGE_NOIR_DEBUG_WRITE
+			MX_DEBUG(-2,("%s: %s=%f;",
+				fname, alias_name, alias_value));
+#endif
+
+			fprintf( file, "%s=%f;\n", alias_name, alias_value );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
