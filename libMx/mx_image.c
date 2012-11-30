@@ -4214,7 +4214,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 		header_length = 512;
 		break;
 	case MXT_IMAGE_FILE_NOIR:
-		header_length = 2048;
+		header_length = 3072;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

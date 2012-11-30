@@ -807,6 +807,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_DATAFILE_SAVE_FORMAT_NAME:
 		case MXLV_AD_DETECTOR_READOUT_TIME:
 		case MXLV_AD_EXPOSURE_MOTOR_NAME:
+		case MXLV_AD_EXPOSURE_TIME:
 		case MXLV_AD_EXPOSURE_TRIGGER_NAME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
@@ -1033,6 +1034,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_TOTAL_SEQUENCE_TIME:
 			mx_status = mx_area_detector_get_total_sequence_time(
+								record, NULL );
+			break;
+		case MXLV_AD_EXPOSURE_TIME:
+			mx_status = mx_area_detector_get_exposure_time(
 								record, NULL );
 			break;
 		case MXLV_AD_TRIGGER_MODE:

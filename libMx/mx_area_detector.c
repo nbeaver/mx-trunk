@@ -1533,6 +1533,13 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 		mx_free( ad->dark_current_offset_array );
 	}
 
+	/* As a side effect, set the value of ad->exposure_time.
+	 * This gives external code that reads the exposure time an
+	 * exposure time that matches the most recently set value.
+	 */
+
+	ad->exposure_time = exposure_time;
+
 	/* Set the sequence type. */
 
 	ad->parameter_type = MXLV_AD_SEQUENCE_TYPE;
@@ -1559,6 +1566,36 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 
 	return mx_status;
 }
+
+/*--------*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_exposure_time( MX_RECORD *record,
+					double *exposure_time )
+{
+	static const char fname[] = "mx_area_detector_get_exposure_time()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+	mx_status = mx_sequence_get_exposure_time( sp, 0, &(ad->exposure_time));
+
+	if ( exposure_time != (double *) NULL ) {
+		*exposure_time = ad->exposure_time;
+	}
+
+	return mx_status;
+}
+
+/*--------*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_set_one_shot_mode( MX_RECORD *record, double exposure_time )
