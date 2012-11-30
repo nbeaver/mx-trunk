@@ -138,6 +138,7 @@ extern "C" {
 #define MXV_FILE			68
 #define MXV_U500			69
 #define MXV_POWERPMAC			70
+#define MXV_FIELD			71
 
 /* --- Server classes --- */
 
@@ -806,6 +807,20 @@ extern "C" {
 #define MXV_FILE_LONG			507008
 #define MXV_FILE_ULONG			507009
 #define MXV_FILE_DOUBLE			507011
+
+#define MXV_FIELD_STRING		508001
+#define MXV_FIELD_CHAR			508002
+#define MXV_FIELD_UCHAR			508003
+#define MXV_FIELD_SHORT			508004
+#define MXV_FIELD_USHORT		508005
+#define MXV_FIELD_BOOL			508006
+#define MXV_FIELD_LONG			508008
+#define MXV_FIELD_ULONG			508009
+#define MXV_FIELD_FLOAT			508010
+#define MXV_FIELD_DOUBLE		508011
+#define MXV_FIELD_INT64			508014
+#define MXV_FIELD_UINT64		508015
+#define MXV_FIELD_RECORD		508031
 
 /* --- Server types --- */
 
