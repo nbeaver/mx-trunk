@@ -14,15 +14,15 @@
  *
  */
 
-#define MX_IMAGE_NOIR_DEBUG		TRUE
+#define MX_IMAGE_NOIR_DEBUG_SETUP	TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_STRINGS	TRUE
+#define MX_IMAGE_NOIR_DEBUG_STRINGS	FALSE
 
 #define MX_IMAGE_NOIR_DEBUG_UPDATE	TRUE
 
 #define MX_IMAGE_NOIR_DEBUG_READ	TRUE
 
-#define MX_IMAGE_NOIR_DEBUG_WRITE	TRUE
+#define MX_IMAGE_NOIR_DEBUG_WRITE	FALSE
 
 #if defined(OS_WIN32)
 #  include <windows.h>
@@ -72,7 +72,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		{ sizeof(char), sizeof(char *), sizeof(char **) };
 	mx_status_type mx_status;
 
-#if MX_IMAGE_NOIR_DEBUG
+#if MX_IMAGE_NOIR_DEBUG_SETUP
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 	if ( mx_imaging_device_record == (MX_RECORD *) NULL ) {
@@ -123,7 +123,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		 * of the NOIR header.
 		 */
 
-#if MX_IMAGE_NOIR_DEBUG
+#if MX_IMAGE_NOIR_DEBUG_SETUP
 		MX_DEBUG(-2,
 			("%s: Setting up a file monitor for the static NOIR "
 			"header file '%s'.",
@@ -198,7 +198,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 			value_field->name );
 	}
 
-#if MX_IMAGE_NOIR_DEBUG
+#if MX_IMAGE_NOIR_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: '%s' string = '%s'", fname, 
 		dynamic_header_string_record->name,
 		dynamic_header_string ));
@@ -237,7 +237,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		}
 	}
 
-#if MX_IMAGE_NOIR_DEBUG
+#if MX_IMAGE_NOIR_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: argc = %d", fname, argc));
 #endif
 
@@ -314,7 +314,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 		}
 	}
 
-#if MX_IMAGE_NOIR_DEBUG
+#if MX_IMAGE_NOIR_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: max_aliases = %d", fname, max_aliases));
 #endif
 

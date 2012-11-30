@@ -468,6 +468,13 @@ mxv_field_variable_send_variable( MX_VARIABLE *variable )
 
 	external_value_ptr = mx_get_field_value_pointer( external_field );
 
+	if ( external_field->flags & MXFF_READ_ONLY ) {
+		return mx_error( MXE_READ_ONLY, fname,
+		"External field '%s' used by record '%s' is read only.",
+			field_variable->external_field_name,
+			variable->record->name );
+	}
+
 	mx_status = mx_convert_and_copy_array( internal_value_ptr,
 					internal_field->datatype,
 					internal_field->num_dimensions,
