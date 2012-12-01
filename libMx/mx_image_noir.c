@@ -247,7 +247,10 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 	image_noir_info->dynamic_header_num_records = argc;
 
 	if ( argc == 0 ) {
-		mx_warning( "" );
+		mx_warning( "No dynamic header entries found in record '%s'.",
+			dynamic_header_string_record->name );
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	record_array = (MX_RECORD **) calloc( argc, sizeof(MX_RECORD *) );
@@ -324,7 +327,7 @@ mx_image_noir_setup( MX_RECORD *mx_imaging_device_record,
 	/* Create an array to store the header alias strings in. */
 
 	alias_dimension_array =
-		image_noir_info->dynamic_header_alias_dimension_array;
+		(long *) image_noir_info->dynamic_header_alias_dimension_array;
 
 	if ( ( image_noir_info->dynamic_header_alias_array != NULL )
 	  && ( alias_dimension_array[0] != 0 ) )
@@ -480,7 +483,8 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	FILE *noir_static_header_file;
 	size_t noir_static_header_file_size;
 	size_t bytes_read;
-	unsigned long i, ulong_value;
+	unsigned long i;
+	long long_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -609,16 +613,16 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 
 			case MXC_SCALER:
 				mx_status = mx_scaler_read( record,
-							&ulong_value );
+							&long_value );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
 				image_noir_info->dynamic_header_value_array[i]
-					= ulong_value;
+					= long_value;
 
 #if MX_IMAGE_NOIR_DEBUG_READ
-				double_value = ulong_value;
+				double_value = long_value;
 #endif
 				break;
 

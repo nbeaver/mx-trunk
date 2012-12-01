@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -254,8 +255,6 @@ mxv_field_variable_get_pointers( MX_VARIABLE *variable,
 				const char *calling_fname )
 {
 	static const char fname[] = "mxv_field_variable_get_pointers()";
-
-	mx_status_type mx_status;
 
 	if ( variable == (MX_VARIABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
