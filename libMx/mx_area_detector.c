@@ -5446,6 +5446,17 @@ mx_area_detector_copy_and_convert_image_data( MX_IMAGE_FRAME *dest_frame,
 		break;
 	}
 
+	/* Copy the exposure time. */
+
+	MXIF_EXPOSURE_TIME_SEC(dest_frame) = MXIF_EXPOSURE_TIME_SEC(src_frame);
+	MXIF_EXPOSURE_TIME_NSEC(dest_frame) =
+					MXIF_EXPOSURE_TIME_NSEC(src_frame);
+
+	/* Copy the timestamp. */
+
+	MXIF_TIMESTAMP_SEC(dest_frame)  = MXIF_TIMESTAMP_SEC(src_frame);
+	MXIF_TIMESTAMP_NSEC(dest_frame) = MXIF_TIMESTAMP_NSEC(src_frame);
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

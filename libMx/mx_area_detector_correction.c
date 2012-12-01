@@ -45,13 +45,10 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_cfn.h"
+#include "mx_hrt_debug.h"
 #include "mx_memory.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
-
-#if MX_AREA_DETECTOR_DEBUG_FRAME_TIMING
-#include "mx_hrt_debug.h"
-#endif
 
 /*=======================================================================*/
 
