@@ -34,9 +34,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_STATISTICS		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		TRUE
+#define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
+#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
 
@@ -1637,7 +1637,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	frame_number = ad->readout_frame;
 
-#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP
 	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld",
 		fname, ad->record->name, frame_number));
 #endif
@@ -1650,7 +1650,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 		 * need to do it again.
 		 */
 
-#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES
+#if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP
 		MX_DEBUG(-2,("%s: frame already saved.", fname));
 #endif
 		return MX_SUCCESSFUL_RESULT;
@@ -1695,7 +1695,7 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 		snprintf( format_string, sizeof(format_string),
 			"%%0%dlu", num_hash_marks );
 
-		next_datafile_number = ad->datafile_number + 1;
+		next_datafile_number = ad->datafile_number;
 
 		snprintf( next_datafile_number_as_string,
 			sizeof(next_datafile_number_as_string),
