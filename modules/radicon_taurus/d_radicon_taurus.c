@@ -1078,7 +1078,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			mx_status = mx_image_noir_setup( ad->record,
-					"RDI",
+					"",
 					"mx_image_noir_records",
 					static_header_filename,
 					&(radicon_taurus->image_noir_info) );

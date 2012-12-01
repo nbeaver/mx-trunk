@@ -38,7 +38,10 @@
 #include "mx_driver.h"
 #include "mx_unistd.h"
 #include "mx_array.h"
+#include "mx_image.h"
+#include "mx_area_detector.h"
 #include "mx_motor.h"
+#include "mx_scaler.h"
 #include "mx_variable.h"
 #include "mx_image_noir.h"
 
@@ -477,7 +480,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	FILE *noir_static_header_file;
 	size_t noir_static_header_file_size;
 	size_t bytes_read;
-	unsigned long i;
+	unsigned long i, ulong_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -603,6 +606,22 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 				image_noir_info->dynamic_header_value_array[i]
 					= double_value;
 				break;
+
+			case MXC_SCALER:
+				mx_status = mx_scaler_read( record,
+							&ulong_value );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				image_noir_info->dynamic_header_value_array[i]
+					= ulong_value;
+
+#if MX_IMAGE_NOIR_DEBUG_READ
+				double_value = ulong_value;
+#endif
+				break;
+
 			default:
 				return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 				"Support for MX device class %lu used by "
@@ -657,9 +676,14 @@ mx_image_noir_write_header( FILE *file,
 	static const char fname[] = "mx_image_noir_write_header()";
 
 	int fputs_status, saved_errno;
-	int i, j, num_records, max_aliases;
+	int i, j, num_records, max_aliases, length;
 	char *alias_name;
 	double alias_value;
+
+	MX_RECORD *imaging_device_record = NULL;
+	MX_AREA_DETECTOR *ad = NULL;
+	char *detector_name;
+	char scan_template[2*MXU_FILENAME_LENGTH+1];
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -668,6 +692,51 @@ mx_image_noir_write_header( FILE *file,
 	if ( image_noir_info == (MX_IMAGE_NOIR_INFO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_NOIR_INFO pointer passed was NULL." );
+	}
+
+	imaging_device_record = image_noir_info->mx_imaging_device_record;
+
+	if ( imaging_device_record != (MX_RECORD *) NULL ) {
+		if ( imaging_device_record->mx_class == MXC_AREA_DETECTOR ) {
+			ad = (MX_AREA_DETECTOR *)
+				imaging_device_record->record_class_struct;
+		}
+	}
+
+	/* If a detector name is specified, write it to the header. */
+
+	detector_name = image_noir_info->detector_name_for_header;
+
+	if ( strlen(detector_name) > 0 ) {
+		fprintf( file, "DETECTOR_NAMES=%s;\n", detector_name );
+	}
+
+	if ( ad != (MX_AREA_DETECTOR *) NULL ) {
+
+		/* For area detectors, write the filename out to the header. */
+
+		fprintf( file, "FILENAME=%s/%s\n",
+			ad->datafile_directory, ad->datafile_name );
+
+		/* Write out the MX datafile pattern to a buffer. */
+
+		snprintf( scan_template, sizeof(scan_template),
+		"%s/%s", ad->datafile_directory, ad->datafile_pattern );
+
+		/* Go through the scan template and change all # characters
+		 * to ? characters, since that is what SMV header readers
+		 * appear to expect.
+		 */
+
+		length = strlen( scan_template );
+
+		for ( i = 0; i < length; i++ ) {
+			if ( scan_template[i] == '#' ) {
+				scan_template[i] = '?';
+			}
+		}
+
+		fprintf( file, "SCAN_TEMPLATE=%s\n", scan_template );
 	}
 
 	/* Write out the static header text. */
