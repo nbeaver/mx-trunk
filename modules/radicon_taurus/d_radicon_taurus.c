@@ -571,6 +571,9 @@ mxd_radicon_taurus_open( MX_RECORD *record )
 
 	ad->correction_measurement_sequence_type = MXT_SQ_GATED;
 
+	radicon_taurus->saturation_pixel_value = 14000.0;
+	radicon_taurus->minimum_pixel_value = 5.0;
+
 	/* The maximum framesize is smaller than the video image from the
 	 * video card, since the outermost pixels in the video image do not 
 	 * have real data in them.
@@ -1078,7 +1081,7 @@ mxd_radicon_taurus_arm( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			mx_status = mx_image_noir_setup( ad->record,
-					"",
+					radicon_taurus->smv_detector_name,
 					"mx_image_noir_records",
 					static_header_filename,
 					&(radicon_taurus->image_noir_info) );
@@ -1966,6 +1969,7 @@ mxd_radicon_taurus_readout_frame( MX_AREA_DETECTOR *ad )
 
 static mx_status_type
 mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
+					MX_RADICON_TAURUS *radicon_taurus,
 					MX_IMAGE_FRAME *correction_calc_frame,
 					MX_IMAGE_FRAME *mask_frame,
 					MX_IMAGE_FRAME *bias_frame,
@@ -1989,6 +1993,7 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 	long correction_calc_format, mask_format, bias_format;
 	long dark_current_format, non_uniformity_format;
 	double image_exposure_time, dark_current_exposure_time;
+	double saturation_pixel_value, minimum_pixel_value;
 	mx_status_type mx_status;
 
 	if ( correction_calc_frame == NULL ) {
@@ -2215,6 +2220,10 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 
 	/*----*/
 
+	saturation_pixel_value = radicon_taurus->saturation_pixel_value;
+
+	minimum_pixel_value = radicon_taurus->minimum_pixel_value;
+
 	/* Loop over all of the pixels and apply the requested corrections. */
 
 	for ( i = 0; i < num_pixels_per_frame; i++ ) {
@@ -2254,8 +2263,11 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 			image_pixel = image_pixel + bias_pixel;
 		}
 
-		if ( image_pixel > 14000.0 ) {
+		if ( image_pixel >= saturation_pixel_value ) {
 			image_pixel = 65535.0;
+		} else
+		if ( image_pixel < minimum_pixel_value ) {
+			image_pixel = minimum_pixel_value;
 		}
 
 		dbl_image_data_array[i] = image_pixel;
@@ -2479,6 +2491,7 @@ mxd_radicon_taurus_correct_frame( MX_AREA_DETECTOR *ad )
 	switch( correction_format ) {
 	case MXT_IMAGE_FORMAT_DOUBLE:
 		mx_status = mxp_radicon_taurus_dbl_image_correction( ad,
+					radicon_taurus,
 					correction_calc_frame,
 					mask_frame,
 					bias_frame,

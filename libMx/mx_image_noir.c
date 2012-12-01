@@ -688,6 +688,9 @@ mx_image_noir_write_header( FILE *file,
 	MX_AREA_DETECTOR *ad = NULL;
 	char *detector_name;
 	char scan_template[2*MXU_FILENAME_LENGTH+1];
+	char dynamic_header_name[250];
+	char dynamic_header_string[250];
+	char *ptr;
 
 	if ( file == (FILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -712,6 +715,7 @@ mx_image_noir_write_header( FILE *file,
 	detector_name = image_noir_info->detector_name_for_header;
 
 	if ( strlen(detector_name) > 0 ) {
+		fprintf( file, "DETECTOR_NUMBER=1;\n" );
 		fprintf( file, "DETECTOR_NAMES=%s;\n", detector_name );
 	}
 
@@ -782,12 +786,67 @@ mx_image_noir_write_header( FILE *file,
 			alias_value =
 			    image_noir_info->dynamic_header_value_array[i];
 
+			/* The alias name may have a %s format in it.
+			 * This is intended to be replaced with the
+			 * detector name.
+			 */
+
+			ptr = strchr( alias_name, '%s' );
+
+			/* If no % characters are found in the alias name,
+			 * then just copy it through to the dynamic header
+			 * name.
+			 */
+
+			if ( ptr == NULL ) {
+				strlcpy( dynamic_header_name, alias_name,
+					sizeof(dynamic_header_name) );
+			} else {
+				/* Sanitize the alias name.  Only one %
+				 * should appear and it _must_ be followed
+				 * by a '%s' character.
+				 */
+
+				ptr++;
+
+				if ( *ptr != 's' ) {
+					return mx_error(
+					MXE_ILLEGAL_ARGUMENT, fname,
+					"Illegal format string '%%%c' seen "
+					"in dynamic header string '%s'.  "
+					"Only %s is allowed.",
+						*ptr, alias_name );
+				}
+
+				ptr = strchr( ptr, '%s' );
+
+				if ( ptr != NULL ) {
+					return mx_error(
+					MXE_ILLEGAL_ARGUMENT, fname,
+					"Only one (1) '%%s' format may "
+					"appear in a dynamic header name.  "
+					"'%s' contains more than one.",
+						alias_name );
+				}
+			}
+
+			snprintf( dynamic_header_name,
+				sizeof(dynamic_header_name),
+				alias_name, detector_name );
+
+			/* Construct the final version of the header line. */
+
+			snprintf( dynamic_header_string,
+				sizeof(dynamic_header_string),
+				"%s=%f;",
+				 dynamic_header_name, alias_value );
+
 #if MX_IMAGE_NOIR_DEBUG_WRITE
-			MX_DEBUG(-2,("%s: %s=%f;",
-				fname, alias_name, alias_value));
+			MX_DEBUG(-2,("%s: %s",
+				fname, dynamic_header_string));
 #endif
 
-			fprintf( file, "%s=%f;\n", alias_name, alias_value );
+			fprintf( file, "%s\n", dynamic_header_string );
 		}
 	}
 

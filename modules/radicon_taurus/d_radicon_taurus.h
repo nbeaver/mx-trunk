@@ -46,6 +46,7 @@ typedef struct {
 	MX_RECORD *serial_port_record;
 	unsigned long radicon_taurus_flags;
 	char pulser_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char smv_detector_name[MXU_RECORD_NAME_LENGTH+1];
 
 	MX_RECORD *pulser_record;
 
@@ -57,6 +58,9 @@ typedef struct {
 	unsigned long linetime;			/* in ticks */
 	double readout_time;			/* in seconds */
 	unsigned long minimum_exposure_ticks;	/* in ticks */
+
+	double minimum_pixel_value;
+	double saturation_pixel_value;
 
 	unsigned long sro_mode;
 	uint64_t si1_register;
@@ -115,6 +119,12 @@ typedef struct {
 		offsetof(MX_RADICON_TAURUS, pulser_record_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
+  {-1, -1, "smv_detector_name", MXFT_STRING, \
+				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_RADICON_TAURUS, smv_detector_name), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
   {-1, -1, "detector_model", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, detector_model), \
 	{0}, NULL, MXFF_READ_ONLY }, \
@@ -143,6 +153,15 @@ typedef struct {
   {-1, -1, "minimum_exposure_ticks", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_RADICON_TAURUS, minimum_exposure_ticks), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "minimum_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, minimum_pixel_value), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "saturation_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_TAURUS, saturation_pixel_value), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_RADICON_TAURUS_SRO, -1, "sro", MXFT_ULONG, NULL, 0, {0}, \
