@@ -3553,60 +3553,6 @@ mxp_image_parse_smv_date( char *buffer, struct timespec *timestamp )
 
 /*----*/
 
-/* FIXME: The following is inefficient and overly simplistic. */
-
-#if 0
-static mx_status_type
-mxp_write_noir_static_header( FILE * header_file )
-{
-	static const char fname[] = "mxp_write_noir_static_header()";
-
-	FILE *static_header_file;
-	char static_header_filename[MXU_FILENAME_LENGTH+1];
-	char static_header_contents[MXU_IMAGE_SMV_MAX_HEADER_LENGTH+1];
-	size_t bytes_read, bytes_written;
-	mx_status_type mx_status;
-
-	mx_status = mx_cfn_construct_filename( MX_CFN_CONFIG,
-					"noir_header.dat",
-					static_header_filename,
-					sizeof(static_header_filename) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	MX_DEBUG(-2,("%s: static_header_filename = '%s'.",
-		fname, static_header_filename));
-
-	static_header_file = fopen( static_header_filename, "r" );
-
-	if ( static_header_file == NULL ) {
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot not open static NOIR header file '%s'.",
-		static_header_filename );
-	}
-
-	bytes_read = fread( static_header_contents,
-				1, MXU_IMAGE_SMV_MAX_HEADER_LENGTH,
-				static_header_file );
-
-	MX_DEBUG(-4,("%s: bytes_read = %lu",
-		fname, (unsigned long) bytes_read));
-
-	bytes_written = fwrite( static_header_contents,
-				1, bytes_read, header_file );
-
-	fclose( static_header_file );
-
-	MX_DEBUG(-4,("%s: bytes_written = %lu",
-		fname, (unsigned long) bytes_written));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-#endif
-
-/*----*/
-
 static mx_status_type
 mxp_image_smv_find_header_value( char *buffer, char **header_ptr )
 {
@@ -4222,6 +4168,21 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 			"requested for datafile '%s'.",
 			datafile_type, datafile_name );
 		break;
+	}
+
+	if ( header_length > MXU_IMAGE_SMV_MAX_HEADER_LENGTH ) {
+
+		/* It would be a bad idea to do a malloc() in the
+		 * middle of performance critical code.
+		 */
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"You are requesting an SMV header length of %lu bytes "
+		"for file '%s', which exceeds the current limit "
+		"of %d bytes.  You must increase the value of "
+		"MXU_IMAGE_SMV_MAX_HEADER_LENGTH and recompile.",
+			header_length, datafile_name,
+			MXU_IMAGE_SMV_MAX_HEADER_LENGTH );
 	}
 
 #if MX_IMAGE_DEBUG_NOIR_FD_LEAK

@@ -72,7 +72,7 @@ extern "C" {
 #define MXT_IMAGE_FILE_EDF			103
 #define MXT_IMAGE_FILE_NOIR			104
 
-#define MXU_IMAGE_SMV_MAX_HEADER_LENGTH		2048
+#define MXU_IMAGE_SMV_MAX_HEADER_LENGTH		5120
 
 /*---- Sequence type definitions ----*/
 
