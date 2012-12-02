@@ -4502,7 +4502,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 
 	/* Terminate the part of the header block that we are using. */
 
-	MXP_SMV_CHECK_FPRINTF( fprintf( file, "}\f" ) );
+	MXP_SMV_CHECK_FPRINTF( fprintf( file, "}\n\f\n" ) );
 
 	/* Move to the first byte after the header. */
 

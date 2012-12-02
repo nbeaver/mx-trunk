@@ -711,15 +711,34 @@ mx_image_noir_write_header( FILE *file,
 
 	detector_name = image_noir_info->detector_name_for_header;
 
+#if 0
 	if ( strlen(detector_name) > 0 ) {
 		fprintf( file, "DETECTOR_NAMES=%s;\n", detector_name );
 	}
+#endif
+
+	/* Write out the static header text. */
+
+	if ( image_noir_info->static_header_text != NULL ) {
+	    fputs_status = fputs( image_noir_info->static_header_text, file );
+
+	    if ( fputs_status < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An error occurred while writing the NOIR static header "
+		"to the file.  Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	    }
+	}
+
+	/* Write out special case stuff. */
 
 	if ( ad != (MX_AREA_DETECTOR *) NULL ) {
 
 		/* For area detectors, write the filename out to the header. */
 
-		fprintf( file, "FILENAME=%s/%s\n",
+		fprintf( file, "FILENAME=%s/%s;\n",
 			ad->datafile_directory, ad->datafile_name );
 
 		/* Write out the MX datafile pattern to a buffer. */
@@ -740,22 +759,7 @@ mx_image_noir_write_header( FILE *file,
 			}
 		}
 
-		fprintf( file, "SCAN_TEMPLATE=%s\n", scan_template );
-	}
-
-	/* Write out the static header text. */
-
-	if ( image_noir_info->static_header_text != NULL ) {
-	    fputs_status = fputs( image_noir_info->static_header_text, file );
-
-	    if ( fputs_status < 0 ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"An error occurred while writing the NOIR static header "
-		"to the file.  Errno = %d, error message = '%s'",
-			saved_errno, strerror(saved_errno) );
-	    }
+		fprintf( file, "SCAN_TEMPLATE=%s;\n", scan_template );
 	}
 
 	/* Write out the dynamic header values. */
