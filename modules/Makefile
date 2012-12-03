@@ -25,7 +25,7 @@ all: build
 
 #MODULES += ni488		# linux,
 
-MODULES += ni_daqmx		# linux, win32
+#MODULES += ni_daqmx		# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -40,7 +40,7 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += linux_portio
 
-#MODULES += powerpmac
+MODULES += powerpmac
 
 #MODULES += v4l2_input
 
@@ -61,9 +61,9 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #MODULES += u500
 
@@ -76,9 +76,9 @@ MODULES += epics
 
 #MODULES += epics_pmac_biocat
 
-MODULES += epics_mbc
+#MODULES += epics_mbc
 
-MODULES += epics_pmac_tc
+#MODULES += epics_pmac_tc
 
 #---
 

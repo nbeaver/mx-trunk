@@ -544,7 +544,7 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 			"Ran out of memory trying to allocate a %lu byte "
 			"buffer to contain the contents of NOIR static "
 			"header file '%s'.",
-				noir_static_header_file_size,
+				(unsigned long) noir_static_header_file_size,
 				image_noir_info->file_monitor->filename );
 		}
 
@@ -575,9 +575,9 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 			"The number of bytes read (%lu) from NOIR static "
 			"header file '%s' was different than the reported "
 			"file size of %lu bytes.",
-				bytes_read,
+				(unsigned long) bytes_read,
 				image_noir_info->file_monitor->filename,
-				noir_static_header_file_size );
+				(unsigned long) noir_static_header_file_size );
 		}
 
 		/* Make sure the text is null terminated. */
