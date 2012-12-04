@@ -58,6 +58,9 @@ typedef struct {
 	double readout_time;			/* in seconds */
 	unsigned long minimum_exposure_ticks;	/* in ticks */
 
+	double minimum_pixel_value;
+	double saturation_pixel_value;
+
 	unsigned long sro_mode;
 	uint64_t si1_register;
 	uint64_t si2_register;
@@ -143,6 +146,15 @@ typedef struct {
   {-1, -1, "minimum_exposure_ticks", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_RADICON_TAURUS, minimum_exposure_ticks), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "minimum_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_RADICON_TAURUS, minimum_pixel_value), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "saturation_pixel_value", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+			offsetof(MX_RADICON_TAURUS, saturation_pixel_value), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {MXLV_RADICON_TAURUS_SRO, -1, "sro", MXFT_ULONG, NULL, 0, {0}, \
