@@ -34,7 +34,9 @@
 
 #define MX_AREA_DETECTOR_ENABLE_DATAFILE_AUTOSAVE	TRUE /* Leave this on */
 
-#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	TRUE
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE	FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP	TRUE
 
 #define MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_FILE	TRUE
 
@@ -2042,7 +2044,7 @@ mx_area_detector_arm( MX_RECORD *record )
 
 		ad->datafile_last_frame_number = 0;
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,
 		("%s: area detector '%s', datafile_total_num_frames = %ld",
 			fname, record->name, ad->datafile_total_num_frames));
@@ -6056,7 +6058,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, record->name ));
 #endif
@@ -6082,7 +6084,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		"for this detector.", record->name );
 	}
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 	MX_DEBUG(-2,
 		("%s: total_num_frames = %lu, datafile_total_num_frames = %lu",
 		fname, ad->total_num_frames,
@@ -6090,7 +6092,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 #endif
 
 	if ( ad->total_num_frames <= ad->datafile_total_num_frames ) {
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,("%s: No new image frames are available to be "
 		"saved or loaded.", fname));
 #endif
@@ -6143,7 +6145,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 			MX_DEBUG(-2,("%s: New filename = '%s'.",
 				fname, ad->datafile_name));
 #endif
@@ -6210,7 +6212,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 				return mx_status;
 		}
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,("%s: Reading out image frame %lu",
 			fname, ad->datafile_last_frame_number));
 #endif
@@ -6222,7 +6224,7 @@ mx_area_detector_default_datafile_management_handler( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE
+#if MX_AREA_DETECTOR_DEBUG_DATAFILE_AUTOSAVE_SETUP
 		MX_DEBUG(-2,("%s: Correcting the image frame.", fname));
 #endif
 		mx_status = mx_area_detector_correct_frame( record );

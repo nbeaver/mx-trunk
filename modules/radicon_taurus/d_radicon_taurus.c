@@ -40,6 +40,8 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		TRUE
 
+#define MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED		TRUE
+
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
 
 #include <stdio.h>
@@ -1643,13 +1645,23 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 	frame_number = ad->readout_frame;
 
 #if MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP
-	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld",
-		fname, ad->record->name, frame_number));
+	MX_DEBUG(-2,("%s invoked for detector '%s', frame number = %ld, "
+		"next datafile number = %ld",
+		fname, ad->record->name, frame_number, ad->datafile_number));
 #endif
 
 	buffer_info = &(radicon_taurus->buffer_info_array[ frame_number ]);
 
+#if MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED
+	MX_DEBUG(-2,("%s: #1 buffer_info_array[%ld]->raw_frame_is_saved = %d",
+		fname, frame_number, (int) buffer_info->raw_frame_is_saved ));
+#endif
+
+#if 1
+	if ( 0 ) {
+#else
 	if ( buffer_info->raw_frame_is_saved ) {
+#endif
 
 		/* If this frame has alreay been saved, then we do not
 		 * need to do it again.
@@ -1754,6 +1766,11 @@ mxp_radicon_taurus_save_raw_image( MX_AREA_DETECTOR *ad,
 
 	buffer_info->raw_frame_is_saved = TRUE;
 	
+#if MXD_RADICON_TAURUS_DEBUG_RAW_FRAME_IS_SAVED
+	MX_DEBUG(-2,("%s: #2 buffer_info_array[%ld]->raw_frame_is_saved = %d",
+		fname, frame_number, (int) buffer_info->raw_frame_is_saved ));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2004,6 +2021,10 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 	}
 
 	correction_flags = ad->correction_flags;
+
+#if 1
+	MX_DEBUG(-2,("%s: correction_flags = %lu", fname, correction_flags));
+#endif
 
 	correction_calc_format = MXIF_IMAGE_FORMAT(correction_calc_frame);
 
