@@ -36,7 +36,9 @@
 
 #define MXD_RADICON_TAURUS_DEBUG_CORRECTION_TIMING		FALSE
 
-#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		FALSE
+#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES_SETUP		TRUE
+
+#define MXD_RADICON_TAURUS_DEBUG_SAVING_RAW_FILES		TRUE
 
 #define MXD_RADICON_TAURUS_DEBUG_MEASURE_CORRECTION		FALSE
 
@@ -2130,6 +2132,10 @@ mxp_radicon_taurus_dbl_image_correction( MX_AREA_DETECTOR *ad,
 		if ( mx_difference( image_exposure_time,
 				dark_current_exposure_time ) > 0.001 )
 		{
+			mx_status = mx_area_detector_stop( ad->record );
+
+			ad->latched_status |= MXSF_AD_EXPOSURE_TIME_CONFLICT;
+
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The image frame for detector '%s' was taken for "
 			"a different exposure time (%g seconds) than the "
