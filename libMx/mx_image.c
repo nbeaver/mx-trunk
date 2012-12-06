@@ -1265,7 +1265,7 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	double min_pixel, max_pixel;
 	double first_pixel;
 	long sd_bin;
-	double sd_value;
+	double sd_value, exposure_time;
 	mx_bool_type pixels_are_all_equal;
 	long pixel_bin;
 	unsigned long sd_histogram[MX_IMAGE_STATISTICS_BINS];
@@ -1277,6 +1277,13 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
+
+	/* Compute the exposure time. */
+
+	exposure_time = MXIF_EXPOSURE_TIME_SEC(frame)
+			    + 1.0e-9 * MXIF_EXPOSURE_TIME_NSEC(frame);
+
+	/*---*/
 
 	pixel = 0.0;
 
@@ -1368,9 +1375,9 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 	}
 
 	if ( pixels_are_all_equal ) {
-		mx_info( "(%lux%lu) %s image frame",
+		mx_info( "(%lux%lu) %s image frame, exposure time = %f sec",
 			row_framesize, column_framesize,
-			image_format_name );
+			image_format_name, exposure_time );
 
 		mx_warning(
 		"All of the pixels in the image have the same value %g",
@@ -1452,9 +1459,9 @@ mx_image_statistics( MX_IMAGE_FRAME *frame )
 
 	/* Show the results. */
 
-	mx_info( "(%lux%lu) %s image frame",
+	mx_info( "(%lux%lu) %s image frame, exposure time = %f sec",
 		row_framesize, column_framesize,
-		image_format_name );
+		image_format_name, exposure_time );
 
 	mx_info( "  mean = %g, standard deviation = %g",
 		mean, standard_deviation );
