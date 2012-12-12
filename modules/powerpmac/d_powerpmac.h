@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2010 Illinois Institute of Technology
+ * Copyright 2010, 2012 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ MX_API mx_status_type mxd_powerpmac_jog_command(
 MX_API mx_status_type mxd_powerpmac_get_motor_variable(
 					MX_POWERPMAC_MOTOR *powerpmac_motor,
 					MX_POWERPMAC *powerpmac,
-					long variable_number,
+					char *variable_name,
 					long variable_type,
 					double *variable_value,
 					int debug_flag );
@@ -89,7 +89,7 @@ MX_API mx_status_type mxd_powerpmac_get_motor_variable(
 MX_API mx_status_type mxd_powerpmac_set_motor_variable(
 					MX_POWERPMAC_MOTOR *powerpmac_motor,
 					MX_POWERPMAC *powerpmac,
-					long variable_number,
+					char *variable_name,
 					long variable_type,
 					double variable_value,
 					int debug_flag );

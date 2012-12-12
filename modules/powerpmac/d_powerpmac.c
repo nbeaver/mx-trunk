@@ -423,7 +423,7 @@ mxd_powerpmac_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
-						powerpmac, 23,
+						powerpmac, "HomeVel",
 						MXFT_DOUBLE, &raw_home_speed,
 						POWERPMAC_DEBUG );
 
@@ -437,7 +437,7 @@ mxd_powerpmac_find_home_position( MX_MOTOR *motor )
 	}
 
 	mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, 23,
+						powerpmac, "HomeVel",
 						MXFT_DOUBLE, raw_home_speed,
 						POWERPMAC_DEBUG );
 
@@ -519,7 +519,7 @@ mxd_powerpmac_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		mx_status = mxd_powerpmac_get_motor_variable( powerpmac_motor,
-						powerpmac, 19,
+						powerpmac, "AbortTs",
 						MXFT_DOUBLE, &double_value,
 						POWERPMAC_DEBUG );
 
@@ -601,7 +601,7 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
 		/* These acceleration parameters are chosen such that the
-		 * value of Ixx19 is used as counts/msec**2.
+		 * value of Motor[x].AbortTs is used as counts/msec**2.
 		 */
 
 		double_value = motor->raw_acceleration_parameters[0];
@@ -609,31 +609,31 @@ mxd_powerpmac_set_parameter( MX_MOTOR *motor )
 		double_value = 1.0e-6 * double_value;
 
 		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, 19,
+						powerpmac, "AbortTs",
 						MXFT_DOUBLE, double_value,
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set Ixx20 (jog acceleration time) to 1.0 msec. */
+		/* Set Motor[x].JogTa (jog acceleration time) to 1.0 msec. */
 
 		double_value = 1.0;
 
 		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, 20,
+						powerpmac, "JogTa",
 						MXFT_DOUBLE, double_value,
 						POWERPMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Set Ixx21 (jog acceleration S-curve time) to 0. */
+		/* Set Motor[x].JogTs (jog acceleration S-curve time) to 0. */
 
 		double_value = 0.0;
 
 		mx_status = mxd_powerpmac_set_motor_variable( powerpmac_motor,
-						powerpmac, 21,
+						powerpmac, "JogTs",
 						MXFT_DOUBLE, double_value,
 						POWERPMAC_DEBUG );
 		break;
@@ -986,7 +986,7 @@ mxd_powerpmac_jog_command( MX_POWERPMAC_MOTOR *powerpmac_motor,
 MX_EXPORT mx_status_type
 mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 				MX_POWERPMAC *powerpmac,
-				long variable_number,
+				char *variable_name,
 				long variable_type,
 				double *double_ptr,
 				int debug_flag )
@@ -1011,7 +1011,7 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	}
 
 	snprintf( command_buffer, sizeof(command_buffer),
-	    "I%ld%02ld", powerpmac_motor->motor_number, variable_number );
+	    "Motor[%ld].%s", powerpmac_motor->motor_number, variable_name );
 
 	mx_status = mxi_powerpmac_command( powerpmac, command_buffer,
 				response, sizeof response, debug_flag );
@@ -1019,9 +1019,8 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* On PowerPMAC systems, the returned I-variable is prefixed with
-	 * an Ixx= string.  For example, if you ask for I130, the response
-	 * looks like I130=40
+	/* On PowerPMAC systems, the returned value is prefixed with the
+	 * name of the variable followed by an equals sign (=).
 	 */
 
 	response_ptr = strchr( response, '=' );
@@ -1082,7 +1081,7 @@ mxd_powerpmac_get_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 MX_EXPORT mx_status_type
 mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 				MX_POWERPMAC *powerpmac,
-				long variable_number,
+				char *variable_name,
 				long variable_type,
 				double double_value,
 				int debug_flag )
@@ -1116,16 +1115,16 @@ mxd_powerpmac_set_motor_variable( MX_POWERPMAC_MOTOR *powerpmac_motor,
 		}
 
 		snprintf( command_buffer, sizeof(command_buffer),
-			"I%ld%02ld=%ld",
+			"Motor[%ld].%s=%ld",
 			powerpmac_motor->motor_number,
-			variable_number,
+			variable_name,
 			long_value );
 		break;
 	case MXFT_DOUBLE:
 		snprintf( command_buffer, sizeof(command_buffer),
-			"I%ld%02ld=%f",
+			"Motor[%ld].%s=%f",
 			powerpmac_motor->motor_number,
-			variable_number,
+			variable_name,
 			double_value );
 		break;
 	default:
