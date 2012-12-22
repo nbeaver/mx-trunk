@@ -36,6 +36,7 @@
 #include "mx_scaler.h"
 #include "mx_timer.h"
 
+#include "mx_camac.h"
 #include "mx_gpib.h"
 #include "mx_rs232.h"
 #include "mx_vme.h"
@@ -54,6 +55,7 @@
 #include "d_epics_motor.h"
 #include "d_epics_scaler.h"
 #include "d_epics_timer.h"
+#include "i_epics_camac.h"
 #include "i_epics_gpib.h"
 #include "i_epics_rs232.h"
 #include "i_epics_vme.h"
@@ -137,6 +139,13 @@ MX_DRIVER epics_driver_table[] = {
 				&mxd_epics_timer_timer_function_list,
 				&mxd_epics_timer_num_record_fields,
 				&mxd_epics_timer_rfield_def_ptr},
+
+{"epics_camac", -1,	MXI_CAMAC,  MXR_INTERFACE,
+				&mxi_epics_camac_record_function_list,
+				NULL,
+				&mxi_epics_camac_camac_function_list,
+				&mxi_epics_camac_num_record_fields,
+				&mxi_epics_camac_rfield_def_ptr},
 
 {"epics_gpib", -1,	MXI_GPIB,  MXR_INTERFACE,
 				&mxi_epics_gpib_record_function_list,

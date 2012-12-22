@@ -2,7 +2,7 @@
  * Name:    i_esone_camac.h
  *
  * Purpose: Header for MX driver for CAMAC access via an ESONE CAMAC library.
- #
+ *
  *          At present, there is no support for block mode CAMAC operations
  *          in this driver.
  *
