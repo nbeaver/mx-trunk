@@ -76,7 +76,7 @@ typedef struct {
 struct mx_callback_message_type;
 
 typedef struct {
-	int dummy;
+	MX_VIRTUAL_TIMER *oneshot_timer;
 } MX_CALLBACK_POLL_MESSAGE;
 
 typedef struct {

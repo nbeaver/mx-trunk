@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2007-2012 Illinois Institute of Technology
+ * Copyright 2007-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,8 @@
 #define MX_CALLBACK_DEBUG				FALSE
 
 #define MX_CALLBACK_DEBUG_PROCESS			FALSE
+
+#define MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK	TRUE
 
 #define MX_CALLBACK_DEBUG_INVOKE_CALLBACK		FALSE
 
@@ -80,7 +82,7 @@
 void mxp_poll_callback( int );
 void mxp_stop_master_timer( MX_INTERVAL_TIMER * );
 
-static MX_CALLBACK_MESSAGE *mxp_poll_callback_message;
+static MX_CALLBACK_MESSAGE *mxp_poll_callback_message = NULL;
 static MX_PIPE *mxp_callback_pipe = NULL;
 static MX_LIST_HEAD *mxp_list_head = NULL;
 
@@ -279,6 +281,10 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	return;
 }
 
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+static MX_LIST_HEAD *mxp_saved_mx_list_head = NULL;
+#endif
+
 MX_EXPORT mx_status_type
 mx_initialize_callback_support( MX_RECORD *record )
 {
@@ -290,6 +296,10 @@ mx_initialize_callback_support( MX_RECORD *record )
 	MX_VIRTUAL_TIMER *callback_timer;
 	double callback_timer_interval;
 	mx_status_type mx_status;
+
+#if 1
+	mx_breakpoint();
+#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -303,6 +313,10 @@ mx_initialize_callback_support( MX_RECORD *record )
 		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
 			record->name );
 	}
+
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+	mxp_saved_mx_list_head = list_head;
+#endif
 
 	/* If the list head does not already have a server callback handle
 	 * table, then create one now.  Otherwise, just use the table that
@@ -362,6 +376,8 @@ mx_initialize_callback_support( MX_RECORD *record )
 		poll_callback_message->callback_type = MXCBT_POLL;
 		poll_callback_message->list_head = list_head;
 
+		list_head->poll_callback_message = poll_callback_message;
+
 		/* Now create the callback virtual timer.  The timer
 		 * is intentionally a one-shot timer, so the poll
 		 * callback function is expected to restart the timer
@@ -380,6 +396,8 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		poll_callback_message->u.poll.oneshot_timer = callback_timer;
 
 		list_head->callback_timer = callback_timer;
 
@@ -2293,6 +2311,59 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
 	}
+
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+	/*-------------------------------------------------------------------*/
+	/* FIXME!!! - This is a kludge and should be replaced by a real fix. */
+	/*                                                                   */
+	/*            The problem with this technique is that it is not      */
+	/*            reentrant or thread safe, since there can only be      */
+	/*            one mxp_saved_mx_list_head pointer in a given process. */
+	{
+		MX_CALLBACK_MESSAGE *saved_callback_message;
+		MX_VIRTUAL_TIMER *vtimer;
+
+		if ( mxp_saved_mx_list_head == (MX_LIST_HEAD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The mxp_saved_mx_list_head pointer is NULL." );
+		}
+
+#if 0
+		/* Hulk smash! */
+
+		callback_message = (MX_CALLBACK_MESSAGE *) 0xdeadbeef;
+#endif
+
+		/* If the callback message pointer passed to us has been
+		 * corrupted, then replace it with a copy of the pointer
+		 * that was saved in the list head.
+		 */
+
+		saved_callback_message = (MX_CALLBACK_MESSAGE *)
+				mxp_saved_mx_list_head->poll_callback_message;
+
+		if ( callback_message != saved_callback_message ) {
+			vtimer = saved_callback_message->u.poll.oneshot_timer;
+
+			if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
+				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+				fname, "The virtual timer pointer for the "
+				"saved poll callback %p is NULL.",
+				saved_callback_message );
+			}
+
+			mx_warning( "Replacing the corrupted MX poll callback "
+			"message pointer %p with a copy %p saved in the "
+			"MX list head.",
+				callback_message, saved_callback_message );
+
+			callback_message = saved_callback_message;
+
+			vtimer->callback_args = saved_callback_message;
+		}
+	}
+	/*-------------------------------------------------------------------*/
+#endif /*MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK */
 
 	list_head = callback_message->list_head;
 
