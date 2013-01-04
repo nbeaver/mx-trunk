@@ -16,6 +16,8 @@
 
 #define MX_CALLBACK_DEBUG				FALSE
 
+#define MX_CALLBACK_DEBUG_PROCESS			FALSE
+
 #define MX_CALLBACK_DEBUG_INVOKE_CALLBACK		FALSE
 
 #define MX_CALLBACK_DEBUG_CALLBACK_POINTERS		FALSE
@@ -2173,11 +2175,9 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 			(long) sizeof(MX_CALLBACK_MESSAGE *) );
 	}
 
-#if MX_CALLBACK_DEBUG
-	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
-
-	MX_DEBUG(-2,("%s: callback_type = %ld",
-		fname, callback_message->callback_type));
+#if MX_CALLBACK_DEBUG_PROCESS
+	MX_DEBUG(-2,("%s: type = %ld, message = %p",
+		fname, callback_message->callback_type, callback_message ));
 #endif
 
 	/* We do different things depending on the type of callback message. */
