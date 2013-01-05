@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,6 +35,8 @@
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_LOWLEVEL_PARAMETERS		FALSE
 
 #define MXD_SAPERA_LT_FRAME_GRABBER_DEBUG_MX_PARAMETERS			FALSE
+
+#define MXD_SAPERA_LT_FRAME_GRABBER_BYPASS_BUFFER_OVERRUN_TEST		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,6 +272,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 		return;
 	}
 
+#if ( MXD_SAPERA_LT_FRAME_GRABBER_BYPASS_BUFFER_OVERRUN_TEST == FALSE )
 	if ( old_frame_buffer_was_unsaved ) {
 
 		/*!!!!! We had a buffer overrun !!!!!*/
@@ -297,6 +300,7 @@ mxd_sapera_lt_frame_grabber_acquisition_callback( SapXferCallbackInfo *info )
 
 		(void) mx_video_input_abort( record );
 	}
+#endif
 
 	return;
 }
@@ -1510,9 +1514,11 @@ mxd_sapera_lt_frame_grabber_get_extended_status( MX_VIDEO_INPUT *vinput )
 		vinput->status |= MXSF_VIN_IS_BUSY;
 	}
 
+#if ( MXD_SAPERA_LT_FRAME_GRABBER_BYPASS_BUFFER_OVERRUN_TEST == FALSE )
 	if ( sapera_lt_frame_grabber->buffer_overrun_occurred ) {
 		vinput->status |= MXSF_VIN_OVERRUN;
 	}
+#endif
 
 	vinput->last_frame_number = vinput->total_num_frames
 		- sapera_lt_frame_grabber->total_num_frames_at_start - 1;

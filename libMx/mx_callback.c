@@ -28,6 +28,8 @@
 
 #define MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL		FALSE
 
+#define MX_CALLBACK_PROTECT_HANDLE_TABLE		TRUE
+
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
  * if we intend to run this program from within a debugger.  If the macro is
@@ -52,12 +54,56 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_pipe.h"
+#include "mx_unistd.h"
+#include "mx_vm_alloc.h"
 #include "mx_process.h"
 #include "mx_callback.h"
 
 #if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
 #include "mx_hrt_debug.h"
 #endif
+
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+static unsigned long mxp_saved_permission_flags = 0;
+
+static void
+mxp_callback_handle_table_enable( MX_HANDLE_TABLE *callback_handle_table,
+				unsigned long new_permission_flags )
+{
+	MX_HANDLE_STRUCT *handle_struct_array;
+	size_t region_size_in_bytes;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	region_size_in_bytes = callback_handle_table->num_blocks
+				* callback_handle_table->block_size
+				* sizeof(MX_HANDLE_STRUCT);
+
+	mx_vm_get_protection( handle_struct_array, &mxp_saved_permission_flags);
+
+	mx_vm_set_protection( handle_struct_array,
+				region_size_in_bytes,
+				new_permission_flags );
+}
+
+static void
+mxp_callback_handle_table_disable( MX_HANDLE_TABLE *callback_handle_table )
+{
+	MX_HANDLE_STRUCT *handle_struct_array;
+	size_t region_size_in_bytes;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	region_size_in_bytes = callback_handle_table->num_blocks
+				* callback_handle_table->block_size
+				* sizeof(MX_HANDLE_STRUCT);
+
+	mx_vm_set_protection( handle_struct_array,
+				region_size_in_bytes,
+				mxp_saved_permission_flags );
+}
+
+#endif /* MX_CALLBACK_PROTECT_HANDLE_TABLE */
 
 /*------------------------------------------------------------------------*/
 
@@ -332,6 +378,57 @@ mx_initialize_callback_support( MX_RECORD *record )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+		{
+			MX_HANDLE_STRUCT *handle_struct_array;
+			unsigned long i, handle_table_size;
+			size_t handle_table_size_in_bytes;
+
+			/* Replace the handle_struct_array allocated by
+			 * mx_create_handle_table() with another array
+			 * allocated by mx_vm_alloc().  Initially, the
+			 * new array is configured to be protected
+			 * against all access.
+			 */
+
+			mx_free( callback_handle_table->handle_struct_array );
+
+			handle_table_size = callback_handle_table->num_blocks
+				* callback_handle_table->block_size;
+
+			handle_table_size_in_bytes = handle_table_size
+						* sizeof(MX_HANDLE_STRUCT);
+
+			handle_struct_array = mx_vm_alloc( NULL,
+						handle_table_size_in_bytes,
+						R_OK | W_OK );
+
+			if ( handle_struct_array == NULL ) {
+				return mx_error( MXE_OPERATING_SYSTEM_ERROR,
+				fname, "The attempt to swap in a protected "
+				"handle_struct_array for the callback handle "
+				"table failed." );
+			}
+
+			callback_handle_table->handle_struct_array
+						= handle_struct_array;
+
+			for ( i = 0; i < handle_table_size; i++ ) {
+			    handle_struct_array[i].handle = MX_ILLEGAL_HANDLE;
+			    handle_struct_array[i].pointer = NULL;
+			}
+
+			MX_DEBUG(-2,("%s: callback_handle_table = %p, "
+			"handle_struct_array = %p",
+				fname, callback_handle_table,
+				callback_handle_table->handle_struct_array ));
+
+			mx_vm_set_protection(
+				callback_handle_table->handle_struct_array,
+				handle_table_size_in_bytes, 0 );
+		}
+#endif /* MX_CALLBACK_PROTECT_HANDLE_TABLE */
 
 		list_head->server_callback_handle_table = callback_handle_table;
 	}
@@ -1492,8 +1589,16 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 
 	/* Add this callback to the server's callback handle table. */
 
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+	mxp_callback_handle_table_enable( callback_handle_table, R_OK | W_OK );
+#endif
+
 	mx_status = mx_create_handle( &callback_handle,
 					callback_handle_table, callback_ptr );
+
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+	mxp_callback_handle_table_disable( callback_handle_table );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2421,8 +2526,16 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	for ( i = 0; i < array_size; i++ ) {
 	    handle_struct = &(handle_table->handle_struct_array[i]);
 
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+	    mxp_callback_handle_table_enable( handle_table, R_OK );
+#endif
+
 	    handle   = handle_struct->handle;
 	    callback = handle_struct->pointer;
+
+#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+	    mxp_callback_handle_table_disable( handle_table );
+#endif
 
 	    if ( ( handle == MX_ILLEGAL_HANDLE )
 	      || ( callback == NULL ) )
