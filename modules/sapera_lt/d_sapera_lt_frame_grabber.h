@@ -63,7 +63,12 @@ typedef struct {
   {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_FRAME_GRABBER, num_frame_buffers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SAPERA_LT_FRAME_GRABBER, buffer_overrun_occurred), \
+	{0}, NULL, 0}
 	
 
 #endif /* __cplusplus */
