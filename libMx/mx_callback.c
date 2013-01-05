@@ -18,7 +18,7 @@
 
 #define MX_CALLBACK_DEBUG_PROCESS			FALSE
 
-#define MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK	TRUE
+#define MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE	TRUE
 
 #define MX_CALLBACK_DEBUG_INVOKE_CALLBACK		FALSE
 
@@ -281,7 +281,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	return;
 }
 
-#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE
 static MX_LIST_HEAD *mxp_saved_mx_list_head = NULL;
 #endif
 
@@ -297,7 +297,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 	double callback_timer_interval;
 	mx_status_type mx_status;
 
-#if 1
+#if 0
 	mx_breakpoint();
 #endif
 
@@ -314,7 +314,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 			record->name );
 	}
 
-#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE
 	mxp_saved_mx_list_head = list_head;
 #endif
 
@@ -2312,7 +2312,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		"The MX_CALLBACK_MESSAGE pointer passed was NULL." );
 	}
 
-#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK
+#if MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE
 	/*-------------------------------------------------------------------*/
 	/* FIXME!!! - This is a kludge and should be replaced by a real fix. */
 	/*                                                                   */
@@ -2363,7 +2363,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		}
 	}
 	/*-------------------------------------------------------------------*/
-#endif /*MX_CALLBACK_FIXUP_CORRUPTED_POLL_CALLBACK */
+#endif /*MX_CALLBACK_FIXUP_CORRUPTED_POLL_MESSAGE */
 
 	list_head = callback_message->list_head;
 
@@ -2424,12 +2424,6 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	    handle   = handle_struct->handle;
 	    callback = handle_struct->pointer;
 
-#if 0
-	    MX_DEBUG(-2,
-    ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
-			fname, i, handle_struct, handle, callback));
-#endif
-
 	    if ( ( handle == MX_ILLEGAL_HANDLE )
 	      || ( callback == NULL ) )
 	    {
@@ -2437,6 +2431,18 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 
 		continue;
 	    }
+
+#if 1
+	    MX_DEBUG(-2,
+    ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
+			fname, i, handle_struct, handle, callback));
+#endif
+
+#if 1
+	    if ( ((long) callback) < 100L ) {
+		mx_breakpoint();
+	    }
+#endif
 
 	    /* If this callback has a timer interval,
 	     * check to see if this is the right time
