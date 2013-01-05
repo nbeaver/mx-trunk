@@ -1,0 +1,8 @@
+#! /bin/sh
+
+LD_LIBRARY_PATH=/usr/local/lib
+
+export LD_LIBRARY_PATH
+
+../../../motor/mxmotor.static -i -F ./mk8055.dat -s ./sk8055.dat $*
+

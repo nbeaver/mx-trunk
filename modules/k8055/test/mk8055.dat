@@ -1,0 +1,24 @@
+!load ../k8055.mxo
+k8055 interface controller k8055 "" "" 0
+a1    device analog_input k8055_ainput "" "" 0 1 0 steps 0x0 0 "" k8055 1
+a2    device analog_input k8055_ainput "" "" 0 1 0 steps 0x0 0 "" k8055 2
+dac1  device analog_output k8055_aoutput "" "" 0 1 0 steps 0x0 k8055 1
+dac2  device analog_output k8055_aoutput "" "" 0 1 0 steps 0x0 k8055 2
+i1    device digital_input k8055_dinput "" "" 0 k8055 1
+i2    device digital_input k8055_dinput "" "" 0 k8055 2
+i3    device digital_input k8055_dinput "" "" 0 k8055 3
+i4    device digital_input k8055_dinput "" "" 0 k8055 4
+i5    device digital_input k8055_dinput "" "" 0 k8055 5
+o1    device digital_output k8055_doutput "" "" 0 k8055 1
+o2    device digital_output k8055_doutput "" "" 0 k8055 2
+o3    device digital_output k8055_doutput "" "" 0 k8055 3
+o4    device digital_output k8055_doutput "" "" 0 k8055 4
+o5    device digital_output k8055_doutput "" "" 0 k8055 5
+o6    device digital_output k8055_doutput "" "" 0 k8055 6
+o7    device digital_output k8055_doutput "" "" 0 k8055 7
+o8    device digital_output k8055_doutput "" "" 0 k8055 8
+s1    device scaler k8055_scaler "" "" 0 0 0x0 timer1 k8055 1
+s2    device scaler k8055_scaler "" "" 0 0 0x0 timer1 k8055 2
+timer1     device timer k8055_timer "" "" k8055
+#
+soft_timer device timer soft_timer "" ""

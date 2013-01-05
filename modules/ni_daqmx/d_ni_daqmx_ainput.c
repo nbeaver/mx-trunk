@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -154,7 +154,7 @@ mxd_ni_daqmx_ainput_create_record_structures( MX_RECORD *record )
 
 	ainput->record = record;
 
-	ainput->subclass = MXT_AOU_DOUBLE;
+	ainput->subclass = MXT_AIN_DOUBLE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
