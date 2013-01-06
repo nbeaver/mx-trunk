@@ -127,6 +127,10 @@ mx_vm_get_protection( void *address,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+	}
 	if ( protection_flags == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The protection_flags pointer passed was NULL." );
@@ -196,6 +200,11 @@ mx_vm_set_protection( void *address,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+	}
+
 	/* Write permission implies read permission on Win32. */
 
 	vm_protection_flags = 0;
@@ -234,6 +243,160 @@ mx_vm_set_protection( void *address,
 		"VirtualProtect() failed with "
 		"Win32 error code = %ld, error message = '%s'",
 			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*************************** Posix ***************************/
+
+#elif defined(OS_LINUX)
+
+#include <errno.h>
+#include <sys/mman.h>
+
+MX_EXPORT void *
+mx_vm_alloc( void *requested_address,
+		size_t requested_region_size_in_bytes,
+		unsigned long protection_flags )
+{
+	static const char fname[] = "mx_vm_alloc()";
+
+	void *actual_address;
+	int vm_protection_flags, vm_visibility_flags;
+	int saved_errno;
+
+	vm_protection_flags = 0;
+
+	if ( protection_flags & X_OK ) {
+		vm_protection_flags |= PROT_EXEC;
+	}
+	if ( protection_flags & R_OK ) {
+		vm_protection_flags |= PROT_READ;
+	}
+	if ( protection_flags & W_OK ) {
+		vm_protection_flags |= PROT_WRITE;
+	}
+
+	if ( vm_protection_flags == 0 ) {
+		vm_protection_flags = PROT_NONE;
+	}
+
+	vm_visibility_flags = MAP_PRIVATE | MAP_ANONYMOUS;
+
+	actual_address = mmap( requested_address,
+				requested_region_size_in_bytes,
+				vm_protection_flags,
+				vm_visibility_flags,
+				-1, 0 );
+
+	if ( actual_address == MAP_FAILED ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"mmap() failed with errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+
+		return NULL;
+	}
+
+	return actual_address;
+}
+
+MX_EXPORT void
+mx_vm_free( void *address )
+{
+	static const char fname[] = "mx_vm_free()";
+
+	int munmap_status, saved_errno;
+
+	if ( address == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+
+		return;
+	}
+
+	munmap_status = munmap( address, 0 );
+
+	if ( munmap_status == (-1) ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"munmap() failed with errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
+
+		return;
+	}
+
+	return;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+	}
+	if ( protection_flags == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The protection_flags pointer passed is NULL." );
+	}
+
+	/* FIXME - On Linux, this probably must be done by reading
+	 *         and parsing /proc/self/maps.
+	 */
+
+	*protection_flags = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_vm_set_protection( void *address,
+		size_t region_size_in_bytes,
+		unsigned long protection_flags )
+{
+	static const char fname[] = "mx_vm_set_protection()";
+
+	int vm_protection_flags;
+	int mprotect_status, saved_errno;
+
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+	}
+
+	vm_protection_flags = 0;
+
+	if ( protection_flags & X_OK ) {
+		vm_protection_flags |= PROT_EXEC;
+	}
+	if ( protection_flags & R_OK ) {
+		vm_protection_flags |= PROT_READ;
+	}
+	if ( protection_flags & W_OK ) {
+		vm_protection_flags |= PROT_WRITE;
+	}
+
+	if ( vm_protection_flags == 0 ) {
+		vm_protection_flags = PROT_NONE;
+	}
+
+	mprotect_status = mprotect( address,
+				region_size_in_bytes,
+				vm_protection_flags );
+
+	if ( mprotect_status == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"mprotect() failed with errno = %d, error message = '%s'",
+			saved_errno, strerror( saved_errno ) );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
