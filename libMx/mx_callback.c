@@ -63,7 +63,7 @@
 #include "mx_hrt_debug.h"
 #endif
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if 0 && MX_CALLBACK_PROTECT_HANDLE_TABLE
 static unsigned long mxp_saved_permission_flags = 0;
 
 static void
@@ -1590,14 +1590,15 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 	/* Add this callback to the server's callback handle table. */
 
 #if MX_CALLBACK_PROTECT_HANDLE_TABLE
-	mxp_callback_handle_table_enable( callback_handle_table, R_OK | W_OK );
+	mx_callback_handle_table_change_permissions( callback_handle_table,
+							R_OK | W_OK );
 #endif
 
 	mx_status = mx_create_handle( &callback_handle,
 					callback_handle_table, callback_ptr );
 
 #if MX_CALLBACK_PROTECT_HANDLE_TABLE
-	mxp_callback_handle_table_disable( callback_handle_table );
+	mx_callback_handle_table_change_permissions( callback_handle_table, 0 );
 #endif
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2349,6 +2350,40 @@ mx_process_callbacks( MX_RECORD *record_list, MX_PIPE *callback_pipe )
 
 /*--------------------------------------------------------------------------*/
 
+MX_EXPORT unsigned long
+mx_callback_handle_table_change_permissions(
+				MX_HANDLE_TABLE *callback_handle_table,
+				unsigned long new_permission_flags )
+{
+	MX_HANDLE_STRUCT *handle_struct_array;
+	size_t region_size_in_bytes;
+	unsigned long old_permission_flags;
+
+	if ( callback_handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		return (-1);
+	}
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	if ( handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+		return (-1);
+	}
+
+	region_size_in_bytes = callback_handle_table->num_blocks
+				* callback_handle_table->block_size
+				* sizeof(MX_HANDLE_STRUCT);
+
+	mx_vm_get_protection( handle_struct_array, &old_permission_flags );
+
+	mx_vm_set_protection( handle_struct_array,
+				region_size_in_bytes,
+				new_permission_flags );
+
+	return old_permission_flags;
+}
+
+/*--------------------------------------------------------------------------*/
+
 MX_EXPORT void
 mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 {
@@ -2527,14 +2562,14 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	    handle_struct = &(handle_table->handle_struct_array[i]);
 
 #if MX_CALLBACK_PROTECT_HANDLE_TABLE
-	    mxp_callback_handle_table_enable( handle_table, R_OK );
+	    mx_callback_handle_table_change_permissions( handle_table, R_OK );
 #endif
 
 	    handle   = handle_struct->handle;
 	    callback = handle_struct->pointer;
 
 #if MX_CALLBACK_PROTECT_HANDLE_TABLE
-	    mxp_callback_handle_table_disable( handle_table );
+	    mx_callback_handle_table_change_permissions( handle_table, 0 );
 #endif
 
 	    if ( ( handle == MX_ILLEGAL_HANDLE )
@@ -2545,7 +2580,7 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 		continue;
 	    }
 
-#if 1
+#if 0
 	    MX_DEBUG(-2,
     ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
 			fname, i, handle_struct, handle, callback));

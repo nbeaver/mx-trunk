@@ -180,6 +180,15 @@ MX_API mx_status_type mx_process_callbacks( MX_RECORD *record_list,
 
 /*---*/
 
+/* This API is intended for internal debugging and will go away at some point.*/
+
+MX_API_PRIVATE unsigned long
+mx_callback_handle_table_change_permissions(
+				MX_HANDLE_TABLE *callback_handle_table,
+				unsigned long new_permission_flags );
+
+/*---*/
+
 MX_API void mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer,
 							void *args );
 
