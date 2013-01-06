@@ -37,7 +37,7 @@
 
 #define NETWORK_DEBUG_CALLBACKS		FALSE
 
-#define NETWORK_PROTECT_HANDLE_TABLE	TRUE
+#define NETWORK_PROTECT_VM_HANDLE_TABLE	TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -279,7 +279,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 				fname, i, callback_handle_struct));
 #endif
 
-#if NETWORK_PROTECT_HANDLE_TABLE
+#if NETWORK_PROTECT_VM_HANDLE_TABLE
 			mx_callback_handle_table_change_permissions(
 					callback_handle_table, R_OK );
 #endif
@@ -287,7 +287,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			callback_handle = callback_handle_struct->handle;
 			callback_ptr    = callback_handle_struct->pointer;
 
-#if NETWORK_PROTECT_HANDLE_TABLE
+#if NETWORK_PROTECT_VM_HANDLE_TABLE
 			mx_callback_handle_table_change_permissions(
 					callback_handle_table, 0 );
 #endif
@@ -568,7 +568,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			     * callback handle table.
 			     */
 
-#if NETWORK_PROTECT_HANDLE_TABLE
+#if NETWORK_PROTECT_VM_HANDLE_TABLE
 			    mx_callback_handle_table_change_permissions(
 					callback_handle_table,
 					R_OK | W_OK );
@@ -577,7 +577,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			    mx_status1 = mx_delete_handle( callback_handle,
 			    				callback_handle_table );
 
-#if NETWORK_PROTECT_HANDLE_TABLE
+#if NETWORK_PROTECT_VM_HANDLE_TABLE
 			    mx_callback_handle_table_change_permissions(
 					callback_handle_table, 0 );
 #endif

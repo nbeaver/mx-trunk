@@ -28,7 +28,21 @@
 
 #define MX_CALLBACK_DEBUG_VALUE_CHANGED_POLL		FALSE
 
-#define MX_CALLBACK_PROTECT_HANDLE_TABLE		TRUE
+/* Note: If you protect the VM version of the handle table here, then
+ *       you must also set NETWORK_PROTECT_VM_HANDLE_TABLE in the 
+ *       file server/ms_mxserver.c
+ */
+
+#define MX_CALLBACK_USE_VM_HANDLE_TABLE			TRUE
+
+#define MX_CALLBACK_PROTECT_VM_HANDLE_TABLE		TRUE
+
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
+
+#  if ( MX_CALLBACK_USE_VM_HANDLE_TABLE == FALSE )
+#    error If MX_CALLBACK_PROTECT_VM_HANDLE_TABLE is set, then MX_CALLBACK_USE_VM_HANDLE_TABLE must be set as well.
+#  endif
+#endif
 
 /*
  * WARNING: The macro MX_CALLBACK_DEBUG_WITHOUT_TIMER should only be defined
@@ -62,48 +76,6 @@
 #if MX_CALLBACK_DEBUG_PROCESS_CALLBACKS_TIMING
 #include "mx_hrt_debug.h"
 #endif
-
-#if 0 && MX_CALLBACK_PROTECT_HANDLE_TABLE
-static unsigned long mxp_saved_permission_flags = 0;
-
-static void
-mxp_callback_handle_table_enable( MX_HANDLE_TABLE *callback_handle_table,
-				unsigned long new_permission_flags )
-{
-	MX_HANDLE_STRUCT *handle_struct_array;
-	size_t region_size_in_bytes;
-
-	handle_struct_array = callback_handle_table->handle_struct_array;
-
-	region_size_in_bytes = callback_handle_table->num_blocks
-				* callback_handle_table->block_size
-				* sizeof(MX_HANDLE_STRUCT);
-
-	mx_vm_get_protection( handle_struct_array, &mxp_saved_permission_flags);
-
-	mx_vm_set_protection( handle_struct_array,
-				region_size_in_bytes,
-				new_permission_flags );
-}
-
-static void
-mxp_callback_handle_table_disable( MX_HANDLE_TABLE *callback_handle_table )
-{
-	MX_HANDLE_STRUCT *handle_struct_array;
-	size_t region_size_in_bytes;
-
-	handle_struct_array = callback_handle_table->handle_struct_array;
-
-	region_size_in_bytes = callback_handle_table->num_blocks
-				* callback_handle_table->block_size
-				* sizeof(MX_HANDLE_STRUCT);
-
-	mx_vm_set_protection( handle_struct_array,
-				region_size_in_bytes,
-				mxp_saved_permission_flags );
-}
-
-#endif /* MX_CALLBACK_PROTECT_HANDLE_TABLE */
 
 /*------------------------------------------------------------------------*/
 
@@ -379,7 +351,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if MX_CALLBACK_USE_VM_HANDLE_TABLE
 		{
 			MX_HANDLE_STRUCT *handle_struct_array;
 			unsigned long i, handle_table_size;
@@ -424,11 +396,13 @@ mx_initialize_callback_support( MX_RECORD *record )
 				fname, callback_handle_table,
 				callback_handle_table->handle_struct_array ));
 
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
 			mx_vm_set_protection(
 				callback_handle_table->handle_struct_array,
 				handle_table_size_in_bytes, 0 );
+#endif
 		}
-#endif /* MX_CALLBACK_PROTECT_HANDLE_TABLE */
+#endif /* MX_CALLBACK_USE_VM_HANDLE_TABLE */
 
 		list_head->server_callback_handle_table = callback_handle_table;
 	}
@@ -1589,7 +1563,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 
 	/* Add this callback to the server's callback handle table. */
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
 	mx_callback_handle_table_change_permissions( callback_handle_table,
 							R_OK | W_OK );
 #endif
@@ -1597,7 +1571,7 @@ mx_local_field_add_new_callback( MX_RECORD_FIELD *record_field,
 	mx_status = mx_create_handle( &callback_handle,
 					callback_handle_table, callback_ptr );
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
 	mx_callback_handle_table_change_permissions( callback_handle_table, 0 );
 #endif
 
@@ -2561,14 +2535,14 @@ mx_poll_callback_handler( MX_CALLBACK_MESSAGE *callback_message )
 	for ( i = 0; i < array_size; i++ ) {
 	    handle_struct = &(handle_table->handle_struct_array[i]);
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
 	    mx_callback_handle_table_change_permissions( handle_table, R_OK );
 #endif
 
 	    handle   = handle_struct->handle;
 	    callback = handle_struct->pointer;
 
-#if MX_CALLBACK_PROTECT_HANDLE_TABLE
+#if MX_CALLBACK_PROTECT_VM_HANDLE_TABLE
 	    mx_callback_handle_table_change_permissions( handle_table, 0 );
 #endif
 
