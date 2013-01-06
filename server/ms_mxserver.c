@@ -37,7 +37,7 @@
 
 #define NETWORK_DEBUG_CALLBACKS		FALSE
 
-#define NETWORK_PROTECT_VM_HANDLE_TABLE	TRUE
+#define NETWORK_PROTECT_VM_HANDLE_TABLE	FALSE
 
 #include <stdio.h>
 #include <string.h>
