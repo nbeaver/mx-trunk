@@ -58,7 +58,7 @@ GCCFLAGS = -Wall -Werror \
 -Winline
 
 #
-CC		= cc
+CC		= gcc
 CFLAGS		= -g -O -fPIC -fno-common $(GCCFLAGS) $(INCLUDES) -DOS_MACOSX \
 				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes -Wno-shadow
@@ -75,7 +75,7 @@ CFLAGS_MAKEDEPEND = $(CFLAGS) $(EPICS_INCLUDES) $(READLINE_INCLUDES)
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= cc -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
+MAKEDEPEND	= $(CC) -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

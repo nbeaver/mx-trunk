@@ -26,7 +26,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined( OS_LINUX )
+#if defined(OS_LINUX) | defined(OS_MACOSX)
 
 /* This is a generic implementation of mx_pointer_is_valid()
  * that uses the new mx_vm_get_protection() function.
@@ -156,127 +156,6 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 		return FALSE;
 
 	return TRUE;
-}
-
-/*-------------------------------------------------------------------------*/
-
-#elif defined(OS_MACOSX)
-
-#include <mach/mach.h>
-
-MX_EXPORT int
-mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
-{
-	static const char fname[] = "mx_pointer_is_valid()";
-
-	task_t task;
-	vm_address_t region_address;
-	vm_size_t region_size;
-	struct vm_region_basic_info region_info;
-	mach_msg_type_number_t region_info_size;
-	mach_port_t object_name;
-	kern_return_t kreturn;
-	int valid;
-
-	kreturn = task_for_pid( current_task(), mx_process_id(), &task );
-
-	if ( kreturn != KERN_SUCCESS ) {
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"A call to task_for_pid() failed.  kreturn = %ld",
-			(long) kreturn );
-
-		return FALSE;
-	}
-
-	region_address = (vm_address_t) pointer;
-
-#if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s: region_address = %lu",
-		fname, (unsigned long) region_address));
-#endif
-
-	region_info_size = VM_REGION_BASIC_INFO_COUNT;
-
-	kreturn = vm_region( task,
-			&region_address,
-			&region_size,
-			VM_REGION_BASIC_INFO,
-			(vm_region_info_t) &region_info,
-			&region_info_size,
-			&object_name );
-
-#if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s: vm_region() kreturn = %lu",
-		fname, (unsigned long) kreturn));
-#endif
-
-	if ( kreturn == KERN_INVALID_ADDRESS ) {
-		return FALSE;
-	} else
-	if ( kreturn == KERN_INVALID_ARGUMENT ) {
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	    "One or more of the arguments passed to vm_region() was invalid." );
-	} else
-	if ( kreturn != KERN_SUCCESS ) {
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"A call to vm_region() failed.  kreturn = %ld",
-			(long) kreturn );
-
-		return FALSE;
-	}
-
-#if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s: region_info.offset = %ld",
-		fname, (long) region_info.offset));
-	MX_DEBUG(-2,("%s: region_info.protection = %ld",
-		fname, (long) region_info.protection));
-	MX_DEBUG(-2,("%s: region_info.inheritance = %ld",
-		fname, (long) region_info.inheritance));
-	MX_DEBUG(-2,("%s: region_info.max_protection = %ld",
-		fname, (long) region_info.max_protection));
-	MX_DEBUG(-2,("%s: region_info.behavior = %ld",
-		fname, (long) region_info.behavior));
-	MX_DEBUG(-2,("%s: region_info.user_wired_count = %ld",
-		fname, (long) region_info.user_wired_count));
-	MX_DEBUG(-2,("%s: region_info.reserved = %ld",
-		fname, (long) region_info.reserved));
-	MX_DEBUG(-2,("%s: region_info.shared = %ld",
-		fname, (long) region_info.shared));
-#endif
-
-	valid = FALSE;
-
-	if ( (access_mode & R_OK) && ( access_mode & W_OK ) ) {
-		if ( (region_info.protection & VM_PROT_READ)
-		  && (region_info.protection & VM_PROT_WRITE) )
-		{
-			valid = TRUE;
-		} else {
-			valid = FALSE;
-		}
-	} else
-	if ( access_mode & R_OK ) {
-		if ( region_info.protection & VM_PROT_READ ) {
-			valid = TRUE;
-		} else {
-			valid = FALSE;
-		}
-	} else
-	if ( access_mode & W_OK ) {
-		if ( region_info.protection & VM_PROT_WRITE ) {
-			valid = TRUE;
-		} else {
-			valid = FALSE;
-		}
-	} else {
-		valid = FALSE;
-	}
-
-#if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s: valid = %d", fname, valid));
-#endif
-
-	return valid;
 }
 
 /*-------------------------------------------------------------------------*/

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2012 Illinois Institute of Technology
+ * Copyright 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -487,6 +487,8 @@ mx_image_noir_update( MX_IMAGE_NOIR_INFO *image_noir_info )
 	long long_value;
 	double double_value;
 	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	/* See if we need to update the contents of the static header. */
 

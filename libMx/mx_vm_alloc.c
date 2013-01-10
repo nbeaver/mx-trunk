@@ -276,10 +276,14 @@ mx_vm_set_protection( void *address,
  * later in this section of the file.
  */
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) | defined(OS_MACOSX)
 
 #include <errno.h>
 #include <sys/mman.h>
+
+#if !defined( MAP_ANONYMOUS )
+#  define MAP_ANONYMOUS    MAP_ANON
+#endif
 
 MX_EXPORT void *
 mx_vm_alloc( void *requested_address,
@@ -552,6 +556,126 @@ mx_vm_get_protection( void *address,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*-------------------------------------------------------------------------*/
+
+#  elif defined(OS_MACOSX)
+
+#include <mach/mach.h>
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	task_t task;
+	vm_address_t region_address;
+	vm_size_t region_size;
+	struct vm_region_basic_info region_info;
+	mach_msg_type_number_t region_info_size;
+	mach_port_t object_name;
+	kern_return_t kreturn;
+
+	mx_bool_type valid = FALSE;
+	unsigned long protection_flags_value = 0;
+
+	kreturn = task_for_pid( current_task(), mx_process_id(), &task );
+
+	if ( kreturn != KERN_SUCCESS ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to task_for_pid() failed.  kreturn = %ld",
+			(long) kreturn );
+	}
+
+	region_address = (vm_address_t) address;
+	region_size    = (vm_size_t) region_size_in_bytes;
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s: region_address = %lu",
+		fname, (unsigned long) region_address));
+#endif
+
+	region_info_size = VM_REGION_BASIC_INFO_COUNT;
+
+	kreturn = vm_region( task,
+			&region_address,
+			&region_size,
+			VM_REGION_BASIC_INFO,
+			(vm_region_info_t) &region_info,
+			&region_info_size,
+			&object_name );
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s: vm_region() kreturn = %lu",
+		fname, (unsigned long) kreturn));
+#endif
+
+	if ( kreturn == KERN_INVALID_ADDRESS ) {
+		valid = FALSE;
+	} else
+	if ( kreturn == KERN_INVALID_ARGUMENT ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "One or more of the arguments passed to vm_region() was invalid." );
+	} else
+	if ( kreturn != KERN_SUCCESS ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to vm_region() failed.  kreturn = %ld",
+			(long) kreturn );
+	} else {
+
+#if MX_VM_ALLOC_DEBUG
+		MX_DEBUG(-2,("%s: region_info.offset = %ld",
+			fname, (long) region_info.offset));
+		MX_DEBUG(-2,("%s: region_info.protection = %ld",
+			fname, (long) region_info.protection));
+		MX_DEBUG(-2,("%s: region_info.inheritance = %ld",
+			fname, (long) region_info.inheritance));
+		MX_DEBUG(-2,("%s: region_info.max_protection = %ld",
+			fname, (long) region_info.max_protection));
+		MX_DEBUG(-2,("%s: region_info.behavior = %ld",
+			fname, (long) region_info.behavior));
+		MX_DEBUG(-2,("%s: region_info.user_wired_count = %ld",
+			fname, (long) region_info.user_wired_count));
+		MX_DEBUG(-2,("%s: region_info.reserved = %ld",
+			fname, (long) region_info.reserved));
+		MX_DEBUG(-2,("%s: region_info.shared = %ld",
+			fname, (long) region_info.shared));
+#endif
+		valid = TRUE;
+
+		protection_flags_value = 0;
+
+		if ( region_info.protection & VM_PROT_READ ) {
+			protection_flags_value |= R_OK;
+		}
+		if ( region_info.protection & VM_PROT_WRITE ) {
+			protection_flags_value |= W_OK;
+		}
+		if ( region_info.protection & VM_PROT_EXECUTE ) {
+			protection_flags_value |= X_OK;
+		}
+	}
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s: valid = %d", fname, valid));
+#endif
+
+	if ( valid_address_range != NULL ) {
+		*valid_address_range = valid;
+	}
+
+	if ( protection_flags != NULL ) {
+		if ( valid ) {
+			*protection_flags = protection_flags_value;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 
 /*-------------------------------------------------------------------------*/
 #  else
