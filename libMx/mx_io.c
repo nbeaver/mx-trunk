@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2010-2012 Illinois Institute of Technology
+ * Copyright 2010-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2138,7 +2138,9 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 
 /*-------------------------------------------------------------------------*/
 
-#elif (defined(OS_SOLARIS) && (MX_SOLARIS_VERSION >= 5010000L ))
+#elif ( defined(OS_SOLARIS) \
+        && (MX_SOLARIS_VERSION >= 5010000L) \
+        && (!defined(__GNUC__)) )
 
 /*
  * https://blogs.oracle.com/darren/entry/file_notification_in_opensolaris_and

@@ -26,7 +26,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD)
+#if defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD) \
+	| defined(OS_SOLARIS)
 
 /* This is a generic implementation of mx_pointer_is_valid()
  * that uses the new mx_vm_get_protection() function.
@@ -156,143 +157,6 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 		return FALSE;
 
 	return TRUE;
-}
-
-/*-------------------------------------------------------------------------*/
-
-#elif defined(OS_SOLARIS)
-
-#include <fcntl.h>
-#include <procfs.h>
-
-MX_EXPORT int
-mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
-{
-	static const char fname[] = "mx_pointer_is_valid()";
-
-	FILE *proc_file;
-	int saved_errno;
-	prmap_t map_entry;
-	size_t items_read;
-	unsigned long pointer_addr;
-	unsigned long object_offset, object_end, flags;
-
-	pointer_addr = (unsigned long) pointer;
-
-#if MX_POINTER_DEBUG
-	MX_DEBUG(-2,("%s: pointer_addr = %#lx", fname, pointer_addr));
-#endif
-
-	/* Open the virtual address map for the current process. */
-
-	proc_file = fopen( "/proc/self/map", "r" );
-
-	if ( proc_file == NULL ) {
-		saved_errno = errno;
-
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to open '/proc/self/map' failed with errno = %d, "
-		"error message = '%s'", saved_errno, strerror(saved_errno) );
-
-		return FALSE;
-	}
-
-	/* Walk through the array of virtual address map entries. */
-
-	while (1) {
-		items_read = fread(&map_entry, sizeof(map_entry), 1, proc_file);
-
-		if ( items_read < 1 ) {
-
-			if ( feof(proc_file) ) {
-#if MX_POINTER_DEBUG
-				MX_DEBUG(-2,("%s: Reached the end of the "
-				"virtual address map array.", fname));
-#endif
-				fclose( proc_file );
-				return FALSE;
-			}
-
-			(void) mx_error( MXE_FILE_IO_ERROR, fname,
-			"An unknown error occurred while reading "
-			"from /proc/self/map." );
-
-			fclose( proc_file );
-			return FALSE;
-		}
-
-		/* Skip mappings that are of zero length. */
-
-		if ( map_entry.pr_size == 0 )
-			continue;
-
-#if MX_POINTER_DEBUG
-		MX_DEBUG(-2,("%s: %#lx, %#lx, %#x, '%s'", fname,
-			(unsigned long) map_entry.pr_vaddr,
-			(unsigned long) map_entry.pr_size,
-			map_entry.pr_mflags,
-			map_entry.pr_mapname));
-#endif
-
-		if ( pointer_addr < map_entry.pr_vaddr ) {
-			/* The pointer is located before this address
-			 * mapping, but was not found by a previous
-			 * pass through the loop.  This means that
-			 * either the pointer is before the first
-			 * mapping or is inbetween mappings.  Either
-			 * way the pointer is invalid.
-			 */
-#if MX_POINTER_DEBUG
-			MX_DEBUG(-2,("%s: Invalid pointer %p", fname, pointer));
-#endif
-			fclose( proc_file );
-			return FALSE;
-		}
-
-		object_offset = pointer_addr - map_entry.pr_vaddr;
-
-		object_end = object_offset + length;
-
-		if ( object_end < map_entry.pr_size ) {
-
-			/* We have found the correct map entry. */
-
-			fclose( proc_file );
-#if MX_POINTER_DEBUG
-			MX_DEBUG(-2,("%s: map entry found!", fname));
-			MX_DEBUG(-2,
-			("%s: object_offset = %#lx, object_end = %#lx",
-				fname, object_offset, object_end));
-#endif
-			/* Does the requested access mode match? */
-
-			flags = 0;
-
-			if ( access_mode & R_OK ) {
-				flags |= MA_READ;
-			}
-			if ( access_mode & W_OK ) {
-				flags |= MA_WRITE;
-			}
-			if ( access_mode & X_OK ) {
-				flags |= MA_EXEC;
-			}
-
-			if ( (map_entry.pr_mflags & flags) == flags ) {
-#if MX_POINTER_DEBUG
-				MX_DEBUG(-2,
-			    ("%s: The requested access is allowed.",fname));
-#endif
-				return TRUE;
-			} else {
-#if MX_POINTER_DEBUG
-				MX_DEBUG(-2,
-			    ("%s: The requested access is NOT allowed.",fname));
-#endif
-				return FALSE;
-			}
-		}
-	}
 }
 
 /*-------------------------------------------------------------------------*/
