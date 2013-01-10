@@ -17,13 +17,15 @@
  *
  */
 
+#define MX_VM_ALLOC_DEBUG	TRUE
+
 #include <stdio.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_vm_alloc.h"
 
-/*************************** Microsoft Windows ***************************/
+/*=========================== Microsoft Windows ===========================*/
 
 #if defined(OS_WIN32)
 
@@ -116,6 +118,8 @@ mx_vm_free( void *address )
 
 MX_EXPORT mx_status_type
 mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
 	static const char fname[] = "mx_vm_get_protection()";
@@ -126,6 +130,8 @@ mx_vm_get_protection( void *address,
 
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+
+	unsigned long protection_flags_value;
 
 	if ( address == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -156,26 +162,26 @@ mx_vm_get_protection( void *address,
 
 	switch( vm_protection_flags ) {
 	case PAGE_EXECUTE_READWRITE:
-		*protection_flags = ( R_OK | W_OK | X_OK );
+		protection_flags_value = ( R_OK | W_OK | X_OK );
 		break;
 	case PAGE_EXECUTE_READ:
-		*protection_flags = ( R_OK | X_OK );
+		protection_flags_value = ( R_OK | X_OK );
 		break;
 	case PAGE_EXECUTE:
-		*protection_flags = X_OK;
+		protection_flags_value = X_OK;
 		break;
 	case PAGE_READWRITE:
-		*protection_flags = ( R_OK | W_OK );
+		protection_flags_value = ( R_OK | W_OK );
 		break;
 	case PAGE_READONLY:
-		*protection_flags = R_OK;
+		protection_flags_value = R_OK;
 		break;
 	case PAGE_NOACCESS:
 	case 0:
-		*protection_flags = 0;
+		protection_flags_value = 0;
 		break;
 	default:
-		*protection_flags = 0;
+		protection_flags_value = 0;
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The access protection value %#lx returned by "
@@ -183,6 +189,14 @@ mx_vm_get_protection( void *address,
 			(unsigned long) vm_protection_flags,
 			address );
 		break;
+	}
+
+	if ( valid_address_range != NULL ) {
+		*valid_address_range = TRUE;
+	}
+
+	if ( protection_flags != NULL ) {
+		*protection_flags = protection_flags_value;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -248,7 +262,19 @@ mx_vm_set_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*************************** Posix ***************************/
+/*================================= Posix =================================*/
+
+/*
+ * Posix platforms provide a standard way of implementing these functions:
+ *
+ *   mx_vm_alloc() -------------> mmap()
+ *   mx_vm_free() --------------> munmap()
+ *   mx_vm_set_protection() ----> mprotect()
+ *
+ * However, there is no standard way of implementing mx_vm_get_protection().
+ * Thus, mx_vm_get_protection() is implemented in platform-specific code
+ * later in this section of the file.
+ */
 
 #elif defined(OS_LINUX)
 
@@ -333,30 +359,6 @@ mx_vm_free( void *address )
 }
 
 MX_EXPORT mx_status_type
-mx_vm_get_protection( void *address,
-		unsigned long *protection_flags )
-{
-	static const char fname[] = "mx_vm_get_protection()";
-
-	if ( address == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The address pointer passed is NULL." );
-	}
-	if ( protection_flags == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The protection_flags pointer passed is NULL." );
-	}
-
-	/* FIXME - On Linux, this probably must be done by reading
-	 *         and parsing /proc/self/maps.
-	 */
-
-	*protection_flags = 0;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mx_vm_set_protection( void *address,
 		size_t region_size_in_bytes,
 		unsigned long protection_flags )
@@ -402,7 +404,163 @@ mx_vm_set_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----- Platform-specific mx_vm_get_protection() for Posix platforms ------*/
+
+#  if defined(OS_LINUX)
+
+#  include <sys/mman.h>
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	FILE *file;
+	char buffer[300];
+	int i, argc, saved_errno;
+	char **argv;
+	unsigned long start_address, end_address, pointer_address;
+	char permissions[20];
+
+	mx_bool_type valid;
+	unsigned long protection_flags_value;
+
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The address pointer passed is NULL." );
+	}
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s invoked for address %p, size %lu",
+		fname, address, (unsigned long) region_size_in_bytes ));
+#endif
+
+	/* Under Linux, the preferred technique is to read the
+	 * necessary information from /proc/self/maps.
+	 */
+
+	file = fopen( "/proc/self/maps", "r" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The attempt to open '/proc/self/maps' failed with "
+		"errno = %d, error message = '%s'.",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* If we get here, then opening /proc/self/maps succeeded. */
+
+	protection_flags_value = 0;
+
+	pointer_address = (unsigned long) address;
+
+	for ( i = 0; ; i++ ) {
+
+		valid = FALSE;
+
+		mx_fgets( buffer, sizeof(buffer), file );
+
+		if ( feof(file) ) {
+			valid = FALSE;
+			break;		/* Exit the for() loop. */
+		} else
+		if ( ferror(file) ) {
+			(void) mx_error( MXE_FILE_IO_ERROR, fname,
+			"The attempt to read line %d of the output "
+			"from /proc/self/maps failed.", i+1 );
+
+			valid = FALSE;
+			break;		/* Exit the for() loop. */
+		}
+
+#if MX_VM_ALLOC_DEBUG
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
+
+		/* Split up the string using both space characters
+		 * and '-' characters as delimiters.
+		 */
+
+		mx_string_split( buffer, " -", &argc, &argv );
+
+		start_address = mx_hex_string_to_unsigned_long( argv[0] );
+		end_address   = mx_hex_string_to_unsigned_long( argv[1] );
+
+		strlcpy( permissions, argv[2], sizeof(permissions) );
+
+		mx_free(argv);
+
+#if MX_VM_ALLOC_DEBUG
+		MX_DEBUG(-2,("%s: address = %p, pointer_address = %#lx, "
+			"i = %d, start_address = %#lx, "
+			"end_address = %#lx, permissions = '%s'", fname,
+			address, pointer_address, i,
+			start_address, end_address, permissions));
+#endif
+		/* If the pointer is located before the start of the
+		 * first memory block, then it is definitely bad.
+		 */
+
+		if ( (i == 0) && (pointer_address <= start_address) ) {
+			valid = FALSE;
+
+			break;		/* Exit the for() loop. */
+		}
+
+		/* See if the pointer is in the current memory block. */
+
+		if ( (start_address <= pointer_address)
+			&& (pointer_address <= end_address ) )
+		{
+#if MX_VM_ALLOC_DEBUG
+			MX_DEBUG(-2,("%s: pointer is in this block.",fname));
+#endif
+			valid = TRUE;
+
+			if ( permissions[0] == 'r' ) {
+				protection_flags_value |= R_OK;
+			}
+			if ( permissions[1] == 'w' ) {
+				protection_flags_value |= W_OK;
+			}
+			if ( permissions[2] == 'x' ) {
+				protection_flags_value |= X_OK;
+			}
+
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+#if MX_VM_ALLOC_DEBUG
+	MX_DEBUG(-2,("%s: valid = %d", fname, valid));
+#endif
+
+	fclose(file);
+
+	if ( valid_address_range != NULL ) {
+		*valid_address_range = valid;
+	}
+
+	if ( protection_flags != NULL ) {
+		*protection_flags = protection_flags_value;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+#  else
+#  error mx_vm_get_protection() is not yet implemented for this Posix platform.
+#  endif
+
+/*=========================================================================*/
+
 #else
-#error Virtual memory allocation functions are not yet implemented for this platform.
+#error Virtual memory functions are not yet implemented for this platform.
 #endif
 

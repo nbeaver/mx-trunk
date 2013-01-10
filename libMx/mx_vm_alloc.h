@@ -21,6 +21,8 @@
 #ifndef __MX_VM_ALLOC_H__
 #define __MX_VM_ALLOC_H__
 
+#include "mx_stdint.h"
+
 /* Make the header file C++ safe. */
 
 #ifdef __cplusplus
@@ -38,6 +40,8 @@ MX_API void *mx_vm_alloc( void *requested_address,
 MX_API void mx_vm_free( void *address );
 
 MX_API mx_status_type mx_vm_get_protection( void *address,
+					size_t region_size_in_bytes,
+					mx_bool_type *valid_address_range,
 					unsigned long *protection_flags );
 
 MX_API mx_status_type mx_vm_set_protection( void *address,

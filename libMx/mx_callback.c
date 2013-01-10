@@ -2347,7 +2347,8 @@ mx_callback_handle_table_change_permissions(
 				* callback_handle_table->block_size
 				* sizeof(MX_HANDLE_STRUCT);
 
-	mx_vm_get_protection( handle_struct_array, &old_permission_flags );
+	mx_vm_get_protection( handle_struct_array, 0,
+				NULL, &old_permission_flags );
 
 	mx_vm_set_protection( handle_struct_array,
 				region_size_in_bytes,
