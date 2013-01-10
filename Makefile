@@ -55,7 +55,7 @@
 # mx/module/epics/Makefile.config.
 #
 
-MX_ARCH = macosx
+MX_ARCH = bsd
 
 MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/opt/mx

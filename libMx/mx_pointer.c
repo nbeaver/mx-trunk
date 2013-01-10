@@ -26,7 +26,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX) | defined(OS_MACOSX)
+#if defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD)
 
 /* This is a generic implementation of mx_pointer_is_valid()
  * that uses the new mx_vm_get_protection() function.
@@ -506,107 +506,6 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 	MX_DEBUG(-2,("%s: No entry found in array.", fname));
 #endif
 	return FALSE;
-}
-
-/*-------------------------------------------------------------------------*/
-
-#elif defined(OS_BSD)
-
-#include <sys/mman.h>
-
-#include "mx_stdint.h"
-
-/* On some BSD based operating systems, mincore() can be used to determine
- * whether or not an address range is valid, since mincore() will return
- * ENOMEM if the address range is not fully mapped into virtual memory.
- *
- * Some discussion about this can be found at
- * http://unix.derkeiler.com/Mailing-Lists/FreeBSD/hackers/2006-06/msg00106.html
- *
- * See http://www.istild.com/man-pages/man2/mincore.2.html for a discussion
- * of how to compute the necessary length of the vector.
- */
-
-MX_EXPORT int
-mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
-{
-	static const char fname[] = "mx_pointer_is_valid()";
-
-	char *vector;
-	char *aligned_pointer, *original_pointer;
-	unsigned long original_pointer_as_ulong;
-	unsigned long page_size, vector_size;
-	unsigned long num_pages, page_offset;
-	unsigned long modified_length;
-	int os_status, saved_errno;
-	mx_bool_type pointer_is_valid;
-
-	/* aligned_pointer must be aligned to the start of a memory page. */
-
-	page_size = sysconf(_SC_PAGESIZE);
-
-	if ( page_size == 0 ) {
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The operating system said that the value of _SC_PAGESIZE "
-		"was 0." );
-
-		return FALSE;
-	}
-
-	original_pointer = pointer;
-
-	/* Converting a pointer to an integer is icky, but necessary here. */
-
-	original_pointer_as_ulong = (unsigned long) original_pointer;
-
-	num_pages = original_pointer_as_ulong / page_size;
-
-	page_offset = original_pointer_as_ulong % page_size;
-
-	/* Converting the integer back to a pointer makes us doubly icky. */
-
-	aligned_pointer = (char *) (num_pages * page_size );
-
-	modified_length = length + page_offset;
-
-	/* We now must allocate memory for the vector to be returned
-	 * by mincore().
-	 */
-
-	vector_size = ( modified_length + page_size - 1 ) / page_size;
-
-	vector = malloc( vector_size );
-
-	if ( vector == NULL ) {
-		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %lu byte vector "
-		"for mincore().", vector_size );
-
-		return FALSE;
-	}
-
-	os_status = mincore( aligned_pointer, modified_length, vector );
-
-	saved_errno = errno;
-
-	mx_free(vector);
-
-	if ( os_status == 0 ) {
-		pointer_is_valid = TRUE;
-	} else {
-		if ( saved_errno == ENOMEM ) {
-			pointer_is_valid = FALSE;
-		} else {
-			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"mincore() returned with an unexpected error code.  "
-			"Errno = %d, error message = '%s'.",
-				saved_errno, strerror(saved_errno) );
-
-			return FALSE;
-		}
-	}
-
-	return pointer_is_valid;
 }
 
 /*-------------------------------------------------------------------------*/
