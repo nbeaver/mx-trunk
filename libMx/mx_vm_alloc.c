@@ -930,6 +930,214 @@ mx_vm_get_protection( void *address,
 }
 
 /*-------------------------------------------------------------------------*/
+
+#elif defined(OS_IRIX)
+
+#include <fcntl.h>
+#include <sys/procfs.h>
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	prmap_t *prmap_array = NULL;
+	prmap_t *array_element;
+	int i, num_mappings, num_mappings_to_allocate;
+	unsigned long pointer_addr, pr_vaddr;
+	unsigned long object_offset, object_end, flags;
+	int proc_fd, saved_errno, os_status;
+	char proc_filename[40];
+
+	unsigned long protection_flags_value;
+
+	pointer_addr = (unsigned long) address;
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,
+	("%s: pointer_addr = %#lx, region_size_in_bytes = %lu",
+		fname, pointer_addr, (unsigned long) region_size_in_bytes));
+#endif
+
+	/* Open the /proc file for the current process. */
+
+	snprintf( proc_filename, sizeof(proc_filename),
+		"/proc/%lu", mx_process_id() );
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,("%s: About to open '%s' for read-only access.",
+		fname, proc_filename));
+#endif
+
+	proc_fd = open( proc_filename, O_RDONLY );
+
+	if ( proc_fd == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to open '%s' failed with errno = %d, "
+		"error message = '%s'", proc_filename,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Find out how many memory mappings there are for the current
+	 * process.
+	 */
+
+	os_status = ioctl( proc_fd, PIOCNMAP, (void *) &num_mappings );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		close( proc_fd );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The PIOCNMAP ioctl() on file '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			proc_filename, saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,("%s: number of memory mappings = %d",
+		fname, num_mappings));
+#endif
+
+	/* Allocate memory for an array of memory mappings.
+	 * We deliberately allocate memory for a lot more
+	 * mappings than that reported by PIOCNMAP just
+	 * in case the number of mappings has increased.
+	 */
+
+	num_mappings_to_allocate = 2 * num_mappings + 10;
+
+	prmap_array = (prmap_t *) calloc( num_mappings_to_allocate,
+						sizeof(prmap_t) );
+
+	if ( prmap_array == NULL ) {
+		close( proc_fd );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d element "
+		"array of prmap_t structures.", num_mappings );
+	}
+
+	/* Fill in the array of memory mappings.
+	 *
+	 * WARNING: If somehow the number of memory mappings is changed
+	 * out from under us, then the upcoming call to PIOCMAP may fail
+	 * with a segmentation fault or overwrite memory.  EEK!
+	 *
+	 * Since the process in question is the current process, I hope
+	 * that it is obvious why we do not attempt to stop the process
+	 * for tracing.
+	 */
+
+	os_status = ioctl( proc_fd, PIOCMAP, (void *) prmap_array );
+
+	if ( os_status < 0 ) {
+		saved_errno = errno;
+
+		mx_free( prmap_array );
+		close( proc_fd );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to fill in the prmap_array using the "
+		"PIOCMAP ioctl() on file '%s' failed.  "
+		"Errno = %d, error message = '%s'",
+			proc_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	/* If we get here, then we do not need the file descriptor anymore. */
+
+	close( proc_fd );
+
+	/* Walk through the array of virtual address map entries. */
+
+	for ( i = 0; i < num_mappings_to_allocate; i++ ) {
+		array_element = &prmap_array[i];
+
+		pr_vaddr = (unsigned long) array_element->pr_vaddr;
+
+		if ( pr_vaddr == 0 ) {
+			/* We have reached the end of the array. */
+			break;
+		}
+
+#if MX_POINTER_DEBUG
+		MX_DEBUG(-2,("%s: %#lx %#lx %#x", fname, pr_vaddr,
+			(unsigned long) array_element->pr_size,
+			(unsigned int) array_element->pr_mflags ));
+#endif
+
+		if ( pointer_addr < pr_vaddr ) {
+			/* The pointer is located before this address
+			 * mapping, but was not found by a previous
+			 * pass through the loop.  This means that
+			 * either the pointer is before the first
+			 * mapping or is inbetween mappings.  Either
+			 * way the pointer is invalid.
+			 */
+
+#if MX_POINTER_DEBUG
+			MX_DEBUG(-2,("%s: Invalid pointer %p", fname, pointer));
+#endif
+			mx_free( prmap_array );
+
+			if ( valid_address_range != NULL ) {
+				*valid_address_range = FALSE;
+			}
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		object_offset = pointer_addr - pr_vaddr;
+
+		object_end = object_offset + region_size_in_bytes;
+
+		if ( object_end < array_element->pr_size ) {
+
+			/* We have found the correct map entry. */
+#if MX_POINTER_DEBUG
+			MX_DEBUG(-2,("%s: map entry found!", fname));
+			MX_DEBUG(-2,
+			("%s: object_offset = %#lx, object_end = %#lx",
+				fname, object_offset, object_end));
+#endif
+
+			protection_flags_value = 0;
+
+			if ( array_element->pr_mflags & MA_READ ) {
+				protection_flags_value |= R_OK;
+			}
+			if ( array_element->pr_mflags & MA_WRITE ) {
+				protection_flags_value |= W_OK;
+			}
+			if ( array_element->pr_mflags & MA_EXEC ) {
+				protection_flags_value |= X_OK;
+			}
+
+			mx_free( prmap_array );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,("%s: No entry found in array.", fname));
+#endif
+	mx_free( prmap_array );
+
+	if ( valid_address_range != NULL ) {
+		*valid_address_range = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 #  else
 #  error mx_vm_get_protection() is not yet implemented for this Posix platform.
 #  endif
