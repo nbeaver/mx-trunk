@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2012 Illinois Institute of Technology
+ * Copyright 1999-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -6068,7 +6068,7 @@ mx_network_request_64bit_longs( MX_RECORD *server_record,
 	}
 
 	MX_DEBUG( 2,("%s: server->use_64bit_network_longs = %d",
-		fname, server->use_64bit_network_longs));
+		fname, (int) server->use_64bit_network_longs));
 
 	return MX_SUCCESSFUL_RESULT;
 }

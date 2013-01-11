@@ -793,13 +793,34 @@ mx_canonicalize_filename( char *original_filename,
  */
 
 int
-access( char *pathname, int mode )
+access( const char *pathname, int mode )
 {
 	struct stat status_struct;
 	mode_t file_mode;
 	int status;
 
+	/* FIXME: VxWorks has an incorrect prototype for stat(), namely,
+	 *        the pathname argument is prototyped as "char *",
+	 *        rather than "const char *".  At the moment, the least
+	 *        offensive way around it seems to be to strdup() the
+	 *        pathname and hand that pointer to stat().  Other
+	 *        suggestions are welcome, but remember that they have
+	 *        to work with versions of GCC as old as GCC 2.7.2.
+	 */
+
+#if !defined(OS_VXWORKS)
 	status = stat( pathname, &status_struct );
+#else
+	{
+		/* Ick */
+
+		char *pathname_ptr = strdup( pathname );
+
+		status = stat( pathname_ptr, &status_struct );
+
+		mx_free( pathname_ptr );
+	}
+#endif
 
 	if ( status != 0 )
 		return status;

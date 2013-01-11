@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2009-2010, 2012 Illinois Institute of Technology
+ * Copyright 2009-2010, 2012-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -99,7 +99,7 @@ motor_test_fn( int argc, char *argv[] )
 			file_changed = mx_file_has_changed( monitor );
 
 			mx_info( "monitor '%s', file_changed = %d",
-				monitor_filename, file_changed );
+				monitor_filename, (int) file_changed );
 
 			return SUCCESS;
 		}

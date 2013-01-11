@@ -294,6 +294,14 @@ mx_fd_is_valid( int fd )
 	}
 }
 
+#elif defined(OS_VXWORKS)
+
+MX_EXPORT mx_bool_type
+mx_fd_is_valid( int fd )
+{
+	return TRUE;
+}
+
 #else
 
 #error mx_fd_is_valid() has not been implemented for this platform.
@@ -1262,7 +1270,7 @@ mx_get_fd_name( unsigned long process_id, int fd,
 
 /*-------------------------------------------------------------------------*/
 
-#elif defined(OS_HURD)
+#elif defined(OS_HURD) || defined(OS_VXWORKS)
 
 MX_EXPORT char *
 mx_get_fd_name( unsigned long process_id, int fd,
@@ -2344,7 +2352,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
 /*-------------------------------------------------------------------------*/
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_HURD) \
-	|| defined(OS_CYGWIN)
+	|| defined(OS_CYGWIN) || defined(OS_VXWORKS)
 
 /*
  * This is a generic stat()-based implementation that requires polling.
@@ -2354,6 +2362,7 @@ mx_file_has_changed( MX_FILE_MONITOR *monitor )
  *   Linux with Glibc 2.3.5 and before.
  *   Solaris 9 and before.
  *   Other Unix-like platforms.
+ *   VxWorks.
  */
 
 typedef struct {
@@ -2402,7 +2411,7 @@ mx_create_file_monitor( MX_FILE_MONITOR **monitor_ptr,
 
 	/* Save a copy of the initial status of the file. */
 
-	os_status = stat( filename, &(stat_monitor->stat_buf) );
+	os_status = stat( (*monitor_ptr)->filename, &(stat_monitor->stat_buf) );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;

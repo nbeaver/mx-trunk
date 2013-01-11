@@ -9,7 +9,8 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006-2007, 2009 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007, 2009, 2013
+ *    Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +43,7 @@
 #endif
 
 #if defined(OS_VXWORKS)
-extern int access( char *pathname, int mode );
+extern int access( const char *pathname, int mode );
 #endif
 
 #if defined(OS_WIN32) || defined(OS_VXWORKS)
@@ -50,6 +51,14 @@ extern int access( char *pathname, int mode );
 #  define W_OK  2
 #  define X_OK  1
 #  define F_OK  0
+#endif
+
+/*----*/
+
+/* VxWorks gets putenv() from here. */
+
+#if defined(OS_VXWORKS)
+#  include <envLib.h>
 #endif
 
 /*----*/

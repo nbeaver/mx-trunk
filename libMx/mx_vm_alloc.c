@@ -1209,7 +1209,7 @@ mx_vm_get_protection( void *address,
 
 /*===================== Platforms that only use stubs =====================*/
 
-#elif defined(OS_DJGPP)
+#elif defined(OS_DJGPP) || defined(OS_VXWORKS)
 
 #  define MX_VM_ALLOC_USES_MALLOC
 #  define MX_VM_ALLOC_USES_FREE
@@ -1226,7 +1226,7 @@ mx_vm_get_protection( void *address,
  *        function:
  *
  * defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_ECOS) \
- *      || defined(OS_RTEMS) || defined(OS_VXWORKS) || 
+ *      || defined(OS_RTEMS) 
  *      || defined(OS_HPUX) || defined(OS_TRU64) || 
  *      || defined(OS_UNIXWARE) || defined(OS_HURD)
  */
@@ -1272,7 +1272,7 @@ mx_vm_free( void *address )
 #if defined(MX_VM_SET_PROTECTION_USES_STUB)
 
 MX_EXPORT mx_status_type
-mx_vm_set_protection( void *address
+mx_vm_set_protection( void *address,
 		size_t region_size_in_bytes,
 		unsigned long protection_flags )
 {
@@ -1314,7 +1314,7 @@ mx_vm_get_protection( void *address,
 		}
 	}
 
-	return MX_SUCCESSFUL_RESULT
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif /* MX_VM_GET_PROTECTION_USES_STUB */
