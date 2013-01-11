@@ -266,11 +266,13 @@ mx_vm_set_protection( void *address,
 /*================================= Posix =================================*/
 
 /*
- * Posix platforms provide a standard way of implementing these functions:
+ * Posix-like platforms provide a standard way of implementing these functions:
  *
  *   mx_vm_alloc() -------------> mmap()
  *   mx_vm_free() --------------> munmap()
  *   mx_vm_set_protection() ----> mprotect()
+ *
+ * Even some non-Posix platforms like OpenVMS implement these functions.
  *
  * However, there is no standard way of implementing mx_vm_get_protection().
  * Thus, mx_vm_get_protection() is implemented in platform-specific code
@@ -278,7 +280,7 @@ mx_vm_set_protection( void *address,
  */
 
 #elif defined(OS_LINUX) | defined(OS_MACOSX) | defined(OS_BSD) \
-	| defined(OS_SOLARIS)
+	| defined(OS_SOLARIS) | defined(OS_VMS)
 
 #include <errno.h>
 #include <sys/mman.h>
@@ -1137,22 +1139,11 @@ mx_vm_get_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+/*---------------------------------- VMS ----------------------------------*/
 
-#  elif 0
+#  elif defined(OS_VMS)
 
-#  define MX_VM_GET_PROTECTION_USES_STUB
-
-/*-------------------------------------------------------------------------*/
-#  else
-#  error mx_vm_get_protection() is not yet implemented for this Posix platform.
-#  endif
-
-/*================================== VMS ==================================*/
-
-#elif defined(OS_VMS)
-
-#include <sys_starlet_c/psldef.h>
+#  include <sys_starlet_c/psldef.h>
 
 /* FIXME: I should not have to make these definitions, but including
  * <builtins.h> does not do the trick for some reason.
@@ -1205,6 +1196,26 @@ mx_vm_get_protection( void *address,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*-------------------------------------------------------------------------*/
+
+#  elif 0
+
+#  define MX_VM_GET_PROTECTION_USES_STUB
+
+/*-------------------------------------------------------------------------*/
+#  else
+#  error mx_vm_get_protection() is not yet implemented for this Posix platform.
+#  endif
+
+/*===================== Platforms that only use stubs =====================*/
+
+#elif defined(OS_DJGPP)
+
+#  define MX_VM_ALLOC_USES_MALLOC
+#  define MX_VM_ALLOC_USES_FREE
+#  define MX_VM_SET_PROTECTION_USES_STUB
+#  define MX_VM_GET_PROTECTION_USES_STUB
+
 /*=========================================================================*/
 
 #else
@@ -1215,8 +1226,8 @@ mx_vm_get_protection( void *address,
  *        function:
  *
  * defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_ECOS) \
- *      || defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
- *      || defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP) \
+ *      || defined(OS_RTEMS) || defined(OS_VXWORKS) || 
+ *      || defined(OS_HPUX) || defined(OS_TRU64) || 
  *      || defined(OS_UNIXWARE) || defined(OS_HURD)
  */
 
