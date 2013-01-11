@@ -1138,13 +1138,224 @@ mx_vm_get_protection( void *address,
 }
 
 /*-------------------------------------------------------------------------*/
+
+#  elif 0
+
+#  define MX_VM_GET_PROTECTION_USES_STUB
+
+/*-------------------------------------------------------------------------*/
 #  else
 #  error mx_vm_get_protection() is not yet implemented for this Posix platform.
 #  endif
+
+/*================================== VMS ==================================*/
+
+#elif defined(OS_VMS)
+
+#include <sys_starlet_c/psldef.h>
+
+/* FIXME: I should not have to make these definitions, but including
+ * <builtins.h> does not do the trick for some reason.
+ */
+
+int __PAL_PROBER( const void *__base_address, int __length, char __mode );
+int __PAL_PROBEW( const void *__base_address, int __length, char __mode );
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	mx_bool_type read_allowed, write_allowed;
+	unsigned long protection_flags_value;
+
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The address pointer passed is NULL." );
+	}
+
+	read_allowed = __PAL_PROBER(address, region_size_in_bytes, PSL$C_USER);
+
+	write_allowed = __PAL_PROBEW(address, region_size_in_bytes, PSL$C_USER);
+
+	if ( valid_address_range != NULL ) {
+		if ( read_allowed || write_allowed ) {
+			*valid_address_range = TRUE;
+		} else {
+			*valid_address_range = FALSE;
+		}
+	}
+
+	protection_flags_value = 0;
+
+	if ( read_allowed ) {
+		protection_flags_value |= R_OK;
+	}
+	if ( write_allowed ) {
+		protection_flags_value |= W_OK;
+	}
+
+	if ( protection_flags != NULL ) {
+		*protection_flags = protection_flags_value;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*=========================================================================*/
 
 #else
 #error Virtual memory functions are not yet implemented for this platform.
+#endif
+
+/* FIXME: The following build targets used an empty mx_pointer_is_valid()
+ *        function:
+ *
+ * defined(OS_CYGWIN) || defined(OS_QNX) || defined(OS_ECOS) \
+ *      || defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_BSD) \
+ *      || defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_DJGPP) \
+ *      || defined(OS_UNIXWARE) || defined(OS_HURD)
+ */
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+/* This section contains dummy functions for platforms that do not
+ * support the given functionality.
+ */
+
+#if defined(MX_VM_ALLOC_USES_MALLOC)
+
+MX_EXPORT void *
+mx_vm_alloc( void *requested_address,
+		size_t requested_region_size_in_bytes,
+		unsigned long protection_flags )
+{
+	void *ptr;
+
+	ptr = malloc( requested_region_size_in_bytes );
+
+	return ptr;
+}
+
+#endif /* MX_VM_ALLOC_USES_MALLOC */
+
+/*.......................................................................*/
+
+#if defined(MX_VM_FREE_USES_FREE)
+
+MX_EXPORT void
+mx_vm_free( void *address )
+{
+	mx_free( address );
+
+	return;
+}
+
+#endif /* MX_VM_FREE_USES_FREE */
+
+/*.......................................................................*/
+
+#if defined(MX_VM_SET_PROTECTION_USES_STUB)
+
+MX_EXPORT mx_status_type
+mx_vm_set_protection( void *address
+		size_t region_size_in_bytes,
+		unsigned long protection_flags )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif /* MX_VM_SET_PROTECTION_USES_STUB */
+
+/*.......................................................................*/
+
+#if defined(MX_VM_GET_PROTECTION_USES_STUB)
+
+MX_EXPORT mx_status_type
+mx_vm_get_protection( void *address,
+		size_t region_size_in_bytes,
+		mx_bool_type *valid_address_range,
+		unsigned long *protection_flags )
+{
+	static const char fname[] = "mx_vm_get_protection()";
+
+	if ( address == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The address pointer passed is NULL." );
+	}
+
+	if ( valid_address_range != NULL ) {
+		if ( address == NULL ) {
+			*valid_address_range = FALSE;
+		} else {
+			*valid_address_range = TRUE;
+		}
+	}
+
+	if ( protection_flags != NULL ) {
+		if ( address == NULL ) {
+			*protection_flags = 0;
+		} else {
+			*protection_flags = R_OK | W_OK;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT
+}
+
+#endif /* MX_VM_GET_PROTECTION_USES_STUB */
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+#if !defined(OS_WIN32)
+
+/* This is a generic implementation of mx_pointer_is_valid()
+ * that uses the new mx_vm_get_protection() function.
+ */
+
+MX_EXPORT int
+mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
+{
+#if MX_POINTER_DEBUG
+	static const char fname[] = "mx_pointer_is_valid()";
+#endif
+
+	int valid;
+	mx_bool_type address_range_exists;
+	unsigned long protection_flags;
+	mx_status_type mx_status;
+
+	mx_status = mx_vm_get_protection( pointer, length,
+				&address_range_exists, &protection_flags );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		valid = FALSE;
+	} else
+	if ( address_range_exists == FALSE ) {
+		valid = FALSE;
+	} else {
+		/* We only care about the lowest 3 bits of protection_flags. */
+
+		protection_flags &= 0x7;
+
+		if ( protection_flags == access_mode ) {
+			valid = TRUE;
+		} else {
+			valid = FALSE;
+		}
+	}
+
+#if MX_POINTER_DEBUG
+	MX_DEBUG(-2,
+	("%s: pointer %p, length = %lu, access_mode = %#x, valid = %d",
+		fname, pointer, (unsigned long) length, access_mode, valid ));
+#endif
+
+	return valid;
+}
+
 #endif
 
