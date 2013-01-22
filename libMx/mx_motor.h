@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2008, 2010 Illinois Institute of Technology
+ * Copyright 1999-2008, 2010, 2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,6 +80,7 @@ extern "C" {
 #define MXSF_MTR_HARDWARE_ERROR			0x1000
 #define MXSF_MTR_COMMUNICATION_ERROR		0x2000
 #define MXSF_MTR_CONFIGURATION_ERROR		0x4000
+#define MXSF_MTR_AT_HOME_SWITCH			0x8000
 
 #define MXSF_MTR_ERROR				0x80000000
 
