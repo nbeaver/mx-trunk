@@ -23,11 +23,11 @@ all: build
 
 #MODULES += libusb-0.1		# linux,
 
-#MODULES += k8055		# linux,
+MODULES += k8055		# linux,
 
 #MODULES += ni488		# linux,
 
-MODULES += ni_daqmx		# linux, win32
+#MODULES += ni_daqmx		# linux, win32
 
 #MODULES += pmc_mcapi		# linux, win32
 
@@ -63,9 +63,9 @@ MODULES += ni_daqmx		# linux, win32
 
 #MODULES += radicon_helios
 
-MODULES += radicon_taurus
+#MODULES += radicon_taurus
 
-MODULES += sapera_lt
+#MODULES += sapera_lt
 
 #MODULES += u500
 
@@ -74,9 +74,9 @@ MODULES += sapera_lt
 
 MODULES += epics
 
-#MODULES += epics_aps
+MODULES += epics_aps
 
-#MODULES += epics_pmac_biocat
+MODULES += epics_pmac_biocat
 
 MODULES += epics_mbc
 
