@@ -117,9 +117,23 @@ mx_vm_free( void *address )
 	return;
 }
 
+/* The following implementation of mx_vm_get_protection() is inspired by
+ * the following web page:
+ *
+ *     http://blogs.msdn.com/ericlippert/articles/105186.aspx
+ *
+ * VirtualQuery() is used since it is safe to call at any time.  For
+ * the purposes of mx_pointer_is_valid() an alternative would be to use
+ * the IsBadxxxPtr() family of functions.  However, the IsBadxxxPtr()
+ * functions are very unsafe and should _never_ be used, since they can
+ * have painful side effects like disabling automatic stack expansion.
+ * It is far safer to use VirtualQuery().  Unfortunately, VirtualQuery()
+ * is very _slow_.
+ */
+
 MX_EXPORT mx_status_type
 mx_vm_get_protection( void *address,
-		size_t region_size_in_bytes,
+		size_t mx_region_size_in_bytes,
 		mx_bool_type *valid_address_range,
 		unsigned long *protection_flags )
 {
@@ -132,6 +146,7 @@ mx_vm_get_protection( void *address,
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
+	unsigned long pointer_offset, unused_region_size;
 	unsigned long protection_flags_value;
 
 	if ( address == NULL ) {
@@ -143,11 +158,18 @@ mx_vm_get_protection( void *address,
 			"The protection_flags pointer passed was NULL." );
 	}
 
+	memset( &memory_info, 0, sizeof(memory_info) );
+
 	bytes_returned = VirtualQuery( address,
 					&memory_info,
 					sizeof(memory_info) );
 
 	if ( bytes_returned == 0 ) {
+
+		/* Please note that VirtualQuery() may return 0 if
+		 * the pointer is a kernel-mode pointer.
+		 */
+
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -158,6 +180,53 @@ mx_vm_get_protection( void *address,
 		"Win32 error code = %ld, error message = '%s'",
 			last_error_code, message_buffer );
 	}
+
+	/* If the memory has not yet been committed, then we do not
+	 * have access to it.
+	 */
+
+	if ( memory_info.State != MEM_COMMIT ) {
+
+		if ( protection_flags != NULL ) {
+			*protection_flags = 0;
+		}
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If the memory range from address to address+mx_region_size_in_bytes
+	 * does not all fit into this memory region, then we return with
+	 * all MX permission bits set to 0.
+	 */
+
+	/* pointer_offset contains the offset of the pointer relative
+	 * to the start of the memory region it is in.
+	 */
+
+	pointer_offset = (unsigned long)
+		( ((char *) address) - ((char *) memory_info.BaseAddress) );
+
+	/* unused_region_size is the amount of the memory region that is
+	 * not used by the memory range specified in the call to this
+	 * routine.
+	 */
+
+	unused_region_size = (unsigned long)
+			( memory_info.RegionSize - mx_region_size_in_bytes );
+
+	/* If pointer_offset is bigger than unused_region_size, then the
+	 * end of the requested memory range is beyond the end of the
+	 * current Win32 memory region.
+	 */
+
+	if ( pointer_offset > unused_region_size ) {
+
+		if ( protection_flags != NULL ) {
+			*protection_flags = 0;
+		}
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Use the Win32 permission bits to construct the MX permission bits. */
 
 	vm_protection_flags = memory_info.Protect;
 
@@ -1321,8 +1390,6 @@ mx_vm_get_protection( void *address,
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-#if !defined(OS_WIN32)
-
 /* This is a generic implementation of mx_pointer_is_valid()
  * that uses the new mx_vm_get_protection() function.
  */
@@ -1367,6 +1434,4 @@ mx_pointer_is_valid( void *pointer, size_t length, int access_mode )
 
 	return valid;
 }
-
-#endif
 
