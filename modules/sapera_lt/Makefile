@@ -4,7 +4,14 @@
 
 MX_ARCH = win32
 
-SAPERA_LT_DIR = c:\\DALSA\\Sapera
+#
+# Note: The directory name SAPERA_LT_DIR must _not_ have any spaces in it.
+#       This means names like "C:\\Program Files\\Teledyne DALSA" are not
+#       acceptable.
+#
+
+#SAPERA_LT_DIR = c:\\DALSA\\Sapera
+SAPERA_LT_DIR = d:\\progra~1\\teledy~1\\Sapera
 
 all: sapera_lt.mxo
 

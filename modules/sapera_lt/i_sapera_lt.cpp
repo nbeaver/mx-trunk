@@ -16,7 +16,7 @@
 
 #define MXI_SAPERA_LT_DEBUG		FALSE
 
-#define MXI_SAPERA_LT_DEBUG_OPEN	FALSE
+#define MXI_SAPERA_LT_DEBUG_OPEN	TRUE
 
 #include <stdio.h>
 
