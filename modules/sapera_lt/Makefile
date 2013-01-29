@@ -22,8 +22,9 @@ CFLAGS += -I../../libMx -D__MX_LIBRARY__
 CFLAGS += -I$(SAPERA_LT_DIR)\\Classes\\Basic
 CFLAGS += -I$(SAPERA_LT_DIR)\\Include
 
-SAPERA_LT_OBJS = sapera_lt.$(OBJ) \
-	i_sapera_lt.$(OBJ) d_sapera_lt_frame_grabber.$(OBJ)
+SAPERA_LT_OBJS = sapera_lt.$(OBJ) i_sapera_lt.$(OBJ) \
+			d_sapera_lt_frame_grabber.$(OBJ) \
+			d_sapera_lt_camera.$(OBJ)
 
 sapera_lt.mxo: $(SAPERA_LT_OBJS)
 	link /dll /debug /nologo /out:sapera_lt.mxo /nodefaultlib:libc \
@@ -48,6 +49,10 @@ i_sapera_lt.$(OBJ): i_sapera_lt.cpp i_sapera_lt.h
 d_sapera_lt_frame_grabber.$(OBJ): d_sapera_lt_frame_grabber.cpp \
 				d_sapera_lt_frame_grabber.h i_sapera_lt.h
 	$(COMPILE) $(CFLAGS) d_sapera_lt_frame_grabber.cpp
+
+d_sapera_lt_camera.$(OBJ): d_sapera_lt_camera.cpp \
+				d_sapera_lt_camera.h i_sapera_lt.h
+	$(COMPILE) $(CFLAGS) d_sapera_lt_camera.cpp
 
 install: sapera_lt.mxo
 	-mkdir $(MX_INSTALL_DIR)/lib/modules

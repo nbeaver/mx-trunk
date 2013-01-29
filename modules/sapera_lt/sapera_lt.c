@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2011-2012 Illinois Institute of Technology
+ * Copyright 2011-2013 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,7 @@
 #include "mx_digital_output.h"
 #include "i_sapera_lt.h"
 #include "d_sapera_lt_frame_grabber.h"
+#include "d_sapera_lt_camera.h"
 
 MX_DRIVER sapera_lt_driver_table[] = {
 
@@ -43,6 +44,13 @@ MX_DRIVER sapera_lt_driver_table[] = {
 			NULL,
 			&mxd_sapera_lt_frame_grabber_num_record_fields,
 			&mxd_sapera_lt_frame_grabber_rfield_def_ptr},
+
+{"sapera_lt_camera", -1, MXC_VIDEO_INPUT, MXR_DEVICE,
+			&mxd_sapera_lt_camera_record_function_list,
+			NULL,
+			NULL,
+			&mxd_sapera_lt_camera_num_record_fields,
+			&mxd_sapera_lt_camera_rfield_def_ptr},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };

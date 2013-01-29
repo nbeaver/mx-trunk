@@ -1,0 +1,1625 @@
+/*
+ * Name:    d_sapera_lt_camera.c
+ *
+ * Purpose: MX video input driver for a DALSA Sapera LT camera.
+ *
+ * Author:  William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 2013 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG				FALSE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				TRUE
+
+#define MXD_SAPERA_LT_CAMERA_LIST_FEATURES			FALSE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_ARM				TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER			TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME			TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS		TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_BUSY	TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE	TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_CALLBACK			TRUE
+
+#define MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS		FALSE
+
+#define MXD_SAPERA_LT_CAMERA_BYPASS_BUFFER_OVERRUN_TEST		TRUE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#if defined(OS_WIN32)
+#  include <io.h>
+#endif
+
+#include "mx_util.h"
+#include "mx_stdint.h"
+#include "mx_record.h"
+#include "mx_unistd.h"
+#include "mx_array.h"
+#include "mx_bit.h"
+#include "mx_memory.h"
+#include "mx_image.h"
+#include "mx_video_input.h"
+#include "i_sapera_lt.h"
+#include "d_sapera_lt_camera.h"
+
+/*---*/
+
+MX_RECORD_FUNCTION_LIST mxd_sapera_lt_camera_record_function_list = {
+	NULL,
+	mxd_sapera_lt_camera_create_record_structures,
+	mxd_sapera_lt_camera_finish_record_initialization,
+	NULL,
+	NULL,
+	mxd_sapera_lt_camera_open,
+	mxd_sapera_lt_camera_close
+};
+
+MX_VIDEO_INPUT_FUNCTION_LIST
+mxd_sapera_lt_camera_video_input_function_list = {
+	mxd_sapera_lt_camera_arm,
+	mxd_sapera_lt_camera_trigger,
+	NULL,
+	mxd_sapera_lt_camera_abort,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mxd_sapera_lt_camera_get_extended_status,
+	mxd_sapera_lt_camera_get_frame,
+	mxd_sapera_lt_camera_get_parameter,
+	mxd_sapera_lt_camera_set_parameter,
+};
+
+MX_RECORD_FIELD_DEFAULTS mxd_sapera_lt_camera_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VIDEO_INPUT_STANDARD_FIELDS,
+	MXD_SAPERA_LT_CAMERA_STANDARD_FIELDS
+};
+
+long mxd_sapera_lt_camera_num_record_fields
+	= sizeof( mxd_sapera_lt_camera_record_field_defaults )
+	/ sizeof( mxd_sapera_lt_camera_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_sapera_lt_camera_rfield_def_ptr
+			= &mxd_sapera_lt_camera_record_field_defaults[0];
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_get_pointers( MX_VIDEO_INPUT *vinput,
+			MX_SAPERA_LT_CAMERA **sapera_lt_camera,
+			MX_SAPERA_LT **sapera_lt,
+			const char *calling_fname )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_get_pointers()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera_ptr;
+	MX_RECORD *sapera_lt_record;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_VIDEO_INPUT pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	sapera_lt_camera_ptr = (MX_SAPERA_LT_CAMERA *)
+				vinput->record->record_type_struct;
+
+	if ( sapera_lt_camera_ptr
+		== (MX_SAPERA_LT_CAMERA *) NULL )
+	{
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_SAPERA_LT_CAMERA pointer for "
+			"record '%s' passed by '%s' is NULL.",
+			vinput->record->name, calling_fname );
+	}
+
+	if ( sapera_lt_camera != (MX_SAPERA_LT_CAMERA **) NULL ) {
+		*sapera_lt_camera = sapera_lt_camera_ptr;
+	}
+
+	if ( sapera_lt != (MX_SAPERA_LT **) NULL ) {
+		sapera_lt_record =
+			sapera_lt_camera_ptr->sapera_lt_record;
+
+		if ( sapera_lt_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The sapera_lt_record pointer for record '%s' "
+			"is NULL.",
+			vinput->record->name, calling_fname );
+		}
+
+		*sapera_lt = (MX_SAPERA_LT *)
+					sapera_lt_record->record_type_struct;
+
+		if ( *sapera_lt == (MX_SAPERA_LT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_SAPERA_LT pointer for record '%s' used "
+			"by record '%s' is NULL.",
+				vinput->record->name,
+				sapera_lt_record->name );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static void
+mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_acquisition_callback()";
+
+	MX_RECORD *record;
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera;
+	long i;
+	mx_bool_type old_frame_buffer_was_unsaved;
+	struct timespec frame_time, time_offset;
+
+	sapera_lt_camera =
+		(MX_SAPERA_LT_CAMERA *) info->GetContext();
+
+	record = sapera_lt_camera->record;
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	/* Compute and save the time at which the frame was acquired. */
+
+	time_offset = mx_high_resolution_time();
+
+	frame_time = mx_add_high_resolution_times(
+			sapera_lt_camera->boot_time,
+			time_offset );
+
+	i = vinput->total_num_frames
+		% sapera_lt_camera->num_frame_buffers;
+
+	sapera_lt_camera->frame_time[i] = frame_time;
+
+	/* Remember whether or not the frame buffer that was just 
+	 * overwritten had unsaved data in it.
+	 */
+
+	old_frame_buffer_was_unsaved =
+		sapera_lt_camera->frame_buffer_is_unsaved[i];
+
+	/* Update the frame counters. */
+
+	if ( sapera_lt_camera->num_frames_left_to_acquire > 0 ) {
+		sapera_lt_camera->num_frames_left_to_acquire--;
+		vinput->total_num_frames++;
+	}
+
+	sapera_lt_camera->frame_buffer_is_unsaved[i] = TRUE;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_CALLBACK
+	{
+		/* Display the fact that a frame has been captured. */
+
+		uint32_t divisor, remainder, result;
+		char ascii_digit;
+		mx_bool_type suppress_output;
+
+		/* We do not necessarily know what context this callback
+		 * is invoked from, so we use write() which is invokable
+		 * from pretty much anywhere.
+		 */
+
+		write( 2, "CAPTURE: Total num frames = ", 28 );
+
+		remainder = vinput->total_num_frames;
+
+		divisor = 1000000000L;
+
+		suppress_output = TRUE;
+
+		while( divisor > 0 ) {
+
+			result = remainder / divisor;
+
+			if ( suppress_output ) {
+				if ( result != 0 ) {
+					suppress_output = FALSE;
+				}
+			}
+
+			if ( suppress_output == FALSE ) {
+				ascii_digit = '0' + result;
+
+				write( 2, &ascii_digit, 1 );
+			}
+
+			remainder = remainder % divisor;
+
+			divisor /= 10L;
+		}
+
+		write( 2, "\n", 1 );
+	}
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_CALLBACK */
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_camera->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+	/* Did we have a buffer overrun? */
+
+	if ( vinput->check_for_buffer_overrun == FALSE ) {
+		return;
+	}
+
+#if ( MXD_SAPERA_LT_CAMERA_BYPASS_BUFFER_OVERRUN_TEST == FALSE )
+	if ( old_frame_buffer_was_unsaved ) {
+
+		/*!!!!! We had a buffer overrun !!!!!*/
+
+		sapera_lt_camera->buffer_overrun_occurred = TRUE;
+
+#if 1
+		/* Stop writing out image files, since any new ones
+		 * after this point will be overwrites of unsaved frames.
+		 *
+		 * FIXME: Is this the right thing to do?
+		 */
+
+		sapera_lt_camera->num_frames_left_to_acquire = 0;
+#endif
+
+		/* Display error messages and abort the sequence. */
+
+		(void) mx_error( MXE_DATA_WAS_LOST, fname,
+		"Buffer overrun detected at frame %ld for video input '%s'.",
+			vinput->total_num_frames, record->name );
+
+		mx_warning( "Aborting the running sequence for '%s'.",
+				record->name );
+
+		(void) mx_video_input_abort( record );
+	}
+#endif
+
+	return;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_setup_frame_counters( MX_VIDEO_INPUT *vinput,
+			MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+{
+#if MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+	static const char fname[] =
+		"mxd_sapera_lt_camera_setup_frame_counters()";
+#endif
+
+	long num_frames_in_sequence;
+	mx_status_type mx_status;
+
+	/* Setup the Sapera frame counters. */
+
+	sapera_lt_camera->total_num_frames_at_start
+					= vinput->total_num_frames;
+
+	mx_status = mx_sequence_get_num_frames( &(vinput->sequence_parameters),
+						&num_frames_in_sequence );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sapera_lt_camera->num_frames_left_to_acquire
+					= num_frames_in_sequence;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_camera->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+#if MXD_SAPERA_LT_CAMERA_LIST_FEATURES
+
+static void
+mxd_sapera_lt_camera_list_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_list_features()";
+
+	MX_RECORD *record;
+	SapAcqDevice *acq_device;
+	SapFeature *feature;
+	SapFeature::Type feature_type;
+	SapFeature::AccessMode access_mode;
+	char feature_name[65];
+
+	INT32  int32_value;
+	INT64  int64_value;
+	float  float_value;
+	double double_value;
+	BOOL   bool_value;
+	int    enum_value;
+	char   enum_string[520];
+	char   string_value[520];
+	int    exponent;
+	char   si_units[33];
+
+	BOOL sapera_status;
+	int i, feature_count;
+
+	record = sapera_lt_camera->record;
+
+	acq_device = sapera_lt_camera->acq_device;
+
+	fprintf( stderr, "%s invoked for camera '%s'.\n", fname, record->name );
+
+	sapera_status = acq_device->GetFeatureCount( &feature_count );
+
+	fprintf( stderr, "%d features available.\n", feature_count );
+
+	feature = new SapFeature( *(sapera_lt_camera->location) );
+
+	sapera_status = feature->Create();
+
+	for ( i = 0; i < feature_count; i++ ) {
+
+		sapera_status = acq_device->GetFeatureInfo( i, feature );
+
+		sapera_status = feature->GetName( feature_name,
+						sizeof(feature_name) );
+
+		fprintf( stderr, "  Feature %d, name = '%s', ",
+						i, feature_name );
+
+		sapera_status = feature->GetAccessMode( &access_mode );
+
+		if ( access_mode == SapFeature::AccessWO ) {
+			fprintf( stderr, "WRITE_ONLY\n" );
+			continue;	/* Back to the top of the for() loop. */
+		}
+
+		fprintf( stderr, "  type = " );
+
+		sapera_status = feature->GetType( &feature_type );
+
+		switch( feature_type ) {
+		case SapFeature::TypeUndefined:
+			fprintf( stderr, "'undefined'" );
+			break;
+
+		case SapFeature::TypeInt32:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int32_value );
+
+			fprintf( stderr, "'int32', value = %d",
+							(int) int32_value );
+			break;
+		case SapFeature::TypeInt64:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &int64_value );
+
+			fprintf( stderr, "'int64', value = %I64d",
+							int64_value );
+			break;
+		case SapFeature::TypeFloat:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &float_value );
+
+			fprintf( stderr, "'float', value = %f", float_value );
+			break;
+		case SapFeature::TypeDouble:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &double_value );
+
+			fprintf( stderr, "'double', value = %f", double_value);
+			break;
+		case SapFeature::TypeBool:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &bool_value );
+
+			fprintf( stderr, "'bool', value = %d",
+							(int) bool_value );
+			break;
+		case SapFeature::TypeEnum:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name, &enum_value );
+
+			sapera_status = feature->GetEnumStringFromValue(
+						enum_value, enum_string,
+						sizeof(enum_string) );
+
+			fprintf( stderr, "'enum', value = (%d) '%s'",
+					enum_value, enum_string );
+			break;
+		case SapFeature::TypeString:
+			sapera_status = acq_device->GetFeatureValue(
+						feature_name,
+						string_value,
+						sizeof(string_value) );
+
+			fprintf( stderr, "'string', value = '%s'",
+							string_value );
+			break;
+		case SapFeature::TypeBuffer:
+			fprintf( stderr, "'buffer'" );
+			break;
+
+		case SapFeature::TypeLut:
+			fprintf( stderr, "'lut'" );
+			break;
+
+		case SapFeature::TypeArray:
+			fprintf( stderr, "'array'" );
+			break;
+
+		default:
+			fprintf( stderr, "'unrecognized feature type %d'",
+						feature_type );
+			break;
+		}
+
+		sapera_status = feature->GetSiToNativeExp10( &exponent );
+
+		if ( exponent != 0 ) {
+			fprintf( stderr, " * 10e%d", -exponent );
+		}
+
+		sapera_status = feature->GetSiUnit( si_units,
+						sizeof(si_units) );
+
+		if ( strlen( si_units ) > 0 ) {
+			fprintf( stderr, " '%s'", si_units );
+		}
+
+		fprintf( stderr, "\n" );
+	}
+}
+
+#endif /* MXD_SAPERA_LT_CAMERA_LIST_FEATURES */
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_create_record_structures( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_create_record_structures()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+
+	vinput = (MX_VIDEO_INPUT *) malloc( sizeof(MX_VIDEO_INPUT) );
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Cannot allocate memory for an MX_VIDEO_INPUT structure." );
+	}
+
+	sapera_lt_camera = (MX_SAPERA_LT_CAMERA *)
+				malloc( sizeof(MX_SAPERA_LT_CAMERA) );
+
+	if ( sapera_lt_camera == (MX_SAPERA_LT_CAMERA *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Cannot allocate memory for an MX_SAPERA_LT_CAMERA structure." );
+	}
+
+	record->record_class_struct = vinput;
+	record->record_type_struct = sapera_lt_camera;
+	record->class_specific_function_list = 
+			&mxd_sapera_lt_camera_video_input_function_list;
+
+	memset( &(vinput->sequence_parameters),
+			0, sizeof(vinput->sequence_parameters) );
+
+	vinput->record = record;
+	sapera_lt_camera->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_finish_record_initialization()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_SAPERA_LT *sapera_lt = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+				&sapera_lt_camera, &sapera_lt, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	mx_status = mx_video_input_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_open()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_SAPERA_LT *sapera_lt = NULL;
+	BOOL sapera_status;
+	long bytes_per_frame, max_image_frames, max_frames_threshold;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+				&sapera_lt_camera, &sapera_lt, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	if ( sapera_lt->num_cameras <= 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Sapera server '%s' does not have any cameras.",
+			sapera_lt->server_name );
+	} else
+	if ( sapera_lt_camera->camera_number
+			>= sapera_lt->num_cameras ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested camera number %ld for record '%s' "
+		"is outside the allowed range of 0 to %ld for "
+		"Sapera server '%s'.",
+			sapera_lt_camera->camera_number,
+			record->name,
+			sapera_lt->num_cameras - 1,
+			sapera_lt->server_name );
+	}
+
+	if ( sapera_lt_camera->num_frame_buffers < 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The number of allocated frame buffers for Sapera LT "
+		"camera '%s' must be greater than or equal to 1.  "
+		"Instead, it was set to %ld.",
+			record->name,
+			sapera_lt_camera->num_frame_buffers );
+	}
+
+	/* Get the time that the system booted.  This will be used later
+	 * to compute the time when each frame was acquired.
+	 */
+
+	mx_status = mx_get_system_boot_time(
+			&(sapera_lt_camera->boot_time) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---------------------------------------------------------------*/
+
+	/* Create the high level SapAcqDevice object.
+	 * 
+	 * Soon we will call the functions mx_video_input_get_framesize()
+	 * and mx_video_input_get_bytes_per_frame().  Those two functions
+	 * depend on the presence of an initialized SapAcqDevice object,
+	 * so we must create that object before calling the video input
+	 * functions below.
+	 */
+
+	SapLocation location( sapera_lt->server_name,
+				sapera_lt_camera->camera_number );
+
+	sapera_lt_camera->location = &location;
+
+	MX_DEBUG(-2,("%s: location = '%s'",
+		fname, sapera_lt_camera->location->GetServerName() ));
+
+	sapera_lt_camera->acq_device = new SapAcqDevice( location,
+					sapera_lt_camera->config_filename );
+
+	if ( sapera_lt_camera->acq_device == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create a SapAcqDevice object "
+		"for camera '%s'", record->name );
+	}
+
+	/* -------- */
+
+	sapera_status = sapera_lt_camera->acq_device->Create();
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_camera->acq_device->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to read from the configuration file '%s' "
+		"used by camera '%s'.",
+			sapera_lt_camera->config_filename,
+			record->name );
+	}
+
+	/* -------- */
+
+#if MXD_SAPERA_LT_CAMERA_LIST_FEATURES
+	mxd_sapera_lt_camera_list_features( sapera_lt_camera );
+#endif
+
+	/*---------------------------------------------------------------*/
+
+	/* Invoke some video input initialization steps here that we
+	 * will need in order to compute the maximum allowed number of
+	 * image frames below.
+	 */
+
+	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( record,
+							&bytes_per_frame );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, bytes_per_frame ));
+#endif
+
+	/*---------------------------------------------------------------*/
+
+	/* Create the SapBufferWithTrash object which contains the raw image
+	 * data from all of the frames we take in a sequence.
+	 */
+
+	sapera_lt_camera->buffer =
+		new SapBufferWithTrash( sapera_lt_camera->num_frame_buffers,
+					sapera_lt_camera->acq_device );
+
+	if ( sapera_lt_camera->buffer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create a %ld frame SapBufferWithTrash object for "
+		"camera '%s'.",
+			sapera_lt_camera->num_frame_buffers,
+			record->name );
+	}
+
+	vinput->num_capture_buffers =
+		sapera_lt_camera->num_frame_buffers;
+
+	/* Create an array of 'struct timespec' structures to hold the
+	 * wall clock time when each frame was acquired.
+	 */
+
+	sapera_lt_camera->frame_time = (struct timespec *)
+		calloc( sapera_lt_camera->num_frame_buffers,
+			sizeof(struct timespec) );
+
+	if ( sapera_lt_camera->frame_time == (struct timespec *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"frame time array for area detector '%s'.",
+			sapera_lt_camera->num_frame_buffers,
+			record->name );
+	}
+
+	/* Create the 'unsaved_frame_buffer_index' array.  This array
+	 * contains the absolute frame number for the image frame most
+	 * recently acquired.
+	 */
+
+	sapera_lt_camera->frame_buffer_is_unsaved = (mx_bool_type *)
+		calloc( sapera_lt_camera->num_frame_buffers,
+			sizeof(mx_bool_type) );
+
+	if ( sapera_lt_camera->frame_buffer_is_unsaved
+						== (mx_bool_type *) NULL ) 
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"'unsaved_frame_buffer_index' array for area detector '%s'.",
+			sapera_lt_camera->num_frame_buffers,
+			record->name );
+	}
+
+	/* -------- */
+
+	sapera_status = sapera_lt_camera->buffer->Create();
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_camera->buffer->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create the low-level resources used by the "
+		"SapBufferWithTrash object of camera '%s'.",
+			record->name );
+	}
+
+#if ( 1 && MXD_SAPERA_LT_CAMERA_DEBUG_OPEN )
+	{
+		SapBufferWithTrash *buffer;
+		int pixel_depth, num_buffers, width, height;
+
+		buffer = sapera_lt_camera->buffer;
+
+		pixel_depth = buffer->GetPixelDepth();
+		num_buffers = buffer->GetCount();
+		width       = buffer->GetWidth();
+		height      = buffer->GetHeight();
+
+		MX_DEBUG(-2,
+		("%s: SapBufferWithTrash pixel_depth = %d, num_buffers = %d",
+			fname, pixel_depth, num_buffers));
+
+		MX_DEBUG(-2,("%s: SapBufferWithTrash width = %d, height = %d",
+			fname, width, height));
+	}
+#endif
+
+	/*---------------------------------------------------------------*/
+
+	/* Create a SapAcqDeviceToBuf object.  This object manages the
+	 * transfer of data from the camera to the SapBufferWithTrash
+	 * object that we created just above.
+	 */
+
+	sapera_lt_camera->transfer =
+		new SapAcqDeviceToBuf( sapera_lt_camera->acq_device,
+				sapera_lt_camera->buffer,
+				mxd_sapera_lt_camera_acquisition_callback,
+				(void *) sapera_lt_camera );
+
+	if ( sapera_lt_camera->transfer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapAcqToBuf object for camera '%s'.",
+			record->name );
+	}
+
+	/* -------- */
+
+	sapera_status = sapera_lt_camera->transfer->Create();
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: sapera_lt_camera->transfer->Create() = %d",
+		fname, (int) sapera_status));
+#endif
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Unable to create the low-level resources used by the "
+		"SapAcqDeviceToBuf object of camera '%s'.",
+			record->name );
+	}
+
+	/*---------------------------------------------------------------*/
+
+	/* Initialize the video parameters. */
+
+	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* For DALSA cameras, the camera is _always_ the clock master. */
+
+	vinput->master_clock = MXF_VIN_MASTER_CAMERA;
+
+	vinput->trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+
+	mx_status = mx_video_input_set_trigger_mode( record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize a bunch of MX driver parameters. */
+
+	vinput->parameter_type = -1;
+	vinput->frame_number   = -100;
+	vinput->get_frame      = -100;
+	vinput->frame          = NULL;
+	vinput->frame_buffer   = NULL;
+	vinput->byte_order     = (long) mx_native_byteorder();
+
+	/* The allocated Sapera LT frame buffers form a circular ring buffer.
+	 * Thus, if you go beyond the last allocated buffer, the Sapera LT
+	 * software wraps back to the first buffer.  For that reason, we
+	 * set vinput->maximum_frame_number to ULONG_MAX, since the ring
+	 * buffer can wrap indefinitely.
+	 *
+	 * FIXME?: Bad things may happen if vinput->total_num_frames
+	 * exceeds LONG_MAX.  However, if you take frames at 30 Hz,
+	 * it will take over 27 months of absolutely continuous running
+	 * before you reach LONG_MAX.
+	 */
+
+	vinput->maximum_frame_number = ULONG_MAX;
+
+	vinput->last_frame_number = -1;
+	vinput->total_num_frames = 0;
+	vinput->status = 0x0;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,
+	("%s: vinput->framesize[0] = %ld, vinput->framesize[1] = %ld",
+		fname, vinput->framesize[0], vinput->framesize[1] ));
+
+	MX_DEBUG(-2,("%s: vinput->image_format_name = '%s'",
+		fname, vinput->image_format_name));
+
+	MX_DEBUG(-2,("%s: vinput->image_format = %ld",
+		fname, vinput->image_format));
+
+	MX_DEBUG(-2,("%s: vinput->byte_order = %ld",
+		fname, vinput->byte_order));
+
+	MX_DEBUG(-2,("%s: vinput->trigger_mode = %ld",
+		fname, vinput->trigger_mode));
+
+	MX_DEBUG(-2,("%s: vinput->bits_per_pixel = %ld",
+		fname, vinput->bits_per_pixel));
+
+	MX_DEBUG(-2,("%s: vinput->bytes_per_pixel = %g",
+		fname, vinput->bytes_per_pixel));
+
+	MX_DEBUG(-2,("%s: vinput->bytes_per_frame = %ld",
+		fname, vinput->bytes_per_frame));
+#endif
+
+	sapera_lt_camera->total_num_frames_at_start
+					= vinput->total_num_frames;
+
+	sapera_lt_camera->num_frames_left_to_acquire = 0;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_close()";
+
+	MX_VIDEO_INPUT *vinput = NULL;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_arm()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	unsigned long trigger_mask;
+	double exposure_time, frame_time;
+	unsigned long num_frames;
+	UINT32 exposure_time_in_microsec;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+
+	mx_status = mxd_sapera_lt_camera_setup_frame_counters(
+					vinput, sapera_lt_camera );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Clear the buffer overrun flag. */
+
+	sapera_lt_camera->buffer_overrun_occurred = FALSE;
+
+	/* Clear out the frame_buffer_is_unsaved array. */
+
+	memset( sapera_lt_camera->frame_buffer_is_unsaved, 0,
+	    sapera_lt_camera->num_frame_buffers * sizeof(mx_bool_type) );
+
+	/* Clear any existing frame data in the SapBuffer object. */
+
+	sapera_status = sapera_lt_camera->buffer->Clear();
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to clear the capture buffers for "
+		"camera '%s' failed.",
+			vinput->record->name );
+	}
+
+	/* For this video input, the input frame buffer must be set up
+	 * before we can execute the Snap() method.  For that reason,
+	 * we do mx_image_alloc() here to make sure that the frame
+	 * is set up.
+	 */
+
+	mx_status = mx_image_alloc( &(vinput->frame),
+					vinput->framesize[0],
+					vinput->framesize[1],
+					vinput->image_format,
+					vinput->byte_order,
+					vinput->bytes_per_pixel,
+					MXT_IMAGE_HEADER_LENGTH_IN_BYTES,
+					vinput->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Figure out the number of frames and the exposure time
+	 * for the upcoming imaging sequence.
+	 */
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+		frame_time = sp->parameter_array[2];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "Sequence type %ld has not yet been implemented for '%s'.",
+				sp->sequence_type, vinput->record->name );
+		break;
+	}
+	
+	/* We use the "Extended Exposure" feature to set the exposure time. */
+
+	uint32_t exposure_value =
+		(uint32_t) ( 40000.0 / 676.0 * exposure_time - 1320 );
+
+	sapera_lt_camera->acq_device->SetFeatureValue( "ExtendedExposure",
+							exposure_value );
+					
+#if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
+	MX_DEBUG(-2,("%s complete for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_trigger()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time, frame_time;
+	unsigned long num_frames;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		num_frames = 1;
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		num_frames = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[1];
+		frame_time = sp->parameter_array[2];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		    "Sequence type %ld has not yet been implemented for '%s'.",
+				sp->sequence_type, vinput->record->name );
+		break;
+	}
+
+	if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_TRIGGER
+		MX_DEBUG(-2,
+		("%s: internal trigger enabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		/* Tell the camera to start sending image frames. */
+
+		sapera_status = sapera_lt_camera->transfer->Snap( num_frames );
+
+		if ( sapera_status == FALSE ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to call Snap() for camera '%s' failed.",
+			vinput->record->name );
+		}
+
+
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"External triggering is not supported for camera '%s'.",
+			vinput->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_abort( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_abort()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+	sapera_status = sapera_lt_camera->transfer->Abort();
+
+	if ( sapera_lt_camera->num_frames_left_to_acquire > 0 ) {
+		sapera_lt_camera->num_frames_left_to_acquire = 0;
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_camera->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to abort camera '%s' failed.",
+			vinput->record->name );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_get_extended_status( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] =
+		"mxd_sapera_lt_camera_get_extended_status()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	unsigned long timeout_ms = 1L;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	vinput->status = 0;
+
+	if ( sapera_lt_camera->num_frames_left_to_acquire > 0 ) {
+		vinput->status |= MXSF_VIN_IS_BUSY;
+	}
+
+#if ( MXD_SAPERA_LT_CAMERA_BYPASS_BUFFER_OVERRUN_TEST == FALSE )
+	if ( sapera_lt_camera->buffer_overrun_occurred ) {
+		vinput->status |= MXSF_VIN_OVERRUN;
+	}
+#endif
+
+	vinput->last_frame_number = vinput->total_num_frames
+		- sapera_lt_camera->total_num_frames_at_start - 1;
+
+	if ( vinput->status & MXSF_VIN_IS_BUSY ) {
+		vinput->busy = TRUE;
+	} else {
+		vinput->busy = FALSE;
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS
+
+	MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, vinput->last_frame_number,
+			vinput->total_num_frames,
+			vinput->status));
+
+#elif MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_STATUS_WHEN_BUSY
+
+	if ( vinput->busy ) {
+		MX_DEBUG(-2,("%s: last_frame_number = %ld, "
+			"total_num_frames = %ld, status = %#lx",
+			fname, vinput->last_frame_number,
+			vinput->total_num_frames,
+			vinput->status));
+	}
+
+#endif
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_get_frame( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_get_frame()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_IMAGE_FRAME *frame;
+	unsigned long absolute_frame_number;
+	unsigned long modulo_frame_number;
+	int buffer_resource_index;
+	void *mx_data_address;
+	void *sapera_data_address;
+	BOOL sapera_status;
+	struct timespec acquisition_time;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	frame = vinput->frame;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+	/* Get the address of the MX image frame buffer. */
+
+	if ( vinput->frame == (	MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image frames have been acquired yet "
+		"for camera '%s'.",
+			vinput->record->name );
+	}
+
+	mx_data_address = vinput->frame->image_data;
+
+	/* Get the SapBuffer's address for the buffer data. */
+
+	/* The SapBuffer appears to behave as a ring buffer (no surprise),
+	 * so the offset we pass to GetAddress must be the absolute frame
+	 * number modulo the allocated number of frame buffers.
+	 */
+
+	absolute_frame_number =
+		sapera_lt_camera->total_num_frames_at_start
+			+ vinput->frame_number;
+
+	modulo_frame_number =
+	  absolute_frame_number % (sapera_lt_camera->num_frame_buffers);
+
+	buffer_resource_index = (int) modulo_frame_number;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s: total_num_frames_at_start = %lu, frame_number = %ld",
+		fname, sapera_lt_camera->total_num_frames_at_start,
+		vinput->frame_number));
+
+	MX_DEBUG(-2,("%s: absolute_frame_number = %lu",
+		fname, absolute_frame_number));
+
+	MX_DEBUG(-2,("%s: buffer_resource_index = %d",
+		fname, buffer_resource_index));
+
+	MX_DEBUG(-2,("%s: image_length = %ld",
+		fname, vinput->frame->image_length));
+#endif
+	/* Get the address. */
+
+	sapera_status = sapera_lt_camera->buffer->GetAddress(
+							buffer_resource_index,
+							&sapera_data_address );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to get the buffer data address for "
+		"camera '%s' failed.",
+			vinput->record->name );
+	}
+
+	/* Transfer the data from the Sapera buffer to the MX buffer. */
+
+	memcpy( mx_data_address, sapera_data_address,
+			vinput->frame->image_length );
+
+	/* Release the Sapera buffer address. */
+
+	sapera_status = sapera_lt_camera->buffer->ReleaseAddress(
+							&sapera_data_address );
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to release the buffer data address for "
+		"camera '%s' failed.",
+			vinput->record->name );
+	}
+
+	/* Update the acquisition time in the image header. */
+
+	acquisition_time =
+		sapera_lt_camera->frame_time[ buffer_resource_index ];
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
+	MX_DEBUG(-4,("%s: acquisition_time = (%lu,%lu)", fname,
+		acquisition_time.tv_sec, acquisition_time.tv_nsec));
+#endif
+	MXIF_TIMESTAMP_SEC( vinput->frame )  = acquisition_time.tv_sec;
+	MXIF_TIMESTAMP_NSEC( vinput->frame ) = acquisition_time.tv_nsec;
+
+	/* Update the exposure time in the image header. */
+
+	MX_SEQUENCE_PARAMETERS *sp;
+	double exposure_time;
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		exposure_time = sp->parameter_array[1];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Sequence type %ld has not yet been implemented for '%s'.",
+			sp->sequence_type, vinput->record->name );
+		break;
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s: exposure_time = %f", fname, exposure_time));
+#endif
+
+	struct timespec exposure_timespec =
+	    mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC( vinput->frame )  = exposure_timespec.tv_sec;
+
+	MXIF_EXPOSURE_TIME_NSEC( vinput->frame ) = exposure_timespec.tv_nsec;
+
+	/*----*/
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_GET_FRAME
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_get_parameter( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] =
+			"mxd_sapera_lt_camera_get_parameter()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	SapAcqDevice *acq_device;
+	UINT64 pixels_per_line, lines_per_frame, output_format;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+		fname, vinput->record->name,
+	mx_get_field_label_string( vinput->record, vinput->parameter_type ),
+			vinput->parameter_type));
+#endif
+
+	acq_device = sapera_lt_camera->acq_device;
+
+	switch( vinput->parameter_type ) {
+	case MXLV_VIN_FRAMESIZE:
+		sapera_status = acq_device->GetFeatureValue( "Width",
+							&pixels_per_line );
+
+		sapera_status = acq_device->GetFeatureValue( "Height",
+							&lines_per_frame );
+
+		vinput->framesize[0] = pixels_per_line;
+		vinput->framesize[1] = lines_per_frame;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG
+		MX_DEBUG(-2,("%s: camera '%s' framesize = (%ld,%ld).",
+			fname, sapera_lt_camera->record->name,
+			vinput->framesize[0], vinput->framesize[1]));
+#endif
+
+		break;
+
+	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
+		/* FIXME: The 'PixelFormat' enum may have the value we want,
+		 *        but for now, we hard code the response.
+		 */
+
+		vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel = 16;
+
+		mx_status = mx_image_get_image_format_name_from_type(
+				vinput->image_format, vinput->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS
+		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
+		    fname, vinput->image_format, vinput->image_format_name));
+#endif
+		break;
+
+	case MXLV_VIN_BYTE_ORDER:
+		vinput->byte_order = (long) mx_native_byteorder();
+		break;
+
+	case MXLV_VIN_TRIGGER_MODE:
+		/* For this, we just return the values set by an earlier
+		 * ..._set_parameter() call.
+		 */
+		break;
+
+	case MXLV_VIN_BYTES_PER_FRAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
+		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel = 16;
+
+		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel
+			* vinput->framesize[0] * vinput->framesize[1] );
+		break;
+
+	case MXLV_VIN_BUSY:
+		vinput->busy = 0;
+		break;
+
+	case MXLV_VIN_STATUS:
+		vinput->status = 0;
+		break;
+
+	case MXLV_VIN_SEQUENCE_TYPE:
+		break;
+
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
+	default:
+		mx_status =
+			mx_video_input_default_get_parameter_handler( vinput );
+		break;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_set_parameter( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] =
+			"mxd_sapera_lt_camera_set_parameter()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	unsigned long bytes_per_frame;
+	unsigned long i, absolute_frame_number, num_frame_buffers;
+	mx_bool_type internal_trigger_enabled, external_trigger_enabled;
+	unsigned long trigger_mask;
+	UINT32 external_trigger_setting;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_MX_PARAMETERS
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s' (%ld)",
+		fname, vinput->record->name,
+	mx_get_field_label_string( vinput->record, vinput->parameter_type ),
+			vinput->parameter_type));
+#endif
+
+	switch( vinput->parameter_type ) {
+	case MXLV_VIN_MARK_FRAME_AS_SAVED:
+
+#if 0
+		MX_DEBUG(-2,("%s: mark_frame_as_saved = %lu",
+			fname, vinput->mark_frame_as_saved));
+#endif
+
+		if ( sapera_lt_camera->num_frame_buffers <= 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The sapera_lt_camera '%s' must have at least "
+			"1 frame buffer, but the driver says it has (%ld).",
+				vinput->record->name );
+		}
+		if ( sapera_lt_camera->frame_buffer_is_unsaved == NULL )
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The frame_buffer_is_unsaved pointer for "
+			"area detector '%s' is NULL.",
+				vinput->record->name );
+		}
+
+		absolute_frame_number = vinput->mark_frame_as_saved;
+
+		num_frame_buffers = sapera_lt_camera->num_frame_buffers;
+
+		i = absolute_frame_number % num_frame_buffers;
+
+		sapera_lt_camera->frame_buffer_is_unsaved[i] = FALSE;
+		break;
+
+	case MXLV_VIN_FRAMESIZE:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Changing the framesize is not yet implemented for '%s'.",
+			vinput->record->name );
+		break;
+
+	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Changing the image format is not supported for "
+			"video input '%s'.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_BYTE_ORDER:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Changing the byte order for video input '%s' "
+			"is not supported.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_TRIGGER_MODE:
+		break;
+
+	case MXLV_VIN_BYTES_PER_FRAME:
+		break;
+
+	case MXLV_VIN_BYTES_PER_PIXEL:
+		break;
+
+	case MXLV_VIN_BITS_PER_PIXEL:
+		break;
+
+	case MXLV_VIN_SEQUENCE_TYPE:
+		break;
+
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
+	default:
+		mx_status =
+			mx_video_input_default_set_parameter_handler( vinput );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
