@@ -372,7 +372,9 @@ mxd_sapera_lt_camera_set_extended_exposure(
 	double minimum_vertical_blanking_interval_factor = 1320.0;
 
 	double exposure_time_in_milliseconds;
-	uint32_t extended_exposure_value;
+	int32_t extended_exposure_value;
+
+	double minimum_exposure_time, maximum_exposure_time;
 
 	BOOL sapera_status;
 	mx_bool_type disconnect_and_reconnect = FALSE;
@@ -404,17 +406,44 @@ mxd_sapera_lt_camera_set_extended_exposure(
 
 	exposure_time_in_milliseconds = 1000.0 * exposure_time_in_seconds;
 
-	extended_exposure_value = (uint32_t) (
+	extended_exposure_value = (int32_t) (
 		(pixel_data_rate_in_khz / clock_cycles_per_line_factor)
 		* exposure_time_in_milliseconds
 			- minimum_vertical_blanking_interval_factor );
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE
 	MX_DEBUG(-2,
-	("%s: exposure time = %f seconds, extended_exposure_value = %lu",
+	("%s: exposure time = %f seconds, extended_exposure_value = %ld",
 		fname, exposure_time_in_seconds,
-		(unsigned long) extended_exposure_value ));
+		(long) extended_exposure_value ));
 #endif
+
+	if ( extended_exposure_value < 0 ) {
+		minimum_exposure_time = 0.001 *
+			(clock_cycles_per_line_factor / pixel_data_rate_in_khz)
+			* minimum_vertical_blanking_interval_factor;
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested exposure time of %f seconds for camera '%s' "
+		"is less than the minimum exposure time of %f seconds.",
+			exposure_time_in_seconds,
+			sapera_lt_camera->record->name,
+			minimum_exposure_time );
+	}
+
+	if ( extended_exposure_value > 65535 ) {
+		maximum_exposure_time = 0.001 *
+			(clock_cycles_per_line_factor / pixel_data_rate_in_khz)
+			* (minimum_vertical_blanking_interval_factor + 65535);
+
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested exposure time of %f seconds for camera '%s' "
+		"is greater than the maximum exposure time of %f seconds.",
+			exposure_time_in_seconds,
+			sapera_lt_camera->record->name,
+			maximum_exposure_time );
+	}
+
 	if ( disconnect_and_reconnect ) {
 		sapera_status = sapera_lt_camera->transfer->Disconnect();
 
