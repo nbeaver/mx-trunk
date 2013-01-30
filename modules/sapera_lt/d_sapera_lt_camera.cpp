@@ -18,7 +18,9 @@
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_OPEN				TRUE
 
-#define MXD_SAPERA_LT_CAMERA_LIST_FEATURES			FALSE
+#define MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE		TRUE
+
+#define MXD_SAPERA_LT_CAMERA_SHOW_FEATURES			TRUE
 
 #define MXD_SAPERA_LT_CAMERA_DEBUG_ARM				TRUE
 
@@ -53,6 +55,8 @@
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_memory.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "i_sapera_lt.h"
@@ -67,7 +71,10 @@ MX_RECORD_FUNCTION_LIST mxd_sapera_lt_camera_record_function_list = {
 	NULL,
 	NULL,
 	mxd_sapera_lt_camera_open,
-	mxd_sapera_lt_camera_close
+	mxd_sapera_lt_camera_close,
+	NULL,
+	NULL,
+	mxd_sapera_lt_camera_special_processing_setup
 };
 
 MX_VIDEO_INPUT_FUNCTION_LIST
@@ -100,6 +107,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_sapera_lt_camera_rfield_def_ptr
 			= &mxd_sapera_lt_camera_record_field_defaults[0];
 
 /*---*/
+
+static mx_status_type mxd_sapera_lt_camera_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 static mx_status_type
 mxd_sapera_lt_camera_get_pointers( MX_VIDEO_INPUT *vinput,
@@ -348,12 +359,62 @@ mxd_sapera_lt_camera_setup_frame_counters( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
-#if MXD_SAPERA_LT_CAMERA_LIST_FEATURES
-
-static void
-mxd_sapera_lt_camera_list_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+static mx_status_type
+mxd_sapera_lt_camera_set_extended_exposure(
+			MX_SAPERA_LT_CAMERA *sapera_lt_camera,
+			double exposure_time_in_seconds )
 {
-	static const char fname[] = "mxd_sapera_lt_camera_list_features()";
+	static const char fname[] =
+		"mxd_sapera_lt_camera_set_extended_exposure()";
+
+	double pixel_data_rate_in_khz = 40000.0;
+	double clock_cycles_per_line_factor = 676.0;
+	double minimum_vertical_blanking_interval_factor = 1320.0;
+
+	double exposure_time_in_milliseconds;
+	uint32_t extended_exposure_value;
+
+	BOOL sapera_status;
+
+	if ( sapera_lt_camera == (MX_SAPERA_LT_CAMERA *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SAPERA_LT_CAMERA pointer passed was NULL." );
+	}
+
+	exposure_time_in_milliseconds = 1000.0 * exposure_time_in_seconds;
+
+	extended_exposure_value = (uint32_t) (
+		(pixel_data_rate_in_khz / clock_cycles_per_line_factor)
+		* exposure_time_in_milliseconds
+			- minimum_vertical_blanking_interval_factor );
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_EXTENDED_EXPOSURE
+	MX_DEBUG(-2,
+	("%s: exposure time = %f seconds, extended_exposure_value = %lu",
+		fname, exposure_time_in_seconds,
+		(unsigned long) extended_exposure_value ));
+#endif
+
+	sapera_status = sapera_lt_camera->acq_device->SetFeatureValue(
+						"ExtendedExposure",
+						extended_exposure_value );
+
+	if ( sapera_status == 0 ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"Setting 'ExtendedExposure' to %lu failed for camera '%s'.",
+			extended_exposure_value,
+			sapera_lt_camera->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_show_features()";
 
 	MX_RECORD *record;
 	SapAcqDevice *acq_device;
@@ -502,9 +563,9 @@ mxd_sapera_lt_camera_list_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 
 		fprintf( stderr, "\n" );
 	}
-}
 
-#endif /* MXD_SAPERA_LT_CAMERA_LIST_FEATURES */
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /*--------------------------------------------------------------------------*/
 
@@ -692,8 +753,18 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/* -------- */
 
+	/* Initialize the exposure time to 1 second. */
+
+	mx_status = mxd_sapera_lt_camera_set_extended_exposure(
+					sapera_lt_camera, 1.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+					
+	/* -------- */
+
 #if MXD_SAPERA_LT_CAMERA_LIST_FEATURES
-	mxd_sapera_lt_camera_list_features( sapera_lt_camera );
+	(void) mxd_sapera_lt_camera_show_features( sapera_lt_camera );
 #endif
 
 	/*---------------------------------------------------------------*/
@@ -719,17 +790,17 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* Create the SapBufferWithTrash object which contains the raw image
+	/* Create the SapBuffer object which contains the raw image
 	 * data from all of the frames we take in a sequence.
 	 */
 
 	sapera_lt_camera->buffer =
-		new SapBufferWithTrash( sapera_lt_camera->num_frame_buffers,
+		new SapBuffer( sapera_lt_camera->num_frame_buffers,
 					sapera_lt_camera->acq_device );
 
 	if ( sapera_lt_camera->buffer == NULL ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Unable to create a %ld frame SapBufferWithTrash object for "
+		"Unable to create a %ld frame SapBuffer object for "
 		"camera '%s'.",
 			sapera_lt_camera->num_frame_buffers,
 			record->name );
@@ -775,7 +846,19 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/* -------- */
 
-	sapera_status = sapera_lt_camera->buffer->Create();
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: Before buffer->Create()", fname));
+#endif
+
+	try {
+		sapera_status = sapera_lt_camera->buffer->Create();
+	}
+	catch (...) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"An exception occurred when trying to create "
+		"the camera buffers for camera '%s'.  Exception = 'foo'",
+			record->name );
+	}
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: sapera_lt_camera->buffer->Create() = %d",
@@ -785,13 +868,13 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	if ( sapera_status == FALSE ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Unable to create the low-level resources used by the "
-		"SapBufferWithTrash object of camera '%s'.",
+		"SapBuffer object of camera '%s'.",
 			record->name );
 	}
 
 #if ( 1 && MXD_SAPERA_LT_CAMERA_DEBUG_OPEN )
 	{
-		SapBufferWithTrash *buffer;
+		SapBuffer *buffer;
 		int pixel_depth, num_buffers, width, height;
 
 		buffer = sapera_lt_camera->buffer;
@@ -802,10 +885,10 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		height      = buffer->GetHeight();
 
 		MX_DEBUG(-2,
-		("%s: SapBufferWithTrash pixel_depth = %d, num_buffers = %d",
+		("%s: SapBuffer pixel_depth = %d, num_buffers = %d",
 			fname, pixel_depth, num_buffers));
 
-		MX_DEBUG(-2,("%s: SapBufferWithTrash width = %d, height = %d",
+		MX_DEBUG(-2,("%s: SapBuffer width = %d, height = %d",
 			fname, width, height));
 	}
 #endif
@@ -813,8 +896,8 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	/*---------------------------------------------------------------*/
 
 	/* Create a SapAcqDeviceToBuf object.  This object manages the
-	 * transfer of data from the camera to the SapBufferWithTrash
-	 * object that we created just above.
+	 * transfer of data from the camera to the SapBuffer object
+	 * that we created just above.
 	 */
 
 	sapera_lt_camera->transfer =
@@ -981,7 +1064,6 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	unsigned long trigger_mask;
 	double exposure_time, frame_time;
 	unsigned long num_frames;
-	UINT32 exposure_time_in_microsec;
 	BOOL sapera_status;
 	mx_status_type mx_status;
 
@@ -1065,11 +1147,8 @@ mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput )
 	
 	/* We use the "Extended Exposure" feature to set the exposure time. */
 
-	uint32_t exposure_value =
-		(uint32_t) ( 40000.0 / 676.0 * exposure_time - 1320 );
-
-	sapera_lt_camera->acq_device->SetFeatureValue( "ExtendedExposure",
-							exposure_value );
+	mx_status = mxd_sapera_lt_camera_set_extended_exposure(
+					sapera_lt_camera, exposure_time );
 					
 #if MXD_SAPERA_LT_CAMERA_DEBUG_ARM
 	MX_DEBUG(-2,("%s complete for video input '%s'.",
@@ -1622,4 +1701,100 @@ mxd_sapera_lt_camera_set_parameter( MX_VIDEO_INPUT *vinput )
 }
 
 /*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_special_processing_setup( MX_RECORD *record )
+{
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES:
+			record_field->process_function
+				= mxd_sapera_lt_camera_process_function;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_sapera_lt_camera_process_function( void *record_ptr,
+				void *record_field_ptr,
+				int operation )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	MX_VIDEO_INPUT *vinput;
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	sapera_lt_camera = (MX_SAPERA_LT_CAMERA *) record->record_type_struct;
+
+	if ( sapera_lt_camera == (MX_SAPERA_LT_CAMERA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SAPERA_LT_CAMERA pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		break;
+
+	case MX_PROCESS_PUT:
+		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES:
+			mx_status =
+		    mxd_sapera_lt_camera_show_features( sapera_lt_camera );
+
+			break;
+		default:
+			break;
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unknown operation code = %d for record '%s'.",
+			operation, record->name );
+	}
+
+	return mx_status;
+}
 

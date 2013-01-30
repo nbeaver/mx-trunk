@@ -31,7 +31,7 @@ typedef struct {
 	unsigned long num_frames_left_to_acquire;
 
 	SapAcqDevice       *acq_device;
-	SapBufferWithTrash *buffer;
+	SapBuffer          *buffer;
 	SapAcqDeviceToBuf  *transfer;
 
 	SapLocation        *location;
@@ -43,33 +43,37 @@ typedef struct {
 
 	mx_bool_type buffer_overrun_occurred;
 
+	mx_bool_type show_features;
+
 } MX_SAPERA_LT_CAMERA;
 
+#define MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES	88888
 
 #define MXD_SAPERA_LT_CAMERA_STANDARD_FIELDS \
   {-1, -1, "sapera_lt_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_CAMERA, sapera_lt_record), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, sapera_lt_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "camera_number", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_CAMERA, camera_number), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, camera_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "config_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_CAMERA, config_filename), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, config_filename), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "num_frame_buffers", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_SAPERA_LT_CAMERA, num_frame_buffers), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, num_frame_buffers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "buffer_overrun_occurred", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SAPERA_LT_CAMERA, buffer_overrun_occurred), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES, -1, "show_features", \
+						MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, show_features), \
 	{0}, NULL, 0}
 	
 
@@ -85,6 +89,8 @@ MX_API mx_status_type mxd_sapera_lt_camera_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_camera_open( MX_RECORD *record );
 MX_API mx_status_type mxd_sapera_lt_camera_close( MX_RECORD *record );
+MX_API mx_status_type mxd_sapera_lt_camera_special_processing_setup(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_sapera_lt_camera_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput );
