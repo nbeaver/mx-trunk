@@ -447,9 +447,7 @@ mxd_sapera_lt_camera_show_features( MX_SAPERA_LT_CAMERA *sapera_lt_camera )
 
 	fprintf( stderr, "%d features available.\n", feature_count );
 
-	feature = new SapFeature( *(sapera_lt_camera->location) );
-
-	sapera_status = feature->Create();
+	feature = sapera_lt_camera->feature;
 
 	for ( i = 0; i < feature_count; i++ ) {
 
@@ -720,11 +718,6 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	SapLocation location( sapera_lt->server_name,
 				sapera_lt_camera->camera_number );
 
-	sapera_lt_camera->location = &location;
-
-	MX_DEBUG(-2,("%s: location = '%s'",
-		fname, sapera_lt_camera->location->GetServerName() ));
-
 	sapera_lt_camera->acq_device = new SapAcqDevice( location,
 					sapera_lt_camera->config_filename );
 
@@ -748,6 +741,24 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		"Unable to read from the configuration file '%s' "
 		"used by camera '%s'.",
 			sapera_lt_camera->config_filename,
+			record->name );
+	}
+
+	/* -------- */
+
+	/* Create a SapFeature object now, since we will need it later
+	 * in stack frames where we will no longer have access to the
+	 * SapLocation object created just above.
+	 */
+
+	sapera_lt_camera->feature = new SapFeature( location );
+
+	sapera_status = sapera_lt_camera->feature->Create();
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to Create() a SapFeature object failed "
+		"for camera '%s'.",
 			record->name );
 	}
 
@@ -846,6 +857,11 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/* -------- */
 
+	MX_DEBUG(-2,
+	("%s: FIXME: Delaying 5 seconds before buffer->Create()", fname ));
+
+	mx_msleep(5000);
+
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Before buffer->Create()", fname));
 #endif
@@ -927,6 +943,10 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		"SapAcqDeviceToBuf object of camera '%s'.",
 			record->name );
 	}
+
+#if 1
+	mxd_sapera_lt_camera_set_extended_exposure( sapera_lt_camera, 1.0 );
+#endif
 
 	/*---------------------------------------------------------------*/
 

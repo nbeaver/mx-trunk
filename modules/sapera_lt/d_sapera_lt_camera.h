@@ -34,7 +34,7 @@ typedef struct {
 	SapBuffer          *buffer;
 	SapAcqDeviceToBuf  *transfer;
 
-	SapLocation        *location;
+	SapFeature         *feature;
 
 	struct timespec boot_time;
 
