@@ -375,11 +375,32 @@ mxd_sapera_lt_camera_set_extended_exposure(
 	uint32_t extended_exposure_value;
 
 	BOOL sapera_status;
+	mx_bool_type disconnect_and_reconnect = FALSE;
 
 	if ( sapera_lt_camera == (MX_SAPERA_LT_CAMERA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SAPERA_LT_CAMERA pointer passed was NULL." );
 	}
+
+	/* You cannot call SetFeatureValue() if the associated transfer
+	 * object is connected.  We must test for this.
+	 */
+
+	if ( sapera_lt_camera->transfer == NULL ) {
+		disconnect_and_reconnect = FALSE;
+	} else {
+		BOOL is_connected;
+
+		is_connected = sapera_lt_camera->transfer->IsConnected();
+
+		if ( is_connected ) {
+			disconnect_and_reconnect = TRUE;
+		} else {
+			disconnect_and_reconnect = FALSE;
+		}
+	}
+
+	/* Compute the extended exposure value to send to the camera. */
 
 	exposure_time_in_milliseconds = 1000.0 * exposure_time_in_seconds;
 
@@ -394,6 +415,18 @@ mxd_sapera_lt_camera_set_extended_exposure(
 		fname, exposure_time_in_seconds,
 		(unsigned long) extended_exposure_value ));
 #endif
+	if ( disconnect_and_reconnect ) {
+		sapera_status = sapera_lt_camera->transfer->Disconnect();
+
+		if ( sapera_status == 0 ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to Disconnect() the SapTransfer object "
+			"for camera '%s' failed.",
+				sapera_lt_camera->record->name );
+		}
+	}
+
+	/* Set the exposure time in the camera. */
 
 	sapera_status = sapera_lt_camera->acq_device->SetFeatureValue(
 						"ExtendedExposure",
@@ -404,6 +437,17 @@ mxd_sapera_lt_camera_set_extended_exposure(
 		"Setting 'ExtendedExposure' to %lu failed for camera '%s'.",
 			extended_exposure_value,
 			sapera_lt_camera->record->name );
+	}
+
+	if ( disconnect_and_reconnect ) {
+		sapera_status = sapera_lt_camera->transfer->Connect();
+
+		if ( sapera_status == 0 ) {
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to Connect() the SapTransfer object "
+			"for camera '%s' failed.",
+				sapera_lt_camera->record->name );
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -632,6 +676,8 @@ mxd_sapera_lt_camera_finish_record_initialization( MX_RECORD *record )
 #if MXD_SAPERA_LT_CAMERA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	sapera_lt_camera->transfer = NULL;
+
 	mx_status = mx_video_input_finish_record_initialization( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -856,11 +902,6 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 	}
 
 	/* -------- */
-
-	MX_DEBUG(-2,
-	("%s: FIXME: Delaying 5 seconds before buffer->Create()", fname ));
-
-	mx_msleep(5000);
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Before buffer->Create()", fname));
