@@ -31,7 +31,7 @@ typedef struct {
 	unsigned long num_frames_left_to_acquire;
 
 	SapAcqDevice       *acq_device;
-	SapBuffer          *buffer;
+	SapBufferWithTrash *buffer;
 	SapAcqDeviceToBuf  *transfer;
 
 	SapFeature         *feature;

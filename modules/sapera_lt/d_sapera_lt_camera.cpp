@@ -781,7 +781,7 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* Create the high level SapAcqDevice object.
+	/* Allocate and then Create() the high level SapAcqDevice object.
 	 * 
 	 * Soon we will call the functions mx_video_input_get_framesize()
 	 * and mx_video_input_get_bytes_per_frame().  Those two functions
@@ -876,12 +876,12 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* Create the SapBuffer object which contains the raw image
+	/* Allocate the SapBuffer object which contains the raw image
 	 * data from all of the frames we take in a sequence.
 	 */
 
 	sapera_lt_camera->buffer =
-		new SapBuffer( sapera_lt_camera->num_frame_buffers,
+		new SapBufferWithTrash( sapera_lt_camera->num_frame_buffers,
 					sapera_lt_camera->acq_device );
 
 	if ( sapera_lt_camera->buffer == NULL ) {
@@ -894,6 +894,27 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	vinput->num_capture_buffers =
 		sapera_lt_camera->num_frame_buffers;
+
+	/*---------------------------------------------------------------*/
+
+	/* Allocate a SapAcqDeviceToBuf object.  This object manages the
+	 * transfer of data from the camera to the SapBuffer object
+	 * that we created just above.
+	 */
+
+	sapera_lt_camera->transfer =
+		new SapAcqDeviceToBuf( sapera_lt_camera->acq_device,
+				sapera_lt_camera->buffer,
+				mxd_sapera_lt_camera_acquisition_callback,
+				(void *) sapera_lt_camera );
+
+	if ( sapera_lt_camera->transfer == NULL ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+	    "Unable to create a SapAcqToBuf object for camera '%s'.",
+			record->name );
+	}
+
+	/*---------------------------------------------------------------*/
 
 	/* Create an array of 'struct timespec' structures to hold the
 	 * wall clock time when each frame was acquired.
@@ -930,21 +951,15 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 			record->name );
 	}
 
-	/* -------- */
+	/*---------------------------------------------------------------*/
+
+	/* Create() the buffer object. */
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: Before buffer->Create()", fname));
 #endif
 
-	try {
-		sapera_status = sapera_lt_camera->buffer->Create();
-	}
-	catch (...) {
-		return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"An exception occurred when trying to create "
-		"the camera buffers for camera '%s'.  Exception = 'foo'",
-			record->name );
-	}
+	sapera_status = sapera_lt_camera->buffer->Create();
 
 #if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
 	MX_DEBUG(-2,("%s: sapera_lt_camera->buffer->Create() = %d",
@@ -981,24 +996,11 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 
 	/*---------------------------------------------------------------*/
 
-	/* Create a SapAcqDeviceToBuf object.  This object manages the
-	 * transfer of data from the camera to the SapBuffer object
-	 * that we created just above.
-	 */
+	/* Create() the transfer object. */
 
-	sapera_lt_camera->transfer =
-		new SapAcqDeviceToBuf( sapera_lt_camera->acq_device,
-				sapera_lt_camera->buffer,
-				mxd_sapera_lt_camera_acquisition_callback,
-				(void *) sapera_lt_camera );
-
-	if ( sapera_lt_camera->transfer == NULL ) {
-		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	    "Unable to create a SapAcqToBuf object for camera '%s'.",
-			record->name );
-	}
-
-	/* -------- */
+#if MXD_SAPERA_LT_CAMERA_DEBUG_OPEN
+	MX_DEBUG(-2,("%s: Before transfer->Create()", fname));
+#endif
 
 	sapera_status = sapera_lt_camera->transfer->Create();
 
@@ -1013,10 +1015,6 @@ mxd_sapera_lt_camera_open( MX_RECORD *record )
 		"SapAcqDeviceToBuf object of camera '%s'.",
 			record->name );
 	}
-
-#if 1
-	mxd_sapera_lt_camera_set_extended_exposure( sapera_lt_camera, 1.0 );
-#endif
 
 	/*---------------------------------------------------------------*/
 
