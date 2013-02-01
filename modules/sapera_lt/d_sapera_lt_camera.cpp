@@ -81,7 +81,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST
 mxd_sapera_lt_camera_video_input_function_list = {
 	mxd_sapera_lt_camera_arm,
 	mxd_sapera_lt_camera_trigger,
-	NULL,
+	mxd_sapera_lt_camera_stop,
 	mxd_sapera_lt_camera_abort,
 	NULL,
 	NULL,
@@ -310,7 +310,7 @@ mxd_sapera_lt_camera_acquisition_callback( SapXferCallbackInfo *info )
 		mx_warning( "Aborting the running sequence for '%s'.",
 				record->name );
 
-		(void) mx_video_input_abort( record );
+		(void) mx_video_input_stop( record );
 	}
 #endif
 
@@ -1428,6 +1428,94 @@ mxd_sapera_lt_camera_trigger( MX_VIDEO_INPUT *vinput )
 		"Trigger mode %ld is not supported for camera '%s'.",
 			vinput->trigger_mode, vinput->record->name );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_sapera_lt_camera_stop( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_sapera_lt_camera_stop()";
+
+	MX_SAPERA_LT_CAMERA *sapera_lt_camera = NULL;
+	MX_SEQUENCE_PARAMETERS *sp = NULL;
+	double exposure_time;
+	int wait_milliseconds;
+	BOOL sapera_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_sapera_lt_camera_get_pointers( vinput,
+					&sapera_lt_camera, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+	sapera_status = sapera_lt_camera->transfer->Freeze();
+
+	if ( sapera_status == FALSE ) {
+		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The attempt to stop camera '%s' failed.",
+			vinput->record->name );
+	}
+
+	sp = &(vinput->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+		exposure_time = sp->parameter_array[1];
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Sequence type %ld has not yet been implemented for '%s'.",
+			sp->sequence_type, vinput->record->name );
+		break;
+	}
+
+	/* Wait for 200% of the exposure time for data transfer to finish. */
+
+	wait_milliseconds = (int) ( 2000.0 * exposure_time );
+
+	sapera_status = sapera_lt_camera->transfer->Wait( wait_milliseconds );
+
+#if 0
+	if ( sapera_status == FALSE ) {
+
+		(void) mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+		"The running sequence for camera '%s' has not stopped "
+		"after a timeout of %d milliseconds.  "
+		"Forcing an abort instead.",
+			vinput->record->name,
+			wait_milliseconds );
+
+		mx_status = mx_video_input_abort( sapera_lt_camera->record );
+
+		sapera_lt_camera->num_frames_left_to_acquire = 0;
+
+		return mx_status;
+	}
+#endif
+
+	/* Mark the sequence as complete. */
+
+	if ( sapera_lt_camera->num_frames_left_to_acquire > 0 ) {
+		sapera_lt_camera->num_frames_left_to_acquire = 0;
+	}
+
+#if MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE
+
+	MX_DEBUG(-2,
+	("%s: total_num_frames = %lu, num_frames_left_to_acquire = %lu",
+		fname, vinput->total_num_frames,
+		sapera_lt_camera->num_frames_left_to_acquire ));
+
+#endif /* MXD_SAPERA_LT_CAMERA_DEBUG_NUM_FRAMES_LEFT_TO_ACQUIRE */
 
 	return MX_SUCCESSFUL_RESULT;
 }
