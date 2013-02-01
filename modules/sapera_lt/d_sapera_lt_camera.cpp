@@ -1922,7 +1922,9 @@ mxd_sapera_lt_camera_special_processing_setup( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_GAIN:
 		case MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES:
+		case MXLV_SAPERA_LT_CAMERA_TEMPERATURE:
 			record_field->process_function
 				= mxd_sapera_lt_camera_process_function;
 			break;
@@ -1945,6 +1947,8 @@ mxd_sapera_lt_camera_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_VIDEO_INPUT *vinput;
 	MX_SAPERA_LT_CAMERA *sapera_lt_camera;
+	SapAcqDevice *acq_device;
+	BOOL sapera_status;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -1979,12 +1983,65 @@ mxd_sapera_lt_camera_process_function( void *record_ptr,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	acq_device = sapera_lt_camera->acq_device;
+
 	switch( operation ) {
 	case MX_PROCESS_GET:
+		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_GAIN:
+			sapera_status = acq_device->GetFeatureValue(
+						"Gain_Float",
+						&(sapera_lt_camera->gain) );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to get the gain for "
+				"camera '%s' failed.",
+					vinput->record->name );
+			}
+			break;
+		case MXLV_SAPERA_LT_CAMERA_TEMPERATURE:
+#if 0
+			sapera_status = acq_device->SetFeatureValue(
+						"ForceReadTemperature", 1 );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to force a read of the "
+				"temperature of camera '%s' failed.",
+					vinput->record->name );
+			}
+#endif
+
+			sapera_status = acq_device->GetFeatureValue(
+						"TemperatureAbs",
+					&(sapera_lt_camera->temperature) );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to read the temperature in "
+				"Celsius of camera '%s' failed.",
+					vinput->record->name );
+			}
+		default:
+			break;
+		}
 		break;
 
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_SAPERA_LT_CAMERA_GAIN:
+			sapera_status = acq_device->SetFeatureValue(
+						"Gain_Float",
+						sapera_lt_camera->gain );
+
+			if ( sapera_status == FALSE ) {
+				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
+				"The attempt to set the gain for "
+				"camera '%s' failed.",
+					vinput->record->name );
+			}
+			break;
 		case MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES:
 			mx_status =
 		    mxd_sapera_lt_camera_show_features( sapera_lt_camera );

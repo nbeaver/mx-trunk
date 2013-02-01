@@ -44,10 +44,14 @@ typedef struct {
 	mx_bool_type buffer_overrun_occurred;
 
 	mx_bool_type show_features;
+	double gain;
+	double temperature;
 
 } MX_SAPERA_LT_CAMERA;
 
-#define MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES	88888
+#define MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES	88800
+#define MXLV_SAPERA_LT_CAMERA_GAIN		88801
+#define MXLV_SAPERA_LT_CAMERA_TEMPERATURE	88802
 
 #define MXD_SAPERA_LT_CAMERA_STANDARD_FIELDS \
   {-1, -1, "sapera_lt_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -74,6 +78,15 @@ typedef struct {
   {MXLV_SAPERA_LT_CAMERA_SHOW_FEATURES, -1, "show_features", \
 						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, show_features), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_CAMERA_GAIN, -1, "gain", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, gain), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_SAPERA_LT_CAMERA_TEMPERATURE, -1, "temperature", \
+						MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SAPERA_LT_CAMERA, temperature), \
 	{0}, NULL, 0}
 	
 
